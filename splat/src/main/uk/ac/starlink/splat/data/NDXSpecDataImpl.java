@@ -3,6 +3,7 @@
 package uk.ac.starlink.splat.data;
 
 import java.io.IOException;
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 
@@ -213,7 +214,17 @@ public class NDXSpecDataImpl extends SpecDataImpl
         ////HdxContainer hdx;
         try {
             NdxIO ndxIO = new NdxIO();
-            URL url = new URL( new URL( "file:." ), hdxName );
+
+            // Check for a local file first. Windows doesn't like 
+            // using a "file:." for these.
+            URL url = null;
+            File infile = new File( hdxName );
+            if ( infile.exists() ) {
+                url = infile.toURL();
+            }
+            else {
+                url = new URL( new URL( "file:." ), hdxName );
+            }
             ndx = ndxIO.makeNdx( url, AccessMode.READ );
         }
         catch (Exception e) {

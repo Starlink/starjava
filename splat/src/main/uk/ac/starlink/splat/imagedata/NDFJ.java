@@ -1,11 +1,13 @@
 package uk.ac.starlink.splat.imagedata;
 
 import java.io.Serializable;
+import java.util.logging.Logger;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Channel;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.ast.ASTChannel;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Java interface for accessing data stored in NDFs.
@@ -29,6 +31,7 @@ public class NDFJ implements Serializable
      *  Default constructor.
      */
     public NDFJ()
+        throws UnsupportedOperationException
     {
         // Do nothing.
     }
@@ -40,7 +43,9 @@ public class NDFJ implements Serializable
      */
     public NDFJ( int ident )
     {
-        initialize( ident );
+        if ( supported ) {
+            initialize( ident );
+        }
     }
 
     /**
@@ -58,12 +63,26 @@ public class NDFJ implements Serializable
     //  =============
     //
 
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.splat" );
+    private static boolean supported = true;
     /**
      *  Load the shareable libraries that contains the NDF code and all
      *  its dependencies.
      */
     static {
-	System.loadLibrary( "splat" );
+        try {
+            Loader.loadLibrary( "splat" );
+        }
+        catch (SecurityException se) {
+            supported = false;
+        }
+        catch (UnsatisfiedLinkError ue) {
+            supported = false;
+        }
+        if ( ! supported ) {
+            logger.warning( "Failed to load the SPLAT JNI library" );
+            logger.warning( "No NDF support available" );
+        }
     }
 
     /**
@@ -160,11 +179,20 @@ public class NDFJ implements Serializable
      */
     protected volatile FrameSet wcs = null;
 
+
     //
     //  ====================
     //  Class public methods
     //  ====================
     //
+
+    /**
+     * See if NDF support is available.
+     */
+    public static boolean supported()
+    {
+        return supported;
+    }
 
     /**
      * Open an NDF by name.
@@ -615,7 +643,7 @@ public class NDFJ implements Serializable
     // AST FrameSet access
     // ===================
 
-    /** 
+    /**
      * Create an AST FrameSet from the NDF WCS component. This is
      * passed as a long pointer reference through the JNI interface
      * for speed (encoding/decoding this as a character was too
@@ -639,7 +667,7 @@ public class NDFJ implements Serializable
         return new NDFJFrameSet( pointer );
     }
 
-    /** 
+    /**
      * Write an AST FrameSet into an NDF.
      */
     protected void setAst( int ident, FrameSet wcs )
@@ -656,7 +684,7 @@ public class NDFJ implements Serializable
                 String[] astArray = new String[1];
                 ASTChannel chan = new ASTChannel( astArray );
                 chan.write( wcs );
-                
+
                 //  The dummy channel now knows how much space is
                 //  required.
                 astArray = new String[chan.getIndex()];
@@ -952,7 +980,7 @@ public class NDFJ implements Serializable
      *
      * @return short[][]  The 2D NDF data array.
      */
-    protected synchronized static native short[][] 
+    protected synchronized static native short[][]
         nGet2DShort( int ident, String component, boolean complete );
 
     /**
@@ -964,7 +992,7 @@ public class NDFJ implements Serializable
      *
      * @return byte[][]  The 2D NDF data array.
      */
-    protected synchronized static native byte[][] 
+    protected synchronized static native byte[][]
         nGet2DByte( int ident, String component, boolean complete );
 
     /**
@@ -973,7 +1001,7 @@ public class NDFJ implements Serializable
      * @param ident The NDF identifier.
      *
      * @return String[] the FrameSet as a character array (native
-     *                  format). 
+     *                  format).
      */
     protected synchronized static native String[] nGetAstArray( int ident );
 
@@ -982,7 +1010,7 @@ public class NDFJ implements Serializable
      *
      * @param ident The NDF identifier.
      *
-     * @return long the FrameSet pointer. 
+     * @return long the FrameSet pointer.
      */
     protected synchronized static native long nGetAst( int ident );
 
@@ -993,7 +1021,7 @@ public class NDFJ implements Serializable
      * @param wcsArray the FrameSet encoded as a character array
      *                 (native format).
      */
-    protected synchronized static native void 
+    protected synchronized static native void
         nSetAstArray( int ident, String[] wcsArray );
 
     /**
@@ -1002,7 +1030,7 @@ public class NDFJ implements Serializable
      * @param ident the NDF identifier.
      * @param pointer the FrameSet pointer.
      */
-    protected synchronized static native void nSetAst( int ident, 
+    protected synchronized static native void nSetAst( int ident,
                                                        long pointer );
 
     /**
@@ -1014,7 +1042,7 @@ public class NDFJ implements Serializable
      *  @return The character component value, blank if not located.
      */
     protected synchronized static native String nGetCharComp( int ident,
-                                                              String comp ); 
+                                                              String comp );
 
     /**
      *  Set the value of a character component.
@@ -1043,7 +1071,7 @@ public class NDFJ implements Serializable
      *
      * @return new NDF identifier.
      */
-    protected synchronized static native int nGetCopy( int ident, 
+    protected synchronized static native int nGetCopy( int ident,
                                                        int placeHolder );
 
     /**
@@ -1055,8 +1083,8 @@ public class NDFJ implements Serializable
      *
      * @return new NDF identifier.
      */
-    protected synchronized static native int nGet1DNewDouble( int placeHolder, 
-                                                              int size ); 
+    protected synchronized static native int nGet1DNewDouble( int placeHolder,
+                                                              int size );
 
     /**
      * Check if a named NDF extension exists.
@@ -1065,7 +1093,7 @@ public class NDFJ implements Serializable
      *
      * @return boolean true if extension exists.
      */
-    protected synchronized static native boolean 
+    protected synchronized static native boolean
         nHasExtension( int ident, String extension );
 
     /**
@@ -1094,7 +1122,7 @@ public class NDFJ implements Serializable
      *
      * @return the header card or "".
      */
-    protected synchronized static native String nGetFitsHeader( long fitsref, 
+    protected synchronized static native String nGetFitsHeader( long fitsref,
                                                                 int index );
 
     /**
@@ -1102,8 +1130,8 @@ public class NDFJ implements Serializable
      *
      * @param fitsref reference to the NDF fits headers.
      */
-    protected synchronized static native void 
-        nReleaseFitsHeaders( long fitsref ); 
+    protected synchronized static native void
+        nReleaseFitsHeaders( long fitsref );
 
     /**
      * Create a FITS extension in the NDF using the given cards to
@@ -1112,6 +1140,6 @@ public class NDFJ implements Serializable
      * @param ident The NDF identifier.
      * @param cards String array of the cards.
      */
-    protected synchronized static native void 
+    protected synchronized static native void
         nCreateFitsExtension( int ident, String[] cards );
 }

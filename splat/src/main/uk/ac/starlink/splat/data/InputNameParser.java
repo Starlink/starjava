@@ -8,8 +8,8 @@ import java.io.File;
  *                    store spectra.
  * <p>
  *  These names may be simple disk file names, such as the top-level
- *  containers of NDF, FITS and TEXT data, or more complex ones that
- *  include NDF slices, FITS extensions and possibly HDS component
+ *  containers of NDF, FITS, TEXT and XML data, or more complex ones
+ *  that include NDF slices, FITS extensions and possibly HDS component
  *  paths.
  *  <p>
  *  So the sort of names that we might get for spectra are:
@@ -39,6 +39,8 @@ import java.io.File;
  *    <li> file.sdf.ndf(1:100,2:100) -- slice of an NDF stored in a
  *                                      container file. This name is fully
  *                                      expanded.
+ *
+ *    <li> file.xml -- an HDX file that may contain an NDX.
  *  </ul>
  *  To use this class create an object with the spectra specification,
  *  then use its methods to get fully qualified names, slices, paths
@@ -147,7 +149,7 @@ public class InputNameParser
 
     /**
      *  Get the "data format" of the file. This is one of "NDF",
-     *  "FITS" or "TEXT", depending on what the file extension and
+     *  "FITS", "TEXT" or "XML", depending on what the file extension and
      *  suitability to process are. If the file cannot be recognised
      *  then "UNKNOWN" is returned;
      */
@@ -162,6 +164,9 @@ public class InputNameParser
         if ( type_.indexOf( ".txt" ) > -1 ||
              type_.indexOf( ".lis" ) > -1 ) {
             return "TEXT";
+        }
+        if ( type_.indexOf( ".xml" ) > -1 ) {
+            return "XML";
         }
         if ( type_.equals( ".sdf" ) ) {
             return "NDF";
@@ -468,7 +473,8 @@ public class InputNameParser
             "file.ndf",
             "file.sdf.ndf(1:100,2:100)",
             "file.fits(1:100,3:300)",
-            "file.fits[2](1:100,3:300)" };
+            "file.fits[2](1:100,3:300)",
+            "file.xml" };
         for ( int i = 0; i < names.length; i++ ) {
             System.out.println( "" );
             System.out.println( "Parsing: " + names[i] );

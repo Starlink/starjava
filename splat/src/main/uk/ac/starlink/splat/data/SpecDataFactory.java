@@ -3,6 +3,7 @@ package uk.ac.starlink.splat.data;
 import java.io.File;
 
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.imagedata.NDFJ;
 
 /**
  * This class creates and clones instances of SpecData that are
@@ -66,7 +67,7 @@ public class SpecDataFactory
         InputNameParser namer = new InputNameParser( specspec );
         if ( namer.exists() ) {
             String type = namer.format();
-            if ( type.equals( "NDF" ) ) {
+            if ( type.equals( "NDF" ) && NDFJ.supported() ) {
                 impl = new NDFSpecDataImpl( namer.ndfname() );
             }
             else if ( type.equals( "FITS" ) ) {
@@ -74,6 +75,9 @@ public class SpecDataFactory
             }
             else if ( type.equals( "TEXT" ) ) {
                 impl = new TXTSpecDataImpl( namer.ndfname() );
+            }
+            else if ( type.equals( "XML" ) ) {
+                impl = new NDXSpecDataImpl( namer.ndfname() );
             }
             else {
                 throw new SplatException( "Spectrum '" + specspec +
@@ -103,10 +107,10 @@ public class SpecDataFactory
             }
         }
         else {
-            //  try the HdxInputNameParser to see if the file is an HDX
-            //  one.
-            HdxInputNameParser hdxNamer = new HdxInputNameParser( specspec );
-            if ( hdxNamer.format().equals( "XML" ) ) {
+            //  File doesn't exist. Could still be an HDX sent down
+            //  the wire, check the format and try this for all XML
+            //  types.
+            if ( namer.format().equals( "XML" ) ) {
                 impl = new NDXSpecDataImpl( specspec );
             }
         }
