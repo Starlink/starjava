@@ -72,6 +72,11 @@ public class StarTableOutput {
     private Method voWriteMethod;
 
     /**
+     * Special output handler name indicating automatic format selection.
+     */
+    public static final String AUTO_HANDLER = "(auto)";
+
+    /**
      * System property which can contain a list of {@link StarTableWriter}
      * classes for addition to the list of known output handlers.
      */
@@ -186,7 +191,8 @@ public class StarTableOutput {
      *         a string which matches the format name of one of the registered 
      *         <tt>StarTableWriter</tt>s (first match is used, 
      *         case-insensitive, starting substrings OK)
-     *         or <tt>null</tt> to indicate that a handler should be 
+     *         or <tt>null</tt> or {@link #AUTO_HANDLER} 
+     *         to indicate that a handler should be 
      *         selected based on the value of <tt>location</tt>.
      *         Ignored for <tt>jdbc:</tt>-protocol locations
      * @throws TableFormatException  if no suitable handler is known
@@ -300,6 +306,12 @@ public class StarTableOutput {
     public StarTableWriter getHandler( String format )
             throws TableFormatException {
 
+        /* See if it's the special value. */
+        if ( format.equals( AUTO_HANDLER ) ) {
+            throw new TableFormatException( format + " does not name a " +
+                                            "specific output handler" );
+        }
+
         /* See if the format is the class name of a StarTableWriter. */
         try {
             Class fcls = this.getClass().forName( format );
@@ -370,7 +382,8 @@ public class StarTableOutput {
             throws TableFormatException {
 
         /* Do we have a format string? */
-        if ( format != null && format.length() > 0 ) {
+        if ( format != null && format.length() > 0 && 
+             ! AUTO_HANDLER.equals( format ) ) {
             return getHandler( format );
         }
 
