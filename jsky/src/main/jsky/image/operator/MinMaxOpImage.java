@@ -186,12 +186,13 @@ class MinMaxOpImage extends StatisticsOpImage {
             min = data[0];
             // check for ignores
             if (min == ignore) {
+                done:
                 for (int i = x0; i <= x1; i += xPeriod) {
                     for (int j = y0; j <= y1; j += yPeriod) {
-                        min = data[i * w + j];
+                        min = data[j * w + i];
                         if (min == ignore)
                             continue;
-                        break;
+                        break done;
                     }
                 }
             }
@@ -239,12 +240,13 @@ class MinMaxOpImage extends StatisticsOpImage {
             min = data[0];
             // check for ignores
             if (min == ignore) {
+                done:
                 for (int i = x0; i <= x1; i += xPeriod) {
                     for (int j = y0; j <= y1; j += yPeriod) {
-                        min = data[i * w + j];
+                        min = data[j * w + i];
                         if (min == ignore)
                             continue;
-                        break;
+                        break done;
                     }
                 }
             }
@@ -293,12 +295,13 @@ class MinMaxOpImage extends StatisticsOpImage {
 
             // check for ignores
             if (min == ignore) {
+                done:
                 for (int i = x0; i <= x1; i += xPeriod) {
                     for (int j = y0; j <= y1; j += yPeriod) {
-                        min = data[i * w + j];
+                        min = data[j * w + i];
                         if (min == ignore)
                             continue;
-                        break;
+                        break done;
                     }
                 }
             }
@@ -346,12 +349,13 @@ class MinMaxOpImage extends StatisticsOpImage {
             min = data[0];
             // check for ignores
             if (min == ignore) {
+                done:
                 for (int i = x0; i <= x1; i += xPeriod) {
                     for (int j = y0; j <= y1; j += yPeriod) {
-                        min = data[i * w + j];
+                        min = data[j * w + i];
                         if (min == ignore)
                             continue;
-                        break;
+                        break done;
                     }
                 }
             }
@@ -399,12 +403,13 @@ class MinMaxOpImage extends StatisticsOpImage {
 
             // check for NaNs and ignores
             if (Float.isNaN(min) || (min == ignore)) {
+                done:
                 for (int i = x0; i <= x1; i += xPeriod) {
                     for (int j = y0; j <= y1; j += yPeriod) {
-                        min = data[i * w + j];
+                        min = data[j * w + i];
                         if (Float.isNaN(min) || (min == ignore))
                             continue;
-                        break;
+                        break done;
                     }
                 }
             }
