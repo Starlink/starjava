@@ -478,6 +478,9 @@
       <arg value="-x"/><arg value="jsky/jel.jar"/>
       <arg value="-x"/><arg value="diva/acme.jar"/>
       <arg value="-x"/><arg value="splat.jar"/>
+      <arg value="-x"/><arg value="jasper-compiler.jar"/>
+         <!-- shares some classes with jasper-runtime.jar - am I skipping the
+              right one here? -->
       <arg value="${star.lib.pkg}/topcat.jar"/>
     </java>
 
@@ -498,7 +501,7 @@
   <target name="build_demo">
     <property name="src.demo" value="${src.etc}/demo"/>
     <property name="build.demo" 
-              value="${build.classes}/uk/ac/starlink/topcat/demo"/>
+              value="${build.etc}/demo/uk/ac/starlink/topcat/demo"/>
     <mkdir dir="${build.demo}"/>
 
     <!-- Set up a file recording which demo files are to be used. -->
@@ -506,22 +509,30 @@
     <delete file="${demo.list}" quiet="true"/>
     <touch file="${demo.list}"/>
 
+    <bzip2 src="${src.demo}/votable/6dfgs_mini.xml"
+           destfile="${build.demo}/6dfgs_mini.xml.bz2"/>
+    <echo append="true" file="${demo.list}" message="6dfgs_mini.xml.bz2&#xA;"/>
+
     <copy todir="${build.demo}">
       <fileset dir="${src.demo}/fits" includes="863sub.fits"/>
       <fileset dir="${src.demo}/votable" includes="cover.xml,vizier.xml.gz"/>
     </copy>
-    <echo append="true" file="${demo.list}" message="863sub.fits&#xA;"/>
     <echo append="true" file="${demo.list}" message="cover.xml&#xA;"/>
     <echo append="true" file="${demo.list}" message="vizier.xml.gz&#xA;"/>
+    <echo append="true" file="${demo.list}" message="863sub.fits&#xA;"/>
 
     <gzip src="${src.demo}/fits/tables.fit"
           zipfile="${build.demo}/tables.fit.gz"/>
     <echo append="true" file="${demo.list}" message="tables.fit.gz&#xA;"/>
 
     <tar destfile="${build.demo}/demo.tar.bz2"
-         compression="bzip2"
-         basedir="${src.etc}"
-         includes="demo/votable/gliese2.vot,demo/fits/gliese2.FIT,demo/others/**"/>
+         compression="bzip2">
+      <tarfileset dir="${src.etc}">
+        <include name="demo/votable/cover.xml"/>
+        <include name="demo/fits/tables.fit"/>
+        <include name="demo/others/**"/>
+      </tarfileset>
+    </tar>
     <echo append="true" file="${demo.list}" message="demo.tar.bz2&#xA;"/>
   </target>
 
@@ -539,7 +550,7 @@
    !  placed directly in the distribution directories. 
    !-->
   <target name="jars"
-          depends="build"
+          depends="build, docs"
           unless="runonly.install"
           description="-> creates the package jar file(s)">
 
@@ -553,6 +564,9 @@
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
+
+    <jar destfile="${dist.lib.pkg}/${name}_demo.jar"
+         basedir="${build.etc}/demo"/>
 
     <!-- Sign all jar files -->
     <signjar alias="${webstart.alias}"
