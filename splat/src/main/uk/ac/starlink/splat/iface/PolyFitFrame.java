@@ -466,7 +466,7 @@ public class PolyFitFrame
 
         //  Create the positions and display them as a spectrum in the
         //  plot.
-        double[] fitY = fitter.evalArray( oldX );
+        double[] fitY = fitter.evalYDataArray( oldX );
         String name = "Polynomial Fit: " + (++fitCounter);
         displayFit( name, currentSpectrum, fitY, null );
 
