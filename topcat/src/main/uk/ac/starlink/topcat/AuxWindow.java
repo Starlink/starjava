@@ -93,11 +93,9 @@ public class AuxWindow extends JFrame {
                                   "Close this window" );
         exitAct = new AuxAction( "Exit", null, "Exit the application" );
         JMenuItem closeItem = fileMenu.add( closeAct );
-        closeItem.setIcon( null );
         closeItem.setMnemonic( KeyEvent.VK_C );
         if ( Driver.isStandalone() ) {
             JMenuItem exitItem = fileMenu.add( exitAct );
-            exitItem.setIcon( null );
             exitItem.setMnemonic( KeyEvent.VK_X );
         }
 
@@ -160,9 +158,9 @@ public class AuxWindow extends JFrame {
 
         /* Add one or two items to the help menu. */
         if ( helpID != null ) {
-            helpMenu.add( new HelpAction( null ) ).setIcon( null );
+            helpMenu.add( new HelpAction( null ) );
         }
-        helpMenu.add( helpAct ).setIcon( null );
+        helpMenu.add( helpAct );
         helpMenu.addSeparator();
 
         /* Add an About action. */

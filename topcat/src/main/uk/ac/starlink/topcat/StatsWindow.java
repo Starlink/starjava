@@ -129,7 +129,7 @@ public class StatsWindow extends TopcatViewWindow {
         /* Add a menu for statistics operations. */
         JMenu statsMenu = new JMenu( "Statistics" );
         statsMenu.setMnemonic( KeyEvent.VK_S );
-        statsMenu.add( new JMenuItem( recalcAct ) ).setIcon( null );
+        statsMenu.add( new JMenuItem( recalcAct ) );
         getJMenuBar().add( statsMenu );
 
         /* Add a menu for controlling column display. */

@@ -13,8 +13,8 @@ import javax.swing.JToggleButton;
  */
 public class UpDownButton extends JRadioButton {
     UpDownButton() {
-        setIcon( ResourceIcon.DOWN );
-        setSelectedIcon( ResourceIcon.UP );
+        setIcon( ResourceIcon.DOWN_TRIM );
+        setSelectedIcon( ResourceIcon.UP_TRIM );
         setSelected( true );
     }
 }

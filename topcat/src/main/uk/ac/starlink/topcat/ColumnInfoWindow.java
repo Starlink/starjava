@@ -338,13 +338,13 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         /* Construct a new menu for column operations. */
         JMenu colMenu = new JMenu( "Columns" );
         colMenu.setMnemonic( KeyEvent.VK_C );
-        colMenu.add( addcolAct ).setIcon( null );
-        colMenu.add( hidecolAct ).setIcon( null );
-        colMenu.add( revealcolAct ).setIcon( null );
+        colMenu.add( addcolAct );
+        colMenu.add( hidecolAct );
+        colMenu.add( revealcolAct );
         final Action sortupAct = new SortAction( true );
         final Action sortdownAct = new SortAction( false );
-        colMenu.add( sortupAct ).setIcon( null );
-        colMenu.add( sortdownAct ).setIcon( null );
+        colMenu.add( sortupAct );
+        colMenu.add( sortdownAct );
         getJMenuBar().add( colMenu );
 
         /* Make a menu for controlling metadata display. */ 
@@ -531,7 +531,8 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         private boolean ascending;
 
         public SortAction( boolean ascending ) {
-            super( "Sort selected " + ( ascending ? "up" : "down" ) );
+            super( "Sort selected " + ( ascending ? "up" : "down" ),
+                   ascending ? ResourceIcon.UP : ResourceIcon.DOWN );
             this.ascending = ascending;
             putValue( SHORT_DESCRIPTION, "Sort rows by " + 
                                          ( ascending ? "a" : "de" ) +

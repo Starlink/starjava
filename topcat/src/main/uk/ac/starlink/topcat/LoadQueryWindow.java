@@ -129,7 +129,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
                                .getResource( demoPath ).toString() );
             }
         } );
-        demoMenu.add( demoAction ).setIcon( null );
+        demoMenu.add( demoAction );
         getJMenuBar().add( demoMenu );
 
         /* Configure drag'n'drop operation. */

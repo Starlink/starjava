@@ -190,7 +190,7 @@ public class PlotWindow extends TopcatViewWindow implements ActionListener {
                 }
             }
         };
-        getFileMenu().insert( printAction, 0 ).setIcon( null );
+        getFileMenu().insert( printAction, 0 );
 
         /* Get a menu for selecting row subsets to plot. */
         CheckBoxMenu subMenu = subsets.makeCheckBoxMenu( "Subsets to plot" );
@@ -329,11 +329,11 @@ public class PlotWindow extends TopcatViewWindow implements ActionListener {
 
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
-        plotMenu.add( resizeAction ).setIcon( null );
-        plotMenu.add( replotAction ).setIcon( null );
+        plotMenu.add( resizeAction );
+        plotMenu.add( replotAction );
         JMenuItem gridItem = new JCheckBoxMenuItem( gridAction );
         gridItem.setModel( gridModel );
-        plotMenu.add( gridItem ).setIcon( null );
+        plotMenu.add( gridItem );
         plotMenu.add( markMenu );
         getJMenuBar().add( plotMenu );
 
@@ -354,7 +354,7 @@ public class PlotWindow extends TopcatViewWindow implements ActionListener {
                 }
             }
         };
-        subsetMenu.add( fromvisibleAction ).setIcon( null );
+        subsetMenu.add( fromvisibleAction );
         getJMenuBar().add( subsetMenu );
 
         /* Add actions to the toolbar. */

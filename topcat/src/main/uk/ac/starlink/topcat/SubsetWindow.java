@@ -134,10 +134,10 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
         /* Subsets menu. */
         JMenu subsetsMenu = new JMenu( "Subsets" );
         subsetsMenu.setMnemonic( KeyEvent.VK_S );
-        subsetsMenu.add( addAct ).setIcon( null );
-        subsetsMenu.add( invertAct ).setIcon( null );
-        subsetsMenu.add( tocolAct ).setIcon( null );
-        subsetsMenu.add( countAct ).setIcon( null );
+        subsetsMenu.add( addAct );
+        subsetsMenu.add( invertAct );
+        subsetsMenu.add( tocolAct );
+        subsetsMenu.add( countAct );
         getJMenuBar().add( subsetsMenu );
 
         /* Display menu. */
