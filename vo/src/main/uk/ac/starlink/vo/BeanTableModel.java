@@ -36,7 +36,8 @@ public class BeanTableModel extends AbstractTableModel {
     private Object[] data_;
     private boolean readErrorReported_;
     private boolean writeErrorReported_;
-    private static final Logger logger_ = Logger.getLogger( "uk.ac.starlink" );
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
     private static final Object[] NO_ARGS = new Object[ 0 ];
 
     /**
