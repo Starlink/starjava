@@ -180,6 +180,13 @@ public class MetaDataPopup extends JInternalFrame
            doc = doc + "<li>The Y data values are in counts\n";
        }
        
+       // detrend
+       if ( popupSeries.getDetrend() ) {
+          doc = doc + "<li>The data has been detrended\n";
+       }
+       
+       // By TYPE
+       // -------
        if ( popupSeries.getType() ==  TimeSeries.UNCLASSIFIED ) {
           doc = doc + "<li>The data type is unknown</ul>\n";
   
@@ -239,7 +246,6 @@ public class MetaDataPopup extends JInternalFrame
           doc = doc + "</ul>\n" + doc2;
 
        } else if ( popupSeries.getType() == TimeSeries.DETRENDED ) { 
-          doc = doc + "<li>The data has been detrended</ul>\n";
 
 
        } else if ( popupSeries.getType() == TimeSeries.FAKEDATA  ) { 

@@ -722,6 +722,11 @@ public class FoldSeriesDialog extends JInternalFrame
          try {
            foldedSeries = new TimeSeries( memImpl );  
            
+           // toggle the detrended flag if the previous series had been
+           if ( currentSeries.getDetrend() ) {
+              foldedSeries.setDetrend( true );
+           }
+              
            // setEphemeris()
            foldedSeries.setEphemeris( ephem );
     
@@ -931,7 +936,12 @@ public class FoldSeriesDialog extends JInternalFrame
         fittedSeries.setLineColour( Color.blue.getRGB() );
         fittedSeries.setLineThickness( 1.5 );
         fittedSeries.setLineStyle( 1.0 );  
-        
+          
+        // toggle the detrended flag if the previous series had been
+        if ( foldedSeries.getDetrend() ) {
+              fittedSeries.setDetrend( true );
+        } 
+                
         // associate a SinFit object
         SinFit fit = sinFit.getFit();
         fittedSeries.setSinFit( fit );

@@ -501,6 +501,7 @@ public class DetrendDataDialog extends JInternalFrame
          try {
            newSeries = new TimeSeries( memImpl );  
            newSeries.setType( TimeSeries.DETRENDED );
+           newSeries.setDetrend( true );
            debugManager.print("            setType( TimeSeries.DETRENDED");
          } catch ( FrogException e ) {
            debugManager.print("          FrogException creating TimeSeries...");

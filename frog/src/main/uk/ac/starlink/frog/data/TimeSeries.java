@@ -272,6 +272,11 @@ public class TimeSeries
      */
     protected boolean yFlipped = false;
 
+   /**
+     * At some point in the past this dataset has been detrended
+     */
+    protected boolean detrend = false;
+
     /**
      * Symbolic name of the series.
      */
@@ -409,6 +414,26 @@ public class TimeSeries
         this.shortName = shortName;
     }
 
+    /**
+     * Get the detrended data flag
+     *
+     * @return detrend whether the data has been detrended
+     */
+    public boolean getDetrend()
+    {
+        return detrend;
+    }
+
+
+    /**
+     * Change the detrended data flag
+     *
+     * @param detrend whether the data has been detrended
+     */
+    public void setDetrend( boolean b )
+    {
+        detrend = b;
+    }
 
     /**
      * Get references to series X data (i.e. the coordinates).
