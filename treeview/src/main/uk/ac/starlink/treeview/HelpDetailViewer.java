@@ -141,11 +141,14 @@ class HelpDetailViewer extends DetailViewer {
 
             ta.addSeparator();
             addKnownIcon( IconFactory.ZIPFILE, "Zip/Jar archive" );
-            addKnownIcon( IconFactory.ZIPBRANCH, "Zip/Jar archive entry" );
+            addKnownIcon( IconFactory.ZIPBRANCH, "Zip/Jar archive directory" );
 
             ta.addSeparator();
             addKnownIcon( IconFactory.TARFILE, "Tar archive" );
-            addKnownIcon( IconFactory.TARBRANCH, "Tar archive entry" );
+            addKnownIcon( IconFactory.TARBRANCH, "Tar archive directory" );
+
+            ta.addSeparator();
+            addKnownIcon( IconFactory.MYSPACE, "MySpace container" );
 
             ta.addSeparator();
             addKnownIcon( IconFactory.ERROR, "Error creating a node" );
