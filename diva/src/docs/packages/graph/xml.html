@@ -1,0 +1,119 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<HTML>
+
+<HEAD>
+<LINK href="../../diva.css" rel="stylesheet" type="text/css">
+
+	<TITLE>diva.graph.model XML file format</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<!--navbar-->
+
+
+<!--/navbar-->
+<H1><I>diva.graph.model</I> XML file format</H1>
+<H2>Introduction</H2>
+<P>This document describes the XML file format that is used to save and load graph models (and eventually views)
+in the Diva graph package. XML stands for the Extensible Markup Language, and is described in more detail at the
+<A HREF="http://www.w3.org">W3 consortium home page</A>. XML was chosen as a basis for describing graphs because
+it is simple, regular, extensible, and has plenty of third-party tool support. We strongly prefer XML to serialized
+Java objects, because the XML format is human-readable/editable, and is independent of the object version so that
+a file saved in XML will always be compatible with the current version of the graph package.</P>
+<P>There are two aspects to the XML graph format. The first is the document-type-definition file, <A HREF="graph.dtd"><I>graph.dtd</I></A>,
+which defines the syntax for graph files and is not intended to be edited by the user. The second is the actual
+graph file, which is created by the user or written out by a graph editor. It describes a particular instance of
+a graph topology. The rest of this document is a translation of <I>graph.dtd</I> into English accompanied by examples.
+<H2>Graph Elements</H2>
+<P>
+<TABLE BORDER="0">
+	<TR>
+		<TD>
+			<H3><B>Element</B>
+		</TD>
+		<TD WIDTH="415">
+			<H3><B>Description</B>
+		</TD>
+		<TD>
+			<H3><B>Example</B>
+		</TD>
+	</TR>
+	<TR>
+		<TD VALIGN="TOP">Graph</TD>
+		<TD WIDTH="415" VALIGN="TOP">Graph is the top-most element in the graph file.</TD>
+		<TD VALIGN="TOP"><FONT SIZE="2" FACE="Courier New, Courier">&lt;graph&gt; ... &lt;/graph&gt;</FONT></TD>
+	</TR>
+	<TR>
+		<TD VALIGN="TOP">Node</TD>
+		<TD WIDTH="415" VALIGN="TOP">A node element represents a Node instance in the graph data structure. It is identified using a unique identifier
+			which may be referenced by an edge, later in the file.</TD>
+		<TD VALIGN="TOP"><FONT SIZE="2" FACE="Courier New, Courier">&lt;node id=&quot;foo&quot;/&gt;</FONT></TD>
+	</TR>
+	<TR>
+		<TD VALIGN="TOP">Edge</TD>
+		<TD WIDTH="415" VALIGN="TOP">An edge element represents an Edge instance in the graph data structure. It is identified by a unique identifier
+			and paramaterized by an optional boolean value which specifies its directedness. It is also parameterized by a
+			head and a tail identifiers, which must reference nodes defined earlier in the file.</TD>
+		<TD VALIGN="TOP"><FONT SIZE="2" FACE="Courier New, Courier">&lt;edge id=&quot;baz&quot; tail=&quot;foo&quot; head=&quot;bar&quot;
+			directed=&quot;true&quot;/&gt;</FONT></TD>
+	</TR>
+	<TR>
+		<TD VALIGN="TOP">CompositeNode</TD>
+		<TD WIDTH="415" VALIGN="TOP">Consistent with the graph data structure, a composite node is both a graph and a node. It has the same parameters
+			as a node, but has contents like a graph.</TD>
+		<TD VALIGN="TOP"><FONT SIZE="2" FACE="Courier New, Courier">&lt;compositeNode id=&quot;bar&quot;&gt; ... &lt;/compositeNode&gt;</FONT></TD>
+	</TR>
+</TABLE>
+<FONT SIZE="4"><I><B></B></I></FONT></P>
+
+<P><FONT SIZE="4"><I><B>Note:</B> Graph elements are identified by strings.  For parsing efficiency an element
+in the file must be defined prior to being references, so that we can perform a one-pass parse.</I></FONT>
+<H2>An Example</H2>
+<P>This example specifies a graph which contains a node <I>a</I> and a composite node <I>x</I>.  <I>X</I> contains
+two nodes <I>b</I> and <I>c</I>.  There are directed edge <I>e1</I> from <I>c</I> to <I>b</I>, <I>e2</I> from <I>x</I>
+to <I>a</I>, and <I>e3</I> from <I>b</I> to <I>a</I>.<BR>
+</P>
+<PRE>&lt;graph&gt;
+&lt;node id=&quot;a&quot;/&gt;
+&lt;compositeNode id=&quot;x&quot;&gt;
+&lt;node id=&quot;b&quot;/&gt;
+&lt;node id=&quot;c&quot;/&gt;
+&lt;/compositeNode&gt;
+&lt;edge id=&quot;e1&quot; tail=&quot;c&quot; head=&quot;b&quot; directed=&quot;true&quot;/&gt;
+&lt;edge id=&quot;e2&quot; tail=&quot;x&quot; head=&quot;a&quot; directed=&quot;true&quot;/&gt;
+&lt;edge id=&quot;e3&quot; tail=&quot;b&quot; head=&quot;a&quot; directed=&quot;true&quot;/&gt;
+&lt;/graph&gt;</PRE>
+<H2>Using the API</H2>
+<P>The Java API to the Graph XML format consists of two classes. GraphParser parses a graph model from an XML file
+(and a DTD, which it uses to verify that the XML is syntactically correct). GraphWriter writes a graph model to
+a file. These are easy to use, and the snippet of Java code below shows how to use them to save and load files
+respectively.
+<H2>Issues</H2>
+<P>There are two remaining issues in the design of the markup language, storage of view information and semantic
+objects/properties for nodes and edges.</P>
+
+<P>We would like to be able to store view information, such as graph layout or node shape. This may be stored in
+a separate file, or as an annotation on top of the existing file format. We haven't settled on a design yet, so
+it's not supported in the current version. However, this is an important feature and will be supported in the next
+version.</P>
+
+<P>The second issue is the support &quot;semantic objects&quot; or &quot;properties&quot; which are defined by
+the user and hang off the node. This may be achieved by an optional ID reference, which refers to some other XML
+object. This is less urgent to us than the layout issue, and we imagine that there's a &quot;standard&quot; solution
+out there somewhere--we just haven't looked too hard yet.</P>
+
+<P>If you have an opinion on either of these two issues and would like to <A HREF="mailto:diva@ic.eecs.berkeley.edu">share
+it</A>, we'd love to hear from you.</P>
+
+<P><!--footer-->
+
+
+<!--/footer-->
+
+</BODY>
+
+</HTML>
+
+

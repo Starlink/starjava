@@ -1,0 +1,74 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<!-- $Id: unresolved.html,v 1.8 2000/05/02 00:43:45 johnr Exp $ -->
+<html>
+<head>
+  <LINK href="../../diva.css" rel="stylesheet" type="text/css">
+
+<title>Unresolved canvas issues</title>
+</head>
+
+
+<div class="body">
+
+<body bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Unresolved canvas issues</h1>
+
+<dl>
+
+<dt><i>Swing</i>
+
+<dd> Uh-oh. The big one. Why isn't a Figure a Swing widget?
+Why do I need to put CanvasPane in a PaneWrapper instead of using
+Swing's component nesting?
+
+<p> The answer to the first question is that Swing widgets, in spite
+of what Sun's marketing machine says, are large and slow. Figures are
+small and (given the underlying platform) reasonable fast. We're
+interested in creating components with zillions of Figures on them, so
+we took some pains to keep them small.
+
+<p> The answer to the second question is that we don't really know.
+We wrote PaneWrapper as a first attempt at exploring nested
+"surfaces," and have been wanting to figure out to integrate them with
+Swing properly, but it just hasn't been a priority so far. If you have
+made custom Swing widgets with Java2D, email us some code.
+
+<dt><i>3D</i>
+
+<dd> OK, here's another big one. Early on, we wondered about this, and
+decided that the canvas would, for all intents and purposes, be
+fundamentally 2D. There are lots of interesting issues in 2D
+information representation, which tend to get forgotten with 3D
+environments. The kind of issues you deal with when you scribble or
+draw in your notepad, for example. (When was the last time you saw
+anyone use a 3D sketch-pad?)
+
+<p> So, maybe later it would be cool to try layering Java2D over
+Java3D and extending the Diva look into the third dimension, but for
+now we don't really care that much :-)
+
+</dl>
+
+<!--footer-->
+
+
+<!--/footer-->
+</body>
+</div>
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,271 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<HEAD>
+<LINK href="../../diva.css" rel="stylesheet" type="text/css">
+<TITLE>Parser2D design document</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+<H1>Parser2D design document</H1>
+
+<P>
+This document covers the structure, algorithm, and implementation of
+the Parser2D package, <i>diva.sketch.parser2d</i>, which provides
+basic two-dimensional parsing based on graph grammars.  I advise a
+thorough reading of the <a href="parser2dUser.html">Parser2D user
+manual</a> beforehand for context.
+
+<H2>Parsing algorithm</H2>
+
+<P>
+The current parsing algorithm implementation is more of a placeholder
+than a long-term solution.  I wanted to get a prototype of the system
+together quickly, and also wanted to see how the most naive algorithm
+would actually do in practice.  In other words, though the algorithm
+may be theoretically uninteresting, it's good enough for our purposes
+if it runs in "real-time" for normal sized inputs.
+
+<P>
+The parser operates on sets of <b>constituents</b> which are
+rectangular bounding boxes supplemented by a String <b>type</b> field.
+It uses the spatial relation constraints specified by the grammar to
+match structures, which in turn become <b>composite constituents</b>.
+More specifically, it successively applies a set of rules to the input
+constituent set, and if the rules match a subset of constituents, it
+substitutes the left side of the rule (the rule's type) for the
+matching constituents in the right side.  This forms a new
+ConstituentSet (along with the remaining constituents) which is then
+passed to the parser again.  This chain continues until there are no
+rule matches.  If the constituent set at the end of the chain is a
+successful parse (the definition of which might vary from application
+to application--a <i>complete</i> parse, for example) this is returned
+as part of the results.
+
+<P>
+Here is a complete execution tree for the following traditional grammar:
+
+<P>
+<CENTER>
+<TABLE BORDER="1">
+<TR><TD>
+<pre>
+  s -> var expr  
+  var -> a
+  var -> b
+  expr -> var
+</pre>
+</TD><TD>
+<center>
+<img src="images/parser2d-trace.gif">
+</center>
+</TD></TR>
+<TR><TD><B>Simple grammar</B></TD>
+<TD><B>Simple trace</B></TD></TR>
+</TABLE>
+</CENTER>
+
+<P>
+This algorithm is inefficient, but this can be mitigated through
+use of memoization.  As you can see in the trace above, there are
+two paths to get to the state <i>"var(a) var(b)"</i> and three
+paths to get to <i>"var(a) expr(var(b))"</i>.  This number obviously
+explodes as the problem size increases.  So the Parser2D object
+maintains a hash table that memoizes the results of previous
+parses.  The ConstituentSet class re-implements Java's <b>hashCode()</b>
+and <b>equals()</b> methods for memoization.
+
+<H2>Package structure</H2>
+
+<P>
+The Parser2D package is similar to Diva's Classification package,
+<i>diva.sketch.classification</i>, in that it provides an algorithm
+used by sketch recognition but is more generally applicable and hence
+designed with no dependencies on any of the other sketch packages.
+
+<P>
+The basic structure of the package is given in the UML diagram below.
+The main elements are the <b>Parser</b>, <b>Rules</b>, <b>ConstituentSet</b>,
+<b>Constraints</b>, and <b>Relations</b>.  The parser is parameterized by
+a set of rules which are used in the algorithm described in the previous
+section.  The basic rule implementation provides a constraint query on the
+input, by making more general queries on the constituent set and then
+narrowing down the results.  The basic rule has a single constraint, which
+is usually an <b>AndConstraint</b> if the rule is stated using the grammar.
+The <b>BasicConstraint</b> object, the leaf of the constraint hierarchy,
+has a minimum and maximum value that must be satisfied by a relation (distance,
+size ratio, angle, overlap amount, etc.).
+
+<P>
+A constituent set is more than an array of constituents.  It also
+consists of a set of spatial queries on the constituents, potentially
+optimized so that these queries can be performed quickly (by using a
+quad-tree, for example) without having to search the entire set of
+constituents.
+
+
+<P>
+<CENTER>
+<TABLE BORDER="1">
+<TR><TD>
+<center>
+<img src="images/parser2d-overview-uml.gif">
+</center>
+</TD></TR>
+<TR><TD><B>Package overview (UML)</B></TD></TR>
+</TABLE>
+</CENTER>
+
+<H4>Relations</H2>
+
+<P>
+Relations calculate geometric/spatial relations between objects.  They
+are used to determine the values that are used by rules in the
+grammar.  The relation interface has a single method, <b>double
+apply(Rectangle2D r1, Rectangle2D r2)</b>, which extracts a scalar
+value that represents some aspect of the spatial relationship between
+<b>r1</b> and <b>r2</b>, such as distance, overlap amount, etc.  A
+directed relation is a relation in which the relationship is directed
+from one rectangle to the other, and not reflexive.
+
+<P>
+<CENTER>
+<TABLE BORDER="1">
+<TR><TD>
+<center>
+<img src="images/parser2d-relation-uml.gif">
+</center>
+</TD></TR>
+<TR><TD><B>Relation class details (UML)</B></TD></TR>
+</TABLE>
+</CENTER>
+
+<H2>Extensions</H2>
+
+<P>
+This section describes a set of potential extensions to the parser
+in terms of the existing architecture.  Its intent is to encourage
+critical thought of the architecture, to illustrate ways in which the
+architecture is extensible, and finally to ellicit comment on the
+proposed extensions, which are obviously still in the brainstorming
+stage.
+
+<H4>Optimization</H4>
+
+<P>
+As mentioned before, the existing parsing algorithm is a place-holder.
+One desirable augmentation to the package is an optimization of the
+existing parsing algorithm.  A proper redesign would require a literature
+search and would not be trivial.  But a first step would be a "separation
+of concerns" in which the building of the spatial relationship graph (which
+is implicit--lazily constructed and never stored so it doesn't show up
+as its own data structure--in the given design) is done as a pre-pass
+to the parsing algorithm, which tries to match tree-structured rules on
+the graph.
+
+<P>
+This enhancement would require creating a graph data structure and
+writing a module that constructs this data structure conservatively
+but does not produce a <i>complete</i> graph (in which every pair of
+vertices is adjacent).  Rules would have to be rewritten to operate
+on the graph data structure, and I'd probably want to rewrite the
+parsing algorithm to make better use of the up-front knowledge of the
+relation graph.
+
+<H4>Fuzziness</H4>
+
+<P>
+In many recognition problems with noisy data you can never be 100% sure
+of the values of the input tokens, so the recognizer will often output
+a list of potential values with confidence values attached.  A fuzzy parser
+would accept a TerminalConstituent that is agumented with a confidence value
+between 0 and 1, and then propagate confidence values up the tree (using
+laws of probability) as it aggregates constituents.  A better implementation
+would also factor in the uncertainty of the inter-constituent relations
+specified in the grammar.  So a grammar could actually be specified "by
+example" and the aggregation would then be a classification problem that
+uses relation values as its features.
+
+<P>
+These enhancements would require a number of changes to the existing
+classes, but little change to the structure of the package.  The
+Constituent interface would need to be augmented with a <b>double
+getConfidence()</b> method, and this would need to be supplied by its
+implementations.  Rules would need to be modified to use fuzzy
+constraints that perform classification instead of the rigid
+constraints that are currently supplied with the package.  Two new
+classes, <b>FuzzyRule</b> (implements Rule) and
+<b>RelationClassifier</b> (uses a set of Relation objects and feeds
+the values into a <b>diva.sketch.classification.Classifier</b>), could
+be added to the package.
+
+<H4>Connection rules</H4>
+
+<P>
+One shortcoming of the package is that it is fundamentally
+aggregational in nature, meaning that each rule aggregates its
+contents into a more abstract entity.  However, <b>connections</b>
+(edges between objects) represent a different type of structural
+entity that is not really handled properly with aggregational
+rules.  For example, consider the following diagram:
+
+<P>
+<CENTER>
+<TABLE BORDER="1">
+<TR><TD>
+<center>
+<img src="images/connections.gif">
+</center>
+</TD></TR>
+<TR><TD><B>A diagram with edges that cannot be easily recognized using current rule set.</B></TD></TR>
+</TABLE>
+</CENTER>
+
+<P>
+I leave it as an exercise to the reader to determine the myriad of
+ways that this will break the current parser.  What you'd really like
+is to parse the aggregational aspect of the diagram using the current
+parsing algorithm (<i>[G [N1 N2]]</i>) and augment this with a
+set of connections between <i>referenced</i> elements in the aggregation
+(<i>[[E1(directed) N1 N2] [E2(dashed, inheritance) N2 N3]]</i>).
+
+<P>
+Schneiderman [ref?] states that visual languages have three fundamental
+features: containment, adjacency, and connectivity.  I think that
+aggregational rules do a pretty good job of containment and adjacency,
+but fail in connectivity.  Since connectivity is a fundamental feature
+of many visual languages, it is not a hack to add orthogonal support for
+this feature.
+
+<P> A suggested alternative to adding this feature to the parser is to
+layer connectivity as a post-processing step between the parser and
+the application. 
+
+<H4>Incrementality</H4>
+
+<P>
+The current parsing algorithm is not incremental, meaning that it parses
+a complete constituent set and returns a result.  However this is probably
+not an ideal design for sketch recognition, where the user is drawing
+new strokes one-by-one.  In this case, the constituent set is modified to
+include the latest stroke and this is re-parsed from scratch by the parser.
+
+<P>
+An incremental version of the parser would accept deltas in the form of
+stroke additions (or removals?) and would re-parse more efficiently using
+its existing parse tree and/or parse state (the chains of constituent
+sets mentioned in the section on parsing algorithms).  I have yet to concretize
+an algorithm for this, but structurally its effect on the package would be
+the following:
+
+<UL>
+<LI><b>Parser2d</b> would need to be rewritten, replaced, or subclassed
+to support an additional user method
+<b>public List addConstituent(TerminalConstituent c)</b> and perhaps one or more
+private methods that allow changes to propagate through a recursive traversal
+of the parse state.
+<LI><b>ConstituentSet</b> might similarly need to be rewritten, replaced, or subclassed
+to allow for additional state information and pointers to its predecessor / successor parse states.
+</UL>
+
+</BODY>
+

@@ -1,0 +1,86 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<HTML>
+
+<HEAD>
+<LINK href="../../diva.css" rel="stylesheet" type="text/css">
+
+	<TITLE>Diva graph layout package</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<!--navbar-->
+
+
+<!--/navbar-->
+<H1>The Diva graph layout package</H1>
+<H2>1.0 Introduction</H2>
+<P>The Diva graph layout package provides an assortment of node layout and edge routing facilities for the graph
+model package. It is designed to operate independently of any particular display implementation, so any graph layout/edge
+routing algorithm written using the conventions established in this package should be applicable to any display
+implementation that obeys a few assumptions about the graph display (e.g. that nodes have bounding boxes, edges
+have endpoints, etc.). The package's architecture supports the following features:</P>
+
+<UL>
+	<LI>Independence from display implementation.
+	<LI>Interfaces for static and incremental graph layout algorithms.
+	<LI>Interfaces for static and dynamic edge routing algorithms.
+	<LI>A small but growing collection of algorithms implementing these interfaces.
+</UL>
+
+<H2>2.0 Architectural overview</H2>
+<P>This section provides the UML diagram of the layout package.  It then explains the LayoutTarget interface and
+distinguishes the two types of layout (global vs. incremental).</P>
+<CENTER>
+<P>
+<TABLE BORDER="1" CELLPADDING="3" WIDTH="474">
+	<CAPTION ALIGN="BOTTOM">
+		<P ALIGN="LEFT">Diva layout package UML diagram.
+	</CAPTION>
+	<TR>
+		<TD WIDTH="100%">
+			<P ALIGN="CENTER"><IMG SRC="images/diva.graph.layout.gif" WIDTH="550" HEIGHT="511" ALIGN="BOTTOM" BORDER="0">
+		</TD>
+	</TR>
+</TABLE>
+</P>
+</CENTER>
+<H3>2.1 Display interface</H3>
+<P>A fundamental aspect of the graph package design is that we want a graph model to be shared among multiple views,
+each of which might contain a different geometric configuration for the nodes and edges. As a result of this design,
+the graph model (on which layout algorithms operate) contains no information about display geometry. (This also
+makes sense in terms of MVC because the &quot;model&quot; should have no knowledge of the &quot;view). However
+by this design, layout algorithms must have a dependence on the display code, meaning that without some special
+interface between layout and view, layout algorithms are tied to the implementation of the display. The <FONT FACE="Courier New, Courier">LayoutTarget</FONT>
+interface defines a contract that the display code has to satisfy in order to support the algorithms in the layout
+package.  It decouples the layout and display so that any display implementation that satisfies this interface
+may be operated on by the layout algorithms.</P>
+<H3>2.2 Global vs. incremental layout</H3>
+<P>Global layout algorithms operate on an entire graph at once, trying to maximize the layout quality of the graph.
+In contrast, incremental layout algorithms operate on <I>changes</I> to the graph structure and attempts to maximize
+the layout quality of the graph <I>and</I> minimize the impact on the layout of the pieces of the graph not directly
+effected by that change. So another way to phrase it is that incremental layout algorithms <I>respect</I> the previous
+layout of the graph, while global layout algorithms do not.  Given these differences, it makes sense that the two
+types of algorithms have different interfaces.</P>
+
+<P>In these interfaces it is clear that global layout algorithms are applied to the entirety of a graph and need
+not maintain state, while incremental layout algorithms must maintain state, and respond to changes in the graph
+structure by implementing the GraphListener interface.  It is also possible to implement global layout in terms
+of incremental layout, and vice versa, though it is not clear how useful either of these constructions is. A class
+which implements global layout in terms of local layout could do so be simply calling the incremental layout's
+<FONT FACE="Courier New, Courier">graphChanged()</FONT> method for each layout call. A class which implements incremental
+layout in terms of global layout could do so by simply calling the global layout's <FONT FACE="Courier New, Courier">layout()</FONT>
+method for each change in the graph. While the former construction might be appropriate, it is likely that the
+second construction would defeat the point of incremental layout by throwing away all the useful delta information.</P>
+
+<P><!--footer-->
+
+
+<!--/footer-->
+
+</BODY>
+
+</HTML>
+
+

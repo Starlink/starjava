@@ -1,0 +1,203 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<!-- $Id: diva.canvas.figures.html,v 1.7 2000/05/02 00:43:56 johnr Exp $ -->
+<html>
+<head>
+<title>Figures</title>
+</head>
+
+<body bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Figures</h1>
+
+<p>
+
+ <P><B>Package</B>: 
+
+<BLOCKQUOTE>
+
+diva.canvas.figures
+
+</BLOCKQUOTE>
+
+ <P><B>Status</B>:
+
+<BLOCKQUOTE>
+
+0.1. Very preliminary. Published to ptdesign. 05/05/98.
+
+</BLOCKQUOTE>
+
+ <P><B>Last updated</B>:
+
+<BLOCKQUOTE>
+
+May 5th, 1998.
+
+</BLOCKQUOTE>
+
+ <P><B>See also</B>:
+
+<BLOCKQUOTE>
+
+<A HREF="diva.canvas.html">The Diva canvas</A>
+<br>
+<A HREF="http://ptolemy.eecs.berkeley.edu/copyright.html">Copyright</A>
+
+</BLOCKQUOTE>
+
+<p><b>Contents</b>
+
+<ul>
+
+<li><a href="#overview">Overview</a>
+<li><a href="#interfaces">Interfaces</a>
+<li><a href="#classes">Classes</a>
+
+</ul>
+
+
+<a name="overview">
+<h2>Overview</h2>
+</a>
+
+This package contains a number of pre-defined concrete figures.
+Figures in this package are those considered to be likely to be useful
+in a large number of situations.
+
+ <P> Note that there are no predefined figures for simple shapes
+like rectangle and simple line segments, since these are easily
+created as an instance of SimpleFigure. For example,
+
+<pre>
+  fig = new SimpleFigure( new Rectangle(50, 50, 100, 100) );
+</pre>
+
+<a name="interfaces">
+<h2>Interfaces</h2>
+</a>
+
+ <P>
+<dl>
+<p>
+<dt><b>interface Arrowed</b>
+
+<dd>
+<P> An interface supported by lines that support arrows on one
+or both ends.
+
+<dl>
+<p>
+<dt><b>void setArrowFirst ( Shape )</b>
+
+<dd> Set the shape of the arrow to be drawn at the start of this line.
+
+ <P>
+<dt><b>void setArrowLast ( Shape )</b>
+
+<dd> Set the shape of the arrow to be drawn at the end of this line.
+
+</dl>
+
+
+</dl>
+
+
+<a name="classes">
+<h2>Classes</h2>
+</a>
+
+<dl>
+<p>
+<dt><b>class Arrow</b>
+
+<dd>
+<P> A class that produces useful shapes for arrowheads. All
+shapes are such that the arrow points east.
+
+<dl>
+<p>
+<dt><b>static Shape triangle ( float )</b>
+
+<dd> Get a triangular arrowhead of the specified length.
+
+<p>
+<dt><b>static Shape winged ( float, float, float )</b>
+
+<dd> Get a triangular arrowhead, where the three arguments
+are the length of the arrowhead along the stem, the horizontal
+distance from the stem to the rear point, and the vertical
+distance from the stem to the rear point.
+
+</dl>
+
+<p>
+<dt><b>class ArrowedLine extends LeafFigure implements StrokedFigure, Arrowed</b>
+
+<dd>
+<P> A figure class that draws arrowed lines.
+The default stroke is a solid unit-width stroke, and the
+default fill is solid black.
+
+<dl>
+<p>
+<dt><b>ArrowedLine ( Line2D  )</b>
+
+<dd> Create an arrowed line from the given line, with the default
+arrowhead at the "end" of the line.
+
+<p>
+<dt><b>ArrowedLine ( Line2D, Shape, Shape )</b>
+
+<dd> Create an arrowed line from the given line, with the given
+shapes used as arrowheads as the "start" and "end" of the line.
+Either of these can be null.
+
+<p>
+<dt><b>ArrowedLine ( GeneralPath  )</b>
+
+<dd> Create an arrowed line from the given path, with the default
+arrowhead at the "end" of the line.
+
+<p>
+<dt><b>ArrowedLine ( GeneralPath, Shape, Shape)</b>
+
+<dd> Create an arrowed line from the given path, with the given
+shapes used as arrowheads as the "start" and "end" of the line.
+Either of these can be null.
+
+<p>
+<dt><b>GeneralPath getPath ( )</b>
+
+<dd> Get the general path of this arrowed line. If the line was
+created with a Line2D object, convert it to a general path
+first.
+
+<p>
+<dt><b>void setPath ( GeneralPath )</b>
+
+<dd> Change the path of this arrowed line to the given path.
+
+</dl>
+
+
+</dl>
+
+<center>
+<img src="../img/end.gif">
+</center>
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,576 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<HTML>
+
+<HEAD>
+<LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+
+	<TITLE>diva.graph: design review, September 4th, 1998</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<!-- Replace all the italic text, including the <I></I> directives -->
+<H1>diva.graph: Design review, September 4th, 1998</H1>
+
+<UL>
+	<LI><A HREF="#preliminary">Preliminary notes</A>
+	<LI><A HREF="#identified">Identified defects</A>
+	<LI><A HREF="#related">Related issues</A>
+	<LI><A HREF="#concluding">Concluding notes</A>
+</UL>
+
+<H2><A NAME="preliminary"></A>Preliminary notes</H2>
+<P>Review called by John Reekie and Michael Shilman for the Diva Graph package. Eager to stabilize API as soon
+as possible.</P>
+<H4>Review Materials</H4>
+<P><A HREF="http://ptolemy.eecs.berkeley.edu/~johnr/diva/api/diva/graph/package-summary.html">http://ptolemy.eecs.berkeley.edu/~johnr/diva/api/diva/graph/package-summary.html</A></P>
+
+
+<BLOCKQUOTE>
+	<P>diva.graph.Edge<BR>
+	diva.graph.EdgeSet<BR>
+	diva.graph.Graph<BR>
+	diva.graph.GraphEvent<BR>
+	diva.graph.GraphListener<BR>
+	diva.graph.GraphModel<BR>
+	diva.graph.Node<BR>
+	diva.graph.SubGraphModel<BR>
+	diva.graph.CompoundNode</P>
+
+</BLOCKQUOTE>
+
+<P><A HREF="http://ptolemy.eecs.berkeley.edu/~johnr/diva/api/diva/util/package-summary.html">http://ptolemy.eecs.berkeley.edu/~johnr/diva/api/diva/util/package-summary.html</A></P>
+
+
+<BLOCKQUOTE>
+	<P>diva.util.PropertyIndexSet<BR>
+	diva.util.PropertyContainer</P>
+
+</BLOCKQUOTE>
+
+<H4>Participants</H4>
+
+<UL>
+	<LI>Moderator: johnr
+	<LI>Scribe: neuendor
+	<LI>Author: michaels
+	<LI>Reader: johnr
+	<LI>Reviewers: mudit,yuhong,jimy,hwawen,atabbara
+</UL>
+
+<P>Review started:1.30 PM <BR>
+Review ended: 3.00 PM
+<H2><A NAME="identified"></A>Identified defects</H2>
+<H4>Author's Response</H4>
+
+
+<BLOCKQUOTE>
+	<P>This design review was extremely useful to me. I didn't agree with all the points that were raised, but the
+	general message that I took away from the meeting was that the facade pattern of the GraphModel class was not completely
+	understood, and this was due to ambiguity in the fact that Nodes/Edges/Graphs were given a full and self-consistent
+	interface. It occurred to me that if it all topology-editing operations were done through the GraphModel interface
+	and that the only low-level operations were &quot;read&quot; operations and &quot;userObject/property&quot; calls,
+	then nearly all of the problems and ambiguities brought up in the design review would be fixed. I am writing a
+	new version of the overview document which will discuss this in more detail.</P>
+
+</BLOCKQUOTE>
+
+<P><B>Overview Document</B>
+
+<OL>
+	<LI>Diagram: Graph not necessarily have GraphModel
+
+
+	<BLOCKQUOTE>
+	<P>Fixed.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Diagram: GraphModel has multiple GraphListeners
+
+
+	<BLOCKQUOTE>
+	<P>Fixed.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Overview: remove summary of classes
+
+
+	<BLOCKQUOTE>
+	<P>Shortened and integrated into overview section.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>GraphModel: doesn't send event on Node/Edge actions: seems dangerous
+
+
+	<BLOCKQUOTE>
+	<P>Redesigned. In the new design, low-level &quot;write&quot; operations are only possible through the GraphModel
+	interface. For efficiency it is possible to turn off notifications on the GraphModel. However, when the notifications
+	are turned back on after an algorithm has completed, it will dispatch a STRUCTURE_CHANGED event to cause clients
+	to refresh their views.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Better support for hyper-edges? (NodeSet)
+
+
+	<BLOCKQUOTE>
+	<P>Though this graph package is general, its primary goal is as a data structure for a graph visualization system.
+	Because decisions made at this level must be supported by visualization front-ends, it is easier to make the graph
+	interface as minimal as possible, and since hyper-edges can be simulated using specially-tagged nodes, this is
+	probably the easiest for front-ends to deal with.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Directedness: where implemented: property container or fundamental?
+
+
+	<BLOCKQUOTE>
+	<P>Neither. I was going to implement directedness and other &quot;common properties&quot; as properties, and store
+	their property names in some globally-available place so that all graph algorithms could share them. However, this
+	is almost the same thing as making them fundamental. So my compromise is to define another set of interfaces RawEdge/RawNode/RawGraph
+	which implement the &quot;raw&quot; graph containment and connectivity, and then make Edge/Node/Graph extend these
+	and extend PropertyContainer/UserObjectContainer and add these &quot;almost fundamental&quot; properties of nodes
+	and edges.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>If [PropertyIndexSet/PropertyContainer] designed for efficiency [versus Hashtable], then where are benchmarks?
+
+
+	<BLOCKQUOTE>
+	<P>Preliminary benchmarks show a 1-4x performance improvement over Hashtable using an assortment of graph sizes
+	and numbers of properties. It also occurred to me that PropertyIndexSet has an implicit &quot;garbage collection&quot;
+	which Hashtables lack. See the documentation for more details. I believe that this optimization is justified; applications
+	are slow enough as it is.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>getPropertyIndexSet: Integer array indexing is dangerous. Is there a better way?
+</OL>
+
+
+
+<BLOCKQUOTE>
+
+	<BLOCKQUOTE>
+		<P>Benchmarks should show the improvement over hashtables. If this is the case, then there is no better way that
+		I can think of.</P>
+
+	</BLOCKQUOTE>
+
+</BLOCKQUOTE>
+
+<P><B>Edge</B>
+
+<OL>
+	<LI>Attach: should this throw an exception, instead of detaching automatically first? <ii>Reexamine: should edges
+	attach() or should graphs attach()
+
+
+	<BLOCKQUOTE>
+	<P>No longer a consideration under the new interface design.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>attach/detach: name? suggest: connect/disconnect
+
+
+	<BLOCKQUOTE>
+	<P>No longer a consideration under the new interface design, but fixed in the actual underlying implementation.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>getHead(): Add &quot;Return null if not exist&quot; to Documentation
+
+
+	<BLOCKQUOTE>
+	<P>Fixed.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Concurrency between threads: setHead/setTail requires to calls before edge is consistent
+
+
+	<BLOCKQUOTE>
+	<P>It has been decided that the graph package will not support concurrency. It is up to the user to provide concurrency
+	support. This is a common practice in the recent Java code.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>attach/detach: redundant with setHead, setTail? Should this be in interface
+
+
+	<BLOCKQUOTE>
+	<P>No longer a consideration under the new interface design.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Why is this an interface and not a class? (i.e. is more than one class actually going to implement this)
+
+
+	<BLOCKQUOTE>
+	<P>No longer a consideration under the new interface design. The interfaces for graphs/nodes/edges are now read-only.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>What happens on setHead(Null)?
+
+
+	<BLOCKQUOTE>
+	<P>No longer a consideration under the new interface design.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Is it the responsibility of the low-level API to ensure consistency.
+
+
+	<BLOCKQUOTE>
+	<P>No. The low- and high-level APIs are more distinct in the new interface design, and in fact it is now encouraged
+	to always use the high-level APIs in all common package usage..</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Is clear() doing too much work?
+
+
+	<BLOCKQUOTE>
+	<P>No longer relevant in new interface design.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Further document what interface does in strange and possibly inconsistent calls
+</OL>
+
+
+
+<BLOCKQUOTE>
+
+	<BLOCKQUOTE>
+		<P>No longer a consideration under the new interface design.</P>
+
+	</BLOCKQUOTE>
+
+</BLOCKQUOTE>
+
+<P><B>EdgeSet</B>
+
+<OL>
+	<LI>add: edge is not checked for uniqueness
+
+
+	<BLOCKQUOTE>
+	<P>No longer relevant in new interface design.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Should this be an interface or a class?
+
+
+	<BLOCKQUOTE>
+	<P>No longer relevant in new interface design.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>Implement better policy in interface instead of relying on comments
+
+
+	<BLOCKQUOTE>
+	<P>Greatly improved in new interface design. GraphModel implements a tight policy.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>getParent: no setParent... better name, add setParent?
+
+
+	<BLOCKQUOTE>
+	<P>getParent() removed..</P>
+
+	</BLOCKQUOTE>
+
+	<LI>getParent: probably not needed
+
+
+	<BLOCKQUOTE>
+	<P>getParent() removed..</P>
+
+	</BLOCKQUOTE>
+
+	<LI>In and Out sets can get corrupted using Node/Edge interface: consistency checks? Exceptions? At least in class
+	implementation?
+
+
+	<BLOCKQUOTE>
+	<P>No longer visible to the user in the new API.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>What if edge is not in Set?
+
+
+	<BLOCKQUOTE>
+	<P><FONT COLOR="#008000">Don't understand.</FONT>..</P>
+
+	</BLOCKQUOTE>
+
+	<LI>CONSISTENCY CHECKS?????? Manual check? is this redundant? Leave Hooks?
+</OL>
+
+
+
+<BLOCKQUOTE>
+
+	<BLOCKQUOTE>
+		<P>GraphModel implementations can provide graph-checking routines, since it knows the underlying structure of the
+		graph.</P>
+
+	</BLOCKQUOTE>
+
+</BLOCKQUOTE>
+
+<P><B>Graph</B>
+
+<OL>
+	<LI>add: spec seems over-complex. Should it simply require that the node be removed first? Advocate: consistency
+	checks
+
+
+	<BLOCKQUOTE>
+	<P><FONT COLOR="#FF0000">Under consideration...</FONT></P>
+
+	</BLOCKQUOTE>
+
+	<LI>Should there be sub objects and strict hierarchy? answer:CompoundNode.
+
+
+	<BLOCKQUOTE>
+	<P><FONT COLOR="#009900">Don't understand...</FONT></P>
+
+	</BLOCKQUOTE>
+
+	<LI>delete: see add.
+
+
+	<BLOCKQUOTE>
+	<P><FONT COLOR="#009900">Don't understand...</FONT></P>
+
+	</BLOCKQUOTE>
+
+	<LI>delete: name? Suggest: remove
+
+
+	<BLOCKQUOTE>
+	<P>Fixed.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>clear: clarify, and see add
+
+
+	<BLOCKQUOTE>
+	<P>Fixed.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>getNodeCount: should there be getEdgeCount? Edges don't seem to be fundamental to a graph? Can there be a symmetry
+	between edges and nodes?
+</OL>
+
+
+
+<BLOCKQUOTE>
+
+	<BLOCKQUOTE>
+		<P>In a typical graph package there is no need for edges that cut across arbitrary graphs so it is easier to create
+		a symmetry between edges and nodes. However, in this graph package &quot;containment&quot; and &quot;connectivity&quot;
+		are more or less orthogonal, with nodes as the common point. So because an edge doesn't &quot;belong&quot; to a
+		graph per se, I don't think that a symmetry is possible, nor am I convinced that it's particularly useful.</P>
+
+	</BLOCKQUOTE>
+
+</BLOCKQUOTE>
+
+<P><B>Node</B>
+
+<OL>
+	<LI>setParent():seems suspicious is this something that you really want to allow?
+</OL>
+
+
+
+<BLOCKQUOTE>
+
+	<BLOCKQUOTE>
+		<P>No longer visible to the user in the new API.</P>
+
+	</BLOCKQUOTE>
+
+</BLOCKQUOTE>
+
+<P><B>GraphModel</B>
+
+<OL>
+	<LI>Add(2),add(3) -&gt; addNode and addEdge
+
+
+	<BLOCKQUOTE>
+	<P>Fixed.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>addNode should default to the default graph?
+
+
+	<BLOCKQUOTE>
+	<P>Added extra addNode() method that does this.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>addSubModel/removeSubModel: Clarify description and improve name. Maybe some more description of how SubGraphModel
+	works. @seealso
+
+
+	<BLOCKQUOTE>
+	<P>There is no longer a SubModel interface. GraphModel now contains a method getRoot() that returns the root model.
+	Implementations can choose how this is implemented. In BasicGraphModel, there are two constructors, one for the
+	top-most model and one for a sub-model; that's all the user needs to know.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>addSubModel expects implementation of GraphSubModel class
+
+
+	<BLOCKQUOTE>
+	<P>GraphSubModel has been removed. Now GraphModel knows about hierarchy. The root GraphModel has a <I>null</I>
+	root reference.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>delete-&gt;removeNode, removeEdge
+
+
+	<BLOCKQUOTE>
+	<P>Fixed.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>What are the canonical events that get generated? i.e. if node removed, then not only issue nodeRemoved, but
+	also all the edgeRemoved.
+
+
+	<BLOCKQUOTE>
+	<P>I have chosen the following set of events: { edge_head_changed, edge_tail_changed, edge_data_changed, node_added,
+	node_deleted, node_data_changed, structure_changed }. Though the edge_head_changed and edge_tail_changed might
+	allow listeners to get into strange states, they are the minimal events necessary to implement a listener that
+	can mirror the original graph. It is assumed that the end-user code that generated these events will either be
+	through a &quot;safe&quot; API (a la GraphModel) or that it will be written with care. It is also not out of the
+	question to write listeners which are careful about the events they receive.</P>
+	<P>Alternately, I could have &quot;edge_added&quot; and &quot;edge_deleted&quot; methods, but this might initiate
+	more work than is necessary on any particular</P>
+
+	</BLOCKQUOTE>
+
+	<LI>should get*PropertyIndexSet be in GraphModel or in graph? more description of propertyindexset or a @seealso
+
+
+	<BLOCKQUOTE>
+	<P>Should be in GraphModel. If it's in Graph, it's too fine-grained and algorithms cannot leverage the hash-once
+	efficiency.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>getRoot: more information or @seealso.
+
+
+	<BLOCKQUOTE>
+	<P><FONT COLOR="#009900">Don't understand.</FONT></P>
+
+	</BLOCKQUOTE>
+
+	<LI>getRoot: does this return root graph or root GraphModel? Or does this not really return a root and all and
+	this should be called getGraph?
+
+
+	<BLOCKQUOTE>
+	<P>Fixed. getRoot() now returns a pointer to the root GraphModel. getGraph() returns the model's graph.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>@SEEALSO!!
+
+
+	<BLOCKQUOTE>
+	<P><FONT COLOR="#009900">Don't understand.</FONT></P>
+
+	</BLOCKQUOTE>
+
+	<LI>setProperty-&gt;setEdgeProperty, setNodeProperty, setGraphProperty as well?
+
+
+	<BLOCKQUOTE>
+	<P>Fixed.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>setUserObject-&gt;setEdgeUserObject,setNodeUserObject
+
+
+	<BLOCKQUOTE>
+	<P>Fixed.</P>
+
+	</BLOCKQUOTE>
+
+	<LI>SetUserObject: multiple users(algorithms)? I guess you can't.
+</OL>
+
+
+
+<BLOCKQUOTE>
+
+	<BLOCKQUOTE>
+		<P>No, and it doesn't make sense either. The UserObject semantics has been moved to a separate interface, where
+		it explains in detail the semantics of the user object and why this doesn't make sense. Use the property mechanism
+		for annotating the node with algorithm annotation..</P>
+
+	</BLOCKQUOTE>
+
+</BLOCKQUOTE>
+
+<H2><A NAME="related"></A>Related issues</H2>
+<P>none
+<H2><A NAME="concluding"></A>Concluding notes</H2>
+<P>There were more reviewers than customary because a number of people were new to design reviews. (In general,
+three to five reviewers is optimum.) This is the first review with significant participation by both the Newton
+and Lee research groups! It was great. One of the Ptolemy reviewers said that he was surprised and pleased at the
+different perspective he got from the reviewers from the Newton group. -- johnr</P>
+<P>Comments to:
+<ADDRESS><A HREF="mailto:michaels@eecs.berkeley.edu">michaels@eecs.berkeley.edu</A>
+
+
+<!--footer-->
+
+
+<!--/footer-->
+</BODY>
+
+</HTML>
+
+
+
+
+
+
+
+
+
+
+

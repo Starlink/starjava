@@ -1,0 +1,103 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<HTML>
+
+<HEAD>
+	<TITLE>Whiteboard design history</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<!--navbar-->
+
+
+<!--/navbar-->
+<H1>Whiteboard design history</H1>
+<P><A HREF="#figure1">Figure 1</A> is a UML diagram depicting our first attempt at whiteboard architectural design.
+The application contains three main components, a controller (a toolbar and a recognition engine), a whiteboard
+model and a view on the model. In a very high level sense, the controller generates actions which modifies the
+model. The model notifies the view that the data structure has been changed, and the view updates to reflect the
+most recent state of the model. This is a typical model/view/controller design pattern. In the case of the whiteboard
+application, there are two elements that modify the data structure. One is the toolbar which produces editing actions
+such as add page and remove page, and the actions update the model accordingly. Another one is the recognition
+process which takes in sketch inputs and generates gestures. Each gesture is wrapped by a symbol and added to the
+model. A symbol contains information that's relevant for displaying the gesture, such as color, linewidth, and
+shape. The defect of this design is that it is not clear how multiple windows can be supported for a single document.
+We felt a need to refine this architecture in order to handle that issue.</P>
+<P><A HREF="#figure2">Figure 2</A> is the second take on the design of the whiteboard architure. In order to support
+multiple users sharing the whiteboard, the current page information cannot be kept in the document (whiteboard
+model). The reason is that the users may be sharing the same document, but they can be viewing different pages.
+If the document keeps a current page, that means all the users have to view the same page. This is clearly undesirable.
+Another approach is to let the document keep track of the view and the page it's viewing. However this is a bad
+design and very unextensible. The document should not know about the view or anything else. Its only purpose is
+to store the document data structure. In order to maintain a clean interface between the document (whiteboard model)
+and its renderer (whiteboard canvas), it is better not to keep the current page information within the document.
+Without knowing the current page, the document cannot handle page switchings. Therefore CurrentPageModel is introduced
+to keep track of the current page and to handle page switched events. This also solves the problem of multiple
+users viewing different pages of the same document. The users share the same whiteboard document, but each has
+his own CurrentPageModel. The flow of the events are as follows: the user invokes an action via the toolbar. The
+action modifies both the document (whiteboard model) and the current page model. The document will generate document
+events (page added and page removed) and send them to document listeners. In this case, the document has CurrentPageModels,
+each of which is from a different user, as its listeners. Everything else in the application listens to its current
+page model for page updates. When a current page model receives document events, it passes them on to its listeners.
+This way, we simplify the event communication among modules. The modules that are interested in document events
+and/or page switched events can register themselves as listeners to the current page model.</P>
+<P>Also in the second architecture, we clarified the interaction between the document and its view. A document
+contains multiple pages, each of which contains a sketch model. In this case, a page contains a sketch model representing
+the sketch on the page. Similarly, a whiteboard canvas is a view on the document. It contains multiple page panes,
+each of which views a page. And a page pane simply contains a sketch pane that views the sketch model embedded
+in the page. Each sketch pane receives user sketch inputs in the form of mouse events and sends them to the recognition
+engine. We treat the recognition engine as a black box here. Its responsibility is to consume mouse events and
+produce classification events based on its recognition of the gesture. The SketchProcessor processes the classification
+events and modifies the sketch model accordingly. In the whiteboard application, the recognizer produces empty
+classification events and the sketch processer simply produces a symbol for each gesture drawn and adds the symbol
+to the sketch model. In this version of the architecture, the entire application shares a recognition engine and
+a sketch processor, which means that we cannot easily have a page that understands graphs and another page that
+understands some other kind of drawing.</P>
+<P><A HREF="#figure3">Figure 3</A> displays the third revision, which simplifies the architecture significantly
+and also makes it more powerful. A page now contains an object which represents an application-specific model (i.e.
+sketch model, graph model, etc.). And the document canvas contains panes for viewing the models. Each type of model
+is viewed with an application-specific pane and the pane is generated <I>lazily</I>, meaning it is created only
+when the page needs to be displayed. We use a model renderer to create the panes; the model renderer creates a
+pane that knows how to display a given model based on the model's type.&nbsp; This is done using Java's reflection
+capabilities.&nbsp; Another major architectural change is that now each pane has its own reconition engine and
+sketch processor. This allows each page to be interpreted differently. For example, one page can recognize graphs
+while another page can recognize JavaTime component diagrams. <BR>
+&nbsp;
+
+<UL>
+	&nbsp; 
+	<TABLE BORDER="1" WIDTH="32%">
+		<TR>
+			<TD WIDTH="96%"><A NAME="figure1"></A><A HREF="images/architecture.gif"><IMG SRC="images/architecture-sm.gif" WIDTH="220" HEIGHT="240"
+				ALIGN="BOTTOM" BORDER="0"></A></TD>
+			<TD WIDTH="2%"><A NAME="figure2"></A><A HREF="images/architecture2.gif"><IMG SRC="images/architecture2-sm.gif" WIDTH="187" HEIGHT="240"
+				ALIGN="BOTTOM" BORDER="0"></A></TD>
+			<TD WIDTH="2%"><A NAME="figure3"></A><A HREF="images/architecture-current.gif"><IMG SRC="images/architecture-current-sm.gif" WIDTH="184" HEIGHT="240" ALIGN="BOTTOM" BORDER="0"></TD>
+		</TR>
+		<TR>
+			<TD WIDTH="96%">
+				<P ALIGN="CENTER"><FONT SIZE="1"><B>Fig1: The first design.</B></FONT>&nbsp;
+			</TD>
+			<TD WIDTH="2%">
+				<P ALIGN="CENTER"><FONT SIZE="1"><B>Fig2: The second design.</B></FONT>&nbsp;
+			</TD>
+			<TD WIDTH="2%">
+				<P ALIGN="CENTER"><FONT SIZE="1"><B>Fig3: The third design.</B></FONT>&nbsp;
+			</TD>
+		</TR>
+	</TABLE>
+&nbsp;
+</UL>
+
+<!--footer-->
+
+
+<!--/footer-->
+
+</BODY>
+
+</HTML>
+
+
+

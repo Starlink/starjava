@@ -1,0 +1,87 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>Picking and event dispatch</title>
+           <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<div class="body">
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Picking and event dispatch</h1>
+<!--contents-->
+
+<!--/contents-->
+
+Event-handling uses a straight-forward hierarchical pick algorithm. When
+an event occurs on the JCanvas, it is converted from a MouseEvent into
+a LayerEvent, and passed to the dispatchEvent method of the contained
+CanvasPane. The pane in turn passes the event to each layer, which can
+choose to handle and consume the event. The EventLayer class in the 
+<b>diva.canvas.event</b> package is a layer whose sole purpose
+is to capture events and forward them to any attached LayerListeners
+or LayerMotionListeners.
+
+<p> 
+If the layer is a FigureLayer, it handles events in such a way
+as to make the event appear to originate on the figure. The method
+FigureContainer.pick() is implemented in all implementors to
+recursively search for the figure immediately under the mouse
+coordinates. This is illustrated in the figure below as
+a magenta arrow.
+
+<p
+<center>
+<img src="images/etree.gif">
+</center>
+
+<P>
+At some point, the search for a picked figure either finds
+one or bottoms out with no picked figure. In the diagram, the
+figure labeled <b>D</b> is the picked figure.
+
+<p> The FigureLayer then searches for an Interactor to process the
+event.  Interactors are described in more detail on the next page, but
+basically, they are objects that are attached to figures that
+implement both LayerListener and LayerMotionListener. In the example,
+<b>D</b> does not have an interactor attached (the interactors are
+labeled <b>I</b>, <b>J</b>, and <b>K</b>), so the FigureLayer searches
+up the tree (red arrows) looking for a figure that has one.  In this
+example, figure <b>B</b> has one, so the event is passed to the
+interactor <b>J</b> for processing.
+
+<p> When the interactor receives the event, it will have the fields
+<b>figureSource</b> and <b>layerSource</b> set to the corresponding
+Figure and the FigureLayer that contains it, respectively, so the
+interactor knows which figure caused the event.
+
+
+<p>
+<!--navigation-->
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas Design Reference"></a>
+<a href="event.html">  <img  border=0  src="../../../images/nav-prev.gif"  alt="Previous: The event package"></a>
+<a href="event-section.html">  <img  border=0  src="../../../images/nav-section.gif"  alt="Up: Events and interaction"></a>
+<a href="interactors.html">  <img  border=0  src="../../../images/nav-next.gif"  alt="Next: Interactors"></a>
+
+<br>
+
+<!--/navigation-->
+<!--customfooter-->
+
+<!--/customfooter-->
+</body>
+</div>
+</html>
+
+
+

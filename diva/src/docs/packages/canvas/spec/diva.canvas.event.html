@@ -1,0 +1,529 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<!-- $Id: diva.canvas.event.html,v 1.7 2000/05/02 00:43:56 johnr Exp $ -->
+<html>
+<head>
+<title>Canvas events</title>
+</head>
+
+<body bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Canvas events</h1>
+
+ <P><B>Package</B>:
+
+<BLOCKQUOTE>
+
+ diva.canvas.event
+
+</BLOCKQUOTE>
+
+ <P><B>Status</B>:
+
+<BLOCKQUOTE>
+
+Unpublished. Preliminary.
+
+</BLOCKQUOTE>
+
+ <P><B>Imported packages and classes</B>:
+
+<BLOCKQUOTE>
+
+    java.util.EventObject
+<br>java.awt.event.InputEvent
+<br>java.awt.event.MouseEvent
+<br>java.awt.event.EventListener
+<br>java.awt.event.ComponentListener
+
+</BLOCKQUOTE>
+
+
+ <P><B>See also</B>:
+
+<BLOCKQUOTE>
+
+<A HREF="diva.canvas.html">The Diva canvas</A>
+<br>
+<A HREF="http://ptolemy.eecs.berkeley.edu/copyright.html">Copyright</A>
+
+</BLOCKQUOTE>
+
+<p><b>Contents</b>
+
+<ul>
+
+<li><a href="#layerevents">Layer events</a>
+<li><a href="#mousefilters">Mouse filters</a>
+<li><a href="#eventdispatcher">Event dispatchers</a>
+<li><a href="#valueevents">Value events</a>
+<li><a href="#issues">Issues</a>
+
+</ul>
+
+<a name="layerevents">
+<h2>Layer events</h2>
+</a>
+
+ <P> The event model of figures is en extension to the AWT event
+model. A new event type, LayerEvent, is used to represent mouse events
+in layers, including events on figures. (LayerEvent is a subclass of
+the AWT InputEvent.  We needed a new event type to handle
+floating-point coordinates for layers and to contain the reference to
+the moused-on layer or figure.)
+
+ <P> Two new listener types are created for listening for layer
+events. One listens for mouse enter, motion, and leave events, and one
+listens for mouse press, drag, and release events. Event listeners
+cannot be attached directly to figures, but instead to an
+EventDispatcher object, which handle dispatch of events detected for
+figures. This extra indirection keeps figures lightweight and actually
+improves performance. It also enables creation of "classes" of
+figures, all of which respond to events in exactly the same way (which
+is often what you need in a graphical editor.) Event listeners can,
+however, be attached directly to layers.
+
+<p> Events occuring on a figure are given to the front-most figure.
+If a figure has no attached event dispatcher, the event percolates up
+the tree of figures until it can be dispatched.
+
+
+<dl>
+<p>
+<dt><b>interface LayerEventSource</b>
+
+<dd> <P>
+This interface is used to tag classes that can be a "source"
+for layer events. This is intended to be implemented by CanvasLayer
+and Figure.
+
+<p>
+<dt><b>class LayerEvent extends InputEvent</b>
+
+<dd>
+
+<P> The class representing mouse events in layers. This class is
+similar to its sibling class MouseEvent, except that it represents
+coordinates in the layer's logical coordinate system. Each LayerEvent
+keeps a reference to the mouse event that originated the event,
+and which can be accessed through the getMouseEvent() method.
+
+<dl>
+<p>
+<dt><b>LayerEvent ( MouseEvent e, CanvasLayer l )</b>
+
+<dd> Create a new layer event fropm the given mouse event, and set the
+layer event source to the passed <I>canvas layer</I>. The
+floating-point coordinates returned are derived from the coordinates
+of the mouse event by using the current transform of the layer.
+
+<p>
+<dt><b>LayerEvent ( MouseEvent e, CanvasLayer l, Figure f)</b>
+
+<dd> Create a new layer event fropm the given mouse event, and set the
+layer event source to the passed <I>figure</I>. The floating-point
+coordinates returned are derived from the coordinates of the mouse
+event by using the current transform of the passed canvas layer.
+
+<p>
+<dt><b>void consume ( )</b>
+
+<dd> Consume this event. This event is marked consumed,
+and so is the mouse event that originated it.
+
+<p>
+<dt><b>LayerEventSource getLayerSource ( )</b>
+
+<dd> Get the layer or figure that the event occurred on.
+
+<p>
+<dt><b>MouseEvent getMouseEvent ( )</b>
+
+<dd> Get the mouse event that originated this layer event.
+
+<p>
+<dt><b>boolean isConsumed ( )</b>
+
+<dd> Test if this event has been consumed. This will return true if
+this event has been consumed or the original mouse event has been
+consumed.
+
+<p>
+<dt><b>Point2D getPoint ( )</b>
+
+<dd> Get the point where the event occured. The point is in layer
+coordinates, and should be assumed to be a floating-point coordinate.
+
+<p>
+<dt><b>double getX ( )</b>
+
+<dd> Get the horizontal component of the point where the event
+occured.  The value is in layer coordinates, and should be assumed to
+be a floating-point coordinate.
+
+<p>
+<dt><b>double getY ( )</b>
+
+<dd> Get the vertical component of the point where the event
+occured.  The value is in layer coordinates, and should be assumed to
+be a floating-point coordinate.
+
+<p>
+<dt><b>protected void setLayerSource ( LayerEventSource )</b>
+
+<dd> Set the layer or figure that the event occurred on. This is used
+by figures layers when they percolates events up the tree of figures.
+
+
+</dl>
+
+<p>
+<dt><b>interface LayerListener extends EventListener</b>
+
+<dd>
+
+<P> The interface for listeners that respond to mouse clicks and
+drags. Unlike the AWT MouseListener interface, this interface does not
+include the <I>enter</I> and <I>leave</I> events, but does include the
+<I>drag</I> event, for performance reasons.
+
+<dl>
+<p>
+<dt><b>void mousePressed ( LayerEvent )</b>
+
+<dd> Invoked when the mouse is clicked on a layer or figure.
+
+<p>
+<dt><b>void mouseDragged ( LayerEvent )</b>
+
+<dd> Invoked when the mouse moves while the button is still held down.
+
+<p>
+<dt><b>void mouseReleased ( LayerEvent )</b>
+
+<dd> Invoked when the mouse is released.
+
+</dl>
+
+<p>
+<dt><b>interface LayerMotionListener extends EventListener</b>
+
+<dd>
+
+<P> The interface for listeners that respond to motion
+of the mouse over a figure.
+
+<dl>
+<p>
+<dt><b>void mouseEntered ( LayerEvent )</b>
+
+<dd> Invoked when the mouse enters a layer or figure.
+
+<p>
+<dt><b>void mouseExited ( LayerEvent )</b>
+
+<dd> Invoked when the mouse exits a layer or figure.
+
+<p>
+<dt><b>void mouseMoved ( LayerEvent )</b>
+
+<dd> Invoked when the mouse moves while over a layer or figure.
+
+</dl>
+
+</dl>
+
+<a name="mousefilters">
+<h2>Mouse filters</h2>
+</a>
+
+ <P> A mouse filter is simply an object that filters mouse events
+according to the button and modifiers contained within them.  Any
+object that handles events can use them to decide whether or not to
+process an event. Mouse filters work with both LayerEvents
+and MouseEvents.
+
+
+<dl>
+<p>
+<dt><b>class MouseFilter</b>
+
+<dd>
+The class of mouse filters.
+
+<dl>
+<p>
+<dt><b>MouseFilter ( int <I>button</I> )</b>
+
+<dd> Construct a mouse filter that responds to the given mouse buttons
+and modifier keys. The arguments must be constructed using the button
+masks defined by java.awt.event.MouseEvent. More than one button can
+be specified, in which case the filter will accept events from any of
+them. In any case, modified keys are ignored.
+
+<p>
+<dt><b>MouseFilter ( int <I>button</I>, int <I>modifiers</I> )</b>
+
+<dd> Construct a mouse filter that responds to the given mouse buttons
+and modifier keys. The two arguments must be constructed using the
+button and modifier masks defined by java.awt.event.MouseEvent. More
+than one button can be specified, in which case the filter will acceot
+events from any of them. The filter will accept modifier sets that
+exactly match <I>modifiers</I>.
+
+<p>
+<dt><b>MouseFilter ( int <I>button</I>, int <I>mask, </I>int <I>modifiers</I> )</b>
+
+<dd> Construct a mouse filter that responds to the given mouse buttons
+and modifier keys. The three arguments must be constructed using the
+button and modifier masks defined by java.awt.event.MouseEvent. More
+than one button can be specified, in which case the filter will accept
+events triggerd by any of them. The <I>mask</I> argument filters out
+modifiers that will be ignored; the filter will accept modifier sets
+that, after masking, exactly match <I>modifiers</I>.
+
+<P>
+<dt><b>boolean accept ( MouseEvent )</b>
+<br><b>boolean accept ( LayerEvent )</b>
+
+<dd> Test if the filter accepts an event. If the event satisfies the
+button and modifier conditions, this method returns true, otherwise it
+returns false.
+
+<P>
+<dt><b>static MouseFilter defaultFilter ( )</b>
+
+<dd> Return a filter that accepts button 1 with any modifiers.
+
+<P>
+<dt><b>static MouseFilter defaultSelectFilter ( )</b>
+
+<dd> Return a filter that accepts the default events for
+item selection. This is button 1 no modifiers.
+
+<P>
+<dt><b>static MouseFilter defaultDeselectFilter ( )</b>
+
+<dd> Return a filter that accepts the default events
+for item deselection. This is button 1 with the shift modifier.
+
+<P>
+<dt><b>static MouseFilter defaultToggleFilter ( )</b>
+
+<dd> Return a filter that accepts the default events
+for item selection toggling. This is button 1 with the
+control modifier.
+
+</dl>
+
+</dl>
+
+<a name="eventdispatcher">
+<h2>Event dispatchers</h2>
+</a>
+
+<P> An event dispatcher is attached to one or more layers or figures
+in order to make them respond to events. When a mouse event occurs on
+the figure canvas, the event dispatch code in the figure canvas
+searches for the top-most figure underneath the mouse, and then
+searches up the tree of figures looking for an event dispatcher that
+is prepared to handle that event.
+
+ <P> Often, one event dispatcher will be attached to many figures,
+enabling their behavior to be modified as a class. For example, an
+interactive editor may have a single event dispatcher
+for all vertices of a graph -- this makes it easier to set up
+and change the behavior of mouse clicks on all vertices.
+
+<p>
+<dl>
+<dt><b>interface EventDispatcher</b>
+
+<dd>This is the basic layer event dispatcher interface.  Currently, this
+interface does not have the hooks to enable different event-dispatch
+policies. These will be added in future to support policies other than
+the default pointer-grab policy.
+
+
+<dl>
+
+<p>
+<dt><b>void addComponentListener ( ComponentListener )</b>
+
+<dd> Add a component listener to this figure. This listener will
+be notified whenever the figure moves, changes shape, or
+changes visibility.
+
+<p>
+<dt><b>void addLayerListener ( LayerListener )</b>
+
+<dd> Add a mouse drag listener to this figure.
+
+<p>
+<dt><b>void addLayerMotionListener ( LayerMotionListener )</b>
+
+<dd> Add a motion listener to this figure.
+
+<p>
+<dt><b>void setEnabled ( boolean ) </b>
+
+<dd> Enable or disable event dispatch.
+
+<p>
+<dt><b>boolean isEnabled ( ) </b>
+
+<dd> Test if this event dispatcher is enabled.
+
+ <P>
+<dt><b>void removeComponentListener ( ComponentListener )</b>
+
+<dd>
+Remove the component listener from this figure.
+
+<p>
+<dt><b>void removeLayerListener ( LayerListener )</b>
+
+<dd> Remove the drag listener from this figure.
+
+<p>
+<dt><b>void removeLayerMotionListener ( LayerMotionListener )</b>
+
+<dd>
+Remove the motion listener from this figure.
+
+</dl>
+</dl>
+
+
+<a name="valueevents">
+<h2>Value events</h2>
+</a>
+
+ <P> Often, we are interested in changing values. For example, a mouse
+movement on the canvas might change a value that is displayed in a
+numeric text widget elsewhere on the screen. These changes are
+triggered by the same kind of init-step-done sequence as the mouse
+events (press-drag-release). To capture these kinds of operations, we
+have defined a new event and listener.
+
+<dl>
+<p>
+<dt><b>class ValueEvent extends EventObject</b>
+
+<dd>
+
+<P> The class representing a series of change in a
+numeric value.
+
+<dl>
+<p>
+<dt><b>static int VALUE_INIT</b>
+
+<dd> The flag saying that the sequence of changes is being initialized.
+
+<p>
+<dt><b>static int VALUE_CHANGED</b>
+
+<dd> The flag saying that the value has changed.
+
+<p>
+<dt><b>static int VALUE_DONE</b>
+
+<dd> The flag saying that the sequence of changes is over.
+
+<p>
+<dt><b>static int INT_VALUE</b>
+
+<dd> The flag saying that the value is an integer.
+
+<p>
+<dt><b>static int DOUBLE_VALUE</b>
+
+<dd> The flag saying that the value is an integer.
+
+<p>
+<dt><b>ValueEvent ( Object source, int id, int value )</b>
+
+<dd> Create a new event with the given source, flag, and value.
+The flag must be one of VALUE_INIT, VALUE_CHANGED, or VALUE_DONE.
+
+<p>
+<dt><b>ValueEvent ( Object source, int id, double value )</b>
+
+<dd> Create a new event with the given source, flag, and value.
+The flag must be one of VALUE_INIT, VALUE_CHANGED, or VALUE_DONE.
+
+<p>
+<dt><b>int getIntValue ( )</b>
+
+<dd> Get the integer value of the event.
+
+<p>
+<dt><b>double getValue ( )</b>
+
+<dd> Get the double value of the event.
+
+</dl>
+
+
+<p>
+<dt><b>interface ValueListener extends EventListener</b>
+
+<dd>
+
+<P> The interface for listeners that respond to a sequence
+of value changes.
+
+<dl>
+<p>
+<dt><b>void valueInit ( ValueEvent )</b>
+
+<dd> Invoked when the value is first initialized.
+
+<p>
+<dt><b>void valueChanged ( ValueEvent )</b>
+
+<dd> Invoked when the value is changed.
+
+<p>
+<dt><b>void valueDone ( ValueEvent )</b>
+
+<dd> Invoked when the value is not going to change anymore.
+
+</dl>
+
+</dl>
+
+
+<a name="issues">
+<h2>Issues</h2>
+</a>
+
+<dl>
+
+<dt>
+
+</dl>
+
+ <P>
+<br>
+<br>
+
+<center>
+<img src="../img/end.gif">
+</center>
+
+
+
+
+
+
+
+
+

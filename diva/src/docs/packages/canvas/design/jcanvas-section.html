@@ -1,0 +1,70 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>The JCanvas architecture</title>
+                        <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<div class="body">
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>The JCanvas architecture</h1>
+
+This section describes the top-level architecture of JCanvas and
+associated components.  The canvas has a well-defined internal
+architecture, consisting of panes, layers, and figures. The JCanvas
+class provides screen real-estate and event-routing for the contained
+pane.  A pane provides a floating-point coordinates system in which
+Java2D can be used freely, and contains a stack of drawing and
+event-handling layers. One of these layers, FigureLayer, contains a
+collection of recursively-defined figures.  Any level in this
+hierarchy can have an affine transform attached to it, thus allowing
+scaling and translation at any level.  In addition, panes can be
+embedded within figures, providing for arbitrary nesting of
+visualization and editing components.
+
+
+<!--contents-->
+<ul>
+<li><a href="architecture.html">JCanvas architecture</a>
+<li><a href="jcanvas.html">Canvas and panes</a>
+<li><a href="layers.html">Layers</a>
+<li><a href="figure.html">The figure interface</a>
+<li><a href="figureset.html">Figure sets and containers</a>
+<li><a href="transforms.html">Transform contexts</a>
+<li><a href="paint.html">Damage regions</a>
+<li><a href="figureclasses.html">The figure classes</a>
+<li><a href="decorators.html">Figure decorators</a>
+</ul>
+<!--/contents-->
+
+
+<p>
+<!--navigation-->
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas Design Reference"></a>
+<a href="prolog.html">  <img  border=0  src="../../../images/nav-prev.gif"  alt="Previous: Prolog"></a>
+<a href="event-section.html">  <img  border=0  src="../../../images/nav-next.gif"  alt="Next: Events and interaction"></a>
+
+<br>
+
+<!--/navigation-->
+
+<!--customfooter-->
+
+<!--/customfooter-->
+</body>
+</div>
+</html>
+
+
+

@@ -1,0 +1,112 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>Transform contexts</title>
+                             <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<div class="body">
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Transform contexts</h1>
+<!--contents-->
+
+<!--/contents-->
+
+
+The JCanvas roots a tree of graphical items, starting with a
+CanvasPane, then layers, figures, and then additional figures and
+panes to arbitrary depth. Some nodes of this tree define a new
+<i>transform context</i> or <i>coordinate context</i>.  These nodes
+contain an instance of the TransformContext class, which in turn
+contains an instance of <code>java.awt.geom.AffineTransform</code>. A
+canvas pane always defines a new transform context; canvas layers
+never do, as they use they use the transform context of their
+containing pane; individual figure classes can choose whether or not
+to define a new context.
+
+<p>
+<center>
+<img src="images/transforms.gif">
+</center>
+
+<p> The CanvasComponent interface defines the getTransformContext()
+method. Any component which defines a transform context should return
+its instance of TransformContext; components that do not define a new
+context must call their parent's getTransformContext() method.
+
+<p> The transform context defines the coordinate system in which
+operations on figures take place. If a figure is contained directly in
+a layer, geometric operations on the figure are in the transform
+context of that layer.  (Although we are talking about layers, the
+transform context is in fact defined by the layer's enclosing pane.)
+Most interactive applications will use this transform context by
+default, as it can be thought of as the "world coordinates" of the
+application. If the figure is a descendent of another figure that has
+a transform context, geometric operations on the figure are in the
+enclosing transform context -- that is, the transform context of its
+parent -- and must therefore be transformed to and from layer
+coordinates when necessary.
+
+<p> The diagram below illustrates a sample of the display tree.  If a
+client takes the bounds of figures <i>A</i>, <i>B</i>, <i>C</i> or
+<i>F</i>, then the result will be in layer coordinates -- that is,
+transform context X. However, if the client takes the bounds of
+<i>D</i> or <i>E</i>, the result will be in the transform context
+<i>Y</i>, and will need to be transformed by the client to layer
+coordinates if necessary.
+
+<p>
+<center>
+<img src="images/ttree.gif"</a>
+</center>
+
+<p> The primary function of a TransformContext is to keep an instance
+of an AffineTransform and to provide translation between its
+coordinate space and the containing layer and the screen.  In
+addition, because Java2D does not implement a transform stack, this
+class provides push() and pop() methods. Components that define a
+transform context must call these methods when entering and leaving
+their context during a paint() operation.
+
+<p> A secondary function of TransformContext objects is to cache
+computed transforms to reduce the overhead of computing new
+transforms.  To support caching, the transform context contains a
+flag, cacheValid, that indicates the state of cached transforms. If a
+request for a layer or screen transform is made, and the cache is not
+valid. the TransformContext recomputes the transform and caches
+it. There is also a version number in the context, which is
+incremented whenever the transform changes. This can be used by client
+components to figure out when to update cached data that depends on
+the transform.
+
+<p>
+<!--navigation-->
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas Design Reference"></a>
+<a href="figureset.html">  <img  border=0  src="../../../images/nav-prev.gif"  alt="Previous: Figure sets and containers"></a>
+<a href="jcanvas-section.html">  <img  border=0  src="../../../images/nav-section.gif"  alt="Up: The JCanvas architecture"></a>
+<a href="paint.html">  <img  border=0  src="../../../images/nav-next.gif"  alt="Next: Damage regions"></a>
+
+<br>
+
+<!--/navigation-->
+
+<!--customfooter-->
+
+<!--/customfooter-->
+</body>
+</div>
+</html>
+
+
+

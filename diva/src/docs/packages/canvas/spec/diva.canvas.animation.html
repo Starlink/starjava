@@ -1,0 +1,251 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<html>
+<head>
+<title>The animation package</title>
+</head>
+
+<body bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>The animation package</h1>
+
+<p>
+
+ <P><B>Package</B>: 
+
+<BLOCKQUOTE>
+
+diva.canvas.animation
+
+</BLOCKQUOTE>
+
+ <P><B>Status</B>:
+
+<BLOCKQUOTE>
+
+0.1. Very preliminary. Published to ptdesign. 05/05/98.
+
+</BLOCKQUOTE>
+
+ <P><B>Last updated</B>:
+
+<BLOCKQUOTE>
+
+May 5th, 1998.
+
+</BLOCKQUOTE>
+
+ <P><B>Imported packages and classes</B>:
+
+<BLOCKQUOTE>
+
+java.awt.shape.*
+<br>
+java.awt.geom.*
+<br>
+java.awt.event.ActionListener
+<br>
+java.awt.swing.Timer
+
+</BLOCKQUOTE>
+
+ <P><B>See also</B>:
+
+<BLOCKQUOTE>
+
+<A HREF="diva.canvas.html">The Diva canvas</A>
+<br>
+<A HREF="http://ptolemy.eecs.berkeley.edu/copyright.html">Copyright</A>
+
+</BLOCKQUOTE>
+
+<p><b>Contents</b>
+
+<ul>
+
+<li><a href="#overview">Overview</a>
+<li><a href="#interfaces">Interfaces</a>
+<li><a href="#classes">Classes</a>
+<li><a href="#issues">Issues</a>
+
+</ul>
+
+
+<a name="overview">
+<h2>Overview</h2>
+</a>
+
+The canvas animation package provides support for animating figures on
+the canvas. The animation support is directed to moving and changing
+figures, not animation of images. This package is based on Michael
+Shilman's graph.animation package, but modified to use the Swing
+Timer class.
+
+ <P><B>Note</B>: this is completely wrong. Animators should
+drive the FigureListener and ValueListener interfaces.
+
+<a name="interfaces">
+<h2>Interfaces</h2>
+</a>
+
+ <P>
+<dl>
+
+<p>
+<dt><b>interface Animation</b>
+
+<dd>
+<P> An interface for objects that can be animated.
+
+<dl>
+<p>
+<dt><b>boolean reset ( )</b>
+
+<dd> Reset the animation.
+
+<p>
+<dt><b>boolean step ( )</b>
+
+<dd> Perform one step of the animation, returning true if
+the animation is done.
+
+<p>
+<dt><b>void setInterval ( long )</b>
+
+<dd> Tell the animation what it's recurrence interval is, in
+milliseconds. This method is intended for calling by the 
+Animator class only.
+
+</dl>
+
+</dl>
+
+
+<a name="classes">
+<h2>Classes</h2>
+</a>
+
+<dl>
+<p>
+<dt><b>class Animator</b>
+
+<dd> <P> An object that runs animations. This object encapsulates one
+or more instances of the AWT Timer object to manage animation
+scheduling.
+
+<dl>
+<p>
+<dt><b>void run ( Animation, int )</b>
+
+<dd> Run an animation that executes at the given interval in
+milliseconds.  The Animation will be removed from this Animator when
+the animation completes.
+
+<p>
+<dt><b>void run ( Animation, int, ActionListener )</b>
+
+<dd> Run an animation that executes at the given rate in milliseconds.
+The Animation will be removed from this Animator and the action listener
+notified when the animation completes.
+
+</dl>
+
+
+<p>
+<dt><b>class CombinedAnimation implements Animation</b>
+
+<dd>
+<P> An animation that performs two animations at once.
+
+<dl>
+<p>
+<dt><b>CombinedAnimation ( Animation, Animation )</b>
+
+<dd> Construct the combined animation of two animations.
+
+</dl>
+
+<p>
+<dt><b>class PathAnimation implements Animation</b>
+
+<dd>
+<P> An animation that moves a glyph along some specified path.
+
+<dl>
+<p>
+<dt><b>PathAnimation ( Figure, long, double, double )</b>
+
+<dd> Construct a linear animation of the given duration
+and have it move the given Figure.
+
+<p>
+<dt><b>PathAnimation ( DragListener, long, double, double )</b>
+
+<dd> Construct a linear animation of the given duration and
+have it generate events to the drag listener.
+
+<p>
+<dt><b>PathAnimation ( Figure, long, Shape )</b>
+
+<dd> Construct an animation of the given duration along the path of
+the given Shape.
+
+<p>
+<dt><b>PathAnimation ( DragListener, long, Shape )</b>
+
+<dd> Construct an animation of the given duration along the path of
+the given Shape.
+
+</dl>
+
+
+<p>
+<dt><b>class TransformAnimation implements Animation</b>
+
+<dd>
+<P> An animation that incrementally applies a transform.
+
+<dl>
+<p>
+<dt><b>TransformAnimation ( Figure, long, AffineTransform )</b>
+
+<dd> Construct an animation of the given duration that incrementally
+applies the given transform to the given figure.
+
+</dl>
+
+
+</dl>
+
+<a name="issues">
+ <h2>Issues</h2>:
+</a>
+
+<ul>
+
+<li>Speed-up and slow-down
+
+<li>Property animation -- use java.awt.event.AdjustmentEvent and
+java.awt.event.AdjustmentListener.
+
+</ul>
+
+
+<center>
+<img src="../img/end.gif">
+</center>
+
+
+
+
+
+
+
+
+

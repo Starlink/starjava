@@ -1,0 +1,120 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<HTML>
+
+<HEAD>
+	<TITLE>Whiteboard application design document</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<!--navbar-->
+<!--/navbar-->
+<H1>Diva Whiteboard Overview</H1>
+<H2>Introduction</H2>
+<P>The whiteboard package contains several classes which implement a digital whiteboard application.  The whiteboard
+application is built within the diva.gui framework and uses the diva.sketch package to provide the sketch-based
+user interface.  If you want to build your own sketch-based application quickly within this whiteboard framework,
+you can simply instantiate your own sketch controller and interpreter in Whiteboard.java.</P>
+
+<P>The whiteboard application has the following features:</P>
+
+<UL>
+	<LI>multiple documents each of which could have multiple pages
+	<LI>save and load documents in xml format (we use sml for file extension.  It stands for sketch markup language)
+	<LI>export to jpeg
+	<LI>change pen color and width
+	<LI>navigate pages
+	<LI>basic command gesture support (check for selection and scribble for deletion)
+	<LI>move and resize sketched figures
+	<LI>freeform sketching
+</UL>
+
+<P>
+<H2>Architecture Overview</H2>
+<P>The following is a UML diagram of the whiteboard architecture.  The classes with gray background belong to the
+diva.gui package, and the classes with slash pattern background belong to the diva.sketch package.</P>
+<CENTER>
+<P>
+<TABLE BORDER="2" WIDTH="34%">
+	<TR>
+		<TD WIDTH="100%">
+			<P ALIGN="CENTER"><IMG SRC="images/whiteboard0.3.gif" WIDTH="659" HEIGHT="649" ALIGN="BOTTOM" BORDER="0" HSPACE="5">
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH="100%">
+			<P ALIGN="CENTER"><B>The diva.whiteboard packge UML diagram</B>
+		</TD>
+	</TR>
+</TABLE>
+<FONT COLOR="#000000"></FONT></P>
+</CENTER>
+<P>A whiteboard contains multiple sketch documents each of which is associated with a frame.  A document may contain
+multiple pages and the current viewing page needs to be displayed in the frame.  Referring to the UML diagram,
+each sketch document is associated with a JSketch which knows how to display the document.  More specifically,
+a page in the document is associated with a sketch pane which is used to view the sketch model contained in the
+page.  When a page is selected for viewing, JSketch swaps in the pane that displays the page.</P>
+
+<P>The whiteboard supports a few command gestures.  The way it works is that strokes that are drawn with the right
+mouse button pressed will be interpreted by a command interpreter whereas strokes drawn with left mouse button
+pressed will not.  Therefore users can sketch free forms with the left button and perform command gestures with
+the right button.  A command interpreter receives mouse events as the user sketches on the canvas.  It filters
+out the events that are performed with the left mouse button and only processes the events <FONT COLOR="#000000">that
+are performed with the right mouse button.  The command interpreter uses a gesture recognizer to recognize geometric
+shapes.  If the recognizer anaylizes a stroke to be a &quot;check&quot; or a &quot;scribble&quot;, the command
+interpreter will ask the controller to execute the corresponding actions.</FONT></P>
+
+<P><FONT COLOR="#000000">The whiteboard also supports parsing and loading of documents.  The followiing is a UML
+diagram that illustrates this framework.</FONT></P>
+<CENTER>
+<P>
+<TABLE BORDER="1" WIDTH="100%">
+	<TR>
+		<TD WIDTH="100%">
+			<P ALIGN="CENTER"><IMG SRC="images/parser-writer0.3.gif" WIDTH="576" HEIGHT="490" ALIGN="BOTTOM" BORDER="0">
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH="100%">
+			<P ALIGN="CENTER">The document parser and writer architecture.
+		</TD>
+	</TR>
+</TABLE>
+<FONT COLOR="#000000"></FONT></P>
+</CENTER>
+<P><FONT COLOR="#000000">A DocumentParser can be used to parse all pages of a multi-page document from a file.
+ It uses a model parser to parse the content of a page.  This assumes that every page is associated with an application
+model.  In the case of whiteboard, each page contains a sketch model and the document parser uses a sketch parser
+to parse each page.  To see how this works, let's look at a short example:</FONT></P>
+
+
+<BLOCKQUOTE>
+	<P><FONT SIZE="2" COLOR="#660099">&lt;?xml version=&quot;1.0&quot; standalone=&quot;no&quot;?&gt;<BR>
+	&lt;!DOCTYPE document SYSTEM &quot;document.dtd&quot;&gt;<BR>
+	&lt;document title=&quot;test2.sml&quot;&gt;<BR>
+	&lt;sheet title=&quot;Page 0&quot; num=&quot;0&quot;&gt;</FONT><FONT SIZE="2" COLOR="#000000"><BR>
+	</FONT><FONT SIZE="2" COLOR="#006600">&lt;![CDATA[<BR>
+	&lt;?xml version=&quot;1.0&quot; standalone=&quot;no&quot;?&gt;<BR>
+	&lt;!DOCTYPE sketchModel SYSTEM &quot;sketch.dtd&quot;&gt;<BR>
+	&lt;sketchModel&gt;<BR>
+	&lt;stroke color=&quot;0.0 0.0 0.0&quot; linewidth=&quot;2.0&quot; points=&quot;10.0 10.0 940632311790 20.0 10.0
+	940632313392&quot;/&gt;<BR>
+	&lt;/sketchModel&gt;<BR>
+	]]&gt;</FONT><FONT SIZE="2" COLOR="#660099">&lt;/sheet&gt;<BR>
+	&lt;/document&gt;</FONT><FONT SIZE="2" COLOR="#000000"></FONT></P>
+
+</BLOCKQUOTE>
+
+<P><FONT COLOR="#000000">This is a sketch document in xml format.  It contains only one page and the page content
+is shown in green.  The document parser would parse this file into a document data structure, and it would ask
+the sketch parser to parse the page content (green section) generating a sketch model for the page.  Similar a
+DocumentWriter uses a model writer to write out multi-page documents.  In the above example, the document writer
+would write the text in purple and for each page, it would use a sketch writer to write out the model in the page
+(green section).</FONT></P>
+<ADDRESS><!--footer--> <!--/footer-->
+
+</BODY>
+
+</HTML>
+

@@ -1,0 +1,128 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<HTML>
+
+<HEAD>
+<LINK href="../../diva.css" rel="stylesheet" type="text/css">
+<TITLE>Diva Canvas FAQ</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<H1>Diva Canvas FAQ<I></I></H1>
+
+<OL>
+<li><I>What can I use it for</I>?
+
+<p> Use the Diva canvas for any application where you want to
+create and manipulate persistent Java2D graphics. By creating
+your own Figure class, you can create an item with arbitrary
+Java2D graphics that can be positioned on the screen, that
+redraws itself appropriately, and exhibits complex user
+interaction behavior.
+
+<p>Use the Diva Canvas if you need a ready-made hierarchical
+display architecture. By creating your own implementation
+of CanvasLayer, you can create totally arbitrary Java2D graphics
+that can then be hierarchically embedded within each other
+and within other Diva Canvas tools.
+
+<p>
+<li><I>What are the differences between the Diva Canvas and Swing</I>?
+
+<p>
+The short answer is that Swing is primarily a GUI widget set, while the
+Diva Canvas is primarily an interactive 2D graphics framework.
+
+<p>What the Diva canvas provides that Swing doesn't provide:
+<OL>
+<li>Light-weight
+<li>No rectangular assumptions
+<li>Interactors
+<li>Extensive transform support
+<li>Animated behavior (eventually)
+</OL>
+
+<p>What Swing provides that the Diva canvas doesn't provide:
+<OL>
+<li>Conventional UI stuff
+<li>Layout managers
+<li>Tons of widgets
+<li>Look and feel
+</OL>
+
+
+<p>
+<li><i>Why isn't a Figure a Swing widget?</i>
+
+<p> Several reasons. Swing widgets, in spite of what Sun's marketing
+machine says, are not particularly light-weight. Figures are small and
+(given the underlying platform) reasonable fast. We're interested in
+creating components with a <i>lot</i> of Figures on them, so we took
+some pains to keep them small. Also, we are interested in
+doing fairly complex graphics and interaction with Figures,
+and Swing widgets are design for a different purpose.
+
+<p>
+<li><i>Why do I need to put CanvasPane in a PaneWrapper instead of
+using Swing's component nesting?</i>
+
+<p> Simply put, CanvasPane is not a Swing component, it's a figure.
+We wrote PaneWrapper as a first attempt at exploring nested "surfaces" by
+embedding one CanvasPane as a figure within another CanvasPane.
+We have been wanting to figure out to embed arbitrary swing components
+within a canvas, but it just hasn't been a priority
+so far. If you have made custom Swing widgets that work properly with
+Java2D (particularly in the presence of affine transforms), email us
+some code!
+
+<p>
+<li><i>Does the Canvas architecture extend to 3D?</i>
+
+<p> Fairly early on in the design process, we
+decided to focus on the 2D graphics for the canvas, since 2D is where
+our key interests currently lie.  There are lots of interesting issues
+in 2D information representation, which tend to get forgotten with 3D
+environments. The kind of issues you deal with when you scribble or
+draw in your notepad, for example. (When was the last time you saw
+anyone use a 3D sketch-pad?)
+
+<p>On the other hand, there's no particular reason not to construct 3D surfaces
+or viewers for visualization data, once we get the visualization protocols
+implemented. This is an independent issue from the canvas, though.
+
+</OL>
+
+<br>
+<br>
+<table width=100%>
+<tr>
+<td align="middle">
+<img src="../../images/footer.gif" width="253" height="2">
+</td>
+</tr>
+</table>
+
+  <!--/footer-->
+
+<!--footer-->
+<!--/footer-->
+</BODY>
+
+</HTML>
+
+
+
+
+
+
+
+
+
+

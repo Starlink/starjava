@@ -1,0 +1,108 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>Figure wrappers</title>
+                         <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<div class="body">
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Figure wrappers</h1>
+<!--contents-->
+
+<!--/contents-->
+
+
+
+
+
+A <i>wrapper</i> is a class that has a single child. Wrappers serve
+a special purpose in the Diva canvas: wrappers are not proper figures,
+but act as Decorators (in the sense of Gamma et al) for other figures.
+Typically, wrappers affect that way in which the figure it wraps
+is rendered.
+
+<p>
+<center>
+<img src="images/wrappers.gif">
+</center>
+
+<p> The diagram shows the place of wrappers together with some of the
+subclasses implemented in the Diva canvas.  Any figure can be
+<i>wrapped</i> by calling the wrap() method of its parent. This method
+must be implemented by containers to place the figure in the wrapper
+and insert the wrapper in the tree in its place. Once this has been
+done, the wrapper will receive all paint() calls before the wrapped
+figure, allowing it to draw additional elements on the screen
+or make other modifications that affect how the figure appears
+on the screen.
+
+<p> In general, a wrapper may also wrap another wrapper.  To allow
+consistent access to the figures (as opposed to the wrappers) that
+make up the image, the wrapper class has methods to access the
+following related objects:
+
+<ul>
+<li>The <i>parent</i> is the immediate parent;
+<li>The <i>container</i> is the first ancestor that is not a wrapper;
+<li>The <i>child</i> is the child single child of this wrapper;
+<li>The <i>wrappedFigure</i> is the first descendent that is not
+a wrapper.
+</ul>
+
+<p>
+These relations are shown in this figure:
+
+<p>
+<center>
+<img src="images/wtree.gif">
+</center>
+
+<p> A simple example of a wrapper is the BasicHighlighter class in
+<b>diva.canvas.toolbox</b>. This class draws a translucent box around
+its wrapped figure, and then forwards the paint() call to the
+figure. The class ReshapeManipulator in <b>diva.canvas.interaction</b>
+draws a set of grab-handles over the top of various points of the
+child figure.
+
+<p> Other classes shown in the diagram will not be implemented until a
+future release of Diva. The RenderContext node contains a set of
+parameters that define the current rendering context, such as the line
+stroke and rendering style. The RenderQuality node attempts to provide
+varying levels of rendering quality by adjusting rendering parameters.
+It is intended for use in typical interactive applications, where
+rendering quality can be sacrificed for performance during a user
+interaction.  RenderQuality provides caching of a rendered figure,
+again for use in interactive applications.
+
+<p>
+<!--navigation-->
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas"></a>
+<a href="figureclasses.html">  <img  border=0  src="../../../images/nav-prev.gif"  alt="Previous: The figure classes"></a>
+<a href="figure-section.html">  <img  border=0  src="../../../images/nav-section.gif"  alt="Up: Figures"></a>
+<a href="geometry.html">  <img  border=0  src="../../../images/nav-next.gif"  alt="Next: Feature sets"></a>
+
+<br>
+
+<!--/navigation-->
+
+<!--customfooter-->
+
+<!--/customfooter-->
+</body>
+</div>
+</html>
+
+
+

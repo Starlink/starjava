@@ -1,0 +1,83 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>Manipulators</title>
+   <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<div class="body">
+</div>
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Manipulators</h1>
+<!--contents-->
+
+<!--/contents-->
+
+A Manipulator is a kind of decorator that places grab-handles
+on a figure so that it can be resized and otherwise manipulated.
+The following diagram shows the main participants:
+
+<p>
+<center>
+<img src="images/manipulators.gif">
+</center>
+
+<p>
+The manipulator, like any FigureDecorator, contains a single
+specialized instance of Figure, which is its <i>child</i> figure,
+and which is generally set by a SelectionRenderer.
+In the case of manipulators, this figure is the one that is
+being manipulated.
+
+<p> When a SelectionRenderer or other object calls the wrap() method
+to wrap the child figure in the manipulator, the manipulator creates
+some number of GrabHandle. To do so, it uses an instance of
+GrabHandleFactory, thus allowing the kind of grab-handles created by
+manipulators to be easily parameterized. 
+There are basic implementations of GrabHandle and GrabHandleFactory
+to provide a useful default grab-handle.
+
+<p> Each grab-handle has a DragInteractor attached to it, which is
+activated if it is accepted by a suitable MouseFilter. Both of these
+last two objects can be set via the Manipulator interface. Each
+GrabHandle is attached to a single Site, and the relocate() method of
+GrabHandle is used to reposition the grab-handle at the location of
+the Site.
+
+<p> There are two concrete subclasses of manipulator in the
+basic canvas support: BoundsManipulator places grab-handles
+on the corners and edges of the bounding box of a figure,
+while PathManipulator places grab-handles on each vertex of
+an arbitrary shape.
+
+<p>
+
+<p>
+<!--navigation-->
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas Design Reference"></a>
+<a href="sites.html">  <img  border=0  src="../../../images/nav-prev.gif"  alt="Previous: Sites"></a>
+<a href="event-section.html">  <img  border=0  src="../../../images/nav-section.gif"  alt="Up: Events and interaction"></a>
+<a href="connectors.html">  <img  border=0  src="../../../images/nav-next.gif"  alt="Next: Connectors"></a>
+
+<br>
+
+<!--/navigation-->
+<!--customfooter-->
+
+<!--/customfooter-->
+</body>
+</html>
+
+
+

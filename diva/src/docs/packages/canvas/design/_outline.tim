@@ -1,0 +1,59 @@
+# Outline model for the notmake documentation. This file
+# is read by Tycho to update the HTML doc structure.
+
+configure -inline 0
+configure -imagedir "../../../images"
+configure -images {nav-top.gif nav-prev.gif nav-section.gif nav-next.gif}
+configure -bgcolor #ffffff
+configure -title {The Diva Canvas}
+
+# The document template places the navigation links at the
+# bottom of the page
+configure -template {
+<html>
+<head>
+<title></title>
+</head>
+<body>
+
+<h1></h1>
+
+</body>
+</html>
+}
+
+# The header contains the link to the style sheet for this document
+configure -header {
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+}
+
+# The footer contains ...
+configure -footer {
+}
+
+
+section prolog -inline 0 -title "Prolog"
+
+section jcanvas-section -inline 0 -title "The JCanvas architecture" {
+    section architecture -inline 0 -title "JCanvas architecture"
+    section jcanvas -inline 0 -title "Canvas and panes"
+    section layers -inline 0 -title "Layers"
+    section figure -inline 0 -title "The figure interface"
+    section figureset -inline 0 -title "Figure sets and containers"
+    section transforms -inline 0 -title "Transform contexts"
+    section paint -inline 0 -title "Damage regions"
+    section figureclasses -inline 0 -title "The figure classes"
+    section decorators -inline 0 -title "Figure decorators"
+}
+
+section event-section -inline 0 -title "Events and interaction" {
+    section event -inline 0 -title "The event package"
+    section picking -inline 0 -title "Picking and event dispatch"
+    section interactors -inline 0 -title "Interactors"
+    section manipulators -inline 0 -title "Manipulators"
+}
+
+#section old-stuff -inline 0 -title "Old stuff" {
+#    section interfaces -inline 0 -title "Key interfaces"
+#    section recursion -inline 0 -title "Structural recursion"
+#}

@@ -1,0 +1,103 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<HTML>
+<HEAD>
+   <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+   <TITLE>diva.canvas: comments, May 6th, 1998</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+<!-- Replace all the italic text, including the <I></I> directives -->
+<H1>
+diva.canvas: comments, May 6th, 1998</H1>
+
+ <P>
+Email comments received after posting preliminary spec to
+ptdesign.
+
+ <P><B>Michael Shilman</B>
+
+<PRE>
+
+From: Michael Shilman <michaels@EECS.Berkeley.EDU>
+To: "'John Reekie'" <johnr@EECS.Berkeley.EDU>
+Subject: RE: Java canvas spec
+Date: Wed, 6 May 1998 01:11:20 -0700
+
+</PRE>
+
+Hi John,
+
+ <P>
+I didn't have time to scrutinize your API, but I did take a quick look.
+It's very polished and looks very good, though it'd really take some
+serious thinking to give it a proper critique.  I don't have time for
+serious thinking these days, so you'll get a half-assed critique.  =)
+
+ <P>
+I think there is a lot of useful functionality in the API you've
+spec'ed.  The question I have is how much of that functionality is
+beneficial to me as the user, and how much of it is just going to make
+my GUI run slower?  What are the abstraction layers in your API, if any?
+Does the API simply provide structure, or does it also provide an
+abstraction by which common operations can be optimized behind an
+abstraction layer?
+
+ <P>
+Related: which API pieces build on each other?  Can you reuse code in
+this way to reduce the number of distinct functions in your spec?  Seems
+like, e.g. Layer is just a special type of Group--does it need its own
+class?
+
+ <P>
+About specific features: I think the predicates look very elegant.
+However it'd be nice if you could give some situations in which you'd
+use them.  Is this a Tcl thing?
+
+ <P>
+Is there any way to make the event API more like the AWT1.1?  
+
+ <P>
+Write some "case studies"; things that would push the limits of your
+model.  For example, I have a graph editor and I'd like to draw edges
+between nodes in two different coordinate frames.  How would I do that
+in your system?  I'd like to drag a node out of its parent and into it's
+parent's parent--I'd like the coordinate frame to change, but not the
+size/aspect ratio of the node wrt the user.  How do I do event handling
+for this?
+
+ <P>
+Finally, would this extend to 3D at all?  It'd be nice if it did, though
+I know that's asking a lot...
+
+<P>Comments to:
+
+<ADDRESS>
+<A HREF="mailto:johnr@eecs.berkeley.edu">johnr@eecs.berkeley.edu</A></ADDRESS>
+
+
+<!--footer-->
+
+
+<!--/footer-->
+</BODY>
+</HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,104 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>Structural recursion</title>
+                   <!--header-->
+  
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+
+  <!--/header-->
+</head>
+<div class="body">
+<body bgcolor=#ffffff bgcolor=#ffffff>
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Structural recursion</h1>
+
+
+
+
+
+There are two sources of structural recursion in the Diva canvas.
+These are outlined here, although full details of the classes involved
+are given only in the sections relevant to those classes.
+
+<p>
+<center>
+<img src="images/recursion.gif">
+</center>
+
+<p> The first form of recursion is figure containment. Any class that
+implements both Figure and FigureContainer is a figure that contains
+other figures. In the Diva canvas, AbstractFigureContainer is the root
+of these classes.
+
+<p> The second form of recursion is pane containment. An instance of
+PaneWrapper contains a CanvasPane, thus providing a recursive link
+back to near the top of the canvas architecture. This approach allows a
+visualization or editing component to be written for a pane, and then
+easily embedded into any other pane, together with an appropriate
+scaling transform and background fill. (This is the
+recommended approach to designing an editing or visualization
+component: create an application-specific CanvasPane, not an
+application-specific JCanvas.)
+
+<p>
+Various nodes in this tree define a new coordinate system.
+This is described on the next page.
+
+<p>
+<!--navigation-->
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas"></a>
+<a href="interfaces.html">  <img  border=0  src="../../../images/nav-prev.gif"  alt="Previous: Key interfaces"></a>
+<a href="old-stuff.html">  <img  border=0  src="../../../images/nav-section.gif"  alt="Up: Old stuff"></a>
+
+<br>
+<!--/navigation-->
+
+<!--customfooter-->
+  
+
+  <!--/customfooter-->
+</body>
+</div>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

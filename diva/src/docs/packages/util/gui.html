@@ -1,0 +1,88 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<HTML>
+
+<HEAD>
+<LINK href="../../diva.css" rel="stylesheet" type="text/css">
+
+	<TITLE>Gui utilities</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<H1>Gui utilities</H1>
+
+<P><B>diva.util.gui</B> is a small, simple application framework,
+designed to make it easier to construct useful Swing applications. It
+should also be possible to extend this framework to create a more
+elaborate to better suit your own particular application.
+
+<P> The following diagram illustrates the static structure of the
+application framework. The GUI components are shown in the lower
+left. The main component is ApplicationFrame, which is a frame that
+contains several other components laid out in a standard fashion: a
+menu bar, tool bar, a palette (on the left), a status bar, and the
+main display component. This layout is commonly used by drawing tools,
+such as Visio.
+
+<p>
+<center>
+<img src="images/gui.gif">
+</center>
+
+
+<p> The classes JPalette and JStatusBar are not part of Swing, but are
+provided as components in the diva.util.gui package.
+
+<p> An application is a class that implements the Application
+interface, and this package provides an abstract class that implements
+some of this interface. For example, a graph editor would subclass
+AbstractApplication as, say, GraphEditor. The application is the class
+that contains the <b>main</b> method, and is responsible for creating
+and initializing all other classes. In particular, it is responsible
+for initializing the menubars to contain <i>all</i> menus and menu
+entries (there are no default menus -- it might seem loike a good
+idea, but it isn't).
+
+<p> Although the concrete Application subclasses are responsible
+for creating the menus, there are a number of actions that are
+shared by many application, which are provided for convenience in
+the Action class. This class is a collection of Swing Action objects,
+such as Open, Close, Save, and so on.
+
+<p> Each Application contains a list of currently-open Documents, one
+of which is designated as the <i>current</i> document. The Document
+interface captures the abstraction of a document which can be opened,
+editied, and (probably) written to the file system. Each document may
+or may not contain a <i>primary file</i>, which is what you would
+think of for simple documents such as text documents.  (More complex
+document classes may choose to store themselves in multiple files --
+or far that matter, somewhere other than in files.) The Document subclass
+provides the right abstraction that allows us to open and close these
+documents. In the future, this interface could be extended to allow
+searching and indexing as well.
+
+
+<!--footer-->
+
+
+<!--/footer-->
+</BODY>
+
+</HTML>
+
+
+
+
+
+
+
+
+
+

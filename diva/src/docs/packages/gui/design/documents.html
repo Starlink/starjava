@@ -1,0 +1,82 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<!-- $Id: documents.html,v 1.1 2000/08/16 20:11:30 neuendor Exp $ -->
+
+<html>
+<head>
+  <title>Documents and Multipage Documents</title>
+  <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<!--navbar-->
+<!--/navbar-->
+
+
+<h1>Documents and Multipage Documents</h1>
+<!--contents-->
+
+<!--/contents-->
+
+<P> The following diagram illustrates the classes that combine to 
+provide support for different kinds of documents.
+
+<center>
+<img src="../images/documents.gif">
+</center>
+
+<p> The key interface for dealing with documents is the (surprise, surprise!)
+the Document interface.  This interface provides methods for querying
+standard information about the document, such as whether or not it is writable
+to persistent storage, whether or not the document is editable, and whether 
+or not the document is "Dirty" in that changes have been made and not saved.
+The implementor of the document is responsible for properly setting these
+properties, and these properties should be respected by any implementation
+of a <a href="storagepolicy.html">StoragePolicy</a>.
+
+<p> Each document may or may not be representable in some kind of 
+persistent form.  For most documents, such as text documents, 
+this will consist of a <i>primary file</i>.  More complex
+document classes may choose to store themselves in multiple files --
+or far that matter, somewhere other than in files. The Document subclass
+provides the right abstraction that allows us to open and close these
+documents. In the future, this interface could be extended to allow
+searching and indexing as well. A Document could also be associated with a 
+URL to allow it to be loaded via HTTP, but this functionality has not
+yet been implemented.
+
+<p> Documents also provide methods that are called by the StoragePolicy in
+order to open the document and initialize it from persistent form, 
+to save the document's data persistently, and to close the document
+(releasing any resources the document may have been using).  Note that
+the document interface says nothing about the type of the data, or in what
+form it is persistently stored.  Concrete subclasses of Document 
+(or AbstractDocument) are responsible for that.  We tend to prefer XML
+for document persistence, since it is easy to pass over networks, is 
+human readable, and often easier to manage than object serialization.
+
+<p> Many times documents are naturally seen as a sequence of pages.  This
+abstraction is most useful for information that is partitioned, 
+but always saved together.  The MultipageDocument, Page and BasicPage classes
+provide some basic infrastructure for handling such documents.  Concrete
+subclasses are still required to implement document persistence and
+application interpretation, however.
+
+<!--footer-->
+
+<!--/footer-->
+</BODY>
+
+</HTML>
+
+
+
+
+
+
+
+
+
+

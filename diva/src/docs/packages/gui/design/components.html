@@ -1,0 +1,81 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<!-- $Id: components.html,v 1.1 2000/08/16 20:11:30 neuendor Exp $ -->
+
+<html>
+<head>
+  <title>Gui Toolbox</title>
+  <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<!--navbar-->
+<!--/navbar-->
+
+
+<h1>Gui Toolbox</h1>
+<!--contents-->
+
+<!--/contents-->
+
+<p> JShadePane and JTreePane are similar components in concept to JTabbedPane 
+in that they both organize a set of components that can be browsed.  JShadePane
+bworks better than JTabbedPane for a narrow browser where not many tabs can
+fit on one row.  JTreePane works better for components that need to organize
+a large number of panels in a hierarchical fashion.
+
+<p> JPanner is a component that attaches to a JViewport swing component.  It 
+provides a mechanism to visualize and manipulate the viewport without using 
+scrollbars.  The entire component contained by the viewport is scaled
+down to be completely visible in the panner.  Clicking within the 
+JPanner centers the viewport at that point on the component.
+
+<p> JPseudoFrame is not a Frame at all, but a component that provides 
+an improved mechanism for handling multiple document style interfaces.
+It enables a JInternalFrame to be maximized in the manner exhibited by Windows
+applications. By default, if you use a JDesktopPane and maximize
+one of the internal frames, the internal frame becomes the size of
+the desktop pane, but it still has a full title bar. Instead, what you 
+want is for the contents of the internal frame to <i>replace</i> the
+desktop pane, and to have the window iconify, minimize, and close
+buttons appear on the right-hand end of the menu bar.  For an example of 
+how to use this class, see the 
+<a href="context.html#DesktopContext">diva.gui.DesktopContext</a> class.
+
+<p> JStatusBar is a component that is intended to mimic the status bar
+found at the bottom of an Applet.  It contains a JProgressBar and 
+simple message.  A common use of this class is to provide Applet  
+look and functionality in JFrame based user interfaces.
+
+<p> The MenuCreator, MenuFactory and JContextMenu classes provide a 
+nice mechanism for
+implementing context menus on top of the Diva canvas.  A JContextMenu is 
+easier to use than JPopupMenu and has a field that represents the source
+object.  A MenuFactory creates instances of JContextMenu that can be 
+displayed by a MenuCreator canvas interactor.
+
+<p> FocusMouseListener is a simple component listener for keeping keyboard
+focus on a component when it is clicked on.  This is useful for defining
+keyboard actions on a canvas.
+
+<p>
+
+<!--footer-->
+
+
+<!--/footer-->
+</BODY>
+
+</HTML>
+
+
+
+
+
+
+
+
+
+

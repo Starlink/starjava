@@ -1,0 +1,76 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>Canvas and panes</title>
+                               <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<div class="body">
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Canvas and panes</h1>
+<!--contents-->
+
+<!--/contents-->
+
+<p>
+<center>
+<img src="images/jcanvas.gif">
+</center>
+
+<p> The main purpose of JCanvas is to provide screen
+real-estate and event-routing for the contained pane. It overrides
+several methods in JComponent to forward requests either from Swing
+down to the pane, or up from the pane to Swing. In the first category
+are methods such as paint(), setPreferredSize(), processMouseEvent(),
+and processMouseMotionEvent(); in the latter category are the
+repaint() methods.
+
+<p> CanvasPane is a container for a list of CanvasLayer
+classes. CanvasPane is abstract. All layers in a pane are "stacked"
+over the top of each other, with layers at the front of the display
+list drawn over the top of layers at the back of the display list.
+The CanvasPane can have one of two types of "parent": the JCanvas,
+which it will have if it is the top-level pane and therefore the root
+of the graphical display tree, and a CanvasComponent, which it will
+have if it is not.
+
+<p> Diva includes two concrete subclasses of CanvasPane --
+BasicCanvasPane and GraphicsPane.  BasicCanvasPane allows layers to be
+added to itself. It is intended mainly as a "starter" class, and for
+use with simple demos and the like.  GraphicsPane is intended for use
+in typical interactive applications. It contains five layers: a
+background event layer, a background figure layer, a foreground figure
+layer, an overlay layer, and a foreground event layer. By default, a
+JCanvas contains an instance of GraphicsPane.
+
+<p>
+<!--navigation-->
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas Design Reference"></a>
+<a href="architecture.html">  <img  border=0  src="../../../images/nav-prev.gif"  alt="Previous: JCanvas architecture"></a>
+<a href="jcanvas-section.html">  <img  border=0  src="../../../images/nav-section.gif"  alt="Up: The JCanvas architecture"></a>
+<a href="layers.html">  <img  border=0  src="../../../images/nav-next.gif"  alt="Next: Layers"></a>
+
+<br>
+
+<!--/navigation-->
+
+<!--customfooter-->
+
+<!--/customfooter-->
+</body>
+</div>
+</html>
+
+
+

@@ -1,0 +1,90 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>Key interfaces</title>
+              <!--header-->
+  
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+
+  <!--/header-->
+</head>
+<div class="body">
+<body bgcolor=#ffffff bgcolor=#ffffff>
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Key interfaces</h1>
+
+
+
+
+The Diva canvas includes several interfaces that define roles
+played by classes that are spread over the class hierarchy.
+These roles are collected and explained here, and will only
+be referenced on later diagrams. Here, the key extending interfaces
+or implemented classes are also shown on the diagram.
+
+<p>
+<center>
+<img src="images/interfaces.gif">
+</center>
+
+<p>
+The UserObjectContainer is an interface that defines the
+<b>userObject</b> property. This interface is implemented by any class
+that has the notion of a corresponding semantic object. In the Diva canvas,
+only Figure uses it.
+
+<p> A VisibleComponent is an object that may be painted on the screen.
+It has one property, <b>visible</b>, and two versions of the paint()
+method, one which will paint the whole component, and one which will
+paint it only within the specified bounding box. It is extended by
+Figure and by some of the canvas layers.
+
+<p> An EventAcceptor is an object that is prepared to handle layer
+events. It has an <b>enabled</b> field, which determines whether it
+accepts events, and a single processLayerEvent() method.  It is
+implemented by CanvasPane and a number of canvas layers. 
+
+<p>
+<!--navigation-->
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas"></a>
+<a href="old-stuff.html">  <img  border=0  src="../../../images/nav-section.gif"  alt="Up: Old stuff"></a>
+<a href="recursion.html">  <img  border=0  src="../../../images/nav-next.gif"  alt="Next: Structural recursion"></a>
+
+<br>
+<!--/navigation-->
+
+<!--customfooter-->
+  
+
+  <!--/customfooter-->
+</body>
+</div>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

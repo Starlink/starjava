@@ -1,0 +1,300 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<!-- $Id: diva.canvas.feature.html,v 1.6 2000/05/02 00:43:56 johnr Exp $ -->
+<html>
+<head>
+<title>Canvas events</title>
+</head>
+
+<body bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Canvas events</h1>
+
+ <P><B>Package</B>:
+
+<BLOCKQUOTE>
+
+ diva.canvas.feature
+
+</BLOCKQUOTE>
+
+ <P><B>Status</B>:
+
+<BLOCKQUOTE>
+
+Unpublished. Preliminary.
+
+</BLOCKQUOTE>
+
+ <P><B>Imported packages and classes</B>:
+
+<BLOCKQUOTE>
+
+
+</BLOCKQUOTE>
+
+
+ <P><B>See also</B>:
+
+<BLOCKQUOTE>
+
+<A HREF="diva.canvas.html">The Diva canvas</A>
+<br>
+<A HREF="http://ptolemy.eecs.berkeley.edu/copyright.html">Copyright</A>
+
+</BLOCKQUOTE>
+
+<p><b>Contents</b>
+
+<ul>
+
+<li><a href="#interfaces">Interfaces</a>
+<li><a href="#classes">Classes</a>
+
+</ul>
+
+
+<a name="interfaces">
+<h2>Interfaces</h2>
+</a>
+
+ <P>
+<center>
+<img src="images/features.gif">
+</center>
+
+<dl>
+<p>
+<dt><b>interface Feature</b>
+
+<p>A <i>feature</i> represents a point on a figure. Features
+are used to identify unique points on the figure and to reshape
+the figure.
+
+<dl>
+<p>
+<dt><b>public static int MOVEABLE</b>
+
+<dd>The property that the feature can be moved. Features such as
+"north-west corner" can be moved, while features such as "center"
+generally cannot.
+
+<p>
+<dt><b>public static int GRABBABLE</b>
+
+<dd>The property that the feature is a good candidate
+for having a grab-handle attached to it.
+
+<p>
+<dt><b>public static int NORTHWEST</b>
+<br><b>public static int NORTHEAST</b>
+<br><b>public static int SOUTHWEST</b>
+<br><b>public static int SOUTHEAST</b>
+<br><b>public static int NORTH</b>
+<br><b>public static int SOUTH</b>
+<br><b>public static int WEST</b>
+<br><b>public static int EAST</b>
+
+<dd>The eight compass points.
+
+<p>
+<dt><b>public static int CENTER</b>
+
+<dd>The center.
+
+<p>
+<dt><b>public static int VERTEX_N</b>
+
+<dd>A flag that can be bit-wise or'ed with an integer
+to indicate a vertex of a segmented figure. Up to
+32 features can be indicated this way.
+
+<p>
+<dt><b>public static int FIRST_VERTEX</b>
+
+<dd>The first vertex of an open segmented figure.
+
+<p>
+<dt><b>public static int LAST_VERTEX</b>
+
+<dd>A last vertex of an open segmented figure.
+
+<p>
+<dt><b>int id ( )</b>
+
+<dd>Return this feature's id, which indicates where it is on the figure.
+
+<p>
+<dt><b>void translate ( double, double )</b>
+
+<dd>Reshape the figure by moving this feature the
+given distance.
+
+<p>
+<dt><b>Figure getFigure ( )</b>
+
+<dd>Get the figure that this feature belongs to.
+
+<p>
+<dt><b>Point2D getLocation ( )</b>
+
+<dd>Get the current location of this feature, in layer
+coordinates.
+
+</dl>
+
+<p>
+<dt><b>interface FeaturePredicate</b>
+
+<dd>
+A predicate that can be applied to features and used to filter
+them. 
+
+<dl>
+<p>
+<dt><b>boolean apply ( Feature )</b>
+
+<dd>
+Return true if the feature satisfies this predicate, otherwise
+false.
+
+</dl>
+
+<p>
+<dt><b>interface FeatureSet</b>
+
+<dd>
+<p> FeatureSet is an interface for representing a set of
+features. The set can be a subset of the features supported
+by a figure, or can include features from more than one
+figure (for example, when performing selection of multiple
+grab-handles).
+
+<dl>
+<p>
+<dt><b>Enumeration features ( )</b>
+
+<dd>
+Return an enumeration over the features of the set.
+
+<p>
+<dt><b>void filter ( FeaturePredicate )</b>
+
+<dd>
+Filter the set, retaining only those features that 
+satisfy the predicate.
+
+<p>
+<dt><b>FigureListener getTranslater ( )</b>
+
+<dd>
+Get an object that will respond to coordinate movements
+by translating all features in the set. If any features are not
+movable, this will probably throw an exception, so the feature set
+should be filtered appropriately. 
+
+</dl>
+
+</dl>
+
+<a name="classes">
+<h2>Classes</h2>
+</a>
+
+The classes in this package provide implementations of
+feature for common shapes, such as rectangles and polygons.
+
+<dl>
+<p>
+<dt><b>class RectangularFeatures implements FeatureSet</b>
+
+<dd>
+
+<p> RectangularFeatures is a class that implements a set of
+features for rectangular shapes. The feature set is constructed by
+passing it the rectangle to which it is to attach the features, and
+a flag saying which features to include in the set.
+
+<dl>
+<p>
+<dt><b>RectangularFeatures ( Rectangle2D, int )</b>
+
+<dd>
+Create the feature set on the given rectangle. The integer
+flag must be either Feature.MOVABLE or Feature.GRABBABLE,
+or one of the rectangular feature ids.
+
+<p>
+<dt><b>RectangularFeatures ( Rectangle2D, int [ ] )</b>
+
+<dd>
+Create the feature set on the given rectangle. The integer
+array must contain rectangular feature ids.
+
+</dl>
+
+<p>
+<dt><b>class SegmentedFeatures implements FeatureSet</b>
+
+<dd>
+
+<p> SegmentedFeatures is a class that implements a set of
+features for shapes that have straight-line segments, such
+as polygons. The feature set is constructed by
+passing it the shape to which it is to attach the features, and
+a flag saying which features to include in the set.
+
+<dl>
+<p>
+<dt><b>SegmentedFeatures ( Shape, int )</b>
+
+<dd>
+Create the feature set on the given segmented. The integer
+flag must be either Feature.MOVABLE or Feature.GRABBABLE,
+or one of the vertex feature ids.
+
+<p>
+<dt><b>SegmentedFeatures ( Shape, int [ ] )</b>
+
+<dd>
+Create the feature set on the given segmented shape. The integer
+array must contain vertex feature ids.
+
+</dl>
+
+</dl>
+
+
+
+<a name="issues">
+<h2>Issues</h2>
+</a>
+
+<dl>
+
+<dt>
+
+</dl>
+
+ <P>
+<br>
+<br>
+
+<center>
+<img src="../img/end.gif">
+</center>
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,63 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<HTML>
+
+<HEAD>
+<LINK href="diva.css" rel="stylesheet" type="text/css">
+
+	<TITLE>Installation</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+<!--navbar-->
+<!--/navbar-->
+
+
+	<H1>Installation</H1>
+	<P>Installing and compiling Diva is fairly easy if you're used to working with Java. Diva 0.2 compiles with <B>JDK1.2</B>
+	(final). <!-- You
+can obtain this release from Sun's Java Developer Connection
+at:
+
+<pre>
+  <a href="http://developer.java.sun.com/developer/earlyAccess/jdk12/beta4/newindex.html">http://developer.java.sun.com/developer/earlyAccess/jdk12/beta4/newindex.html</a>
+</pre>
+
+(See below for information on JDK1.2beta4 versus
+the latest release, JDK1.2rc1.)
+ -->
+	<H2>Installing and compiling the source release</H2>
+
+	<OL>
+	<LI>Download the gzipped tar file or the zip file. Change to a directory that you want to place Diva in, and either
+	<PRE>  gzcat diva-<!--releaseversion-->0.2<!--/releaseversion-->.tar.gz | tar -xf -
+</PRE>
+	or
+	<PRE>  unzip -a diva-<!--releaseversion-->0.2<!--/releaseversion-->.zip
+</PRE>
+	This will create a directory <B>diva</B> in the current directory. On Windows, you can also use a utility such
+	as WinZip.
+
+	<LI>In the <B>diva</B> directory, type <B>./configure</B>.
+	This will create the file <B>vars.mk</B> with the appropriate settings for your system.
+	
+	<LI>In the <B>diva</B> directory, type <B>make packages</B>.
+	<LI>Go to the <A HREF="../demo/index.html">demo page</A> to run the demos.
+	</OL>
+
+	<P>Note 1: If you are a known Diva developer or user and Tcl is set up on your installation, you can automate the
+	<H2>Installing and running with the JAR file</H2>
+
+	<OL>
+	<LI>Download the jar file by right-clicking on the link.
+	<LI>Go to the <A HREF="../demo/index.html">demo page</A> to run the demos.
+	</OL>
+
+<!--footer-->
+<!--/footer-->
+</BODY>
+
+</HTML>
+
+
+

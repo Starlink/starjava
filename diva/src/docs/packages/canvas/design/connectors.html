@@ -1,0 +1,92 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>Connectors</title>
+   <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<div class="body">
+</div>
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Connectors</h1>
+<!--contents-->
+
+<!--/contents-->
+
+<p>
+Connectors are a special kind of figure that joins two other
+figures together. Each connector has exactly two sites, the <i>tailSite</i> and
+the <i>headSite</i>, that it uses to determine the location of each of its ends,
+and in some case, the angle at that end. Each site is&nbsp; attached to a
+figure, except in the case of AutonomousSite, which &quot;floats&quot;
+independently of any figure. In general, which a figure is moved, the controller
+or interactor that is responsible for moving the figure will also tell any
+attached connectors to reroute themselves, and hence the connectors appear to
+remain attached to the figures.
+
+<p>
+<center>
+<img src="images/connectors.gif">
+</center>
+
+
+<p>
+The route() method of Connector tells it to completely reroute itself, while the
+reroute() method tells it to reroute itself based on its current route, with the
+intention that this form of routing could be implemented more efficiently. The
+headMoved() and tailMoved() methods provide an even finer-grained form of
+routing request, in which the connector can optimize the reroute according to
+which end moved.<p>AbstractConnector provides default implementations of all of
+the methods of Connector except route(). (The other routing methods just call
+route().) In addition, it provides a paintable implementation of connectors,
+using an instance of <b>diva.canvas.toolbox.PaintedShape</b>. It overrides the
+tranfsform() method to do nothing, since it's not reasonable to transform a
+connector (the sites determine its location), and marks translate() as abstract
+to force concrete subclasses to provide an efficient implementation.<p>In the
+Diva canvas, there are currently these connector implementations:
+<ul>
+  <li>StraightConnector draw a straight line between its endpoints.</li>
+  <li>ArcConnector draws a circular arc between its endpoints. The attribute <i>angle</i>
+    sets the angle at which the connector strikes the figure, relative to the
+    line between the centers of the two figures at the ends of the connector.
+    (The default is 45 degrees.)</li>
+    
+    <!--
+  <li>ManhattanConnector routes itself as a series of perpendicular line
+    segments between its two endpoints. Because there are so many possible ways
+    that this routing can be accomplished (including possibly some that avoid
+    crossing other figures or arcs), the actual routing is deferred to a
+    separate&nbsp; ManhattanRouter object.</li>
+  -->
+  
+ </ul>
+<p>Connectors can have a ConnectorEnd object attached to each end. A connector
+end is a graphic such as an arrow-head, a diamond or triangle as used in UML,
+and so on. Currently, these objects are implemented in the Arrowhead and Blob
+classes.<p>
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas" width="100" height="38"></a>
+<a href="manipulators.html">  <img  border=0  src="../../../images/nav-prev.gif"  alt="Previous: Manipulators" width="100" height="38"></a>
+<a href="event-section.html">  <img  border=0  src="../../../images/nav-section.gif"  alt="Up: Events and interaction" width="100" height="38"></a>
+
+<br>
+
+<!--/navigation-->
+<!--customfooter-->
+
+<!--/customfooter-->
+</body>
+</html>
+
+
+

@@ -1,0 +1,151 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<HTML>
+
+<HEAD>
+<LINK href="../../diva.css" rel="stylesheet" type="text/css">
+
+	<TITLE>BrushStroke Design Document</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<H1>BrushStroke Design Document</H1>
+<H3>Overview</H3>
+<P>This document describes two approaches to building a brush stroke rendering component for informal user interfaces.
+The goal of brush strokes is to make vector graphics look hand-drawn, the idea being that this will make certain
+types of vector graphics-based user interfaces more natural to use. The <I>diva.sketch.BrushStroke</I> class is
+the implementation of this idea for Java2D.</P>
+<CENTER>
+<P>
+<TABLE BORDER="0" WIDTH="310">
+	<TR>
+		<TD WIDTH="100%"><IMG SRC="images/brush-stroke.gif" WIDTH="300" HEIGHT="150" ALIGN="BOTTOM" BORDER="0"></TD>
+	</TR>
+	<TR>
+		<TD WIDTH="100%">
+			<P ALIGN="CENTER"><FONT SIZE="2"><B>Arrow: normal vs. brush-stroked</B></FONT>
+		</TD>
+	</TR>
+</TABLE>
+</P>
+</CENTER>
+<H3>Stroke Interface</H3>
+<P>In both approaches described in this document, BrushStroke implements the java.awt.Stroke interface. Stroke
+is the way in which Java2D allows users to augment low-level vector rendering capabilities. A Stroke is an interface
+which produces a &quot;stroked&quot; equivalent when given a wireframe object as input. For example, BasicStroke,
+the default Java2D stroke implementation, allows the user to control things like the line width, dashes, rounded
+vs. square vs. angled miters, etc.</P>
+<CENTER>
+<P>
+<TABLE BORDER="0" WIDTH="293">
+	<TR>
+		<TD WIDTH="100%"><IMG SRC="images/stroke-interface.gif" WIDTH="283" HEIGHT="96" ALIGN="BOTTOM" BORDER="0"></TD>
+	</TR>
+	<TR>
+		<TD WIDTH="100%">
+			<P ALIGN="CENTER"><FONT SIZE="2"><B>BasicStroke</B></FONT>
+		</TD>
+	</TR>
+</TABLE>
+</P>
+</CENTER>
+<P>The BrushStroke implementation allows the user to choose from &quot;brushes&quot; which allow for configuration
+of the stroke’s look and feel. For example, one brush might create a stroke reminiscent of a felt-tip marker and
+one might create a stroke resembling a stick of charcoal.</P>
+<CENTER>
+<P>
+<TABLE BORDER="0" WIDTH="293">
+	<TR>
+		<TD WIDTH="100%"><IMG SRC="images/brush-stroke-interface.gif" WIDTH="292" HEIGHT="90" ALIGN="BOTTOM" BORDER="0"></TD>
+	</TR>
+	<TR>
+		<TD WIDTH="100%">
+			<P ALIGN="CENTER"><FONT SIZE="2"><B>BrushStroke</B></FONT>
+		</TD>
+	</TR>
+</TABLE>
+</P>
+</CENTER>
+<H3>Shape-Warping Approach</H3>
+<P>The shape-warping approach is the one pictured above, where a brush’s shape is warped so that it surrounds the
+perimeter of the input shape. This is accomplished by constructing a parametric mapping between the two shapes,
+ranging from 0 to 1. This is illustrated intuitively in the figure below.</P>
+<P ALIGN="CENTER"><FONT COLOR="#FF0000"><I>[figure: shape-warping approach]</I></FONT></P>
+<P>The shape-warping implementation is given in the following pseudocode:</P>
+<P ALIGN="CENTER"><FONT COLOR="#FF0000"><I>[pseudocode]</I></FONT></P>
+<P>The shape-warping approach has a single but significant benefit, which is its simplicity. It is quite simple
+for a user to create his own brush interactively, by editing a shape. Furthermore, the simple behavior of the stroking
+algorithm is intuitive and predictable. The approach has two drawbacks, however. The first drawback is that the
+stroke’s algorithmic consistency results in visual inconsistency, when applied to shapes of different path lengths,
+because of the parametric mapping. This is best illustrated with a figure:</P>
+<CENTER>
+<P>
+<TABLE BORDER="0" WIDTH="293">
+	<TR>
+		<TD WIDTH="100%"><IMG SRC="images/inconsistency.gif" WIDTH="351" HEIGHT="133" ALIGN="BOTTOM" BORDER="0"></TD>
+	</TR>
+	<TR>
+		<TD WIDTH="100%">
+			<P ALIGN="CENTER"><FONT SIZE="2"><B>Inconsistency: top and bottom strokes use same brush but are rendered differently
+			because they are different lengths.</B></FONT>
+		</TD>
+	</TR>
+</TABLE>
+</P>
+</CENTER>
+<P>The second drawback is that the algorithm is slow. Not intrinsically so, but slow under the constraints implied
+by the java.awt.Shape interface. If the Shape interface had some sort of parametric measurement built into it,
+the explicit first-pass calculation of the shape’s parameter values might be avoided, and the algorithm might be
+sped up considerably. Since this is an inner-loop piece of rendering code, performance is of utmost importance.</P>
+<H3>Caps-and-Repeater Approach</H3>
+<P>The caps-and-repeater approach attempts to solve both problems that plague the shape-warping approach, and does
+so at the cost of increased complexity. The basic idea is that rather than specify a single shape that is stretched
+around the given shape, define a pair of head and tail &quot;caps&quot; which are pasted around a body shape which
+is repeated. This is illustrated below:</P>
+<P ALIGN="CENTER"><FONT COLOR="#FF0000"><I>[figure: caps-and-repeater]</I></FONT></P>
+<P>This solves the distortion problem of shape-warping because the caps and repeater can be warped in logical coordinates
+instead of parametric space. The algorithm can also be made single-pass for the same reason. The pseudocode (and
+illustrative pictures) are shown below:</P>
+<P ALIGN="CENTER"><FONT COLOR="#FF0000"><I>[pseudocode and images]</I></FONT></P>
+<P>The downside of this algorithm is that it suffers from relative complexity. The specification of a body and
+end-caps is not as straightforward as the specification of a single shape to be warped. Also the general approach
+does not imply all aspects of the implementation and there is still some policy that needs to be set for these
+cases. For example:</P>
+
+<UL>
+	<LI>What happens when the repeater is &quot;cut short&quot; on one of its repetitions; how does it merge smoothly
+	with the end cap?
+	<LI>What happens when the shape is not long enough to incorporate both caps?
+</UL>
+
+<P>In the implementation code complexity arises from various lookahead problems. For example, consider the drawing
+of the end cap: the algorithm needs to start drawing the end cap before it actually finishes iterating over the
+given shape, so it needs to maintain a buffer and look-ahead for this purpose.</P>
+
+<P><FONT COLOR="#FF0000">[more here]</FONT>
+
+
+<!--footer-->
+
+
+<!--/footer-->
+</BODY>
+
+</HTML>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,76 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<HTML>
+
+<HEAD>
+<LINK href="../../diva.css" rel="stylesheet" type="text/css">
+
+	<TITLE>diva.graph future additions</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<!--navbar-->
+
+
+<!--/navbar--></P>
+<H1>Graph interaction design document</H1>
+<H2>1.0 Introduction</H2>
+<P>While the Diva canvas provides a good abstraction for event-handling and interaction in a structured graphics
+environment, this abstraction can be improved upon for the particular purpose of graph editing.  This document
+describes the design of a graph interaction package in which a particular application can easily customize the
+behavior of the editor by receiving high-level &quot;graph interaction events&quot;.  We start by describing the
+sort of things we'd like to be able to do while editing graphs to motivate this abstraction and give a description
+of the architecture which accomplishes this.</P>
+<H2>2.0 Design</H2>
+<P>There are a couple obvious configurations that an interactive graph editor should have.  A hierarchical graph
+is about <I>containment</I> (graphs containing nodes, and compound nodes containing other nodes) and <I>connectivity</I>
+(edges connecting nodes at various levels of nestedness), so these two things are explained separately.</P>
+<H3>2.1 Node dragging</H3>
+<P>The way a user interactively modifies containment in a graph is to drag nodes out of one compound node and into
+another.  However, depending on the application, it might not make sense for a user to place certain nodes inside
+other nodes.  In our design, the application is given the opportunity to veto users drags by throwing an exception
+when it receives a dropped callback.  The application's exception handler will replace the node at its previous
+position before the user began dragging.  Furthermore, the application may wish to give the user visual feedback
+as the user drags nodes, based on some semantic property of the layout (e.g. the color the node being dragged by
+its &quot;affinity&quot; to the nearst neighbor node).  By using general callbacks which correspond to every &quot;interesting&quot;
+event in the user's dragging of a node:</P>
+
+<UL>
+	<LI>The start of a node drag
+	<LI>As a node is dragged
+	<LI>When a node is dragged out of a subgraph
+	<LI>When the node is dragged into a subgraph
+	<LI>When the node is dropped
+</UL>
+
+<P>
+<H3>2.2 Edge dragging</H3>
+<P>Edge dragging is very similar to node dragging, but is slightly more complicated because more entities are involved.
+ Certain edges should not be able to connect to certain nodes, depending on the semantics of the application or
+the particular state of the program.  Similarly, the user might wish to update the visual appearance of the edge
+(e.g. its color, dashed-ness, etc.) as it is dragged, to reflect some property of the system.  There are actually
+two cases of edge dragging: as an edge is created for the first time, and as an edge is re-connected between two
+different nodes.  The callbacks which relate to edge connectivity are:</P>
+
+<UL>
+	<LI>As the edge drag is starting (either as it is being created from one node, or as it is being dragged away from
+	one node)
+	<LI>As the edge is dragged
+	<LI>As the edge is dragged out of a node/subgraph
+	<LI>As the edge is dragged into a node/subgraph
+	<LI>As the edge is dropped
+</UL>
+
+<H2>4.0 Examples</H2>
+<P>[Incomplete]<BR>
+<!--footer-->
+
+
+<!--/footer-->
+
+</BODY>
+
+</HTML>
+
+

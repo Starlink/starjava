@@ -1,0 +1,80 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>Prolog</title>
+                <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<div class="body">
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Prolog</h1>
+<!--contents-->
+
+<!--/contents-->
+
+
+
+
+
+
+The diagrams in this document are mostly UML static structure
+diagrams. These class diagrams are at the conceptual design level
+rather than the detailed design level. I have adopted a couple of
+conventions to make the diagrams clearer.
+
+<ol>
+
+<li> Attributes that are marked as public are not in fact public, but
+are treated as <i>properties</i> in the JavaBeans sense. For example,
+the public field <b>shape:Shape</b> means that the class contains a
+<i>private</i> variable with this name, and the methods
+<b>setShape(Shape)</b> and <b>Shape getShape()</b>. In Diva, almost
+all instance variables are private; if they are not, it is noted in
+the text.
+
+<li> Not all operations in a class have the return type given, and
+significantly more do not have the argument names and types given.
+This is to elide unnecessary clutter in the diagrams.
+
+<li> Abstract classes may only show the abstract methods in that class.
+This will be shown by the method named "..." at the end of the method
+list, meaning that all other methods that are in an implemented
+interface are implemented in the abstract class. Sometimes, overridden
+methods will also be shown to flag different behavior.
+
+<li> A class that does not have its attributes and operations
+shown is either in another package, or is documented on a
+different page.
+ 
+</ol>
+
+
+<p>
+<!--navigation-->
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas Design Reference"></a>
+<a href="jcanvas-section.html">  <img  border=0  src="../../../images/nav-next.gif"  alt="Next: The JCanvas architecture"></a>
+
+<br>
+
+<!--/navigation-->
+
+<!--customfooter-->
+
+<!--/customfooter-->
+</body>
+</div>
+</html>
+
+
+

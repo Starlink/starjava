@@ -1,0 +1,181 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<HTML>
+<HEAD>
+   <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+   <TITLE>diva.canvas: Design re-review, June 22nd, 1998</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#ffffff">
+<!--navbar-->
+
+
+<!--/navbar-->
+
+<!-- Replace all the italic text, including the <I></I> directives -->
+<H1>
+diva.canvas: Design re-review, June 22nd, 1998</H1>
+
+<UL>
+<LI>
+<A HREF="#preliminary">Preliminary notes</A>
+
+<LI>
+<A HREF="#identified">Identified defect</A>
+
+<LI>
+<A HREF="#related">Related issues</A>
+
+<LI>
+<A HREF="#concluding">Concluding notes</A>
+</UL>
+
+<H2>
+<A NAME="preliminary"></A>Preliminary notes</H2>
+
+Re-review called by John Reekie for the top-level architecture of
+diva.canvas, redesigned to deal with problems notes in the last review
+with coordinate systems and Swing compatibility.  There was only one
+reviewer (Neil Smyth) but sometimes you just have to work with what
+you can get...
+
+ <P>The reviewed file is tagged <CODE>version-0-3</CODE> in the diva
+repository.
+
+<UL>
+<LI>
+Moderator: nsmyth
+
+<LI>
+Scribe: johnr
+
+<LI>
+Author: johnr
+
+<LI>
+Reader: johnr
+
+<LI>
+Reviewers: none
+</UL>
+
+Review started: 4.10 PM
+<BR>Review ended: 4:50 PM
+<H2>
+<A NAME="identified"></A>Identified defects</H2>
+
+<ol>
+<LI>
+CanvasPane would be simpler if it just kept an order
+list of layers, instead of the current non-contiguous
+set of integers. 
+
+<BLOCKQUOTE>
+
+It would be! I made CanvasPane into an abstract class, so that
+subclasses are required to provide the storage and access methods for
+layers. This is better anyway, I think: rather than having a
+complicated API that allow clients to manipulate layers in every way
+possible, just let them define how they want the layers and provide
+access to them.  In addition, I defined the class BasicCanvasPane,
+which contains just a simple linear list of layers with a couple of
+access methods.
+
+</BLOCKQUOTE>
+
+<LI> CanvasLayer needs to be made consistent with
+CanvasPane in the paint() and repaint() sets of methods.
+
+<BLOCKQUOTE>
+
+Done.
+
+</BLOCKQUOTE>
+
+<LI> FigureContainer.children() and ZList.overlapping()
+each need to be made into two iterator methods, instead of
+returning an array.
+
+<BLOCKQUOTE>
+
+I created the following methods:
+<Pre>
+Iterator FigureContainer.figures ()
+Iterator FigureContainer.figuresFromFront ()
+Iterator ZList.figuresOverlapping (Rectangle2D region)
+Iterator ZList.figuresOverlappingFromFront (Rectangle2D region)
+</pre>
+
+Note the change from "children" to "figures," which I think is more
+consistent with the meaning of the methods.
+
+</BLOCKQUOTE>
+
+<LI> CanvasPane.addLayer(): order of arguments is wrong.
+
+<BLOCKQUOTE>
+
+Fixed.
+
+</BLOCKQUOTE>
+
+<li> None of the methods in FigureContainer or ZList define
+the behaviour in anomolous cases eg adding a figure that
+already exists, and so on.
+
+<BLOCKQUOTE>
+
+Decided and documented.
+
+</BLOCKQUOTE>
+
+</ol>
+
+<H2>
+<A NAME="related"></A>Related issues</H2>
+ none
+<H2>
+<A NAME="concluding"></A>Concluding notes</H2>
+
+ <P>
+Rework is still being done following the previous review.
+In particular, the class diagrams need work.
+
+<BLOCKQUOTE>
+
+ <P> Now that I've starting writing this code, I am converting the
+specification into the programmer's guide. It's too tedious keeping
+the spec in sync with the code, as there are lots of small changes, so
+refer to the API javadocs to verify the above changes.
+
+</BLOCKQUOTE>
+
+<BR>
+
+<P>Comments to:
+
+<ADDRESS>
+<A HREF="mailto:johnr@eecs.berkeley.edu">johnr@eecs.berkeley.edu</A></ADDRESS>
+
+
+<!--footer-->
+
+
+<!--/footer-->
+</BODY>
+</HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

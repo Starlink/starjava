@@ -1,0 +1,103 @@
+<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+
+<html>
+<head>
+    <title>Figure decorators</title>
+                         <!--header-->
+  <LINK href="../../../diva.css" rel="stylesheet" type="text/css">
+<!--/header-->
+</head>
+<body bgcolor=#ffffff bgcolor="#ffffff">
+<div class="body">
+</div>
+<!--navbar-->
+
+
+<!--/navbar-->
+
+
+<h1>Figure decorators</h1>
+<!--contents-->
+
+<!--/contents-->
+
+A <i>decorator</i> is a class that has a single child. Decorators serve a
+special purpose in the Diva canvas: decorators are not proper figures,
+but act as Decorators (in the sense of Gamma et al) for other figures.
+Typically, decorators affect that way in which the figure it wraps is
+rendered.
+
+<p>
+<center>
+<img src="images/decorators.gif">
+</center>
+
+<p> The diagram shows Decorator together with some of the subclasses
+implemented in the Diva canvas.  Any figure can be <i>decorated</i> by
+calling the decorate() method of its parent (a FigureContainer). This
+method must be implemented by containers to place the figure in the
+decorator and insert the decorator in the tree in its place. Once this
+has been done, the decorator will receive all paint() calls before the
+decorated figure, allowing it to draw additional elements on the screen
+or make other modifications that affect how the figure appears on the
+screen.
+
+<p> In general, a decorator may also decorate another decorator.  To allow
+consistent access to the figures (as opposed to the decorators) that
+make up the image, the decorator class has methods to access the
+following related objects:
+
+<ul>
+<li>The <i>parent</i> is the immediate parent;
+<li>The <i>container</i> is the first ancestor that is not a decorator;
+<li>The <i>child</i> is the child single child of this decorator;
+<li>The <i>decoratedFigure</i> is the first descendent that is not
+a decorator.
+</ul>
+
+<p>
+These relations are shown in this figure:
+
+<p>
+<center>
+<img src="images/dtree.gif">
+</center>
+
+<p> A simple example of a decorator is the BasicHighlighter class in
+<b>diva.canvas.toolbox</b>. This class draws a translucent box around
+its child, and then forwards the paint() call to the child. Another
+example is the manipulator classes in <b>diva.canvas.manipulator</b>,
+which draw a set of grab-handles over the top of various points of the
+child figure.
+
+<p> Other classes shown in the diagram will not be implemented until a
+future release of Diva. The RenderContext node contains a set of
+parameters that define the current rendering context, such as the line
+stroke and rendering style. The RenderQuality node attempts to provide
+varying levels of rendering quality by adjusting rendering parameters.
+It is intended for use in typical interactive applications, where
+rendering quality can be sacrificed for performance during a user
+interaction.  RenderCache provides caching of a rendered figure, again
+for use in interactive applications.
+
+<p>
+<!--navigation-->
+<br>
+<a href="index.html">  <img  border=0  src="../../../images/nav-top.gif"  alt="Top: The Diva Canvas Design Reference"></a>
+<a href="figureclasses.html">  <img  border=0  src="../../../images/nav-prev.gif"  alt="Previous: The figure classes"></a>
+<a href="jcanvas-section.html">  <img  border=0  src="../../../images/nav-section.gif"  alt="Up: The JCanvas architecture"></a>
+
+<br>
+
+<!--/navigation-->
+
+<!--customfooter-->
+
+<!--/customfooter-->
+</body>
+</html>
+
+
+
