@@ -19,6 +19,7 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * Implementation of the <tt>TableBuilder</tt> interface which 
@@ -50,6 +51,7 @@ public class FitsTableBuilder implements TableBuilder {
         }
 
         ArrayDataInput strm = null;
+        StarTable table = null;
         try {
 
             /* Get a FITS data stream. */
@@ -58,16 +60,15 @@ public class FitsTableBuilder implements TableBuilder {
             /* If an HDU was specified explicitly, try to pick up that one
              * as a table. */
             if ( datsrc.getPosition() != null ) {
-                TableHDU thdu;
                 try {
-                    thdu = attemptGetTableHDU( strm );
+                    table = attemptReadTable( strm );
                 }
                 catch ( EOFException e ) {
                     throw new IOException( "Fell off end of file looking for "
                                          + datsrc );
                 }
-                if ( thdu != null ) {
-                    return makeTable( thdu );
+                if ( table != null ) {
+                    return table;
                 }
                 else {
                     throw new IOException( datsrc + " not a Table HDU" );
@@ -79,9 +80,9 @@ public class FitsTableBuilder implements TableBuilder {
             else {
                 try {
                     while ( true ) {
-                        TableHDU thdu = attemptGetTableHDU( strm );
-                        if ( thdu != null ) {
-                            return makeTable( thdu );
+                        table = attemptReadTable( strm );
+                        if ( table != null ) {
+                            return table;
                         }
                     }
                 }
@@ -94,7 +95,7 @@ public class FitsTableBuilder implements TableBuilder {
             throw (IOException) new IOException().initCause( e );
         }
         finally {
-            if ( strm != null ) {
+            if ( strm != null && table == null ) {
                 strm.close();
             }
         }
@@ -112,47 +113,47 @@ public class FitsTableBuilder implements TableBuilder {
     }
 
     /**
-     * Reads the next header, and if it represents a Table HDU, returns
-     * the HDU.  If it is some other kind of HDU null is returned.
-     * In either case, the stream is advanced to the end of that HDU.
+     * Reads the next header, and if it represents a table HDU, makes a
+     * StarTable out of it and returns.  If it is some other kind of HDU, 
+     * <tt>null</tt> is returned.  In either case, the stream is advanced
+     * the end of that HDU.
+     * 
+     * @param  strm  stream to read from, positioned at the start of an HDU
+     *         (before the header)
+     * @return   a StarTable made from the HDU at the start of <tt>strm</tt>
+     *           or null
      */
-    private static TableHDU attemptGetTableHDU( ArrayDataInput strm )
+    public static StarTable attemptReadTable( ArrayDataInput strm )
             throws FitsException, IOException {
 
         /* Read the header. */
         Header hdr = new Header();
-        FitsConstants.readHeader( hdr, strm ); 
+        FitsConstants.readHeader( hdr, strm );
+        String xtension = hdr.getStringValue( "XTENSION" );
+          
+        /* If it's a BINTABLE HDU, make a BintableStarTable out of it. */ 
+        if ( "BINTABLE".equals( xtension ) ) {
+            return BintableStarTable.makeStarTable( hdr, strm );
 
-        /* If it's an ascii or binary table, read the data and return. */
-        if ( hdr.containsKey( "XTENSION" ) ) {
-            if ( AsciiTableHDU.isHeader( hdr ) ) {
-                AsciiTable tdata = new AsciiTable( hdr );
-                tdata.read( strm );
-                tdata.getData();
-                return new AsciiTableHDU( hdr, (Data) tdata );
-            }
-            else if ( BinaryTableHDU.isHeader( hdr ) ) {
-                BinaryTable tdata = new BinaryTable( hdr );
-                tdata.read( strm );
-                return new BinaryTableHDU( hdr, (Data) tdata );
-            }
+            // BinaryTable tdata = new BinaryTable( hdr );
+            // tdata.read( strm );
+            // TableHDU thdu = new BinaryTableHDU( hdr, (Data) tdata );
+            // return new FitsStarTable( thdu );
         }
 
-        /* Not a table - just skip ahead and return null. */
-        for ( long skipBytes = FitsConstants.getDataSize( hdr );
-              skipBytes > 0; ) {
-             skipBytes -= strm.skip( skipBytes );
+        /* If it's a TABLE HDU (ASCII table), make a FitsStarTable. */
+        else if ( "TABLE".equals( xtension ) ) {
+            AsciiTable tdata = new AsciiTable( hdr );
+            tdata.read( strm );
+            tdata.getData();
+            TableHDU thdu = new AsciiTableHDU( hdr, (Data) tdata );
+            return new FitsStarTable( thdu );
         }
-        return null;
-    }
 
-    /**
-     * Makes a StarTable from a TableHDU.
-     */
-    private static StarTable makeTable( TableHDU tabhdu )
-            throws FitsException, IOException {
-
-        /* Make a table out of it. */
-        return new FitsStarTable( (TableHDU) tabhdu );
+        /* It's not a table HDU - just skip over it and return null. */
+        else {
+            IOUtils.skipBytes( strm, FitsConstants.getDataSize( hdr ) );
+            return null;
+        }
     }
 }
