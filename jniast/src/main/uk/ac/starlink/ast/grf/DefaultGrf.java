@@ -256,6 +256,7 @@ public class DefaultGrf
     {
         masterContext.clear();
         gstate = new DefaultGrfState();
+        establishContext( DEFAULT );
     }
 
     /**
