@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -28,7 +29,13 @@ public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
     public FilestoreTableLoadDialog() {
         super( "Filestore Browser", 
                "Loader for files from local or remote filespace" );
-        chooser_ = new FilestoreChooser();
+        final FilestoreTableLoadDialog tld = this;
+        chooser_ = new FilestoreChooser() {
+            public void leafSelected( Leaf leaf ) {
+                tld.getOkAction()
+                   .actionPerformed( new ActionEvent( tld, 0, "OK" ) );
+            }
+        };
         chooser_.addDefaultBranches();
         add( chooser_, BorderLayout.CENTER );
         formatSelector_ = new JComboBox();
