@@ -94,6 +94,11 @@ public class StarEntityResolver implements EntityResolver {
             return "text/VOTable.dtd";
         }
 
+        /* VOTable schema. */
+        if ( systemId.endsWith( "VOTable.xsd" ) ) {
+            return "text/VOTable.xsd";
+        }
+
         /* Astrores DTD. */
         if ( systemId.endsWith( "astrores.dtd" ) ) {
             return "text/astrores.dtd";
