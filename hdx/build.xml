@@ -175,14 +175,14 @@
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- NDArray -->
-    <pathelement location="${star.jar.dir}/array/array.jar"/>
+    <!-- Array, old version -->
+    <pathelement location="${star.jar.dir}/oldarray/array.jar"/>
     
     <!-- FITS -->
     <pathelement location="${star.jar.dir}/fits/fits.jar"/>
     
-    <!-- JNIHDS -->
-    <pathelement location="${star.jar.dir}/jnihds/jnihds.jar"/>
+    <!-- HDS -->
+    <pathelement location="${star.jar.dir}/hds/hds.jar"/>
 
     <!-- JNIAST -->
     <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
@@ -209,9 +209,8 @@
    !   the external classpath.
    !-->
   <extclasspath id="built.jarpath">
-    <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
+    <pathelement location="${star.build.dir}/oldarray/lib/oldarray/array.jar"/>
     <pathelement location="${star.build.dir}/fits/lib/fits/fits.jar"/>
-    <pathelement location="${star.build.dir}/jnihds/lib/jnihds/jnihds.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/dom4j/lib/dom4j/dom4j-full.jar"/>
   </extclasspath>
@@ -287,12 +286,12 @@
   <target name="check_packages" 
           unless="runonly.install">
 
-    <!--  Need NDArray -->
+    <!--  Need Array -->
     <available property="array.present"
                classpathref="classpath"
                classname="uk.ac.starlink.hdx.array.NDArray"/>
 
-    <fail message="No NDArray available" unless="array.present"/>
+    <fail message="No Array available" unless="array.present"/>
 
     <!--  Need JNIAST -->
     <available property="jniast.present"
@@ -301,12 +300,12 @@
 
     <fail message="No JNIAST available" unless="jniast.present"/>
 
-    <!--  Need JNIHDS -->
-    <available property="jnihds.present"
+    <!--  Need HDS -->
+    <available property="hds.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.hds.HDSObject"/>
+               classname="uk.ac.starlink.hds.HDSReference"/>
 
-    <fail message="No JNIHDS available" unless="jnihds.present"/>
+    <fail message="No HDS available" unless="hds.present"/>
 
     <!--  Need dom4j -->
     <available property="dom4j.present"
@@ -419,8 +418,8 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" 
-                   value="../array/array.jar ../fits/fits.jar
-../jnihds/jnihds.jar ../jniast/jniast.jar ../dom4j/dom4j-full.jar"/>
+                   value="../oldarray/array.jar ../fits/fits.jar
+../hds/hds.jar ../jniast/jniast.jar ../dom4j/dom4j-full.jar"/>
       </manifest>
     </jar>
   </target>
@@ -447,7 +446,7 @@
 
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
-    <mkdir dir="${dist.bin.pkg}"/>
+    <!--<mkdir dir="${dist.bin.pkg}"/>-->
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
     <mkdir dir="${dist.etc.pkg}"/>
