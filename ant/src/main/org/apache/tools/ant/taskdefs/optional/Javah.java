@@ -54,23 +54,19 @@
 
 package org.apache.tools.ant.taskdefs.optional;
 
-import org.apache.tools.ant.BuildException;
-
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
-
-import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.types.Reference;
-import org.apache.tools.ant.types.Commandline;
-
-import org.apache.tools.ant.util.JavaEnvUtils;
-
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.types.Commandline;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.Reference;
+import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
  * Generates JNI header files using javah.
@@ -105,8 +101,6 @@ import java.util.Vector;
  */
 
 public class Javah extends Task {
-
-    private static final String FAIL_MSG = "Compile failed, messages should have been provided.";
 
     private Vector classes = new Vector(2);
     private String cls;
@@ -177,7 +171,7 @@ public class Javah extends Task {
      */
     public Path createClasspath() {
         if (classpath == null) {
-            classpath = new Path(project);
+            classpath = new Path(getProject());
         }
         return classpath.createPath();
     }
@@ -206,7 +200,7 @@ public class Javah extends Task {
      */
     public Path createBootclasspath() {
         if (bootclasspath == null) {
-            bootclasspath = new Path(project);
+            bootclasspath = new Path(getProject());
         }
         return bootclasspath.createPath();
     }
@@ -281,25 +275,31 @@ public class Javah extends Task {
     }
 
     /**
-     * Executes the task.
+     * Execute the task
+     *
+     * @throws BuildException is there is a problem in the task execution.
      */
     public void execute() throws BuildException {
         // first off, make sure that we've got a srcdir
 
         if ((cls == null) && (classes.size() == 0)) {
-            throw new BuildException("class attribute must be set!", location);
+            throw new BuildException("class attribute must be set!",
+                getLocation());
         }
 
         if ((cls != null) && (classes.size() > 0)) {
-            throw new BuildException("set class attribute or class element, not both.", location);
+            throw new BuildException("set class attribute or class element, "
+                + "not both.", getLocation());
         }
 
         if (destDir != null) {
             if (!destDir.isDirectory()) {
-                throw new BuildException("destination directory \"" + destDir + "\" does not exist or is not a directory", location);
+                throw new BuildException("destination directory \"" + destDir
+                    + "\" does not exist or is not a directory", getLocation());
             }
             if (outputFile != null) {
-                throw new BuildException("destdir and outputFile are mutually exclusive", location);
+                throw new BuildException("destdir and outputFile are mutually "
+                    + "exclusive", getLocation());
             }
         }
 
@@ -309,10 +309,10 @@ public class Javah extends Task {
             classpath = classpath.concatSystemClasspath("ignore");
         }
 
-        String compiler = project.getProperty("build.compiler");
+        String compiler = getProject().getProperty("build.compiler");
         if (compiler == null) {
-            if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1) &&
-                !JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2)) {
+            if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)
+                && !JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2)) {
                 compiler = "modern";
             } else {
                 compiler = "classic";
@@ -343,28 +343,27 @@ public class Javah extends Task {
             throw new BuildException("Compile failed");
         }
         */
-
         try {
             Class javahMainClass = null;
             try {
                 // first search for the "old" javah class in 1.4.2 tools.jar
                 javahMainClass = Class.forName("com.sun.tools.javah.oldjavah.Main");
-            } catch(ClassNotFoundException cnfe) {
+            } catch (ClassNotFoundException cnfe) {
                 // assume older than 1.4.2 tools.jar
                 javahMainClass = Class.forName("com.sun.tools.javah.Main");
             }
-            
+
             // now search for the constructor that takes in String[] arguments.
             Class[] strings = new Class[] {String[].class};
             Constructor constructor = javahMainClass.getConstructor(strings);
-            
+
             // construct the javah Main instance
             Object javahMain = constructor.newInstance(new Object[] {cmd.getArguments()});
-            
+
             // find the run method
-            Method runMethod = javahMainClass.getMethod("run",new Class[0]);
-            
-            runMethod.invoke(javahMain,new Object[0]);
+            Method runMethod = javahMainClass.getMethod("run", new Class[0]);
+
+            runMethod.invoke(javahMain, new Object[0]);
         } catch (Exception ex) {
             if (ex instanceof BuildException) {
                 throw (BuildException) ex;
@@ -415,7 +414,7 @@ public class Javah extends Task {
 
         if (stubs) {
             if (!old) {
-                throw new BuildException("stubs only available in old mode.", location);
+                throw new BuildException("stubs only available in old mode.", getLocation());
             }
             cmd.createArgument().setValue("-stubs");
         }
