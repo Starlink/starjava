@@ -324,6 +324,28 @@ public class AstTest extends TestCase {
         assertEquals( ref, sk8.getSkyRefP() );
     }
 
+    public void testDSBSpecFrame() {
+        DSBSpecFrame dsb = new DSBSpecFrame();
+
+        dsb.setDsbCentre( 109. );
+        assertEquals( 109., dsb.getDsbCentre() );
+
+        assertEquals( 4.0, dsb.getIf() );
+        dsb.setIf( 23. );
+        assertEquals( 23., dsb.getIf() );
+
+        assertEquals( "usb", dsb.getSideBand().toLowerCase() );
+        dsb.setSideBand( "lsb" );
+        assertEquals( "lsb", dsb.getSideBand().toLowerCase() );
+        try {
+            dsb.setSideBand( "sideways" );
+            fail();
+        }
+        catch ( AstException e ) {
+            assertEquals( e.getStatus(), AstException.AST__ATTIN );
+        }
+    }
+
     public void testGeometry() {
         double[] point0 = new double[] { 100, 200 };
         double[] point1 = new double[] { 103, 200 };
@@ -718,8 +740,8 @@ public class AstTest extends TestCase {
         AstObject.getAstConstantD( "AST__BAD" );
 
         Matcher matcher = Pattern.compile( "AST V([23])\\.([0-9]+)-([0-9]+); " +
-                                           "JNIAST native V3\\.3-0; " +
-                                           "JNIAST java V3\\.3-0" )
+                                           "JNIAST native V3\\.4-0; " +
+                                           "JNIAST java V3\\.4-0" )
                                  .matcher( AstObject.reportVersions() );
         assertTrue( AstObject.reportVersions(), matcher.matches() );
         int astMajor = Integer.parseInt( matcher.group( 1 ) );
@@ -728,8 +750,8 @@ public class AstTest extends TestCase {
         System.out.println( AstObject.reportVersions() );
         assertTrue( "Checking AST version: " + AstObject.reportVersions(),
                     ( astMajor > 3 ) ||
-                    ( astMajor == 3 && astMinor > 2 ) ||
-                    ( astMajor == 3 && astMinor == 2 && astRelease >= 8 ) );
+                    ( astMajor == 3 && astMinor > 4 ) ||
+                    ( astMajor == 3 && astMinor == 4 && astRelease >= 0 ) );
 
         String absentConstName = "ABSENT_CONSTANT";
         try {

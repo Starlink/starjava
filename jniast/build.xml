@@ -87,7 +87,7 @@
    !   not installed (is this sensible behaviour?) -->
   <property name="Name" value="JNIAST"/>
   <property name="name" value="jniast"/>
-  <property name="version" value="3.3"/>
+  <property name="version" value="3.4"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ast"/>
@@ -458,6 +458,10 @@
       <param name="pj.cfile" value="cmpmap.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="DSBSpecFrame"/>
+      <param name="pj.cfile" value="dsbspecframe.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="FitsChan"/>
       <param name="pj.cfile" value="fitschan.c"/>
     </antcall>
@@ -744,6 +748,7 @@
       <class name="${package.name}.Channel"/>
       <class name="${package.name}.CmpFrame"/>
       <class name="${package.name}.CmpMap"/>
+      <class name="${package.name}.DSBSpecFrame"/>
       <class name="${package.name}.FitsChan"/>
       <class name="${package.name}.Frame"/>
       <class name="${package.name}.FrameSet"/>

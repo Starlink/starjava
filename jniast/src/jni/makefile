@@ -84,6 +84,7 @@ C_ROUTINES = \
    Channel.c \
    CmpFrame.c \
    CmpMap.c \
+   DSBSpecFrame.c \
    FitsChan.c \
    Frame.c \
    FrameSet.c \

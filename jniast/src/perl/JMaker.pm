@@ -210,6 +210,7 @@ sub makeSetAttrib {
    my( %args ) = @_;
    my( $type ) = $args{ 'type' };
    my( $name ) = $args{ 'name' };
+   my( $varname ) = $args{ 'varname' } || $name;
    my( $purpose ) = $args{ 'purpose' };
    my( $descrip ) = $args{ 'descrip' };
    my( $applic ) = $args{ 'applic' } 
@@ -228,10 +229,10 @@ sub makeSetAttrib {
     /**
      * Set $startText.  $moreText
      *
-     * \@param  $name   the $Name attribute of this object
+     * \@param  $varname   the $Name attribute of this object
      */
-    public void set$Name( $type $name ) {
-       $setMethod( "$Name", $name );
+    public void set$Name( $type $varname ) {
+       $setMethod( "$Name", $varname );
     }
 
 __EOT__

@@ -57,7 +57,7 @@ public class AstObject {
         };
         JNIAST_JAVA_VERSION = new int[] {
             3,
-            3,
+            4,
             0,
         };
 

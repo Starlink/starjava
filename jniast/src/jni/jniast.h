@@ -34,7 +34,7 @@
 
 /* Required versions of the AST package. */
 #define JNIAST_MAJOR_VERS 3
-#define JNIAST_MINOR_VERS 3
+#define JNIAST_MINOR_VERS 4
 #define JNIAST_RELEASE 0
 
 /* Typedefs. */
@@ -50,6 +50,7 @@ typedef union {
    AstCmpFrame *CmpFrame;    /* Pointer to C AstCmpFrame struct */
    AstSkyFrame *SkyFrame;    /* Pointer to C AstSkyFrame struct */
    AstCmpMap *CmpMap;        /* Pointer to C AstCmpMap struct */
+   AstDSBSpecFrame *DSBSpecFrame; /* Pointer to C AstDSBSpecFrame struct */
    AstGrismMap *GrismMap;    /* Pointer to C AstGrismMap struct */
    AstIntraMap *IntraMap;    /* Pointer to C AstIntraMap struct */
    AstLutMap *LutMap;        /* Pointer to C AstLutMap struct */
