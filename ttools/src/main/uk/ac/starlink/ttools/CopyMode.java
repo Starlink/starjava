@@ -55,6 +55,10 @@ public class CopyMode extends ProcessingMode {
         return true;
     }
 
+    public String getModeUsage() {
+        return "[-ofmt <out-format>] [-o <out-table>]";
+    }
+
     public String getHelp() {
         StringBuffer buf = new StringBuffer();
         buf.append( "\n   Known out-formats:\n" );
