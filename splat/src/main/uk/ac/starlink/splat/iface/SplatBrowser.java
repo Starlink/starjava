@@ -1355,7 +1355,7 @@ public class SplatBrowser
         }
         catch (SplatException e) {
             JOptionPane.showMessageDialog
-                ( this, e.getMessage(), 
+                ( this, e.getMessage(),
                   "Error converting 2D image into spectrum",
                   JOptionPane.ERROR_MESSAGE );
 
@@ -1399,13 +1399,15 @@ public class SplatBrowser
             for ( int i = 0; i < indices.length; i++ ) {
                 spec = globalList.getSpectrum( indices[i] );
                 plot = displaySpectrum( spec );
-                if ( plot != null && i != 0 ) {
-                    //  Displace Plot slightly so that windows do not
-                    //  totally obscure each other, but keep some control.
-                    lastLocation.translate( offset, offset );
-                    plot.setLocation( lastLocation );
+                if ( plot != null ) {
+                    if ( i != 0 ) {
+                        //  Displace Plot slightly so that windows do not
+                        //  totally obscure each other, but keep some control.
+                        lastLocation.translate( offset, offset );
+                        plot.setLocation( lastLocation );
+                    }
+                    lastLocation = plot.getLocation();
                 }
-                lastLocation = plot.getLocation();
             }
         }
     }
@@ -1478,7 +1480,9 @@ public class SplatBrowser
                 Runnable later = new Runnable() {
                         public void run()
                         {
-                            plot.getPlot().fitToWidthAndHeight();
+                            if ( plot != null ) {
+                                plot.getPlot().fitToWidthAndHeight();
+                            }
                         }
                     };
                 SwingUtilities.invokeLater( later );
