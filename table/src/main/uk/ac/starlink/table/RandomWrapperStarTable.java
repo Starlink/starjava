@@ -11,8 +11,9 @@ import java.net.URL;
  * this class, so if the latter rows of the resulting table are never
  * requested, they never need to be read from the base table.
  * The exception to this is if the base table does not know how many
- * rows it contains (getRowCount()&lt;0), in which case the whole table
- * must be read straight away to find out this information (a random-access
+ * rows it contains (<tt>getRowCount()&lt;0</tt>), 
+ * in which a <tt>getRowCount</tt> on this table will force all the rows
+ * to be read straight away to count them (a random-access
  * table must always know how many rows it has).
  * <p>
  * Changes in the number of columns of the base table will not be
@@ -26,10 +27,10 @@ import java.net.URL;
  */
 public abstract class RandomWrapperStarTable extends WrapperStarTable {
 
-    private long rowCount = -1L;
     private long rowsStored = 0L;
     private ColumnInfo[] colinfos;
     private RowSequence baseSeq;
+    private IOException savedError;
 
     /**
      * Constructs a new random access table from a base table.
@@ -89,6 +90,45 @@ public abstract class RandomWrapperStarTable extends WrapperStarTable {
         return colinfos.length;
     }
 
+    public long getRowCount() {
+
+        /* If we've read all the rows, we know how many there are. */
+        if ( baseSeq == null ) {
+            return rowsStored;
+        }
+
+        /* Otherwise, see if the base table knows. */
+        long nr = super.getRowCount();
+        if ( nr >= 0 ) {
+            return nr;
+        }
+
+        /* Otherwise, we have no choice but to count all the remaining
+         * rows by reading them in.  A random table must supply its row
+         * count on demand. 
+         * Unfortunately, this method doesn't throw an exception, so we
+         * have to store any exception for later.
+         * It looks like it would be simpler to do this in the constructor, 
+         * but that's no good, since it would get done before subclasses
+         * did their construction phases, and we shouldn't call the abstract
+         * storeNextRow method before the constructor has completed. */
+        try {
+            synchronized ( this ) {
+                while ( baseSeq.hasNext() ) {
+                    baseSeq.next();
+                    storeNextRow( baseSeq.getRow() );
+                    rowsStored++;
+                }
+                baseSeq.close();
+                baseSeq = null;
+            }
+        }
+        catch ( IOException e ) {
+            savedError = e;
+        }
+        return rowsStored;
+    }
+
     /**
      * Returns the URL of the base table.  Unlike most WrapperStarTables,
      * this is a reasonable thing to do, since although this isn't identical
@@ -105,23 +145,39 @@ public abstract class RandomWrapperStarTable extends WrapperStarTable {
         return colinfos[ icol ];
     }
 
-    public synchronized Object[] getRow( long lrow ) throws IOException {
+    public Object[] getRow( long lrow ) throws IOException {
+        checkSavedError();
 
         /* If we haven't got this far in the base table yet, read rows
          * from it until we have. */
-        while ( lrow >= rowsStored ) {
-            baseSeq.next();
-            storeNextRow( baseSeq.getRow() );
-            rowsStored++;
+        synchronized ( this ) {
+            while ( lrow >= rowsStored ) {
+                if ( baseSeq != null ) {
+                    if ( baseSeq.hasNext() ) {
+                        baseSeq.next();
+                        storeNextRow( baseSeq.getRow() );
+                        rowsStored++;
+                    }
+                    if ( ! baseSeq.hasNext() ) {
+                        baseSeq.close();
+                        baseSeq = null;
+                    }
+                }
+                else {
+                    throw new IllegalArgumentException( 
+                        "Attempted read beyond end of table" );
+                }
+            }
         }
 
-        /* Return the row that we have not definitely read from our internal
+        /* Return the row that we have now definitely read from our internal
          * row store. */
         assert lrow < rowsStored;
         return retrieveStoredRow( lrow );
     }
 
     public Object getCell( long lrow, int icol ) throws IOException {
+        checkSavedError();
         return getRow( lrow )[ icol ];
     }
 
@@ -131,50 +187,20 @@ public abstract class RandomWrapperStarTable extends WrapperStarTable {
      *
      * @return  a row iterator
      */
-    public RowSequence getRowSequence() {
+    public RowSequence getRowSequence() throws IOException {
+        checkSavedError();
         return new RandomRowSequence( this );
     }
 
     /**
-     * Utility function for determining the number of rows in the base
-     * table.  If there are more than Integer.MAX_VALUE then an
-     * IllegalArgumentException will be thrown.  This is intended to
-     * be invoked in the constructor by those subclasses which can
-     * only cope with a feasible number of rows.
-     * <p>
-     * If the base table does not know how many rows it contains, 
-     * this method will be forced to read the whole table (calling
-     * {@link #storeNextRow} appropriately) to find out.
-     *
-     * @param  the number of rows that the base table has.  This will be
-     *         non-negative
+     * Arranges to rethrow an exception which we deferred from an earlier
+     * operation.
      */
-    protected synchronized int getCheckedRowCount() throws IOException {
-        long nrow = rowCount >= 0 ? rowCount : baseTable.getRowCount();
-        if ( nrow > Integer.MAX_VALUE ) {
-            throw new IllegalArgumentException(
-                "Table " + baseTable + " has too many rows (" +
-                nrow + " > Integer.MAX_VALUE" );
+    private void checkSavedError() throws IOException {
+        if ( savedError != null ) {
+            IOException e = savedError;
+            savedError = null;
+            throw e;
         }
-
-        /* If we don't know the number of rows, we have to load all the
-         * data in now so we do. */
-        else if ( nrow < 0 ) {
-            long irow;
-            for ( irow = 0; baseSeq.hasNext(); irow++ ) {
-                baseSeq.next();
-                storeNextRow( baseSeq.getRow() );
-                rowsStored++;
-            }
-            if ( irow > Integer.MAX_VALUE ) {
-                throw new IllegalArgumentException(
-                    "Table " + baseTable + " has too many rows (" +
-                    nrow + " > Integer.MAX_VALUE" );
-            }
-            nrow = irow;
-        }
-
-        assert nrow == (int) nrow;
-        return (int) nrow;
     }
 }

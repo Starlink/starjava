@@ -12,17 +12,11 @@ import java.util.ArrayList;
  */
 public class RowRandomWrapperStarTable extends RandomWrapperStarTable {
 
-    private int nrow;
     private List rows = new ArrayList();
     private ColumnInfo[] colinfos;
 
     public RowRandomWrapperStarTable( StarTable baseTable ) throws IOException {
         super( baseTable );
-        nrow = getCheckedRowCount();
-    }
-
-    public long getRowCount() {
-        return (long) nrow;
     }
 
     protected synchronized void storeNextRow( Object[] row ) {

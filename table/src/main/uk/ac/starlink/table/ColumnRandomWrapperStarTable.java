@@ -13,15 +13,23 @@ import java.io.IOException;
  */
 public class ColumnRandomWrapperStarTable extends RandomWrapperStarTable {
 
-    private int nrow;
     private int ncol;
+    private int nrow;
     private ArrayColumn[] columns;
     private long currentRow = 0L;
 
-    public ColumnRandomWrapperStarTable( StarTable baseTable )
+    /**
+     * Constructs a new table to store a given number of rows.
+     * The <tt>nrow</tt> argument supplied is the number that this table
+     * will have, which may or may not match that of the base table.
+     *
+     * @param  baseTable  base table
+     * @param  nrow  number of rows in this table
+     */
+    public ColumnRandomWrapperStarTable( StarTable baseTable, int nrow )
             throws IOException {
         super( baseTable );
-        nrow = getCheckedRowCount();
+        this.nrow = nrow;
 
         /* Set up columns for this table based on those from the base table. */
         ncol = getColumnCount();
@@ -37,16 +45,20 @@ public class ColumnRandomWrapperStarTable extends RandomWrapperStarTable {
     }
 
     protected synchronized void storeNextRow( Object[] row ) {
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            columns[ icol ].storeValue( currentRow, row[ icol ] );
+        if ( currentRow < nrow ) {
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                columns[ icol ].storeValue( currentRow, row[ icol ] );
+            }
+            currentRow++;
         }
-        currentRow++;
     }
 
     protected Object[] retrieveStoredRow( long lrow ) {
         Object[] row = new Object[ ncol ];
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            row[ icol ] = columns[ icol ].readValue( lrow );
+        if ( lrow < nrow ) {
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                row[ icol ] = columns[ icol ].readValue( lrow );
+            }
         }
         return row;
     }
