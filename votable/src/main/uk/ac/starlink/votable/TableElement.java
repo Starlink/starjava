@@ -17,7 +17,6 @@ import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 
 /**
@@ -213,7 +212,7 @@ public class TableElement extends VOElement {
             DataSource datsrc;
             if ( href != null && href.length() > 0 ) {
                 URL url = URLUtils.makeURL( systemId, href );
-                datsrc = new URLDataSource( url );
+                datsrc = DataSource.makeDataSource( url );
             }
             else {
                 datsrc = new DataSource() {

@@ -23,7 +23,6 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.PipeReaderThread;
-import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 
 /**
@@ -286,7 +285,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
 
         HrefFITSStreamHandler( String href, String extnum ) throws IOException {
             URL url = URLUtils.makeURL( systemId, href );
-            DataSource datsrc = new URLDataSource( url );
+            DataSource datsrc = DataSource.makeDataSource( url );
             datsrc.setPosition( extnum );
             StarTable startab = new FitsTableBuilder()
                                .makeStarTable( datsrc, false );
