@@ -19,6 +19,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+
+import java.io.StringWriter;
+import java.io.PrintWriter;
  
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -165,10 +168,14 @@ public class ExceptionDialog
             textArea.setText( message + "\n" );
         }
         textArea.setText( e.getMessage() + "\n" );
-        StackTraceElement[] elements = e.getStackTrace();
-        for ( int i = 0; i < elements.length; i++ ) {
-            textArea.append( elements[i].toString() + "\n" );
-        }
+
+        StringWriter swriter = null;
+        PrintWriter pwriter = null;
+        swriter = new StringWriter( 1024 );
+        pwriter = new PrintWriter( swriter );
+        e.printStackTrace( pwriter );
+        textArea.append( swriter.toString() );
+        pwriter.close();
         textArea.setCaretPosition( 0 );
     }
 
