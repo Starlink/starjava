@@ -1,12 +1,18 @@
-package uk.ac.starlink.table;
+package uk.ac.starlink.table.formats;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableWriter;
 
 /**
  * A StarTableWriter which outputs text to a human-readable text file.
+ *
+ * @author   Mark Taylor (Starlink)
  */
 public class TextTableWriter implements StarTableWriter {
 
@@ -20,10 +26,22 @@ public class TextTableWriter implements StarTableWriter {
      */
     private int sampledRows = 10;
 
+    /**
+     * Returns "text";
+     *
+     * @return "text"
+     */
     public String getFormatName() {
         return "text";
     }
 
+    /**
+     * Returns true for <tt>location</tt> argument which ends in ".txt"
+     * or is equal to "-", indicating standard output.
+     *
+     * @param   location  the intended destination of the output
+     * @return  whether it looks suitable for this class
+     */
     public boolean looksLikeFile( String location ) {
         return location.equals( "-" ) 
             || location.endsWith( ".txt" );
@@ -128,5 +146,4 @@ public class TextTableWriter implements StarTableWriter {
         strm.write( '|' );
         strm.write( '\n' );
     }
-    
 }
