@@ -28,8 +28,13 @@ public class TableCopy {
 
         /* Construct the usage message. */
         StringBuffer usage = new StringBuffer();
-        usage.append( "\n   Usage: TableCopy " )
-             .append( "[-ofmt " );
+        String cmdname = System.getProperty( "uk.ac.starlink.table.cmdname" );
+        if ( cmdname == null ) {
+            cmdname = "TableCopy";
+        }
+        usage.append( "\n   Usage: " )
+             .append( cmdname )
+             .append( " [-ofmt " );
         boolean first = true;
         for ( Iterator it = twriter.getKnownFormats().iterator(); 
               it.hasNext(); ) {
