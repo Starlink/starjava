@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Action;
@@ -21,9 +22,11 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-import uk.ac.starlink.table.join.CartesianMatchEngine;
+import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
+import uk.ac.starlink.table.join.CombinedMatchEngine;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
 import uk.ac.starlink.table.join.HTMMatchEngine;
+import uk.ac.starlink.table.join.IsotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RangeModelProgressIndicator;
@@ -346,16 +349,38 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * @return  match engine array
      */
     private static MatchEngine[] getEngines() {
-        double someAngle = 0.001;
+        double someAngle = 1e-5;
         double someLength = 0.1;
+        double[] someLengths1 = new double[ 1 ];
+        double[] someLengths2 = new double[ 2 ];
+        double[] someLengths3 = new double[ 3 ];
+        double[] someLengths4 = new double[ 4 ];
+        Arrays.fill( someLengths1, someLength );
+        Arrays.fill( someLengths2, someLength );
+        Arrays.fill( someLengths3, someLength );
+        CombinedMatchEngine skyPlus1Engine = 
+            new CombinedMatchEngine( new MatchEngine[] {
+                new HTMMatchEngine( someAngle ),
+                new AnisotropicCartesianMatchEngine( someLengths1 ),
+            } );
+        skyPlus1Engine.setName( "Sky + X" );
+        CombinedMatchEngine skyPlus2Engine = 
+            new CombinedMatchEngine( new MatchEngine[] {
+                new HTMMatchEngine( someAngle ),
+                new AnisotropicCartesianMatchEngine( someLengths2 ),
+            } );
+        skyPlus2Engine.setName( "Sky + XY" );
         return new MatchEngine[] {
             new HTMMatchEngine( someAngle ),
             new SphericalPolarMatchEngine( someLength ),
             new EqualsMatchEngine(),
-            new CartesianMatchEngine( 1, someLength, false ),
-            new CartesianMatchEngine( 2, someLength, false ),
-            new CartesianMatchEngine( 3, someLength, false ),
-            new CartesianMatchEngine( 4, someLength, false ),
+            new IsotropicCartesianMatchEngine( 1, someLength, false ),
+            new IsotropicCartesianMatchEngine( 2, someLength, false ),
+            new AnisotropicCartesianMatchEngine( someLengths2 ),
+            new IsotropicCartesianMatchEngine( 3, someLength, false ),
+            new AnisotropicCartesianMatchEngine( someLengths3 ),
+            skyPlus1Engine,
+            skyPlus2Engine,
         };
     }
 
