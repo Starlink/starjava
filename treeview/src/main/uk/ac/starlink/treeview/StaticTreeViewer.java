@@ -833,20 +833,22 @@ public class StaticTreeViewer extends JFrame {
         try {
             AGConnector conn = AGConnectorFactory.getInstance()
                               .getConnector( this );
-            TreeClient tc = conn.getConnection();
-            if ( tc != null ) {
-                DataNode dnode = new MyspaceContainerDataNode( conn );
+            Object treeClient = 
+                AGConnector.class.getMethod( "getConnection", new Class[ 0 ] )
+                                 .invoke( conn, new Object[ 0 ] );
+            if ( treeClient != null ) {
+                DataNode dnode = nodeMaker.makeDataNode( null, conn );
                 appendNodeToRoot( dnode );
             }
         }
-        catch ( TreeClientException e ) {
-            NoSuchDataException ne =
-                new NoSuchDataException( "Error connecting to MySpace", e );
-            DataNode dnode = nodeMaker.makeErrorDataNode( null, ne );
-            appendNodeToRoot( dnode );
-        }
         catch ( NoSuchDataException e ) {
             DataNode dnode = nodeMaker.makeErrorDataNode( null, e );
+            appendNodeToRoot( dnode );
+        }
+        catch ( Throwable th ) {
+            NoSuchDataException ne =
+                new NoSuchDataException( "Error connecting to MySpace", th );
+            DataNode dnode = nodeMaker.makeErrorDataNode( null, ne );
             appendNodeToRoot( dnode );
         }
     }
