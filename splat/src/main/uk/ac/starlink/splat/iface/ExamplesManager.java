@@ -21,6 +21,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import uk.ac.starlink.splat.plot.DivaPlot;
+import uk.ac.starlink.splat.plot.PlotControl;
 
 /**
  * Class that makes any locally installed examples available and arranges for
@@ -138,9 +139,13 @@ public class ExamplesManager
         //  For now just switch on log-scaling.
         if ( plotIndex != -1 ) {
             GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
-            DivaPlot  plot = globalList.getPlot( plotIndex ).getPlot();
+            PlotControl plotControl = globalList.getPlot( plotIndex );
+            DivaPlot plot = plotControl.getPlot();
             plot.getAstAxes().setXLog( true );
             plot.getAstAxes().setYLog( true );
+            
+            //  Make sure we match coordinates.
+            plotControl.getSpecDataComp().setCoordinateMatching( true );
         }
     }
 }
