@@ -44,7 +44,6 @@ public class LineRenderer
         super();
     }
 
-
     /**
      * Return the requested component that renders the line.
      *
@@ -62,23 +61,28 @@ public class LineRenderer
                                                    boolean isSelected,
                                                    boolean cellHasFocus )
     {
-        try {
-            SpecData spec = (SpecData) value;
-            this.setText( spec.getShortName() );
-            icon.setIconWidth( 50 );
-            icon.setLineThickness( (int)spec.getLineThickness() );
-            icon.setLineStyle( (int)spec.getLineStyle() );
-            icon.setLineColour( (int)spec.getLineColour() );
-            setIcon( icon );
-            if ( isSelected ) {
-                setBackground( list.getSelectionBackground() );
-                setForeground( list.getSelectionForeground() );
-            } else {
-                setBackground( list.getBackground() );
-                setForeground( list.getForeground() );
+        if ( value instanceof SpecData ) {
+            try {
+                SpecData spec = (SpecData) value;
+                this.setText( spec.getShortName() );
+                icon.setIconWidth( 50 );
+                icon.setLineThickness( (int)spec.getLineThickness() );
+                icon.setLineStyle( (int)spec.getLineStyle() );
+                icon.setLineColour( (int)spec.getLineColour() );
+                setIcon( icon );
+                if ( isSelected ) {
+                    setBackground( list.getSelectionBackground() );
+                    setForeground( list.getSelectionForeground() );
+                } else {
+                    setBackground( list.getBackground() );
+                    setForeground( list.getForeground() );
+                }
+            } catch (Exception e) {
+                // Do nothing.
             }
-        } catch (Exception e) {
-            //  Do nothing.
+        }
+        else if ( value instanceof String ) {
+            this.setText( (String) value );
         }
         return this;
     }
