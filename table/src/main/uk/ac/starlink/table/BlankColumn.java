@@ -24,7 +24,7 @@ public class BlankColumn extends ColumnData {
      * @param   irow  row index
      * @return  null
      */
-    public abstract Object readValue( long irow ) {
+    public Object readValue( long irow ) {
         return null;
     }
 }
