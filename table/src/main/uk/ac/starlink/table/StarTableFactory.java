@@ -25,7 +25,7 @@ import uk.ac.starlink.util.URLDataSource;
  * <ul>
  * <li> {@link uk.ac.starlink.fits.FitsTableBuilder}
  * <li> {@link uk.ac.starlink.votable.VOTableBuilder}
- * <li> {@link uk.ac.starlink.formats.WDCTableBuilder}
+ * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  * </ul>
  *
  * @author   Mark Taylor (Starlink)
