@@ -21,11 +21,6 @@ import javax.swing.TransferHandler;
 import javax.swing.JComponent;
 import javax.swing.JList;
 
-import uk.ac.starlink.splat.data.SpecData;
-import uk.ac.starlink.splat.data.NDXSpecDataImpl;
-import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.SplatException;
-
 import uk.ac.starlink.jaiutil.HDXImage;
 
 /**
