@@ -28,8 +28,9 @@ import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ast.xml.XAstReader;
 import uk.ac.starlink.ast.xml.XAstWriter;
 import uk.ac.starlink.util.SourceReader;
-import uk.ac.starlink.hdx.AbstractDOMFacade;
-import uk.ac.starlink.hdx.DOMFacade;
+import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.hdx.AbstractHdxFacade;
+import uk.ac.starlink.hdx.HdxFacade;
 import uk.ac.starlink.hdx.HdxDocument;
 import uk.ac.starlink.hdx.HdxException;
 import uk.ac.starlink.hdx.HdxResourceType;
@@ -97,14 +98,16 @@ public class BridgeNdx implements Ndx {
                         String att = el.getAttribute("url");
                         assert att != null;
                         if (att.length() == 0)
-                            // That is, instantiate a new BridgeNdx only
-                            // if the element has _no_ url attribute, so
-                            // that the data and variance content are
-                            // present as elements
-                            //
-                            // XXX we should deal, either here or when the
-                            // element was constructed, with the case
-                            // <ndx url="xxx"/>
+                            /*
+                             *  That is, instantiate a new BridgeNdx only
+                             *  if the element has _no_ url attribute, so
+                             *  that the data and variance content are
+                             *  present as elements
+                             * 
+                             *  XXX we should deal, either here or when the
+                             *  element was constructed, with the case
+                             *  <ndx url="xxx"/>
+                             */
                             return new BridgeNdx(new DomNdxImpl(el));
                         else
                             return null;
@@ -113,11 +116,13 @@ public class BridgeNdx implements Ndx {
             ndxType.setElementValidator
                 (new uk.ac.starlink.hdx.ElementValidator() {
                     public boolean validateElement(Element el) {
-                        // Validate by requiring that each child is an
-                        // element, and that each _registered_ element
-                        // is valid.  If we find any elements that
-                        // aren't registered, assume they're OK.  Is
-                        // this sensible?
+                        /*
+                        *  Validate by requiring that each child is an
+                        *  element, and that each _registered_ element
+                        *  is valid.  If we find any elements that
+                        *  aren't registered, assume they're OK.  Is
+                        *  this sensible?
+                        */
                         for (Node n = el.getFirstChild();
                              n != null;
                              n = n.getNextSibling()) {
@@ -136,11 +141,13 @@ public class BridgeNdx implements Ndx {
             ndxType.setHoistAttribute("uri");
             ndxType.setConstructedClass("uk.ac.starlink.ndx.Ndx");
 
-            // Register the array types corresponding to
-            // XMLNAME_{IMAGE,VARIANCE,QUALITY}, and the fallback
-            // handlers for them.  This might sit more naturally in
-            // NDArrayFactory, except that we would then have to
-            // duplicate the XMLNAME_... names.
+            /*
+            *  Register the array types corresponding to
+            *  XMLNAME_{IMAGE,VARIANCE,QUALITY}, and the fallback
+            *  handlers for them.  This might sit more naturally in
+            *  NDArrayFactory, except that we would then have to
+            *  duplicate the XMLNAME_... names.
+            */
             HdxResourceFactory hrf = new HdxResourceFactory() {
                     public Object getObject(org.w3c.dom.Element el) 
                         throws uk.ac.starlink.hdx.HdxException {
@@ -201,13 +208,15 @@ public class BridgeNdx implements Ndx {
                                 return false;
 
                             try {
-                                // Construct a URI object, to validate
-                                // the syntax of uriString.  Should we
-                                // try converting it to a URL?
-                                // Probably not, since the toURL()
-                                // method requires that the URI be
-                                // absolute, which we don't
-                                // necessarily want.
+                                /*
+                                *  Construct a URI object, to validate
+                                *  the syntax of uriString.  Should we
+                                *  try converting it to a URL?
+                                *  Probably not, since the toURL()
+                                *  method requires that the URI be
+                                *  absolute, which we don't
+                                *  necessarily want.
+                                */
                                 java.net.URI uri = new URI(uriString);
                                 return true;
                             } catch (java.net.URISyntaxException e) {
@@ -363,8 +372,10 @@ public class BridgeNdx implements Ndx {
 
     private static FrameSet makeAst( Source astsrc ) throws IOException {
 
-        //  Note namespace prefix is null as HDX should have
-        //  transformed it!
+        /*
+        *   Note namespace prefix is null as HDX should have
+        *   transformed it!
+        */
         return (FrameSet) new XAstReader().makeAst( astsrc, null );
     }
 
@@ -376,18 +387,21 @@ public class BridgeNdx implements Ndx {
      *
      * @param  base  URL against which others are to be relativised
      * @return  an XML Source representation of this Ndx
-     * @deprecated replaced by <code>getDOMFacade().getSource(base)</code>
+     * @deprecated replaced by
+     * <code>getHdxFacade().getSource(URLUtils.urlToUri(base))</code>
      */
     public Source toXML( URL base ) {
-        // this method comes from the Ndx interface, but has the same
-        // functionality as getSource
-        return getDOMFacade().getSource(base);
+        /*
+        *  this method comes from the Ndx interface, but has the same
+        *  functionality as getSource
+        */
+        return getHdxFacade().getSource( URLUtils.urlToUri(base) );
     }
     
     /**
      * Returns the Hdx type corresponding to Ndx objects.
      */
-    public static HdxResourceType getHdxType() {
+    public static HdxResourceType getHdxResourceType() {
         return ndxType;
     }
 
@@ -428,43 +442,19 @@ public class BridgeNdx implements Ndx {
         }
     }
 
-    /**
-     * Turns a URL into a URI catching the exceptions.  I don't think that
-     * an exception can actuallly result here, since a URIs are surely a
-     * superset of URLs?  So why doesn't this method (or an equivalent 
-     * constructor) exist in the URI class??.
-     */
-    private static URI urlToUri( URL url ) {
-        try {
-            return new URI( url.toExternalForm() );
-        }
-        catch ( URISyntaxException e ) {
-            throw new AssertionError( "Failed to convert URL <" + url + "> "
-                                    + "to URI" );
-        }
-    }
-
-    protected HdxDocument constructDOM(URL base) {
-
-        /* Set up the document and root element. */
-        HdxDocument doc = (HdxDocument)uk.ac.starlink.hdx.HdxDOMImplementation
-                .getInstance()
-                .createDocument( null, "ndx", null);
-        Element ndxEl = doc.createElement( "ndx" );
-        doc.appendChild( ndxEl );
-
+    private Element adornDOM(Element ndxEl, HdxDocument doc, URI base) {
+        
         /* Get the base URI in a form suitable for using with URI.relativize. */
         URI baseUri;
         if ( base != null ) {
             try {
-                baseUri = new URI( base.toExternalForm() );
-                String scheme = baseUri.getScheme();
-                String auth = baseUri.getAuthority();
-                String path = baseUri.getPath();
+                String scheme = base.getScheme();
+                String auth = base.getAuthority();
+                String path = base.getPath();
                 if ( path == null ) {
                     path = "";
                 }
-                path = path.replaceFirst("[^/]*$", "" );
+                path = path.replaceFirst("[^/]*$", "" ); // remove trailing path
                 baseUri = new URI( scheme, auth, path, "", "" );
             }
             catch ( URISyntaxException e ) {
@@ -478,25 +468,21 @@ public class BridgeNdx implements Ndx {
         /* Write a title element. */
         if ( hasTitle() ) {
             Element titleEl = doc.createElement( XMLNAME_TITLE );
+            titleEl.setAttribute( "value", getTitle() );
             ndxEl.appendChild( titleEl );
-            Node titleNode = doc.createTextNode( getTitle() );
-            titleEl.appendChild( titleNode );
         }
 
         /* Write an image element. */
-        HdxResourceType type = HdxResourceType.match( XMLNAME_IMAGE);
+        HdxResourceType type = HdxResourceType.match( XMLNAME_IMAGE );
         assert type != HdxResourceType.NONE;
-        Element imEl = doc.createElement( type,
-                                          getImage().getDOMFacade( type ));
+        Element imEl = doc.createElement( getImage().getHdxFacade( type ));
         ndxEl.appendChild( imEl );
         if ( getImage().getURL() != null ) {
-            URI iuri = urlToUri( getImage().getURL() );
+            URI iuri = URLUtils.urlToUri( getImage().getURL() );
             if ( baseUri != null ) {
                 iuri = baseUri.relativize( iuri );
             }
-            imEl.setAttribute("url", iuri.toString());
-//             Node imUrl = doc.createTextNode( iuri.toString() );
-//             imEl.appendChild( imUrl );
+            imEl.setAttribute( "uri", iuri.toString() );
         }
         else {
             Node imComm = doc.createComment( "Image array is virtual" );
@@ -505,19 +491,17 @@ public class BridgeNdx implements Ndx {
 
         /* Write a variance element. */
         if ( hasVariance() ) {
-            type = HdxResourceType.match( XMLNAME_VARIANCE);
+            type = HdxResourceType.match( XMLNAME_VARIANCE );
             assert type != HdxResourceType.NONE;
-            Element varEl = doc.createElement( type,
-                                              getImage().getDOMFacade( type));
+            Element varEl = doc.createElement
+                    ( getVariance().getHdxFacade( type ));
             ndxEl.appendChild( varEl );
             if ( getVariance().getURL() != null ) {
-                URI vuri = urlToUri( getVariance().getURL() );
+                URI vuri = URLUtils.urlToUri( getVariance().getURL() );
                 if ( baseUri != null ) {
                     vuri = baseUri.relativize( vuri );
                 }
-                varEl.setAttribute("url", vuri.toString());
-//             Node varUrl = doc.createTextNode( vuri.toString() );
-//             varEl.appendChild( varUrl );
+                varEl.setAttribute( "uri", vuri.toString() );
             }
             else {
                 Node varComm = doc.createComment
@@ -531,17 +515,14 @@ public class BridgeNdx implements Ndx {
             type = HdxResourceType.match( XMLNAME_QUALITY );
             assert type != HdxResourceType.NONE;
             Element qualEl = doc.createElement
-                    ( type,
-                      getImage().getDOMFacade( type ));
+                    ( getQuality().getHdxFacade( type ));
             ndxEl.appendChild( qualEl );
             if ( getQuality().getURL() != null ) {
-                URI quri = urlToUri( getQuality().getURL() );
+                URI quri = URLUtils.urlToUri( getQuality().getURL() );
                 if ( baseUri != null ) {
                     quri = baseUri.relativize( quri );
                 }
-                qualEl.setAttribute("url", quri.toString());
-//                 Node qualUrl = doc.createTextNode( quri.toString() );
-//                 qualEl.appendChild( qualUrl );
+                qualEl.setAttribute( "uri", quri.toString() );
             }
             else {
                 Node qualComm = doc.createComment
@@ -553,9 +534,8 @@ public class BridgeNdx implements Ndx {
         /* Write a badbits element. */
         if ( getBadBits() != 0 ) {
             String bbrep = "0x" + Integer.toHexString( getBadBits() );
-            Node bbContent = doc.createTextNode( bbrep );
             Element bbEl = doc.createElement( XMLNAME_BADBITS );
-            bbEl.appendChild( bbContent );
+            bbEl.setAttribute( "value", bbrep );
             ndxEl.appendChild( bbEl );
         }
         
@@ -572,7 +552,8 @@ public class BridgeNdx implements Ndx {
                 ndxEl.appendChild( wcsEl );
             }
             catch ( TransformerException e ) {
-                logger.warning( "Trouble transforming WCS: " + e.getMessage() );
+                logger.warning( "Trouble transforming WCS: "
+                                + e.getMessage() );
                 ndxEl.appendChild( doc.createComment( "Broken WCS" ) );
             }
         }
@@ -602,211 +583,82 @@ public class BridgeNdx implements Ndx {
             }
         }
 
-        return doc;
+        return ndxEl;
     }
 
-//     protected Document constructDOM(URL base) {
-
-//         /* Set up the document and root element. */
-//         DocumentBuilderFactory dfact = DocumentBuilderFactory.newInstance();
-//         DocumentBuilder dbuild;
-//         try {
-//             dbuild = dfact.newDocumentBuilder();
-//         }
-//         catch ( ParserConfigurationException e ) {
-//             throw new RuntimeException( "Trouble building vanilla parser", e );
-//         }
-//         Document doc = dbuild.newDocument();
-//         Element ndxEl = doc.createElement( "ndx" );
-//         doc.appendChild( ndxEl );
-
-//         /* Get the base URI in a form suitable for using with URI.relativize. */
-//         URI baseUri;
-//         if ( base != null ) {
-//             try {
-//                 baseUri = new URI( base.toExternalForm() );
-//                 String scheme = baseUri.getScheme();
-//                 String auth = baseUri.getAuthority();
-//                 String path = baseUri.getPath();
-//                 if ( path == null ) {
-//                     path = "";
-//                 }
-//                 path = path.replaceFirst( "[^/]*$", "" );
-//                 baseUri = new URI( scheme, auth, path, "", "" );
-//             }
-//             catch ( URISyntaxException e ) {
-//                 baseUri = null;
-//             }
-//         }
-//         else {
-//             baseUri = null;
-//         }
-
-//         /* Write a title element. */
-//         if ( hasTitle() ) {
-//             Element titleEl = doc.createElement( XMLNAME_TITLE );
-//             ndxEl.appendChild( titleEl );
-//             Node titleNode = doc.createTextNode( getTitle() );
-//             titleEl.appendChild( titleNode );
-//         }
-
-//         /* Write an image element. */
-//         Element imEl = doc.createElement( XMLNAME_IMAGE );
-//         ndxEl.appendChild( imEl );
-//         if ( getImage().getURL() != null ) {
-//             URI iuri = urlToUri( getImage().getURL() );
-//             if ( baseUri != null ) {
-//                 iuri = baseUri.relativize( iuri );
-//             }
-//             Node imUrl = doc.createTextNode( iuri.toString() );
-//             imEl.appendChild( imUrl );
-//         }
-//         else {
-//             Node imComm = doc.createComment( "Image array is virtual" );
-//             imEl.appendChild( imComm );
-//         }
-
-//         /* Write a variance element. */
-//         if ( hasVariance() ) {
-//             Element varEl = doc.createElement( XMLNAME_VARIANCE );
-//             ndxEl.appendChild( varEl );
-//             if ( getVariance().getURL() != null ) {
-//                 URI vuri = urlToUri( getVariance().getURL() );
-//                 if ( baseUri != null ) {
-//                     vuri = baseUri.relativize( vuri );
-//                 }
-//                 Node varUrl = doc.createTextNode( vuri.toString() );
-//                 varEl.appendChild( varUrl );
-//             }
-//             else {
-//                 Node varComm = doc.createComment( "Variance array is virtual" );
-//                 varEl.appendChild( varComm );
-//             }
-//         }
-
-//         /* Write a quality element. */
-//         if ( hasQuality() ) {
-//             Element qualEl = doc.createElement( XMLNAME_QUALITY );
-//             ndxEl.appendChild( qualEl );
-//             if ( getQuality().getURL() != null ) {
-//                 URI quri = urlToUri( getQuality().getURL() );
-//                 if ( baseUri != null ) {
-//                     quri = baseUri.relativize( quri );
-//                 }
-//                 Node qualUrl = doc.createTextNode( quri.toString() );
-//                 qualEl.appendChild( qualUrl );
-//             }
-//             else {
-//                 Node qualComm = doc.createComment( "Quality array is virtual" );
-//                 qualEl.appendChild( qualComm );
-//             }
-//         }
-
-//         /* Write a badbits element. */
-//         if ( getBadBits() != 0 ) {
-//             String bbrep = "0x" + Integer.toHexString( getBadBits() );
-//             Node bbContent = doc.createTextNode( bbrep );
-//             Element bbEl = doc.createElement( XMLNAME_BADBITS );
-//             bbEl.appendChild( bbContent );
-//             ndxEl.appendChild( bbEl );
-//         }
-        
-//         /* Write a WCS element. */
-//         if ( hasWCS() ) {
-//             FrameSet wfset = getAst();
-//             Source wcsSource = new XAstWriter().makeSource( wfset, null );
-//             try {
-//                 Node wcsContent = new SourceReader().getDOM( wcsSource );
-//                 wcsContent = importNode( doc, wcsContent ); 
-//                 Element wcsEl = doc.createElement( XMLNAME_WCS );
-//                 wcsEl.setAttribute( "encoding", "AST-XML" );
-//                 wcsEl.appendChild( wcsContent );
-//                 ndxEl.appendChild( wcsEl );
-//             }
-//             catch ( TransformerException e ) {
-//                 logger.warning( "Trouble transforming WCS: " + e.getMessage() );
-//                 ndxEl.appendChild( doc.createComment( "Broken WCS" ) );
-//             }
-//         }
-
-//         /* Write an Etc element. */
-//         if ( hasEtc() ) {
-//             try {
-//                 Source etcSrc = getEtc();
-//                 Node etcEl = new SourceReader().getDOM( etcSrc );
-//                 etcEl = importNode( doc, etcEl );
-
-//                 /* Check that the returned object has the right form. */
-//                 if ( etcEl instanceof Element && 
-//                      ((Element) etcEl).getTagName() == XMLNAME_ETC ) {
-//                     ndxEl.appendChild( etcEl );
-//                 }
-//                 else {
-//                     logger.warning( "Badly-formed Etc component from impl " 
-//                                   + impl +  "  - not added" );
-//                     ndxEl.appendChild( doc.createComment( "Broken ETC" ) );
-//                 }
-//             }
-//             catch ( TransformerException e ) {
-//                 logger.warning( 
-//                     "Error transforming Etc component - not added" );
-//                 ndxEl.appendChild( doc.createComment( "Broken ETC" ) );
-//             }
-//         }
-
-//         return doc;
-//     }
-
-    public DOMFacade getDOMFacade() {
-        return new BridgeNdxDOMFacade();
+    public HdxFacade getHdxFacade() {
+        return new BridgeNdxHdxFacade();
     }
 
-    protected class BridgeNdxDOMFacade
-            extends AbstractDOMFacade {
-        public Element getDOM(URL base) {
-            // If the cached DOM is (still) present, return it immediately.
-            if (ndxDocumentCache == null) 
-                ndxDocumentCache = constructDOM(base);
-            Element de = ndxDocumentCache.getDocumentElement();
-            assert de.getTagName().equals("ndx");
-            return de;
-        }
+    protected class BridgeNdxHdxFacade
+            extends AbstractHdxFacade {
 
-        public Object getObject(Element el)
+        public Object synchronizeElement( Element el, Object memento )
                 throws HdxException {
-            HdxResourceType t = HdxResourceType.match(el);
+            /*
+            *  ignore memento -- this Ndx can't be changed (the Ndx
+            *  interface has no mutator methods), so if the given
+            *  element has children then it can only be because we've
+            *  been here before
+            */
+            if ( el.hasChildNodes() )
+                return null;
+            
+            if (! el.getTagName().equals( ndxType.xmlName() ) )
+                // The world has gone mad -- this shouldn't happen
+                throw new HdxException
+                        ( "synchronizeElement given element <"
+                          + el.getTagName()
+                          + ">, not <"
+                          + ndxType.xmlName()
+                          + "> as expected");
+            
+            adornDOM( el, (HdxDocument)el.getOwnerDocument(), null );
 
-            if (t == HdxResourceType.NONE)
+            return null;
+        }        
+
+        public Object getObject( Element el )
+                throws HdxException {
+            HdxResourceType t = HdxResourceType.match( el );
+
+            if ( t == HdxResourceType.NONE )
                 throw new HdxException
                         ("getObject was asked to realise an unregistered Type:"
-                         + el);
+                         + el );
             String tagname = el.getTagName();
             Object ret = null;
-            if (t == ndxType)
+            if ( t == ndxType )
                 ret = BridgeNdx.this;
-            else if (tagname.equals(XMLNAME_IMAGE))
+            else if ( tagname.equals( XMLNAME_IMAGE ) )
                 ret = getImage();
-            else if (tagname.equals(XMLNAME_VARIANCE))
+            else if ( tagname.equals( XMLNAME_VARIANCE ) )
                 ret = getVariance();
-            else if (tagname.equals(XMLNAME_QUALITY))
+            else if ( tagname.equals( XMLNAME_QUALITY ) )
                 ret = getQuality();
 
-            // These three are the only HdxResourceTypes which we
-            // register at the top.  If ret is still null, then it's
-            // because the code down here is out of date: that is,
-            // there's a type been registered which hasn't been added
-            // here, or else there's an element of a registered type
-            // within the Ndx which we don't think ought to be there
-            // (do we need to look at the ElementValidator?).  This is
-            // a coding error, so throw an assertion error rather than
-            // merely an HdxException
+            /*
+            *  These three are the only HdxResourceTypes which we
+            *  register at the top.  If ret is still null, then it's
+            *  because the code down here is out of date: that is,
+            *  there's a type been registered which hasn't been added
+            *  here, or else there's an element of a registered type
+            *  within the Ndx which we don't think ought to be there
+            *  (do we need to look at the ElementValidator?).  This is
+            *  a coding error, so throw an assertion error rather than
+            *  merely an HdxException
+            */
             assert ret != null
                     : "Ooops: surprising registered type " + t + " in Ndx";
             
-            assert t.getConstructedClass().isInstance(ret);
+            assert t.getConstructedClass() != Object.class
+                    && t.getConstructedClass().isInstance( ret );
             
             return ret;
         }
 
+        public HdxResourceType getHdxResourceType() {
+            return BridgeNdx.getHdxResourceType();
+        }
     }
 }
