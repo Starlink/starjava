@@ -22,8 +22,13 @@ import uk.ac.starlink.votable.VOTableWriter;
  */
 public class AxisTableSerializer implements Serializer {
 
-    public static final QName SOAP_STARTABLE = 
-        new QName( "http://www.starlink.ac.uk/stil/", "StarTable" );
+    /**
+     * QName used to describe objects which are serialized using this 
+     * serializer.  This is currently
+     * <tt>{http://www.ivoa.net/xml/VOTable/v1.1}VOTABLE</tt>.
+     */
+    public static final QName QNAME_VOTABLE = 
+        new QName( "http://www.ivoa.net/xml/VOTable/v1.1", "VOTABLE" );
 
     /**
      * Writes <tt>table</tt> out to the serialization context as a
