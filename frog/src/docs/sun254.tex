@@ -1,0 +1,810 @@
+\documentclass[twoside,11pt]{article}
+
+% ? Specify used packages
+\usepackage{graphicx}        %  Use this one for final production.
+% \usepackage[draft]{graphicx} %  Use this one for drafting.
+% ? End of specify used packages
+
+% Nice fonts -- during development.
+\usepackage{fancyheadings}
+\usepackage[latin1]{inputenc}
+\usepackage{ae}
+\usepackage{cmbright}
+
+\pagestyle{myheadings}
+\raggedbottom
+
+% -----------------------------------------------------------------------------
+% ? Document identification
+% Fixed part
+\newcommand{\stardoccategory}  {Starlink User Note}
+\newcommand{\stardocinitials}  {SUN}
+\newcommand{\stardocsource}    {sun\stardocnumber}
+\newcommand{\stardoccopyright}
+{Copyright \copyright\ 2001-2004 Council for the Central Laboratory of the
+Research Councils}
+
+% Variable part - replace [xxx] as appropriate.
+\newcommand{\stardocnumber}    {254.0}
+\newcommand{\stardocauthors}   {Alasdair Allan}
+\newcommand{\stardocdate}      {21 Apr 2004}
+\newcommand{\stardoctitle}     {FROG - A Time Series Analysis Package}
+\newcommand{\stardocversion}   {1.0}
+\newcommand{\stardocmanual}    {User's Manual}
+\newcommand{\stardocabstract}  {
+The \textsf{FROG} application is an extensible analysis and display tool for time series, and is part of the next generation Starlink software work and released under the GNU Public License (GPL). 
+
+Written in Java, it has been designed for the Web and Grid Service era as an extensible, pluggable, tool for time series analysis and display. With an integrated SOAP server the packages functionality is exposed to the user for use in their own code, and to be used remotely over the Grid, as part of the Virtual Observatory (VO).}
+% ? End of document identification
+% -----------------------------------------------------------------------------
+
+% +
+%  Name:
+%     sun.tex
+%
+%  Purpose:
+%     Template for Starlink User Note (SUN) documents.
+%     Refer to SUN/199
+%
+%  Authors:
+%     AJC: A.J.Chipperfield (Starlink, RAL)
+%     BLY: M.J.Bly (Starlink, RAL)
+%     PWD: Peter W. Draper (Starlink, Durham University)
+%
+%  History:
+%     17-JAN-1996 (AJC):
+%        Original with hypertext macros, based on MDL plain originals.
+%     16-JUN-1997 (BLY):
+%        Adapted for LaTeX2e.
+%        Added picture commands.
+%     13-AUG-1998 (PWD):
+%        Converted for use with LaTeX2HTML version 98.2 and
+%        Star2HTML version 1.3.
+%      1-FEB-2000 (AJC):
+%        Add Copyright statement in LaTeX
+%     {Add further history here}
+%
+% -
+
+\newcommand{\stardocname}{\stardocinitials /\stardocnumber}
+\markboth{\stardocname}{\stardocname}
+\setlength{\textwidth}{160mm}
+\setlength{\textheight}{230mm}
+\setlength{\topmargin}{-2mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\evensidemargin}{0mm}
+\setlength{\parindent}{0mm}
+\setlength{\parskip}{\medskipamount}
+\setlength{\unitlength}{1mm}
+
+% -----------------------------------------------------------------------------
+%  Hypertext definitions.
+%  ======================
+%  These are used by the LaTeX2HTML translator in conjunction with star2html.
+
+%  Comment.sty: version 2.0, 19 June 1992
+%  Selectively in/exclude pieces of text.
+%
+%  Author
+%    Victor Eijkhout                                      <eijkhout@cs.utk.edu>
+%    Department of Computer Science
+%    University Tennessee at Knoxville
+%    104 Ayres Hall
+%    Knoxville, TN 37996
+%    USA
+
+%  Do not remove the %begin{latexonly} and %end{latexonly} lines (used by
+%  LaTeX2HTML to signify text it shouldn't process).
+%begin{latexonly}
+\makeatletter
+\def\makeinnocent#1{\catcode`#1=12 }
+\def\csarg#1#2{\expandafter#1\csname#2\endcsname}
+
+\def\ThrowAwayComment#1{\begingroup
+    \def\CurrentComment{#1}%
+    \let\do\makeinnocent \dospecials
+    \makeinnocent\^^L% and whatever other special cases
+    \endlinechar`\^^M \catcode`\^^M=12 \xComment}
+{\catcode`\^^M=12 \endlinechar=-1 %
+ \gdef\xComment#1^^M{\def\test{#1}
+      \csarg\ifx{PlainEnd\CurrentComment Test}\test
+          \let\html@next\endgroup
+      \else \csarg\ifx{LaLaEnd\CurrentComment Test}\test
+            \edef\html@next{\endgroup\noexpand\end{\CurrentComment}}
+      \else \let\html@next\xComment
+      \fi \fi \html@next}
+}
+\makeatother
+
+\def\includecomment
+ #1{\expandafter\def\csname#1\endcsname{}%
+    \expandafter\def\csname end#1\endcsname{}}
+\def\excludecomment
+ #1{\expandafter\def\csname#1\endcsname{\ThrowAwayComment{#1}}%
+    {\escapechar=-1\relax
+     \csarg\xdef{PlainEnd#1Test}{\string\\end#1}%
+     \csarg\xdef{LaLaEnd#1Test}{\string\\end\string\{#1\string\}}%
+    }}
+
+%  Define environments that ignore their contents.
+\excludecomment{comment}
+\excludecomment{rawhtml}
+\excludecomment{htmlonly}
+
+%  Hypertext commands etc. This is a condensed version of the html.sty
+%  file supplied with LaTeX2HTML by: Nikos Drakos <nikos@cbl.leeds.ac.uk> &
+%  Jelle van Zeijl <jvzeijl@isou17.estec.esa.nl>. The LaTeX2HTML documentation
+%  should be consulted about all commands (and the environments defined above)
+%  except \xref and \xlabel which are Starlink specific.
+
+\newcommand{\htmladdnormallinkfoot}[2]{#1\footnote{#2}}
+\newcommand{\htmladdnormallink}[2]{#1}
+\newcommand{\htmladdimg}[1]{}
+\newcommand{\hyperref}[4]{#2\ref{#4}#3}
+\newcommand{\htmlref}[2]{#1}
+\newcommand{\htmlimage}[1]{}
+\newcommand{\htmladdtonavigation}[1]{}
+
+\newenvironment{latexonly}{}{}
+\newcommand{\latex}[1]{#1}
+\newcommand{\html}[1]{}
+\newcommand{\latexhtml}[2]{#1}
+\newcommand{\HTMLcode}[2][]{}
+
+%  Starlink cross-references and labels.
+\newcommand{\xref}[3]{#1}
+\newcommand{\xlabel}[1]{}
+
+%  LaTeX2HTML symbol.
+\newcommand{\latextohtml}{\LaTeX2\texttt{HTML}}
+
+%  Define command to re-centre underscore for Latex and leave as normal
+%  for HTML (severe problems with \_ in tabbing environments and \_\_
+%  generally otherwise).
+\renewcommand{\_}{\texttt{\symbol{95}}}
+
+% -----------------------------------------------------------------------------
+%  Debugging.
+%  =========
+%  Remove % on the following to debug links in the HTML version using Latex.
+
+% \newcommand{\hotlink}[2]{\fbox{\begin{tabular}[t]{@{}c@{}}#1\\\hline{\footnotesize #2}\end{tabular}}}
+% \renewcommand{\htmladdnormallinkfoot}[2]{\hotlink{#1}{#2}}
+% \renewcommand{\htmladdnormallink}[2]{\hotlink{#1}{#2}}
+% \renewcommand{\hyperref}[4]{\hotlink{#1}{\S\ref{#4}}}
+% \renewcommand{\htmlref}[2]{\hotlink{#1}{\S\ref{#2}}}
+% \renewcommand{\xref}[3]{\hotlink{#1}{#2 -- #3}}
+%end{latexonly}
+% -----------------------------------------------------------------------------
+% ? Document specific \newcommand or \newenvironment commands.
+
+% FROG.
+\newcommand{\FROG}{\textsf{FROG}}
+\newcommand{\SPLAT}{\textsf{SPLAT}}
+\newcommand{\TOPCAT}{\textsf{TOPCAT}}
+\newcommand{\PERIOD}{\textsf{PERIOD}}
+
+% Major graphic (like a screen shot). Needs ".gif" and ".eps" forms.
+% \latexhtml{\includegraphics[width=4.5in]{#1.eps}}{\htmladdimg{#1.gif}}
+\newcommand{\mainfigure}[1]
+{\begin{center}
+ \latexhtml{\includegraphics[scale=0.5]{sun254.fig/#1.eps}}{\htmladdimg{../sun254.fig/#1.gif}}
+ \end{center}
+}
+
+\newcommand{\clippedmainfigure}[1]
+{\begin{quote}
+ \latexhtml{\includegraphics[scale=0.5,clip=true]{sun254.fig/#1.eps}}{\htmladdimg{../sun254.fig/#1.gif}}
+ \end{quote}
+}
+
+% Inline a graphic (like an icon). Needs ".gif" and ".eps" forms.
+\newcommand{\inline}[1]
+        {\latexhtml{\includegraphics[scale=0.5]{sun254.fig/#1.eps}}
+        {\htmladdimg[align=center]{../sun254.fig/#1.gif}}}
+
+% UI elements.
+\newcommand{\menuitem}[1]{\textbf{#1}}
+\newcommand{\submenuitem}[2]{\latexhtml{\textbf{#1$\rightarrow$#2}}{\textbf{#1=>#2}}}
+\newcommand{\labelitem}[1]{\textbf{#1}}
+
+% typed text.
+\newcommand{\hitext}[1]{\texttt{#1}}
+
+% i.e.
+\newcommand{\ie}{\textit{i.e.}}
+
+% e.g..
+\newcommand{\eg}{\textit{e.g.}}
+
+% etc.
+\newcommand{\etc}{\textit{etc.}}
+
+% Heading for a paragraph section.
+\newcommand{\subheading}[1]{\textbf{\large{#1}}}
+
+% ? End of document specific commands
+% -----------------------------------------------------------------------------
+%  Title Page.
+%  ===========
+\renewcommand{\thepage}{\roman{page}}
+\begin{document}
+\thispagestyle{empty}
+
+%  Latex document header.
+%  ======================
+\begin{latexonly}
+   CCLRC / Rutherford Appleton Laboratory \hfill \textbf{\stardocname}\\
+   {\large Particle Physics \& Astronomy Research Council}\\
+   {\large Starlink Project\\}
+   {\large \stardoccategory\ \stardocnumber}
+   \begin{flushright}
+   \stardocauthors\\
+   \stardocdate
+   \end{flushright}
+   \vspace{-4mm}
+   \rule{\textwidth}{0.5mm}
+   \vspace{5mm}
+   \begin{center}
+      {\LARGE\textbf{\stardoctitle \\ [2.5ex]}}
+   \end{center}
+   \vspace{5mm}
+
+% ? Add picture here if required for the LaTeX version.
+\begin{center}
+\includegraphics[scale=0.6]{sun254.fig/splash.eps}
+\end{center}
+% ? End of picture
+
+% ? Heading for abstract if used.
+   %\vspace{10mm}
+   \begin{center}
+      {\Large\textbf{Abstract}}
+   \end{center}
+% ? End of heading for abstract.
+\end{latexonly}
+
+%  HTML documentation header.
+%  ==========================
+\begin{htmlonly}
+   \xlabel{}
+   \begin{rawhtml} <H1 ALIGN=CENTER> <FONT COLOR="#000099">\end{rawhtml}
+      \stardoctitle
+   \begin{rawhtml} </FONT></H1> \end{rawhtml}
+
+% ? Add picture here if required for the hypertext version.
+   \begin{center}
+      \htmladdimg{../sun254.fig/splash.gif}
+   \end{center}
+% ? End of picture
+
+   \begin{rawhtml} <P> <I> \end{rawhtml}
+   \stardoccategory\ \stardocnumber \\
+   \stardocauthors \\
+   \stardocdate
+   \begin{rawhtml} </I> </P> <H3> \end{rawhtml}
+      \htmladdnormallink{CCLRC / Rutherford Appleton Laboratory}
+                        {http://www.cclrc.ac.uk} \\
+      \htmladdnormallink{Particle Physics \& Astronomy Research Council}
+                        {http://www.pparc.ac.uk} \\
+   \begin{rawhtml} </H3> <H2> \end{rawhtml}
+      \htmladdnormallink{Starlink Project}{http://www.starlink.rl.ac.uk/}
+   \begin{rawhtml} </H2> \end{rawhtml}
+   \htmladdnormallink{\htmladdimg{source.gif} Retrieve hardcopy}
+      {http://www.starlink.rl.ac.uk/cgi-bin/hcserver?\stardocsource}\\
+
+%  HTML document table of contents.
+%  ================================
+%  Add table of contents header and a navigation button to return to this
+%  point in the document (this should always go before the abstract \section).
+  \label{stardoccontents}
+  \begin{rawhtml}
+    <HR>
+    <H2>Contents</H2>
+  \end{rawhtml}
+  \htmladdtonavigation{\htmlref{\htmladdimg{contents_motif.gif}}
+        {stardoccontents}}
+
+% ? New section for abstract if used.
+  \section{\xlabel{abstract}Abstract}
+% ? End of new section for abstract
+\end{htmlonly}
+
+% -----------------------------------------------------------------------------
+% ? Document Abstract. (if used)
+%  ==================
+\begin{center}
+\stardocabstract
+\end{center}
+% ? End of document abstract
+
+% -----------------------------------------------------------------------------
+% ? Latex Copyright Statement
+%  =========================
+\begin{latexonly}
+\newpage
+\vspace*{\fill}
+\stardoccopyright
+\end{latexonly}
+% ? End of Latex copyright statement
+
+% -----------------------------------------------------------------------------
+% ? Latex document Table of Contents (if used).
+%  ===========================================
+\newpage
+\begin{latexonly}
+  \setlength{\parskip}{0mm}
+  \tableofcontents
+  \setlength{\parskip}{\medskipamount}
+  \markboth{\stardocname}{\stardocname}
+\end{latexonly}
+% ? End of Latex document table of contents
+% -----------------------------------------------------------------------------
+
+\cleardoublepage
+\renewcommand{\thepage}{\arabic{page}}
+\setcounter{page}{1}
+
+% ? Main text
+
+
+%-----------------------------------------------------------------------
+\section{Overview\xlabel{overview}}
+
+\FROG\ is a graphical tool for displaying, comparing, modifying and
+analysing time series stored in FITS and TEXT file. It has been designed to provide a simple user interface for astronomers wanting to do time domain astrophysics, but still provide the powerful features found in packages like \PERIOD\ .
+
+If you have any problems with or comments to make about \FROG\, then send
+these to:
+\begin{quote}
+\begin{verbatim}
+   frog@starlink.ac.uk
+\end{verbatim}
+\end{quote}
+
+%-----------------------------------------------------------------------
+\section{Getting started\xlabel{getting_started}}
+
+The following sections describes how to display, and carry out basic analysis of, a time series. If you're new to \FROG\ then do take the time to read this through and try out the example commands.
+
+\subsection{Displaying a time series\xlabel{display_a_time_series}}
+
+To start \FROG\ you should just need to type the command:
+\begin{quote}
+\begin{verbatim}
+  % frog &
+\end{verbatim}
+\end{quote}
+This assumes that you have \FROG\ installed on your system as part of a
+standard Starlink installation. If not then you'll need follow any
+installation and pre-startup instructions that you have before using
+this command.
+
+When \FROG\ appears it should look something like:
+
+\mainfigure{main_window}
+
+This is the main \hitext{browser} window. This window acts as a container for your time series analysis task (in what has traditionally been referened to as a `stack'
+
+To open your first time series select the \menuitem{Open Time Series} item in the \menuitem{File} menu. This will create an  open file dialog window. Just navigate to your spectrum, select it, and press \menuitem{Open} to proceed.
+
+Alternatively you could have supplied the time series you want to use on
+the command-line:
+\begin{quote}
+\begin{verbatim}
+  % frog <time series> &
+\end{verbatim}
+\end{quote}
+Which will read the time series stored in the named \htmlref{file}{supported_formats}\latex{, see section \ref{supported_formats}}.
+
+If all goes well, your time series will be displayed in a \hitext{plot window}.
+
+\mainfigure{plot_window}
+
+The window is labelled \labelitem{Time Series 1}. Each time series you read will have a unique identifier (equivalent to a `slot' in command line applications like \PERIOD\ ). In this example we have read in a file consisting of $x, y$ and $y$-error. The data points are shown in blue, with the error bars in red. 
+
+\subsection{Basic control of the plot window\xlabel{basic_control}}
+
+The \hitext{plot window} has four menus: \menuitem{File}, \menuitem{Display}, \menuitem{Graphics} and \menuitem{Operations}. 
+
+You can turn off the display of error bars for this plot using the \submenuitem{Display}{Error Bars} toggle. If your data is in magnitudes you can flip the $y$-axis display so that your data is displayed the correct way up using the \submenuitem{Display}{Magnitudes} toggle. This toggle will propogate through any analysis you do to the data, such as detrending, fitting or folding.
+
+Additionally the \menuitem{Display} menu gives us basic control over \hitext{plot window}, allowing us to change the line style and how the plot is scaled in the window. 
+
+\subsection{Meta data\xlabel{meta_data}}
+
+The \menuitem{File} menu offers several options, the two you need to know about immediately are \submenuitem{File}{Meta Data} and \submenuitem{File}{View Data}.
+
+The \submenuitem{File}{Meta Data} item allows you to inspect the information known about your data
+
+\mainfigure{meta_data1}
+
+this information is known as ``meta data'', and is ``data about (describing) your data''. Initially little will be known about the data, but more meta-data will accumulate as you perform operations on the data.
+
+The \submenuitem{File}{View Data} item will pass your data to the Starlink \TOPCAT\ application where you can carry out sophisticated selections, cuts and and analysis on your time series data.
+
+\mainfigure{topcat}
+
+At the moment the only way to reimport you data into \FROG\ is to save it as a FITS format file and load it back into the application using the \submenuitem{File}{Open Time Series} item. In the near future \TOPCAT\ should offer the option to push your data back to a running instance of \FROG\ using  \htmlref{web services}{web_services}\latex{, see section \ref{web_services}}.
+
+\subsection{Making a periodogram\xlabel{making_a_periodogram}}
+
+The \menuitem{Operations} menu offers you several options, lets first look at the \submenuitem{Operations}{Find Periodicities} item. Selecting this will generate a \labelitem{Periodogram Analysis} popup window.
+
+\mainfigure{periodogram_popup}
+
+This popup will try to suggest reasonable values for the minimum and maximum frequency, and frequency interval, based on the Nyquist frequency of the data itself. Alot of the time the suggested values are reasonable, but you should use your common sense, the larger the number of ``frequency steps'' the longer the periodogram will take to generate.
+
+Currently there are two type of periodogram analysis available, \labelitem{Fourier Power Spectrum} and \labelitem{Chiq-squared Periodogram}. For now lets go with the default options. Hit the \labelitem{Ok} button.
+
+This will generate a fourier transform of your data, labelled \labelitem{periodogram 1} and an associated \hitext{meta-data popup}. 
+
+\mainfigure{fft}
+
+Meta-data popups are automatically generated every time you carry out an operation on your data to keep you informed. You can {\bf turn off} the appearance of these poups by using the toggle swicthes in the \submenuitem{Options}{Automatic Display} menu.
+
+\subsection{Folding time series data\xlabel{folding_data}\label{folding_data}}
+
+From our newly created \hitext{periodogram window} we can find the best fit period and fold our original data around this value. In the \hitext{periodogram window} select the \submenuitem{Operations}{Find Best Period} item. This will automatically find and mark (with a red line) the best period in your Fourier Transform.
+
+\mainfigure{fft_marked}
+
+You can now select the newly activated \submenuitem{Operations}{Fold around Best Period} item in the \hitext{periodogram window}, aloowing you to either fold the data, or fold and bin-up the data. The best fit period will be inserted by \FROG\ in the \labelitem{Fold Time Series} dialog, along with an arbitarily chosen zero point, and (if necessary) a suggested number of bins.
+
+\mainfigure{fold}
+
+The folded time series will be labelled \labelitem{Time Series 2}. Inspecting the meta-data for the series shows that it derived from \labelitem{Time Series 1}, our orginal series.
+
+\subsection{Fitting folded data\xlabel{fitting_folded_data}\label{fitting_folded_data}}
+
+Selecting the \submenuitem{Operations}{Fit Data} item from the \labelitem{Time Series 2}'s \hitext{plot window} fits the data with a $\sin()+\cos()$ function.
+
+\mainfigure{fold_and_fit}
+
+Here (above) we can see our original data folded around the best fit period found in our periodogram fitted with our $\sin()+\cos()$ function.
+
+Inspecting the meta-data, using the \submenuitem{File}{Meta data} item
+
+\mainfigure{meta_data2}
+
+shows the fit parameters in more detail.
+
+We've now walked through the basic proceedure for reading in a time series, finding the best period, and the folding and fitting around this period. However \FROG\ has many other capabilities, so keep reading...
+
+%-----------------------------------------------------------------------
+\section{Manipulating time series\xlabel{manipulating_time_series}}
+
+Alot of the \hitext{main browser}'s operations are enabled only when the required number of time series (or periodograms) are present in the \hitext{main browser}.
+
+\subsection{Combining individual series\xlabel{combing_time_series}}
+
+Two (or more) time series can be combined using the \submenuitem{Operations}{Combine Series} item. Selecting this item creates a \labelitem{Combine Time Series} popup window. Simply select the two series you wish to combine in the popup window and hit the \labelitem{Ok} button.
+
+\mainfigure{combining_series}
+
+Here (above) we see two series which have combined into a third series, this new series is independant of the originiating series and can be manipulated like any other series.
+
+\subsection{Detrending series\xlabel{detrending_time_series}}
+
+A time series can be detrended by using the \submenuitem{Operations}{Detrend Data} item in the series' \hitext{plot window}. Selecting this item creates a \labelitem{Detrend Time Series} popup window.
+
+\mainfigure{detrend_popup}
+
+This popup allows you to subtract the D.C.\ bias from data, which if not removed gives rise to significatn power at 0 Hz of a periodogram. Detrending should therefore be carried out before creating a periodogram of your time series.
+
+There are two options: If the data shows no long term trend, it is best to simply subtract the mean and divide by the standard deviation. This gives a dataset witha mean of zero and a standard deviation of one. Otherwise, it is best to subtract a low-order polynomial fit to the data, since if the long term variation is not removed a Fourier Transform will inject significant power at the frequency of the variations.
+
+\mainfigure{detrend_data}
+
+Here (above) we show a data set that has been detrended using a low order polynomial.
+
+It should be noted that if two nights data show significantly different D.C.\ levels you may also wish to consider detrending them seperately before combining them using the \submenuitem{Operations}{Combine Series} item.
+ 
+\subsection{Basic arithmetic functions\xlabel{basic_arithmetic}}
+
+There are two main ways to aritmetically manipulate time series, both are available from the \hitext{main browser} \menuitem{Operations} menu.
+
+\mainfigure{arith_functions}
+
+The \submenuitem{Operations}{Constant Arithmetic} item lets you add, subtract, multiply and divide a series by a constant. While the \submenuitem{Operations}{sin( ) Arithmetic} item lets you add, subtract, multiply and divide the series by a $\sin()$ function
+
+%-----------------------------------------------------------------------
+\section{More about periodograms\xlabel{more_periodograms}}
+
+One of the main problems with classical periodograms is spectral leakage, of which there are several forms. Leakage to nearby frequencies (sidelobes) is due tio the finite total interval over which the data has been sampled. Leakage to distant frequencies is due to the finite size of the interval between the samples.
+
+\mainfigure{periodogram_popup}
+
+Examining the \labelitem{Periodogram Analysis} popup generated from the \submenuitem{Operations}{Find Periodicties} item in the \hitext{plot window} we see an option to \labelitem{Generate Window Function}. This option sets all the $y$-axis data points to unity. A discrete Fourier transform of teh resulting data yields the window function (or spectrum), which shows the effects of spectral leakage.
+
+%-----------------------------------------------------------------------
+\section{Fake data\xlabel{fake_data}}
+
+\FROG\ has an extensive suite of tools to generate fake data.
+
+\subsection{Faking it from scratch\xlabel{fake_from_scratch}}
+
+The \labelitem{Fake Data} popup, obtained from the \hitext{main browser}'s \submenuitem{Operations}{Create fake periodic data} item, allows you to generate sinusoidal data.
+
+\mainfigure{fake_data}
+
+Noise can be added to both the $x$ and $y$-data values. The fake data can then be manipulated like any other time series using the \menuitem{Constant Airithmetic} and \menuitem{sin() Arithmetic} popups to make more complex fake data sets.
+
+\subsection{Faking it from existing data\xlabel{fake_from_data}}
+
+The \labelitem{sin() Arithmetic} popup can be used to generate fake data based on real datasets. The \labelitem{Add to Windowed Function} option sets all the $y$-axis data points to unity.
+
+The $\sin()$ function is then added, subtracted, multiplied or divided (as specified) into this window function. Effectively this generates fake data with the same sampling as your original dataset, 
+
+\mainfigure{window_data}
+
+Here (above) we have generated a fake dataset with the same sampling as our original data.
+
+%-----------------------------------------------------------------------
+\section{Folding and binning data\xlabel{folding_and_binning}}
+
+The \submenuitem{Operations}{Fold data} item in the \hitext{plot window} allows the raw data to be folded (and binned) if required in a similar manner as described in section \ref{folding_data}, without having to preform a periodogram.
+
+%-----------------------------------------------------------------------
+\section{Fitting data\xlabel{fitting_data}}
+
+The \submenuitem{Operations}{Fit data} item in the \hitext{plot window} allows the raw data to be fitted in a similar manner as described in section \ref{fitting_folded_data}, without first having to fold the data. This is currently of limited usefulness.
+
+%-----------------------------------------------------------------------
+\section{Annotating your plots\xlabel{annotating your plots}}
+
+\FROG\ shares a common infrastructure for graphics annotation with \SPLAT\
+
+\mainfigure{graphics_menu1}
+
+Here we see the \menuitem{Graphics} menu of a time series \hitext{plot window} (the \hitext{periodogram window} has the same functionality). By selecting the appropriate cursor type, editable lines, shapes and text can be added to your plot.
+
+\mainfigure{graphics_menu2}
+
+The characteristics of the currently selected component can be edited, see above, and the end points of the shape repositioned.
+
+\mainfigure{graphics_save}
+
+By selecting \submenuitem{Graphics}{Save/restore figures} the current annotations can be stored and then in a configuration file in the user's home directory, and redrawn onto another plot at a later date.
+
+%-----------------------------------------------------------------------
+\section{Web services\xlabel{web_services}\label{web_services}}
+
+While \FROG\ can be used locally as a normal application, it also exposes functionality via a built in web server as a SOAP web service. The web service is language neutral and can be accessed using a variety of SOAP toolkits in languages that include Perl, Python, PHP, Java, C, C++ and even Fortran.
+
+This means \FROG\ can be used from your own code or scripts for either display, or data processing, without having to learn Java or write alot of code. Client side programs can be as short as a few lines depending on the language and toolkit chosen.
+
+\FROG\ currently provides two web service endpoints.
+
+\subsection{Displaying a time series using web serices\xlabel{display_a_time_series_via_ws}}
+
+The web service interface allows \FROG\ to be used as a display tool. The interfface will allows the user to load and display a time series by passing a SOAP message to the \FROG\ web server.
+
+Below is an example Perl script using the \verb+SOAP::Lite+ toolkit to access the \FROG\ web service to display a time series.
+
+\begin{quote}
+\begin{verbatim}
+  #!/usr/bin/perl
+
+  use SOAP::Lite;
+  use Getopt::Long;
+
+  unless ( scalar @ARGV >= 1 ) {
+     die "USAGE: $0 [-host host] [-port port] -file filename\n";
+  }
+    
+  my $status = GetOptions( "host=s"       => \$host,
+                           "port=s"       => \$port,
+                           "file=s"       => \$file );
+  
+  # default hostname
+  unless ( defined $host ) {
+     # localhost.localdoamin
+     $host = "127.0.0.1";
+  } 
+
+  # default port
+  unless( defined $port ) {
+     # default port for the user agent
+     $port = 8084;   
+  } 
+  
+  my $data;
+  if( defined $file ) {
+     unless ( open ( FILE, "<$file") ) {
+        die "ERROR: Cannot open $file\n";
+     }
+     undef $/;
+     $data = <FILE>;
+     close FILE;
+  } else {
+     die "ERROR: No data file specified.\n";
+  }
+  
+  my $service = SOAP::Lite->service(
+      "http://$host:$port/services/FrogSOAPServices?wsdl" );
+    
+  print $service->displaySeries( $data ) . "\n";    
+\end{verbatim}
+\end{quote}
+
+\subsection{Creating a Fourier Transform using web serices\xlabel{generating_an_fft_via_ws}}
+
+The web service interface also allows \FROG\ to be used as an algorithim engine, the example Perl script below dispatches a time series to \FROG\ which then calculates and returns a Fourier Transform for the series between the limits provided.
+
+\begin{quote}
+\begin{verbatim}
+  #!/usr/bin/perl
+
+  use SOAP::Lite;
+  use Getopt::Long;
+
+  unless ( scalar @ARGV >= 1 ) {
+     die "USAGE: $0 [-host host] [-port port] -file filename\n";
+  }
+    
+  my $status = GetOptions( "host=s"       => \$host,
+                           "port=s"       => \$port,
+                           "file=s"       => \$file,
+                           "min=s"        => \$min_freq,
+                           "max=s"        => \$max_freq,
+                           "interval=s"   => \$interval );
+  
+  # default hostname
+  unless ( defined $host ) {
+     # localhost.localdoamin
+     $host = "127.0.0.1";
+  } 
+
+  # default port
+  unless( defined $port ) {
+     # default port for the user agent
+     $port = 8084;   
+  } 
+  
+  my $data;
+  if( defined $file ) {
+     unless ( open ( FILE, "<$file") ) {
+        die "ERROR: Cannot open $file\n";
+     }
+     undef $/;
+     $data = <FILE>;
+     close FILE;
+  } else {
+     die "ERROR: No data file specified.\n";
+  }
+  
+  my $service = SOAP::Lite->service(
+      "http://$host:$port/services/FrogSOAPServices?wsdl" );
+    
+  print $service->getFourierTransform( 
+                     $data, $min_freq, $max_freq, $interval ) . "\n";
+\end{verbatim}
+\end{quote}
+
+
+%-----------------------------------------------------------------------
+\section{Supported data formats\xlabel{supported_formats}\label{supported_formats}}
+
+The simplest form of input for \FROG\ is an ASCII file. 
+
+The file may contain any number of rows, but is expected to have either two or three columns only. In the case where the file has two columns, the first is taken as the time axis, while the other is taken to be the data values. In the case of three columns, the third column is assumed to be the error in the data value and treated as such. For example,
+\begin{quote}
+\begin{verbatim}
+# This is a comment
+#
+681.464894  0.015 0.05
+681.469584  0.114 0.05
+681.470124  0.076 0.05
+681.470674 -0.030 0.05
+# An embedded comment
+681.471204 -0.053 0.05
+681.471754  0.000 0.05
+681.473544  0.105 0.05
+681.474084  0.022 0.05
+          .
+          .
+          .
+681.616134 -0.067 0.05      
+\end{verbatim}
+\end{quote}
+columns starting with \verb+#+ or \verb+!+ will be ignored by \FROG\ as a comment.
+
+\FROG\ can also read FITS format files. These should consist of two HDUs: a primary one containing minimal headers, and a single extension of type BINTABLE containing the table data.
+
+The BINTABLE may contain two, three or four column. In the case where the file has two columns, the first is taken as the time axis, while the other is taken to be the data values. In the case of three columns, the third column is assumed to be the error in the data value and treated as such. Finally in the case where the file has four columns the first is assumed to be an index number, while the second, third and fourth are the time, data value and data error respectively.
+
+The FITS format read and written by \FROG\ is interoperable with the Starlink \TOPCAT\ application. However, it should be noted that the two applications ASCII file formats are incompatible.
+
+%-----------------------------------------------------------------------
+\section{Future Improvments\xlabel{future}}
+
+Possible imporvements for future version of \FROG\
+
+\begin{itemize}
+
+\item Include more periodicity-finiding options, including full support for all those found in \PERIOD\, in addition to supporting new methods such as AoV
+
+\item Allowing you to re-add the trend to already detrended data.
+
+\item Re-plotting the fit to the folded data ontop of the original time series. 
+
+\item Re-calculate the Chi-Squared of the fit when a fit is copied onto a new time series.
+
+\item Display the residual in a stacked plot when fitting a time series.
+ 
+\item Binning of data over specific periods rather than using a fixed number of bins.
+
+\item Extending the web service interface by further exposing the algorithmic engine.
+
+\item Providing \htmladdnormallinkfoot{BeanShell}{http://www.beanshell.org} support to allow the user to extend \FROG\ functionality.
+
+\item Providing command line tools, e.g. to provide remote control of the application from the command line.
+
+\item Integration with \SPLAT\ to support time series spectroscopy, including trailed spectrograms and line fitting to generate time series radial velocity curves and blue-to-red crossing curves.
+
+\item Integration with \TOPCAT\ to support data editing.
+
+\item On the fly conversion between time frames.
+
+\item Persistance of meta-data when a file is written to disk.
+
+\end{itemize}
+
+%-----------------------------------------------------------------------
+\section{Acknowledgments\xlabel{acknowledgements}}
+
+The author gratefully acknowledges the people who have worked on the Starlink \PERIOD\ package over the years, see \xref{SUN/167}{sun167}{}, for providing a solid basis on which to build this new web-service enabled application.
+
+The author would also like to thank Peter Draper and Mark Taylor from whom he borrowed large amounts of code, without which writing this applciation would have been alot harder.
+
+\FROG\ is written in
+\htmladdnormallinkfoot{Java}{http://java.sun.com} by
+\htmladdnormallinkfoot{SUN Microsystems Inc.}{http://www.sun.com/} and
+contains software from:
+\begin{itemize}
+\item The JDOM Project (\htmladdnormallink{http://www.jdom.org/}
+                        {http://www.jdom.org/}).
+\item The Apache Software Foundation
+      (\htmladdnormallink{http://www.apache.org/}{http://www.apache.org/} ).
+\item The DIVA project
+      (\htmladdnormallink{http://www.gigascale.org/diva/}
+                         {http://www.gigascale.org/diva/}).
+\item The Java Matrix Package (JAMA)
+      (\htmladdnormallink{http://math.nist.gov/javanumerics/jama/}
+                         {http://math.nist.gov/javanumerics/jama/}).
+\end{itemize}
+
+%-----------------------------------------------------------------------
+\section{Changes\xlabel{changes}}
+\subsection{This release, 0.7}
+In this release \FROG\ has become part of the Starlink Java Collection and is now released under the GPL. The most significant changes in this release are:
+\begin{itemize}
+
+   \item The addition of a web service interface.
+   
+   \item The addition of a graphics annotation menu.
+    
+\end{itemize}
+
+%-----------------------------------------------------------------------
+\section{License agreement\xlabel{gpl_license}}
+
+\begin{verbatim}
+This program is free software; you can redistribute it
+and/or modify it under the terms of the GNU General
+Public License published by the Free Software Foundation;
+either version 2 of the License, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be
+useful, but WITHOUT ANY WARRANTY; without even the
+implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License
+for more details.You should have received a copy of
+the GNU General Public License along with this program;
+if not, write to the Free Software Foundation, Inc.,
+59 Temple Place, Suite 330, Boston, MA  02111-1307, U.S.A.}
+\end{verbatim}
+
+\end{document}

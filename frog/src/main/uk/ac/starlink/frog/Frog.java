@@ -31,7 +31,7 @@ import uk.ac.starlink.frog.util.Utilities;
 import uk.ac.starlink.frog.util.FrogDebug;
 import uk.ac.starlink.frog.util.FrogException;
 import uk.ac.starlink.frog.util.FrogSOAPServer;
-import uk.ac.starlink.frog.util.RemoteServer;
+//import uk.ac.starlink.frog.util.RemoteServer;
 
 // Data Handlers
 import uk.ac.starlink.frog.data.TimeSeriesManager;
@@ -46,7 +46,7 @@ import uk.ac.starlink.frog.data.GramComp;
 import uk.ac.starlink.frog.data.Gram;
 
 // JavaHelp
-//import uk.ac.starlink.help.HelpFrame;
+import uk.ac.starlink.help.HelpFrame;
 import uk.ac.starlink.frog.help.HelpHolder;
 
 /**
@@ -206,6 +206,8 @@ public class Frog extends JFrame
         gramManager.setFrog( this );
         debugManager.setFrog( this );
 
+        // turn debugging off, this is a release version
+        debugManager.setDebugFlag( false );
 
         debugManager.print( "\n" + Utilities.getReleaseName() + " V" +
                                Utilities.getReleaseVersion() );
@@ -645,7 +647,9 @@ public class Frog extends JFrame
         menuBar.add( debugMenu );
         if( debugManager.getDebugFlag() ) {
            debugMenu.setVisible( true );
-        }     
+        } else {
+           debugMenu.setVisible( false );
+        }  
                
         // TimeSeriesManager
         JMenuItem seriesManagerItem = new JMenuItem("Dump TimeSeriesManager");
@@ -915,11 +919,12 @@ public class Frog extends JFrame
      */
     protected void createHelpMenu()
     {     
+        /**        
         JMenu helpMenu = new JMenu( "Help" );
         menuBar.add( Box.createHorizontalGlue() );
         menuBar.add( helpMenu );
         
-        //  help dialog        
+        //  help dialog
         final String helpString =  Utilities.getReleaseName() + " Help System";
         JMenuItem helpItem = new JMenuItem( helpString );
         helpItem.addActionListener( new ActionListener() {
@@ -949,7 +954,9 @@ public class Frog extends JFrame
               // Create a new frame.
               try {
                  JFrame frame = new JFrame();
-                 frame.setSize(500,500);
+                 //frame.setSize(930,860);
+                 frame.setSize(800,600);
+                 frame.setLocation(100,100);
                  frame.getContentPane().add(helpViewer);
                  frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                  frame.setVisible(true);
@@ -959,7 +966,34 @@ public class Frog extends JFrame
            }              
         }); 
         helpMenu.add(helpItem);  
+        **/
         
+        // help menu (using Peter's uk.ac.starlink.help classes)
+        debugManager.print( "Creating Help Menu using uk.ac.starlink.help");
+        final String helpString =  Utilities.getReleaseName() + " Help System";
+        
+        menuBar.add( Box.createHorizontalGlue() );
+        JToolBar dummy = null;
+        JMenu helpMenu = HelpFrame.createHelpMenu( null, null,
+                                                  "Frog.SplashPage", helpString,
+                                                   menuBar, dummy );
+        
+        HelpFrame.setHelpTitle( helpString);
+        
+        try {
+       
+           URL url = Frog.class.getResource( "/FrogHelpSet.hs" );
+           if ( url == null ) {
+             throw new FrogException( "Failed to locate HelpSet" );
+           }
+           debugManager.print("  HelpSet = " + url.toString() );
+                   
+           //HelpSet helpSet = new HelpSet( null, url );
+           HelpFrame.addHelpSet( url );
+	} catch (Exception exception) {
+	         debugManager.print("  Cannot find FrogHelpSet.hs");
+                 exception.printStackTrace();
+     	}
         
         //  about dialog        
         final String aboutString =  "About " + Utilities.getReleaseName();
@@ -1497,8 +1531,8 @@ public class Frog extends JFrame
         if ( ! embedded ) {
             try {
                 //  Socket-based services.
-                RemoteServer remoteServer = new RemoteServer( this );
-                remoteServer.start();
+                //RemoteServer remoteServer = new RemoteServer( this );
+                //remoteServer.start();
                 
                 //  SOAP based services.
                 FrogSOAPServer soapServer = FrogSOAPServer.getInstance();
@@ -1507,7 +1541,7 @@ public class Frog extends JFrame
             }
             catch (Exception e) {
                 // Not fatal, just no remote control.
-                debugManager.print( "    Failed to start remote services..." );
+                debugManager.print( "    Failed to start SOAP services..." );
                 debugManager.print( e.getMessage() );
             }
         }
