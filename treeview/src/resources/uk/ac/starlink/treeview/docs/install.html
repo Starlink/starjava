@@ -19,7 +19,7 @@ that a Java 1.4 virtual machine is installed, and this means it can
 run on a wide range of platforms.  It has been tested on Linux, 
 Solaris, Compaq Tru64 Unix and MS Windows.  Note however that there
 are currently problems with some of the optional components in 
-Tru64 and Windows.
+Tru64.
 
 <p>The following procedure describes how to install the Starlink 
 java classes from scratch.  
@@ -105,8 +105,8 @@ in the same place.
 
 <p><i>Notes:</i>
 <ul>
-<li>The MS Windows version is still experimental, and there
-    may be some modifications necessary before it works properly
+<li>The MS Windows version is still experimental, though as far as we know
+    it now works properly (as of 18 Dec 2002)
 <li>The Tru64 Unix version currently lacks the JNIAST component;
     it's available on request, but seems to have some bugs.
 <li>We don't have
@@ -134,18 +134,12 @@ classes in step (3) to invoke Treeview.
 
 <p>If this doesn't work (and on non-Unix operating systems it may well not do)
 then change directory to the <tt>starjava/lib/treeview</tt> directory
-(on MS Windows this should contain copies of some DLLs installed in
-step 4 above) and invoke Treeview by doing
+and invoke Treeview by doing
 <pre>
    java -jar treeview.jar [file ...]
 </pre>
-There are known problems at this stage with the 
-DLLs on some Microsoft operating 
-systems including Windows XP; if the above apparently does nothing,
-try deleting the DLLs in <tt>starjava/lib/treeview</tt> and 
-<tt>starjava/lib/x86</tt> and trying again (this will run without 
-the optional components).  We hope to sort this out soon.
-
+You may also be able to invoke this jar file directly, for instance
+by clicking on it in Windows.
 
 <hr />
 
