@@ -1,6 +1,7 @@
 package uk.ac.starlink.connect;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Node representing a file {@link java.io.File} in a local filesystem.
@@ -9,6 +10,7 @@ import java.io.File;
  * @since    18 Feb 2005
  */
 public abstract class FileNode implements Node {
+
     final File file_;
 
     /**
@@ -17,13 +19,19 @@ public abstract class FileNode implements Node {
      * @param  file  file
      */
     protected FileNode( File file ) {
-        file_ = file;
+        File f;
+        try {
+            f = file.getCanonicalFile();
+        }
+        catch ( IOException e ) {
+            f = file.getAbsoluteFile();
+        }
+        file_ = f;
     }
 
     public String getName() {
-        return file_.getParentFile() == null
-             ? File.separator
-             : file_.getName();
+        return file_.getParentFile() == null ? File.separator
+                                             : file_.getName();
     }
 
     public Branch getParent() {
