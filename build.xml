@@ -197,8 +197,8 @@
  <!--   <echo message="Executing JPCS target: ${what}"/> -->
  <!--   <ant dir="./jpcs" target="${what}"/> -->
 
-    <echo message="Executing StarTask target: ${what}"/>
-    <ant dir="./startask" target="${what}"/>
+ <!--   <echo message="Executing StarTask target: ${what}"/> -->
+ <!--   <ant dir="./startask" target="${what}"/> -->
  
  <!--   <echo message="Executing JNIKAPPA target: ${what}"/> -->
  <!--   <ant dir="./jnikappa" target="${what}"/> -->
