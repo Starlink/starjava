@@ -54,7 +54,6 @@ CONFIG_CLEAN_FILES = component.xml
 am__installdirs = $(DESTDIR)$(libdir)
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libjniast_la_DEPENDENCIES = `$(srcdir)/jniast_libraries`
 am__objects_1 =
 am__objects_2 = jniast.lo err_jniast.lo AstException.lo AstObject.lo \
 	Channel.lo CmpFrame.lo CmpMap.lo FitsChan.lo Frame.lo \
@@ -227,11 +226,9 @@ starhelpdir = @starhelpdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 lib_LTLIBRARIES = libjniast.la
-libjniast_la_SOURCES = \
- $(PRIVATE_INCLUDES) \
- $(C_ROUTINES)
-
+libjniast_la_SOURCES = $(PRIVATE_INCLUDES) $(C_ROUTINES)
 libjniast_la_LIBADD = $(LIBADD) `$(srcdir)/jniast_libraries` @FCLIBS@
+libjniast_la_DEPENDENCIES = 
 INCLUDES = $(INCADD)
 libjniast_la_LDFLAGS = -module -avoid-version
 PRIVATE_INCLUDES = err_jniast.h  jniast.h
@@ -268,10 +265,6 @@ C_ROUTINES = \
    WinMap.c \
    ZoomMap.c \
    GrfEscape.c
-
-getdlname = grep 'dlname=' convert_idl.la | sed -e 's:dlname=::' -e s:\'::g
-edit = sed \
-        -e "s,@DLNAME\@,$$DLNAME,g"
 
 all: all-am
 
@@ -731,9 +724,6 @@ uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 	pdf pdf-am ps ps-am tags uninstall uninstall-am \
 	uninstall-info-am uninstall-libLTLIBRARIES
 
-
-`$(srcdir)/jniast_libraries`:
-	:
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
