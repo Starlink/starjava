@@ -17,11 +17,8 @@ package uk.ac.starlink.splat.util;
  * @version $Id$
  */
 public class CubicSplineInterp
-    extends Interpolator
+    extends LinearInterp
 {
-    // Spline coefficients
-    private double[] c = null;
-
     /**
      * Create an instance with no coordinates. A call to 
      * {@link setCoords} must be made before any other methods.
@@ -45,25 +42,33 @@ public class CubicSplineInterp
         super( x, y );
     }
 
-    public void setCoords( double[] x, double[] y )
+    public void setCoords( double[] x, double[] y, boolean check )
     {
         // See which way the coordinates increase. If not increasing
         // we need to create an inverted list.
-        if ( x[1] < x[0] ) {
-            decr = true;
+        if ( check ) {
+            if ( x[1] < x[0] ) {
+                decr = true;
+            }
+            else {
+                decr = false;
+            }
+        }
+        if ( decr ) {
             this.x = new double[x.length];
             for ( int i = 0; i < x.length; i++ ) {
                 this.x[i] = -x[i];
             }
         }
         else {
-            decr = false;
             this.x = x;
         }
         this.y = y;
 
         c = new double[x.length+1];
-        evalCoeffs();
+        if ( x.length > 2 ) {
+            evalCoeffs();
+        }
     }
 
     /**
@@ -96,23 +101,29 @@ public class CubicSplineInterp
 
     public double interpolate( double xp )
     {
-        //  Locate the position of xp.
-        if ( decr ) xp = -xp;
-        int[] bounds = binarySearch( x, xp );
-        int klo = bounds[0];
-        int khi = bounds[1];
-        if ( khi == klo ) {
-            klo = khi - 1;
+        if ( x.length > 2 ) {
+            //  Locate the position of xp.
+            if ( decr ) xp = -xp;
+            int[] bounds = binarySearch( x, xp );
+            int klo = bounds[0];
+            int khi = bounds[1];
+            if ( khi == klo ) {
+                if ( khi == 0 ) {
+                    return y[0];
+                }
+                klo = khi - 1;
+            }
+            double h, ih, b, a, yp;
+            
+            h = x[khi] - x[klo];
+            ih = 1.0 / h;
+            a = (x[khi] - xp) * ih;
+            b = (xp - x[klo]) * ih;
+            yp = a * y[klo] + b * y[khi] + 
+                ((a*a*a - a) * c[klo] + (b*b*b - b) * c[khi]) * (h*h) / 6.0;
+            return yp;
         }
-	double h, ih, b, a, yp;
-
-	h = x[khi] - x[klo];
-	ih = 1.0 / h;
-	a = (x[khi] - xp) * ih;
-	b = (xp - x[klo]) * ih;
-	yp = a * y[klo] + b * y[khi] + 
-            ((a*a*a - a) * c[klo] + (b*b*b - b) * c[khi]) * (h*h) / 6.0;
-	return yp;
+        return super.interpolate( xp );
     }
 
     /** Simple test entry point */

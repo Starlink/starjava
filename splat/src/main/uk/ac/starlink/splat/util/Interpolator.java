@@ -22,6 +22,8 @@ import uk.ac.starlink.splat.data.AnalyticSpectrum;
 public abstract class Interpolator
     implements AnalyticSpectrum
 {
+    protected static final double EPSILON = 0.5; // Pixel shift.
+
     /**
      * Create an instance with no coordinates. A call to 
      * {@link setCoords} must be made before any other methods.
@@ -42,7 +44,7 @@ public abstract class Interpolator
      */
     public Interpolator( double[] x, double[] y )
     {
-        setCoords( x, y );
+        setCoords( x, y, true );
     }
 
     /**
@@ -56,6 +58,11 @@ public abstract class Interpolator
      * values as X coordinates. 
      */
     protected double[] y;
+
+    /**
+     * Some coefficients, if any associated with the fit.
+     */
+    protected double[] c;
 
     /**
      * Whether the X coordinates are monotonically decreasing.
@@ -73,12 +80,40 @@ public abstract class Interpolator
     }
 
     /**
-     * Set the coordinates used by this interpolator.
+     * Set or reset the coordinates used by this interpolator.
      *
      * @param x the X coordinates.
      * @param y the Y coordinates.
+     * @param check whether to check the monotonic direction (compares
+     *              0 and 1 values of x). Use this when you need to
+     *              preserve the direction temporarily even though the
+     *              order may currently be switched, but take care to
+     *              reorder before interpolating.
      */
-    public abstract void setCoords( double[] x, double[] y );
+    public void setCoords( double[] x, double[] y, boolean check )
+    {
+        // Keep references to the coordinates.
+        this.x = x;
+        this.y = y;
+
+        // See which way the X coordinates increase, if wanted.
+        if ( check && x.length > 1 ) {
+            if ( x[1] < x[0] ) {
+                decr = true;
+            }
+            else {
+                decr = false;
+            }
+        }
+    }
+
+    /**
+     * Return the direction being used by this interpolator.
+     */
+    public boolean isIncreasing()
+    {
+        return ( decr == false );
+    }
 
     /**
      * Append a new position to the existing coordinates.
@@ -107,7 +142,7 @@ public abstract class Interpolator
         tempy[newlength-1] = newy;
         x = tempx;
         y = tempy;
-        setCoords( x, y );
+        setCoords( x, y, false );
     }
 
     /**
@@ -232,4 +267,5 @@ public abstract class Interpolator
     {
         return Sort.binarySearch( array, value );
     }
+
 }

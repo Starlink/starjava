@@ -40,19 +40,6 @@ public class LinearInterp
         super( x, y );
     }
 
-    public void setCoords( double[] x, double[] y )
-    {
-        // See which way the X coordinates increase.
-        if ( x[1] < x[0] ) {
-            decr = true;
-        }
-        else {
-            decr = false;
-        }
-        this.x = x;
-        this.y = y;
-    }
-
     public double interpolate( double xp )
     {
         //  Locate the position of xp.

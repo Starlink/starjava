@@ -20,6 +20,7 @@ public final class Sort
      */
     private Sort()
     {
+        // Do nothing.
     }
 
     /**
@@ -72,12 +73,15 @@ public final class Sort
     }
 
     /**
-     * Sort a double precision array, using an insertion sort. 
+     * Sort a double precision array, using an insertion sort.
      * This sort is very fast for small numbers of values and gets a
-     * boost from pre-sorted arrays.
+     * boost from pre-sorted arrays. Insertion sort is also stable
+     * (which can be important for maintaining the relationship to
+     * to other data).
      */
     public static void insertionSort( double[] a )
     {
+        // XXX reimplement as merge sort if fast and stable is needed.
         int i;
         int j;
         double v;
@@ -90,6 +94,112 @@ public final class Sort
                 j--;
             }
             a[j] = v;
+        }
+    }
+
+    /**
+     * Creates an index that sorts a double precision array. On exit a
+     * is sorted. A reordering of associated arrays without the need for
+     * additional memory can be performed using the 
+     * {@link applySortIndex} methods.
+     */
+    public static int[] insertionSort2( double[] a )
+    {
+        int size = a.length;
+        int[] remap = new int[a.length];
+
+        int i;
+        int j;
+        double v;
+        
+        for ( i = 1; i < size; i++ ) {
+            v = a[i];
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
+                remap[j] = j-1;
+                a[j] = a[j-1];
+                j--;
+            }
+            remap[j] = i;
+            a[j] = v;
+        }
+
+        return remap;
+    }
+    
+    //  XXX use PDA_RINP[x] algorithm sometime to re-order in place.
+    public static double[] applySortIndex( double[] a, int[] remap, 
+                                           boolean incr )
+    {
+        int size = a.length;
+        double[] newa = new double[size];
+        if ( incr ) {
+            for ( int j = 0; j < size; j++ ) {
+                newa[j] = a[remap[j]];
+            }
+        }
+        else {
+            int i = size - 1 ;
+            for ( int j = 0; j < size; j++ ) {
+                newa[j] = a[remap[i--]];
+            }
+        }
+        return newa;
+    }
+    
+
+    /**
+     * Insertion sort a double precision array into increasing order. Also
+     * sorts an associated array doubles. This sort is very fast for
+     * small numbers of values and gets a boost from pre-sorted
+     * arrays.
+     */
+    public static void insertionSort2a( double[] a, double[] ia )
+    {
+        int i;
+        int j;
+        double v;
+        double iv;
+
+        for ( i = 1; i < a.length; i++ ) {
+            v = a[i];
+            iv = ia[i];
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
+                a[j] = a[j-1];
+                ia[j] = ia[j-1];
+                j--;
+            }
+            a[j] = v;
+            ia[j] = iv;
+        }
+    }
+
+    /**
+     * Insertion sort a double precision array into decreasing order. Also
+     * sorts an associated array doubles. This sort is very fast for
+     * small numbers of values and gets a boost from pre-sorted
+     * arrays.
+     */
+    public static void insertionSort2d( double[] a, double[] ia )
+    {
+        int i;
+        int j;
+        double v;
+        double iv;
+
+        for ( i = 1; i < a.length; i++ ) {
+            v = a[i];
+            iv = ia[i];
+
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] < v ) ) {
+                a[j] = a[j-1];
+                ia[j] = ia[j-1];
+                j--;
+            }
+            a[j] = v;
+            ia[j] = iv;
         }
     }
 

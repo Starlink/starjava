@@ -21,11 +21,8 @@ package uk.ac.starlink.splat.util;
  * @version $Id$
  */
 public class AkimaSplineInterp
-    extends Interpolator
+    extends LinearInterp
 {
-    // Spline coefficients.
-    private double[] c = null;
-
     /**
      * Create an instance with no coordinates. A call to 
      * {@link setCoords} must be made before any other methods.
@@ -49,25 +46,33 @@ public class AkimaSplineInterp
         super( x, y );
     }
 
-    public void setCoords( double[] x, double[] y ) 
+    public void setCoords( double[] x, double[] y, boolean check ) 
     {
         // See which way the X coordinates increase. If not increasing
         // we need to create an inverted list.
-        if ( x[1] < x[0] ) {
-            decr = true;
+        if ( check ) {
+            if ( x[1] < x[0] ) {
+                decr = true;
+            }
+            else {
+                decr = false;
+            }
+        }
+        if ( decr ) {
             this.x = new double[x.length];
             for ( int i = 0; i < x.length; i++ ) {
                 this.x[i] = -x[i];
             }
         }
         else {
-            decr = false;
             this.x = x;
         }
         this.y = y;
 
         c = new double[3*x.length];
-        evalCoeffs();
+        if ( x.length > 3 ) {
+            evalCoeffs();
+        }
     }
 
     /**
@@ -134,16 +139,19 @@ public class AkimaSplineInterp
 
     public double interpolate( double xp )
     {
-        //  Locate the position of xp.
-        if ( decr ) xp = -xp;
-        int[] bounds = binarySearch( x, xp );
-        int i = bounds[0];
+        if ( x.length > 3 ) {
+            //  Locate the position of xp.
+            if ( decr ) xp = -xp;
+            int[] bounds = binarySearch( x, xp );
+            int i = bounds[0];
         
-        double dx = xp - x[i];
-        double value = ( (c[3*i+2]*dx + c[3*i+1])*dx + c[3*i])*dx + y[i];
-        if ( decr ) value = -value;
-
-        return value;
+            double dx = xp - x[i];
+            double value = ( (c[3*i+2]*dx + c[3*i+1])*dx + c[3*i])*dx + y[i];
+            if ( decr ) value = -value;
+            
+            return value;
+        }
+        return super.interpolate( xp );
     }
 
     /** Simple test entry point */

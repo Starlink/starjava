@@ -23,7 +23,7 @@ package uk.ac.starlink.splat.util;
  * @version $Id$
  */
 public class HermiteSplineInterp
-    extends Interpolator
+    extends LinearInterp
 {
     /**
      * Create an instance with no coordinates. A call to 
@@ -48,77 +48,64 @@ public class HermiteSplineInterp
         super( x, y );
     }
 
-    public void setCoords( double[] x, double[] y )
-    {
-        this.x = x;
-        this.y = y;
-
-        // See which way the X coordinates increase.
-        if ( x[1] < x[0] ) {
-            decr = true;
-        }
-        else {
-            decr = false;
-        }
-    }
-
     public double interpolate( double xp )
     {
-        double p = 0.0;
-
-        double lp1 = 0.0;
-        double lp2 = 0.0;
-        double l1 = 0.0;
-        double l2 = 0.0;
-        double yp1 = 0.0;
-        double yp2 = 0.0;
-        double xpi1 = 0.0;
-        double xpi = 0.0;
-
-        int n = Math.min( x.length, y.length );
-
-        //  Off the "top" or "bottom" returns an end value.
-        if ( ( xp >= x[n-1] && ! decr ) || ( xp <= x[n-1] && decr ) ) {
-            return y[n-1];
+        // When we have too few points we use linear interpolation.
+        if ( x.length > 2 ) {
+            double p = 0.0;
+            double lp1 = 0.0;
+            double lp2 = 0.0;
+            double l1 = 0.0;
+            double l2 = 0.0;
+            double yp1 = 0.0;
+            double yp2 = 0.0;
+            double xpi1 = 0.0;
+            double xpi = 0.0;
+            
+            int n = Math.min( x.length, y.length );
+            
+            //  Off the "top" or "bottom" returns an end value.
+            if ( ( xp >= x[n-1] && ! decr ) || ( xp <= x[n-1] && decr ) ) {
+                return y[n-1];
+            }
+            else if ( ( xp <= x[0] && ! decr ) || ( xp >= x[0] && decr ) ) {
+                return y[0];
+            }
+            
+            //  Locate xp in x.
+            int[] bounds = binarySearch( x, xp );
+            int i = bounds[0];
+            
+            //  Interpolate.
+            lp1 = 1.0 / ( x[i] - x[i+1] );
+            lp2 = 1.0 / ( x[i+1] - x[i] );
+            
+            if ( i == 0 ) {
+                yp1 = ( y[1] - y[0] ) / ( x[1] - x[0] );
+            }
+            else {
+                yp1 = ( y[i+1] - y[i-1] ) / ( x[i+1] - x[i-1] );
+            }
+            
+            if ( i >= n - 2 ) {
+                yp2 = ( y[n-1] - y[n-2] ) / ( x[n-1] - x[n-2] );
+            }
+            else {
+                yp2 = ( y[i+2] - y[i] ) / ( x[i+2] - x[i] );
+            }
+            xpi1 = xp - x[i+1];
+            xpi = xp - x[i];
+            l1 = xpi1 * lp1;
+            l2 = xpi * lp2;
+            p = y[i] * ( 1.0 - 2.0 * lp1 * xpi ) * l1 * l1 +
+                y[i+1]*( 1.0 - 2.0 * lp2 * xpi1 ) * l2 * l2 +
+                yp2 * xpi1 * l2 * l2 +
+                yp1 * xpi * l1 * l1;
+            
+            return p;
         }
-        else if ( ( xp <= x[0] && ! decr ) || ( xp >= x[0] && decr ) ) {
-            return y[0];
-        }
-
-        //  Locate xp in x.
-        int[] bounds = binarySearch( x, xp );
-        int i = bounds[0];
-
-        //  Interpolate.
-        lp1 = 1.0 / ( x[i] - x[i+1] );
-        lp2 = 1.0 / ( x[i+1] - x[i] );
-        
-        if ( i == 0 ) { 
-            yp1 = ( y[1] - y[0] ) / ( x[1] - x[0] );
-        }
-        else {
-            yp1 = ( y[i+1] - y[i-1] ) / ( x[i+1] - x[i-1] );
-        }
-
-        if ( i >= n - 2 ) {
-            yp2 = ( y[n-1] - y[n-2] ) / ( x[n-1] - x[n-2] );
-        }
-        else {
-            yp2 = ( y[i+2] - y[i] ) / ( x[i+2] -x[i] );
-        }
-
-        xpi1 = xp - x[i+1];
-        xpi = xp - x[i];
-        l1 = xpi1 * lp1;
-        l2 = xpi * lp2;
-        p = y[i] * ( 1.0 - 2.0 * lp1 * xpi ) * l1 * l1 +
-            y[i+1]*( 1.0 - 2.0 * lp2 * xpi1 ) * l2 * l2 +
-            yp2 * xpi1 * l2 * l2 +
-            yp1 * xpi * l1 * l1;
-
-        return p;
+        return super.interpolate( xp );
     }
-
 
     /** Simple test entry point. */
     public static void main( String[] args )
