@@ -43,5 +43,12 @@ else
    starjava="starjava"
 fi
 
+#  Check for Cygwin and transform appjar to windows format.
+case "`uname`" in
+  CYGWIN*) 
+    appjar=`cygpath --windows "${appjar}"`
+  ;;
+esac
+
 #  Run up SOG.
 $starjava $defines -jar $appjar -port $SOG_PORT $*
