@@ -72,7 +72,7 @@ public class DSBSpecFrame extends SpecFrame {
      * The default value for this attribute is 30 GHz.
      * 
      *
-     * @return  dsbCentre  this object's DsbCentre attribute
+     * @return  this object's DsbCentre attribute
      */
     public double getDsbCentre() {
         return getD( "DsbCentre" );
@@ -137,7 +137,7 @@ public class DSBSpecFrame extends SpecFrame {
      * always in units of GHz. The default value for this attribute is 4 GHz.
      * 
      *
-     * @return  if  this object's If attribute
+     * @return  this object's If attribute
      */
     public double getIf() {
         return getD( "If" );
@@ -181,7 +181,7 @@ public class DSBSpecFrame extends SpecFrame {
      * Indicates which sideband a dual sideband spectrum represents.
      * 
      *
-     * @return  sideBand  this object's SideBand attribute
+     * @return  this object's SideBand attribute
      */
     public String getSideBand() {
         return getC( "SideBand" );

@@ -47,7 +47,7 @@ public class GrismMap extends Mapping {
      * normal to the grating surface, in radians. The default value is 0.
      * 
      *
-     * @return  grismAlpha  this object's GrismAlpha attribute
+     * @return  this object's GrismAlpha attribute
      */
     public double getGrismAlpha() {
         return getD( "GrismAlpha" );
@@ -75,7 +75,7 @@ public class GrismMap extends Mapping {
      * ray. The default value is 0.0.
      * 
      *
-     * @return  grismEps  this object's GrismEps attribute
+     * @return  this object's GrismEps attribute
      */
     public double getGrismEps() {
         return getD( "GrismEps" );
@@ -105,7 +105,7 @@ public class GrismMap extends Mapping {
      * (the appropriate value for a pure prism disperser with no grating).
      * 
      *
-     * @return  grismG  this object's GrismG attribute
+     * @return  this object's GrismG attribute
      */
     public double getGrismG() {
         return getD( "GrismG" );
@@ -133,7 +133,7 @@ public class GrismMap extends Mapping {
      * The default value is 0.
      * 
      *
-     * @return  grismM  this object's GrismM attribute
+     * @return  this object's GrismM attribute
      */
     public int getGrismM() {
         return getI( "GrismM" );
@@ -160,7 +160,7 @@ public class GrismMap extends Mapping {
      * value is 1.0.
      * 
      *
-     * @return  grismNR  this object's GrismNR attribute
+     * @return  this object's GrismNR attribute
      */
     public double getGrismNR() {
         return getD( "GrismNR" );
@@ -191,7 +191,7 @@ public class GrismMap extends Mapping {
      * GrismWaveR and GrismG.
      * 
      *
-     * @return  grismNRP  this object's GrismNRP attribute
+     * @return  this object's GrismNRP attribute
      */
     public double getGrismNRP() {
         return getD( "GrismNRP" );
@@ -224,7 +224,7 @@ public class GrismMap extends Mapping {
      * wavelength. The default value is 0.0.
      * 
      *
-     * @return  grismTheta  this object's GrismTheta attribute
+     * @return  this object's GrismTheta attribute
      */
     public double getGrismTheta() {
         return getD( "GrismTheta" );
@@ -254,7 +254,7 @@ public class GrismMap extends Mapping {
      * those of attributes GrismNRP and GrismG.
      * 
      *
-     * @return  grismWaveR  this object's GrismWaveR attribute
+     * @return  this object's GrismWaveR attribute
      */
     public double getGrismWaveR() {
         return getD( "GrismWaveR" );

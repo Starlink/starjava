@@ -296,7 +296,7 @@ public class FrameSet extends Frame {
      * Invert attribute, with the astInvert function for example) will
      * interchange the values of its Base and Current attributes.
      *
-     * @return  base  this object's Base attribute
+     * @return  this object's Base attribute
      */
     public int getBase() {
         return getI( "Base" );
@@ -332,7 +332,7 @@ public class FrameSet extends Frame {
      * Invert attribute, with the astInvert function for example) will
      * interchange the values of its Base and Current attributes.
      *
-     * @return  current  this object's Current attribute
+     * @return  this object's Current attribute
      */
     public int getCurrent() {
         return getI( "Current" );
@@ -364,7 +364,7 @@ public class FrameSet extends Frame {
      * always be at least one.
      * 
      *
-     * @return  nframe  this object's Nframe attribute
+     * @return  this object's Nframe attribute
      */
     public int getNframe() {
         return getI( "Nframe" );

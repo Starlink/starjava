@@ -451,7 +451,7 @@ public class FitsChan extends Channel {
      * cards in the FitsChan.
      * 
      *
-     * @return  card  this object's Card attribute
+     * @return  this object's Card attribute
      */
     public int getCard() {
         return getI( "Card" );
@@ -514,7 +514,7 @@ public class FitsChan extends Channel {
      * is NOT linear. See the FITS-WCS papers for further details.
      * 
      *
-     * @return  carLin  this object's CarLin attribute
+     * @return  this object's CarLin attribute
      */
     public boolean getCarLin() {
         return getB( "CarLin" );
@@ -590,7 +590,7 @@ public class FitsChan extends Channel {
      * <p>
      * 
      *
-     * @return  CDMatrix  this object's CDMatrix attribute
+     * @return  this object's CDMatrix attribute
      */
     public boolean getCDMatrix() {
         return getB( "CDMatrix" );
@@ -653,7 +653,7 @@ public class FitsChan extends Channel {
      * the default is zero, and for all other encodings it is one.
      * 
      *
-     * @return  defB1950  this object's DefB1950 attribute
+     * @return  this object's DefB1950 attribute
      */
     public boolean getDefB1950() {
         return getB( "DefB1950" );
@@ -933,7 +933,7 @@ public class FitsChan extends Channel {
      * return a value of 1.
      * 
      *
-     * @return  encoding  this object's Encoding attribute
+     * @return  this object's Encoding attribute
      */
     public String getEncoding() {
         return getC( "Encoding" );
@@ -1228,7 +1228,7 @@ public class FitsChan extends Channel {
      * when it is finally deleted.
      * 
      *
-     * @return  fitsDigits  this object's FitsDigits attribute
+     * @return  this object's FitsDigits attribute
      */
     public int getFitsDigits() {
         return getI( "FitsDigits" );
@@ -1277,7 +1277,7 @@ public class FitsChan extends Channel {
      * deleted.
      * 
      *
-     * @return  ncard  this object's Ncard attribute
+     * @return  this object's Ncard attribute
      */
     public int getNcard() {
         return getI( "Ncard" );
@@ -1303,7 +1303,7 @@ public class FitsChan extends Channel {
      * deleted from the FitsChan using astDelFits.
      * 
      *
-     * @return  warnings  this object's Warnings attribute
+     * @return  this object's Warnings attribute
      */
     public String getWarnings() {
         return getC( "Warnings" );
@@ -1420,7 +1420,7 @@ public class FitsChan extends Channel {
      * and are ignored. The resulting FrameSet may therefore be inaccurate.
      * 
      *
-     * @return  allWarnings  this object's AllWarnings attribute
+     * @return  this object's AllWarnings attribute
      */
     public String getAllWarnings() {
         return getC( "AllWarnings" );
@@ -1448,7 +1448,7 @@ public class FitsChan extends Channel {
      * within the plane of projection.
      * 
      *
-     * @return  iwc  this object's Iwc attribute
+     * @return  this object's Iwc attribute
      */
     public boolean getIwc() {
         return getB( "Iwc" );

@@ -70,7 +70,7 @@ public class PcdMap extends Mapping {
      * Disco.
      * 
      *
-     * @return  disco  this object's Disco attribute
+     * @return  this object's Disco attribute
      */
     public double getDisco() {
         return getD( "Disco" );

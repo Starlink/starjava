@@ -260,7 +260,7 @@ sub makeGetAttrib {
     /**
      * Get $startText.  $moreText
      *
-     * \@return  $name  this object's $Name attribute
+     * \@return  this object's $Name attribute
      */
     public $type get$Name() {
         return $getMethod( "$Name" );

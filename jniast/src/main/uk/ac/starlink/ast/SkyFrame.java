@@ -180,7 +180,7 @@ public class SkyFrame extends Frame {
      * which qualifying attributes apply to each celestial coordinate
      * system.
      *
-     * @return  equinox  this object's Equinox attribute
+     * @return  this object's Equinox attribute
      */
     public double getEquinox() {
         return getD( "Equinox" );
@@ -246,7 +246,7 @@ public class SkyFrame extends Frame {
      * permutations).
      * 
      *
-     * @return  latAxis  this object's LatAxis attribute
+     * @return  this object's LatAxis attribute
      */
     public int getLatAxis() {
         return getI( "LatAxis" );
@@ -260,7 +260,7 @@ public class SkyFrame extends Frame {
      * permutations).
      * 
      *
-     * @return  lonAxis  this object's LonAxis attribute
+     * @return  this object's LonAxis attribute
      */
     public int getLonAxis() {
         return getI( "LonAxis" );
@@ -278,7 +278,7 @@ public class SkyFrame extends Frame {
      * to pi. 
      * 
      *
-     * @return  negLon  this object's NegLon attribute
+     * @return  this object's NegLon attribute
      */
     public boolean getNegLon() {
         return getB( "NegLon" );
@@ -320,7 +320,7 @@ public class SkyFrame extends Frame {
      * string.
      * 
      *
-     * @return  projection  this object's Projection attribute
+     * @return  this object's Projection attribute
      */
     public String getProjection() {
         return getC( "Projection" );
@@ -365,7 +365,7 @@ public class SkyFrame extends Frame {
      * coordinate system specified by the AlignSystem attribute.
      * 
      *
-     * @return  alignOffset  this object's AlignOffset attribute
+     * @return  this object's AlignOffset attribute
      */
     public boolean getAlignOffset() {
         return getB( "AlignOffset" );
@@ -411,7 +411,7 @@ public class SkyFrame extends Frame {
      * specified by the SkyRef attribute. 
      * 
      *
-     * @return  skyRefIs  this object's SkyRefIs attribute
+     * @return  this object's SkyRefIs attribute
      */
     public String getSkyRefIs() {
         return getC( "SkyRefIs" );
@@ -659,7 +659,7 @@ public class SkyFrame extends Frame {
      * origin information.
      * 
      *
-     * @return  skyRef  this object's SkyRef attribute
+     * @return  this object's SkyRef attribute
      */
     public String getSkyRef() {
         return getC( "SkyRef" );
@@ -915,7 +915,7 @@ public class SkyFrame extends Frame {
      * given for SkyRefP is transformed into the new System.
      * 
      *
-     * @return  skyRefP  this object's SkyRefP attribute
+     * @return  this object's SkyRefP attribute
      */
     public String getSkyRefP() {
         return getC( "SkyRefP" );

@@ -95,7 +95,7 @@ public class XmlChan extends Channel {
      * enclosed in quotes before being passed to a Channel. 
      * 
      *
-     * @return  xmlFormat  this object's XmlFormat attribute
+     * @return  this object's XmlFormat attribute
      */
     public String getXmlFormat() {
         return getC( "XmlFormat" );
@@ -158,7 +158,7 @@ public class XmlChan extends Channel {
      * output text.
      * 
      *
-     * @return  xmlIndent  this object's XmlIndent attribute
+     * @return  this object's XmlIndent attribute
      */
     public boolean getXmlIndent() {
         return getB( "XmlIndent" );
@@ -195,7 +195,7 @@ public class XmlChan extends Channel {
      * <p>
      * 
      *
-     * @return  xmlLength  this object's XmlLength attribute
+     * @return  this object's XmlLength attribute
      */
     public int getXmlLength() {
         return getI( "XmlLength" );
@@ -236,7 +236,7 @@ public class XmlChan extends Channel {
      * namespace to be the value of AST__XMLNS.
      * 
      *
-     * @return  xmlPrefix  this object's XmlPrefix attribute
+     * @return  this object's XmlPrefix attribute
      */
     public String getXmlPrefix() {
         return getC( "XmlPrefix" );

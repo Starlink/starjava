@@ -741,7 +741,7 @@ public class Plot extends FrameSet {
      * otherwise.
      * 
      *
-     * @return  border  this object's Border attribute
+     * @return  this object's Border attribute
      */
     public boolean getBorder() {
         return getB( "Border" );
@@ -793,7 +793,7 @@ public class Plot extends FrameSet {
      * Plot should be set to a non-zero value.
      * 
      *
-     * @return  clipOp  this object's ClipOp attribute
+     * @return  this object's ClipOp attribute
      */
     public boolean getClipOp() {
         return getB( "ClipOp" );
@@ -1218,7 +1218,7 @@ public class Plot extends FrameSet {
      * the attribute value of all the Plot axes, while a "get" or
      * "test" operation will use just the DrawAxes(1) value.
      *
-     * @return  drawAxes  this object's DrawAxes attribute
+     * @return  this object's DrawAxes attribute
      */
     public boolean getDrawAxes() {
         return getB( "DrawAxes" );
@@ -1275,7 +1275,7 @@ public class Plot extends FrameSet {
      * <br> - The vertical placement of the title can be controlled using
      * the TitleGap attribute.
      *
-     * @return  drawTitle  this object's DrawTitle attribute
+     * @return  this object's DrawTitle attribute
      */
     public boolean getDrawTitle() {
         return getB( "DrawTitle" );
@@ -1479,7 +1479,7 @@ public class Plot extends FrameSet {
      *        @see  uk.ac.starlink.ast.grf.GrfEscape
      *    
      *
-     * @return  escape  this object's Escape attribute
+     * @return  this object's Escape attribute
      */
     public boolean getEscape() {
         return getB( "Escape" );
@@ -1798,7 +1798,7 @@ public class Plot extends FrameSet {
      *       @see uk.ac.starlink.ast.grf.DefaultGrf#attr
      *    
      *
-     * @return  font  this object's Font attribute
+     * @return  this object's Font attribute
      */
     public int getFont() {
         return getI( "Font" );
@@ -1995,7 +1995,7 @@ public class Plot extends FrameSet {
      * <br> - The spacing between major axis values, which determines the
      * spacing of grid lines, may be set using the Gap(axis) attribute.
      *
-     * @return  grid  this object's Grid attribute
+     * @return  this object's Grid attribute
      */
     public boolean getGrid() {
         return getB( "Grid" );
@@ -2041,7 +2041,7 @@ public class Plot extends FrameSet {
      * drawing graphics as normal, using visible ink.
      * 
      *
-     * @return  invisible  this object's Invisible attribute
+     * @return  this object's Invisible attribute
      */
     public boolean getInvisible() {
         return getB( "Invisible" );
@@ -2447,7 +2447,7 @@ public class Plot extends FrameSet {
      * placement of labels and tick marks that are drawn inside the
      * plotting area.
      *
-     * @return  labelling  this object's Labelling attribute
+     * @return  this object's Labelling attribute
      */
     public String getLabelling() {
         return getC( "Labelling" );
@@ -3814,7 +3814,7 @@ public class Plot extends FrameSet {
      *       @see uk.ac.starlink.ast.grf.DefaultGrf#attr
      *    
      *
-     * @return  size  this object's Size attribute
+     * @return  this object's Size attribute
      */
     public double getSize() {
         return getD( "Size" );
@@ -4358,7 +4358,7 @@ public class Plot extends FrameSet {
      * around its edges (see the Labelling attribute).  In this case,
      * the value of the TickAll attribute is ignored.
      *
-     * @return  tickAll  this object's TickAll attribute
+     * @return  this object's TickAll attribute
      */
     public boolean getTickAll() {
         return getB( "TickAll" );
@@ -4407,7 +4407,7 @@ public class Plot extends FrameSet {
      * <br> - The text used for the title is obtained from the Plot's Title
      * attribute.
      *
-     * @return  titleGap  this object's TitleGap attribute
+     * @return  this object's TitleGap attribute
      */
     public double getTitleGap() {
         return getD( "TitleGap" );
@@ -4453,7 +4453,7 @@ public class Plot extends FrameSet {
      * from 1.0e-7 to 1.0. By default, a value of 0.01 is used.
      * 
      *
-     * @return  tol  this object's Tol attribute
+     * @return  this object's Tol attribute
      */
     public double getTol() {
         return getD( "Tol" );

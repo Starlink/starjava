@@ -355,7 +355,7 @@ public class MathMap extends Mapping {
      * value.
      * 
      *
-     * @return  seed  this object's Seed attribute
+     * @return  this object's Seed attribute
      */
     public int getSeed() {
         return getI( "Seed" );
@@ -418,7 +418,7 @@ public class MathMap extends Mapping {
      * inverted (i.e. its Invert attribute is non-zero), then the role of the
      * SimpFI and SimpIF attributes will be interchanged.
      *
-     * @return  simpFI  this object's SimpFI attribute
+     * @return  this object's SimpFI attribute
      */
     public boolean getSimpFI() {
         return getB( "SimpFI" );
@@ -492,7 +492,7 @@ public class MathMap extends Mapping {
      * inverted (i.e. its Invert attribute is non-zero), then the role of the
      * SimpFI and SimpIF attributes will be interchanged.
      *
-     * @return  simpIF  this object's SimpIF attribute
+     * @return  this object's SimpIF attribute
      */
     public boolean getSimpIF() {
         return getB( "SimpIF" );

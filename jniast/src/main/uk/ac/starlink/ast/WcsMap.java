@@ -200,7 +200,7 @@ public class WcsMap extends Mapping {
      * <h4>Notes</h4>
      * <br> - A default value of AST__BAD is used if no latitude value is available.
      *
-     * @return  natLat  this object's NatLat attribute
+     * @return  this object's NatLat attribute
      */
     public float getNatLat() {
         return getF( "NatLat" );
@@ -218,7 +218,7 @@ public class WcsMap extends Mapping {
      * The NatLon attribute is read-only. 
      * 
      *
-     * @return  natLon  this object's NatLon attribute
+     * @return  this object's NatLon attribute
      */
     public float getNatLon() {
         return getF( "NatLon" );
@@ -280,7 +280,7 @@ public class WcsMap extends Mapping {
      * paper), then an error will result when the WcsMap is used to
      * transform coordinates.
      *
-     * @return  pVi_m  this object's PVi_m attribute
+     * @return  this object's PVi_m attribute
      */
     public float getPVi_m() {
         return getF( "PVi_m" );
@@ -359,7 +359,7 @@ public class WcsMap extends Mapping {
      *       projection.  Its value is the one set when the WcsMap was created.
      *    
      *
-     * @return  wcsType  this object's WcsType attribute
+     * @return  this object's WcsType attribute
      */
     public int getWcsType() {
         return getI( "WcsType" );

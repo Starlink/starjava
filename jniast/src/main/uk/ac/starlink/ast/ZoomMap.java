@@ -55,7 +55,7 @@ public class ZoomMap extends Mapping {
      * <h4>Notes</h4>
      * <br> - The Zoom attribute may not be set to zero.
      *
-     * @return  zoom  this object's Zoom attribute
+     * @return  this object's Zoom attribute
      */
     public double getZoom() {
         return getD( "Zoom" );

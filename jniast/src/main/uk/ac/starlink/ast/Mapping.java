@@ -916,7 +916,7 @@ public class Mapping extends AstObject {
      * </dl>
      * 
      *
-     * @return  invert  this object's Invert attribute
+     * @return  this object's Invert attribute
      */
     public boolean getInvert() {
         return getB( "Invert" );
@@ -997,7 +997,7 @@ public class Mapping extends AstObject {
      * </dl>
      * 
      *
-     * @return  nin  this object's Nin attribute
+     * @return  this object's Nin attribute
      */
     public int getNin() {
         return getI( "Nin" );
@@ -1037,7 +1037,7 @@ public class Mapping extends AstObject {
      * </dl>
      * 
      *
-     * @return  nout  this object's Nout attribute
+     * @return  this object's Nout attribute
      */
     public int getNout() {
         return getI( "Nout" );
@@ -1086,7 +1086,7 @@ public class Mapping extends AstObject {
      * </dl>
      * 
      *
-     * @return  report  this object's Report attribute
+     * @return  this object's Report attribute
      */
     public boolean getReport() {
         return getB( "Report" );
@@ -1172,7 +1172,7 @@ public class Mapping extends AstObject {
      * </dl>
      * 
      *
-     * @return  tranForward  this object's TranForward attribute
+     * @return  this object's TranForward attribute
      */
     public boolean getTranForward() {
         return getB( "TranForward" );
@@ -1209,7 +1209,7 @@ public class Mapping extends AstObject {
      * </dl>
      * 
      *
-     * @return  tranInverse  this object's TranInverse attribute
+     * @return  this object's TranInverse attribute
      */
     public boolean getTranInverse() {
         return getB( "TranInverse" );

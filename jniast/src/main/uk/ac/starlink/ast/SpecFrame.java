@@ -120,7 +120,7 @@ public class SpecFrame extends Frame {
      * rest frequency if necessary.
      * 
      *
-     * @return  alignStdOfRest  this object's AlignStdOfRest attribute
+     * @return  this object's AlignStdOfRest attribute
      */
     public String getAlignStdOfRest() {
         return getC( "AlignStdOfRest" );
@@ -187,7 +187,7 @@ public class SpecFrame extends Frame {
      * format "[s]dd:mm:ss" is used, when "[s]" is "N" or "S".
      * 
      *
-     * @return  geoLat  this object's GeoLat attribute
+     * @return  this object's GeoLat attribute
      */
     public String getGeoLat() {
         return getC( "GeoLat" );
@@ -236,7 +236,7 @@ public class SpecFrame extends Frame {
      * numerical value is chosen to be less than 180 degrees.
      * 
      *
-     * @return  geoLon  this object's GeoLon attribute
+     * @return  this object's GeoLon attribute
      */
     public String getGeoLon() {
         return getC( "GeoLon" );
@@ -273,7 +273,7 @@ public class SpecFrame extends Frame {
      * The default RefDec is "0:0:0".
      * 
      *
-     * @return  refDec  this object's RefDec attribute
+     * @return  this object's RefDec attribute
      */
     public String getRefDec() {
         return getC( "RefDec" );
@@ -329,7 +329,7 @@ public class SpecFrame extends Frame {
      * The default for RefRA is "0:0:0".
      * 
      *
-     * @return  refRA  this object's RefRA attribute
+     * @return  this object's RefRA attribute
      */
     public String getRefRA() {
         return getC( "RefRA" );
@@ -388,7 +388,7 @@ public class SpecFrame extends Frame {
      *       The default value is 1.0E5&nbsp;GHz.
      *    
      *
-     * @return  restFreq  this object's RestFreq attribute
+     * @return  this object's RestFreq attribute
      */
     public double getRestFreq() {
         return getD( "RestFreq" );
@@ -459,7 +459,7 @@ public class SpecFrame extends Frame {
      * The default value is zero.
      * 
      *
-     * @return  sourceVel  this object's SourceVel attribute
+     * @return  this object's SourceVel attribute
      */
     public double getSourceVel() {
         return getD( "SourceVel" );
@@ -504,7 +504,7 @@ public class SpecFrame extends Frame {
      * default value is "Helio".
      * 
      *
-     * @return  sourceVRF  this object's SourceVRF attribute
+     * @return  this object's SourceVRF attribute
      */
     public double getSourceVRF() {
         return getD( "SourceVRF" );
@@ -600,7 +600,7 @@ public class SpecFrame extends Frame {
      * Where more than one alternative System value is shown above, the
      * first of these will be returned when an enquiry is made.
      *
-     * @return  stdOfRest  this object's StdOfRest attribute
+     * @return  this object's StdOfRest attribute
      */
     public String getStdOfRest() {
         return getC( "StdOfRest" );

@@ -1038,7 +1038,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  alignSystem  this object's AlignSystem attribute
+     * @return  this object's AlignSystem attribute
      */
     public String getAlignSystem() {
         return getC( "AlignSystem" );
@@ -1201,7 +1201,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  digits  this object's Digits attribute
+     * @return  this object's Digits attribute
      */
     public int getDigits() {
         return getI( "Digits" );
@@ -1484,7 +1484,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  domain  this object's Domain attribute
+     * @return  this object's Domain attribute
      */
     public String getDomain() {
         return getC( "Domain" );
@@ -1633,7 +1633,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  epoch  this object's Epoch attribute
+     * @return  this object's Epoch attribute
      */
     public double getEpoch() {
         return getD( "Epoch" );
@@ -2115,7 +2115,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  matchEnd  this object's MatchEnd attribute
+     * @return  this object's MatchEnd attribute
      */
     public boolean getMatchEnd() {
         return getB( "MatchEnd" );
@@ -2196,7 +2196,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  maxAxes  this object's MaxAxes attribute
+     * @return  this object's MaxAxes attribute
      */
     public int getMaxAxes() {
         return getI( "MaxAxes" );
@@ -2292,7 +2292,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  minAxes  this object's MinAxes attribute
+     * @return  this object's MinAxes attribute
      */
     public int getMinAxes() {
         return getI( "MinAxes" );
@@ -2367,7 +2367,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  naxes  this object's Naxes attribute
+     * @return  this object's Naxes attribute
      */
     public int getNaxes() {
         return getI( "Naxes" );
@@ -2405,7 +2405,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  permute  this object's Permute attribute
+     * @return  this object's Permute attribute
      */
     public boolean getPermute() {
         return getB( "Permute" );
@@ -2467,7 +2467,7 @@ public class Frame extends Mapping {
      * and the result Frame resembles the template.
      * 
      *
-     * @return  preserveAxes  this object's PreserveAxes attribute
+     * @return  this object's PreserveAxes attribute
      */
     public boolean getPreserveAxes() {
         return getB( "PreserveAxes" );
@@ -2736,7 +2736,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  system  this object's System attribute
+     * @return  this object's System attribute
      */
     public String getSystem() {
         return getC( "System" );
@@ -2913,7 +2913,7 @@ public class Frame extends Mapping {
      * </dl>
      * 
      *
-     * @return  title  this object's Title attribute
+     * @return  this object's Title attribute
      */
     public String getTitle() {
         return getC( "Title" );

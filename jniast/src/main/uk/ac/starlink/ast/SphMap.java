@@ -71,7 +71,7 @@ public class SphMap extends Mapping {
      * ignored, even if UnitRadius is non-zero.
      * 
      *
-     * @return  unitRadius  this object's UnitRadius attribute
+     * @return  this object's UnitRadius attribute
      */
     public boolean getUnitRadius() {
         return getB( "UnitRadius" );
@@ -131,7 +131,7 @@ public class SphMap extends Mapping {
      * default value is zero.
      * 
      *
-     * @return  polarLong  this object's PolarLong attribute
+     * @return  this object's PolarLong attribute
      */
     public double getPolarLong() {
         return getD( "PolarLong" );

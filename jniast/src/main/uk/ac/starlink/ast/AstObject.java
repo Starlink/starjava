@@ -606,7 +606,7 @@ public class AstObject {
      * copy. However, it is retained in any external representation of
      * an Object produced by the astWrite function.
      *
-     * @return  ID  this object's ID attribute
+     * @return  this object's ID attribute
      */
     public String getID() {
         return getC( "ID" );
@@ -651,7 +651,7 @@ public class AstObject {
      * is transferred when an Object is copied, but ID is not.
      * 
      *
-     * @return  Ident  this object's Ident attribute
+     * @return  this object's Ident attribute
      */
     public String getIdent() {
         return getC( "Ident" );
@@ -678,7 +678,7 @@ public class AstObject {
      * Number of Objects in class.
      * 
      *
-     * @return  nobject  this object's Nobject attribute
+     * @return  this object's Nobject attribute
      */
     public int getNobject() {
         return getI( "Nobject" );
@@ -696,7 +696,7 @@ public class AstObject {
      * of annulling a pointer to it, then the Object will be deleted.
      * 
      *
-     * @return  refCount  this object's RefCount attribute
+     * @return  this object's RefCount attribute
      */
     public int getRefCount() {
         return getI( "RefCount" );
