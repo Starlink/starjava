@@ -139,9 +139,11 @@ public class NdxTest extends TestCase {
             ndxio.outputNdx( ndxname + "-hds.xml", hndx );
         }
 
-        /* Have a go at data across the network. */
-        Ndx rndx = ndxio.makeNdx( remoteNDX, AccessMode.READ );
-        ndxio.outputNdx( rname + ".sdf", rndx );
+        // /* Have a go at data across the network. */
+        // Skip this test - it's too vulnerable to the web server 
+        // being down.
+        // Ndx rndx = ndxio.makeNdx( remoteNDX, AccessMode.READ );
+        // ndxio.outputNdx( rname + ".sdf", rndx );
 
         // Confirm HdxFacade assertions
         HdxFacade hf = vndx.getHdxFacade();
