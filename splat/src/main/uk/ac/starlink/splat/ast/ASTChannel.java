@@ -100,4 +100,21 @@ public class ASTChannel
         this.astArray = astArray;
         position = 0;
     }
+
+
+    // Utility function for writing an AstObject to System.out.
+    public static void astWrite( AstObject object )
+    {
+        final Channel chan = new Channel() {
+                public void sink( String line ) {
+                    System.out.println( line );
+                }
+            };
+        try {
+            chan.write( object );
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
