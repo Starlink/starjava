@@ -90,7 +90,7 @@ public class LoadQueryWindow extends QueryWindow {
         Action nodeAction;
         nodeAction = new AbstractAction( "Browse Hierarchy" ) {
             public void actionPerformed( ActionEvent evt ) {
-                nodeDialog();
+                nodeDialog( getStarTableNodeChooser() );
             }
         };
         nodeAction.setEnabled( StarTableNodeChooser.isAvailable() );
@@ -283,10 +283,12 @@ public class LoadQueryWindow extends QueryWindow {
     /**
      * This method is invoked when the user hits the 'Browse hierarchy' button
      * in the loader dialogue.
+     *
+     * @param  choooser  the StarTableNodeChooser to use
      */
-    private void nodeDialog() {
+    private void nodeDialog( StarTableNodeChooser chooser ) {
         assert StarTableNodeChooser.isAvailable();
-        StarTable st = getStarTableNodeChooser().chooseStarTable( this );
+        StarTable st = chooser.chooseStarTable( this );
         if ( st != null ) {
             st = doctorTable( st );
             if ( st != null ) {
@@ -420,9 +422,13 @@ public class LoadQueryWindow extends QueryWindow {
         Action act =
             new BasicAction( "Browse Example Hierarchy", ResourceIcon.DEMO,
                              "Display some example tables in a browser" ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    getStarTableNodeChooser().setRootNode( demoNode );
-                    nodeDialog();
+                private StarTableNodeChooser demoChooser;
+                public synchronized void actionPerformed( ActionEvent evt ) {
+                    if ( demoChooser == null ) {
+                        demoChooser = StarTableNodeChooser.newInstance();
+                    }
+                    demoChooser.setRootNode( demoNode );
+                    nodeDialog( demoChooser );
                 }
             };
 
