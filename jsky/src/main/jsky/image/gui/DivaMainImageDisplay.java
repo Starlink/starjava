@@ -11,6 +11,8 @@
  *                             sub-classes can define their own
  *                             Added setCanvasDraw, so that can be 
  *                             supplied with a sub-class
+ *                             Made some members protected for
+ *                             sub-classing.
  */
 
 package jsky.image.gui;
@@ -112,7 +114,7 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
     private ImagePrintDialog _printDialog;
 
     /** Name of image file, if any */
-    private String _filename;
+    protected String _filename;
 
     /** Set to true if the image has been modified and needs saving */
     private boolean saveNeeded = false;
@@ -122,10 +124,10 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
 
 
     /** The URL for the image, if one was specified (after downloading, if possible) */
-    private URL _url;
+    protected URL _url;
 
     /** The original image URL (before downloading, for history) */
-    private URL _origURL;
+    protected URL _origURL;
 
     /** The base title string for the image frame */
     private String _title = _I18N.getString("imageDisplay");
