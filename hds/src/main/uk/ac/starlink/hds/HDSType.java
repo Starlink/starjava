@@ -3,7 +3,7 @@ package uk.ac.starlink.hds;
 import uk.ac.starlink.array.Type;
 
 /**
- * Enumeration of the data types available within the HDS system.
+ * Enumeration of the numeric data types available within the HDS system.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -123,10 +123,15 @@ public class HDSType {
 
     /**
      * Gets an HDSType from its HDS name.  This does the opposite of
-     * the {@link #getName} method.
+     * the {@link #getName} method.  Returns <tt>null</tt> if 
+     * <tt>name</tt> does not refer to a supported HDS numeric type;
+     * note this will apply to _LOGICAL, _CHAR and structure types
+     * (ones not starting with an underscore).
      *
      * @param   name  name of the HDS type, including prepended underscore.
      *                Not case sensitive.
+     * @return  the numeric HDS type corresponding to <tt>name</tt>,
+     *          or <tt>null</tt> if it is not one
      */
     public static HDSType fromName( String name ) {
         if ( name.equalsIgnoreCase( "_BYTE" ) ) {
@@ -151,8 +156,7 @@ public class HDSType {
             return _DOUBLE;
         }
         else {
-            throw new IllegalArgumentException( 
-                "Unsupported HDS type name '" + name + "'" );
+            return null;
         }
     }
 
