@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.io.PrintStream;
 
 /**
  * A WrapperStarTable which behaves the same as its base, except that
@@ -16,13 +17,19 @@ public class ProgressLineStarTable extends WrapperStarTable {
     private static final int INTERVAL = 500;
     private static final int INITIAL_WAIT = 1000;
 
+    private final PrintStream out_;
+
     /**
      * Constructs a new ProgressLineStarTable.
      *
      * @param   baseTable  the base table
+     * @param   out  stream on which progress will be written - this should
+     *          preferably be terminal-like, since it's going to have things 
+     *          like carriage-returns ('\r') written to it
      */
-    public ProgressLineStarTable( StarTable baseTable ) {
+    public ProgressLineStarTable( StarTable baseTable, PrintStream out ) {
         super( baseTable );
+        out_ = out;
     }
 
     public RowSequence getRowSequence() throws IOException {
@@ -41,7 +48,7 @@ public class ProgressLineStarTable extends WrapperStarTable {
                 irow++;
                 if ( System.currentTimeMillis() > alarm ) {
                     alarm = System.currentTimeMillis() + INTERVAL;
-                    System.out.print( ps.getProgressLine( irow ) );
+                    out_.print( ps.getProgressLine( irow ) );
                     started = true;
                 }
             }
@@ -52,7 +59,7 @@ public class ProgressLineStarTable extends WrapperStarTable {
                 }
                 else {
                     if ( started ) {
-                        System.out.println( ps.getFinishedLine( irow ) );
+                        out_.println( ps.getFinishedLine( irow ) );
                     }
                     return false;
                 }
