@@ -109,22 +109,16 @@ public class SyntheticColumn extends ColumnData {
     }
 
     public Object readValue( long lrow ) throws IOException {
-        synchronized ( rowReader ) {
-            rowReader.setRow( lrow );
-            try {
-                return compEx.evaluate( args );
-            }
-            catch ( NullPointerException e ) {
-                return null;
-            }
-            catch ( RuntimeException e ) {
-                logger.info( e.toString() );
-                return null;
-            }
-            catch ( Throwable th ) {
-                throw (IOException) new IOException( th.getMessage() )
-                                   .initCause( th );
-            }
+        try {
+            return rowReader.evaluateAtRow( compEx, args, lrow );
+        }
+        catch ( RuntimeException e ) {
+            logger.info( e.toString() );
+            return null;
+        }
+        catch ( Throwable th ) {
+            throw (IOException) new IOException( th.getMessage() )
+                               .initCause( th );
         }
     }
 

@@ -62,7 +62,7 @@ public class SyntheticRowSubset implements RowSubset {
         args = new Object[] { rowReader };
 
         /* Compile the expression. */
-        String exprsub = expression.replace( '#', '£' );
+        String exprsub = expression.replace( '#', JELRowReader.CURRENCY_SIGN );
         Library lib = JELUtils.getLibrary( rowReader );
         compEx = Evaluator.compile( exprsub, lib, boolean.class );
     }
@@ -76,22 +76,18 @@ public class SyntheticRowSubset implements RowSubset {
     }
 
     public boolean isIncluded( long lrow ) {
-        synchronized ( rowReader ) {
-            rowReader.setRow( lrow );
-            try {
-                return ((Boolean) compEx.evaluate( args )).booleanValue();
-            }
-            catch ( NullPointerException e ) {
-                return false;
-            }
-            catch ( RuntimeException e ) {
-                logger.info( e.toString() );
-                return false;
-            }
-            catch ( Throwable th ) {
-                logger.warning( th.toString() );
-                return false;
-            }
+        try {
+            Boolean result = (Boolean) 
+                             rowReader.evaluateAtRow( compEx, args, lrow );
+            return result == null ? false : result.booleanValue();
+        }
+        catch ( RuntimeException e ) {
+            logger.info( e.toString() );
+            return false;
+        }
+        catch ( Throwable th ) {
+            logger.warning( th.toString() );
+            return false;
         }
     }
 

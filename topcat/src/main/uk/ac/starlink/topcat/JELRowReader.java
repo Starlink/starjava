@@ -1,19 +1,18 @@
 package uk.ac.starlink.topcat;
 
+import gnu.jel.CompiledExpression;
 import gnu.jel.DVMap;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 
 /**
  * An object which is able to read cell values by column name or number and 
  * <tt>RowSubset</tt> inclusion flags by subset name or number.
- * The values are got from the reader's current row, which is set
- * using the {@link #setRow} method.  Think about thread safety when
- * calling <tt>setRow</tt> and subsequently evaluating an expression
- * which uses this reader.
+ * The values are got using the {@link #evaluateAtRow} method.
  * <p>
  * This class currently deals with columns of all the primitive types, 
  * objects of type {@link java.lang.String} or {@link java.util.Date},
@@ -27,13 +26,22 @@ import uk.ac.starlink.table.StarTable;
  * <dd>the <tt>null</tt> value (this is not provided as part of the JEL 
  *     engine).
  *
+ * <dt>"NULL":
+ * <dd>if this expression is evaluated at any point in the expression 
+ *     evaluation, then the result of the whole evaluation will be 
+ *     <tt>null</tt>.  This has the same effect as throwing a 
+ *     <tt>NullPointerException</tt> during evaluation.
+ *     The NULL token is syntactically of type <tt>byte</tt>, which can
+ *     be promoted implicitly to any numeric value; this means it can be
+ *     used anywhere a primitive (other than <tt>boolean</tt>) can be used.
+ *
  * <dt>"$0" or "Index" (case insensitive):
  * <dd>the 1-based index of the current row
  *
  * <dt>Column $ID identifiers:
  * <dd>The letter '$' followed by the 1-based index of the column refers
  *     to the contents of that column in the current row (as a primitive,
- *     if applicaable).
+ *     if applicable).
  * 
  * <dt>Column names:
  * <dd>The name of a column (case-insensitive) refers to the contents of
@@ -41,11 +49,12 @@ import uk.ac.starlink.table.StarTable;
  *     this can only work if the column name is a legal java identifier.
  * 
  * <dt>Row Subset £ID identifiers:
- * <dd>The letter '£' followed by the 1-based index of a defined row subset
+ * <dd>The character {@link #CURRENCY_SIGN} (pound sign) 
+ *     followed by the 1-based index of a defined row subset
  *     returns true iff the current column is part of the subset.
- *     Clients of this class are recommended to translate the '£'
- *     currency symbol to '#' for presentation to users, as a more
- *     familiar symbol.
+ *     Clients of this class are recommended to translate the
+ *     <tt>CURRENCY_SIGN</tt> character to '#' for presentation 
+ *     to users, as a more familiar symbol.
  *
  * <dt>Row Subset names:
  * <dd>The name of a subset (case-insensitive) returns true iff the current
@@ -63,6 +72,7 @@ import uk.ac.starlink.table.StarTable;
 public class JELRowReader extends DVMap {
 
     private long lrow;
+    private boolean isNullExpression;
     private StarTable stable;
     private List subsets;
 
@@ -78,6 +88,7 @@ public class JELRowReader extends DVMap {
     /* Special value identifiers. */
     private static final byte INDEX_ID = (byte) 1;
     private static final byte NULL_VALUE_ID = (byte) 2;
+    private static final byte NULL_EXPRESSION_ID = (byte) 3;
     
 
     /**
@@ -97,15 +108,28 @@ public class JELRowReader extends DVMap {
     }
 
     /**
-     * Sets the table row to which property evaluations will refer.
-     * Note that this row refers to the row in the underlying columns in
-     * the StarTable, rather than the row of the model 
-     * view itself, which may be under the influence of a row permutation.
+     * Evaluates a given compiled expression at a given row.
+     * The returned value is wrapped up as an object if the result of
+     * the expression is a primitive.
      *
-     * @param  lrow  the row index
+     * @param  compEx  compiled expression
+     * @param  dl      array of the instance references to the objects 
+     *                 in dynamic library, as for 
+     *                 {@link gnu.jel.CompiledExpression#evaluate}
+     * @param  lrow    row index at which the expression is to be evaluated
      */
-    public void setRow( long lrow ) {
-        this.lrow = lrow;
+    public synchronized Object evaluateAtRow( CompiledExpression compEx,
+                                              Object[] dl, long lrow )
+             throws Throwable {
+         this.lrow = lrow;
+         try {
+             isNullExpression = false;
+             Object result = compEx.evaluate( dl );
+             return isNullExpression ? null : result;
+         }
+         catch ( NullPointerException e ) {
+             return null;
+         }
     }
 
     /**
@@ -126,7 +150,8 @@ public class JELRowReader extends DVMap {
             switch ( ispecial ) {
                 case INDEX_ID: return "Long";
                 case NULL_VALUE_ID: return "Object";
-                default:       throw new AssertionError( "Unknown special" );
+                case NULL_EXPRESSION_ID: return "Byte";
+                default: throw new AssertionError( "Unknown special" );
             }
         }
 
@@ -397,6 +422,9 @@ public class JELRowReader extends DVMap {
      *     (1-based) row number
      * <li>"null" returns the <tt>null</tt> value (this is not built in
      *     to the JEL evaluator)
+     * <li>"NULL" flags that an attempt has been made to evaluate a 
+     *     primitive with no value, and thus invalidates the rest of the
+     *     evaluation
      * </ul>
      */
     private byte getSpecialId( String name ) {
@@ -405,6 +433,9 @@ public class JELRowReader extends DVMap {
         }
         else if ( name.equals( "null" ) ) {
             return NULL_VALUE_ID;
+        }
+        else if ( name.equals( "NULL" ) ) {
+            return NULL_EXPRESSION_ID;
         }
         return (byte) -1;
     }
@@ -436,6 +467,22 @@ public class JELRowReader extends DVMap {
     }
 
     /**
+     * Returns the values for byte-typed special variables.
+     *
+     * @param  ispecial  the identifier for the special
+     * @return  the special's value
+     */
+    public byte getByteProperty( byte ispecial ) {
+        switch ( ispecial ) {
+            case NULL_EXPRESSION_ID:
+                isNullExpression = true;
+                return (byte) 0;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    /**
      * Indicates whether the cell at the current row in a given column
      * has a blank value.  This is the case if the value is the
      * java <tt>null</tt> reference, or if it is a Float or Double
@@ -446,16 +493,7 @@ public class JELRowReader extends DVMap {
      */
     public boolean getBooleanProperty( long inul ) {
         try {
-            Object value = stable.getCell( lrow, (int) inul );
-            if ( value instanceof Float ) {
-                return ((Float) value).isNaN();
-            }
-            else if ( value instanceof Double ) {
-                return ((Double) value).isNaN();
-            }
-            else {
-                return value == null;
-            }
+            return Tables.isBlank( stable.getCell( lrow, (int) inul ) );
         }
         catch ( IOException e ) {
             e.printStackTrace();
@@ -483,60 +521,105 @@ public class JELRowReader extends DVMap {
      * Methods for returning the actual column values.  
      * These must be of the form 'getXXXProperty(int)', where XXX is one
      * of the strings returned by the getTypeName method.
+     * 
+     * Those methods which return primitives check explicitly for null
+     * values and set a flag (isNullExpression) while returning a dummy value;
+     * the isNullExpression flag is checked by the evaluate method and if set,
+     * null is returned.
+     * It would be a bit simpler for these methods to throw a 
+     * NullPointerException instead, which would percolate up to be 
+     * thrown from the evaluate method, but handling it like that
+     * can cause a big performance hit (exceptions are expensive).
      */
 
     public boolean getBooleanProperty( int icol ) {
         Boolean value = (Boolean) getValue( icol );
-        return value.booleanValue();
+        if ( value == null ) {
+            isNullExpression = true;
+            return false;
+        }
+        else {
+            return value.booleanValue();
+        }
     }
     public boolean[] getBooleanArrayProperty( int icol ) {
         return (boolean[]) getValue( icol );
     }
     public byte getByteProperty( int icol ) {
         Byte value = (Byte) getValue( icol );
-        return value.byteValue();
+        if ( value == null ) {
+            isNullExpression = true;
+            return (byte) 0;
+        }
+        else {
+            return value.byteValue();
+        }
     }
     public byte[] getByteArrayProperty( int icol ) {
         return (byte[]) getValue( icol );
     }
     public char getCharProperty( int icol ) {
         Character value = (Character) getValue( icol );
-        return value.charValue();
+        if ( value == null ) {
+            isNullExpression = true;
+            return (char) 0;
+        }
+        else {
+            return value.charValue();
+        }
     }
     public char[] getCharArrayProperty( int icol ) {
         return (char[]) getValue( icol );
     }
     public short getShortProperty( int icol ) {
         Short value = (Short) getValue( icol );
-        return value.shortValue();
+        if ( value == null ) {
+            isNullExpression = true;
+            return (short) 0;
+        }
+        else {
+            return value.shortValue();
+        }
     }
     public short[] getShortArrayProperty( int icol ) {
         return (short[]) getValue( icol );
     }
     public int getIntProperty( int icol ) {
         Integer value = (Integer) getValue( icol );
-        return value.intValue();
+        if ( value == null ) {
+            isNullExpression = true;
+            return 0;
+        }
+        else {
+            return value.intValue();
+        }
     }
     public int[] getIntArrayProperty( int icol ) {
         return (int[]) getValue( icol );
     }
     public long getLongProperty( int icol ) {
         Long value = (Long) getValue( icol );
-        return value.longValue();
+        if ( value == null ) {
+            isNullExpression = true;
+            return 0L;
+        }
+        else {
+            return value.longValue();
+        }
     }
     public long[] getLongArrayProperty( int icol ) {
         return (long[]) getValue( icol );
     }
     public float getFloatProperty( int icol ) {
         Float value = (Float) getValue( icol );
-        return value.floatValue();
+        return value == null ? Float.NaN : value.floatValue();
     }
     public float[] getFloatArrayProperty( int icol ) {
         return (float[]) getValue( icol );
     }
     public double getDoubleProperty( int icol ) {
         Double value = (Double) getValue( icol );
-        return value.doubleValue();
+        return value == null ? Double.NaN : value.doubleValue();
     }
     public double[] getDoubleArrayProperty( int icol ) {
         return (double[]) getValue( icol );
