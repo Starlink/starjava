@@ -1,12 +1,29 @@
 #!/bin/sh
 
-#   Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
-#   reserved.
+#   Copyright 2000-2004 Apache Software Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 
 # OS specific support.  $var _must_ be set to either true or false.
 cygwin=false;
+darwin=false;
 case "`uname`" in
   CYGWIN*) cygwin=true ;;
+  Darwin*) darwin=true
+           if [ -z "$JAVA_HOME" ] ; then
+             JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Home   
+           fi
+           ;;
 esac
 
 # For Cygwin, ensure paths are in UNIX format before anything is touched
@@ -112,7 +129,7 @@ echo ... Compiling Ant Classes
 "${JAVAC}" $BOOTJAVAC_OPTS -d ${CLASSDIR} ${TOOLS}/bzip2/*.java ${TOOLS}/tar/*.java ${TOOLS}/zip/*.java \
     ${TOOLS}/ant/util/regexp/RegexpMatcher.java \
     ${TOOLS}/ant/util/regexp/RegexpMatcherFactory.java \
-    ${TOOLS}/ant/util/*.java ${TOOLS}/ant/types/*.java \
+    ${TOOLS}/ant/types/*.java \
     ${TOOLS}/ant/*.java ${TOOLS}/ant/taskdefs/*.java \
     ${TOOLS}/ant/taskdefs/compilers/*.java \
     ${TOOLS}/ant/taskdefs/condition/*.java
