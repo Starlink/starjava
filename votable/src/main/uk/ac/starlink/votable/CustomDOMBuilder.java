@@ -27,7 +27,8 @@ import org.w3c.dom.Node;
  * of a SAX parser ({@link org.xml.sax.XMLReader}), do a <tt>parse</tt>,
  * and get the result of the {@link #getDocument} method.
  * <p>
- * This makes use of a class from Apache Crimson which is present in the
+ * The implementation of this class currently makes use of a class 
+ * from Apache Crimson which is present in the
  * J2SE1.4, overriding some of the methods in the <tt>ContentHandler</tt>
  * interface.  It may need to be modified if used in a JRE which does
  * not contain the package in question; presumably such changes in the 
@@ -37,7 +38,7 @@ import org.w3c.dom.Node;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class CustomDOMBuilder implements ContentHandler {
+class CustomDOMBuilder implements ContentHandler {
 
     private NoseyXmlDocumentBuilder builder = new NoseyXmlDocumentBuilder();
     private ContentHandler customHandler = new DefaultContentHandler();
