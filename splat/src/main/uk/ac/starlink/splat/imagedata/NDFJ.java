@@ -16,6 +16,8 @@ import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.ast.ASTChannel;
 import uk.ac.starlink.util.Loader;
 
+import uk.ac.starlink.splat.util.Utilities;
+
 /**
  * Java interface for accessing data stored in NDFs.
  *
@@ -71,7 +73,8 @@ public class NDFJ
     private static boolean supported = true;
     /**
      *  Load the shareable libraries that contains the NDF code and all
-     *  its dependencies.
+     *  its dependencies. Note this will never work for JWS, unless
+     *  the shareable library has its dependency on JNIAST removed.
      */
     static {
         try {
@@ -84,8 +87,10 @@ public class NDFJ
             supported = false;
         }
         if ( ! supported ) {
-            logger.warning( "Failed to load the SPLAT JNI library" );
-            logger.warning( "No NDF support available" );
+            logger.warning( ( "Failed to load the " + 
+                              Utilities.getReleaseName() + 
+                              " JNI library" ) );
+            logger.warning( "No native NDF support available" );
         }
     }
 
