@@ -60,6 +60,13 @@ public class ColumnSelectorModel implements ListDataListener {
             convChooser_ = null;
             converter0_ = converters[ 0 ];
         }
+
+        /* Force an update to make sure that the correct converter for any
+         * currently-selected column is selected. */
+        StarTableColumn tcol = getSelectedColumn();
+        if ( tcol != null ) {
+            columnSelected( tcol );
+        }
     }
 
     /**
@@ -113,7 +120,7 @@ public class ColumnSelectorModel implements ListDataListener {
      *          or null if none is selected
      */
     public ColumnData getColumnData() {
-        StarTableColumn tcol = (StarTableColumn) colChooser_.getSelectedItem();
+        StarTableColumn tcol = getSelectedColumn();
         if ( tcol == null ) {
             return null;
         }
@@ -126,6 +133,15 @@ public class ColumnSelectorModel implements ListDataListener {
                 return colConverter.convertValue( table.getCell( irow, icol ) );
             }
         };
+    }
+
+    /**
+     * Returns the currently selected column.
+     *
+     * @return  column
+     */
+    private StarTableColumn getSelectedColumn() {
+        return (StarTableColumn) colChooser_.getSelectedItem();
     }
 
     /**
@@ -291,8 +307,7 @@ public class ColumnSelectorModel implements ListDataListener {
         /* Contrary to API documentation, this is called when the selection
          * on a ComboBoxModel is changed. */
         if ( evt.getSource() == colChooser_ ) {
-            StarTableColumn col = 
-                (StarTableColumn) colChooser_.getSelectedItem();
+            StarTableColumn col = getSelectedColumn();
             if ( col != null ) {
                 columnSelected( col );
             }
