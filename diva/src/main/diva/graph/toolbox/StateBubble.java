@@ -100,7 +100,7 @@ public class StateBubble extends AbstractFigure {
      * INITIAL_STATE, or FINAL_STATE.
      */
     public int getStateType () {
-        return _stateType;;
+        return _stateType; // PWD: remove double ;;
     }
 
     /** Get the stroke of this figure.

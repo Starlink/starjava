@@ -1,0 +1,14 @@
+#!/bin/sh -xv
+
+# Import the DIVA java sources. First unpack the DIVA sources, then
+# remove everything except the source directories (canvas, graph, 
+# gui, resource, sketch, util, whiteboard at this time) and issue the 
+# following command (update for future imports).
+
+CVS_RSH=ssh
+export CVS_RSH
+
+cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
+   import -ko -I! -m "DIVA sources" \
+      java/source/diva/src/main DIVA DIVA_V_0_3
+exit
