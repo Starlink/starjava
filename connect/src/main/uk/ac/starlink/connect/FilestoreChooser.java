@@ -15,10 +15,8 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -500,31 +498,6 @@ public class FilestoreChooser extends JPanel {
         }
     }
 
-    /**
-     * Comparator for nodes - branches first followed by leaves, other
-     * than that alphabetical.
-     */
-    private static class NodeComparator implements Comparator {
-        final static Comparator COLLATOR = Collator.getInstance();
-        final static NodeComparator INSTANCE = new NodeComparator();
-        static NodeComparator getInstance() {
-            return INSTANCE;
-        }
-        public int compare( Object o1, Object o2 ) {
-            Node i1 = (Node) o1;
-            Node i2 = (Node) o2;
-            if ( ( i1 instanceof Branch ) && ! ( i2 instanceof Branch ) ) {
-                return -1;
-            }
-            else if ( ! ( i1 instanceof Branch ) && ( i2 instanceof Branch ) ) {
-                return +1;
-            }
-            else {
-                return COLLATOR.compare( i1.getName(), i2.getName() );
-            }
-        }
-    }
-
     public static void main( String[] args ) {
         FilestoreChooser chooser =
             new FilestoreChooser() {
@@ -549,5 +522,4 @@ public class FilestoreChooser extends JPanel {
         frame.pack();
         frame.setVisible( true );
     }
-
 }
