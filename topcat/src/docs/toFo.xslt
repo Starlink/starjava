@@ -220,14 +220,6 @@
 
   <xsl:template match="ref">
     <xsl:choose>
-      <xsl:when test="@plaintext">
-        <xsl:value-of select="@plaintext"/>
-        <xsl:if test="@plaintextref='yes'">
-          <xsl:text> (</xsl:text>
-          <xsl:call-template name="secRefText"/>
-          <xsl:text>)</xsl:text>
-        </xsl:if>
-      </xsl:when>
       <xsl:when test="string(.)">
         <xsl:apply-templates/>
         <xsl:if test="@plaintextref='yes'">
@@ -244,21 +236,17 @@
 
   <xsl:template match="webref">
     <xsl:choose>
-      <xsl:when test="@plaintext">
-        <xsl:value-of select="@plaintext"/>
-        <xsl:call-template name="webRefNote"/>
-      </xsl:when>
       <xsl:when test="string(.)">
         <xsl:apply-templates/>
         <!-- <xsl:call-template name="webRefNote"/> -->
-        <xsl:text> (</xsl:text>
-        <xsl:value-of select="@url"/>
-        <xsl:text>)</xsl:text>
+        <xsl:if test="@plaintextref='yes'">
+          <xsl:text> (</xsl:text>
+          <xsl:value-of select="@url"/>
+          <xsl:text>)</xsl:text>
+        </xsl:if>
       </xsl:when>
       <xsl:otherwise>
-        <fo:inline font-family="sans-serif">
-          <xsl:value-of select="@url"/>
-        </fo:inline>
+        <xsl:value-of select="@url"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -301,8 +289,10 @@
 
   <xsl:template match="javadoc">
     <xsl:choose>
-      <xsl:when test="@plaintext">
-        <xsl:value-of select="@plaintext"/>
+      <xsl:when test="@codetext">
+        <fo:inline xsl:use-attribute-sets="code">
+          <xsl:value-of select="@codetext"/>
+        </fo:inline>
       </xsl:when>
       <xsl:when test="string(.)">
         <xsl:apply-templates/>

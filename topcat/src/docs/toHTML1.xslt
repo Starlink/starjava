@@ -153,9 +153,6 @@
         </xsl:call-template>
       </xsl:attribute>
       <xsl:choose>
-        <xsl:when test="@hypertext">
-          <xsl:value-of select="@hypertext"/>
-        </xsl:when>
         <xsl:when test="string(.)">
           <xsl:apply-templates/>
         </xsl:when>
@@ -171,9 +168,6 @@
   <xsl:template match="webref">
     <a href="{@url}">
       <xsl:choose>
-        <xsl:when test="@hypertext">
-          <xsl:value-of select="@hypertext"/>
-        </xsl:when>
         <xsl:when test="string(.)">
           <xsl:apply-templates/>
         </xsl:when>
@@ -213,8 +207,10 @@
         </xsl:if>
       </xsl:attribute>
       <xsl:choose>
-        <xsl:when test="@hypertext">
-          <xsl:value-of select="@hypertext"/>
+        <xsl:when test="@codetext">
+          <code>
+            <xsl:value-of select="@codetext"/>
+          </code>
         </xsl:when>
         <xsl:when test="string(.)">
           <xsl:apply-templates/>

@@ -76,22 +76,17 @@
 
   <!ELEMENT ref ( #PCDATA )>
   <!ATTLIST ref id IDREF #REQUIRED
-                hypertext CDATA #IMPLIED
-                plaintext CDATA #IMPLIED
                 plaintextref ( yes | no ) #IMPLIED>
 
   <!ELEMENT webref ( #PCDATA )>
   <!ATTLIST webref url CDATA #REQUIRED
-                   hypertext CDATA #IMPLIED
-                   plaintext CDATA #IMPLIED
                    plaintextref ( yes | no ) #IMPLIED>
 
   <!ELEMENT javadoc ( #PCDATA )>
   <!ATTLIST javadoc class CDATA #REQUIRED
                     member CDATA #IMPLIED
                     docset CDATA #IMPLIED
-                    hypertext CDATA #IMPLIED 
-                    plaintext CDATA #IMPLIED>
+                    codetext CDATA #IMPLIED>
 
   <!ELEMENT sect ( subhead?, ( p | figure | subsect )* )>
   <!ATTLIST sect id ID #IMPLIED>
