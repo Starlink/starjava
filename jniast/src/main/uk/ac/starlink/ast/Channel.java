@@ -213,4 +213,34 @@ public class Channel extends AstObject {
     public void setSkip( boolean skip ) { 
         setB( "Skip", skip );
     }
+
+    /**
+     * This method is currently unsupported for Channel and its subclasses
+     * because of difficulties in its implementation, and because it is
+     * probably not that useful.
+     *
+     * @throws   UnsupportedOperationException
+     */
+    public AstObject copy() {
+        /* It might not be all that hard to support, but you'd need to 
+         * make sure that the native data structures were filled appropriately.
+         * Leave implementation until someone actually wants to use it. */
+        throw new UnsupportedOperationException( 
+            "Sorry - copy not currently supported for Channels" );
+    }
+
+    /**
+     * This method is currently unsupported for Channel and its subclasses
+     * because of difficulties in its implementation, and because it is
+     * probably not that useful.
+     *
+     * @throws   UnsupportedOperationException
+     */
+    public Object clone() {
+        /* It might not be all that hard to support, but you'd need to 
+         * make sure that the native data structures were filled appropriately.
+         * Leave implementation until someone actually wants to use it. */
+        throw new UnsupportedOperationException( 
+            "Sorry - clone not currently supported for Channels" );
+    }
 }

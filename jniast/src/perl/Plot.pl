@@ -195,6 +195,25 @@ print <<'__EOT__';
         grfobj = grf;
     }
 
+    /**
+     * Returns a fairly deep copy of this object.
+     * The <tt>Grf</tt> of the returned copy however
+     * is a reference to the same object as the Grf of this object.
+     *
+     * @return  copy
+     */
+    public AstObject copy() {
+        AstObject copy = super.copy();
+        ((Plot) copy).grfobj = this.grfobj;
+        return copy;
+    }
+
+    public Object clone() {
+        Object clone = super.clone();
+        ((Plot) clone).grfobj = this.grfobj;
+        return clone;
+    }
+
     /*
      * It is necessary to override the getter and setter methods, since
      * at least some of these reference the grf object belonging to this

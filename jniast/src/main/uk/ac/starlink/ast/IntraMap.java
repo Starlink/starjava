@@ -158,6 +158,24 @@ public class IntraMap extends Mapping implements NeedsChannelizing {
         construct( trans, nin, nout );
     }
 
+    /**
+     * Returns a fairly deep copy of this object.
+     * The <tt>Transformer</tt> of the returned copy however 
+     * is a reference to the same object as the transformer of this object.
+     *
+     * @return  copy
+     */
+    public AstObject copy() {
+        AstObject copy = super.copy();
+        ((IntraMap) copy).trans = this.trans;
+        return copy;
+    }
+
+    public Object clone() {
+        Object clone = super.clone();
+        ((IntraMap) clone).trans = this.trans;
+        return clone;
+    }
 
     /* Printable characters used for encoding and decoding. */
     private static final byte[] Chrs64 = new byte[] {
