@@ -36,20 +36,26 @@ public class ArraysBulkDataImpl implements BulkDataImpl {
         }
         this.image = image;
         this.variance = variance;
-        BadHandler qbh1 = quality.getBadHandler();
-        this.quality = quality;
-        if ( qbh1.getBadValue() == null ) {
-            this.returnedQuality = quality;
+        if ( quality != null ) {
+            BadHandler qbh1 = quality.getBadHandler();
+            this.quality = quality;
+            if ( qbh1.getBadValue() == null ) {
+                this.returnedQuality = quality;
+            }
+            else {
+                /* Bad values make no sense in quality.  If we have a quality
+                 * array with bad values, because of the way the array handler
+                 * works, wrap it so it doesn't have them any more. */
+                Type qtype = quality.getType();
+                BadHandler qbh2 = BadHandler.getHandler( qtype, null );
+                Converter qconv = new TypeConverter( qtype, qbh1, qtype, qbh2 );
+                ArrayImpl qimpl = new ConvertArrayImpl( quality, qconv );
+                this.returnedQuality = new BridgeNDArray( qimpl );
+            }
         }
         else {
-            /* Bad values make no sense in quality.  If we have a quality
-             * array with bad values, because of the way the array handler
-             * works, wrap it so it doesn't have them any more. */
-            Type qtype = quality.getType();
-            BadHandler qbh2 = BadHandler.getHandler( qtype, null );
-            Converter qconv = new TypeConverter( qtype, qbh1, qtype, qbh2 );
-            ArrayImpl qimpl = new ConvertArrayImpl( quality, qconv );
-            this.returnedQuality = new BridgeNDArray( qimpl );
+            this.quality = null;
+            this.returnedQuality = null;
         }
     }
 

@@ -1,5 +1,6 @@
 package uk.ac.starlink.fits;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
+import nom.tam.fits.HeaderCard;
 import nom.tam.fits.TruncatedFileException;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.ArrayDataOutput;
@@ -330,7 +332,6 @@ public class FitsArrayBuilder implements ArrayBuilder {
                                    Type type, boolean primary,
                                    HeaderCard[] cards )
             throws IOException {
-        ArrayImpl impl;
         if ( ! ( stream instanceof BufferedOutputStream ) ) {
             stream = new BufferedOutputStream( stream );
         }
@@ -338,6 +339,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
         ArrayImpl impl = new WritableFitsArrayImpl( shape, type, 
                                                     type.defaultBadValue(),
                                                     strm, primary, cards );
+        return new BridgeNDArray( impl );
     }
 
 
