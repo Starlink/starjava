@@ -326,6 +326,26 @@ public class PlotConfigurator
     }
 
     /**
+     * Set whether any changes are applied immediately or only when "Draw" is
+     * pressed.
+     */
+    public void setAutoDrawOption( boolean state )
+    {
+        if ( autoDrawOptionsMenu.isSelected() != state ) {
+            autoDrawOptionsMenu.setSelected( state );
+        }
+    }
+
+    /**
+     * Get whether any changes are to be applied immediately or only when
+     * "Draw" is pressed.
+     */
+    public boolean isAutoDrawOption()
+    {
+        return autoDrawOptionsMenu.isSelected();
+    }
+
+    /**
      * Add the default list of controls currently provided by the
      * PlotConfiguration.
      */
