@@ -1,0 +1,10 @@
+#!/bin/sh -xv
+
+# Import the nom.tam.fits java sources. First unpack "fits_src.jar",
+# "image_src.jar" and "util_src.jar" into an empty directory and then do:
+# party changes. 
+CVS_RSH=ssh
+export CVS_RSH
+
+cvs  -d :ext:pwd@rlsaxps.bnsc.rl.ac.uk:/home/soft3/cvs \
+   import -ko -I! -m "nom.tam.fits sources" java/source/tamfits/src/main TAMFITS Nom_Tam_Fits_V_0_93
