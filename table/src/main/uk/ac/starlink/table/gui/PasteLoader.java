@@ -27,25 +27,29 @@ import uk.ac.starlink.util.gui.StringPaster;
 public abstract class PasteLoader extends StringPaster {
 
     private final Component parent_;
-    private final StarTableFactory tableFactory_;
 
     /**
      * Constructor.
      *
      * @param  parent  parent component (may be used for placing windows)
-     * @param  factory  factory to be used for loading tables
      */
-    public PasteLoader( Component parent, StarTableFactory factory ) {
+    public PasteLoader( Component parent ) {
         parent_ = parent;
-        tableFactory_ = factory;
     }
+
+    /**
+     * Provides the table factory to be used for loading tables.
+     *
+     * @return  table factory
+     */
+    public abstract StarTableFactory getTableFactory();
 
     protected void pasted( String loc ) {
         final String id = loc.trim();
         if ( id.length() < 240 ) {
             new LoadWorker( new PastedTableConsumer(), id ) {
                 public StarTable attemptLoad() throws IOException {
-                    return tableFactory_.makeStarTable( id );
+                    return getTableFactory().makeStarTable( id );
                 }
             }.invoke();
         }
