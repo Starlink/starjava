@@ -217,7 +217,8 @@
           <xsl:apply-templates/>
         </fo:block>
         <fo:block start-indent="body-start()">
-          <xsl:apply-templates select="following-sibling::dd[1]"/>
+          <xsl:apply-templates 
+               select="following-sibling::*[position()=1]/self::dd"/>
         </fo:block>
       </fo:list-item-body>
     </fo:list-item>
