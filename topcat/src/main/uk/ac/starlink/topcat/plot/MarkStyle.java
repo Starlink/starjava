@@ -125,17 +125,13 @@ public abstract class MarkStyle {
         Color color = COLORS[ Math.abs( type % COLORS.length ) ];
         switch ( Math.abs( type ) % 4 ) {
             case 0:
-               return filledCircleStyle( color, 4 );
+               return filledCircleStyle( color, 2 );
             case 1:
-               return filledSquareStyle( color, 4 );
+               return filledSquareStyle( color, 2 );
             case 2:
-               Polygon triangle = new Polygon( new int[] { -2, 0, 2 },
-                                          new int[] { -2, 2, -2 }, 3 );
-               return filledShapeStyle( color, triangle );
+               return filledDiamondStyle( color, 2 );
             case 3:
-               Polygon diamond = new Polygon( new int[] { -2, 0, 2, 0 },
-                                              new int[] { 0, 2, 0, -2 }, 4 );
-               return filledShapeStyle( color, diamond );
+               return crossStyle( color, 2 );
             default:
                throw new AssertionError();
         }
@@ -194,14 +190,15 @@ public abstract class MarkStyle {
      * Returns an open circle marker style.
      *
      * @param  color  colour
-     * @param  size   approximate circle diameter
+     * @param  size   approximate circle radius
      * @return  marker style
      */
     public static MarkStyle openCircleStyle( Color color, final int size ) {
-        return new ConvenienceMarkStyle( color, new Integer( size ), 
-                                         size / 2 + 1 ) {
+        final int off = size;
+        final int diam = size * 2;
+        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
             protected void drawShape( Graphics g, int x, int y ) {
-                g.drawOval( x, y, size, size );
+                g.drawOval( x - off, y - off, diam, diam );
             }
         };
     }
@@ -210,14 +207,21 @@ public abstract class MarkStyle {
      * Returns a filled circle marker style.
      *
      * @param  color   colour
-     * @param  size    approximate circle diameter
+     * @param  size    approximate circle radius
      * @return  marker style
      */
     public static MarkStyle filledCircleStyle( Color color, final int size ) {
-        return new ConvenienceMarkStyle( color, new Integer( size ),
-                                         size / 2 + 1 ) {
+        final int off = size;
+        final int diam = size * 2;
+        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
             protected void drawShape( Graphics g, int x, int y ) {
-                g.fillOval( x, y, size, size );
+                int xo = x - off;
+                int yo = y - off;
+                g.fillOval( xo, yo, diam, diam );
+
+                /* In pixel-type graphics contexts, the filled circle is
+                 * ugly (asymmetric) if the outline is not painted too. */
+                g.drawOval( xo, yo, diam, diam );
             }
         };
     }
@@ -226,14 +230,15 @@ public abstract class MarkStyle {
      * Returns an open square marker style.
      * 
      * @param  color  colour
-     * @param  size   approximate square height
+     * @param  size   approximate square radius
      * @return  marker style
      */
     public static MarkStyle openSquareStyle( Color color, final int size ) {
-        return new ConvenienceMarkStyle( color, new Integer( size ),
-                                         size / 2 + 1 ) {
+        final int off = size;
+        final int height = size * 2;
+        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
             protected void drawShape( Graphics g, int x, int y ) {
-                g.drawRect( x, y, size, size );
+                g.drawRect( x - off, y - off, height, height );
             }
         };
     }
@@ -242,14 +247,93 @@ public abstract class MarkStyle {
      * Returns a filled square marker style.
      *
      * @param  color   colour
-     * @param  size    approximate square height
+     * @param  size    approximate square radius
      * @return  marker style
      */
     public static MarkStyle filledSquareStyle( Color color, final int size ) {
-        return new ConvenienceMarkStyle( color, new Integer( size ),
-                                         size / 2 + 1 ) {
+        final int off = size;
+        final int height = size * 2 + 1;
+        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
            protected void drawShape( Graphics g, int x, int y ) {
-                g.fillRect( x, y, size, size );
+                g.fillRect( x - off, y - off, height, height );
+            }
+        };
+    }
+
+    /**
+     * Returns a crosshair marker style.
+     *
+     * @param  color   colour
+     * @param  size    approximate cross radius
+     * @return  marker style
+     */
+    public static MarkStyle crossStyle( Color color, final int size ) {
+        final int off = size;
+        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
+            protected void drawShape( Graphics g, int x, int y ) {
+                g.drawLine( x - off, y, x + off, y );
+                g.drawLine( x, y - off, x, y + off );
+            }
+        };
+    }
+
+    /**
+     * Returns a marker style like an X.
+     *
+     * @param color  colour
+     * @param size   approximate cross radius
+     * @return  marker style
+     */
+    public static MarkStyle xStyle( Color color, final int size ) {
+        final int off = size;
+        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
+            protected void drawShape( Graphics g, int x, int y ) {
+                g.drawLine( x - off, y - off, x + off, y + off );
+                g.drawLine( x + off, y - off, x - off, y + off );
+            }
+        };
+    }
+
+    /**
+     * Returns an open diamond marker style.
+     *
+     * @param  color   colour
+     * @param  size    approximate diamond radius
+     * @return   marker style
+     */
+    public static MarkStyle openDiamondStyle( Color color, final int size ) {
+        int off = size;
+        Shape di = new Polygon( new int[] { -off, 0, off, 0 },
+                                new int[] { 0, -off, 0, off }, 4 );
+        return openShapeStyle( color, di );
+    }
+
+    /**
+     * Returns a filled diamond marker style.
+     *
+     * @param  color  colour
+     * @param  size   approximate diamond radius
+     * @return  marker style
+     */
+    public static MarkStyle filledDiamondStyle( Color color, final int size ) {
+        int off = size;
+        final Shape di = new Polygon( new int[] { -off, 0, off, 0 },
+                                      new int[] { 0, -off, 0, off }, 4 );
+        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
+            protected void drawShape( Graphics g, int x, int y ) {
+                if ( g instanceof Graphics2D ) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.translate( x, y );
+
+                    /* In pixel-like graphics contexts, the diamond is ugly
+                     * if you just fill it. */
+                    g2.fill( di );
+                    g2.draw( di );
+                    g2.translate( -x, -y );
+                }
+                else {
+                    g.drawRect( x, y, 3, 3 );
+                }
             }
         };
     }
