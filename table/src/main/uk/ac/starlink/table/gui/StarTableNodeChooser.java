@@ -5,6 +5,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import uk.ac.starlink.table.StarTable;
 
 /**
  * Provides a browser widget which presents the hierarchy of available
@@ -24,7 +25,7 @@ import java.lang.reflect.Modifier;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class StarTableChooser {
+public class StarTableNodeChooser {
 
     private static Class chooserClass;
     private static Constructor chooserConstructor;
@@ -45,11 +46,11 @@ public class StarTableChooser {
      * @return  a new chooser object, or <tt>null</tt> if the classes are
      *          not available
      */
-    public static StarTableChooser newInstance() {
+    public static StarTableNodeChooser newInstance() {
         try {
             return isAvailable()
-                   ? new StarTableChooser( chooserConstructor
-                                          .newInstance( new Object[ 0 ] ) )
+                   ? new StarTableNodeChooser( chooserConstructor
+                                              .newInstance( new Object[ 0 ] ) )
                    : null;
         }
         catch ( InstantiationException e ) {
@@ -72,7 +73,7 @@ public class StarTableChooser {
         }
     }
 
-    private StarTableChooser( Object chooserObject ) {
+    private StarTableNodeChooser( Object chooserObject ) {
         this.chooserObject = chooserObject;
     }
 
@@ -104,14 +105,14 @@ public class StarTableChooser {
                 throw (RuntimeException) e2;
             }
             else {
-                throw new AssertionError( e );
+                throw new AssertionError( e2 );
             }
         }
     }
 
     /**
      * Indicates whether it will be possible to construct a 
-     * StarTableChooser object.  It may not be if the requisite classes
+     * StarTableNodeChooser object.  It may not be if the requisite classes
      * are not in place.
      *
      * @return  true  iff {@link #newInstance} can be expected to 
@@ -151,7 +152,7 @@ public class StarTableChooser {
         return isAvailable.booleanValue();
     }
 
-    static void reflect()
+    private static void reflect()
             throws ClassNotFoundException, LinkageError, NoSuchMethodException {
         chooserClass = Class.forName( CHOOSER_CLASS );
         chooserConstructor = chooserClass.getConstructor( new Class[ 0 ] );
