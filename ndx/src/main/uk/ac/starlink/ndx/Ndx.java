@@ -188,16 +188,17 @@ public interface Ndx {
      * share a part of their path).  If there is no common part of the
      * path, including the case in which <tt>base</tt> is <tt>null</tt>,
      * then an absolute reference will be written.
+     * 
+     * <p>Does not currently throw <code>HdxException</code> if the
+     * XML cannot be generated, but it should.
      *
      * @param  base  the base URL against which URLs written within the XML
      *           are considered relative.  If null, all are written absolute.
      * @return   an XML Source representation of this Ndx
-     * @throws HdxException if the XML cannot be generated
      * @see     uk.ac.starlink.util.SourceReader
      * @deprecated replaced by <code>getHdxFacade().getSource(base)</code>
      */
-    Source toXML( URL base )
-            throws HdxException;
+    Source toXML( URL base );
 
     /**
      * Obtains a HdxFacade, which enables us to examine and manipulate

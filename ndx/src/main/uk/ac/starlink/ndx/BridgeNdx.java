@@ -420,19 +420,26 @@ public class BridgeNdx implements Ndx {
      * any private values, so that this method can safely be inherited
      * by subclasses.
      *
+     * <p>Does not currently throw <code>HdxException</code> if the
+     * XML cannot be generated, but it should.
+     *
      * @param  base  URL against which others are to be relativised
      * @return  an XML Source representation of this Ndx
-     * @throws HdxException if the XML cannot be generated
+     * @throws uk.ac.starlink.hdx.PluginException (unchecked) if the XML cannot be generated
      * @deprecated replaced by
      * <code>getHdxFacade().getSource(URLUtils.urlToUri(base))</code>
      */
-    public Source toXML( URL base ) 
-            throws HdxException {
+    public Source toXML( URL base ) {
         /*
          *  this method comes from the Ndx interface, but has the same
          *  functionality as getSource
          */
-        return getHdxFacade().getSource( URLUtils.urlToUri(base) );
+        try {
+            return getHdxFacade().getSource( URLUtils.urlToUri(base) );
+        } catch (HdxException ex) {
+            // this method `should' thrown HdxException, but for now just convert it
+            throw new uk.ac.starlink.hdx.PluginException( ex );
+        }
     }
     
     /**
