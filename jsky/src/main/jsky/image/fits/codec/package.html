@@ -1,0 +1,14 @@
+<body>
+Contains classes that implement FITS image support for JAI (a FITS codec).
+The main class is FITSImage. You can use this class directly, for example:
+<p>
+PlanarImage im = PlanarImage.wrapRenderedImage(new FITSImage(filename));
+<p>
+Or in the normal JAI way with: 
+<p>
+JAI.create("fileload", filename)
+<p>
+NOTE: The direct method is more efficient, especially for large image files,
+since it avoids an extra layer of internal file buffering and uses a 
+RandomAccessFile (internally in the FITS I/O code: actually a BufferedFile).
+</body>

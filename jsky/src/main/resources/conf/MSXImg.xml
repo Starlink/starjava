@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalog PUBLIC "-//JSky//DTD for Catalog Access//EN" "AstroCat.dtd">
+<!--
+  This document describes the query arguments and access method for an astronomical catalog.
+-->
+
+
+ <catalog 
+   id="MSXImg@OASIS" 
+   name="MSX Image Service" 
+   description="Accessed via the NASA/IPAC Infrared Science Archive"
+   type="imagesvr"
+   protocol="http"
+   host="irsa.ipac.caltech.edu"
+   path="/cgi-bin/Oasis/MSXImg/nph-msximg">
+   <params>
+     <param 
+       id="objstr" 
+       name="Object or location"
+       description="Object name or coordinate string (fairly free-form)."
+       type="radec"/>
+     <param 
+       id="size" 
+       name="Size"
+       units="deg"
+       description="Image Size"
+       type="size"/>
+     <param 
+       id="band" 
+       name="Band"
+       description="MSX band (A, C, D, or E)"
+       value="A">
+       <options>
+         <option name="A" value="3"/>
+         <option name="C" value="4"/>
+         <option name="D" value="5"/>
+         <option name="E" value="6"/>
+       </options>
+     </param>
+   </params>
+ </catalog>
+

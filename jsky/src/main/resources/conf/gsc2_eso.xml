@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalogs PUBLIC "-//JSky//DTD for Catalog Access//EN" "AstroCat.dtd">
+<!--
+  This document describes the query arguments and access method for an astronomical catalog.
+-->
+
+<catalogs version="0.1">
+ <catalog 
+   id="gsc@eso" 
+   name="Guide Star Catalog at ESO (v2)" 
+   type="catalog"
+   protocol="http"
+   host="archive.eso.org"
+   port="80"
+   path="/skycat/servers/gsc2query">
+
+   <params>
+     <param 
+       id="ra" 
+       name="RA"
+       description="Center RA Coordinate in J2000"
+       type="ra"/>
+     <param 
+       id="dec" 
+       name="Dec"
+       description="Center Dec Coordinate in J2000"
+       type="dec"/>
+     <param 
+       id="r1" 
+       name="Min Radius"
+       description="Inner (default is 0.0) seach radius (arcmin)"
+       type="minRadius"
+       units="arcmin"/>
+     <param 
+       id="r2" 
+       name="Max Radius"
+       description="Outer seach radius (arcmin)"
+       type="maxRadius"
+       units="arcmin"/>
+     <param 
+       id="m1" 
+       name="Brightest (min)"
+       description="optional magnitude limit [bright] default: 0"/>
+     <param 
+       id="m2" 
+       name="Faintest (max)"
+       description="optional magnitude limit [faint] default: 30"/>
+     <param 
+       id="n" 
+       name="Max Rows"
+       type="maxrows"
+       description="Maximum number of rows to return"/>
+   </params>
+
+   <symbols>
+      <symbol 
+        columnsUsed="Fmag" 
+	shape="square" 
+	color="white"  
+	condition="Fmag &gt; 0." 
+	ratio="1" 
+	angle="0" 
+	label="" 
+	size="(23-Fmag)/18000." 
+	units="deg"/>
+      <symbol 
+        columnsUsed="Fmag Vmag Jmag" 
+	shape="square" color="yellow" 
+	condition="Fmag &lt; 0. &amp;&amp; Jmag &gt; 0" 
+	ratio="1" 
+	angle="0" 
+	label="" 
+	size="(23-Jmag)/18000." 
+	units="deg 2000"/>
+      <symbol 
+        columnsUsed="Fmag Vmag Jmag" 
+	shape="square" 
+	color="green" 
+	condition="Fmag &lt; 0. &amp;&amp; Jmag &lt; 0. &amp;&amp; Vmag &gt; 0." 
+	ratio="1" 
+	angle="0" 
+	label="" 
+	size="(23-Vmag)/18000." 
+	units="deg 2000"/>
+   </symbols>
+
+ </catalog>
+</catalogs>
