@@ -219,9 +219,9 @@
    !   entered into the main jar file manifest.
    !-->
   <path id="package.jars">
-     <fileset dir="${src.jars.dir}">
+     <!--<fileset dir="${src.jars.dir}">
         <include name="*.jar"/>
-     </fileset>
+     </fileset>-->
   </path>
 
   <path id="built.classpath">
