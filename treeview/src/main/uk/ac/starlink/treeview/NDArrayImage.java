@@ -31,9 +31,9 @@ import uk.ac.starlink.jaiutil.SimpleRenderedImage;
 public class NDArrayImage extends SimpleRenderedImage {
 
     private ArrayAccess acc;
-    private int defaultTileWidth = 100;
-    private int defaultTileHeight = 100;
-    private static final int MAX_TILE_BYTES = 32*1024*1024;
+    private int defaultTileWidth = 200;
+    private int defaultTileHeight = 200;
+    private static final int MAX_TILE_BYTES = 64*1024*1024;
     private long[] origin;
 
     public final static TileCache tileCache = 
@@ -92,7 +92,9 @@ public class NDArrayImage extends SimpleRenderedImage {
         NDShape tileShape = new NDShape( tOrigin, tDims );
         Object destArray = getArrayData( tile.getDataBuffer() );
         try {
-            acc.readTile( destArray, tileShape );
+            synchronized ( this ) {
+                acc.readTile( destArray, tileShape );
+            }
         }
         catch ( IOException e ) {
             e.printStackTrace();

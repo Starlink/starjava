@@ -21,6 +21,15 @@ import uk.ac.starlink.ast.Plot;
  * This is the business end of an ImageViewer - it displays
  * an image in an unadorned window, and generates a corresponding 
  * Plot object if WCS info is supplied.
+ * <p>
+ * You can choose whether the display is updated asynchronously or not. 
+ * If so, display updates are done in a thread out of the event
+ * dispatcher and the display is updated tile by tile.  This looks kind
+ * of messy but you can see what's going on.   If not, the GUI can
+ * hang while the image is calculated.  In general you should go for
+ * async updates if the calculation time may be long.
+ *
+ * @author   Mark Taylor (Starlink)
  */
 public class ImageViewPane extends JPanel {
 
@@ -34,11 +43,13 @@ public class ImageViewPane extends JPanel {
      * @param  nda   a 2-dimensional readable NDArray with random access.
      * @param  wcs     an AST frameset containing coordinate information.
      *                 May be null
+     * @param  async   true if the display may be updated asynchronously
      * @throws  IOException  if there is an error in data access
      */
-    public ImageViewPane( NDArray nda, FrameSet wcs ) throws IOException {
+    public ImageViewPane( NDArray nda, FrameSet wcs,
+                          boolean async ) throws IOException {
         this( new NDArrayImage( nda ), nda.getShape().getOrigin(),
-              nda.getBadHandler().getBadValue(), wcs );
+              nda.getBadHandler().getBadValue(), wcs, async );
     }
 
     /**
@@ -51,9 +62,10 @@ public class ImageViewPane extends JPanel {
      * @param  badval  magic bad value as a Number
      * @param  wcs     an AST frameset containing coordinate information.
      *                 May be null
+     * @param  async   true if the display may be updated asynchronously
      */
     private ImageViewPane( RenderedImage im, long[] origin, Number badValue,
-                           FrameSet wcs ) {
+                           FrameSet wcs, boolean async ) {
 
         /* Get the bad value as a double. */
         final double badval = ( badValue == null ) ? Double.NaN
@@ -62,7 +74,8 @@ public class ImageViewPane extends JPanel {
         /* Turn it into a PlanarImage and do more setup. */
         PlanarImage pim = PlanarImage.wrapRenderedImage( im );
         Dimension picsize = new Dimension( pim.getWidth(), pim.getHeight() );
-        final ImageDisplay disp = new ImageDisplay();
+        final ImageDisplay disp = async ? new AsynchronousImageDisplay()
+                                        : new ImageDisplay();
 
         disp.setPrescaled( true );
         disp.setImmediateMode( true );

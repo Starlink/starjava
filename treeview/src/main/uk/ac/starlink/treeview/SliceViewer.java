@@ -132,7 +132,7 @@ public class SliceViewer extends JPanel {
                     planeSet.add( name );
                     NDArray slice = getSlice( nda, spec );
                     assert slice.getShape().getNumDims() == 2;
-                    ImageViewer iv = new ImageViewer( slice, null );
+                    ImageViewer iv = new ImageViewer( slice, null, false );
                     imageHolder.add( iv, name );
                 }
                 catch ( IOException e ) {

@@ -1,6 +1,7 @@
 package uk.ac.starlink.treeview;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
@@ -84,6 +85,7 @@ public class CollapseViewer extends JPanel {
 
         /* Configure a control for selecting collapse range. */
         rangeSlider = new VRangeSlider( null, 0.0, 1.0 );
+        rangeSlider.setPreferredSize( new Dimension( 50, 38 ) );
         rangeSlider.setDrawLabels( false );
         rangeSlider.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
@@ -112,7 +114,7 @@ public class CollapseViewer extends JPanel {
     }
 
     /**
-     * Method called when the controls have been changed so that an new
+     * Method called when the controls have been changed so that a new
      * drawing may be required.
      */
     private void updateDisplay() {
@@ -146,7 +148,7 @@ public class CollapseViewer extends JPanel {
             collOrigin = co;
             collDim = cd;
         }
-        rangeLabel.setText( "  " + collOrigin + "+" + collDim + "  " );
+        rangeLabel.setText( "  " + collOrigin + "+" + collDim + "   " );
         ArrayImpl aimpl = 
             new CollapseArrayImpl( nda, collAxis, collOrigin, collDim );
         try {
