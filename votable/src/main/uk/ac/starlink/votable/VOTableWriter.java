@@ -502,6 +502,8 @@ public class VOTableWriter implements StarTableWriter {
             .append( '=' )
             .append( '"' )
             .append( value.replaceAll( "&", "&amp;" )
+                          .replaceAll( "<", "&lt;" )
+                          .replaceAll( ">", "&gt;" )
                           .replaceAll( "\"", "&quot;" ) )
             .append( '"' )
             .toString();
