@@ -120,7 +120,8 @@ public class SyntheticColumn extends ColumnData {
      * @return   a library
      */
     private Library getLibrary() {
-        Class[] staticLib = new Class[] { Math.class, Float.class };
+        Class[] staticLib = new Class[] { Math.class, Integer.class, 
+                                          Float.class, Double.class };
         Class[] dynamicLib = new Class[] { JELRowReader.class };
         Class[] dotClasses = new Class[] { String.class, Date.class };
         DVMap resolver = rowReader;
