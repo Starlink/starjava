@@ -322,7 +322,7 @@ public abstract class JELRowReader extends DVMap {
     * @param  name  column identifier
     * @return  column index, or -1 if the column was not known
     */
-   private int getColumnIndex( String name ) {
+   int getColumnIndex( String name ) {
 
         /* Try the '$' + number format. */
         if ( name.charAt( 0 ) == COLUMN_ID_CHAR ) {
