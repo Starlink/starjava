@@ -48,22 +48,40 @@ public class HexDumper extends JTable {
      * Constructs a HexDumper given an input stream.
      *
      * @param  strm   the InputStream to dump
-     * @param  length  the number of bytes in the stream.  If this is not
+     * @param  leng   the number of bytes in the stream.  If this is not
      *                 known, the value -1 should be submitted
      */
-    public HexDumper( final InputStream strm, final int length ) 
+    public HexDumper( final InputStream strm, final long length ) 
             throws IOException {
+        
         this( new ByteSource() {
             private int loc = 0;
             public int read( int pos ) throws IOException {
-                if ( pos > loc ) {
-                    strm.skip( pos - loc );
+
+                /* The general contract of skip is rather loose, so try to 
+                 * make sure that we actually do end up where we want to. */
+                while ( pos > loc ) {
+                    int inc = (int) strm.skip( pos - loc );
+                    if ( inc == 0 ) {
+                        strm.read();
+                        inc++;
+                    }
+                    loc += inc;
                 }
+                int val = strm.read();
+                assert ( loc == pos ) || ( val == -1 );
                 loc++;
-                return strm.read();
+                return val;
             }
             public int length() {
-                return length;
+                if ( length > Integer.MAX_VALUE ) {
+                    System.err.println( "truncating " + length + " to "
+                                      + Integer.MAX_VALUE );
+                    return Integer.MAX_VALUE;
+                }
+                else {
+                    return (int) length;
+                }
             }
             public boolean isRandom() {
                 return false;

@@ -2,31 +2,29 @@ package uk.ac.starlink.treeview;
 
 import java.util.Iterator;
 import javax.swing.Icon;
-import javax.swing.JComponent;
 import org.apache.tools.tar.TarEntry;
-import org.apache.tools.tar.TarInputStream;
 
 public class TarBranchDataNode extends DefaultDataNode {
 
-    private TarFileDataNode tarfilenode;
-    private TarEntry entry;
-    private String name;
+    private TarStreamDataNode archivenode;
     private String path;
-    private JComponent fullView;
+    private String name;
 
     /**
-     * Constructs a TarBranchDataNode from a TarEntry and TarFile.
+     * Constructs a TarBranchDataNode from a TarEntry and TarStreamArchive.
      *
-     * @param  tarfilenode  DataNode representing the tar file within which
+     * @param  tarstreamnode  DataNode representing the tar file within which
      *         this entry lives
      * @param  entry  the TarEntry object represented by this node
      */
-    public TarBranchDataNode( TarFileDataNode tarfilenode, TarEntry entry ) {
-        this.tarfilenode = tarfilenode;
-        this.entry = entry;
+    public TarBranchDataNode( TarStreamDataNode tarnode, TarEntry entry ) {
+        this.archivenode = tarnode;
         this.path = entry.getName();
         this.name = path.substring( path.substring( 0, path.length() - 1 )
                                    .lastIndexOf( '/' ) + 1 );
+        if ( name.endsWith( "/" ) ) {
+            name = name.substring( 0, name.length() - 1 );
+        }
         setLabel( name );
     }
 
@@ -55,31 +53,7 @@ public class TarBranchDataNode extends DefaultDataNode {
     }
 
     public Iterator getChildIterator() {
-        return tarfilenode.getChildIteratorAtLevel( path, this );
-    }
-
-    public boolean hasFullView() {
-        return true;
-    }
-
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            boolean implied = ( entry.getFile() == null );
-            dv.addKeyedItem( "Entry in archive", ! implied );
-            if ( ! implied ) {
-                dv.addKeyedItem( "User", entry.getUserName() +
-                                         "  (" + entry.getUserId() + ")" );
-                dv.addKeyedItem( "Group", entry.getGroupName() +
-                                          "  (" + entry.getGroupId() + ")" );
-                dv.addSeparator();
-                dv.addKeyedItem( "Last modified", 
-                                 entry.getModTime().toString() );
-            }
-        }
-        return fullView;
+        return archivenode.getChildIteratorAtLevel( path, this );
     }
 
 }

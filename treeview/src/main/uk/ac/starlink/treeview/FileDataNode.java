@@ -6,6 +6,7 @@ import java.awt.*;
 import javax.swing.*;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 
@@ -51,6 +52,7 @@ public class FileDataNode extends DefaultDataNode {
         catch ( IOException e ) {
             this.parentFile = null;
         }
+        setPath( file.getAbsolutePath() );
     }
 
     /**
@@ -120,10 +122,6 @@ public class FileDataNode extends DefaultDataNode {
     public Icon getIcon() {
         return iconMaker.getIcon( file.isDirectory() ? IconFactory.DIRECTORY
                                                      : IconFactory.FILE );
-    }
-
-    public String getPath() {
-        return file.getPath();
     }
 
     public String getPathElement() {
@@ -211,7 +209,11 @@ public class FileDataNode extends DefaultDataNode {
             /* If it looks like a text file, add the option to view the
              * content. */
             try {
-                DataSource datsrc = new FileDataSource( file );
+
+                /* Use a DataSource to characterise it, making sure that it
+                 * doesn't try to decompress the thing. */
+                DataSource datsrc = new FileDataSource( file )
+                                   .forceCompression( Compression.NONE );
                 boolean isText = datsrc.isASCII();
                 boolean isHTML = datsrc.isHTML();
                 datsrc.close();

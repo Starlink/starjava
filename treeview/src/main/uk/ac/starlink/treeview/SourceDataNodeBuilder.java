@@ -56,14 +56,24 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
 
         try {
 
+            /* Zip file? */
+            if ( ZipArchiveDataNode.isMagic( magic ) ) {
+                return new ZipStreamDataNode( datsrc );
+            }
+
             /* XML file? */
-            if ( XMLDataNode.isMagic( magic ) ) {
+            else if ( XMLDataNode.isMagic( magic ) ) {
                 DOMSource xsrc = makeDOMSource( datsrc );
+                String path = DefaultDataNode.getPath( datsrc );
+                String label = DefaultDataNode.getName( datsrc );
 
                 /* NDX? */
                 try {
                     DataNode dn = new NdxDataNode( xsrc );
-                    dn.setLabel( datsrc.getName() );
+                    dn.setLabel( label );
+                    if ( path != null ) {
+                        dn.setPath( path );
+                    }
                     return dn;
                 }
                 catch ( NoSuchDataException e ) {
@@ -72,7 +82,10 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
                 /* VOTable? */
                 try {
                     DataNode dn = new VOTableDataNode( xsrc );
-                    dn.setLabel( datsrc.getName() );
+                    dn.setLabel( label );
+                    if ( path != null ) {
+                        dn.setPath( path );
+                    }
                     return dn;
                 }
                 catch ( NoSuchDataException e ) {
@@ -80,7 +93,10 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
 
                 /* Normal XML file? */
                 DataNode dn = new XMLDataNode( xsrc );
-                dn.setLabel( datsrc.getName() );
+                dn.setLabel( label );
+                if ( path != null ) {
+                    dn.setPath( path );
+                }
                 return dn;
             }
 

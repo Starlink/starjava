@@ -6,24 +6,28 @@ import javax.swing.Icon;
 
 public class ZipBranchDataNode extends DefaultDataNode {
 
-    private final ZipFileDataNode zipfilenode;
+    private final ZipArchiveDataNode ziparchivenode;
     private final ZipEntry zipentry;
     private final String path;
-    private final String name;
+    private String name;
 
     /**
-     * Constructs a ZipBranchDataNode from a ZipEntry and ZipFile.
+     * Constructs a ZipBranchDataNode from a ZipEntry and ZipArchive.
      *
-     * @param  zipfilenode  DataNode representing the zip file within which
+     * @param  ziparchivenode  DataNode representing the zip file within which
      *         this entry lives
      * @param  entry  the ZipEntry object represented by this node
      */
-    public ZipBranchDataNode( ZipFileDataNode zipfilenode, ZipEntry entry ) {
-        this.zipfilenode = zipfilenode;
+    public ZipBranchDataNode( ZipArchiveDataNode ziparchivenode,
+                              ZipEntry entry ) {
+        this.ziparchivenode = ziparchivenode;
         this.zipentry = entry;
         this.path = entry.getName();
         this.name = path.substring( path.substring( 0, path.length() - 1 ) 
                                    .lastIndexOf( '/' ) + 1 );
+        if ( name.endsWith( "/" ) ) {
+            name = name.substring( 0, name.length() - 1 );
+        }
         setLabel( name );
     }
 
@@ -52,7 +56,7 @@ public class ZipBranchDataNode extends DefaultDataNode {
     }
 
     public Iterator getChildIterator() {
-        return zipfilenode.getChildIteratorAtLevel( path, this );
+        return ziparchivenode.getChildIteratorAtLevel( path, this );
     }
 
 }

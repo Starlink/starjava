@@ -67,10 +67,12 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             return null;
         }
 
-        /* Make a DataSource from the file. */
-        DataSource datsrc = new FileDataSource( file );
-
+        DataSource datsrc = null;
         try {
+
+            /* Make a DataSource from the file. */
+            datsrc = new FileDataSource( file );
+
 
             /* If there is compression, pass it to the handler for streams. */
             Compression compress = datsrc.getCompression();
@@ -139,13 +141,13 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             }
 
             /* Zip/jar file? */
-            if ( ZipFileDataNode.isMagic( magic ) ) {
+            if ( ZipArchiveDataNode.isMagic( magic ) ) {
                 return new ZipFileDataNode( file );
             }
 
             /* Tar file? */
-            if ( TarFileDataNode.isMagic( magic ) ) {
-                return new TarFileDataNode( file );
+            if ( TarStreamDataNode.isMagic( magic ) ) {
+                return new TarStreamDataNode( file );
             }
 
             /* XML file? */
@@ -197,7 +199,9 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
         /* Clear up. */
         finally {
             try {
-                datsrc.close();
+                if ( datsrc != null ) {
+                    datsrc.close();
+                }
             }
             catch ( IOException e ) {
                 e.printStackTrace();

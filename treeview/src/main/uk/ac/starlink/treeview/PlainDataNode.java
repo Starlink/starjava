@@ -23,11 +23,8 @@ public class PlainDataNode extends DefaultDataNode {
     private Boolean isText;
 
     public PlainDataNode( File file ) throws NoSuchDataException {
-        this( new FileDataSource( file ) );
-    }
-
-    public PlainDataNode( URL url ) throws NoSuchDataException {
-        this( new URLDataSource( url ) );
+        this( makeDataSource( file ) );
+        setPath( file.getAbsolutePath() );
     }
 
     public PlainDataNode( String name ) throws NoSuchDataException {
@@ -40,8 +37,12 @@ public class PlainDataNode extends DefaultDataNode {
          * decompression. */
         this.datsrc = datsrc.forceCompression( Compression.NONE );
 
-        this.name = datsrc.getName();
+        this.name = getName( datsrc );
         setLabel( name );
+        String path = getPath( datsrc );
+        if ( path != null ) {
+            setPath( path );
+        }
     }
 
     public String getName() {
@@ -49,7 +50,7 @@ public class PlainDataNode extends DefaultDataNode {
     }
 
     public String getNodeTLA() {
-        return "DAT";
+        return "DATA";
     }
 
     public String getNodeType() {
@@ -57,7 +58,7 @@ public class PlainDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.FILE );
+        return IconFactory.getInstance().getIcon( IconFactory.DATA );
     }
 
     public String getPathElement() {
@@ -69,37 +70,39 @@ public class PlainDataNode extends DefaultDataNode {
             DetailViewer dv = new DetailViewer( this );
             fullView = dv.getComponent();
             dv.addSeparator();
-            try {
-                if ( ! datsrc.isEmpty() ) {
-                    if ( datsrc.isASCII() ) {
-                        dv.addPane( "Text view", new ComponentMaker() {
-                            public JComponent getComponent()
-                                    throws IOException {
-                                return new TextViewer( datsrc
-                                                      .getInputStream() );
-                            }
-                        } );
-                    }
-                    else { 
-                        dv.addPane( "Hex dump", new ComponentMaker() {
-                            public JComponent getComponent()
-                                    throws IOException {
-                                return new HexDumper( datsrc.getInputStream(),
-                                                      -1 );
-                            }
-                        } );
-                    }
-                }
-            }
-            catch ( final IOException e ) {
-                dv.addPane( "Error reading data", new ComponentMaker() {
-                    public JComponent getComponent() {
-                        return new TextViewer( e );
-                    }
-                } );
-            }
+            addDataViews( dv, datsrc );
         }
         return fullView;
+    }
+
+    public static void addDataViews( DetailViewer dv, 
+                                     final DataSource datsrc ) {
+        try {
+            if ( ! datsrc.isEmpty() ) {
+                if ( datsrc.isASCII() ) {
+                    dv.addPane( "Text view", new ComponentMaker() {
+                        public JComponent getComponent() throws IOException {
+                            return new TextViewer( datsrc.getInputStream() );
+                        }
+                    } );
+                }
+                else { 
+                    dv.addPane( "Hex dump", new ComponentMaker() {
+                        public JComponent getComponent() throws IOException {
+                            return new HexDumper( datsrc.getInputStream(), 
+                                                  datsrc.getLength() );
+                        }
+                    } );
+                }
+            }
+        }
+        catch ( final IOException e ) {
+            dv.addPane( "Error reading data", new ComponentMaker() {
+                public JComponent getComponent() {
+                    return new TextViewer( e );
+                }
+            } );
+        }
     }
 
     public static DataSource makeDataSource( String name )
@@ -107,7 +110,7 @@ public class PlainDataNode extends DefaultDataNode {
         try {
             return DataSource.makeDataSource( name );
         }
-        catch ( FileNotFoundException e ) {
+        catch ( IOException e ) {
             throw new NoSuchDataException( e );
         }
     }

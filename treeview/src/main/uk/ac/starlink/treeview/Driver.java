@@ -58,7 +58,7 @@ public class Driver {
             nodeTypeFlags.put( "-wcs", WCSDataNode.class );
         }
         nodeTypeFlags.put( "-zip", ZipFileDataNode.class );
-        nodeTypeFlags.put( "-tar", TarFileDataNode.class );
+        nodeTypeFlags.put( "-tar", TarStreamDataNode.class );
         nodeTypeFlags.put( "-fit", FITSDataNode.class );
         nodeTypeFlags.put( "-xml", XMLDataNode.class );
         // nodeTypeFlags.put( "-hdx", HDXContainerDataNode.class );
