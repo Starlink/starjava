@@ -56,23 +56,42 @@ import uk.ac.starlink.util.SourceReader;
 
 /**
  * Turns URLs which reference FITS files or HDUs into Ndx objects.
- * <p>
+ *
+ * <h3>FITS file format for NDXs</h3>
+ *
  * When writing an NDX into FITS format, the image array is written
- * as the first HDU.  Accompanying this in the headers is a FITS
- * representation of the WCS and possibly other headers beginning
- * "SNDX_" giving information about the location of other data arrays
- * (variance, quality) and possibly other metadata - these cards
- * are defined by the {@link FitsConstants} class.
- * Additional HDUs which may be written subsequent to the main one
- * are currently a numeric variance array, an unsigned byte quality array,
- * and a 1-d byte array giving the XML text of the NDX extensions.
+ * as the primary HDU.  The headers of this HDU also contain a
+ * card with the name "NDX_XML", whose value is a relative URL 
+ * (of the form '#<i>n</i>', where <i>n</i> is an HDU number)
+ * pointing to the HDU in the same FITS file in which XML metadata
+ * concerning the NDX's structure can be found.
+ * This XML is stored as the sole (character) element of a table extension.
+ * Other HDUs may be written if more are needed, for instance the 
+ * variance and quality arrays.  The resulting FITS file is therefore
+ * a self-contained copy of the NDX's data (array components)
+ * and metadata (XML stored in a table component).
+ * Software which is not NDX-aware can see the data just by looking at
+ * the primary HDU.
  * <p>
- * When reading an NDX from a FITS file or image HDU, the HDU
- * (or first HDU in the FITS file) will be interpreted as the
- * image array of the NDX.  The WCS will be read from the headers of
- * that HDU.  If any of the "SNDX_" headers are present they will
- * be interpreted appropriately, otherwise you just get an NDX with
- * an image array and possibly WCS.
+ * When reading an NDX from a FITS file, the handler will look for the
+ * NDX_XML header; if one is found it will retrieve the metadata from
+ * the XML stored in the referenced table extension as described above.
+ * If this header is not present, it will make an NDX with no components
+ * apart from the image array it is pointed at and any WCS defined by
+ * FITS WCS headers in that HDU in the normal way.
+ * <p>
+ * The coordinate system information of an NDX written to a FITS file
+ * is currently written to the Image HDU for use by non-NDX-aware 
+ * software.  However, the WCS is read from the XML if present, so 
+ * in the case of discrepancies between the two the WCS represented
+ * in the FITS headers may be out of date.
+ *
+ * <h3>URL format</h3>
+ *
+ * URLs are given in the same format as for the {@link FitsArrayBuilder}
+ * class. If an HDU other than the first one is referenced, that is
+ * where the NDX_XML header will be sought.
+ *
  * <p>
  * This is a singleton class; use {@link #getInstance} to get an instance.
  *
@@ -158,9 +177,11 @@ public class FitsNdxHandler implements NdxHandler {
             }
         }
 
-        /* Otherwise, construct a default NDX based only on this data array. */
-        /* Try to get an image NDArray at this URL. */
+        /* Otherwise, construct a default NDX based only on this data array
+         * and any extant WCS headers. */
         else {
+
+            /* Try to get an image NDArray at this URL. */
             final NDArray image = fab.makeNDArray( url, mode );
 
             /* Get the WCS information. */

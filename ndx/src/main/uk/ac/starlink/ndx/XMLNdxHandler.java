@@ -36,8 +36,19 @@ import uk.ac.starlink.util.SourceReader;
 
 /**
  * Turns URLs which reference XML files into Ndxs.
- * This is a quick and dirty implementation, and may not cope with 
- * weirdy XML files.
+ * This does not do such sophisticated processing as the HDX system,
+ * and is mainly intended as a stopgap until that is complete.
+ * No namespace is used in XML files, and array URL references may 
+ * be either as the value of a 'url' attribute or as the text
+ * content of an element, e.g.:
+ * <pre>
+ *    &lt;variance url="http://archive.org/data/stars-vars.fits"/&gt;
+ * <pre>
+ * or
+ * <pre>
+ *    &lt;variance&gt;http://archive.org/data/stars-vars.fits&lt;/variance&gt;
+ * </pre>
+ * URLs relative to the position of the XML file in question are allowed.
  * <p>
  * A URL is normally only considered suitable if it ends in '.xml'.  
  * However, the special URL "<tt>file:-</tt>" may be used to 
@@ -207,7 +218,14 @@ public class XMLNdxHandler implements NdxHandler {
     private NDArray makeNDArray( Element el, AccessMode mode )
             throws IOException {
         URL url;
-        String loc = getTextContent( el );
+        String loc;
+        if ( el.hasAttribute( "url" ) ) {
+            loc = el.getAttribute( "url" );
+        }
+        else {
+            String loc = getTextContent( el );
+        }
+ 
         if ( loc == null || loc.trim().length() == 0 ) {
             throw new IOException( "No location supplied for <" 
                                  + el.getTagName() + "> array" );
