@@ -201,8 +201,8 @@
     <!-- Table -->
     <pathelement location="${star.jar.dir}/table/table.jar"/>
 
-    <!-- VO -->
-    <pathelement location="${star.jar.dir}/vo/vo.jar"/>
+    <!-- CONNECT -->
+    <pathelement location="${star.jar.dir}/connect/connect.jar"/>
 
   </extclasspath>
 
@@ -229,7 +229,7 @@
     <pathelement 
        location="${star.build.dir}/table/lib/table/table.jar"/>
     <pathelement
-       location="${star.build.dir}/vo/lib/vo/vo.jar"/>
+       location="${star.build.dir}/connect/lib/connect/connect.jar"/>
 
   </extclasspath>
 
@@ -335,11 +335,11 @@
                classname="uk.ac.starlink.table.StarTable"/>
     <fail message="No Table available" unless="table.present"/>
 
-    <!-- VO -->
-    <available property="vo.present"
+    <!-- CONNECT -->
+    <available property="connect.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.vo.RemoteTreeBrowser"/>
-    <fail message="No VO available" unless="vo.present"/>
+               classname="uk.ac.starlink.connect.Connector"/>
+    <fail message="No CONNECT available" unless="connect.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -407,13 +407,11 @@
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
-<!--
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
-        <include name="**/{package.support.files}"/>
+        <include name="**/*.gif"/>
       </fileset>
     </copy>
--->
 
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
