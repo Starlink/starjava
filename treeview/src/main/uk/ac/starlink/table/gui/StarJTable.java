@@ -46,6 +46,8 @@ public class StarJTable extends JTable {
          * renderer doesn't do numbers very well, it often truncates them. */
         setDefaultRenderer( Object.class, basicRenderer );
         setDefaultRenderer( Number.class, basicRenderer );
+        setDefaultRenderer( Float.class, basicRenderer );
+        setDefaultRenderer( Double.class, basicRenderer );
     }
 
     /**
