@@ -336,6 +336,7 @@ public class PlotConfigurator
         addGrid();
         addBorder();
         addTicks();
+        addText();
     }
 
     public void addTitle() 
@@ -385,6 +386,13 @@ public class PlotConfigurator
             ( config.getControlsModel
               ( TickControls.getControlsModelClass() ), controller );
         addControls( ticksPanel, true );
+    }
+    public void addText() 
+    {
+        StringsControls stringsPanel = new StringsControls
+            ( config.getControlsModel
+              ( StringsControls.getControlsModelClass() ) );
+        addControls( stringsPanel, true );
     }
 
     /**

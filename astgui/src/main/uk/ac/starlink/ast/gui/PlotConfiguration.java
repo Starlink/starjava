@@ -44,6 +44,7 @@ import uk.ac.starlink.util.XMLEncodeAndDecode;
  * @see PlotConfigurator
  * @see Plot
  * @see AstTitle
+ * @see AstStrings
  * @see AstAxisLabels,
  * @see AstNumberLabels
  * @see AstGrid
@@ -57,6 +58,11 @@ public class PlotConfiguration implements XMLEncodeAndDecode
      * AST model of the title.
      */
     protected AstTitle astTitle = new AstTitle();
+
+    /**
+     * AST model of the text strings.
+     */
+    protected AstStrings astStrings = new AstStrings();
 
     /**
      * AST model of the axis labels.
@@ -110,6 +116,7 @@ public class PlotConfiguration implements XMLEncodeAndDecode
     {
         //  Create the default models.
         configObjects.add( astTitle );
+        configObjects.add( astStrings );
         configObjects.add( astAxisLabels );
         configObjects.add( astNumberLabels );
         configObjects.add( astGrid );
@@ -120,6 +127,7 @@ public class PlotConfiguration implements XMLEncodeAndDecode
         // These are the AST models (i.e. can be passed to an AST Plot
         // as an options string).
         astConfigObjects.add( astTitle );
+        astConfigObjects.add( astStrings );
         astConfigObjects.add( astAxisLabels );
         astConfigObjects.add( astNumberLabels );
         astConfigObjects.add( astGrid );

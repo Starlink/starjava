@@ -70,7 +70,6 @@ public class TestPlotConfigFrame extends JPanel implements PlotController
     protected void createFrameSet()
     {
         FitsChan channel = new FitsChan();
-        channel.setEncoding( "FITS-WCS" );
         channel.putFits( "NAXIS   =                    2 /", false );
         channel.putFits( "NAXIS1  =                  300 /", false );
         channel.putFits( "NAXIS2  =                  300 /", false );
