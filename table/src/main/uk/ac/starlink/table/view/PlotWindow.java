@@ -250,6 +250,10 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             plotbox = plot;
             for ( int i = 0; i < nrsets; i++ ) {
                 plot.setMarksStyle( "dots", i );
+                RowSubset rset = rsets[ i ];
+                if ( rset != null ) {
+                    plot.addLegend( i, rset.toString() );
+                }
             }
             plot.setXLog( state.xLog );
             plot.setYLog( state.yLog );
