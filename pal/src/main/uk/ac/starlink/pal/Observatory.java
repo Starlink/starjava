@@ -8,13 +8,13 @@ import java.util.*;
 /** Observatory Data
  */
 public class Observatory {
-    private final int NOBS = 83;
+    private int NOBS = 83;
     private String Id, Name;
     private double Longitude, Latitude, Height;
     private char EW, NS;
     private int longdeg, longmin, latdeg, latmin;
     private double longsec, latsec;
-    private final double DAS2R  = Math.PI / ( 180 * 3600 );
+    private static final double DAS2R  = Math.PI / ( 180 * 3600 );
 
 /** Create Observatory
  *  @param id Code name for Observatory
@@ -152,8 +152,38 @@ public class Observatory {
         return Name + " [" + Id +"]";
     };
 
+
+/** Return the number of observatories available 
+ *  @return the number of observatories available.
+ */
+    public static int getObservatoryCount() {
+        return Obs.length - 1;
+    }
+
+/** Get the name of an observatory 
+ *  @param i index of the observatory
+ *  @return name of the observatory, null if off limits
+ */
+    public static String getObservatoryName( int i ) {
+        if ( i < Obs.length ) {
+            return Obs[i][1];
+        }
+        return null;
+    }
+
+/** Get the short identifier of an observatory 
+ *  @param i index of the observatory
+ *  @return id of the observatory, null if off limits
+ */
+    public static String getObservatoryID( int i ) {
+        if ( i < Obs.length ) {
+            return Obs[i][0];
+        }
+        return null;
+    }
+
 /* AAT ( Observer's Guide ) */
-    private String Obs[][] = {
+    private static String Obs[][] = {
             { "AAT", "Anglo-Australian 3.9m Telescope",
               "E 149 3 57.91", "S 31 16 37.34", "1164.0" },
 /* WHT ( Gemini, April 1987 ) */
