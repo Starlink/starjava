@@ -618,15 +618,7 @@
    !-->
   <target name="sign_ant">
 
-    <!-- Sign all jar files in source directory and the installed ant
-     !   jar file --> 
-    <signjar alias="${webstart.alias}"
-             keystore="${webstart.keystore}"
-             keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}">
-      <fileset dir="ant/lib" includes="**/*.jar **/*.zip"/>
-      <fileset dir="${star.jar.dir}" includes="ant.jar"/>
-    </signjar>
+    <ant dir="./ant" target="sign_jars"/>
 
   </target>
 
