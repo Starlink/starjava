@@ -150,8 +150,10 @@ public class NodeRootModel extends AbstractListModel implements ComboBoxModel {
     }
 
     public void removeAllElements() {
+        int oldSize = getSize();
         chains_ = new NodeChain[ 0 ];
         selected_ = -1;
+        fireContentsChanged( this, 0, oldSize );
     }
 
     public ConnectorAction getConnectorAction() {
