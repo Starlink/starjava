@@ -8,6 +8,7 @@
   <!-- Define automatically generated text entities. -->
   <!ENTITY general.runtime.method.docs SYSTEM "general-javadocs.xml">
   <!ENTITY activation.runtime.method.docs SYSTEM "activation-javadocs.xml">
+  <!ENTITY tablecopy.usage SYSTEM "tablecopy.usage">
 
   <!-- Define illustrations -->
   <!ENTITY figs '../figures/'>
@@ -4959,25 +4960,8 @@ apply here as well.
 (or 
 <code>java -classpath topcat.jar uk.ac.starlink.table.TableCopy -help</code>)
 produces the following usage message:
-<verbatim><![CDATA[
-   Usage: tablecopy [-ofmt <out-format>] <in-table> <out-table>
+<verbatim>&tablecopy.usage;</verbatim>
 
-   Known out-formats:
-      jdbc
-      fits
-      votable-tabledata
-      votable-binary-inline
-      votable-fits-href
-      votable-binary-href
-      votable-fits-inline
-      text
-      ascii
-      html
-      html-element
-      latex
-      latex-document
-      mirage
-]]></verbatim>
 The input format is sensed by examining the in-table argument, and the
 output format can be supplied using the "<code>-ofmt</code>" flag.
 If the <code>-ofmt</code> flag is not used, 

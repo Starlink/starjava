@@ -1085,6 +1085,19 @@
              classpathref="classpath"
              source="${source.version}"/>
 
+    <!-- Construct tablecopy usage message in XML. -->
+    <property name="tablecopy.usage" value="${build.docs}/tablecopy.usage"/>
+    <echo message="&lt;![CDATA[" file="${tablecopy.usage}" append="no"/>
+    <java classname="uk.ac.starlink.table.TableCopy"
+          failonerror="yes"
+          fork="yes"
+          output="${tablecopy.usage}"
+          append="yes"
+          classpathref="classpath">
+      <arg value="-help"/>
+    </java>
+    <echo message="]]&gt;" file="${tablecopy.usage}" append="yes"/>
+
     <!-- Transform the user document XML to a single HTML document. -->
     <mkdir dir="${build.docs}/${user.doc}"/>
     <xslt in="${build.docs}/${user.doc}.xml" 
