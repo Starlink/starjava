@@ -42,7 +42,6 @@ public class StatsWindow extends AuxWindow {
     private Map calcMap;
     private JTable jtab;
     private JProgressBar progBar;
-    private JLabel titleLabel;
     private JComboBox subSelector;
 
     /**
@@ -57,18 +56,10 @@ public class StatsWindow extends AuxWindow {
         this.tv = tableviewer;
         this.dataModel = tv.getDataModel();
         this.subsets = tv.getSubsets();
+        JPanel mainArea = getMainArea();
 
         /* Set up a map to contain statistic sets that have been calculated. */
         calcMap = new HashMap();
-
-        /* Construct and add the main panel for display. */
-        JPanel mainArea = new JPanel();
-        mainArea.setLayout( new BoxLayout( mainArea, BoxLayout.Y_AXIS ) );
-        getContentPane().add( mainArea, BorderLayout.CENTER );
-
-        /* Construct and place a title label. */
-        titleLabel = new JLabel();
-        mainArea.add( titleLabel );
 
         /* Construct and place the JTable which will form the main display
          * area. */
@@ -80,7 +71,7 @@ public class StatsWindow extends AuxWindow {
 
         /* Construct and place a widget for selecting which subset to 
          * present results for. */
-        JPanel selPanel = new JPanel();
+        JPanel controlPanel = getControlPanel();
         subSelector = new JComboBox( subsets.makeComboBoxModel() );
         subSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
@@ -89,9 +80,8 @@ public class StatsWindow extends AuxWindow {
                 }
             }
         } );
-        selPanel.add( new JLabel( "Subset for calculations: " ) );
-        selPanel.add( subSelector );
-        mainArea.add( selPanel );
+        controlPanel.add( new JLabel( "Subset for calculations: " ) );
+        controlPanel.add( subSelector );
 
         /* Construct and place a widget for requesting a recalculation. */
         Action recalcAct = new AbstractAction( "Recalculate" ) {
@@ -102,12 +92,11 @@ public class StatsWindow extends AuxWindow {
             }
         };
         JButton recalcButt = new JButton( recalcAct );
-        selPanel.add( new JLabel( "     " ) );
-        selPanel.add( recalcButt );
+        controlPanel.add( new JLabel( "     " ) );
+        controlPanel.add( recalcButt );
 
         /* Add a progress bar for table scanning. */
-        progBar = new JProgressBar( JProgressBar.HORIZONTAL );
-        getContentPane().add( progBar, BorderLayout.SOUTH );
+        progBar = placeProgressBar();
 
         /* Make the component visible. */
         pack();
@@ -172,10 +161,10 @@ public class StatsWindow extends AuxWindow {
         model.configureJTable( jtab );
         RowSubset rset = stats.rset;
         if ( rset == null || rset.equals( RowSubset.ALL ) ) {
-            titleLabel.setText( "Statistics for all rows" );
+            setMainHeading( "Statistics for all rows" );
         }
         else {
-            titleLabel.setText( "Statistics for row subset: " + rset );
+            setMainHeading( "Statistics for row subset: " + rset );
         }
     }
 

@@ -214,7 +214,8 @@ public class ColumnInfoWindow extends AuxWindow {
         StarJTable.configureColumnWidths( jtab, 20000, 100 );
 
         /* Place the table into a scrollpane in this frame. */
-        getContentPane().add( new SizingScrollPane( jtab ) );
+        getMainArea().add( new SizingScrollPane( jtab ) );
+        setMainHeading( "Column metadata" );
 
         /* Ensure that subsequent changes to the column model are reflected
          * in this window.  This listener implemenatation is lazy, it

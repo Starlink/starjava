@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.view;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Point;
@@ -7,9 +8,16 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 
@@ -24,7 +32,11 @@ import uk.ac.starlink.table.StarTable;
  */
 class AuxWindow extends JFrame {
 
-    protected JMenu fileMenu;
+    private JMenu fileMenu;
+    private JToolBar toolBar;
+    private JLabel headingLabel;
+    private JPanel mainArea;
+    private JPanel controlPanel;
 
     private static final Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
 
@@ -40,7 +52,9 @@ class AuxWindow extends JFrame {
     public AuxWindow( String baseTitle, StarTable startab, Component parent ) {
         setTitle( makeTitle( baseTitle, startab ) );
         setDefaultCloseOperation( DISPOSE_ON_CLOSE );
-        setLocationRelativeTo( parent );
+        if ( parent != null ) {
+            setLocationRelativeTo( parent );
+        }
 
         /* Set up a basic menubar with a File menu. */
         JMenuBar mb = new JMenuBar();
@@ -61,6 +75,29 @@ class AuxWindow extends JFrame {
         if ( TableViewer.isStandalone() ) {
             fileMenu.add( exitAct );
         }
+
+        /* Set up a toolbar. */
+        toolBar = new JToolBar();
+        toolBar.add( closeAct );
+        toolBar.addSeparator();
+        getContentPane().add( toolBar, BorderLayout.NORTH );
+
+        /* Divide the main area into heading, main area, and control panels. */
+        JPanel overPanel = new JPanel();
+        overPanel.setLayout( new BoxLayout( overPanel, BoxLayout.Y_AXIS ) );
+        headingLabel = new JLabel();
+        headingLabel.setAlignmentX( 0.0f );
+        Box headingBox = new Box( BoxLayout.X_AXIS );
+        headingBox.add( headingLabel );
+        headingBox.add( Box.createHorizontalGlue() );
+        mainArea = new JPanel( new BorderLayout() );
+        controlPanel = new JPanel();
+        overPanel.add( headingBox );
+        overPanel.add( mainArea );
+        overPanel.add( controlPanel );
+        overPanel.setBorder( BorderFactory
+                            .createEmptyBorder( 10, 10, 10, 10 ) );
+        getContentPane().add( overPanel, BorderLayout.CENTER );
     }
 
     /**
@@ -70,6 +107,76 @@ class AuxWindow extends JFrame {
      */
     public AuxWindow( String title, Component parent ) {
         this( title, (StarTable) null, parent );
+    }
+
+    /**
+     * Makes the window look like it's doing something.  This currently
+     * modifies the cursor to be busy/normal.
+     *
+     * @param  busy  whether the window should look busy
+     */
+    public void setBusy( boolean busy ) {
+        setCursor( busy ? busyCursor : null );
+    }
+
+    /**
+     * Creates a JProgressBar and places it in the the window.
+     * It will replace any other progress bar which has been placed
+     * by an earlier call of this method.
+     *
+     * @return   the progress bar which has been placed
+     */
+    public JProgressBar placeProgressBar() {
+        JProgressBar progBar = new JProgressBar();
+        getContentPane().add( progBar, BorderLayout.SOUTH );
+        return progBar;
+    }
+
+    /**
+     * Returns this window's toolbar.
+     *
+     * @return  the toolbar
+     */
+    public JToolBar getToolBar() {
+        return toolBar;
+    }
+
+    /**
+     * Returns this window's "File" menu.
+     *
+     * @return  the file menu
+     */
+    public JMenu getFileMenu() {
+        return fileMenu;
+    }
+
+    /**
+     * Sets the in-window text which heads up the main display area.
+     *
+     * @param   text  heading text
+     */
+    public void setMainHeading( String text ) {
+        headingLabel.setText( text );
+    }
+
+    /**
+     * Returns the container which should be used for the main user 
+     * component(s) in this window.  It will have a BorderLayout.
+     *
+     * @return  main container
+     */
+    public JPanel getMainArea() {
+        return mainArea;
+    }
+
+    /**
+     * Returns the container which should be used for controls and buttons.
+     * This will probably be placed below the mainArea.
+     *
+     * @return  control container
+     */
+    public JPanel getControlPanel() {
+        return controlPanel;
     }
 
     /**
@@ -105,10 +212,6 @@ class AuxWindow extends JFrame {
         pos.x += 40;
         pos.y += 40;
         second.setLocation( pos );
-    }
-
-    public void setBusy( boolean busy ) {
-        setCursor( busy ? busyCursor : null );
     }
 
 }

@@ -113,7 +113,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                           .createTitledBorder( lineBorder, "X axis" ) );
         yConfig.setBorder( BorderFactory
                           .createTitledBorder( lineBorder, "Y axis" ) );
-        JPanel configPanel = new JPanel();
+        JPanel configPanel = getControlPanel();
         configPanel.add( xConfig );
         configPanel.add( yConfig );
 
@@ -211,7 +211,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 }
             }
         };
-        fileMenu.add( new JMenuItem( printAct ), 0 );
+        getFileMenu().add( new JMenuItem( printAct ), 0 );
 
         /* Get a menu for selecting row subsets to plot. */
         CheckBoxMenu subMenu = subsets.makeCheckBoxMenu( "Subsets to plot" );
@@ -242,14 +242,11 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         plotPanel = new JPanel( new BorderLayout() );
 
         /* Arrange the components in the top level window. */
-        JPanel mainArea = new JPanel( new BorderLayout() );
+        JPanel mainArea = getMainArea();
         mainArea.add( plotPanel, BorderLayout.CENTER );
-        mainArea.add( configPanel, BorderLayout.SOUTH );
-        getContentPane().add( mainArea, BorderLayout.CENTER );
 
         /* Add a progress bar. */
-        progBar = new JProgressBar( JProgressBar.HORIZONTAL );
-        getContentPane().add( progBar, BorderLayout.SOUTH );
+        progBar = placeProgressBar();
 
         /* Action for showing the grid. */
         final ButtonModel gridModel = new DefaultButtonModel();

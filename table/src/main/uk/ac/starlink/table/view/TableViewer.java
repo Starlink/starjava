@@ -23,6 +23,7 @@ import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -63,7 +64,7 @@ import uk.ac.starlink.util.Loader;
  * 
  * @author   Mark Taylor (Starlink)
  */
-public class TableViewer extends JFrame {
+public class TableViewer extends AuxWindow {
 
     private PlasticStarTable dataModel;
     private ViewerTableModel viewModel;
@@ -127,16 +128,15 @@ public class TableViewer extends JFrame {
     public TableViewer( StarTable startab, Window sibling ) {
 
         /* Do basic setup. */
-        super();
+        super( DEFAULT_TITLE, startab, null );
         AuxWindow.positionAfter( sibling, this );
         jtab = new JTable();
         jtab.setCellSelectionEnabled( false );
         jtab.setColumnSelectionAllowed( false );
         jtab.setRowSelectionAllowed( true );
         scrollpane = new SizingScrollPane( jtab );
-        getContentPane().add( scrollpane, BorderLayout.CENTER );
-        progBar = new JProgressBar( JProgressBar.HORIZONTAL );
-        getContentPane().add( progBar, BorderLayout.SOUTH );
+        getMainArea().add( scrollpane, BorderLayout.CENTER );
+        progBar = placeProgressBar();
 
         /* Set up row header panel. */
         rowHead = new TableRowHeader( jtab ) {
@@ -195,19 +195,13 @@ public class TableViewer extends JFrame {
         setDefaultCloseOperation( DISPOSE_ON_CLOSE );
 
         /* Set up menus. */
-        JMenuBar mb = new JMenuBar();
-        setJMenuBar( mb );
+        JMenuBar mb = getJMenuBar();
 
         /* File menu. */
-        JMenu fileMenu = new JMenu( "File" );
-        mb.add( fileMenu );
-        fileMenu.add( newAct ).setIcon( null );
-        fileMenu.add( dupAct ).setIcon( null );
-        fileMenu.add( saveAct ).setIcon( null );
-        fileMenu.add( closeAct ).setIcon( null );
-        if ( standalone ) {
-            fileMenu.add( exitAct ).setIcon( null );
-        }
+        JMenu fileMenu = getFileMenu();
+        fileMenu.add( new JMenuItem( newAct ), 0 );
+        fileMenu.add( new JMenuItem( dupAct ), 0 );
+        fileMenu.add( new JMenuItem( saveAct ), 0 );
 
         /* Launch menu. */
         if ( MirageHandler.isMirageAvailable() ) {

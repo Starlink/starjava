@@ -90,7 +90,8 @@ public class ParameterWindow extends AuxWindow {
         StarJTable.configureColumnWidths( jtab, 20000, 100 );
 
         /* Place the table into a scrollpane in this frame. */
-        getContentPane().add( new SizingScrollPane( jtab ) );
+        getMainArea().add( new SizingScrollPane( jtab ) );
+        setMainHeading( "Table parameters" );
 
         /* Ensure that subsequent changes to the table shape are reflected
          * in this window. */
