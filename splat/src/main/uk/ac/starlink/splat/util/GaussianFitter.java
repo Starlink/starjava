@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     12-DEC-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 /**
@@ -12,13 +19,8 @@ package uk.ac.starlink.splat.util;
  * evalArray() and evalPoint() methods. A chi squared residual to the
  * fit can be obtained from the getChi() method.
  *
- * @since $Date$
- * @since 12-DEC-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000-2001 Central Laboratory of the Research
- *            Councils
- * @history 03-JAN-2001 modified to fit centre (becomes a non-linear problem).
  */
 public class GaussianFitter 
     extends FunctionFitter 
@@ -27,22 +29,27 @@ public class GaussianFitter
     /**
      * The scale factor.
      */
-    private double scale = 1.0;
+    protected double scale = 1.0;
 
     /**
      * The full width half maximum term.
      */
-    private double sigma = 1.0;
+    protected double sigma = 1.0;
 
     /**
      * The centre.
      */
-    private double centre = 0.0;
+    protected double centre = 0.0;
 
     /**
      * The chi square of the fit.
      */
-    private double chiSquare = 0.0;
+    protected double chiSquare = 0.0;
+
+    /**
+     * For sub-classes.
+     */
+    protected GaussianFitter() {}
 
     /**
      * Fit a gaussian to unweighted data points.

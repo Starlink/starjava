@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     03-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 /**
@@ -15,12 +22,8 @@ package uk.ac.starlink.splat.util;
  * evalArray() and evalPoint() methods. A chi squared residual to the
  * fit can be obtained from the getChi() method.
  *
- * @since $Date$
- * @since 03-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000-2001 Central Laboratory of the Research
- *            Councils
  */
 public class LorentzFitter
     extends FunctionFitter
@@ -29,22 +32,27 @@ public class LorentzFitter
     /**
      * The scale factor.
      */
-    private double scale = 1.0;
+    protected double scale = 1.0;
 
     /**
      * The width.
      */
-    private double width = 1.0;
+    protected double width = 1.0;
 
     /**
      * The centre.
      */
-    private double centre = 0.0;
+    protected double centre = 0.0;
 
     /**
      * The chi square of the fit.
      */
-    private double chiSquare = 0.0;
+    protected double chiSquare = 0.0;
+
+    /**
+     * For sub-classes.
+     */
+    protected LorentzFitter() {}
 
     /**
      * Fit a lorentzian to unweighted data points.

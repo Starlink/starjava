@@ -88,10 +88,11 @@ public class AverageFilter
     {
         double[] result = new double[data.length];
 
-        // Initial sum, step half window ahead.
+        // Initial sum, step half window ahead, but only if half step
+        // is shorter than spectrum.
         int count = 0;
         double sum = 0.0;
-        int hw = window / 2;
+        int hw = Math.min( window / 2, data.length - 1 );
         for ( int i = 0; i <= hw; i++ ) {
             if ( data[i] != SpecData.BAD ) {
                 sum += data[i];
@@ -124,7 +125,6 @@ public class AverageFilter
             else {
                 result[i] = SpecData.BAD;
             }
-            System.out.println( result[i] + "( " + i + ", " + count+ ") )" );
         }
         return result;
     }
