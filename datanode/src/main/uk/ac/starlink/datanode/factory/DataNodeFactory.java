@@ -75,7 +75,6 @@ import uk.ac.starlink.util.FileDataSource;
  * <li> {@link uk.ac.starlink.datanode.nodes.CompressedDataNode}
  * <li> {@link uk.ac.starlink.datanode.nodes.FileDataNode}
  * <li> {@link uk.ac.starlink.datanode.nodes.BranchDataNode}
- * <li> {@link uk.ac.starlink.datanode.nodes.MyspaceContainerDataNode}
  * <li> {@link uk.ac.starlink.datanode.nodes.PlainDataNode}
  * </ul>
  * The factory will churn out a <code>DataNode</code> object based on
@@ -657,7 +656,6 @@ public class DataNodeFactory {
                 CompressedDataNode.class.getName(),
                 FileDataNode.class.getName(),
                 BranchDataNode.class.getName(),
-                "uk.ac.starlink.datanode.nodes.MyspaceContainerDataNode",
                 PlainDataNode.class.getName(),
             } ) );
 
