@@ -106,7 +106,7 @@ public class ColumnList implements TableColumnModelListener {
     }
 
     /**
-     * Returns the index int the table column model of a column at a given
+     * Returns the index in the table column model of a column at a given
      * index in this list.
      *
      * @param  jcol  list index
@@ -115,7 +115,6 @@ public class ColumnList implements TableColumnModelListener {
      *          if it's not in it
      */
     public int getModelIndex( int jcol ) {
-        int ncol = size();
         int i = 0;
         for ( int j = 0; j < jcol; j++ ) {
             if ( isActive( j ) ) {
@@ -144,12 +143,20 @@ public class ColumnList implements TableColumnModelListener {
         return ok;
     }
   
-    private int getActiveFromIndex( int iFrom ) {
+    /**
+     * Returns the index in this ColumnList corresponding to an index
+     * in the column model for a column which already exists in this list, 
+     * or -1 if it's off the end of the list.
+     *
+     * @param   i  TableColumnModel index
+     * @return   index in this list corresponding to <tt>i</tt>
+     */
+    private int getExistingActiveIndex( int i ) {
         int nActive = 0;
         int ncol = size();
         for ( int j = 0; j < ncol; j++ ) {
             if ( isActive( j ) ) {
-                if ( nActive++ == iFrom ) {
+                if ( nActive++ == i ) {
                     return j;
                 }
             }
@@ -157,11 +164,18 @@ public class ColumnList implements TableColumnModelListener {
         return -1;
     }
 
-    private int getActiveToIndex( int iTo ) {
+    /**
+     * Returns the index in this ColumnList corresponding to an index
+     * in the column model which doesn't yet exist in this list.
+     *
+     * @param  i  TableColumnModel index
+     * @return  new index in this list corresponding to <tt>i</tt>
+     */
+    private int getNewActiveIndex( int i ) {
         int nActive = 0;
         int ncol = size();
         for ( int j = 0; j < ncol; j++ ) {
-            if ( nActive == iTo ) {
+            if ( nActive == i ) {
                 return j;
             }
             if ( isActive( j ) ) {
@@ -180,7 +194,7 @@ public class ColumnList implements TableColumnModelListener {
         int iTo = evt.getToIndex();
         TableColumn tcol = columnModel.getColumn( iTo );
         if ( ! columnList.contains( tcol ) ) {
-            int jTo = getActiveToIndex( iTo );
+            int jTo = getNewActiveIndex( iTo );
             columnList.add( jTo, tcol );
             active.add( jTo, Boolean.TRUE );
         }
@@ -193,9 +207,9 @@ public class ColumnList implements TableColumnModelListener {
 
     public void columnMoved( TableColumnModelEvent evt ) {
         int iFrom = evt.getFromIndex();
-        int jFrom = getActiveFromIndex( iFrom );
+        int jFrom = getExistingActiveIndex( iFrom );
         int iTo = evt.getToIndex();
-        int jTo = getActiveToIndex( iTo );
+        int jTo = getExistingActiveIndex( iTo );
         TableColumn tcol = columnModel.getColumn( iTo );
         if ( tcol == columnList.get( jFrom ) && iFrom != iTo ) {
             assert isActive( jFrom );
@@ -208,7 +222,7 @@ public class ColumnList implements TableColumnModelListener {
 
     public void columnRemoved( TableColumnModelEvent evt ) {
         int iFrom = evt.getFromIndex();
-        int jFrom = getActiveFromIndex( iFrom );
+        int jFrom = getExistingActiveIndex( iFrom );
         assert isActive( jFrom );
         active.set( jFrom, Boolean.FALSE );
         assert invariants();
