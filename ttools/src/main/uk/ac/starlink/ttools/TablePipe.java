@@ -41,6 +41,7 @@ public class TablePipe extends TableTask {
 
     private final static String[] FILTER_NAMES = new String[] {
         SelectFilter.class.getName(),
+        EveryFilter.class.getName(),
         AddColumnFilter.class.getName(),
         KeepColumnFilter.class.getName(),
         DeleteColumnFilter.class.getName(),
@@ -102,7 +103,13 @@ public class TablePipe extends TableTask {
                          ProcessingFilter filter = filters_[ i ];
                          if ( arg.equals( "-" + filter.getName() ) ) {
                              it.remove();
-                             ProcessingStep step = filter.createStep( it );
+                             ProcessingStep step = null;
+                             try { 
+                                 step = filter.createStep( it );
+                             }
+                             catch ( IllegalArgumentException e ) {
+                                 System.err.println( e.getMessage() );
+                             }
                              if ( step == null ) {
                                  String fname = filter.getName();
                                  String fusage = filter.getFilterUsage();
