@@ -16,3 +16,6 @@ Miscelleaneous directories.
 
   webapps/lib is copy of webapps/axis/WEB_INF/lib, what is this for,
   I suspect it can be removed.
+
+The log4j jar files have been removed. This should mean that the Java 1.4
+logging system is used, which is more compatible with our system.
