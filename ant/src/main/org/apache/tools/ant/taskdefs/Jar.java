@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
@@ -66,24 +29,28 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
+import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.ZipFileSet;
 import org.apache.tools.zip.ZipOutputStream;
 
-
 /**
  * Creates a JAR archive.
- *
- * @author James Davidson <a href="mailto:duncan@x180.com">duncan@x180.com</a>
- * @author Brian Deitte
- *         <a href="mailto:bdeitte@macromedia.com">bdeitte@macromedia.com</a>
  *
  * @since Ant 1.1
  *
@@ -93,7 +60,7 @@ public class Jar extends Zip {
     /** The index file name. */
     private static final String INDEX_NAME = "META-INF/INDEX.LIST";
 
-    /** The mainfest file name. */
+    /** The manifest file name. */
     private static final String MANIFEST_NAME = "META-INF/MANIFEST.MF";
 
     /** merged manifests added through addConfiguredManifest */
@@ -104,7 +71,7 @@ public class Jar extends Zip {
     /**  merged manifests added through filesets */
     private Manifest filesetManifest;
 
-    /** 
+    /**
      * Manifest of original archive, will be set to null if not in
      * update mode.
      */
@@ -117,11 +84,6 @@ public class Jar extends Zip {
     private FilesetManifestConfig filesetManifestConfig;
 
     /**
-     *  Whether to create manifest file on finalizeOutputStream?
-     */
-    private boolean manifestOnFinalize = true;
-
-    /**
      * whether to merge the main section of fileset manifests;
      * value is true if filesetmanifest is 'merge'
      */
@@ -132,7 +94,7 @@ public class Jar extends Zip {
 
     /** The encoding to use when reading in a manifest file */
     private String manifestEncoding;
-    
+
     /**
      * The file found from the 'manifest' attribute.  This can be
      * either the location of a manifest, or the name of a jar added
@@ -144,11 +106,29 @@ public class Jar extends Zip {
     /** jar index is JDK 1.3+ only */
     private boolean index = false;
 
-    /** 
+    /**
      * whether to really create the archive in createEmptyZip, will
      * get set in getResourcesToAdd.
      */
     private boolean createEmpty = false;
+
+    /**
+     * Stores all files that are in the root of the archive (i.e. that
+     * have a name that doesn't contain a slash) so they can get
+     * listed in the index.
+     *
+     * Will not be filled unless the user has asked for an index.
+     *
+     * @since Ant 1.6
+     */
+    private Vector rootEntries;
+
+    /**
+     * Path containing jars that shall be indexed in addition to this archive.
+     *
+     * @since Ant 1.6.2
+     */
+    private Path indexJars;
 
     /** constructor */
     public Jar() {
@@ -156,6 +136,7 @@ public class Jar extends Zip {
         archiveType = "jar";
         emptyBehavior = "create";
         setEncoding("UTF8");
+        rootEntries = new Vector();
     }
 
     /**
@@ -177,7 +158,7 @@ public class Jar extends Zip {
      * Set whether or not to create an index list for classes.
      * This may speed up classloading in some cases.
      */
-    public void setIndex(boolean flag){
+    public void setIndex(boolean flag) {
         index = flag;
     }
 
@@ -215,8 +196,8 @@ public class Jar extends Zip {
      */
     public void setManifest(File manifestFile) {
         if (!manifestFile.exists()) {
-            throw new BuildException("Manifest file: " + manifestFile +
-                                     " does not exist.", getLocation());
+            throw new BuildException("Manifest file: " + manifestFile
+                                     + " does not exist.", getLocation());
         }
 
         this.manifestFile = manifestFile;
@@ -263,12 +244,12 @@ public class Jar extends Zip {
         ZipFile zf = null;
         try {
             zf = new ZipFile(jarFile);
-            
+
             // must not use getEntry as "well behaving" applications
             // must accept the manifest in any capitalization
-            Enumeration enum = zf.entries();
-            while (enum.hasMoreElements()) {
-                ZipEntry ze = (ZipEntry) enum.nextElement();
+            Enumeration e = zf.entries();
+            while (e.hasMoreElements()) {
+                ZipEntry ze = (ZipEntry) e.nextElement();
                 if (ze.getName().equalsIgnoreCase(MANIFEST_NAME)) {
                     InputStreamReader isr =
                         new InputStreamReader(zf.getInputStream(ze), "UTF-8");
@@ -316,12 +297,16 @@ public class Jar extends Zip {
      *
      * @param config setting for found manifest behavior.
      */
-    /*
     public void setFilesetmanifest(FilesetManifestConfig config) {
         filesetManifestConfig = config;
         mergeManifestsMain = "merge".equals(config.getValue());
+
+        if (filesetManifestConfig != null
+            && !filesetManifestConfig.getValue().equals("skip")) {
+
+            doubleFilePass = true;
+        }
     }
-    */
 
     /**
      * Adds a zipfileset to include in the META-INF directory.
@@ -334,11 +319,20 @@ public class Jar extends Zip {
         super.addFileset(fs);
     }
 
+    /**
+     * @since Ant 1.6.2
+     */
+    public void addConfiguredIndexJars(Path p) {
+        if (indexJars == null) {
+            indexJars = new Path(getProject());
+        }
+        indexJars.append(p);
+    }
+
     protected void initZipOutputStream(ZipOutputStream zOut)
         throws IOException, BuildException {
-        if (filesetManifestConfig == null
-            || filesetManifestConfig.getValue().equals("skip")) {
-            manifestOnFinalize = false;
+
+        if (!skipWriting) {
             Manifest jarManifest = createManifest();
             writeManifest(zOut, jarManifest);
         }
@@ -381,7 +375,7 @@ public class Jar extends Zip {
     }
 
     private void writeManifest(ZipOutputStream zOut, Manifest manifest)
-         throws IOException {
+        throws IOException {
         for (Enumeration e = manifest.getWarnings();
              e.hasMoreElements();) {
             log("Manifest warning: " + (String) e.nextElement(),
@@ -405,11 +399,7 @@ public class Jar extends Zip {
     }
 
     protected void finalizeZipOutputStream(ZipOutputStream zOut)
-            throws IOException, BuildException {
-        if (manifestOnFinalize) {
-            Manifest jarManifest = createManifest();
-            writeManifest(zOut, jarManifest);
-        }
+        throws IOException, BuildException {
 
         if (index) {
             createIndexList(zOut);
@@ -419,7 +409,7 @@ public class Jar extends Zip {
     /**
      * Create the index list to speed up classloading.
      * This is a JDK 1.3+ specific feature and is enabled by default. See
-     * <a href="http://java.sun.com/j2se/1.3/docs/guide/jar/jar.html#JAR+Index">
+     * <a href="http://java.sun.com/j2se/1.3/docs/guide/jar/jar.html#JAR%20Index">
      * the JAR index specification</a> for more details.
      *
      * @param zOut the zip stream representing the jar being built.
@@ -439,29 +429,38 @@ public class Jar extends Zip {
         // header newline
         writer.println(zipFile.getName());
 
-        // JarIndex is sorting the directories by ascending order.
-        // it's painful to do in JDK 1.1 and it has no value but cosmetic
-        // since it will be read into a hashtable by the classloader.
-        Enumeration enum = addedDirs.keys();
-        while (enum.hasMoreElements()) {
-            String dir = (String) enum.nextElement();
+        writeIndexLikeList(new ArrayList(addedDirs.keySet()), 
+                           rootEntries, writer);
+        writer.println();
 
-            // try to be smart, not to be fooled by a weird directory name
-            // @fixme do we need to check for directories starting by ./ ?
-            dir = dir.replace('\\', '/');
-            int pos = dir.lastIndexOf('/');
-            if (pos != -1){
-                dir = dir.substring(0, pos);
+        if (indexJars != null) {
+            Manifest mf = createManifest();
+            Manifest.Attribute classpath =
+                mf.getMainSection().getAttribute(Manifest.ATTRIBUTE_CLASSPATH);
+            String[] cpEntries = null;
+            if (classpath != null) {
+                StringTokenizer tok = new StringTokenizer(classpath.getValue(),
+                                                          " ");
+                cpEntries = new String[tok.countTokens()];
+                int c = 0;
+                while (tok.hasMoreTokens()) {
+                    cpEntries[c++] = tok.nextToken();
+                }
             }
-
-            // looks like nothing from META-INF should be added
-            // and the check is not case insensitive.
-            // see sun.misc.JarIndex
-            if (dir.startsWith("META-INF")) {
-                continue;
+            String[] indexJarEntries = indexJars.list();
+            for (int i = 0; i < indexJarEntries.length; i++) {
+                String name = findJarName(indexJarEntries[i], cpEntries);
+                if (name != null) {
+                    ArrayList dirs = new ArrayList();
+                    ArrayList files = new ArrayList();
+                    grabFilesAndDirs(indexJarEntries[i], dirs, files);
+                    if (dirs.size() + files.size() > 0) {
+                        writer.println(name);
+                        writeIndexLikeList(dirs, files, writer);
+                        writer.println();
+                    }
+                }
             }
-            // name newline
-            writer.println(dir);
         }
 
         writer.flush();
@@ -472,14 +471,23 @@ public class Jar extends Zip {
     }
 
     /**
-     * Overriden from Zip class to deal with manifests
+     * Overridden from Zip class to deal with manifests and index lists.
      */
     protected void zipFile(InputStream is, ZipOutputStream zOut, String vPath,
                            long lastModified, File fromArchive, int mode)
         throws IOException {
         if (MANIFEST_NAME.equalsIgnoreCase(vPath))  {
-            filesetManifest(fromArchive, is);
+            if (!doubleFilePass || (doubleFilePass && skipWriting)) {
+                filesetManifest(fromArchive, is);
+            }
+        } else if (INDEX_NAME.equalsIgnoreCase(vPath) && index) {
+            log("Warning: selected " + archiveType
+                + " files include a META-INF/INDEX.LIST which will"
+                + " be replaced by a newly generated one.", Project.MSG_WARN);
         } else {
+            if (index && vPath.indexOf("/") == -1) {
+                rootEntries.addElement(vPath);
+            }
             super.zipFile(is, zOut, vPath, lastModified, fromArchive, mode);
         }
     }
@@ -502,11 +510,11 @@ public class Jar extends Zip {
                     manifest = getManifest(file);
                 }
             } catch (UnsupportedEncodingException e) {
-                throw new BuildException("Unsupported encoding while reading " 
+                throw new BuildException("Unsupported encoding while reading "
                     + "manifest: " + e.getMessage(), e);
             }
-        } else if (filesetManifestConfig != null &&
-                   !filesetManifestConfig.getValue().equals("skip")) {
+        } else if (filesetManifestConfig != null
+                    && !filesetManifestConfig.getValue().equals("skip")) {
             // we add this to our group of fileset manifests
             log("Found manifest to merge in file " + file,
                 Project.MSG_VERBOSE);
@@ -531,7 +539,7 @@ public class Jar extends Zip {
                     filesetManifest.merge(newManifest);
                 }
             } catch (UnsupportedEncodingException e) {
-                throw new BuildException("Unsupported encoding while reading " 
+                throw new BuildException("Unsupported encoding while reading "
                     + "manifest: " + e.getMessage(), e);
             } catch (ManifestException e) {
                 log("Manifest in file " + file + " is invalid: "
@@ -597,7 +605,7 @@ public class Jar extends Zip {
                 } else {
                     Manifest mf = createManifest();
                     if (!mf.equals(originalManifest)) {
-                        log("Updating jar since jar manifest has changed", 
+                        log("Updating jar since jar manifest has changed",
                             Project.MSG_VERBOSE);
                         needsUpdate = true;
                     }
@@ -621,10 +629,10 @@ public class Jar extends Zip {
         if (!createEmpty) {
             return true;
         }
-        
+
         ZipOutputStream zOut = null;
         try {
-            log("Building MANIFEST-only jar: " 
+            log("Building MANIFEST-only jar: "
                 + getDestFile().getAbsolutePath());
             zOut = new ZipOutputStream(new FileOutputStream(getDestFile()));
 
@@ -662,9 +670,14 @@ public class Jar extends Zip {
     protected void cleanUp() {
         super.cleanUp();
 
-        manifest = null;
-        configuredManifest = savedConfiguredManifest;
-        filesetManifest = null;
+        // we want to save this info if we are going to make another pass
+        if (!doubleFilePass || (doubleFilePass && !skipWriting)) {
+            manifest = null;
+            configuredManifest = savedConfiguredManifest;
+            filesetManifest = null;
+            originalManifest = null;
+        }
+        rootEntries.removeAllElements();
     }
 
     /**
@@ -686,6 +699,151 @@ public class Jar extends Zip {
     public static class FilesetManifestConfig extends EnumeratedAttribute {
         public String[] getValues() {
             return new String[] {"skip", "merge", "mergewithoutmain"};
+        }
+    }
+
+    /**
+     * Writes the directory entries from the first and the filenames
+     * from the second list to the given writer, one entry per line.
+     *
+     * @since Ant 1.6.2
+     */
+    protected final void writeIndexLikeList(List dirs, List files,
+                                            PrintWriter writer)
+        throws IOException {
+        // JarIndex is sorting the directories by ascending order.
+        // it has no value but cosmetic since it will be read into a
+        // hashtable by the classloader, but we'll do so anyway.
+        Collections.sort(dirs);
+        Collections.sort(files);
+        Iterator iter = dirs.iterator();
+        while (iter.hasNext()) {
+            String dir = (String) iter.next();
+
+            // try to be smart, not to be fooled by a weird directory name
+            dir = dir.replace('\\', '/');
+            if (dir.startsWith("./")) {
+                dir = dir.substring(2);
+            }
+            while (dir.startsWith("/")) {
+                dir = dir.substring(1);
+            }
+            int pos = dir.lastIndexOf('/');
+            if (pos != -1) {
+                dir = dir.substring(0, pos);
+            }
+
+            // looks like nothing from META-INF should be added
+            // and the check is not case insensitive.
+            // see sun.misc.JarIndex
+            if (dir.startsWith("META-INF")) {
+                continue;
+            }
+            // name newline
+            writer.println(dir);
+        }
+
+        iter = files.iterator();
+        while (iter.hasNext()) {
+            writer.println(iter.next());
+        }
+    }
+
+    /**
+     * try to guess the name of the given file.
+     *
+     * <p>If this jar has a classpath attribute in its manifest, we
+     * can assume that it will only require an index of jars listed
+     * there.  try to find which classpath entry is most likely the
+     * one the given file name points to.</p>
+     *
+     * <p>In the absence of a classpath attribute, assume the other
+     * files will be placed inside the same directory as this jar and
+     * use their basename.</p>
+     *
+     * <p>if there is a classpath and the given file doesn't match any
+     * of its entries, return null.</p>
+     *
+     * @since Ant 1.7
+     */
+    protected static final String findJarName(String fileName, 
+                                              String[] classpath) {
+        if (classpath == null) {
+            return (new File(fileName)).getName();
+        }
+        fileName = fileName.replace(File.separatorChar, '/');
+        TreeMap matches = new TreeMap(new Comparator() {
+                // longest match comes first
+                public int compare(Object o1, Object o2) {
+                    if (o1 instanceof String && o2 instanceof String) {
+                        return ((String) o2).length()
+                            - ((String) o1).length();
+                    }
+                    return 0;
+                }
+            });
+
+        for (int i = 0; i < classpath.length; i++) {
+            if (fileName.endsWith(classpath[i])) {
+                matches.put(classpath[i], classpath[i]);
+            } else {
+                int slash = classpath[i].indexOf("/");
+                String candidate = classpath[i];
+                while (slash > -1) {
+                    candidate = candidate.substring(slash + 1);
+                    if (fileName.endsWith(candidate)) {
+                        matches.put(candidate, classpath[i]);
+                        break;
+                    }
+                    slash = candidate.indexOf("/");
+                }
+            }
+        }
+                        
+        return matches.size() == 0 
+            ? null : (String) matches.get(matches.firstKey());
+    }
+
+    /**
+     * Grab lists of all root-level files and all directories
+     * contained in the given archive.
+     *
+     * @since Ant 1.7
+     */
+    protected static final void grabFilesAndDirs(String file, List dirs, 
+                                                 List files)
+        throws IOException {
+        org.apache.tools.zip.ZipFile zf = null;
+        try {
+            zf = new org.apache.tools.zip.ZipFile(file, "utf-8");
+            Enumeration entries = zf.getEntries();
+            HashSet dirSet = new HashSet();
+            while (entries.hasMoreElements()) {
+                org.apache.tools.zip.ZipEntry ze = 
+                    (org.apache.tools.zip.ZipEntry) entries.nextElement();
+                String name = ze.getName();
+                // META-INF would be skipped anyway, avoid index for
+                // manifest-only jars.
+                if (!name.startsWith("META-INF/")) {
+                    if (ze.isDirectory()) {
+                        dirSet.add(name);
+                    } else if (name.indexOf("/") == -1) {
+                        files.add(name);
+                    } else {
+                        // a file, not in the root
+                        // since the jar may be one without directory
+                        // entries, add the parent dir of this file as
+                        // well.
+                        dirSet.add(name.substring(0, 
+                                                  name.lastIndexOf("/") + 1));
+                    }
+                }
+            }
+            dirs.addAll(dirSet);
+        } finally {
+            if (zf != null) {
+                zf.close();
+            }
         }
     }
 }
