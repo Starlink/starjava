@@ -261,7 +261,8 @@ public class FitsStarTable extends RandomStarTable {
     private Object packageValue( Object base, int icol ) {
 
         /* Scalar data is normally returned as a 1-element array. */
-        Class cls = base.getClass().getComponentType();
+        Class bcls = base.getClass();
+        Class cls = bcls.isArray() ? bcls.getComponentType() : null;
         if ( cls != null && Array.getLength( base ) == 1 ) {
             boolean hasblank = hasBlank[ icol ];
             long blank = blanks[ icol ]; 
@@ -327,7 +328,7 @@ public class FitsStarTable extends RandomStarTable {
         /* If it's not a 1-element array, it may be an array of arrays;
          * we would rather have a 'flattened' 1-d array (multidimensionality
          * is handled elsewhere). */
-        if ( cls != null && cls.getComponentType() != null ) {
+        if ( cls != null && cls.isArray() ) {
             return ArrayFuncs.flatten( base );
         }
 
@@ -355,7 +356,7 @@ public class FitsStarTable extends RandomStarTable {
      * @return  the class that <tt>packageValue(base,icol)</tt> 
      *          would return an instance of
      */
-    private Class packagedType( Object base, int icol  ) {
+    private Class packagedType( Object base, int icol ) {
 
         Class cls = base.getClass().getComponentType();
         if ( cls != null && Array.getLength( base ) == 1 ) {
@@ -388,7 +389,7 @@ public class FitsStarTable extends RandomStarTable {
                 return String.class;
             }
         }
-        else if ( cls != null && cls.getComponentType() != null ) {
+        else if ( cls != null && cls.isArray() ) {
             return ArrayFuncs.flatten( base ).getClass();
         }
         return base.getClass();

@@ -13,6 +13,7 @@ import uk.ac.starlink.array.ArrayImpl;
 import uk.ac.starlink.array.Order;
 import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.Type;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * ArrayImpl implementation for reading data from a FITS stream.
@@ -186,9 +187,7 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                     ((RandomAccess) stream).seek( strmBase + ( off * nByte ) );
                 }
                 else {
-                    for ( long nskip = ( off - offset ) * nByte; nskip > 0; ) {
-                        nskip -= stream.skip( nskip );
-                    }
+                    IOUtils.skipBytes( stream, ( off - offset ) * nByte );
                 }
                 offset = off;
             }

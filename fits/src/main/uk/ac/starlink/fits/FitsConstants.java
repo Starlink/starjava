@@ -18,6 +18,7 @@ import uk.ac.starlink.array.Type;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * Utility class providing some constants and static methods related to 
@@ -110,9 +111,7 @@ public class FitsConstants {
         try {
             while ( nskip-- > 0 ) {
                 Header hdr = new Header( stream );
-                for ( long hbytes = getDataSize( hdr ); hbytes > 0; ) {
-                    hbytes -= stream.skip( hbytes );
-                }
+                IOUtils.skipBytes( stream, getDataSize( hdr ) );
             }
         }
         catch ( TruncatedFileException e ) {
@@ -287,9 +286,9 @@ public class FitsConstants {
 
         int pad = FitsUtil.padding( count * 80 );
         try {
-            strm.skipBytes( pad );
+            IOUtils.skipBytes( strm, pad );
         }
-        catch ( IOException e ) {
+        catch ( EOFException e ) {
             throw new TruncatedFileException( e.getMessage() );
         }
 
