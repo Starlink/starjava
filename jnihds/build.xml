@@ -783,6 +783,8 @@
       <filelist dir="/" files="${files}"/>
     </listdelete>
 
+    <delete file="${install.log}"/>
+
   </target>
 
 
