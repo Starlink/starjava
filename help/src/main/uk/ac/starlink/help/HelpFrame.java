@@ -3,9 +3,9 @@
  *
  *  History:
  *     06-NOV-2000 (Peter W. Draper):
- *       Original version.
+ *        Original version.
  *     13-FEB-2004 (Peter W. Draper):
- *       Refactored into help package from SPLAT..
+ *        Refactored into help package from SPLAT..
  */
 package uk.ac.starlink.help;
 
@@ -43,12 +43,12 @@ import uk.ac.starlink.util.gui.BasicFontChooser;
  * ability to select a font and to define a proxy server for hyperlinks that
  * leave the local system.
  * <p>
- * This class also offers an Action implementation for adding Help
- * menus and toolbar actions.
+ * This class also offers an Action implementation for adding Help menus and
+ * toolbar actions.
  * <p>
- * When closed this window will be hidden, not disposed. If this
- * therefore necessary that the user disposes of it when it is really
- * no longer required.
+ * When closed this window will be hidden, not disposed. It is therefore
+ * necessary that the user disposes of it when it is really no longer
+ * required.
  * <p>
  * Example usage:
  * <pre>
@@ -74,7 +74,7 @@ public class HelpFrame
      * The HelpSet that contains the help system descriptions (TOC,
      * views etc.).
      */
-    protected static HelpSet helpSet = new HelpSet( null );
+    protected static HelpSet helpSet = null;
 
     /**
      * The window title.
@@ -118,12 +118,18 @@ public class HelpFrame
     }
     
     /**
-     * Add a HelpSet.
+     * Add a HelpSet, must do this at least once before a request to display
+     * help is made.
      */
     public static void addHelpSet( URL helpSetURL )
     {
         try {
-            helpSet.add( new HelpSet( null, helpSetURL ) );
+            if ( helpSet == null ) {
+                helpSet = new HelpSet( null, helpSetURL );
+            }
+            else {
+                helpSet.add( new HelpSet( null, helpSetURL ) );
+            }
         }
         catch (HelpSetException e) {
             JOptionPane.showMessageDialog( null, e.getMessage(),
