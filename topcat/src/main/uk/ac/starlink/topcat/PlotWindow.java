@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -75,6 +76,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     private StarTable dataModel;
     private TableColumnModel columnModel;
     private OptionsListModel subsets;
+    private Map subsetCounts;
     private JComboBox xColBox;
     private JComboBox yColBox;
     private JCheckBox xLogBox;
@@ -97,7 +99,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         new ActionEvent( new Object(), 0, null );
 
     /**
-     * Constructs a PlotWindow for a given <tt>TableViewer</tt>.
+     * Constructs a PlotWindow for a given <tt>TableModel</tt> and 
+     * <tt>TableColumnModel</tt>.
      *
      * @param   tableviewer  the viewer whose data are to be plotted
      */
@@ -107,6 +110,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         this.dataModel = tv.getDataModel();
         this.columnModel = tv.getColumnModel();
         this.subsets = tv.getSubsets();
+        this.subsetCounts = tv.getSubsetCounts();
 
         /* Do some window setup. */
         setSize( 400, 400 );
@@ -321,7 +325,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             bgroup.add( item );
         }
 
-        /* Action for redrawing the current plot. */
+        /* Action for repdrawing the current plot. */
         Action replotAction = new BasicAction( "Replot", ResourceIcon.REDO,
                                  "Redraw the plot with current table data" ) {
             public void actionPerformed( ActionEvent evt ) {
@@ -807,6 +811,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             RowSubset[] rsets = state.subsetMask;
             int nrsets = rsets.length;
             boolean[] inclusions = new boolean[ nrsets ];
+            long[] counts = new long[ nrsets ];
 
             /* Iterate over the rows in the table. */
             long ngood = 0;
@@ -825,6 +830,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 for ( int i = 0; i < nrsets; i++ ) {
                     RowSubset rset = rsets[ i ];
                     boolean in = ( rset != null ) && rset.isIncluded( lrow );
+                    if ( in ) {
+                        counts[ i ]++;
+                    }
                     inclusions[ i ] = in;
                     any = any || in;
                 }
@@ -860,6 +868,24 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                         sincePaint = now;
                     }
                 }
+            }
+
+            /* If we finished successfully, update the subset row counts
+             * which we have calculated for free. */
+            int lo = -1;
+            int hi = lo;
+            for ( int i = 0; i < nrsets; i++ ) {
+                RowSubset rset = rsets[ i ];
+                if ( rset != null ) {
+                    subsetCounts.put( rset, new Long( counts[ i ] ) );
+                    if ( lo < 0 ) {
+                        lo = i;
+                    }
+                    hi = i;
+                }
+            }
+            if ( lo >= 0 ) {
+                subsets.fireContentsChanged( lo, hi );
             }
         }
     }

@@ -25,6 +25,14 @@ are as follows:
 <dd>A name used to identify the subset.  It is ideally, but not necessarily,
     unique.
 
+<dt>Size
+<dd>The number of rows in this subset.  This column is initially blank,
+    and is not guaranteed to remain correct if the subset definitions
+    or the table data change, since counting may be an expensive 
+    process so it is not automatically done with every change.
+    A count can be forced by using the 'Count Subsets' button described
+    below.
+
 <dt>Expression
 <dd>If the subset has been defined by an algebraic expression, this will be
     here.  It can be edited to change the expression.
@@ -50,6 +58,11 @@ are as follows:
     appropriately to add a new boolean column to the table based on 
     the selected subset.  You can either accept it as is, or 
     modify some of the fields.
+
+<dt><img src-"../images/ab3.gif">Count Subsets
+<dd>Counts how many rows are in each subset and displays this in the
+    'size' columns.  This forces a count or recount to fill in or
+    update these values.
 
 </body>
 </html>

@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ComboBoxModel;
@@ -83,6 +85,7 @@ public class TableViewer extends AuxWindow
     private ViewerTableModel viewModel;
     private TableColumnModel columnModel;
     private OptionsListModel subsets;
+    private Map subsetCounts;
 
     private JTable jtab;
     private TableRowHeader rowHead;
@@ -166,6 +169,11 @@ public class TableViewer extends AuxWindow
         /* Initialise subsets list. */
         subsets = new OptionsListModel();
         subsets.add( RowSubset.ALL );
+
+        /* Initialise count of subsets. */
+        subsetCounts = new HashMap();
+        subsetCounts.put( RowSubset.NONE, new Long( 0 ) );
+        subsetCounts.put( RowSubset.ALL, new Long( startab.getRowCount() ) );
 
         /* Create and configure actions. */
         newAct = new ViewerAction( "Open", ResourceIcon.LOAD, 
@@ -432,6 +440,20 @@ public class TableViewer extends AuxWindow
     }
 
     /**
+     * Returns the Map which contains the number of rows believed to be
+     * in each subset.  The keys of this map are the subsets themselves,
+     * and the values are Long objects giving the row counts.
+     * If the subset has not been counted, it will not appear in the map.
+     * The count in the map may not be accurate, if the table data or
+     * subset definitions have changed since the count was last done.
+     *
+     * @return  subset count map
+     */
+    public Map getSubsetCounts() {
+        return subsetCounts;
+    }
+
+    /**
      * Sets the viewer to view a given StarTable.
      * The given table must provide random access.
      *
@@ -584,6 +606,15 @@ public class TableViewer extends AuxWindow
     public void applySubset( RowSubset rset ) {
         if ( rset != viewModel.getSubset() ) {
             viewModel.setSubset( rset );
+
+            /* Since we have calculated the number of rows in the subset for
+             * free, update the count model. */
+            long nrow = (long) viewModel.getRowCount();
+            subsetCounts.put( rset, new Long( viewModel.getRowCount() ) );
+            int irset = subsets.indexOf( rset );
+            if ( irset >= 0 ) {
+                subsets.fireContentsChanged( irset, irset );
+            }
         }
         if ( rset != subSelector.getSelectedItem() ) {
             subSelector.setSelectedItem( rset );

@@ -5,10 +5,13 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.swing.Action;
 import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
+import javax.swing.JProgressBar;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
@@ -28,9 +31,12 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
     private final TableViewer tv;
     private final OptionsListModel subsets;
+    private final Map subsetCounts;
     private final PlasticStarTable dataModel;
     private final AbstractTableModel subsetsTableModel;
     private JTable jtab;
+    private JProgressBar progBar;
+    private SubsetCounter activeCounter;
 
     /**
      * Constructs a new SubsetWindow from a TableViewer;
@@ -41,6 +47,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         super( "Row Subsets", tableviewer );
         this.tv = tableviewer;
         this.subsets = tv.getSubsets();
+        this.subsetCounts = tv.getSubsetCounts();
         this.dataModel = tv.getDataModel();
 
         /* Get a model for the table containing the bulk of the data. */
@@ -49,6 +56,9 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         /* Prepare to update dynamically in response to changes to the 
          * subset list. */
         subsets.addListDataListener( this );
+
+        /* Place a progress bar. */
+        progBar = placeProgressBar();
 
         /* Construct and place a JTable to contain it. */
         jtab = new JTable( subsetsTableModel );
@@ -60,6 +70,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         int icol = 0;
         tcm.getColumn( icol++ ).setPreferredWidth( 64 );
         tcm.getColumn( icol++ ).setPreferredWidth( 200 );
+        tcm.getColumn( icol++ ).setPreferredWidth( 80 );
         tcm.getColumn( icol++ ).setPreferredWidth( 200 );
         tcm.getColumn( icol++ ).setPreferredWidth( 80 );
 
@@ -92,6 +103,20 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 }
            };
 
+        /* Action for counting subset sizes. */
+        final Action countAction = 
+            new BasicAction( "Count rows", ResourceIcon.COUNT,
+                             "Count the number of rows in each subset" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    if ( activeCounter != null ) {
+                        activeCounter.interrupt();
+                    }
+                    SubsetCounter sc = new SubsetCounter();
+                    activeCounter = sc;
+                    sc.start();
+                }
+            };
+
         /* Add a selection listener to ensure that the right actions 
          * are enabled/disabled. */
         ListSelectionListener selList = new ListSelectionListener() {
@@ -108,16 +133,18 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         /* Toolbar. */
         getToolBar().add( addAction );
         getToolBar().add( tocolAction );
+        getToolBar().add( countAction );
         getToolBar().addSeparator();
 
         /* Menu. */
         JMenu subsetsMenu = new JMenu( "Subsets" );
         subsetsMenu.add( addAction ).setIcon( null );
         subsetsMenu.add( tocolAction ).setIcon( null );
+        subsetsMenu.add( countAction ).setIcon( null );
         getJMenuBar().add( subsetsMenu );
 
         /* Add standard help actions. */
-        addHelp( "RowSubset" );
+        addHelp( "SubsetWindow" );
 
         /* Make the component visible. */
         pack();
@@ -143,6 +170,13 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         MetaColumn nameCol = new MetaColumn( "Name", String.class, false ) {
             public Object getValue( int irow ) {
                 return getSubsetName( irow );
+            }
+        };
+
+        /* Size column. */
+        MetaColumn sizeCol = new MetaColumn( "Size", Long.class, false ) {
+            public Object getValue( int irow ) {
+                return getSubsetSize( irow );
             }
         };
 
@@ -194,6 +228,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         List cols = new ArrayList();
         cols.add( idCol );
         cols.add( nameCol );
+        cols.add( sizeCol );
         cols.add( exprCol );
         cols.add( colCol );
         return new MetaColumnTableModel( cols ) {
@@ -225,6 +260,31 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         return ((RowSubset) subsets.get( irow )).getName();
     }
 
+    /**
+     * Returns the subset size string for the subset at a given position
+     * in the subsets list (row in the presentation table).
+     *
+     * @param   irow  index into subsets list
+     * @return  subset count object (probably a Number or null)
+     */
+    private Object getSubsetSize( int irow ) {
+        RowSubset rset = (RowSubset) subsets.get( irow );
+        Number count = (Number) subsetCounts.get( rset );
+        return ( count == null || count.longValue() < 0 ) ? null : count;
+    }
+
+    /**
+     * Extend the dispose method to interrupt any pending calculations.
+     */
+    public void dispose() {
+        super.dispose();
+        if ( activeCounter != null ) {
+            activeCounter.interrupt();
+            activeCounter = null;
+            progBar.setValue( 0 );
+        }
+    }
+
     /*
      * Implementation of ListDataListener.
      */
@@ -236,6 +296,83 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     }
     public void intervalRemoved( ListDataEvent evt ) {
         subsetsTableModel.fireTableDataChanged();
+    }
+
+
+    /**
+     * Helper class which performs the counting of how many rows are in
+     * each subset.
+     */
+    private class SubsetCounter extends Thread {
+
+        private long currentRow;
+
+        public void run() {
+            count();
+        }
+   
+        /**
+         * Count the members of each known RowSubset.  When completed, 
+         * the subsetCounts map is updated and the subsets list notified
+         * that there are changes.
+         */
+        void count() {
+   
+            /* Prepare for the calculations. */
+            RowSubset[] rsets = (RowSubset[]) 
+                                subsets.toArray( new RowSubset[ 0 ] );
+            int nrset = rsets.length;
+            long nrow = dataModel.getRowCount();
+            long[] counts = new long[ nrset ];
+
+            /* Prepare the progress bar for use. */
+            progBar.setMaximum( (int) Math.min( (long) Integer.MAX_VALUE,
+                                                nrow ) );
+
+            /* Prepare an object which can update the progress bar. */
+            Runnable updater = new Runnable() {
+                public void run() {
+                    if ( activeCounter == SubsetCounter.this ) {
+                        progBar.setValue( (int) currentRow );
+                    }
+                }
+            };
+
+            /* Iterate over all the rows in the table. */
+            for ( currentRow = 0; currentRow < nrow && ! interrupted();
+                  currentRow++ ) {
+                SwingUtilities.invokeLater( updater );
+                for ( int i = 0; i < nrset; i++ ) {
+                    RowSubset rset = rsets[ i ];
+                    if ( rset.isIncluded( currentRow ) ) {
+                        counts[ i ]++;
+                    }
+                }
+            }
+
+            /* If we finished without being interrupted, act on the results
+             * we calculated. */
+            if ( currentRow == nrow ) {
+
+                /* Update the subset counts. */
+                for ( int i = 0; i < nrset; i++ ) {
+                    subsetCounts.put( rsets[ i ], new Long( counts[ i ] ) );
+                }
+
+                /* Notify listeners that the counts have changed. */
+                subsets.fireContentsChanged( 0, nrset - 1 );
+
+                /* Deactivate the progress bar. */
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        if ( activeCounter == SubsetCounter.this ) {
+                            activeCounter = null;
+                            progBar.setValue( 0 );
+                        }
+                    }
+                } );
+            }
+        }
     }
 
 }

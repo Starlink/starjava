@@ -190,6 +190,13 @@ public class StatsWindow extends AuxWindow {
             .append( ')' )
             .toString();
         setMainHeading( head );
+
+        /* Since we've worked out the subset count, update the count model. */
+        int irset = subsets.indexOf( rset );
+        if ( irset >= 0 ) {
+            tv.getSubsetCounts().put( rset, new Long( nrow ) );
+            subsets.fireContentsChanged( irset, irset );
+        }
     }
 
     /**
