@@ -18,7 +18,7 @@ import uk.ac.starlink.array.OrderedNDShape;
  * as well as their numeric type, as well as how to decode various objects
  * into the objects they represent.
  * <p>
- * <h3>Value decoding<a name="decoding"></a></h3>
+ * <h3><a name="decoding"></a>Value decoding</h3>
  * The various <tt>decode</tt> methods turn some kind of representation of
  * the given object into a standard representation.  The standard 
  * representation is based on the dimensionality and type of the datatype
@@ -50,7 +50,7 @@ public abstract class Datatype {
      *
      * @param   txt  a string encoding one or many values
      * @return  an object containing the decoded values
-     * @see     #decoding
+     * @see     <a href="#decoding">Value decoding</a>
      */
     public abstract Object decodeString( String txt );
 
@@ -63,7 +63,7 @@ public abstract class Datatype {
      *          All the base arrays must be of the same primitive or
      *          object type.
      * @return  an object containing the decoded values
-     * @see     #decoding
+     * @see     <a href="#decoding">Value decoding</a>
      */
     public Object decodeArrayOfArrays( Object aoa ) {
         return packageArray( vectorise( aoa ) );
