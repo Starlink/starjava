@@ -22,7 +22,8 @@ public class Conversions {
      * @return  a string representation of <code>value</code>
      */
     public static String toString( double value ) {
-        return Double.toString( value );
+        return value == (double) (long) value ? Long.toString( (long) value )
+                                              : Double.toString( value );
     }
 
     /**
@@ -62,6 +63,18 @@ public class Conversions {
     }
 
     /**
+     * Attempts to interpret a string as a long (32-bit signed integer) value.
+     * If the input string can't be interpreted in this way, a blank 
+     * value will result.
+     *
+     * @param  str  string containing numeric representation
+     * @return  byte value of <code>str</code>
+     */
+    public static long parseLong( String str ) {
+        return Long.parseLong( str );
+    }
+
+    /**
      * Attempts to interpret a string as a float (32-bit floating point) value.
      * If the input string can't be interpreted in this way, a blank 
      * value will result.
@@ -94,7 +107,9 @@ public class Conversions {
      * @return  <code>value</code> converted to type byte
      */
     public static byte toByte( double value ) {
-        if ( value < Byte.MIN_VALUE || value > Byte.MAX_VALUE ) {
+        if ( value < Byte.MIN_VALUE || 
+             value > Byte.MAX_VALUE ||
+             Double.isNaN( value ) ) {
             throw new NumberFormatException();
         }
         else {
@@ -111,7 +126,9 @@ public class Conversions {
      * @return  <code>value</code> converted to type short
      */
     public static short toShort( double value ) {
-        if ( value < Short.MIN_VALUE || value > Byte.MAX_VALUE ) {
+        if ( value < Short.MIN_VALUE || 
+             value > Short.MAX_VALUE ||
+             Double.isNaN( value ) ) {
             throw new NumberFormatException();
         }
         else {
@@ -128,7 +145,9 @@ public class Conversions {
      * @return  <code>value</code> converted to type int
      */
     public static int toInteger( double value ) {
-        if ( value < Integer.MIN_VALUE || value > Integer.MAX_VALUE ) {
+        if ( value < Integer.MIN_VALUE ||
+             value > Integer.MAX_VALUE ||
+             Double.isNaN( value ) ) {
             throw new NumberFormatException();
         }
         else {
@@ -145,7 +164,9 @@ public class Conversions {
      * @return  <code>value</code> converted to type long 
      */
     public static long toLong( double value ) {
-        if ( value < Long.MIN_VALUE || value > Long.MAX_VALUE ) {
+        if ( value < Long.MIN_VALUE ||
+             value > Long.MAX_VALUE ||
+             Double.isNaN( value ) ) {
             throw new NumberFormatException();
         }
         else {
