@@ -3,6 +3,7 @@ package uk.ac.starlink.hds;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +14,7 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.TransformerException;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDArrays;
@@ -79,7 +81,7 @@ public class NDFNdxTest extends TestCase {
         super( name );
     }
 
-    public void testHandler() throws IOException, TransformerException {
+    public void testHandler() throws Exception {
 
         NdxHandler handler = NDFNdxHandler.getInstance();
 
@@ -102,6 +104,22 @@ public class NDFNdxTest extends TestCase {
         ndxio.outputNdx( xloc, ndx );
         Ndx xndx = ndxio.makeNdx( xloc, AccessMode.READ );
         assertNdxEqual( ndx, xndx );
+
+        /* Compare direct generation of XML from HDX, with the XML in xloc */
+        HdxContainer hdx = HdxFactory.getInstance().newHdxContainer( ndx.getHdxFacade() );
+        assertDOMEquals( new URL( "file:"+xloc ),
+                         hdx.getDOM( null ),
+                         "xloc-vs-hdxdom:",
+                         IGNORE_WHITESPACE );
+        assertSourceEquals( new StreamSource( new FileInputStream( xloc ) ),
+                            hdx.getSource( null ),
+                            "xloc-vs-hdxsource:",
+                            IGNORE_WHITESPACE );
+        /*
+         * Don't check what ndx.getHdxFacade().getSource(?) produces,
+         * since that is not the preferred way of generating XML, and
+         * it might become protected in future.
+         */
 
         /* Write the NDX out as an NDF. */
         ndxio.setHandlers( new NdxHandler[] { NDFNdxHandler.getInstance() } );
