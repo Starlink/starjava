@@ -48,24 +48,6 @@ public class AstTest extends TestCase {
         assertEquals( 2, grid.getNaxes() );
         assertEquals( "GRID", grid.getDomain() );
         sky = (SkyFrame) wcs.getFrame( FrameSet.AST__CURRENT );
-
-        // Frame grid = new Frame( 2 );
-        // Frame axes = new Frame( 2 );
-        // Frame pixel = new Frame( 2 );
-        // Frame sky = new SkyFrame();
-        // Frame frame = grid;
-        // grid.setDomain( "grid" );
-        // axes.setDomain( "axes" );
-        // pixel.setDomain( "pixel" );
-        // FrameSet wcs = new FrameSet( grid );
-        // Mapping gpmap = new WinMap( new double[] { 0.5, 0.5 },
-        //                             new double[] { 1.5, 1.5 },
-        //                             new double[] { 0.0, 0.0 },
-        //                             new double[] { 1.0, 1.0 } );
-        // Mapping umap = new UnitMap( 2 );
-        // wcs.addFrame( FrameSet.AST__BASE, gpmap, axes );
-        // wcs.addFrame( FrameSet.AST__CURRENT, umap, pixel );
- 
     }
 
     public void testAstObject() {

@@ -120,7 +120,6 @@ OBJECT_FILES = $(C_ROUTINES:.c=.o)
 shared: $(SHARED_OBJECT)
 
 $(SHARED_OBJECT): $(OBJECT_FILES) $(LINK_SCRIPT)
-	echo $(SHARED_OBJECT)
 	- mkdir temp
 	(cd temp; \
            for f in `../$(LINK_SCRIPT)` ""; do \
