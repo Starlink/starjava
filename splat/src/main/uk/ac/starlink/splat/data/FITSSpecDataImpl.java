@@ -75,7 +75,8 @@ public class FITSSpecDataImpl
     {
         if ( cloned ) {
             return data;
-        } else {
+        } 
+        else {
             try {
                 return getDataCopy();
             } 
@@ -264,7 +265,7 @@ public class FITSSpecDataImpl
     /**
      * Maxiumum number of characters in a header string.
      */
-    protected static int MAX_HEADER_VALUE = 68;
+    protected final static int MAX_HEADER_VALUE = 68;
 
     /**
      * Finalise object. Free any resources associated with member

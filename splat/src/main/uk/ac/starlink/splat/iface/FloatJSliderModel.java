@@ -115,7 +115,7 @@ public class FloatJSliderModel
      */
     public void setResolution( double value )
     {
-        this.resolution = resolution;
+        this.resolution = value;
         configureRealValues();
         fireStateChanged();
     }

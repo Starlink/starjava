@@ -51,9 +51,9 @@ public class AboutFrame extends JDialog
     //  Tried using a single image, but that doesn't work either.
 
     protected JButton okButton = new JButton();
-    protected static ImageIcon splatImage =
+    protected static final ImageIcon splatImage =
         new ImageIcon( ImageHolder.class.getResource( "hsplat.gif" ) );
-    protected static ImageIcon starlinkImage =
+    protected static final ImageIcon starlinkImage =
         new ImageIcon( ImageHolder.class.getResource( "starlink_logo_small.gif" ) );
 
     protected String description =
@@ -194,7 +194,7 @@ public class AboutFrame extends JDialog
     /**
      * Image for action icons.
      */
-    protected static ImageIcon aboutImage =
+    protected final static ImageIcon aboutImage =
         new ImageIcon( ImageHolder.class.getResource( "about.gif" ) );
 
     /**

@@ -79,7 +79,7 @@ public class CoordinateGenerator
     protected DecimalField offset = null;
 
     // Known expression templates.
-    protected static String[][] templates = {
+    static final String[][] templates = {
         { "Redshift (z)", "coord*(z+1)",
                       "z", "0.0" },
         { "Redshift (v km/s)", "coord*(1.0+v/c)",
@@ -201,7 +201,7 @@ public class CoordinateGenerator
     protected JTextField[] itemValues = null;
     protected JLabel mainName = null;
     protected JTextField mainValue = null;
-    protected static int NAMECOUNT = 10;
+    protected static final int NAMECOUNT = 10;
 
     /**
      * Add a page of controls for the general transformation option.

@@ -170,7 +170,7 @@ public abstract class ColumnGenerator
     protected JTextField[] itemValues = null;
     protected JLabel mainName = null;
     protected JTextField mainValue = null;
-    protected static int NAMECOUNT = 10;
+    protected final static int NAMECOUNT = 10;
 
     /**
      * Create a page of controls for getting the main function, plus

@@ -84,7 +84,7 @@ public class RemoteUtilities
                 String hexVal = Integer.toHexString((int)(Math.random()*12345));
                 cookie = hexVal + addr.hashCode();
                 out.println( addr.getHostName() + " " + port + " " + cookie );
-
+                out.close();
             } 
             catch (Exception e) {
                 //  Do nothing

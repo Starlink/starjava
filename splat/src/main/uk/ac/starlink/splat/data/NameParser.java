@@ -26,7 +26,6 @@ import uk.ac.starlink.util.URLUtils;
  */
 public class NameParser
 {
-    private boolean isURL = false;
     private boolean isLineIdentifier = false;
     private boolean isRemote = false;
     private PathParser pathParser = new PathParser();
@@ -56,7 +55,6 @@ public class NameParser
     public void setSpecSpec( String specspec )
         throws SplatException
     {
-        isURL = false;
         isRemote = false;
         isLineIdentifier = false;
         

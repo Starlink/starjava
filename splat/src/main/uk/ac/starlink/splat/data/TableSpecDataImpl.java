@@ -57,7 +57,7 @@ public class TableSpecDataImpl
     private int[] dims = new int[1];
 
     /** Counter for generating application unique names */
-    protected static int uniqueCount = 0;
+    static int uniqueCount = 0;
 
     /** Type to save table as (FITS etc.) */
     protected String saveType = null;
@@ -248,7 +248,7 @@ public class TableSpecDataImpl
     /**
      * Writer for tables.
      */
-    protected static StarTableOutput writer = new StarTableOutput();
+    protected final static StarTableOutput writer = new StarTableOutput();
 
    /**
      * Set the full and short names of this object from the table if

@@ -58,7 +58,6 @@ public class LevMarq
     private double oldchisq;
     private double oneda[];
     private double sigma[];
-    private double temp;
     private double x[];
     private double y[];
     private int ia[];

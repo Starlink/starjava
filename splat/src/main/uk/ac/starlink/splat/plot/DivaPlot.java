@@ -1152,7 +1152,7 @@ public class DivaPlot
         }
 
         // Default value.
-        return new String( "Axis" + axis );
+        return "Axis" + axis;
     }
 
     //  Make a postscript copy of the spectra.

@@ -489,7 +489,7 @@ public class EditableSpecData
      * of the data columns that are about to be changed and when
      * asked, put them back.
      */
-    protected class EditColumn
+    protected static class EditColumn
         extends AbstractUndoableEdit
     {
         private EditableSpecData specData = null;
@@ -535,7 +535,7 @@ public class EditableSpecData
 
             errors = specData.getYDataErrors();
             if ( needCopy && newErrors != null ) {
-                if ( errors != newErrors & errors != null ) {
+                if ( errors != newErrors && errors != null ) {
                     errors = makeCopy( errors );
                 }
             }
@@ -608,7 +608,7 @@ public class EditableSpecData
      * to provide an implementation of UndoableEdit that can be stored
      * in the UndoManager.
      */
-    protected class EditFrameSet
+    protected static class EditFrameSet
         extends AbstractUndoableEdit
     {
         private EditableSpecData specData = null;
@@ -678,7 +678,7 @@ public class EditableSpecData
      * AbstractUndoableEdit to provide an implementation of
      * UndoableEdit that can be stored in the UndoManager.
      */
-    protected class EditColumnAndFrameSet
+    protected static class EditColumnAndFrameSet
         extends AbstractUndoableEdit
     {
         private EditableSpecData specData = null;
@@ -717,7 +717,7 @@ public class EditableSpecData
 
             errors = specData.getYDataErrors();
             if ( needCopy && newErrors != null ) {
-                if ( errors != newErrors & errors != null ) {
+                if ( errors != newErrors && errors != null ) {
                     errors = makeCopy( errors );
                 }
             }
@@ -790,7 +790,7 @@ public class EditableSpecData
      * to provide an implementation of UndoableEdit that can be stored
      * in the UndoManager.
      */
-    protected class EditCell
+    protected static class EditCell
         extends AbstractUndoableEdit
     {
         //  COLUMN indices for cell edits.

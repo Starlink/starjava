@@ -49,7 +49,6 @@ public class ExceptionDialog
     private JPanel messagesArea = null;
     private JLabel message = null;
     private JTextArea textArea = null;
-    private JButton details = null;
     private JScrollPane scrollPane = null;
     private JPanel dummyPanel = null;
 
