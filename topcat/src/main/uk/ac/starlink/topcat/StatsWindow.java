@@ -14,11 +14,17 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -36,6 +42,7 @@ public class StatsWindow extends AuxWindow {
 
     private TableViewer tv;
     private PlasticStarTable dataModel;
+    private TableColumnModel columnModel;
     private OptionsListModel subsets;
     private RowSubset rset = RowSubset.ALL;
     private StatsCalculator activeCalculator;
@@ -55,6 +62,7 @@ public class StatsWindow extends AuxWindow {
         super( "Row statistics", tableviewer );
         this.tv = tableviewer;
         this.dataModel = tv.getDataModel();
+        this.columnModel = tv.getColumnModel();
         this.subsets = tv.getSubsets();
         JPanel mainArea = getMainArea();
 
@@ -66,13 +74,14 @@ public class StatsWindow extends AuxWindow {
         jtab = new JTable( new StatsTableModel( null ) );
         jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
         jtab.setColumnSelectionAllowed( false );
+        jtab.setRowSelectionAllowed( false );
         new StatsTableModel( null ).configureJTable( jtab );
         mainArea.add( new SizingScrollPane( jtab ) );
 
         /* Construct and place a widget for selecting which subset to 
          * present results for. */
         JPanel controlPanel = getControlPanel();
-        subSelector = new JComboBox( subsets.makeComboBoxModel() );
+        subSelector = subsets.makeComboBox();
         subSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 if ( evt.getStateChange() == ItemEvent.SELECTED ) {
@@ -93,10 +102,14 @@ public class StatsWindow extends AuxWindow {
                 setSubset( rset );
             }
         };
-        JButton recalcButt = new JButton( recalcAct );
-        controlPanel.add( new JLabel( "     " ) );
-        controlPanel.add( recalcButt );
+        getToolBar().add( recalcAct );
+        getToolBar().addSeparator();
 
+        /* Menus. */
+        JMenu statsMenu = new JMenu( "Statistics" );
+        statsMenu.add( new JMenuItem( recalcAct ) ).setIcon( null );
+        getJMenuBar().add( statsMenu );
+  
         /* Add a progress bar for table scanning. */
         progBar = placeProgressBar();
 
@@ -165,12 +178,18 @@ public class StatsWindow extends AuxWindow {
         jtab.setModel( model );
         model.configureJTable( jtab );
         RowSubset rset = stats.rset;
-        if ( rset == RowSubset.ALL ) {
-            setMainHeading( "Statistics for all rows" );
-        }
-        else {
-            setMainHeading( "Statistics for row subset: " + rset );
-        }
+        long nrow = stats.ngoodrow;
+        String head = new StringBuffer()
+            .append( "Statistics for " )
+            .append( rset == RowSubset.ALL ? "all rows"
+                                           : ( "row subset: " + rset ) )
+            .append( " (" )
+            .append( nrow )
+            .append( ' ' )
+            .append( nrow == 1L ? "row" : "rows" )
+            .append( ')' )
+            .toString();
+        setMainHeading( head );
     }
 
     /**
@@ -437,17 +456,17 @@ public class StatsWindow extends AuxWindow {
      * Helper class which provides a TableModel view of a StatsCalculator
      * object.
      */
-    private class StatsTableModel extends AbstractTableModel {
+    private class StatsTableModel extends AbstractTableModel
+                                  implements TableColumnModelListener {
 
         private static final int NAME_COL = 0;
-        private static final int NGOOD_COL = 1;
-        private static final int NBAD_COL = 2;
-        private static final int MEAN_COL = 3;
-        private static final int SDEV_COL = 4;
-        private static final int MIN_COL = 5;
-        private static final int MAX_COL = 6;
+        private static final int MEAN_COL = 1;
+        private static final int SDEV_COL = 2;
+        private static final int MIN_COL = 3;
+        private static final int MAX_COL = 4;
+        private static final int NGOOD_COL = 5;
+        private static final int NBAD_COL = 6;
         private static final int NCOL = 7;
-        private int nrow;
         private StatsCalculator calc;
 
         /**
@@ -460,12 +479,10 @@ public class StatsWindow extends AuxWindow {
          */
         public StatsTableModel( StatsCalculator calc ) {
             this.calc = calc;
-            if ( calc == null ) {
-                nrow = dataModel.getColumnCount();
-            }
-            else {
-                nrow = calc.ngoods.length;
-            }
+
+            /* Ensure that changes to the column model are reflected in
+             * this table. */
+            columnModel.addColumnModelListener( this );
         }
 
         public int getColumnCount() {
@@ -473,23 +490,24 @@ public class StatsWindow extends AuxWindow {
         }
 
         public int getRowCount() {
-            return nrow;
+            return columnModel.getColumnCount();
         }
 
         public Object getValueAt( int irow, int icol ) {
+            int jcol = getModelIndexFromRow( irow );
             if ( icol == NAME_COL ) {
-                return dataModel.getColumnInfo( irow ).getName();
+                return dataModel.getColumnInfo( jcol ).getName();
             }
             else if ( calc == null ) {
                 return null;
             }
             switch ( icol ) {
-                case NGOOD_COL:   return new Long( calc.ngoods[ irow ] );
-                case NBAD_COL:    return new Long( calc.nbads[ irow ] );
-                case MEAN_COL:    return new Float( calc.means[ irow ] );
-                case SDEV_COL:    return new Float( calc.sdevs[ irow ] );
-                case MIN_COL:     return calc.mins[ irow ];
-                case MAX_COL:     return calc.maxs[ irow ];
+                case NGOOD_COL:   return new Long( calc.ngoods[ jcol ] );
+                case NBAD_COL:    return new Long( calc.nbads[ jcol ] );
+                case MEAN_COL:    return new Float( calc.means[ jcol ] );
+                case SDEV_COL:    return new Float( calc.sdevs[ jcol ] );
+                case MIN_COL:     return calc.mins[ jcol ];
+                case MAX_COL:     return calc.maxs[ jcol ];
                 default:          throw new AssertionError();
             }
         }
@@ -549,6 +567,28 @@ public class StatsWindow extends AuxWindow {
                 tcol.setPreferredWidth( wid );
             } 
         }
+
+        private int getModelIndexFromRow( int irow ) {
+            return columnModel.getColumn( irow ).getModelIndex();
+        }
+
+        /*
+         * Implementation of TableColumnModelListener interface.
+         * A more efficient implementation would be possible, but this
+         * is hardly going to be a performance bottleneck.
+         */
+        public void columnAdded( TableColumnModelEvent evt ) {
+            fireTableDataChanged();
+        }
+        public void columnRemoved( TableColumnModelEvent evt ) {
+            fireTableDataChanged();
+        }
+        public void columnMoved( TableColumnModelEvent evt ) {
+            fireTableDataChanged();
+        }
+        public void columnMarginChanged( ChangeEvent evt ) {}
+        public void columnSelectionChanged( ListSelectionEvent evt ) {}
+        
     }
 
 }
