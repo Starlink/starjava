@@ -104,7 +104,7 @@ public class SyntheticColumn extends ColumnData {
         colinfo.setContentClass( actualType );
 
         /* Store the value of the expression in the column metadata. */
-        ValueInfo exprInfo = PlasticStarTable.EXPR_INFO;
+        ValueInfo exprInfo = TopcatUtils.EXPR_INFO;
         colinfo.setAuxDatum( new DescribedValue( exprInfo, expression ) );
         
         /* We also want to store the information in the column's
@@ -115,7 +115,7 @@ public class SyntheticColumn extends ColumnData {
          * description.  We have to do it like this to prevent the
          * expressions getting repeatedly added onto the end if they
          * are changed. */
-        ValueInfo basedescInfo = PlasticStarTable.BASE_DESCRIPTION_INFO;
+        ValueInfo basedescInfo = TopcatUtils.BASE_DESCRIPTION_INFO;
         DescribedValue basedescValue = colinfo.getAuxDatum( basedescInfo );
         if ( basedescValue == null ) {
             basedescValue = new DescribedValue( basedescInfo, 

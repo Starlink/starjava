@@ -326,7 +326,7 @@ public class StatsWindow extends TopcatViewWindow {
 
         /* $ID. */
         hideColumns.set( metas.size() );
-        final ValueInfo idInfo = PlasticStarTable.COLID_INFO;
+        final ValueInfo idInfo = TopcatUtils.COLID_INFO;
         metas.add( new MetaColumn( idInfo.getName(), String.class ) {
             public Object getValue( int irow ) {
                 return ((StarTableColumn) columnModel .getColumn( irow ))

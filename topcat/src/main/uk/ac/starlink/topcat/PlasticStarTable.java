@@ -20,29 +20,6 @@ public class PlasticStarTable extends ColumnStarTable {
     private final StarTable baseTable;
 
     /**
-     * Column auxiliary metadata key identifying the uniqe column identifier
-     * for use in algebraic expressions.
-     */
-    public static final ValueInfo COLID_INFO = 
-        new DefaultValueInfo( "$ID", String.class, "Unique column ID" );
-
-    /** 
-     * Column auxiliary metadata key identifying the description of 
-     * columns which also have an expression (EXPR_INFO) entry.
-     */
-    public static final ValueInfo BASE_DESCRIPTION_INFO =
-        new DefaultValueInfo( "Base Description", String.class,
-                              "Description omitting expression" );
-
-    /**
-     * Column auxiliary metadata key identifying the text string which 
-     * gives an expression for a synthetic column.
-     */
-    public final static ValueInfo EXPR_INFO =
-        new DefaultValueInfo( "Expression", String.class,
-                              "Algebraic expression for column value" );
-
-    /**
      * Constructs a <tt>PlasticStarTable</tt> based on an existing 
      * <tt>StarTable</tt> object.  The metadata are copied from the base
      * table and ColumnData objects constructed to wrap each of its
@@ -86,14 +63,16 @@ public class PlasticStarTable extends ColumnStarTable {
     public void addColumn( ColumnData coldata ) {
         String colid = "$" + ( getColumnCount() + 1 );
         coldata.getColumnInfo()
-               .setAuxDatum( new DescribedValue( COLID_INFO, colid ) );
+               .setAuxDatum( new DescribedValue( TopcatUtils.COLID_INFO,
+                                                 colid ) );
         super.addColumn( coldata );
     }
 
     public void setColumn( int icol, ColumnData coldata ) {
         String colid = "$" + ( icol + 1 );
         coldata.getColumnInfo()
-               .setAuxDatum( new DescribedValue( COLID_INFO, colid ) );
+               .setAuxDatum( new DescribedValue( TopcatUtils.COLID_INFO,
+                                                 colid ) );
         super.setColumn( icol, coldata );
     }
 
