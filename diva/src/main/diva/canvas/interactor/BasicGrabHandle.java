@@ -19,7 +19,7 @@ import java.awt.geom.Rectangle2D;
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.7 $
+ * @version $Revision: 1.7 $
  */
 public class BasicGrabHandle extends BasicRectangle implements GrabHandle {
     /** The site
@@ -41,7 +41,7 @@ public class BasicGrabHandle extends BasicRectangle implements GrabHandle {
      */
     public BasicGrabHandle(Site s) {
         // Can't reference variable until superclass is called...
-        super(0,0,0,0,java.awt.Color.blue);
+        super(0,0,0,0,java.awt.Color.red);
 	setSize(_size);
         _site = s;
     }
