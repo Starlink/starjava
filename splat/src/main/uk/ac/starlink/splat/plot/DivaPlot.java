@@ -1295,7 +1295,9 @@ public class DivaPlot
     public DrawActions getDrawActions()
     {
         if ( drawActions == null ) {
-            drawActions = new DrawActions( this, null );
+            drawActions = 
+                new DrawActions( this, null, 
+                                 PlotInterpolatorFactory.getInstance() );
         }
         return drawActions;
     }
