@@ -743,7 +743,7 @@ public class SplatBrowser
         catch (Exception e) {
             // Not fatal, just no remote control.
             System.err.println( "Failed to start remote services" );
-            e.printStackTrace();
+            System.err.println( e.getMessage() );
         }
     }
 
