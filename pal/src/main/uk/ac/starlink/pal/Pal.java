@@ -2757,6 +2757,7 @@ public class Pal {
 
 /**
  *  Convert an angle in radians into degrees, arcminutes, arcseconds.
+ *  WARNING: broken doesn't preserve sign in "palTime.toString()".
  *
  *  @param angle angle in radians
  *  @return Time as degrees, arcminutes, arcseconds, fraction
