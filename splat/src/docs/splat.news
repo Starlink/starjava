@@ -1,3 +1,9 @@
+   Speed ups for re-drawing spectra that are being matching using
+   their spectral coordinates and data units.
+
+   Better recovery from error when spectra ranges are hugely different.
+
+
 1 Starlink SPLAT now a tool for the Virtual Observatory
 
    In this release Starlink SPLAT has been enhanced to access prototype
