@@ -1,12 +1,14 @@
 package uk.ac.starlink.table;
 
+import java.util.BitSet;
+
 /**
  * A column which provides data storage in java arrays.
  * One of the static <tt>makeColumn</tt> methods should be used to obtain an
  * instance of this class based on the characteristics of the data it is
  * to store.  Storage of primitive values is done in primitive arrays
  * where possible, so that <tt>float[]</tt> arrays are used in preference
- * to <tt>Float[]</tt> arrays, for efficiency.
+ * to <tt>Float[]</tt> arrays, for efficiency.  Null values can be stored.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -21,13 +23,10 @@ public abstract class ArrayColumn extends ColumnData {
      * @param   base   the template <tt>ColumnInfo</tt>
      * @param   data   the array used to hold the data
      */
-    private ArrayColumn( ColumnInfo base, final Object data ) {
+    private ArrayColumn( ColumnInfo base, Object data ) {
         super( new ColumnInfo( base ) {
             public void setContentClass() {
                 throw new UnsupportedOperationException();
-            }
-            public boolean isNullable() {
-                return ! data.getClass().getComponentType().isPrimitive();
             }
         } );
         this.data = data;
@@ -215,122 +214,150 @@ public abstract class ArrayColumn extends ColumnData {
      * Define classes for the different array types.
      */
 
-    private static class BooleanArrayColumn extends ArrayColumn {
+    /**
+     * ArrayColumn subclass which keeps a separate record of whether each
+     * element of its array represents a null value or not.  This enables
+     * it to cope with nullable values.  Since it uses a <tt>BitSet</tt>
+     * for this purpose it should be quite cheap and takes no space 
+     * if no nulls are in fact used.
+     */
+    private static abstract class PrimitiveArrayColumn extends ArrayColumn {
+        private final BitSet hasValue = new BitSet();
+        PrimitiveArrayColumn( ColumnInfo base, Object data ) {
+            super( base, data );
+        }
+        void storeValue( int irow, Object val ) {
+            if ( val == null ) {
+                hasValue.clear( irow );
+            }
+            else {
+                hasValue.set( irow );
+                storeElement( irow, val );
+            }
+        }
+        Object readValue( int irow ) {
+            return hasValue.get( irow ) ? readElement( irow ) : null;
+        }
+        abstract void storeElement( int irow, Object val );
+        abstract Object readElement( int irow );
+    }
+
+    private static class BooleanArrayColumn extends PrimitiveArrayColumn {
         boolean[] data;
         BooleanArrayColumn( ColumnInfo base, boolean[] data ) {
             super( base, data );
             checkContentClass( Boolean.class );
             this.data = data;
         }
-        void storeValue( int irow, Object val ) { 
+        void storeElement( int irow, Object val ) { 
             data[ irow ] = ((Boolean) val).booleanValue();
         }
-        Object readValue( int irow ) {
+        Object readElement( int irow ) {
             return data[ irow ] ? Boolean.TRUE : Boolean.FALSE;
         }
     }
 
-    private static class CharacterArrayColumn extends ArrayColumn {
+    private static class CharacterArrayColumn extends PrimitiveArrayColumn {
         char[] data;
         CharacterArrayColumn( ColumnInfo base, char[] data ) {
             super( base, data );
             checkContentClass( Character.class );
             this.data = data;
         }
-        void storeValue( int irow, Object val ) {
+        void storeElement( int irow, Object val ) {
             data[ irow ] = ((Character) val).charValue();
         }
-        Object readValue( int irow ) {
+        Object readElement( int irow ) {
             return new Character( data[ irow ] );
         }
     }
 
-    private static class ByteArrayColumn extends ArrayColumn {
+    private static class ByteArrayColumn extends PrimitiveArrayColumn {
         byte[] data;
         ByteArrayColumn( ColumnInfo base, byte[] data ) {
             super( base, data );
             checkContentClass( Byte.class );
             this.data = data;
         }
-        void storeValue( int irow, Object val ) {
+        void storeElement( int irow, Object val ) {
             data[ irow ] = ((Byte) val).byteValue();
         }
-        Object readValue( int irow ) {
+        Object readElement( int irow ) {
             return new Byte( data[ irow ] );
         }
     }
 
-    private static class ShortArrayColumn extends ArrayColumn {
+    private static class ShortArrayColumn extends PrimitiveArrayColumn {
         short[] data;
         ShortArrayColumn( ColumnInfo base, short[] data ) {
             super( base, data );
             checkContentClass( Short.class );
             this.data = data;
         }
-        void storeValue( int irow, Object val ) {
+        void storeElement( int irow, Object val ) {
             data[ irow ] = ((Short) val).shortValue();
         }
-        Object readValue( int irow ) {
+        Object readElement( int irow ) {
             return new Short( data[ irow ] );
         }
     }
 
-    private static class IntegerArrayColumn extends ArrayColumn {
+    private static class IntegerArrayColumn extends PrimitiveArrayColumn {
         int[] data;
         IntegerArrayColumn( ColumnInfo base, int[] data ) {
             super( base, data );
             checkContentClass( Integer.class );
             this.data = data;
         }
-        void storeValue( int irow, Object val ) {
+        void storeElement( int irow, Object val ) {
             data[ irow ] = ((Integer) val).intValue();
         }
-        Object readValue( int irow ) {
+        Object readElement( int irow ) {
             return new Integer( data[ irow ] );
         }
     }
 
-    private static class LongArrayColumn extends ArrayColumn {
+    private static class LongArrayColumn extends PrimitiveArrayColumn {
         long[] data;
         LongArrayColumn( ColumnInfo base, long[] data ) {
             super( base, data );
             checkContentClass( Long.class );
             this.data = data;
         }
-        void storeValue( int irow, Object val ) {
+        void storeElement( int irow, Object val ) {
             data[ irow ] = ((Long) val).longValue();
         }
-        Object readValue( int irow ) {
+        Object readElement( int irow ) {
             return new Long( data[ irow ] );
         }
     }
 
-    private static class FloatArrayColumn extends ArrayColumn {
+    private static class FloatArrayColumn extends PrimitiveArrayColumn {
         float[] data;
         FloatArrayColumn( ColumnInfo base, float[] data ) {
             super( base, data );
             checkContentClass( Float.class );
             this.data = data;
         }
-        void storeValue( int irow, Object val ) {
+        void storeElement( int irow, Object val ) {
             data[ irow ] = ((Float) val).floatValue();
         }
-        Object readValue( int irow ) {
+        Object readElement( int irow ) {
             return new Float( data[ irow ] );
         }
     }
 
-    private static class DoubleArrayColumn extends ArrayColumn {
+    private static class DoubleArrayColumn extends PrimitiveArrayColumn {
         double[] data;
         DoubleArrayColumn( ColumnInfo base, double[] data ) {
             super( base, data );
             checkContentClass( Double.class );
             this.data = data;
         }
-        void storeValue( int irow, Object val ) {
+        void storeElement( int irow, Object val ) {
             data[ irow ] = ((Double) val).doubleValue();
         }
-        Object readValue( int irow ) {
+        Object readElement( int irow ) {
             return new Double( data[ irow ] );
         }
     }
