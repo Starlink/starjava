@@ -177,10 +177,10 @@ public class Frog extends JFrame
         // Gram Manager and DebugManager classes. We need to get
         // rid of all the getFrog() calls to seriesManager and
         // gramManager(), as this should now be handled in 
-        // debugManager() only (I think). Perhaps move this into
+        // debugManager() only (I think)? Perhaps move this into
         // util.Utilities class instead?
         //
-        // Either way, I think this is a bit of a hack, bad design
+        // Any way, I think this is a bit of a hack, bad design
         // on my part. Oh well...
         seriesManager.setFrog( this );
         gramManager.setFrog( this );
@@ -257,8 +257,8 @@ public class Frog extends JFrame
         this.setSize( new Dimension( 800, 600 ) );
         this.setTitle( Utilities.getFullDescription() );
                
-       // Position the application
-       this.setLocation( 50, 50 );
+        // Position the application
+        this.setLocation( 50, 50 );
 
         //  Setup menus and toolbar.
         debugManager.print( "  Calling setupMenusAndToolbar()");
@@ -525,24 +525,7 @@ public class Frog extends JFrame
         menuBar.add( debugMenu );
         if( debugManager.getDebugFlag() ) {
            debugMenu.setVisible( true );
-        }   
-        
-        // Toggle the Debug Flag     
-        JCheckBoxMenuItem consoleCheck = 
-         new JCheckBoxMenuItem("Debug to Console",
-                               debugManager.getConsoleFlag() );
-                               
-        consoleCheck.addActionListener( new ActionListener() {
-           public void actionPerformed(ActionEvent e) { 
-              DebugConsole consoleInstance = DebugConsole.getReference();
-              if ( debugManager.getConsoleFlag() ) {
-                 consoleInstance.openDebug();           
-              } else {
-                 consoleInstance.closeDebug();           
-              }
-           } 
-        });
-        debugMenu.add(consoleCheck);            
+        }     
                
         // TimeSeriesManager
         JMenuItem seriesManagerItem = new JMenuItem("Dump TimeSeriesManager");
@@ -589,7 +572,6 @@ public class Frog extends JFrame
         });
         debugMenu.add(compositeMenu);
 
-
         // GramComp
         final JMenu gramCompositeMenu = new JMenu( "Dump GramComp" );
         gramCompositeMenu.addMenuListener( new MenuListener() {
@@ -607,7 +589,7 @@ public class Frog extends JFrame
            
         });
         debugMenu.add(gramCompositeMenu);
- 
+        
         // separator
         debugMenu.addSeparator();  
         
@@ -620,6 +602,26 @@ public class Frog extends JFrame
            }   
         });
         debugMenu.add(memoryItem);
+        
+        // separator
+        debugMenu.addSeparator();  
+        
+        // Toggle the Debug Flag     
+        JCheckBoxMenuItem consoleCheck = 
+         new JCheckBoxMenuItem("Debug to Console",
+                               debugManager.getConsoleFlag() );
+                               
+        consoleCheck.addActionListener( new ActionListener() {
+           public void actionPerformed(ActionEvent e) { 
+              DebugConsole consoleInstance = DebugConsole.getReference();
+              if ( debugManager.getConsoleFlag() ) {
+                 consoleInstance.openDebug();           
+              } else {
+                 consoleInstance.closeDebug();           
+              }
+           } 
+        });
+        debugMenu.add(consoleCheck);          
              
     }
     

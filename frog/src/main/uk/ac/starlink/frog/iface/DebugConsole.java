@@ -82,16 +82,10 @@ public class DebugConsole extends JInternalFrame
          
        // grab Frog object  
        frame = debugManager.getFrog();
-           
-       // grab location and position window
-       Dimension arithSize = getSize();
-       Dimension frameSize = frame.getSize();
-       setLocation( ( frameSize.width - arithSize.width ) / 4 ,
-                    ( frameSize.height - arithSize.height ) / 4  );
-              
+          
        // setup the scroll pane
        debugArea.setColumns(40);
-       debugArea.setRows(20);
+       debugArea.setRows(25);
        JScrollPane scrollPane = new JScrollPane(debugArea,
                     JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                     JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -119,7 +113,13 @@ public class DebugConsole extends JInternalFrame
        contentPane.setLayout( new BorderLayout() );
        contentPane.add(mainPanel, BorderLayout.CENTER );
        
+       // pack the window
        pack();
+       
+       // position window, really need to do this relative to window size
+       this.setLocation( 300, 25 ); 
+       
+       // display the window             
        JDesktopPane desktop = frame.getDesktop();
        desktop.add( this );
 
