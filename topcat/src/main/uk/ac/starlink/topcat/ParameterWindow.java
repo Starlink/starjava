@@ -142,7 +142,7 @@ public class ParameterWindow extends AuxWindow {
         /* Add value column. */
         metas.add( new MetaColumn( "Value", Object.class ) {
             public Object getValue( int irow ) {
-                return getParam( irow ).getValue();
+                return getParam( irow ).getValueAsString( 64 );
             }
             public boolean isEditable( int irow ) {
                 return isEditableParameter( irow );
