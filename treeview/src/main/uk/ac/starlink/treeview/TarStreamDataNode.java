@@ -169,10 +169,12 @@ public class TarStreamDataNode extends DefaultDataNode {
                                      * My attempts to track this down by
                                      * placing traces on the read() methods
                                      * of various streams have been fruitless.
+                                     * This does _not_ appear to the the
+                                     * problem with compressed streams
+                                     * claiming they support mark/reset
+                                     * when they don't.
                                      * So reluctantly I wrap it here. */
-                                    // fixed??
-                                    // strm = new BufferedInputStream( strm );
-
+                                    strm = new BufferedInputStream( strm );
                                     return strm;
                                 }
                                 public URL getURL() {
