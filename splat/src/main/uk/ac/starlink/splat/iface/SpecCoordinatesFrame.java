@@ -842,7 +842,7 @@ public class SpecXCoordTypeFrame
         current = localCopy.getFrame( FrameSet.AST__CURRENT );
         try {
             current.set( attributes );
-            current = localCopy.getFrame( FrameSet.AST__CURRENT );
+            current = frameSet.getFrame( FrameSet.AST__CURRENT );
             current.set( attributes );
 
             // Do a full update to get the changes propagated throughout.
@@ -852,8 +852,6 @@ public class SpecXCoordTypeFrame
             }
             catch (SplatException e) {
                 new ExceptionDialog( this, e );
-
-                
             }
         }
         catch (AstException e) {
