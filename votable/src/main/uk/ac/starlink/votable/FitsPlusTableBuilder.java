@@ -116,7 +116,7 @@ public class FitsPlusTableBuilder implements TableBuilder {
             }
 
             /* Now get the StarTable from the next HDU. */
-            long[] pos = new long[ headsize + datasize ];
+            long[] pos = new long[] { headsize + datasize };
             StarTable starTable = FitsTableBuilder
                                  .attemptReadTable( strm, wantRandom,
                                                     datsrc, pos );
