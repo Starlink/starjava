@@ -11,6 +11,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ListSelectionModel;
+import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -44,6 +45,9 @@ public class ColumnInfoWindow extends TopcatViewWindow {
     private final TableColumnModel columnModel;
     private final ViewerTableModel viewModel;
     private final ColumnList columnList;
+    private final Action addcolAct;
+    private final Action hidecolAct;
+    private final Action revealcolAct;
     private ColumnInfo indexColumnInfo;
     private JTable jtab;
     private AbstractTableModel metaTableModel;
@@ -319,44 +323,24 @@ public class ColumnInfoWindow extends TopcatViewWindow {
             }
         } );
 
+        /* Define actions. */
+        addcolAct = new ColumnInfoAction( "New synthetic column",
+                                          ResourceIcon.ADD,
+                                          "Add a new column defined " +
+                                          "algebraically from existing ones" );
+        hidecolAct = new ColumnInfoAction( "Hide selected column(s)",
+                                           ResourceIcon.FALSE,
+                                           "Hide all selected columns" );
+        revealcolAct = new ColumnInfoAction( "Reveal selected column(s)",
+                                             ResourceIcon.TRUE,
+                                             "Reveal all selected columns" );
+
         /* Construct a new menu for column operations. */
         JMenu colMenu = new JMenu( "Columns" );
         colMenu.setMnemonic( KeyEvent.VK_C );
-        Action addcolAct = new BasicAction( "New synthetic column",
-                                            ResourceIcon.ADD,
-                                       "Add a new column defined " +
-                                       "algebraically from existing ones" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                Component parent = ColumnInfoWindow.this;
-                int[] selrows = jtab.getSelectedRows();
-                int insertPos;
-                if ( selrows.length > 0 ) {
-                    int iSel = selrows[ selrows.length - 1 ];
-                    insertPos = getActiveIndexFromRow( iSel );
-                }
-                else {
-                    insertPos = -1;
-                }
-                new SyntheticColumnQueryWindow( tcModel, insertPos, parent );
-            }
-        };
         colMenu.add( addcolAct ).setIcon( null );
-        final Action delcolAct = 
-                new BasicAction( "Hide selected column(s)",
-                                 ResourceIcon.REMOVE,
-                                 "Hide all selected columns" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                int[] selected = jtab.getSelectedRows();
-                Arrays.sort( selected );
-                for ( int i = selected.length - 1; i >= 0; i-- ) {
-                    int irow = selected[ i ];
-                    if ( irow > 0 ) {
-                        columnModel.removeColumn( getColumnFromRow( irow ) );
-                    }
-                }
-            }
-        };
-        colMenu.add( delcolAct ).setIcon( null );
+        colMenu.add( hidecolAct ).setIcon( null );
+        colMenu.add( revealcolAct ).setIcon( null );
         final Action sortupAct = new SortAction( true );
         final Action sortdownAct = new SortAction( false );
         colMenu.add( sortupAct ).setIcon( null );
@@ -374,7 +358,8 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                 int nsel = jtab.getSelectedRowCount();
                 boolean hasSelection = nsel > 0;
                 boolean hasUniqueSelection = nsel == 1;
-                delcolAct.setEnabled( hasSelection );
+                hidecolAct.setEnabled( hasSelection );
+                revealcolAct.setEnabled( hasSelection );
                 sortupAct.setEnabled( hasUniqueSelection );
                 sortdownAct.setEnabled( hasUniqueSelection );
             }
@@ -385,7 +370,8 @@ public class ColumnInfoWindow extends TopcatViewWindow {
 
         /* Add actions to the toolbar. */
         getToolBar().add( addcolAct );
-        getToolBar().add( delcolAct );
+        getToolBar().add( hidecolAct );
+        getToolBar().add( revealcolAct );
         getToolBar().addSeparator();
 
         /* Add standard help actions. */
@@ -501,6 +487,42 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         }
     }
 
+    /**
+     * Implementation of actions for this window.
+     */
+    private class ColumnInfoAction extends BasicAction {
+        ColumnInfoAction( String name, Icon icon, String description ) {
+            super( name, icon, description );
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            if ( this == addcolAct ) {
+                Component parent = ColumnInfoWindow.this;
+                int[] selrows = jtab.getSelectedRows();
+                int insertPos;
+                if ( selrows.length > 0 ) {
+                    int iSel = selrows[ selrows.length - 1 ];
+                    insertPos = getActiveIndexFromRow( iSel );
+                }
+                else {
+                    insertPos = -1;
+                }
+                new SyntheticColumnQueryWindow( tcModel, insertPos, parent );
+            }
+            else if ( this == hidecolAct || this == revealcolAct ) {
+                boolean active = ( this == revealcolAct );
+                int[] selected = jtab.getSelectedRows();
+                Arrays.sort( selected );
+                for ( int i = 0; i < selected.length; i++ ) {
+                    int jrow = getColumnListIndexFromRow( selected[ i ] );
+                    columnList.setActive( jrow, active );
+                }
+            }
+            else {
+                throw new AssertionError();
+            }
+        }
+    }
 
     /**
      * Class for an action which sorts on a column.
