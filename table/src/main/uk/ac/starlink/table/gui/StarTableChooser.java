@@ -6,9 +6,13 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.sql.DriverManager;
+import java.util.Iterator;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -17,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
@@ -38,7 +43,9 @@ public class StarTableChooser extends JOptionPane {
     private SQLReadDialog sqlDialog;
     private JTextField locField;
     private JPanel actionsPanel;
+    private ComboBoxModel formatModel;
 
+    private static final String NO_FORMAT = new String( "(auto)" );
     private static final int JDBC_OPTION = 101;
     private static final int BROWSE_OPTION = 102;
 
@@ -48,10 +55,23 @@ public class StarTableChooser extends JOptionPane {
     public StarTableChooser( StarTableFactory tabfact ) {
         this.tabfact = tabfact;
 
+        /* Field for input table location. */
+        locField = new JTextField( 32 );
+
+        /* Field for input table format. */
+        JComboBox formatField = new JComboBox();
+        formatField.addItem( NO_FORMAT );
+        for ( Iterator it = tabfact.getKnownBuilders().iterator();
+              it.hasNext(); ) {
+            TableBuilder handler = (TableBuilder) it.next();
+            formatField.addItem( handler.getFormatName() );
+        }
+        formatModel = formatField.getModel();
+
         /* Set up the field for entering a table location. */
         LabelledComponentStack locPanel = new LabelledComponentStack();
-        locField = new JTextField( 32 );
-        locPanel.addLine( "Table location", locField );
+        locPanel.addLine( "Table Format", formatField );
+        locPanel.addLine( "Table Location", locField );
 
         /* Set up actions for invoking other dialogs. */
         Action browseAction = new AbstractAction( "Browse files" ) {
@@ -108,6 +128,18 @@ public class StarTableChooser extends JOptionPane {
     }
 
     /**
+     * Returns the format selected with which to interpret the table.
+     * <tt>null</tt> will be returned if no format has been selected
+     * (auto-detect mode).
+     *
+     * @return  the selected format name (or <tt>null</tt>)
+     */
+    public String getFormatName() {
+        String fmt = (String) formatModel.getSelectedItem();
+        return ( fmt == NO_FORMAT ) ? null : fmt;
+    }
+
+    /**
      * Returns an existing <tt>StarTable</tt> object which has been
      * selected by the user.  In the event that the user declines to
      * select a valid <tt>StarTable</tt> then <tt>null</tt> is returned.
@@ -137,7 +169,7 @@ public class StarTableChooser extends JOptionPane {
                         String loc = locField.getText();
                         if ( loc != null && loc.trim().length() > 0 ) {
                             startab = getTable( getStarTableFactory(),
-                                                loc, dialog );
+                                                loc, getFormatName(), dialog );
                         }
                         break;
                     case CANCEL_OPTION:
@@ -194,12 +226,13 @@ public class StarTableChooser extends JOptionPane {
      *
      * @param  tabfact  the StarTableFactory to use
      * @param  loc      the location of the new table
+     * @param  format   name of the table format, or null for auto-detect
      * @param  parent   the parent window (may be null)
      * @return  the new StarTable as selected by the user,
      *          or <tt>null</tt> if it couldn't be constructed
      */
     public static StarTable getTable( StarTableFactory tabfact, String loc,
-                                      Component parent ) {
+                                      String format, Component parent ) {
 
         /* Configure any JDBC authentication to be GUI-based, and
          * positioned properly with respect to the parent. */
@@ -211,7 +244,7 @@ public class StarTableChooser extends JOptionPane {
 
         /* Get a table from the factory. */
         try {
-            return tabfact.makeStarTable( loc );
+            return tabfact.makeStarTable( loc, format );
         }
 
         /* In case of error, inform the user and return null. */
@@ -241,7 +274,8 @@ public class StarTableChooser extends JOptionPane {
         while ( st == null && chooser.showOpenDialog( parent ) 
                               == JFileChooser.APPROVE_OPTION ) {
             String loc = chooser.getSelectedFile().toString();
-            st = getTable( getStarTableFactory(), loc, parent );
+            st = getTable( getStarTableFactory(), loc, getFormatName(),
+                           parent );
         }
         return st; 
     }
@@ -264,8 +298,19 @@ public class StarTableChooser extends JOptionPane {
      */
     public JFileChooser getFileChooser() {
         if ( chooser == null ) {
+
+            /* Create a new file chooser. */
             chooser = new JFileChooser();
             chooser.setFileSelectionMode( JFileChooser.FILES_ONLY );
+
+            /* Add a format selector as an accessory. */
+            JComponent line = new JPanel();
+            line.add( new JLabel( "Table Format" ) );
+            line.add( new JComboBox( formatModel ) );
+            JComponent acc = Box.createVerticalBox();
+            acc.add( Box.createVerticalGlue() );
+            acc.add( line );
+            chooser.setAccessory( acc );
         }
         return chooser;
     }
