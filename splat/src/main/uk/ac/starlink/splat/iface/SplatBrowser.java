@@ -916,9 +916,11 @@ public class SplatBrowser
                 initOpenAccessory();
             }
             fileChooser.setAccessory( openAccessory );
+            fileChooser.setMultiSelectionEnabled( true );
         }
         else {
             fileChooser.setAccessory( null );
+            fileChooser.setMultiSelectionEnabled( false );
         }
     }
 
