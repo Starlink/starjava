@@ -103,6 +103,7 @@
   <!-- Directory containing the package source -->
   <property name="src.dir" value="${basedir}/src"/>
 
+
   <!-- Directory containing the java source (top of the namespace)-->
   <property name="java.dir" value="${src.dir}/main"/>
 
@@ -454,6 +455,12 @@
       <arg value="-x"/><arg value="soapserver.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
     </java>
+
+    <signjar alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}"
+             jar="${dist.lib.pkg}/topcat-full.jar"/>
   </target>
 
   <!--
@@ -1028,6 +1035,7 @@
           out="${build.docs}/${user.doc}/${user.doc}.html"
           style="${src.docs}/toHTML1.xslt">
       <param name="VERSION" expression="${version}"/>
+      <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
     </xslt>
     <copy todir="${build.classes}/uk/ac/starlink/topcat/help">
       <fileset dir="${build.docs}/${user.doc}" includes="${user.doc}.html"/>
@@ -1040,6 +1048,7 @@
           fork="yes">
       <arg value="-style"/> <arg value="${src.docs}/toHTML.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
+      <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
       <arg value="${build.docs}/${user.doc}.xml"/>
       <arg value="${build.docs}/${user.doc}"/>
     </java>
@@ -1051,6 +1060,7 @@
           fork="yes">
       <arg value="-style"/> <arg value="${src.docs}/toHelp.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
+      <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
       <arg value="${build.docs}/${user.doc}.xml"/>
       <arg value="${build.classes}/uk/ac/starlink/topcat/help"/>
     </java>

@@ -1,10 +1,15 @@
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
-                xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:java="http://xml.apache.org/xalan/java"
+                xmlns:ImageIcon="xalan://javax.swing.ImageIcon"
+                xmlns:File="xalan://java.io.File"
+                exclude-result-prefixes="java ImageIcon File">
 
   <xsl:param name="JAVADOCS"
              select="'http://andromeda.star.bris.ac.uk/starjavadocs/'"/>
   <xsl:param name="VERSION" select="'???'"/>
+  <xsl:param name="BASEDIR" select="."/>
 
   <!-- Top level element -->
 
@@ -99,13 +104,17 @@
   </xsl:template>
 
   <xsl:template match="img">
-    <xsl:copy-of select="."/>
+    <xsl:call-template name="outImg">
+      <xsl:with-param name="src" select="@src"/>
+    </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="figure">
     <div align="center">
-      <img src="{figureimage/@src}"
-           alt="{caption/px[position()=1]}"/>
+      <xsl:call-template name="outImg">
+        <xsl:with-param name="src" select="figureimage/@src"/>
+        <xsl:with-param name="alt" select="caption/px[position()=1]"/>
+      </xsl:call-template>
       <xsl:apply-templates select="caption"/>
     </div>
   </xsl:template>
@@ -114,16 +123,6 @@
     <b>
       <xsl:apply-templates/>
     </b>
-  </xsl:template>
-
-  <xsl:template match="figurecontent">
-    <div align="center">
-      <xsl:element name="img">
-        <xsl:attribute name="src">
-          <xsl:value-of select="@image"/>
-        </xsl:attribute>
-      </xsl:element>
-    </div>
   </xsl:template>
 
   <xsl:template match="verbatim">
@@ -549,6 +548,36 @@
         <xsl:text>???</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="outImg">
+    <xsl:param name="src"/>
+    <xsl:param name="alt"/>
+    <xsl:element name="img">
+      <xsl:attribute name="src">
+        <xsl:value-of select="$src"/>
+      </xsl:attribute>
+      <xsl:attribute name="alt">
+        <xsl:value-of select="$alt"/>
+      </xsl:attribute>
+      <xsl:if test="function-available('ImageIcon:getIconWidth')">
+        <xsl:variable name="srcFile" select="File:new($BASEDIR,$src)"/>
+        <xsl:variable name="srcLoc" select="java:toString($srcFile)"/>
+        <xsl:variable name="icon" select="ImageIcon:new($srcLoc)"/>
+        <xsl:variable name="width" select="java:getIconWidth($icon)"/>
+        <xsl:variable name="height" select="java:getIconHeight($icon)"/>
+        <xsl:if test="$width&gt;=0">
+          <xsl:attribute name="width">
+            <xsl:value-of select="$width"/>
+          </xsl:attribute>
+        </xsl:if>
+        <xsl:if test="$height&gt;=0">
+          <xsl:attribute name="height">
+            <xsl:value-of select="$height"/>
+          </xsl:attribute>
+        </xsl:if>
+      </xsl:if>
+    </xsl:element>
   </xsl:template>
 
 </xsl:stylesheet>
