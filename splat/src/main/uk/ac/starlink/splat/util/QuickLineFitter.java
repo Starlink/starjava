@@ -75,10 +75,15 @@ public class QuickLineFitter
      *              Null for none (note equivalent width meaningless).
      *              Note it is assumed these values are already
      *              subtracted from the data.
+     *  @param backValue a single value used for the background. Only
+     *                   used if back is null. Set to zero it not available.
+     *                   Note if used it is assumed that this value is
+     *                   subtracted from the background.
      */
-    public QuickLineFitter( double[] xcoords, double[] data, double[] back )
+    public QuickLineFitter( double[] xcoords, double[] data, double[] back, 
+                            double backValue )
     {
-        doCalc( xcoords, data, back );
+        doCalc( xcoords, data, back, backValue );
     }
 
     /**
@@ -89,8 +94,10 @@ public class QuickLineFitter
      *  @param data the background subtracted spectra data.
      *  @param back the background values for each data value. May be
      *              NULL. 
+     *  @param backValue a background value to be used if back is NULL.
      */
-    protected void doCalc( double[] xcoords, double[] data, double[] back )
+    protected void doCalc( double[] xcoords, double[] data, double[] back,
+                           double backValue )
     {
         //  Determine the mean interval between values (TODO: assumes
         //  wavelength step is linear, this may need revision).
@@ -104,19 +111,32 @@ public class QuickLineFitter
 
         //  Create the sum of background subtracted and normalised
         //  intensities.
-        if ( back != null ) {
-            for ( int i = 0; i < xcoords.length; i++ ) {
-                if ( data[i] > max ) {
-                    max = data[i];
+        if ( back != null || backValue != 0.0 ) {
+            if ( back != null ) {
+                for ( int i = 0; i < xcoords.length; i++ ) {
+                    if ( data[i] > max ) {
+                        max = data[i];
+                    }
+                    if ( data[i] < min ) {
+                        min = data[i];
+                    }
+                    sum -= data[i] / back[i];
                 }
-                if ( data[i] < min ) {
-                    min = data[i];
-                }
-                sum -= data[i] / back[i];
             }
-        } else {
-
-            //  Assume the background is subtracted already.
+            else {
+                for ( int i = 0; i < xcoords.length; i++ ) {
+                    if ( data[i] > max ) {
+                        max = data[i];
+                    }
+                    if ( data[i] < min ) {
+                        min = data[i];
+                    }
+                    sum -= data[i] / backValue;
+                }
+            }
+        } 
+        else {
+            //  Background is zero.
             for ( int i = 0; i < xcoords.length; i++ ) {
                 if ( data[i] > max ) {
                     max = data[i];
@@ -135,21 +155,24 @@ public class QuickLineFitter
             sum = -sum;
             sign = -1.0;
             peak = max;
-        } else {
+        } 
+        else {
 
             //  Must be an absorption line.
             absorption = true;
             sign = 1.0;
             peak = -min;
         }
-        centre = splitSum( sum, 0.5, data, back, xcoords, sign );
+        centre = splitSum( sum, 0.5, data, back, backValue, xcoords, sign );
 
         // Now find X values for which area up to this value = 0.1587
         // and 0.8413 of the total.  For a Gaussian these give +/- 1
         // standard deviation from the median.  Compute width and
         // asymmetry parameters.
-        double xsigl = splitSum( sum, 0.1587, data, back, xcoords, sign );
-        double xsigu = splitSum( sum, 0.8413, data, back, xcoords, sign );
+        double xsigl = splitSum( sum, 0.1587, data, back, backValue, 
+                                 xcoords, sign );
+        double xsigu = splitSum( sum, 0.8413, data, back, backValue, 
+                                 xcoords, sign );
 
         width = 1.1775 * ( xsigu - xsigl );
         asymmetry = ( xsigu + xsigl ) * 0.5 - centre;
@@ -157,9 +180,10 @@ public class QuickLineFitter
 
         // Calculate equivalent width in units of wavelength (xcoords)
         // by scaling sum by dispersion, if known.
-        if ( back != null ) {
+        if ( back != null || backValue != 0.0 ) {
             equivalentWidth = sum * scale;
-        } else {
+        } 
+        else {
             equivalentWidth = 0.0;
         }
     }
@@ -229,7 +253,8 @@ public class QuickLineFitter
      * @param sum total of 1 - (data+back)/back.
      * @param frac fraction of sum required.
      * @param data the spectral data values (y axis).
-     * @param back the background value for data (can be null).
+     * @param back background values for data value (can be null).
+     * @param backValue a background value for all data (used if back is null).
      * @param xcoords the "wavelength" of each data value (X axis).
      * @param sign 1.0 if line is absorption, -1.0 if emission.
      *
@@ -238,7 +263,8 @@ public class QuickLineFitter
      * @see "Figaro:splitsum"
      */
     protected double splitSum( double sum, double frac, double[] data,
-                               double[] back, double[] xcoords, double sign )
+                               double[] back, double backValue, 
+                               double[] xcoords, double sign )
     {
         if ( sum == 0.0 ) {
             return data[0];
@@ -248,6 +274,8 @@ public class QuickLineFitter
         int ubound = data.length;
         int mbound = ubound - 2;
         double exch = 0.0;
+        if ( backValue == 0.0 ) backValue = 1.0;
+        
         if ( back != null ) {
             for ( int i = 0; i < ubound - 2; i++ ) {
                 if ( back[i] != 0.0 ) {
@@ -258,9 +286,10 @@ public class QuickLineFitter
                     break;
                 }
             }
-        } else {
+        } 
+        else {
             for ( int i = 0; i < ubound - 2; i++ ) {
-                a += ( 1.0 - ( data[i] + 1.0 ) / 1.0 ) * sign;
+                a += ( 1.0 - ( data[i] + backValue ) / backValue ) * sign;
                 if ( a > frac * sum ) {
                     mbound = i - 1;
                     break;
@@ -276,12 +305,14 @@ public class QuickLineFitter
                 exch = 1.0 - exes /
                        ( 1.0 - ( data[mbound+1] + back[mbound+1] ) /
                          back[mbound+1] ) * sign;
-            } else {
+            } 
+            else {
                 exch = 0.0;
             }
-        } else {
+        } 
+        else {
             exch = 1.0 - exes /
-                ( 1.0 - ( data[mbound+1] + 1.0) / 1.0 ) * sign;
+                ( 1.0 - ( data[mbound+1] + backValue ) / backValue ) * sign;
         }
         result = xcoords[mbound] + step * ( exch + 0.5 );
         return result;
