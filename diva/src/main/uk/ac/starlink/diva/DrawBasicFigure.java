@@ -22,7 +22,7 @@ import javax.swing.event.EventListenerList;
 /**
  * DrawBasicFigure extends the diva BasicFigure class to add support for
  * events that allow users of any derived figures to be made aware of
- * any changes, i.e.<!-- -->figure creation, removal and transformations.
+ * any changes -- figure creation, removal and transformations.
  * <p>
  * All figures used on a {@link Draw} that is using {@link DrawActions}
  * should be derived classes of this class, or implement the necessary

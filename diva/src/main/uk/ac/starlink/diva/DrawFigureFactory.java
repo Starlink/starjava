@@ -16,6 +16,7 @@ import java.awt.geom.Rectangle2D;
 import diva.canvas.CanvasUtilities;
 import diva.util.java2d.Polyline2D;
 import diva.util.java2d.Polygon2D;
+import diva.canvas.Figure;
 
 import uk.ac.starlink.diva.interp.Interpolator;
 import uk.ac.starlink.diva.geom.InterpolatedCurve2D;
