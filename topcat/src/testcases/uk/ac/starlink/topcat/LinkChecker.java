@@ -30,6 +30,12 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+/**
+ * Checks an XHTML document to see that the links it references 
+ * are valid URLs.
+ *
+ * @author    Mark Taylor (Starlink)
+ */
 public class LinkChecker {
 
     private final URL context;
@@ -43,10 +49,28 @@ public class LinkChecker {
         Pattern.compile( "<a\\s+name=(\\w+)>",
                          Pattern.CASE_INSENSITIVE );
 
+    /**
+     * Constructs a new LinkChecker with a given home context. 
+     * This should be the URL of the document being checked, or at least
+     * its directory, if relevant.  It is used for relative link
+     * resolution. 
+     *
+     * @param  context  document context
+     */
     public LinkChecker( URL context ) {
         this.context = context;
     }
 
+    /**
+     * Checks whether a link string (representing an absolute URL or a URL 
+     * relative to this checker's context) is valid or not.
+     * If it's not, then a brief message to this effect will be logged,
+     * and either the <tt>localFailures</tt> or <tt>extFailures</tt> 
+     * counts will be incremented.
+     *
+     * @param   href  link string to check
+     * @return  true iff href exists
+     */
     private boolean checkURL( String href ) {
         int hashPos = href.indexOf( '#' );
         URL url;
@@ -93,6 +117,12 @@ public class LinkChecker {
         return ok;
     }
 
+    /**
+     * Checks whether a document at the named URL exists.
+     *
+     * @param  url  URL to check
+     * @return  true  iff <tt>url</tt> exists
+     */
     private boolean checkUrlExists( URL url ) throws IOException {
         if ( urlNames.containsKey( url ) ) {
             return true;
@@ -124,6 +154,16 @@ public class LinkChecker {
         }
     }
 
+    /**
+     * Checks whether a named URL apparently contains an &lt;a&gt; element
+     * with the given <tt>name</tt> attribute.  The HTML parsing is not
+     * foolproof, so it might miss a name which is there.
+     *
+     * @param  url  the URL 
+     * @param  frag   the sought name attribute
+     * @return  true  iff <tt>url</tt> exists and apparently contains
+     *          the target <tt>frag</tt>
+     */
     private boolean checkUrlContains( URL url, String frag )
             throws IOException {
         if ( urlNames.get( url ) == null ) {
@@ -146,6 +186,17 @@ public class LinkChecker {
         return ((Collection) urlNames.get( url )).contains( frag );
     }
 
+    /**
+     * Checks the result of an XML transformation to see if the links
+     * in the result are OK or not.
+     *
+     * @param  xsltSrc  source for the XSLT stylesheet which converts to
+     *         HTML or an HTML-like output format
+     * @param  xmlSrc   source for the XML document which will be
+     *         transformed by <tt>xsltSrc</tt> to produce the HTML to test
+     * @return  true  iff all the links in the resulting XHTML document
+     *          can be successfully resolved
+     */
     public boolean checkLinks( Source xsltSrc, Source xmlSrc )
             throws TransformerException, MalformedURLException {
         Transformer trans = TransformerFactory.newInstance()
@@ -156,10 +207,54 @@ public class LinkChecker {
         return handler.ok;
     }
 
+    /**
+     * Returns the total number of local link resolution failures this
+     * checker has come across.  Local ones are those which correspond
+     * to hrefs representing relative URLs or file-type URLs.
+     *
+     * @return  total number of bad local links
+     */
+    public int getLocalFailures() {
+        return localFailures;
+    }
+
+    /**
+     * Returns the total number of external link resolution failures
+     * this checker has come across.  External links are ones that
+     * aren't local.
+     *
+     * @return  total number of bad non-local links
+     * @see  #getLocalFailures
+     */
+    public int getExternalFailures() {
+        return extFailures;
+    }
+
+    /**
+     * Interface through which short messages about progress can be 
+     * logged.
+     *
+     * @param  msg  message to log
+     */
     protected void logMessage( String msg ) {
         System.out.println( msg );
     }
 
+    /**
+     * Checks the links of the result of a given transformation to XHTML
+     * (or an HTML-like result).
+     * For any link which fails to resolve correctly in the transformation
+     * result, a short warning message is output during processing.
+     * At the end, a summary of any bad links is also output.
+     * There will be an error status exit (1) if any of the <em>local</em>
+     * links fail to resolve; if the only bad links are ones corresponding
+     * to non-local (hrefs than don't start with "#" or "file:") then
+     * although warnings are logged, the exit status is zero.
+     * <p>
+     * Usage:  LinkChecker stylesheet xmldoc
+     *
+     * @param  args  arguments
+     */
     public static void main( String[] args ) 
             throws MalformedURLException, TransformerException {
         if ( args.length != 2 ) {
@@ -172,15 +267,17 @@ public class LinkChecker {
             LinkChecker checker = new LinkChecker( new File( "." ).toURL() );
             boolean ok = checker.checkLinks( new StreamSource( xslt ),
                                              new StreamSource( xml ) );
-            if ( checker.extFailures > 0 ) {
-                System.out.println( checker.extFailures +
+            int localFailures = checker.getLocalFailures();
+            int extFailures = checker.getExternalFailures();
+            if ( extFailures > 0 ) {
+                System.out.println( extFailures +
                                     " external link resolution errors" );
             }
-            if ( checker.localFailures > 0  ) {
-                System.out.println( checker.localFailures + 
+            if ( localFailures > 0  ) {
+                System.out.println( localFailures + 
                                     " local link resolution errors" );
             }
-            System.exit( checker.localFailures == 0 ? 0 : 1 );
+            System.exit( localFailures == 0 ? 0 : 1 );
         }
         catch ( TransformerException e ) {
             System.err.println( e );
@@ -192,6 +289,12 @@ public class LinkChecker {
         }
     }
 
+
+    /**
+     * An instance of this class processes the XHTML as a SAX stream,
+     * performing callbacks when it comes across events which correspond
+     * to interesting elements in the document.
+     */
     private class LinkCheckHandler extends DefaultHandler {
 
         boolean ok = true;
