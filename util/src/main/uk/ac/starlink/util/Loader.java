@@ -256,7 +256,7 @@ public class Loader {
      * Attempts to obtain instances of a class from a colon-separated list
      * of classnames in a named system property.  If the named property
      * does not exists or contains no strings, an empty list is returned.
-     * Otherwise, {@link getClassInstance} is called on each colon-separated
+     * Otherwise, {@link #getClassInstance} is called on each colon-separated
      * element of the property value, and if there is a non-null return, 
      * it is added to the return list.  For colon-separated elements which
      * do not correspond to usable classes, a message may be written 
