@@ -58,6 +58,7 @@
         ID ID #IMPLIED
         name CDATA #IMPLIED
         ref IDREF #IMPLIED
+        nrows CDATA #IMPLIED
 >
 
 <!-- GROUP can contain a description, fields/parameters and sub-groups -->
