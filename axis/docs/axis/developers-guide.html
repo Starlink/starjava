@@ -2,29 +2,18 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72 [en] (Windows NT 5.0; U) [Netscape]">
    <title>Axis Developer's Guide</title>
-<!-- saved from url=(0022)http://internet.e-mail -->
-<style type="text/css">
-<!--
-.example { background:#ccccff }
-.xml { background:#eeeeee }
-body {  font-family: Verdana, Arial, Helvetica, sans-serif; margin-left: 40px}
-h2 {  text-decoration: underline; background-color: #DCE1FF; background-position: left; margin-left: -30px}
-h3 {  margin-left: -10px}
-h1 {  margin-left: -30px}
--->
-</style>
+    <link href="axis.css" rel=stylesheet type=text/css>
 </head>
 <body text="#000000" bgcolor="#FFFFFF">
 
 <center>
 <h1>
-<img SRC="axis.jpg" height=96 width=176></h1></center>
+<img SRC="images/axis.jpg" height=96 width=176></h1></center>
 
 <h1>
 Axis Developer's Guide</h1>
-<i>1.0 Version</i>
+<i>1.1 Version</i>
 <h3>
 Table of Contents</h3>
 <a href="#Introduction">Introduction</a>
@@ -37,9 +26,11 @@ Table of Contents</h3>
 <br><a href="#Exception Handling">Exception Handling</a>
 <br><a href="#Compile And Run">Compile and Run</a>
 <br><a href="#Internationalization">Internationalization</a>
+<br>&nbsp;&nbsp;&nbsp;<a href="#Extending Message Files">Extending Message Files</a>
 <br><a href="#Adding Testcases">Adding Testcases</a>
 <br><a href="#TestStructure">Test and Samples Structure</a>
 <br><a href="#CodeChecks">Adding Source Code Checks</a>
+<br><a href="#JUnit">JUnit and Axis</a>
 <br><a href="#Debugging">Debugging</a>
 <br><a href="#TCK">Running the JAX-RPC Compatibility Tests</a>
 <br>&nbsp;
@@ -52,7 +43,7 @@ This guide is a collection of topics related to developing code for Axis.
 <ul>
 <li>
 Axis specific information (cvs repository access, mailing list info, etc.)
-can be found on the <a href="http://xml.apache.org/axis/index.html">Axis
+can be found on the <a href="http://ws.apache.org/axis/index.html">Axis
 Home Page</a>.</li>
 
 <li>
@@ -104,9 +95,11 @@ code:
 <blockquote>
 <blockquote><tt><font color="#009900">D:\\xerces\\xerces-1_4_2\\xerces.jar</font></tt>
 <br><tt><font color="#009900">G:\\junit3.7\\junit.jar</font></tt>
+<br><tt><font color="#009900">G:\\xml-axis\\java\\build\\lib\\commons-discovery.jar</font></tt>
+<br><tt><font color="#009900">G:\\xml-axis\\java\\build\\lib\\commons-logging.jar</font></tt>
 <br><tt><font color="#009900">G:\\xml-axis\\java\\build\\lib\\wsdl4j.jar</font></tt>
 <br><tt><font color="#009900">G:\\xml-axis\\java\\build\\lib\\axis.jar</font></tt>
-<br><tt><font color="#009900">G:\\xml-axis\\java\\build\\lib\\log4j-1.2.4.jar</font></tt>
+<br><tt><font color="#009900">G:\\xml-axis\\java\\build\\lib\\log4j-1.2.8.jar</font></tt>
 <br><tt><font color="#009900">G:\\xml-axis\\java\\build\\classes</font></tt></blockquote>
 </blockquote>
 If you access the internet via a proxy server, you'll need to set an environment
@@ -130,14 +123,14 @@ org.apache.axis.components.&lt;componentType>.&lt;factoryClassName>
 For example, <code>org.apache.axis.components.logger.LogFactory</code> is the factory,
 or discovery mechanism, for the logger component/service.
 <p>
-The <code>org.apache.axis.components.bytecode</code> package demonstrates
-both a factory, and supporting classes for different bytecode tools used
-by axis.  This is representative of a pluggable component that uses
-external tooling, but isolates them behind a 'thin' wrapper to AXIS,
-providing only the limited interface required by AXIS.
+The <code>org.apache.axis.components.image</code> package demonstrates
+both a factory, and supporting classes for different image tools used
+by AXIS.  This is representative of a pluggable component that uses
+external tooling, isolating it behind a 'thin' wrapper to AXIS that
+provides only a limited interface to meet AXIS minimal requirements.
 This allows future designers
 and implementors to gain an explicit understanding of the AXIS's
-requirements on these tools.
+specific requirements on these tools.
 <h3>
 <a NAME="Logging/Tracing"></a>Logging/Tracing</h3>
 AXIS logging and tracing is based on the Logging component of the
@@ -356,8 +349,8 @@ while limiting console output to INFO (and higher).
 AXIS is in the process of moving away from using system properties
 as the primary point of internal configuration.
 Avoid calling <code>System.getProperty()</code>,
-and instead call <code>AxisEngine.getGlobalProperty</code>.
-<code>AxisEngine.getGlobalProperty</code> will
+and instead call <code>AxisProperties.getProperty</code>.
+<code>AxisProperties.getProperty</code> will
 call <code>System.getProperty</code>, and will (eventually)
 query other sources of configuration information.
 <p>
@@ -365,11 +358,6 @@ Using this central point of access will allow the
 global configuration system to be redesigned
 to better support multiple AXIS engines in a
 single JVM.
-<p>
-A <code>getGlobalProperty()</code> method has also been added
-to <code>BasicHandler</code>.
-Handlers (ancestors of <code>BasicHandler</code>) should use this local method
-rather than accessing <code>AxisEngine.getGlobalProperty</code>.
 
 <h2>
 <a NAME="Exception Handling"></a>Exception Handling</h2>
@@ -572,17 +560,20 @@ in new code.</b>
 If you make changes to the source code that results in the generation of
 text (error messages or debug information), you must follow the following
 guidelines to ensure that your text is properly translated.
-<br>&nbsp;
+<h3>
+<a NAME="Developer Guidelines"></a>Developer Guidelines</h3>
 <ol>
 <li>
 Your text string should be added as a property to the resource.properties
-file (xml-axis/java/src/org/apache/axis/utils/resource.properties).&nbsp;
+file (xml-axis/java/src/org/apache/axis/i18n/resource.properties).&nbsp;
 Note that some of the utility applications (i.e. tcpmon) have their own
-resource property files (tcpmon.properties).</li>
-
+resource property files (tcpmon.properties).
+</li>
 <br>&nbsp;
 <li>
 The resource.properties file contains translation and usage instructions.&nbsp;
+Entries in a message resource file are of the form
+<font color="#009900">&lt;key&gt;=&lt;message&gt;</font>.
 Here is an example message:</li>
 <p>
 <p><font color="#009900">sample00=My name is {0}, and my title is {1}.</font>
@@ -599,11 +590,12 @@ for inserts.</li>
 </ol>
 <li>
 The code should use the
-static method org.apache.axis.utils.JavaUtils.getMessage
+static method org.apache.axis.i18n.Messages.getMessage
 to obtain the text and add inserts.&nbsp; Here is an example usage:</li>
 <p>
-<p><font color="#009900">JavaUtils.getMessage("sample00", "Rich Scheuerle",
+<p><font color="#009900">Messages.getMessage("sample00", "Rich Scheuerle",
 "Software Developer");</font>
+
 <br>&nbsp;
 <li>
 <font color="#000000">All keys in the properties file should use the syntax
@@ -625,8 +617,104 @@ create a new entry with an incremented 2-digit suffix.</font></li>
 <li>
 <font color="#000000">All new entries should be placed at the bottom of
 the file to ease translation.</font></li>
+
+<br>&nbsp;
+<li>
+<font color="#000000">We may occasionally want to trim the properties file of old data, but this should only be done on major releases. </font></li>
 </ol>
 </ol>
+
+<h4>
+<a NAME="Example"></a>Example</h4>
+
+Consider the following statement:
+<p><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if ( operationName == null )</code>
+<br><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+throw new AxisFault( "No operation name specified" );</code>
+<p>
+We will add an entry into
+org/apache/axis/i18n/resource.properties:
+<p><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;noOperation=No operation name specified.</code>
+<p>And change the code to read:
+<p><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if ( operationName == null )</code>
+<br><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+throw new AxisFault(Messages.getMessage("noOperation"));</code>
+
+<h3>
+<a NAME="Interface"></a>Interface</h3>
+
+AXIS uses the standard Java internationalization class
+<code>java.util.ResourceBundle</code>
+to access property files and message strings,
+and uses <code>java.text.MessageFormat</code>
+to format the strings using variables.
+AXIS provides a single class <code>org.apache.axis.i18n.Messages</code>
+that manages both ResourceBundle and MessageFormat classes.
+Messages methods are:
+
+<p><code>public static java.util.ResourceBundle getResourceBundle();</code>
+<p><code>public static String getMessage(String key) throws java.util.MissingResourceException;</code>
+<p><code>public static String getMessage(String key, String var) throws java.util.MissingResourceException;</code>
+<p><code>public static String getMessage(String key, String var1, String var2) throws java.util.MissingResourceException;</code>
+<p><code>public static String getMessage(String key, String[] vars) throws java.util.MissingResourceException;</code>
+
+<p>AXIS programmers can work with the resource bundle directly via a call
+to <code>Messages.getResourceBundle()</code>,
+but the <code>getMessage()</code>
+methods should be used instead for two reasons:
+<ol>
+<li>
+It's a shortcut.  It is cleaner to call</li>
+
+<ol><code>Messages.getMessage("myMsg00");</code></ol>
+than
+<ol><code>Messages.getResourceBundle().getString("myMsg00");</code></ol>
+
+<br>
+<li>
+The <code>getMessage</code> methods enable messages with variables.</li>
+</ol>
+
+<h4>
+The getMessage methods</h4>
+If you have a message with no variables
+<ol><code>myMsg00=This is a string.</code></ol>
+then simply call
+<ol><code>Messages.getMessage("myMsg00");</code></ol>
+
+<p><br>If you have a message with variables, use the syntax
+<font face="Courier New,Courier">"{X}"</font>
+where <code>X</code> is
+the number of the variable, starting at 0. For example:
+<ol><code>myMsg00=My {0} is {1}.</code></ol>
+then call:
+<ol><code>Messages.getMessage("myMsg00","name", "Russell");</code></ol>
+and the resulting string will be:&nbsp; "My name is Russell."
+<p>You could also call the String array version of <font face="Courier New,Courier"><font size=-1>getMessage</font></font>:
+<ol><code>Messages.getMessage("myMsg00", new String[] {"name", "Russell"});</code></ol>
+
+<p><br>The String array version of <font face="Courier New,Courier"><font size=-1>getMessage</font></font>
+is all that is necessary, but the vast majority of messages will have 0,
+1 or 2 variables, so the other <font face="Courier New,Courier"><font size=-1>getMessage</font></font>
+methods are provided as a convenience to avoid the complexity of the String
+array version.
+<p>Note that the <font face="Courier New,Courier"><font size=-1>getMessage</font></font>
+methods throw <font face="Courier New,Courier"><font size=-1>MissingResourceException</font></font>
+if the resource cannot be found.&nbsp; And ParseException if there are
+more {X} entries than arguments.&nbsp; These exceptions are <font face="Courier New,Courier"><font size=-1>RuntimeException'</font></font>s,
+so the caller doesn't have to explicitly catch them.
+<p>The resource bundle properties file is org/apache/axis/i18n/resource.properties.
+
+<h3>
+<a NAME="Extending Message Files"></a>Extending Message Files</h3>
+Generally,
+within AXIS all messages are placed in
+org.apache.axis.i18n.resource.properties.
+There are facilities for extending the messages without
+modifying this file for integration or 3rd party extensions to AXIS.
+See the <a href="integration-guide.html#Extending Message Files"/>Integration Guide</a> for details.
 
 <h2>
 <a NAME="Adding Testcases"></a><font color="#000000">Adding Testcases</font></h2>
@@ -803,6 +891,111 @@ A reasonable summary of the regular expression notation is provided in
 the <a href="http://jakarta.apache.org/oro/api/org/apache/oro/text/regex/package-summary.html">Jakarta ORO javadocs</a>.
 
 <h2>
+<a NAME="JUnit"></a>JUnit and Axis</h2>
+
+<p>
+You try to run some JUnit tests on an Axis client that invokes a web service, 
+and you always get this exception:
+<pre>
+java.lang.ExceptionInInitializerError 
+at org.apache.axis.client.Service.<init>(Service.java:108) 
+... 
+
+Caused by: org.apache.commons.logging.LogConfigurationException: ... 
+org.apache.commons.logging.impl.Jdk14Logger does not implement Log 
+at org.apache.commons.logging.impl.LogFactoryImpl.newInstance
+(LogFactoryImpl.java:555) 
+...
+</pre>
+<p>
+Actually, Jdk14Logger does implement Log. What you have is a JUnit classloading 
+issue. JUnit's graphical TestRunner has a feature where it will dynamically 
+reload modified classes every time the user presses the "Run" button. This way, 
+the user doesn't need to relaunch the TestRunner after every edit. For this, 
+JUnit uses its own classloader, junit.runner.TestCaseClassLoader. As of JUnit 
+3.8.1, confusion can arise between TestCaseClassLoader and the system class 
+loader as to which loader did or should load which classes.
+<p>
+There are two ways to avoid this problem.
+<ul>
+<li>Sure and simple fix. Turn off dynamic class reloading by running 
+junit.swingui.TestRunner with the -noloading argument. 
+</li>
+<p>
+<li>Finicky and fancy fix, only necessary if you want dynamic class reloading. 
+Tell TestCaseClassLoader to ignore certain packages and their sub-packages, 
+deferring them to the system classloader. You can do this using a file located 
+in junit.jar, junit/runner/excluded.properties. Its content appears as follows:
+<pre>
+#
+# The list of excluded package paths for the TestCaseClassLoader
+#
+excluded.0=sun.*
+excluded.1=com.sun.*
+excluded.2=org.omg.*
+excluded.3=javax.*
+excluded.4=sunw.*
+excluded.5=java.*
+excluded.6=org.w3c.dom.*
+excluded.7=org.xml.sax.*
+excluded.8=net.jini.*
+</pre></li>
+</ul>
+<p>
+Copy this file, preserving the directory path, into another location, e.g. 
+deployDir. So the copied properties file's path will be 
+deployDir/junit/runner/excluded.properties. Add an extra entry to the end of 
+this file:
+<pre>
+excluded.9=org.apache.*
+</pre>
+<p>
+Edit your classpath so that deployDir appears before junit.jar. This way, the 
+modified excluded.properties will be used, rather than the default. (Don't add 
+the path to excluded.properties itself to the classpath.)
+<p>
+This fix will prevent the commons-logging exception. However, other 
+classloading problems might still arise. For example:
+<pre>
+Dec 10, 2002 7:16:16 PM org.apache.axis.encoding.ser.BeanPropertyTarget set 
+SEVERE: Could not convert [Lfoo.bar.Child; to bean field 'childrenAsArray', 
+type [Lfoo.bar.Child; 
+Dec 10, 2002 7:16:16 PM org.apache.axis.client.Call invoke 
+SEVERE: Exception: 
+java.lang.IllegalArgumentException: argument type mismatch 
+at org.apache.axis.encoding.ser.BeanPropertyTarget.set
+(BeanPropertyTarget.java:182) 
+at org.apache.axis.encoding.DeserializerImpl.valueComplete
+(DeserializerImpl.java:284) 
+...
+</pre>
+<p>
+In this case, you have no choice but to give up on dynamic class reloading and 
+use the -noloading argument.
+<p>
+One other heads-up about JUnit testing of an Axis web service. Suppose you have 
+run JUnit tests locally on the component that you want to expose as a web 
+service. You press the "Run" button to initiate a series of tests. Between each 
+test, all your data structures are re-initialized. Your tests produce a long 
+green bar. Good.
+<p>
+Suppose you now want to run JUnit tests on an Axis client that is connecting to 
+an application server running the Axis web application and with it your web 
+service. Between each test, JUnit will automatically re-initialize your client. 
+<p>
+Your server-side data structures are a different matter. If you're checking 
+your server data at the end of each test (as you should be) and you run more 
+than one test at a time, the second and later tests will fail because they are 
+generating cumulative data on the Axis server based on preceding tests rather 
+than fresh data based only on the current one.
+<p>
+This means that, for each test, you must manually re-initialize your web 
+service. One way to accomplish this is to add to your web service interface a 
+re-initialize operation. Then have the client call that operation at the start 
+of each test.
+
+
+<h2>
 <a NAME="Debugging"></a>Debugging</h2>
 
 <h4>Using <code>tcpmon</code> to Monitor Functional Tests.</h4>
@@ -819,6 +1012,20 @@ The SOAP messages for all of the tests should appear in the tcpmon window.
 <p>
 <code>tcpmon</code> is described in more detail in the
 <a href="user-guide.html#tcpmon">AXIS User's Guide</a>.
+
+<h4>Using <code>SOAP Monitor</code> to Monitor Functional Tests.</h4>
+<p>
+If you are debugging code that is running as a web application using
+a web application server (such as Tomcat) then you may also use the
+SOAP Monitor utility to view the SOAP request and response messages.
+<br>Start up the SOAP monitor utility by loading the SOAP monitor applet 
+in your web browser window:
+<blockquote><tt>http://localhost:&lt;port&gt;/axis/SOAPMonitor</tt></blockquote>.
+As you run your tests, the SOAP messages should appear in the SOAP 
+monitor window.
+<p>
+<code>SOAP Monitor</code> is described in more detail in the
+<a href="user-guide.html#soapmon">AXIS User's Guide</a>.
 
 <h4>Running a Single Functional Test</h4>
 In one window start the server:

@@ -1,36 +1,30 @@
-<!-- saved from url=(0022)http://internet.e-mail -->
 <html>
 <head>
 <title>Axis Reference Guide</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<style type="text/css">
-<!--
-.example { background:#ccccff }
-.xml { background:#eeeeee }
-body {  font-family: Verdana, Arial, Helvetica, sans-serif; margin-left: 40px}
-h2 {  text-decoration: underline; background-color: #DCE1FF; background-position: left; margin-left: -30px}
-h3 {  margin-left: -10px}
-h1 {  margin-left: -30px}
--->
-</style>
+<link href="axis.css" rel=stylesheet type=text/css>
 </head>
 
-<body bgcolor="#ffffff" text="#000000">
-<h1 align="center"><IMG height=96 src="axis.jpg" width=176></h1>
+<body>
+<h1 align="center"><IMG height=96 src="images/axis.jpg" width=176></h1>
 <h1>Axis Reference Guide</h1>
-<p><i>1.0 Version</i></p>
+<p><i>1.1 Version</i></p>
 <h3>Table of Contents</h3>
 <ul>
   <li><a href="#Tools">Tools Reference</a></li>
   <ul>
     <li><a href="#WSDL2Java">WSDL2Java</a></li>
     <li><a href="#Java2WSDL">Java2WSDL</a></li>
+    <li><a href="#Java2WSDL">Java2WSDL</a></li>
   </ul>
   <li><a href="#Deployment">Deployment (WSDD) Reference</a></li>
+  <li><a href="#global_configuration">Global Axis Configuration</a></li>
+  <li><a href="#individual_service">Individual Service Configuration</a></li>
+  <li><a href="#axis_logging">Axis Logging Configuration</a></li>
+  <li><a href="#axis_components" >Pre-Configured Axis Components Reference</a></li>
 </ul>
 <h2> <a name="Tools"></a>Tools Reference</h2>
 <h3><a name="WSDL2Java"></a>WSDL2Java Reference</h3>
-<h4>Other WSDL2Java details</h4>
 <p>Usage:&nbsp; java org.apache.axis.wsdl.WSDL2Java [options] WSDL-URI <br>
   Options: <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -h, --help <br>
@@ -39,6 +33,18 @@ h1 {  margin-left: -30px}
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -v, --verbose <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
   print informational messages <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -n, --noImports <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  only generate code for the immediate WSDL document <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -O, --timeout &lt;argument> <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  timeout in seconds (default is 45, specify -1 to disable) <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -D, --Debug <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  print debug information <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -W, --noWrapped<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  turn off support for &quot;wrapped&quot; document/literal<br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -s, --server-side <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
   emit server-side bindings for web service <br>
@@ -69,38 +75,56 @@ h1 {  margin-left: -30px}
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -t, --testCase <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
   emit junit testcase class for web service <br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -n, --noImports <br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  only generate code for the immediate WSDL document <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -a, --all <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
   generate code for all elements, even unreferenced ones <br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -D, --Debug <br>
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -T, --typeMappingVersion <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  print debug information <br>
+  indicate 1.1 or 1.2.  The default is 1.1 (SOAP 1.1 JAX-RPC compliant.
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    1.2 indicates SOAP 1.1 encoded.) <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -F, --factory &lt;argument> <br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  name of the JavaWriterFactory class for extending Java generation functions 
-  <br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  ompliant) <br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -O, --timeout &lt;argument> <br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  timeout in seconds (default is 45, specify -1 to disable) <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    name of a custom class that implements GeneratorFactory interface
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    (for extending Java generation functions) <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -H, --helperGen <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    emits separate Helper classes for meta data <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -U, --user &lt;argument> <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
   username to access the WSDL-URI <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -P, --password &lt;argument> <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
   password to access the WSDL-URI <br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -W, --noWrapped<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  turn off support for &quot;wrapped&quot; document/literal<br>
   &nbsp; 
 <h4> -h, --help</h4>
 Print the usage statement and exit 
 <h4> -v, --verbose</h4>
 See what the tool is generating as it is generating it. 
+<h4> -n, --noImports</h4>
+Only generate code for the WSDL document that appears on the command line.&nbsp; 
+The default behaviour is to generate files for all WSDL documents, the immediate 
+one and all imported ones. 
+<h4> -O, --timeout</h4>
+Timeout in seconds.  The default is 45.  Use -1 to disable the timeout.
+<h4> -D, --Debug</h4>
+Print debug information, which currently is WSDL2Java's symbol table.  Note that this is only printed after the symbol table is complete, ie., after the WSDL is parsed successfully.
+<h4>-W, --noWrapped</h4>
+This turns off the special treatment of what is called "wrapped" document/literal
+style operations. &nbsp;By default, WSDL2Java will recognize the following
+conditions:<br>
+<ul>
+  <li>If an input message has is a single part.</li>
+  <li>The part is an element.</li>
+  <li>The element has the same name as the operation</li>
+  <li>The element's complex type has no attributes<br>
+  </li>
+</ul>
+When it sees this, WSDL2Java will 'unwrap' the top level element, and treat each 
+of the components of the element as arguments to the operation. This type of WSDL 
+is the default for Microsoft .NET web services, which wrap up RPC style arguments 
+in this top level schema element.
 <h4> -s, --server-side</h4>
 Emit the server-side bindings for the web service: 
 <ul>
@@ -172,10 +196,6 @@ own, but it doesn't really do anything except pass default values (null for obje
 0 or false for primitive types).&nbsp; Like the generated implementation file, 
 the generated test case file could be considered a template that you may fill 
 in. 
-<h4> -n, --noImports</h4>
-Only generate code for the WSDL document that appears on the command line.&nbsp; 
-The default behaviour is to generate files for all WSDL documents, the immediate 
-one and all imported ones. 
 <h4> -a, --all</h4>
 Generate code for all elements, even unreferenced ones.&nbsp; By default, WSDL2Java 
 only generates code for those elements in the WSDL file that are referenced. 
@@ -197,13 +217,13 @@ only generates code for those elements in the WSDL file that are referenced.
   then that portType will be generated and only those types that are referenced 
   by that portType.
 <p>Note that the anchor is searched for in the WSDL file appearing on the command line, <b>not</b> in imported WSDL files.  This allows one WSDL file to import constructs defined in another WSDL file without the nuisance of having all the imported WSDL file's constructs generated.
-<h4> -D, --Debug</h4>
-Print debug information, which currently is WSDL2Java's symbol table. 
 <h4> -T, --typeMappingVersion &lt;argument></h4>
 Indicate 1.1 or 1.2.&nbsp; The default is 1.2 (SOAP 1.2 JAX-RPC compliant). 
 <h4> -F, --factory &lt;argument></h4>
 Used to extend the functionality of the WSDL2Java emitter. The argument is the 
 name of a class which extends JavaWriterFactory. 
+<h4> -H, --helperGen</h4>
+Emits separate Helper classes for meta data.
 <h4> -U, --user &lt;argument&gt;</h4>
 This username is used in resolving the WSDL-URI provided as the input to WSDL2Java. 
 &nbsp;If the URI contains a username, this will override the command line switch. 
@@ -212,163 +232,107 @@ This username is used in resolving the WSDL-URI provided as the input to WSDL2Ja
 This password is used in resolving the WSDL-URI provided as the input to WSDL2Java. 
 &nbsp;If the URI contains a password, this will override the command line switch.&nbsp; 
 <br>
-<h4>-W, --noWrapped</h4>
-This turns off the special treatment of what is called "wrapped" document/literal
-style operations. &nbsp;By default, WSDL2Java will recognize the following
-conditions:<br>
-<ul>
-  <li>If an input message has is a single part.</li>
-  <li>The part is an element.</li>
-  <li>The element has the same name as the operation</li>
-  <li>The element's complex type has no attributes<br>
-  </li>
-</ul>
-When it sees this, WSDL2Java will 'unwrap' the top level element, and treat each 
-of the components of the element as arguments to the operation. This type of WSDL 
-is the default for Microsoft .NET web services, which wrap up RPC style arguments 
-in this top level schema element.<br>
 
 <h3><a name="Java2WSDL"></a>Java2WSDL Reference</h3>
 <p>Here is the help message generated from the current tool: </p>
-<p><tt><font color="#993366">Java2WSDL emitter</font></tt> <br>
-  <tt><font color="#993366">Usage: java org.apache.axis.wsdl.Java2WSDL [options] 
-  class-of-portType</font></tt> <br>
-  <tt><font color="#993366">Options:</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -h, --help</font></tt> 
-  <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  print this message and exit</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -I, --input 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  input WSDL filename</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -o, --output 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  output WSDL filename</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -l, --location 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  service location url</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -P, --portTypeName 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  portType name (obtained from class-of-portType if not specified)</font></tt> 
-  <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -b, --bindingName 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  binding name ((--servicePortName value + "SOAPBinding" if not specified)</font></tt> 
-  <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -S, --serviceElementName 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  service element name (defaults to servicePortName value + "Service")</font></tt> 
-  <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -s, --servicePortName 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  service port name (obtained from --location if not specified)</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -n, --namespace 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  target namespace</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -p, --PkgtoNS 
-  &lt;argument>=&lt;value></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  package=namespace, name value pairs</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -m, --methods 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  space or comma separated list of methods to export</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -a, --all</font></tt> 
-  <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  look for allowed methods in inherited class</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -w, --outputWsdlMode 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  output WSDL mode: All, Interface, Implementation</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -L, --locationImport 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  location of interface WSDL</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -N, --namespaceImpl 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  target namespace for implementation WSDL</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -O, --outputImpl 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  output Implementation WSDL filename, setting this causes --outputWsdlMode to 
-  be ignored</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -f, --factory 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  name of the Java2WSDLFactory class for extending WSDL generation functions</font></tt> 
-  <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -i, --implClass 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  optional class that contains implementation of methods in</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  class-of-portType.&nbsp; The debug information in the class is used</font></tt> 
-  <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  to obtain the method parameter names, which are used to set</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  the WSDL part names.</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -x, --exclude 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  space or comma separated list of methods not to export</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -c, --stopClasses 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  space or comma separated list of class names which stop inheritance search </font></tt> 
-  <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  if --all switch is enabled</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -T, --typeMappingVersion 
-  &lt;argument></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  indicate 1.1 or 1.2. The default is 1.2 (SOAP 1.2 JAX-RPC compliant)</font></tt> 
-  <br>
-  <tt><font color="#993366">Details:</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp; portType element name= &lt.portTypeName 
-  value> OR &lt;class-of-portType name></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp; binding element&nbsp; name= &lt;--bindingName value> OR 
-  &lt;--servicePortName value>SoapBinding</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp; service element&nbsp; name= &lt;--serviceElementName 
-  value> OR &lt;portTypeName value>Service</font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp; port element &nbsp;&nbsp;&nbsp; name= 
-  &lt;--servicePortName value></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp; address location&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 
-  &lt;--location value></font></tt> <br>
-  &nbsp; 
+<p><font color="#993366">
+<pre>
+Java2WSDL emitter
+Usage: java org.apache.axis.wsdl.Java2WSDL [options] class-of-portType
+Options:
+        -h, --help
+                print this message and exit
+        -I, --input <argument>
+                input WSDL filename
+        -o, --output <argument>
+                output WSDL filename
+        -l, --location <argument>
+                service location url
+        -P, --portTypeName <argument>
+                portType name (obtained from class-of-portType if not specified)
+        -b, --bindingName <argument>
+                binding name (--servicePortName value + "SOAPBinding" if not specified)
+        -S, --serviceElementName <argument>
+                service element name (defaults to --servicePortName value + "Service")
+        -s, --servicePortName <argument>
+                service port name (obtained from --location if not specified)
+        -n, --namespace <argument>
+                target namespace
+        -p, --PkgtoNS <argument>=<value>
+                package=namespace, name value pairs
+        -m, --methods <argument>
+                space or comma separated list of methods to export
+        -a, --all
+                look for allowed methods in inherited class
+        -w, --outputWsdlMode <argument>
+                output WSDL mode: All, Interface, Implementation
+        -L, --locationImport <argument>
+                location of interface wsdl
+        -N, --namespaceImpl <argument>
+                target namespace for implementation wsdl
+        -O, --outputImpl <argument>
+                output Implementation WSDL filename, setting this causes --outputWsdlMode to be ignored
+        -i, --implClass <argument>
+                optional class that contains implementation of methods in class-of-portType.  
+				The debug information in the class is used
+                to obtain the method parameter names, which are used to set
+                the WSDL part names.
+        -x, --exclude <argument>
+                space or comma separated list of methods not to export
+        -c, --stopClasses <argument>
+                space or comma separated list of class names which will stop
+                inheritance search if --all switch is given
+        -T, --typeMappingVersion <argument>
+                indicate 1.1 or 1.2.  The default is 1.1 (SOAP 1.1 JAX-RPC 
+				 compliant  1.2 indicates SOAP 1.1 encoded.)
+        -A, --soapAction <argument>
+                value of the operations soapAction field. Values are DEFAULT,
+                OPERATION or NONE. OPERATION forces soapAction to the name
+                of the operation.  DEFAULT causes the soapAction to be set
+                according to the operations meta data (usually "").  NONE forces
+				the soapAction to "".  The default is DEFAULT.
+        -y, --style <argument>
+                The style of binding in the WSDL, either DOCUMENT, RPC, or WRAPPED.
+        -u, --use <argument>
+                The use of items in the binding, either LITERAL or ENCODED
+        -e, --extraClasses <argument>
+                A space or comma separated list of class names to be added tO
+                The type section.
+Details:
+   portType element name= <--portTypeName value> OR <class-of-portType name>
+   binding  element name= <--bindingName value> OR <--servicePortName value>Soap
+Binding
+   service  element name= <--serviceElementName value> OR <--portTypeName value>
+Service
+   port     element name= <--servicePortName value>
+   address location     = <--location value>
+</pre>
+</font>
+<br>
+ 
 <p><b>-h , --help</b> <br>
   Prints the help message. 
-<p><b>-o, --output &lt;WSDL file></b> <br>
-  Indicates the name of the output WSDL file.&nbsp; If not specified, a suitable 
-  default WSDL file is written into the current directory. 
 <p><b>-I, --input &lt;WSDL file></b> <br>
   Optional parameter that indicates the name of the input wsdl file.  The output
   wsdl file will contain everything from the input wsdl file plus the new constructs.
   If a new construct is already present in the input wsdl file, it is not added.
   This option is useful for constructing a wsdl file with multiple ports, bindings,
   or portTypes.
+<p><b>-o, --output &lt;WSDL file></b> <br>
+  Indicates the name of the output WSDL file.&nbsp; If not specified, a suitable 
+  default WSDL file is written into the current directory. 
 <p><b>-l, --location &lt;location></b> <br>
   Indicates the url of the location of the service.&nbsp; The name after the last 
-  slash or backslash is the name of the service port (unless overriden by the 
+  slash or backslash is the name of the service port (unless overridden by the 
   -s option).&nbsp; The service port address location attribute is assigned the 
   specified value. 
-<p><b>-p, --portTypeName &lt;name></b> <br>
+<p><b>-P, --portTypeName &lt;name></b> <br>
   Indicates the name to use use for the portType element. If not specified, the 
   class-of-portType name is used. 
 <p><b>-b, --bindingName &lt;name></b> <br>
   Indicates the name to use use for the binding element. If not specified, the 
   value of the --servicePortName + "SoapBinding" is used. 
-<p><b>-s, --serviceElementName &lt;name></b> <br>
+<p><b>-S, --serviceElementName &lt;name></b> <br>
   Indicates the name of the service element.&nbsp; If not specified, the service 
   element is the &lt;portTypeName>Service.&nbsp; 
 <p><b>-s, --servicePortName &lt;name></b> <br>
@@ -407,19 +371,35 @@ WSDL.
   Use this option to indicate the name of the output implementation WSDL file.&nbsp; 
   If specified, Java2WSDL will produce interface and implementation WSDL files.&nbsp; 
   If this option is used, the -w option is ignored. 
-<p><b>-f, --factory &lt;class></b> <br>
-  (No longer used.) 
 <p><b>-i, --implClass &lt;impl-class></b> <br>
-  Sometimes extra information is avalable in the implementation class file. Use 
+  Sometimes extra information is available in the implementation class file. Use 
   this option to specify the implementation class. 
-<p><b>-f, --factory &lt;class></b> <br>
-  (No longer used.) 
 <p><b>-x, --exclude &lt;list></b> <br>
   List of methods to not exclude from the wsdl file. 
 <p><b>-c, --stopClasses &lt;list></b> <br>
   List of classes which stop the Java2WSDL inheritance search. 
 <p><b>-T, --typeMappingVersion &lt;version></b> <br>
   Choose the default type mapping registry to use. Either 1.1 or 1.2.</p>
+<p><b>-A, --soapAction &lt;argument></b> <br>
+  The value of the operations soapAction field. Values are DEFAULT, OPERATION or NONE. OPERATION forces soapAction to the name of the operation.  DEFAULT causes the soapAction to be set according to the operation's meta data (usually "").  NONE forces the soapAction to "".  The default is DEFAULT.
+<p><b>-y, --style &lt;argument></b> <br>
+  The style of the WSDL document: RPC, DOCUMENT or WRAPPED. The default is RPC.
+  If RPC is specified, an rpc wsdl is generated. 
+  If DOCUMENT is specified, a document wsdl is generated. 
+  If WRAPPED is specified, a document/literal wsdl is generated using the wrapped approach.  
+  Wrapped style forces the use attribute to be literal.
+<p><b>-u, --use &lt;argument&gt;</b><br>
+  The use of the WSDL document: LITERAL or ENCODED. If LITERAL is specified, the 
+  XML Schema defines the representation of the XML for the request. If ENCODED 
+  is specified, SOAP encoding is specified in the generated WSDL. 
+<p><b>-e, --extraClasses &lt;argument&gt;</b><br>
+  Specify a space or comma seperated list of class names which should be included in the <b>types</b>
+  section of the WSDL document.  This is useful in the case where your service interface references
+  a base class and you would like your WSDL to contain XML Schema type defintions for these other
+  classes.  The -extraClasses option can be specified duplicate times.  
+  Each specification results in the additional classes being added to the list.
+
+
 <h2><a name="Deployment"></a>Deployment (WSDD) Reference</h2>
 Note : all the elements referred to in this section are in the WSDD namespace, 
 namely &quot;http://xml.apache.org/axis/wsdd/&quot;. 
@@ -440,7 +420,7 @@ namely &quot;http://xml.apache.org/axis/wsdd/&quot;.
     Defines a Handler, and indicates the type of the handler. &quot;Type&quot; 
     is either the name of another previously defined Handler, or a QName of the 
     form &quot;<b>java:<i>class.name</i></b>&quot;. The optional &quot;name&quot; 
-    attribute allows you to refer to this Handler defintion in other parts of 
+    attribute allows you to refer to this Handler definition in other parts of 
     the deployment. May contain an arbitrary number of <b><font face="Courier New, Courier, mono">&lt;option 
     name=&quot;</font></b><font face="Courier New, Courier, mono"><i>name</i></font><b><font face="Courier New, Courier, mono">&quot; 
     value=&quot;</font></b><font face="Courier New, Courier, mono"><i>value</i></font><b><font face="Courier New, Courier, mono">&quot;&gt;</font></b> 
@@ -455,11 +435,35 @@ namely &quot;http://xml.apache.org/axis/wsdd/&quot;.
     <b>Options</b> may be specified as follows : <code><b>&lt;parameter name=&quot;</b>name<b>&quot; 
     value=&quot;</b>value<b>&quot;/&gt;</b></code>, and common ones include:<br>
     <br>
-    <b>className</b> : the backend implementation class<br>
-    <b>allowedMethods</b> : the allowed methods (use &quot;*&quot; to allow all 
-    public methods)<br>
-    <b>allowedRoles</b> : comma-separated list of roles allowed to access this 
+    <ul>
+    <li><b>className</b> : the backend implementation class<br>
+    <li><b>allowedMethods</b> : 
+    Each provider can determine which methods are allowed to be exposed as web services.
+    <br>To summaries for Axis supplied providers:<br>
+    <p><u>Java RPC Provider</u> (provider="java:RPC") by default all public methods specified by the class
+    in the className option, including any inherited methods are 
+    available as web services.<br> For more details regarding the Java Provider 
+    please see <B>WHERE???</B>.
+    <P><u>Java MsgProvder</u> (provider="java:MSG") 
+    <!-- Glen to provide details -->
+    <P>In order to further restrict the above methods, the <b>allowedMethods</b> option  may
+    be used to specify in a space delimited list the names of only those methods which are allowed 
+    as web services. It is also possible to specify for this option the value <b>"*"</b> which is
+    functionally equivalent to not specify the option at all.
+    Also, it is worth mentioning  that the <b>operation</b> element is used to further define the methods being offered, but it does not affect
+    which methods are made available.
+    <p><i>Note, while this is true for Axis supplied providers,  it is implementation dependent on each individual provider. Please review
+    your providers documentation on how or if it supports this option.</i>
+   </i> 
+   <P>
+   <B><u>Note, Exposing any web service has security implications.</u><br></B>As a best practices guide it is
+   <u>highly</u> recommend when offering a web service in un secure environment to restrict allowed methods to only those
+   required for the service being offered. And, for those that are made available, to <b>fully</b> understand their function
+   and how they may access and expose your systems's resources.
+   <P>
+    <li><b>allowedRoles</b> : comma-separated list of roles allowed to access this 
     service<br>
+    </ul>
     <br>
     If you wish to define handlers which should be invoked either before or after 
     the service's provider, you may do so with the <b>&lt;requestFlow&gt;</b> 
@@ -538,14 +542,248 @@ namely &quot;http://xml.apache.org/axis/wsdd/&quot;.
     follow the JavaBean standard pattern of get/set accessors.</dd>
 </dl>
 <p> </p>
+
+
+
+<a name="global_configuration" />
+<h2>Global Axis Configuration</h2>
+
+The server is configured (by default) by values in the
+server-config.wsdd file, though a dedicated Axis user can write their
+own configuration handler, and so store configuration data in an LDAP
+server, database, remote web service, etc. Consult the source on details
+as to how to do that. You can also add options to the web.xml file and
+have them picked up automatically. We don't encourage that as it is nice
+to keep configuration stuff in one place.
+
+<p> 
+
+In the server-config file, there is a global configuration section,
+which supports parameter name/value pairs as nested elements. Here are
+the options that we currently document, though there may be more
+(consult the source, as usual). 
+
+<pre>   &lt;globalConfiguration&gt;
+    &lt;parameter name=&quot;adminPassword&quot; value=&quot;admin&quot;/&gt;
+    &lt;parameter name=&quot;attachments.Directory&quot; value=&quot;c:\temp\attachments&quot;/&gt;
+    &lt;parameter name=&quot;sendMultiRefs&quot; value=&quot;true&quot;/&gt;
+    &lt;parameter name=&quot;sendXsiTypes&quot; value=&quot;true&quot;/&gt;
+    &lt;parameter name=&quot;attachments.implementation&quot; value=&quot;org.apache.axis.attachments.AttachmentsImpl&quot;/&gt;
+    &lt;parameter name=&quot;sendXMLDeclaration&quot; value=&quot;true&quot;/&gt;
+    &lt;parameter name=&quot;enable2DArrayEncoding&quot; value=&quot;true&quot;/&gt;
+   &lt;/globalConfiguration&gt;
+</pre>
+<table>
+  <tr>
+    <td><b>adminPassword</b></td>
+    <td>Adminstrator password, as used by AdminService. </td>
+  </tr>
+  <tr>
+    <td><b>attachments.Directory</b></td>
+    <td>The directory where attachments end up. This should be in the syntax appropriate 
+      for the target platform. </td>
+  </tr>
+  <tr>
+    <td><b>attachments.implementation</b></td>
+    <td> Name of class that implements attachments support. Default is <tt>org.apache.axis.attachments.AttachmentsImpl</tt> 
+    </td>
+  </tr>
+  <tr>
+    <td><b>axis.enableListQuery</b></td>
+    <td>Flag to enable the "list the WSDD" feature. Set to false by default, because 
+      listing the current system config can expose information (such as the adminservice 
+      password) that one does not want widely avaialable. </td>
+  </tr>
+  <tr>
+    <td><b>axis.Compiler</b></td>
+    <td>Compiler adapter classname for JWS compilation. Default is <tt>org.apache.axis.components.compiler.Javac</tt>; 
+      change this to <tt>org.apache.axis.components.compiler.Jikes</tt> to invoke 
+      jikes instead. </td>
+  </tr>
+  <tr>
+    <td><b>axis.development.system</b></td>
+    <td>Flag to switch the system from <i>production</i> (false) to <i>development</i> 
+      (true). A development system gives out stack traces and other information 
+      that production boxes should not. </td>
+  <tr>
+    <td><b>axis.engineConfigClass</b></td>
+    <td>Name of a class that provides Axis configuration. Implement a new class 
+      implementing <tt>EngineConfiguration</tt> and name it here to use alternate 
+      configuration mechanisms. </td>
+  <tr>
+    <td><b>axis.jws.servletClassDir</b></td>
+    <td>Path to where compiled JWS pages are placed. </td>
+  </tr>
+  <tr>
+    <td><b>axis.sendMinimizedElements</b></td>
+    <td>Flag to turn on support for a when .NET1.0 can't correctly handle some 
+      bits of XML <a href="http://nagoya.apache.org/bugzilla/show_bug.cgi?id=17021"> 
+      that it should. </a> The flag defaults to true; if some .NET clients are 
+      failing to handle a Web Service returning an empty array inside another 
+      object, set this flag to <i>false</i>. </td>
+  </tr>
+  <tr>
+    <td><b>enable2DArrayEncoding</b></td>
+    <td>Set this to "true" to turn 2D array encoding on; this encoding is incompatible 
+      with .NET 1.0: default="false". </td>
+  </tr>
+  <tr>
+    <td><b>sendMultiRefs</b></td>
+    <td>true/false flag to control whether multirefs are sent or not. </td>
+  </tr>
+  <tr>
+    <td><b>sendXMLDeclaration</b></td>
+    <td>true/false flag to control whether the &lt;?xml?&gt; declaration is sent 
+      in messages </td>
+  </tr>
+  <tr>
+    <td><b>sendXsiTypes</b></td>
+    <td>true/false flag to enable/disable sending the type of every value sent 
+      over the wire. Defaults to true. </td>
+  </tr>
+  <tr> 
+    <td><strong>SingleSOAPVersion</strong></td>
+    <td>When set to either &quot;1.1&quot; or &quot;1.2&quot;, this configures 
+      the engine to only accept the specified SOAP version. Attempts to connect 
+      to the engine using another version will result in a fault.</td>
+  </tr>
+  <tr>
+    <td><b>use-servlet-security</b></td>
+    <td>Set this flag to hand authentication off to the servlet container. </td>
+  </tr>
+  <!-- end table -->
+</table>
+
+<a name="individual_service" />
+ 
+<h2>Individual Service Configuration</h2>
+
+<i>TODO</i>
+<p>
+
+Here are some of the per-service configuration options are available;
+these can be set in the wsdd file used to deploy a service, from where
+they will be picked up.
+<p> 
+More may exist. 
+
+<table>
+  <tr>
+    <td><b>style</b></td>
+    <td>whether to use RPC:enc or doc/lit encoding </td>
+  </tr>
+  <tr>
+    <td><strong>SingleSOAPVersion</strong></td>
+    <td>When set to either &quot;1.1&quot; or &quot;1.2&quot;, this configures 
+      a service to only accept the specified SOAP version. Attempts to connect 
+      to the service using another version will result in a fault.</td>
+  </tr>
+  <tr>
+    <td><b>wsdlFile</b></td>
+    <td>The path to a WSDL File; can be an absolute path or a resource that axis.jar 
+      can load. Useful to export your custom WSDL file. When specify a path to 
+      a resource, place a forward slash to start at the beginning of the classpath 
+      (e.g "/org/someone/res/mywsdl.wsdl"). How does Axis know whether to return 
+      a file or resource? It looks for a file first, if that is missing a resource 
+      is returned. </td>
+  </tr>
+  <!-- TODO: what does this mean?
+ <tr><td><b>streaming</b></td>
+<td>
+</td>
+</tr>
+ -->
+</table>
+<a name="axis_logging" />
+
+<h2>Axis Logging Configuration</h2>
+
+Axis uses the Jakarta Projects's
+<a href="http://jakarta.apache.org/commons/logging.html">commons-logging API</a>,
+as implemented in <tt>commons-logging.jar</tt> to implement logging throughout the code. Normally
+this library routes the logging to the Log4j library, provided that an
+implementation of log4j is on the classpath of the server or client. The
+commons-logging API can also bind to Avalon, <tt>System.out</tt> or the Java1.4
+logger. The JavaDocs for the library explain the process for selecting a logger,
+which can be done via a system property or a properties file in the classpath.
+
+<p>
+
+Log4J can be configured using the file log4j.properties in the classpath; later
+versions also support an XML configuration. Axis includes a preconfigured
+log4j.properties file in <tt>axis.jar</tt>. While this is adequate for basic use,
+any complex project will want to modify their own version of the file. Here is
+what to do 
+<ol>
+<li>Open up axis.jar in a zipfile viewer and remove log4j.properties from the jar
+<li>Or, when building your own copy of axis.jar, set the Ant property
+    <tt>exclude.log4j.configuration</tt> to keep the properties file out the JAR.
+<li>Create your own log4J.properties file, and include it in <tt>WEB-INF/classes</tt>
+(server-side), in your main application JAR file client side.
+<li>Edit this log4J properties file to your hearts content. Server side,
+setting up rolling logs with fancy html output is convenient, though once you
+start clustering the back end servers that ceases to be as usuable. Log4J power tools,
+such as 'chainsaw', are the secret here.
+</ol>
+
+<h3>Log Categories</h3>
+
+Axis classes that log information create their own per-class log, each of which
+may output information at different levels. For example, the main entry point
+servlet has a log called <tt>org.apache.axis.transport.http.AxisServlet</tt>,
+the AxisEngine is <tt>org.apache.axis.AxisEngine</tt>, and so on. There are
+also special logs for special categories.
+<p>
+<table border=0>
+<tr>
+  <td valign=top><tt>org.apache.axis.TIME</tt></td>
+  <td>A log that records the time to execute incoming messages, splitting up
+  into preamble, invoke, post and send times. These are only logged at debug level.
+</tr>
+<tr>
+  <td valign=top><tt>org.apache.axis.EXCEPTIONS</tt></td>
+  <td>Exceptions that are sent back over the wire. AxisFaults, which are normally
+  created in 'healthy' operation, are logged at debug level. Other Exceptions
+  are logged at the Info level, as they are more indicative of server side trouble.
+</tr>
+<tr>
+  <td valign=top><tt>org.apache.axis.enterprise</tt></td>
+  <td>''Enterprise'' level stuff, which generally means  
+  stuff that an enterprise product might want to track, but in a 
+  simple environment (like the AXIS build) would be nothing more than a nuisance.
+  
+</tr>
+</table>
+
+
+
+<a name="axis_components" />
+
 <h2>Pre-Configured Axis Components Reference</h2>
 <h3>On the server:</h3>
 <dl> 
+  <dt><b>SimpleSessionHandler</b>
+  <dd>uses SOAP headers to do simple session management
+  <dt>&nbsp;
   <dt><b>LogHandler</b> 
   <dd>The LogHandler will simply log a message to a logger when it gets invoked. 
   <dt> 
+  <dt><b>SoapMonitorHandler</b>
+  <dd>Provides the hook into the message pipeline sending the SOAP request and
+  response messages to the SoapMonitor utility.
+  <dt>
+  <dt><b>DebugHandler</b>
+  <dd>Example handler that demonstrates dynamically setting the debug level based on a 
+  the value of a soap header element.
+  <dt>&nbsp;
+  <dt> 
+  <dt><b>ErrorHandler</b>
+  <dd>Example handler that throws an AxisFault to stop request/response flow processing. 
+  <dt>&nbsp;
+  <dt> 
   <dt><b>EchoHandler</b> 
   <dd>The EchoHandler copies the request message into the response message. 
+  <dt>&nbsp;
   <dt><b>HTTPAuth</b>
   <dd>The HTTPAuthHandler takes HTTP-specific authentication information (right 
     now, just Basic authentication) and turns it into generic MessageContext properties 
@@ -559,31 +797,40 @@ namely &quot;http://xml.apache.org/axis/wsdd/&quot;.
     (a chain called &quot;authChecks&quot; is predefined for just this combination), 
     checks to make sure that the currently authenticated user satisfies one of 
     the allowed roles for the target service. Throws a Fault if access is denied.
+  <dt>
+  <dt><b>MD5AttachHandler</b>
+  <dd>Undocumented, uncalled, untested handler that generates an MD5 hash of 
+  attachment information and adds the value as an attribute in the soap body.
+  <dt>&nbsp;
   <dt><b>URLMapper</b> 
   <dd>The URLMapper, an HTTP-specific handler, usually goes on HTTP transport 
     chains (it is deployed by default). It serves to do service dispatch based 
-    on URL - for instance, this is the Handler which allows URLs like http://localhost:8080/axis/services/MyService?wsdl 
+    on URL - for instance, this is the Handler which allows URLs
+    like http://localhost:8080/axis/services/MyService?wsdl 
     to work.
   <dt>&nbsp;
-  <dt> 
-  <dt><b>RPCDispatcher</b> 
-  <dd>The RPCDispatcher is the pivot point for all RPC services. It accepts the 
+  <dt><b>RPCProvider</b>
+  <dd>The RPCProvider is the pivot point for all RPC services. It accepts the
     following options: <br>
     <b><i>className</i></b> = the class of the backend object to invoke<br>
-    <b><i>methodName</i></b> = a space-separated list of methods which are exported 
-    as web services. The special value &quot;*&quot; matches all public methods 
-    in the class. 
-  <dt> 
-  <dt><b>MsgDispatcher</b> 
-  <dd>The MsgDispatcher is the pivot point for all messaging services. It accepts 
+    <b><i>methodName</i></b> = a space-separated list of methods which are exported
+    as web services. The special value &quot;*&quot; matches all public methods
+    in the class.
+  <dt>
+  <dt><b>MsgProvider</b>
+  <dd>The MsgProvider is the pivot point for all messaging services. It accepts
     the following options: <br>
   <dd><b><i>className</i></b> = the class of the backend object to invoke<br>
-    <b><i>methodName</i></b> = a space-separated list of methods which are exported 
-    as web services. The special value &quot;*&quot; matches all public methods 
-    in the class. 
-  <dt> 
-  <dt><b></b> 
-  <dt> 
+    <b><i>methodName</i></b> = a space-separated list of methods which are exported
+    as web services. The special value &quot;*&quot; matches all public methods
+    in the class.
+  <dt>
+  <dt><b>JWSHandler</b>
+  <dd>Performs drop-in deployment magic.
+  <dt>
+  <dt><b>JAXRPCHandler</b>
+  <dd>Wrapper around JAX-RPC compliant handlers that exposes an Axis handler interface to the engine.
+  <dt>&nbsp;
   <dt><b>LocalResponder</b> 
   <dd>The LocalResponder is a Handler whose job in life is to serialize the response 
     message coming back from a local invocation into a String. It is by default 
@@ -592,6 +839,12 @@ namely &quot;http://xml.apache.org/axis/wsdd/&quot;.
 </dl>
 <h3>On the client:</h3>
 <dl> 
+  <dt><b>SimpleSessionHandler</b>
+  <dd>uses SOAP headers to do simple session management
+  <dt>&nbsp;
+  <dt><b>JAXRPCHandler</b>
+  <dd>Wrapper around JAX-RPC compliant handlers that exposes an Axis handler interface to the engine.
+  <dt>&nbsp;
   <dt><b>HTTPSender</b> 
   <dd>A Handler which sends the request message to a remote server via HTTP, and 
     collects the response message.
