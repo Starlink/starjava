@@ -1293,7 +1293,8 @@ public class Frog extends JFrame
        } 
        
        // Copy Fit from one series to next
-       if ( seriesManager.getFitCount() >= 1 ) {
+       if ( seriesManager.getFitCount() >= 1 &&
+            seriesManager.getCount() >= 2 ) {
           copyFitItem.setEnabled( true );
        } else {
           copyFitItem.setEnabled( false );

@@ -40,6 +40,13 @@ public class SinFit
      * chi squared of this fit
      */
      protected double chiSq; 
+  
+   /**
+     * The TimeSeriesComp object associated with the fit, i.e. the
+     * time series of which this is a fit.
+     */
+    protected TimeSeriesComp timeSeriesComp = null;
+   
         
     /**
      * Create an instance of the class.
@@ -145,5 +152,29 @@ public class SinFit
                  + ")X) + " + Math.round(c*100000.0)/100000.0 + "cos((2pi/" + 
                  Math.round(period*100000.0)/100000.0 + ")X)" );
     }
-     
+ 
+   
+   /**
+     * Get the TimeSeriesComp object associated with Periodogram
+     *
+     * @return series The TimeSeriesComp
+     * @see TimeSeriesComp
+     */
+    public TimeSeriesComp getTimeSeriesComp()
+    {
+        return timeSeriesComp;
+    }
+    
+    
+   /**
+     * Set the TimeSeriesComp object associated with Periodogram
+     *
+     * @param series The TimeSeriesComp
+     * @see TimeSeriesComp
+     */
+    public void setTimeSeriesComp( TimeSeriesComp t)
+    {
+        timeSeriesComp = t;
+    }    
+         
 }

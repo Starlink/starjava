@@ -63,7 +63,7 @@ public class MetaDataPopup extends JInternalFrame
      */
     public MetaDataPopup(  PlotControlFrame f  )
     {
-        super( "", false, true, false, false );
+        super( "", true, true, false, false );
         popupFrame = f;           // grab the interesting frame
             
         try {
@@ -105,8 +105,9 @@ public class MetaDataPopup extends JInternalFrame
        JScrollPane scrollPane = new JScrollPane( textPane,
                     JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                     JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-       scrollPane.setPreferredSize( new Dimension(500, 250) );
-       scrollPane.setMinimumSize( new Dimension(500, 250) );
+       scrollPane.setPreferredSize( new Dimension(500, 300) );
+       scrollPane.setMinimumSize( new Dimension(500, 300) );
+       
        textPane.setEditable(false);
        textPane.setContentType("text/html");
            
@@ -238,13 +239,17 @@ public class MetaDataPopup extends JInternalFrame
           
            if ( thisSeries.getType() == TimeSeries.SINCOSFIT ) {
               SinFit sinFit = thisSeries.getSinFit(); 
+              String key = seriesManager.getKey(sinFit.getTimeSeriesComp());
+              
               doc = doc + 
-                "<li>The series has been fitted with a sin(&nbsp;)" +
-                " + cos(&nbsp;) function\n";
+                "<li>Fitted with a sin(&nbsp;)" +
+                " + cos(&nbsp;) function (origin <strong>" + key +
+                "</strong>)\n"; 
               
               fitDoc = fitDoc + 
                 "<h2><u>Fit sin(&nbsp;) + cos(&nbsp;)</u></h2>\n";
-              fitDoc = fitDoc + "Fitting to:<br>\n";
+              fitDoc = fitDoc + "Origin: <strong>" + key + "</strong><br>\n";
+              fitDoc = fitDoc + "Fitting to: ";
               fitDoc = fitDoc + "<em><center>" +
                 "<font color=red>Y</font> = <font color=blue>A</font>" +
                 " + <font color=blue>B</font>*" +

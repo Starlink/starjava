@@ -990,16 +990,19 @@ public class FoldSeriesDialog extends JInternalFrame
         // associate a SinFit object
         SinFit fit = sinFit.getFit();
         fittedSeries.setSinFit( fit );
-        
+       
         // grab the PlotComtrolFrame associate with teh foldedSeries
         int seriesID = seriesManager.getCurrentID();
         String frameKey = "Time Series " + seriesID;
         
         TimeSeriesComp currComp = seriesManager.getSeries( frameKey );
         currComp.add( fittedSeries );
-        
+                
         PlotControlFrame currFrame = seriesManager.getFrame( frameKey );
         currFrame.getPlot().updatePlot();
+
+        // associate the TimeSeriesComp with the SinFit
+        fit.setTimeSeriesComp( currComp );
         
         debugManager.print("           Fitted: " + fit.toString() );
      }

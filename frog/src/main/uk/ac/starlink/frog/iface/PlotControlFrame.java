@@ -952,6 +952,10 @@ public class PlotControlFrame extends JInternalFrame
         SinFit fit = sinFit.getFit();
         fittedSeries.setSinFit( fit );
         
+        // associated the TimeSeriesComp object with the SinFit
+        fit.setTimeSeriesComp( timeSeriesComp );
+        fittedSeries.setSinFit( fit );
+        
         // add the fit to the current frame 
         timeSeriesComp.add( fittedSeries );
         debugManager.print("           Updating plot and toggling menu..." );
