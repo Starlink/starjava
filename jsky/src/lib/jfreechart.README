@@ -1,0 +1,9 @@
+There is a problem reading JPEG images from signed jars that will be
+fixed in Java 1.5. 
+
+Meanwhile I've removed the gorilla.jpg file from jfreechart
+and replaced it with an empty file. Seems to work but beware!
+
+The original file is now jfreechart.jar.ori
+
+Peter W. Draper 17-DEC-2003
