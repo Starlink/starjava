@@ -229,24 +229,29 @@ public class SpecData
     public final static int PLOT_STYLE = 3;
 
     /**
+     * Set or query the marker drawing type.
+     */
+    public final static int POINT_TYPE = 4;
+
+    /**
      * Set or query alpha composite value.
      */
-    public final static int LINE_ALPHA_COMPOSITE = 4;
+    public final static int LINE_ALPHA_COMPOSITE = 5;
 
     /**
      * Set or query error bar colour.
      */
-    public final static int ERROR_COLOUR = 5;
+    public final static int ERROR_COLOUR = 6;
 
     /**
      * Set or query the number of sigma error bars are drawn at.
      */
-    public final static int ERROR_NSIGMA = 6;
+    public final static int ERROR_NSIGMA = 7;
 
     /**
      * Set or query the frequency error bars are drawn at.
      */
-    public final static int ERROR_FREQUENCY = 7;
+    public final static int ERROR_FREQUENCY = 8;
 
     //
     //  Symbolic contants defining the possible plotting styles.
@@ -993,22 +998,21 @@ public class SpecData
      * Set the type of spectral lines that are drawn (these can be polylines
      * or histogram-like, simple markers are a possibility for a future
      * implementation). The value should be one of the symbolic constants
-     * "POLYLINE" and "HISTOGRAM".
+     * "POLYLINE", "HISTOGRAM" or "POINT".
      *
-     * @param style one of the symbolic contants SpecData.POLYLINE or
-     *      SpecData.HISTOGRAM.
+     * @param style one of the symbolic contants SpecData.POLYLINE,
+     *      SpecData.HISTOGRAM or SpecData.POINT.
      */
     public void setPlotStyle( int style )
     {
         this.plotStyle = style;
     }
 
-
     /**
      * Get the value of plotStyle.
      *
-     * @return the current plotting type (SpecData.POLYLINE or
-     *      SpecData.HISTOGRAM).
+     * @return the current plotting type (SpecData.POLYLINE, 
+     *         SpecData.HISTOGRAM or SpecData.POINT).
      */
     public int getPlotStyle()
     {
@@ -1017,10 +1021,33 @@ public class SpecData
 
 
     /**
+     * Set the type of marker used when drawing spectra with a "POINT"
+     * style. The marker types are defined by the underlying AST graphics
+     * implementation - {@link DefaultGrfMarker}.
+     *
+     * @param type one of the symbolic values used in {@link DefaultGrfMarker}.
+     */
+    public void setPointType( int type )
+    {
+        this.pointType = type;
+    }
+
+    /**
+     * Get the type of marker that will be used if the spectrum is drawing
+     * using a "POINT" style.
+     *
+     * @return the current marker type.
+     */
+    public int getPointType()
+    {
+        return pointType;
+    }
+
+    /**
      * Set a known numeric spectral property.
      *
      * @param what either LINE_THICKNESS, LINE_STYLE, LINE_COLOUR, PLOT_STYLE,
-     *      LINE_ALPHA_COMPOSITE or ERROR_COLOUR.
+     *      POINT_TYPE, LINE_ALPHA_COMPOSITE or ERROR_COLOUR.
      * @param value container for numeric value. These depend on property
      *      being set.
      */
@@ -1047,6 +1074,11 @@ public class SpecData
                 setPlotStyle( value.intValue() );
                 break;
             }
+            case POINT_TYPE:
+            {
+                setPointType( value.intValue() );
+                break;
+            }
             case LINE_ALPHA_COMPOSITE:
             {
                 setAlphaComposite( value.doubleValue() );
@@ -1067,7 +1099,6 @@ public class SpecData
             }
         }
     }
-
 
     /**
      * Set the type of the spectral data.

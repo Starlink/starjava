@@ -79,6 +79,7 @@ public class SplatSelectedProperties
     protected JComboBox dataColumn = new JComboBox();
     protected JComboBox errorColumn = new JComboBox();
     protected JComboBox thickness = new JComboBox();
+    //protected JComboBox pointType = new JComboBox();
     protected JLabel format = new JLabel();
     protected JLabel fullName = new JLabel();
     protected JTextField shortName = new JTextField();
@@ -203,11 +204,23 @@ public class SplatSelectedProperties
         //  Set up the line style control.
         layouter.add( "Line style:", false );
         layouter.add( lineStyle, false );
-        layouter.eatLine();
+        //layouter.eatLine();
         lineStyle.setToolTipText
             ( "Type of line style used when drawing spectrum" );
 
         lineStyle.addActionListener( this );
+
+        //  Set up the point type control.
+        //layouter.add( "Point type:", false );
+        //layouter.add( pointType, false );
+        //layouter.eatLine();
+        //pointType.setToolTipText
+        //    ( "Type of points used when drawing spectrum" );
+
+        //for ( int i = 0; i <= 10; i++ ) {
+        //    pointType.addItem( new Integer( i ) );
+        //}
+        //pointType.addActionListener( this );
 
         //  Set up the errorbar display control.
         layouter.add( "Error bars:", false );
@@ -281,6 +294,7 @@ public class SplatSelectedProperties
                 fullName.setText( spec.getFullName() );
                 format.setText( spec.getDataFormat() );
                 thickness.setSelectedIndex( (int)spec.getLineThickness() - 1 );
+                //pointType.setSelectedIndex( (int)spec.getPointType() );
                 lineStyle.setSelectedStyle( (int)spec.getLineStyle() );
                 lineType.setSelectedStyle( (int)spec.getPlotStyle() );
                 errors.setEnabled( spec.haveYDataErrors() );            
@@ -375,6 +389,20 @@ public class SplatSelectedProperties
             applyProperty( indices, SpecData.LINE_THICKNESS, thick );
         }
     }
+
+    /**
+     *  Change the point type of all selected spectra.
+     */
+    //protected void updatePointType()
+    //{
+    //    if ( inhibitChanges ) return;
+
+    //    int[] indices = specList.getSelectedIndices();
+    //    if ( indices.length > 0 && indices[0] > -1 ) {
+    //        Integer type = (Integer) pointType.getSelectedItem();
+    //        applyProperty( indices, SpecData.POINT_TYPE, type );
+    //    }
+    //}
 
     /**
      *  Change the line style.
@@ -642,6 +670,11 @@ public class SplatSelectedProperties
             updateThickness();
             return;
         }
+
+        //if ( source.equals( pointType ) ) {
+        //    updatePointType();
+        //    return;
+        //}
 
         if ( source.equals( lineStyle ) ) {
             updateLineStyle();
