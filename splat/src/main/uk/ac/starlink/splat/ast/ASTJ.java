@@ -766,7 +766,7 @@ public class ASTJ implements Serializable
             // for the coordinate measurement along the GRID positions as
             // we want to avoid the case when just using a PermMap to lose
             // a second axis makes the mapping not invertable (i.e. for
-            // sky coordinates no providing RA and DEC inputs will always
+            // sky coordinates not providing RA and DEC inputs will always
             // give AST__BAD).
 
             // Get a simplified mapping from the base to current frames
@@ -784,8 +784,8 @@ public class ASTJ implements Serializable
             // And how input coordinates the base frame needs (ideally 1)
             int nin = astRef.getI( "Nin" );
 
-            // Get memory for positions and LutMap along GRID axis
-            int dim = end - start + 1;
+            // Get memory for transformed GRID positions.
+            int dim = end - start;
             double[] grid = new double[ dim * nin ];
 
             // Generate dim positions stepped along the GRID axis pixels
@@ -795,25 +795,26 @@ public class ASTJ implements Serializable
                 }
             }
 
-            // Transform these GRID positions into the current frame XXX check.
+            // Transform these GRID positions into the current frame.
             double[] coords = smap.tranN( dim, nin, grid, true, nax );
 
+            double[] lutcoords = new double[ dim ];
             if ( dist ) {
                 // Get the distance from the first GRID position to each
                 // of the others (remember the projected positions could
                 // be multidimensional and we need to "remove" this by
                 // converting to a distance along the projected GRID line)
-                coord2Dist( cfrm, dim, nax, coords, grid );
+                coord2Dist( cfrm, dim, nax, coords, lutcoords );
             }
             else {
 
                 // Want coordinate, not distance so again transform from
                 // coords to this measure (for same reason as above).
-                coord2Oned( cfrm, axis - 1, dim, nax, coords, grid );
+                coord2Oned( cfrm, axis - 1, dim, nax, coords, lutcoords );
             }
 
             // Create the LutMap for axis 1
-            Mapping xmap = new LutMap( grid, 1.0, 1.0 );
+            Mapping xmap = new LutMap( lutcoords, 1.0, 1.0 );
 
             // Create a CmpMap using a unit mapping for the second axis.
             map = new CmpMap( xmap, new UnitMap( 1 ), false );
