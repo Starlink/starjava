@@ -19,7 +19,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import uk.ac.starlink.mirage.MirageDriver;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableChooser;
 import uk.ac.starlink.table.gui.StarTableSaver;
@@ -128,7 +127,7 @@ public class TableViewer extends JFrame {
         fileMenu.add( exitAct ).setIcon( null );
 
         /* Launch menu. */
-        if ( MirageDriver.isMirageAvailable() ) {
+        if ( MirageHandler.isMirageAvailable() ) {
             JMenu launchMenu = new JMenu( "Launch" );
             mb.add( launchMenu );
             launchMenu.add( mirageAct ).setIcon( null );
@@ -297,12 +296,9 @@ public class TableViewer extends JFrame {
 
             /* Launch Mirage. */
             else if ( this == mirageAct ) {
-                assert MirageDriver.isMirageAvailable();
+                assert MirageHandler.isMirageAvailable();
                 try {
-                    MirageDriver.invokeMirage( startab, null );
-                }
-                catch ( ClassNotFoundException e ) {
-                    throw new AssertionError(); 
+                    MirageHandler.invokeMirage( startab, null );
                 }
                 catch ( Exception e ) {
                     JOptionPane.showMessageDialog( parent, e.toString(),
