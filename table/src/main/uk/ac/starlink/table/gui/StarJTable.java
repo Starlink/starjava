@@ -115,6 +115,16 @@ public class StarJTable extends JTable {
     }
 
     /**
+     * Return a reference to the {@link StarTable} being used.
+     * 
+     * @return reference to the {@link StarTable}, null if none has been set.
+     */
+    public StarTable getStarTable()
+    {
+        return startable;
+    }
+
+    /**
      * Sets the width of each column heuristically from the contents of
      * the cells headers and cells.  Should be called after any
      * default renderers have been set.
