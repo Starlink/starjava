@@ -11,10 +11,38 @@ import javax.swing.JComponent;
  * This surface will typically deal with drawing axes and labels
  * and so on.
  *
+ * <p>Two coordinate spaces are important when dealing with a PlotSurface:
+ * graphics space is referenced in integer coordinates and refers to the
+ * coordinates you deal with when you have a {@link java.awt.Graphics} object,
+ * and data space is referenced in double coordinates and is
+ * the space in which the data points live.
+ * PlotSurface defines how to do the necessary conversions between them.
+ *
  * @author   Mark Taylor (Starlink)
  * @since    16 Jun 2004
  */
-public interface PlotSurface extends GraphicsSurface {
+public interface PlotSurface {
+
+    /**
+     * Converts a point in data space to graphics space.
+     * If the point does not lie within the currently visible plotting
+     * area, <tt>null</tt> should be returned.
+     *
+     * @param  x  data space X coordinate
+     * @param  y  data space Y coordinate
+     * @return  point in graphics space corresponding to (x,y), or <tt>null</tt>
+     */
+    Point dataToGraphics( double x, double y );
+
+    /**
+     * Returns the clip region in which points may be plotted.
+     * The returned shape should be the sort which can be passed to
+     * {@link java.awt.Graphics#setClip(java.awt.Shape)} - i.e. probably
+     * a <tt>Rectangle</tt>.
+     *
+     * @return   clip region representing data zone
+     */
+    Shape getClip();
 
     /**
      * Signals to the plot the characteristics of the plot which will 
@@ -53,20 +81,4 @@ public interface PlotSurface extends GraphicsSurface {
      * @return  plot surface display component
      */
     JComponent getComponent();
-
-    /**
-     * Causes the features of this surface to be printed as a single page.
-     * It must also return a <tt>GraphicsSurface</tt> which can be used to
-     * paint additional marks onto the same graphics context.
-     * Invoking this method may make changes to the graphics context 
-     * <tt>g</tt> - any additional plotting (markers) should be plotted onto
-     * the graphics context following this method's invocation.
-     *
-     * @param   g   printing graphics context - may be changed by this method
-     * @param   pf  printing page format
-     * @return  graphics surface object which can be used for adding to
-     *          the graphical output of this surface
-     * @see  {@link java.awt.print.Printable}
-     */
-    GraphicsSurface print( Graphics g, PageFormat pf );
 }

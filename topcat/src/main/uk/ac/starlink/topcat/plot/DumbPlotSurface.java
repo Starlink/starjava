@@ -1,11 +1,8 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Shape;
-import java.awt.print.PageFormat;
 import java.util.BitSet;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -56,16 +53,6 @@ class DumbPlotSurface extends JComponent implements PlotSurface {
     }
 
     public JComponent getComponent() {
-        return this;
-    }
-
-    public GraphicsSurface print( Graphics g, PageFormat pf ) {
-        Graphics2D g2 = (Graphics2D) g;
-        double scalex = pf.getImageableWidth() / (double) getWidth();
-        double scaley = pf.getImageableHeight() / (double) getHeight();
-        double scale = Math.min(scalex, scaley);
-        g2.translate( (int) pf.getImageableX(), (int) pf.getImageableY() );
-        g2.scale( scale, scale );
         return this;
     }
 

@@ -1,11 +1,9 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.print.PageFormat;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.topcat.RowSubset;
@@ -109,17 +107,6 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
     }
 
     public JComponent getComponent() {
-        return this;
-    }
-
-    public GraphicsSurface print( Graphics g, PageFormat pf ) {
-        Graphics2D g2 = (Graphics2D) g;
-        double scalex = pf.getImageableWidth() / (double) getWidth();
-        double scaley = pf.getImageableHeight() / (double) getHeight();
-        double scale = Math.min(scalex, scaley);
-        g2.translate( (int) pf.getImageableX(), (int) pf.getImageableY() );
-        g2.scale( scale, scale );
-        _drawPlot( g2, true );
         return this;
     }
 
