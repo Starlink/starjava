@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
@@ -70,6 +71,10 @@ public abstract class QueryWindow extends AuxWindow {
          * subclasses. */
         auxControls = new JPanel();
 
+        /* Set up a strut with a preferred size. */
+        JComponent hstrut = new JPanel();
+        hstrut.setPreferredSize( new Dimension( 400, 0 ) );
+
         /* Place the components into the window. */
         Box iconBox = new Box( BoxLayout.Y_AXIS );
         iconBox.add( new JLabel( ResourceIcon.QUERY ) );
@@ -79,6 +84,7 @@ public abstract class QueryWindow extends AuxWindow {
         getMainArea().add( iconBox, BorderLayout.WEST );
         getMainArea().add( stack, BorderLayout.CENTER );
         getMainArea().add( auxControls, BorderLayout.SOUTH );
+        getMainArea().add( hstrut, BorderLayout.NORTH );
     }
 
     /**
