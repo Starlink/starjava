@@ -27,7 +27,7 @@ import uk.ac.starlink.util.IOUtils;
  * by {@link FitsPlusTableWriter}).  This looks for a primary header
  * in the FITS file which contains the VOTMETA header (in fact it is
  * quite inflexible about what it recognises as this format - 
- * see {@link isMagic}) and tries to interpret the data array as a 
+ * see {@link #isMagic}) and tries to interpret the data array as a 
  * 1-d array of bytes representing the XML of a VOTable document.
  * This VOTable document should have one TABLE element with no DATA
  * content - the table data is got from the first extension HDU,
