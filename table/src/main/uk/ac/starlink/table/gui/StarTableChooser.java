@@ -11,6 +11,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -46,7 +47,6 @@ public class StarTableChooser extends JOptionPane {
     private JPanel actionsPanel;
     private ComboBoxModel formatModel;
 
-    private static final String NO_FORMAT = new String( "(auto)" );
     private static final int JDBC_OPTION = 101;
     private static final int BROWSE_OPTION = 102;
 
@@ -60,14 +60,8 @@ public class StarTableChooser extends JOptionPane {
         locField = new JTextField( 32 );
 
         /* Field for input table format. */
-        JComboBox formatField = new JComboBox();
-        formatField.addItem( NO_FORMAT );
-        for ( Iterator it = tabfact.getKnownBuilders().iterator();
-              it.hasNext(); ) {
-            TableBuilder handler = (TableBuilder) it.next();
-            formatField.addItem( handler.getFormatName() );
-        }
-        formatModel = formatField.getModel();
+        formatModel = makeFormatBoxModel( tabfact );
+        JComboBox formatField = new JComboBox( formatModel );
 
         /* Set up the field for entering a table location. */
         LabelledComponentStack locPanel = new LabelledComponentStack();
@@ -136,8 +130,7 @@ public class StarTableChooser extends JOptionPane {
      * @return  the selected format name (or <tt>null</tt>)
      */
     public String getFormatName() {
-        String fmt = (String) formatModel.getSelectedItem();
-        return ( fmt == NO_FORMAT ) ? null : fmt;
+        return (String) formatModel.getSelectedItem();
     }
 
     /**
@@ -349,6 +342,25 @@ public class StarTableChooser extends JOptionPane {
      */
     public void setSQLReadDialog( SQLReadDialog sqlDialog ) {
         this.sqlDialog = sqlDialog;
+    }
+
+    /**
+     * Creates and returns a ComboBoxModel suitable for use in a JComboBox
+     * which the user can use to choose the format of tables to be loaded.
+     * Each element of the returned model is a String.
+     *
+     * @return   ComboBoxModel with entries for each of the known formats,
+     *           as well as an AUTO option
+     */
+    public static ComboBoxModel makeFormatBoxModel( StarTableFactory factory ) {
+        DefaultComboBoxModel fmodel = new DefaultComboBoxModel();
+        fmodel.addElement( StarTableFactory.AUTO_HANDLER );
+        for ( Iterator it = factory.getKnownBuilders().iterator();
+              it.hasNext(); ) {
+            TableBuilder handler = (TableBuilder) it.next();
+            fmodel.addElement( handler.getFormatName() );
+        }
+        return fmodel;
     }
 
 }
