@@ -503,7 +503,7 @@
         <attribute name="Main-Class"
                    value="uk.ac.starlink.splat.iface.SplatBrowserMain"/>
         <attribute name="Class-Path"
-value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar
+value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar ../astgui/astgui.jar
 ../ndx/ndx.jar ../array/array.jar ../tamfits/tamfits.jar ../jniast/jniast.jar 
 ../soapserver/soapserver.jar ../fits/fits.jar ../hds/hds.jar"/>
       </manifest>
@@ -970,12 +970,10 @@ value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar
           depends="compile-tests">
 
     <!-- Run up SPLAT from the local build -->
-    <java classname="uk.ac.starlink.splat.iface.SplatBrowser" fork="true">
+    <java classname="uk.ac.starlink.splat.iface.SplatBrowserMain" fork="true">
       <classpath refid="tests-classpath"/>
       <jvmarg value="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"/>
       <jvmarg value="-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"/>
-      <arg line="-port 8082"/>
-      <arg value="src/etc/data/cobe.xml"/>
     </java>
   </target>
 
