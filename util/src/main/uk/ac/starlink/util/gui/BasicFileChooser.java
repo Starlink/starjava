@@ -79,7 +79,7 @@ public class BasicFileChooser
      */
     public BasicFileChooser()
     {
-        super();
+        this( System.getProperty( "user.home" ) );
     }
 
     /**
@@ -99,6 +99,10 @@ public class BasicFileChooser
     public BasicFileChooser( String defaultDirectory )
     {
         super( defaultDirectory );
+
+        // For JDK1.4.2 we need to disable directory listing speed ups
+        // for shortcuts to be recognised by ShellFolder.
+        System.setProperty( "swing.disableFileChooserSpeedFix", "true" );
     }
 
     public void approveSelection() 
