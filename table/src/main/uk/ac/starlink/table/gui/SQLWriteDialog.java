@@ -37,39 +37,43 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
                                    ComboBoxModel formatModel,
                                    StarTable table ) {
         JDialog dialog = createDialog( parent, "Write New SQL Table" );
-        dialog_ = dialog;
-        setEnabled( true );
-        dialog.show();
-        while ( dialog_ == dialog ) {
+        final boolean[] done = new boolean[ 1 ];
+        while ( ! done[ 0 ] ) {
+            dialog.show();
             if ( getValue() instanceof Integer &&
                  ((Integer) getValue()).intValue() == OK_OPTION ) {
                 SaveWorker worker = new SaveWorker( parent, table, getRef() ) {
                     public void attemptSave( StarTable table )
                             throws IOException {
+                        Connection conn = null;
                         try {
-                            Connection conn  = getConnector().getConnection();
+                            conn = getConnector().getConnection();
                             JDBCFormatter jfmt = new JDBCFormatter( conn );
                             jfmt.createJDBCTable( table, getRef() );
                         }
                         catch ( SQLException e ) {
-                            throw (IOException)
+                            throw (IOException) 
                                   new IOException( e.getMessage() )
                                  .initCause( e );
                         }
+                        finally {
+                            if ( conn != null ) {
+                                try {
+                                    conn.close();
+                                }
+                                catch ( SQLException e ) {
+                                    // never mind
+                                }
+                            }
+                        }
                     }
                     public void done( boolean success ) {
-                        if ( success ) {
-                            dialog_ = null;
-                            dialog_.dispose();
-                        }
-                        else {
-                            SQLWriteDialog.this.setEnabled( true );
-                        }
+                        done[ 0 ] = success;
                     }
                 };
                 setEnabled( false );
                 worker.invoke();
-                dialog_.show();
+                setEnabled( true );
             }
             else {
                 return false;
@@ -77,5 +81,4 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
         }
         return true;
     }
-
 }
