@@ -2,6 +2,7 @@ package uk.ac.starlink.ast;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.geom.Rectangle2D;
@@ -20,6 +21,7 @@ import junit.framework.TestSuite;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfMarker;
+import uk.ac.starlink.ast.grf.DefaultGrfFontManager;
 
 public class AstTest extends TestCase {
 
@@ -489,6 +491,13 @@ public class AstTest extends TestCase {
         plot.mark( 5, 2, points, DefaultGrfMarker.FILLEDDIAMOND );
 
         plot.setSize( "textlab", 12 );
+        plot.setColour( "strings", Color.red.getRGB() );
+
+        int textFont = DefaultGrfFontManager.getReference().
+            add( new Font( "SansSerif", Font.BOLD, 24 ) );
+        plot.setFont( "strings", textFont );
+        plot.setSize( "strings", 2.0 );
+
         plot.text( "JNI", new double[] { 1e4, 1e4 },
                    new float[] { -1, 1 }, "BL" );
         plot.text( "AST", new double[] { 4e4, 4e4 },
