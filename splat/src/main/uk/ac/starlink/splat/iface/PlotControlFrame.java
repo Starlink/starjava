@@ -606,9 +606,9 @@ public class PlotControlFrame
 
             try {
                 ComponentColourControls ccc =
-                    new ComponentColourControls( plot,
-                        divaPlot.getBackgroundColourStore(),
-                        "Plot Background", "Background", "Colour:" );
+                    new ComponentColourControls
+                    ( plot, divaPlot.getBackgroundColourStore(),
+                      "Plot Background", "Background", "Colour:" );
                 configFrame.addExtraControls( ccc, true );
             }
             catch (Exception e) {

@@ -1511,6 +1511,11 @@ public class PlotControl
     {
         plot.setBackground( color );
     }
+
+    public Color getPlotColour()
+    {
+        return plot.getBackground();
+    }
     
     public Frame getPlotCurrentFrame()
     {
