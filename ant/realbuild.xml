@@ -72,7 +72,7 @@
 
   <path id="classpath">
      <!-- PWD: add expected JUnit jar file -->
-     <pathelement location="../junit/lib/junit/junit.jar"/>
+     <pathelement location="../junit/src/lib/junit/junit.jar"/>
   </path>
 
   <!-- empty for JDK 1.2+, contains classes.zip otherwise -->
