@@ -6,21 +6,28 @@ import java.awt.event.ActionEvent;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
+import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * Dialog which permits a user to save a {@link StarTable} in a place
@@ -61,14 +68,14 @@ public class StarTableSaver extends JOptionPane {
         formatModel = formatField.getModel();
 
         /* Actions for invoking other dialogs. */
-        Action jdbcAction = new AbstractAction( "JDBC table" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                setValue( new Integer( JDBC_OPTION ) );
-            }
-        };
         Action browseAction = new AbstractAction( "Browse files" ) {
             public void actionPerformed( ActionEvent evt ) {
                 setValue( new Integer( BROWSE_OPTION ) );
+            }
+        };
+        Action jdbcAction = new AbstractAction( "JDBC table" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                setValue( new Integer( JDBC_OPTION ) );
             }
         };
 
@@ -79,8 +86,8 @@ public class StarTableSaver extends JOptionPane {
 
         /* Set up the panel for invoking other dialogs. */
         JPanel actionsPanel = new JPanel();
-        actionsPanel.add( new JButton( jdbcAction ) );
         actionsPanel.add( new JButton( browseAction ) );
+        actionsPanel.add( new JButton( jdbcAction ) );
 
         /* Set up the input widgets for the dialog. */
         JPanel msg = new JPanel( new BorderLayout() );
@@ -137,24 +144,25 @@ public class StarTableSaver extends JOptionPane {
      */
     public void saveTable( StarTable startab, Component parent ) {
         JDialog dialog = createDialog( parent, "Save table" );
-        boolean saved = false;
-        while ( ! saved ) {
+        boolean done = false;
+        while ( ! done ) {
             dialog.show();
             Object selected = getValue();
             if ( selected instanceof Integer ) {
                 switch ( ((Integer) selected).intValue() ) {
                     case JDBC_OPTION:
-                        saved = saveJDBCTable( startab, parent );
+                        done = saveJDBCTable( startab, parent );
                         break;
                     case BROWSE_OPTION:
-                        saved = saveTableFromBrowser( startab, parent );
+                        done = saveTableFromBrowser( startab, parent );
                         break;
                     case OK_OPTION:
                         String loc = locField.getText();
                         if ( loc != null && loc.trim().length() > 0 ) {
                             String format = getFormat();
-                            saved = saveTable( getStarTableOutput(), startab,
-                                               loc, format, parent );
+                            saveTable( getStarTableOutput(), startab, loc,
+                                       format, parent );
+                            done = true;
                         }
                         break;
                     case CANCEL_OPTION:
@@ -177,45 +185,73 @@ public class StarTableSaver extends JOptionPane {
      * with the user (such as JDBC authentication) will be done in a
      * graphical fashion appropriately postiioned relative to a given
      * parent component.  If an error occurs during the save the user 
-     * is informed with an error dialog and <tt>false</tt> is returned.
+     * is informed with an error dialog.
      *
      * @param   sto  the object which handles the actual table writing
      * @param   startab  the table to write
      * @param   loc  the location to which the table should be written
      * @param   format  the format type for writing the table
      * @param   parent  the parent window (may be null)
-     * @return  <tt>true</tt> iff the table was written successfully
      */
-    public static boolean saveTable( StarTableOutput sto, StarTable startab,
-                                     String loc, String format, 
-                                     Component parent ) {
+    public static void saveTable( final StarTableOutput sto, StarTable startab,
+                                  final String loc, final String format, 
+                                  Component parent ) {
 
         /* Configure any JDBC authentication to be GUI-based, and
          * positioned properly with respect to the parent. */
         JDBCHandler jh = sto.getJDBCHandler();
-        JDBCAuthenticator oldAuth = jh.getAuthenticator();
         SwingAuthenticator auth = new SwingAuthenticator();
         auth.setParentComponent( parent );
         jh.setAuthenticator( auth );
 
-        /* Try writing the table. */
-        try {
-            sto.writeStarTable( startab, loc, format );
-            return true;
-        }
+        /* Manipulate the StarTable so that it will message a progress bar. */
+        JProgressBar progBar = new JProgressBar();
+        final StarTable progtab = new ProgressBarStarTable( startab, progBar );
 
-        /* In case of error, inform the user and return false. */
-        catch ( Exception e ) {
-            JOptionPane.showMessageDialog( parent, e.toString(),
-                                           "Can't save table " + loc,
-                                           JOptionPane.ERROR_MESSAGE );
-            return false;
-        }
+        /* Set up a progress window. */
+        final JFrame progFrame = new JFrame( "Saving table" );
+        Box box = new Box( BoxLayout.Y_AXIS );
+        progFrame.getContentPane().add( box, BorderLayout.CENTER );
+        box.add( new JLabel( "Writing table to " + loc ) );
+        box.add( progBar );
 
-        /* Restore the factory to its original state. */
-        finally {
-            jh.setAuthenticator( oldAuth );
-        }
+        /* Set up a thread to do the writing. */
+        final Thread saveThread = new Thread() {
+            public void run() {
+                try {
+                    sto.writeStarTable( progtab, loc, format );
+                    progFrame.dispose();
+                }
+                catch ( final Exception e ) {
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            ErrorDialog
+                           .showError( e, "Can't save table to " + loc,
+                                       progFrame );
+                            progFrame.dispose();
+                        }
+                    } );
+                }
+            }
+        };
+
+        /* Provide a means of cancelling the write midway through. */
+        Action cancelAct = new AbstractAction( "Cancel" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                saveThread.interrupt();
+            }
+        };
+        JButton cancelButt = new JButton( cancelAct );
+        cancelButt.setAlignmentX( SwingConstants.CENTER );
+        box.add( cancelButt );
+
+        /* Reveal the progress window. */
+        progFrame.setLocationRelativeTo( parent );
+        progFrame.pack();
+        progFrame.setVisible( true );
+
+        /* Initiate the actual table save. */
+        saveThread.start();
     }
 
     /**
@@ -228,15 +264,15 @@ public class StarTableSaver extends JOptionPane {
      */
     public boolean saveTableFromBrowser( StarTable startab, Component parent ) {
         JFileChooser chooser = getFileChooser();
-        boolean saved = false;
-        while ( ! saved && chooser.showSaveDialog( parent ) 
-                           == JFileChooser.APPROVE_OPTION ) {
+        boolean done = false;
+        while ( ! done && chooser.showSaveDialog( parent ) 
+                          == JFileChooser.APPROVE_OPTION ) {
             String loc = chooser.getSelectedFile().toString();
             String format = getFormat();
-            saved = saveTable( getStarTableOutput(), startab, loc, format,
-                               parent );
+            saveTable( getStarTableOutput(), startab, loc, format, parent );
+            done = true;
         }
-        return false;
+        return done;
     }
 
     /**

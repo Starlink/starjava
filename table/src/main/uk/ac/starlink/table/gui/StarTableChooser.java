@@ -50,21 +50,21 @@ public class StarTableChooser extends JOptionPane {
         locPanel.addLine( "Table location", locField );
 
         /* Set up actions for invoking other dialogs. */
-        Action jdbcAction = new AbstractAction( "JDBC table" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                setValue( new Integer( JDBC_OPTION ) );
-            }
-        };
         Action browseAction = new AbstractAction( "Browse files" ) {
             public void actionPerformed( ActionEvent evt ) {
                 setValue( new Integer( BROWSE_OPTION ) );
             }
         };
+        Action jdbcAction = new AbstractAction( "JDBC table" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                setValue( new Integer( JDBC_OPTION ) );
+            }
+        };
 
         /* Set up the panel for invoking other dialogs. */
         JPanel actionsPanel = new JPanel();
-        actionsPanel.add( new JButton( jdbcAction ) );
         actionsPanel.add( new JButton( browseAction ) );
+        actionsPanel.add( new JButton( jdbcAction ) );
 
         /* Set up the input widgets for the dialog. */
         JPanel msg = new JPanel( new BorderLayout() );
