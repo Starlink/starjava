@@ -170,21 +170,15 @@ public class NDFNdxTest extends TestCase {
         assertNull( kid );
     }
 
-    /* Test works as long as the final assertEquals(astNormalize...)
-       is commented out. */
     public void testHdxXML()
             throws Exception {
         // Make an Hdx from an XMLfile which references an NDF
         HdxResourceType ndxtype = BridgeNdx.getHdxResourceType();
-        Class c = this.getClass();
-// 	System.err.println("getting XML from " + c.getResource("no-ns.xml"));
         HdxContainer hdx = HdxFactory
                 .getInstance()
-                .newHdxContainer( c.getResource( "no-ns.xml" ) );
+                .newHdxContainer( this.getClass().getResource( "no-ns.xml" ) );
         assertNotNull( hdx );
         Object ndx = hdx.get( ndxtype );
-//         System.err.println("testHdxXML: hdx is " 
-//                            + uk.ac.starlink.hdx.HdxDocument.NodeUtil.serializeNode(hdx.getDOM(null)));
         
         assertNotNull( ndx );
         assertTrue( ndxtype.getConstructedClass().isInstance( ndx ) );
@@ -222,12 +216,8 @@ public class NDFNdxTest extends TestCase {
             assertSourceEquals( ndx1.getEtc(), ndx2.getEtc(),
                                 null, IGNORE_WHITESPACE|IGNORE_COMMENTS );
         }
-        /* Is this the right test?  This appears to be testing for
-         * object equality rather than semantic equality -- does this
-         * mean that .equals() isn't overridden for FrameSet?
-         */
-//         assertEquals( astNormalize( ndx1.getAst() ), 
-//                       astNormalize( ndx2.getAst() ) );
+        assertEquals( astNormalize( ndx1.getAst() ), 
+                      astNormalize( ndx2.getAst() ) );
     }
 
     /** 
