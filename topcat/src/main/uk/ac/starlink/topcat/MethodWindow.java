@@ -409,7 +409,14 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
         else if ( userObj instanceof Class ) {
             return ResourceIcon.LIBRARY_NODE;
         }
+        else if ( userObj instanceof Heading ) {
+            return ResourceIcon.FOLDER_NODE;
+        }
+        else if ( userObj == null ) {
+            return null;
+        }
         else {
+            assert false;
             return null;
         }
     }

@@ -121,6 +121,7 @@ public class ResourceIcon implements Icon {
         TV_DOWN = makeIcon( "Down.gif" ),
 
         /* Other JTree icons. */
+        FOLDER_NODE = makeIcon( "folder_node.gif" ),
         LIBRARY_NODE = makeIcon( "book_leaf.gif" ),
         FUNCTION_NODE = makeIcon( "fx_leaf.gif" ),
         CONSTANT_NODE = makeIcon( "c_leaf.gif" ),
