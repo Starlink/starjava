@@ -583,47 +583,67 @@ public class DataNodeFactory {
      */
     public static List getDefaultClassList() {
         if ( defaultClassList == null ) {
-            Class[] classes = new Class[] {
-                NDFDataNode.class,
-                WCSDataNode.class,
-                ARYDataNode.class,
-                HistoryDataNode.class,
-                HDSDataNode.class,
-                FITSFileDataNode.class,
-                NdxDataNode.class,
-                VOTableDataNode.class,
-                ZipFileDataNode.class,
-                TarStreamDataNode.class,
-                NDArrayDataNode.class,
-                FITSStreamDataNode.class,
-                JDBCDataNode.class,
-                StarTableDataNode.class,
-                HDXDataNode.class,
-                DocumentDataNode.class,
-                XMLDataNode.class,
-                VOTableTableDataNode.class,
-                VOComponentDataNode.class,
-                FtpDirectoryDataNode.class,
-                CompressedDataNode.class,
-                FileDataNode.class,
-                MyspaceContainerDataNode.class,
-                PlainDataNode.class,
-            };
-            defaultClassList = new ArrayList( Arrays.asList( classes ) );
+
+            /* Assemble a list of the names of known DataNode classes. */
+            List classNameList = new ArrayList( Arrays.asList( new String[] {
+                NDFDataNode.class.getName(),
+                WCSDataNode.class.getName(),
+                ARYDataNode.class.getName(),
+                HistoryDataNode.class.getName(),
+                HDSDataNode.class.getName(),
+                FITSFileDataNode.class.getName(),
+                NdxDataNode.class.getName(),
+                VOTableDataNode.class.getName(),
+                ZipFileDataNode.class.getName(),
+                TarStreamDataNode.class.getName(),
+                NDArrayDataNode.class.getName(),
+                FITSStreamDataNode.class.getName(),
+                JDBCDataNode.class.getName(),
+                StarTableDataNode.class.getName(),
+                HDXDataNode.class.getName(),
+                DocumentDataNode.class.getName(),
+                XMLDataNode.class.getName(),
+                VOTableTableDataNode.class.getName(),
+                VOComponentDataNode.class.getName(),
+                FtpDirectoryDataNode.class.getName(),
+                CompressedDataNode.class.getName(),
+                FileDataNode.class.getName(),
+                "uk.ac.starlink.treeview.MyspaceContainerDataNode",
+                PlainDataNode.class.getName(),
+            } ) );
 
             /* Some of the classes are contingent on having working HDS and
              * AST subsystems available, which may not be the case if the
              * corresponding native libraries are not present.  Remove classes
              * we know that we will not be able to deal with. */
             if ( ! TreeviewUtil.hasHDS() ) {
-                defaultClassList.remove( NDFDataNode.class );
-                defaultClassList.remove( ARYDataNode.class );
-                defaultClassList.remove( HistoryDataNode.class );
-                defaultClassList.remove( HDSDataNode.class );
+                classNameList.remove( NDFDataNode.class.getName() );
+                classNameList.remove( ARYDataNode.class.getName() );
+                classNameList.remove( HistoryDataNode.class.getName() );
+                classNameList.remove( HDSDataNode.class.getName() );
             }
             if ( ! TreeviewUtil.hasAST() ) {
-                defaultClassList.remove( WCSDataNode.class );
+                classNameList.remove( WCSDataNode.class.getName() );
             }
+
+            /* Now construct a corresponding list of the classes themselves.
+             * If there's a problem loading any of these, just log it
+             * and continue. */
+            List cList = new ArrayList();
+            for ( Iterator it = classNameList.iterator(); it.hasNext(); ) {
+                String cname = (String) it.next();
+                try {
+                    cList.add( DataNodeFactory.class.forName( cname ) );
+                }
+                catch ( Throwable th ) {
+                    String msg = th.toString().indexOf( cname ) >= 0
+                               ? th.toString() 
+                               : ( "Can't load class " + cname + 
+                                   " (" + th + ")" );
+                    logger.info( msg );
+                }
+            }
+            defaultClassList = cList;
         }
         return defaultClassList;
     }
