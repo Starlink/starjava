@@ -1,81 +1,41 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional;
 
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.types.EnumeratedAttribute;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.BufferedOutputStream;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
-import java.util.Enumeration;
-import java.util.Date;
-import java.util.Calendar;
-import java.util.Hashtable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
-import java.text.DecimalFormat;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.types.EnumeratedAttribute;
 
 /**
  *Modifies settings in a property file.
@@ -101,7 +61,8 @@ import java.text.DecimalFormat;
  *The &lt;propertyfile&gt; task must have:<br>
  *    <ul><li>file</li></ul>
  *Other parameters are:<br>
- *    <ul><li>comment, key, operation, type and value (the final four being eliminated shortly)</li></ul>
+ *    <ul><li>comment, key, operation, type and value (the final four being
+ *            eliminated shortly)</li></ul>
  *
  *The &lt;entry&gt; task must have:<br>
  *    <ul><li>key</li></ul>
@@ -141,19 +102,8 @@ import java.text.DecimalFormat;
  *The message property is used for the property file header, with "\\" being
  *a newline delimiter character.
  *
- * @author Thomas Christen <a href="mailto:chr@active.ch">chr@active.ch</a>
- * @author Jeremy Mawson <a href="mailto:jem@loftinspace.com.au">jem@loftinspace.com.au</a>
- * @author Erik Hatcher <a href="mailto:ehatcher@apache.org">ehatcher@apache.org</a>
  */
 public class PropertyFile extends Task {
-
-    /* ========================================================================
-    *
-    * Static variables.
-    */
-
-    private static final String NEWLINE = System.getProperty("line.separator");
-
 
     /* ========================================================================
     *
@@ -203,7 +153,7 @@ public class PropertyFile extends Task {
         properties = new Properties();
         try {
             if (propertyfile.exists()) {
-                log("Updating property file: " 
+                log("Updating property file: "
                     + propertyfile.getAbsolutePath());
                 FileInputStream fis = null;
                 try {
@@ -216,7 +166,7 @@ public class PropertyFile extends Task {
                     }
                 }
             } else {
-                log("Creating new property file: " 
+                log("Creating new property file: "
                     + propertyfile.getAbsolutePath());
                 FileOutputStream out = null;
                 try {
@@ -235,7 +185,7 @@ public class PropertyFile extends Task {
 
     private void checkParameters() throws BuildException {
         if (!checkParam(propertyfile)) {
-            throw new BuildException("file token must not be null.", location);
+            throw new BuildException("file token must not be null.", getLocation());
         }
     }
 
@@ -257,40 +207,18 @@ public class PropertyFile extends Task {
         BufferedOutputStream bos = null;
         try {
             bos = new BufferedOutputStream(new FileOutputStream(propertyfile));
-
-            // Properties.store is not available in JDK 1.1
-            Method m =
-                Properties.class.getMethod("store",
-                                           new Class[] {
-                                               OutputStream.class,
-                                               String.class});
-            m.invoke(properties, new Object[] {bos, comment});
-
-        } catch (NoSuchMethodException nsme) {
-            properties.save(bos, comment);
-        } catch (InvocationTargetException ite) {
-            Throwable t = ite.getTargetException();
-            throw new BuildException(t, location);
-        } catch (IllegalAccessException iae) {
-            // impossible
-            throw new BuildException(iae, location);
+            properties.store(bos, comment);
         } catch (IOException ioe) {
-            throw new BuildException(ioe, location);
+            throw new BuildException(ioe, getLocation());
         } finally {
             if (bos != null) {
                 try {
                     bos.close();
-                } catch (IOException ioex) {}
+                } catch (IOException ioex) {
+                    // ignore
+                }
             }
         }
-    }
-
-    /**
-    * Returns whether the given parameter has been defined.
-    * @todo IDEA is saying this method is never used - remove?
-    */
-    private boolean checkParam(String param) {
-        return !((param == null) || (param.equals("null")));
     }
 
     private boolean checkParam(File param) {
@@ -311,6 +239,7 @@ public class PropertyFile extends Task {
         private int                 operation = Operation.EQUALS_OPER;
         private String              value = null;
         private String              defaultValue = null;
+        private String              newValue = null;
         private String              pattern = null;
         private int                 field = Calendar.DATE;
 
@@ -320,40 +249,40 @@ public class PropertyFile extends Task {
         public void setKey(String value) {
             this.key = value;
         }
-        
-        /** 
+
+        /**
          * Value to set (=), to add (+) or subtract (-)
          */
         public void setValue(String value) {
             this.value = value;
         }
-        
+
         /**
-         * operation to apply. 
-         * &quot;+&quot; or &quot;=&quot; 
+         * operation to apply.
+         * &quot;+&quot; or &quot;=&quot;
          *(default) for all datatypes; &quot;-&quot; for date and int only)\.
          */
         public void setOperation(Operation value) {
             this.operation = Operation.toOperation(value.getValue());
         }
-        
+
         /**
          * Regard the value as : int, date or string (default)
          */
         public void setType(Type value) {
             this.type = Type.toType(value.getValue());
         }
-        
+
         /**
          * Initial value to set for a property if it is not
          * already defined in the property file.
          * For type date, an additional keyword is allowed: &quot;now&quot;
          */
-                     
+
         public void setDefault(String value) {
             this.defaultValue = value;
         }
-        
+
         /**
          * For int and date type only. If present, Values will
          * be parsed and formatted accordingly.
@@ -361,7 +290,7 @@ public class PropertyFile extends Task {
         public void setPattern(String value) {
             this.pattern = value;
         }
-        
+
         /**
          * The unit of the value to be applied to date +/- operations.
          *            Valid Values are:
@@ -375,7 +304,7 @@ public class PropertyFile extends Task {
          *               <li>month</li>
          *               <li>year</li>
          *            </ul>
-         *            This only applies to date types using a +/- operation.        
+         *            This only applies to date types using a +/- operation.
          * @since Ant 1.5
          */
         public void setUnit(PropertyFile.Unit unit) {
@@ -403,13 +332,13 @@ public class PropertyFile extends Task {
                 // which means do nothing
                 npe.printStackTrace();
             }
-            
-            if (value == null) {
-                value = "";
+
+            if (newValue == null) {
+                newValue = "";
             }
-            
+
             // Insert as a string by default
-            props.put(key, value);
+            props.put(key, newValue);
         }
 
         /**
@@ -431,17 +360,17 @@ public class PropertyFile extends Task {
             if (currentStringValue == null) {
                 currentStringValue = DEFAULT_DATE_VALUE;
             }
-            
+
             if ("now".equals(currentStringValue)) {
                 currentValue.setTime(new Date());
             } else {
                 try {
                     currentValue.setTime(fmt.parse(currentStringValue));
-                } catch (ParseException pe)  { 
-                    // swallow 
+                } catch (ParseException pe)  {
+                    // swallow
                 }
             }
-            
+
             if (operation != Operation.EQUALS_OPER) {
                 int offset = 0;
                 try {
@@ -455,7 +384,7 @@ public class PropertyFile extends Task {
                 currentValue.add(field, offset);
             }
 
-            value = fmt.format(currentValue.getTime());
+            newValue = fmt.format(currentValue.getTime());
         }
 
 
@@ -474,13 +403,18 @@ public class PropertyFile extends Task {
             DecimalFormat fmt = (pattern != null) ? new DecimalFormat(pattern)
                                                     : new DecimalFormat();
             try {
-                currentValue = fmt.parse(getCurrentValue(oldValue)).intValue();
+                String curval = getCurrentValue(oldValue);
+                if (curval != null) {
+                    currentValue = fmt.parse(curval).intValue();
+                } else {
+                    currentValue = 0;
+                }
             } catch (NumberFormatException nfe) {
                 // swallow
             } catch (ParseException pe)  {
                 // swallow
             }
-            
+
             if (operation == Operation.EQUALS_OPER) {
                 newValue = currentValue;
             } else {
@@ -502,9 +436,9 @@ public class PropertyFile extends Task {
                 }
             }
 
-            value = fmt.format(newValue);
+            this.newValue = fmt.format(newValue);
         }
-        
+
         /**
         * Handle operations for type <code>string</code>.
         *
@@ -516,40 +450,39 @@ public class PropertyFile extends Task {
             String newValue  = DEFAULT_STRING_VALUE;
 
             String currentValue = getCurrentValue(oldValue);
-            
+
             if (currentValue == null) {
                 currentValue = DEFAULT_STRING_VALUE;
             }
-            
+
             if (operation == Operation.EQUALS_OPER) {
                 newValue = currentValue;
             } else if (operation == Operation.INCREMENT_OPER) {
                 newValue = currentValue + value;
             }
-            value = newValue;
+            this.newValue = newValue;
         }
-        
+
         /**
          * Check if parameter combinations can be supported
          * @todo make sure the 'unit' attribute is only specified on date
          *      fields
          */
         private void checkParameters() throws BuildException {
-            if (type == Type.STRING_TYPE &&
-                operation == Operation.DECREMENT_OPER) {
-                throw new BuildException("- is not suported for string " 
+            if (type == Type.STRING_TYPE
+                && operation == Operation.DECREMENT_OPER) {
+                throw new BuildException("- is not supported for string "
                     + "properties (key:" + key + ")");
             }
             if (value == null && defaultValue == null) {
-                throw new BuildException("\"value\" and/or \"default\" " 
+                throw new BuildException("\"value\" and/or \"default\" "
                     + "attribute must be specified (key:" + key + ")");
             }
             if (key == null) {
                 throw new BuildException("key is mandatory");
             }
-            if (type == Type.STRING_TYPE &&
-                pattern != null) {
-                throw new BuildException("pattern is not suported for string " 
+            if (type == Type.STRING_TYPE && pattern != null) {
+                throw new BuildException("pattern is not supported for string "
                     + "properties (key:" + key + ")");
             }
         }
@@ -558,13 +491,13 @@ public class PropertyFile extends Task {
             String ret = null;
             if (operation == Operation.EQUALS_OPER) {
                 // If only value is specified, the property is set to it
-                // regardless of its previous value. 
+                // regardless of its previous value.
                 if (value != null && defaultValue == null) {
                     ret = value;
                 }
-                
+
                 // If only default is specified and the property previously
-                // existed in the property file, it is unchanged. 
+                // existed in the property file, it is unchanged.
                 if (value == null && defaultValue != null && oldValue != null) {
                     ret = oldValue;
                 }
@@ -574,7 +507,7 @@ public class PropertyFile extends Task {
                 if (value == null && defaultValue != null && oldValue == null) {
                     ret = defaultValue;
                 }
-                
+
                 // If value and default are both specified and the property
                 // previously existed in the property file, the property
                 // is set to value.
@@ -584,17 +517,17 @@ public class PropertyFile extends Task {
 
                 // If value and default are both specified and the property
                 // did not exist in the property file, the property is set
-                // to default. 
+                // to default.
                 if (value != null && defaultValue != null && oldValue == null) {
                     ret = defaultValue;
                 }
             } else {
                 ret = (oldValue == null) ? defaultValue : oldValue;
             }
-            
+
             return ret;
         }
-        
+
         /**
          * Enumerated attribute with the values "+", "-", "="
          */
@@ -643,7 +576,7 @@ public class PropertyFile extends Task {
             }
         }
     }
-    
+
     /**
      * Borrowed from Tstamp
      * @todo share all this time stuff across many tasks as a datetime datatype
@@ -660,16 +593,9 @@ public class PropertyFile extends Task {
         private static final String MONTH = "month";
         private static final String YEAR = "year";
 
-        private static final String[] units = {
-                                                MILLISECOND,
-                                                SECOND,
-                                                MINUTE,
-                                                HOUR,
-                                                DAY,
-                                                WEEK,
-                                                MONTH,
-                                                YEAR
-                                              };
+        private static final String[] UNITS
+            = {MILLISECOND, SECOND, MINUTE, HOUR,
+               DAY, WEEK, MONTH, YEAR };
 
         private Hashtable calendarFields = new Hashtable();
 
@@ -692,7 +618,7 @@ public class PropertyFile extends Task {
         }
 
         public String[] getValues() {
-            return units;
+            return UNITS;
         }
     }
 }

@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.sitraka;
@@ -60,9 +23,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Random;
 import java.util.Vector;
-
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -73,6 +34,7 @@ import org.apache.tools.ant.types.CommandlineJava;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
  * Runs Sitraka JProbe Coverage.
@@ -83,13 +45,10 @@ import org.apache.tools.ant.types.Path;
  * <p>
  * For additional information, visit <a href="http://www.sitraka.com">www.sitraka.com</a>
  *
- * @author <a href="sbailliez@imediation.com">Stephane Bailliez</a>
  *
  * @ant.task name="jpcoverage" category="metrics"
  */
-public class Coverage extends Task {
-
-    protected File home;
+public class Coverage extends CovBase {
 
     protected Commandline cmdl = new Commandline();
 
@@ -131,13 +90,6 @@ public class Coverage extends Task {
     protected Vector filesets = new Vector();
 
     //--------- setters used via reflection --
-
-    /**
-     * The directory where JProbe is installed.
-     */
-    public void setHome(File value) {
-        home = value;
-    }
 
     /** seed name for snapshot file. Can be null, default to snap */
     public void setSeedname(String value) {
@@ -297,7 +249,7 @@ public class Coverage extends Task {
      * classpath to run the files.
      */
     public Path createClasspath() {
-        return cmdlJava.createClasspath(project).createPath();
+        return cmdlJava.createClasspath(getProject()).createPath();
     }
 
     /**
@@ -332,7 +284,7 @@ public class Coverage extends Task {
         }
         try {
             // we need to run Coverage from his directory due to dll/jar issues
-            cmdl.setExecutable(new File(home, "jplauncher").getAbsolutePath());
+            cmdl.setExecutable(findExecutable("jplauncher"));
             cmdl.createArgument().setValue("-jp_input=" + paramfile.getAbsolutePath());
 
             // use the custom handler for stdin issues
@@ -341,7 +293,7 @@ public class Coverage extends Task {
             log(cmdl.describeCommand(), Project.MSG_VERBOSE);
             exec.setCommandline(cmdl.getCommandline());
             int exitValue = exec.execute();
-            if (exitValue != 0) {
+            if (Execute.isFailure(exitValue)) {
                 throw new BuildException("JProbe Coverage failed (" + exitValue + ")");
             }
         } catch (IOException e) {
@@ -357,42 +309,35 @@ public class Coverage extends Task {
     /** wheck what is necessary to check, Coverage will do the job for us */
     protected void checkOptions() throws BuildException {
         // check coverage home
-        if (home == null || !home.isDirectory()) {
+        if (getHome() == null || !getHome().isDirectory()) {
             throw new BuildException("Invalid home directory. Must point to JProbe home directory");
         }
-        home = new File(home, "coverage");
-        File jar = new File(home, "coverage.jar");
+        File jar = findCoverageJar();
         if (!jar.exists()) {
-            throw new BuildException("Cannot find Coverage directory: " + home);
+            throw new BuildException("Cannot find Coverage directory: " + getHome());
         }
 
         // make sure snapshot dir exists and is resolved
         if (snapshotDir == null) {
             snapshotDir = new File(".");
         }
-        snapshotDir = project.resolveFile(snapshotDir.getPath());
+        snapshotDir = getProject().resolveFile(snapshotDir.getPath());
         if (!snapshotDir.isDirectory() || !snapshotDir.exists()) {
             throw new BuildException("Snapshot directory does not exists :" + snapshotDir);
         }
         if (workingDir == null) {
             workingDir = new File(".");
         }
-        workingDir = project.resolveFile(workingDir.getPath());
+        workingDir = getProject().resolveFile(workingDir.getPath());
 
         // check for info, do your best to select the java executable.
         // JProbe 3.0 fails if there is no javaexe option. So
         if (javaExe == null && (vm == null || "java2".equals(vm))) {
-            String version = System.getProperty("java.version");
-            // make we are using 1.2+, if it is, then do your best to
-            // get a javaexe
-            if (!version.startsWith("1.1")) {
+            if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
                 if (vm == null) {
                     vm = "java2";
                 }
-                // if we are here obviously it is java2
-                String home = System.getProperty("java.home");
-                boolean isUnix = File.separatorChar == '/';
-                javaExe = isUnix ? new File(home, "bin/java") : new File(home, "/bin/java.exe");
+                javaExe = new File(JavaEnvUtils.getJreExecutable("java"));
             }
         }
     }
@@ -409,7 +354,7 @@ public class Coverage extends Task {
             params.addElement("-jp_vm=" + vm);
         }
         if (javaExe != null) {
-            params.addElement("-jp_java_exe=" + project.resolveFile(javaExe.getPath()));
+            params.addElement("-jp_java_exe=" + getProject().resolveFile(javaExe.getPath()));
         }
         params.addElement("-jp_working_dir=" + workingDir.getPath());
         params.addElement("-jp_snapshot_dir=" + snapshotDir.getPath());
@@ -465,7 +410,8 @@ public class Coverage extends Task {
      */
     protected File createParamFile() throws BuildException {
         //@todo change this when switching to JDK 1.2 and use File.createTmpFile()
-        File file = createTmpFile();
+        File file = createTempFile("jpcov");
+        file.deleteOnExit();
         log("Creating parameter file: " + file, Project.MSG_VERBOSE);
 
         // options need to be one per line in the parameter file
@@ -495,13 +441,6 @@ public class Coverage extends Task {
                 }
             }
         }
-        return file;
-    }
-
-    /** create a temporary file in the current dir (For JDK1.1 support) */
-    protected File createTmpFile() {
-        final long rand = (new Random(System.currentTimeMillis())).nextLong();
-        File file = new File("jpcoverage" + rand + ".tmp");
         return file;
     }
 

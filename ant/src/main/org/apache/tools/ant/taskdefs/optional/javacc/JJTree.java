@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.javacc;
@@ -71,12 +34,11 @@ import org.apache.tools.ant.util.JavaEnvUtils;
 /**
  * Runs the JJTree compiler compiler.
  *
- * @author thomas.haas@softwired-inc.com
- * @author Michael Saunders <a href="mailto:michael@amtec.com">michael@amtec.com</a>
  */
 public class JJTree extends Task {
 
     // keys to optional attributes
+    private static final String OUTPUT_FILE       = "OUTPUT_FILE";
     private static final String BUILD_NODE_FILES  = "BUILD_NODE_FILES";
     private static final String MULTI             = "MULTI";
     private static final String NODE_DEFAULT_VOID = "NODE_DEFAULT_VOID";
@@ -91,6 +53,10 @@ public class JJTree extends Task {
     private static final String NODE_PREFIX       = "NODE_PREFIX";
 
     private final Hashtable optionalAttrs = new Hashtable();
+
+    private String outputFile = null;
+
+    private static final String DEFAULT_SUFFIX = ".jj";
 
     // required attributes
     private File outputDirectory = null;
@@ -178,12 +144,21 @@ public class JJTree extends Task {
     }
 
     /**
-     * The directory to write the generated file to.
+     * The directory to write the generated JavaCC grammar and node files to.
      * If not set, the files are written to the directory
      * containing the grammar file.
      */
     public void setOutputdirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
+    }
+
+    /**
+     * The outputfile to write the generated JavaCC grammar file to.
+     * If not set, the file is written with the same name as
+     * the JJTree grammar file with a suffix .jj.
+     */
+    public void setOutputfile(String outputFile) {
+        this.outputFile = outputFile;
     }
 
     /**
@@ -202,7 +177,6 @@ public class JJTree extends Task {
 
     public JJTree() {
         cmdl.setVm(JavaEnvUtils.getJreExecutable("java"));
-        cmdl.setClassname("COM.sun.labs.jjtree.Main");
     }
 
     public void execute() throws BuildException {
@@ -218,30 +192,51 @@ public class JJTree extends Task {
         if (target == null || !target.isFile()) {
             throw new BuildException("Invalid target: " + target);
         }
-        
+
+        File javaFile = null;
+
         // use the directory containing the target as the output directory
         if (outputDirectory == null) {
-            outputDirectory = new File(target.getParent());
-        }        
-        if (!outputDirectory.isDirectory()) {
-            throw new BuildException("'outputdirectory' " + outputDirectory 
-                + " is not a directory.");
+            // convert backslashes to slashes, otherwise jjtree will
+            // put this as comments and this seems to confuse javacc
+            cmdl.createArgument().setValue("-OUTPUT_DIRECTORY:"
+                                           + getDefaultOutputDirectory());
+
+            javaFile = new File(createOutputFileName(target, outputFile,
+                                                     null));
+        } else {
+            if (!outputDirectory.isDirectory()) {
+                throw new BuildException("'outputdirectory' " + outputDirectory
+                                         + " is not a directory.");
+            }
+
+            // convert backslashes to slashes, otherwise jjtree will
+            // put this as comments and this seems to confuse javacc
+            cmdl.createArgument().setValue("-OUTPUT_DIRECTORY:"
+                                           + outputDirectory.getAbsolutePath()
+                                             .replace('\\', '/'));
+
+            javaFile = new File(createOutputFileName(target, outputFile,
+                                                     outputDirectory
+                                                     .getPath()));
         }
-        // convert backslashes to slashes, otherwise jjtree will put this as
-        // comments and this seems to confuse javacc
-        cmdl.createArgument().setValue("-OUTPUT_DIRECTORY:" 
-            + outputDirectory.getAbsolutePath().replace('\\', '/'));
-        
-        String targetName = target.getName();
-        final File javaFile = new File(outputDirectory,
-            targetName.substring(0, targetName.indexOf(".jjt")) + ".jj");
-        if (javaFile.exists() 
-             && target.lastModified() < javaFile.lastModified()) {
+
+        if (javaFile.exists()
+            && target.lastModified() < javaFile.lastModified()) {
             log("Target is already built - skipping (" + target + ")",
                 Project.MSG_VERBOSE);
             return;
         }
+
+        if (outputFile != null) {
+            cmdl.createArgument().setValue("-" + OUTPUT_FILE + ":"
+                                           + outputFile.replace('\\', '/'));
+        }
+
         cmdl.createArgument().setValue(target.getAbsolutePath());
+
+        cmdl.setClassname(JavaCC.getMainClass(javaccHome,
+                                              JavaCC.TASKDEF_TYPE_JJTREE));
 
         final Path classpath = cmdl.createClasspath(getProject());
         final File javaccJar = JavaCC.getArchiveFile(javaccHome);
@@ -267,5 +262,126 @@ public class JJTree extends Task {
         } catch (IOException e) {
             throw new BuildException("Failed to launch JJTree", e);
         }
+    }
+
+    private String createOutputFileName(File target, String optionalOutputFile,
+                                        String outputDirectory) {
+        optionalOutputFile = validateOutputFile(optionalOutputFile,
+                                                outputDirectory);
+        String jjtreeFile = target.getAbsolutePath().replace('\\', '/');
+
+        if ((optionalOutputFile == null) || optionalOutputFile.equals("")) {
+            int filePos = jjtreeFile.lastIndexOf("/");
+
+            if (filePos >= 0) {
+                jjtreeFile = jjtreeFile.substring(filePos + 1);
+            }
+
+            int suffixPos = jjtreeFile.lastIndexOf('.');
+
+            if (suffixPos == -1) {
+                optionalOutputFile = jjtreeFile + DEFAULT_SUFFIX;
+            } else {
+                String currentSuffix = jjtreeFile.substring(suffixPos);
+
+                if (currentSuffix.equals(DEFAULT_SUFFIX)) {
+                    optionalOutputFile = jjtreeFile + DEFAULT_SUFFIX;
+                } else {
+                    optionalOutputFile = jjtreeFile.substring(0, suffixPos)
+                        + DEFAULT_SUFFIX;
+                }
+            }
+        }
+
+        if ((outputDirectory == null) || outputDirectory.equals("")) {
+            outputDirectory = getDefaultOutputDirectory();
+        }
+
+        return (outputDirectory + "/" + optionalOutputFile).replace('\\', '/');
+    }
+
+ /*
+  * Not used anymore
+    private boolean isAbsolute(String fileName) {
+        return (fileName.startsWith("/") || (new File(fileName).isAbsolute()));
+    }
+*/
+    /**
+     * When running JJTree from an Ant taskdesk the -OUTPUT_DIRECTORY must
+     * always be set. But when -OUTPUT_DIRECTORY is set, -OUTPUT_FILE is
+     * handled as if relative of this -OUTPUT_DIRECTORY. Thus when the
+     * -OUTPUT_FILE is absolute or contains a drive letter we have a problem.
+     *
+     * @param outputFile
+     * @param outputDirectory
+     * @return
+     * @throws BuildException
+     */
+    private String validateOutputFile(String outputFile,
+                                      String outputDirectory)
+        throws BuildException {
+        if (outputFile == null) {
+            return null;
+        }
+
+        if ((outputDirectory == null)
+            && (outputFile.startsWith("/") || outputFile.startsWith("\\"))) {
+            String relativeOutputFile = makeOutputFileRelative(outputFile);
+            setOutputfile(relativeOutputFile);
+
+            return relativeOutputFile;
+        }
+
+        String root = getRoot(new File(outputFile)).getAbsolutePath();
+
+        if ((root.length() > 1)
+            && outputFile.startsWith(root.substring(0, root.length() - 1))) {
+            throw new BuildException("Drive letter in 'outputfile' not "
+                                     + "supported: " + outputFile);
+        }
+
+        return outputFile;
+    }
+
+    private String makeOutputFileRelative(String outputFile) {
+        StringBuffer relativePath = new StringBuffer();
+        String defaultOutputDirectory = getDefaultOutputDirectory();
+        int nextPos = defaultOutputDirectory.indexOf('/');
+        int startPos = nextPos + 1;
+
+        while (startPos > -1 && startPos < defaultOutputDirectory.length()) {
+            relativePath.append("/..");
+            nextPos = defaultOutputDirectory.indexOf('/', startPos);
+
+            if (nextPos == -1) {
+                startPos = nextPos;
+            } else {
+                startPos = nextPos + 1;
+            }
+        }
+
+        relativePath.append(outputFile);
+
+        return relativePath.toString();
+    }
+
+    private String getDefaultOutputDirectory() {
+        return getProject().getBaseDir().getAbsolutePath().replace('\\', '/');
+    }
+
+    /**
+     * Determine root directory for a given file.
+     *
+     * @param file
+     * @return file's root directory
+     */
+    private File getRoot(File file) {
+        File root = file.getAbsoluteFile();
+
+        while (root.getParent() != null) {
+            root = root.getParentFile();
+        }
+
+        return root;
     }
 }

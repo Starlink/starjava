@@ -1,59 +1,20 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2002,2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.scm;
-
-import java.util.StringTokenizer;
 
 import com.starbase.starteam.Folder;
 import com.starbase.starteam.Item;
@@ -63,7 +24,7 @@ import com.starbase.starteam.StarTeamFinder;
 import com.starbase.starteam.Type;
 import com.starbase.starteam.View;
 import com.starbase.util.Platform;
-
+import java.util.StringTokenizer;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
@@ -104,10 +65,6 @@ import org.apache.tools.ant.Project;
  * For more information about the StarTeam API and how to license it, see
  * the link below.</B>
  *
- * @author <A HREF="mailto:chris.povirk@paytec.com">Chris Povirk</A>
- * @author <A HREF="mailto:jc.mann@paytec.com">JC Mann</A>
- * @author <A HREF="mailto:jeff.gettle@paytec.com">Jeff Gettle</A>
- * @author <A HREF="mailto:stevec@ignitesports.com">Steve Cohen</A>
  * @version 1.0
  * @see <A HREF="http://www.starbase.com/">StarBase Web Site</A>
  *
@@ -243,8 +200,8 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
         // Because of the way I create the full target path, there
         // must be NO slash at the end of targetFolder and folderName
         // However, if the slash or backslash is the only character, leave it alone
-        if ((getTargetFolder().endsWith("/") ||
-            getTargetFolder().endsWith("\\"))
+        if ((getTargetFolder().endsWith("/")
+                || getTargetFolder().endsWith("\\"))
              && getTargetFolder().length() > 1) {
             setTargetFolder(getTargetFolder().substring(0, getTargetFolder().length() - 1));
         }
@@ -368,15 +325,16 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
                 setFolderName(null);
             } else {
                 f = StarTeamFinder.findFolder(v.getRootFolder(), getFolderName());
-                assertTrue(null != f, "ERROR: " + getProjectName() + delim + getViewName() + delim +
-                    v.getRootFolder() + delim + getFolderName() + delim +
-                    " does not exist.");
+                assertTrue(null != f, "ERROR: " + getProjectName() + delim
+                    + getViewName() + delim + v.getRootFolder() + delim
+                    + getFolderName() + delim
+                    + " does not exist.");
             }
         }
 
         if (getVerbose() && getFolderName() != null) {
-            log("Found " + getProjectName() + delim + getViewName() +
-                delim + getFolderName() + delim + "\n");
+            log("Found " + getProjectName() + delim + getViewName()
+                + delim + getFolderName() + delim + "\n");
         }
 
         // For performance reasons, it is important to pre-fetch all the
@@ -454,7 +412,8 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
             // Replace the projectName in the file's absolute path to the viewName.
             // This makes the root target of a checkout operation equal to:
             // targetFolder + dirName
-            StringTokenizer pathTokenizer = new StringTokenizer(rootSourceFolder.getFolderHierarchy(), delim);
+            StringTokenizer pathTokenizer
+                = new StringTokenizer(rootSourceFolder.getFolderHierarchy(), delim);
             String currentToken = null;
             boolean foundRoot = false;
 
@@ -462,7 +421,7 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
                 currentToken = pathTokenizer.nextToken();
                 if (currentToken.equals(getProjectName()) && !foundRoot) {
                     currentToken = dirName;
-                    foundRoot = true;// only want to do this the first time
+                    foundRoot = true; // only want to do this the first time
                 }
                 root = new java.io.File(root, currentToken);
             }
@@ -501,7 +460,8 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
             Folder[] subfolders = f.getSubFolders();
 
             for (int i = 0; i < subfolders.length; i++) {
-                runFolder(s, p, v, t, subfolders[i], new java.io.File(tgt, subfolders[i].getName()));
+                runFolder(s, p, v, t, subfolders[i],
+                          new java.io.File(tgt, subfolders[i].getName()));
             }
         }
     }
@@ -882,7 +842,7 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
     /**
      * Sets the <CODE>targetFolder</CODE> attribute to the given value.
      *
-     * @param target The target path on the local machine to check out to.
+     * @param targetFolder The target path on the local machine to check out to.
      * @see #getTargetFolder()
      */
     public void setTargetFolder(String targetFolder) {
@@ -989,7 +949,8 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
      * <BR>
      * Separate multiple inlcude filters by <I>spaces</I> , not commas as Ant
      * uses. For example, if you want to check out all .java and .class\
-     * files, you would put the following line in your program: <CODE>setIncludes("*.java *.class");</CODE>
+     * files, you would put the following line in your program:
+     * <CODE>setIncludes("*.java *.class");</CODE>
      * Finally, note that filters have no effect on the <B>directories</B>
      * that are scanned; you could not check out files from directories with
      * names beginning only with "build," for instance. Of course, you could
@@ -1043,7 +1004,8 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
      * <BR>
      * Separate multiple exlcude filters by <I>spaces</I> , not commas as Ant
      * uses. For example, if you want to check out all files except .XML and
-     * .HTML files, you would put the following line in your program: <CODE>setExcludes("*.XML *.HTML");</CODE>
+     * .HTML files, you would put the following line in your program:
+     * <CODE>setExcludes("*.XML *.HTML");</CODE>
      * Finally, note that filters have no effect on the <B>directories</B>
      * that are scanned; you could not skip over all files in directories
      * whose names begin with "project," for instance. <BR>

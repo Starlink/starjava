@@ -1,73 +1,35 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2002,2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.ide;
 
 
-import java.util.Vector;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.File;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
-import java.io.File;
-import java.beans.PropertyChangeSupport;
-import java.beans.PropertyChangeListener;
-
+import java.util.Vector;
+import org.apache.tools.ant.BuildEvent;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.BuildListener;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.Target;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.BuildListener;
-import org.apache.tools.ant.BuildEvent;
 
 /**
  * This class wraps the Ant project information needed to
@@ -81,7 +43,6 @@ import org.apache.tools.ant.BuildEvent;
  * - manages a seperate thread for Ant project execution
  *   this allows interrupting a running build from a GUI
  *
- * @author Wolf Siberski, TUI Infotec GmbH
  */
 
 class VAJBuildInfo implements Runnable {
@@ -114,7 +75,7 @@ class VAJBuildInfo implements Runnable {
 
         /**
          * checks if the thread was interrupted. When an
-         * interrupt occured, throw an Exception to stop
+         * interrupt occurred, throw an Exception to stop
          * the execution.
          */
         protected void checkInterrupted() {
@@ -125,7 +86,7 @@ class VAJBuildInfo implements Runnable {
 
         /**
          *  Fired after the last target has finished. This event
-         *  will still be thrown if an error occured during the build.
+         *  will still be thrown if an error occurred during the build.
          */
         public void buildFinished(BuildEvent event) {
             wrappedListener.buildFinished(event);
@@ -150,7 +111,7 @@ class VAJBuildInfo implements Runnable {
 
         /**
          *  Fired when a target has finished. This event will
-         *  still be thrown if an error occured during the build.
+         *  still be thrown if an error occurred during the build.
          */
         public void targetFinished(BuildEvent event) {
             wrappedListener.targetFinished(event);
@@ -167,7 +128,7 @@ class VAJBuildInfo implements Runnable {
 
         /**
          *  Fired when a task has finished. This event will still
-         *  be throw if an error occured during the build.
+         *  be throw if an error occurred during the build.
          */
         public void taskFinished(BuildEvent event) {
             wrappedListener.taskFinished(event);
@@ -193,7 +154,7 @@ class VAJBuildInfo implements Runnable {
     private Vector projectTargets = new Vector();
 
     // target selected for execution
-    private java.lang.String target = "";
+    private String target = "";
 
     // log level
     private int outputMessageLevel = Project.MSG_INFO;
@@ -225,7 +186,7 @@ class VAJBuildInfo implements Runnable {
     /**
      * Returns the BuildInfo information as String. The BuildInfo can
      * be rebuilt from that String by calling parse().
-     * @return java.lang.String
+     * @return String
      */
     public String asDataString() {
         String result = getOutputMessageLevel() + "|" + getBuildFileName()
@@ -255,7 +216,7 @@ class VAJBuildInfo implements Runnable {
     /**
      * The firePropertyChange method was generated to support the propertyChange field.
      */
-    public void firePropertyChange(java.lang.String propertyName, java.lang.Object oldValue, java.lang.Object newValue) {
+    public void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
         getPropertyChange().firePropertyChange(propertyName, oldValue, newValue);
     }
 
@@ -306,7 +267,7 @@ class VAJBuildInfo implements Runnable {
     /**
      * returns the selected target.
      */
-    public java.lang.String getTarget() {
+    public String getTarget() {
         return target;
     }
 
@@ -351,7 +312,7 @@ class VAJBuildInfo implements Runnable {
      * outputMessageLevel'|'buildFileName'|'defaultTarget'|'(project target'|')*
      *
      * @return org.apache.tools.ant.taskdefs.optional.vaj.BuildInfo
-     * @param data java.lang.String
+     * @param data String
      */
     public static VAJBuildInfo parse(String data) {
         VAJBuildInfo result = new VAJBuildInfo();

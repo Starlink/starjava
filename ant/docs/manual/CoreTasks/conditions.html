@@ -3,11 +3,22 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Conditions Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
 
 <h2><a name="Conditions">Conditions</a></h2>
+  <p>Conditions are nested elements of the 
+<a href="condition.html"><code>&lt;condition&gt;</code></a> and
+<a href="waitfor.html"><code>&lt;waitfor&gt;</code></a> tasks.
+    There are core conditions and custom conditions. Custom
+    conditions are described in
+    <a href="../CoreTypes/custom-programming.html#customconditions">
+      Custom Conditions</a>.
+    Core Conditions are described below.
+  </p>
+  <h3><a name="coreconditions">Core Conditions</a></h3>
 
 <p>These are the nested elements that can be used as conditions in the
 <a href="condition.html"><code>&lt;condition&gt;</code></a> and
@@ -92,8 +103,11 @@ the tests succeed.
   <li>unix (for all Unix and Unix-like operating systems)</li>
   <li>netware (for Novell NetWare)</li>
   <li>os/2 (for OS/2)</li>
+  <li>tandem (for HP's NonStop Kernel - formerly Tandem)</li>
   <li>win9x for Microsoft Windows 95 and 98</li>
   <li>z/os for z/OS and OS/390</li>
+  <li>os/400 for OS/400</li>
+  <li>openvms for OpenVMS</li>
 </ul>
 
 <h4>equals</h4>
@@ -287,8 +301,34 @@ that is "true","yes", or "on"</p>
     &lt;isfalse value=&quot;false&quot;/&gt;
 </pre>
 
+<h4>isreference</h4>
+
+<p>Test whether a given reference has been defined in this project and
+- optionally - is of an expected type.</p>
+
+<p>This condition has been added in Apache Ant 1.6.</p>
+
+<table border="1" cellpadding="2" cellspacing="0">
+  <tr>
+    <td valign="top"><b>Attribute</b></td>
+    <td valign="top"><b>Description</b></td>
+    <td align="center" valign="top"><b>Required</b></td>
+  </tr>
+  <tr>
+    <td valign="top">refid</td>
+    <td valign="top">The id of the reference to test.</td>
+    <td valign="top" align="center">Yes</td>
+  </tr>
+  <tr>
+    <td valign="top">type</td>
+    <td valign="top">Name of the data type or task this reference is
+       expected to be.</td>
+    <td valign="top" align="center">No</td>
+  </tr>
+</table>
+
 <hr>
-<p align="center">Copyright &copy; 2001-2002 Apache Software
+<p align="center">Copyright &copy; 2001-2004 The Apache Software
 Foundation. All rights Reserved.</p>
 
 </body>

@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.types;
@@ -62,7 +25,7 @@ import org.apache.tools.ant.ProjectComponent;
 
 /**
  * Base class for those classes that can appear inside the build file
- * as stand alone data types.  
+ * as stand alone data types.
  *
  * <p>This class handles the common description attribute and provides
  * a default implementation for reference handling and checking for
@@ -70,32 +33,44 @@ import org.apache.tools.ant.ProjectComponent;
  * nested inside elements of the same type (i.e. &lt;patternset&gt;
  * but not &lt;path&gt;).</p>
  *
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a> 
  */
 public abstract class DataType extends ProjectComponent {
     /**
-     * The descriptin the user has set.
+     * The description the user has set.
+     *
+     * @deprecated The user should not be directly referencing
+     *   variable. Please use {@link #setDescription} or
+     *   {@link #getDescription} instead.
      */
-    protected String description = null;
+    protected String description;
+
     /**
      * Value to the refid attribute.
+     *
+     * @deprecated The user should not be directly referencing
+     *   variable. Please use {@link #getRefid} instead.
      */
-    protected Reference ref = null;
+    protected Reference ref;
+
     /**
      * Are we sure we don't hold circular references?
      *
      * <p>Subclasses are responsible for setting this value to false
      * if we'd need to investigate this condition (usually because a
      * child element has been added that is a subclass of
-     * DataType).</p> 
+     * DataType).</p>
+     *
+     * @deprecated The user should not be directly referencing
+     *   variable. Please use {@link #setChecked} or
+     *   {@link #isChecked} instead.
      */
     protected boolean checked = true;
-    
-    /** 
+
+    /**
      * Sets a description of the current data type. It will be useful
-     * in commenting what we are doing.  
+     * in commenting what we are doing.
      */
-    public void setDescription(String desc) {
+    public void setDescription(final String desc) {
         description = desc;
     }
 
@@ -119,9 +94,9 @@ public abstract class DataType extends ProjectComponent {
      * <p>Subclasses may need to check whether any other attributes
      * have been set as well or child elements have been created and
      * thus override this method. if they do the must call
-     * <code>super.setRefid</code>.</p> 
+     * <code>super.setRefid</code>.</p>
      */
-    public void setRefid(Reference ref) {
+    public void setRefid(final Reference ref) {
         this.ref = ref;
         checked = false;
     }
@@ -136,27 +111,28 @@ public abstract class DataType extends ProjectComponent {
      * #circularReference circularReference}.</p>
      *
      * <p>This implementation is appropriate only for a DataType that
-     * cannot hold other DataTypes as children.</p> 
+     * cannot hold other DataTypes as children.</p>
      *
      * <p>The general contract of this method is that it shouldn't do
      * anything if {@link #checked <code>checked</code>} is true and
-     * set it to true on exit.</p> 
+     * set it to true on exit.</p>
      */
-    protected void dieOnCircularReference(Stack stk, Project p) 
+    protected void dieOnCircularReference(final Stack stack,
+                                          final Project project)
         throws BuildException {
 
         if (checked || !isReference()) {
             return;
         }
-        Object o = ref.getReferencedObject(p);
-        
+        Object o = ref.getReferencedObject(project);
+
         if (o instanceof DataType) {
-            if (stk.contains(o)) {
+            if (stack.contains(o)) {
                 throw circularReference();
             } else {
-                stk.push(o);
-                ((DataType) o).dieOnCircularReference(stk, p);
-                stk.pop();
+                stack.push(o);
+                ((DataType) o).dieOnCircularReference(stack, project);
+                stack.pop();
             }
         }
         checked = true;
@@ -164,15 +140,16 @@ public abstract class DataType extends ProjectComponent {
 
     /**
      * Performs the check for circular references and returns the
-     * referenced object.  
+     * referenced object.
      */
-    protected Object getCheckedRef(Class requiredClass, String dataTypeName) {
+    protected Object getCheckedRef(final Class requiredClass,
+                                   final String dataTypeName) {
         if (!checked) {
             Stack stk = new Stack();
             stk.push(this);
             dieOnCircularReference(stk, getProject());
         }
-        
+
         Object o = ref.getReferencedObject(getProject());
         if (!(requiredClass.isAssignableFrom(o.getClass()))) {
             String msg = ref.getRefId() + " doesn\'t denote a " + dataTypeName;
@@ -184,28 +161,66 @@ public abstract class DataType extends ProjectComponent {
 
     /**
      * Creates an exception that indicates that refid has to be the
-     * only attribute if it is set.  
+     * only attribute if it is set.
      */
     protected BuildException tooManyAttributes() {
-        return new BuildException("You must not specify more than one " 
+        return new BuildException("You must not specify more than one "
             + "attribute when using refid");
     }
 
     /**
      * Creates an exception that indicates that this XML element must
-     * not have child elements if the refid attribute is set.  
+     * not have child elements if the refid attribute is set.
      */
     protected BuildException noChildrenAllowed() {
-        return new BuildException("You must not specify nested elements " 
+        return new BuildException("You must not specify nested elements "
             + "when using refid");
     }
 
     /**
      * Creates an exception that indicates the user has generated a
-     * loop of data types referencing each other.  
+     * loop of data types referencing each other.
      */
     protected BuildException circularReference() {
-        return new BuildException("This data type contains a circular " 
+        return new BuildException("This data type contains a circular "
             + "reference.");
+    }
+
+    protected boolean isChecked() {
+        return checked;
+    }
+
+    protected void setChecked(final boolean checked) {
+        this.checked = checked;
+    }
+
+    /**
+     * get the reference set on this object
+     * @return the reference or null
+     */
+    protected Reference getRefid() {
+        return ref;
+    }
+
+    /**
+     * check that it is ok to set attributes, i.e that no reference is defined
+     * @since Ant 1.6
+     * @throws BuildException if not allowed
+     */
+    protected void checkAttributesAllowed() {
+        if (isReference()) {
+            throw tooManyAttributes();
+        }
+    }
+
+    /**
+     * check that it is ok to add children, i.e that no reference is defined
+     * @since Ant 1.6
+     * @throws BuildException if not allowed
+     */
+    protected void checkChildrenAllowed() {
+        if (isReference()) {
+            throw noChildrenAllowed();
+        }
     }
 }

@@ -1,101 +1,66 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 
 package org.apache.tools.ant.taskdefs.optional.ejb;
 
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.InputStream;
-import java.io.BufferedReader;
 import java.io.InputStreamReader;
-
+import java.io.OutputStream;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
-
-
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.ExecTask;
+import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
 import org.apache.tools.ant.taskdefs.Java;
-import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.taskdefs.ExecTask;
 
 
 /**
  * BorlandDeploymentTool is dedicated to the Borland Application Server 4.5 and 4.5.1
  * This task generates and compiles the stubs and skeletons for all ejb described into the
- * Deployement Descriptor, builds the jar file including the support files and verify
+ * Deployment Descriptor, builds the jar file including the support files and verify
  * whether the produced jar is valid or not.
  * The supported options are:
  * <ul>
- * <li>debug  (boolean)    : turn on the debug mode for generation of stubs and skeletons (default:false)</li>
- * <li>verify (boolean)    : turn on the verification at the end of the jar production    (default:true) </li>
- * <li>verifyargs (String) : add optional argument to verify command (see vbj com.inprise.ejb.util.Verify)</li>
+ * <li>debug  (boolean)    : turn on the debug mode for generation of
+ *                           stubs and skeletons (default:false)</li>
+ * <li>verify (boolean)    : turn on the verification at the end of the jar
+ *                           production  (default:true) </li>
+ * <li>verifyargs (String) : add optional argument to verify command
+ *                           (see vbj com.inprise.ejb.util.Verify)</li>
  * <li>basdtd (String)     : location of the BAS DTD </li>
  * <li>generateclient (boolean) : turn on the client jar file generation </li>
- * <li>version (int)       : tell what is the borland appserver version 4 or 5 </li>
+ * <li>version (int)       : tell what is the Borland appserver version 4 or 5 </li>
  * </ul>
  *
  *<PRE>
  *
- *      &lt;ejbjar srcdir=&quot;${build.classes}&quot;  basejarname=&quot;vsmp&quot;  descriptordir=&quot;${rsc.dir}/hrmanager&quot;&gt;
+ *      &lt;ejbjar srcdir=&quot;${build.classes}&quot;
+ *               basejarname=&quot;vsmp&quot;
+ *               descriptordir=&quot;${rsc.dir}/hrmanager&quot;&gt;
  *        &lt;borland destdir=&quot;tstlib&quot;&gt;
  *          &lt;classpath refid=&quot;classpath&quot; /&gt;
  *        &lt;/borland&gt;
@@ -106,11 +71,10 @@ import org.apache.tools.ant.taskdefs.ExecTask;
  *         &lt;/support&gt;
  *     &lt;/ejbjar&gt;
  *</PRE>
- * @author     <a href="mailto:benoit.moussaud@criltelecom.com">Benoit Moussaud</a>
  *
  */
-public class BorlandDeploymentTool extends GenericDeploymentTool  implements ExecuteStreamHandler
-{
+public class BorlandDeploymentTool extends GenericDeploymentTool
+                                   implements ExecuteStreamHandler {
     public static final String PUBLICID_BORLAND_EJB
     = "-//Inprise Corporation//DTD Enterprise JavaBeans 1.1//EN";
 
@@ -139,19 +103,25 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
     /** Instance variable that determines whether the debug mode is on */
     private boolean java2iiopdebug = false;
 
-    /** Instance variable that determines whetger the client jar file is generated */
+    /** store additional param for java2iiop command used to build EJB Stubs */
+    private String java2iioparams = null;
+
+    /** Instance variable that determines whether the client jar file is generated */
     private boolean generateclient = false;
 
-    /** Borland Entreprise Server = version 5 */
+    /** Borland Enterprise Server = version 5 */
     static final int    BES       = 5;
-    /** Borland Application Server or Inprise Applcation Server  = version 4 */
+    /** Borland Application Server or Inprise Application Server  = version 4 */
     static final int    BAS       = 4;
 
     /** borland appserver version 4 or 5 */
     private int version = BAS;
 
 
-    /** Instance variable that determines whether it is necessary to verify the produced jar */
+    /**
+     * Instance variable that determines whether it is necessary to verify the
+     * produced jar
+     */
     private boolean verify     = true;
     private String  verifyArgs = "";
 
@@ -183,7 +153,7 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
 
     /**
      * sets some additional args to send to verify command
-     * @param args addtions command line parameters
+     * @param args additional command line parameters
      */
     public void setVerifyArgs(String args) {
         this.verifyArgs = args;
@@ -214,6 +184,16 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
     public void setVersion(int version) {
         this.version = version;
     }
+
+    /**
+     * If filled, the params are added to the java2iiop command.
+     * (ex: -no_warn_missing_define)
+     * @param params additional params for java2iiop
+     */
+    public void setJava2iiopParams(String params) {
+        this.java2iioparams = params;
+    }
+
 
     protected DescriptorHandler getBorlandDescriptorHandler(final File srcDir) {
         DescriptorHandler handler =
@@ -249,21 +229,22 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
     protected void addVendorFiles(Hashtable ejbFiles, String ddPrefix) {
 
         //choose the right vendor DD
-        if ( !(version == BES || version == BAS)) {
-            throw new BuildException("version "+version+" is not supported");
+        if (!(version == BES || version == BAS)) {
+            throw new BuildException("version " + version + " is not supported");
         }
 
-        String dd = ( version == BES ? BES_DD : BAS_DD);
+        String dd = (version == BES ? BES_DD : BAS_DD);
 
-        log("vendor file : "+ddPrefix + dd,Project.MSG_DEBUG);
+        log("vendor file : " + ddPrefix + dd, Project.MSG_DEBUG);
 
         File borlandDD = new File(getConfig().descriptorDir, ddPrefix + dd);
         if (borlandDD.exists()) {
             log("Borland specific file found " + borlandDD,  Project.MSG_VERBOSE);
             ejbFiles.put(META_DIR + dd ,  borlandDD);
         } else {
-            log("Unable to locate borland deployment descriptor. It was expected to be in " +
-                borlandDD.getPath(), Project.MSG_WARN);
+            log("Unable to locate borland deployment descriptor. "
+                + "It was expected to be in "
+                + borlandDD.getPath(), Project.MSG_WARN);
             return;
         }
     }
@@ -281,15 +262,16 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
      * @param sourceJar java.io.File representing the produced jar file
      */
     private void verifyBorlandJar(File sourceJar) {
-        if ( version == BAS) {
+        if (version == BAS) {
             verifyBorlandJarV4(sourceJar);
-            return ;
+            return;
         }
-        if ( version == BES ) {
+        if (version == BES) {
             verifyBorlandJarV5(sourceJar);
             return;
         }
-        log("verify jar skipped because the version is invalid ["+version+"]",Project.MSG_WARN);
+        log("verify jar skipped because the version is invalid ["
+            + version + "]", Project.MSG_WARN);
     }
 
     /**
@@ -314,7 +296,7 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
             }
             execTask.createArg().setValue("-verify");
             execTask.createArg().setValue("-src");
-            // ejb jar file to verfiy
+            // ejb jar file to verify
             execTask.createArg().setValue(sourceJar.getPath());
             log("Calling iastool", Project.MSG_VERBOSE);
             execTask.execute();
@@ -361,7 +343,7 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
 
 
     /**
-     * Generate the client jar corresponding to the jar file passed as paremeter
+     * Generate the client jar corresponding to the jar file passed as parameter
      * the method uses the BorlandGenerateClient task.
      * @param sourceJar java.io.File representing the produced jar file
      */
@@ -372,7 +354,9 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
         org.apache.tools.ant.taskdefs.optional.ejb.BorlandGenerateClient gentask = null;
         log("generate client for " + sourceJar, Project.MSG_INFO);
         try {
-            gentask = (BorlandGenerateClient) getTask().getProject().createTask("internal_bas_generateclient");
+            Project project = getTask().getProject();
+            gentask
+                = (BorlandGenerateClient) project.createTask("internal_bas_generateclient");
             gentask.setEjbjar(sourceJar);
             gentask.setDebug(java2iiopdebug);
             Path classpath = getCombinedClasspath();
@@ -391,12 +375,11 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
     }
 
     /**
-     * Generate stubs & sketelton for each home found into the DD
+     * Generate stubs & skeleton for each home found into the DD
      * Add all the generate class file into the ejb files
      * @param ithomes : iterator on home class
-     * @param files   : file list , updated by the adding generated files
      */
-    private void buildBorlandStubs(Iterator ithomes, Hashtable files) {
+    private void buildBorlandStubs(Iterator ithomes) {
         Execute execTask = null;
 
         execTask = new Execute(this);
@@ -409,7 +392,7 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
         //debug ?
         if (java2iiopdebug) {
             commandline.createArgument().setValue("-VBJdebug");
-        } // end of if ()
+        }
         //set the classpath
         commandline.createArgument().setValue("-VBJclasspath");
         commandline.createArgument().setPath(getCombinedClasspath());
@@ -417,6 +400,13 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
         commandline.createArgument().setValue("-list_files");
         //no TIE classes
         commandline.createArgument().setValue("-no_tie");
+
+        if (java2iioparams != null) {
+            log("additional  " + java2iioparams + " to java2iiop ", 0);
+            commandline.createArgument().setValue(java2iioparams);
+        }
+
+
         //root dir
         commandline.createArgument().setValue("-root_dir");
         commandline.createArgument().setValue(getConfig().srcDir.getAbsolutePath());
@@ -425,14 +415,14 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
         //add the home class
         while (ithomes.hasNext()) {
             commandline.createArgument().setValue(ithomes.next().toString());
-        } // end of while ()
+        }
 
         try {
             log("Calling java2iiop", Project.MSG_VERBOSE);
             log(commandline.describeCommand(), Project.MSG_DEBUG);
             execTask.setCommandline(commandline.getCommandline());
             int result = execTask.execute();
-            if (result != 0) {
+            if (Execute.isFailure(result)) {
                 String msg = "Failed executing java2iiop (ret code is "
                     + result + ")";
                 throw new BuildException(msg, getTask().getLocation());
@@ -460,10 +450,10 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
                 String home = toClass(clazz);
                 homes.add(home);
                 log(" Home " + home, Project.MSG_VERBOSE);
-            } // end of if ()
-        } // end of while ()
+            }
+        }
 
-        buildBorlandStubs(homes.iterator(), files);
+        buildBorlandStubs(homes.iterator());
 
         //add the gen files to the collection
         files.putAll(_genfiles);
@@ -517,15 +507,12 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
             String javafile;
             while ((javafile = reader.readLine()) != null) {
-                log("buffer:" + javafile, Project.MSG_DEBUG);
                 if (javafile.endsWith(".java")) {
                     String classfile = toClassFile(javafile);
                     String key = classfile.substring(getConfig().srcDir.getAbsolutePath().length() + 1);
-                    log(" generated : " + classfile, Project.MSG_DEBUG);
-                    log(" key       : " + key, Project.MSG_DEBUG);
                     _genfiles.put(key, new File(classfile));
-                } // end of if ()
-            } // end of while ()
+                }
+            }
             reader.close();
         } catch (Exception e) {
             String msg = "Exception while parsing  java2iiop output. Details: " + e.toString();
@@ -537,8 +524,8 @@ public class BorlandDeploymentTool extends GenericDeploymentTool  implements Exe
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String s = reader.readLine();
         if (s != null) {
-            log("[java2iiop] " + s, Project.MSG_DEBUG);
-        } // end of if ()
+            log("[java2iiop] " + s, Project.MSG_ERR);
+        }
     }
 }
 

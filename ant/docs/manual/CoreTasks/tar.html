@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Tar Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -121,20 +122,41 @@ attributes
   </tr>
   <tr>
     <td valign="top">mode</td>
-    <td valign="top">A 3 digit octal string, specify the user, group and other modes in
-                     the standard Unix fashion</td>
+    <td valign="top">A 3 digit octal string, specify the user, group
+    and other modes in the standard Unix fashion.  Only applies to
+    plain files.  Default is 644.</td>
+    <td align="center" valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">dirmode</td>
+    <td valign="top">A 3 digit octal string, specify the user, group
+    and other modes in the standard Unix fashion.  Only applies to
+    directories.  Default is 755. <em>since Ant 1.6</em>.</td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
     <td valign="top">username</td>
-    <td valign="top">The username for the tar entry. This is not the same as the UID, which is
-                     not currently set by the tar task.</td>
+    <td valign="top">The username for the tar entry. This is not the same as the UID.
+                     </td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
     <td valign="top">group</td>
-    <td valign="top">The groupname for the tar entry. This is not the same as the GID, which is
-                     not currently set by the tar task.</td>
+    <td valign="top">The groupname for the tar entry. This is not the same as the GID.
+                     </td>
+    <td align="center" valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">uid</td>
+    <td valign="top">The user identifier (UID) for the tar entry. This is an integer value
+      and is not the same as the username. <em>since Ant 1.6.2</em>.
+                     </td>
+    <td align="center" valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">gid</td>
+    <td valign="top">The group identifier (GID) for the tar entry. <em>since Ant 1.6.2</em>.
+                     </td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
@@ -228,7 +250,7 @@ of a directory, so <code>${dist.name}</code> is a valid path relative
 to <code>${dist.name}/..</code>.</p>
 
 <hr>
-<p align="center">Copyright &copy; 2000-2002 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2002,2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>

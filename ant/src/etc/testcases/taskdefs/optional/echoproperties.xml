@@ -12,6 +12,26 @@
     <echoproperties />
   </target>
 
+  <target name="testEchoToLogXml" depends="setup">
+    <echoproperties format="xml" />
+  </target>
+
+  <target name="testReadAndEchoToLog" depends="setup">
+    <echoproperties srcfile="echoproperties.properties" />
+  </target>
+
+  <target name="testReadBadFile" depends="setup">
+    <echoproperties srcfile="." />
+  </target>
+
+  <target name="testReadBadFileFail" depends="setup">
+    <echoproperties srcfile="." failonerror="yes" />
+  </target>
+
+  <target name="testReadBadFileNoFail" depends="setup">
+    <echoproperties srcfile="." failonerror="no" />
+  </target>
+
   <target name="testEchoToBadFile" depends="setup">
     <echoproperties destfile="." />
   </target>
@@ -28,6 +48,10 @@
     <echoproperties destfile="test.properties" />
   </target>
 
+  <target name="testEchoToGoodFileXml" depends="setup">
+    <echoproperties destfile="test.xml" format="xml" />
+  </target>
+
   <target name="testEchoToGoodFileFail" depends="setup">
     <echoproperties destfile="test.properties" failonerror="yes" />
   </target>
@@ -40,9 +64,36 @@
     <echoproperties destfile="test-prefix.properties" prefix="a." />
   </target>
 
+  <target name="testEchoPrefixAsPropertyset" depends="setup">
+    <echoproperties destfile="test-prefix.properties">
+      <propertyset>
+        <propertyref prefix="a."/>
+      </propertyset>
+    </echoproperties>
+  </target>
+
+  <target name="testEchoPrefixAsNegatedPropertyset" depends="setup">
+    <echoproperties destfile="test-prefix.properties">
+      <propertyset negate="true">
+        <propertyref prefix="b."/>
+      </propertyset>
+    </echoproperties>
+  </target>
+
+  <target name="testEchoPrefixAsDoublyNegatedPropertyset" depends="setup">
+    <echoproperties destfile="test-prefix.properties">
+      <propertyset negate="true">
+        <propertyset negate="true">
+          <propertyref prefix="a."/>
+        </propertyset>
+      </propertyset>
+    </echoproperties>
+  </target>
+
   <target name="cleanup">
     <delete file="test.properties" failonerror="no" />
     <delete file="test-prefix.properties" failonerror="no" />
+    <delete file="test.xml" failonerror="no" />
   </target>
 
 </project>

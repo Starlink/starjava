@@ -1,85 +1,42 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
-import java.lang.reflect.Method;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.Vector;
+import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.DynamicConfigurator;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.AntClassLoader;
-import org.apache.tools.ant.taskdefs.optional.TraXLiaison;
+import org.apache.tools.ant.types.Mapper;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
-import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.types.XMLCatalog;
-import org.xml.sax.EntityResolver;
+import org.apache.tools.ant.util.FileNameMapper;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Processes a set of XML documents via XSLT. This is
  * useful for building views of XML based documentation.
  *
- * @version $Revision: 1.43.2.9 $ 
- *
- * @author <a href="mailto:kvisco@exoffice.com">Keith Visco</a>
- * @author <a href="mailto:rubys@us.ibm.com">Sam Ruby</a>
- * @author <a href="mailto:russgold@acm.org">Russell Gold</a>
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <a href="mailto:sbailliez@apache.org">Stephane Bailliez</a>
+ * @version $Revision: 1.78.2.7 $
  *
  * @since Ant 1.1
  *
@@ -113,8 +70,8 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
 
     /** Classpath to use when trying to load the XSL processor */
     private Path classpath = null;
-    
-    /** The Liason implementation to use to communicate with the XSL 
+
+    /** The Liason implementation to use to communicate with the XSL
      *  processor */
     private XSLTLiaison liaison;
 
@@ -154,10 +111,35 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
     private boolean performDirectoryScan = true;
 
     /**
+     * factory element for TraX processors only
+     * @since Ant 1.6
+     */
+    private Factory factory = null;
+
+    /**
      * whether to reuse Transformer if transforming multiple files.
      * @since 1.5.2
      */
     private boolean reuseLoadedStylesheet = true;
+
+    /**
+     * AntClassLoader for the nested &lt;classpath&gt; - if set.
+     *
+     * <p>We keep this here in order to reset the context classloader
+     * in execute.  We can't use liaison.getClass().getClassLoader()
+     * since the actual liaison class may have been loaded by a loader
+     * higher up (system classloader, for example).</p>
+     *
+     * @since Ant 1.6.2
+     */
+    private AntClassLoader loader = null;
+
+    /**
+     * Mapper to use when a set of files gets processed.
+     *
+     * @since Ant 1.6.2
+     */
+    private Mapper mapperElement = null;
 
     /**
      * Creates a new XSLTProcess Task.
@@ -178,7 +160,7 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
     }
 
     /**
-     * Controls whether the stylesheet is reloaded for every transform
+     * Controls whether the stylesheet is reloaded for every transform.
      *
      * <p>Setting this to true may get around a bug in certain
      * Xalan-J versions, default is false.</p>
@@ -187,6 +169,19 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
      */
     public void setReloadStylesheet(boolean b) {
         reuseLoadedStylesheet = !b;
+    }
+
+    /**
+     * Defines the mapper to map source to destination files.
+     * @exception BuildException if more than one mapper is defined
+     * @since Ant 1.6.2
+     */
+    public void addMapper(Mapper mapper) {
+        if (mapperElement != null) {
+            throw new BuildException("Cannot define more than one mapper",
+                                     getLocation());
+        }
+        mapperElement = mapper;
     }
 
     /**
@@ -204,6 +199,10 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
 
         if (xslFile == null) {
             throw new BuildException("no stylesheet specified", getLocation());
+        }
+
+        if (inFile != null && !inFile.exists()) {
+            throw new BuildException("input file " + inFile.toString() + " does not exist", getLocation());
         }
 
         try {
@@ -261,7 +260,7 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
             if (performDirectoryScan) {
                 // Process all the directories marked for styling
                 dirs = scanner.getIncludedDirectories();
-                for (int j = 0; j < dirs.length; ++j){
+                for (int j = 0; j < dirs.length; ++j) {
                     list = new File(baseDir, dirs[j]).list();
                     for (int i = 0; i < list.length; ++i) {
                         process(baseDir, list[i], destDir, stylesheet);
@@ -269,6 +268,10 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
                 }
             }
         } finally {
+            if (loader != null) {
+                loader.resetThreadContextLoader();
+                loader = null;
+            }
             liaison = null;
             stylesheetLoaded = false;
             baseDir = savedBaseDir;
@@ -415,9 +418,9 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
         if (classpath == null) {
             return Class.forName(classname);
         } else {
-            AntClassLoader al = new AntClassLoader(getProject(), classpath);
-            Class c = al.loadClass(classname);
-            AntClassLoader.initializeClass(c);
+            loader = getProject().createClassLoader(classpath);
+            loader.setThreadContextLoader();
+            Class c = Class.forName(classname, true, loader);
             return c;
         }
     }
@@ -428,7 +431,7 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
      *
      * @param outFile the output File instance.
      */
-    public void setOut(File outFile){
+    public void setOut(File outFile) {
         this.outFile = outFile;
     }
 
@@ -438,7 +441,7 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
      *
      * @param inFile the input file
      */
-    public void setIn(File inFile){
+    public void setIn(File inFile) {
         this.inFile = inFile;
     }
 
@@ -456,7 +459,6 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
                          File stylesheet)
         throws BuildException {
 
-        String fileExt = targetExtension;
         File   outFile = null;
         File   inFile = null;
 
@@ -470,16 +472,29 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
                 return;
             }
 
-            int dotPos = xmlFile.lastIndexOf('.');
-            if (dotPos > 0) {
-                outFile = new File(destDir,
-                    xmlFile.substring(0, xmlFile.lastIndexOf('.')) + fileExt);
+            FileNameMapper mapper = null;
+            if (mapperElement != null) {
+                mapper = mapperElement.getImplementation();
             } else {
-                outFile = new File(destDir, xmlFile + fileExt);
+                mapper = new StyleMapper();
             }
-            if (force ||
-                inFile.lastModified() > outFile.lastModified() ||
-                styleSheetLastModified > outFile.lastModified()) {
+
+            String[] outFileName = mapper.mapFileName(xmlFile);
+            if (outFileName == null || outFileName.length == 0) {
+                log("Skipping " + inFile + " it cannot get mapped to output.",
+                    Project.MSG_VERBOSE);
+                return;
+            } else if (outFileName == null || outFileName.length > 1) {
+                log("Skipping " + inFile + " its mapping is ambiguos.",
+                    Project.MSG_VERBOSE);
+                return;
+            }
+
+            outFile = new File(destDir, outFileName[0]);
+
+            if (force
+                || inFile.lastModified() > outFile.lastModified()
+                || styleSheetLastModified > outFile.lastModified()) {
                 ensureDirectoryFor(outFile);
                 log("Processing " + inFile + " to " + outFile);
 
@@ -503,7 +518,7 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
      * Process the input file to the output file with the given stylesheet.
      *
      * @param inFile the input file to process.
-     * @param outFile the detination file.
+     * @param outFile the destination file.
      * @param stylesheet the stylesheet to use.
      * @exception BuildException if the processing fails.
      */
@@ -517,14 +532,17 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
                 Project.MSG_DEBUG);
             log("Style file " + xslFile + " time: " + styleSheetLastModified,
                 Project.MSG_DEBUG);
-            if (force ||
-                inFile.lastModified() > outFile.lastModified() ||
-                styleSheetLastModified > outFile.lastModified()) {
+            if (force || inFile.lastModified() >= outFile.lastModified()
+                || styleSheetLastModified >= outFile.lastModified()) {
                 ensureDirectoryFor(outFile);
                 log("Processing " + inFile + " to " + outFile,
                     Project.MSG_INFO);
                 configureLiaison(stylesheet);
                 liaison.transform(inFile, outFile);
+            } else {
+                log("Skipping input file " + inFile
+                    + " because it is older than output file " + outFile
+                    + " and so is the stylesheet " + stylesheet, Project.MSG_DEBUG);
             }
         } catch (Exception ex) {
             log("Failed to process " + inFile, Project.MSG_INFO);
@@ -551,6 +569,29 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
             }
         }
     }
+
+    /**
+     * Get the factory instance configured for this processor
+     *
+     * @return the factory instance in use
+     */
+    public Factory getFactory() {
+        return factory;
+    }
+
+    /**
+     * Get the XML catalog containing entity definitions
+     *
+     * @return the XML catalog for the task.
+     */
+    public XMLCatalog getXMLCatalog() {
+        return xmlCatalog;
+    }
+
+    public Enumeration getOutputProperties() {
+        return outputProperties.elements();
+    }
+
 
     /**
      * Get the Liason implementation to use in processing.
@@ -606,25 +647,37 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
         /** The parameter name */
         private String name = null;
 
-        /** The parameter's XSL expression */
+        /** The parameter's value */
         private String expression = null;
+
+        private String ifProperty;
+        private String unlessProperty;
+        private Project project;
+
+        /**
+         * Set the current project
+         *
+         * @param project the current project
+         */
+        public void setProject(Project project) {
+            this.project = project;
+        }
 
         /**
          * Set the parameter name.
          *
          * @param name the name of the parameter.
          */
-        public void setName(String name){
+        public void setName(String name) {
             this.name = name;
         }
 
         /**
-         * The XSL expression for the parameter value
-         *
-         * @param expression the XSL expression representing the
-         *   parameter's value.
+         * The parameter value
+         * NOTE : was intended to be an XSL expression.
+         * @param expression the parameter's value.
          */
-        public void setExpression(String expression){
+        public void setExpression(String expression) {
             this.expression = expression;
         }
 
@@ -634,7 +687,7 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
          * @return the parameter name
          * @exception BuildException if the name is not set.
          */
-        public String getName() throws BuildException{
+        public String getName() throws BuildException {
             if (name == null) {
                 throw new BuildException("Name attribute is missing.");
             }
@@ -642,16 +695,49 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
         }
 
         /**
-         * Get the parameter expression
+         * Get the parameter's value
          *
-         * @return the parameter expression
-         * @exception BuildException if the expression is not set.
+         * @return the parameter value
+         * @exception BuildException if the value is not set.
          */
-        public String getExpression() throws BuildException{
+        public String getExpression() throws BuildException {
             if (expression == null) {
                 throw new BuildException("Expression attribute is missing.");
             }
             return expression;
+        }
+
+        /**
+         * Set whether this param should be used.  It will be
+         * used if the property has been set, otherwise it won't.
+         * @param ifProperty name of property
+         */
+        public void setIf(String ifProperty) {
+            this.ifProperty = ifProperty;
+        }
+
+        /**
+         * Set whether this param should NOT be used. It
+         * will not be used if the property has been set, otherwise it
+         * will be used.
+         * @param unlessProperty name of property
+         */
+        public void setUnless(String unlessProperty) {
+            this.unlessProperty = unlessProperty;
+        }
+        /**
+         * Ensures that the param passes the conditions placed
+         * on it with <code>if</code> and <code>unless</code> properties.
+         */
+        public boolean shouldUse() {
+            if (ifProperty != null && project.getProperty(ifProperty) == null) {
+                return false;
+            } else if (unlessProperty != null
+                    && project.getProperty(unlessProperty) != null) {
+                return false;
+            }
+
+            return true;
         }
     } // Param
 
@@ -738,36 +824,157 @@ public class XSLTProcess extends MatchingTask implements XSLTLogger {
             liaison.setStylesheet(stylesheet);
             for (Enumeration e = params.elements(); e.hasMoreElements();) {
                 Param p = (Param) e.nextElement();
-                liaison.addParam(p.getName(), p.getExpression());
+                if (p.shouldUse()) {
+                    liaison.addParam(p.getName(), p.getExpression());
+                }
             }
-            if (liaison instanceof TraXLiaison) {
-                configureTraXLiaison((TraXLiaison)liaison);
+            if (liaison instanceof XSLTLiaison2) {
+                ((XSLTLiaison2) liaison).configure(this);
             }
         } catch (Exception ex) {
-            log("Failed to transform using stylesheet " + stylesheet, Project.MSG_INFO);
+            log("Failed to transform using stylesheet " + stylesheet,
+                 Project.MSG_INFO);
             throw new BuildException(ex);
         }
     }
 
     /**
-     * Specific configuration for the TRaX liaison. Support for
-     * all others has been dropped so this liaison will soon look
-     * like the exact copy of JAXP interface..
-     * @param liaison the TRaXLiaison to configure.
+     * Create the factory element to configure a trax liaison.
+     * @return the newly created factory element.
+     * @throws BuildException if the element is created more than one time.
      */
-    protected void configureTraXLiaison(TraXLiaison liaison){
-        // use XMLCatalog as the entity resolver and URI resolver
-        if (xmlCatalog != null) {
-            liaison.setEntityResolver(xmlCatalog);
-            liaison.setURIResolver(xmlCatalog);
+    public Factory createFactory() throws BuildException {
+        if (factory != null) {
+            throw new BuildException("'factory' element must be unique");
+        }
+        factory = new Factory();
+        return factory;
+    }
+
+    /**
+     * The factory element to configure a transformer factory
+     * @since Ant 1.6
+     */
+    public static class Factory {
+
+        /** the factory class name to use for TraXLiaison */
+        private String name;
+
+        /**
+         * the list of factory attributes to use for TraXLiaison
+         */
+        private Vector attributes = new Vector();
+
+        /**
+         * @return the name of the factory.
+         */
+        public String getName() {
+            return name;
         }
 
-        // configure output properties
-        for (Enumeration props = outputProperties.elements();
-                props.hasMoreElements();) {
-            OutputProperty prop = (OutputProperty)props.nextElement();
-            liaison.setOutputProperty(prop.getName(), prop.getValue());
+        /**
+         * Set the name of the factory
+         * @param name the name of the factory.
+         */
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        /**
+         * Create an instance of a factory attribute.
+         * the newly created factory attribute
+         */
+        public void addAttribute(Attribute attr) {
+            attributes.addElement(attr);
+        }
+
+        /**
+         * return the attribute elements.
+         * @return the enumeration of attributes
+         */
+        public Enumeration getAttributes() {
+            return attributes.elements();
+        }
+
+        /**
+         * A JAXP factory attribute. This is mostly processor specific, for
+         * example for Xalan 2.3+, the following attributes could be set:
+         * <ul>
+         *  <li>http://xml.apache.org/xalan/features/optimize (true|false) </li>
+         *  <li>http://xml.apache.org/xalan/features/incremental (true|false) </li>
+         * </ul>
+         */
+        public static class Attribute implements DynamicConfigurator {
+
+            /** attribute name, mostly processor specific */
+            private String name;
+
+            /** attribute value, often a boolean string */
+            private Object value;
+
+            /**
+             * @return the attribute name.
+             */
+            public String getName() {
+                return name;
+            }
+
+            /**
+             * @return the output property value.
+             */
+            public Object getValue() {
+                return value;
+            }
+
+            public Object createDynamicElement(String name) throws BuildException {
+                return null;
+            }
+
+            public void setDynamicAttribute(String name, String value)
+                    throws BuildException {
+                // only 'name' and 'value' exist.
+                if ("name".equalsIgnoreCase(name)) {
+                    this.name = value;
+                } else if ("value".equalsIgnoreCase(name)) {
+                    // a value must be of a given type
+                    // say boolean|integer|string that are mostly used.
+                    if ("true".equalsIgnoreCase(value)
+                            || "false".equalsIgnoreCase(value)) {
+                        this.value = new Boolean(value);
+                    } else {
+                        try {
+                            this.value = new Integer(value);
+                        } catch (NumberFormatException e) {
+                            this.value = value;
+                        }
+                    }
+                } else {
+                    throw new BuildException("Unsupported attribute: " + name);
+                }
+            }
+        } // -- class Attribute
+
+    } // -- class Factory
+
+    /**
+     * Mapper implementation of the "traditional" way &lt;xslt&gt;
+     * mapped filenames.
+     *
+     * <p>If the file has an extension, chop it off.  Append whatever
+     * the user has specified as extension or ".html".</p>
+     *
+     * @since Ant 1.6.2
+     */
+    private class StyleMapper implements FileNameMapper {
+        public void setFrom(String from) {}
+        public void setTo(String to) {}
+        public String[] mapFileName(String xmlFile) {
+            int dotPos = xmlFile.lastIndexOf('.');
+            if (dotPos > 0) {
+                xmlFile = xmlFile.substring(0, dotPos);
+            }
+            return new String[] {xmlFile + targetExtension};
         }
     }
 
-} //-- XSLTProcess
+}

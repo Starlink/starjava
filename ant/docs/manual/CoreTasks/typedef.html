@@ -3,29 +3,51 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Typedef Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
 
 <h2><a name="typedef">Typedef</a></h2>
 <h3>Description</h3>
-<p>Adds a data type definition to the current project, such that this
-new type can be used in the current project. Two attributes are
-needed, the name that identifies this data type uniquely, and the full
-name of the class (including the packages) that implements this
-type.</p>
-<p>You can also define a group of data types at once using the file or
-resource attributes.  These attributes point to files in the format of
-Java property files.  Each line defines a single data type in the
-format:</p>
-<pre>
-typename=fully.qualified.java.classname
-</pre>
-<p>Typedef should be used to add your own types to the system. Data
-types are things like <a href="../using.html#path">paths</a> or <a
-href="../CoreTypes/fileset.html">filesets</a> that can be defined at
-the project level and referenced via their ID attribute.</p>
-<p>Custom data types usually need custom tasks to put them to good use.</p>
+  <p>
+    Adds a task or a data type definition to the current project
+    such that this new type or task can be used in the current project.
+  </p>
+  <p>
+    Tasks are any class that extend org.apache.tools.ant.Task or
+    a class that is adapted to a Task using an adapter class.
+  </p>
+  <p>
+    Data types are things like <a href="../using.html#path">paths</a> or
+    <a href="../CoreTypes/fileset.html">filesets</a> that can be defined at
+    the project level and referenced via their ID attribute.
+    Custom data types usually need custom tasks to put them to good use.
+  </p>
+  <p>
+    Two attributes are needed to make a definition,
+    the name that identifies this data type uniquely, and the full
+    name of the class (including the packages) that implements this
+    type.
+  </p>
+  <p>
+    You can also define a group of definitions at once using the file or
+    resource attributes.  These attributes point to files in the format of
+    Java property files or an xml format.
+  </p>
+  <p>
+    For property files each line defines a single data type in the
+    format:</p>
+  <pre>
+    typename=fully.qualified.java.classname
+  </pre>
+    
+  <p>
+    The xml format is described in the
+    <a href="../CoreTypes/antlib.html">Antlib</a>
+    section.
+  </p>
+
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -36,25 +58,41 @@ the project level and referenced via their ID attribute.</p>
   <tr>
     <td valign="top">name</td>
     <td valign="top">the name of the data type</td>
-    <td valign="top" align="center">Yes, unless file or resource have
-    been specified.</td>
+    <td valign="top" align="center">Yes, unless the file or resource type
+      attributes have been specified.</td>
   </tr>
   <tr>
     <td valign="top">classname</td>
     <td valign="top">the full class name implementing the data type</td>
-    <td valign="top" align="center">Yes, unless file or resource have
-    been specified.</td>
+    <td valign="top" align="center">Yes, unless file or  resource
+      have been specified.</td>
   </tr>
   <tr>
     <td valign="top">file</td>
-    <td valign="top">Name of the property file to load
-     typename/classname pairs from.</td>
+    <td valign="top">Name of the file to load definitions from.</td>
     <td valign="top" align="center">No</td>
   </tr>
   <tr>
     <td valign="top">resource</td>
-    <td valign="top">Name of the property resource to load
-     typename/classname pairs from.</td>
+    <td valign="top">
+    Name of the resource to load definitions from.
+    If there is multiple resources of this name in the classpath, and the
+    format is "properties", the first resource will be loaded, otherwise
+    all the resources will be loaded.
+    </td>
+    <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">format</td>
+    <td valign="top">The format of the file or resource. The values
+      are "properties" or "xml". If the value is "properties" the file/resource
+      is a property file contains name to classname pairs. If the value
+      is "xml", the file/resource is an xml file/resource structured according
+      to   <a href="../CoreTypes/antlib.html">Antlib</a>.
+      The default is "properties" unless the file/resorce name ends with
+      ".xml", in which case the format attribute will have the value "xml".
+      (introduced in ant1.6)
+    </td>
     <td valign="top" align="center">No</td>
   </tr>
   <tr>
@@ -69,18 +107,74 @@ the project level and referenced via their ID attribute.</p>
     each other. ( introduced in ant1.5 )</td>
     <td align="center" valign="top">No</td>
   </tr>
+  <tr>
+    <td valign="top">onerror</td>
+    <td valign="top">The action to take if there was a failure in defining the
+      type. The values are <i>fail</i> - cause a build exception, <i>report</i>,
+      output a warning, but continue, <i>ignore</i>, do nothing. The default
+      is <i>fail</i>.
+      (introduced in ant1.6)
+    </td>
+    <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">adapter</td>
+    <td valign="top">A class that is used to adapt the defined class to
+      another interface/class. The adapter class must implement the interface
+      "org.apache.tools.ant.TypeAdapter". The adapter class will be used
+      to wrap the defined class unless the defined class implements/extends
+      the class defined by the attribute "adaptto".
+      If "adaptto" is not set,
+      the defined class will always be wrapped.
+      (introduced in ant1.6)
+    </td>
+    <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">adaptto</td>
+    <td valign="top">This attribute is used in conjunction with the
+      adapter attribute.
+      If the defined class does not implement/extend the interface/class
+      specified by this attribute, the adaptor class will be used
+      to wrap the class.
+      (introduced in ant1.6)
+    </td>
+    <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">uri</td>
+    <td valign="top">
+      The uri that this definition should live in.
+      <em>since Ant1.6</em>
+    </td>
+    <td valign="top" align="center">No</td>
+  </tr>
 </table>
-<h3>Parameters specified as nested elements</h3>
-<h4>classpath</h4>
-<p><code>Typedef</code>'s <i>classpath</i> attribute is a 
-<a href="../using.html#path">PATH like structure</a> and can also be set
-via a nested <i>classpath</i> element.</p>
+  <h3>Parameters specified as nested elements</h3>
+  <h4>classpath</h4>
+  <p><code>Typedef</code>'s <i>classpath</i> attribute is a 
+    <a href="../using.html#path">PATH like structure</a> and can also be set
+    via a nested <i>classpath</i> element.</p>
+
 <h3>Examples</h3>
-<pre>  &lt;typedef name=&quot;urlset&quot; classname=&quot;com.mydomain.URLSet&quot;/&gt;</pre>
-<p>makes a data type called <code>urlset</code> available to Ant. The
-class <code>com.mydomain.URLSet</code> implements this type.</p>
+  The following fragment defines define a type called <i>urlset</i>.
+  <pre>
+    &lt;typedef name="urlset" classname="com.mydomain.URLSet"/&gt; </pre>
+  The data type is now availabe to Ant. The
+  class <code>com.mydomain.URLSet</code> implements this type.</p>
+  <p>
+    Assuming a class <i>org.acme.ant.RunnableAdapter</i> that
+    extends Task and implements <i>org.apache.tools.ant.TypeAdapter</i>,
+    and in the execute method invokes <i>run</i> on the proxied object,
+    one may use a Runnable class as an Ant task. The following fragment
+    defines  a task called <i>runclock</i>.
+    <pre>
+    &lt;typedef name="runclock"
+             classname="com.acme.ant.RunClock"
+             adapter="org.acme.ant.RunnableAdapter"/&gt;
+  </pre>
 <hr>
-<p align="center">Copyright &copy; 2001-2002 Apache Software
+<p align="center">Copyright &copy; 2001-2004 The Apache Software
 Foundation. All rights Reserved.</p>
 
 </body>

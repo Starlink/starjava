@@ -1,68 +1,36 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional;
 
 import org.apache.tools.ant.BuildFileTest;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.File;
+import java.io.InputStream;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.BufferedReader;
 import java.util.Properties;
 
 /**
  * Tests the EchoProperties task.
  *
- * @author    Matt Albrecht <a href="mailto:groboclown@users.sourceforge.net">groboclown@users.sourceforge.net</a>
  * @created   17-Jan-2002
  * @since     Ant 1.5
  */
@@ -70,6 +38,7 @@ public class EchoPropertiesTest extends BuildFileTest {
 
     private final static String TASKDEFS_DIR = "src/etc/testcases/taskdefs/optional/";
     private static final String GOOD_OUTFILE = "test.properties";
+    private static final String GOOD_OUTFILE_XML = "test.xml";
     private static final String PREFIX_OUTFILE = "test-prefix.properties";
     private static final String TEST_VALUE = "isSet";
     private static final String BAD_OUTFILE = ".";
@@ -78,53 +47,93 @@ public class EchoPropertiesTest extends BuildFileTest {
         super(name);
     }
 
+
     public void setUp() {
         configureProject(TASKDEFS_DIR + "echoproperties.xml");
         project.setProperty( "test.property", TEST_VALUE );
     }
 
+
     public void tearDown() {
         executeTarget("cleanup");
     }
-    
-    
+
+
     public void testEchoToLog() {
         expectLogContaining("testEchoToLog", "test.property="+TEST_VALUE);
     }
-    
-    
+
+
+    public void testReadBadFile() {
+        expectBuildExceptionContaining( "testReadBadFile",
+            "srcfile is a directory", "srcfile is a directory!" );
+    }
+
+
+    public void testReadBadFileFail() {
+        expectBuildExceptionContaining( "testReadBadFile",
+            "srcfile is a directory", "srcfile is a directory!" );
+    }
+
+
+    public void testReadBadFileNoFail() {
+        expectLog( "testReadBadFileNoFail", "srcfile is a directory!" );
+    }
+
+
     public void testEchoToBadFile() {
         expectBuildExceptionContaining( "testEchoToBadFile",
-            "outfile is not writeable",
-            "Destfile "+toAbsolute(BAD_OUTFILE)+" could not be written to." );
+            "destfile is a directory", "destfile is a directory!" );
     }
-    
-    
+
+
     public void testEchoToBadFileFail() {
         expectBuildExceptionContaining( "testEchoToBadFileFail",
-            "outfile is not writeable",
-            "Destfile "+toAbsolute(BAD_OUTFILE)+" could not be written to." );
+            "destfile is a directory", "destfile is a directory!" );
     }
-    
-    
+
+
     public void testEchoToBadFileNoFail() {
-        expectLog( "testEchoToBadFileNoFail",
-            "Destfile "+toAbsolute(BAD_OUTFILE)+" could not be written to." );
+        expectLog( "testEchoToBadFileNoFail", "destfile is a directory!");
     }
-    
-    
+
+
     public void testEchoToGoodFile() throws Exception {
         executeTarget( "testEchoToGoodFile" );
         assertGoodFile();
     }
-    
-    
+
+
+    public void testEchoToGoodFileXml() throws Exception {
+        executeTarget( "testEchoToGoodFileXml" );
+
+        // read in the file
+        File f = createRelativeFile( GOOD_OUTFILE_XML );
+        FileReader fr = new FileReader( f );
+        try {
+            BufferedReader br = new BufferedReader( fr );
+            String read = null;
+            while ( (read = br.readLine()) != null) {
+                if (read.indexOf("<property name=\"test.property\" value=\""+TEST_VALUE+"\"></property>") >= 0) {
+                    // found the property we set - it's good.
+                    return;
+                }
+            }
+            fail( "did not encounter set property in generated file." );
+        } finally {
+            try {
+                fr.close();
+            } catch(IOException e) {}
+        }
+    }
+
+
     public void testEchoToGoodFileFail() throws Exception {
         executeTarget( "testEchoToGoodFileFail" );
         assertGoodFile();
     }
-    
-    
+
+
     public void testEchoToGoodFileNoFail() throws Exception {
         executeTarget( "testEchoToGoodFileNoFail" );
         assertGoodFile();
@@ -132,12 +141,28 @@ public class EchoPropertiesTest extends BuildFileTest {
 
 
     public void testEchoPrefix() throws Exception {
-        executeTarget( "testEchoPrefix" );
-        Properties props=loadPropFile(PREFIX_OUTFILE);
-//        props.list(System.out);
-        assertEquals("prefix didn't include 'a.set' property","true",props.getProperty("a.set"));
+        testEchoPrefixVarious("testEchoPrefix");
+    }
+
+    public void testEchoPrefixAsPropertyset() throws Exception {
+        testEchoPrefixVarious("testEchoPrefixAsPropertyset");
+    }
+
+    public void testEchoPrefixAsNegatedPropertyset() throws Exception {
+        testEchoPrefixVarious("testEchoPrefixAsNegatedPropertyset");
+    }
+
+    public void testEchoPrefixAsDoublyNegatedPropertyset() throws Exception {
+        testEchoPrefixVarious("testEchoPrefixAsDoublyNegatedPropertyset");
+    }
+
+    private void testEchoPrefixVarious(String target) throws Exception {
+        executeTarget(target);
+        Properties props = loadPropFile(PREFIX_OUTFILE);
+        assertEquals("prefix didn't include 'a.set' property",
+            "true", props.getProperty("a.set"));
         assertNull("prefix failed to filter out property 'b.set'",
-                   props.getProperty("b.set"));
+            props.getProperty("b.set"));
     }
 
     protected Properties loadPropFile(String relativeFilename)

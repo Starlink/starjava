@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.types;
 
@@ -57,14 +20,10 @@ package org.apache.tools.ant.types;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-
-// java util classes
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
-
-// ant classes
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 
@@ -74,22 +33,20 @@ import org.apache.tools.ant.Project;
  *
  * A filter set may have begintoken and endtokens defined.
  *
- * @author     <A href="mailto:gholam@xtra.co.nz">  Michael McCallum  </A>
  */
 public class FilterSet extends DataType implements Cloneable {
-    
+
     /**
      * Individual filter component of filterset
      *
-     * @author    Michael McCallum
      */
     public static class Filter {
         /** Token which will be replaced in the filter operation */
         String token;
-        
+
         /** The value which will replace the token in the filtering operation */
         String value;
-        
+
         /**
          * Constructor for the Filter object
          *
@@ -100,13 +57,13 @@ public class FilterSet extends DataType implements Cloneable {
            this.token = token;
            this.value = value;
         }
-        
+
         /**
          * No argument conmstructor
          */
         public Filter() {
         }
-        
+
         /**
          * Sets the Token attribute of the Filter object
          *
@@ -115,7 +72,7 @@ public class FilterSet extends DataType implements Cloneable {
         public void setToken(String token) {
            this.token = token;
         }
-        
+
         /**
          * Sets the Value attribute of the Filter object
          *
@@ -124,7 +81,7 @@ public class FilterSet extends DataType implements Cloneable {
         public void setValue(String value) {
            this.value = value;
         }
-        
+
         /**
          * Gets the Token attribute of the Filter object
          *
@@ -133,7 +90,7 @@ public class FilterSet extends DataType implements Cloneable {
         public String getToken() {
            return token;
         }
-        
+
         /**
          * Gets the Value attribute of the Filter object
          *
@@ -143,20 +100,19 @@ public class FilterSet extends DataType implements Cloneable {
            return value;
         }
      }
-    
+
     /**
      * The filtersfile nested element.
      *
-     * @author    Michael McCallum
      */
     public class FiltersFile {
-        
+
         /**
          * Constructor for the Filter object
          */
         public FiltersFile() {
         }
-        
+
         /**
          * Sets the file from which filters will be read.
          *
@@ -166,24 +122,27 @@ public class FilterSet extends DataType implements Cloneable {
            readFiltersFromFile(file);
         }
     }
-    
+
     /** The default token start string */
     public static final String DEFAULT_TOKEN_START = "@";
-    
+
     /** The default token end string */
     public static final String DEFAULT_TOKEN_END = "@";
-    
+
     private String startOfToken = DEFAULT_TOKEN_START;
     private String endOfToken = DEFAULT_TOKEN_END;
-    
+
     /**
      * List of ordered filters and filter files.
      */
     private Vector filters = new Vector();
-    
+
+    /**
+     * Default constructor
+     */
     public FilterSet() {
     }
-    
+
     /**
      * Create a Filterset from another filterset
      *
@@ -194,6 +153,11 @@ public class FilterSet extends DataType implements Cloneable {
         this.filters = (Vector) filterset.getFilters().clone();
     }
 
+    /**
+     * Get the filters in the filter set
+     *
+     * @return a Vector of Filter instances
+     */
     protected Vector getFilters() {
         if (isReference()) {
             return getRef().getFilters();
@@ -201,10 +165,15 @@ public class FilterSet extends DataType implements Cloneable {
         return filters;
     }
 
+    /**
+     * Get the referred filter set
+     *
+     * @return the filterset from the reference.
+     */
     protected FilterSet getRef() {
         return (FilterSet) getCheckedRef(FilterSet.class, "filterset");
     }
-    
+
     /**
      * Gets the filter hash of the FilterSet.
      *
@@ -219,7 +188,7 @@ public class FilterSet extends DataType implements Cloneable {
         }
         return filterHash;
     }
-    
+
     /**
      * set the file containing the filters for this filterset.
      *
@@ -232,7 +201,7 @@ public class FilterSet extends DataType implements Cloneable {
         }
         readFiltersFromFile(filtersFile);
     }
-    
+
     /**
      * The string used to id the beginning of a token.
      *
@@ -248,14 +217,19 @@ public class FilterSet extends DataType implements Cloneable {
         this.startOfToken = startOfToken;
     }
 
+    /**
+     * Get the begin token for this filterset
+     *
+     * @return the filter set's begin token for filtering
+     */
     public String getBeginToken() {
         if (isReference()) {
             return getRef().getBeginToken();
         }
         return startOfToken;
     }
-    
-    
+
+
     /**
      * The string used to id the end of a token.
      *
@@ -271,14 +245,19 @@ public class FilterSet extends DataType implements Cloneable {
         this.endOfToken = endOfToken;
     }
 
+    /**
+     * Get the end token for this filterset
+     *
+     * @return the filter set's end token for replacement delimiting
+     */
     public String getEndToken() {
         if (isReference()) {
             return getRef().getEndToken();
         }
         return endOfToken;
     }
-    
-    
+
+
     /**
      * Read the filters from the given file.
      *
@@ -291,6 +270,11 @@ public class FilterSet extends DataType implements Cloneable {
             throw tooManyAttributes();
         }
 
+        if (!filtersFile.exists()) {
+            throw new BuildException("Could not read filters from file "
+                                     + filtersFile + " as it doesn't exist.");
+        }
+
         if (filtersFile.isFile()) {
            log("Reading filters from " + filtersFile, Project.MSG_VERBOSE);
            FileInputStream in = null;
@@ -298,43 +282,60 @@ public class FilterSet extends DataType implements Cloneable {
               Properties props = new Properties();
               in = new FileInputStream(filtersFile);
               props.load(in);
-              
-              Enumeration enum = props.propertyNames();
+
+              Enumeration e = props.propertyNames();
               Vector filters = getFilters();
-              while (enum.hasMoreElements()) {
-                 String strPropName = (String) enum.nextElement();
+              while (e.hasMoreElements()) {
+                 String strPropName = (String) e.nextElement();
                  String strValue = props.getProperty(strPropName);
                  filters.addElement(new Filter(strPropName, strValue));
               }
-           } catch (Exception e) {
-              throw new BuildException("Could not read filters from file: " 
+           } catch (Exception ex) {
+              throw new BuildException("Could not read filters from file: "
                 + filtersFile);
            } finally {
               if (in != null) {
                  try {
                     in.close();
                  } catch (IOException ioex) {
+                     // ignore
                  }
               }
            }
         } else {
-           throw new BuildException("Must specify a file not a directory in " 
+           throw new BuildException("Must specify a file not a directory in "
             + "the filtersfile attribute:" + filtersFile);
         }
     }
-    
+
     /**
      * Does replacement on the given string with token matching.
-     * This uses the defined begintoken and endtoken values which default to @ for both.
+     * This uses the defined begintoken and endtoken values which default
+     * to @ for both.
+     * This resets the passedTokens and calls iReplaceTokens to
+     * do the actual replacements.
      *
      * @param line  The line to process the tokens in.
      * @return      The string with the tokens replaced.
      */
     public String replaceTokens(String line) {
+        passedTokens = null; // reset for new line
+        return iReplaceTokens(line);
+    }
+
+    /**
+     * Does replacement on the given string with token matching.
+     * This uses the defined begintoken and endtoken values which default
+     * to @ for both.
+     *
+     * @param line  The line to process the tokens in.
+     * @return      The string with the tokens replaced.
+     */
+    private String iReplaceTokens(String line) {
         String beginToken = getBeginToken();
         String endToken = getEndToken();
         int index = line.indexOf(beginToken);
-        
+
         if (index > -1) {
             Hashtable tokens = getFilterHash();
             try {
@@ -342,22 +343,26 @@ public class FilterSet extends DataType implements Cloneable {
                 int i = 0;
                 String token = null;
                 String value = null;
-                
+
                 do {
-                    int endIndex = line.indexOf(endToken, 
+                    int endIndex = line.indexOf(endToken,
                         index + beginToken.length() + 1);
                     if (endIndex == -1) {
                         break;
                     }
-                    token 
+                    token
                         = line.substring(index + beginToken.length(), endIndex);
                     b.append(line.substring(i, index));
                     if (tokens.containsKey(token)) {
                         value = (String) tokens.get(token);
-                        log("Replacing: " + beginToken + token + endToken 
+                        if (!value.equals(token)) {
+                            // we have another token, let's parse it.
+                            value = replaceTokens(value, token);
+                        }
+                        log("Replacing: " + beginToken + token + endToken
                             + " -> " + value, Project.MSG_VERBOSE);
                         b.append(value);
-                        i = index + beginToken.length() + token.length() 
+                        i = index + beginToken.length() + token.length()
                             + endToken.length();
                     } else {
                         // just append beginToken and search further
@@ -365,7 +370,7 @@ public class FilterSet extends DataType implements Cloneable {
                         i = index + beginToken.length();
                     }
                 } while ((index = line.indexOf(beginToken, i)) > -1);
-                
+
                 b.append(line.substring(i));
                 return b.toString();
             } catch (StringIndexOutOfBoundsException e) {
@@ -375,11 +380,60 @@ public class FilterSet extends DataType implements Cloneable {
            return line;
         }
     }
-    
+
+    /** Contains a list of parsed tokens */
+    private Vector passedTokens;
+    /** if a ducplicate token is found, this is set to true */
+    private boolean duplicateToken = false;
+
+    /**
+     * This parses tokens which point to tokens.
+     * It also maintains a list of currently used tokens, so we cannot
+     * get into an infinite loop
+     * @param line the value / token to parse
+     * @param parent the parant token (= the token it was parsed from)
+     */
+    private String replaceTokens(String line, String parent)
+        throws BuildException {
+        if (passedTokens == null) {
+            passedTokens = new Vector();
+        }
+        if (passedTokens.contains(parent) && !duplicateToken) {
+            duplicateToken = true;
+            StringBuffer sb = new StringBuffer();
+            sb.append("Infinite loop in tokens. Currently known tokens : ");
+            sb.append(passedTokens);
+            sb.append("\nProblem token : " + getBeginToken() + parent
+                + getEndToken());
+            sb.append(" called from " + getBeginToken()
+                + passedTokens.lastElement());
+            sb.append(getEndToken());
+            System.out.println(sb.toString());
+            return parent;
+        }
+        passedTokens.addElement(parent);
+        String value = iReplaceTokens(line);
+        if (value.indexOf(getBeginToken()) == -1 && !duplicateToken) {
+            duplicateToken = false;
+            passedTokens = null;
+        } else if (duplicateToken) {
+            // should always be the case...
+            if (passedTokens.size() > 0) {
+                value = (String) passedTokens.lastElement();
+                passedTokens.removeElementAt(passedTokens.size() - 1);
+                if (passedTokens.size() == 0) {
+                    value = getBeginToken() + value + getEndToken();
+                    duplicateToken = false;
+                }
+            }
+        }
+        return value;
+    }
+
     /**
      * Create a new filter
      *
-     * @param  the filter to be added
+     * @param filter the filter to be added
      */
     public void addFilter(Filter filter) {
         if (isReference()) {
@@ -387,7 +441,7 @@ public class FilterSet extends DataType implements Cloneable {
         }
         filters.addElement(filter);
     }
-    
+
     /**
      * Create a new FiltersFile
      *
@@ -399,7 +453,7 @@ public class FilterSet extends DataType implements Cloneable {
         }
         return new FiltersFile();
     }
-    
+
     /**
     * Add a new filter made from the given token and value.
     *
@@ -412,7 +466,7 @@ public class FilterSet extends DataType implements Cloneable {
         }
         filters.addElement(new Filter(token, value));
     }
-    
+
     /**
     * Add a Filterset to this filter set
     *
@@ -426,7 +480,7 @@ public class FilterSet extends DataType implements Cloneable {
             filters.addElement(e.nextElement());
         }
     }
-    
+
     /**
     * Test to see if this filter set it empty.
     *
@@ -436,15 +490,29 @@ public class FilterSet extends DataType implements Cloneable {
         return getFilters().size() > 0;
     }
 
+    /**
+     * clone the filterset
+     *
+     * @return a deep clone of this filterset
+     *
+     * @throws BuildException if the clone cannot be performed.
+     */
     public Object clone() throws BuildException {
         if (isReference()) {
-            return new FilterSet(getRef());
+            return ((FilterSet) getRef()).clone();
         } else {
-            return new FilterSet(this);
+            try {
+                FilterSet fs = (FilterSet) super.clone();
+                fs.filters = (Vector) getFilters().clone();
+                fs.setProject(getProject());
+                return fs;
+            } catch (CloneNotSupportedException e) {
+                throw new BuildException(e);
+            }
         }
     }
 
 }
- 
+
 
 

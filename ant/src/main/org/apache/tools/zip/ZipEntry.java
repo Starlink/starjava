@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.zip;
@@ -63,10 +26,9 @@ import java.util.zip.ZipException;
  * Extension that adds better handling of extra fields and provides
  * access to the internal and external file attributes.
  *
- * @author <a href="stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @version $Revision: 1.3.2.2 $
+ * @version $Revision: 1.12.2.4 $
  */
-public class ZipEntry extends java.util.zip.ZipEntry {
+public class ZipEntry extends java.util.zip.ZipEntry implements Cloneable {
 
     private static final int PLATFORM_UNIX = 3;
     private static final int PLATFORM_FAT  = 0;
@@ -75,6 +37,7 @@ public class ZipEntry extends java.util.zip.ZipEntry {
     private int platform = PLATFORM_FAT;
     private long externalAttributes = 0;
     private Vector extraFields = new Vector();
+    private String name = null;
 
     /**
      * Creates a new zip entry with the specified name.
@@ -113,7 +76,7 @@ public class ZipEntry extends java.util.zip.ZipEntry {
         if (crc > 0) {
             setCrc(crc);
         }
-        
+
         byte[] extra = entry.getExtra();
         if (extra != null) {
             setExtraFields(ExtraFieldUtils.parse(extra));
@@ -136,22 +99,49 @@ public class ZipEntry extends java.util.zip.ZipEntry {
     }
 
     /**
+     * @since 1.9
+     */
+    protected ZipEntry() {
+        super("");
+    }
+
+    /**
      * Overwrite clone
      *
      * @since 1.1
      */
     public Object clone() {
-        ZipEntry e = null;
         try {
-            e = new ZipEntry((java.util.zip.ZipEntry) super.clone());
-        } catch (Exception ex) {
-            // impossible as extra data is in correct format
-            ex.printStackTrace();
+            ZipEntry e = (ZipEntry) super.clone();
+
+            e.setName(getName());
+            e.setComment(getComment());
+            e.setMethod(getMethod());
+            e.setTime(getTime());
+            long size = getSize();
+            if (size > 0) {
+                e.setSize(size);
+            }
+            long cSize = getCompressedSize();
+            if (cSize > 0) {
+                e.setComprSize(cSize);
+            }
+            long crc = getCrc();
+            if (crc > 0) {
+                e.setCrc(crc);
+            }
+
+            e.extraFields = (Vector) extraFields.clone();
+            e.setInternalAttributes(getInternalAttributes());
+            e.setExternalAttributes(getExternalAttributes());
+            e.setExtraFields(getExtraFields());
+            return e;
+        } catch (Throwable t) {
+            // in JDK 1.1 ZipEntry is not Cloneable, so super.clone declares
+            // to throw CloneNotSupported - since JDK 1.2 it is overridden to
+            // not throw that exception
+            return null;
         }
-        e.setInternalAttributes(getInternalAttributes());
-        e.setExternalAttributes(getExternalAttributes());
-        e.setExtraFields(getExtraFields());
-        return e;
     }
 
     /**
@@ -206,6 +196,15 @@ public class ZipEntry extends java.util.zip.ZipEntry {
     }
 
     /**
+     * Unix permission.
+     *
+     * @since Ant 1.6
+     */
+    public int getUnixMode() {
+        return (int) ((getExternalAttributes() >> 16) & 0xFFFF);
+    }
+
+    /**
      * Platform specification to put into the &quot;version made
      * by&quot; part of the central file header.
      *
@@ -216,6 +215,13 @@ public class ZipEntry extends java.util.zip.ZipEntry {
      */
     public int getPlatform() {
         return platform;
+    }
+
+    /**
+     * @since 1.9
+     */
+    protected void setPlatform(int platform) {
+        this.platform = platform;
     }
 
     /**
@@ -363,6 +369,24 @@ public class ZipEntry extends java.util.zip.ZipEntry {
     }
 
     /**
+     * @since 1.9
+     */
+    public String getName() {
+        return name == null ? super.getName() : name;
+    }
+
+    /**
+     * @since 1.10
+     */
+    public boolean isDirectory() {
+        return getName().endsWith("/");
+    }
+
+    protected void setName(String name) {
+        this.name = name;
+    }
+
+    /**
      * Helper for JDK 1.1
      *
      * @since 1.2
@@ -422,8 +446,8 @@ public class ZipEntry extends java.util.zip.ZipEntry {
             synchronized (lockReflection) {
                 triedToGetMethod = true;
                 try {
-                    setCompressedSizeMethod = 
-                        java.util.zip.ZipEntry.class.getMethod("setCompressedSize", 
+                    setCompressedSizeMethod =
+                        java.util.zip.ZipEntry.class.getMethod("setCompressedSize",
                                                                new Class[] {Long.TYPE});
                 } catch (NoSuchMethodException nse) {
                 }

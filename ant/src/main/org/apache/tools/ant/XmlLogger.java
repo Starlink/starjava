@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant;
@@ -91,7 +54,7 @@ public class XmlLogger implements BuildLogger {
     private PrintStream outStream;
 
     /** DocumentBuilder to use when creating the document to start with. */
-    private static final DocumentBuilder builder = getDocumentBuilder();
+    private static DocumentBuilder builder = getDocumentBuilder();
 
     /**
      * Returns a default DocumentBuilder instance or throws an
@@ -153,6 +116,9 @@ public class XmlLogger implements BuildLogger {
         private long startTime;
         /** Element created at the start time. */
         private Element element;
+        public String toString() {
+            return element.getTagName() + ":" + element.getAttribute("name");
+        }
     }
 
     /**
@@ -215,7 +181,7 @@ public class XmlLogger implements BuildLogger {
                 stream = new FileOutputStream(outFilename);
             }
             out = new OutputStreamWriter(stream, "UTF8");
-            out.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+            out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             if (xslUri.length() > 0) {
                 out.write("<?xml-stylesheet type=\"text/xsl\" href=\""
                         + xslUri + "\"?>\n\n");
@@ -229,6 +195,7 @@ public class XmlLogger implements BuildLogger {
                 try {
                     out.close();
                 } catch (IOException e) {
+                    // ignore
                 }
             }
         }
@@ -245,13 +212,17 @@ public class XmlLogger implements BuildLogger {
             threadStack = new Stack();
             threadStacks.put(Thread.currentThread(), threadStack);
         }
+        /* For debugging purposes uncomment:
+        org.w3c.dom.Comment s = doc.createComment("stack=" + threadStack);
+        buildElement.element.appendChild(s);
+         */
         return threadStack;
     }
 
     /**
      * Fired when a target starts building, this pushes a timed element
      * for the target onto the stack of elements for the current thread,
-     * rememebering the current time and the name of the target.
+     * remembering the current time and the name of the target.
      *
      * @param event An event with any relevant extra information.
      *              Will not be <code>null</code>.
@@ -288,8 +259,9 @@ public class XmlLogger implements BuildLogger {
                 TimedElement poppedStack = (TimedElement) threadStack.pop();
                 if (poppedStack != targetElement) {
                     throw new RuntimeException("Mismatch - popped element = "
-                            + poppedStack.element + " finished target element = "
-                            + targetElement.element);
+                            + poppedStack
+                            + " finished target element = "
+                            + targetElement);
                 }
                 if (!threadStack.empty()) {
                     parentElement = (TimedElement) threadStack.peek();
@@ -301,12 +273,13 @@ public class XmlLogger implements BuildLogger {
                 parentElement.element.appendChild(targetElement.element);
             }
         }
+        targets.remove(target);
     }
 
     /**
      * Fired when a task starts building, this pushes a timed element
      * for the task onto the stack of elements for the current thread,
-     * rememebering the current time and the name of the task.
+     * remembering the current time and the name of the task.
      *
      * @param event An event with any relevant extra information.
      *              Will not be <code>null</code>.
@@ -354,10 +327,13 @@ public class XmlLogger implements BuildLogger {
                 TimedElement poppedStack = (TimedElement) threadStack.pop();
                 if (poppedStack != taskElement) {
                     throw new RuntimeException("Mismatch - popped element = "
-                            + poppedStack.element + " finished task element = "
-                            + taskElement.element);
+                            + poppedStack + " finished task element = "
+                            + taskElement);
                 }
             }
+            tasks.remove(task);
+        } else {
+            throw new RuntimeException("Unknown task " + task + " not in " + tasks);
         }
     }
 
@@ -477,6 +453,9 @@ public class XmlLogger implements BuildLogger {
 
     /**
      * Ignore emacs mode, as it has no meaning in XML format
+     *
+     * @param emacsMode true if logger should produce emacs compatible
+     *        output
      */
     public void setEmacsMode(boolean emacsMode) {
     }
@@ -485,6 +464,8 @@ public class XmlLogger implements BuildLogger {
      * Ignore error print stream. All output will be written to
      * either the XML log file or the PrintStream provided to
      * setOutputPrintStream
+     *
+     * @param err the stream we are going to ignore.
      */
     public void setErrorPrintStream(PrintStream err) {
     }

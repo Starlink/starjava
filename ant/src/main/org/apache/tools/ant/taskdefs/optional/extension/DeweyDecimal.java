@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002,2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.extension;
 
@@ -63,33 +26,22 @@ import java.util.StringTokenizer;
  * represent major, minor, micro, etc versions.  The version number
  * must begin with a number.
  *
- * WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
- *  This file is from excalibur.extension package. Dont edit this file
- * directly as there is no unit tests to make sure it is operational
- * in ant. Edit file in excalibur and run tests there before changing
- * ants file.
- * WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
- *
- * @author <a href="mailto:peter@apache.org">Peter Donald</a>
- * @version $Revision: 1.2.2.1 $ $Date: 2003/02/10 14:25:08 $
+ * @version $Revision: 1.4.2.4 $ $Date: 2004/03/09 17:01:45 $
  */
-public final class DeweyDecimal
-{
-    ///Array of components that make up DeweyDecimal
-    private int[] m_components;
+public final class DeweyDecimal {
+    /** Array of components that make up DeweyDecimal */
+    private int[] components;
 
     /**
      * Construct a DeweyDecimal from an array of integer components.
      *
      * @param components an array of integer components.
      */
-    public DeweyDecimal( final int[] components )
-    {
-        m_components = new int[ components.length ];
+    public DeweyDecimal(final int[] components) {
+        this.components = new int[components.length];
 
-        for( int i = 0; i < m_components.length; i++ )
-        {
-            m_components[ i ] = components[ i ];
+        for (int i = 0; i < components.length; i++) {
+            this.components[i] = components[i];
         }
     }
 
@@ -99,33 +51,28 @@ public final class DeweyDecimal
      * @param string the string in dewey decimal format
      * @exception NumberFormatException if string is malformed
      */
-    public DeweyDecimal( final String string )
-        throws NumberFormatException
-    {
-        final StringTokenizer tokenizer = new StringTokenizer( string, ".", true );
+    public DeweyDecimal(final String string)
+        throws NumberFormatException {
+        final StringTokenizer tokenizer = new StringTokenizer(string, ".", true);
         final int size = tokenizer.countTokens();
 
-        m_components = new int[ ( size + 1 ) / 2 ];
+        components = new int[ (size + 1) / 2 ];
 
-        for( int i = 0; i < m_components.length; i++ )
-        {
+        for (int i = 0; i < components.length; i++) {
             final String component = tokenizer.nextToken();
-            if( component.equals( "" ) )
-            {
-                throw new NumberFormatException( "Empty component in string" );
+            if (component.equals("")) {
+                throw new NumberFormatException("Empty component in string");
             }
 
-            m_components[ i ] = Integer.parseInt( component );
+            components[ i ] = Integer.parseInt(component);
 
             //Strip '.' token
-            if( tokenizer.hasMoreTokens() )
-            {
+            if (tokenizer.hasMoreTokens()) {
                 tokenizer.nextToken();
 
                 //If it ended in a dot, throw an exception
-                if( !tokenizer.hasMoreTokens() )
-                {
-                    throw new NumberFormatException( "DeweyDecimal ended in a '.'" );
+                if (!tokenizer.hasMoreTokens()) {
+                    throw new NumberFormatException("DeweyDecimal ended in a '.'");
                 }
             }
         }
@@ -136,9 +83,8 @@ public final class DeweyDecimal
      *
      * @return the number of components in dewey decimal
      */
-    public int getSize()
-    {
-        return m_components.length;
+    public int getSize() {
+        return components.length;
     }
 
     /**
@@ -147,9 +93,8 @@ public final class DeweyDecimal
      * @param index the index of components
      * @return the value of component at index
      */
-    public int get( final int index )
-    {
-        return m_components[ index ];
+    public int get(final int index) {
+        return components[ index ];
     }
 
     /**
@@ -159,17 +104,14 @@ public final class DeweyDecimal
      * @param other the other DeweyDecimal
      * @return true if equal to other DeweyDecimal, false otherwise
      */
-    public boolean isEqual( final DeweyDecimal other )
-    {
-        final int max = Math.max( other.m_components.length, m_components.length );
+    public boolean isEqual(final DeweyDecimal other) {
+        final int max = Math.max(other.components.length, components.length);
 
-        for( int i = 0; i < max; i++ )
-        {
-            final int component1 = ( i < m_components.length ) ? m_components[ i ] : 0;
-            final int component2 = ( i < other.m_components.length ) ? other.m_components[ i ] : 0;
+        for (int i = 0; i < max; i++) {
+            final int component1 = (i < components.length) ? components[ i ] : 0;
+            final int component2 = (i < other.components.length) ? other.components[ i ] : 0;
 
-            if( component2 != component1 )
-            {
+            if (component2 != component1) {
                 return false;
             }
         }
@@ -184,9 +126,8 @@ public final class DeweyDecimal
      * @param other the other DeweyDecimal
      * @return true if less than other DeweyDecimal, false otherwise
      */
-    public boolean isLessThan( final DeweyDecimal other )
-    {
-        return !isGreaterThanOrEqual( other );
+    public boolean isLessThan(final DeweyDecimal other) {
+        return !isGreaterThanOrEqual(other);
     }
 
     /**
@@ -196,9 +137,8 @@ public final class DeweyDecimal
      * @param other the other DeweyDecimal
      * @return true if less than or equal to other DeweyDecimal, false otherwise
      */
-    public boolean isLessThanOrEqual( final DeweyDecimal other )
-    {
-        return !isGreaterThan( other );
+    public boolean isLessThanOrEqual(final DeweyDecimal other) {
+        return !isGreaterThan(other);
     }
 
     /**
@@ -208,21 +148,17 @@ public final class DeweyDecimal
      * @param other the other DeweyDecimal
      * @return true if greater than other DeweyDecimal, false otherwise
      */
-    public boolean isGreaterThan( final DeweyDecimal other )
-    {
-        final int max = Math.max( other.m_components.length, m_components.length );
+    public boolean isGreaterThan(final DeweyDecimal other) {
+        final int max = Math.max(other.components.length, components.length);
 
-        for( int i = 0; i < max; i++ )
-        {
-            final int component1 = ( i < m_components.length ) ? m_components[ i ] : 0;
-            final int component2 = ( i < other.m_components.length ) ? other.m_components[ i ] : 0;
+        for (int i = 0; i < max; i++) {
+            final int component1 = (i < components.length) ? components[ i ] : 0;
+            final int component2 = (i < other.components.length) ? other.components[ i ] : 0;
 
-            if( component2 > component1 )
-            {
+            if (component2 > component1) {
                 return false;
             }
-            if( component2 < component1 )
-            {
+            if (component2 < component1) {
                 return true;
             }
         }
@@ -237,21 +173,17 @@ public final class DeweyDecimal
      * @param other the other DeweyDecimal
      * @return true if greater than or equal to other DeweyDecimal, false otherwise
      */
-    public boolean isGreaterThanOrEqual( final DeweyDecimal other )
-    {
-        final int max = Math.max( other.m_components.length, m_components.length );
+    public boolean isGreaterThanOrEqual(final DeweyDecimal other) {
+        final int max = Math.max(other.components.length, components.length);
 
-        for( int i = 0; i < max; i++ )
-        {
-            final int component1 = ( i < m_components.length ) ? m_components[ i ] : 0;
-            final int component2 = ( i < other.m_components.length ) ? other.m_components[ i ] : 0;
+        for (int i = 0; i < max; i++) {
+            final int component1 = (i < components.length) ? components[ i ] : 0;
+            final int component2 = (i < other.components.length) ? other.components[ i ] : 0;
 
-            if( component2 > component1 )
-            {
+            if (component2 > component1) {
                 return false;
             }
-            if( component2 < component1 )
-            {
+            if (component2 < component1) {
                 return true;
             }
         }
@@ -264,17 +196,14 @@ public final class DeweyDecimal
      *
      * @return the string representation of DeweyDecimal.
      */
-    public String toString()
-    {
+    public String toString() {
         final StringBuffer sb = new StringBuffer();
 
-        for( int i = 0; i < m_components.length; i++ )
-        {
-            if( i != 0 )
-            {
-                sb.append( '.' );
+        for (int i = 0; i < components.length; i++) {
+            if (i != 0) {
+                sb.append('.');
             }
-            sb.append( m_components[ i ] );
+            sb.append(components[ i ]);
         }
 
         return sb.toString();

@@ -1,60 +1,22 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002,2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.j2ee;
 
 import java.io.File;
-
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.taskdefs.Java;
 import org.apache.tools.ant.types.Path;
@@ -70,7 +32,6 @@ import org.apache.tools.ant.types.Path;
  *  In the end, this task assembles the commadline parameters and
  *  runs the weblogic.deploy tool in a seperate JVM.
  *
- *@author Cyrille Morvan
  *@see org.apache.tools.ant.taskdefs.optional.j2ee.HotDeploymentTool
  *@see org.apache.tools.ant.taskdefs.optional.j2ee.AbstractHotDeploymentTool
  *@see org.apache.tools.ant.taskdefs.optional.j2ee.ServerDeploy
@@ -90,14 +51,14 @@ public class JonasHotDeploymentTool extends GenericHotDeploymentTool implements 
     /**
      *  All the valid actions that weblogic.deploy permits *
      */
-    private static final String[] VALID_ACTIONS =
-            {ACTION_DELETE, ACTION_DEPLOY, ACTION_LIST, ACTION_UNDEPLOY, ACTION_UPDATE};
+    private static final String[] VALID_ACTIONS
+        = {ACTION_DELETE, ACTION_DEPLOY, ACTION_LIST, ACTION_UNDEPLOY, ACTION_UPDATE};
 
     /**
      *  Description of the Field
      */
     private File jonasroot;
-    
+
     /**
      *  Description of the Field
      */
@@ -107,7 +68,7 @@ public class JonasHotDeploymentTool extends GenericHotDeploymentTool implements 
      *  Description of the Field
      */
     private String davidHost;
-    
+
     /**
      *  Description of the Field
      */
@@ -115,7 +76,7 @@ public class JonasHotDeploymentTool extends GenericHotDeploymentTool implements 
 
 
     /**
-     *  Set the host for the David ORB; required if 
+     *  Set the host for the David ORB; required if
      *  ORB==david.
      *
      *@param  inValue  The new davidhost value
@@ -126,7 +87,7 @@ public class JonasHotDeploymentTool extends GenericHotDeploymentTool implements 
 
 
     /**
-     *  Set the port for the David ORB; required if 
+     *  Set the port for the David ORB; required if
      *  ORB==david.
      *
      *@param  inValue  The new davidport value
@@ -148,11 +109,11 @@ public class JonasHotDeploymentTool extends GenericHotDeploymentTool implements 
 
 
     /**
-     * 
+     *
      * Choose your ORB : RMI, JEREMIE, DAVID, ...; optional.
      * If omitted, it defaults
      * to the one present in classpath. The corresponding JOnAS JAR is
-     * automatically added to the classpath. If your orb is DAVID (RMI/IIOP) you must 
+     * automatically added to the classpath. If your orb is DAVID (RMI/IIOP) you must
      * specify davidhost and davidport properties.
      *
      *@param  inValue  RMI, JEREMIE, DAVID,...
@@ -218,34 +179,41 @@ public class JonasHotDeploymentTool extends GenericHotDeploymentTool implements 
 
         if (jonasroot == null || jonasroot.isDirectory()) {
             java.createJvmarg().setValue("-Dinstall.root=" + jonasroot);
-            java.createJvmarg().setValue("-Djava.security.policy=" + jonasroot + "/config/java.policy");
+            java.createJvmarg().setValue("-Djava.security.policy=" + jonasroot
+                + "/config/java.policy");
 
             if ("DAVID".equals(orb)) {
-                java.createJvmarg().setValue("-Dorg.omg.CORBA.ORBClass=org.objectweb.david.libs.binding.orbs.iiop.IIOPORB");
-                java.createJvmarg().setValue("-Dorg.omg.CORBA.ORBSingletonClass=org.objectweb.david.libs.binding.orbs.ORBSingletonClass");
-                java.createJvmarg().setValue("-Djavax.rmi.CORBA.StubClass=org.objectweb.david.libs.stub_factories.rmi.StubDelegate");
-                java.createJvmarg().setValue("-Djavax.rmi.CORBA.PortableRemoteObjectClass=org.objectweb.david.libs.binding.rmi.ORBPortableRemoteObjectDelegate");
-                java.createJvmarg().setValue("-Djavax.rmi.CORBA.UtilClass=org.objectweb.david.libs.helpers.RMIUtilDelegate");
+                java.createJvmarg().setValue("-Dorg.omg.CORBA.ORBClass"
+                    + "=org.objectweb.david.libs.binding.orbs.iiop.IIOPORB");
+                java.createJvmarg().setValue("-Dorg.omg.CORBA.ORBSingletonClass="
+                    + "org.objectweb.david.libs.binding.orbs.ORBSingletonClass");
+                java.createJvmarg().setValue("-Djavax.rmi.CORBA.StubClass="
+                    + "org.objectweb.david.libs.stub_factories.rmi.StubDelegate");
+                java.createJvmarg().setValue("-Djavax.rmi.CORBA.PortableRemoteObjectClass="
+                    + "org.objectweb.david.libs.binding.rmi.ORBPortableRemoteObjectDelegate");
+                java.createJvmarg().setValue("-Djavax.rmi.CORBA.UtilClass="
+                    + "org.objectweb.david.libs.helpers.RMIUtilDelegate");
                 java.createJvmarg().setValue("-Ddavid.CosNaming.default_method=0");
-                java.createJvmarg().setValue("-Ddavid.rmi.ValueHandlerClass=com.sun.corba.se.internal.io.ValueHandlerImpl");
+                java.createJvmarg().setValue("-Ddavid.rmi.ValueHandlerClass="
+                    + "com.sun.corba.se.internal.io.ValueHandlerImpl");
                 if (davidHost != null) {
-                    java.createJvmarg().setValue("-Ddavid.CosNaming.default_host=" + davidHost);
+                    java.createJvmarg().setValue("-Ddavid.CosNaming.default_host="
+                        + davidHost);
                 }
                 if (davidPort != 0) {
-                    java.createJvmarg().setValue("-Ddavid.CosNaming.default_port=" + davidPort);
+                    java.createJvmarg().setValue("-Ddavid.CosNaming.default_port="
+                        + davidPort);
                 }
             }
         }
-
-        String anAction = getTask().getAction();
 
         if (getServer() != null) {
             java.createArg().setLine("-n " + getServer());
         }
 
-        if (action.equals(ACTION_DEPLOY) ||
-                action.equals(ACTION_UPDATE) ||
-                action.equals("redeploy")) {
+        if (action.equals(ACTION_DEPLOY)
+            || action.equals(ACTION_UPDATE)
+            || action.equals("redeploy")) {
             java.createArg().setLine("-a " + getTask().getSource());
         } else if (action.equals(ACTION_DELETE) || action.equals(ACTION_UNDEPLOY)) {
             java.createArg().setLine("-r " + getTask().getSource());

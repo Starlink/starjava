@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs;
 
@@ -59,28 +22,20 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
-
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
- * Signs jar or zip files with the javasign command line tool. The
+ * Signs JAR or ZIP files with the javasign command line tool. The
  * tool detailed dependency checking: files are only signed if they
  * are not signed. The <tt>signjar</tt> attribute can point to the file to
  * generate; if this file exists then
  * its modification date is used as a cue as to whether to resign any JAR file.
- * <br>
- * <strong>Note:</strong> Requires Java 1.2 or later. </p>
-
  *
- * @author Peter Donald
- *         <a href="mailto:donaldp@apache.org">donaldp@apache.org</a>
- * @author Nick Fortescue
- *         <a href="mailto:nick@ox.compsoc.net">nick@ox.compsoc.net</a>
  * @since Ant 1.1
  * @ant.task category="java"
  */
@@ -237,23 +192,26 @@ public class SignJar extends Task {
      * sign the jar(s)
      */
     public void execute() throws BuildException {
-        if (null == jar && null == filesets) {
+        if (null == jar && filesets.size() == 0) {
             throw new BuildException("jar must be set through jar attribute "
                                      + "or nested filesets");
         }
         if (null != jar) {
+            if (filesets.size() != 0) {
+                log("nested filesets will be ignored if the jar attribute has"
+                    + " been specified.", Project.MSG_WARN);
+            }
+
             doOneJar(jar, signedjar);
             return;
         } else {
-            //Assume null != filesets
-
             // deal with the filesets
             for (int i = 0; i < filesets.size(); i++) {
                 FileSet fs = (FileSet) filesets.elementAt(i);
-                DirectoryScanner ds = fs.getDirectoryScanner(project);
+                DirectoryScanner ds = fs.getDirectoryScanner(getProject());
                 String[] jarFiles = ds.getIncludedFiles();
                 for (int j = 0; j < jarFiles.length; j++) {
-                    doOneJar(new File(fs.getDir(project), jarFiles[j]), null);
+                    doOneJar(new File(fs.getDir(getProject()), jarFiles[j]), null);
                 }
             }
         }
@@ -264,10 +222,6 @@ public class SignJar extends Task {
      */
     private void doOneJar(File jarSource, File jarTarget)
         throws BuildException {
-        if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
-            throw new BuildException("The signjar task is only available on "
-                                     + "JDK versions 1.2 or greater");
-        }
 
         if (null == alias) {
             throw new BuildException("alias attribute must be set");
@@ -278,7 +232,7 @@ public class SignJar extends Task {
         }
 
         if (isUpToDate(jarSource, jarTarget)) {
-          return;
+            return;
         }
 
         final ExecTask cmd = (ExecTask) getProject().createTask("exec");
@@ -342,7 +296,7 @@ public class SignJar extends Task {
 
         cmd.createArg().setValue(alias);
 
-        log("Signing Jar : " + jarSource.getAbsolutePath());
+        log("Signing JAR: " + jarSource.getAbsolutePath());
         cmd.setFailonerror(true);
         cmd.setTaskName(getTaskName());
         cmd.execute();
@@ -376,6 +330,12 @@ public class SignJar extends Task {
         return false;
     }
 
+    /**
+     * test for a file being signed, by looking for a signature in the META-INF
+     * directory
+     * @param file
+     * @return true if the file is signed
+     */
     protected boolean isSigned(File file) {
         final String SIG_START = "META-INF/";
         final String SIG_END = ".SF";
@@ -396,8 +356,8 @@ public class SignJar extends Task {
                 }
                 return false;
             } else {
-                return jarFile.getEntry(SIG_START + alias.toUpperCase() +
-                                        SIG_END) != null;
+                return jarFile.getEntry(SIG_START + alias.toUpperCase()
+                                        + SIG_END) != null;
             }
         } catch (IOException e) {
             return false;

@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.pvcs;
 
@@ -81,12 +44,12 @@ import org.apache.tools.ant.types.Commandline;
  * PVCS is a version control system
  * developed by <a href="http://www.merant.com/products/pvcs">Merant</a>.
  * <br>
- * Before using this tag, the user running ant must have access to the commands 
+ * Before using this tag, the user running ant must have access to the commands
  * of PVCS (get and pcli) and must have access to the repository. Note that the way to specify
  * the repository is platform dependent so use property to specify location of repository.
  * <br>
  * This version has been tested agains PVCS version 6.5 and 6.6 under Windows and Solaris.
- 
+
  *
  * <b>19-04-2001</b> <p>The task now has a more robust
  * parser. It allows for platform independant file paths
@@ -99,9 +62,11 @@ import org.apache.tools.ant.types.Commandline;
  * update those files that have a modification time (in PVCS) that is newer
  * than the existing workfile.
  *
- * @author <a href="mailto:tchristensen@nordija.com">Thomas Christensen</a>
- * @author <a href="mailto:donj@apogeenet.com">Don Jeffery</a>
- * @author <a href="mailto:snewton@standard.com">Steven E. Newton</a>
+ * <b>25-10-2002</b> <p>Added a revision attribute that currently is a
+ * synonym for label, but in a future release the behavior of the label
+ * attribute will change to use the -v option of GET.  See bug #13847 for
+ * discussion.
+ *
  */
 public class Pvcs extends org.apache.tools.ant.Task {
     private String pvcsbin;
@@ -112,11 +77,13 @@ public class Pvcs extends org.apache.tools.ant.Task {
     private String force;
     private String promotiongroup;
     private String label;
+    private String revision;
     private boolean ignorerc;
     private boolean updateOnly;
     private String filenameFormat;
     private String lineStart;
     private String userId;
+    private String config;
     /**
      * Constant for the thing to execute
      */
@@ -193,7 +160,7 @@ public class Pvcs extends org.apache.tools.ant.Task {
 
         // default pvcs project is "/"
         if (getPvcsproject() == null && getPvcsprojects().isEmpty()) {
-			pvcsProject = "/";
+            pvcsProject = "/";
         }
 
         if (getPvcsproject() != null) {
@@ -220,15 +187,15 @@ public class Pvcs extends org.apache.tools.ant.Task {
             tmp2 = new File("pvcs_ant_" + rand.nextLong() + ".log");
             log(commandLine.describeCommand(), Project.MSG_VERBOSE);
             try {
-                result = runCmd(commandLine, 
-                                new PumpStreamHandler(fos, 
+                result = runCmd(commandLine,
+                                new PumpStreamHandler(fos,
                                     new LogOutputStream(this,
                                                         Project.MSG_WARN)));
             } finally {
                 fos.close();
             }
-            
-            if (result != 0 && !ignorerc) {
+
+            if (Execute.isFailure(result) && !ignorerc) {
                 String msg = "Failed executing: " + commandLine.toString();
                 throw new BuildException(msg, getLocation());
             }
@@ -250,6 +217,10 @@ public class Pvcs extends org.apache.tools.ant.Task {
             commandLine.clearArgs();
             commandLine.setExecutable(getExecutable(GET_EXE));
 
+            if (getConfig() != null && getConfig().length() > 0) {
+                commandLine.createArgument().setValue("-c" + getConfig());
+            }
+
             if (getForce() != null && getForce().equals("yes")) {
                 commandLine.createArgument().setValue("-Y");
             } else {
@@ -262,6 +233,11 @@ public class Pvcs extends org.apache.tools.ant.Task {
             } else {
                 if (getLabel() != null) {
                     commandLine.createArgument().setValue("-r" + getLabel());
+                } else {
+                    if (getRevision() != null) {
+                        commandLine.createArgument().setValue("-r"
+                            + getRevision());
+                    }
                 }
             }
 
@@ -313,13 +289,12 @@ public class Pvcs extends org.apache.tools.ant.Task {
             String line = in.readLine();
             while (line != null) {
                 log("Considering \"" + line + "\"", Project.MSG_VERBOSE);
-                if (line.startsWith("\"\\") ||
-                    line.startsWith("\"/") ||
-                    (line.length() >3 &&
-                     line.startsWith("\"") &&
-                     Character.isLetter(line.charAt(1)) &&
-                     String.valueOf(line.charAt(2)).equals(":") &&
-                     String.valueOf(line.charAt(3)).equals("\\"))) {
+                if (line.startsWith("\"\\")
+                    || line.startsWith("\"/")
+                    || (line.length() > 3 && line.startsWith("\"")
+                        && Character.isLetter(line.charAt(1))
+                        && String.valueOf(line.charAt(2)).equals(":")
+                        && String.valueOf(line.charAt(3)).equals("\\"))) {
                     Object[] objs = mf.parse(line);
                     String f = (String) objs[1];
                     // Extract the name of the directory from the filename
@@ -327,18 +302,18 @@ public class Pvcs extends org.apache.tools.ant.Task {
                     if (index > -1) {
                         File dir = new File(f.substring(0, index));
                         if (!dir.exists()) {
-                            log("Creating " + dir.getAbsolutePath(), 
+                            log("Creating " + dir.getAbsolutePath(),
                                 Project.MSG_VERBOSE);
                             if (dir.mkdirs()) {
-                                log("Created " + dir.getAbsolutePath(), 
+                                log("Created " + dir.getAbsolutePath(),
                                     Project.MSG_INFO);
                             } else {
-                                log("Failed to create " 
-                                    + dir.getAbsolutePath(), 
+                                log("Failed to create "
+                                    + dir.getAbsolutePath(),
                                     Project.MSG_INFO);
                             }
                         } else {
-                            log(dir.getAbsolutePath() + " exists. Skipping", 
+                            log(dir.getAbsolutePath() + " exists. Skipping",
                                 Project.MSG_VERBOSE);
                         }
                     } else {
@@ -356,7 +331,7 @@ public class Pvcs extends org.apache.tools.ant.Task {
             }
         }
     }
-        
+
 
     /**
      * Simple hack to handle the PVCS command-line tools botch when
@@ -405,7 +380,7 @@ public class Pvcs extends org.apache.tools.ant.Task {
 
     /**
      * The format of the folder names; optional.
-     * This must be in a format suitable for 
+     * This must be in a format suitable for
      * <code>java.text.MessageFormat</code>.
      *  Index 1 of the format will be used as the file name.
      *  Defaults to <code>{0}-arc({1})</code>
@@ -434,7 +409,7 @@ public class Pvcs extends org.apache.tools.ant.Task {
      * need to change this value, UNC names will always be
      * accepted.
      */
-        
+
     public void setLineStart(String l) {
         lineStart = l;
     }
@@ -481,10 +456,10 @@ public class Pvcs extends org.apache.tools.ant.Task {
     }
 
     /**
-     * Workspace to use; optional.  
+     * Workspace to use; optional.
      * By specifying a workspace, the files are extracted to that location.
-     * A PVCS workspace is a name for a location of the workfiles and 
-     * isn't as such the location itself. 
+     * A PVCS workspace is a name for a location of the workfiles and
+     * isn't as such the location itself.
      * You define the location for a workspace using the PVCS GUI clients.
      * If this isn't specified the default workspace for the current user is used.
      * @param ws String
@@ -508,7 +483,7 @@ public class Pvcs extends org.apache.tools.ant.Task {
      * should be set to the bin directory of the PVCS installation containing
      * the executables mentioned before. If this attribute isn't specified the
      * tag expects the executables to be found using the PATH environment variable.
-     * @param ws String
+     * @param bin PVCS bin directory
      * @todo use a File setter and resolve paths.
      */
     public void setPvcsbin(String bin) {
@@ -525,12 +500,12 @@ public class Pvcs extends org.apache.tools.ant.Task {
 
     /**
      * Specifies the value of the force argument; optional.
-     * If set to <i>yes</i> all files that exists and are 
-     * writable are overwritten. Default <i>no</i> causes the files 
-     * that are writable to be ignored. This stops the PVCS command 
+     * If set to <i>yes</i> all files that exists and are
+     * writable are overwritten. Default <i>no</i> causes the files
+     * that are writable to be ignored. This stops the PVCS command
      * <i>get</i> to stop asking questions!
      * @todo make a boolean setter
-     * @param repo String (yes/no)
+     * @param f String (yes/no)
      */
     public void setForce(String f) {
         if (f != null && f.equalsIgnoreCase("yes")) {
@@ -550,7 +525,7 @@ public class Pvcs extends org.apache.tools.ant.Task {
 
     /**
      * Specifies the name of the promotiongroup argument
-     * @param repo String
+     * @param w String
      */
     public void setPromotiongroup(String w) {
         promotiongroup = w;
@@ -566,10 +541,26 @@ public class Pvcs extends org.apache.tools.ant.Task {
 
     /**
      * Only files marked with this label are extracted; optional.
-     * @param repo String
+     * @param l String
      */
     public void setLabel(String l) {
         label = l;
+    }
+
+    /**
+     * Get value of revision
+     * @return String
+     */
+    public String getRevision() {
+        return revision;
+    }
+
+    /**
+     * Only files with this revision are extract; optional.
+     * @param r String
+     */
+    public void setRevision(String r) {
+        revision = r;
     }
 
     /**
@@ -590,7 +581,7 @@ public class Pvcs extends org.apache.tools.ant.Task {
 
     /**
      * Specify a project within the PVCS repository to extract files from.
-     * @param PvcsProject
+     * @param p
      */
     public void addPvcsproject(PvcsProject p) {
         pvcsProjects.addElement(p);
@@ -601,12 +592,30 @@ public class Pvcs extends org.apache.tools.ant.Task {
     }
 
     /**
-     * If set to <i>true</i> files are fetched only if 
+     * If set to <i>true</i> files are fetched only if
      * newer than existing local files; optional, default false.
      */
     public void setUpdateOnly(boolean l) {
         updateOnly = l;
     }
+
+    /**
+     * returns the path of the configuration file to be used
+     * @return the path of the config file
+     */
+    public String getConfig() {
+        return config;
+    }
+
+    /**
+     * Sets a configuration file other than the default to be used.
+     * These files have a .cfg extension and are often found in archive or pvcsprop folders.
+     * @param f config file - can be given absolute or relative to ant basedir
+     */
+    public void setConfig(File f) {
+        config = f.toString();
+    }
+
 
     public String getUserId() {
         return userId;
@@ -616,7 +625,7 @@ public class Pvcs extends org.apache.tools.ant.Task {
      * User ID; unused.
      * @ant.attribute ignore="true"
      */
-     
+
     public void setUserId(String u) {
         userId = u;
     }

@@ -1,79 +1,43 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.AntClassLoader;
-import org.apache.tools.ant.ProjectHelper;
-import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.types.Reference;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
-import java.util.Vector;
+import java.net.URL;
 import java.util.Enumeration;
+import java.util.Properties;
+import java.util.Stack;
+import java.util.Vector;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectHelper;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.Reference;
 
 /**
  * Sets a property by name, or set of properties (from file or
  * resource) in the project.  </p>
  * Properties are immutable: whoever sets a property first freezes it for the
- * rest of the build; they are most definately not variable.
+ * rest of the build; they are most definitely not variable.
  * <p>There are five ways to set properties:</p>
  * <ul>
  *   <li>By supplying both the <i>name</i> and <i>value</i> attribute.</li>
@@ -96,16 +60,17 @@ import java.util.Enumeration;
  * This also holds for properties loaded from a property file.</p>
  * Properties are case sensitive.
  *
- * @author costin@dnt.ro
- * @author <a href="mailto:rubys@us.ibm.com">Sam Ruby</a>
- * @author <a href="mailto:glennm@ca.ibm.com">Glenn McAllister</a>
  * @since Ant 1.1
+ *
+ * @ant.attribute.group name="name" description="One of these, when using the name attribute"
+ * @ant.attribute.group name="noname" description="One of these, when not using the name attribute"
  */
 public class Property extends Task {
 
     protected String name;
     protected String value;
     protected File file;
+    protected URL url;
     protected String resource;
     protected Path classpath;
     protected String env;
@@ -135,7 +100,7 @@ public class Property extends Task {
     }
 
     /**
-     * sets the name of the property to set.
+     * The name of the property to set.
      * @param name property name
      */
     public void setName(String name) {
@@ -153,14 +118,18 @@ public class Property extends Task {
      * current platforms conventions). Otherwise it is taken as a path
      * relative to the project's basedir and expanded.
      * @param location path to set
+     *
+     * @ant.attribute group="name"
      */
     public void setLocation(File location) {
         setValue(location.getAbsolutePath());
     }
 
     /**
-     * Sets the value of the property.
+     * The value of the property.
      * @param value value to assign
+     *
+     * @ant.attribute group="name"
      */
     public void setValue(String value) {
         this.value = value;
@@ -171,8 +140,10 @@ public class Property extends Task {
     }
 
     /**
-     * the filename of a property file to load.
-     *@param file filename
+     * Filename of a property file to load.
+     * @param file filename
+     *
+     * @ant.attribute group="noname"
      */
     public void setFile(File file) {
         this.file = file;
@@ -180,6 +151,20 @@ public class Property extends Task {
 
     public File getFile() {
         return file;
+    }
+
+    /**
+     * The url from which to load properties.
+     * @param url url string
+     *
+     * @ant.attribute group="noname"
+     */
+    public void setUrl(URL url) {
+        this.url = url;
+    }
+
+    public URL getUrl() {
+        return url;
     }
 
     /**
@@ -209,6 +194,8 @@ public class Property extends Task {
      * Only yields reasonable results for references
      * PATH like structures or properties.
      * @param ref reference
+     *
+     * @ant.attribute group="name"
      */
     public void setRefid(Reference ref) {
         this.ref = ref;
@@ -219,8 +206,10 @@ public class Property extends Task {
     }
 
     /**
-     * the resource name of a property file to load
+     * The resource name of a property file to load
      * @param resource resource on classpath
+     *
+     * @ant.attribute group="noname"
      */
     public void setResource(String resource) {
         this.resource = resource;
@@ -231,23 +220,25 @@ public class Property extends Task {
     }
 
     /**
-    * the prefix to use when retrieving environment variables.
-    * Thus if you specify environment=&quot;myenv&quot;
-    * you will be able to access OS-specific
-    * environment variables via property names &quot;myenv.PATH&quot; or
-    * &quot;myenv.TERM&quot;.
-    * <p>
-    * Note that if you supply a property name with a final
-    * &quot;.&quot; it will not be doubled. ie environment=&quot;myenv.&quot; will still
-    * allow access of environment variables through &quot;myenv.PATH&quot; and
-    * &quot;myenv.TERM&quot;. This functionality is currently only implemented
-    * on select platforms. Feel free to send patches to increase the number of platforms
-    * this functionality is supported on ;).<br>
-    * Note also that properties are case sensitive, even if the
-    * environment variables on your operating system are not, e.g. it
-    * will be ${env.Path} not ${env.PATH} on Windows 2000.
-    * @param env prefix
-    */
+     * Prefix to use when retrieving environment variables.
+     * Thus if you specify environment=&quot;myenv&quot;
+     * you will be able to access OS-specific
+     * environment variables via property names &quot;myenv.PATH&quot; or
+     * &quot;myenv.TERM&quot;.
+     * <p>
+     * Note that if you supply a property name with a final
+     * &quot;.&quot; it will not be doubled. ie environment=&quot;myenv.&quot; will still
+     * allow access of environment variables through &quot;myenv.PATH&quot; and
+     * &quot;myenv.TERM&quot;. This functionality is currently only implemented
+     * on select platforms. Feel free to send patches to increase the number of platforms
+     * this functionality is supported on ;).<br>
+     * Note also that properties are case sensitive, even if the
+     * environment variables on your operating system are not, e.g. it
+     * will be ${env.Path} not ${env.PATH} on Windows 2000.
+     * @param env prefix
+     *
+     * @ant.attribute group="noname"
+     */
     public void setEnvironment(String env) {
         this.env = env;
     }
@@ -299,7 +290,7 @@ public class Property extends Task {
     /**
      * @deprecated This was never a supported feature and has been
      * deprecated without replacement
-     * @ant.setter skip="true"
+     * @ant.attribute ignore="true"
      */
     public void setUserProperty(boolean userProperty) {
         log("DEPRECATED: Ignoring request to set user property in Property"
@@ -331,16 +322,16 @@ public class Property extends Task {
                                          getLocation());
             }
         } else {
-            if (file == null && resource == null && env == null) {
-                throw new BuildException("You must specify file, resource or "
+            if (url == null && file == null && resource == null && env == null) {
+                throw new BuildException("You must specify url, file, resource or "
                                          + "environment when not using the "
                                          + "name attribute", getLocation());
             }
         }
 
-        if (file == null && resource == null && prefix != null) {
+        if (url == null && file == null && resource == null && prefix != null) {
             throw new BuildException("Prefix is only valid when loading from "
-                                     + "a file or resource", getLocation());
+                                     + "a url, file or resource", getLocation());
         }
 
         if ((name != null) && (value != null)) {
@@ -349,6 +340,10 @@ public class Property extends Task {
 
         if (file != null) {
             loadFile(file);
+        }
+
+        if (url != null) {
+            loadUrl(url);
         }
 
         if (resource != null) {
@@ -373,6 +368,29 @@ public class Property extends Task {
             }
         }
     }
+
+    /**
+     * load properties from a url
+     * @param url url to load from
+     */
+    protected void loadUrl(URL url) throws BuildException {
+        Properties props = new Properties();
+        log("Loading " + url, Project.MSG_VERBOSE);
+        try {
+            InputStream is = url.openStream();
+            try {
+                props.load(is);
+            } finally {
+                if (is != null) {
+                    is.close();
+                }
+            }
+            addProperties(props);
+        } catch (IOException ex) {
+            throw new BuildException(ex, getLocation());
+        }
+    }
+
 
     /**
      * load properties from a file
@@ -413,7 +431,7 @@ public class Property extends Task {
             ClassLoader cL = null;
 
             if (classpath != null) {
-                cL = new AntClassLoader(getProject(), classpath);
+                cL = getProject().createClassLoader(classpath);
             } else {
                 cL = this.getClass().getClassLoader();
             }
@@ -436,7 +454,9 @@ public class Property extends Task {
             if (is != null) {
                 try {
                     is.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                    // ignore
+                }
             }
         }
 
@@ -511,45 +531,57 @@ public class Property extends Task {
     private void resolveAllProperties(Properties props) throws BuildException {
         for (Enumeration e = props.keys(); e.hasMoreElements();) {
             String name = (String) e.nextElement();
-            String value = props.getProperty(name);
+            Stack referencesSeen = new Stack();
+            resolve(props, name, referencesSeen);
+        }
+    }
 
-            boolean resolved = false;
-            while (!resolved) {
-                Vector fragments = new Vector();
-                Vector propertyRefs = new Vector();
-                ProjectHelper.parsePropertyString(value, fragments,
-                                                  propertyRefs);
+    /**
+     * Recursively expand the named property using the project's
+     * reference table and the given set of properties - fail if a
+     * circular definition is detected.
+     *
+     * @param props properties object to resolve
+     * @param name of the property to resolve
+     * @param referencesSeen stack of all property names that have
+     * been tried to expand before coming here.
+     */
+    private void resolve(Properties props, String name, Stack referencesSeen)
+        throws BuildException {
+        if (referencesSeen.contains(name)) {
+            throw new BuildException("Property " + name + " was circularly "
+                                     + "defined.");
+        }
 
-                resolved = true;
-                if (propertyRefs.size() != 0) {
-                    StringBuffer sb = new StringBuffer();
-                    Enumeration i = fragments.elements();
-                    Enumeration j = propertyRefs.elements();
-                    while (i.hasMoreElements()) {
-                        String fragment = (String) i.nextElement();
-                        if (fragment == null) {
-                            String propertyName = (String) j.nextElement();
-                            if (propertyName.equals(name)) {
-                                throw new BuildException("Property " + name
-                                                         + " was circularly "
-                                                         + "defined.");
-                            }
-                            fragment = getProject().getProperty(propertyName);
-                            if (fragment == null) {
-                                if (props.containsKey(propertyName)) {
-                                    fragment = props.getProperty(propertyName);
-                                    resolved = false;
-                                } else {
-                                    fragment = "${" + propertyName + "}";
-                                }
-                            }
+        String value = props.getProperty(name);
+        Vector fragments = new Vector();
+        Vector propertyRefs = new Vector();
+        ProjectHelper.parsePropertyString(value, fragments, propertyRefs);
+
+        if (propertyRefs.size() != 0) {
+            referencesSeen.push(name);
+            StringBuffer sb = new StringBuffer();
+            Enumeration i = fragments.elements();
+            Enumeration j = propertyRefs.elements();
+            while (i.hasMoreElements()) {
+                String fragment = (String) i.nextElement();
+                if (fragment == null) {
+                    String propertyName = (String) j.nextElement();
+                    fragment = getProject().getProperty(propertyName);
+                    if (fragment == null) {
+                        if (props.containsKey(propertyName)) {
+                            resolve(props, propertyName, referencesSeen);
+                            fragment = props.getProperty(propertyName);
+                        } else {
+                            fragment = "${" + propertyName + "}";
                         }
-                        sb.append(fragment);
                     }
-                    value = sb.toString();
-                    props.put(name, value);
                 }
+                sb.append(fragment);
             }
+            value = sb.toString();
+            props.put(name, value);
+            referencesSeen.pop();
         }
     }
 }

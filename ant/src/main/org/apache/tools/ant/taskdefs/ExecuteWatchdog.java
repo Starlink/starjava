@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
@@ -66,39 +29,37 @@ import org.apache.tools.ant.util.Watchdog;
  * Execute exec = new Execute(myloghandler, watchdog);
  * exec.setCommandLine(mycmdline);
  * int exitvalue = exec.execute();
- * if (exitvalue != SUCCESS && watchdog.killedProcess()){
+ * if (Execute.isFailure(exitvalue) &amp;&amp; watchdog.killedProcess()) {
  *              // it was killed on purpose by the watchdog
  * }
  * </pre>
- 
- * @author thomas.haas@softwired-inc.com
- * @author <a href="mailto:sbailliez_at_apache.org">Stephane Bailliez</a>
+
  * @see Execute
  * @see org.apache.tools.ant.util.Watchdog
  * @since Ant 1.2
  */
 public class ExecuteWatchdog implements TimeoutObserver {
-        
+
     /** the process to execute and watch for duration */
     private Process process;
 
-    /** say whether or not the watchog is currently monitoring a process */
+    /** say whether or not the watchdog is currently monitoring a process */
     private boolean watch = false;
-        
+
     /** exception that might be thrown during the process execution */
     private Exception caught = null;
 
     /** say whether or not the process was killed due to running overtime */
     private boolean     killedProcess = false;
 
-    /** will tell us whether timeout has occured */
+    /** will tell us whether timeout has occurred */
     private Watchdog watchdog;
 
     /**
      * Creates a new watchdog with a given timeout.
      *
-     * @param timeout the timeout for the process in milliseconds. 
-     * It must be greather than 0.
+     * @param timeout the timeout for the process in milliseconds.
+     * It must be greater than 0.
      */
     public ExecuteWatchdog(long timeout) {
         watchdog = new Watchdog(timeout);
@@ -111,7 +72,7 @@ public class ExecuteWatchdog implements TimeoutObserver {
      * (1.4.x compatibility)
      */
     public ExecuteWatchdog(int timeout) {
-        this((long)timeout);
+        this((long) timeout);
     }
 
     /**
@@ -135,7 +96,7 @@ public class ExecuteWatchdog implements TimeoutObserver {
     }
 
     /**
-     * Stops the watcher. It will notify all threads possibly waiting 
+     * Stops the watcher. It will notify all threads possibly waiting
      * on this object.
      */
     public synchronized void stop() {
@@ -153,10 +114,10 @@ public class ExecuteWatchdog implements TimeoutObserver {
                 // We must check if the process was not stopped
                 // before being here
                 process.exitValue();
-            } catch (IllegalThreadStateException itse){
+            } catch (IllegalThreadStateException itse) {
                 // the process is not terminated, if this is really
                 // a timeout and not a manual stop then kill it.
-                if (watch){
+                if (watch) {
                     killedProcess = true;
                     process.destroy();
                 }
@@ -177,11 +138,11 @@ public class ExecuteWatchdog implements TimeoutObserver {
     }
 
     /**
-     * This method will rethrow the exception that was possibly caught during 
-     * the run of the process. It will only remains valid once the process has 
-     * been terminated either by 'error', timeout or manual intervention. 
+     * This method will rethrow the exception that was possibly caught during
+     * the run of the process. It will only remains valid once the process has
+     * been terminated either by 'error', timeout or manual intervention.
      * Information will be discarded once a new process is ran.
-     * @throws  BuildException  a wrapped exception over the one that was 
+     * @throws  BuildException  a wrapped exception over the one that was
      * silently swallowed and stored during the process run.
      */
     public void checkException() throws BuildException {
@@ -193,19 +154,19 @@ public class ExecuteWatchdog implements TimeoutObserver {
 
     /**
      * Indicates whether or not the watchdog is still monitoring the process.
-     * @return  <tt>true</tt> if the process is still running, otherwise 
+     * @return  <tt>true</tt> if the process is still running, otherwise
      *          <tt>false</tt>.
      */
-    public boolean isWatching(){
+    public boolean isWatching() {
         return watch;
     }
 
     /**
      * Indicates whether the last process run was killed on timeout or not.
-     * @return  <tt>true</tt> if the process was killed otherwise 
+     * @return  <tt>true</tt> if the process was killed otherwise
      *          <tt>false</tt>.
      */
-    public boolean killedProcess(){
+    public boolean killedProcess() {
         return killedProcess;
     }
 }

@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>EAR Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -40,7 +41,19 @@ attributes of zipfilesets in a Zip or Jar task.)</p>
   </tr>
   <tr>
     <td valign="top">compress</td>
-    <td valign="top">Not only store data but also compress them, defaults to true</td>
+    <td valign="top">Not only store data but also compress them,
+    defaults to true.  Unless you set the <em>keepcompression</em>
+    attribute to false, this will apply to the entire archive, not
+    only the files you've added while updating.</td>
+    <td align="center" valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">keepcompression</td>
+    <td valign="top">For entries coming from existing archives (like
+    nested <em>zipfileset</em>s or while updating the archive), keep
+    the compression as it has been originally instead of using the
+    <em>compress</em> attribute.  Defaults false.  <em>Since Ant
+    1.6</em></td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
@@ -102,6 +115,20 @@ attributes of zipfilesets in a Zip or Jar task.)</p>
     <td valign="top">behavior when a duplicate file is found.  Valid values are &quot;add&quot;, &quot;preserve&quot;, and &quot;fail&quot;.  The default value is &quot;add&quot;.  </td>
     <td valign="top" align="center">No</td>
   </tr>
+  <tr>
+    <td valign="top">roundup</td>
+    <td valign="top">Whether the file modification times will be
+    rounded up to the next even number of seconds.<br>
+    Zip archives store file modification times with a granularity of
+    two seconds, so the times will either be rounded up or down.  If
+    you round down, the archive will always seem out-of-date when you
+    rerun the task, so the default is to round up.  Rounding up may
+    lead to a different type of problems like JSPs inside a web
+    archive that seem to be slightly more recent than precompiled
+    pages, rendering precompilation useless.<br>
+    Defaults to true.  <em>Since Ant 1.6.2</em></td>
+    <td align="center" valign="top">No</td>
+  </tr>
 </table>
 <h3>Nested elements</h3>
 <h4>metainf</h4>
@@ -117,7 +144,7 @@ ignored and you will get a warning.</p>
     &lt;/ear&gt;
 </pre>
 <hr>
-<p align="center">Copyright &copy; 2001-2003 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2001-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>

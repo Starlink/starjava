@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
@@ -67,12 +30,8 @@ import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.StringUtils;
 
 /**
- * Will set the given property if the requested resource is available at 
+ * Will set the given property if the requested resource is available at
  * runtime. This task may also be used as a condition by the condition task.
- *
- * @author Stefano Mazzocchi 
- *         <a href="mailto:stefano@apache.org">stefano@apache.org</a>
- * @author Magesh Umasankar
  *
  * @since Ant 1.1
  *
@@ -94,7 +53,7 @@ public class Available extends Task implements Condition {
 
     /**
      * Set the classpath to be used when searching for classes and resources.
-     * 
+     *
      * @param classpath an Ant Path object containing the search path.
      */
     public void setClasspath(Path classpath) {
@@ -116,7 +75,7 @@ public class Available extends Task implements Condition {
     /**
      * Set the classpath by reference.
      *
-     * @param r a Reference to a Path instance to be used as the classpath 
+     * @param r a Reference to a Path instance to be used as the classpath
      *          value.
      */
     public void setClasspathRef(Reference r) {
@@ -166,7 +125,7 @@ public class Available extends Task implements Condition {
     }
 
     /**
-     * Set a classname of a class which must be available to set the given 
+     * Set a classname of a class which must be available to set the given
      * property.
      *
      * @param classname the name of the class required.
@@ -202,6 +161,7 @@ public class Available extends Task implements Condition {
      *             setType(Available.FileDir) to make Ant's Introspection
      *             mechanism do the work and also to encapsulate operations on
      *             the type in its own class.
+     * @param type the type of resource
      */
     public void setType(String type) {
         log("DEPRECATED - The setType(String) method has been deprecated."
@@ -214,7 +174,7 @@ public class Available extends Task implements Condition {
      * Set what type of file is required - either directory or file.
      *
      * @param type an instance of the FileDir enumeratedAttribute indicating
-     *             whether the file required is to be a directory or a plain 
+     *             whether the file required is to be a directory or a plain
      *             file.
      */
     public void setType(FileDir type) {
@@ -238,7 +198,7 @@ public class Available extends Task implements Condition {
      */
     public void execute() throws BuildException {
         if (property == null) {
-            throw new BuildException("property attribute is required", 
+            throw new BuildException("property attribute is required",
                                      getLocation());
         }
 
@@ -282,7 +242,7 @@ public class Available extends Task implements Condition {
 
         if (classpath != null) {
             classpath.setProject(getProject());
-            this.loader = new AntClassLoader(getProject(), classpath);
+            this.loader = getProject().createClassLoader(classpath);
         }
 
         String appendix = "";
@@ -293,14 +253,14 @@ public class Available extends Task implements Condition {
         }
 
         if ((classname != null) && !checkClass(classname)) {
-            log("Unable to load class " + classname + appendix, 
+            log("Unable to load class " + classname + appendix,
                 Project.MSG_VERBOSE);
             return false;
         }
 
         if ((file != null) && !checkFile()) {
             if (type != null) {
-                log("Unable to find " + type + " " + file + appendix, 
+                log("Unable to find " + type + " " + file + appendix,
                     Project.MSG_VERBOSE);
             } else {
                 log("Unable to find " + file + appendix, Project.MSG_VERBOSE);
@@ -309,7 +269,7 @@ public class Available extends Task implements Condition {
         }
 
         if ((resource != null) && !checkResource(resource)) {
-            log("Unable to load resource " + resource + appendix, 
+            log("Unable to load resource " + resource + appendix,
                 Project.MSG_VERBOSE);
             return false;
         }
@@ -327,7 +287,7 @@ public class Available extends Task implements Condition {
     }
 
     /**
-     * Search for file/directory either either relative to project's
+     * Search for file/directory either relative to project's
      * basedir or in the path given as filepath.
      *
      * <p>filepath can be a list of directory and/or file names (gen'd
@@ -464,8 +424,9 @@ public class Available extends Task implements Condition {
         try {
             Class requiredClass = null;
             if (ignoreSystemclasses) {
-                loader = new AntClassLoader(null, getProject(), classpath, 
-                                            false);
+                loader = getProject().createClassLoader(classpath);
+                loader.setParentFirst(false);
+                loader.addJavaLibraries();
                 if (loader != null) {
                     try {
                         requiredClass = loader.findClass(classname);
@@ -485,12 +446,11 @@ public class Available extends Task implements Condition {
                 // Can return null to represent the bootstrap class loader.
                 // see API docs of Class.getClassLoader.
                 if (l != null) {
-                    requiredClass = l.loadClass(classname);
+                    requiredClass = Class.forName(classname, true, l);
                 } else {
                     requiredClass = Class.forName(classname);
                 }
             }
-            AntClassLoader.initializeClass(requiredClass);
             return true;
         } catch (ClassNotFoundException e) {
             log("class \"" + classname + "\" was not found",
@@ -510,13 +470,13 @@ public class Available extends Task implements Condition {
      */
     public static class FileDir extends EnumeratedAttribute {
 
-        private static final String[] values = {"file", "dir"};
+        private static final String[] VALUES = {"file", "dir"};
 
         /**
          * @see EnumeratedAttribute#getValues
          */
         public String[] getValues() {
-            return values;
+            return VALUES;
         }
 
         /**

@@ -1,75 +1,46 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.IOException;
-import java.util.Hashtable;
-import java.util.Vector;
-import java.util.Properties;
-import java.util.Enumeration;
-import java.util.Stack;
+import java.io.EOFException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-
-import org.apache.tools.ant.types.FilterSet;
-import org.apache.tools.ant.types.FilterSetCollection;
-import org.apache.tools.ant.util.FileUtils;
-import org.apache.tools.ant.util.JavaEnvUtils;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Stack;
+import java.util.Vector;
+import java.util.Set;
+import java.util.HashSet;
 import org.apache.tools.ant.input.DefaultInputHandler;
 import org.apache.tools.ant.input.InputHandler;
+import org.apache.tools.ant.types.FilterSet;
+import org.apache.tools.ant.types.FilterSetCollection;
+import org.apache.tools.ant.types.Description;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.util.FileUtils;
+import org.apache.tools.ant.util.JavaEnvUtils;
+import org.apache.tools.ant.util.StringUtils;
+
 
 /**
  * Central representation of an Ant project. This class defines an
@@ -81,13 +52,10 @@ import org.apache.tools.ant.input.InputHandler;
  * to using abstract path names which are translated to native system
  * file paths at runtime.
  *
- * @author duncan@x180.com
- *
- * @version $Revision: 1.108.2.12 $
+ * @version $Revision: 1.154.2.10 $
  */
 
 public class Project {
-
     /** Message priority of "error". */
     public static final int MSG_ERR = 0;
     /** Message priority of "warning". */
@@ -109,6 +77,13 @@ public class Project {
      * traversing a DFS of target dependencies.
      */
     private static final String VISITED = "VISITED";
+
+    /**
+     * The class name of the Ant class loader to use for
+     * JDK 1.2 and above
+     */
+    private static final String ANTCLASSLOADER_JDK12
+        = "org.apache.tools.ant.loader.AntClassLoader2";
 
     /**
      * Version constant for Java 1.0
@@ -151,41 +126,22 @@ public class Project {
     /** Description for this project (if any). */
     private String description;
 
-    /** Project properties map (usually String to String). */
-    private Hashtable properties = new Hashtable();
-    /**
-     * Map of "user" properties (as created in the Ant task, for example).
-     * Note that these key/value pairs are also always put into the
-     * project properties, so only the project properties need to be queried.
-     * Mapping is String to String.
-     */
-    private Hashtable userProperties = new Hashtable();
-    /**
-     * Map of inherited "user" properties - that are those "user"
-     * properties that have been created by tasks and not been set
-     * from the command line or a GUI tool.
-     * Mapping is String to String.
-     */
-    private Hashtable inheritedProperties = new Hashtable();
+
     /** Map of references within the project (paths etc) (String to Object). */
-    private Hashtable references = new Hashtable();
+    private Hashtable references = new AntRefTable(this);
 
     /** Name of the project's default target. */
     private String defaultTarget;
-    /** Map from data type names to implementing classes (String to Class). */
-    private Hashtable dataClassDefinitions = new Hashtable();
-    /** Map from task names to implementing classes (String to Class). */
-    private Hashtable taskClassDefinitions = new Hashtable();
-    /**
-     * Map from task names to vectors of created tasks
-     * (String to Vector of Task). This is used to invalidate tasks if
-     * the task definition changes.
-     */
-    private Hashtable createdTasks = new Hashtable();
+
     /** Map from target names to targets (String to Target). */
     private Hashtable targets = new Hashtable();
     /** Set of global filters. */
     private FilterSet globalFilterSet = new FilterSet();
+    {
+        // Initialize the globalFileSet's project
+        globalFilterSet.setProject(this);
+    }
+
     /**
      * Wrapper around globalFilterSet. This collection only ever
      * contains one FilterSet, but the wrapper is needed in order to
@@ -209,20 +165,61 @@ public class Project {
     /** Records the latest task to be executed on a thread (Thread to Task). */
     private Hashtable threadTasks = new Hashtable();
 
+    /** Records the latest task to be executed on a thread Group. */
+    private Hashtable threadGroupTasks = new Hashtable();
+
     /**
      * Called to handle any input requests.
      */
     private InputHandler inputHandler = null;
 
     /**
+     * The default input stream used to read any input
+     */
+    private InputStream defaultInputStream = null;
+
+    /**
+     * Keep going flag
+     */
+    private boolean keepGoingMode = false;
+
+    /**
      * Sets the input handler
+     *
+     * @param handler the InputHandler instance to use for gathering input.
      */
     public void setInputHandler(InputHandler handler) {
         inputHandler = handler;
     }
 
     /**
+     * Set the default System input stream. Normally this stream is set to
+     * System.in. This inputStream is used when no task input redirection is
+     * being performed.
+     *
+     * @param defaultInputStream the default input stream to use when input
+     *        is requested.
+     * @since Ant 1.6
+     */
+    public void setDefaultInputStream(InputStream defaultInputStream) {
+        this.defaultInputStream = defaultInputStream;
+    }
+
+    /**
+     * Get this project's input stream
+     *
+     * @return the InputStream instance in use by this Project instance to
+     * read input
+     */
+    public InputStream getDefaultInputStream() {
+        return defaultInputStream;
+    }
+
+    /**
      * Retrieves the current input handler.
+     *
+     * @return the InputHandler instance currently in place for the project
+     *         instance.
      */
     public InputHandler getInputHandler() {
         return inputHandler;
@@ -231,17 +228,27 @@ public class Project {
     /** Instance of a utility class to use for file operations. */
     private FileUtils fileUtils;
 
-    /** 
-     * Flag which catches Listeners which try to use System.out or System.err 
+    /**
+     * Flag which catches Listeners which try to use System.out or System.err
      */
     private boolean loggingMessage = false;
-    
+
     /**
      * Creates a new Ant project.
      */
     public Project() {
         fileUtils = FileUtils.newFileUtils();
         inputHandler = new DefaultInputHandler();
+    }
+
+    /**
+     * inits a sub project - used by taskdefs.Ant
+     * @param subProject the subproject to initialize
+     */
+    public void initSubProject(Project subProject) {
+        ComponentHelper.getComponentHelper(subProject)
+            .initSubProject(ComponentHelper.getComponentHelper(this));
+        subProject.setKeepGoingMode(this.isKeepGoingMode());
     }
 
     /**
@@ -255,65 +262,50 @@ public class Project {
     public void init() throws BuildException {
         setJavaVersionProperty();
 
-        String defs = "/org/apache/tools/ant/taskdefs/defaults.properties";
-
-        try {
-            Properties props = new Properties();
-            InputStream in = this.getClass().getResourceAsStream(defs);
-            if (in == null) {
-                throw new BuildException("Can't load default task list");
-            }
-            props.load(in);
-            in.close();
-
-            Enumeration enum = props.propertyNames();
-            while (enum.hasMoreElements()) {
-                String key = (String) enum.nextElement();
-                String value = props.getProperty(key);
-                try {
-                    Class taskClass = Class.forName(value);
-                    addTaskDefinition(key, taskClass);
-                } catch (NoClassDefFoundError ncdfe) {
-                    log("Could not load a dependent class ("
-                        + ncdfe.getMessage() + ") for task " + key, MSG_DEBUG);
-                } catch (ClassNotFoundException cnfe) {
-                    log("Could not load class (" + value
-                        + ") for task " + key, MSG_DEBUG);
-                }
-            }
-        } catch (IOException ioe) {
-            throw new BuildException("Can't load default task list");
-        }
-
-        String dataDefs = "/org/apache/tools/ant/types/defaults.properties";
-
-        try {
-            Properties props = new Properties();
-            InputStream in = this.getClass().getResourceAsStream(dataDefs);
-            if (in == null) {
-                throw new BuildException("Can't load default datatype list");
-            }
-            props.load(in);
-            in.close();
-
-            Enumeration enum = props.propertyNames();
-            while (enum.hasMoreElements()) {
-                String key = (String) enum.nextElement();
-                String value = props.getProperty(key);
-                try {
-                    Class dataClass = Class.forName(value);
-                    addDataTypeDefinition(key, dataClass);
-                } catch (NoClassDefFoundError ncdfe) {
-                    // ignore...
-                } catch (ClassNotFoundException cnfe) {
-                    // ignore...
-                }
-            }
-        } catch (IOException ioe) {
-            throw new BuildException("Can't load default datatype list");
-        }
+        ComponentHelper.getComponentHelper(this).initDefaultDefinitions();
 
         setSystemProperties();
+    }
+
+    /**
+     * Factory method to create a class loader for loading classes
+     *
+     * @return an appropriate classloader
+     */
+    private AntClassLoader createClassLoader() {
+        AntClassLoader loader = null;
+        if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
+            try {
+                // 1.2+ - create advanced helper dynamically
+                Class loaderClass
+                    = Class.forName(ANTCLASSLOADER_JDK12);
+                loader = (AntClassLoader) loaderClass.newInstance();
+            } catch (Exception e) {
+                    log("Unable to create Class Loader: "
+                        + e.getMessage(), Project.MSG_DEBUG);
+            }
+        }
+
+        if (loader == null) {
+            loader = new AntClassLoader();
+        }
+
+        loader.setProject(this);
+        return loader;
+    }
+
+    /**
+     * Factory method to create a class loader for loading classes from
+     * a given path
+     *
+     * @param path the path from which classes are to be loaded.
+     *
+     * @return an appropriate classloader
+     */
+    public AntClassLoader createClassLoader(Path path) {
+        AntClassLoader loader = createClassLoader();
+        loader.setClassPath(path);
+        return loader;
     }
 
     /**
@@ -346,8 +338,12 @@ public class Project {
      * @param listener The listener to add to the list.
      *                 Must not be <code>null</code>.
      */
-    public void addBuildListener(BuildListener listener) {
-        listeners.addElement(listener);
+    public synchronized void addBuildListener(BuildListener listener) {
+        // create a new Vector to avoid ConcurrentModificationExc when
+        // the listeners get added/removed while we are in fire
+        Vector newListeners = getBuildListeners();
+        newListeners.addElement(listener);
+        listeners = newListeners;
     }
 
     /**
@@ -357,12 +353,16 @@ public class Project {
      * @param listener The listener to remove from the list.
      *                 Should not be <code>null</code>.
      */
-    public void removeBuildListener(BuildListener listener) {
-        listeners.removeElement(listener);
+    public synchronized void removeBuildListener(BuildListener listener) {
+        // create a new Vector to avoid ConcurrentModificationExc when
+        // the listeners get added/removed while we are in fire
+        Vector newListeners = getBuildListeners();
+        newListeners.removeElement(listener);
+        listeners = newListeners;
     }
 
     /**
-     * Returns a list of build listeners for the project. 
+     * Returns a copy of the list of build listeners for the project.
      *
      * @return a list of build listeners for the project
      */
@@ -427,21 +427,9 @@ public class Project {
      * @param value The new value of the property.
      *              Must not be <code>null</code>.
      */
-    public synchronized void setProperty(String name, String value) {
-        // command line properties take precedence
-        if (null != userProperties.get(name)) {
-            log("Override ignored for user property " + name, MSG_VERBOSE);
-            return;
-        }
-
-        if (null != properties.get(name)) {
-            log("Overriding previous definition of property " + name,
-                MSG_VERBOSE);
-        }
-
-        log("Setting project property: " + name + " -> " +
-             value, MSG_DEBUG);
-        properties.put(name, value);
+    public void setProperty(String name, String value) {
+        PropertyHelper.getPropertyHelper(this).
+                setProperty(null, name, value, true);
     }
 
     /**
@@ -455,14 +443,9 @@ public class Project {
      *              Must not be <code>null</code>.
      * @since 1.5
      */
-    public synchronized void setNewProperty(String name, String value) {
-        if (null != properties.get(name)) {
-            log("Override ignored for property " + name, MSG_VERBOSE);
-            return;
-        }
-        log("Setting project property: " + name + " -> " +
-            value, MSG_DEBUG);
-        properties.put(name, value);
+    public void setNewProperty(String name, String value) {
+        PropertyHelper.getPropertyHelper(this).setNewProperty(null, name,
+                                                              value);
     }
 
     /**
@@ -474,11 +457,9 @@ public class Project {
      *              Must not be <code>null</code>.
      * @see #setProperty(String,String)
      */
-    public synchronized void setUserProperty(String name, String value) {
-        log("Setting ro project property: " + name + " -> " +
-            value, MSG_DEBUG);
-        userProperties.put(name, value);
-        properties.put(name, value);
+    public void setUserProperty(String name, String value) {
+        PropertyHelper.getPropertyHelper(this).setUserProperty(null, name,
+                                                               value);
     }
 
     /**
@@ -493,9 +474,9 @@ public class Project {
      *              Must not be <code>null</code>.
      * @see #setProperty(String,String)
      */
-    public synchronized void setInheritedProperty(String name, String value) {
-        inheritedProperties.put(name, value);
-        setUserProperty(name, value);
+    public void setInheritedProperty(String name, String value) {
+        PropertyHelper ph = PropertyHelper.getPropertyHelper(this);
+        ph.setInheritedProperty(null, name, value);
     }
 
     /**
@@ -507,10 +488,8 @@ public class Project {
      * @param value The property value. Must not be <code>null</code>.
      */
     private void setPropertyInternal(String name, String value) {
-        if (null != userProperties.get(name)) {
-            return;
-        }
-        properties.put(name, value);
+        PropertyHelper ph = PropertyHelper.getPropertyHelper(this);
+        ph.setProperty(null, name, value, false);
     }
 
     /**
@@ -523,11 +502,8 @@ public class Project {
      *         or if a <code>null</code> name is provided.
      */
     public String getProperty(String name) {
-        if (name == null) {
-          return null;
-        }
-        String property = (String) properties.get(name);
-        return property;
+        PropertyHelper ph = PropertyHelper.getPropertyHelper(this);
+        return (String) ph.getProperty(null, name);
     }
 
     /**
@@ -546,7 +522,8 @@ public class Project {
      */
     public String replaceProperties(String value)
         throws BuildException {
-        return ProjectHelper.replaceProperties(this, value, properties);
+        PropertyHelper ph = PropertyHelper.getPropertyHelper(this);
+        return ph.replaceProperties(null, value, null);
     }
 
     /**
@@ -559,11 +536,8 @@ public class Project {
      *         or if a <code>null</code> name is provided.
      */
      public String getUserProperty(String name) {
-        if (name == null) {
-            return null;
-        }
-        String property = (String) userProperties.get(name);
-        return property;
+        PropertyHelper ph = PropertyHelper.getPropertyHelper(this);
+        return (String) ph.getUserProperty(null, name);
     }
 
     /**
@@ -572,16 +546,8 @@ public class Project {
      *         (including user properties).
      */
     public Hashtable getProperties() {
-        Hashtable propertiesCopy = new Hashtable();
-
-        Enumeration e = properties.keys();
-        while (e.hasMoreElements()) {
-            Object name = e.nextElement();
-            Object value = properties.get(name);
-            propertiesCopy.put(name, value);
-        }
-
-        return propertiesCopy;
+        PropertyHelper ph = PropertyHelper.getPropertyHelper(this);
+        return ph.getProperties();
     }
 
     /**
@@ -589,16 +555,8 @@ public class Project {
      * @return a hashtable containing just the user properties
      */
     public Hashtable getUserProperties() {
-        Hashtable propertiesCopy = new Hashtable();
-
-        Enumeration e = userProperties.keys();
-        while (e.hasMoreElements()) {
-            Object name = e.nextElement();
-            Object value = properties.get(name);
-            propertiesCopy.put(name, value);
-        }
-
-        return propertiesCopy;
+        PropertyHelper ph = PropertyHelper.getPropertyHelper(this);
+        return ph.getUserProperties();
     }
 
     /**
@@ -614,15 +572,8 @@ public class Project {
      * @since Ant 1.5
      */
     public void copyUserProperties(Project other) {
-        Enumeration e = userProperties.keys();
-        while (e.hasMoreElements()) {
-            Object arg = e.nextElement();
-            if (inheritedProperties.containsKey(arg)) {
-                continue;
-            }
-            Object value = userProperties.get(arg);
-            other.setUserProperty(arg.toString(), value.toString());
-        }
+        PropertyHelper ph = PropertyHelper.getPropertyHelper(this);
+        ph.copyUserProperties(other);
     }
 
     /**
@@ -638,15 +589,8 @@ public class Project {
      * @since Ant 1.5
      */
     public void copyInheritedProperties(Project other) {
-        Enumeration e = inheritedProperties.keys();
-        while (e.hasMoreElements()) {
-            String arg = e.nextElement().toString();
-            if (other.getUserProperty(arg) != null) {
-                continue;
-            }
-            Object value = inheritedProperties.get(arg);
-            other.setInheritedProperty(arg, value.toString());
-        }
+        PropertyHelper ph = PropertyHelper.getPropertyHelper(this);
+        ph.copyInheritedProperties(other);
     }
 
     /**
@@ -721,6 +665,10 @@ public class Project {
      *         been set.
      */
     public String getDescription() {
+        if (description == null) {
+            description = Description.getDescription(this);
+        }
+
         return description;
     }
 
@@ -795,7 +743,7 @@ public class Project {
         this.baseDir = baseDir;
         setPropertyInternal("basedir", this.baseDir.getPath());
         String msg = "Project base dir set to: " + this.baseDir;
-        log(msg, MSG_VERBOSE);
+         log(msg, MSG_VERBOSE);
     }
 
     /**
@@ -813,6 +761,26 @@ public class Project {
             }
         }
         return baseDir;
+    }
+
+    /**
+     * Sets "keep-going" mode. In this mode ANT will try to execute
+     * as many targets as possible. All targets that do not depend
+     * on failed target(s) will be executed.
+     * @param keepGoingMode "keep-going" mode
+     * @since Ant 1.6
+     */
+    public void setKeepGoingMode(boolean keepGoingMode) {
+        this.keepGoingMode = keepGoingMode;
+    }
+
+    /**
+     * Returns the keep-going mode.
+     * @return "keep-going" mode
+     * @since Ant 1.6
+     */
+    public boolean isKeepGoingMode() {
+        return this.keepGoingMode;
     }
 
     /**
@@ -886,42 +854,8 @@ public class Project {
      */
     public void addTaskDefinition(String taskName, Class taskClass)
          throws BuildException {
-        Class old = (Class) taskClassDefinitions.get(taskName);
-        if (null != old) {
-            if (old.equals(taskClass)) {
-                log("Ignoring override for task " + taskName
-                    + ", it is already defined by the same class.",
-                    MSG_VERBOSE);
-                return;
-            } else {
-                int logLevel = MSG_WARN;
-                if (old.getName().equals(taskClass.getName())) {
-                    ClassLoader oldLoader = old.getClassLoader();
-                    ClassLoader newLoader = taskClass.getClassLoader();
-                    // system classloader on older JDKs can be null
-                    if (oldLoader != null 
-                        && newLoader != null
-                        && oldLoader instanceof AntClassLoader
-                        && newLoader instanceof AntClassLoader
-                        && ((AntClassLoader) oldLoader).getClasspath()
-                        .equals(((AntClassLoader) newLoader).getClasspath())
-                        ) {
-                        // same classname loaded from the same
-                        // classpath components
-                        logLevel = MSG_VERBOSE;
-                    }
-                }
-                
-                log("Trying to override old definition of task " + taskName,
-                    logLevel);
-                invalidateCreatedTasks(taskName);
-            }
-        }
-
-        String msg = " +User task: " + taskName + "     " + taskClass.getName();
-        log(msg, MSG_DEBUG);
-        checkTaskClass(taskClass);
-        taskClassDefinitions.put(taskName, taskClass);
+        ComponentHelper.getComponentHelper(this).addTaskDefinition(taskName,
+                taskClass);
     }
 
     /**
@@ -937,6 +871,8 @@ public class Project {
      *                           this exception is thrown.
      */
     public void checkTaskClass(final Class taskClass) throws BuildException {
+        ComponentHelper.getComponentHelper(this).checkTaskClass(taskClass);
+
         if (!Modifier.isPublic(taskClass.getModifiers())) {
             final String message = taskClass + " is not public";
             log(message, Project.MSG_ERR);
@@ -956,6 +892,10 @@ public class Project {
                 + taskClass;
             log(message, Project.MSG_ERR);
             throw new BuildException(message);
+        } catch (LinkageError e) {
+            String message = "Could not load " + taskClass + ": " + e;
+            log(message, Project.MSG_ERR);
+            throw new BuildException(message, e);
         }
         if (!Task.class.isAssignableFrom(taskClass)) {
             TaskAdapter.checkTaskClass(taskClass, this);
@@ -970,7 +910,7 @@ public class Project {
      *         (String to Class).
      */
     public Hashtable getTaskDefinitions() {
-        return taskClassDefinitions;
+        return ComponentHelper.getComponentHelper(this).getTaskDefinitions();
     }
 
     /**
@@ -987,24 +927,8 @@ public class Project {
      *                  Must not be <code>null</code>.
      */
     public void addDataTypeDefinition(String typeName, Class typeClass) {
-        synchronized(dataClassDefinitions) {
-            Class old = (Class) dataClassDefinitions.get(typeName);
-            if (null != old) {
-                if (old.equals(typeClass)) {
-                    log("Ignoring override for datatype " + typeName
-                        + ", it is already defined by the same class.",
-                        MSG_VERBOSE);
-                    return;
-                } else {
-                    log("Trying to override old definition of datatype "
-                        + typeName, MSG_WARN);
-                }
-            }
-            dataClassDefinitions.put(typeName, typeClass);
-        }
-        String msg = " +User datatype: " + typeName + "     "
-            + typeClass.getName();
-        log(msg, MSG_DEBUG);
+        ComponentHelper.getComponentHelper(this).addDataTypeDefinition(typeName,
+                typeClass);
     }
 
     /**
@@ -1015,7 +939,7 @@ public class Project {
      *         (String to Class).
      */
     public Hashtable getDataTypeDefinitions() {
-        return dataClassDefinitions;
+        return ComponentHelper.getComponentHelper(this).getDataTypeDefinitions();
     }
 
     /**
@@ -1029,11 +953,7 @@ public class Project {
      * @see Project#addOrReplaceTarget
      */
     public void addTarget(Target target) throws BuildException {
-        String name = target.getName();
-        if (targets.get(name) != null) {
-            throw new BuildException("Duplicate target: `" + name + "'");
-        }
-        addOrReplaceTarget(name, target);
+        addTarget(target.getName(), target);
     }
 
     /**
@@ -1093,8 +1013,9 @@ public class Project {
     }
 
     /**
-     * Creates a new instance of a task.
-     *
+     * Creates a new instance of a task, adding it to a list of
+     * created tasks for later invalidation. This causes all tasks
+     * to be remembered until the containing project is removed
      * @param taskType The name of the task to create an instance of.
      *                 Must not be <code>null</code>.
      *
@@ -1105,82 +1026,7 @@ public class Project {
      *                           creation fails.
      */
     public Task createTask(String taskType) throws BuildException {
-        Class c = (Class) taskClassDefinitions.get(taskType);
-
-        if (c == null) {
-            return null;
-        }
-
-        try {
-            Object o = c.newInstance();
-            Task task = null;
-            if (o instanceof Task) {
-               task = (Task) o;
-            } else {
-                // "Generic" Bean - use the setter pattern
-                // and an Adapter
-                TaskAdapter taskA = new TaskAdapter();
-                taskA.setProxy(o);
-                task = taskA;
-            }
-            task.setProject(this);
-            task.setTaskType(taskType);
-
-            // set default value, can be changed by the user
-            task.setTaskName(taskType);
-
-            String msg = "   +Task: " + taskType;
-            log (msg, MSG_DEBUG);
-            addCreatedTask(taskType, task);
-            return task;
-        } catch (Throwable t) {
-            String msg = "Could not create task of type: "
-                 + taskType + " due to " + t;
-            throw new BuildException(msg, t);
-        }
-    }
-
-    /**
-     * Keeps a record of all tasks that have been created so that they
-     * can be invalidated if a new task definition overrides the current one.
-     *
-     * @param type The name of the type of task which has been created.
-     *             Must not be <code>null</code>.
-     *
-     * @param task The freshly created task instance.
-     *             Must not be <code>null</code>.
-     */
-    private void addCreatedTask(String type, Task task) {
-        synchronized (createdTasks) {
-            Vector v = (Vector) createdTasks.get(type);
-            if (v == null) {
-                v = new Vector();
-                createdTasks.put(type, v);
-            }
-            v.addElement(task);
-        }
-    }
-
-    /**
-     * Mark tasks as invalid which no longer are of the correct type
-     * for a given taskname.
-     *
-     * @param type The name of the type of task to invalidate.
-     *             Must not be <code>null</code>.
-     */
-    private void invalidateCreatedTasks(String type) {
-        synchronized (createdTasks) {
-            Vector v = (Vector) createdTasks.get(type);
-            if (v != null) {
-                Enumeration enum = v.elements();
-                while (enum.hasMoreElements()) {
-                    Task t = (Task) enum.nextElement();
-                    t.markInvalid();
-                }
-                v.removeAllElements();
-                createdTasks.remove(type);
-            }
-        }
+        return ComponentHelper.getComponentHelper(this).createTask(taskType);
     }
 
     /**
@@ -1196,47 +1042,7 @@ public class Project {
      *                           instance creation fails.
      */
     public Object createDataType(String typeName) throws BuildException {
-        Class c = (Class) dataClassDefinitions.get(typeName);
-
-        if (c == null) {
-            return null;
-        }
-
-        try {
-            java.lang.reflect.Constructor ctor = null;
-            boolean noArg = false;
-            // DataType can have a "no arg" constructor or take a single
-            // Project argument.
-            try {
-                ctor = c.getConstructor(new Class[0]);
-                noArg = true;
-            } catch (NoSuchMethodException nse) {
-                ctor = c.getConstructor(new Class[] {Project.class});
-                noArg = false;
-            }
-
-            Object o = null;
-            if (noArg) {
-                 o = ctor.newInstance(new Object[0]);
-            } else {
-                 o = ctor.newInstance(new Object[] {this});
-            }
-            if (o instanceof ProjectComponent) {
-                ((ProjectComponent) o).setProject(this);
-            }
-            String msg = "   +DataType: " + typeName;
-            log (msg, MSG_DEBUG);
-            return o;
-        } catch (java.lang.reflect.InvocationTargetException ite) {
-            Throwable t = ite.getTargetException();
-            String msg = "Could not create datatype of type: "
-                 + typeName + " due to " + t;
-            throw new BuildException(msg, t);
-        } catch (Throwable t) {
-            String msg = "Could not create datatype of type: "
-                 + typeName + " due to " + t;
-            throw new BuildException(msg, t);
-        }
+        return ComponentHelper.getComponentHelper(this).createDataType(typeName);
     }
 
     /**
@@ -1249,10 +1055,20 @@ public class Project {
      * @exception BuildException if the build failed
      */
     public void executeTargets(Vector targetNames) throws BuildException {
-        Throwable error = null;
 
+        BuildException thrownException = null;
         for (int i = 0; i < targetNames.size(); i++) {
-            executeTarget((String) targetNames.elementAt(i));
+            try {
+                executeTarget((String) targetNames.elementAt(i));
+            } catch (BuildException ex) {
+                if (!(keepGoingMode)) {
+                    throw ex; // Throw further
+                }
+                thrownException = ex;
+            }
+        }
+        if (thrownException != null) {
+            throw thrownException;
         }
     }
 
@@ -1261,20 +1077,65 @@ public class Project {
      * messages. If the current thread is not currently executing a task,
      * the message is logged directly.
      *
-     * @param line Message to handle. Should not be <code>null</code>.
-     * @param isError Whether the text represents an error (<code>true</code>)
+     * @param output Message to handle. Should not be <code>null</code>.
+     * @param isWarning Whether the text represents an warning (<code>true</code>)
      *        or information (<code>false</code>).
      */
-    public void demuxOutput(String line, boolean isError) {
-        Task task = (Task) threadTasks.get(Thread.currentThread());
+    public void demuxOutput(String output, boolean isWarning) {
+        Task task = getThreadTask(Thread.currentThread());
         if (task == null) {
-            fireMessageLogged(this, line, isError ? MSG_ERR : MSG_INFO);
+            log(output, isWarning ? MSG_WARN : MSG_INFO);
         } else {
-            if (isError) {
-                task.handleErrorOutput(line);
+            if (isWarning) {
+                task.handleErrorOutput(output);
             } else {
-                task.handleOutput(line);
+                task.handleOutput(output);
             }
+        }
+    }
+
+    /**
+     * Read data from the default input stream. If no default has been
+     * specified, System.in is used.
+     *
+     * @param buffer the buffer into which data is to be read.
+     * @param offset the offset into the buffer at which data is stored.
+     * @param length the amount of data to read
+     *
+     * @return the number of bytes read
+     *
+     * @exception IOException if the data cannot be read
+     * @since Ant 1.6
+     */
+    public int defaultInput(byte[] buffer, int offset, int length)
+        throws IOException {
+        if (defaultInputStream != null) {
+            System.out.flush();
+            return defaultInputStream.read(buffer, offset, length);
+        } else {
+            throw new EOFException("No input provided for project");
+        }
+    }
+
+    /**
+     * Demux an input request to the correct task.
+     *
+     * @param buffer the buffer into which data is to be read.
+     * @param offset the offset into the buffer at which data is stored.
+     * @param length the amount of data to read
+     *
+     * @return the number of bytes read
+     *
+     * @exception IOException if the data cannot be read
+     * @since Ant 1.6
+     */
+    public int demuxInput(byte[] buffer, int offset, int length)
+        throws IOException {
+        Task task = getThreadTask(Thread.currentThread());
+        if (task == null) {
+            return defaultInput(buffer, offset, length);
+        } else {
+            return task.handleInput(buffer, offset, length);
         }
     }
 
@@ -1285,27 +1146,25 @@ public class Project {
      *
      * @since Ant 1.5.2
      *
-     * @param line Message to handle. Should not be <code>null</code>.
+     * @param output Message to handle. Should not be <code>null</code>.
      * @param isError Whether the text represents an error (<code>true</code>)
      *        or information (<code>false</code>).
-     * @param terminated true if this line should be terminated with an 
-     *        end-of-line marker
      */
-    public void demuxFlush(String line, boolean isError) {
-        Task task = (Task) threadTasks.get(Thread.currentThread());
+    public void demuxFlush(String output, boolean isError) {
+        Task task = getThreadTask(Thread.currentThread());
         if (task == null) {
-            fireMessageLogged(this, line, isError ? MSG_ERR : MSG_INFO);
+            fireMessageLogged(this, output, isError ? MSG_ERR : MSG_INFO);
         } else {
             if (isError) {
-                task.handleErrorFlush(line);
+                task.handleErrorFlush(output);
             } else {
-                task.handleFlush(line);
+                task.handleFlush(output);
             }
         }
     }
 
-    
-    
+
+
     /**
      * Executes the specified target and any targets it depends on.
      *
@@ -1331,13 +1190,70 @@ public class Project {
         // graph.
         Vector sortedTargets = topoSort(targetName, targets);
 
-        int curidx = 0;
-        Target curtarget;
-
-        do {
-            curtarget = (Target) sortedTargets.elementAt(curidx++);
-            curtarget.performTasks();
-        } while (!curtarget.getName().equals(targetName));
+        Set succeededTargets = new HashSet();
+        BuildException buildException = null; // first build exception
+        for (Enumeration iter = sortedTargets.elements();
+             iter.hasMoreElements();) {
+            Target curtarget = (Target) iter.nextElement();
+            boolean canExecute = true;
+            for (Enumeration depIter = curtarget.getDependencies();
+                 depIter.hasMoreElements();) {
+                String dependencyName = ((String) depIter.nextElement());
+                if (!succeededTargets.contains(dependencyName)) {
+                    canExecute = false;
+                    log(curtarget,
+                        "Cannot execute '" + curtarget.getName() + "' - '"
+                        + dependencyName + "' failed or was not executed.",
+                        MSG_ERR);
+                    break;
+                }
+            }
+            if (canExecute) {
+                Throwable thrownException = null;
+                try {
+                    curtarget.performTasks();
+                    succeededTargets.add(curtarget.getName());
+                } catch (RuntimeException ex) {
+                    if (!(keepGoingMode)) {
+                        throw ex; // throw further
+                    }
+                    thrownException = ex;
+                } catch (Throwable ex) {
+                    if (!(keepGoingMode)) {
+                        throw new BuildException(ex);
+                    }
+                    thrownException = ex;
+                }
+                if (thrownException != null) {
+                    if (thrownException instanceof BuildException) {
+                        log(curtarget,
+                            "Target '" + curtarget.getName()
+                            + "' failed with message '"
+                            + thrownException.getMessage() + "'.", MSG_ERR);
+                        // only the first build exception is reported
+                        if (buildException == null) {
+                            buildException = (BuildException) thrownException;
+                        }
+                    } else {
+                        log(curtarget,
+                            "Target '" + curtarget.getName()
+                            + "' failed with message '"
+                            + thrownException.getMessage() + "'.", MSG_ERR);
+                        thrownException.printStackTrace(System.err);
+                        if (buildException == null) {
+                            buildException =
+                                new BuildException(thrownException);
+                        }
+                    }
+                }
+            }
+            if (curtarget.getName().equals(targetName)) { // old exit condition
+                break;
+            }
+        }
+        if (buildException != null) {
+            throw buildException;
+        }
     }
 
     /**
@@ -1630,16 +1546,15 @@ public class Project {
      * or <code>"yes"</code> is found, ignoring case.
      *
      * @param s The string to convert to a boolean value.
-     *          Must not be <code>null</code>.
      *
      * @return <code>true</code> if the given string is <code>"on"</code>,
      *         <code>"true"</code> or <code>"yes"</code>, or
      *         <code>false</code> otherwise.
      */
     public static boolean toBoolean(String s) {
-        return (s.equalsIgnoreCase("on") ||
-                s.equalsIgnoreCase("true") ||
-                s.equalsIgnoreCase("yes"));
+        return ("on".equalsIgnoreCase(s)
+                || "true".equalsIgnoreCase(s)
+                || "yes".equalsIgnoreCase(s));
     }
 
     /**
@@ -1651,8 +1566,7 @@ public class Project {
      *             Must not be <code>null</code>.
      * @param targets A map of names to targets (String to Target).
      *                Must not be <code>null</code>.
-     * @return a vector of strings with the names of the targets in
-     *         sorted order.
+     * @return a vector of Target objects in sorted order.
      * @exception BuildException if there is a cyclic dependency among the
      *                           targets, or if a named target does not exist.
      */
@@ -1719,7 +1633,7 @@ public class Project {
      * @param visiting A stack of targets which are currently being visited.
      *                 Must not be <code>null</code>.
      * @param ret     The list to add target names to. This will end up
-     *                containing the complete list of depenencies in
+     *                containing the complete list of dependencies in
      *                dependency order.
      *                Must not be <code>null</code>.
      *
@@ -1801,7 +1715,7 @@ public class Project {
      */
     public void addReference(String name, Object value) {
         synchronized (references) {
-            Object old = references.get(name);
+            Object old = ((AntRefTable) references).getReal(name);
             if (old == value) {
                 // no warning, this is not changing anything
                 return;
@@ -1810,16 +1724,7 @@ public class Project {
                 log("Overriding previous definition of reference to " + name,
                     MSG_WARN);
             }
-            String valueAsString = "";
-            try {
-                valueAsString = value.toString();
-            } catch (Throwable t) {
-                log("Caught exception (" + t.getClass().getName() +")"
-                    + " while expanding " + name + ": " + t.getMessage(),
-                    MSG_WARN);
-            }
-            log("Adding reference: " + name + " -> " + valueAsString,
-                MSG_DEBUG);
+            log("Adding reference: " + name, MSG_DEBUG);
             references.put(name, value);
         }
     }
@@ -1861,29 +1766,7 @@ public class Project {
      * @since 1.95, Ant 1.5
      */
     public String getElementName(Object element) {
-        Hashtable elements = taskClassDefinitions;
-        Class elementClass = element.getClass();
-        String typeName = "task";
-        if (!elements.contains(elementClass)) {
-            elements = dataClassDefinitions;
-            typeName = "data type";
-            if (!elements.contains(elementClass)) {
-                elements = null;
-            }
-        }
-
-        if (elements != null) {
-            Enumeration e = elements.keys();
-            while (e.hasMoreElements()) {
-                String name = (String) e.nextElement();
-                Class clazz = (Class) elements.get(name);
-                if (elementClass.equals(clazz)) {
-                    return "The <" + name + "> " + typeName;
-                }
-            }
-        }
-
-        return "Class " + elementClass.getName();
+        return ComponentHelper.getComponentHelper(this).getElementName(element);
     }
 
     /**
@@ -1891,9 +1774,9 @@ public class Project {
      */
     public void fireBuildStarted() {
         BuildEvent event = new BuildEvent(this);
-        Vector listeners = getBuildListeners();
-        for (int i = 0; i < listeners.size(); i++) {
-            BuildListener listener = (BuildListener) listeners.elementAt(i);
+        Iterator iter = listeners.iterator();
+        while (iter.hasNext()) {
+            BuildListener listener = (BuildListener) iter.next();
             listener.buildStarted(event);
         }
     }
@@ -1907,13 +1790,50 @@ public class Project {
     public void fireBuildFinished(Throwable exception) {
         BuildEvent event = new BuildEvent(this);
         event.setException(exception);
-        Vector listeners = getBuildListeners();
-        for (int i = 0; i < listeners.size(); i++) {
-            BuildListener listener = (BuildListener) listeners.elementAt(i);
+        Iterator iter = listeners.iterator();
+        while (iter.hasNext()) {
+            BuildListener listener = (BuildListener) iter.next();
             listener.buildFinished(event);
         }
     }
 
+    /**
+     * Sends a "subbuild started" event to the build listeners for
+     * this project.
+     *
+     * @since Ant 1.6.2
+     */
+    public void fireSubBuildStarted() {
+        BuildEvent event = new BuildEvent(this);
+        Iterator iter = listeners.iterator();
+        while (iter.hasNext()) {
+            Object listener = iter.next();
+            if (listener instanceof SubBuildListener) {
+                ((SubBuildListener) listener).subBuildStarted(event);
+            }
+        }
+    }
+
+    /**
+     * Sends a "subbuild finished" event to the build listeners for
+     * this project.
+     * @param exception an exception indicating a reason for a build
+     *                  failure. May be <code>null</code>, indicating
+     *                  a successful build.
+     *
+     * @since Ant 1.6.2
+     */
+    public void fireSubBuildFinished(Throwable exception) {
+        BuildEvent event = new BuildEvent(this);
+        event.setException(exception);
+        Iterator iter = listeners.iterator();
+        while (iter.hasNext()) {
+            Object listener = iter.next();
+            if (listener instanceof SubBuildListener) {
+                ((SubBuildListener) listener).subBuildFinished(event);
+            }
+        }
+    }
 
     /**
      * Sends a "target started" event to the build listeners for this project.
@@ -1923,9 +1843,9 @@ public class Project {
      */
     protected void fireTargetStarted(Target target) {
         BuildEvent event = new BuildEvent(target);
-        Vector listeners = getBuildListeners();
-        for (int i = 0; i < listeners.size(); i++) {
-            BuildListener listener = (BuildListener) listeners.elementAt(i);
+        Iterator iter = listeners.iterator();
+        while (iter.hasNext()) {
+            BuildListener listener = (BuildListener) iter.next();
             listener.targetStarted(event);
         }
     }
@@ -1943,9 +1863,9 @@ public class Project {
     protected void fireTargetFinished(Target target, Throwable exception) {
         BuildEvent event = new BuildEvent(target);
         event.setException(exception);
-        Vector listeners = getBuildListeners();
-        for (int i = 0; i < listeners.size(); i++) {
-            BuildListener listener = (BuildListener) listeners.elementAt(i);
+        Iterator iter = listeners.iterator();
+        while (iter.hasNext()) {
+            BuildListener listener = (BuildListener) iter.next();
             listener.targetFinished(event);
         }
     }
@@ -1960,9 +1880,9 @@ public class Project {
         // register this as the current task on the current thread.
         registerThreadTask(Thread.currentThread(), task);
         BuildEvent event = new BuildEvent(task);
-        Vector listeners = getBuildListeners();
-        for (int i = 0; i < listeners.size(); i++) {
-            BuildListener listener = (BuildListener) listeners.elementAt(i);
+        Iterator iter = listeners.iterator();
+        while (iter.hasNext()) {
+            BuildListener listener = (BuildListener) iter.next();
             listener.taskStarted(event);
         }
     }
@@ -1983,9 +1903,9 @@ public class Project {
         System.err.flush();
         BuildEvent event = new BuildEvent(task);
         event.setException(exception);
-        Vector listeners = getBuildListeners();
-        for (int i = 0; i < listeners.size(); i++) {
-            BuildListener listener = (BuildListener) listeners.elementAt(i);
+        Iterator iter = listeners.iterator();
+        while (iter.hasNext()) {
+            BuildListener listener = (BuildListener) iter.next();
             listener.taskFinished(event);
         }
     }
@@ -2002,20 +1922,29 @@ public class Project {
      */
     private void fireMessageLoggedEvent(BuildEvent event, String message,
                                         int priority) {
-        event.setMessage(message, priority);
-        Vector listeners = getBuildListeners();
-        synchronized(this) {
+
+        if (message.endsWith(StringUtils.LINE_SEP)) {
+            int endIndex = message.length() - StringUtils.LINE_SEP.length();
+            event.setMessage(message.substring(0, endIndex), priority);
+        } else {
+            event.setMessage(message, priority);
+        }
+        synchronized (this) {
             if (loggingMessage) {
-                throw new BuildException("Listener attempted to access " 
-                    + (priority == MSG_ERR ? "System.err" : "System.out") 
+                throw new BuildException("Listener attempted to access "
+                    + (priority == MSG_ERR ? "System.err" : "System.out")
                     + " - infinite loop terminated");
             }
-            loggingMessage = true;                
-            for (int i = 0; i < listeners.size(); i++) {
-                BuildListener listener = (BuildListener) listeners.elementAt(i);
-                listener.messageLogged(event);
+            try {
+                loggingMessage = true;
+                Iterator iter = listeners.iterator();
+                while (iter.hasNext()) {
+                    BuildListener listener = (BuildListener) iter.next();
+                    listener.messageLogged(event);
+                }
+            } finally {
+                loggingMessage = false;
             }
-            loggingMessage = false;
         }
     }
 
@@ -2074,21 +2003,100 @@ public class Project {
     public synchronized void registerThreadTask(Thread thread, Task task) {
         if (task != null) {
             threadTasks.put(thread, task);
+            threadGroupTasks.put(thread.getThreadGroup(), task);
         } else {
             threadTasks.remove(thread);
+            threadGroupTasks.remove(thread.getThreadGroup());
         }
     }
 
     /**
-     * Get the current task assopciated with a thread, if any
+     * Get the current task associated with a thread, if any
      *
      * @param thread the thread for which the task is required.
      * @return the task which is currently registered for the given thread or
      *         null if no task is registered.
      */
     public Task getThreadTask(Thread thread) {
-        return (Task) threadTasks.get(thread);
+        Task task = (Task) threadTasks.get(thread);
+        if (task == null) {
+            ThreadGroup group = thread.getThreadGroup();
+            while (task == null && group != null) {
+                task = (Task) threadGroupTasks.get(group);
+                group = group.getParent();
+            }
+        }
+        return task;
     }
 
 
+    // Should move to a separate public class - and have API to add
+    // listeners, etc.
+    private static class AntRefTable extends Hashtable {
+        private Project project;
+
+        public AntRefTable(Project project) {
+            super();
+            this.project = project;
+        }
+
+        /** Returns the unmodified original object.
+         * This method should be called internally to
+         * get the 'real' object.
+         * The normal get method will do the replacement
+         * of UnknownElement ( this is similar with the JDNI
+         * refs behavior )
+         */
+        public Object getReal(Object key) {
+            return super.get(key);
+        }
+
+        /** Get method for the reference table.
+         *  It can be used to hook dynamic references and to modify
+         * some references on the fly - for example for delayed
+         * evaluation.
+         *
+         * It is important to make sure that the processing that is
+         * done inside is not calling get indirectly.
+         *
+         * @param key
+         * @return
+         */
+        public Object get(Object key) {
+            //System.out.println("AntRefTable.get " + key);
+            Object o = super.get(key);
+            if (o instanceof UnknownElement) {
+                // Make sure that
+                UnknownElement ue = (UnknownElement) o;
+                ue.maybeConfigure();
+                o = ue.getRealThing();
+            }
+            return o;
+        }
+    }
+
+    /**
+     * Set a reference to this Project on the parameterized object.
+     * Need to set the project before other set/add elements
+     * are called
+     * @param obj the object to invoke setProject(this) on
+     */
+    public final void setProjectReference(final Object obj) {
+        if (obj instanceof ProjectComponent) {
+            ((ProjectComponent) obj).setProject(this);
+            return;
+        }
+        try {
+            Method method =
+                obj.getClass().getMethod(
+                    "setProject", new Class[] {Project.class});
+            if (method != null) {
+                method.invoke(obj, new Object[] {this});
+            }
+        } catch (Throwable e) {
+            // ignore this if the object does not have
+            // a set project method or the method
+            // is private/protected.
+        }
+    }
 }

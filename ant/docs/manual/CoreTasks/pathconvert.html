@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>PathConvert Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -19,6 +20,10 @@ of files in a FileList into a path.
 </p>
 <p>Nested <code>&lt;map&gt;</code> elements can be specified to map Windows
 drive letters to Unix paths, and vice-versa.</p>
+<p>More complex transformations can be achieved using a nested
+<a href="../CoreTypes/mapper.html"><code>&lt;mapper&gt;</code></a>
+(since Ant 1.6.2).
+</p>
 
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
@@ -31,7 +36,7 @@ drive letters to Unix paths, and vice-versa.</p>
     <td valign="top">targetos</td>
     <td valign="top">
         The target architecture.  Must be one of 'unix', 'windows', 
-        'netware' or 'os/2'.
+        'netware', 'tandem' or 'os/2'.
         This is a shorthand mechanism for specifying both
         <code>pathsep</code> and <code>dirsep</code>
         according to the specified target architecture.
@@ -114,6 +119,11 @@ prefixes of other <code>from</code> values.</i>
 <p>If the <code>refid</code> attribute is not specified, then a
    nested <code>&lt;path&gt;</code> element must be supplied.  See
    <a href="../using.html#path">Path-like Structures</a> for details.</p>
+<h4>mapper</h4>
+<p>A single nested <a href="../CoreTypes/mapper.html">
+<code>&lt;mapper&gt;</code></a> element can be specified
+to perform any of various filename transformations (since Ant 1.6.2).
+</p>
 
 <h3>Examples</h3>
 <p>In the examples below, assume that the <code>${wl.home}</code> property
@@ -176,7 +186,7 @@ list of files.
 </p>
 
 <hr>
-<p align="center">Copyright &copy; 2001-2002 Apache Software Foundation.
+<p align="center">Copyright &copy; 2001-2004 The Apache Software Foundation.
 All rights Reserved.</p>
 </body>
 </html>

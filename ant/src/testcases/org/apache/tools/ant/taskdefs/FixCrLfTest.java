@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
@@ -62,8 +25,6 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
- * @author <a href="mailto:pbwest@powerup.com.au">Peter B. West</a>
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
  */
 public class FixCrLfTest extends BuildFileTest {
 
@@ -71,69 +32,69 @@ public class FixCrLfTest extends BuildFileTest {
         super(name);
     }
 
-    public void setUp() { 
+    public void setUp() {
         configureProject("src/etc/testcases/taskdefs/fixcrlf/build.xml");
     }
-    
-    public void tearDown() { 
+
+    public void tearDown() {
         executeTarget("cleanup");
     }
-    
-    public void test1() throws IOException { 
+
+    public void test1() throws IOException {
         executeTarget("test1");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/Junk1.java"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk1.java"));
     }
-    
-    public void test2() throws IOException { 
+
+    public void test2() throws IOException {
         executeTarget("test2");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/Junk2.java"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk2.java"));
     }
-    
-    public void test3() throws IOException { 
+
+    public void test3() throws IOException {
         executeTarget("test3");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/Junk3.java"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk3.java"));
     }
-    
-    public void test4() throws IOException { 
+
+    public void test4() throws IOException {
         executeTarget("test4");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/Junk4.java"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk4.java"));
     }
-    
-    public void test5() throws IOException { 
+
+    public void test5() throws IOException {
         executeTarget("test5");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/Junk5.java"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk5.java"));
     }
-    
-    public void test6() throws IOException { 
+
+    public void test6() throws IOException {
         executeTarget("test6");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/Junk6.java"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk6.java"));
     }
-    
-    public void test7() throws IOException { 
+
+    public void test7() throws IOException {
         executeTarget("test7");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/Junk7.java"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk7.java"));
     }
-    
-    public void test8() throws IOException {  
+
+    public void test8() throws IOException {
         executeTarget("test8");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/Junk8.java"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk8.java"));
     }
-    
-    public void test9() throws IOException { 
+
+    public void test9() throws IOException {
         executeTarget("test9");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/Junk9.java"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk9.java"));
     }
-    
-    public void testMacLines() throws IOException { 
+
+    public void testMacLines() throws IOException {
         executeTarget("testMacLines");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/Mac2Unix"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/Mac2Unix"));
@@ -141,7 +102,7 @@ public class FixCrLfTest extends BuildFileTest {
 
     public void testNoOverwrite() throws IOException {
         executeTarget("test1");
-        File result = 
+        File result =
             new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk1.java");
         long modTime = result.lastModified();
 
@@ -156,19 +117,19 @@ public class FixCrLfTest extends BuildFileTest {
             fail(ie.getMessage());
         } // end of try-catch
 
-        /* 
+        /*
          * make sure we get a new Project instance or the target won't get run
          * a second time.
          */
         configureProject("src/etc/testcases/taskdefs/fixcrlf/build.xml");
 
         executeTarget("test1");
-        result = 
+        result =
             new File("src/etc/testcases/taskdefs/fixcrlf/result/Junk1.java");
         assertEquals(modTime, result.lastModified());
     }
 
-    public void testEncoding() throws IOException { 
+    public void testEncoding() throws IOException {
         if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
             // UTF16 is not supported in JDK 1.1
             return;
@@ -177,14 +138,54 @@ public class FixCrLfTest extends BuildFileTest {
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/input.lf.utf16"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/input.crlf.utf16"));
     }
-    
-    public void testLongLines() throws IOException { 
+
+    public void testLongLines() throws IOException {
         executeTarget("testLongLines");
         assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/longlines.lf"),
                            new File("src/etc/testcases/taskdefs/fixcrlf/result/longlines.crlf"));
     }
-    
-    public void assertEqualContent(File expect, File result) 
+
+    public void testCrCrLfSequenceUnix() throws IOException {
+        executeTarget("testCrCrLfSequence-unix");
+        assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/crcrlf.unix"),
+                           new File("src/etc/testcases/taskdefs/fixcrlf/result/crcrlf"));
+    }
+
+    public void testCrCrLfSequenceDos() throws IOException {
+        executeTarget("testCrCrLfSequence-dos");
+        assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/crcrlf.dos"),
+                           new File("src/etc/testcases/taskdefs/fixcrlf/result/crcrlf"));
+    }
+
+    public void testCrCrLfSequenceMac() throws IOException {
+        executeTarget("testCrCrLfSequence-mac");
+        assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/crcrlf.mac"),
+                           new File("src/etc/testcases/taskdefs/fixcrlf/result/crcrlf"));
+    }
+
+    public void testFixlastDos() throws IOException {
+        executeTarget("testFixlastDos");
+        assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/fixlast.dos"),
+                           new File("src/etc/testcases/taskdefs/fixcrlf/result/fixlastfalse.lf"));
+    }
+
+    public void testFixlastFalseMac() throws IOException {
+        executeTarget("testFixlastFalseMac");
+        assertEqualContent(new File("src/etc/testcases/taskdefs/fixcrlf/expected/fixlastfalse.mac"),
+                           new File("src/etc/testcases/taskdefs/fixcrlf/result/fixlastfalse.lf"));
+    }
+
+    /**
+     * Bugzilla Report 20840
+     *
+     * Will fail with an exception if the parent directories do not
+     * get created.
+     */
+    public void testCreateParentDirs() {
+        executeTarget("createParentDirs");
+    }
+
+    public void assertEqualContent(File expect, File result)
         throws AssertionFailedError, IOException {
         if (!result.exists()) {
             fail("Expected file "+result+" doesn\'t exist");

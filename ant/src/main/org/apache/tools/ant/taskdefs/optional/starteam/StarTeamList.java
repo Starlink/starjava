@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.starteam;
 
@@ -62,7 +25,6 @@ import com.starbase.starteam.ViewConfiguration;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Enumeration;
-import java.util.Hashtable;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 
@@ -72,7 +34,6 @@ import org.apache.tools.ant.Project;
  *
  * Created: Tue Dec 25 06:51:14 2001
  *
- * @author <a href="mailto:stevec@ignitesports.com">Steve Cohen</a>
  * @version 1.0
  *
  * @ant.task name="stlist" category="scm"
@@ -82,7 +43,7 @@ public class StarTeamList extends TreeBasedTask {
     private boolean listUncontrolled = true;
     /**
      * List files, dates, and statuses as of this label; optional.
-     * The label must exist in starteam or an exception will be thrown.  
+     * The label must exist in starteam or an exception will be thrown.
      * If not specified, the most recent version of each file will be listed.
      *
      * @param label the label to be listed
@@ -92,9 +53,34 @@ public class StarTeamList extends TreeBasedTask {
     }
 
     /**
+     * List files, dates, and statuses as of this date; optional.
+     * If not specified, the most recent version of each file will be listed.
+     *
+     * @param asOfDateParam the date as of which the listing to be made
+     * @since Ant 1.6
+     */
+    public void setAsOfDate(String asOfDateParam) {
+        _setAsOfDate(asOfDateParam);
+    }
+
+    /**
+     * Date Format with which asOfDate parameter to be parsed; optional.
+     * Must be a SimpleDateFormat compatible string.
+     * If not specified, and asOfDateParam is specified, parse will use ISO8601
+     * datetime and date formats.
+     *
+     * @param asOfDateFormat the SimpleDateFormat-compatible format string
+     * @since Ant 1.6
+     */
+    public void setAsOfDateFormat(String asOfDateFormat) {
+        _setAsOfDateFormat(asOfDateFormat);
+    }
+
+
+    /**
      * Override of base-class abstract function creates an
      * appropriately configured view for checkoutlists - either
-     * the current view or a view from this.label.   
+     * the current view or a view from this.label.
      *
      * @param raw the unconfigured <code>View</code>
      * @return the snapshot <code>View</code> appropriately configured.
@@ -107,18 +93,30 @@ public class StarTeamList extends TreeBasedTask {
         // otherwise use current view
         if (labelID >= 0) {
             return new View(raw, ViewConfiguration.createFromLabel(labelID));
-        } else {
+        }
+        // if a date has been supplied use a view configured to the date.
+        View view = getViewConfiguredByDate(raw);
+        if (view != null) {
+            return view;
+        }
+        // otherwise, use this view configured as the tip.
+        else {
             return new View(raw, ViewConfiguration.createTip());
         }
     }
 
     /**
-     * Required base-class abstract function implementation is a no-op here.
+     * Required base-class abstract function implementation checks for
+     * incompatible parameters.
      *
-     * @exception BuildException not thrown in this implementation
+     * @exception BuildException thrown on incompatible params specified
      */
     protected void testPreconditions() throws BuildException {
-        //intentionally do nothing.
+        if (null != getLabel() && null != getAsOfDate()) {
+            throw new BuildException(
+                "Both label and asOfDate specified.  "
+                + "Unable to process request.");
+        }
     }
 
     /**
@@ -130,15 +128,17 @@ public class StarTeamList extends TreeBasedTask {
      * @param targetrootFolder
      *               root local folder for the operation (whether specified by the user or not.
      */
-    protected void logOperationDescription(Folder starteamrootFolder, java.io.File targetrootFolder) {
-        log((this.isRecursive() ? "Recursive" : "Non-recursive") + 
-            " Listing of: " + starteamrootFolder.getFolderHierarchy());
+    protected void logOperationDescription(Folder starteamrootFolder,
+                                           java.io.File targetrootFolder) {
+        log((this.isRecursive() ? "Recursive" : "Non-recursive")
+            + " Listing of: " + starteamrootFolder.getFolderHierarchy());
 
-        log("Listing against local folder" 
-            + (null == getRootLocalFolder() ? " (default): " : ": ") 
+        log("Listing against local folder"
+            + (null == getRootLocalFolder() ? " (default): " : ": ")
             + targetrootFolder.getAbsolutePath(),
                     Project.MSG_INFO);
         logLabel();
+        logAsOfDate();
         logIncludes();
         logExcludes();
 
@@ -162,16 +162,15 @@ public class StarTeamList extends TreeBasedTask {
             }
             Folder[] subFolders = starteamFolder.getSubFolders();
             Item[] files = starteamFolder.getItems(getTypeNames().FILE);
-            
-            UnmatchedFileMap ufm = 
+
+            UnmatchedFileMap ufm =
                 new UnmatchedListingMap().init(
                     targetFolder.getAbsoluteFile(), starteamFolder);
 
             log("");
-            log("Listing StarTeam folder " + 
-                starteamFolder.getFolderHierarchy()); 
-            log(" against local folder " + 
-                targetFolder.getAbsolutePath());
+            log("Listing StarTeam folder "
+                + starteamFolder.getFolderHierarchy());
+            log(" against local folder " + targetFolder.getAbsolutePath());
 
 
             // For all Files in this folder, we need to check
@@ -213,7 +212,7 @@ public class StarTeamList extends TreeBasedTask {
         }
     }
 
-    private static final SimpleDateFormat SDF = 
+    private static final SimpleDateFormat SDF =
         new SimpleDateFormat("yyyy-MM-dd hh:mm:ss zzz");
 
     protected void list(File reposFile, java.io.File localFile)
@@ -221,7 +220,7 @@ public class StarTeamList extends TreeBasedTask {
         StringBuffer b = new StringBuffer();
         int status = reposFile.getStatus();
         java.util.Date displayDate = null;
-        if (status==Status.NEW) {
+        if (status == Status.NEW) {
             displayDate = new java.util.Date(localFile.lastModified());
         } else {
             displayDate = reposFile.getModifiedTime().createDate();
@@ -264,23 +263,23 @@ public class StarTeamList extends TreeBasedTask {
         protected boolean isActive() {
             return StarTeamList.this.listUncontrolled;
         }
-    
+
         /**
          * lists uncontrolled items from the local tree.  It is assumed
          * that this method will not be called until all the items in the
          * corresponding folder have been processed, and that the internal map
          * will contain only uncontrolled items.
          */
-        void processUncontrolledItems() throws BuildException{
+        void processUncontrolledItems() throws BuildException {
             if (this.isActive()) {
                 Enumeration e = this.keys();
-                
+
                 // handle the files so they appear first
                 while (e.hasMoreElements()) {
                     java.io.File local = (java.io.File) e.nextElement();
                     Item remoteItem = (Item) this.get(local);
 
-                    // once we find a folder that isn't in the repository, 
+                    // once we find a folder that isn't in the repository,
                     // we know we can add it.
                     if (local.isFile()) {
                         com.starbase.starteam.File remoteFile =
@@ -288,7 +287,7 @@ public class StarTeamList extends TreeBasedTask {
                         try {
                             list(remoteFile, local);
                         } catch (IOException ie) {
-                            throw new BuildException("IOError in stlist",ie);
+                            throw new BuildException("IOError in stlist", ie);
                         }
                     }
                 }
@@ -298,15 +297,15 @@ public class StarTeamList extends TreeBasedTask {
                     java.io.File local = (java.io.File) e.nextElement();
                     Item remoteItem = (Item) this.get(local);
 
-                    // once we find a folder that isn't in the repository, 
+                    // once we find a folder that isn't in the repository,
                     // we know we can add it.
                     if (local.isDirectory()) {
                         Folder folder = (Folder) remoteItem;
                         if (isRecursive()) {
-                            log("Listing uncontrolled folder " 
+                            log("Listing uncontrolled folder "
                                 + folder.getFolderHierarchy()
                                 + " from " + local.getAbsoluteFile());
-                            UnmatchedFileMap submap = 
+                            UnmatchedFileMap submap =
                                 new UnmatchedListingMap().init(local, folder);
                             submap.processUncontrolledItems();
                         }
@@ -314,11 +313,7 @@ public class StarTeamList extends TreeBasedTask {
                 }
             }
         }
-
-
     }
-
-
-}// StarTeamList
+}
 
 

@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.sitraka;
@@ -58,13 +21,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Random;
 import java.util.Vector;
-
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.taskdefs.LogStreamHandler;
 import org.apache.tools.ant.types.Commandline;
@@ -73,13 +33,9 @@ import org.apache.tools.ant.types.FileSet;
 /**
  * Runs the snapshot merge utility for JProbe Coverage.
  *
- * @author <a href="sbailliez@imediation.com">Stephane Bailliez</a>
  * @ant.task name="jpcovmerge" category="metrics"
  */
-public class CovMerge extends Task {
-
-    /** coverage home, it is mandatory */
-    private File home = null;
+public class CovMerge extends CovBase {
 
     /** the name of the output snapshot */
     private File tofile = null;
@@ -88,13 +44,6 @@ public class CovMerge extends Task {
     private Vector filesets = new Vector();
 
     private boolean verbose;
-
-    /**
-     * The directory where JProbe is installed.
-     */
-    public void setHome(File value) {
-        this.home = value;
-    }
 
     /**
      * Set the output snapshot file.
@@ -130,13 +79,21 @@ public class CovMerge extends Task {
         File paramfile = createParamFile();
         try {
             Commandline cmdl = new Commandline();
-            cmdl.setExecutable(new File(home, "jpcovmerge").getAbsolutePath());
+            cmdl.setExecutable(findExecutable("jpcovmerge"));
             if (verbose) {
                 cmdl.createArgument().setValue("-v");
             }
-            cmdl.createArgument().setValue("-jp_paramfile=" + paramfile.getAbsolutePath());
+            cmdl.createArgument().setValue(getParamFileArgument()
+                                           + paramfile.getAbsolutePath());
 
-            LogStreamHandler handler = new LogStreamHandler(this, Project.MSG_INFO, Project.MSG_WARN);
+            if (isJProbe4Plus()) {
+                // last argument is the output snapshot - JProbe 4.x
+                // doesn't like it in the parameter file.
+                cmdl.createArgument().setValue(tofile.getPath());
+            }
+
+            LogStreamHandler handler
+                = new LogStreamHandler(this, Project.MSG_INFO, Project.MSG_WARN);
             Execute exec = new Execute(handler);
             log(cmdl.describeCommand(), Project.MSG_VERBOSE);
             exec.setCommandline(cmdl.getCommandline());
@@ -144,7 +101,7 @@ public class CovMerge extends Task {
             // JProbe process always return 0 so  we will not be
             // able to check for failure ! :-(
             int exitValue = exec.execute();
-            if (exitValue != 0) {
+            if (Execute.isFailure(exitValue)) {
                 throw new BuildException("JProbe Coverage Merging failed (" + exitValue + ")");
             }
         } catch (IOException e) {
@@ -162,13 +119,12 @@ public class CovMerge extends Task {
         }
 
         // check coverage home
-        if (home == null || !home.isDirectory()) {
+        if (getHome() == null || !getHome().isDirectory()) {
             throw new BuildException("Invalid home directory. Must point to JProbe home directory");
         }
-        home = new File(home, "coverage");
-        File jar = new File(home, "coverage.jar");
+        File jar = findCoverageJar();
         if (!jar.exists()) {
-            throw new BuildException("Cannot find Coverage directory: " + home);
+            throw new BuildException("Cannot find Coverage directory: " + getHome());
         }
     }
 
@@ -184,7 +140,7 @@ public class CovMerge extends Task {
             for (int j = 0; j < f.length; j++) {
                 String pathname = f[j];
                 File file = new File(ds.getBasedir(), pathname);
-                file = project.resolveFile(file.getPath());
+                file = getProject().resolveFile(file.getPath());
                 v.addElement(file);
             }
         }
@@ -201,7 +157,8 @@ public class CovMerge extends Task {
      */
     protected File createParamFile() throws BuildException {
         File[] snapshots = getSnapshots();
-        File file = createTmpFile();
+        File file = createTempFile("jpcovm");
+        file.deleteOnExit();
         FileWriter fw = null;
         try {
             fw = new FileWriter(file);
@@ -209,8 +166,11 @@ public class CovMerge extends Task {
             for (int i = 0; i < snapshots.length; i++) {
                 pw.println(snapshots[i].getAbsolutePath());
             }
-            // last file is the output snapshot
-            pw.println(project.resolveFile(tofile.getPath()));
+            if (!isJProbe4Plus()) {
+                // last file is the output snapshot - JProbe 4.x doesn't
+                // like it in the parameter file.
+                pw.println(getProject().resolveFile(tofile.getPath()));
+            }
             pw.flush();
         } catch (IOException e) {
             throw new BuildException("I/O error while writing to " + file, e);
@@ -225,10 +185,4 @@ public class CovMerge extends Task {
         return file;
     }
 
-    /** create a temporary file in the current dir (For JDK1.1 support) */
-    protected File createTmpFile() {
-        final long rand = (new Random(System.currentTimeMillis())).nextLong();
-        File file = new File("jpcovmerge" + rand + ".tmp");
-        return file;
-    }
 }

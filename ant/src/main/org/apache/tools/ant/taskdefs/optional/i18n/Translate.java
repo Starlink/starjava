@@ -1,156 +1,167 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.i18n;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.FileOutputStream;
-import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.Vector;
 import java.util.Hashtable;
 import java.util.Locale;
+import java.util.Vector;
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.MatchingTask;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.util.FileUtils;
-import org.apache.tools.ant.taskdefs.MatchingTask;
+import org.apache.tools.ant.util.LineTokenizer;
 
 /**
  * Translates text embedded in files using Resource Bundle files.
+ * Since ant 1.6 preserves line endings
  *
- * @author Magesh Umasankar
  */
 public class Translate extends MatchingTask {
-
+    /**
+     * search a bundle matching the specified language, the country and the variant
+     */
+    private static final int BUNDLE_SPECIFIED_LANGUAGE_COUNTRY_VARIANT = 0;
+    /**
+     * search a bundle matching the specified language, and the country
+     */
+    private static final int BUNDLE_SPECIFIED_LANGUAGE_COUNTRY = 1;
+    /**
+     * search a bundle matching the specified language only
+     */
+    private static final int BUNDLE_SPECIFIED_LANGUAGE = 2;
+    /**
+     * search a bundle matching nothing special
+     */
+    private static final int BUNDLE_NOMATCH = 3;
+    /**
+     * search a bundle matching the language, the country and the variant
+     * of the current locale of the computer
+     */
+    private static final int BUNDLE_DEFAULT_LANGUAGE_COUNTRY_VARIANT = 4;
+    /**
+     * search a bundle matching the language, and the country
+     * of the current locale of the computer
+     */
+    private static final int BUNDLE_DEFAULT_LANGUAGE_COUNTRY = 5;
+    /**
+     * search a bundle matching the language only
+     * of the current locale of the computer
+     */
+    private static final int BUNDLE_DEFAULT_LANGUAGE = 6;
+    /**
+     * number of possibilities for the search
+     */
+     private static final int BUNDLE_MAX_ALTERNATIVES = BUNDLE_DEFAULT_LANGUAGE + 1;
     /**
      * Family name of resource bundle
      */
     private String bundle;
+
     /**
      * Locale specific language of the resource bundle
      */
     private String bundleLanguage;
+
     /**
      * Locale specific country of the resource bundle
      */
     private String bundleCountry;
+
     /**
      * Locale specific variant of the resource bundle
      */
     private String bundleVariant;
+
     /**
      * Destination directory
      */
     private File toDir;
+
     /**
      * Source file encoding scheme
      */
     private String srcEncoding;
+
     /**
      * Destination file encoding scheme
      */
     private String destEncoding;
+
     /**
      * Resource Bundle file encoding scheme, defaults to srcEncoding
      */
     private String bundleEncoding;
+
     /**
      * Starting token to identify keys
      */
     private String startToken;
+
     /**
      * Ending token to identify keys
      */
     private String endToken;
+
     /**
      * Whether or not to create a new destination file.
      * Defaults to <code>false</code>.
      */
     private boolean forceOverwrite;
+
     /**
      * Vector to hold source file sets.
      */
     private Vector filesets = new Vector();
+
     /**
      * Holds key value pairs loaded from resource bundle file
      */
     private Hashtable resourceMap = new Hashtable();
     /**
-     * Generated locale based on user attributes
-     */
-    private Locale locale;
-    /**
+
      * Used to resolve file names.
      */
     private FileUtils fileUtils = FileUtils.newFileUtils();
+
     /**
      * Last Modified Timestamp of resource bundle file being used.
      */
-    private long[] bundleLastModified = new long[7];
+    private long[] bundleLastModified = new long[BUNDLE_MAX_ALTERNATIVES];
+
     /**
      * Last Modified Timestamp of source file being used.
      */
     private long srcLastModified;
+
     /**
      * Last Modified Timestamp of destination file being used.
      */
     private long destLastModified;
+
     /**
      * Has at least one file from the bundle been loaded?
      */
@@ -158,6 +169,7 @@ public class Translate extends MatchingTask {
 
     /**
      * Sets Family name of resource bundle; required.
+     * @param bundle family name of resource bundle
      */
     public void setBundle(String bundle) {
         this.bundle = bundle;
@@ -165,6 +177,7 @@ public class Translate extends MatchingTask {
 
     /**
      * Sets locale specific language of resource bundle; optional.
+     * @param bundleLanguage langage of the bundle
      */
     public void setBundleLanguage(String bundleLanguage) {
         this.bundleLanguage = bundleLanguage;
@@ -172,6 +185,7 @@ public class Translate extends MatchingTask {
 
     /**
      * Sets locale specific country of resource bundle; optional.
+     * @param bundleCountry country of the bundle
      */
     public void setBundleCountry(String bundleCountry) {
         this.bundleCountry = bundleCountry;
@@ -179,6 +193,7 @@ public class Translate extends MatchingTask {
 
     /**
      * Sets locale specific variant of resource bundle; optional.
+     * @param bundleVariant locale variant of resource bundle
      */
     public void setBundleVariant(String bundleVariant) {
         this.bundleVariant = bundleVariant;
@@ -186,6 +201,7 @@ public class Translate extends MatchingTask {
 
     /**
      * Sets Destination directory; required.
+     * @param toDir destination directory
      */
     public void setToDir(File toDir) {
         this.toDir = toDir;
@@ -193,6 +209,7 @@ public class Translate extends MatchingTask {
 
     /**
      * Sets starting token to identify keys; required.
+     * @param startToken starting token to identify keys
      */
     public void setStartToken(String startToken) {
         this.startToken = startToken;
@@ -200,6 +217,7 @@ public class Translate extends MatchingTask {
 
     /**
      * Sets ending token to identify keys; required.
+     * @param endToken ending token to identify keys
      */
     public void setEndToken(String endToken) {
         this.endToken = endToken;
@@ -208,6 +226,7 @@ public class Translate extends MatchingTask {
     /**
      * Sets source file encoding scheme; optional,
      * defaults to encoding of local system.
+     * @param srcEncoding source file encoding
      */
     public void setSrcEncoding(String srcEncoding) {
         this.srcEncoding = srcEncoding;
@@ -216,6 +235,7 @@ public class Translate extends MatchingTask {
     /**
      * Sets destination file encoding scheme; optional.  Defaults to source file
      * encoding
+     * @param destEncoding destination file encoding scheme
      */
     public void setDestEncoding(String destEncoding) {
         this.destEncoding = destEncoding;
@@ -224,6 +244,7 @@ public class Translate extends MatchingTask {
     /**
      * Sets Resource Bundle file encoding scheme; optional.  Defaults to source file
      * encoding
+     * @param bundleEncoding bundle file encoding scheme
      */
     public void setBundleEncoding(String bundleEncoding) {
         this.bundleEncoding = bundleEncoding;
@@ -234,6 +255,7 @@ public class Translate extends MatchingTask {
      * whether it is newer than the source file as well as the
      * resource bundle file.
      * Defaults to false.
+     * @param forceOverwrite whether or not to overwrite existing files
      */
     public void setForceOverwrite(boolean forceOverwrite) {
         this.forceOverwrite = forceOverwrite;
@@ -241,6 +263,7 @@ public class Translate extends MatchingTask {
 
     /**
      * Adds a set of files to translate as a nested fileset element.
+     * @param set the fileset to be added
      */
     public void addFileset(FileSet set) {
         filesets.addElement(set);
@@ -248,33 +271,27 @@ public class Translate extends MatchingTask {
 
     /**
      * Check attributes values, load resource map and translate
+     * @throws BuildException if the required attributes are not set
+     * Required : <ul>
+     *       <li>bundle</li>
+     *       <li>starttoken</li>
+     *       <li>endtoken</li>
+     *            </ul>
      */
     public void execute() throws BuildException {
         if (bundle == null) {
             throw new BuildException("The bundle attribute must be set.",
-                                     location);
+                                     getLocation());
         }
 
         if (startToken == null) {
             throw new BuildException("The starttoken attribute must be set.",
-                                     location);
-        }
-
-        if (startToken.length() != 1) {
-            throw new BuildException(
-                "The starttoken attribute must be a single character.",
-                                         location);
+                                     getLocation());
         }
 
         if (endToken == null) {
             throw new BuildException("The endtoken attribute must be set.",
-                                     location);
-        }
-
-        if (endToken.length() != 1) {
-            throw new BuildException(
-                "The endtoken attribute must be a single character.",
-                                         location);
+                                     getLocation());
         }
 
         if (bundleLanguage == null) {
@@ -286,8 +303,6 @@ public class Translate extends MatchingTask {
             bundleCountry = Locale.getDefault().getCountry();
         }
 
-        locale = new Locale(bundleLanguage, bundleCountry);
-
         if (bundleVariant == null) {
             Locale l = new Locale(bundleLanguage, bundleCountry);
             bundleVariant = l.getVariant();
@@ -295,15 +310,13 @@ public class Translate extends MatchingTask {
 
         if (toDir == null) {
             throw new BuildException("The todir attribute must be set.",
-                                     location);
+                                     getLocation());
         }
 
         if (!toDir.exists()) {
             toDir.mkdirs();
-        } else {
-            if (toDir.isFile()) {
-                throw new BuildException(toDir + " is not a directory");
-            }
+        } else if (toDir.isFile()) {
+            throw new BuildException(toDir + " is not a directory");
         }
 
         if (srcEncoding == null) {
@@ -346,50 +359,44 @@ public class Translate extends MatchingTask {
         Locale locale = new Locale(bundleLanguage,
                                    bundleCountry,
                                    bundleVariant);
-        String language = locale.getLanguage().length() > 0 ?
-            "_" + locale.getLanguage() :
-            "";
-        String country = locale.getCountry().length() > 0 ?
-            "_" + locale.getCountry() :
-            "";
-        String variant = locale.getVariant().length() > 0 ?
-            "_" + locale.getVariant() :
-            "";
+        String language = locale.getLanguage().length() > 0
+            ? "_" + locale.getLanguage() : "";
+        String country = locale.getCountry().length() > 0
+            ? "_" + locale.getCountry() : "";
+        String variant = locale.getVariant().length() > 0
+            ? "_" + locale.getVariant() : "";
         String bundleFile = bundle + language + country + variant;
-        processBundle(bundleFile, 0, false);
+        processBundle(bundleFile, BUNDLE_SPECIFIED_LANGUAGE_COUNTRY_VARIANT, false);
 
         bundleFile = bundle + language + country;
-        processBundle(bundleFile, 1, false);
+        processBundle(bundleFile, BUNDLE_SPECIFIED_LANGUAGE_COUNTRY, false);
 
         bundleFile = bundle + language;
-        processBundle(bundleFile, 2, false);
+        processBundle(bundleFile, BUNDLE_SPECIFIED_LANGUAGE, false);
 
         bundleFile = bundle;
-        processBundle(bundleFile, 3, false);
+        processBundle(bundleFile, BUNDLE_NOMATCH, false);
 
         //Load default locale bundle files
         //using default file encoding scheme.
         locale = Locale.getDefault();
 
-        language = locale.getLanguage().length() > 0 ?
-            "_" + locale.getLanguage() :
-            "";
-        country = locale.getCountry().length() > 0 ?
-            "_" + locale.getCountry() :
-            "";
-        variant = locale.getVariant().length() > 0 ?
-            "_" + locale.getVariant() :
-            "";
+        language = locale.getLanguage().length() > 0
+            ? "_" + locale.getLanguage() : "";
+        country = locale.getCountry().length() > 0
+            ? "_" + locale.getCountry() : "";
+        variant = locale.getVariant().length() > 0
+            ? "_" + locale.getVariant() : "";
         bundleEncoding = System.getProperty("file.encoding");
 
         bundleFile = bundle + language + country + variant;
-        processBundle(bundleFile, 4, false);
+        processBundle(bundleFile, BUNDLE_DEFAULT_LANGUAGE_COUNTRY_VARIANT, false);
 
         bundleFile = bundle + language + country;
-        processBundle(bundleFile, 5, false);
+        processBundle(bundleFile, BUNDLE_DEFAULT_LANGUAGE_COUNTRY, false);
 
         bundleFile = bundle + language;
-        processBundle(bundleFile, 6, true);
+        processBundle(bundleFile, BUNDLE_DEFAULT_LANGUAGE, true);
     }
 
     /**
@@ -397,7 +404,7 @@ public class Translate extends MatchingTask {
      */
     private void processBundle(final String bundleFile, final int i,
                                final boolean checkLoaded) throws BuildException {
-        final File propsFile = new File(bundleFile + ".properties");
+        final File propsFile = getProject().resolveFile(bundleFile + ".properties");
         FileInputStream ins = null;
         try {
             ins = new FileInputStream(propsFile);
@@ -411,7 +418,7 @@ public class Translate extends MatchingTask {
             //have been scanned for and still not able to
             //find a single resrouce file, throw exception
             if (!loaded && checkLoaded) {
-                throw new BuildException(ioe.getMessage(), location);
+                throw new BuildException(ioe.getMessage(), getLocation());
             }
         }
     }
@@ -468,7 +475,7 @@ public class Translate extends MatchingTask {
                 in.close();
             }
         } catch (IOException ioe) {
-            throw new BuildException(ioe.getMessage(), location);
+            throw new BuildException(ioe.getMessage(), getLocation());
         }
     }
 
@@ -487,7 +494,7 @@ public class Translate extends MatchingTask {
     private void translate() throws BuildException {
         for (int i = 0; i < filesets.size(); i++) {
             FileSet fs = (FileSet) filesets.elementAt(i);
-            DirectoryScanner ds = fs.getDirectoryScanner(project);
+            DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             String[] srcFiles = ds.getIncludedFiles();
             for (int j = 0; j < srcFiles.length; j++) {
                 try {
@@ -499,7 +506,7 @@ public class Translate extends MatchingTask {
                             destDir.mkdirs();
                         }
                     } catch (Exception e) {
-                        log("Exception occured while trying to check/create "
+                        log("Exception occurred while trying to check/create "
                             + " parent directory.  " + e.getMessage(),
                             Project.MSG_DEBUG);
                     }
@@ -507,15 +514,17 @@ public class Translate extends MatchingTask {
                     File src = fileUtils.resolveFile(ds.getBasedir(), srcFiles[j]);
                     srcLastModified = src.lastModified();
                     //Check to see if dest file has to be recreated
-                    if (forceOverwrite
-                        || destLastModified < srcLastModified
-                        || destLastModified < bundleLastModified[0]
-                        || destLastModified < bundleLastModified[1]
-                        || destLastModified < bundleLastModified[2]
-                        || destLastModified < bundleLastModified[3]
-                        || destLastModified < bundleLastModified[4]
-                        || destLastModified < bundleLastModified[5]
-                        || destLastModified < bundleLastModified[6]) {
+                    boolean needsWork = forceOverwrite
+                        || destLastModified < srcLastModified;
+                    if (!needsWork) {
+                        for (int icounter = 0; icounter < BUNDLE_MAX_ALTERNATIVES; icounter++) {
+                            needsWork = (destLastModified < bundleLastModified[icounter]);
+                            if (needsWork) {
+                                break;
+                            }
+                        }
+                    }
+                    if (needsWork) {
                         log("Processing " + srcFiles[j],
                             Project.MSG_DEBUG);
                         FileOutputStream fos = new FileOutputStream(dest);
@@ -525,52 +534,72 @@ public class Translate extends MatchingTask {
                         BufferedReader in
                             = new BufferedReader(new InputStreamReader(fis, srcEncoding));
                         String line;
-                        while ((line = in.readLine()) != null) {
-                            int startIndex = -1;
-                            int endIndex = -1;
-outer:                      while (true) {
-                                startIndex = line.indexOf(startToken, endIndex + 1);
-                                if (startIndex < 0 ||
-                                    startIndex + 1 >= line.length()) {
-                                    break;
-                                }
-                                endIndex = line.indexOf(endToken, startIndex + 1);
-                                if (endIndex < 0) {
-                                    break;
-                                }
-                                String matches = line.substring(startIndex + 1,
-                                                                endIndex);
-                                    //If there is a white space or = or :, then
-                                    //it isn't to be treated as a valid key.
-                                for (int k = 0; k < matches.length(); k++) {
-                                    char c = matches.charAt(k);
-                                    if (c == ':' ||
-                                        c == '=' ||
-                                        Character.isSpaceChar(c)) {
-                                        endIndex = endIndex - 1;
-                                        continue outer;
+                        LineTokenizer lineTokenizer = new LineTokenizer();
+                        lineTokenizer.setIncludeDelims(true);
+                        line = lineTokenizer.getToken(in);
+                        while ((line) != null) {
+                        // 2003-02-21 new replace algorithm by tbee (tbee@tbee.org)
+                        // because it wasn't able to replace something like "@aaa;@bbb;"
+
+                        // is there a startToken
+                        // and there is still stuff following the startToken
+                        int startIndex = line.indexOf(startToken);
+                        while (startIndex >= 0
+                            && (startIndex + startToken.length()) <= line.length()) {
+                            // the new value, this needs to be here
+                            // because it is required to calculate the next position to search from
+                            // at the end of the loop
+                            String replace = null;
+
+                            // we found a starttoken, is there an endtoken following?
+                            // start at token+tokenlength because start and end
+                            // token may be indentical
+                            int endIndex = line.indexOf(endToken, startIndex + startToken.length());
+                            if (endIndex < 0) {
+                                startIndex += 1;
+                            } else {
+                                // grab the token
+                                String token
+                                    = line.substring(startIndex + startToken.length(), endIndex);
+
+                                // If there is a white space or = or :, then
+                                // it isn't to be treated as a valid key.
+                                boolean validToken = true;
+                                for (int k = 0; k < token.length() && validToken; k++) {
+                                    char c = token.charAt(k);
+                                    if (c == ':' || c == '='
+                                        || Character.isSpaceChar(c)) {
+                                        validToken = false;
                                     }
                                 }
-                                String replace = null;
-                                replace = (String) resourceMap.get(matches);
-                                    //If the key hasn't been loaded into resourceMap,
-                                    //use the key itself as the value also.
-                                if (replace == null) {
-                                    log("Warning: The key: " + matches
-                                        + " hasn't been defined.",
-                                        Project.MSG_DEBUG);
-                                    replace = matches;
-                                }
-                                line = line.substring(0, startIndex)
-                                    + replace
-                                    + line.substring(endIndex + 1);
-                                endIndex = startIndex + replace.length() + 1;
-                                if (endIndex + 1 >= line.length()) {
-                                    break;
+                                if (!validToken) {
+                                    startIndex += 1;
+                                } else {
+                                    // find the replace string
+                                    if (resourceMap.containsKey(token)) {
+                                        replace = (String) resourceMap.get(token);
+                                    } else {
+                                        replace = token;
+                                    }
+
+
+                                    // generate the new line
+                                    line = line.substring(0, startIndex)
+                                         + replace
+                                         + line.substring(endIndex + endToken.length());
+
+                                    // set start position for next search
+                                    startIndex += replace.length();
                                 }
                             }
+
+                            // find next starttoken
+                            startIndex = line.indexOf(startToken, startIndex);
+                        }
+
+
                             out.write(line);
-                            out.newLine();
+                            line = lineTokenizer.getToken(in);
                         }
                         if (in != null) {
                             in.close();
@@ -579,12 +608,12 @@ outer:                      while (true) {
                             out.close();
                         }
                     } else {
-                        log("Skipping " + srcFiles[j] +
-                            " as destination file is up to date",
+                        log("Skipping " + srcFiles[j]
+                            + " as destination file is up to date",
                             Project.MSG_VERBOSE);
                     }
                 } catch (IOException ioe) {
-                    throw new BuildException(ioe.getMessage(), location);
+                    throw new BuildException(ioe.getMessage(), getLocation());
                 }
             }
         }

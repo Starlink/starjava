@@ -55,6 +55,12 @@
          includes="asf-logo.gif" />
   </target>
 
+  <target name="uncompressed-feather">
+    <zip destFile="asf-logo.gif.zip"
+         basedir=".."
+         includes="asf-logo.gif" compress="false"/>
+  </target>
+
   <!-- legacy attribute support -->
   <target name="test8">
     <zip zipfile="test8.zip" basedir="." >
@@ -95,6 +101,27 @@
          update="true" />
   </target>
 
+  <!-- Bugzilla Report 18403 -->
+  <target name="testPrefixAddsDir">
+    <zip destfile="test3.zip" filesonly="false">
+      <zipfileset dir="." prefix="test" includes="zip.xml"/>
+    </zip>
+  </target>
+
+  <!-- Bugzilla Report 19449 -->
+  <target name="testFilesOnlyDoesntCauseRecreateSetup">
+    <mkdir dir="ziptest"/>
+    <touch file="ziptest/ziptest"/>
+    <zip destfile="test3.zip" basedir="."
+         includes="ziptest/**" filesonly="true"/>
+  </target>
+
+  <!-- Bugzilla Report 19449 -->
+  <target name="testFilesOnlyDoesntCauseRecreate">
+    <zip destfile="test3.zip" basedir="."
+         includes="ziptest/**" filesonly="true"/>
+  </target>
+
   <target name="cleanup">
     <delete file="test3.zip"/>
     <delete file="test4.zip"/>
@@ -106,5 +133,6 @@
     <delete file="asf-logo.gif.zip"/>
     <delete file="zipgroupfileset.zip"/>
     <delete file="../dummyfile" />
+    <delete dir="ziptest"/>
   </target>
 </project>

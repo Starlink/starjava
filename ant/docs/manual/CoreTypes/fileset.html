@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>FileSet Type</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -25,7 +26,7 @@ attributes.</p>
 <p>Selectors are available as nested elements.within the FileSet.
 If any of the selectors within the FileSet do not select the file, the
 file is not considered part of the FileSet. This makes FileSets
-euqivalent to an <code>&lt;and&gt;</code> selector container.</p>
+equivalent to an <code>&lt;and&gt;</code> selector container.</p>
 <table border="1" cellpadding="2" cellspacing="0">
   <tr>
     <td valign="top"><b>Attribute</b></td>
@@ -35,7 +36,11 @@ euqivalent to an <code>&lt;and&gt;</code> selector container.</p>
   <tr>
     <td valign="top">dir</td>
     <td valign="top">the root of the directory tree of this FileSet.</td>
-    <td valign="top" align="center">Yes</td>
+    <td valign="middle" align="center" rowspan="2">Either dir or file must be specified</td>
+  </tr>
+  <tr>
+    <td valign="top">file</td>
+    <td valign="top">shortcut for specifying a single file fileset</td>
   </tr>
   <tr>
     <td valign="top">defaultexcludes</td>
@@ -69,7 +74,7 @@ euqivalent to an <code>&lt;and&gt;</code> selector container.</p>
   </tr>
   <tr>
     <td valign="top">casesensitive</td>
-    <td valign="top">Must the file system be treated in a case sensitive way?
+    <td valign="top">Must the include and exclude patterns be treated in a case sensitive way?
         Defaults to true.</td>
     <td valign="top" align="center">No</td>
   </tr>
@@ -136,7 +141,7 @@ same patterns as the above example.</p>
 selector container.</p>
 
 <hr>
-<p align="center">Copyright &copy; 2000-2003 Apache Software Foundation.
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation.
 All rights Reserved.</p>
 
 </body>

@@ -1,73 +1,37 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:lxslt="http://xml.apache.org/xslt"
-    xmlns:redirect="org.apache.xalan.xslt.extensions.Redirect"
+    xmlns:redirect="http://xml.apache.org/xalan/redirect"
+    xmlns:stringutils="xalan://org.apache.tools.ant.util.StringUtils"
     extension-element-prefixes="redirect">
 <xsl:output method="html" indent="yes" encoding="US-ASCII"/>
 <xsl:decimal-format decimal-separator="." grouping-separator=","/>
 <!--
- The Apache Software License, Version 1.1
+   Copyright 2001-2004 The Apache Software Foundation
 
- Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- reserved.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions
- are met:
+       http://www.apache.org/licenses/LICENSE-2.0
 
- 1. Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-
- 2. Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in
-    the documentation and/or other materials provided with the
-    distribution.
-
- 3. The end-user documentation included with the redistribution, if
-    any, must include the following acknowlegement:
-       "This product includes software developed by the
-        Apache Software Foundation (http://www.apache.org/)."
-    Alternately, this acknowlegement may appear in the software itself,
-    if and wherever such third-party acknowlegements normally appear.
-
- 4. The names "Ant" and "Apache Software
-    Foundation" must not be used to endorse or promote products derived
-    from this software without prior written permission. For written
-    permission, please contact apache@apache.org.
-
- 5. Products derived from this software may not be called "Apache"
-    nor may "Apache" appear in their names without prior written
-    permission of the Apache Group.
-
- THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- SUCH DAMAGE.
- ====================================================================
-
- This software consists of voluntary contributions made by many
- individuals on behalf of the Apache Software Foundation.  For more
- information on the Apache Software Foundation, please see
- <http://www.apache.org/>.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
  -->
 
 <!--
- 
- Sample stylesheet to be used with An JUnitReport output.
- 
+
+ Sample stylesheet to be used with Ant JUnitReport output.
+
  It creates a set of HTML files a la javadoc where you can browse easily
  through all packages and classes.
- 
+
  @author Stephane Bailliez <a href="mailto:sbailliez@apache.org"/>
  @author Erik Hatcher <a href="mailto:ehatcher@apache.org"/>
- 
+ @author Martijn Kruithof <a href="mailto:martijn@kruithof.xs4all.nl"/>
+
 -->
 <xsl:param name="output.dir" select="'.'"/>
 
@@ -92,12 +56,12 @@
     <redirect:write file="{$output.dir}/overview-frame.html">
         <xsl:apply-templates select="." mode="all.packages"/>
     </redirect:write>
-    
+
     <!-- create the all-classes.html at the root -->
     <redirect:write file="{$output.dir}/allclasses-frame.html">
         <xsl:apply-templates select="." mode="all.classes"/>
     </redirect:write>
-    
+
     <!-- process all packages -->
     <xsl:for-each select="./testsuite[not(./@package = preceding-sibling::testsuite/@package)]">
         <xsl:call-template name="package">
@@ -112,7 +76,7 @@
     <xsl:variable name="package.dir">
         <xsl:if test="not($name = '')"><xsl:value-of select="translate($name,'.','/')"/></xsl:if>
         <xsl:if test="$name = ''">.</xsl:if>
-    </xsl:variable> 
+    </xsl:variable>
     <!--Processing package <xsl:value-of select="@name"/> in <xsl:value-of select="$output.dir"/> -->
     <!-- create a classes-list.html in the package directory -->
     <redirect:write file="{$output.dir}/{$package.dir}/package-frame.html">
@@ -120,20 +84,30 @@
             <xsl:with-param name="name" select="$name"/>
         </xsl:call-template>
     </redirect:write>
-    
+
     <!-- create a package-summary.html in the package directory -->
     <redirect:write file="{$output.dir}/{$package.dir}/package-summary.html">
         <xsl:call-template name="package.summary">
             <xsl:with-param name="name" select="$name"/>
         </xsl:call-template>
     </redirect:write>
-    
+
     <!-- for each class, creates a @name.html -->
     <!-- @bug there will be a problem with inner classes having the same name, it will be overwritten -->
     <xsl:for-each select="/testsuites/testsuite[@package = $name]">
         <redirect:write file="{$output.dir}/{$package.dir}/{@name}.html">
             <xsl:apply-templates select="." mode="class.details"/>
         </redirect:write>
+        <xsl:if test="string-length(./system-out)!=0">
+            <redirect:write file="{$output.dir}/{$package.dir}/{@name}-out.txt">
+                <xsl:value-of select="./system-out" />
+            </redirect:write>
+        </xsl:if>
+        <xsl:if test="string-length(./system-err)!=0">
+            <redirect:write file="{$output.dir}/{$package.dir}/{@name}-err.txt">
+                <xsl:value-of select="./system-err" />
+            </redirect:write>
+        </xsl:if>
     </xsl:for-each>
 </xsl:template>
 
@@ -255,19 +229,19 @@ h6 {
           doc.close();
           win.focus();
         }
-      ]]>  
+      ]]>
       </script>
         </head>
         <body>
-            <xsl:call-template name="pageHeader"/>  
+            <xsl:call-template name="pageHeader"/>
             <h3>Class <xsl:value-of select="$class.name"/></h3>
 
-            
+
             <table class="details" border="0" cellpadding="5" cellspacing="2" width="95%">
                 <xsl:call-template name="testsuite.test.header"/>
                 <xsl:apply-templates select="." mode="print.test"/>
             </table>
-    
+
             <h2>Tests</h2>
             <table class="details" border="0" cellpadding="5" cellspacing="2" width="95%">
         <xsl:call-template name="testcase.test.header"/>
@@ -288,6 +262,22 @@ h6 {
                     Properties &#187;
                 </a>
             </div>
+            <xsl:if test="string-length(./system-out)!=0">
+                <div class="Properties">
+                    <a>
+                        <xsl:attribute name="href">./<xsl:value-of select="@name"/>-out.txt</xsl:attribute>
+                        System.out &#187;
+                    </a>
+                </div>
+            </xsl:if>
+            <xsl:if test="string-length(./system-err)!=0">
+                <div class="Properties">
+                    <a>
+                        <xsl:attribute name="href">./<xsl:value-of select="@name"/>-err.txt</xsl:attribute>
+                        System.err &#187;
+                    </a>
+                </div>
+            </xsl:if>
         </body>
     </html>
 </xsl:template>
@@ -324,11 +314,14 @@ h6 {
             <table width="100%">
                 <tr>
                     <td nowrap="nowrap">
-                        <h2><a href="package-summary.html" target="classFrame"><xsl:value-of select="$name"/></a></h2>
+                        <h2><a href="package-summary.html" target="classFrame">
+                            <xsl:value-of select="$name"/>
+                            <xsl:if test="$name = ''">&lt;none&gt;</xsl:if>
+                        </a></h2>
                     </td>
                 </tr>
             </table>
-    
+
             <h2>Classes</h2>
             <table width="100%">
                 <xsl:for-each select="/testsuites/testsuite[./@package = $name]">
@@ -413,8 +406,9 @@ h6 {
 <xsl:template match="testsuite" mode="all.packages">
     <tr>
         <td nowrap="nowrap">
-            <a href="{translate(@package,'.','/')}/package-summary.html" target="classFrame">
+            <a href="./{translate(@package,'.','/')}/package-summary.html" target="classFrame">
                 <xsl:value-of select="@package"/>
+                <xsl:if test="@package = ''">&lt;none&gt;</xsl:if>
             </a>
         </td>
     </tr>
@@ -477,7 +471,7 @@ h6 {
         </td>
         </tr>
         </table>
-        
+
         <h2>Packages</h2>
         <table class="details" border="0" cellpadding="5" cellspacing="2" width="95%">
             <xsl:call-template name="testsuite.test.header"/>
@@ -494,7 +488,10 @@ h6 {
                             <xsl:otherwise>Pass</xsl:otherwise>
                         </xsl:choose>
                     </xsl:attribute>
-                    <td><a href="{translate(@package,'.','/')}/package-summary.html"><xsl:value-of select="@package"/></a></td>
+                    <td><a href="./{translate(@package,'.','/')}/package-summary.html">
+                        <xsl:value-of select="@package"/>
+                        <xsl:if test="@package = ''">&lt;none&gt;</xsl:if>
+                    </a></td>
                     <td><xsl:value-of select="sum($insamepackage/@tests)"/></td>
                     <td><xsl:value-of select="sum($insamepackage/@errors)"/></td>
                     <td><xsl:value-of select="sum($insamepackage/@failures)"/></td>
@@ -523,12 +520,12 @@ h6 {
             <xsl:attribute name="onload">open('package-frame.html','classListFrame')</xsl:attribute>
             <xsl:call-template name="pageHeader"/>
             <h3>Package <xsl:value-of select="$name"/></h3>
-            
+
             <!--table border="0" cellpadding="5" cellspacing="2" width="95%">
                 <xsl:call-template name="class.metrics.header"/>
                 <xsl:apply-templates select="." mode="print.metrics"/>
             </table-->
-            
+
             <xsl:variable name="insamepackage" select="/testsuites/testsuite[./@package = $name]"/>
             <xsl:if test="count($insamepackage) &gt; 0">
                 <h2>Classes</h2>
@@ -553,13 +550,13 @@ h6 {
 <xsl:template name="path">
     <xsl:param name="path"/>
     <xsl:if test="contains($path,'.')">
-        <xsl:text>../</xsl:text>    
+        <xsl:text>../</xsl:text>
         <xsl:call-template name="path">
             <xsl:with-param name="path"><xsl:value-of select="substring-after($path,'.')"/></xsl:with-param>
-        </xsl:call-template>    
+        </xsl:call-template>
     </xsl:if>
     <xsl:if test="not(contains($path,'.')) and not($path = '')">
-        <xsl:text>../</xsl:text>    
+        <xsl:text>../</xsl:text>
     </xsl:if>
 </xsl:template>
 
@@ -607,7 +604,7 @@ h6 {
 
 <!-- class information -->
 <xsl:template match="testsuite" mode="print.test">
-    <tr valign="top">       
+    <tr valign="top">
         <xsl:attribute name="class">
             <xsl:choose>
                 <xsl:when test="@errors[.&gt; 0]">Error</xsl:when>
@@ -690,21 +687,9 @@ h6 {
 
 <xsl:template name="JS-escape">
     <xsl:param name="string"/>
-    <xsl:choose>
-        <xsl:when test="contains($string,&quot;'&quot;)">
-            <xsl:value-of select="substring-before($string,&quot;'&quot;)"/>\&apos;<xsl:call-template name="JS-escape">
-                <xsl:with-param name="string" select="substring-after($string,&quot;'&quot;)"/>
-            </xsl:call-template>
-        </xsl:when> 
-        <xsl:when test="contains($string,'\')">
-            <xsl:value-of select="substring-before($string,'\')"/>\\<xsl:call-template name="JS-escape">
-                <xsl:with-param name="string" select="substring-after($string,'\')"/>
-            </xsl:call-template>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:value-of select="$string"/>
-        </xsl:otherwise>
-    </xsl:choose>
+    <xsl:param name="tmp1" select="stringutils:replace(string($string),'\','\\')"/>
+    <xsl:param name="tmp2" select="stringutils:replace(string($tmp1),&quot;'&quot;,&quot;\&apos;&quot;)"/>
+    <xsl:value-of select="$tmp2"/>
 </xsl:template>
 
 
@@ -714,18 +699,8 @@ h6 {
 -->
 <xsl:template name="br-replace">
     <xsl:param name="word"/>
-    <xsl:choose>
-        <xsl:when test="contains($word,'&#xA;')">
-            <xsl:value-of select="substring-before($word,'&#xA;')"/>
-            <br/>
-            <xsl:call-template name="br-replace">
-                <xsl:with-param name="word" select="substring-after($word,'&#xA;')"/>
-            </xsl:call-template>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:value-of select="$word"/>
-        </xsl:otherwise>
-    </xsl:choose>
+    <xsl:param name="br"><br/></xsl:param>
+    <xsl:value-of select='stringutils:replace(string($word),"&#xA;",$br)'/>
 </xsl:template>
 
 <xsl:template name="display-time">

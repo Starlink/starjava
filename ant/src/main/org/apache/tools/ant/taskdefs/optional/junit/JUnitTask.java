@@ -1,86 +1,57 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.junit;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Vector;
 import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Execute;
-import org.apache.tools.ant.taskdefs.LogStreamHandler;
 import org.apache.tools.ant.taskdefs.ExecuteWatchdog;
 import org.apache.tools.ant.taskdefs.LogOutputStream;
+import org.apache.tools.ant.taskdefs.LogStreamHandler;
+import org.apache.tools.ant.types.Assertions;
 import org.apache.tools.ant.types.Commandline;
-import org.apache.tools.ant.types.Environment;
 import org.apache.tools.ant.types.CommandlineJava;
-import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.EnumeratedAttribute;
+import org.apache.tools.ant.types.Environment;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.Permissions;
+import org.apache.tools.ant.types.PropertySet;
 import org.apache.tools.ant.util.FileUtils;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Properties;
-import java.util.Vector;
-
-import java.net.URL;
-
+import org.apache.tools.ant.util.LoaderUtils;
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestResult;
@@ -144,14 +115,8 @@ import junit.framework.TestResult;
  * different testcases, you need to enable <code>fork</code>.  A
  * number of attributes and elements allow you to set up how this JVM
  * runs.
- * @author Thomas Haas
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <a href="mailto:sbailliez@imediation.com">Stephane Bailliez</a>
- * @author <a href="mailto:Gerrit.Riessen@web.de">Gerrit Riessen</a>
- * @author <a href="mailto:ehatcher@apache.org">Erik Hatcher</a>
- * @author <a href="mailto:martijn@kruithof.xs4all.nl">Martijn Kruithof></a>
  *
- * @version $Revision: 1.44.2.7 $
+ * @version $Revision: 1.83.2.12 $
  *
  * @since Ant 1.2
  *
@@ -160,7 +125,7 @@ import junit.framework.TestResult;
  */
 public class JUnitTask extends Task {
 
-    private CommandlineJava commandline = new CommandlineJava();
+    private CommandlineJava commandline;
     private Vector tests = new Vector();
     private Vector batchTests = new Vector();
     private Vector formatters = new Vector();
@@ -168,6 +133,7 @@ public class JUnitTask extends Task {
 
     private Integer timeout = null;
     private boolean summary = false;
+    private boolean reloading = true;
     private String summaryValue = "";
     private JUnitTestRunner runner = null;
 
@@ -178,6 +144,21 @@ public class JUnitTask extends Task {
     private Path antRuntimeClasses = null;
 
     private boolean showOutput = false;
+    private File tmpDir;
+    private AntClassLoader classLoader = null;
+    private Permissions perm = null;
+    private ForkMode forkMode = new ForkMode("perTest");
+
+    private static final int STRING_BUFFER_SIZE = 128;
+
+    /**
+     * If true, force ant to re-classload all classes for each JUnit TestCase
+     *
+     * @param value force class reloading for each test case
+     */
+    public void setReloading(boolean value) {
+        reloading = value;
+    }
 
     /**
      * If true, smartly filter the stack frames of
@@ -192,9 +173,9 @@ public class JUnitTask extends Task {
      * @since Ant 1.5
      */
     public void setFiltertrace(boolean value) {
-        Enumeration enum = allTests();
-        while (enum.hasMoreElements()) {
-            BaseTest test = (BaseTest) enum.nextElement();
+        Enumeration e = allTests();
+        while (e.hasMoreElements()) {
+            BaseTest test = (BaseTest) e.nextElement();
             test.setFiltertrace(value);
         }
     }
@@ -210,9 +191,9 @@ public class JUnitTask extends Task {
      * @since Ant 1.2
      */
     public void setHaltonerror(boolean value) {
-        Enumeration enum = allTests();
-        while (enum.hasMoreElements()) {
-            BaseTest test = (BaseTest) enum.nextElement();
+        Enumeration e = allTests();
+        while (e.hasMoreElements()) {
+            BaseTest test = (BaseTest) e.nextElement();
             test.setHaltonerror(value);
         }
     }
@@ -229,9 +210,9 @@ public class JUnitTask extends Task {
      * @since Ant 1.4
      */
     public void setErrorProperty(String propertyName) {
-        Enumeration enum = allTests();
-        while (enum.hasMoreElements()) {
-            BaseTest test = (BaseTest) enum.nextElement();
+        Enumeration e = allTests();
+        while (e.hasMoreElements()) {
+            BaseTest test = (BaseTest) e.nextElement();
             test.setErrorProperty(propertyName);
         }
     }
@@ -248,9 +229,9 @@ public class JUnitTask extends Task {
      * @since Ant 1.2
      */
     public void setHaltonfailure(boolean value) {
-        Enumeration enum = allTests();
-        while (enum.hasMoreElements()) {
-            BaseTest test = (BaseTest) enum.nextElement();
+        Enumeration e = allTests();
+        while (e.hasMoreElements()) {
+            BaseTest test = (BaseTest) e.nextElement();
             test.setHaltonfailure(value);
         }
     }
@@ -267,9 +248,9 @@ public class JUnitTask extends Task {
      * @since Ant 1.4
      */
     public void setFailureProperty(String propertyName) {
-        Enumeration enum = allTests();
-        while (enum.hasMoreElements()) {
-            BaseTest test = (BaseTest) enum.nextElement();
+        Enumeration e = allTests();
+        while (e.hasMoreElements()) {
+            BaseTest test = (BaseTest) e.nextElement();
             test.setFailureProperty(propertyName);
         }
     }
@@ -288,11 +269,34 @@ public class JUnitTask extends Task {
      * @since Ant 1.2
      */
     public void setFork(boolean value) {
-        Enumeration enum = allTests();
-        while (enum.hasMoreElements()) {
-            BaseTest test = (BaseTest) enum.nextElement();
+        Enumeration e = allTests();
+        while (e.hasMoreElements()) {
+            BaseTest test = (BaseTest) e.nextElement();
             test.setFork(value);
         }
+    }
+
+    /**
+     * Set the behavior when {@link #setFork fork} fork has been enabled.
+     *
+     * <p>Possible values are "once", "perTest" and "perBatch".  If
+     * set to "once", only a single Java VM will be forked for all
+     * tests, with "perTest" (the default) each test will run in a
+     * fresh Java VM and "perBatch" will run all tests from the same
+     * &lt;batchtest&gt; in the same Java VM.</p>
+     *
+     * <p>This attribute will be ignored if tests run in the same VM
+     * as Ant.</p>
+     *
+     * <p>Only tests with the same configuration of haltonerror,
+     * haltonfailure, errorproperty, failureproperty and filtertrace
+     * can share a forked Java VM, so even if you set the value to
+     * "once", Ant may need to fork mutliple VMs.</p>
+     *
+     * @since Ant 1.6.2
+     */
+    public void setForkMode(ForkMode mode) {
+        this.forkMode = mode;
     }
 
     /**
@@ -316,11 +320,19 @@ public class JUnitTask extends Task {
      * Print summary enumeration values.
      */
     public static class SummaryAttribute extends EnumeratedAttribute {
+        /**
+         * list the possible values
+         * @return  array of allowed values
+         */
         public String[] getValues() {
             return new String[] {"true", "yes", "false", "no",
                                  "on", "off", "withOutAndErr"};
         }
 
+        /**
+         * gives the boolean equivalent of the authorized values
+         * @return boolean equivalent of the value
+         */
         public boolean asBoolean() {
             String value = getValue();
             return "true".equals(value)
@@ -353,7 +365,7 @@ public class JUnitTask extends Task {
      * @since Ant 1.2
      */
     public void setMaxmemory(String max) {
-        commandline.setMaxmemory(max);
+        getCommandline().setMaxmemory(max);
     }
 
     /**
@@ -367,7 +379,7 @@ public class JUnitTask extends Task {
      * @since Ant 1.2
      */
     public void setJvm(String value) {
-        commandline.setVm(value);
+        getCommandline().setVm(value);
     }
 
     /**
@@ -380,7 +392,7 @@ public class JUnitTask extends Task {
      * @since Ant 1.2
      */
     public Commandline.Argument createJvmarg() {
-        return commandline.createVmArgument();
+        return getCommandline().createVmArgument();
     }
 
     /**
@@ -400,25 +412,67 @@ public class JUnitTask extends Task {
      * testcases when JVM forking is not enabled.
      *
      * @since Ant 1.3
+     * @deprecated since ant 1.6
+     * @param sysp environment variable to add
      */
     public void addSysproperty(Environment.Variable sysp) {
-        commandline.addSysproperty(sysp);
+
+        getCommandline().addSysproperty(sysp);
+    }
+
+    /**
+     * Adds a system property that tests can access.
+     * This might be useful to tranfer Ant properties to the
+     * testcases when JVM forking is not enabled.
+     * @param sysp new environment variable to add
+     * @since Ant 1.6
+     */
+    public void addConfiguredSysproperty(Environment.Variable sysp) {
+        // get a build exception if there is a missing key or value
+        // see bugzilla report 21684
+        String testString = sysp.getContent();
+        getProject().log("sysproperty added : " + testString, Project.MSG_DEBUG);
+        getCommandline().addSysproperty(sysp);
+    }
+
+    /**
+     * Adds a set of properties that will be used as system properties
+     * that tests can access.
+     *
+     * This might be useful to tranfer Ant properties to the
+     * testcases when JVM forking is not enabled.
+     *
+     * @param sysp set of properties to be added
+     * @since Ant 1.6
+     */
+    public void addSyspropertyset(PropertySet sysp) {
+        getCommandline().addSyspropertyset(sysp);
     }
 
     /**
      * Adds path to classpath used for tests.
      *
+     * @return reference to the classpath in the embedded java command line
      * @since Ant 1.2
      */
     public Path createClasspath() {
-        return commandline.createClasspath(getProject()).createPath();
+        return getCommandline().createClasspath(getProject()).createPath();
+    }
+
+    /**
+     * Adds a path to the bootclasspath.
+     * @return reference to the bootclasspath in the embedded java command line
+     * @since Ant 1.6
+     */
+    public Path createBootclasspath() {
+        return getCommandline().createBootclasspath(getProject()).createPath();
     }
 
     /**
      * Adds an environment variable; used when forking.
      *
      * <p>Will be ignored if we are not forking a new VM.</p>
-     *
+     * @param var environment variable to be added
      * @since Ant 1.5
      */
     public void addEnv(Environment.Variable var) {
@@ -430,6 +484,7 @@ public class JUnitTask extends Task {
      *
      * <p>Will be ignored if we are not forking a new VM.</p>
      *
+     * @param newenv boolean indicating if setting a new environment is wished
      * @since Ant 1.5
      */
     public void setNewenvironment(boolean newenv) {
@@ -464,6 +519,7 @@ public class JUnitTask extends Task {
     /**
      * Add a new formatter to all tests of this task.
      *
+     * @param fe formatter element
      * @since Ant 1.2
      */
     public void addFormatter(FormatterElement fe) {
@@ -473,6 +529,7 @@ public class JUnitTask extends Task {
     /**
      * If true, include ant.jar, optional.jar and junit.jar in the forked VM.
      *
+     * @param b include ant run time yes or no
      * @since Ant 1.5
      */
     public void setIncludeantruntime(boolean b) {
@@ -489,6 +546,7 @@ public class JUnitTask extends Task {
      * tests that are interactive and prompt the user to do
      * something.</p>
      *
+     * @param showOutput if true, send output to Ant's logging system too
      * @since Ant 1.5
      */
     public void setShowOutput(boolean showOutput) {
@@ -496,13 +554,54 @@ public class JUnitTask extends Task {
     }
 
     /**
+     * Assertions to enable in this program (if fork=true)
+     * @since Ant 1.6
+     * @param asserts assertion set
+     */
+    public void addAssertions(Assertions asserts) {
+        if (getCommandline().getAssertions() != null) {
+            throw new BuildException("Only one assertion declaration is allowed");
+        }
+        getCommandline().setAssertions(asserts);
+    }
+
+    /**
+     * Sets the permissions for the application run inside the same JVM.
+     * @since Ant 1.6
+     * @return .
+     */
+    public Permissions createPermissions() {
+        if (perm == null) {
+            perm = new Permissions();
+        }
+        return perm;
+    }
+
+    /**
      * Creates a new JUnitRunner and enables fork of a new Java VM.
      *
+     * @throws Exception under ??? circumstances
      * @since Ant 1.2
      */
     public JUnitTask() throws Exception {
-        commandline
+        getCommandline()
             .setClassname("org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner");
+    }
+
+    /**
+     * Where Ant should place temporary files.
+     *
+     * @param tmpDir location where temporary files should go to
+     * @since Ant 1.6
+     */
+    public void setTempdir(File tmpDir) {
+        if (tmpDir!=null) {
+            if (!tmpDir.exists() || !tmpDir.isDirectory()) {
+                throw new BuildException(tmpDir.toString()
+                                         +" is not a valid temp directory");
+            }
+        }
+        this.tmpDir = tmpDir;
     }
 
     /**
@@ -515,6 +614,7 @@ public class JUnitTask extends Task {
     public void init() {
         antRuntimeClasses = new Path(getProject());
         addClasspathEntry("/junit/framework/TestCase.class");
+        addClasspathEntry("/org/apache/tools/ant/launch/AntMain.class");
         addClasspathEntry("/org/apache/tools/ant/Task.class");
         addClasspathEntry("/org/apache/tools/ant/taskdefs/optional/junit/JUnitTestRunner.class");
     }
@@ -522,20 +622,40 @@ public class JUnitTask extends Task {
     /**
      * Runs the testcase.
      *
+     * @throws BuildException in case of test failures or errors
      * @since Ant 1.2
      */
     public void execute() throws BuildException {
-        Enumeration list = getIndividualTests();
-        while (list.hasMoreElements()) {
-            JUnitTest test = (JUnitTest) list.nextElement();
-            if (test.shouldRun(getProject())) {
-                execute(test);
+        List testLists = new ArrayList();
+
+        boolean forkPerTest = forkMode.getValue().equals(ForkMode.PER_TEST);
+        if (forkPerTest || forkMode.getValue().equals(ForkMode.ONCE)) {
+            testLists.addAll(executeOrQueue(getIndividualTests(),
+                                            forkPerTest));
+        } else { /* forkMode.getValue().equals(ForkMode.PER_BATCH) */
+            final int count = batchTests.size();
+            for (int i = 0; i < count; i++) {
+                BatchTest batchtest = (BatchTest) batchTests.elementAt(i);
+                testLists.addAll(executeOrQueue(batchtest.elements(), false));
             }
+            testLists.addAll(executeOrQueue(tests.elements(), forkPerTest));
+        }
+
+        Iterator iter = testLists.iterator();
+        while (iter.hasNext()) {
+            List l = (List) iter.next();
+            if (l.size() == 1) {
+                execute((JUnitTest) l.get(0));
+            } else {
+                execute(l);
+            }            
         }
     }
 
     /**
      * Run the tests.
+     * @param arg one JunitTest
+     * @throws BuildException in case of test failures or errors
      */
     protected void execute(JUnitTest arg) throws BuildException {
         JUnitTest test = (JUnitTest) arg.clone();
@@ -556,31 +676,70 @@ public class JUnitTask extends Task {
             exitValue = executeInVM(test);
         } else {
             ExecuteWatchdog watchdog = createWatchdog();
-            exitValue = executeAsForked(test, watchdog);
+            exitValue = executeAsForked(test, watchdog, null);
             // null watchdog means no timeout, you'd better not check with null
             if (watchdog != null) {
                 wasKilled = watchdog.killedProcess();
             }
         }
+        actOnTestResult(exitValue, wasKilled, test, "Test " + test.getName());
+    }
 
-        // if there is an error/failure and that it should halt, stop
-        // everything otherwise just log a statement
-        boolean errorOccurredHere = exitValue == JUnitTestRunner.ERRORS;
-        boolean failureOccurredHere = exitValue != JUnitTestRunner.SUCCESS;
-        if (errorOccurredHere || failureOccurredHere) {
-            if ((errorOccurredHere && test.getHaltonerror())
-                || (failureOccurredHere && test.getHaltonfailure())) {
-                throw new BuildException("Test " + test.getName() + " failed"
-                    + (wasKilled ? " (timeout)" : ""), getLocation());
-            } else {
-                log("TEST " + test.getName() + " FAILED"
-                    + (wasKilled ? " (timeout)" : ""), Project.MSG_ERR);
-                if (errorOccurredHere && test.getErrorProperty() != null) {
-                    getProject().setNewProperty(test.getErrorProperty(), "true");
+    /**
+     * Execute a list of tests in a single forked Java VM.
+     */
+    protected void execute(List tests) throws BuildException {
+        JUnitTest test = null;
+        // Create a temporary file to pass the test cases to run to 
+        // the runner (one test case per line)
+        File casesFile = createTempPropertiesFile("junittestcases");
+        PrintWriter writer = null;
+        try {
+            writer = 
+                new PrintWriter(new BufferedWriter(new FileWriter(casesFile)));
+            Iterator iter = tests.iterator();
+            while (iter.hasNext()) {
+                test = (JUnitTest) iter.next();
+                writer.print(test.getName()); 
+                if (test.getTodir() == null) {
+                    writer.print("," + getProject().resolveFile("."));
+                } else {
+                    writer.print("," + test.getTodir());
                 }
-                if (failureOccurredHere && test.getFailureProperty() != null) {
-                    getProject().setNewProperty(test.getFailureProperty(), "true");
+
+                if (test.getOutfile() == null) {
+                    writer.println("," + "TEST-" + test.getName());
+                } else {
+                    writer.println("," + test.getOutfile());
                 }
+            }
+            writer.flush();
+            writer.close();
+            writer = null;
+
+            // execute the test and get the return code
+            int exitValue = JUnitTestRunner.ERRORS;
+            boolean wasKilled = false;
+            ExecuteWatchdog watchdog = createWatchdog();
+            exitValue = executeAsForked(test, watchdog, casesFile);
+            // null watchdog means no timeout, you'd better not check
+            // with null
+            if (watchdog != null) {
+                wasKilled = watchdog.killedProcess();
+            }
+            actOnTestResult(exitValue, wasKilled, test, "Tests");
+        } catch(IOException e) {
+            log(e.toString(), Project.MSG_ERR);
+            throw new BuildException(e);
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+            
+            try {
+                casesFile.delete();
+            } catch (Exception e) {
+                log(e.toString(), Project.MSG_ERR);
             }
         }
     }
@@ -593,19 +752,44 @@ public class JUnitTask extends Task {
      * @param  watchdog   the watchdog in charge of cancelling the test if it
      * exceeds a certain amount of time. Can be <tt>null</tt>, in this case
      * the test could probably hang forever.
+     * @throws BuildException in case of error creating a temporary property file,
+     * or if the junit process can not be forked
      */
-    private int executeAsForked(JUnitTest test, ExecuteWatchdog watchdog) 
+    private int executeAsForked(JUnitTest test, ExecuteWatchdog watchdog, 
+                                File casesFile)
         throws BuildException {
 
-        CommandlineJava cmd = (CommandlineJava) commandline.clone();
+        if (perm != null) {
+            log("Permissions ignored when running in forked mode!",
+                Project.MSG_WARN);
+        }
+
+        CommandlineJava cmd = (CommandlineJava) getCommandline().clone();
 
         cmd.setClassname("org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner");
-        cmd.createArgument().setValue(test.getName());
+        if (casesFile == null) {
+            cmd.createArgument().setValue(test.getName());
+        } else {
+            log("Running multiple tests in the same VM", Project.MSG_VERBOSE);
+            cmd.createArgument().setValue("testsfile=" + casesFile);
+        }
+        
         cmd.createArgument().setValue("filtertrace=" + test.getFiltertrace());
         cmd.createArgument().setValue("haltOnError=" + test.getHaltonerror());
-        cmd.createArgument().setValue("haltOnFailure=" 
+        cmd.createArgument().setValue("haltOnFailure="
                                       + test.getHaltonfailure());
         if (includeAntRuntime) {
+            Vector v = Execute.getProcEnvironment();
+            Enumeration e = v.elements();
+            while (e.hasMoreElements()) {
+                String s = (String) e.nextElement();
+                if (s.startsWith("CLASSPATH=")) {
+                    cmd.createClasspath(getProject()).createPath()
+                        .append(new Path(getProject(),
+                                         s.substring(10 // "CLASSPATH=".length()
+                                                     )));
+                }
+            }
             log("Implicitly adding " + antRuntimeClasses + " to CLASSPATH",
                 Project.MSG_VERBOSE);
             cmd.createClasspath(getProject()).createPath()
@@ -615,43 +799,43 @@ public class JUnitTask extends Task {
         if (summary) {
             log("Running " + test.getName(), Project.MSG_INFO);
             cmd.createArgument()
-                .setValue("formatter=org.apache.tools.ant.taskdefs.optional.junit.SummaryJUnitResultFormatter");
+                .setValue("formatter"
+                + "=org.apache.tools.ant.taskdefs.optional.junit.SummaryJUnitResultFormatter");
         }
 
-        cmd.createArgument().setValue("showoutput=" 
+        cmd.createArgument().setValue("showoutput="
                                       + String.valueOf(showOutput));
 
-        StringBuffer formatterArg = new StringBuffer(128);
+        StringBuffer formatterArg = new StringBuffer(STRING_BUFFER_SIZE);
         final FormatterElement[] feArray = mergeFormatters(test);
         for (int i = 0; i < feArray.length; i++) {
             FormatterElement fe = feArray[i];
-            formatterArg.append("formatter=");
-            formatterArg.append(fe.getClassname());
-            File outFile = getOutput(fe, test);
-            if (outFile != null) {
-                formatterArg.append(",");
-                formatterArg.append(outFile);
+            if (fe.shouldUse(this)) {
+                formatterArg.append("formatter=");
+                formatterArg.append(fe.getClassname());
+                File outFile = getOutput(fe, test);
+                if (outFile != null) {
+                    formatterArg.append(",");
+                    formatterArg.append(outFile);
+                }
+                cmd.createArgument().setValue(formatterArg.toString());
+                formatterArg = new StringBuffer();
             }
-            cmd.createArgument().setValue(formatterArg.toString());
-            formatterArg.setLength(0);
         }
 
-        // Create a temporary file to pass the Ant properties to the
-        // forked test
-        File propsFile = 
-            FileUtils.newFileUtils().createTempFile("junit", ".properties",
-                                                    getProject().getBaseDir());
-        cmd.createArgument().setValue("propsfile=" 
+
+        File propsFile = createTempPropertiesFile("junit");
+        cmd.createArgument().setValue("propsfile="
                                       + propsFile.getAbsolutePath());
         Hashtable p = getProject().getProperties();
         Properties props = new Properties();
-        for (Enumeration enum = p.keys(); enum.hasMoreElements();) {
-            Object key = enum.nextElement();
+        for (Enumeration e = p.keys(); e.hasMoreElements();) {
+            Object key = e.nextElement();
             props.put(key, p.get(key));
         }
         try {
             FileOutputStream outstream = new FileOutputStream(propsFile);
-            props.save(outstream, "Ant JUnitTask generated properties file");
+            props.store(outstream, "Ant JUnitTask generated properties file");
             outstream.close();
         } catch (java.io.IOException e) {
             propsFile.delete();
@@ -659,8 +843,8 @@ public class JUnitTask extends Task {
                                      + "file.", e, getLocation());
         }
 
-        Execute execute = new Execute(new LogStreamHandler(this, 
-                                                           Project.MSG_INFO, 
+        Execute execute = new Execute(new LogStreamHandler(this,
+                                                           Project.MSG_INFO,
                                                            Project.MSG_WARN),
                                       watchdog);
         execute.setCommandline(cmd.getCommandline());
@@ -699,73 +883,108 @@ public class JUnitTask extends Task {
         return retVal;
     }
 
+    /**
+     * Create a temporary file to pass the properties to a new process.
+     * Will auto-delete on (graceful) exit.
+     * The file will be in the project basedir unless tmpDir declares
+     * something else.
+     * @param prefix
+     * @return
+     */
+    private File createTempPropertiesFile(String prefix) {
+        File propsFile =
+            FileUtils.newFileUtils().createTempFile(prefix, ".properties",
+                tmpDir != null ? tmpDir : getProject().getBaseDir());
+        propsFile.deleteOnExit();
+        return propsFile;
+    }
+
 
     /**
      * Pass output sent to System.out to the TestRunner so it can
      * collect ot for the formatters.
      *
+     * @param output output coming from System.out
      * @since Ant 1.5
      */
-    protected void handleOutput(String line) {
+    protected void handleOutput(String output) {
         if (runner != null) {
-            runner.handleOutput(line);
+            runner.handleOutput(output);
             if (showOutput) {
-                super.handleOutput(line);
+                super.handleOutput(output);
             }
         } else {
-            super.handleOutput(line);
+            super.handleOutput(output);
         }
     }
+
+    /**
+     * @see Task#handleInput(byte[], int, int)
+     *
+     * @since Ant 1.6
+     */
+    protected int handleInput(byte[] buffer, int offset, int length)
+        throws IOException {
+        if (runner != null) {
+            return runner.handleInput(buffer, offset, length);
+        } else {
+            return super.handleInput(buffer, offset, length);
+        }
+    }
+
 
     /**
      * Pass output sent to System.out to the TestRunner so it can
      * collect ot for the formatters.
      *
+     * @param output output coming from System.out
      * @since Ant 1.5.2
      */
-    protected void handleFlush(String line) {
+    protected void handleFlush(String output) {
         if (runner != null) {
-            runner.handleFlush(line);
+            runner.handleFlush(output);
             if (showOutput) {
-                super.handleFlush(line);
+                super.handleFlush(output);
             }
         } else {
-            super.handleFlush(line);
+            super.handleFlush(output);
         }
     }
 
     /**
      * Pass output sent to System.err to the TestRunner so it can
-     * collect ot for the formatters.
+     * collect it for the formatters.
      *
+     * @param output output coming from System.err
      * @since Ant 1.5
      */
-    public void handleErrorOutput(String line) {
+    public void handleErrorOutput(String output) {
         if (runner != null) {
-            runner.handleErrorOutput(line);
+            runner.handleErrorOutput(output);
             if (showOutput) {
-                super.handleErrorOutput(line);
+                super.handleErrorOutput(output);
             }
         } else {
-            super.handleErrorOutput(line);
+            super.handleErrorOutput(output);
         }
     }
 
 
     /**
      * Pass output sent to System.err to the TestRunner so it can
-     * collect ot for the formatters.
+     * collect it for the formatters.
      *
+     * @param output coming from System.err
      * @since Ant 1.5.2
      */
-    public void handleErrorFlush(String line) {
+    public void handleErrorFlush(String output) {
         if (runner != null) {
-            runner.handleErrorFlush(line);
+            runner.handleErrorFlush(output);
             if (showOutput) {
-                super.handleErrorFlush(line);
+                super.handleErrorFlush(output);
             }
         } else {
-            super.handleErrorFlush(line);
+            super.handleErrorFlush(output);
         }
     }
 
@@ -775,12 +994,14 @@ public class JUnitTask extends Task {
 
     /**
      * Execute inside VM.
+     * @param arg one JUnitTest
+     * @throws BuildException under unspecified circumstances
      */
     private int executeInVM(JUnitTest arg) throws BuildException {
         JUnitTest test = (JUnitTest) arg.clone();
         test.setProperties(getProject().getProperties());
         if (dir != null) {
-            log("dir attribute ignored if running in the same VM", 
+            log("dir attribute ignored if running in the same VM",
                 Project.MSG_WARN);
         }
 
@@ -789,43 +1010,31 @@ public class JUnitTask extends Task {
                 + "the same VM.", Project.MSG_WARN);
         }
 
-        CommandlineJava.SysProperties sysProperties = 
-            commandline.getSystemProperties();
+        if (getCommandline().getBootclasspath() != null) {
+            log("bootclasspath is ignored if running in the same VM.",
+                Project.MSG_WARN);
+        }
+
+        CommandlineJava.SysProperties sysProperties =
+                getCommandline().getSystemProperties();
         if (sysProperties != null) {
             sysProperties.setSystem();
         }
-        AntClassLoader cl = null;
+
         try {
-            log("Using System properties " + System.getProperties(), 
+            log("Using System properties " + System.getProperties(),
                 Project.MSG_VERBOSE);
-            Path userClasspath = commandline.getClasspath();
-            Path classpath = userClasspath == null 
-                                              ? null 
-                                              : (Path) userClasspath.clone();
-            if (classpath != null) {
-                if (includeAntRuntime) {
-                    log("Implicitly adding " + antRuntimeClasses 
-                        + " to CLASSPATH", Project.MSG_VERBOSE);
-                    classpath.append(antRuntimeClasses);
-                }
-
-                cl = new AntClassLoader(null, getProject(), classpath, false);
-                log("Using CLASSPATH " + cl.getClasspath(),
-                    Project.MSG_VERBOSE);
-
-                // make sure the test will be accepted as a TestCase
-                cl.addSystemPackageRoot("junit");
-                // will cause trouble in JDK 1.1 if omitted
-                cl.addSystemPackageRoot("org.apache.tools.ant");
-                cl.setThreadContextLoader();
+            createClassLoader();
+            if (classLoader != null) {
+                classLoader.setThreadContextLoader();
             }
-            runner = new JUnitTestRunner(test, test.getHaltonerror(), 
-                                         test.getFiltertrace(), 
-                                         test.getHaltonfailure(), cl);
+            runner = new JUnitTestRunner(test, test.getHaltonerror(),
+                                         test.getFiltertrace(),
+                                         test.getHaltonfailure(), classLoader);
             if (summary) {
                 log("Running " + test.getName(), Project.MSG_INFO);
 
-                SummaryJUnitResultFormatter f = 
+                SummaryJUnitResultFormatter f =
                     new SummaryJUnitResultFormatter();
                 f.setWithOutAndErr("withoutanderr"
                                    .equalsIgnoreCase(summaryValue));
@@ -833,26 +1042,30 @@ public class JUnitTask extends Task {
                 runner.addFormatter(f);
             }
 
+            runner.setPermissions(perm);
+
             final FormatterElement[] feArray = mergeFormatters(test);
             for (int i = 0; i < feArray.length; i++) {
                 FormatterElement fe = feArray[i];
-                File outFile = getOutput(fe, test);
-                if (outFile != null) {
-                    fe.setOutfile(outFile);
-                } else {
-                    fe.setOutput(getDefaultOutput());
+                if (fe.shouldUse(this)) {
+                    File outFile = getOutput(fe, test);
+                    if (outFile != null) {
+                        fe.setOutfile(outFile);
+                    } else {
+                        fe.setOutput(getDefaultOutput());
+                    }
+                    runner.addFormatter(fe.createFormatter(classLoader));
                 }
-                runner.addFormatter(fe.createFormatter());
             }
 
             runner.run();
             return runner.getRetCode();
-        } finally{
+        } finally {
             if (sysProperties != null) {
                 sysProperties.restoreSystem();
             }
-            if (cl != null) {
-                cl.resetThreadContextLoader();
+            if (classLoader != null) {
+                classLoader.resetThreadContextLoader();
             }
         }
     }
@@ -861,21 +1074,23 @@ public class JUnitTask extends Task {
      * @return <tt>null</tt> if there is a timeout value, otherwise the
      * watchdog instance.
      *
+     * @throws BuildException under unspecified circumstances
      * @since Ant 1.2
      */
     protected ExecuteWatchdog createWatchdog() throws BuildException {
-        if (timeout == null){
+        if (timeout == null) {
             return null;
         }
-        return new ExecuteWatchdog(timeout.intValue());
+        return new ExecuteWatchdog((long) timeout.intValue());
     }
 
     /**
      * Get the default output for a formatter.
      *
+     * @return default output stream for a formatter
      * @since Ant 1.3
      */
-    protected OutputStream getDefaultOutput(){
+    protected OutputStream getDefaultOutput() {
         return new LogOutputStream(this, Project.MSG_INFO);
     }
 
@@ -883,9 +1098,10 @@ public class JUnitTask extends Task {
      * Merge all individual tests from the batchtest with all individual tests
      * and return an enumeration over all <tt>JUnitTest</tt>.
      *
+     * @return enumeration over individual tests
      * @since Ant 1.3
      */
-    protected Enumeration getIndividualTests(){
+    protected Enumeration getIndividualTests() {
         final int count = batchTests.size();
         final Enumeration[] enums = new Enumeration[ count + 1];
         for (int i = 0; i < count; i++) {
@@ -897,17 +1113,21 @@ public class JUnitTask extends Task {
     }
 
     /**
+     * return an enumeration listing each test, then each batchtest
+     * @return enumeration
      * @since Ant 1.3
      */
     protected Enumeration allTests() {
-        Enumeration[] enums = { tests.elements(), batchTests.elements() };
+        Enumeration[] enums = {tests.elements(), batchTests.elements()};
         return Enumerations.fromCompound(enums);
     }
 
     /**
+     * @param test junit test
+     * @return array of FormatterElement
      * @since Ant 1.3
      */
-    private FormatterElement[] mergeFormatters(JUnitTest test){
+    private FormatterElement[] mergeFormatters(JUnitTest test) {
         Vector feVector = (Vector) formatters.clone();
         test.addFormattersTo(feVector);
         FormatterElement[] feArray = new FormatterElement[feVector.size()];
@@ -915,13 +1135,15 @@ public class JUnitTask extends Task {
         return feArray;
     }
 
-    /** 
+    /**
      * If the formatter sends output to a file, return that file.
      * null otherwise.
-     *
+     * @param fe  formatter element
+     * @param test one JUnit test
+     * @return file reference
      * @since Ant 1.3
      */
-    protected File getOutput(FormatterElement fe, JUnitTest test){
+    protected File getOutput(FormatterElement fe, JUnitTest test) {
         if (fe.getUseFile()) {
             String filename = test.getOutfile() + fe.getExtension();
             File destFile = new File(test.getTodir(), filename);
@@ -938,66 +1160,301 @@ public class JUnitTask extends Task {
      * <p>Doesn't work for archives in JDK 1.1 as the URL returned by
      * getResource doesn't contain the name of the archive.</p>
      *
+     * @param resource resource that one wants to lookup
      * @since Ant 1.4
      */
     protected void addClasspathEntry(String resource) {
-        URL url = getClass().getResource(resource);
-        if (url != null) {
-            String u = url.toString();
-            if (u.startsWith("jar:file:")) {
-                int pling = u.indexOf("!");
-                String jarName = u.substring(9, pling);
-                log("Found " + jarName, Project.MSG_DEBUG);
-                antRuntimeClasses.createPath()
-                    .setLocation(new File((new File(jarName))
-                                          .getAbsolutePath()));
-            } else if (u.startsWith("file:")) {
-                int tail = u.indexOf(resource);
-                String dirName = u.substring(5, tail);
-                log("Found " + dirName, Project.MSG_DEBUG);
-                antRuntimeClasses.createPath()
-                    .setLocation(new File((new File(dirName))
-                                          .getAbsolutePath()));
-            } else {
-                log("Don\'t know how to handle resource URL " + u,
-                    Project.MSG_DEBUG);
-            }
+        /*
+         * pre Ant 1.6 this method used to call getClass().getResource
+         * while Ant 1.6 will call ClassLoader.getResource().
+         *
+         * The difference is that Class.getResource expects a leading
+         * slash for "absolute" resources and will strip it before
+         * delegating to ClassLoader.getResource - so we now have to
+         * emulate Class's behavior.
+         */
+        if (resource.startsWith("/")) {
+            resource = resource.substring(1);
+        } else {
+            resource = "org/apache/tools/ant/taskdefs/optional/junit/"
+                + resource;
+        }
+
+        File f = LoaderUtils.getResourceSource(getClass().getClassLoader(),
+                                               resource);
+        if (f != null) {
+            log("Found " + f.getAbsolutePath(), Project.MSG_DEBUG);
+            antRuntimeClasses.createPath().setLocation(f);
         } else {
             log("Couldn\'t find " + resource, Project.MSG_DEBUG);
         }
     }
 
     /**
-     * Take care that some output is produced in report files if the 
+     * Take care that some output is produced in report files if the
      * watchdog kills the test.
      *
      * @since Ant 1.5.2
      */
 
     private void logTimeout(FormatterElement[] feArray, JUnitTest test) {
+        createClassLoader();
+        test.setCounts(1, 0, 1);
+        test.setProperties(getProject().getProperties());
         for (int i = 0; i < feArray.length; i++) {
             FormatterElement fe = feArray[i];
             File outFile = getOutput(fe, test);
-            JUnitResultFormatter formatter = fe.createFormatter();
+            JUnitResultFormatter formatter = fe.createFormatter(classLoader);
             if (outFile != null && formatter != null) {
                 try {
                     OutputStream out = new FileOutputStream(outFile);
-                    formatter.setOutput(out);
-                    formatter.startTestSuite(test);
-                    test.setCounts(0,0,1);
-                    Test t = new Test() {
-                        public int countTestCases() { return 0; }
-                        public void run(TestResult r) { 
-                            throw new AssertionFailedError("Timeout occurred");
-                        }
-                    };
-                    formatter.startTest(t);
-                    formatter
-                        .addError(t, 
-                                  new AssertionFailedError("Timeout occurred"));
+                    addTimeout(test, formatter, out);
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
+        if (summary) {
+            SummaryJUnitResultFormatter f = new SummaryJUnitResultFormatter();
+            f.setWithOutAndErr("withoutanderr".equalsIgnoreCase(summaryValue));
+            addTimeout(test, f, getDefaultOutput());
+        }
+    }
 
-                    formatter.endTestSuite(test);
-                } catch (IOException e) {}
+    /**
+     * Adds the actual timeout to the formatter.
+     * Only used from the logTimeout method.
+     * @since Ant 1.6
+     */
+    private void addTimeout(JUnitTest test, JUnitResultFormatter formatter,
+                            OutputStream out) {
+        formatter.setOutput(out);
+        formatter.startTestSuite(test);
+
+        //the trick to integrating test output to the formatter, is to
+        //create a special test class that asserts a timout occurred,
+        //and tell the formatter that it raised.  
+        Test t = new Test() {
+            public int countTestCases() { return 1; }
+            public void run(TestResult r) {
+                throw new AssertionFailedError("Timeout occurred");
+            }
+        };
+        formatter.startTest(t);
+        formatter.addError(t, new AssertionFailedError("Timeout occurred"));
+        formatter.endTestSuite(test);
+    }
+
+    /**
+     * Creates and configures an AntClassLoader instance from the
+     * nested classpath element.
+     *
+     * @since Ant 1.6
+     */
+    private void createClassLoader() {
+        Path userClasspath = getCommandline().getClasspath();
+        if (userClasspath != null) {
+            if (reloading || classLoader == null) {
+                Path classpath = (Path) userClasspath.clone();
+                if (includeAntRuntime) {
+                    log("Implicitly adding " + antRuntimeClasses
+                        + " to CLASSPATH", Project.MSG_VERBOSE);
+                    classpath.append(antRuntimeClasses);
+                }
+                classLoader = getProject().createClassLoader(classpath);
+                log("Using CLASSPATH " + classLoader.getClasspath(),
+                Project.MSG_VERBOSE);
+                classLoader.setParentFirst(false);
+                classLoader.addJavaLibraries();
+                log("Using CLASSPATH " + classLoader.getClasspath(), Project.MSG_VERBOSE);
+                // make sure the test will be accepted as a TestCase
+                classLoader.addSystemPackageRoot("junit");
+                // will cause trouble in JDK 1.1 if omitted
+                classLoader.addSystemPackageRoot("org.apache.tools.ant");
+            }
+        }
+    }
+
+    /**
+     * @since Ant 1.6.2
+     */
+    protected CommandlineJava getCommandline() {
+        if (commandline == null) {
+            commandline = new CommandlineJava();
+        }
+        return commandline;
+    }
+
+    /**
+     * Forked test support
+     * @since Ant 1.6.2
+     */
+    private final class ForkedTestConfiguration {
+        private boolean filterTrace;
+        private boolean haltOnError;
+        private boolean haltOnFailure;
+        private String errorProperty;
+        private String failureProperty;
+
+        /**
+         * constructor for forked test configuration
+         * @param filterTrace
+         * @param haltOnError
+         * @param haltOnFailure
+         * @param errorProperty
+         * @param failureProperty
+         */
+        ForkedTestConfiguration(boolean filterTrace, boolean haltOnError,
+                                boolean haltOnFailure, String errorProperty,
+                                String failureProperty) {
+            this.filterTrace = filterTrace;
+            this.haltOnError = haltOnError;
+            this.haltOnFailure = haltOnFailure;
+            this.errorProperty = errorProperty;
+            this.failureProperty = failureProperty;
+        }
+
+        /**
+         * configure from a test; sets member variables to attributes of the test
+         * @param test
+         */
+        ForkedTestConfiguration(JUnitTest test) {
+            this(test.getFiltertrace(),
+                    test.getHaltonerror(),
+                    test.getHaltonfailure(),
+                    test.getErrorProperty(),
+                    test.getFailureProperty());
+        }
+
+        /**
+         * equality test checks all the member variables
+         * @param other
+         * @return true if everything is equal
+         */
+        public boolean equals(Object other) {
+            if (other == null 
+                || other.getClass() != ForkedTestConfiguration.class) {
+                return false;
+            }
+            ForkedTestConfiguration o = (ForkedTestConfiguration) other;
+            return filterTrace == o.filterTrace 
+                && haltOnError == o.haltOnError
+                && haltOnFailure == o.haltOnFailure
+                && ((errorProperty == null && o.errorProperty == null)
+                    || 
+                    (errorProperty != null 
+                     && errorProperty.equals(o.errorProperty)))
+                && ((failureProperty == null && o.failureProperty == null)
+                    || 
+                    (failureProperty != null 
+                     && failureProperty.equals(o.failureProperty)));
+        }
+
+        /**
+         * hashcode is based only on the boolean members, and returns a value
+         * in the range 0-7.
+         * @return
+         */
+        public int hashCode() {
+            return (filterTrace ? 1 : 0) 
+                + (haltOnError ? 2 : 0)
+                + (haltOnFailure ? 4 : 0);
+        }
+    }
+
+    /**
+     * These are the different forking options
+     * @since 1.6.2
+     */
+    public static final class ForkMode extends EnumeratedAttribute {
+
+        /**
+         * fork once only
+         */
+        public static final String ONCE = "once";
+        /**
+         * fork once per test class
+         */
+        public static final String PER_TEST = "perTest";
+        /**
+         * fork once per batch of tests
+         */
+        public static final String PER_BATCH = "perBatch";
+
+        public ForkMode() {
+            super();
+        }
+
+        public ForkMode(String value) {
+            super();
+            setValue(value);
+        }
+
+        public String[] getValues() {
+            return new String[] {ONCE, PER_TEST, PER_BATCH};
+        }
+    }
+
+    /**
+     * Executes all tests that don't need to be forked (or all tests
+     * if the runIndividual argument is true.  Returns a collection of
+     * lists of tests that share the same VM configuration and haven't
+     * been executed yet.
+     *
+     * @since 1.6.2
+     */
+    protected Collection executeOrQueue(Enumeration testList,
+                                        boolean runIndividual) {
+        Map testConfigurations = new HashMap();
+        while (testList.hasMoreElements()) {
+            JUnitTest test = (JUnitTest) testList.nextElement();
+            if (test.shouldRun(getProject())) {
+                if (runIndividual || !test.getFork()) {
+                    execute(test);
+                } else {
+                    ForkedTestConfiguration c =
+                        new ForkedTestConfiguration(test);
+                    List l = (List) testConfigurations.get(c);
+                    if (l == null) {
+                        l = new ArrayList();
+                        testConfigurations.put(c, l);
+                    }
+                    l.add(test);
+                }
+            }
+        }
+        return testConfigurations.values();
+    }
+
+    /**
+     * Logs information about failed tests, potentially stops
+     * processing (by throwing a BuildException) if a failure/error
+     * occured or sets a property.
+     *
+     * @since Ant 1.6.2
+     */
+    protected void actOnTestResult(int exitValue, boolean wasKilled,
+                                   JUnitTest test, String name) {
+        // if there is an error/failure and that it should halt, stop
+        // everything otherwise just log a statement
+        boolean errorOccurredHere =
+            exitValue == JUnitTestRunner.ERRORS || wasKilled;
+        boolean failureOccurredHere =
+            exitValue != JUnitTestRunner.SUCCESS || wasKilled;
+        if (errorOccurredHere || failureOccurredHere) {
+            if ((errorOccurredHere && test.getHaltonerror())
+                || (failureOccurredHere && test.getHaltonfailure())) {
+                throw new BuildException(name + " failed"
+                    + (wasKilled ? " (timeout)" : ""), getLocation());
+            } else {
+                log(name + " FAILED"
+                    + (wasKilled ? " (timeout)" : ""), Project.MSG_ERR);
+                if (errorOccurredHere && test.getErrorProperty() != null) {
+                    getProject().setNewProperty(test.getErrorProperty(), "true");
+                }
+                if (failureOccurredHere && test.getFailureProperty() != null) {
+                    getProject().setNewProperty(test.getFailureProperty(), "true");
+                }
             }
         }
     }

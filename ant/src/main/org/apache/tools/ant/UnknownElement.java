@@ -1,67 +1,33 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.io.IOException;
+import org.apache.tools.ant.taskdefs.PreSetDef;
 
 /**
  * Wrapper class that holds all the information necessary to create a task
  * or data type that did not exist when Ant started, or one which
  * has had its definition updated to use a different implementation class.
  *
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
  */
 public class UnknownElement extends Task {
 
@@ -73,6 +39,16 @@ public class UnknownElement extends Task {
     private String elementName;
 
     /**
+     * Holds the namespace of the element.
+     */
+    private String namespace;
+
+    /**
+     * Holds the namespace qname of the element.
+     */
+    private String qname;
+
+    /**
      * The real object after it has been loaded.
      */
     private Object realThing;
@@ -80,7 +56,10 @@ public class UnknownElement extends Task {
     /**
      * List of child elements (UnknownElements).
      */
-    private Vector children = new Vector();
+    private List/*<UnknownElement>*/ children = null;
+
+    /** Specifies if a predefined definition has been done */
+    private boolean presetDefed = false;
 
     /**
      * Creates an UnknownElement for the given element name.
@@ -90,6 +69,13 @@ public class UnknownElement extends Task {
      */
     public UnknownElement (String elementName) {
         this.elementName = elementName;
+    }
+
+    /**
+     * @return the list of nested UnknownElements for this UnknownElement.
+     */
+    public List getChildren() {
+        return children;
     }
 
     /**
@@ -103,6 +89,59 @@ public class UnknownElement extends Task {
         return elementName;
     }
 
+    /** Return the namespace of the XML element associated with this component.
+     *
+     * @return Namespace URI used in the xmlns declaration.
+     */
+    public String getNamespace() {
+        return namespace;
+    }
+
+    /**
+     * Set the namespace of the XML element associated with this component.
+     * This method is typically called by the XML processor.
+     * If the namespace is "ant:current", the component helper
+     * is used to get the current antlib uri.
+     *
+     * @param namespace URI used in the xmlns declaration.
+     */
+    public void setNamespace(String namespace) {
+        if (namespace.equals(ProjectHelper.ANT_CURRENT_URI)) {
+            ComponentHelper helper = ComponentHelper.getComponentHelper(
+                getProject());
+            namespace = helper.getCurrentAntlibUri();
+        }
+        this.namespace = namespace;
+    }
+
+    /** Return the qname of the XML element associated with this component.
+     *
+     * @return namespace Qname used in the element declaration.
+     */
+    public String getQName() {
+        return qname;
+    }
+
+    /** Set the namespace qname of the XML element.
+     * This method is typically called by the XML processor.
+     *
+     * @param qname the qualified name of the element
+     */
+    public void setQName(String qname) {
+        this.qname = qname;
+    }
+
+
+    /**
+     * Get the RuntimeConfigurable instance for this UnknownElement, containing
+     * the configuration information.
+     *
+     * @return the configuration info.
+     */
+    public RuntimeConfigurable getWrapper() {
+        return super.getWrapper();
+    }
+
     /**
      * Creates the real object instance and child elements, then configures
      * the attributes and text of the real object. This unknown element
@@ -112,54 +151,97 @@ public class UnknownElement extends Task {
      * @exception BuildException if the configuration fails
      */
     public void maybeConfigure() throws BuildException {
-        realThing = makeObject(this, wrapper);
+        //ProjectComponentHelper helper=ProjectComponentHelper.getProjectComponentHelper();
+        //realThing = helper.createProjectComponent( this, getProject(), null,
+        //                                           this.getTag());
 
-        wrapper.setProxy(realThing);
+        configure(makeObject(this, getWrapper()));
+    }
+
+    /**
+     * Configure the given object from this UnknownElement
+     *
+     * @param realObject the real object this UnknownElement is representing.
+     *
+     */
+    public void configure(Object realObject) {
+        realThing = realObject;
+
+        getWrapper().setProxy(realThing);
+        Task task = null;
         if (realThing instanceof Task) {
-            ((Task) realThing).setRuntimeConfigurableWrapper(wrapper);
+            task = (Task) realThing;
+
+            task.setRuntimeConfigurableWrapper(getWrapper());
+
+            // For Script to work. Ugly
+            // The reference is replaced by RuntimeConfigurable
+            this.getOwningTarget().replaceChild(this, (Task) realThing);
         }
 
-        handleChildren(realThing, wrapper);
+        handleChildren(realThing, getWrapper());
 
-        wrapper.maybeConfigure(getProject());
+        // configure attributes of the object and it's children. If it is
+        // a task container, defer the configuration till the task container
+        // attempts to use the task
+
+        if (task != null) {
+            task.maybeConfigure();
+        } else {
+            getWrapper().maybeConfigure(getProject());
+        }
     }
 
     /**
      * Handles output sent to System.out by this task or its real task.
      *
-     * @param line The line of output to log. Should not be <code>null</code>.
+     * @param output The output to log. Should not be <code>null</code>.
      */
-    protected void handleOutput(String line) {
+    protected void handleOutput(String output) {
         if (realThing instanceof Task) {
-            ((Task) realThing).handleOutput(line);
+            ((Task) realThing).handleOutput(output);
         } else {
-            super.handleOutput(line);
+            super.handleOutput(output);
         }
     }
 
     /**
+     * @see Task#handleInput(byte[], int, int)
+     *
+     * @since Ant 1.6
+     */
+    protected int handleInput(byte[] buffer, int offset, int length)
+        throws IOException {
+        if (realThing instanceof Task) {
+            return ((Task) realThing).handleInput(buffer, offset, length);
+        } else {
+            return super.handleInput(buffer, offset, length);
+        }
+
+    }
+    /**
      * Handles output sent to System.out by this task or its real task.
      *
-     * @param line The line of output to log. Should not be <code>null</code>.
+     * @param output The output to log. Should not be <code>null</code>.
      */
-    protected void handleFlush(String line) {
+    protected void handleFlush(String output) {
         if (realThing instanceof Task) {
-            ((Task) realThing).handleFlush(line);
+            ((Task) realThing).handleFlush(output);
         } else {
-            super.handleFlush(line);
+            super.handleFlush(output);
         }
     }
 
     /**
      * Handles error output sent to System.err by this task or its real task.
      *
-     * @param line The error line to log. Should not be <code>null</code>.
+     * @param output The error output to log. Should not be <code>null</code>.
      */
-    protected void handleErrorOutput(String line) {
+    protected void handleErrorOutput(String output) {
         if (realThing instanceof Task) {
-            ((Task) realThing).handleErrorOutput(line);
+            ((Task) realThing).handleErrorOutput(output);
         } else {
-            super.handleErrorOutput(line);
+            super.handleErrorOutput(output);
         }
     }
 
@@ -167,16 +249,16 @@ public class UnknownElement extends Task {
     /**
      * Handles error output sent to System.err by this task or its real task.
      *
-     * @param line The error line to log. Should not be <code>null</code>.
+     * @param output The error output to log. Should not be <code>null</code>.
      */
-    protected void handleErrorFlush(String line) {
+    protected void handleErrorFlush(String output) {
         if (realThing instanceof Task) {
-            ((Task) realThing).handleErrorOutput(line);
+            ((Task) realThing).handleErrorOutput(output);
         } else {
-            super.handleErrorOutput(line);
+            super.handleErrorOutput(output);
         }
     }
-    
+
     /**
      * Executes the real object if it's a task. If it's not a task
      * (e.g. a data type) then this method does nothing.
@@ -192,6 +274,10 @@ public class UnknownElement extends Task {
         if (realThing instanceof Task) {
             ((Task) realThing).execute();
         }
+
+        // the task will not be reused ( a new init() will be called )
+        // Let GC do its job
+        realThing = null;
     }
 
     /**
@@ -200,7 +286,10 @@ public class UnknownElement extends Task {
      * @param child The child element to add. Must not be <code>null</code>.
      */
     public void addChild(UnknownElement child) {
-        children.addElement(child);
+        if (children == null) {
+            children = new ArrayList();
+        }
+        children.add(child);
     }
 
     /**
@@ -216,36 +305,70 @@ public class UnknownElement extends Task {
      *
      * @exception BuildException if the children cannot be configured.
      */
-    protected void handleChildren(Object parent,
-                                  RuntimeConfigurable parentWrapper)
+    protected void handleChildren(
+        Object parent,
+        RuntimeConfigurable parentWrapper)
         throws BuildException {
-
-        if (parent instanceof TaskAdapter) {
-            parent = ((TaskAdapter) parent).getProxy();
+        if (parent instanceof TypeAdapter) {
+            parent = ((TypeAdapter) parent).getProxy();
         }
 
+        String parentUri = getNamespace();
         Class parentClass = parent.getClass();
         IntrospectionHelper ih = IntrospectionHelper.getHelper(parentClass);
 
-        for (int i = 0;  i < children.size(); i++) {
-            RuntimeConfigurable childWrapper = parentWrapper.getChild(i);
-            UnknownElement child = (UnknownElement) children.elementAt(i);
-            Object realChild = null;
 
-            if (parent instanceof TaskContainer) {
-                realChild = makeTask(child, childWrapper, false);
-                ((TaskContainer) parent).addTask((Task) realChild);
-            } else {
-                realChild = ih.createElement(getProject(), parent, child.getTag());
+        if (children != null) {
+            Iterator it = children.iterator();
+            for (int i = 0; it.hasNext(); i++) {
+                RuntimeConfigurable childWrapper = parentWrapper.getChild(i);
+                UnknownElement child = (UnknownElement) it.next();
+                if (!handleChild(
+                        parentUri, ih, parent, child, childWrapper)) {
+                    if (!(parent instanceof TaskContainer)) {
+                        ih.throwNotSupported(getProject(), parent,
+                                             child.getTag());
+                    } else {
+                        // a task container - anything could happen - just add the
+                        // child to the container
+                        TaskContainer container = (TaskContainer) parent;
+                        container.addTask(child);
+                    }
+                }
             }
-
-            childWrapper.setProxy(realChild);
-            if (parent instanceof TaskContainer) {
-                ((Task) realChild).setRuntimeConfigurableWrapper(childWrapper);
-            }
-
-            child.handleChildren(realChild, childWrapper);
         }
+    }
+
+    /**
+     * @return the component name - uses ProjectHelper#genComponentName()
+     */
+    protected String getComponentName() {
+        return ProjectHelper.genComponentName(getNamespace(), getTag());
+    }
+
+    /**
+     * This is used then the realobject of the UE is a PreSetDefinition.
+     * This is also used when a presetdef is used on a presetdef
+     * The attributes, elements and text are applied to this
+     * UE.
+     *
+     * @param u an UnknownElement containing the attributes, elements and text
+     */
+    public void applyPreSet(UnknownElement u) {
+        if (presetDefed) {
+            return;
+        }
+        // Do the runtime
+        getWrapper().applyPreSet(u.getWrapper());
+        if (u.children != null) {
+            List newChildren = new ArrayList();
+            newChildren.addAll(u.children);
+            if (children != null) {
+                newChildren.addAll(children);
+            }
+            children = newChildren;
+        }
+        presetDefed = true;
     }
 
     /**
@@ -259,12 +382,30 @@ public class UnknownElement extends Task {
      * @return the task or data type represented by the given unknown element.
      */
     protected Object makeObject(UnknownElement ue, RuntimeConfigurable w) {
-        Object o = makeTask(ue, w, true);
+        ComponentHelper helper = ComponentHelper.getComponentHelper(
+            getProject());
+        String name = ue.getComponentName();
+        Object o = helper.createComponent(ue, ue.getNamespace(), name);
+
         if (o == null) {
-            o = getProject().createDataType(ue.getTag());
+            throw getNotFoundException("task or type", name);
         }
-        if (o == null) {
-            throw getNotFoundException("task or type", ue.getTag());
+
+        if (o instanceof PreSetDef.PreSetDefinition) {
+            PreSetDef.PreSetDefinition def = (PreSetDef.PreSetDefinition) o;
+            o = def.createObject(ue.getProject());
+            ue.applyPreSet(def.getPreSets());
+            if (o instanceof Task) {
+                Task task = (Task) o;
+                task.setTaskType(ue.getTaskType());
+                task.setTaskName(ue.getTaskName());
+            }
+        }
+
+        if (o instanceof Task) {
+            Task task = (Task) o;
+            task.setOwningTarget(getOwningTarget());
+            task.init();
         }
         return o;
     }
@@ -275,21 +416,12 @@ public class UnknownElement extends Task {
      * @param ue The UnknownElement to create the real task for.
      *           Must not be <code>null</code>.
      * @param w  Ignored.
-     * @param onTopLevel Whether or not this is definitely trying to create
-     *                   a task. If this is <code>true</code> and the
-     *                   task name is not recognised, a BuildException
-     *                   is thrown.
      *
      * @return the task specified by the given unknown element, or
-     *         <code>null</code> if the task name is not recognised and
-     *         onTopLevel is <code>false</code>.
+     *         <code>null</code> if the task name is not recognised.
      */
-    protected Task makeTask(UnknownElement ue, RuntimeConfigurable w,
-                            boolean onTopLevel) {
+    protected Task makeTask(UnknownElement ue, RuntimeConfigurable w) {
         Task task = getProject().createTask(ue.getTag());
-        if (task == null && !onTopLevel) {
-            throw getNotFoundException("task", ue.getTag());
-        }
 
         if (task != null) {
             task.setLocation(getLocation());
@@ -325,19 +457,24 @@ public class UnknownElement extends Task {
             + " - You have misspelt '" + elementName + "'." + lSep
             + "   Fix: check your spelling." + lSep
             + " - The task needs an external JAR file to execute" + lSep
-            + "   and this is not found at the right place in the classpath." + lSep
+            + "     and this is not found at the right place in the classpath." + lSep
             + "   Fix: check the documentation for dependencies." + lSep
             + "   Fix: declare the task." + lSep
-            + " - The task is an Ant optional task and optional.jar is absent" + lSep
-            + "   Fix: look for optional.jar in ANT_HOME/lib, download if needed" + lSep
-            + " - The task was not built into optional.jar as dependent"  + lSep
-            + "   libraries were not found at build time." + lSep
-            + "   Fix: look in the JAR to verify, then rebuild with the needed" + lSep
-            + "   libraries, or download a release version from apache.org" + lSep
+            + " - The task is an Ant optional task and the JAR file and/or libraries" + lSep
+            + "     implementing the functionality were not found at the time you" + lSep
+            + "     yourself built your installation of Ant from the Ant sources." + lSep
+            + "   Fix: Look in the ANT_HOME/lib for the 'ant-' JAR corresponding to the" + lSep
+            + "     task and make sure it contains more than merely a META-INF/MANIFEST.MF." + lSep
+            + "     If all it contains is the manifest, then rebuild Ant with the needed" + lSep
+            + "     libraries present in ${ant.home}/lib/optional/ , or alternatively," + lSep
+            + "     download a pre-built release version from apache.org" + lSep
             + " - The build file was written for a later version of Ant" + lSep
             + "   Fix: upgrade to at least the latest release version of Ant" + lSep
             + " - The task is not an Ant core or optional task " + lSep
-            + "   and needs to be declared using <taskdef>." + lSep
+            + "     and needs to be declared using <taskdef>." + lSep
+            + " - You are attempting to use a task defined using " + lSep
+            + "    <presetdef> or <macrodef> but have spelt wrong or not " + lSep
+            + "   defined it at the point of use" + lSep
             + lSep
             + "Remember that for JAR files to be visible to Ant tasks implemented" + lSep
             + "in ANT_HOME/lib, the files must be in the same directory or on the" + lSep
@@ -357,8 +494,10 @@ public class UnknownElement extends Task {
      * @return the name to use in logging messages.
      */
     public String getTaskName() {
-        return realThing == null || !(realThing instanceof Task) ?
-            super.getTaskName() : ((Task) realThing).getTaskName();
+        //return elementName;
+        return realThing == null
+            || !(realThing instanceof Task) ? super.getTaskName()
+                                            : ((Task) realThing).getTaskName();
     }
 
     /**
@@ -374,4 +513,115 @@ public class UnknownElement extends Task {
         return null;
     }
 
-}// UnknownElement
+    /**
+     * Return the configured object
+     *
+     * @return the real thing whatever it is
+     *
+     * @since ant 1.6
+     */
+    public Object getRealThing() {
+        return realThing;
+    }
+    /**
+     * Try to create a nested element of <code>parent</code> for the
+     * given tag.
+     *
+     * @return whether the creation has been successful
+     */
+    private boolean handleChild(
+        String parentUri,
+        IntrospectionHelper ih,
+        Object parent, UnknownElement child,
+        RuntimeConfigurable childWrapper) {
+        String childName = ProjectHelper.genComponentName(
+            child.getNamespace(), child.getTag());
+        if (ih.supportsNestedElement(parentUri, childName)) {
+            IntrospectionHelper.Creator creator =
+                ih.getElementCreator(
+                    getProject(), parentUri, parent, childName, child);
+            creator.setPolyType(childWrapper.getPolyType());
+            Object realChild = creator.create();
+            if (realChild instanceof PreSetDef.PreSetDefinition) {
+                PreSetDef.PreSetDefinition def =
+                    (PreSetDef.PreSetDefinition) realChild;
+                realChild = creator.getRealObject();
+                child.applyPreSet(def.getPreSets());
+            }
+            childWrapper.setCreator(creator);
+            childWrapper.setProxy(realChild);
+            if (realChild instanceof Task) {
+                Task childTask = (Task) realChild;
+                childTask.setRuntimeConfigurableWrapper(childWrapper);
+                childTask.setTaskName(childName);
+                childTask.setTaskType(childName);
+                childTask.setLocation(child.getLocation());
+            }
+            child.handleChildren(realChild, childWrapper);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * like contents equals, but ignores project
+     * @param obj the object to check against
+     * @return true if this unknownelement has the same contents the other
+     */
+    public boolean similar(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!getClass().getName().equals(obj.getClass().getName())) {
+            return false;
+        }
+        UnknownElement other = (UnknownElement) obj;
+        // Are the names the same ?
+        if (!equalsString(elementName, other.elementName)) {
+            return false;
+        }
+        if (!namespace.equals(other.namespace)) {
+            return false;
+        }
+        if (!qname.equals(other.qname)) {
+            return false;
+        }
+        // Are attributes the same ?
+        if (!getWrapper().getAttributeMap().equals(
+                other.getWrapper().getAttributeMap())) {
+            return false;
+        }
+        // Is the text the same?
+        //   Need to use equals on the string and not
+        //   on the stringbuffer as equals on the string buffer
+        //   does not compare the contents.
+        if (!getWrapper().getText().toString().equals(
+                other.getWrapper().getText().toString())) {
+            return false;
+        }
+        // Are the sub elements the same ?
+        if (children == null || children.size() == 0) {
+            return other.children == null || other.children.size() == 0;
+        }
+        if (other.children == null) {
+            return false;
+        }
+        if (children.size() != other.children.size()) {
+            return false;
+        }
+        for (int i = 0; i < children.size(); ++i) {
+            UnknownElement child = (UnknownElement) children.get(i);
+            if (!child.similar(other.children.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean equalsString(String a, String b) {
+        if (a == null) {
+            return b == null;
+        }
+        return a.equals(b);
+    }
+}

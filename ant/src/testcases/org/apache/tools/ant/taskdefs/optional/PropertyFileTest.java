@@ -1,55 +1,18 @@
 /*
- *  The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- *  Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- *  reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *  1. Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- *  2. Redistributions in binary form must reproduce the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the
- *  distribution.
- *
- *  3. The end-user documentation included with the redistribution, if
- *  any, must include the following acknowlegement:
- *  "This product includes software developed by the
- *  Apache Software Foundation (http://www.apache.org/)."
- *  Alternately, this acknowlegement may appear in the software itself,
- *  if and wherever such third-party acknowlegements normally appear.
- *
- *  4. The names "Ant" and "Apache Software
- *  Foundation" must not be used to endorse or promote products derived
- *  from this software without prior written permission. For written
- *  permission, please contact apache@apache.org.
- *
- *  5. Products derived from this software may not be called "Apache"
- *  nor may "Apache" appear in their names without prior written
- *  permission of the Apache Group.
- *
- *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- *  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- *  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- *  ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- *  USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- *  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- *  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- *  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- *  SUCH DAMAGE.
- *  ====================================================================
- *
- *  This software consists of voluntary contributions made by many
- *  individuals on behalf of the Apache Software Foundation.  For more
- *  information on the Apache Software Foundation, please see
- *  <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional;
 
@@ -66,7 +29,6 @@ import java.io.File;
  *  (this is really more of a functional test so far.., but it's enough to let
  *   me start refactoring...)
  *
- *@author     Levi Cook <levicook@papajo.com>
  *@created    October 2, 2001
  */
 
@@ -85,6 +47,7 @@ public class PropertyFileTest extends BuildFileTest {
         initTestPropFile();
         initBuildPropFile();
         configureProject(projectFilePath);
+        project.setProperty(valueDoesNotGetOverwrittenPropertyFileKey,valueDoesNotGetOverwrittenPropertyFile);
     }
 
 
@@ -95,6 +58,16 @@ public class PropertyFileTest extends BuildFileTest {
         destroyTempFiles();
     }
 
+    public void testNonExistingFile() {
+        PropertyFile props = new PropertyFile();
+        props.setProject( getProject() );
+        File file = new File("this-file-does-not-exist.properties");
+        props.setFile(file);
+        assertFalse("Properties file exists before test.", file.exists());
+        props.execute();
+        assertTrue("Properties file does not exist after test.", file.exists());
+        file.delete();
+    }
 
     /**
      *  A unit test for JUnit- Excercises the propertyfile tasks ability to
@@ -108,10 +81,10 @@ public class PropertyFileTest extends BuildFileTest {
         assertEquals(null, beforeUpdate.getProperty(PHONE_KEY));
         assertEquals(null, beforeUpdate.getProperty(AGE_KEY));
         assertEquals(null, beforeUpdate.getProperty(DATE_KEY));
-      
+
         // ask ant to update the properties...
         executeTarget("update-existing-properties");
-      
+
         Properties afterUpdate = getTestProperties();
         assertEquals(NEW_FNAME, afterUpdate.getProperty(FNAME_KEY));
         assertEquals(NEW_LNAME, afterUpdate.getProperty(LNAME_KEY));
@@ -134,6 +107,12 @@ public class PropertyFileTest extends BuildFileTest {
         assertEquals("6",project.getProperty("int.without.value"));
     }
 
+    public void testValueDoesNotGetOverwritten() {
+        // this test shows that the bug report 21505 is fixed
+        executeTarget("bugDemo1");
+        executeTarget("bugDemo2");
+        assertEquals("5", project.getProperty("foo"));
+    }
 /*
     public void testDirect() throws Exception {
         PropertyFile pf = new PropertyFile();
@@ -148,7 +127,7 @@ public class PropertyFileTest extends BuildFileTest {
         entry.setType(type);
 
         entry.setPattern("yyyy/MM/dd");
-        
+
         PropertyFile.Entry.Operation operation = new PropertyFile.Entry.Operation();
         operation.setValue("+");
         pf.execute();
@@ -173,9 +152,9 @@ public class PropertyFileTest extends BuildFileTest {
         testProps.put(LNAME_KEY, LNAME);
         testProps.put(EMAIL_KEY, EMAIL);
         testProps.put("existing.prop", "37");
-      
+
         FileOutputStream fos = new FileOutputStream(testPropsFilePath);
-        testProps.save(fos, "defaults");
+        testProps.store(fos, "defaults");
         fos.close();
     }
 
@@ -189,9 +168,9 @@ public class PropertyFileTest extends BuildFileTest {
         buildProps.put(PHONE_KEY, NEW_PHONE);
         buildProps.put(AGE_KEY, NEW_AGE);
         buildProps.put(DATE_KEY, NEW_DATE);
-      
+
         FileOutputStream fos = new FileOutputStream(buildPropsFilePath);
-        buildProps.save(fos, null);
+        buildProps.store(fos, null);
         fos.close();
     }
 
@@ -204,38 +183,45 @@ public class PropertyFileTest extends BuildFileTest {
         tempFile = new File(buildPropsFilePath);
         tempFile.delete();
         tempFile = null;
+
+        tempFile = new File(valueDoesNotGetOverwrittenPropsFilePath);
+        tempFile.delete();
+        tempFile = null;
     }
-   
 
 
-    private static final String 
+
+    private static final String
         projectFilePath     = "src/etc/testcases/taskdefs/optional/propertyfile.xml",
-      
+
         testPropertyFile    = "propertyfile.test.properties",
         testPropertyFileKey = "test.propertyfile",
         testPropsFilePath   = "src/etc/testcases/taskdefs/optional/" + testPropertyFile,
-      
+
+        valueDoesNotGetOverwrittenPropertyFile    = "overwrite.test.properties",
+        valueDoesNotGetOverwrittenPropertyFileKey = "overwrite.test.propertyfile",
+        valueDoesNotGetOverwrittenPropsFilePath   = "src/etc/testcases/taskdefs/optional/" + valueDoesNotGetOverwrittenPropertyFile,
+
         buildPropsFilePath  = "src/etc/testcases/taskdefs/optional/propertyfile.build.properties",
-      
+
         FNAME     = "Bruce",
         NEW_FNAME = "Clark",
         FNAME_KEY = "firstname",
-      
+
         LNAME     = "Banner",
         NEW_LNAME = "Kent",
         LNAME_KEY = "lastname",
-      
+
         EMAIL     = "incredible@hulk.com",
         NEW_EMAIL = "kc@superman.com",
         EMAIL_KEY = "email",
-   
+
         NEW_PHONE = "(520) 555-1212",
         PHONE_KEY = "phone",
-      
+
         NEW_AGE = "30",
         AGE_KEY = "age",
-      
+
         NEW_DATE = "2001/01/01 12:45",
         DATE_KEY = "date";
 }
-

@@ -1,79 +1,41 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
-import org.apache.tools.ant.Task;
+import java.io.File;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.Mapper;
 import org.apache.tools.ant.types.FilterChain;
 import org.apache.tools.ant.types.FilterSet;
 import org.apache.tools.ant.types.FilterSetCollection;
-import org.apache.tools.ant.util.FileUtils;
+import org.apache.tools.ant.types.Mapper;
 import org.apache.tools.ant.util.FileNameMapper;
+import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.FlatFileNameMapper;
 import org.apache.tools.ant.util.IdentityMapper;
 import org.apache.tools.ant.util.SourceFileScanner;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Vector;
-import java.util.Hashtable;
-import java.util.Enumeration;
 
 /**
  * Copies a file or directory to a new file
@@ -85,13 +47,7 @@ import java.util.Enumeration;
  * document, the following mailing list discussions, and the
  * copyfile/copydir tasks.</p>
  *
- * @author Glenn McAllister 
- *         <a href="mailto:glennm@ca.ibm.com">glennm@ca.ibm.com</a>
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <A href="gholam@xtra.co.nz">Michael McCallum</A>
- * @author Magesh Umasankar
- *
- * @version $Revision: 1.42.2.6 $
+ * @version $Revision: 1.66.2.5 $
  *
  * @since Ant 1.2
  *
@@ -103,6 +59,7 @@ public class Copy extends Task {
     protected File destDir = null;  // the destination directory
     protected Vector filesets = new Vector();
 
+    private boolean enableMultipleMappings = false;
     protected boolean filtering = false;
     protected boolean preserveLastModified = false;
     protected boolean forceOverwrite = false;
@@ -119,21 +76,28 @@ public class Copy extends Task {
     private Vector filterChains = new Vector();
     private Vector filterSets = new Vector();
     private FileUtils fileUtils;
-    private String encoding = null;
+    private String inputEncoding = null;
+    private String outputEncoding = null;
+    private long granularity = 0;
 
     /**
-     * Copy task constructor. 
+     * Copy task constructor.
      */
     public Copy() {
         fileUtils = FileUtils.newFileUtils();
+        granularity = fileUtils.getFileTimestampGranularity();
     }
 
+    /**
+     * @return the fileutils object
+     */
     protected FileUtils getFileUtils() {
         return fileUtils;
     }
 
     /**
      * Sets a single source file to copy.
+     * @param file the file to copy
      */
     public void setFile(File file) {
         this.file = file;
@@ -141,6 +105,7 @@ public class Copy extends Task {
 
     /**
      * Sets the destination file.
+     * @param destFile the file to copy to
      */
     public void setTofile(File destFile) {
         this.destFile = destFile;
@@ -148,6 +113,7 @@ public class Copy extends Task {
 
     /**
      * Sets the destination directory.
+     * @param destDir the destination directory
      */
     public void setTodir(File destDir) {
         this.destDir = destDir;
@@ -155,6 +121,7 @@ public class Copy extends Task {
 
     /**
      * Adds a FilterChain.
+     * @return a filter chain object
      */
     public FilterChain createFilterChain() {
         FilterChain filterChain = new FilterChain();
@@ -164,6 +131,7 @@ public class Copy extends Task {
 
     /**
      * Adds a filterset.
+     * @return a filter set object
      */
     public FilterSet createFilterSet() {
         FilterSet filterSet = new FilterSet();
@@ -173,6 +141,7 @@ public class Copy extends Task {
 
     /**
      * Give the copied files the same last modified time as the original files.
+     * @param preserve a boolean string
      * @deprecated setPreserveLastModified(String) has been deprecated and
      *             replaced with setPreserveLastModified(boolean) to
      *             consistently let the Introspection mechanism work.
@@ -183,6 +152,7 @@ public class Copy extends Task {
 
     /**
      * Give the copied files the same last modified time as the original files.
+     * @param preserve if true perverse the modified time, default is false
      */
     public void setPreserveLastModified(boolean preserve) {
         preserveLastModified = preserve;
@@ -191,7 +161,7 @@ public class Copy extends Task {
     /**
      * Whether to give the copied files the same last modified time as
      * the original files.
-     *
+     * @return the preserveLastModified attribute
      * @since 1.32, Ant 1.5
      */
     public boolean getPreserveLastModified() {
@@ -218,6 +188,7 @@ public class Copy extends Task {
 
     /**
      * If true, enables filtering.
+     * @param filtering if true enable filtering, default is false
      */
     public void setFiltering(boolean filtering) {
         this.filtering = filtering;
@@ -225,6 +196,9 @@ public class Copy extends Task {
 
     /**
      * Overwrite any existing destination file(s).
+     * @param overwrite if true force overwriting of destination file(s)
+     *                  even if the destination file(s) are younger than
+     *                  the corresponding source file. Default is false.
      */
     public void setOverwrite(boolean overwrite) {
         this.forceOverwrite = overwrite;
@@ -236,6 +210,8 @@ public class Copy extends Task {
      * the same name in the source directory tree, only the first
      * file will be copied into the "flattened" directory, unless
      * the forceoverwrite attribute is true.
+     * @param flatten if true flatten the destination directory. Default
+     *                is false.
      */
     public void setFlatten(boolean flatten) {
         this.flatten = flatten;
@@ -243,6 +219,7 @@ public class Copy extends Task {
 
     /**
      * Used to force listing of all names of copied files.
+     * @param verbose output the names of copied files. Default is false.
      */
     public void setVerbose(boolean verbose) {
         if (verbose) {
@@ -254,21 +231,45 @@ public class Copy extends Task {
 
     /**
      * Used to copy empty directories.
+     * @param includeEmpty if true copy empty directories. Default is true.
      */
     public void setIncludeEmptyDirs(boolean includeEmpty) {
         this.includeEmpty = includeEmpty;
     }
 
     /**
+     * Attribute to handle mappers that return multiple
+     * mappings for a given source path.
+     * @param enableMultipleMappings If true the task will
+     *        copy to all the mappings for a given source path, if
+     *        false, only the first file or directory is
+     *        processed.
+     *        By default, this setting is false to provide backward
+     *        compatibility with earlier releases.
+     * @since 1.6
+     */
+    public void setEnableMultipleMappings(boolean enableMultipleMappings) {
+        this.enableMultipleMappings = enableMultipleMappings;
+    }
+
+    /**
+     * @return the value of the enableMultipleMapping attribute
+     */
+    public boolean isEnableMultipleMapping() {
+        return enableMultipleMappings;
+    }
+
+    /**
      * If false, note errors to the output but keep going.
      * @param failonerror true or false
      */
-     public void setFailOnError(boolean failonerror) {
-         this.failonerror = failonerror;
-     }
+    public void setFailOnError(boolean failonerror) {
+        this.failonerror = failonerror;
+    }
 
     /**
      * Adds a set of files to copy.
+     * @param set a set of files to copy
      */
     public void addFileset(FileSet set) {
         filesets.addElement(set);
@@ -276,6 +277,8 @@ public class Copy extends Task {
 
     /**
      * Defines the mapper to map source to destination files.
+     * @return a mapper to be configured
+     * @exception BuildException if more than one mapper is defined
      */
     public Mapper createMapper() throws BuildException {
         if (mapperElement != null) {
@@ -288,11 +291,14 @@ public class Copy extends Task {
 
     /**
      * Sets the character encoding
-     *
+     * @param encoding the character encoding
      * @since 1.32, Ant 1.5
      */
-    public void setEncoding (String encoding) {
-        this.encoding = encoding;
+    public void setEncoding(String encoding) {
+        this.inputEncoding = encoding;
+        if (outputEncoding == null) {
+            outputEncoding = encoding;
+        }
     }
 
     /**
@@ -301,11 +307,43 @@ public class Copy extends Task {
      * @since 1.32, Ant 1.5
      */
     public String getEncoding() {
-        return encoding;
+        return inputEncoding;
+    }
+
+    /**
+     * Sets the character encoding for output files.
+     * @param encoding the character encoding
+     * @since Ant 1.6
+     */
+    public void setOutputEncoding(String encoding) {
+        this.outputEncoding = encoding;
+    }
+
+    /**
+     * @return the character encoding for output files,
+     * <code>null</code> if not set.
+     *
+     * @since Ant 1.6
+     */
+    public String getOutputEncoding() {
+        return outputEncoding;
+    }
+
+    /**
+     * The number of milliseconds leeway to give before deciding a
+     * target is out of date.
+     *
+     * <p>Default is 0 milliseconds, or 2 seconds on DOS systems.</p>
+     *
+     * @since Ant 1.6.2
+     */
+    public void setGranularity(long granularity) {
+        this.granularity = granularity;
     }
 
     /**
      * Performs the copy operation.
+     * @exception BuildException if an error occurs
      */
     public void execute() throws BuildException {
         File savedFile = file; // may be altered in validateAttributes
@@ -329,13 +367,13 @@ public class Copy extends Task {
                         destFile = new File(destDir, file.getName());
                     }
 
-                    if (forceOverwrite ||
-                        !destFile.exists() ||
-                        (file.lastModified() > destFile.lastModified())) {
-                        fileCopyMap.put(file.getAbsolutePath(), 
-                                        destFile.getAbsolutePath());
+                    if (forceOverwrite || !destFile.exists()
+                        || (file.lastModified() - granularity
+                                > destFile.lastModified())) {
+                        fileCopyMap.put(file.getAbsolutePath(),
+                                        new String[] {destFile.getAbsolutePath()});
                     } else {
-                        log(file + " omitted as " + destFile 
+                        log(file + " omitted as " + destFile
                             + " is up to date.", Project.MSG_VERBOSE);
                     }
                 } else {
@@ -352,12 +390,25 @@ public class Copy extends Task {
             // deal with the filesets
             for (int i = 0; i < filesets.size(); i++) {
                 FileSet fs = (FileSet) filesets.elementAt(i);
-                DirectoryScanner ds = fs.getDirectoryScanner(getProject());
+                DirectoryScanner ds = null;
+                try {
+                    ds = fs.getDirectoryScanner(getProject());
+                } catch (BuildException e) {
+                    if (failonerror
+                        || !e.getMessage().endsWith(" not found.")) {
+                        throw e;
+                    } else {
+                        log("Warning: " + e.getMessage());
+                        continue;
+                    }
+                }
+
                 File fromDir = fs.getDir(getProject());
 
                 String[] srcFiles = ds.getIncludedFiles();
                 String[] srcDirs = ds.getIncludedDirectories();
-                boolean isEverythingIncluded = ds.isEverythingIncluded();
+                boolean isEverythingIncluded = ds.isEverythingIncluded()
+                    && (!fs.hasSelectors() && !fs.hasPatterns());
                 if (isEverythingIncluded
                     && !flatten && mapperElement == null) {
                     completeDirMap.put(fromDir, destDir);
@@ -366,7 +417,15 @@ public class Copy extends Task {
             }
 
             // do all the copy operations now...
-            doFileOperations();
+            try {
+                doFileOperations();
+            } catch (BuildException e) {
+                if (!failonerror) {
+                    log("Warning: " + e.getMessage(), Project.MSG_ERR);
+                } else {
+                    throw e;
+                }
+            }
         } finally {
             // clean up again, so this instance can be used a second
             // time
@@ -383,14 +442,15 @@ public class Copy extends Task {
         }
     }
 
-//************************************************************************
-//  protected and private methods
-//************************************************************************
+    /************************************************************************
+     **  protected and private methods
+     ************************************************************************/
 
     /**
      * Ensure we have a consistent and legal set of attributes, and set
      * any internal flags necessary based on different combinations
      * of attributes.
+     * @exception BuildException if an error occurs
      */
     protected void validateAttributes() throws BuildException {
         if (file == null && filesets.size() == 0) {
@@ -414,7 +474,7 @@ public class Copy extends Task {
         if (destFile != null && filesets.size() > 0) {
             if (filesets.size() > 1) {
                 throw new BuildException(
-                    "Cannot concatenate multiple files into a single file.");
+                                         "Cannot concatenate multiple files into a single file.");
             } else {
                 FileSet fs = (FileSet) filesets.elementAt(0);
                 DirectoryScanner ds = fs.getDirectoryScanner(getProject());
@@ -422,7 +482,7 @@ public class Copy extends Task {
 
                 if (srcFiles.length == 0) {
                     throw new BuildException(
-                        "Cannot perform operation from directory to file.");
+                                             "Cannot perform operation from directory to file.");
                 } else if (srcFiles.length == 1) {
                     if (file == null) {
                         file = new File(ds.getBasedir(), srcFiles[0]);
@@ -447,8 +507,13 @@ public class Copy extends Task {
     /**
      * Compares source files to destination files to see if they should be
      * copied.
+     *
+     * @param fromDir  The source directory
+     * @param toDir    The destination directory
+     * @param files    A list of files to copy
+     * @param dirs     A list of directories to copy
      */
-    protected void scan(File fromDir, File toDir, String[] files, 
+    protected void scan(File fromDir, File toDir, String[] files,
                         String[] dirs) {
         FileNameMapper mapper = null;
         if (mapperElement != null) {
@@ -466,6 +531,15 @@ public class Copy extends Task {
         }
     }
 
+    /**
+     * Add to a map of files/directories to copy
+     *
+     * @param fromDir the source directory
+     * @param toDir   the destination directory
+     * @param names   a list of filenames
+     * @param mapper  a <code>FileNameMapper</code> value
+     * @param map     a map of source file to array of destination files
+     */
     protected void buildMap(File fromDir, File toDir, String[] names,
                             FileNameMapper mapper, Hashtable map) {
 
@@ -481,13 +555,25 @@ public class Copy extends Task {
             v.copyInto(toCopy);
         } else {
             SourceFileScanner ds = new SourceFileScanner(this);
-            toCopy = ds.restrict(names, fromDir, toDir, mapper);
+            toCopy = ds.restrict(names, fromDir, toDir, mapper, granularity);
         }
 
         for (int i = 0; i < toCopy.length; i++) {
             File src = new File(fromDir, toCopy[i]);
-            File dest = new File(toDir, mapper.mapFileName(toCopy[i])[0]);
-            map.put(src.getAbsolutePath(), dest.getAbsolutePath());
+
+            String[] mappedFiles = mapper.mapFileName(toCopy[i]);
+
+            if (!enableMultipleMappings) {
+                map.put(src.getAbsolutePath(),
+                        new String[] {new File(toDir, mappedFiles[0]).getAbsolutePath()});
+            } else {
+                // reuse the array created by the mapper
+                for (int k = 0; k < mappedFiles.length; k++) {
+                    mappedFiles[k] = new File(toDir, mappedFiles[k]).getAbsolutePath();
+                }
+
+                map.put(src.getAbsolutePath(), mappedFiles);
+            }
         }
     }
 
@@ -497,72 +583,81 @@ public class Copy extends Task {
      */
     protected void doFileOperations() {
         if (fileCopyMap.size() > 0) {
-            log("Copying " + fileCopyMap.size() 
-                + " file" + (fileCopyMap.size() == 1 ? "" : "s") 
+            log("Copying " + fileCopyMap.size()
+                + " file" + (fileCopyMap.size() == 1 ? "" : "s")
                 + " to " + destDir.getAbsolutePath());
 
             Enumeration e = fileCopyMap.keys();
             while (e.hasMoreElements()) {
                 String fromFile = (String) e.nextElement();
-                String toFile = (String) fileCopyMap.get(fromFile);
+                String[] toFiles = (String[]) fileCopyMap.get(fromFile);
 
-                if (fromFile.equals(toFile)) {
-                    log("Skipping self-copy of " + fromFile, verbosity);
-                    continue;
-                }
+                for (int i = 0; i < toFiles.length; i++) {
+                    String toFile = toFiles[i];
 
-                try {
-                    log("Copying " + fromFile + " to " + toFile, verbosity);
+                    if (fromFile.equals(toFile)) {
+                        log("Skipping self-copy of " + fromFile, verbosity);
+                        continue;
+                    }
 
-                    FilterSetCollection executionFilters = 
-                        new FilterSetCollection();
-                    if (filtering) {
-                        executionFilters
-                            .addFilterSet(getProject().getGlobalFilterSet());
+                    try {
+                        log("Copying " + fromFile + " to " + toFile, verbosity);
+
+                        FilterSetCollection executionFilters =
+                            new FilterSetCollection();
+                        if (filtering) {
+                            executionFilters
+                                .addFilterSet(getProject().getGlobalFilterSet());
+                        }
+                        for (Enumeration filterEnum = filterSets.elements();
+                            filterEnum.hasMoreElements();) {
+                            executionFilters
+                                .addFilterSet((FilterSet) filterEnum.nextElement());
+                        }
+                        fileUtils.copyFile(fromFile, toFile, executionFilters,
+                                           filterChains, forceOverwrite,
+                                           preserveLastModified, inputEncoding,
+                                           outputEncoding, getProject());
+                    } catch (IOException ioe) {
+                        String msg = "Failed to copy " + fromFile + " to " + toFile
+                            + " due to " + ioe.getMessage();
+                        File targetFile = new File(toFile);
+                        if (targetFile.exists() && !targetFile.delete()) {
+                            msg += " and I couldn't delete the corrupt " + toFile;
+                        }
+                        throw new BuildException(msg, ioe, getLocation());
                     }
-                    for (Enumeration filterEnum = filterSets.elements(); 
-                         filterEnum.hasMoreElements();) {
-                        executionFilters
-                            .addFilterSet((FilterSet) filterEnum.nextElement());
-                    }
-                    fileUtils.copyFile(fromFile, toFile, executionFilters,
-                                       filterChains, forceOverwrite,
-                                       preserveLastModified, encoding,
-                                       getProject());
-                } catch (IOException ioe) {
-                    String msg = "Failed to copy " + fromFile + " to " + toFile
-                        + " due to " + ioe.getMessage();
-                    File targetFile = new File(toFile);
-                    if (targetFile.exists() && !targetFile.delete()) {
-                        msg += " and I couldn't delete the corrupt " + toFile;
-                    }
-                    throw new BuildException(msg, ioe, getLocation());
                 }
             }
         }
 
         if (includeEmpty) {
             Enumeration e = dirCopyMap.elements();
-            int count = 0;
+            int createCount = 0;
             while (e.hasMoreElements()) {
-                File d = new File((String) e.nextElement());
-                if (!d.exists()) {
-                    if (!d.mkdirs()) {
-                        log("Unable to create directory " 
-                            + d.getAbsolutePath(), Project.MSG_ERR);
-                    } else {
-                        count++;
+                String[] dirs = (String[]) e.nextElement();
+                for (int i = 0; i < dirs.length; i++) {
+                    File d = new File(dirs[i]);
+                    if (!d.exists()) {
+                        if (!d.mkdirs()) {
+                            log("Unable to create directory "
+                                + d.getAbsolutePath(), Project.MSG_ERR);
+                        } else {
+                            createCount++;
+                        }
                     }
                 }
             }
-
-            if (count > 0) {
-                log("Copied " + count +
-                    " empty director" +
-                    (count == 1 ? "y" : "ies") +
-                    " to " + destDir.getAbsolutePath());
+            if (createCount > 0) {
+                log("Copied " + dirCopyMap.size()
+                    + " empty director"
+                    + (dirCopyMap.size() == 1 ? "y" : "ies")
+                    + " to " + createCount
+                    + " empty director"
+                    + (createCount == 1 ? "y" : "ies") + " under "
+                    + destDir.getAbsolutePath());
             }
         }
     }
-
 }
+

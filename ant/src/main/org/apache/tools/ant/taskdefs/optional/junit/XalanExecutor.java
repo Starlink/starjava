@@ -1,94 +1,60 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.junit;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.StringWriter;
 import java.io.PrintWriter;
-
+import java.io.StringWriter;
 import java.lang.reflect.Field;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
  * Command class that encapsulate specific behavior for each
  * Xalan version. The right executor will be instantiated at
  * runtime via class lookup. For instance, it will check first
- * for Xalan2, then for Xalan1.
+ * for Xalan2/XSLTC, then for Xalan1.
  */
 abstract class XalanExecutor {
+    private static final String pack = 
+        "org.apache.tools.ant.taskdefs.optional.junit.";
+
     /** the transformer caller */
     protected AggregateTransformer caller;
 
     /** set the caller for this object. */
-    private final void setCaller(AggregateTransformer caller){
+    private final void setCaller(AggregateTransformer caller) {
         this.caller = caller;
     }
 
     /** get the appropriate stream based on the format (frames/noframes) */
-    protected OutputStream getOutputStream() throws IOException {
-        if (caller.FRAMES.equals(caller.format)){
+    protected final OutputStream getOutputStream() throws IOException {
+        if (AggregateTransformer.FRAMES.equals(caller.format)) {
             // dummy output for the framed report
             // it's all done by extension...
             return new ByteArrayOutputStream();
         } else {
-            return new FileOutputStream(new File(caller.toDir, "junit-noframes.html"));
+            return new BufferedOutputStream(new FileOutputStream(new File(caller.toDir, "junit-noframes.html")));
         }
     }
 
@@ -103,43 +69,73 @@ abstract class XalanExecutor {
      * @throws BuildException thrown if it could not find a valid xalan
      * executor.
      */
-    static XalanExecutor newInstance(AggregateTransformer caller) throws BuildException {
-        Class procVersion = null;
+    static XalanExecutor newInstance(AggregateTransformer caller) 
+        throws BuildException {
         XalanExecutor executor = null;
         try {
-            procVersion = Class.forName("org.apache.xalan.processor.XSLProcessorVersion");
-            executor = (XalanExecutor) Class.forName(
-                "org.apache.tools.ant.taskdefs.optional.junit.Xalan2Executor").newInstance();
-        } catch (Exception xalan2missing){
-            StringWriter swr = new StringWriter();
-            xalan2missing.printStackTrace(new PrintWriter(swr));
-            caller.task.log("Didn't find Xalan2.", Project.MSG_DEBUG);
-            caller.task.log(swr.toString(), Project.MSG_DEBUG);
+            Class clazz = Class.forName(pack + "Xalan2Executor");
+            executor = (XalanExecutor)clazz.newInstance();
+        } catch (Exception xsltcApacheMissing){
+            caller.task.log(xsltcApacheMissing.toString());
             try {
-                procVersion = Class.forName("org.apache.xalan.xslt.XSLProcessorVersion");
-                executor = (XalanExecutor) Class.forName(
-                    "org.apache.tools.ant.taskdefs.optional.junit.Xalan1Executor").newInstance();
-            } catch (Exception xalan1missing){
-                swr = new StringWriter();
-                xalan1missing.printStackTrace(new PrintWriter(swr));
-                caller.task.log("Didn't find Xalan1.", Project.MSG_DEBUG);
-                caller.task.log(swr.toString(), Project.MSG_DEBUG);
-                throw new BuildException("Could not find xalan2 nor xalan1 in the classpath. Check http://xml.apache.org/xalan-j");
+                Class clazz = Class.forName(pack + "Xalan1Executor");
+                executor = (XalanExecutor) clazz.newInstance();
+            } catch (Exception xalan1Missing){
+                caller.task.log(xalan1Missing.toString());
+                throw new BuildException("Could not find xstlc nor xalan2 nor "
+                                         + "xalan1 in the classpath. Check "
+                                         + "http://xml.apache.org/xalan-j");
             }
         }
-        String version = getXalanVersion(procVersion);
-        caller.task.log("Using Xalan version: " + version);
+        String classNameImpl = executor.getImplementation();
+        String version = executor.getProcVersion(classNameImpl);
+        caller.task.log("Using " + version, Project.MSG_VERBOSE);
         executor.setCaller(caller);
         return executor;
     }
 
+    /**
+     * This methods should return the classname implementation of the
+     * underlying xslt processor
+     * @return the classname of the implementation, for example:
+     * org.apache.xalan.processor.TransformerFactoryImpl
+     * @see #getProcVersion(String)
+     */
+    protected abstract String getImplementation();
+
+    /**
+     * Try to discover the xslt processor version based on the
+     * className. There is nothing carved in stone and it can change
+     * anytime, so this is just for the sake of giving additional
+     * information if we can find it.
+     * @param classNameImpl the classname of the underlying xslt processor
+     * @return a string representing the implementation version.
+     * @throws BuildException
+     */
+    protected abstract String getProcVersion(String classNameImpl) 
+        throws BuildException;
+
+    /** a bit simplistic but xsltc data are conveniently private non final */
+    protected final String getXSLTCVersion(String procVersionClassName) 
+        throws ClassNotFoundException {
+        // there's a convenient xsltc class version but data are
+        // private so use package information
+        Class procVersion = Class.forName(procVersionClassName);
+        Package pkg = procVersion.getPackage();
+        return pkg.getName() + " " + pkg.getImplementationTitle() 
+            + " " + pkg.getImplementationVersion();
+    }
+
     /** pretty useful data (Xalan version information) to display. */
-    private static String getXalanVersion(Class procVersion) {
+    protected final String getXalanVersion(String procVersionClassName) 
+        throws ClassNotFoundException {
+        Class procVersion = Class.forName(procVersionClassName);
+        String pkg = procVersion.getPackage().getName();
         try {
             Field f = procVersion.getField("S_VERSION");
-            return f.get(null).toString();
-        } catch (Exception e){
-            return "?";
+            return pkg + " " + f.get(null).toString();
+        } catch (Exception e) {
+            return pkg + " ?.?";
         }
     }
 }

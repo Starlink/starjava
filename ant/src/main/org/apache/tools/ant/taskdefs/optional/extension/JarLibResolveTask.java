@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.extension;
 
@@ -59,36 +22,32 @@ import java.util.jar.Manifest;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.taskdefs.optional.extension.resolvers.AntResolver;
 import org.apache.tools.ant.taskdefs.optional.extension.resolvers.LocationResolver;
 import org.apache.tools.ant.taskdefs.optional.extension.resolvers.URLResolver;
-import org.apache.tools.ant.taskdefs.optional.extension.resolvers.AntResolver;
 
 /**
  * Tries to locate a JAR to satisfy an extension and place
  * location of JAR into property.
  *
- * @author <a href="mailto:peter@apache.org">Peter Donald</a>
- * @author <a href="mailto:jeff@socialchange.net.au">Jeff Turner</a>
  * @ant.task name="jarlib-resolve"
  */
-public class JarLibResolveTask
-    extends Task
-{
+public class JarLibResolveTask extends Task {
     /**
      * The name of the property in which the location of
      * library is stored.
      */
-    private String m_property;
+    private String propertyName;
 
     /**
      * The extension that is required.
      */
-    private Extension m_extension;
+    private Extension requiredExtension;
 
     /**
      * The set of resolvers to use to attempt to locate library.
      */
-    private final ArrayList m_resolvers = new ArrayList();
+    private final ArrayList resolvers = new ArrayList();
 
     /**
      * Flag to indicate that you should check that
@@ -96,14 +55,14 @@ public class JarLibResolveTask
      * extension and if they don't then raise
      * an exception.
      */
-    private boolean m_checkExtension = true;
+    private boolean checkExtension = true;
 
     /**
      * Flag indicating whether or not you should
      * throw a BuildException if you cannot resolve
      * library.
      */
-    private boolean m_failOnError = true;
+    private boolean failOnError = true;
 
     /**
      * The name of the property in which the location of
@@ -112,52 +71,56 @@ public class JarLibResolveTask
      * @param property The name of the property in which the location of
      *                 library is stored.
      */
-    public void setProperty( final String property )
-    {
-        m_property = property;
+    public void setProperty(final String property) {
+        this.propertyName = property;
     }
 
     /**
-     * If true, libraries returned by nested resolvers should be
-     * checked to see if they supply extension.
+     * Check nested libraries for extensions
+     *
+     * @param checkExtension if true, libraries returned by nested
+     * resolvers should be checked to see if they supply extension.
      */
-    public void setCheckExtension( final boolean checkExtension )
-    {
-        m_checkExtension = checkExtension;
+    public void setCheckExtension(final boolean checkExtension) {
+        this.checkExtension = checkExtension;
     }
 
     /**
-     * If true, failure to locate library should fail build.
+     * Set whether to fail if error.
+     *
+     * @param failOnError if true, failure to locate library should fail build.
      */
-    public void setFailOnError( final boolean failOnError )
-    {
-        m_failOnError = failOnError;
+    public void setFailOnError(final boolean failOnError) {
+        this.failOnError = failOnError;
     }
 
     /**
      * Adds location resolver to look for a library in a location
      * relative to project directory.
+     *
+     * @param location the resolver location to search.
      */
-    public void addConfiguredLocation( final LocationResolver location )
-    {
-        m_resolvers.add( location );
+    public void addConfiguredLocation(final LocationResolver location) {
+        resolvers.add(location);
     }
 
     /**
      * Adds a URL resolver to download a library from a URL
      * to a local file.
+     *
+     * @param url the URL resolver from which to download the library
      */
-    public void addConfiguredUrl( final URLResolver url )
-    {
-        m_resolvers.add( url );
+    public void addConfiguredUrl(final URLResolver url) {
+        resolvers.add(url);
     }
 
     /**
      * Adds Ant resolver to run an Ant build file to generate a library.
+     *
+     * @param ant the AntResolver to generate the library.
      */
-    public void addConfiguredAnt( final AntResolver ant )
-    {
-        m_resolvers.add( ant );
+    public void addConfiguredAnt(final AntResolver ant) {
+        resolvers.add(ant);
     }
 
     /**
@@ -165,74 +128,63 @@ public class JarLibResolveTask
      *
      * @param extension Set the Extension looking for.
      */
-    public void addConfiguredExtension( final ExtensionAdapter extension )
-    {
-        if( null != m_extension )
-        {
-            final String message = "Can not specify extension to " +
-                "resolve multiple times.";
-            throw new BuildException( message );
+    public void addConfiguredExtension(final ExtensionAdapter extension) {
+        if (null != requiredExtension) {
+            final String message = "Can not specify extension to "
+                + "resolve multiple times.";
+            throw new BuildException(message);
         }
-        m_extension = extension.toExtension();
+        requiredExtension = extension.toExtension();
     }
 
-    public void execute()
-        throws BuildException
-    {
+    /**
+     * Execute the task.
+     *
+     * @throws BuildException if the task fails.
+     */
+    public void execute() throws BuildException {
         validate();
 
-        getProject().log( "Resolving extension: " + m_extension,
-                          Project.MSG_VERBOSE );
+        getProject().log("Resolving extension: " + requiredExtension,
+                          Project.MSG_VERBOSE);
 
         String candidate =
-            getProject().getProperty( m_property );
+            getProject().getProperty(propertyName);
 
-        if( null != candidate )
-        {
+        if (null != candidate) {
             final String message = "Property Already set to: " + candidate;
-            if( m_failOnError )
-            {
-                throw new BuildException( message );
-            }
-            else
-            {
-                getProject().log( message, Project.MSG_ERR );
+            if (failOnError) {
+                throw new BuildException(message);
+            } else {
+                getProject().log(message, Project.MSG_ERR);
                 return;
             }
         }
 
-        final int size = m_resolvers.size();
-        for( int i = 0; i < size; i++ )
-        {
+        final int size = resolvers.size();
+        for (int i = 0; i < size; i++) {
             final ExtensionResolver resolver =
-                (ExtensionResolver)m_resolvers.get( i );
+                (ExtensionResolver) resolvers.get(i);
 
-            getProject().log( "Searching for extension using Resolver:" + resolver,
-                              Project.MSG_VERBOSE );
+            getProject().log("Searching for extension using Resolver:" + resolver,
+                              Project.MSG_VERBOSE);
 
-            try
-            {
+            try {
                 final File file =
-                    resolver.resolve( m_extension, getProject() );
-                try
-                {
-                    checkExtension( file );
+                    resolver.resolve(requiredExtension, getProject());
+                try {
+                    checkExtension(file);
                     return;
+                } catch (final BuildException be) {
+                    final String message = "File " + file + " returned by "
+                        + "resolver failed to satisfy extension due to: "
+                        + be.getMessage();
+                    getProject().log(message, Project.MSG_WARN);
                 }
-                catch( final BuildException be )
-                {
-                    final String message =
-                        "File " + file + " returned by resolver failed " +
-                        "to satisfy extension due to: " + be.getMessage();
-                    getProject().log( message, Project.MSG_WARN );
-                }
-            }
-            catch( final BuildException be )
-            {
-                final String message =
-                    "Failed to resolve extension to file " +
-                    "using resolver " + resolver + " due to: " + be;
-                getProject().log( message, Project.MSG_WARN );
+            } catch (final BuildException be) {
+                final String message = "Failed to resolve extension to file "
+                    + "using resolver " + resolver + " due to: " + be;
+                getProject().log(message, Project.MSG_WARN);
             }
         }
 
@@ -241,20 +193,16 @@ public class JarLibResolveTask
 
     /**
      * Utility method that will throw a {@link BuildException}
-     * if {@link #m_failOnError} is true else it just displays
+     * if {@link #failOnError} is true else it just displays
      * a warning.
      */
-    private void missingExtension()
-    {
+    private void missingExtension() {
         final String message =
             "Unable to resolve extension to a file";
-        if( m_failOnError )
-        {
-            throw new BuildException( message );
-        }
-        else
-        {
-            getProject().log( message, Project.MSG_ERR );
+        if (failOnError) {
+            throw new BuildException(message);
+        } else {
+            getProject().log(message, Project.MSG_ERR);
         }
     }
 
@@ -266,54 +214,44 @@ public class JarLibResolveTask
      * @param file the candidate library
      * @throws BuildException if library does not satisfy extension
      */
-    private void checkExtension( final File file )
-    {
-        if( !file.exists() )
-        {
+    private void checkExtension(final File file) {
+        if (!file.exists()) {
             final String message =
                 "File " + file + " does not exist";
-            throw new BuildException( message );
+            throw new BuildException(message);
         }
-        if( !file.isFile() )
-        {
+        if (!file.isFile()) {
             final String message =
                 "File " + file + " is not a file";
-            throw new BuildException( message );
+            throw new BuildException(message);
         }
 
-        if( !m_checkExtension )
-        {
-            final String message = "Setting property to " +
-                file + " without verifying library satisfies extension";
-            getProject().log( message, Project.MSG_VERBOSE );
-            setLibraryProperty( file );
-        }
-        else
-        {
-            getProject().log( "Checking file " + file +
-                              " to see if it satisfies extension",
-                              Project.MSG_VERBOSE );
+        if (!checkExtension) {
+            final String message = "Setting property to " + file
+                + " without verifying library satisfies extension";
+            getProject().log(message, Project.MSG_VERBOSE);
+            setLibraryProperty(file);
+        } else {
+            getProject().log("Checking file " + file
+                + " to see if it satisfies extension", Project.MSG_VERBOSE);
             final Manifest manifest =
-                ExtensionUtil.getManifest( file );
+                ExtensionUtil.getManifest(file);
             final Extension[] extensions =
-                Extension.getAvailable( manifest );
-            for( int i = 0; i < extensions.length; i++ )
-            {
+                Extension.getAvailable(manifest);
+            for (int i = 0; i < extensions.length; i++) {
                 final Extension extension = extensions[ i ];
-                if( extension.isCompatibleWith( m_extension ) )
-                {
-                    setLibraryProperty( file );
+                if (extension.isCompatibleWith(requiredExtension)) {
+                    setLibraryProperty(file);
                     return;
                 }
             }
 
-            getProject().log( "File " + file + " skipped as it " +
-                              "does not satisfy extension",
-                              Project.MSG_VERBOSE );
+            getProject().log("File " + file + " skipped as it "
+                + "does not satisfy extension", Project.MSG_VERBOSE);
 
             final String message =
                 "File " + file + " does not satisfy extension";
-            throw new BuildException( message );
+            throw new BuildException(message);
         }
     }
 
@@ -324,10 +262,9 @@ public class JarLibResolveTask
      *
      * @param file the library
      */
-    private void setLibraryProperty( final File file )
-    {
-        getProject().setNewProperty( m_property,
-                                     file.getAbsolutePath() );
+    private void setLibraryProperty(final File file) {
+        getProject().setNewProperty(propertyName,
+                                     file.getAbsolutePath());
     }
 
     /**
@@ -335,19 +272,15 @@ public class JarLibResolveTask
      *
      * @throws BuildException if invalid parameters found
      */
-    private void validate()
-        throws BuildException
-    {
-        if( null == m_property )
-        {
+    private void validate() throws BuildException {
+        if (null == propertyName) {
             final String message = "Property attribute must be specified.";
-            throw new BuildException( message );
+            throw new BuildException(message);
         }
 
-        if( null == m_extension )
-        {
+        if (null == requiredExtension) {
             final String message = "Extension element must be specified.";
-            throw new BuildException( message );
+            throw new BuildException(message);
         }
     }
 }

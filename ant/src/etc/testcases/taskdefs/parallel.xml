@@ -21,6 +21,101 @@
     </parallel>
   </target>
 
+  <target name="testThreadCount">
+    <echo>|1/</echo>
+    <parallel threadCount='1' pollInterval="60">
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="30"/>
+        <echo message="-"/>
+      </sequential>
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="60"/>
+        <echo message="-"/>
+      </sequential>
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="90"/>
+        <echo message="-"/>
+      </sequential>
+    </parallel>
+    <echo>|2/</echo>
+    <parallel threadCount='2' pollInterval="30">
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="30"/>
+        <echo message="-"/>
+      </sequential>
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="60"/>
+        <echo message="-"/>
+      </sequential>
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="90"/>
+        <echo message="-"/>
+      </sequential>
+    </parallel>
+    <echo>|3/</echo>
+    <parallel threadCount='3' pollInterval="30">
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="30"/>
+        <echo message="-"/>
+      </sequential>
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="60"/>
+        <echo message="-"/>
+      </sequential>
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="90"/>
+        <echo message="-"/>
+      </sequential>
+    </parallel>
+    <echo>|4/</echo>
+    <parallel threadCount='4' pollInterval="30">
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="30"/>
+        <echo message="-"/>
+      </sequential>
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="60"/>
+        <echo message="-"/>
+      </sequential>
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="90"/>
+        <echo message="-"/>
+      </sequential>
+    </parallel>
+    <echo>|4/</echo>
+    <parallel threadsPerProcessor='1' threadcount='4' pollInterval="30">
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="30"/>
+        <echo message="-"/>
+      </sequential>
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="60"/>
+        <echo message="-"/>
+      </sequential>
+      <sequential>
+        <echo message="+"/>
+        <sleep milliseconds="90"/>
+        <echo message="-"/>
+      </sequential>
+    </parallel>
+    <echo>|</echo>
+    
+  </target>
+
   <target name="testDemux">
     <parallel>
       <demuxtest/>

@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>FTP Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -13,9 +14,11 @@
 list, delete files, and create directories.  See below for descriptions and examples of how
 to perform each task.</p>
 <p><b>Note:</b> This task depends on external libraries not included in the Ant distribution.
-See <a href="../install.html#librarydependencies">Library Dependencies</a> for more information.</p>
-<p>The ftp task makes no attempt to determine what file system syntax is
-required by the remote server, and defaults to Unix standards.
+See <a href="../install.html#commons-net">Library Dependencies</a> for more information.</p>
+<p>The ftp task attempts to determine what file system is in place on the FTP server.
+Supported server types are Unix, NT, OS2, VMS, and OS400.  In addition, NT and OS400 servers
+which have been configured to display the directory in Unix style are also supported correctly.
+Otherwise, the system will default to Unix standards.
 <i>remotedir</i> must be specified in the exact syntax required by the ftp
 server. If the usual Unix conventions are not supported by the server,
 <i>separator</i> can be used to set the file separator that should be used
@@ -28,10 +31,11 @@ This task does not currently use the proxy information set by the
 <a href="setproxy.html">&lt;setproxy&gt;</a> task, and cannot go through
 a firewall via socks. 
 <p>
-<b>Warning: </b> for the get and delete actions to work properly 
-with a Windows 2000 ftp server, it needs to be configured to generate
-Unix style listings, and not the default MS-DOS listing. Or someone needs to write
-the code to parse MS-DOS listings -any takers?
+<b>Warning: </b> there have been problems reported concerning the ftp get with newer attribute.
+Problems might be due to format of ls -l differing from what is expected by commons-net,
+for instance due to specificities of langage used by the ftp server in the directory listing.
+If you encounter such a problem, please send an email including a sample directory listing
+coming from your ftp server (ls -l on the ftp prompt).
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -62,15 +66,18 @@ the code to parse MS-DOS listings -any takers?
   </tr>
   <tr>
     <td valign="top">remotedir</td>
-    <td valign="top">the directory to which to upload files on the 
-                     ftp server.</td>
+    <td valign="top">remote directory on the
+                     ftp server
+                     see table below for detailed usage
+                     </td>
     <td valign="top" align="center">No</td>
   </tr>
   <tr>
     <td valign="top">action</td>
     <td valign="top">the ftp action to perform, defaulting to &quot;send&quot;.  
                      Currently supports &quot;put&quot;, &quot;get&quot;,
-                     &quot;del&quot;, &quot;list&quot;, &quot;chmod&quot; and &quot;mkdir&quot;.</td>
+                     &quot;del&quot;, &quot;list&quot;, &quot;chmod&quot;,
+                     &quot;mkdir&quot; and &quot;rmdir&quot;.</td>
     <td valign="top" align="center">No</td>
   </tr>
   <tr>
@@ -100,7 +107,24 @@ the code to parse MS-DOS listings -any takers?
   </tr>
   <tr>
     <td valign="top">newer</td>
-    <td valign="top">a synonym for <i>depends</i>.</td>
+    <td valign="top">a synonym for <i>depends</i>.
+    see timediffauto and timediffmillis</td>
+    <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">timediffauto</td>
+    <td valign="top">set to <code>&quot;true&quot;</code>
+    to make ant calculate the time difference between client and server.<br/>
+    <em>requires write access in the remote directory</em><br/>
+    Since ant 1.6</td>
+    <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">timediffmillis</td>
+    <td valign="top">number of milliseconds to add to the time on the remote machine
+     to get the time on the local machine.<br/>
+    Since ant 1.6
+    </td>
     <td valign="top" align="center">No</td>
   </tr>
   <tr>
@@ -141,7 +165,114 @@ the code to parse MS-DOS listings -any takers?
     remainder of the files still transferred. Default: false</td>
     <td valign="top" align="center">No</td>
   </tr>  
+  <tr>
+    <td valign="top">preservelastmodified</td>
+    <td valign="top">Give the copied files the same last modified
+      time as the original source files (applies to getting files only).
+      (<em>Note</em>: Ignored on Java 1.1)</td>
+    <td valign="top" align="center">No; defaults to false.</td>
+  </tr>
 </table>
+<h3>Note about remotedir attribute</h3>
+<table  border="1" cellpadding="2" cellspacing="0"
+ >
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;" width="20%">Action<br>
+      </td>
+      <td style="vertical-align: top;" width="40%">meaning of <code>remotedir</code><br>
+      </td>
+      <td style="vertical-align: top;">use of nested <code>fileset</code>
+(s)<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;" width="20%">send/put<br>
+      </td>
+      <td style="vertical-align: top;" width="40%">base directory to
+which the files are sent<br>
+      </td>
+      <td style="vertical-align: top;">they are used normally and
+evaluated on the local machine<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;" width="20%">recv/get<br>
+      </td>
+      <td style="vertical-align: top;" width="40%">base directory from
+which the files are retrieved<br>
+      </td>
+      <td style="vertical-align: top;">the remote files located under
+the <code>remotedir </code>matching the include/exclude patterns of
+the <code>fileset&nbsp;</code></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;" width="20%">del/delete<br>
+      </td>
+      <td style="vertical-align: top;" width="40%">base directory from
+which files get deleted<br>
+      </td>
+      <td style="vertical-align: top;">the remote files located under
+the <code>remotedir </code>matching the include/exclude patterns of
+the <code>fileset <br>
+      </code></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;" width="20%">list<br>
+      </td>
+      <td style="vertical-align: top;" width="40%">base directory from
+which files are listed<br>
+      </td>
+      <td style="vertical-align: top;">the remote files located under
+the <code>remotedir </code>matching the include/exclude patterns of
+the <code>fileset <br>
+      </code></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;" width="20%">mkdir</td>
+      <td style="vertical-align: top;" width="40%">directory to create<br>
+      </td>
+      <td style="vertical-align: top;">not used<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;" width="20%">chmod</td>
+      <td style="vertical-align: top;" width="40%">base directory from
+which the mode of files get changed<br>
+      </td>
+      <td style="vertical-align: top;">the remote files located under
+the <code>remotedir </code>matching the include/exclude patterns of
+the <code>fileset <br>
+      </code></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;" width="20%">rmdir<br>
+      </td>
+      <td style="vertical-align: top;" width="40%">base directory from
+which directories get removed<br>
+      </td>
+      <td style="vertical-align: top;">the remote directories located
+under the <code>remotedir </code>matching the include/exclude
+patterns of the <code>fileset <br>
+      </code></td>
+    </tr>
+  </tbody>
+</table><h3>Parameters specified as nested elements</h3>
+<h4>fileset</h4>
+<p>The ftp task supports any number of nested <a
+href="../CoreTypes/fileset.html"><code>&lt;fileset&gt;</code></a> elements to specify
+the files to be retrieved, or deleted, or listed, or whose mode you want to change.</p>
+<p>
+The attribute <code>followsymlinks</code> of <code>fileset</code> is fully supported on
+local (put) as well as remote (get, chmod, delete) filesets.
+<em>Before ant 1.6 there was no support of symbolic links in remote filesets.
+In order to exclude symbolic links (preserve the behavior of ant 1.5.x and older),
+you need to explicitly set <code>followsymlinks</code> to <code>false</code>.</em>
+</p>
+<p>
+Remote filesets do not support selectors.<br/>
+</p>
+
 <h3>Sending Files</h3>
 <p>The easiest way to describe how to send files is with a couple of examples:</p>
 <pre>
@@ -266,8 +397,57 @@ remotedir attribute.</p>
 <p>This creates the directory <code>some/remote/dir</code> beneath the default root
 directory.  As with all other actions, the directory separator character must be correct
 according to the desires of the FTP server.</p>
+<h3>Removing Directories</h3>
+This action uses nested fileset elements to 
+select the directories to remove from the remote FTP server.  The 
+filesets are relative to the remote directory, not a local directory. 
+The dir attribute of the fileset is ignored completely.
+The directories to be removed must be empty, or contain only
+other directories that have been also selected to be removed by the filesets
+patterns, otherwise a BuildException will be thrown.
+Also, if you don't have permission to remove a directory, a BuildException is 
+thrown.
+
+<pre>
+  &lt;ftp action=&quot;rmdir&quot;
+       server=&quot;ftp.apache.org&quot;
+       userid=&quot;anonymous&quot;
+       password=&quot;me@myorg.com&quot; 
+       remotedir=&quot;/somedir&quot; &gt;
+    &lt;fileset&gt;
+      &lt;include name=&quot;dira&quot;/&gt;
+      &lt;include name=&quot;dirb/**&quot;/&gt;
+    &lt;/fileset&gt;
+  &lt;/ftp&gt;
+</pre>
+<p>Logs in to <code>ftp.apache.org</code> as <code>anonymous</code> and
+tries to remove <code>/somedir/dira</code> directory and
+all the directories tree starting at, and including, <code>/somedir/dirb</code>.
+When removing the <code>/somedir/dirb</code> tree,
+it will start at the leaves moving up to the root, so that when
+it tries to remove a directory it is sure all the directories under it are
+already removed.
+Obviuosly all the files in the tree must have been already deleted.
+</p>
+<p>As an example suppose you want to delete everything contained into 
+<code>/somedir</code>, so invoke first the <code>&lt;ftp&gt;</code> task with
+<code>action=&quot;delete&quot;</code>, then with 
+<code>action=&quot;rmdir&quot;</code> specifying in both cases
+<code>remotedir=&quot;/somedir&quot;</code> and
+
+<pre>
+    &lt;fileset&gt;
+        &lt;include name=&quot;**&quot;/&gt;
+    &lt;/fileset&gt;
+</pre>
+
+The directory specified in the <code>remotedir</code> parameter is never
+selected for remove, so if you need to remove it, specify its parent in
+<code>remotedir</code> parameter and include it in the 
+<code>&lt;fileset&gt;</code> pattern, like <code>&quot;somedir/**&quot;</code>.
+</p>
 <hr>
-<p align="center">Copyright &copy; 2000-2002 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>

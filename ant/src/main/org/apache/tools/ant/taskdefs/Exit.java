@@ -1,76 +1,65 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
-
+import org.apache.tools.ant.ExitStatusException;
+import org.apache.tools.ant.taskdefs.condition.Condition;
+import org.apache.tools.ant.taskdefs.condition.ConditionBase;
 
 /**
  * Exits the active build, giving an additional message
  * if available.
  *
- * @author <a href="mailto:nico@seessle.de">Nico Seessle</a>
+ * The <code>if</code> and <code>unless</code> attributes make the
+ * failure conditional -both probe for the named property being defined.
+ * The <code>if</code> tests for the property being defined, the
+ * <code>unless</code> for a property being undefined.
+ *
+ * If both attributes are set, then the test fails only if both tests
+ * are true. i.e.
+ * <pre>fail := defined(ifProperty) && !defined(unlessProperty)</pre>
+ *
+ * A single nested<CODE>&lt;condition&gt;</CODE> element can be specified
+ * instead of using <CODE>if</CODE>/<CODE>unless</CODE> (a combined
+ * effect can be achieved using <CODE>isset</CODE> conditions).
  *
  * @since Ant 1.2
  *
  * @ant.task name="fail" category="control"
  */
-public class Exit extends Task { 
+public class Exit extends Task {
+
+    private class NestedCondition extends ConditionBase implements Condition {
+        public boolean eval() {
+            if (countConditions() != 1) {
+                throw new BuildException(
+                    "A single nested condition is required.");
+            }
+            return ((Condition)(getConditions().nextElement())).eval();
+        }
+    }
+
     private String message;
     private String ifCondition, unlessCondition;
+    private NestedCondition nestedCondition;
+    private Integer status;
 
     /**
      * A message giving further information on why the build exited.
@@ -98,39 +87,128 @@ public class Exit extends Task {
         unlessCondition = c;
     }
 
+    /**
+     * Set the status code to associate with the thrown Exception.
+     * @param i   the <CODE>int</CODE> status
+     */
+    public void setStatus(int i) {
+        status = new Integer(i);
+    }
+
+    /**
+     * Throw a <CODE>BuildException</CODE> to exit (fail) the build.
+     * If specified, evaluate conditions:
+     * A single nested condition is accepted, but requires that the
+     * <CODE>if</CODE>/<code>unless</code> attributes be omitted.
+     * If the nested condition evaluates to true, or the
+     * ifCondition is true or unlessCondition is false, the build will exit.
+     * The error message is constructed from the text fields, from
+     * the nested condition (if specified), or finally from
+     * the if and unless parameters (if present).
+     * @throws BuildException
+     */
     public void execute() throws BuildException {
-        if (testIfCondition() && testUnlessCondition()) {
-            if (message != null && message.length() > 0) { 
-                throw new BuildException(message);
+        boolean fail = (nestedConditionPresent()) ? testNestedCondition()
+                     : (testIfCondition() && testUnlessCondition());
+        if (fail) {
+            String text = null;
+            if (message != null && message.trim().length() > 0) {
+                text = message.trim();
             } else {
-                throw new BuildException("No message");
+                if (ifCondition != null && ifCondition.length() > 0
+                    && getProject().getProperty(ifCondition) != null) {
+                    text = "if=" + ifCondition;
+                }
+                if (unlessCondition != null && unlessCondition.length() > 0
+                    && getProject().getProperty(unlessCondition) == null) {
+                    if (text == null) {
+                        text = "";
+                    } else {
+                        text += " and ";
+                    }
+                    text += "unless=" + unlessCondition;
+                }
+                if (nestedConditionPresent()) {
+                    text = "condition satisfied";
+                } else {
+                    if (text == null) {
+                        text = "No message";
+                    }
+                }
             }
+            throw ((status == null) ? new BuildException(text)
+             : new ExitStatusException(text, status.intValue()));
         }
     }
 
     /**
      * Set a multiline message.
+     * @param msg the message to display
      */
     public void addText(String msg) {
         if (message == null) {
             message = "";
         }
-        message += project.replaceProperties(msg);
+        message += getProject().replaceProperties(msg);
     }
 
+    /**
+     * Add a condition element.
+     * @return <CODE>ConditionBase</CODE>.
+     * @since Ant 1.6.2
+     */
+    public ConditionBase createCondition() {
+        if (nestedCondition != null) {
+            throw new BuildException("Only one nested condition is allowed.");
+        }
+        nestedCondition = new NestedCondition();
+        return nestedCondition;
+    }
+
+    /**
+     * test the if condition
+     * @return true if there is no if condition, or the named property exists
+     */
     private boolean testIfCondition() {
         if (ifCondition == null || "".equals(ifCondition)) {
             return true;
         }
-        
-        return project.getProperty(ifCondition) != null;
+        return getProject().getProperty(ifCondition) != null;
     }
 
+    /**
+     * test the unless condition
+     * @return true if there is no unless condition,
+     *  or there is a named property but it doesn't exist
+     */
     private boolean testUnlessCondition() {
         if (unlessCondition == null || "".equals(unlessCondition)) {
             return true;
         }
-        return project.getProperty(unlessCondition) == null;
+        return getProject().getProperty(unlessCondition) == null;
+    }
+
+    /**
+     * test the nested condition
+     * @return true if there is none, or it evaluates to true
+     */
+    private boolean testNestedCondition() {
+        boolean result = nestedConditionPresent();
+
+        if (result && ifCondition != null || unlessCondition != null) {
+            throw new BuildException("Nested conditions "
+                + "not permitted in conjunction with if/unless attributes");
+        }
+
+        return result && nestedCondition.eval();
+    }
+
+    /**
+     * test whether there is a nested condition.
+     * @return <CODE>boolean</CODE>.
+     */
+    private boolean nestedConditionPresent() {
+        return (nestedCondition != null);
     }
 
 }

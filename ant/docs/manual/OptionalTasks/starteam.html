@@ -1,7 +1,8 @@
 <html>
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<title>StartTeam Tasks</title>
+<title>StarTeam Tasks</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 <body>
 <h1>StarTeam Support</h1>
@@ -14,18 +15,23 @@
 </ul>
 
 <p>
-These tasks make use of functions from the StarTeam API.  As a result
-they are only available to licensed users of StarTeam.  You must have
+The StarTeam revision control system was recently acquired by Borland.
+These tasks make use of functions from the StarTeam API to work with that system.  
+As a result they are only available to licensed users of StarTeam.  You must have
 <CODE>starteam-sdk.jar</CODE> in your classpath to run these tasks.
 For more information about the StarTeam API and how to license it, see
 the <a href="http://www.borland.com/starteam/">Borland</a> web site.</p>
+  <p>
+    <em>All the StarTeam task names are in lower case.</em>
+  </p>
 <h3>Important Note on Installation and Licensing:</h3>
 <p>
 <b>On Windows machines, the mere presence of <CODE>starteam-sdk.jar</CODE> on the classpath 
 is not sufficient for getting these tasks to work properly.</b>  These tasks also require a 
 fully-installed and fully-licensed version of the StarGate Runtime.  This is part 
 of a StarTeam client installation or may be installed separately.  The full client
-install is not required.
+install is not required.  In particular, the Windows path must include the directory where 
+the StarGate Runtime <CODE>.dll</CODE> files are installed.
 </p><p>
 Earlier versions of Ant (prior to 1.5.2) did not have this restriction because they
 were not as dependent on the StarTeam runtime - which the newer versions use to access
@@ -109,7 +115,10 @@ See also <A href="#common-params">the required common StarTeam parameters</A>.<b
   <tr>
     <td valign="top">rootstarteamfolder</td>
     <td valign="top">The root of the subtree in the StarTeam repository from which to 
-    check out files.  Defaults to the root folder of the view ('/'). </td>
+    check out files.  Defaults to the root folder of the view ('/'). 
+      <b><i>If supplied, this should always be an "absolute" path, that is, it should begin with a '/'.  
+      Relative paths have little meaning in this context and confuse StarTeam.</i></b>
+      </td>
     <td align="center" valign="top">no</td>
   </tr>  
   <tr>
@@ -141,7 +150,24 @@ See also <A href="#common-params">the required common StarTeam parameters</A>.<b
   </tr>
   <tr>
     <td valign="top">label</td>
-    <td valign="top">Check out files as of this label.  The label must exist in starteam or an exception will be thrown.  If not specified, the most recent version of each file will be checked out.</td>
+    <td valign="top">Check out files as of this label.  The label must exist in starteam or an exception will be thrown.</td>
+    <td align="center" valign="center" rowspan="2">Either or neither, but not both, may be specified.  Neither <code>locked</code> or <code>unlocked</code> may be true if either <code>label</code> or <code>asofdate</code> is specified.</td>
+  </tr>
+  <tr>
+    <td valign="top">asofdate</td>
+    <td valign="top">Check out files as of this date.  The date must
+    be formatted in ISO8601 datetime
+    (<code>yyyy-MM-dd'T'HH:mm:ss</code>), ISO8601
+    date(<code>yyyy-MM-dd</code>) or a user-defined SimpleDateFormat
+    defined in the <code>asofDateFormat</code> attribute.  If the date
+    is not parsable by the default or selected format, an exception
+    will be thrown.  <em>Since Ant 1.6.</em></td>
+  </tr>
+  <tr>
+    <td valign="top">asofdateformat</td>
+    <td valign="top">java.util.SimpleDateFormat compatible string used
+    to parse the <code>asofdate</code> attribute.  <em>Since Ant
+    1.6.</em></td>
     <td align="center" valign="top">no</td>
   </tr>
   <tr>
@@ -152,23 +178,47 @@ See also <A href="#common-params">the required common StarTeam parameters</A>.<b
   <tr>
     <td valign="top">forced</td>
     <td valign="top">If true, checkouts will occur regardless of the status 
-that StarTeam is maintaining for the file.  If rootlocalfolder is set then 
-this should be set "true" as otherwise the checkout will be based on statuses 
-which do not relate to the target folder.  Defaults to "false".</td>
+that StarTeam is maintaining for the file.   If false, status will be used to determine which files to check out. Defaults to "false".</td>
     <td align="center" valign="top">no</td>
   </tr> 
  <tr>
     <td valign="top">locked</td>
     <td valign="top">If true, file will be locked against changes by other 
 users.  If false (default) has no effect. 
-    <td align="center" valign="center" rowspan="2">Either or neither, but not both, may be true.</td>
+    <td align="center" valign="center" rowspan="2">Either or neither, but not both, may be true. Neither may be true if a <code>label</code> or an <code>asofdate</code> is specified.</td>
   </tr>
   <tr>
     <td valign="top">unlocked</td>
     <td valign="top">If true, file will be unlocked so that other users may
 change it.  This is a way to reverse changes that have not yet been checked in.
-If false (default) has no effect. 
+If false (default) has no effect.</td> 
   </tr>
+  <tr>
+    <td valign="top">userepositorytimestamp</td>
+    <td valign="top">true means checked out files will get the repository timestamp.
+false(default) means the checked out files will be timestamped at the time
+of checkout.</td>    <td align="center" valign="top">no</td>
+
+  </tr>
+  <tr>
+    <td valign="top">preloadfileinformation</td>
+    <td valign="top">The StarTeam server has the ability to preload file metadata for an
+    entire tree prior to beginning action on that tree.  Doing so can in some instances 
+    lead to substantially faster actions, particularly over large trees.  Setting this 
+    to "yes" (default) engages this functionality, setting it to "no" turns it off.</td>    
+    <td align="center" valign="top">no</td>
+  </tr>
+    
+  <tr>
+    <td valign="top">convertEOL</td>
+    <td valign="top">If true, (default) all ascii files will have their end-of-line 
+    characters adjusted to that of the local machine on checkout.  This is normally
+    what you'd want but if for some reason you don't want that to happen, set it to false
+    and the files will be checked out with whatever end-of-line characters are used on
+    the server. </td>    
+    <td align="center" valign="top">no</td>
+  </tr>
+
 </table>
 
 <h3>Examples</h3>
@@ -181,7 +231,7 @@ If false (default) has no effect.
               username="auser"
               password="secret"
               rootlocalfolder="C:\dev\buildtest\co"
-              force="true"
+              forced="true"
   /&gt;
 </pre>
 
@@ -301,7 +351,9 @@ See also <A href="#common-params">the required common StarTeam parameters</A>.<b
   <tr>
     <td valign="top">rootstarteamfolder</td>
     <td valign="top">The root of the subtree in the StarTeam repository into which to 
-    files will be checked.  Defaults to the root folder of the view ('/'). </td>
+    files will be checked.  Defaults to the root folder of the view ('/').
+       <b><i>If supplied, this should always be an "absolute" path, that is, it should begin with a '/'.  
+      Relative paths have little meaning in this context and confuse StarTeam.</i></b></td>
     <td align="center" valign="top">no</td>
   </tr>  
   <tr>
@@ -341,16 +393,23 @@ added to the repository.  Defaults to "false".</td>
   <tr>
     <td valign="top">forced</td>
     <td valign="top">If true, checkins will occur regardless of the status 
-that StarTeam is maintaining for the file.  If rootlocalfolder is set then 
-this should be set "true" as otherwise the checkin will be based on statuses 
-which do not relate to the target folder.  Defaults to "false".</td>
+that StarTeam is maintaining for the file.  If false, checkins will use this status to decide which files to update.  Defaults to "false".</td>
     <td align="center" valign="top">no</td>
   </tr>
     <td valign="top">unlocked</td>
     <td valign="top">If true, file will be unlocked so that other users may
 change it.  If false (default) lock status will not change.
     <td align="center" valign="top">no</td> 
-  </tr></table>
+  </tr>
+  <tr>
+    <td valign="top">preloadfileinformation</td>
+    <td valign="top">The StarTeam server has the ability to preload file metadata for an
+    entire tree prior to beginning action on that tree.  Doing so can in some instances 
+    lead to substantially faster actions, particularly over large trees.  Setting this 
+    to "yes" (default) engages this functionality, setting it to "no" turns it off.</td>    
+    <td align="center" valign="top">no</td>
+  </tr>
+  </table>
 
 <h3>Examples</h3>
 
@@ -510,22 +569,36 @@ See also <A href="#common-params">the required common StarTeam parameters</A>.<b
     <td valign="top">The name to be given to the label</td>
     <td align="center" valign="top">yes</td>
   </tr> 
- <tr>
-    <td valign="top">lastbuild</td>
-    <td valign="top">The timestamp of the build that will be stored with the label.  Must be formatted <code>yyyyMMddHHmmss</code></td>
-    <td align="center" valign="top">yes</td>
-  </tr>
   <tr>
     <td valign="top">description</td>
     <td valign="top">A description of the label to be stored in the StarTeam project.</td>
+    <td align="center" valign="top">yes</td>
+  </tr>
+  <tr>
+    <td valign="top">revisionlabel</td>
+    <td valign="top">Yes means that the label attribute is to be saved as a &quot;revision label&quot;.  No (default) means that it will be saved as a &quot;view label&quot;</td>
+    <td align="center" valign="top">no</td>
+  </tr> 
+  <tr>
+    <td valign="top">buildlabel</td>
+    <td valign="top">Yes means that the label attribute is to be saved as a &quot;build label&quot;.  
+      This means that Change Requests which have an &quot;AddressedIn&quot; field value of &quot;next build&quot;
+       will have this label assigned to that field when the label is created.  
+       No (default) means that no CRs will have this label assigned to them.  This will have no effect if <b>revisionlabel</b> is also true.  </td>
+    <td align="center" valign="top">no</td>
+  </tr> 
+
+ <tr>
+    <td valign="top">lastbuild</td>
+    <td valign="top">The timestamp of the build that will be stored with the label.  Must be formatted <code>yyyyMMddHHmmss</code></td>
     <td align="center" valign="top">no</td>
   </tr>
 </table>
 
 <h3>Examples</h3>
 
-This example shows the use of this tag.  It will create a label named <i>Version 6.2</i> with
-<i>"Thorough description"</i> as its description.
+This example shows the use of this tag.  It will create a View label that is a build label named <i>Version 6.2</i> with
+<i>&quot;Thorough description&quot;</i> as its description.
 <pre>
   &lt;tstamp&gt;
     &lt;format property="nowstamp" pattern="yyyyMMddHHmmss" locale="en"/&gt;
@@ -538,6 +611,35 @@ This example shows the use of this tag.  It will create a label named <i>Version
            description="Thorough description"
   /&gt;
 </pre>
+This example creates a non-build View label named <i>Version 6.3</i> with
+<i>&quot;Thorough description&quot;</i> as its description.
+<pre>
+  &lt;tstamp&gt;
+    &lt;format property="nowstamp" pattern="yyyyMMddHHmmss" locale="en"/&gt;
+  &lt;/tstamp&gt;  
+  &lt;stlabel URL="STARTEAM:49201/Aproject/AView"
+           username="auser"
+           password="secret"
+           label="Version 6.3"
+           lastbuild="${nowstamp}"
+           description="Thorough description"
+           buildlabel="false"
+  /&gt;
+</pre>
+This example will create a Revision label that is a build label named <i>Version 6.2.00.001</i> with
+<i>&quot;revision label&quot;</i> as its description.
+<pre>
+  &lt;tstamp&gt;
+    &lt;format property="nowstamp" pattern="yyyyMMddHHmmss" locale="en"/&gt;
+  &lt;/tstamp&gt;  
+  &lt;stlabel URL="STARTEAM:49201/Aproject/AView"
+           username="auser"
+           password="secret"
+           label="Version 6.2.00.001"
+           description="revision label"
+           revisionlabel="true"
+  /&gt;
+</pre>
 
 <hr></hr>
 <a name="stlist">
@@ -545,7 +647,7 @@ This example shows the use of this tag.  It will create a label named <i>Version
 
 <h3>Description</h3>
 
-Produces a listing of the contents of the StarTeam repository at the specified view and StarTeamFolder.  The listing will contain the name of the user, if any, who has the file locked, the size of the file, its lastModifiedDate in the repository, and the name of the file.  Unless the rootLocalFolder is specified, listing will also show the status of the local file in the default local directory relative to the repository. 
+Produces a listing of the contents of the StarTeam repository at the specified view and StarTeamFolder.  The listing will contain the name of the user, if any, who has the file locked, the size of the file, its lastModifiedDate in the repository, the name of the file, and the status of the local file in the default local directory relative to the repository. 
 
 <h3>Parameters</h3>
 See also <A href="#common-params">the required common StarTeam parameters</A>.<br></br>
@@ -558,7 +660,8 @@ See also <A href="#common-params">the required common StarTeam parameters</A>.<b
 
   <tr>
     <td valign="top">rootstarteamfolder</td>
-    <td valign="top">The root of the subtree in the StarTeam repository to be listed.  Defaults to the root folder of the view ('/'). </td>
+    <td valign="top">The root of the subtree in the StarTeam repository to be listed.  Defaults to the root folder of the view ('/'). <b><i>If supplied, this should always be an "absolute" path, that is, it should begin with a '/'.  
+      Relative paths have little meaning in this context and confuse StarTeam.</i></b></td>
     <td align="center" valign="top">no</td>
   </tr>  
   <tr>
@@ -583,10 +686,45 @@ See also <A href="#common-params">the required common StarTeam parameters</A>.<b
     <td align="center" valign="top">no</td>
   </tr>
   <tr>
+    <td valign="top">asofdate</td>
+    <td valign="top">List files, dates, and statusess as of this date.
+    The date must be formatted in ISO8601 datetime
+    (<code>yyyy-MM-dd'T'HH:mm:ss</code>), ISO8601
+    date(<code>yyyy-MM-dd</code>) or a user-defined SimpleDateFormat
+    defined in the <code>asofDateFormat</code> attribute.  If the date
+    is not parsable by the default or selected format, an exception
+    will be thrown.  <em>Since Ant 1.6.</em></td>
+    <td align="center" valign="top">no</td>
+  </tr>
+  <tr>
+    <td valign="top">asofdateformat</td>
+    <td valign="top">java.util.SimpleDateFormat compatible string used
+    to parse the <code>asofdate</code> attribute.  <em>Since Ant
+    1.6.</em></td>
+    <td align="center" valign="top">no</td>
+  </tr>
+
+  <tr>
     <td valign="top">recursive</td>
     <td valign="top">Indicates if subfolders should be searched for files to list.  Defaults to "true".</td>
     <td align="center" valign="top">no</td>
   </tr>
+    <tr>
+    <td valign="top">listuncontrolled</td>
+    <td valign="top">if true, any files or folders NOT in StarTeam will be included in the listing.
+    If false, they won't.  Defaults to "true".</td>
+    <td align="center" valign="top">no</td>
+    </tr>
+  
+  <tr>
+    <td valign="top">preloadfileinformation</td>
+    <td valign="top">The StarTeam server has the ability to preload file metadata for an
+    entire tree prior to beginning action on that tree.  Doing so can in some instances 
+    lead to substantially faster actions, particularly over large trees.  Setting this 
+    to "yes" (default) engages this functionality, setting it to "no" turns it off.</td>    
+    <td align="center" valign="top">no</td>
+  </tr>
+
 </table>
 <h3>Examples</h3>
 
@@ -832,7 +970,7 @@ the second to a tree rooted at C:\dev\buildtest\co\AProject\src\java and the thi
 
 <hr>
 <p align="center">
-Copyright &copy; 2001-2002 Apache Software Foundation. All rights Reserved.
+Copyright &copy; 2001-2004 The Apache Software Foundation. All rights Reserved.
 </p>
 
 </body>

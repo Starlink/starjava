@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.starteam;
 
@@ -71,9 +34,7 @@ import org.apache.tools.ant.Task;
  * also abstract defines the tree-walking behavior common to many subtasks.
  *
  * @see TreeBasedTask
- * @author <a href="mailto:jcyip@thoughtworks.com">Jason Yip</a>
  * @version 1.1
- * @author <a href="mailto:stevec@ignitesports.com">Steve Cohen</a>
  */
 
 public abstract class StarTeamTask extends Task {
@@ -116,8 +77,8 @@ public abstract class StarTeamTask extends Task {
     private Server server = null;
 
     private void logStarteamVersion() {
-        log("StarTeam version: "+ 
-            BuildNumber.getDisplayString(), Project.MSG_DEBUG);
+        log("StarTeam version: "
+            + BuildNumber.getDisplayString(), Project.MSG_VERBOSE);
     }
 
 
@@ -191,7 +152,7 @@ public abstract class StarTeamTask extends Task {
      * set the name of the StarTeam view to be acted on;
      * required if <tt>URL</tt> is not set.
      *
-     * @param projectname the name of the StarTeam view to be acted on
+     * @param viewname the name of the StarTeam view to be acted on
      * @see #setURL(String)
      */
     public final void setViewname(String viewname) {
@@ -212,7 +173,7 @@ public abstract class StarTeamTask extends Task {
     /**
      * Set the server name, server port,
      * project name and project folder in one shot;
-     * optional, but the server connection must be specified somehow. 
+     * optional, but the server connection must be specified somehow.
      *
      * @param url a <code>String</code> of the form
      *             "servername:portnum/project/view"
@@ -256,17 +217,16 @@ public abstract class StarTeamTask extends Task {
      * @see #getViewname()
      */
     public final String getURL() {
-        return
-                this.servername + ":" +
-                this.serverport + "/" +
-                this.projectname + "/" +
-                ((null == this.viewname) ? "" : this.viewname);
+        return this.servername + ":"
+            + this.serverport + "/"
+            + this.projectname + "/"
+            + ((null == this.viewname) ? "" : this.viewname);
     }
 
     /**
      * returns an URL string useful for interacting with many StarTeamFinder
      * methods.
-     * 
+     *
      * @return the URL string for this task.
      */
     protected final String getViewURL() {
@@ -319,6 +279,18 @@ public abstract class StarTeamTask extends Task {
     }
 
     /**
+     * disconnects from the StarTeam server.  Should be called from the
+     * finally clause of every StarTeamTask-based execute method.
+     */
+    protected final void disconnectFromServer() {
+        if (null != this.server) {
+            this.server.disconnect();
+            log("successful disconnect from StarTeam Server " + servername,
+                Project.MSG_VERBOSE);
+        }
+    }
+
+    /**
      * returns a list of TypeNames known to the server.
      *
      * @return a reference to the server's TypeNames
@@ -333,7 +305,7 @@ public abstract class StarTeamTask extends Task {
      * @param rawview the unconfigured <code>View</code>
      * @return the snapshot <code>View</code> appropriately configured.
      */
-    protected abstract View createSnapshotView(View rawview) 
+    protected abstract View createSnapshotView(View rawview)
     throws BuildException;
 
     /**
@@ -358,11 +330,13 @@ public abstract class StarTeamTask extends Task {
         }
 
         if (null == view) {
-            throw new BuildException("Cannot find view" + getURL() +
-                    " in repository()");
+            throw new BuildException("Cannot find view" + getURL()
+                + " in repository()");
         }
 
         View snapshot = createSnapshotView(view);
+        log("Connected to StarTeam view " + getURL(),
+            Project.MSG_VERBOSE);
         this.server = snapshot.getServer();
         return snapshot;
     }

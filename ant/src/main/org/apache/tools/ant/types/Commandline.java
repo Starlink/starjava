@@ -1,64 +1,33 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.types;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.util.StringUtils;
 import java.io.File;
-import java.util.Vector;
 import java.util.StringTokenizer;
+import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.LinkedList;
+
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.ProjectComponent;
+import org.apache.tools.ant.util.StringUtils;
 
 
 /**
@@ -80,12 +49,17 @@ import java.util.StringTokenizer;
  * The element <code>someelement</code> must provide a method
  * <code>createAcommandline</code> which returns an instance of this class.
  *
- * @author thomas.haas@softwired-inc.com
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
  */
 public class Commandline implements Cloneable {
 
+    /**
+     * The arguments of the command
+     */
     private Vector arguments = new Vector();
+
+    /**
+     * the program to execute
+     */
     private String executable = null;
 
     protected static final String DISCLAIMER =
@@ -95,9 +69,14 @@ public class Commandline implements Cloneable {
         + "not part of the command."
         + StringUtils.LINE_SEP;
 
-    public Commandline(String to_process) {
+    /**
+     * create a command line from a string
+     * @param toProcess the line: the first element becomes the executable, the rest
+     * the arguments
+     */
+    public Commandline(String toProcess) {
         super();
-        String[] tmp = translateCommandline(to_process);
+        String[] tmp = translateCommandline(toProcess);
         if (tmp != null && tmp.length > 0) {
             setExecutable(tmp[0]);
             for (int i = 1; i < tmp.length; i++) {
@@ -106,6 +85,9 @@ public class Commandline implements Cloneable {
         }
     }
 
+    /**
+     *  Create an empty command line
+     */
     public Commandline() {
         super();
     }
@@ -113,7 +95,7 @@ public class Commandline implements Cloneable {
     /**
      * Used for nested xml command line definitions.
      */
-    public static class Argument {
+    public static class Argument extends ProjectComponent {
 
         private String[] parts;
 
@@ -150,6 +132,19 @@ public class Commandline implements Cloneable {
         }
 
         /**
+         * Sets a single commandline argument from a reference to a
+         * path - ensures the right separator for the local platform
+         * is used.
+         *
+         * @param value a single commandline argument.
+         */
+        public void setPathref(Reference value) {
+            Path p = new Path(getProject());
+            p.setRefid(value);
+            parts = new String[] {p.toString()};
+        }
+
+        /**
          * Sets a single commandline argument to the absolute filename
          * of the given file.
          *
@@ -169,10 +164,10 @@ public class Commandline implements Cloneable {
 
     /**
      * Class to keep track of the position of an Argument.
+     <p>This class is there to support the srcfile and targetfile
+     elements of &lt;execon&gt; and &lt;transform&gt; - don't know
+     whether there might be additional use cases.</p> --SB
      */
-    // <p>This class is there to support the srcfile and targetfile
-    // elements of &lt;execon&gt; and &lt;transform&gt; - don't know
-    // whether there might be additional use cases.</p> --SB
     public class Marker {
 
         private int position;
@@ -234,7 +229,8 @@ public class Commandline implements Cloneable {
     }
 
     /**
-     * Sets the executable to run.
+     * Sets the executable to run. All file separators in the string
+     * are converted to the platform specific value
      */
     public void setExecutable(String executable) {
         if (executable == null || executable.length() == 0) {
@@ -245,11 +241,19 @@ public class Commandline implements Cloneable {
     }
 
 
+    /**
+     * get the executable
+     * @return the program to run -null if not yet set
+     */
     public String getExecutable() {
         return executable;
     }
 
 
+    /**
+     * append the arguments to the existing command
+     * @param line an array of arguments to append
+     */
     public void addArguments(String[] line) {
         for (int i = 0; i < line.length; i++) {
             createArgument().setValue(line[i]);
@@ -260,14 +264,23 @@ public class Commandline implements Cloneable {
      * Returns the executable and all defined arguments.
      */
     public String[] getCommandline() {
-        final String[] args = getArguments();
-        if (executable == null) {
-            return args;
+        List commands = new LinkedList();
+        ListIterator list = commands.listIterator();
+        addCommandToList(list);
+        final String[] result = new String[commands.size()];
+        return (String[]) commands.toArray(result);
+    }
+
+    /**
+     * add the entire command, including (optional) executable to a list
+     * @param list
+     * @since Ant 1.6
+     */
+    public void addCommandToList(ListIterator list) {
+        if (executable != null) {
+            list.add(executable);
         }
-        final String[] result = new String[args.length + 1];
-        result[0] = executable;
-        System.arraycopy(args, 0, result, 1, args.length);
-        return result;
+        addArgumentsToList(list);
     }
 
 
@@ -276,23 +289,34 @@ public class Commandline implements Cloneable {
      * <code>addValue</code> or the argument object.
      */
     public String[] getArguments() {
-        Vector result = new Vector(arguments.size() * 2);
+        List result = new ArrayList(arguments.size() * 2);
+        addArgumentsToList(result.listIterator());
+        String [] res = new String[result.size()];
+        return (String[]) result.toArray(res);
+    }
+
+    /**
+     * append all the arguments to the tail of a supplied list
+     * @param list
+     * @since Ant 1.6
+     */
+    public void addArgumentsToList(ListIterator list) {
         for (int i = 0; i < arguments.size(); i++) {
             Argument arg = (Argument) arguments.elementAt(i);
             String[] s = arg.getParts();
             if (s != null) {
                 for (int j = 0; j < s.length; j++) {
-                    result.addElement(s[j]);
+                    list.add(s[j]);
                 }
             }
         }
-
-        String [] res = new String[result.size()];
-        result.copyInto(res);
-        return res;
     }
 
 
+    /**
+     * stringify operator returns the command line as a string
+     * @return the command line
+     */
     public String toString() {
         return toString(getCommandline());
     }
@@ -310,7 +334,8 @@ public class Commandline implements Cloneable {
     public static String quoteArgument(String argument) {
         if (argument.indexOf("\"") > -1) {
             if (argument.indexOf("\'") > -1) {
-                throw new BuildException("Can\'t handle single and double quotes in same argument");
+                throw new BuildException("Can\'t handle single and double"
+                        + " quotes in same argument");
             } else {
                 return '\'' + argument + '\'';
             }
@@ -324,6 +349,8 @@ public class Commandline implements Cloneable {
     /**
      * Quotes the parts of the given array in way that makes them
      * usable as command line arguments.
+     * @return empty string for null or no command, else every argument split
+     * by spaces and quoted by quoting rules
      */
     public static String toString(String [] line) {
         // empty path return empty string
@@ -342,8 +369,15 @@ public class Commandline implements Cloneable {
         return result.toString();
     }
 
-    public static String[] translateCommandline(String to_process) {
-        if (to_process == null || to_process.length() == 0) {
+    /**
+     * crack a command line
+     * @param toProcess the command line to process
+     * @return the command line broken into strings.
+     * An empty or null toProcess parameter results in a zero sized array
+     */
+    public static String[] translateCommandline(String toProcess) {
+        if (toProcess == null || toProcess.length() == 0) {
+            //no command? no string
             return new String[0];
         }
 
@@ -353,7 +387,7 @@ public class Commandline implements Cloneable {
         final int inQuote = 1;
         final int inDoubleQuote = 2;
         int state = normal;
-        StringTokenizer tok = new StringTokenizer(to_process, "\"\' ", true);
+        StringTokenizer tok = new StringTokenizer(toProcess, "\"\' ", true);
         Vector v = new Vector();
         StringBuffer current = new StringBuffer();
         boolean lastTokenHasBeenQuoted = false;
@@ -385,7 +419,7 @@ public class Commandline implements Cloneable {
                 } else if (" ".equals(nextTok)) {
                     if (lastTokenHasBeenQuoted || current.length() != 0) {
                         v.addElement(current.toString());
-                        current.setLength(0);
+                        current = new StringBuffer();
                     }
                 } else {
                     current.append(nextTok);
@@ -400,7 +434,7 @@ public class Commandline implements Cloneable {
         }
 
         if (state == inQuote || state == inDoubleQuote) {
-            throw new BuildException("unbalanced quotes in " + to_process);
+            throw new BuildException("unbalanced quotes in " + toProcess);
         }
 
         String[] args = new String[v.size()];
@@ -408,15 +442,27 @@ public class Commandline implements Cloneable {
         return args;
     }
 
+    /**
+     * size operator. This actually creates the command line, so it is not
+     * a zero cost operation.
+     * @return number of elements in the command, including the executable
+     */
     public int size() {
         return getCommandline().length;
     }
 
+    /**
+     * Generate a deep clone of the contained object.
+     * @return a clone of the contained object
+     */
     public Object clone() {
-        Commandline c = new Commandline();
-        c.setExecutable(executable);
-        c.addArguments(getArguments());
-        return c;
+        try {
+            Commandline c = (Commandline) super.clone();
+            c.arguments = (Vector) arguments.clone();
+            return c;
+        } catch (CloneNotSupportedException e) {
+            throw new BuildException(e);
+        }
     }
 
     /**
@@ -496,14 +542,14 @@ public class Commandline implements Cloneable {
      *
      * <p>This method assumes that the first entry in the array is the
      * executable to run.</p>
-     * 
+     *
      * @since Ant 1.5
      */
     public static String describeCommand(String[] args) {
         if (args == null || args.length == 0) {
             return "";
         }
-        
+
         StringBuffer buf = new StringBuffer("Executing \'");
         buf.append(args[0]);
         buf.append("\'");

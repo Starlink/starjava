@@ -1,74 +1,35 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional;
 
 import java.io.*;
 import org.apache.tools.ant.BuildFileTest;
+
 /**
  * If you want to run tests, it is highly recommended
- * to download ANTLR (www.antlr.org), build the 'all' jar
- * with the mkalljar script and drop the jar (about 300KB) into
+ * to download ANTLR (www.antlr.org), build the 'antlrall.jar' jar
+ * with  <code>make antlr-all.jar</code> and drop the jar (about 300KB) into
  * Ant lib.
  * - Running w/ the default antlr.jar (70KB) does not work (missing class)
- * - Running w/ the antlr jar made w/ mkjar (88KB) does not work (still another class missing)
  *
  * Unless of course you specify the ANTLR classpath in your
  * system classpath. (see ANTLR install.html)
  *
- * @author Erik Meade <emeade@geekfarm.org>
- * @author Stephen Chin <aphid@browsecode.org>
  */
 public class ANTLRTest extends BuildFileTest {
 
@@ -85,7 +46,7 @@ public class ANTLRTest extends BuildFileTest {
     public void tearDown() {
         executeTarget("cleanup");
     }
-    
+
     public void test1() {
         expectBuildException("test1", "required argument, target, missing");
     }
@@ -142,7 +103,7 @@ public class ANTLRTest extends BuildFileTest {
         executeTarget("test10");
         File outputDirectory = new File(TASKDEFS_DIR + "antlr.tmp");
         String[] calcFiles = outputDirectory.list(new HTMLFilter());
-        assertEquals(1, calcFiles.length);
+        assertTrue(calcFiles.length > 0);
     }
 
     /**
@@ -168,6 +129,28 @@ public class ANTLRTest extends BuildFileTest {
      */
     public void test13() {
         executeTarget("test13");
+    }
+
+    public void testNoRecompile() {
+        executeTarget("test9");
+        assertEquals(-1, getFullLog().indexOf("Skipped grammar file."));
+        executeTarget("noRecompile");
+        assertTrue(-1 != getFullLog().indexOf("Skipped grammar file."));
+    }
+
+    public void testNormalRecompile() {
+        executeTarget("test9");
+        assertEquals(-1, getFullLog().indexOf("Skipped grammar file."));
+        executeTarget("normalRecompile");
+        assertEquals(-1, getFullLog().indexOf("Skipped grammar file."));
+    }
+
+    // Bugzilla Report 12961
+    public void testSupergrammarChangeRecompile() {
+        executeTarget("test9");
+        assertEquals(-1, getFullLog().indexOf("Skipped grammar file."));
+        executeTarget("supergrammarChangeRecompile");
+        assertEquals(-1, getFullLog().indexOf("Skipped grammar file."));
     }
 }
 

@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.types;
 
@@ -62,7 +25,6 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.FileScanner;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.types.selectors.AndSelector;
 import org.apache.tools.ant.types.selectors.ContainsSelector;
 import org.apache.tools.ant.types.selectors.DateSelector;
@@ -70,16 +32,20 @@ import org.apache.tools.ant.types.selectors.DependSelector;
 import org.apache.tools.ant.types.selectors.DepthSelector;
 import org.apache.tools.ant.types.selectors.ExtendSelector;
 import org.apache.tools.ant.types.selectors.FileSelector;
+import org.apache.tools.ant.types.selectors.DifferentSelector;
 import org.apache.tools.ant.types.selectors.FilenameSelector;
+import org.apache.tools.ant.types.selectors.TypeSelector;
 import org.apache.tools.ant.types.selectors.MajoritySelector;
 import org.apache.tools.ant.types.selectors.NoneSelector;
 import org.apache.tools.ant.types.selectors.NotSelector;
 import org.apache.tools.ant.types.selectors.OrSelector;
 import org.apache.tools.ant.types.selectors.PresentSelector;
+import org.apache.tools.ant.types.selectors.ContainsRegexpSelector;
 import org.apache.tools.ant.types.selectors.SelectSelector;
 import org.apache.tools.ant.types.selectors.SelectorContainer;
 import org.apache.tools.ant.types.selectors.SelectorScanner;
 import org.apache.tools.ant.types.selectors.SizeSelector;
+import org.apache.tools.ant.types.selectors.modifiedselector.ModifiedSelector;
 
 /**
  * Class that holds an implicit patternset and supports nested
@@ -87,13 +53,6 @@ import org.apache.tools.ant.types.selectors.SizeSelector;
  *
  * <p>Common base class for DirSet and FileSet.</p>
  *
- * @author <a href="mailto:ajkuiper@wxs.nl">Arnout J. Kuiper</a>
- * @author <a href="mailto:stefano@apache.org">Stefano Mazzocchi</a>
- * @author <a href="mailto:rubys@us.ibm.com">Sam Ruby</a>
- * @author <a href="mailto:jon@clearink.com">Jon S. Stevens</a>
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author Magesh Umasankar
- * @author <a href="mailto:bruce@callenish.com">Bruce Atherton</a>
  */
 public abstract class AbstractFileSet extends DataType implements Cloneable,
         SelectorContainer {
@@ -205,7 +164,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
     }
 
     /**
-     * add a name entry on the include files list
+     * add a name entry on the excludes files list
      */
     public PatternSet.NameEntry createExcludesFile() {
         if (isReference()) {
@@ -221,8 +180,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
         if (isReference()) {
             throw tooManyAttributes();
         }
-        FileUtils fileUtils = FileUtils.newFileUtils();
-        setDir(fileUtils.getParentFile(file));
+        setDir(file.getParentFile());
 
         PatternSet.NameEntry include = createInclude();
         include.setName(file.getName());
@@ -274,7 +232,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
      }
 
     /**
-     * Sets the name of the file containing the includes patterns.
+     * Sets the name of the file containing the excludes patterns.
      *
      * @param excl The file to fetch the exclude patterns from.
      */
@@ -324,6 +282,21 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
             throw tooManyAttributes();
         }
         this.followSymlinks = followSymlinks;
+    }
+
+    /**
+     * find out if the fileset wants to follow symbolic links
+     *
+     * @return  flag indicating whether or not symbolic links should be followed
+     *
+     * @since ant 1.6
+     */
+    public boolean isFollowSymlinks() {
+        if (isReference()) {
+            return getRef(getProject()).isFollowSymlinks();
+        } else {
+            return followSymlinks;
+        }
     }
 
     /**
@@ -398,13 +371,13 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
             defaultPatterns.append((PatternSet) o, p);
         }
 
-        p.log(getDataTypeName() + ": Setup scanner in dir " + dir +
-            " with " + defaultPatterns, Project.MSG_DEBUG);
+        p.log(getDataTypeName() + ": Setup scanner in dir " + dir
+            + " with " + defaultPatterns, Project.MSG_DEBUG);
 
         ds.setIncludes(defaultPatterns.getIncludePatterns(p));
         ds.setExcludes(defaultPatterns.getExcludePatterns(p));
         if (ds instanceof SelectorScanner) {
-            SelectorScanner ss = (SelectorScanner)ds;
+            SelectorScanner ss = (SelectorScanner) ds;
             ss.setSelectors(getSelectors(p));
         }
 
@@ -419,15 +392,15 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
      * referenced FileSet.
      */
     protected AbstractFileSet getRef(Project p) {
-        if (!checked) {
+        if (!isChecked()) {
             Stack stk = new Stack();
             stk.push(this);
             dieOnCircularReference(stk, p);
         }
 
-        Object o = ref.getReferencedObject(p);
+        Object o = getRefid().getReferencedObject(p);
         if (!getClass().isAssignableFrom(o.getClass())) {
-            String msg = ref.getRefId() + " doesn\'t denote a "
+            String msg = getRefid().getRefId() + " doesn\'t denote a "
                 + getDataTypeName();
             throw new BuildException(msg);
         } else {
@@ -463,9 +436,9 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
             return true;
         }
 
-        Enumeration enum = additionalPatterns.elements();
-        while (enum.hasMoreElements()) {
-            PatternSet ps = (PatternSet) enum.nextElement();
+        Enumeration e = additionalPatterns.elements();
+        while (e.hasMoreElements()) {
+            PatternSet ps = (PatternSet) e.nextElement();
             if (ps.hasPatterns(getProject())) {
                 return true;
             }
@@ -529,6 +502,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add a "Select" selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addSelector(SelectSelector selector) {
         appendSelector(selector);
@@ -536,6 +510,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add an "And" selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addAnd(AndSelector selector) {
         appendSelector(selector);
@@ -543,6 +518,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add an "Or" selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addOr(OrSelector selector) {
         appendSelector(selector);
@@ -550,6 +526,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add a "Not" selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addNot(NotSelector selector) {
         appendSelector(selector);
@@ -557,6 +534,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add a "None" selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addNone(NoneSelector selector) {
         appendSelector(selector);
@@ -564,6 +542,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add a majority selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addMajority(MajoritySelector selector) {
         appendSelector(selector);
@@ -571,6 +550,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add a selector date entry on the selector list
+     * @param selector the selector to add
      */
     public void addDate(DateSelector selector) {
         appendSelector(selector);
@@ -578,20 +558,39 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add a selector size entry on the selector list
+     * @param selector the selector to add
      */
     public void addSize(SizeSelector selector) {
         appendSelector(selector);
     }
 
     /**
+     * add a DifferentSelector entry on the selector list
+     * @param selector the selector to add
+     */
+    public void addDifferent(DifferentSelector selector) {
+        appendSelector(selector);
+    }
+
+    /**
      * add a selector filename entry on the selector list
+     * @param selector the selector to add
      */
     public void addFilename(FilenameSelector selector) {
         appendSelector(selector);
     }
 
     /**
+     * add a selector type entry on the selector list
+     * @param selector the selector to add
+     */
+    public void addType(TypeSelector selector) {
+        appendSelector(selector);
+    }
+
+    /**
      * add an extended selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addCustom(ExtendSelector selector) {
         appendSelector(selector);
@@ -599,6 +598,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add a contains selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addContains(ContainsSelector selector) {
         appendSelector(selector);
@@ -606,6 +606,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add a present selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addPresent(PresentSelector selector) {
         appendSelector(selector);
@@ -613,6 +614,7 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add a depth selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addDepth(DepthSelector selector) {
         appendSelector(selector);
@@ -620,9 +622,83 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
 
     /**
      * add a depends selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addDepend(DependSelector selector) {
         appendSelector(selector);
+    }
+
+    /**
+     * add a regular expression selector entry on the selector list
+     * @param selector the selector to add
+     */
+    public void addContainsRegexp(ContainsRegexpSelector selector) {
+        appendSelector(selector);
+    }
+
+    /**
+     * add the modified selector
+     * @param selector the selector to add
+     * @since ant 1.6
+     */
+    public void addModified(ModifiedSelector selector) {
+        appendSelector(selector);
+    }
+
+    /**
+     * add an arbitary selector
+     * @param selector the selector to add
+     * @since Ant 1.6
+     */
+    public void add(FileSelector selector) {
+        appendSelector(selector);
+    }
+
+    /**
+     * Returns included files as a list of semicolon-separated filenames
+     *
+     * @return String object with included filenames
+     */
+    public String toString() {
+        DirectoryScanner ds = getDirectoryScanner(getProject());
+        String[] files = ds.getIncludedFiles();
+        StringBuffer sb = new StringBuffer();
+
+        for (int i = 0; i < files.length; i++) {
+            if (i > 0) {
+                sb.append(';');
+            }
+            sb.append(files[i]);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Creates a deep clone of this instance, except for the nested
+     * selectors (the list of selectors is a shallow clone of this
+     * instance's list).
+     *
+     * @since Ant 1.6
+     */
+    public Object clone() {
+        if (isReference()) {
+            return (getRef(getProject())).clone();
+        } else {
+            try {
+                AbstractFileSet fs = (AbstractFileSet) super.clone();
+                fs.defaultPatterns = (PatternSet) defaultPatterns.clone();
+                fs.additionalPatterns = new Vector(additionalPatterns.size());
+                Enumeration e = additionalPatterns.elements();
+                while (e.hasMoreElements()) {
+                    fs.additionalPatterns
+                        .addElement(((PatternSet) e.nextElement()).clone());
+                }
+                fs.selectors = (Vector) fs.selectors.clone();
+                return fs;
+            } catch (CloneNotSupportedException e) {
+                throw new BuildException(e);
+            }
+        }
     }
 
 }

@@ -1,65 +1,27 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.types;
 
 import java.io.File;
-
+import java.util.Stack;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.zip.UnixStat;
-import java.util.Stack;
 
 /**
  * A ZipFileSet is a FileSet with extra attributes useful in the context of
@@ -69,15 +31,8 @@ import java.util.Stack;
  * entries of a Zip file for inclusion in another Zip file.  It also includes
  * a prefix attribute which is prepended to each entry in the output Zip file.
  *
- * At present, ZipFileSets are not surfaced in the public API.  FileSets
- * nested in a Zip task are instantiated as ZipFileSets, and their attributes
- * are only recognized in the context of the the Zip task.
- * It is not possible to define a ZipFileSet outside of the Zip task and
- * refer to it via a refid.  However a standard FileSet may be included by
- * reference in the Zip task, and attributes in the refering ZipFileSet
- * can augment FileSet definition.
+ * Since ant 1.6 ZipFileSet can be defined with an id and referenced in packaging tasks
  *
- * @author Don Ferguson <a href="mailto:don@bea.com">don@bea.com</a>
  */
 public class ZipFileSet extends FileSet {
 
@@ -104,6 +59,9 @@ public class ZipFileSet extends FileSet {
     private int fileMode          = DEFAULT_FILE_MODE;
     private int dirMode           = DEFAULT_DIR_MODE;
 
+    private boolean fileModeHasBeenSet = false;
+    private boolean dirModeHasBeenSet  = false;
+
     public ZipFileSet() {
         super();
     }
@@ -120,6 +78,8 @@ public class ZipFileSet extends FileSet {
         hasDir = fileset.hasDir;
         fileMode = fileset.fileMode;
         dirMode = fileset.dirMode;
+        fileModeHasBeenSet = fileset.fileModeHasBeenSet;
+        dirModeHasBeenSet = fileset.dirModeHasBeenSet;
     }
 
     /**
@@ -127,6 +87,9 @@ public class ZipFileSet extends FileSet {
      * from being specified.
      */
     public void setDir(File dir) throws BuildException {
+        if (isReference()) {
+             throw tooManyAttributes();
+         }
         if (srcFile != null) {
             throw new BuildException("Cannot set both dir and src attributes");
         } else {
@@ -142,6 +105,9 @@ public class ZipFileSet extends FileSet {
      * @param srcFile The zip file from which to extract entries.
      */
     public void setSrc(File srcFile) {
+        if (isReference()) {
+             throw tooManyAttributes();
+         }
         if (hasDir) {
             throw new BuildException("Cannot set both dir and src attributes");
         }
@@ -153,41 +119,56 @@ public class ZipFileSet extends FileSet {
      * References are not followed, since it is not possible
      * to have a reference to a ZipFileSet, only to a FileSet.
      */
-    public File getSrc() {
+    public File getSrc(Project p) {
+        if (isReference()) {
+            return ((ZipFileSet) getRef(p)).getSrc(p);
+        }
         return srcFile;
     }
 
     /**
      * Prepend this prefix to the path for each zip entry.
-     * Does not perform reference test; the referenced file set
-     * can be augmented with a prefix.
+     * Prevents both prefix and fullpath from being specified
      *
      * @param prefix The prefix to prepend to entries in the zip file.
      */
     public void setPrefix(String prefix) {
+        if (!prefix.equals("") && !fullpath.equals("")) {
+            throw new BuildException("Cannot set both fullpath and prefix attributes");
+        }
         this.prefix = prefix;
     }
 
     /**
      * Return the prefix prepended to entries in the zip file.
      */
-    public String getPrefix() {
+    public String getPrefix(Project p) {
+        if (isReference()) {
+            return ((ZipFileSet) getRef(p)).getPrefix(p);
+        }
         return prefix;
     }
 
     /**
      * Set the full pathname of the single entry in this fileset.
+     * Prevents both prefix and fullpath from being specified
      *
      * @param fullpath the full pathname of the single entry in this fileset.
      */
     public void setFullpath(String fullpath) {
+        if (!prefix.equals("") && !fullpath.equals("")) {
+            throw new BuildException("Cannot set both fullpath and prefix attributes");
+        }
         this.fullpath = fullpath;
     }
 
     /**
      * Return the full pathname of the single entry in this fileset.
      */
-    public String getFullpath() {
+    public String getFullpath(Project p) {
+        if (isReference()) {
+            return ((ZipFileSet) getRef(p)).getFullpath(p);
+        }
         return fullpath;
     }
 
@@ -213,60 +194,112 @@ public class ZipFileSet extends FileSet {
     }
 
     /**
-     * A 3 digit octal string, specify the user, group and 
-     * other modes in the standard Unix fashion; 
+     * A 3 digit octal string, specify the user, group and
+     * other modes in the standard Unix fashion;
      * optional, default=0644
      *
      * @since Ant 1.5.2
      */
     public void setFileMode(String octalString) {
-        this.fileMode = 
+        fileModeHasBeenSet = true;
+        this.fileMode =
             UnixStat.FILE_FLAG | Integer.parseInt(octalString, 8);
     }
-    
+
     /**
      * @since Ant 1.5.2
      */
-    public int getFileMode() {
+    public int getFileMode(Project p) {
+        if (isReference()) {
+            return ((ZipFileSet) getRef(p)).getFileMode(p);
+        }
         return fileMode;
     }
-    
+
     /**
-     * A 3 digit octal string, specify the user, group and 
-     * other modes in the standard Unix fashion; 
-     * optional, default=0755
+     * Whether the user has specified the mode explicitly.
      *
      * @since Ant 1.6
      */
+    public boolean hasFileModeBeenSet() {
+        if (isReference()) {
+            return ((ZipFileSet) getRef(getProject())).hasFileModeBeenSet();
+        }
+        return fileModeHasBeenSet;
+    }
+
+    /**
+     * A 3 digit octal string, specify the user, group and
+     * other modes in the standard Unix fashion;
+     * optional, default=0755
+     *
+     * @since Ant 1.5.2
+     */
     public void setDirMode(String octalString) {
-        this.dirMode = 
+        dirModeHasBeenSet = true;
+        this.dirMode =
             UnixStat.DIR_FLAG | Integer.parseInt(octalString, 8);
     }
-    
+
     /**
-     * @since Ant 1.6
+     * @since Ant 1.5.2
      */
-    public int getDirMode() {
+    public int getDirMode(Project p) {
+        if (isReference()) {
+            return ((ZipFileSet) getRef(p)).getDirMode(p);
+        }
         return dirMode;
     }
 
     /**
-     * A ZipFileset can accept any fileset as a reference as it just uses the
-     * standard directory scanner.
+     * Whether the user has specified the mode explicitly.
+     *
+     * @since Ant 1.6
+     */
+    public boolean hasDirModeBeenSet() {
+        if (isReference()) {
+            return ((ZipFileSet) getRef(getProject())).hasDirModeBeenSet();
+        }
+        return dirModeHasBeenSet;
+    }
+
+    /**
+     * A ZipFileset accepts another ZipFileSet or a FileSet as reference
+     * FileSets are often used by the war task for the lib attribute
      */
     protected AbstractFileSet getRef(Project p) {
-        if (!checked) {
+        if (!isChecked()) {
             Stack stk = new Stack();
             stk.push(this);
             dieOnCircularReference(stk, p);
         }
-
-        Object o = ref.getReferencedObject(p);
-        if (!(o instanceof FileSet)) {
-            String msg = ref.getRefId() + " doesn\'t denote a fileset";
-            throw new BuildException(msg);
-        } else {
+        Object o = getRefid().getReferencedObject(p);
+        if (o instanceof ZipFileSet) {
             return (AbstractFileSet) o;
+        } else if (o instanceof FileSet) {
+            ZipFileSet zfs = new ZipFileSet((FileSet) o);
+            zfs.setPrefix(prefix);
+            zfs.setFullpath(fullpath);
+            zfs.fileModeHasBeenSet = fileModeHasBeenSet;
+            zfs.fileMode = fileMode;
+            zfs.dirModeHasBeenSet = dirModeHasBeenSet;
+            zfs.dirMode = dirMode;
+            return zfs;
+        } else {
+            String msg = getRefid().getRefId() + " doesn\'t denote a zipfileset or a fileset";
+            throw new BuildException(msg);
+        }
+    }
+    /**
+     * Return a ZipFileSet that has the same properties
+     * as this one.
+     * @since Ant 1.6
+     */
+    public Object clone() {
+        if (isReference()) {
+            return ((ZipFileSet) getRef(getProject())).clone();
+        } else {
+            return super.clone();
         }
     }
 }

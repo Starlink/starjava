@@ -1,84 +1,40 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.compilers;
 
-import org.apache.tools.ant.Location;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.taskdefs.Javac;
-import org.apache.tools.ant.taskdefs.Execute;
-import org.apache.tools.ant.taskdefs.LogStreamHandler;
-import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.types.Commandline;
-import org.apache.tools.ant.util.FileUtils;
-import org.apache.tools.ant.util.JavaEnvUtils;
-
 import java.io.File;
-import java.io.PrintWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Location;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.Execute;
+import org.apache.tools.ant.taskdefs.Javac;
+import org.apache.tools.ant.taskdefs.LogStreamHandler;
+import org.apache.tools.ant.types.Commandline;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.util.FileUtils;
+import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
  * This is the default implementation for the CompilerAdapter interface.
  * Currently, this is a cut-and-paste of the original javac task.
- *
- * @author James Davidson <a href="mailto:duncan@x180.com">duncan@x180.com</a>
- * @author Robin Green 
- *         <a href="mailto:greenrd@hotmail.com">greenrd@hotmail.com</a>
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <a href="mailto:jayglanville@home.com">J D Glanville</a>
  *
  * @since Ant 1.3
  */
@@ -109,7 +65,7 @@ public abstract class DefaultCompilerAdapter implements CompilerAdapter {
     protected String memoryMaximumSize;
 
     protected File[] compileList;
-    protected static String lSep = System.getProperty("line.separator");
+    protected static final String lSep = System.getProperty("line.separator");
     protected Javac attributes;
 
     private FileUtils fileUtils = FileUtils.newFileUtils();
@@ -151,6 +107,13 @@ public abstract class DefaultCompilerAdapter implements CompilerAdapter {
      */
     public Javac getJavac() {
         return attributes;
+    }
+
+    /**
+     * @since Ant 1.6
+     */
+    protected Project getProject() {
+        return project;
     }
 
     /**
@@ -211,7 +174,7 @@ public abstract class DefaultCompilerAdapter implements CompilerAdapter {
         if (memoryInitialSize != null) {
             if (!attributes.isForkedJavac()) {
                 attributes.log("Since fork is false, ignoring "
-                               + "memoryInitialSize setting.", 
+                               + "memoryInitialSize setting.",
                                Project.MSG_WARN);
             } else {
                 cmd.createArgument().setValue(memoryParameterPrefix
@@ -367,7 +330,7 @@ public abstract class DefaultCompilerAdapter implements CompilerAdapter {
 
     /**
      * Logs the compilation parameters, adds the files to compile and logs the
-     * &qout;niceSourceList&quot;
+     * &quot;niceSourceList&quot;
      */
     protected void logAndAddFilesToCompile(Commandline cmd) {
         attributes.log("Compilation " + cmd.describeArguments(),
@@ -399,6 +362,25 @@ public abstract class DefaultCompilerAdapter implements CompilerAdapter {
      * system.
      */
     protected int executeExternalCompile(String[] args, int firstFileName) {
+        return executeExternalCompile(args, firstFileName, true);
+    }
+
+    /**
+     * Do the compile with the specified arguments.
+     * @param args - arguments to pass to process on command line
+     * @param firstFileName - index of the first source file in args,
+     * if the index is negative, no temporary file will ever be
+     * created, but this may hit the command line length limit on your
+     * system.
+     * @param quoteFiles - if set to true, filenames containing
+     * spaces will be quoted when they appear in the external file.
+     * This is necessary when running JDK 1.4's javac and probably
+     * others.
+     *
+     * @since Ant 1.6
+     */
+    protected int executeExternalCompile(String[] args, int firstFileName,
+                                         boolean quoteFiles) {
         String[] commandArray = null;
         File tmpFile = null;
 
@@ -410,27 +392,40 @@ public abstract class DefaultCompilerAdapter implements CompilerAdapter {
              * POSIX seems to define a lower limit of 4k, so use a temporary
              * file if the total length of the command line exceeds this limit.
              */
-            if (Commandline.toString(args).length() > 4096 
+            if (Commandline.toString(args).length() > 4096
                 && firstFileName >= 0) {
                 PrintWriter out = null;
                 try {
-                    String userDirName = System.getProperty("user.dir");
-                    File userDir = new File(userDirName);
+                    File userDir = getJavac().getTempdir();
+                    if (userDir == null) {
+                        String userDirName = System.getProperty("user.dir");
+                        userDir = new File(userDirName);
+                    }
                     tmpFile = fileUtils.createTempFile("files", "", userDir);
+                    tmpFile.deleteOnExit();
                     out = new PrintWriter(new FileWriter(tmpFile));
                     for (int i = firstFileName; i < args.length; i++) {
-                        out.println(args[i]);
+                        if (quoteFiles && args[i].indexOf(" ") > -1) {
+                            args[i] = args[i].replace('\\', '/');
+                            out.println("\"" + args[i] + "\"");
+                        } else {
+                            out.println(args[i]);
+                        }
                     }
                     out.flush();
                     commandArray = new String[firstFileName + 1];
                     System.arraycopy(args, 0, commandArray, 0, firstFileName);
                     commandArray[firstFileName] = "@" + tmpFile;
                 } catch (IOException e) {
-                    throw new BuildException("Error creating temporary file", 
+                    throw new BuildException("Error creating temporary file",
                                              e, location);
                 } finally {
                     if (out != null) {
-                        try {out.close();} catch (Throwable t) {}
+                        try {
+                            out.close();
+                        } catch (Throwable t) {
+                            // ignore
+                        }
                     }
                 }
             } else {
@@ -466,7 +461,7 @@ public abstract class DefaultCompilerAdapter implements CompilerAdapter {
     }
 
     /**
-     * Adds the command line arguments specifc to the current implementation.
+     * Adds the command line arguments specific to the current implementation.
      */
     protected void addCurrentCompilerArgs(Commandline cmd) {
         cmd.addArguments(getJavac().getCurrentCompilerArgs());
@@ -477,11 +472,11 @@ public abstract class DefaultCompilerAdapter implements CompilerAdapter {
      * @since Ant 1.5
      */
     protected boolean assumeJava11() {
-        return "javac1.1".equals(attributes.getCompilerVersion()) ||
-            ("classic".equals(attributes.getCompilerVersion()) 
-             && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) ||
-            ("extJavac".equals(attributes.getCompilerVersion()) 
-             && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1));
+        return "javac1.1".equals(attributes.getCompilerVersion())
+            || ("classic".equals(attributes.getCompilerVersion())
+                && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1))
+            || ("extJavac".equals(attributes.getCompilerVersion())
+                && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1));
     }
 
     /**
@@ -489,11 +484,11 @@ public abstract class DefaultCompilerAdapter implements CompilerAdapter {
      * @since Ant 1.5
      */
     protected boolean assumeJava12() {
-        return "javac1.2".equals(attributes.getCompilerVersion()) ||
-            ("classic".equals(attributes.getCompilerVersion()) 
-             && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2)) ||
-            ("extJavac".equals(attributes.getCompilerVersion()) 
-             && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2));
+        return "javac1.2".equals(attributes.getCompilerVersion())
+            || ("classic".equals(attributes.getCompilerVersion())
+                && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2))
+            || ("extJavac".equals(attributes.getCompilerVersion())
+                && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2));
     }
 
     /**
@@ -501,13 +496,13 @@ public abstract class DefaultCompilerAdapter implements CompilerAdapter {
      * @since Ant 1.5
      */
     protected boolean assumeJava13() {
-        return "javac1.3".equals(attributes.getCompilerVersion()) ||
-            ("classic".equals(attributes.getCompilerVersion()) 
-             && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_3)) ||
-            ("modern".equals(attributes.getCompilerVersion()) 
-             && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_3)) ||
-            ("extJavac".equals(attributes.getCompilerVersion()) 
-             && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_3));
+        return "javac1.3".equals(attributes.getCompilerVersion())
+            || ("classic".equals(attributes.getCompilerVersion())
+                && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_3))
+            || ("modern".equals(attributes.getCompilerVersion())
+                && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_3))
+            || ("extJavac".equals(attributes.getCompilerVersion())
+                && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_3));
     }
 
 }

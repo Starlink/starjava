@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.extension;
 
@@ -67,29 +30,31 @@ import org.apache.tools.ant.types.FileSet;
 /**
  * A set of useful methods relating to extensions.
  *
- * @author <a href="mailto:peter@apache.org">Peter Donald</a>
- * @version $Revision: 1.2.2.1 $ $Date: 2003/02/10 14:25:08 $
+ * @version $Revision: 1.4.2.6 $ $Date: 2004/03/09 17:01:45 $
  */
-public class ExtensionUtil
-{
+public class ExtensionUtil {
+    /**
+     * Class is not meant to be instantiated.
+     */
+    private ExtensionUtil() {
+    }
+
     /**
      * Convert a list of extensionAdapter objects to extensions.
      *
      * @param adapters the list of ExtensionAdapterss to add to convert
      * @throws BuildException if an error occurs
      */
-    static ArrayList toExtensions( final ArrayList adapters )
-        throws BuildException
-    {
+    static ArrayList toExtensions(final ArrayList adapters)
+        throws BuildException {
         final ArrayList results = new ArrayList();
 
         final int size = adapters.size();
-        for( int i = 0; i < size; i++ )
-        {
+        for (int i = 0; i < size; i++) {
             final ExtensionAdapter adapter =
-                (ExtensionAdapter)adapters.get( i );
+                (ExtensionAdapter) adapters.get(i);
             final Extension extension = adapter.toExtension();
-            results.add( extension );
+            results.add(extension);
         }
 
         return results;
@@ -102,18 +67,15 @@ public class ExtensionUtil
      * @param fileset the filesets containing librarys
      * @throws BuildException if an error occurs
      */
-    static void extractExtensions( final Project project,
+    static void extractExtensions(final Project project,
                                    final ArrayList librarys,
-                                   final ArrayList fileset )
-        throws BuildException
-    {
-        if( !fileset.isEmpty() )
-        {
-            final Extension[] extensions = getExtensions( project,
-                                                          fileset );
-            for( int i = 0; i < extensions.length; i++ )
-            {
-                librarys.add( extensions[ i ] );
+                                   final ArrayList fileset)
+        throws BuildException {
+        if (!fileset.isEmpty()) {
+            final Extension[] extensions = getExtensions(project,
+                                                          fileset);
+            for (int i = 0; i < extensions.length; i++) {
+                librarys.add(extensions[ i ]);
             }
         }
     }
@@ -125,36 +87,32 @@ public class ExtensionUtil
      * @return the extensions contained in librarys
      * @throws BuildException if failing to scan librarys
      */
-    private static Extension[] getExtensions( final Project project,
-                                              final ArrayList librarys )
-        throws BuildException
-    {
+    private static Extension[] getExtensions(final Project project,
+                                              final ArrayList librarys)
+        throws BuildException {
         final ArrayList extensions = new ArrayList();
         final Iterator iterator = librarys.iterator();
-        while( iterator.hasNext() )
-        {
-            final FileSet fileSet = (FileSet)iterator.next();
+        while (iterator.hasNext()) {
+            final FileSet fileSet = (FileSet) iterator.next();
 
             boolean includeImpl = true;
             boolean includeURL = true;
 
-            if( fileSet instanceof LibFileSet )
-            {
-                LibFileSet libFileSet = (LibFileSet)fileSet;
+            if (fileSet instanceof LibFileSet) {
+                LibFileSet libFileSet = (LibFileSet) fileSet;
                 includeImpl = libFileSet.isIncludeImpl();
                 includeURL = libFileSet.isIncludeURL();
             }
 
-            final DirectoryScanner scanner = fileSet.getDirectoryScanner( project );
+            final DirectoryScanner scanner = fileSet.getDirectoryScanner(project);
             final File basedir = scanner.getBasedir();
             final String[] files = scanner.getIncludedFiles();
-            for( int i = 0; i < files.length; i++ )
-            {
-                final File file = new File( basedir, files[ i ] );
-                loadExtensions( file, extensions, includeImpl, includeURL );
+            for (int i = 0; i < files.length; i++) {
+                final File file = new File(basedir, files[ i ]);
+                loadExtensions(file, extensions, includeImpl, includeURL);
             }
         }
-        return (Extension[])extensions.toArray( new Extension[ extensions.size() ] );
+        return (Extension[]) extensions.toArray(new Extension[extensions.size()]);
     }
 
     /**
@@ -164,26 +122,21 @@ public class ExtensionUtil
      * @param extensionList the list to add available extensions to
      * @throws BuildException if there is an error
      */
-    private static void loadExtensions( final File file,
+    private static void loadExtensions(final File file,
                                         final ArrayList extensionList,
                                         final boolean includeImpl,
-                                        final boolean includeURL )
-        throws BuildException
-    {
-        try
-        {
-            final JarFile jarFile = new JarFile( file );
+                                        final boolean includeURL)
+        throws BuildException {
+        try {
+            final JarFile jarFile = new JarFile(file);
             final Extension[] extensions =
-                Extension.getAvailable( jarFile.getManifest() );
-            for( int i = 0; i < extensions.length; i++ )
-            {
+                Extension.getAvailable(jarFile.getManifest());
+            for (int i = 0; i < extensions.length; i++) {
                 final Extension extension = extensions[ i ];
-                addExtension( extensionList, extension, includeImpl, includeURL );
+                addExtension(extensionList, extension, includeImpl, includeURL);
             }
-        }
-        catch( final Exception e )
-        {
-            throw new BuildException( e.getMessage(), e );
+        } catch (final Exception e) {
+            throw new BuildException(e.getMessage(), e);
         }
     }
 
@@ -198,44 +151,41 @@ public class ExtensionUtil
      * @param includeImpl false to exclude implementation details
      * @param includeURL false to exclude implementation URL
      */
-    private static void addExtension( final ArrayList extensionList,
+    private static void addExtension(final ArrayList extensionList,
                                       final Extension originalExtension,
                                       final boolean includeImpl,
-                                      final boolean includeURL )
-    {
+                                      final boolean includeURL) {
         Extension extension = originalExtension;
-        if( !includeURL &&
-            null != extension.getImplementationURL() )
-        {
+        if (!includeURL
+            && null != extension.getImplementationURL()) {
             extension =
-                new Extension( extension.getExtensionName(),
+                new Extension(extension.getExtensionName(),
                                extension.getSpecificationVersion().toString(),
                                extension.getSpecificationVendor(),
                                extension.getImplementationVersion().toString(),
                                extension.getImplementationVendor(),
                                extension.getImplementationVendorID(),
-                               null );
+                               null);
         }
 
         final boolean hasImplAttributes =
-            null != extension.getImplementationURL() ||
-            null != extension.getImplementationVersion() ||
-            null != extension.getImplementationVendorID() ||
-            null != extension.getImplementationVendor();
+            null != extension.getImplementationURL()
+            || null != extension.getImplementationVersion()
+            || null != extension.getImplementationVendorID()
+            || null != extension.getImplementationVendor();
 
-        if( !includeImpl && hasImplAttributes )
-        {
+        if (!includeImpl && hasImplAttributes) {
             extension =
-                new Extension( extension.getExtensionName(),
+                new Extension(extension.getExtensionName(),
                                extension.getSpecificationVersion().toString(),
                                extension.getSpecificationVendor(),
                                null,
                                null,
                                null,
-                               extension.getImplementationURL() );
+                               extension.getImplementationURL());
         }
 
-        extensionList.add( extension );
+        extensionList.add(extension);
     }
 
     /**
@@ -246,17 +196,17 @@ public class ExtensionUtil
      * @throws BuildException if errror occurs (file not exist,
      *         file not a jar, manifest not exist in file)
      */
-    static Manifest getManifest( final File file )
-        throws BuildException
-    {
-        try
-        {
-            final JarFile jarFile = new JarFile( file );
-            return jarFile.getManifest();
-        }
-        catch( final IOException ioe )
-        {
-            throw new BuildException( ioe.getMessage(), ioe );
+    static Manifest getManifest(final File file)
+        throws BuildException {
+        try {
+            final JarFile jarFile = new JarFile(file);
+            Manifest m = jarFile.getManifest();
+            if (m == null) {
+                throw new BuildException(file + " doesn't have a MANIFEST");
+            }
+            return m;
+        } catch (final IOException ioe) {
+            throw new BuildException(ioe.getMessage(), ioe);
         }
     }
 }

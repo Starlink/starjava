@@ -3,6 +3,7 @@
   <meta http-equiv="Content-Language" content="en-us">
   <title>Overview of Ant Tasks</title>
   <base target="mainFrame">
+<link rel="stylesheet" type="text/css" href="stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -318,12 +319,12 @@ documentation.</p>
 
   <tr valign="top">
     <td nowrap><a href="OptionalTasks/stylebook.html">Stylebook</a></td>
-    <td><p>Executes the Apache Stylebook documentation generator. 
+    <td><p>Executes the Apache Stylebook documentation generator.
      Unlike the command-line version of this tool, all three arguments
      are required to run the Stylebook task.</p></td>
   </tr>
 </table>
-  
+
 <p></p>
 <table width="100%" border="0" cellpadding="4" cellspacing="0">
 <th align="left">
@@ -425,6 +426,11 @@ documentation.</p>
   </tr>
 
   <tr valign="top">
+    <td nowrap><a href="CoreTasks/subant.html">Subant</a></td>
+    <td><p> Calls a given target for all defined sub-builds. This is an extension of ant for bulk project execution.</p></td>
+  </tr>
+
+  <tr valign="top">
     <td nowrap><a href="CoreTasks/waitfor.html">Waitfor</a></td>
     <td><p>Blocks execution until a set of specified conditions become true.
      This task is intended to be used with the
@@ -450,9 +456,23 @@ documentation.</p>
   </tr>
 
   <tr valign="top">
+    <td nowrap><a href="OptionalTasks/attrib.html">Attrib</a></td>
+    <td><p>Changes the permissions and/or attributes of a file or all
+    files inside the specified directories. Currently, it has effect
+    only under Windows.</p></td>
+  </tr>
+
+  <tr valign="top">
     <td nowrap><a href="CoreTasks/checksum.html">Checksum</a></td>
     <td><p>Generates a checksum for a file or set of files. This task can
      also be used to perform checksum verifications.</p></td>
+  </tr>
+
+  <tr valign="top">
+    <td nowrap><a href="OptionalTasks/chgrp.html">Chgrp</a></td>
+    <td><p>Changes the group ownership of a file or all files inside
+    the specified directories. Currently, it has effect only under
+    Unix.</p></td>
   </tr>
 
   <tr valign="top">
@@ -461,6 +481,13 @@ documentation.</p>
      specified directories. Currently, it has effect only under Unix.
      The permissions are also UNIX style, like the arguments for the
     <i>chmod</i> command.</p></td>
+  </tr>
+
+  <tr valign="top">
+    <td nowrap><a href="OptionalTasks/chown.html">Chown</a></td>
+    <td><p>Changes the owner of a file or all files inside the
+    specified directories. Currently, it has effect only under
+    Unix.</p></td>
   </tr>
 
   <tr valign="top">
@@ -560,6 +587,11 @@ documentation.</p>
     <td><p>Directory-based task for replacing the occurrence of a given
      regular expression with a substitution pattern in a file or set of
      files.</p></td>
+  </tr>
+
+  <tr valign="top">
+    <td nowrap><a href="CoreTasks/sync.html">Sync</a></td>
+    <td><p>Synchronize two directory trees.</p></td>
   </tr>
 
   <tr valign="top">
@@ -699,6 +731,12 @@ documentation.</p>
   </tr>
 
   <tr valign="top">
+    <td nowrap><a href="CoreTasks/defaultexcludes.html">Defaultexcludes</a></td>
+    <td><p>Modify the list of default exclude patterns from within
+    your build file.</p></td>
+  </tr>
+
+  <tr valign="top">
     <td nowrap><a href="CoreTasks/echo.html">Echo</a></td>
     <td><p>Echoes text to <code>System.out</code> or to a file.</p></td>
   </tr>
@@ -722,9 +760,9 @@ documentation.</p>
 
   <tr valign="top">
     <td nowrap><a href="OptionalTasks/script.html">Script</a></td>
-    <td><p>Executes a script in a 
-     <a href="http://oss.software.ibm.com/developerworks/opensource/bsf/"
-      target="_top">BSF</a>-supported language.</p></td>
+    <td><p>Executes a script in a
+     <a href="http://jakarta.apache.org/bsf/"
+      target="_top">Apache BSF</a>-supported language.</p></td>
   </tr>
 
   <tr valign="top">
@@ -833,9 +871,15 @@ documentation.</p>
   </tr>
 
   <tr valign="top">
+    <td nowrap><a href="CoreTasks/import.html">Import</a></td>
+    <td><p>Import another build file and potentially override targets
+    in it with targets of your own.</p></td>
+  </tr>
+
+  <tr valign="top">
     <td nowrap><a href="OptionalTasks/javacc.html">JavaCC</a></td>
     <td><p>Invokes the
-     <a HREF="http://www.webgain.com/products/java_cc/" target="_top">
+     <a HREF="http://javacc.dev.java.net/" target="_top">
      JavaCC</a> compiler-compiler on a grammar file.</p></td>
   </tr>
 
@@ -845,13 +889,28 @@ documentation.</p>
   </tr>
 
   <tr valign="top">
+    <td nowrap><a href="OptionalTasks/jjdoc.html">JJDoc</a></td>
+    <td><p>Invokes the <a href="http://javacc.dev.java.net/">
+     JJDoc</a> documentation generator for the JavaCC compiler-compiler.
+     JJDoc takes a JavaCC parser specification and produces documentation
+     for the BNF grammar.  It can operate in three modes, determined by
+     command line options. This task only invokes JJDoc if the grammar file
+     is newer than the generated BNF grammar documentation.</p></td>
+  </tr>
+
+  <tr valign="top">
     <td nowrap><a href="OptionalTasks/jjtree.html">JJTree</a></td>
-    <td><p>Invokes the <a href="http://www.webgain.com/products/java_cc/">
+    <td><p>Invokes the <a href="http://javacc.dev.java.net/">
      JJTree</a> preprocessor for the JavaCC compiler-compiler. It inserts
      parse-tree building actions at various places in the JavaCC source that
      it generates. The output of JJTree is run through JavaCC to create the
      parser. This task only invokes JJTree if the grammar file is newer than
      the generated JavaCC file.</p></td>
+  </tr>
+
+  <tr valign="top">
+    <td nowrap><a href="CoreTasks/macrodef.html">Macrodef</a></td>
+    <td><p>Define a new task as a macro built-up upon other tasks.</p></td>
   </tr>
 
   <tr valign="top">
@@ -869,6 +928,12 @@ documentation.</p>
   </tr>
 
   <tr valign="top">
+    <td nowrap><a href="CoreTasks/presetdef.html">Presetdef</a></td>
+    <td><p>Define a new task by instrumenting an existing task with
+    default values for attributes or child elements.</p>
+  </tr>
+
+  <tr valign="top">
     <td nowrap><a href="OptionalTasks/translate.html">Translate</a></td>
     <td><p>Identifies keys in files, delimited by special tokens, and
      translates them with values read from resource bundles.</p></td>
@@ -878,6 +943,7 @@ documentation.</p>
     <td nowrap><a href="CoreTasks/style.html">Xslt/Style</a></td>
     <td><p>Processes a set of documents via XSLT.</p></td>
   </tr>
+
 </table>
 
 <p></p>
@@ -922,7 +988,7 @@ documentation.</p>
   <tr valign="top">
     <td nowrap><a href="CoreTasks/dirname.html">Dirname</a></td>
     <td><p>Sets a property to the value of the specified file up to,
-     but not including, the last path element. 
+     but not including, the last path element.
   </tr>
 
   <tr valign="top">
@@ -977,8 +1043,13 @@ documentation.</p>
   </tr>
 
   <tr valign="top">
+    <td nowrap><a href="CoreTasks/whichresource.html">Whichresource</a></td>
+    <td><p>Find a class or resource.</p></td>
+  </tr>
+
+  <tr valign="top">
     <td nowrap><a href="CoreTasks/xmlproperty.html">XmlProperty</a></td>
-    <td><p>Loads property values from a valid XML file.</p></td>
+    <td><p>Loads property values from a well-formed XML file.</p></td>
   </tr>
 </table>
 
@@ -1005,18 +1076,33 @@ documentation.</p>
   </tr>
 
   <tr valign="top">
-    <td nowrap><a href="OptionalTasks/telnet.html">Telnet</a></td>
-    <td><p>Task to automate a remote <i>telnet</i> session. This task uses 
-     nested <code>&lt;read&gt;</code> and <code>&lt;write&gt;</code> tags
-     to indicate strings to wait for and specify text to send.</p></td>
+    <td nowrap><a href="OptionalTasks/rexec.html">Rexec</a></td>
+    <td><p>Task to automate a remote rexec session.</p></td>
   </tr>
+
+  <tr valign="top">
+    <td nowrap><a href="OptionalTasks/scp.html">Scp</a></td>
+    <td><p>Copy files to or from a remote server using SSH.</p></td>
+  </tr>
+
   <tr valign="top">
     <td nowrap><a href="OptionalTasks/setproxy.html">setproxy</a></td>
     <td><p>Sets Java's web proxy properties, so that tasks and code run
  in the same JVM can have through-the-firewall access to remote web sites.</p></td>
   </tr>
 
-  
+  <tr valign="top">
+    <td nowrap><a href="OptionalTasks/sshexec.html">Sshexec</a></td>
+    <td><p>Execute a command on a remote server using SSH.</p></td>
+  </tr>
+
+  <tr valign="top">
+    <td nowrap><a href="OptionalTasks/telnet.html">Telnet</a></td>
+    <td><p>Task to automate a remote <i>telnet</i> session. This task uses
+     nested <code>&lt;read&gt;</code> and <code>&lt;write&gt;</code> tags
+     to indicate strings to wait for and specify text to send.</p></td>
+  </tr>
+
 </table>
 
 <p></p>
@@ -1057,15 +1143,15 @@ documentation.</p>
 
   <tr valign="top">
     <td nowrap><a href="CoreTasks/cvstagdiff.html">CvsTagDiff</a></td>
-    <td><p>Generates an XML-formatted report file of the changes between 
-    two tags or dates recorded in a <a href="http://www.cvshome.org/" 
+    <td><p>Generates an XML-formatted report file of the changes between
+    two tags or dates recorded in a <a href="http://www.cvshome.org/"
     target="_top">CVS</a> repository.</p></td>
   </tr>
 
   <tr valign="top">
     <td nowrap><a href="OptionalTasks/clearcase.html">ClearCase</a></td>
-    <td><p>Tasks to perform the ClearCase <i>cccheckin</i>, <i>cccheckout</i>,
-     <i>ccuncheckout</i>, and <i>ccupdate</i> commands.</p></td>
+    <td><p>Tasks to perform the ClearCase cleartool <i>checkin</i>, <i>checkout</i>,
+     <i>uncheckout</i>, <i>update</i>, <i>lock</i>, <i>unlock</i>, <i>mklbtype</i>, <i>rmtype</i>, <i>mklabel</i>, <i>mkattr</i>, <i>mkdir</i>, <i>mkelem</i>, and <i>mkbl</i> commands.</p></td>
   </tr>
 
   <tr valign="top">
@@ -1109,7 +1195,7 @@ documentation.</p>
     <td><p>Tasks to perform the StarTeam <i>stcheckout</i>, <i>stcheckin</i>,
      <i>stlabel</i>, and <i>stlist</i> commands. The
      <a href="OptionalTasks/starteam.html#starteam">Starteam</a> task
-     is deprecated; use 
+     is deprecated; use
      <a href="OptionalTasks/starteam.html#stcheckout">STCheckout</a>
      instead.</p></td>
   </tr>
@@ -1179,7 +1265,7 @@ documentation.</p>
 
 
 <hr>
-<p align="center">Copyright &copy; 2001-2003 Apache Software Foundation.
+<p align="center">Copyright &copy; 2001-2004 The Apache Software Foundation.
 All rights Reserved.</p>
 
 </body>

@@ -14,6 +14,10 @@
   <target name="cleanup">
     <delete file="asf-logo-huge.tar.bz2" />
     <delete file="asf-logo.gif.bz2" />
+    <delete file="expected/asf-logo-huge.tar"/>
   </target>
 
+  <target name="prepare">
+    <gunzip src="expected/asf-logo-huge.tar.gz"/>
+  </target>
 </project>

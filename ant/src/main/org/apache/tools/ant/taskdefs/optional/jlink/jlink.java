@@ -1,80 +1,40 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000,2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000,2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 /**
  * jlink.java links together multiple .jar files Original code by Patrick
  * Beard. Modifications to work with ANT by Matthew Kuperus Heun.
  *
- * @author <a href="mailto:beard@netscape.com>Patrick C. Beard</a> .
- * @author <a href="mailto:matthew.k.heun@gaerospace.com>Matthew Kuperus Heun
- *      </a>
  */
 package org.apache.tools.ant.taskdefs.optional.jlink;
 
-import java.io.FileOutputStream;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
 import java.util.Enumeration;
 import java.util.Vector;
-import java.util.zip.ZipOutputStream;
+import java.util.zip.CRC32;
 import java.util.zip.Deflater;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
-import java.util.zip.CRC32;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 public class jlink extends Object {
 
@@ -201,7 +161,8 @@ public class jlink extends Object {
         jlink linker = new jlink();
 
         linker.setOutfile(args[0]);
-        //To maintain compatibility with the command-line version, we will only add files to be merged.
+        // To maintain compatibility with the command-line version,
+        // we will only add files to be merged.
         for (int i = 1; i < args.length; i++) {
             linker.addMergeFile(args[i]);
         }
@@ -250,7 +211,8 @@ public class jlink extends Object {
                         //It was the duplicate entry.
                         continue;
                     } else {
-                        //I hate to admit it, but we don't know what happened here.  Throw the Exception.
+                        // I hate to admit it, but we don't know what happened
+                        // here.  Throw the Exception.
                         throw ex;
                     }
                 }
@@ -273,7 +235,8 @@ public class jlink extends Object {
     /*
      * Adds contents of a directory to the output.
      */
-    private void addDirContents(ZipOutputStream output, File dir, String prefix, boolean compress) throws IOException {
+    private void addDirContents(ZipOutputStream output, File dir, String prefix,
+                                boolean compress) throws IOException {
         String[] contents = dir.list();
 
         for (int i = 0; i < contents.length; ++i) {
@@ -299,18 +262,26 @@ public class jlink extends Object {
 
         if (!name.endsWith(".class")) {
             // see if the file is in fact a .class file, and determine its actual name.
+            InputStream input = null;
             try {
-                InputStream input = new FileInputStream(file);
+                input = new FileInputStream(file);
                 String className = ClassNameReader.getClassName(input);
 
-                input.close();
                 if (className != null) {
                     return className.replace('.', '/') + ".class";
                 }
             } catch (IOException ioe) {
+            } finally {
+                if (input != null) {
+                    try {
+                        input.close();
+                    } catch (IOException e) {
+                    }
+                }
             }
         }
-        System.out.println("From " + file.getPath() + " and prefix " + prefix + ", creating entry " + prefix + name);
+        System.out.println("From " + file.getPath() + " and prefix " + prefix
+                           + ", creating entry " + prefix + name);
         return (prefix + name);
     }
 
@@ -318,10 +289,9 @@ public class jlink extends Object {
     /*
      * Adds a file to the output stream.
      */
-    private void addFile(ZipOutputStream output, File file, String prefix, boolean compress) throws IOException {
+    private void addFile(ZipOutputStream output, File file, String prefix,
+                         boolean compress) throws IOException {
         //Make sure file exists
-        long checksum = 0;
-
         if (!file.exists()) {
             return;
         }
@@ -341,7 +311,8 @@ public class jlink extends Object {
     /*
      * A convenience method that several other methods might call.
      */
-    private void addToOutputStream(ZipOutputStream output, InputStream input, ZipEntry ze) throws IOException {
+    private void addToOutputStream(ZipOutputStream output, InputStream input,
+                                   ZipEntry ze) throws IOException {
         try {
             output.putNextEntry(ze);
         } catch (ZipException zipEx) {
@@ -417,7 +388,7 @@ public class jlink extends Object {
     private long calcChecksum(File f) throws IOException {
         BufferedInputStream in = new BufferedInputStream(new FileInputStream(f));
 
-        return calcChecksum(in, f.length());
+        return calcChecksum(in);
     }
 
 
@@ -425,7 +396,7 @@ public class jlink extends Object {
      * Necessary in the case where you add a entry that
      * is not compressed.
      */
-    private long calcChecksum(InputStream in, long size) throws IOException {
+    private long calcChecksum(InputStream in) throws IOException {
         CRC32 crc = new CRC32();
         int len = buffer.length;
         int count = -1;

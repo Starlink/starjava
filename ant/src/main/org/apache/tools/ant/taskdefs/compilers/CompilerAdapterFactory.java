@@ -1,71 +1,34 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.compilers;
 
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Task;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
  * Creates the necessary compiler adapter, given basic criteria.
  *
- * @author <a href="mailto:jayglanville@home.com">J D Glanville</a>
  * @since Ant 1.3
  */
 public class CompilerAdapterFactory {
+    private static final String MODERN_COMPILER = "com.sun.tools.javac.Main";
 
     /** This is a singleton -- can't create instances!! */
     private CompilerAdapterFactory() {
@@ -79,13 +42,13 @@ public class CompilerAdapterFactory {
      * <ul><li>jikes = jikes compiler
      * <li>classic, javac1.1, javac1.2 = the standard compiler from JDK
      * 1.1/1.2
-     * <li>modern, javac1.3, javac1.4 = the compiler of JDK 1.3+
+     * <li>modern, javac1.3, javac1.4, javac1.5 = the compiler of JDK 1.3+
      * <li>jvc, microsoft = the command line compiler from Microsoft's SDK
      * for Java / Visual J++
      * <li>kjc = the kopi compiler</li>
      * <li>gcj = the gcj compiler from gcc</li>
      * <li>sj, symantec = the Symantec Java compiler</li>
-     * <li><i>a fully quallified classname</i> = the name of a compiler
+     * <li><i>a fully qualified classname</i> = the name of a compiler
      * adapter
      * </ul>
      *
@@ -95,11 +58,13 @@ public class CompilerAdapterFactory {
      * @throws BuildException if the compiler type could not be resolved into
      * a compiler adapter.
      */
-    public static CompilerAdapter getCompiler(String compilerType, Task task) 
+    public static CompilerAdapter getCompiler(String compilerType, Task task)
         throws BuildException {
             boolean isClassicCompilerSupported = true;
             //as new versions of java come out, add them to this test
-            if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_4)) {
+            if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)
+                && !JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2)
+                && !JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_3)) {
                 isClassicCompilerSupported = false;
             }
 
@@ -108,10 +73,10 @@ public class CompilerAdapterFactory {
             }
             if (compilerType.equalsIgnoreCase("extJavac")) {
                 return new JavacExternal();
-            }       
-            if (compilerType.equalsIgnoreCase("classic") ||
-                compilerType.equalsIgnoreCase("javac1.1") ||
-                compilerType.equalsIgnoreCase("javac1.2")) {
+            }
+            if (compilerType.equalsIgnoreCase("classic")
+                || compilerType.equalsIgnoreCase("javac1.1")
+                || compilerType.equalsIgnoreCase("javac1.2")) {
                 if (isClassicCompilerSupported) {
                     return new Javac12();
                 } else {
@@ -119,14 +84,15 @@ public class CompilerAdapterFactory {
                                              + "not support the classic "
                                              + "compiler; upgrading to modern",
                                              Project.MSG_WARN);
-                    compilerType="modern";
+                    compilerType = "modern";
                 }
             }
             //on java<=1.3 the modern falls back to classic if it is not found
             //but on java>=1.4 we just bail out early
-            if (compilerType.equalsIgnoreCase("modern") ||
-                compilerType.equalsIgnoreCase("javac1.3") ||
-                compilerType.equalsIgnoreCase("javac1.4")) {
+            if (compilerType.equalsIgnoreCase("modern")
+                || compilerType.equalsIgnoreCase("javac1.3")
+                || compilerType.equalsIgnoreCase("javac1.4")
+                || compilerType.equalsIgnoreCase("javac1.5")) {
                 // does the modern compiler exist?
                 if (doesModernCompilerExist()) {
                     return new Javac13();
@@ -136,10 +102,10 @@ public class CompilerAdapterFactory {
                                  + "classic compiler", Project.MSG_WARN);
                         return new Javac12();
                     } else {
-                        throw new BuildException("Unable to find a javac " 
+                        throw new BuildException("Unable to find a javac "
                                                  + "compiler;\n"
-                                                 + "com.sun.tools.javac.Main "
-                                                 + "is not on the " 
+                                                 + MODERN_COMPILER
+                                                 + " is not on the "
                                                  + "classpath.\n"
                                                  + "Perhaps JAVA_HOME does not"
                                                  + " point to the JDK");
@@ -147,8 +113,8 @@ public class CompilerAdapterFactory {
                 }
             }
 
-            if (compilerType.equalsIgnoreCase("jvc") ||
-                compilerType.equalsIgnoreCase("microsoft")) {
+            if (compilerType.equalsIgnoreCase("jvc")
+                || compilerType.equalsIgnoreCase("microsoft")) {
                 return new Jvc();
             }
             if (compilerType.equalsIgnoreCase("kjc")) {
@@ -157,8 +123,8 @@ public class CompilerAdapterFactory {
             if (compilerType.equalsIgnoreCase("gcj")) {
                 return new Gcj();
             }
-            if (compilerType.equalsIgnoreCase("sj") ||
-                compilerType.equalsIgnoreCase("symantec")) {
+            if (compilerType.equalsIgnoreCase("sj")
+                || compilerType.equalsIgnoreCase("symantec")) {
                 return new Sj();
             }
             return resolveClassName(compilerType);
@@ -166,17 +132,22 @@ public class CompilerAdapterFactory {
 
     /**
      * query for the Modern compiler existing
-     * @return true iff classic os on the classpath
-     */ 
+     * @return true if classic os on the classpath
+     */
     private static boolean doesModernCompilerExist() {
         try {
-            Class.forName("com.sun.tools.javac.Main");
+            Class.forName(MODERN_COMPILER);
             return true;
         } catch (ClassNotFoundException cnfe) {
-            return false;
+            try {
+                CompilerAdapterFactory.class.getClassLoader().loadClass(MODERN_COMPILER);
+                return true;
+            } catch (ClassNotFoundException cnfe2) {
+            }
         }
+        return false;
     }
-    
+
     /**
      * Tries to resolve the given classname into a compiler adapter.
      * Throws a fit if it can't.
@@ -192,14 +163,14 @@ public class CompilerAdapterFactory {
             Object o = c.newInstance();
             return (CompilerAdapter) o;
         } catch (ClassNotFoundException cnfe) {
-            throw new BuildException("Compiler Adapter '"+className 
+            throw new BuildException("Compiler Adapter '" + className
                     + "' can\'t be found.", cnfe);
         } catch (ClassCastException cce) {
             throw new BuildException(className + " isn\'t the classname of "
                     + "a compiler adapter.", cce);
         } catch (Throwable t) {
             // for all other possibilities
-            throw new BuildException("Compiler Adapter "+className 
+            throw new BuildException("Compiler Adapter " + className
                     + " caused an interesting exception.", t);
         }
     }

@@ -1,67 +1,29 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
+import java.io.File;
+import java.io.IOException;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.ZipFileSet;
 import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.zip.ZipOutputStream;
-
-import java.io.File;
-import java.io.IOException;
 
 
 /**
@@ -69,12 +31,13 @@ import java.io.IOException;
  * Contains special treatment for files that should end up in the
  * <code>WEB-INF/lib</code>, <code>WEB-INF/classes</code> or
  * <code>WEB-INF</code> directories of the Web Application Archive.</p>
- * <p>(The War task is a shortcut for specifying the particular layout of a WAR file. 
+ * <p>(The War task is a shortcut for specifying the particular layout of a WAR file.
  * The same thing can be accomplished by using the <i>prefix</i> and <i>fullpath</i>
  * attributes of zipfilesets in a Zip or Jar task.)</p>
- * <p>The extended zipfileset element from the zip task (with attributes <i>prefix</i>, <i>fullpath</i>, and <i>src</i>) is available in the War task.</p>
+ * <p>The extended zipfileset element from the zip task
+ * (with attributes <i>prefix</i>, <i>fullpath</i>, and <i>src</i>)
+ * is available in the War task.</p>
  *
- * @author Stefan Bodewig
  *
  * @since Ant 1.2
  *
@@ -102,8 +65,8 @@ public class War extends Jar {
     }
 
     /**
-     * <i>Deprecated<i> name of the file to create 
-     * -use <tt>destfile</tt> instead. 
+     * <i>Deprecated<i> name of the file to create
+     * -use <tt>destfile</tt> instead.
      * @deprecated Use setDestFile(File) instead
      * @ant.attribute ignore="true"
      */
@@ -118,8 +81,8 @@ public class War extends Jar {
     public void setWebxml(File descr) {
         deploymentDescriptor = descr;
         if (!deploymentDescriptor.exists()) {
-            throw new BuildException("Deployment descriptor: " 
-                                     + deploymentDescriptor 
+            throw new BuildException("Deployment descriptor: "
+                                     + deploymentDescriptor
                                      + " does not exist.");
         }
 
@@ -150,7 +113,7 @@ public class War extends Jar {
     }
 
     /**
-     * files to add under WEB-INF; 
+     * files to add under WEB-INF;
      */
     public void addWebinf(ZipFileSet fs) {
         // We just set the prefix for this fileset, and pass it up.
@@ -173,9 +136,9 @@ public class War extends Jar {
     }
 
     /**
-     * Overriden from Zip class to deal with web.xml
+     * Overridden from Zip class to deal with web.xml
      */
-    protected void zipFile(File file, ZipOutputStream zOut, String vPath, 
+    protected void zipFile(File file, ZipOutputStream zOut, String vPath,
                            int mode)
         throws IOException {
         // If the file being added is WEB-INF/web.xml, we warn if it's

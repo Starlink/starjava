@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.types.selectors;
@@ -68,7 +31,6 @@ import java.io.File;
  * a test bed for selecting on, and a helper method for determining
  * whether selections are correct.
  *
- * @author <a href="mailto:bruce@callenish.com">Bruce Atherton</a>
  */
 public abstract class BaseSelectorTest extends TestCase {
 
@@ -82,7 +44,7 @@ public abstract class BaseSelectorTest extends TestCase {
     protected File mirrordir = new File(mirrordirname);
     protected String[] filenames = {".","asf-logo.gif.md5","asf-logo.gif.bz2",
             "asf-logo.gif.gz","copy.filterset.filtered","zip/asf-logo.gif.zip",
-            "tar/asf-logo.gif.tar","tar/asf-logo-huge.tar",
+            "tar/asf-logo.gif.tar","tar/asf-logo-huge.tar.gz",
             "tar/gz/asf-logo.gif.tar.gz","tar/bz2/asf-logo.gif.tar.bz2",
             "tar/bz2/asf-logo-huge.tar.bz2","tar/bz2"};
     protected File[] files = new File[filenames.length];
@@ -106,6 +68,18 @@ public abstract class BaseSelectorTest extends TestCase {
      * Override this in child classes to return a specific Selector
      */
     public abstract BaseSelector getInstance();
+
+
+    /**
+     * Return a preconfigured selector (with a set reference to
+     * project instance).
+     * @return the selector
+     */
+    public BaseSelector getSelector() {
+        BaseSelector selector = getInstance();
+        selector.setProject( getProject() );
+        return selector;
+    }
 
 
     public Project getProject() {
@@ -170,6 +144,66 @@ public abstract class BaseSelectorTest extends TestCase {
         }
         return buf.toString();
     }
+
+    /**
+     * Does the selection test for a given selector and prints the
+     * filenames of the differing files (selected but shouldn't,
+     * not selected but should).
+     * @param selector  The selector to test
+     * @param expected  The expected result
+     */
+    public void performTests(FileSelector selector, String expected) {
+        String result = selectionString(selector);
+        String diff = diff(expected, result);
+        String resolved = resolve(diff);
+        assertEquals("Differing files: " + resolved, result, expected);
+    }
+
+    /**
+     *  Checks which files are selected and shouldn't be or which
+     *  are not selected but should.
+     *  @param expected    String containing 'F's and 'T's
+     *  @param result      String containing 'F's and 'T's
+     *  @return Difference as String containing '-' (equal) and
+     *          'X' (difference).
+     */
+    public String diff(String expected, String result) {
+        int length1 = expected.length();
+        int length2 = result.length();
+        int min = (length1 > length2) ? length2 : length1;
+        StringBuffer sb = new StringBuffer();
+        for (int i=0; i<min; i++) {
+            sb.append(
+                  (expected.charAt(i) == result.charAt(i))
+                ? "-"
+                : "X"
+            );
+        }
+        return sb.toString();
+    }
+
+
+    /**
+     * Resolves a diff-String (@see diff()) against the (inherited) filenames-
+     * and files arrays.
+     * @param filelist    Diff-String
+     * @return String containing the filenames for all differing files,
+     *         separated with semicolons ';'
+     */
+    public String resolve(String filelist) {
+        StringBuffer sb = new StringBuffer();
+        int min = (filenames.length > filelist.length())
+                ? filelist.length()
+                : filenames.length;
+        for (int i=0; i<min; i++) {
+            if ('X'==filelist.charAt(i)) {
+                sb.append(filenames[i]);
+                sb.append(";");
+            }
+        }
+        return sb.toString();
+    }
+
 
     /**
      * <p>Creates a testbed. We avoid the dreaded "test" word so that we

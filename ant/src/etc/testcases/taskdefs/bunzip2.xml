@@ -8,6 +8,10 @@
 
   <target name="cleanup">
     <delete file="asf-logo-huge.tar" />
+    <delete file="expected/asf-logo-huge.tar" />
   </target>
 
+  <target name="prepare">
+    <gunzip src="expected/asf-logo-huge.tar.gz"/>
+  </target>
 </project>

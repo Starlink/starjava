@@ -1,80 +1,47 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional;
 
-import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import org.apache.tools.ant.Task;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.Enumeration;
+import java.util.Vector;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
-import org.apache.tools.ant.taskdefs.LogStreamHandler;
-import org.apache.tools.ant.taskdefs.LogOutputStream;
-import org.apache.tools.ant.taskdefs.PumpStreamHandler;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Execute;
+import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
+import org.apache.tools.ant.taskdefs.LogOutputStream;
+import org.apache.tools.ant.taskdefs.LogStreamHandler;
+import org.apache.tools.ant.taskdefs.PumpStreamHandler;
+import org.apache.tools.ant.taskdefs.condition.Os;
 import org.apache.tools.ant.types.Commandline;
+import org.apache.tools.ant.types.Path;
 
 /**
  * Invokes the rpm tool to build a Linux installation file.
- *  @author lucas@collab.net
+ *
  */
 public class Rpm extends Task {
-    
+
     /**
      * the spec file
      */
@@ -89,6 +56,12 @@ public class Rpm extends Task {
      * the rpm command to use
      */
     private String command = "-bb";
+
+    /**
+     * The executable to use for building the packages.
+     * @since Ant 1.6
+     */
+    private String rpmBuildCommand = null;
 
     /**
      * clean BUILD directory
@@ -115,11 +88,18 @@ public class Rpm extends Task {
      */
     private File error;
 
+    /**
+     * Execute the task
+     *
+     * @throws BuildException is there is a problem in the task execution.
+     */
     public void execute() throws BuildException {
-        
+
         Commandline toExecute = new Commandline();
 
-        toExecute.setExecutable("rpm");
+        toExecute.setExecutable(rpmBuildCommand == null
+                                ? guessRpmBuildCommand()
+                                : rpmBuildCommand);
         if (topDir != null) {
             toExecute.createArgument().setValue("--define");
             toExecute.createArgument().setValue("_topdir" + topDir);
@@ -148,18 +128,22 @@ public class Rpm extends Task {
         } else {
             if (output != null) {
                 try {
-                    outputstream = new PrintStream(new BufferedOutputStream(new FileOutputStream(output)));
+                    BufferedOutputStream bos
+                        = new BufferedOutputStream(new FileOutputStream(output));
+                    outputstream = new PrintStream(bos);
                 } catch (IOException e) {
-                    throw new BuildException(e, location);
+                    throw new BuildException(e, getLocation());
                 }
             } else {
                 outputstream = new LogOutputStream(this, Project.MSG_INFO);
             }
             if (error != null) {
                 try {
-                    errorstream = new PrintStream(new BufferedOutputStream(new FileOutputStream(error)));
+                    BufferedOutputStream bos
+                        = new BufferedOutputStream(new FileOutputStream(error));
+                    errorstream = new PrintStream(bos);
                 }  catch (IOException e) {
-                    throw new BuildException(e, location);
+                    throw new BuildException(e, getLocation());
                 }
             } else {
                 errorstream = new LogOutputStream(this, Project.MSG_WARN);
@@ -169,9 +153,9 @@ public class Rpm extends Task {
 
         Execute exe = new Execute(streamhandler, null);
 
-        exe.setAntRun(project);
+        exe.setAntRun(getProject());
         if (topDir == null) {
-            topDir = project.getBaseDir();
+            topDir = getProject().getBaseDir();
         }
         exe.setWorkingDirectory(topDir);
 
@@ -180,33 +164,39 @@ public class Rpm extends Task {
             exe.execute();
             log("Building the RPM based on the " + specFile + " file");
         } catch (IOException e) {
-            throw new BuildException(e, location);
+            throw new BuildException(e, getLocation());
         } finally {
             if (output != null) {
                 try {
                     outputstream.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                    // ignore any secondary error
+                }
             }
             if (error != null) {
                 try {
                     errorstream.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                    // ignore any secondary error
+                }
             }
         }
     }
 
     /**
      * The directory which will have the expected
-     * subdirectories, SPECS, SOURCES, BUILD, SRPMS ; optional. 
+     * subdirectories, SPECS, SOURCES, BUILD, SRPMS ; optional.
      * If this isn't specified,
      * the <tt>baseDir</tt> value is used
+     *
+     * @param td the directory containing the normal RPM directories.
      */
     public void setTopDir(File td) {
         this.topDir = td;
     }
 
     /**
-     * What command to issue to the rpm tool; optional.
+     * What command to issue to the rpm build tool; optional.
      * The default is "-bb"
      */
     public void setCommand(String c) {
@@ -218,13 +208,13 @@ public class Rpm extends Task {
      */
     public void setSpecFile(String sf) {
         if ((sf == null) || (sf.trim().equals(""))) {
-            throw new BuildException("You must specify a spec file", location);
+            throw new BuildException("You must specify a spec file", getLocation());
         }
         this.specFile = sf;
     }
 
     /**
-     * Flag (optional, default=false) to remove 
+     * Flag (optional, default=false) to remove
      * the generated files in the BUILD directory
      */
     public void setCleanBuildDir(boolean cbd) {
@@ -239,9 +229,9 @@ public class Rpm extends Task {
     }
 
     /**
-     * Flag (optional, default=false) 
+     * Flag (optional, default=false)
      * to remove the sources after the build.
-     * See the the <tt>--rmsource</tt>  option of rpmbuild.
+     * See the <tt>--rmsource</tt>  option of rpmbuild.
      */
     public void setRemoveSource(boolean rs) {
         removeSource = rs;
@@ -259,5 +249,50 @@ public class Rpm extends Task {
      */
     public void setError(File error) {
         this.error = error;
+    }
+
+    /**
+     * The executable to run when building; optional.
+     * The default is <code>rpmbuild</code>.
+     *
+     * @since Ant 1.6
+     * @param c the rpm build executable
+     */
+    public void setRpmBuildCommand(String c) {
+        this.rpmBuildCommand = c;
+    }
+
+    /**
+     * Checks whether <code>rpmbuild</code> is on the PATH and returns
+     * the absolute path to it - falls back to <code>rpm</code>
+     * otherwise.
+     *
+     * @since 1.6
+     */
+    protected String guessRpmBuildCommand() {
+        Vector env = Execute.getProcEnvironment();
+        String path = null;
+        for (Enumeration e = env.elements(); e.hasMoreElements();) {
+            String var = (String) e.nextElement();
+            if (var.startsWith("PATH=") || var.startsWith("Path=")) {
+                path = var.substring(6 /* "PATH=".length() + 1 */);
+                break;
+            }
+        }
+
+        if (path != null) {
+            Path p = new Path(getProject(), path);
+            String[] pElements = p.list();
+            for (int i = 0; i < pElements.length; i++) {
+                File f = new File(pElements[i],
+                                  "rpmbuild"
+                                  + (Os.isFamily("dos") ? ".exe" : ""));
+                if (f.canRead()) {
+                    return f.getAbsolutePath();
+                }
+            }
+        }
+
+        return "rpm";
     }
 }

@@ -1,62 +1,22 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
-import java.util.Vector;
-import java.util.Hashtable;
-import java.util.Enumeration;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,7 +25,9 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.util.CollectionUtils;
 
@@ -81,10 +43,7 @@ import org.apache.tools.ant.util.CollectionUtils;
  * greater than 72 bytes being wrapped and continued on the next
  * line. If an application can not handle the continuation mechanism, it
  * is a defect in the application, not this task.
-
- * @author Conor MacNeill
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <a href="mailto:j_a_fernandez@yahoo.com">Jose Alberto Fernandez</a>
+ *
  *
  * @since Ant 1.4
  */
@@ -104,7 +63,7 @@ public class Manifest {
     public static final String ATTRIBUTE_FROM = "From";
 
     /** The Class-Path Header is special - it can be duplicated */
-    public static final String ATTRIBUTE_CLASSPATH = "class-path";
+    public static final String ATTRIBUTE_CLASSPATH = "Class-Path";
 
     /** Default Manifest version if one is not specified */
     public static final  String DEFAULT_MANIFEST_VERSION = "1.0";
@@ -322,7 +281,7 @@ public class Manifest {
          *
          * @param writer the Writer to which the attribute is written
          *
-         * @throws IOException if the attribte value cannot be written
+         * @throws IOException if the attribute value cannot be written
          */
         public void write(PrintWriter writer) throws IOException {
             for (Enumeration e = getValues(); e.hasMoreElements();) {
@@ -336,7 +295,7 @@ public class Manifest {
          * @param writer the Writer to which the attribute is written
          * @param value the attribute value
          *
-         * @throws IOException if the attribte value cannot be written
+         * @throws IOException if the attribute value cannot be written
          */
         private void writeValue(PrintWriter writer, String value)
              throws IOException {
@@ -438,6 +397,8 @@ public class Manifest {
                 } else {
                     attribute = new Attribute(line);
                     String nameReadAhead = addAttributeAndCheck(attribute);
+                    // refresh attribute in case of multivalued attributes.
+                    attribute = getAttribute(attribute.getKey());
                     if (nameReadAhead != null) {
                         return nameReadAhead;
                     }
@@ -461,21 +422,29 @@ public class Manifest {
             }
 
             Enumeration e = section.getAttributeKeys();
+            Attribute classpathAttribute = null;
             while (e.hasMoreElements()) {
                 String attributeName = (String) e.nextElement();
                 Attribute attribute = section.getAttribute(attributeName);
-                if (attributeName.equals(ATTRIBUTE_CLASSPATH) &&
-                        attributes.containsKey(attributeName)) {
-                    Attribute ourClassPath = getAttribute(attributeName);
+                if (attributeName.equalsIgnoreCase(ATTRIBUTE_CLASSPATH)) {
+                    if (classpathAttribute == null) {
+                        classpathAttribute = new Attribute();
+                        classpathAttribute.setName(ATTRIBUTE_CLASSPATH);
+                    }
                     Enumeration cpe = attribute.getValues();
                     while (cpe.hasMoreElements()) {
                         String value = (String) cpe.nextElement();
-                        ourClassPath.addValue(value);
+                        classpathAttribute.addValue(value);
                     }
                 } else {
                     // the merge file always wins
                     storeAttribute(attribute);
                 }
+            }
+
+            if (classpathAttribute != null) {
+                // the merge file *always* wins, even for Class-Path
+                storeAttribute(classpathAttribute);
             }
 
             // add in the warnings
@@ -603,13 +572,17 @@ public class Manifest {
             } else {
                 // classpath attributes go into a vector
                 String attributeKey = attribute.getKey();
-                if (attributeKey.equals(ATTRIBUTE_CLASSPATH)) {
+                if (attributeKey.equalsIgnoreCase(ATTRIBUTE_CLASSPATH)) {
                     Attribute classpathAttribute =
                         (Attribute) attributes.get(attributeKey);
 
                     if (classpathAttribute == null) {
                         storeAttribute(attribute);
                     } else {
+                        warnings.addElement("Multiple Class-Path attributes "
+                            + "are supported but violate the Jar "
+                            + "specification and may not be correctly "
+                            + "processed in all environments");
                         Enumeration e = attribute.getValues();
                         while (e.hasMoreElements()) {
                             String value = (String) e.nextElement();
@@ -630,6 +603,7 @@ public class Manifest {
         /**
          * Clone this section
          *
+         * @return the cloned Section
          * @since Ant 1.5.2
          */
         public Object clone() {
@@ -639,7 +613,7 @@ public class Manifest {
             while (e.hasMoreElements()) {
                 String key = (String) e.nextElement();
                 Attribute attribute = getAttribute(key);
-                cloned.storeAttribute(new Attribute(attribute.getName(), 
+                cloned.storeAttribute(new Attribute(attribute.getName(),
                                                     attribute.getValue()));
             }
             return cloned;
@@ -731,11 +705,11 @@ public class Manifest {
                     + defManifest);
             }
             try {
-                Manifest defaultManifest 
+                Manifest defaultManifest
                     = new Manifest(new InputStreamReader(in, "UTF-8"));
-                Attribute createdBy = new Attribute("Created-By", 
+                Attribute createdBy = new Attribute("Created-By",
                     System.getProperty("java.vm.version") + " ("
-                    + System.getProperty("java.vm.vendor") + ")" );
+                    + System.getProperty("java.vm.vendor") + ")");
                 defaultManifest.getMainSection().storeAttribute(createdBy);
                 return defaultManifest;
             } catch (UnsupportedEncodingException e) {
@@ -847,7 +821,7 @@ public class Manifest {
      * @param other the Manifest to be merged with this one.
      *
      * @throws ManifestException if there is a problem merging the
-     *         manfest according to the Manifest spec.
+     *         manifest according to the Manifest spec.
      */
     public void merge(Manifest other) throws ManifestException {
         merge(other, false);
@@ -861,7 +835,7 @@ public class Manifest {
      *        of the current manifest
      *
      * @throws ManifestException if there is a problem merging the
-     *         manfest according to the Manifest spec.
+     *         manifest according to the Manifest spec.
      */
     public void merge(Manifest other, boolean overwriteMain)
          throws ManifestException {
@@ -1052,5 +1026,4 @@ public class Manifest {
     public Enumeration getSectionNames() {
         return sectionIndex.elements();
     }
-
 }

@@ -1,65 +1,21 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
-
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.taskdefs.condition.Os;
-import org.apache.tools.ant.types.EnumeratedAttribute;
-import org.apache.tools.ant.util.FileUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -75,6 +31,12 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.condition.Os;
+import org.apache.tools.ant.types.EnumeratedAttribute;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Converts text source files to local OS formatting conventions, as
@@ -114,9 +76,7 @@ import java.util.NoSuchElementException;
  * CRCRLF is regarded as a single EOL to handle cases where other
  * programs have converted CRLF into CRCRLF.
  *
- * @author Sam Ruby <a href="mailto:rubys@us.ibm.com">rubys@us.ibm.com</a>
- * @author <a href="mailto:pbwest@powerup.com.au">Peter B. West</a>
- * @version $Revision: 1.37.2.4 $ $Name:  $
+ * @version $Revision: 1.54.2.6 $ $Name:  $
  * @since Ant 1.1
  *
  * @ant.task category="filesystem"
@@ -155,6 +115,7 @@ public class FixCRLF extends MatchingTask {
     private int ctrlz;
     private int tabs;
     private boolean javafiles = false;
+    private boolean fixlast = true;
 
     private File srcDir;
     private File destDir = null;
@@ -227,10 +188,10 @@ public class FixCRLF extends MatchingTask {
         String option = attr.getValue();
         if (option.equals("asis")) {
             eol = ASIS;
-        } else if (option.equals("cr")) {
+        } else if (option.equals("cr") || option.equals("mac")) {
             eol = CR;
             eolstr = "\r";
-        } else if (option.equals("lf")) {
+        } else if (option.equals("lf") || option.equals("unix")) {
             eol = LF;
             eolstr = "\n";
         } else {
@@ -243,7 +204,7 @@ public class FixCRLF extends MatchingTask {
     /**
      * Specify how carriage return (CR) characters are to be handled.
      *
-     * @param option valid values:
+     * @param attr valid values:
      * <ul>
      * <li>add: ensure that there is a CR before every LF
      * <li>asis: leave CR characters alone
@@ -340,6 +301,14 @@ public class FixCRLF extends MatchingTask {
     }
 
     /**
+     * Specify whether a missing EOL will be added
+     * to the final line of a file.
+     */
+    public void setFixlast(boolean fixlast) {
+        this.fixlast = fixlast;
+    }
+
+    /**
      * Executes the task.
      */
     public void execute() throws BuildException {
@@ -364,13 +333,13 @@ public class FixCRLF extends MatchingTask {
         }
 
         // log options used
-        log("options:" +
-            " eol=" +
-            (eol == ASIS ? "asis" : eol == CR ? "cr" : eol == LF ? "lf" : "crlf") +
-            " tab=" + (tabs == TABS ? "add" : tabs == ASIS ? "asis" : "remove") +
-            " eof=" + (ctrlz == ADD ? "add" : ctrlz == ASIS ? "asis" : "remove") +
-            " tablength=" + tablength +
-            " encoding=" + (encoding == null ? "default" : encoding),
+        log("options:"
+            + " eol="
+            + (eol == ASIS ? "asis" : eol == CR ? "cr" : eol == LF ? "lf" : "crlf")
+            + " tab=" + (tabs == TABS ? "add" : tabs == ASIS ? "asis" : "remove")
+            + " eof=" + (ctrlz == ADD ? "add" : ctrlz == ASIS ? "asis" : "remove")
+            + " tablength=" + tablength
+            + " encoding=" + (encoding == null ? "default" : encoding),
             Project.MSG_VERBOSE);
 
         DirectoryScanner ds = super.getDirectoryScanner(srcDir);
@@ -404,7 +373,8 @@ public class FixCRLF extends MatchingTask {
         try {
             // Set up the output Writer
             try {
-                tmpFile = fileUtils.createTempFile("fixcrlf", "", destD);
+                tmpFile = fileUtils.createTempFile("fixcrlf", "", null);
+                tmpFile.deleteOnExit();
                 Writer writer = (encoding == null) ? new FileWriter(tmpFile)
                     : new OutputStreamWriter(new FileOutputStream(tmpFile),
                                              encoding);
@@ -438,9 +408,8 @@ public class FixCRLF extends MatchingTask {
                     } // end of try-catch
 
                 } else { // (tabs != ASIS)
-                    int ptr;
 
-                    while ((ptr = line.getNext()) < linelen) {
+                    while (line.getNext() < linelen) {
 
                         switch (lines.getState()) {
 
@@ -484,10 +453,9 @@ public class FixCRLF extends MatchingTask {
                             endOfCharConst(line, terminator);
                             while (line.getNext() < line.getLookahead()) {
                                 if (line.getNextCharInc() == '\t') {
-                                    line.setColumn(line.getColumn() +
-                                                   tablength -
-                                                   (line.getColumn()
-                                                    % tablength));
+                                    line.setColumn(line.getColumn()
+                                        + tablength
+                                        - (line.getColumn() % tablength));
                                 } else {
                                     line.incColumn();
                                 }
@@ -517,11 +485,13 @@ public class FixCRLF extends MatchingTask {
 
                 } // end of else (tabs != ASIS)
 
-                try {
-                    outWriter.write(eolstr);
-                } catch (IOException e) {
-                    throw new BuildException(e);
-                } // end of try-catch
+                if (!("".equals(line.getEol())) || fixlast) {
+                    try {
+                        outWriter.write(eolstr);
+                    } catch (IOException e) {
+                        throw new BuildException(e);
+                    } // end of try-catch
+                } //end if non-blank original eol or fixlast
 
             } // end of while (lines.hasNext())
 
@@ -529,7 +499,7 @@ public class FixCRLF extends MatchingTask {
                 // Handle CTRLZ
                 if (ctrlz == ASIS) {
                     outWriter.write(lines.getEofStr());
-                } else if (ctrlz == ADD){
+                } else if (ctrlz == ADD) {
                     outWriter.write(CTRLZ);
                 }
             } catch (IOException e) {
@@ -553,44 +523,23 @@ public class FixCRLF extends MatchingTask {
 
             File destFile = new File(destD, file);
 
+            boolean destIsWrong = true;
             if (destFile.exists()) {
                 // Compare the destination with the temp file
                 log("destFile exists", Project.MSG_DEBUG);
                 if (!fileUtils.contentEquals(destFile, tmpFile)) {
                     log(destFile + " is being written", Project.MSG_DEBUG);
-                    if (!destFile.delete()) {
-                        throw new BuildException("Unable to delete "
-                                                 + destFile);
-                    }
-                    if (!tmpFile.renameTo(destFile)) {
-                        throw new BuildException(
-                                "Failed to transform " + srcFile
-                                + " to " + destFile
-                                + ". Couldn't rename temporary file: "
-                                + tmpFile);
-                    }
-
-                } else { // destination is equal to temp file
-                    log(destFile +
-                        " is not written, as the contents are identical",
-                        Project.MSG_DEBUG);
-                    if (!tmpFile.delete()) {
-                        throw new BuildException("Unable to delete "
-                                                 + tmpFile);
-                    }
-                }
-            } else { // destFile does not exist - write the temp file
-                log("destFile does not exist", Project.MSG_DEBUG);
-                if (!tmpFile.renameTo(destFile)) {
-                    throw new BuildException(
-                            "Failed to transform " + srcFile
-                            + " to " + destFile
-                            + ". Couldn't rename temporary file: "
-                            + tmpFile);
+                } else {
+                    log(destFile + " is not written, as the contents "
+                        + "are identical", Project.MSG_DEBUG);
+                    destIsWrong = false;
                 }
             }
 
-            tmpFile = null;
+            if (destIsWrong) {
+                fileUtils.rename(tmpFile, destFile);
+                tmpFile = null;
+            }
 
         } catch (IOException e) {
             throw new BuildException(e);
@@ -696,7 +645,7 @@ public class FixCRLF extends MatchingTask {
 
 
     /**
-     * Process a BufferLine string which is not part of of a string constant.
+     * Process a BufferLine string which is not part of a string constant.
      * The start position of the string is given by the 'next' field.
      * Sets the 'next' and 'column' fields in the BufferLine.
      *
@@ -721,7 +670,7 @@ public class FixCRLF extends MatchingTask {
 
         // process sequences of white space
         // first convert all tabs to spaces
-        linebuf.setLength(0);
+        linebuf = new StringBuffer();
         while ((nextTab = line.indexOf((int) '\t', place)) >= 0) {
             linebuf.append(line.substring(place, nextTab)); // copy to the TAB
             col += nextTab - place;
@@ -732,7 +681,7 @@ public class FixCRLF extends MatchingTask {
         } // end of while
         linebuf.append(line.substring(place, line.length()));
         // if converting to spaces, all finished
-        String linestring = new String(linebuf.toString());
+        String linestring = new String(linebuf.substring(0));
         if (tabs == REMOVE) {
             try {
                 outWriter.write(linestring);
@@ -741,7 +690,7 @@ public class FixCRLF extends MatchingTask {
             } // end of try-catch
         } else { // tabs == ADD
             int tabCol;
-            linebuf2.setLength(0);
+            linebuf2 = new StringBuffer();
             place = 0;
             col = bufline.getColumn();
             int placediff = col - 0;
@@ -757,12 +706,11 @@ public class FixCRLF extends MatchingTask {
                 nextStop += tablength;
             }
 
-            for (; nextStop - placediff <= linestring.length()
-                          ; nextStop += tablength) {
+            for (; nextStop - placediff <= linestring.length();
+                    nextStop += tablength) {
                 for (tabCol = nextStop;
                              --tabCol - placediff >= place
-                             && linestring.charAt(tabCol - placediff) == ' '
-                             ;) {
+                             && linestring.charAt(tabCol - placediff) == ' ';) {
                     ; // Loop for the side-effects
                 }
                 // tabCol is column index of the last non-space character
@@ -783,7 +731,7 @@ public class FixCRLF extends MatchingTask {
             linebuf2.append(linestring.substring(place, linestring.length()));
 
             try {
-                outWriter.write(linebuf2.toString());
+                outWriter.write(linebuf2.substring(0));
             } catch (IOException e) {
                 throw new BuildException(e);
             } // end of try-catch
@@ -817,7 +765,7 @@ public class FixCRLF extends MatchingTask {
                         (getReader(srcFile), INBUFLEN);
                 nextLine();
             } catch (IOException e) {
-                throw new BuildException(srcFile + ": "+ e.getMessage(),
+                throw new BuildException(srcFile + ": " + e.getMessage(),
                                          e, getLocation());
             }
         }
@@ -827,8 +775,8 @@ public class FixCRLF extends MatchingTask {
             int ch = -1;
             int eolcount = 0;
 
-            eolStr.setLength(0);
-            line.setLength(0);
+            eolStr = new StringBuffer();
+            line = new StringBuffer();
 
             try {
                 ch = reader.read();
@@ -902,13 +850,13 @@ public class FixCRLF extends MatchingTask {
                 } // end of if (eolcount == 0)
 
             } catch (IOException e) {
-                throw new BuildException(srcFile + ": "+ e.getMessage(),
+                throw new BuildException(srcFile + ": " + e.getMessage(),
                                          e, getLocation());
             }
         }
 
         public String getEofStr() {
-            return eofStr.toString();
+            return eofStr.substring(0);
         }
 
         public int getState() {
@@ -929,7 +877,7 @@ public class FixCRLF extends MatchingTask {
                 throw new NoSuchElementException("OneLiner");
             }
             BufferLine tmpLine =
-                    new BufferLine(line.toString(), eolStr.toString());
+                    new BufferLine(line.toString(), eolStr.substring(0));
             nextLine();
             return tmpLine;
         }
@@ -1046,7 +994,8 @@ public class FixCRLF extends MatchingTask {
          * @see EnumeratedAttribute#getValues
          */
         public String[] getValues() {
-            return new String[] {"asis", "cr", "lf", "crlf"};
+            return new String[] {"asis", "cr", "lf", "crlf",
+                                 "mac", "unix", "dos"};
         }
     }
 

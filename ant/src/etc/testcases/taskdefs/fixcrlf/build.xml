@@ -121,4 +121,45 @@
              />
   </target>
 
+  <target name="testCrCrLfSequence-unix" depends="init">
+    <fixcrlf srcdir="input" destdir="result"
+             includes="crcrlf"
+             eol="lf"
+             />
+  </target>
+
+  <target name="testCrCrLfSequence-dos" depends="init">
+    <fixcrlf srcdir="input" destdir="result"
+             includes="crcrlf"
+             eol="crlf"
+             />
+  </target>
+
+  <target name="testCrCrLfSequence-mac" depends="init">
+    <fixcrlf srcdir="input" destdir="result"
+             includes="crcrlf"
+             eol="cr"
+             />
+  </target>
+
+  <target name="testFixlastDos" depends="init">
+    <fixcrlf srcdir="input" destdir="result"
+             includes="fixlastfalse.lf"
+             eol="crlf"
+             />
+  </target>
+
+  <target name="testFixlastFalseMac" depends="init">
+    <fixcrlf srcdir="input" destdir="result"
+             includes="fixlastfalse.lf"
+             eol="cr"
+             fixlast="false"
+             />
+  </target>
+
+  <!-- Bugzilla Report 20840 -->
+  <target name="createParentDirs" depends="init">
+    <fixcrlf srcdir="." destdir="result" includes="input/Junk1.java"/>
+  </target>
+
 </project>

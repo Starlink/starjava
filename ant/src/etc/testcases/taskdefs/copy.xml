@@ -10,6 +10,38 @@
     <copy file="copy.xml" todir="copytest1dir" overwrite="true"/>
   </target>
 
+  <target name="filtertest">
+    <!-- check fix for bugzilla 23154 -->
+    <delete quiet="yes" file="copy.filter.out"/>
+    <delete quiet="yes" file="copy.filter.inp"/>
+    <concat destfile="copy.filter.inp">
+PRODUCT_VERSION=6.2.1.4
+PRODUCT_BUILD=6.5 (BLD_65036)
+PRODUCT_VERSION=6.2.1.4
+PRODUCT_BUILD=6.5 (BLD_65036)
+    </concat>
+    <copy file="copy.filter.inp" tofile="copy.filter.out">
+      <filterset begintoken="6" endtoken="4">
+        <filter token=".2.1." value="2.6.4" />
+      </filterset>
+    </copy>
+    <concat><path path="copy.filter.out"/></concat>
+  </target>
+
+  <target name="infinitetest">
+    <delete quiet="yes" file="copy.filter.out"/>
+    <delete quiet="yes" file="copy.filter.inp"/>
+    <concat destfile="copy.filter.inp">
+a=b=
+    </concat>
+    <copy file="copy.filter.inp" tofile="copy.filter.out">
+      <filterset begintoken="=" endtoken="=">
+        <filter token="b" value="=b="/>
+      </filterset>
+    </copy>
+    <concat><path path="copy.filter.out"/></concat>
+  </target>
+
   <target name="test3">
     <!-- create an empty file -->
     <touch file="copytest3.tmp"/>
@@ -62,6 +94,35 @@
     </copy>
   </target>
 
+  <target name="testTranscoding">
+    <copy file="copy/input/iso8859-1" tofile="copytest1.tmp"
+          encoding="ISO8859_1" outputencoding="UTF8"/>
+  </target>
+
+  <target name="testMissingFileIgnore">
+    <copy file="not-there" tofile="copytest1.tmp"
+          failonerror="false"/>
+  </target>
+
+  <target name="testMissingFileBail">
+    <copy file="not-there" tofile="copytest1.tmp"
+          failonerror="true"/>
+  </target>
+
+  <target name="testMissingDirIgnore">
+    <copy todir="copytest1dir" failonerror="false">
+      <fileset dir="not-there"/>
+    </copy>
+  </target>
+
+  <target name="testMissingDirBail">
+    <copy todir="copytest1dir" failonerror="true">
+      <fileset dir="not-there"/>
+    </copy>
+  </target>
+
+    
+  
   <target name="cleanup"> 
     <delete file="copytest1.tmp"/>
     <delete file="copytest3.tmp"/>
@@ -72,6 +133,8 @@
     <delete file="copy.filterset.tmp"/>
     <delete file="copy.filterchain.tmp"/>
     <delete dir="copytest1dir"/>
+    <delete quiet="yes" file="copy.filter.out"/>
+    <delete quiet="yes" file="copy.filter.inp"/>
   </target>
 
 

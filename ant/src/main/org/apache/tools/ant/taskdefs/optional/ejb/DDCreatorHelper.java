@@ -1,62 +1,24 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.ejb;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
-
 import javax.ejb.deployment.DeploymentDescriptor;
 
 /**
@@ -65,35 +27,34 @@ import javax.ejb.deployment.DeploymentDescriptor;
  * This class is run with a classpath which includes the weblogic tools and the home and remote
  * interface class files referenced in the deployment descriptors being built.
  *
- * @author Conor MacNeill, Cortex ebusiness Pty Limited
  */
 public class DDCreatorHelper {
     /**
-     * The root directory of the tree containing the textual deployment desciptors. 
+     * The root directory of the tree containing the textual deployment descriptors.
      */
     private File descriptorDirectory;
-    
+
     /**
-     * The directory where generated serialised desployment descriptors are written.
+     * The directory where generated serialised deployment descriptors are written.
      */
     private File generatedFilesDirectory;
 
     /**
      * The descriptor text files for which a serialised descriptor is to be created.
      */
-    String[] descriptors; 
+    String[] descriptors;
 
     /**
      * The main method.
      *
-     * The main method creates an instance of the DDCreatorHelper, passing it the 
+     * The main method creates an instance of the DDCreatorHelper, passing it the
      * args which it then processes.
-     */    
+     */
     public static void main(String[] args) throws Exception {
         DDCreatorHelper helper = new DDCreatorHelper(args);
         helper.process();
     }
-  
+
     /**
      * Initialise the helper with the command arguments.
      *
@@ -102,20 +63,20 @@ public class DDCreatorHelper {
         int index = 0;
         descriptorDirectory = new File(args[index++]);
         generatedFilesDirectory = new File(args[index++]);
-        
+
         descriptors = new String[args.length - index];
         for (int i = 0; index < args.length; ++i) {
             descriptors[i] = args[index++];
         }
     }
-    
+
     /**
      * Do the actual work.
      *
      * The work proceeds by examining each descriptor given. If the serialised
      * file does not exist or is older than the text description, the weblogic
      * DDCreator tool is invoked directly to build the serialised descriptor.
-     */    
+     */
     private void process() throws Exception {
         for (int i = 0; i < descriptors.length; ++i) {
             String descriptorName = descriptors[i];
@@ -129,12 +90,12 @@ public class DDCreatorHelper {
                 serName = descriptorName + ".ser";
             }
             File serFile = new File(generatedFilesDirectory, serName);
-                
+
             // do we need to regenerate the file
             if (!serFile.exists() || serFile.lastModified() < descriptorFile.lastModified()
                 || regenerateSerializedFile(serFile)) {
-                
-                String[] args = {"-noexit", 
+
+                String[] args = {"-noexit",
                                  "-d", serFile.getParent(),
                                  "-outputfile", serFile.getName(),
                                  descriptorFile.getPath()};
@@ -169,8 +130,8 @@ public class DDCreatorHelper {
             return false;
 
         } catch (Exception e) {
-            
-            // Weblogic will throw an error if the deployment descriptor does 
+
+            // Weblogic will throw an error if the deployment descriptor does
             // not match the class files.
             return true;
 
