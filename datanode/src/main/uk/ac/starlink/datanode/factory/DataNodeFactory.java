@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Node;
 import uk.ac.starlink.datanode.nodes.ARYDataNode;
+import uk.ac.starlink.datanode.nodes.BranchDataNode;
 import uk.ac.starlink.datanode.nodes.CompressedDataNode;
 import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.datanode.nodes.DocumentDataNode;
@@ -73,6 +74,7 @@ import uk.ac.starlink.util.FileDataSource;
  * <li> {@link uk.ac.starlink.datanode.nodes.XMLDataNode}
  * <li> {@link uk.ac.starlink.datanode.nodes.CompressedDataNode}
  * <li> {@link uk.ac.starlink.datanode.nodes.FileDataNode}
+ * <li> {@link uk.ac.starlink.datanode.nodes.BranchDataNode}
  * <li> {@link uk.ac.starlink.datanode.nodes.MyspaceContainerDataNode}
  * <li> {@link uk.ac.starlink.datanode.nodes.PlainDataNode}
  * </ul>
@@ -654,6 +656,7 @@ public class DataNodeFactory {
                 FtpDirectoryDataNode.class.getName(),
                 CompressedDataNode.class.getName(),
                 FileDataNode.class.getName(),
+                BranchDataNode.class.getName(),
                 "uk.ac.starlink.datanode.nodes.MyspaceContainerDataNode",
                 PlainDataNode.class.getName(),
             } ) );
