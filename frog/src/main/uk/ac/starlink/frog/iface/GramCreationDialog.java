@@ -398,7 +398,6 @@ public class GramCreationDialog extends JInternalFrame
                         try {
                             debugManager.print("        Spawned thread...");
                             gramSeries();
-     
                         }
                         catch (Exception error) {
                             error.printStackTrace();
@@ -463,6 +462,9 @@ public class GramCreationDialog extends JInternalFrame
          if( selectedGram == "FOURIER" ) {
             periodogram.setType( Gram.FOURIER );
             debugManager.print("            setType( Gram.FOURIER");
+         } else if (selectedGram == "CHISQ" ) {
+            periodogram.setType( Gram.CHISQ );
+            debugManager.print("            setType( Gram.CHISQ");
          }
          
          // assocaite a TimeSeriesComp object with this Gram
@@ -494,6 +496,9 @@ public class GramCreationDialog extends JInternalFrame
                             debugManager.print(
                                        "                Spawned thread...");
                             addPeriodogram();
+                            if ( gramManager.getAuto() ) {  
+                               displayMetaData(); 
+                            }   
                         }
                         catch (Exception error) {
                             error.printStackTrace();
@@ -562,6 +567,30 @@ public class GramCreationDialog extends JInternalFrame
           frame.getPlot().setStatusTextTwo( "" ); 
    
     }
+
+   
+   /**
+     * Display the meta-data popup abotu the series
+     */ 
+    protected void displayMetaData( ) 
+    {    
+        debugManager.print( "           void displayMetaData( )" );
+        
+        int seriesID = gramManager.getCurrentID();
+        String frameKey = "Periodogram " + seriesID;
+        debugManager.print("             Periodogram " + seriesID );
+    
+        GramControlFrame currFrame = gramManager.getFrame( frameKey );   
+         
+        // display some meta data
+        GramMetaDataPopup meta = new GramMetaDataPopup( currFrame );
+        Frog frame = debugManager.getFrog();
+        JDesktopPane desktop = frame.getDesktop();
+        desktop.add(meta);
+        meta.show();          
+        debugManager.print("             Displaying popup..." );
+    }
+    
     
     /**
      * Set the main cursor to indicate waiting for some action to

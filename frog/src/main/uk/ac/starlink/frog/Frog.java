@@ -367,7 +367,62 @@ public class Frog extends JFrame
         //  Add the LookAndFeel selections.
         lookAndFeelManager =
             new LookAndFeelManager( contentPane, optionsMenu );
-            
+
+        final JMenu autoMenu = new JMenu( "Automatic Display" );
+        autoMenu.addMenuListener( new MenuListener() {
+           public void menuSelected(MenuEvent e) { 
+ 
+ 
+               // Toggle the AutoDisplay of TimeSeries MetaData Flag     
+               JCheckBoxMenuItem seriesCheck =  new JCheckBoxMenuItem(
+                       "Time Series Meta Data", seriesManager.getAuto() );
+               seriesCheck.addActionListener( new ActionListener() {
+                  public void actionPerformed(ActionEvent e) {
+                     if ( seriesManager.getAuto() ) {
+                        seriesManager.setAuto(false);
+                        debugManager.print( 
+                           "AutoDisplay of Periodogram meta-data off...");
+                     } else {
+                        seriesManager.setAuto(true);
+                        debugManager.print( 
+                           "AutoDisplay of Periodogram meta-data on...");
+                     }
+                  } 
+               });
+               autoMenu.add(seriesCheck);  
+
+               // Toggle the AutoDisplay of Periodogram MetaData Flag     
+               JCheckBoxMenuItem gramCheck =  new JCheckBoxMenuItem(
+                       "Periodogram Meta Data", gramManager.getAuto() );
+               gramCheck.addActionListener( new ActionListener() {
+                  public void actionPerformed(ActionEvent e) {
+                     if ( gramManager.getAuto() ) {
+                        gramManager.setAuto(false);
+                        debugManager.print( 
+                           "AutoDisplay of TimeSeries meta-data off...");
+                     } else {
+                        gramManager.setAuto(true);
+                        debugManager.print( 
+                           "AutoDisplay of TimeSeries meta-data on...");
+                     }
+                  } 
+               });
+               autoMenu.add(gramCheck);           
+              
+           }
+           
+           public void menuDeselected(MenuEvent e) {
+              autoMenu.removeAll();
+           }
+           
+           public void menuCanceled(MenuEvent e) { 
+              autoMenu.removeAll();
+           }
+           
+        });
+        optionsMenu.add(autoMenu);
+
+         
         // Toggle the Debug Flag     
         JCheckBoxMenuItem debugCheck = new JCheckBoxMenuItem("Debug",
                                                  debugManager.getDebugFlag() );
@@ -403,6 +458,9 @@ public class Frog extends JFrame
            } 
         });
         optionsMenu.add(debugCheck);            
+        
+        
+        
         
     }
 

@@ -67,7 +67,12 @@ public class TimeSeriesManager
      * each series as it loads.
      */
      protected int seriesCounter = 0;
-     
+
+    /**
+     * Do we display meta data automatically?
+     */
+    protected boolean autoDisplay = true;
+         
     /**
      * Default constructor
      */
@@ -75,7 +80,7 @@ public class TimeSeriesManager
      {
         // Do nothing
      }
-    
+
     /**
      *  Return reference to the only allowed instance of this class.
      *
@@ -85,7 +90,22 @@ public class TimeSeriesManager
     {
         return instance;
     }
-     
+       
+    /**
+     *  Set the automatic display of meta-data popups
+     */
+     public void setAuto(boolean b) 
+     {
+         autoDisplay = b;
+     } 
+        
+    /**
+     *  Get the automatic display of meta-data popups
+     */
+     public boolean getAuto() 
+     {
+         return autoDisplay;
+     }   
      
     /**
      * Get a reference to the instance of the main Frog class.
@@ -224,6 +244,17 @@ public class TimeSeriesManager
         
      }
 
+    /**
+     * Return the series key when referenced by a PlotControlFrame 
+     *
+     * @param f a TimeSeriesComp object
+     * @return key Unique lookup key for this object
+     */
+     public String getKey( TimeSeriesComp comp ) 
+     {
+        return (String)otherMap.get(comp);
+        
+     }
     
     /**
      * Remove TimeSeries and JInteralFrame objects with a frame

@@ -206,6 +206,18 @@ public class GramControlFrame extends JInternalFrame
         // separator
         fileMenu.addSeparator();
 
+        // Meta Data
+        JMenuItem dataItem = new JMenuItem("Meta Data");
+        dataItem.addActionListener( new ActionListener() {
+           public void actionPerformed(ActionEvent e) { 
+
+               debugManager.print( "Creating Meta-Data Popup...");
+               doMetaData( );     
+           }
+        }); 
+        fileMenu.add(dataItem);     
+
+
         JMenuItem tableItem = new JMenuItem("View Data");
         tableItem.addActionListener( new ActionListener() {
            public void actionPerformed(ActionEvent e) { 
@@ -235,7 +247,18 @@ public class GramControlFrame extends JInternalFrame
         fileMenu.add(closeItem);         
       
     }
- 
+
+    /**
+     * Spawn a Gram Meta Data popup
+     *
+     */
+     protected void doMetaData( ) 
+     {
+        // Create a new Fold Frame
+        GramMetaDataPopup meta = new GramMetaDataPopup( this );
+        gramManager.getFrog().getDesktop().add(meta);
+        meta.show();
+     } 
  
     /**
      * Close the JInternalFrame

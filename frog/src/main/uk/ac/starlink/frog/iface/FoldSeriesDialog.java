@@ -769,8 +769,10 @@ public class FoldSeriesDialog extends JInternalFrame
                             addFoldedSeries();
                             if ( fitData ) {
                                fitFoldedSeries();
-                            }   
-                            displayMetaData(); 
+                            } 
+                            if ( seriesManager.getAuto() ) {  
+                               displayMetaData();
+                            }    
                         }
                         catch (Exception error) {
                             error.printStackTrace();

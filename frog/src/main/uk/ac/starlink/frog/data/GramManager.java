@@ -63,7 +63,12 @@ public class GramManager
      * be unique for each periodogram as it loads.
      */
      protected int gramCounter = 0;
-     
+ 
+    /**
+     * Do we display meta data automatically?
+     */
+    protected boolean autoDisplay = true;
+        
     /**
      * Default constructor
      */
@@ -72,7 +77,21 @@ public class GramManager
         // Do nothing
      }
 
-    
+    /**
+     *  Set the automatic display of meta-data popups
+     */
+     public void setAuto(boolean b) 
+     {
+         autoDisplay = b;
+     } 
+        
+    /**
+     *  Get the automatic display of meta-data popups
+     */
+     public boolean getAuto() 
+     {
+         return autoDisplay;
+     }       
      
     /**
      * Get a reference to the instance of the main Frog class.
@@ -115,7 +134,15 @@ public class GramManager
     {
        return (gramCounter + 1);
     }   
-          
+  
+  /**
+    * Return a the last used ID for a series (hopefully)
+    */
+    public int getCurrentID()
+    {
+       return (gramCounter);
+    }
+                     
      
     /**
      * Return an array of the gramMap keys

@@ -151,7 +151,11 @@ public class Gram implements GramAccess, AnalyticSeries, Serializable
      * Gram is a Fourier Transform
      */
     public final static int FOURIER = 10; 
- 
+
+    /**
+     * Gram is a Chi-Sq periodogram
+     */
+    public final static int CHISQ = 11;  
     
     
     //  ===================
