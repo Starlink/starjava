@@ -237,8 +237,8 @@ public class NdfMaker {
         }
 
         /* Title component. */
-        String title = ndx.getTitle();
-        if ( title != null ) {
+        if ( ndx.hasTitle() ) {
+            String title = ndx.getTitle();
             ndfob.datNew( "TITLE", "_CHAR*" + title.length(), SCALAR_DIMS );
             ndfob.datFind( "TITLE" ).datPut0c( title );
         }

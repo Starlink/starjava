@@ -64,7 +64,7 @@ public class NDFNdxHandler implements NdxHandler {
         try {
             /* Construct an NdxImpl which will remove any temporary file
              * when it is finalize with. */
-            NdxImpl impl = new NDFNdxImpl( href, AccessMode.READ ) {
+            NdxImpl impl = new NDFNdxImpl( href, url, AccessMode.READ ) {
                 public void finalize() throws Throwable {
                     try {
                         super.finalize();

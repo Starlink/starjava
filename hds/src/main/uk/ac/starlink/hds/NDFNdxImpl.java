@@ -1,6 +1,8 @@
 package uk.ac.starlink.hds;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
@@ -27,17 +29,17 @@ import uk.ac.starlink.ndx.NdxImpl;
  */
 class NDFNdxImpl implements NdxImpl {
 
-    private final HDSReference ndfRef;
+    private final URL persistentUrl;
     private final HDSObject ndf;
     private final AccessMode mode;
 
     /**
      * Present an NdxImpl view of an existing NDF.
      */
-    public NDFNdxImpl( HDSReference nref, AccessMode mode )
+    public NDFNdxImpl( HDSReference nref, URL persistentUrl, AccessMode mode )
             throws HDSException {
-        this.ndfRef = nref;
-        this.ndf = ndfRef.getObject( HDSReference.hdsMode( mode ) );
+        this.persistentUrl = persistentUrl;
+        this.ndf = nref.getObject( HDSReference.hdsMode( mode ) );
         this.mode = mode;
     }
 
@@ -142,30 +144,72 @@ class NDFNdxImpl implements NdxImpl {
         NDArray vnda = null;
         NDArray qnda = null;
 
+        /* In the below we subvert the HDSReference class a bit; we need to
+         * use its string handling properties on URLs which are not file:
+         * protocol ones, which it wouldn't allow.  So pretend they are
+         * file: ones for as long as HDSReference sees them. */ 
+        String proto = null;
+        HDSReference baseRef = null;
+        URL context = null;
+        if ( persistentUrl != null ) {
+            proto = persistentUrl.getProtocol();
+            try {
+                String frag = persistentUrl.getRef();
+                URL baseUrl = new URL( "file:" + persistentUrl.getFile() + 
+                                       ( frag != null ? ( "#" + frag ) : "" ) );
+                baseRef = new HDSReference( baseUrl );
+                context = new URL( persistentUrl.getProtocol(),
+                                   persistentUrl.getHost(),
+                                   persistentUrl.getPort(),
+                                   persistentUrl.getFile() );
+            }
+            catch ( MalformedURLException e ) {
+                throw new RuntimeException( e.getMessage(), e );
+            }
+        }
+
         try {
             String iname = "DATA_ARRAY";
             if ( ndf.datThere( iname ) ) {
-                HDSReference iref = (HDSReference) ndfRef.clone();
+                HDSReference iref = (HDSReference) baseRef.clone();
                 iref.push( iname );
                 HDSObject iobj = ndf.datFind( iname );
                 ArrayStructure iary = new ArrayStructure( iobj );
+                URL iurl = null;
+                if ( baseRef != null ) {
+                    try {
+                        iurl = new URL( context, iref.getURL().toString().replaceFirst( "^file://localhost", "" ) );
+                    }
+                    catch ( MalformedURLException e ) {
+                        throw new RuntimeException( e.getMessage(), e );
+                    }
+                }
                 inda = new BridgeNDArray( new HDSArrayImpl( iary, mode ),
-                                          iref.getURL() );
+                                          iurl );
             }
 
             String vname = "VARIANCE";
             if ( ndf.datThere( vname ) ) {
-                HDSReference vref = (HDSReference) ndfRef.clone();
+                HDSReference vref = (HDSReference) baseRef.clone();
                 vref.push( vname );
                 HDSObject vobj = ndf.datFind( vname );
                 ArrayStructure vary = new ArrayStructure( vobj );
+                URL vurl = null;
+                if ( baseRef != null ) {
+                    try {
+                        vurl = new URL( context, vref.getURL().toString().replaceFirst( "file://localhost", "" ) );
+                    }
+                    catch ( MalformedURLException e ) {
+                        throw new RuntimeException( e.getMessage(), e );
+                    }
+                }
                 vnda = new BridgeNDArray( new HDSArrayImpl( vary, mode ),
-                                          vref.getURL() );
+                                          vurl );
             }
 
             String qname = "QUALITY";
             if ( ndf.datThere( qname ) ) {
-                HDSReference qref = (HDSReference) ndfRef.clone();
+                HDSReference qref = (HDSReference) baseRef.clone();
                 qref.push( qname );
                 HDSObject qobj = ndf.datFind( qname );
                 if ( qobj.datType().equals( "QUALITY" ) ) {
@@ -174,8 +218,17 @@ class NDFNdxImpl implements NdxImpl {
                     qobj = qobj.datFind( qsubname );
                 }
                 ArrayStructure qary = new ArrayStructure( qobj );
+                URL qurl = null;
+                if ( baseRef != null ) {
+                    try {
+                        qurl = new URL( context, qref.getURL().toString().replaceFirst( "^file://localhost", "" ) );
+                    }
+                    catch ( MalformedURLException e ) {
+                        throw new RuntimeException( e.getMessage(), e );
+                    }
+                }
                 qnda = new BridgeNDArray( new HDSArrayImpl( qary, mode ),
-                                          qref.getURL() );
+                                          qurl );
             }
         }
         catch ( HDSException e ) {
