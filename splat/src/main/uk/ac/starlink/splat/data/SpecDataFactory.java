@@ -3,11 +3,14 @@
  *
  *  History:
  *     01-SEP-2000 (Peter W. Draper):
- *       Original version.
+ *        Original version.
+ *     01-MAR-2004 (Peter W. Draper);
+ *        Added table handling changes.
  */
 package uk.ac.starlink.splat.data;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.net.MalformedURLException;
 
@@ -16,6 +19,10 @@ import uk.ac.starlink.splat.imagedata.NDFJ;
 
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ndx.Ndx;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.votable.VOTableBuilder;
 
 /**
  * This class creates and clones instances of SpecData and derived
@@ -70,15 +77,25 @@ public class SpecDataFactory
      * Short descriptions of each type.
      */
     public final static String[] shortNames = {
-        "default", "fits", "hds", "text", "hdx", "table", "line ids"
+        "default",
+        "fits",
+        "hds",
+        "text",
+        "hdx",
+        "table",
+        "line ids"
     };
 
     /**
      * Long descriptions of each type.
      */
     public final static String[] longNames = {
-        "File extension rule", "FITS file", "HDS container file",
-        "TEXT files", "HDX/NDX/VOTable XML files", "Table",
+        "File extension rule",
+        "FITS file (spectrum/table)",
+        "HDS container file",
+        "TEXT files",
+        "HDX/NDX/VOTable XML files",
+        "Table",
         "Line identification files"
     };
 
@@ -86,8 +103,13 @@ public class SpecDataFactory
      * File extensions for each type.
      */
     public final static String[][] extensions = {
-        {"*"}, {"fits", "fit"}, {"sdf"}, {"txt", "lis"}, {"*"},
-        {"xml"}, {"ids"}
+        {"*"},
+        {"fits", "fit"},
+        {"sdf"},
+        {"txt", "lis"},
+        {"xml"},
+        {"*"},
+        {"ids"}
     };
 
 
@@ -96,13 +118,19 @@ public class SpecDataFactory
      * to extend this with own (line identifiers clearly not available).
      */
     public final static String[] treeviewIcons = {
-        "FILE", "FITS", "NDF", "DATA", "NDX", "TABLE", "ARY2"
+        "FILE",
+        "FITS",
+        "NDF",
+        "DATA",
+        "NDX",
+        "TABLE",
+        "ARY2"
     };
 
     /**
      *  Create the single class instance.
      */
-    private static final SpecDataFactory instance = new SpecDataFactory();
+    private static SpecDataFactory instance = null;
 
     /**
      *  Hide the constructor from use.
@@ -114,8 +142,11 @@ public class SpecDataFactory
      *
      *  @return reference to only instance of this class.
      */
-    public static SpecDataFactory getReference()
+    public static SpecDataFactory getInstance()
     {
+        if ( instance == null ) {
+            instance = new SpecDataFactory();
+        }
         return instance;
     }
 
@@ -276,7 +307,15 @@ public class SpecDataFactory
         String exttype = impl.getProperty( "XTENSION" ).trim().toUpperCase();
 
         if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ) {
-            throw new SplatException( "no FITS table support yet" );
+            try {
+                DataSource datsrc = new FileDataSource( specspec );
+                StarTable starTable =
+                    new FitsTableBuilder().makeStarTable( datsrc, true );
+                impl = new TableSpecDataImpl( starTable );
+            }
+            catch (Exception e) {
+                throw new SplatException( "Failed to open FITS table", e );
+            }
         }
         return impl;
     }
@@ -299,11 +338,28 @@ public class SpecDataFactory
     {
         SpecDataImpl impl = null;
 
-        //  Ask table class first, when they exist.
-        //  impl = new TableSpecDataImpl( specspec );
-        //  if ( ! impl.isValid() ) // or whatever...
-
-        impl = new NDXSpecDataImpl( specspec );
+        //  Check if this is a VOTable first (signature easier to check).
+        Exception tableException = null;
+        try {
+            DataSource datsrc = new FileDataSource( specspec );
+            StarTable starTable =
+                new VOTableBuilder().makeStarTable( datsrc, true );
+            if ( starTable != null ) {
+                return new TableSpecDataImpl( starTable );
+            }
+        }
+        catch (Exception e) {
+            tableException = e;
+        }
+        try {
+            impl = new NDXSpecDataImpl( specspec );
+        }
+        catch (Exception e) {
+            if ( tableException != null ) {
+                throw new SplatException( tableException );
+            }
+            throw new SplatException( e );
+        }
         return impl;
     }
 
@@ -401,7 +457,7 @@ public class SpecDataFactory
 
     /**
      * Create spectrum that can have its values modified or
-     * individually editted. Initially the object contains no
+     * individually edited. Initially the object contains no
      * coordinates or data, so space for these must be allocated and
      * set using the EditableSpecData.setData() methods.
      *
@@ -417,7 +473,7 @@ public class SpecDataFactory
 
     /**
      * Copy a spectrum into one that can have its values modified or
-     * individually editted. If the SpecData is an instance if
+     * individually edited. If the SpecData is an instance if
      * LineIDSpecData then another LineIDSpecData instance will be
      * returned, otherwise a plain EditableSpecData instance will be
      * returned.
@@ -439,6 +495,30 @@ public class SpecDataFactory
             return new EditableSpecData
                 ( new MEMSpecDataImpl( shortname, specData ) );
         }
+    }
+
+    /**
+     * Copy a spectrum into one that can have its values modified or
+     * individually edited. If sort is true then an attempt is made to sort
+     * the coordinates into increasing order, if needed. During this sort any
+     * duplicate values are also removed.
+     *
+     * @param shortname the short name to use for the spectrum copy.
+     * @param sort if true then the coordinates will be sorted.
+     *
+     * @return an EditableSpecData object.
+     */
+    public EditableSpecData createEditable( String shortname,
+                                            SpecData specData,
+                                            boolean sort )
+        throws SplatException
+    {
+        EditableSpecData editableSpecData = 
+            createEditable( shortname, specData );
+        if ( sort && ! specData.isMonotonic() ) {
+            editableSpecData.sort();
+        }
+        return editableSpecData;
     }
 
     /**
