@@ -20,26 +20,26 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html177"
+<A NAME="tex2html179"
  HREF="node10.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html175"
+<A NAME="tex2html177"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html169"
+<A NAME="tex2html171"
  HREF="node8.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html178"
+<B> Next:</B> <A NAME="tex2html180"
  HREF="node10.html">The Graphics menu</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html176"
+<B>Up:</B> <A NAME="tex2html178"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html170"
+<B> Previous:</B> <A NAME="tex2html172"
  HREF="node8.html">The browser window</A>
 <BR> <HR> <P>
 
@@ -56,14 +56,14 @@ The anatomy of a plot window is shown below:
 <P>
 <DIV ALIGN="CENTER">
  <IMG
- WIDTH="426" HEIGHT="322" ALIGN="BOTTOM" BORDER="0"
+ WIDTH="502" HEIGHT="358" ALIGN="BOTTOM" BORDER="0"
  SRC="plot3.gif"
- ALT="764">
+ ALT="767">
  
 </DIV>
 
 <P>
-It has three main region, the menubar &amp; toolbar, the control panel and
+It has three main regions, the menubar &amp; toolbar, the control panel and
 the display area.
 <BR>
 
@@ -86,7 +86,7 @@ The plot title and axis labels are determined using the properties of the
  <IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="config.gif"
- ALT="770"> button.
+ ALT="773"> button.
 
 <P>
 The size of the area used to display a spectrum is initially determined from
@@ -102,10 +102,10 @@ The size of the area used to display a spectrum is initially determined from
  area you need to press the <IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="fitwidth.gif"
- ALT="772"> and <IMG
+ ALT="775"> and <IMG
  WIDTH="16" HEIGHT="16" ALIGN="CENTER"
  SRC="fitheight.gif"
- ALT="773"> buttons.
+ ALT="776"> buttons.
 
 <P>
 The <B>Configure Plot Options</B> window also offers the ability change
@@ -117,8 +117,10 @@ The <B>Configure Plot Options</B> window also offers the ability change
 The following interactions are provided in the display area.
 
 <UL><LI>Continuous coordinate and data readout: when you move the mouse
-  pointer over the display area the coordinates and data value of the
-  nearest point of the current spectrum are shown in the control panel.
+  pointer over the display area the coordinates and data value of the nearest
+  point of the current spectrum are shown in the control panel.  If the
+  readout is not updating you have probably moved outside of the extent of the
+  current spectrum (the one selected in the <B>Displaying:</B> control).
 
 <P>
 If the vertical hair is enabled, then this also follows the mouse
@@ -223,6 +225,14 @@ The <B>X scale:</B> and <B>Y scale:</B> controls change the
  decrease the zoom by one, or you can choose a zoom from the drop-down
  lists, or you can type in a decimal value (which should be greater
  than equal to one) and press <TT>&lt;Return&gt;</TT>.
+
+<P>
+The <B>:log</B> controls determine if either of the axes are drawing
+  using log spacing (this is not possible if either axis spans the value
+  zero). Finer control of the log spacing and labelling can obtained using the
+  plot configuration window.
+
+<P>
 </BLOCKQUOTE>
 
 <P>
@@ -238,7 +248,7 @@ The <B>X scale:</B> and <B>Y scale:</B> controls change the
 <DT><IMG
 WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="print.gif"
- ALT="792">
+ ALT="797">
 <DD>Print a copy of the display area to an installed
   printer or to a file. The output produced fits the output page format using
   the current aspect ratio of the display area, so if you're zoomed by a large
@@ -256,7 +266,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  <IMG
  WIDTH="513" HEIGHT="84" ALIGN="BOTTOM" BORDER="0"
  SRC="printoutput.gif"
- ALT="795">
+ ALT="800">
  
 </DIV>
 
@@ -264,7 +274,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="postscriptprint.gif"
- ALT="797">
+ ALT="802">
 <DD>Same as the print option, except, this only
   offers to write a postscript file and doesn't rely on having any printers
   installed on the local machine.
@@ -273,7 +283,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="jpeg.gif"
- ALT="798">
+ ALT="803">
 <DD>Make a JPEG image version of the display area. Again
   the file produced fits the output graphic using the current aspect ratio of
   the display area. The default is to produce a JPEG with a pixel-to-pixel
@@ -287,7 +297,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="fitwidth.gif"
- ALT="799">
+ ALT="804">
 <DD>Make spectra fit the display area width.  Use this
   to quickly return to an unzoomed coordinate state and to match the X axis
   width when you resize the plot window.
@@ -296,7 +306,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="16" HEIGHT="16" ALIGN="CENTER"
  SRC="fitheight.gif"
- ALT="800">
+ ALT="805">
 <DD>Make spectra fit the display area height.  Use
   this to quickly return to an unzoomed data value state and to match the Y
   axis height when you resize the plot window.
@@ -305,7 +315,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="panner.gif"
- ALT="801">
+ ALT="806">
 <DD>Show the `panner' window. You can use this to
   see a view of the whole extent of the currently displayed spectra
   (shown at the same aspect ratio as the display area). This also
@@ -316,7 +326,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="config.gif"
- ALT="802">
+ ALT="807">
 <DD>Show the plot configuration window. This
   contains many controls for setting the display area data limits,
   changing the plot title and axis labels, drawing grid lines,
@@ -329,7 +339,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="cutter.gif"
- ALT="803">
+ ALT="808">
 <DD>Create a new spectrum (on the global list)
   that contains only the visible parts of the current spectrum. You
   can then display this new spectrum in this or a new plot. The new
@@ -341,7 +351,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="regioncutter.gif"
- ALT="805">
+ ALT="810">
 <DD>Show the region cutter window. This
   window allows you to graphically define which regions you'd like to
   cut or delete from the current spectrum.
@@ -350,7 +360,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="fitback.gif"
- ALT="806">
+ ALT="811">
 <DD>Show the toolbox for fitting a polynomial to
   defined regions of the current spectrum. This is used to define
   backgrounds prior to line fitting, or for subtracting and dividing
@@ -360,7 +370,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="interpolate.gif"
- ALT="807">
+ ALT="812">
 <DD>Show the toolbox for taking an interpolated
   curve (<I>i.e.</I> a spline drawn on the plot using the features of the
   <B>Graphics</B> menu) and creating a spectrum from it.
@@ -369,7 +379,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="fitline.gif"
- ALT="810">
+ ALT="815">
 <DD>Show the toolbox for fitting emission and absorption
   lines. This measures the line position and equivalent width as well as
   fitting Gaussian, Lorentzian and Voigt profiles to selected wavelength
@@ -380,7 +390,7 @@ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
 <DT><IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="filter.gif"
- ALT="811">
+ ALT="816">
 <DD>Show the toolbox for filtering the current
   spectrum. The filters offered are simple ones like the average and
   median over a windowed area, plus more complex ones like smoothing
@@ -396,20 +406,42 @@ The <B>Options</B> menu contains several control items whose values are
 
 <P>
 
-<UL><LI><B>Options=&gt;Match coordinates</B>. When this is selected the
-  plot will attempt to use any coordinate information associated with the
-  displayed spectra to <I>align</I> them in the coordinate system of the
-  current spectrum (this is the one shown in the <B>Displaying:</B>
-  drop-down menu). In the case of line identifier catalogues, these will also
-  be transformed to the rest frame of the observed source (<I>i.e.</I> they will be
-  red or blue shifted if you have defined the source velocity as part of its
-  coordinate system definition). Many spectra will not have appropriate
-  coordinates defined, so by default this option is switched off. To inspect
-  or define coordinates for a spectrum use the <IMG
+<UL><LI><B>Options=&gt;Match coordinates and/or fluxes</B>. 
+  When this is selected the plot will attempt to convert the spectral
+  coordinates and fluxes of all displayed spectra into the systems of the
+  current spectrum, so that they will be aligned when displayed.
+
+<P>
+Whether this works or not depends on whether the spectra that you have read
+  in contain correct descriptions (or descriptions that <I>SPLAT-VO</I> can make good
+  guesses about) of the spectral coordinates and data fluxes and whether the
+  flux system is supported. If this doesn't work then check that your spectra
+  have valid descriptions using the toolboxes in the main browser window for
+  inspecting and setting spectral coordinates and data units
+  (<IMG
  WIDTH="21" HEIGHT="24" ALIGN="CENTER"
  SRC="xunits.gif"
- ALT="817"> option in the
-  browser window.
+ ALT="821"> and <IMG
+ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
+ SRC="yunits.gif"
+ ALT="822">).
+
+<P>
+In the case of line identifier catalogues, these will also be transformed to
+  the rest frame of the observed source (<I>i.e.</I> they will be red or blue shifted
+  if you have defined the source velocity as part of its coordinate system
+  definition). 
+
+<P>
+Many spectra will not have appropriate coordinates or data units defined, so
+  by default this option is switched off. 
+
+<P>
+
+<LI><B>Options=&gt;Match non-flux data units</B>.
+  If your data units are not understood as fluxes it may still be possible to
+  align them (dimensionally obvious unit conversions are possible for instance
+  mK and K will be aligned correctly, as will eV and keV).
 
 <P>
 
@@ -437,26 +469,26 @@ The <B>Options</B> menu contains several control items whose values are
 
 <P>
 <BR> <HR>
-<A NAME="tex2html177"
+<A NAME="tex2html179"
  HREF="node10.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html175"
+<A NAME="tex2html177"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html169"
+<A NAME="tex2html171"
  HREF="node8.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html178"
+<B> Next:</B> <A NAME="tex2html180"
  HREF="node10.html">The Graphics menu</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html176"
+<B>Up:</B> <A NAME="tex2html178"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html170"
+<B> Previous:</B> <A NAME="tex2html172"
  HREF="node8.html">The browser window</A>
 <BR> <HR> <P>
 

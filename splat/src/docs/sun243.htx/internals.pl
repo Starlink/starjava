@@ -43,7 +43,7 @@ $ref_files{$key} = "$dir".q|node9.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/Fitstatus/;
-$ref_files{$key} = "$dir".q|node32.html|; 
+$ref_files{$key} = "$dir".q|node33.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_basic_control/;
@@ -59,7 +59,7 @@ $ref_files{$key} = "$dir".q|node8.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_data_formats/;
-$ref_files{$key} = "$dir".q|node37.html|; 
+$ref_files{$key} = "$dir".q|node38.html|; 
 $noresave{$key} = "$nosave";
 
 1;

@@ -43,7 +43,7 @@ $external_labels{$key} = "$URL/" . q|node9.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/Fitstatus/;
-$external_labels{$key} = "$URL/" . q|node32.html|; 
+$external_labels{$key} = "$URL/" . q|node33.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_basic_control/;
@@ -59,7 +59,7 @@ $external_labels{$key} = "$URL/" . q|node8.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_data_formats/;
-$external_labels{$key} = "$URL/" . q|node37.html|; 
+$external_labels{$key} = "$URL/" . q|node38.html|; 
 $noresave{$key} = "$nosave";
 
 1;

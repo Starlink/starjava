@@ -6,108 +6,101 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Filter spectrum window</TITLE>
-<META NAME="description" CONTENT="Filter spectrum window">
+<TITLE>Saving the results</TITLE>
+<META NAME="description" CONTENT="Saving the results">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
-<LINK REL="previous" HREF="node34.html">
-<LINK REL="up" HREF="node7.html">
+<LINK REL="previous" HREF="node35.html">
+<LINK REL="up" HREF="node35.html">
 <LINK REL="next" HREF="node37.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html455"
+<A NAME="tex2html459"
  HREF="node37.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html453"
- HREF="node7.html">
+<A NAME="tex2html457"
+ HREF="node35.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html449"
+<A NAME="tex2html453"
  HREF="node35.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html456"
- HREF="node37.html">Supported data formats</A>
+<B> Next:</B> <A NAME="tex2html460"
+ HREF="node37.html">Filter spectrum window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html454"
- HREF="node7.html">Help for individual windows</A>
+<B>Up:</B> <A NAME="tex2html458"
+ HREF="node35.html">Spectral line fitting window</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html450"
- HREF="node35.html">Saving the results</A>
+<B> Previous:</B> <A NAME="tex2html454"
+ HREF="node35.html">Spectral line fitting window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H2><A NAME="SECTION000415000000000000000">
-Filter spectrum window</A>
-</H2>
+<H3><A NAME="SECTION000415100000000000000">
+Saving the results</A>
+</H3>
+<BLOCKQUOTE>
+ The measurements, as shown in the <B>Spectral fitting
+ results:</B> table can be written out to a text file. Just select the
+ <B>File=&gt;Save line fits</B> item and either pick an existing file
+ to overwrite, or enter a new file name. The format of this file is
+ very simple, as shown by the following example:
+ <BLOCKQUOTE>  <PRE>
+# File created by SPLAT
 
-<P>
-This window provides the ability to filter the current spectrum
-displayed in a plot.
+# Quick results:
+# ID    Peak    Centre  Width   Equiv   Asym
+0 -0.5199948 4101.629 8.29817 7.857605 0.10266805484985836
 
-<P>
-<DIV ALIGN="CENTER">
- <IMG
- WIDTH="487" HEIGHT="198" ALIGN="BOTTOM" BORDER="0"
- SRC="filterwindow.gif"
- ALT="2232">
- 
-</DIV>
+# Gaussian results:
+# ID    Peak    Centre  Width   Flux    Rms
+0 -0.4720484 4101.636 6.036242 -7.142383 0.03004651
 
-<P>
-The various options are:
+# Lorentzian results:
+# ID    Peak    Centre  Width   Flux    Rms
+0 -0.5267519 4101.663 3.951835 -9.248467 0.008252344
 
-<UL><LI><TT>Average</TT> take the running average value over a
-        number of positions.
-
-<LI><TT>Median</TT> take the running median value over a
-        number of positions.
-
-<LI><TT>Profile</TT> smooth the values using a profile matched
-        to typical line shapes, Gaussian, Lorentzian and Voigt.
-
-<LI><TT>Spectrum</TT> smooth the values using a profile
-        defined in another spectrum (allows you to create kernels
-        that match some shape, rather than just the standard profiles).
-
-<LI><TT>Wavelet</TT> use various wavelet filters to convert the
-        spectrum into multi-resolution coefficients, removing a
-        fraction of the coefficients, thus <I>denoising</I> the
-        spectrum.
-
-</UL>
+# Voigt results:
+# ID    Peak    Centre  Gwidth  Lwidth  Flux    Rms
+0 -0.513331 4101.656 2.099387 9.640681 -8.930931 0.007531246
+</PRE>
+ </BLOCKQUOTE>
+ So each fit type has a section in which the results for each line are
+ shown. Lines are uniquely identified by their <TT>ID</TT> value.
+</BLOCKQUOTE>
 
 <P>
 
 <BR> <HR>
-<A NAME="tex2html455"
+<A NAME="tex2html459"
  HREF="node37.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html453"
- HREF="node7.html">
+<A NAME="tex2html457"
+ HREF="node35.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html449"
+<A NAME="tex2html453"
  HREF="node35.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html456"
- HREF="node37.html">Supported data formats</A>
+<B> Next:</B> <A NAME="tex2html460"
+ HREF="node37.html">Filter spectrum window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html454"
- HREF="node7.html">Help for individual windows</A>
+<B>Up:</B> <A NAME="tex2html458"
+ HREF="node35.html">Spectral line fitting window</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html450"
- HREF="node35.html">Saving the results</A>
+<B> Previous:</B> <A NAME="tex2html454"
+ HREF="node35.html">Spectral line fitting window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->

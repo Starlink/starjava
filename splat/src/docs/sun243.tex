@@ -1053,19 +1053,30 @@ the display area.\\
  \begin{itemize}
 
   \item \submenuitem{Options}{Match coordinates and/or fluxes}. 
-  When this is selected the
-  plot will attempt to use any coordinate information associated with the
-  displayed spectra to \textit{align} them in the coordinate system of the
-  current spectrum (this is the one shown in the \labelitem{Displaying:}
-  drop-down menu). In the case of line identifier catalogues, these will also
-  be transformed to the rest frame of the observed source (\ie\ they will be
-  red or blue shifted if you have defined the source velocity as part of its
-  coordinate system definition). Many spectra will not have appropriate
-  coordinates defined, so by default this option is switched off. To inspect
-  or define coordinates for a spectrum use the \inline{xunits} option in the
-  browser window.
+  When this is selected the plot will attempt to convert the spectral
+  coordinates and fluxes of all displayed spectra into the systems of the
+  current spectrum, so that they will be aligned when displayed.
+
+  Whether this works or not depends on whether the spectra that you have read
+  in contain correct descriptions (or descriptions that \SPLAT\ can make good
+  guesses about) of the spectral coordinates and data fluxes and whether the
+  flux system is supported. If this doesn't work then check that your spectra
+  have valid descriptions using the toolboxes in the main browser window for
+  inspecting and setting spectral coordinates and data units
+  (\inline{xunits} and \inline{yunits}).
+
+  In the case of line identifier catalogues, these will also be transformed to
+  the rest frame of the observed source (\ie\ they will be red or blue shifted
+  if you have defined the source velocity as part of its coordinate system
+  definition). 
+
+  Many spectra will not have appropriate coordinates or data units defined, so
+  by default this option is switched off. 
 
   \item \submenuitem{Options}{Match non-flux data units}.
+  If your data units are not understood as fluxes it may still be possible to
+  align them (dimensionally obvious unit conversions are possible for instance
+  mK and K will be aligned correctly, as will eV and keV).
 
   \item \submenuitem{Options}{Error bar auto-ranging}. When auto-ranging a
   spectrum that has associated errors the limits do not include the extent of
@@ -1408,81 +1419,268 @@ plots of the spectrum.
 \newpage
 \subsection{Spectral coordinate system attributes window}
 
-This window allows you to define the coordinate systems that describe
-your spectra. The most trivial use of these is simply to document what
-type of coordinate and units your spectra are measured in, examples
-are wavelength in air in angstroms, frequency in GHz, velocity in
-km/s, \etc When supplied these values will be used to annotate any
-plots, but can also be used to compare spectra in different coordinate
-systems and to transform a spectrum from one coordinate system to
-another.
+This window allows you to define the coordinate systems that describe your
+spectra. The most trivial use of these is simply to document what type of
+coordinate and units your spectra are measured in, examples are wavelength in
+air in angstroms, frequency in GHz, velocity in km/s, \etc\ When supplied
+these values will be used to annotate any plots, but can also be used to
+compare spectra in different coordinate systems and to transform a spectrum
+from one coordinate system to another.
 
-A more complete description of the coordinate system also includes two
-further pieces of information, the time and place when the observation
-was made and the direction and speed of what was being observed. Taken
-together these define the "rest frames" of the observation and the
-source.
+A more complete description of the coordinate system also includes two further
+pieces of information, the time and place when the observation was made and
+the direction and speed of what was being observed. Taken together these
+define the `rest frames' of the observation and the source.
 
-In the following picture you can see that I have an observation
-(topocentric) of NGC1275 (RA: 03:19:47.49, Dec: 41:30:40.5 FK5 J2000)
-made in air, calibrated in angstroms, taken in June 1999 on the
-William Herschel Telescope. I've also entered that NGC1275 as observed
-from the centre of the Sun (heliocentric) has a recessional velocity
-of 5300km/s.
+In the following picture you can see that I have an observation (topocentric)
+of NGC1275 (RA: 03:19:47.49, Dec: 41:30:40.5 FK5 J2000) made in air,
+calibrated in angstroms, taken in June 1999 on the William Herschel
+Telescope. I've also entered that NGC1275 as observed from the centre of the
+Sun (heliocentric) has a recessional velocity of 5300km/s.
 
 \mainfigure{coordinatesystemwindow}
 
-To apply this to a spectrum that has no coordinate information (or
-incorrect coordinate information) you need to press the
-\labelitem{Set} button. Note that you can apply the same coordinates
-to more than one spectrum by selecting them all in the view of the
-global list shown in this window.
+To apply this to a spectrum that has no coordinate information (or incorrect
+coordinate information) you need to press the \labelitem{Set} button. Note
+that you can apply the same coordinates to more than one spectrum by selecting
+them all in the view of the global list shown in this window.
 
-Now say that you wanted to compare this spectrum with a standard set
-of emission lines, obviously taken at rest in a laboratory. If you
-load the emission line catalogue and display it in the same plot and
-then select the \submenuitem{Options}{Match coordinates} item the
-labels will be red-shifted to the rest frame of the source (\ie\ where
-the lines from the galaxy originated). This is shown in action in the
-next figure where the lines before matching are shown in blue and red
-after matching.
+Now say that you wanted to compare this spectrum with a standard set of
+emission lines, obviously taken at rest in a laboratory. If you load the
+emission line catalogue and display it in the same plot and then select the
+\submenuitem{Options}{Match coordinates and/or fluxes} item the labels will be
+red-shifted to the rest frame of the source (\ie\ where the lines from the
+galaxy originated). This is shown in action in the next figure where the lines
+before matching are shown in blue and red after matching.
 
 \mainfigure{coordinatesystemplot}
 
-The alternative to this method is switch
-\submenuitem{Options}{Match coordinates} off and transform the galaxy
-spectrum to what it would have looked like in the source standard of
-rest (\ie\ if you had taken the measurements travelling with the
-galaxy). To do this change the \labelitem{Standard of rest:} to
-\labelitem{Source} but now press the \labelitem{Convert} button. This
-remaps the spectral coordinates permanently.
+The alternative to this method is switch 
+\submenuitem{Options}{Match coordinates and/or fluxes} off and transform the
+galaxy spectrum to what it would have looked like in the source standard of
+rest (\ie\ if you had taken the measurements travelling with the galaxy). To
+do this change the \labelitem{Standard of rest:} to \labelitem{Source} but now
+press the \labelitem{Convert} button. This remaps the spectral coordinates
+permanently.
 
-Using this method you can also transform your spectrum to other
-systems and units (say frequency or energy) and rest frames (so you
-can go from topocentric to heliocentric or the kinematic or dynamic
-local standards of rest). With  \submenuitem{Options}{Match coordinates}
-switched on you can also directly compare spectra calibrated in all
-these different systems.
+Using this method you can also transform your spectrum to other systems and
+units (say frequency or energy) and rest frames (so you can go from
+topocentric to heliocentric or the kinematic or dynamic local standards of
+rest). With \submenuitem{Options}{Match coordinates and/or fluxes} switched on
+you can also directly compare spectra calibrated in all these different
+systems.
 
-When transforming to velocity (optical, radio and relativistic
-velocities are supported) a rest "frequency" is also needed.
-Conceptually this is the value that the centre of a line with
-locally zero velocity has. The rest frequency can actually be
-specified in various units, for instance angstroms.
+When transforming to velocity (optical, radio and relativistic velocities are
+supported) a rest "frequency" is also needed.  Conceptually this is the value
+that the centre of a line with locally zero velocity has. The rest frequency
+can actually be specified in various units, for instance angstroms.
 
-To find out more about spectral coordinate systems you'll need to
-refer to `FITS-WCS paper III Representations of spectral coordinates
-in FITS (Greisen, Valdes, Calabretta \& Allen)' and the Starlink AST
-library documentation (\xref{SUN/211}{sun211}{ss_specframes}).
+To find out more about spectral coordinate systems you'll need to refer to
+`FITS-WCS paper III 
+\textit{Representations of spectral coordinates in FITS}
+(Greisen, Valdes, Calabretta \& Allen)' and the Starlink AST library
+documentation (\xref{SUN/211}{sun211}{ss:specframes}).
 
+
+\newpage
+\subsection{Data units window}
+
+This window allows you to inspect and set the units of the data values of your
+spectra. Currently the only use made of these values in \SPLAT\ is when
+displaying more than one spectrum in a plot window. In that case you can
+request that the data values of all the spectra are transformed into the same
+system, so you can compare values in Janskys with those in other flux per unit
+frequency and per unit wavelength systems. For instance all the following
+systems are understood as fluxes and can be intercompared:
+\begin{itemize}
+\item $Jansky$
+\item $W/m^{2}/Hz$
+\item $W/m^{2}/Angstrom$
+\item $W/cm^{2}/um$
+\item $erg/cm^{2}/s/Hz$
+\item $erg/cm^{2}/s/Angstrom$
+\end{itemize}
+Plus variations like $Joules$ instead of $ergs$ or maybe $N m$, \etc
+
+In addition to flux systems dimensionally similar ones can also be used and
+transformed between in a plot, things like temperature. \SPLAT\ understands
+that $K$ and $mK$ are temperatures in Kelvins and milliKelvins, same for units
+like $eV$ and $keV$.
+
+The units are described using strings that follow the conventions in FITS-WCS
+paper I \textit{Representation of World Coordinate in FITS} by Greisen \&
+Calabretta, and processed by the Starlink AST library
+(\xref{SUN/211}{sun211}{ss:unitsyntax}). 
+The following section is copied from SUN/211 for convenience. Not all units
+are relevant to data values (AST also provides the underlying coordinate
+transformations used in \SPLAT) and as noted above not all possible unit
+strings can be understood as fluxes (although support for more types is
+expected, for instance temperatures and magnitudes).
+
+The adopted syntax is that described in FITS-WCS paper I "Representation
+of World Coordinate in FITS" by Greisen \& Calabretta. We distinguish
+here between ``basic'' units and ``derived'' units: derived units are
+defined in terms of other units (either derived or basic), whereas basic
+units have no such definitions. Derived units may be represented by their
+own \emph{symbol} (\emph{e.g.} ``Jy''---the Jansky) or by a
+\emph{mathematical expression} which combines other symbols and constants
+to form a definition of the unit (\emph{e.g.} ``km/s''---kilometres per
+second). Unit symbols may be prefixed by a string representing a standard 
+multiple or sub-multiple.
+
+In addition to the unit symbols listed in FITS-WCS Paper I, any other
+arbitrary unit symbol may be used, with the proviso that it will not be
+possible to convert between Frames using such units. The exception to
+this is if both Frames refer to the same unknown unit string. For instance,
+an axis with unknown unit symbol "flop" \emph{could} be converted to an axis 
+with unit "Mflop" (Mega-flop).
+
+Unit symbols (optionally prefixed with a multiple or sub-multiple) can be
+combined together using a limited range of mathematical operators and
+functions, to produce new units. Such expressions may also contain
+parentheses and numerical constants (these may optionally use
+``scientific'' notation including an ``E'' character to represent the
+power of 10).
+
+The following tables list the symbols for the basic and derived units which 
+may be included in a units string, the standard prefixes for multiples
+and sub-multiples, and the strings which may be used to represent
+mathematical operators and functions.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\multicolumn{3}{|c|}{{\large Basic units}} \\ \hline
+\multicolumn{1}{|c|}{Quantity} & \multicolumn{1}{|c|}{Symbol} &
+\multicolumn{1}{c|}{Full Name} \\ \hline
+length              & m   & metre \\ 
+mass                & g   & gram \\
+time                & s   & second \\
+plane angle         & rad & radian \\
+solid angle         & sr  & steradian \\
+temperature         & K   & Kelvin \\
+electric current    & A   & Ampere \\
+amount of substance & mol & mole \\
+luminous intensity  & cd  & candela \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\multicolumn{4}{|c|}{{\large Derived units}} \\ \hline
+\multicolumn{1}{|c|}{Quantity} & \multicolumn{1}{|c|}{Symbol} &
+\multicolumn{1}{c|}{Full Name} & \multicolumn{1}{c|}{Definition} \\ \hline
+area & barn & barn & 1.0E-28 m**2 \\
+area & pix & pixel & \\
+area & pixel & pixel & \\
+electric capacitance & F & Farad & C/V \\
+electric charge & C & Coulomb & A s \\
+electric conductance & S & Siemens & A/V \\
+electric potential & V & Volt & J/C \\
+electric resistance & Ohm & Ohm & V/A \\
+energy & J & Joule & N m \\
+energy & Ry & Rydberg & 13.605692 eV \\
+energy & eV & electron-Volt & 1.60217733E-19 J \\
+energy & erg & erg & 1.0E-7 J \\
+events & count & count & \\
+events & ct & count & \\
+events & ph & photon & \\
+events & photon & photon & \\
+flux density & Jy & Jansky & 1.0E-26 W /m**2 /Hz \\
+flux density & R & Rayleigh & 1.0E10/(4*PI) photon.m**-2 /s/sr \\
+flux density & mag & magnitude & \\
+force & N & Newton & kg m/s**2 \\
+frequency & Hz & Hertz & 1/s \\
+illuminance & lx & lux & lm/m**2 \\
+inductance & H & Henry & Wb/A \\
+length & AU & astronomical unit & 1.49598E11 m \\
+length & Angstrom & Angstrom & 1.0E-10 m \\
+length & lyr & light year & 9.460730E15 m \\
+length & pc & parsec & 3.0867E16 m \\
+length & solRad & solar radius & 6.9599E8 m \\
+luminosity & solLum & solar luminosity & 3.8268E26 W \\
+luminous flux & lm & lumen & cd sr \\
+magnetic field & G & Gauss & 1.0E-4 T \\
+magnetic flux & Wb & Weber & V s \\
+mass & solMass & solar mass & 1.9891E30 kg \\
+mass & u & unified atomic mass unit & 1.6605387E-27 kg \\
+magnetic flux density & T & Tesla & Wb/m**2 \\
+plane angle  & arcmin & arc-minute & 1/60 deg \\
+plane angle  & arcsec & arc-second & 1/3600 deg \\
+plane angle  & mas & milli-arcsecond & 1/3600000 deg \\
+plane angle & deg & degree & pi/180 rad \\
+power & W & Watt & J/s \\
+pressure, stress & Pa & Pascal & N/m**2 \\
+time  & a & year & 31557600 s \\
+time  & d & day & 86400 s \\
+time  & h & hour & 3600 s \\
+time  & yr & year & 31557600 s \\
+time  & min & minute & 60 s \\
+      & D & Debye & 1.0E-29/3 C.m \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|lll|lll|}
+\hline
+\multicolumn{6}{|c|}{{\large Prefixes for multiples \& 
+sub-multiples}} \\ \hline
+\multicolumn{1}{|c}{Sub-multiple} & \multicolumn{1}{c}{Name} & 
+\multicolumn{1}{c|}{Prefix} &
+\multicolumn{1}{|c}{Sub-multiple} & \multicolumn{1}{c}{Name} & 
+\multicolumn{1}{c|}{Prefix} \\ \hline
+$10^{-1}$ & deci & d & $10$ & deca & da \\
+$10^{-2}$ & centi & c & $10^{2}$ & hecto & h \\
+$10^{-3}$ & milli & m & $10^{3}$ & kilo & k \\
+$10^{-6}$ & micro & u & $10^{6}$ & mega & M \\
+$10^{-9}$ & nano & n & $10^{9}$ & giga & G \\
+$10^{-12}$ & pico & p & $10^{12}$ & tera & T \\
+$10^{-15}$ & femto & f & $10^{15}$ & peta & P \\
+$10^{-18}$ & atto & a & $10^{18}$ & exa & E \\
+$10^{-21}$ & zepto & z & $10^{21}$ & zetta & Z \\
+$10^{-24}$ & yocto & y & $10^{24}$ & yotta & Y \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\multicolumn{2}{|c|}{{\large Mathematical operators \& functions}} \\
+\hline
+\multicolumn{1}{|c|}{String} & \multicolumn{1}{|c|}{Meaning} \\ \hline
+sym1 sym2           & multiplication (a space) \\ 
+sym1*sym2           & multiplication (an asterisk) \\
+sym1.sym2           & multiplication (a dot) \\
+sym1/sym2           & division \\
+sym1**y             & exponentiation ($y$ must be a numerical constant)\\
+sym1\verb+^+y       & exponentiation ($y$ must be a numerical constant)\\
+log(sym1)           & common logarithm \\
+ln(sym1)            & natural logarithm \\
+exp(sym1)           & exponential \\
+sqrt(sym1)          & square root \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
 
 \newpage
 \subsection{The simple binary maths window}
 
 \mainfigure{binarymathwindow}
 
-This window allows you to add, subtract, divide and multiply two
-spectra. To use it just select a spectrum in the
+This window allows you to add, subtract, divide and multiply two spectra. To
+use it just select a spectrum in the
 \labelitem{Left operand:} list and a spectrum in the
 \labelitem{Right operand:} list. Now select the operation you want to
 apply between them. A new spectrum called:
