@@ -21,6 +21,7 @@ public class ToadConnector implements AGConnector {
     }
 
     private TreeClient client_;
+    private boolean tried_;
 
     public String getCommunity() {
         return COMMUNITY;
@@ -31,7 +32,11 @@ public class ToadConnector implements AGConnector {
     }
 
     public TreeClient getConnection() throws TreeClientException {
-        if ( client_ == null ) {
+        if ( tried_ ) {
+            return client_;
+        }
+        tried_ = true;
+        try {
             try {
                 client_ = UserAGConnector
                          .openConnection( COMMUNITY, USER, 
@@ -40,7 +45,24 @@ public class ToadConnector implements AGConnector {
             catch ( CommunityException e ) {
                 throw new TreeClientException( e.toString() );
             }
+            return client_;
         }
-        return client_;
+        catch ( Exception e ) {
+            for ( Throwable th = e; th != null; th = e.getCause() ) {
+                String msg = e.getMessage();
+                if ( msg.matches( ".*timed out.*" ) ) {
+                    Logger.getLogger( "uk.ac.starlink.astrogrid" )
+                          .warning( msg + " - probably not an " +
+                                    "error in test code" );
+                    return null;
+                }
+            }
+            if ( e instanceof TreeClientException ) {
+                throw (TreeClientException) e;
+            }
+            else {
+                throw new TreeClientException( e.getMessage(), e );
+            }
+        }
     }
 }
