@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002 Central Laboratory of the Research Councils
+ * Copyright (C) 2002-2005 Central Laboratory of the Research Councils
  *
  * History:
  *    16-SEP-1999 (Peter W. Draper):
@@ -36,9 +36,9 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Vector;
 
+import javax.print.PrintService;
 import javax.print.StreamPrintService;
 import javax.print.StreamPrintServiceFactory;
-import javax.print.PrintService;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.print.attribute.standard.JobName;
@@ -57,6 +57,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.gui.AstAxes;
@@ -94,8 +96,8 @@ import uk.ac.starlink.splat.util.Utilities;
  *
  * The controls in the panel allow you to:
  * <ul
- *   <li> apply independent scales in X and Y, thus zooming and scrolling the 
- *        DivaPlot,</li>
+ *   <li> apply independent scales in X and Y, thus zooming and
+ *   scrolling the DivaPlot,</li>
  *   <li> get a continuous readout of the cursor position,
  *   <li> display a vertical hair,</li>
  *   <li> select the current spectrum and see a list of those displayed,</li>
@@ -461,7 +463,12 @@ public class PlotControl
         //  Plot does the drawing of the spectrum, but is contained
         //  with a JScrollPane, so its size can be greater than the
         //  viewable surface.
+        //scroller = new JScrollPane( plot );
         scroller = new JScrollPane( plot );
+
+        // Set scrollbar policy.
+        // JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+        // JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
 
         //  Make the JScrollPane/Plot fill the area available by
         //  placing it in the center of the BorderLayout
@@ -470,6 +477,13 @@ public class PlotControl
         //  Get the Plot to track mouse motion events to update
         //  our X and Y readout widgets.
         plot.trackMouseMotion( this );
+
+        //  Track changes in position of the viewport of the scrollpane.
+        scroller.getViewport().addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    viewportChanged( e );
+                }
+            });
 
         //  Set the description of the coordinates (note this should
         //  be done if spectrum changes really, not here).
@@ -633,7 +647,8 @@ public class PlotControl
                 }
             } );
 
-        //  The initial scale is 1.0 (do now to avoid pre-emptive trigger).
+        //  The initial scale is 1.0 (do now to avoid pre-emptive
+        //  trigger).
         resetScales();
 
         //  When an item is selected or value entered update the zoom.
@@ -731,7 +746,7 @@ public class PlotControl
         graphics[1][0] = currentGraphics[1];
         zoomAbout( 0, 0, graphics[0][0], graphics[1][0] );
         try {
-            plot.update();
+            plot.update( false );
         }
         catch ( Exception e ) {
             //  Do nothing.
@@ -1255,8 +1270,8 @@ public class PlotControl
     }
 
     /**
-     * Get the physical coordinates limits of the current view of the Plot
-     * (i.e.<!-- --> what you can see).
+     * Get the physical coordinates limits of the current view of the Plot.
+     * This means only what you can see, no hidden parts.
      *
      * @return array of four doubles, the lower X, lower Y, upper X and upper
      *      Y coordinates.
@@ -1273,20 +1288,22 @@ public class PlotControl
 
         //  Transform these into physical coordinates.
         double[][] tmp = plot.transform( gRange, true );
-        gRange[0] = tmp[0][0];
-        gRange[1] = tmp[1][0];
-        gRange[2] = tmp[0][1];
-        gRange[3] = tmp[1][1];
-        return gRange;
+        if ( tmp != null ) {
+            gRange[0] = tmp[0][0];
+            gRange[1] = tmp[1][0];
+            gRange[2] = tmp[0][1];
+            gRange[3] = tmp[1][1];
+            return gRange;
+        }
+        return null;
     }
 
     /**
-     * Get the physical coordinate limits of the complete Plot
-     * (i.e.&nbsp;the whole plot, including zoomed regions that you
-     * cannot see).
+     * Get the physical coordinate limits of the complete Plot. This means the
+     * whole plot, including zoomed regions that you cannot see.
      *
      * @return array of four doubles, the lower X, lower Y, upper X and upper
-     *      Y coordinates.
+     *         Y coordinates.
      */
     public double[] getDisplayCoordinates()
     {
@@ -1299,12 +1316,16 @@ public class PlotControl
         gRange[1] = gLimits[1];
         gRange[2] = gLimits[2];
         gRange[3] = gLimits[3];
+
         double[][] tmp = plot.transform( gRange, true );
-        gRange[0] = tmp[0][0];
-        gRange[1] = tmp[1][0];
-        gRange[2] = tmp[0][1];
-        gRange[3] = tmp[1][1];
-        return gRange;
+        if ( tmp != null ) {
+            gRange[0] = tmp[0][0];
+            gRange[1] = tmp[1][0];
+            gRange[2] = tmp[0][1];
+            gRange[3] = tmp[1][1];
+            return gRange;
+        }
+        return null;
     }
 
     /**
@@ -1352,7 +1373,7 @@ public class PlotControl
         if ( referenceSpec == null ) {
             //  Get a normal redraw. Note plot.update may throw a
             //  SplatException.
-            plot.update();
+            plot.update( true );
         }
 
         // Check if the X or Y data limits are supposed to match the
@@ -1603,4 +1624,20 @@ public class PlotControl
         return (Frame) plot.getSpecDataComp().getAst().getRef();
     }
 
+//
+//
+//
+    /**
+     * Viewport changed... do we need to re-draw the axes?
+     */
+    protected void viewportChanged( ChangeEvent e )
+    {
+        try {
+            //  Never really scaled by this route...
+            plot.update( false );
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 }
