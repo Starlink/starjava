@@ -14,6 +14,7 @@ import diva.canvas.interactor.Interactor;
 
 import java.awt.Paint;
 import java.awt.Shape;
+import java.awt.AlphaComposite;
 import java.awt.geom.AffineTransform;
 
 import javax.swing.event.EventListenerList;
@@ -74,6 +75,14 @@ public class DrawPathFigure
     public void setFillPaint( Paint fill )
     {
         // Does nothing.
+    }
+
+    /**
+     * Get the fill paint of the background figure. Returns null.
+     */
+    public Paint getFillPaint()
+    {
+        return null;
     }
 
     /**

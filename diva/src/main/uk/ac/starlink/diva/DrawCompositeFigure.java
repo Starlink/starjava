@@ -16,6 +16,7 @@ import diva.canvas.interactor.Interactor;
 import java.awt.Shape;
 import java.awt.Paint;
 import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.awt.geom.AffineTransform;
 
 import javax.swing.event.EventListenerList;
@@ -96,11 +97,27 @@ public class DrawCompositeFigure
     }
 
     /**
+     * Get the fill paint of the background figure.
+     */
+    public Paint getFillPaint()
+    {
+        return ((DrawFigure)getBackgroundFigure()).getFillPaint();
+    }
+
+    /**
      * Set the outline paint of the background figure.
      */
     public void setStrokePaint( Paint outline )
     {
         ((DrawFigure)getBackgroundFigure()).setStrokePaint( outline );
+    }
+
+    /**
+     * Get the outline paint of the background figure.
+     */
+    public Paint getStrokePaint()
+    {
+        return ((DrawFigure)getBackgroundFigure()).getStrokePaint();
     }
 
     /**
@@ -111,10 +128,24 @@ public class DrawCompositeFigure
         ((DrawFigure)getBackgroundFigure()).setComposite( composite );
     }
 
+    /**
+     * Get the composite of the background figure.
+     */
+    public Composite getComposite()
+    {
+        return ((DrawFigure)getBackgroundFigure()).getComposite();
+    }
+
     /** Set line width */
     public void setLineWidth( float width )
     {
         ((DrawFigure)getBackgroundFigure()).setLineWidth( width );
+    }
+
+    /** Get line width */
+    public float getLineWidth()
+    {
+        return ((DrawFigure)getBackgroundFigure()).getLineWidth();
     }
 
     public void setVisible( boolean flag )

@@ -9,6 +9,7 @@ package uk.ac.starlink.diva;
 
 import diva.canvas.Figure;
 import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.awt.Paint;
 import java.awt.Shape;
 
@@ -48,9 +49,19 @@ public interface DrawFigure
     public void setFillPaint( Paint fill );
 
     /**
+     * Get the fill.
+     */
+    public Paint getFillPaint();
+
+    /**
      * All Figures have composite fills/colours.
      */
-    public void setComposite( AlphaComposite composite);
+    public void setComposite( AlphaComposite composite );
+
+    /**
+     * Get the composite (null for unset).
+     */
+    public Composite getComposite();
 
     /**
      * All Figures have a line width.
@@ -58,9 +69,19 @@ public interface DrawFigure
     public void setLineWidth( float lineWidth );
 
     /**
+     * Get the line width.
+     */
+    public float getLineWidth();
+
+    /**
      * All Figures have an outline colour.
      */
     public void setStrokePaint( Paint outline );
+
+    /**
+     * Get the outline.
+     */
+    public Paint getStrokePaint();
 
     //
     //  Transform freely interface.

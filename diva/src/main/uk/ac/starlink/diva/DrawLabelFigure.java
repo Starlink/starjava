@@ -83,10 +83,22 @@ public class DrawLabelFigure
         //  Do nothing.
     }
 
+    // Part of DrawFigure interface, returns 1.0 as default.
+    public float getLineWidth()
+    {
+        return 1.0F;
+    }
+
     // Part of DrawFigure interface, not implemented.
     public void setStrokePaint( Paint outline )
     {
         //  Do nothing.
+    }
+
+    // Part of DrawFigure interface, returns null.
+    public Paint getStrokePaint()
+    {
+        return null;
     }
 
     //

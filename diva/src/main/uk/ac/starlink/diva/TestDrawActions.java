@@ -7,6 +7,12 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowEvent;
+
+import java.util.ListIterator;
+
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 
@@ -29,7 +35,7 @@ public class TestDrawActions
     {
         return graphicsPane;
     }
-    
+
     public Component getComponent()
     {
         return this;
@@ -38,7 +44,11 @@ public class TestDrawActions
     public static void main( String[] args )
     {
         TestDrawActions canvas = new TestDrawActions();
-        DrawActions drawActions = new DrawActions( canvas, null );
+        DrawFigureStore store = new DrawFigureStore( "diva",
+                                                     "figurestore.xml",
+                                                     "drawfigure" );
+        DrawActions drawActions = new DrawActions( canvas,  store );
+
         JFrame frame = new JFrame( "TestDrawActions" );
         frame.setSize( new Dimension( 200, 200 ) );
         frame.getContentPane().setLayout( new BorderLayout() );
@@ -47,5 +57,15 @@ public class TestDrawActions
         frame.setJMenuBar( menuBar );
         menuBar.add( new DrawGraphicsMenu( drawActions ) );
         frame.setVisible( true );
+
+        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        
+        // Exit when window is closed.
+        WindowListener closer = new WindowAdapter() {   
+                public void windowClosing( WindowEvent e ) {
+                    System.exit( 1 );
+                }
+            };
+        frame.addWindowListener( closer );
     }
 }

@@ -708,11 +708,15 @@ public class FigureProps
             return;
         }
         if ( name.equals( "xarray" ) ) {
-            setXArray( decodeBase64DoubleArray( value ) );
+            String ssize = element.getAttribute( "size" );
+            int size = PrimitiveXMLEncodeAndDecode.intFromString( ssize );
+            setXArray( decodeBase64DoubleArray( size, value ) );
             return;
         }
         if ( name.equals( "yarray" ) ) {
-            setYArray( decodeBase64DoubleArray( value ) );
+            String ssize = element.getAttribute( "size" );
+            int size = PrimitiveXMLEncodeAndDecode.intFromString( ssize );
+            setYArray( decodeBase64DoubleArray( size, value ) );
             return;
         }
         if ( name.equals( "width" ) ) {
@@ -772,13 +776,17 @@ public class FigureProps
         List children =
             PrimitiveXMLEncodeAndDecode.getChildElements( element );
         Element child = (Element) children.get( 0 );
-        String value = PrimitiveXMLEncodeAndDecode.getElementValue( child );
-        double[] x = decodeBase64DoubleArray( value );
+        String value = child.getAttribute( "size" );
+        int size = PrimitiveXMLEncodeAndDecode.intFromString( value );
+        value = PrimitiveXMLEncodeAndDecode.getElementValue( child );
+        double[] x = decodeBase64DoubleArray( size, value );
 
         //  Y data
         child = (Element) children.get( 1 );
+        value = child.getAttribute( "size" );
+        size = PrimitiveXMLEncodeAndDecode.intFromString( value );
         value = PrimitiveXMLEncodeAndDecode.getElementValue( child );
-        double[] y = decodeBase64DoubleArray( value );
+        double[] y = decodeBase64DoubleArray( size, value );
 
         //  Activate the Interpolator.
         interpolator.setCoords( x, y, true );
@@ -788,8 +796,8 @@ public class FigureProps
      * Write description of the interpolator to the given Element.
      *
      * <interpolator type="type">
-     *    <xarray>base64enc</xarray>
-     *    <yarray>base64enc</yarray>
+     *    <xarray size="n">base64enc</xarray>
+     *    <yarray size="n">base64enc</yarray>
      * </interpolator>
      */
     protected void writeInterpolator( Element element )
@@ -800,25 +808,33 @@ public class FigureProps
         element.setAttribute( "type", name );
 
         //  Add X and Y vertices.
-        PrimitiveXMLEncodeAndDecode
-            .addChildElement(element, "xarray",
-                             encodeBase64DoubleArray(interpolator.getXCoords()));
-        PrimitiveXMLEncodeAndDecode
-            .addChildElement(element, "yarray",
-                             encodeBase64DoubleArray(interpolator.getYCoords()));
+        double[] array = interpolator.getXCoords();
+        String value = encodeBase64DoubleArray( array );
+        Element child = PrimitiveXMLEncodeAndDecode.addChildElement( element,
+                                                                     "xarray", 
+                                                                     value );
+        child.setAttribute( "size", 
+              PrimitiveXMLEncodeAndDecode.intToString( array.length ) );
+
+        array = interpolator.getYCoords();
+        value = encodeBase64DoubleArray( array );
+        child = PrimitiveXMLEncodeAndDecode.addChildElement( element, 
+                                                             "yarray",
+                                                             value );
+        child.setAttribute( "size", 
+              PrimitiveXMLEncodeAndDecode.intToString( array.length ) );
     }
 
     /**
      * Decode an array of double stored in a base64 string.
      */
-    protected double[] decodeBase64DoubleArray( String base64 )
+    protected double[] decodeBase64DoubleArray( int size, String base64 )
     {
         try {
             ByteArrayInputStream bis =
                 new ByteArrayInputStream( base64.getBytes() );
             Base64InputStream b64is = new Base64InputStream( bis );
             DataInputStream dis = new DataInputStream( b64is );
-            int size = base64.length() / 8;
             double[] array = new double[size];
             for ( int i = 0; i < size; i++ ) {
                 array[i] = dis.readDouble();

@@ -51,10 +51,10 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.MouseInputListener;
 
 import uk.ac.starlink.diva.geom.InterpolatedCurve2D;
+import uk.ac.starlink.diva.images.ImageHolder;
 import uk.ac.starlink.diva.interp.Interpolator;
 import uk.ac.starlink.diva.interp.InterpolatorFactory;
 import uk.ac.starlink.util.gui.SelectStringDialog;
-import uk.ac.starlink.diva.images.ImageHolder;
 
 /**
  * This class defines a set of objects (created as AbstractActions)
@@ -74,11 +74,14 @@ public class DrawActions
     /** Object managing image graphics */
     protected DrawGraphicsPane graphics;
 
-    /** list of listeners for change events */
+    /** List of listeners for change events */
     protected EventListenerList listenerList = new EventListenerList();
 
     /** Event fired for changes */
     protected ChangeEvent changeEvent = new ChangeEvent( this );
+
+    /** List of listeners for figure creation events */
+    protected EventListenerList figureListenerList = new EventListenerList();
 
     /** True if mouse was clicked */
     protected boolean mouseClicked = false;
@@ -660,6 +663,9 @@ public class DrawActions
         return interpolatorFactory.makeInterpolator( interpolator );
     }
 
+    //
+    // Listeners for setting changes.
+    //
     /**
      * Register to receive change events from this object whenever the
      * drawing settings are changed.
@@ -686,6 +692,42 @@ public class DrawActions
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == ChangeListener.class ) {
                 ((ChangeListener) listeners[i + 1]).stateChanged(changeEvent);
+            }
+        }
+    }
+
+    //
+    // Listeners for figure creation (finished) events.
+    //
+
+    /**
+     * Register to receive figure change events from this object whenever
+     * a figure has been created.
+     */
+    public void addFigureListener( FigureListener l )
+    {
+        figureListenerList.add( FigureListener.class, l );
+    }
+
+    /**
+     * Stop receiving figure change events from this object.
+     */
+    public void removeFigureListener( FigureListener l )
+    {
+        figureListenerList.remove( FigureListener.class, l );
+    }
+
+    /**
+     * Notify any figure listeners of a figure created event.
+     */
+    protected void fireFigureEvent( DrawFigure figure )
+    {
+        FigureChangedEvent e = 
+            new FigureChangedEvent( figure, FigureChangedEvent.CREATED, null );
+        Object[] listeners = figureListenerList.getListenerList();
+        for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
+            if ( listeners[i] == FigureListener.class ) {
+                ((FigureListener) listeners[i + 1]).figureCreated( e );
             }
         }
     }
@@ -902,8 +944,7 @@ public class DrawActions
 
         //  Add the figure to the DrawGraphicsPane and keep a record.
         if ( figure != null ) {
-            graphics.addFigure( figure );
-            figureList.add( figure );
+            addDrawFigure( (DrawFigure) figure );
         }
     }
 
@@ -1082,6 +1123,9 @@ public class DrawActions
         if ( figure != null ) {
             graphics.clearSelection();
             graphics.select( figure );
+            
+            // Inform any listeners that the Figure is completed.
+            fireFigureEvent( (DrawFigure) figure );
             figure = null;
         }
         polyline = null;
@@ -1124,6 +1168,16 @@ public class DrawActions
     }
 
     /**
+     * Delete a given figure, if displayed.
+     */
+    public void deleteFigure( DrawFigure figure )
+    {
+        if ( figureList.remove( figure ) ) {
+            graphics.removeFigure( figure );
+        }
+    }
+
+    /**
      * Toggle the visibility all figures created by this instance.
      */
     public void hideGraphics()
@@ -1154,6 +1208,16 @@ public class DrawActions
     }
 
     /**
+     * Raise the given figure.
+     */
+    public void raiseFigure( DrawFigure figure )
+    {
+        if ( figureList.contains( figure ) ) {
+            graphics.raiseFigure( figure );
+        }
+    }
+
+    /**
      * Lower the selected figures.
      */
     public void lowerSelected()
@@ -1170,11 +1234,30 @@ public class DrawActions
     }
 
     /**
+     * Lower the given figure.
+     */
+    public void lowerFigure( DrawFigure figure )
+    {
+        if ( figureList.contains( figure ) ) {
+            graphics.lowerFigure( figure );
+        }
+    }
+
+    /**
      * Return a list of figures managed by this instance.
      */
     public LinkedList getFigureList()
     {
         return figureList;
+    }
+
+    /**
+     * Add a DrawFigure created to the managed list.
+     */
+    public void addDrawFigure( DrawFigure figure )
+    {
+        graphics.addFigure( figure );
+        figureList.add( figure );
     }
 
     /**
@@ -1199,9 +1282,6 @@ public class DrawActions
 
         man = new InterpolatedCurveManipulator();
         decorator.addDecorator( InterpolatedCurveFigure.class, man );
-
-        //man = new CircleManipulator();
-        //decorator.addDecorator( DrawCircleFigure.class, man );
 
         return decorator;
     }

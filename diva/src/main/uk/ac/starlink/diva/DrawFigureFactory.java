@@ -8,12 +8,18 @@
 package uk.ac.starlink.diva;
 
 import diva.canvas.Figure;
+
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.awt.geom.Rectangle2D;
 
-import uk.ac.starlink.diva.interp.Interpolator;;
+import diva.util.java2d.Polyline2D;
+import diva.util.java2d.Polygon2D;
+
+import uk.ac.starlink.diva.interp.Interpolator;
+import uk.ac.starlink.diva.geom.InterpolatedCurve2D;
 
 /**
  * This class creates and enumerates the possible instance of Figures
@@ -79,11 +85,11 @@ public class DrawFigureFactory
      *  Create a Figure of the given type using the specified
      *  properties to initialise it.
      */
-    public Figure create( int type, FigureProps props )
+    public DrawFigure create( int type, FigureProps props )
     {
-        Figure newFigure = null;
+        DrawFigure newFigure = null;
 
-        switch ( type ) 
+        switch ( type )
         {
            case LINE:
                newFigure = createLine( props );
@@ -116,12 +122,20 @@ public class DrawFigureFactory
         return newFigure;
     }
 
-    /** Create a line Figure using the given properties */
-    public Figure createLine( FigureProps props )
+    /**
+     *  Create a Figure using the specified properties to initialise it.
+     */
+    public DrawFigure create( FigureProps props )
     {
-        return createLine( props.getX1(), 
+        return create( props.getType(), props );
+    }
+
+    /** Create a line Figure using the given properties */
+    public DrawFigure createLine( FigureProps props )
+    {
+        return createLine( props.getX1(),
                            props.getY1(),
-                           props.getX2(), 
+                           props.getX2(),
                            props.getY2(),
                            props.getOutline(),
                            props.getThickness(),
@@ -129,22 +143,22 @@ public class DrawFigureFactory
     }
 
     /** Create a line Figure using the given parameters */
-    public Figure createLine( double x1, double y1, double x2, double y2,
-                              Paint outline, double thickness,
-                              AlphaComposite composite )
+    public DrawFigure createLine( double x1, double y1, double x2, double y2,
+                                  Paint outline, double thickness,
+                                  AlphaComposite composite )
     {
-        return new DrawLineFigure( x1, y1, x2, y2, outline, (float)thickness, 
+        return new DrawLineFigure( x1, y1, x2, y2, outline, (float)thickness,
                                    composite );
     }
 
     /** Create a line Figure using the given parameters */
-    public Figure createLine( double x1, double y1, double x2, double y2 )
+    public DrawFigure createLine( double x1, double y1, double x2, double y2 )
     {
         return new DrawLineFigure( x1, y1, x2, y2 );
     }
 
     /** Create a rectangle Figure using the given properties */
-    public Figure createRectangle( FigureProps props )
+    public DrawFigure createRectangle( FigureProps props )
     {
         return createRectangle( props.getX1(),
                                 props.getY1(),
@@ -157,7 +171,7 @@ public class DrawFigureFactory
     }
 
     /** Create a line Figure using the given parameters */
-    public Figure createRectangle( double x, double y, double width,
+    public DrawFigure createRectangle( double x, double y, double width,
                                    double height, Paint outline,
                                    Paint fill, double thickness,
                                    AlphaComposite composite )
@@ -168,7 +182,7 @@ public class DrawFigureFactory
     }
 
     /** Create an ellipse Figure using the given properties */
-    public Figure createEllipse( FigureProps props )
+    public DrawFigure createEllipse( FigureProps props )
     {
         return createEllipse( props.getX1(),
                               props.getY1(),
@@ -181,7 +195,7 @@ public class DrawFigureFactory
     }
 
     /** Create an ellipse Figure using the given parameters */
-    public Figure createEllipse( double x, double y, double width,
+    public DrawFigure createEllipse( double x, double y, double width,
                                  double height, Paint outline,
                                  Paint fill, double thickness,
                                  AlphaComposite composite )
@@ -192,7 +206,7 @@ public class DrawFigureFactory
     }
 
     /** Create a polyline Figure using the given properties */
-    public Figure createPolyline( FigureProps props )
+    public DrawFigure createPolyline( FigureProps props )
     {
         return createPolyline( props.getX1(),
                                props.getY1(),
@@ -202,7 +216,7 @@ public class DrawFigureFactory
     }
 
     /** Create a polyline Figure using the given parameters */
-    public Figure createPolyline( double x, double y, Paint outline,
+    public DrawFigure createPolyline( double x, double y, Paint outline,
                                   double thickness, AlphaComposite composite )
     {
         return new DrawPolylineFigure( x, y, outline, (float) thickness,
@@ -210,7 +224,7 @@ public class DrawFigureFactory
     }
 
     /** Create a polygon Figure using the given properties */
-    public Figure createPolygon( FigureProps props )
+    public DrawFigure createPolygon( FigureProps props )
     {
         return createPolygon( props.getX1(),
                               props.getY1(),
@@ -221,7 +235,7 @@ public class DrawFigureFactory
     }
 
     /** Create a polygon Figure using the given parameters */
-    public Figure createPolygon( double x, double y, Paint fill, Paint outline,
+    public DrawFigure createPolygon( double x, double y, Paint fill, Paint outline,
                                  double thickness, AlphaComposite composite )
     {
         return new DrawPolygonFigure( x, y, fill, outline, (float) thickness,
@@ -229,7 +243,7 @@ public class DrawFigureFactory
     }
 
     /** Create a freehand Figure using the given properties */
-    public Figure createFreehand( FigureProps props )
+    public DrawFigure createFreehand( FigureProps props )
     {
         return createFreehand( props.getX1(),
                                props.getY1(),
@@ -239,7 +253,7 @@ public class DrawFigureFactory
     }
 
     /** Create a freehand Figure using the given parameters */
-    public Figure createFreehand( double x, double y, Paint outline,
+    public DrawFigure createFreehand( double x, double y, Paint outline,
                                   double thickness, AlphaComposite composite )
     {
         return new DrawFreehandFigure( x, y, outline, (float) thickness,
@@ -247,7 +261,7 @@ public class DrawFigureFactory
     }
 
     /** Create a text Figure using the given properties */
-    public Figure createText( FigureProps props )
+    public DrawFigure createText( FigureProps props )
     {
         return createText( props.getX1(),
                            props.getY1(),
@@ -259,7 +273,7 @@ public class DrawFigureFactory
     }
 
     /** Create a text Figure using the given parameters */
-    public Figure createText( double x, double y, String text, Paint outline,
+    public DrawFigure createText( double x, double y, String text, Paint outline,
                               Font font, AlphaComposite composite )
     {
         DrawLabelFigure label = new DrawLabelFigure( text, font );
@@ -270,11 +284,11 @@ public class DrawFigureFactory
     }
 
     /** Create a curve Figure using the given properties */
-    public Figure createCurve( FigureProps props )
+    public DrawFigure createCurve( FigureProps props )
     {
-        return createCurve( props.getX1(), 
+        return createCurve( props.getX1(),
                             props.getY1(),
-                            props.getInterpolator(), 
+                            props.getInterpolator(),
                             props.getOutline(),
                             props.getThickness(),
                             props.getComposite() );
@@ -283,7 +297,7 @@ public class DrawFigureFactory
     }
 
     /** Create a curve Figure using the given parameters */
-    public Figure createCurve( double x1, double y1,
+    public DrawFigure createCurve( double x1, double y1,
                                Interpolator interpolator,
                                Paint outline, double thickness,
                                AlphaComposite composite )
@@ -294,7 +308,7 @@ public class DrawFigureFactory
     }
 
     /** Create a xrange Figure using the given properties */
-    public Figure createXRange( FigureProps props )
+    public DrawFigure createXRange( FigureProps props )
     {
         return createXRange( props.getX1(),
                              props.getY1(),
@@ -308,7 +322,7 @@ public class DrawFigureFactory
     }
 
     /** Create a xrange Figure using the given parameters */
-    public Figure createXRange( double x, double y, double width,
+    public DrawFigure createXRange( double x, double y, double width,
                                 double height, Paint fill, Paint outline,
                                 double thickness, AlphaComposite composite )
     {
@@ -316,5 +330,92 @@ public class DrawFigureFactory
                                              fill, outline, (float) thickness,
                                              composite );
         return fig;
+    }
+
+    /**
+     * Create a {@link FigureProps} instance that describes the given
+     * Figure.
+     */
+    public FigureProps getFigureProps( DrawFigure figure )
+    {
+        FigureProps props = new FigureProps();
+        props.setFill( figure.getFillPaint() );
+        props.setOutline( figure.getStrokePaint() );
+        props.setThickness( figure.getLineWidth() );
+        props.setComposite( (AlphaComposite) figure.getComposite() );
+
+        Rectangle2D bounds = figure.getBounds();
+        props.setX1( bounds.getX() );
+        props.setY1( bounds.getY() );
+        props.setX2( bounds.getX() + bounds.getWidth() );
+        props.setY2( bounds.getY() + bounds.getHeight() );
+        props.setWidth( bounds.getWidth() );
+        props.setHeight( bounds.getHeight() );
+
+        if ( figure instanceof DrawLineFigure ) {
+            props.setType( LINE );
+        }
+        else if ( figure instanceof DrawRectangleFigure ) {
+            props.setType( RECTANGLE );
+        }
+        else if ( figure instanceof DrawEllipseFigure ) {
+            props.setType( ELLIPSE );
+        }
+        else if ( figure instanceof DrawPolylineFigure ) {
+            props.setType( POLYLINE );
+
+            Polyline2D.Double pl = (Polyline2D.Double) figure.getShape();
+            int n = pl.getVertexCount();
+            double[] xa = new double[n];
+            double[] ya = new double[n];
+            for ( int i = 0; i < n; i++ ) {
+                xa[i] = pl.getX( i );
+                ya[i] = pl.getY( i );
+            }
+            props.setXArray( xa );
+            props.setYArray( ya );
+        }
+        else if ( figure instanceof DrawPolygonFigure ) {
+            props.setType( POLYGON );
+
+            Polygon2D.Double pg = (Polygon2D.Double) figure.getShape();
+            int n = pg.getVertexCount();
+            double[] xa = new double[n];
+            double[] ya = new double[n];
+            for ( int i = 0; i < n; i++ ) {
+                xa[i] = pg.getX( i );
+                ya[i] = pg.getY( i );
+            }
+            props.setXArray( xa );
+            props.setYArray( ya );
+        }
+        else if ( figure instanceof DrawFreehandFigure ) {
+            props.setType( FREEHAND );
+
+            Polyline2D.Double pl = (Polyline2D.Double) figure.getShape();
+            int n = pl.getVertexCount();
+            double[] xa = new double[n];
+            double[] ya = new double[n];
+            for ( int i = 0; i < n; i++ ) {
+                xa[i] = pl.getX( i );
+                ya[i] = pl.getY( i );
+            }
+            props.setXArray( xa );
+            props.setYArray( ya );
+        }
+        else if ( figure instanceof DrawLabelFigure ) {
+            props.setType( TEXT );
+            props.setText( ((DrawLabelFigure)figure).getString() );
+            props.setFont( ((DrawLabelFigure)figure).getFont() );
+        }
+        else if ( figure instanceof InterpolatedCurveFigure ) {
+            props.setType( CURVE );
+            InterpolatedCurve2D curve = (InterpolatedCurve2D)figure.getShape();
+            props.setInterpolator( curve.getInterpolator() );
+        }
+        else if ( figure instanceof XRangeFigure ) {
+            props.setType( XRANGE );
+        }
+        return props;
     }
 }
