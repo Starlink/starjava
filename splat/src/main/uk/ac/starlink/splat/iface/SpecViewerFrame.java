@@ -430,9 +430,10 @@ public class SpecViewerFrame
     public void acceptGeneratedCoords( double[] coords )
     {
         try {
-            ((EditableSpecData) specData)
-                .setDataQuick( coords, specData.getYData(),
-                               specData.getYDataErrors() );
+            EditableSpecData editSpec = (EditableSpecData) specData;
+            editSpec.setSimpleUnitDataQuick( editSpec.getAst().getRef(), 
+                                             coords, specData.getYData(),
+                                             specData.getYDataErrors() );
             specDataChanged();
         }
         catch (SplatException e) {
@@ -470,16 +471,16 @@ public class SpecViewerFrame
                 if ( source == dataColumnGenerator ) {
                     // Data column.
                     double[] errors = specData.getYDataErrors();
-                    ((EditableSpecData)specData).setDataQuick( frameSet,
-                                                               column,
-                                                               errors );
+                    ((EditableSpecData)specData).setFullDataQuick( frameSet,
+                                                                   column,
+                                                                   errors );
                 }
                 else {
                     // Error column.
                     double[] values = specData.getYData();
-                    ((EditableSpecData)specData).setDataQuick( frameSet,
-                                                               values,
-                                                               column );
+                    ((EditableSpecData)specData).setFullDataQuick( frameSet,
+                                                                   values,
+                                                                   column );
                 }
                 specDataChanged();
             }
@@ -608,9 +609,9 @@ public class SpecViewerFrame
 
         //  Update spectrum.
         try {
-            ( (EditableSpecData) specData ).setDataQuick( newCoords, 
-                                                          newValues,
-                                                          newErrors );
+            EditableSpecData editSpec = (EditableSpecData) specData;
+            editSpec.setSimpleUnitDataQuick( editSpec.getAst().getRef(), 
+                                             newCoords, newValues, newErrors );
             specDataChanged();
         }
         catch (SplatException e) {
@@ -628,7 +629,8 @@ public class SpecViewerFrame
             double[] values = specData.getYData();
             double[] errors = null;
             try {
-                ((EditableSpecData)specData).setData(frameSet, values, errors);
+                ((EditableSpecData)specData).setFullData( frameSet, values,
+                                                          errors );
                 specDataChanged();
             }
             catch (SplatException e) {
@@ -712,9 +714,9 @@ public class SpecViewerFrame
                 }
 
                 try {
-                    ((EditableSpecData)specData).setData( newCoords,
-                                                          newValues,
-                                                          newErrors );
+                    EditableSpecData editSpec = (EditableSpecData) specData;
+                    editSpec.setSimpleUnitData( editSpec.getAst().getRef(),
+                                                newCoords, newValues, newErrors );
                     specDataChanged();
                 }
                 catch (SplatException e) {
