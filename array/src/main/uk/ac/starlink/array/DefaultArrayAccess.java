@@ -15,7 +15,14 @@ import java.io.IOException;
 public class DefaultArrayAccess extends DefaultArrayDescription 
                                 implements ArrayAccess {
 
-    private long offset = 0L;
+    /** 
+     * The offset variable is package private because it makes life much 
+     * easier if subclasses defined in this package (MultiplexArrayAccess)
+     * can see it, but it is in general dangerous to set, so we don't
+     * want it exposed to outside subclass implementations.
+     */
+    long offset = 0L;
+
     private boolean closed = false;
     private AccessImpl impl;
     private Object mappedArray;
@@ -239,7 +246,7 @@ public class DefaultArrayAccess extends DefaultArrayDescription
         offset = -1L;
     }
 
-    private void checkOpen() {
+    protected void checkOpen() {
         if ( closed ) {
             throw new IllegalStateException( "Accessor has been closed" );
         }

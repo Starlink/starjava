@@ -12,7 +12,8 @@ import java.io.IOException;
  */
 class MultiplexArrayAccess extends DefaultArrayAccess {
 
-    private long offset = 0L;
+    // Package-private variable offset is inherited from superclass.
+
     private AccessImpl impl;
 
     /**
@@ -39,18 +40,15 @@ class MultiplexArrayAccess extends DefaultArrayAccess {
         }
     }
 
-    public long getOffset() {
-        return offset;
-    }
-
     public void setOffset( long off ) throws IOException {
 
         /* Check offset is in legal range. */
+        checkOpen();
         if ( off >= 0L && off < arrayNpix ) {
             offset = off;
         }
 
-        /* If it's not, nvoke the superclass implementation just to 
+        /* If it's not, invoke the superclass implementation just to 
          * throw a consistent exception. */
         else {
             synchronized ( impl ) {
@@ -73,7 +71,6 @@ class MultiplexArrayAccess extends DefaultArrayAccess {
             impl.setOffset( offset );
             super.read( buffer, start, size );
         }
-        offset += size;
     }
 
     public void write( Object buffer, int start, int size ) throws IOException {
@@ -81,7 +78,6 @@ class MultiplexArrayAccess extends DefaultArrayAccess {
             impl.setOffset( offset );
             super.write( buffer, start, size );
         }
-        offset += size;
     }
 
     public void readTile( Object buffer, NDShape tile ) throws IOException {
@@ -97,8 +93,10 @@ class MultiplexArrayAccess extends DefaultArrayAccess {
     }
 
     public void close() {
-        doClose();
-        offset = -1L;
+        synchronized ( impl ) {
+            doClose();
+            offset = -1L;
+        }
     }
 
 }
