@@ -49,6 +49,12 @@ public class VOTableSerialization {
          * but it makes the SOAP message slightly less baroque, so
          * leave it for now. */
         call.setProperty( AxisEngine.PROP_DOMULTIREFS, Boolean.FALSE );
+
+        /* Set the call to do streaming serializations.  I think this only
+         * has an effect at AXIS 1.2 (at time of writing, we're building
+         * and running against 1.1).
+         * See http://wiki.apache.org/ws/FrontPage/Axis/StreamingService. */
+        call.setProperty( "axis.streaming", Boolean.TRUE );
     }
 
     /**
