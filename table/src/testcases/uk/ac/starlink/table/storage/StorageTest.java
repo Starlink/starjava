@@ -130,6 +130,6 @@ public class StorageTest extends TestCase {
     }
 
     private boolean fixedRows( DiskRowStore dstore ) {
-        return dstore.getOffsets().getClass().getName().indexOf( "Fixed" ) > 0;
+        return dstore.getOffsets().isFixed();
     }
 }
