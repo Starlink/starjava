@@ -326,7 +326,7 @@ public class DrawActions
         };
 
     /**
-     * Create an instance for use with a specified DivaDraw
+     * Create an instance for use with a specified Draw
      *
      * @param canvas on which graphics will be drawn.
      */
@@ -741,6 +741,11 @@ public class DrawActions
         int count = e.getClickCount();
         SelectionInteractor si = graphics.getSelectionInteractor();
 
+        //  If already clicked then drawing has begun. When count is 1
+        //  click just update any shapes that are potentially not
+        //  finished (lines, polylines) to include the new position
+        //  this click adds. Double click finishes these figures. Other
+        //  figures are finished on the second click, regardless.
         if ( mouseClicked ) {  // clicked previously?
             if ( drawingMode == POLYLINE ) {
                 if ( count == 1 ) {
@@ -792,6 +797,7 @@ public class DrawActions
             finishFigure();
         }
         else {
+            //  First press.
             mouseClicked = true;
         }
     }
@@ -809,18 +815,21 @@ public class DrawActions
     public void mousePressed( MouseEvent e  )
     {
         // If editing choose a figure to modify. If any are selected,
-        // look for the first that we can support.
+        // look for the first of these that can be editted.
         if ( drawingMode == EDIT ) {
-            // Make selected figure current.
 
             boolean found = false;
             SelectionModel sm =
                 graphics.getSelectionInteractor().getSelectionModel();
             ListIterator it = figureList.listIterator( figureList.size() );
+
             while ( ( ! found ) && it.hasPrevious() ) {
                 DrawFigure fig = (DrawFigure) it.previous();
                 if ( sm.containsSelection( fig ) ) {
-                    // Use first.
+
+                    //  When a figure that can be edited is
+                    //  encountered the state is changed to as if it
+                    //  has just been created.
                     if ( fig instanceof InterpolatedCurveFigure ) {
                         drawingMode = CURVE;
                         curve = (InterpolatedCurve2D) fig.getShape();
@@ -853,12 +862,13 @@ public class DrawActions
                         figure = fig;
                         found = true;
                     }
-                    break;
                 }
             }
             return;
         }
 
+        // If already creating a figure that is extended until a
+        // double click, just return.
         if ( ( drawingMode == POLYLINE && polyline != null )
              || ( drawingMode == POLYGON && polygon != null )
              || ( drawingMode == FREEHAND && freehand != null )
@@ -867,41 +877,43 @@ public class DrawActions
             return;
         }
 
+        // Start of figure creation.
         startX = e.getX();
         startY = e.getY();
 
-        figure = null;
+        // Create a snapshot of the current figure configurations. The
+        // geometry of figures initially is just a dummy.
         FigureProps props = new FigureProps();
         props.setFill( fill );
         props.setOutline( outline );
         props.setThickness( lineWidth );
-        props.setX1( startX );
-        props.setY1( startY );
         props.setComposite( composite );
 
+        props.setX1( startX );
+        props.setY1( startY );
+        props.setX2( startX + 1 );
+        props.setY2( startY + 1 );
+        props.setWidth( 1 );
+        props.setHeight( 1 );
+
+        //  Create the figure. Figures which are completed by double
+        //  clicking have their shapes recorded for modification.
+        figure = null;
         switch ( drawingMode ) {
            case LINE:
-               props.setX2( startX + 1 );
-               props.setY2( startY + 1 );
                figure = figureFactory.create( DrawFigureFactory.LINE, props );
                line = (Line2D.Double) figure.getShape();
                break;
 
            case RECTANGLE:
-               props.setWidth( 1 );
-               props.setHeight( 1 );
                figure = figureFactory.create( DrawFigureFactory.RECTANGLE, props );
                break;
 
            case XRANGE:
-               props.setWidth( 1 );
-               props.setHeight( 1 );
                figure = figureFactory.create( DrawFigureFactory.XRANGE, props );
                break;
 
            case ELLIPSE:
-               props.setWidth( 1 );
-               props.setHeight( 1 );
                figure = figureFactory.create( DrawFigureFactory.ELLIPSE, props );
                break;
 
@@ -927,10 +939,11 @@ public class DrawActions
                break;
 
            case TEXT:
-               //  Created later.
+               //  Created later at startX, startY.
                return;
         }
 
+        //  Add the figure to the DrawGraphicsPane and keep a record.
         if ( figure != null ) {
             graphics.addFigure( figure );
             figureList.add( figure );
@@ -939,6 +952,10 @@ public class DrawActions
 
     public void mouseReleased( MouseEvent e )
     {
+        //  If the figure is still being drawn, then just update the
+        //  shape. Otherwise finish the figure, unless it has no size.
+        //  TEXT is a special case, it is actually created, or edited
+        //  on release.
         switch ( drawingMode ) {
            case POLYLINE:
                if ( polyline != null ) {
@@ -976,6 +993,8 @@ public class DrawActions
                if ( editLabelFigure != null ) {
                    defaultText = editLabelFigure.getString();
                }
+               
+               //  Prompt for the text.
                String s =
                    SelectStringDialog.showDialog( canvas.getComponent(), 
                                                   "Text label:",
@@ -1008,6 +1027,12 @@ public class DrawActions
     public void mouseDragged( MouseEvent e )
     {
         if ( figure != null ) {
+            //  Update figure being created to follow a drag. Most
+            //  figures are updated with a new shape to show the new
+            //  position replacing an old one (previous endX,endY for
+            //  new endX,endY), but the freehand has a new point added
+            //  for each drag event.
+
             int endX = e.getX();
             int endY = e.getY();
             int n;
@@ -1072,7 +1097,7 @@ public class DrawActions
                        c.lineTo( curve.getXVertex( i ), curve.getYVertex(i ) );
                    }
                    c.lineTo( endX, endY );
-                   c.orderVertices();
+                   c.orderVertices(); // Curves must be monotonic.
                    shape = c;
                    break;
 
@@ -1080,6 +1105,7 @@ public class DrawActions
                    return;
             }
 
+            //  Cause an update of the shape as drawn.
             if ( shape != null ) {
                 ( (DrawFigure) figure ).setShape( shape );
             }
@@ -1231,6 +1257,9 @@ public class DrawActions
     {
         String name;
 
+        // Each action may have an icon associated with its name, try
+        // looking for these in a standard place. This is fails the
+        // string is just used.
         public GraphicsAction( String name )
         {
             super();
@@ -1241,7 +1270,7 @@ public class DrawActions
                 putValue( Action.SMALL_ICON, icon );
             }
             catch (Exception e) {
-                System.out.println( "No icon: " + name + ".gif" );
+                //  Do nothing.
             }
             this.name = name;
         }
