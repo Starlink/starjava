@@ -124,14 +124,11 @@ public class Zip extends MatchingTask {
     protected Hashtable addedDirs = new Hashtable();
     private Vector addedFiles = new Vector();
 
-    protected boolean doubleFilePass = false;
-    protected boolean skipWriting = false;
-
     private static FileUtils fileUtils = FileUtils.newFileUtils();
 
-    /**
+    /** 
      * true when we are adding new files into the Zip file, as opposed
-     * to adding back the unchanged files
+     * to adding back the unchanged files 
      */
     private boolean addingNewFiles = false;
 
@@ -312,29 +309,15 @@ public class Zip extends MatchingTask {
      * validate and build
      */
     public void execute() throws BuildException {
-
-        if (doubleFilePass) {
-            skipWriting = true;
-            executeMain();
-            skipWriting = false;
-            executeMain();
-        }
-        else {
-            executeMain();
-        }
-    }
-
-    public void executeMain() throws BuildException {
-
         if (baseDir == null && filesets.size() == 0
             && groupfilesets.size() == 0 && "zip".equals(archiveType)) {
             throw new BuildException("basedir attribute must be set, "
-                                     + "or at least "
+                                     + "or at least " 
                                      + "one fileset must be given!");
         }
 
         if (zipFile == null) {
-            throw new BuildException("You must specify the "
+            throw new BuildException("You must specify the " 
                                      + archiveType + " file to create!");
         }
 
@@ -360,7 +343,7 @@ public class Zip extends MatchingTask {
             File basedir = scanner.getBasedir();
             for (int j = 0; j < files.length; j++) {
 
-                log("Adding file " + files[j] + " to fileset",
+                log("Adding file " + files[j] + " to fileset", 
                     Project.MSG_VERBOSE);
                 ZipFileSet zf = new ZipFileSet();
                 zf.setSrc(new File(basedir, files[j]));
@@ -415,18 +398,14 @@ public class Zip extends MatchingTask {
 
             log(action + archiveType + ": " + zipFile.getAbsolutePath());
 
-            ZipOutputStream zOut = null;
+            ZipOutputStream zOut =
+                new ZipOutputStream(new FileOutputStream(zipFile));
+            zOut.setEncoding(encoding);
             try {
-
-                if (! skipWriting) {
-                    zOut = new ZipOutputStream(new FileOutputStream(zipFile));
-
-                    zOut.setEncoding(encoding);
-                    if (doCompress) {
-                        zOut.setMethod(ZipOutputStream.DEFLATED);
-                    } else {
-                        zOut.setMethod(ZipOutputStream.STORED);
-                    }
+                if (doCompress) {
+                    zOut.setMethod(ZipOutputStream.DEFLATED);
+                } else {
+                    zOut.setMethod(ZipOutputStream.STORED);
                 }
                 initZipOutputStream(zOut);
 
@@ -489,7 +468,7 @@ public class Zip extends MatchingTask {
                 }
             }
         } catch (IOException ioe) {
-            String msg = "Problem creating " + archiveType + ": "
+            String msg = "Problem creating " + archiveType + ": " 
                 + ioe.getMessage();
 
             // delete a bogus ZIP file (but only if it's not the original one)
@@ -558,10 +537,11 @@ public class Zip extends MatchingTask {
                                      + " file.");
         }
 
-        if (prefix.length() > 0
-            && !prefix.endsWith("/")
-            && !prefix.endsWith("\\")) {
-            prefix += "/";
+        if (prefix.length() > 0) {
+            if (!prefix.endsWith("/") && !prefix.endsWith("\\")) {
+                prefix += "/";
+            }
+            addParentDirs(null, prefix, zOut, "", dirMode);
         }
 
         ZipFile zf = null;
@@ -844,11 +824,11 @@ public class Zip extends MatchingTask {
             Vector resources = new Vector();
             String[] directories = rs.getIncludedDirectories();
             for (int j = 0; j < directories.length; j++) {
-                resources.add(rs.getResource(directories[j]));
+                resources.addElement(rs.getResource(directories[j]));
             }
             String[] files = rs.getIncludedFiles();
             for (int j = 0; j < files.length; j++) {
-                resources.add(rs.getResource(files[j]));
+                resources.addElement(rs.getResource(files[j]));
             }
             
             result[i] = new Resource[resources.size()];
@@ -872,23 +852,21 @@ public class Zip extends MatchingTask {
         log("adding directory " + vPath, Project.MSG_VERBOSE);
         addedDirs.put(vPath, vPath);
 
-        if (! skipWriting) {
-            ZipEntry ze = new ZipEntry (vPath);
-            if (dir != null && dir.exists()) {
-                // ZIPs store time with a granularity of 2 seconds, round up
-                ze.setTime(dir.lastModified() + 1999);
-            } else {
-                // ZIPs store time with a granularity of 2 seconds, round up
-                ze.setTime(System.currentTimeMillis() + 1999);
-            }
-            ze.setSize (0);
-            ze.setMethod (ZipEntry.STORED);
-            // This is faintly ridiculous:
-            ze.setCrc (EMPTY_CRC);
-            ze.setUnixMode(mode);
-
-            zOut.putNextEntry (ze);
+        ZipEntry ze = new ZipEntry (vPath);
+        if (dir != null && dir.exists()) {
+            // ZIPs store time with a granularity of 2 seconds, round up
+            ze.setTime(dir.lastModified() + 1999);
+        } else {
+            // ZIPs store time with a granularity of 2 seconds, round up
+            ze.setTime(System.currentTimeMillis() + 1999);
         }
+        ze.setSize (0);
+        ze.setMethod (ZipEntry.STORED);
+        // This is faintly ridiculous:
+        ze.setCrc (EMPTY_CRC);
+        ze.setUnixMode(mode);
+
+        zOut.putNextEntry (ze);
     }
 
     /**
@@ -927,65 +905,62 @@ public class Zip extends MatchingTask {
 
         entries.put(vPath, vPath);
 
-        if (! skipWriting) {
-            ZipEntry ze = new ZipEntry(vPath);
-            ze.setTime(lastModified);
+        ZipEntry ze = new ZipEntry(vPath);
+        ze.setTime(lastModified);
 
-            /*
-            * ZipOutputStream.putNextEntry expects the ZipEntry to
-            * know its size and the CRC sum before you start writing
-            * the data when using STORED mode.
-            *
-            * This forces us to process the data twice.
-            *
-            * In DEFLATED mode, it will take advantage of a Zip
-            * Version 2 feature where size can be stored after the
-            * data (as the data itself signals end of data).
-            */
-            if (!doCompress) {
-                long size = 0;
-                CRC32 cal = new CRC32();
-                if (!in.markSupported()) {
-                    // Store data into a byte[]
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        /*
+         * XXX ZipOutputStream.putEntry expects the ZipEntry to know its
+         * size and the CRC sum before you start writing the data when using
+         * STORED mode.
+         *
+         * This forces us to process the data twice.
+         *
+         * I couldn't find any documentation on this, just found out by try
+         * and error.
+         */
+        if (!doCompress) {
+            long size = 0;
+            CRC32 cal = new CRC32();
+            if (!in.markSupported()) {
+                // Store data into a byte[]
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-                    byte[] buffer = new byte[8 * 1024];
-                    int count = 0;
-                    do {
-                        size += count;
-                        cal.update(buffer, 0, count);
-                        bos.write(buffer, 0, count);
-                        count = in.read(buffer, 0, buffer.length);
-                    } while (count != -1);
-                    in = new ByteArrayInputStream(bos.toByteArray());
+                byte[] buffer = new byte[8 * 1024];
+                int count = 0;
+                do {
+                    size += count;
+                    cal.update(buffer, 0, count);
+                    bos.write(buffer, 0, count);
+                    count = in.read(buffer, 0, buffer.length);
+                } while (count != -1);
+                in = new ByteArrayInputStream(bos.toByteArray());
 
-                } else {
-                    in.mark(Integer.MAX_VALUE);
-                    byte[] buffer = new byte[8 * 1024];
-                    int count = 0;
-                    do {
-                        size += count;
-                        cal.update(buffer, 0, count);
-                        count = in.read(buffer, 0, buffer.length);
-                    } while (count != -1);
-                    in.reset();
-                }
-                ze.setSize(size);
-                ze.setCrc(cal.getValue());
+            } else {
+                in.mark(Integer.MAX_VALUE);
+                byte[] buffer = new byte[8 * 1024];
+                int count = 0;
+                do {
+                    size += count;
+                    cal.update(buffer, 0, count);
+                    count = in.read(buffer, 0, buffer.length);
+                } while (count != -1);
+                in.reset();
             }
-
-            ze.setUnixMode(mode);
-            zOut.putNextEntry(ze);
-
-            byte[] buffer = new byte[8 * 1024];
-            int count = 0;
-            do {
-                if (count != 0) {
-                    zOut.write(buffer, 0, count);
-                }
-                count = in.read(buffer, 0, buffer.length);
-            } while (count != -1);
+            ze.setSize(size);
+            ze.setCrc(cal.getValue());
         }
+
+        ze.setUnixMode(mode);
+        zOut.putNextEntry(ze);
+
+        byte[] buffer = new byte[8 * 1024];
+        int count = 0;
+        do {
+            if (count != 0) {
+                zOut.write(buffer, 0, count);
+            }
+            count = in.read(buffer, 0, buffer.length);
+        } while (count != -1);
         addedFiles.addElement(vPath);
     }
 
