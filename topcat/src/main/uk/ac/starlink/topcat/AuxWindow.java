@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
@@ -379,6 +380,28 @@ public class AuxWindow extends JFrame {
                  ( screen.x + screen.width ) >= ( newloc.x + newloc.width ) &&
                  ( screen.y + screen.height ) >= ( newloc.y + newloc.height ) ){
                 second.setLocation( pos );
+            }
+        }
+    }
+
+    /**
+     * Recursively calls {@link java.awt.Component#setEnabled} on a component
+     * and (if it is a container) any of the components it contains.
+     *
+     * @param  comp  top-level component to enable/disable
+     * @param  enabled  whether to enable or disable it
+     */
+    public static void recursiveSetEnabled( Component comp, boolean enabled ) {
+        if ( comp.isFocusable() ) {
+            comp.setEnabled( enabled );
+        }
+        if ( comp instanceof Container ) {
+            Component[] subComps = ((Container) comp).getComponents();
+            for ( int i = 0; i < subComps.length; i++ ) {
+                Component subComp = subComps[ i ];
+                if ( ! ( subComp instanceof JLabel ) ) {
+                    recursiveSetEnabled( subComp, enabled );
+                }
             }
         }
     }
