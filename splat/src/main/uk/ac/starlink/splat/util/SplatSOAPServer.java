@@ -170,7 +170,7 @@ public class SplatSOAPServer
                 server.stop();
             }
             catch (Exception e) {
-                e.printStackTrace();
+                logger.log( Level.INFO, e.getMessage(), e );
             }
         }
     }
@@ -221,7 +221,7 @@ public class SplatSOAPServer
             browserMain.displaySpectrum( spectrum );
         }
         catch( SplatException e ) {
-            e.printStackTrace();
+            logger.log( Level.WARNING, e.getMessage(), e );
         }
     }
 
@@ -239,7 +239,7 @@ public class SplatSOAPServer
                 browserMain.displaySpectrum( spectrum );
             }
             catch( SplatException e ) {
-                e.printStackTrace();
+                logger.log( Level.WARNING, e.getMessage(), e );
             }
         }
         logger.severe( "Non-secure displayNDX called" );
