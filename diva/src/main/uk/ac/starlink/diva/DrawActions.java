@@ -1308,6 +1308,16 @@ public class DrawActions
     }
 
     /**
+     * Create a DrawFigure using preset properties.
+     */
+    public DrawFigure createDrawFigure( int type, FigureProps props )
+    {
+        DrawFigure figure = figureFactory.create( type, props );
+        addDrawFigure( figure );
+        return figure;
+    }
+
+    /**
      * Add a DrawFigure created to the managed list.
      */
     public void addDrawFigure( DrawFigure figure )
