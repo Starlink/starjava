@@ -1,110 +1,111 @@
 package uk.ac.starlink.treeview;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import javax.swing.*;
-import nom.tam.fits.*;
+import javax.swing.Icon;
+import nom.tam.fits.Header;
+import nom.tam.fits.AsciiTableHDU;
+import nom.tam.fits.BinaryTableHDU;
+import nom.tam.fits.FitsException;
+import nom.tam.fits.ImageHDU;
+import nom.tam.fits.TruncatedFileException;
 import nom.tam.util.ArrayDataInput;
-import nom.tam.util.RandomAccess;
+import nom.tam.util.BufferedDataInputStream;
+import nom.tam.util.BufferedFile;
 import uk.ac.starlink.array.NDShape;
-import uk.ac.starlink.util.MappedFile;
+import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.fits.MappedFile;
+import uk.ac.starlink.util.Compression;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.FileDataSource;
 
 /**
- * An implementation of the {@link DataNode} interface for
- * representing FITS files.
+ * Abstract DataNode class for representing FITS objects.
+ * Subclasses are provided for FITS objects on disk or in a stream.
  *
  * @author   Mark Taylor (Starlink)
- * @version  $Id$
  */
-public class FITSDataNode extends DefaultDataNode {
-    private ArrayList childList;
-    private boolean isIterating;
-    private Icon icon;
+public abstract class FITSDataNode extends DefaultDataNode {
+
     private String name;
     private String description;
-    private List children;
-    private BufferMaker bufmake;
-    private FileChannel chan;
+    private DataSource datsrc;
 
     /**
-     * Initialises a <code>FITSDataNode</code> from a <code>File</code> object.
+     * Constructs a FITSDataNode from a data source.
      *
-     * @param  file  a <code>File</code> object representing the file 
-     *               from which the node is to be created.
+     * @param  datsrc  the source of the data
      */
-    public FITSDataNode( File file ) throws NoSuchDataException {
-        if ( ! checkCouldBeFITS( file ) ) {
-            throw new NoSuchDataException( "Wrong magic number for FITS" );
-        }
-        MappedFile istrm = null;
+    public FITSDataNode( DataSource datsrc ) throws NoSuchDataException {
+        this.datsrc = datsrc;
+        ArrayDataInput istrm = null;
         try {
-            RandomAccessFile raf = new RandomAccessFile( file.getPath(), "r" );
-            chan = raf.getChannel();
-            if ( raf.length() > Integer.MAX_VALUE ) {
-                throw new UnsupportedOperationException(
-                    "File is too large"
-                + " (" + raf.length() + " > " + Integer.MAX_VALUE + ")" );
-            }
-            bufmake = new BufferMaker( chan, 0, raf.length() );
-            ByteBuffer niobuf = bufmake.makeBuffer();
-            istrm = new MappedFile( niobuf );
 
-            /* Try to make a header - if this throws an exception it's not
-             * FITS. */
+            /* Check magic number. */
+            byte[] buf = new byte[ 20 ];
+            datsrc.getMagic( buf );
+            if ( ! isMagic( buf ) ) {
+                throw new NoSuchDataException( "Wrong magic number for FITS" );
+            }
+
+            /* Try to make a header - if this throws an exception it's 
+             * not FITS. */
+            istrm = getDataInput();
             Header primaryHeader = new Header( istrm );
 
-            /* Characterise the file. */
-            long headerSize = istrm.getFilePointer();
-            long dataSize = getDataSize( primaryHeader );
-            long fileSize = raf.length();
-            if ( fileSize == headerSize + dataSize ) {
-                long[] dims = ImageHDUDataNode
-                             .getDimsFromHeader( primaryHeader );
-                if ( dims.length == 0 ) {
-                    description = "(header only)";
+            /* Characterise the file if possible. */
+            if ( istrm instanceof BufferedFile ||
+                 istrm instanceof MappedFile ) {
+                long headerSize;
+                long fileSize;
+                if ( istrm instanceof BufferedFile ) {
+                    headerSize = ((BufferedFile) istrm).getFilePointer();
+                    fileSize = ((BufferedFile) istrm).length();
+                }
+                else if ( istrm instanceof MappedFile ) {
+                    headerSize = ((MappedFile) istrm).getFilePointer();
+                    fileSize = ((MappedFile) istrm).length();
                 }
                 else {
-                    description = NDShape.toString( dims );
+                    throw new AssertionError();
+                }
+                long dataSize = FitsConstants.getDataSize( primaryHeader );
+                if ( fileSize == headerSize + dataSize ) {
+                    long[] dims = ImageHDUDataNode
+                                 .getDimsFromHeader( primaryHeader );
+                    if ( dims.length == 0 ) {
+                        description = "(header only)";
+                    }
+                    else {
+                        description = NDShape.toString( dims );
+                    }
                 }
             }
-            else if ( fileSize - headerSize - dataSize >= 2880 ) {
-                // it's multi-extension
-            }
+        }
+        catch ( FitsException e ) {
+            throw new NoSuchDataException( e );
         }
         catch ( IOException e ) {
-            throw new NoSuchDataException( 
-                "IO trouble while reading FITS header", e );
+            throw new NoSuchDataException( e );
         }
-        catch ( TruncatedFileException e ) {
-            throw new NoSuchDataException( "File \"" + file 
-                                         + "\" is not a FITS file" 
-                                         + "(" + e.getMessage() + ")" );
-        }
-        finally {
-            if ( istrm != null ) { 
-                istrm.close();
+        finally { 
+            if ( istrm != null ) {
+                try {
+                    istrm.close();
+                }
+                catch ( IOException e ) {
+                    // too bad
+                }
             }
         }
- 
-        name = file.getName();
+        this.name = datsrc.getName();
         setLabel( name );
-        setPath( file.getAbsolutePath() );
     }
 
-    /**
-     * Initialises a <code>FITSDataNode</code> from a <code>String</code>
-     * which gives the file name.
-     *
-     * @param  the absolute or relative path name of the name of a FITS file.
-     */
-    public FITSDataNode( String name ) throws NoSuchDataException {
-        this( new File( name ) );
+    public String getName() {
+        return name;
     }
 
     public String getDescription() {
@@ -115,77 +116,119 @@ public class FITSDataNode extends DefaultDataNode {
         return true;
     }
 
-    public Iterator getChildIterator() { 
-        final MappedFile istrm;
+    /**
+     * Returns an ArrayDataMaker encapsulating the same input stream as the
+     * on one which this FITSDataNode is based, but starting at a given
+     * offset <tt>start</tt> into the stream and <tt>size</tt> bytes long.
+     *
+     * @param  start  the offset into this FITSDataNode's stream at which
+     *         the returned source's streams should start
+     * @param  size   the number of bytes contained by the returned
+     *         source's stream
+     */
+    abstract protected ArrayDataMaker getArrayData( long start, long size );
+
+    public Iterator getChildIterator() {
+        final DataNode parent = this;
+        final ArrayDataInput istrm;
+        final Header firstHeader; 
         try {
-            istrm = new MappedFile( bufmake.makeBuffer() );
+            istrm = getDataInput();
+            firstHeader = new Header( istrm );
+        }
+        catch ( TruncatedFileException e ) {
+            return Collections
+                  .singleton( getChildMaker().makeErrorDataNode( this, e ) )
+                  .iterator();
         }
         catch ( IOException e ) {
             return Collections
-                  .singletonList( getChildMaker().makeErrorDataNode( this, e ) )
+                  .singleton( getChildMaker().makeErrorDataNode( this, e ) )
                   .iterator();
         }
-      
         return new Iterator() {
-            private boolean broken = false;
             private int nchild = 0;
+            private boolean broken = false;
+            private Header nextHeader = firstHeader;
+
             public Object next() {
+                DataNode dnode;
                 if ( hasNext() ) {
-                    long prepos = istrm.getFilePointer();
+
+                    /* Construct a new node from the header we have ready. */
                     try {
-                        Header hdr = new Header( istrm );
-                        DataNode node = null;
-                        if ( node == null ) {
-                            try {
-                                if ( AsciiTableHDU.isHeader( hdr ) ) {
-                                    node = new TableHDUDataNode( hdr, istrm );
-                                }
+                        Header hdr = nextHeader;
+                        long start = hdr.getFileOffset();
+                        long datsize = getDataSize( hdr );
+                        long headsize = hdr.getSize();
+                        long hdusize = headsize + datsize;
+                        ArrayDataMaker hdudata = getArrayData( start, hdusize );
+                        istrm.skip( datsize );
+                        try {
+                            if ( hdr.containsKey( "XTENSION" ) && 
+                                 AsciiTableHDU.isHeader( hdr ) ) {
+                                dnode = new TableHDUDataNode( hdr, hdudata );
                             }
-                            catch ( NullPointerException e ) {
-                                // known NullPointerException crops up here
+                            else if ( BinaryTableHDU.isHeader( hdr ) ) {
+                                dnode = new TableHDUDataNode( hdr, hdudata );
                             }
-                        }
-                        if ( node == null ) {
-                            if ( BinaryTableHDU.isHeader( hdr ) ) {
-                                node = new TableHDUDataNode( hdr, istrm );
+                            else if ( ImageHDU.isHeader( hdr ) ) {
+                                dnode = new ImageHDUDataNode( hdr, hdudata );
                             }
-                        }
-                        if ( node == null ) {
-                            if ( ImageHDU.isHeader( hdr ) ) {
-                                BufferMaker bufmkr;
-                                if ( chan != null ) {
-                                    long postpos = istrm.getFilePointer();
-                                    int bufsiz = (int) ( getRawSize( hdr ) 
-                                                       + postpos - prepos );
-                                    bufmkr = new BufferMaker( chan, prepos,
-                                                              bufsiz );
-                                }
-                                else {
-                                    bufmkr = null;
-                                }
-                                istrm.skip( getDataSize( hdr ) );
-                                node = new ImageHDUDataNode( hdr, bufmkr );
+                            else {
+                                dnode = null;
                             }
                         }
-                        if ( node == null ) {
-                            node = new HDUDataNode( hdr );
+                        catch ( NoSuchDataException e ) {
+                            dnode = null;
                         }
-                        node.setLabel( nchild == 0 ? "Primary HDU"
-                                                   : ( "HDU " + nchild ) );
-                        nchild++;
-                        return node;
+                        if ( dnode == null ) {
+                            dnode = new HDUDataNode( hdr, hdudata );
+                        }
+                        dnode.setLabel( ( nchild == 0 ) ? "Primary HDU"
+                                                        : "HDU " + nchild );
                     }
-                    catch ( Exception e ) {
-                        return new ErrorDataNode( e );
+                    catch ( NoSuchDataException e ) {
+                        dnode = new ErrorDataNode( e );
                     }
+                    catch ( IOException e ) {
+                        dnode = new ErrorDataNode( e );
+                    }
+
+                    /* Remember parentage of the new node. */
+                    dnode.setCreator( new CreationState( parent ) );
+
+                    /* Read the next header. */
+                    nchild++;
+                    try {
+                        nextHeader = new Header( istrm );
+                    }
+                    catch ( IOException e ) {
+                        nextHeader = null;
+                    }
+                    catch ( TruncatedFileException e ) {
+                        nextHeader = null;
+                    }
+                    if ( nextHeader == null ) {
+                        try {
+                            istrm.close();
+                        }
+                        catch ( IOException e ) {
+                            // no action
+                        }
+                    }
+
+                    /* Return the new datanode. */
+                    return dnode;
                 }
                 else {
                     throw new NoSuchElementException();
                 }
             }
+
+            /* If we have a header ready, we can produce another child. */
             public boolean hasNext() {
-                return ! broken &&
-                       istrm.getFilePointer() < ( bufmake.getSize() - 1 );
+                return nextHeader != null;
             }
             public void remove() {
                 throw new UnsupportedOperationException();
@@ -193,15 +236,8 @@ public class FITSDataNode extends DefaultDataNode {
         };
     }
 
-    public String getName() {
-        return name;
-    }
-
     public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.FITS );
-        }
-        return icon;
+        return IconFactory.getInstance().getIcon( IconFactory.FITS );
     }
 
     public String getPathSeparator() {
@@ -216,44 +252,36 @@ public class FITSDataNode extends DefaultDataNode {
         return "FITS data";
     }
 
-    public static boolean isMagic( byte[] magic ) {
-        try {
-            return new String( magic, "US-ASCII" ).startsWith( "SIMPLE  =" );
-        }
-        catch ( UnsupportedEncodingException e ) {
-            throw new AssertionError( "Of course it's supported" );
-        }
-    }
-
-    /*
-     * Throws a NoSuchDataException if this file isn't worth trying.
-     * This is not required, but speeds up the DataNodeFactory's operation
-     * a great deal.
+    /**
+     * Returns an ArrayDataInput object containing the data from this 
+     * FITS object.
      */
-    private static boolean checkCouldBeFITS( File file ) {
-        try {
-            return ( isMagic( startBytes( file, 80 ) ) );
+    protected ArrayDataInput getDataInput() throws IOException {
+        if ( datsrc instanceof FileDataSource && 
+             datsrc.getCompression() == Compression.NONE ) {
+            String fileName = ((FileDataSource) datsrc).getFile().getPath();
+            return new MappedFile( fileName );
         }
-        catch ( IOException e ) {
-            return false;
+        else {
+            return new BufferedDataInputStream( datsrc.getInputStream() );
         }
     }
 
-    /*
+    /**
      * Utility function to find the number of bytes in the data segment
      * of an HDU.  As far as I can see, Header.getDataSize() ought to
      * do this, but it doesn't seem to.
-     */
+     */                     
     private static long getDataSize( Header hdr ) {
         long nel = getRawSize( hdr );
-        if ( nel % 2880 == 0 ) {
-            return nel;
+        if ( nel % 2880 == 0 ) { 
+            return nel; 
         }
-        else {
+        else {                          
             return ( ( nel / 2880 ) + 1 ) * 2880;
-        }
-    }
-
+        }               
+    }               
+                    
     private static long getRawSize( Header hdr ) {
         int naxis = hdr.getIntValue( "NAXIS", 0 );
         if ( naxis <= 0 ) {
@@ -266,4 +294,25 @@ public class FITSDataNode extends DefaultDataNode {
         }
         return nel;
     }
+
+    /**
+     * Indicates whether a buffer of bytes looks like the start of a FITS
+     * file.
+     *
+     * @param    buffer   the first few bytes of a potential stream
+     * @return   true if <tt>buffer</tt> matches the FITS file magic number
+     */
+    public static boolean isMagic( byte[] buffer ) {
+        return FitsConstants.isMagic( buffer );
+    }
+
+
+    /**
+     * Interface used for objects which can supply an ArrayDataInput 
+     * object on demand (more than once if necessary).
+     */
+    public static interface ArrayDataMaker {
+        ArrayDataInput getArrayData() throws IOException;
+    }
+
 }

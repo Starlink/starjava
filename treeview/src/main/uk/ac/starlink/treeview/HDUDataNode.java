@@ -24,16 +24,19 @@ public class HDUDataNode extends DefaultDataNode {
     private String description;
     private Header header;
     private String hduType;
+    private FITSDataNode.ArrayDataMaker hdudata;
 
     /**
      * Initialises a <code>HDUDataNode</code> from a <code>Header</code>
      * object.
      *
-     * @param   hdr  a FITS header object
-     *               from which the node is to be created.
+     * @param   hdr  a FITS header object from which the node is to be created
+     * @param   hdudata  an object capable of returning the HDU data
      */
-    public HDUDataNode( Header hdr ) throws NoSuchDataException {
+    public HDUDataNode( Header hdr, FITSDataNode.ArrayDataMaker hdudata ) 
+            throws NoSuchDataException {
         this.header = hdr;
+        this.hdudata = hdudata;
         hduType = null;
         if ( hduType == null ) {
             try {
@@ -57,11 +60,12 @@ public class HDUDataNode extends DefaultDataNode {
         }   
         if ( hduType == null ) {
             if ( ImageHDU.isHeader( hdr ) ) {
-                if ( hdr.findKey( "NAXIS" ) != null ) {
+                if ( hdr.findKey( "NAXIS" ) != null &&
+                     hdr.getIntValue( "NAXIS" ) > 0 ) {
                     hduType = "Image";
                 }
                 else {
-                    hduType = "primary";
+                    hduType = "Header";
                 }
             }
         }       

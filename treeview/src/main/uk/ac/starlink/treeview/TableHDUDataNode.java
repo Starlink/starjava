@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import java.io.IOException;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import nom.tam.fits.AsciiTable;
@@ -28,37 +29,33 @@ public class TableHDUDataNode extends HDUDataNode {
 
     private String hduType;
     private TableData tdata;
-    private TableHDU thdu;
     private String description;
-    private Icon icon;
     private JComponent fullview;
     private Header header;
+    private FITSDataNode.ArrayDataMaker hdudata;
 
     /**
      * Initialises a <code>TableHDUDataNode</code> from an <code>Header</code>
      * object.  The stream is read to the end of the HDU.
      *
-     * @param   hdr  a FITS header object from which the node is to be created
+     * @param   header a FITS header object from which the node is to be created
      * @param   istrm  the stream from which the data can be read.
      */
-    public TableHDUDataNode( Header hdr, ArrayDataInput istrm ) 
+    public TableHDUDataNode( Header header, 
+                             FITSDataNode.ArrayDataMaker hdudata ) 
             throws NoSuchDataException {
-        super( hdr );
-        this.header = hdr;
+        super( header, hdudata );
+        this.header = header;
+        this.hdudata = hdudata;
         hduType = getHduType();
         String type;
         try {
-            if ( BinaryTableHDU.isHeader( hdr ) ) {
-                tdata = new BinaryTable( hdr );
-                ((BinaryTable) tdata).read( istrm );
-                thdu = new BinaryTableHDU( hdr, ((Data) tdata) );
+            if ( BinaryTableHDU.isHeader( header ) ) {
+                tdata = new BinaryTable( header );
                 type = "Binary";
             }
-            else if ( AsciiTableHDU.isHeader( hdr ) ) {
-                tdata = new AsciiTable( hdr );
-                ((AsciiTable) tdata).read( istrm );
-                ((AsciiTable) tdata).getData();
-                thdu = new AsciiTableHDU( hdr, ((Data) tdata) );
+            else if ( AsciiTableHDU.isHeader( header ) ) {
+                tdata = new AsciiTable( header );
                 type = "ASCII";
             }
             else {
@@ -66,8 +63,8 @@ public class TableHDUDataNode extends HDUDataNode {
             }
 
             /* Get the column information from the header. */
-            int ncols = hdr.getIntValue( "TFIELDS" );
-            int nrows = hdr.getIntValue( "NAXIS2" );
+            int ncols = header.getIntValue( "TFIELDS" );
+            int nrows = header.getIntValue( "NAXIS2" );
 
             description = type + " table (" + ncols + "x" + nrows + ")";
         }
@@ -81,10 +78,7 @@ public class TableHDUDataNode extends HDUDataNode {
     }
 
     public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.TABLE );
-        }
-        return icon;
+        return IconFactory.getInstance().getIcon( IconFactory.TABLE );
     }
 
     public boolean hasFullView() {
@@ -98,40 +92,80 @@ public class TableHDUDataNode extends HDUDataNode {
             dv.addSeparator();
             dv.addKeyedItem( "HDU type", hduType );
 
-            final StarTable startable = new FitsStarTable( thdu );
-            int ncols = startable.getColumnCount();
-            int nrows = startable.getRowCount();
-            dv.addKeyedItem( "Columns", ncols );
-            dv.addKeyedItem( "Rows", nrows );
-            dv.addSeparator();
-            dv.addKeyedItem( "Number of header cards",
-                             header.getNumberOfCards() );
-            dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
-            dv.addKeyedItem( "Blocks of data", 
-                             FitsConstants.getDataSize( header ) / 2880 );
+            /* Make the table. */
+            try {
+                ArrayDataInput istrm = hdudata.getArrayData();
 
-            dv.addSubHead( "Columns" );
-            for ( int i = 0; i < ncols; i++ ) {
-                ColumnHeader head = startable.getHeader( i );
-                dv.addKeyedItem( "Column " + ( i + 1 ), head.getName() );
+                /* Skip the header. */
+                Header hdr = new Header( istrm );
+
+                /* Read the table data. */
+                TableHDU thdu;
+                if ( tdata instanceof BinaryTable ) {
+                    ((BinaryTable) tdata).read( istrm );
+                    thdu = new BinaryTableHDU( header, (Data) tdata );
+                }
+                else if ( tdata instanceof AsciiTable ) {
+                    ((AsciiTable) tdata).read( istrm );
+                    ((AsciiTable) tdata).getData();
+                    thdu = new AsciiTableHDU( header, (Data) tdata );
+                }
+                else {
+                    throw new AssertionError();
+                }
+
+                /* Make a table out of it. */
+                final StarTable startable = new FitsStarTable( thdu );
+
+                /* Get and display info about the table. */
+                int ncols = startable.getColumnCount();
+                int nrows = startable.getRowCount();
+                dv.addKeyedItem( "Columns", ncols );
+                dv.addKeyedItem( "Rows", nrows );
+                dv.addSeparator();
+                dv.addKeyedItem( "Number of header cards",
+                                 header.getNumberOfCards() );
+                dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
+                dv.addKeyedItem( "Blocks of data", 
+                                 FitsConstants.getDataSize( header ) / 2880 );
+
+                dv.addSubHead( "Columns" );
+                for ( int i = 0; i < ncols; i++ ) {
+                    ColumnHeader head = startable.getHeader( i );
+                    dv.addKeyedItem( "Column " + ( i + 1 ), head.getName() );
+                }
+                dv.addPane( "Header cards", new ComponentMaker() {
+                    public JComponent getComponent() {
+                        return new TextViewer( header.iterator() );
+                    }
+                } );
+                dv.addPane( "Column details", new ComponentMaker() {
+                    public JComponent getComponent() {
+                        MetamapGroup metagroup =
+                            new StarTableMetamapGroup( startable );
+                        return new MetaTable( metagroup );
+                    }
+                } );
+                dv.addPane( "Table data", new ComponentMaker() {
+                    public JComponent getComponent() {
+                        return new TreeviewJTable( startable );
+                    }
+                } );
             }
-            dv.addPane( "Header cards", new ComponentMaker() {
-                public JComponent getComponent() {
-                    return new TextViewer( header.iterator() );
-                }
-            } );
-            dv.addPane( "Column details", new ComponentMaker() {
-                public JComponent getComponent() {
-                    MetamapGroup metagroup =
-                        new StarTableMetamapGroup( startable );
-                    return new MetaTable( metagroup );
-                }
-            } );
-            dv.addPane( "Table data", new ComponentMaker() {
-                public JComponent getComponent() {
-                    return new TreeviewJTable( startable );
-                }
-            } );
+            catch ( final FitsException e ) {
+                dv.addPane( "Error reading table", new ComponentMaker() {
+                     public JComponent getComponent() {
+                         return new TextViewer( e );
+                     }
+                } );
+            }
+            catch ( final IOException e ) {
+                dv.addPane( "Error reading table", new ComponentMaker() {
+                     public JComponent getComponent() {
+                         return new TextViewer( e );
+                     }
+                } );
+            }
         }
         return fullview;
     }

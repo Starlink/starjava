@@ -77,7 +77,7 @@ public class FileDataNode extends DefaultDataNode {
 
 
     public boolean allowsChildren() {
-        return file.isDirectory();
+        return file.isDirectory() && file.canRead();
     }
 
     public Iterator getChildIterator() {
@@ -208,50 +208,55 @@ public class FileDataNode extends DefaultDataNode {
 
             /* If it looks like a text file, add the option to view the
              * content. */
-            try {
+            if ( file.canRead() && ! file.isDirectory() ) {
+                try {
 
-                /* Use a DataSource to characterise it, making sure that it
-                 * doesn't try to decompress the thing. */
-                DataSource datsrc = new FileDataSource( file )
-                                   .forceCompression( Compression.NONE );
-                boolean isText = datsrc.isASCII();
-                boolean isHTML = datsrc.isHTML();
-                datsrc.close();
+                    /* Use a DataSource to characterise it, making sure that it
+                     * doesn't try to decompress the thing. */
+                    DataSource datsrc = new FileDataSource( file )
+                                       .forceCompression( Compression.NONE );
+                    boolean isText = datsrc.isASCII();
+                    boolean isHTML = datsrc.isHTML();
+                    datsrc.close();
 
-            //  HTML viewing does work but there are problems with it; 
-            //  for one thing I can't make the HTML load asynchronously.
-            //  If I do have HTML viewing, I'm not sure if it should be 
-            //  here or (more likely) an HTMLDataNode.
-            //  if ( isHTML ) {
-            //      dv.addPane( "HTML view", new ComponentMaker() {
-            //          public JComponent getComponent() throws IOException {
-            //              return new HTMLViewer( file );
-            //          }
-            //      } );
-            //  }
-                if ( isText ) {
-                    dv.addPane( "File text", new ComponentMaker() {
-                        public JComponent getComponent() throws IOException {
-                            return new TextViewer( new FileReader( file ) );
-                        }
-                    } );
-                }
-                else {
-                    dv.addPane( "Hex dump", new ComponentMaker() {
-                        public JComponent getComponent() throws IOException {
-                            RandomAccessFile raf =
-                                new RandomAccessFile( file, "r" );
-                            return new HexDumper( raf );
-                        }
-                    } );
-                }
-            }
-            catch ( final IOException e ) {
-                dv.addPane( "Error reading file", new ComponentMaker() {
-                    public JComponent getComponent() {
-                        return new TextViewer( e );
+                //  HTML viewing does work but there are problems with it; 
+                //  for one thing I can't make the HTML load asynchronously.
+                //  If I do have HTML viewing, I'm not sure if it should be 
+                //  here or (more likely) an HTMLDataNode.
+                //  if ( isHTML ) {
+                //      dv.addPane( "HTML view", new ComponentMaker() {
+                //          public JComponent getComponent()
+                //                  throws IOException {
+                //              return new HTMLViewer( file );
+                //          }
+                //      } );
+                //  }
+                    if ( isText ) {
+                        dv.addPane( "File text", new ComponentMaker() {
+                            public JComponent getComponent()
+                                    throws IOException {
+                                return new TextViewer( new FileReader( file ) );
+                            }
+                        } );
                     }
-                } );
+                    else {
+                        dv.addPane( "Hex dump", new ComponentMaker() {
+                            public JComponent getComponent()
+                                    throws IOException {
+                                RandomAccessFile raf =
+                                    new RandomAccessFile( file, "r" );
+                                return new HexDumper( raf );
+                            }
+                        } );
+                    }
+                }
+                catch ( final IOException e ) {
+                    dv.addPane( "Error reading file", new ComponentMaker() {
+                        public JComponent getComponent() {
+                            return new TextViewer( e );
+                        }
+                    } );
+                }
             }
         }
         return fullView;

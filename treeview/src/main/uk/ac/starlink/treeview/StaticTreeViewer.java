@@ -1055,8 +1055,9 @@ public class StaticTreeViewer extends JFrame {
                 if ( builder.suitable( cobj.getClass() ) ) {
                     final DataNode newdn = builder.buildNode( cobj );
                     if ( newdn == null || 
-                         nodetypes.contains( newdn.getClass() ) ) {
-                        // no new node, or we've already got one
+                         nodetypes.contains( newdn.getClass() ) ||
+                         newdn instanceof ErrorDataNode ) {
+                        // no new node, or broken one, or we've already got one
                     }
                     else {
                         newdn.setLabel( dn.getLabel() );

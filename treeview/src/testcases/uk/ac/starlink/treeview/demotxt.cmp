@@ -6,7 +6,7 @@
             - [FRM] GRID  (4 axes) "Pixel Coordinates"
             - [FRM] CMP  (4 axes) "4-d compound coordinate system"
       + [FIT] tables.fit
-        - [IMG] Primary HDU  (Image)
+        - [HDU] Primary HDU  (Header)
         - [TBL] HDU 1  ASCII table (13x138)
         - [TBL] HDU 2  Binary table (3x881)
     + [DIR] ndf

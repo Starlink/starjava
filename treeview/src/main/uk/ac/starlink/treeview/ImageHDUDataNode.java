@@ -9,6 +9,7 @@ import javax.swing.JComponent;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
+import nom.tam.util.ArrayDataInput;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.MouldArrayImpl;
@@ -42,7 +43,7 @@ public class ImageHDUDataNode extends HDUDataNode {
     private NDShape shape;
     private final String dataType;
     private String blank;
-    private BufferMaker bufmaker;
+    private FITSFileDataNode.ArrayDataMaker hdudata;
     private Number badval;
     private FrameSet wcs;
     private String wcsEncoding;
@@ -53,15 +54,15 @@ public class ImageHDUDataNode extends HDUDataNode {
      *
      * @param   hdr  a FITS header object
      *               from which the node is to be created.
-     * @param   bufmaker  an object capable of constructing the NIO buffer
-     *          containing the header+data on demand
+     * @param   hdudata  an object capable of returning the array data for
+     *                   the image
      */
-    public ImageHDUDataNode( Header hdr, BufferMaker bufmaker )
+    public ImageHDUDataNode( Header hdr, FITSDataNode.ArrayDataMaker hdudata )
             throws NoSuchDataException {
-        super( hdr );
+        super( hdr, hdudata );
 
         this.header = hdr;
-        this.bufmaker = bufmaker;
+        this.hdudata = hdudata;
         hduType = getHduType();
         if ( hduType != "Image" ) {
             throw new NoSuchDataException( "Not an Image HDU" );
@@ -239,21 +240,17 @@ public class ImageHDUDataNode extends HDUDataNode {
                     return new TextViewer( header.iterator() );
                 }
             } );
-            if ( shape != null && bufmaker != null ) {
-                try {
-                    ByteBuffer bbuf = bufmaker.makeBuffer();
-                    MappedFile mf = new MappedFile( bbuf );
-                    NDArray nda = FitsArrayBuilder.getInstance()
-                                 .makeNDArray( mf, AccessMode.READ );
-                    if ( ! nda.getShape().equals( shape ) ) {
-                        nda = new BridgeNDArray( 
-                            new MouldArrayImpl( nda, shape ) );
-                    }
-                    NDArrayDataNode.addDataViews( dv, nda, wcs );
+            try {
+                ArrayDataInput data = hdudata.getArrayData();
+                NDArray nda = FitsArrayBuilder.getInstance()
+                             .makeNDArray( data, AccessMode.READ );
+                if ( ! nda.getShape().equals( shape ) ) {
+                    nda = new BridgeNDArray( new MouldArrayImpl( nda, shape ) );
                 }
-                catch ( IOException e ) {
-                    dv.logError( e );
-                }
+                NDArrayDataNode.addDataViews( dv, nda, wcs );
+            }
+            catch ( IOException e ) {
+                dv.logError( e );
             }
         }
         return fullview;

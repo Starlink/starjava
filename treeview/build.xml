@@ -87,7 +87,7 @@
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
-  <property name="deprecation" value="false"/>
+  <property name="deprecation" value="true"/>
   <property name="optimize" value="true"/>
   <property name="source.version" value="1.4"/>
 
@@ -1068,7 +1068,7 @@
           description="-> run JUnit tests"/>
 
   <target name="run-tests"
-          depends="compile-tests"
+          depends="install,compile-tests"
           if="junit.present">
 
     <junit printsummary="${junit.summary}" haltonfailure="yes"

@@ -18,13 +18,14 @@ import java.text.*;
  * <li> {@link ARYDataNode}
  * <li> {@link HistoryDataNode}
  * <li> {@link HDSDataNode}
- * <li> {@link FITSDataNode}
+ * <li> {@link FITSFileDataNode}
  * <li> {@link NdxDataNode}
  * <li> {@link VOTableDataNode}
  * <li> {@link XMLDataNode}
  * <li> {@link ZipFileDataNode}
  * <li> {@link TarStreamDataNode}
  * <li> {@link NDArrayDataNode}
+ * <li> {@link FITSStreamDataNode}
  * <li> {@link CompressedDataNode}
  * <li> {@link FileDataNode}
  * <li> {@link PlainDataNode}
@@ -336,7 +337,7 @@ public class DataNodeFactory implements Cloneable {
                 ARYDataNode.class,
                 HistoryDataNode.class,
                 HDSDataNode.class,
-                FITSDataNode.class,
+                FITSFileDataNode.class,
                 NdxDataNode.class,
                 VOTableDataNode.class,
                 XMLDataNode.class,
@@ -345,6 +346,7 @@ public class DataNodeFactory implements Cloneable {
                 ZipFileDataNode.class,
                 TarStreamDataNode.class,
                 NDArrayDataNode.class,
+                FITSStreamDataNode.class,
                 CompressedDataNode.class,
                 FileDataNode.class,
                 PlainDataNode.class,

@@ -310,6 +310,12 @@ public class DefaultDataNode implements DataNode {
         }
     }
 
+    public static FileDataSource makeFileDataSource( File file )
+            throws NoSuchDataException {
+        return (FileDataSource) makeDataSource( file );
+    }
+        
+
     /**
      * Gets the first few bytes of a file.
      * This utility function is suitable for magic number checks.

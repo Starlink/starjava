@@ -101,7 +101,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
                     }
                     else {
                         try {
-                            return new FITSDataNode( file );
+                            return new FITSFileDataNode( file );
                         }
                         catch ( NoSuchDataException e ) {
                         }   

@@ -61,6 +61,11 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
                 return new ZipStreamDataNode( datsrc );
             }
 
+            /* FITS file? */
+            if ( FITSDataNode.isMagic( magic ) ) {
+                return new FITSStreamDataNode( datsrc );
+            }
+
             /* XML file? */
             else if ( XMLDataNode.isMagic( magic ) ) {
                 DOMSource xsrc = makeDOMSource( datsrc );
@@ -77,6 +82,9 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
                     return dn;
                 }
                 catch ( NoSuchDataException e ) {
+                    if ( verbose ) {
+                        e.printStackTrace( verbStream );
+                    }
                 }
 
                 /* VOTable? */
@@ -89,6 +97,9 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
                     return dn;
                 }
                 catch ( NoSuchDataException e ) {
+                    if ( verbose ) {
+                        e.printStackTrace( verbStream );
+                    }
                 }
 
                 /* Normal XML file? */
@@ -107,6 +118,9 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
         /* A NoSuchDataException means we couldn't construct a node which
          * the magic number looked like we could.  Abdicate responsibility. */
         catch ( NoSuchDataException e ) {
+            if ( verbose ) {
+                e.printStackTrace( verbStream );
+            }
             return null;
         }
     }

@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -25,8 +26,6 @@ public class TarStreamDataNode extends DefaultDataNode {
     private DataSource datsrc;
     private String name;
     private List entries;
-    private TarInputStream tstream;
-    private int tpos;
 
     /**
      * Constructs a TarStreamDataNode from a DataSource.
@@ -104,11 +103,13 @@ public class TarStreamDataNode extends DefaultDataNode {
         final DataNodeFactory childMaker = getChildMaker();
         final int lleng = level.length();
         final String pathHead = getPath() + getPathSeparator() + level;
+        final TarInputStream tstream;
 
         /* Get an iterator over all the TarEntries at the requested level. */
         final Iterator tentIt;
         try {
             tentIt = getEntriesAtLevel( level ).iterator();
+            tstream = getTarInputStream();
         }
         catch ( IOException e ) {
             DataNode bumNode = childMaker.makeErrorDataNode( parent, e );
@@ -117,14 +118,19 @@ public class TarStreamDataNode extends DefaultDataNode {
 
         /* Return an iterator which makes DataNodes from each entry. */
         return new Iterator() {
+
+            byte[] magbuf = new byte[ 512 ];
+
             public boolean hasNext() {
                 return tentIt.hasNext();
             }
+
             public Object next() {
 
                 /* Get the entry at the requested level. */
                 final TarEntry tent = (TarEntry) tentIt.next();
-                final String subname = tent.getName().substring( lleng );
+                final String tname = tent.getName();
+                final String subname = tname.substring( lleng );
                 boolean isDir = tent.isDirectory();
 
                 /* If it is a directory, make a TarBranchDataNode from it. */
@@ -138,21 +144,115 @@ public class TarStreamDataNode extends DefaultDataNode {
                 /* If it's a file, turn it into a DataSource and get the
                  * DataNodeFactory to make something appropriate from it. */
                 else {
-                    DataSource datsrc = new PathedDataSource() {
-                        public String getPath() {
-                            return pathHead + subname;
-                        }
-                        protected long getRawLength() {
-                            return tent.getSize();
-                        }
-                        protected InputStream getRawInputStream()
-                                throws IOException {
-                            return getEntryInputStream( tent );
-                        }
-                    };
-                    datsrc.setName( subname );
+
+                    /* This is slightly tricky.  We construct a DataSource
+                     * which uses the data in the current tar stream the 
+                     * first time it is used, but on subsequent occasions
+                     * it creates a new one.  This means that for running
+                     * through all the children probably the expensive
+                     * getEntryInputStream does not need to get used,
+                     * but it will be necessary (there is no way round it)
+                     * if subsequent clients want an input stream.  */
+                    DataSource childSrc;
                     try {
-                        return childMaker.makeDataNode( parent, datsrc );
+
+                        /* First advance the TarInputStream to the start of the
+                         * current entry. */
+                        boolean found = false;
+                        for ( TarEntry ent; 
+                              (ent = (TarEntry) tstream.getNextEntry()) != null;
+                            ) {
+                            if ( ent.getName().equals( tname ) ) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        /* In case we can't find the entry (shouldn't happen) */
+                        if ( ! found ) {
+                            System.err.println( "Couln't find entry " + tname );
+                            return new DefaultDataNode( subname );
+                        }
+
+                        /* Make a DataSource out of it which will, for now,
+                         * use the TarInputStream for its raw data. */
+                        class ProvisionalDataSource extends PathedDataSource {
+                            InputStream provisionalStream;
+                            public String getPath() {
+                                return pathHead + subname;
+                            }
+                            protected long getRawLength() {
+                                return tent.getSize();
+                            }
+                            protected InputStream getRawInputStream()
+                                    throws IOException {
+                                InputStream strm;
+                                if ( provisionalStream != null ) {
+                                    strm = provisionalStream;
+                                }
+                                else {
+                                    strm = getEntryInputStream( tent );
+
+                                    /* For reasons I entirely fail to
+                                     * understand, unless this stream is
+                                     * wrapped in a BufferedInputStream here,
+                                     * it can lead to compressed sources
+                                     * within tar files (and elsewhere?)
+                                     * apprently returning corrupted data
+                                     * (gzip header absent/incorrect).
+                                     * My attempts to track this down by
+                                     * placing traces on the read() methods
+                                     * of various streams have been fruitless.
+                                     * So reluctantly I wrap it here. */
+                                    strm = new BufferedInputStream( strm );
+                                }
+                                return strm;
+                            }
+                        }
+                        ProvisionalDataSource psrc = 
+                            new ProvisionalDataSource();
+                        psrc.setName( subname );
+                        psrc.provisionalStream = 
+                            new FilterInputStream( tstream ) {
+                                public void close() {
+                                    // do not close TarInputStream
+                                }
+                            };
+
+                        /* Read some data from the data source; the source will
+                         * cache this and can use it for magic number requests
+                         * during node construction attempts.  This should
+                         * mean that in most cases to construct a node the
+                         * childMaker below will not need to do any more
+                         * reads on the input (and hence will not need to
+                         * call the expensive getEntryInputStream). */
+                        psrc.getMagic( magbuf );
+
+                        /* Now invalidate the TarInputStream so that subsequent
+                         * reads will need to open their own, safe, input
+                         * stream if they in fact do need a stream. */
+                        psrc.provisionalStream = null;
+                        psrc.close();
+                        childSrc = psrc;
+                    }
+                    catch ( IOException e ) {
+                        return childMaker.makeErrorDataNode( parent, e );
+                    }
+
+                    /* If we are at the end of the children, close the 
+                     * tar stream. */
+                    if ( ! hasNext() ) {
+                        try {
+                            tstream.close();
+                        }
+                        catch ( IOException e ) {
+                            // oh well
+                        }
+                    }
+
+                    /* Construct the node as normal from its source. */
+                    try {
+                        return childMaker.makeDataNode( parent, childSrc );
                     }
                     catch ( NoSuchDataException e ) {
                         return childMaker.makeErrorDataNode( parent, e );
@@ -165,6 +265,15 @@ public class TarStreamDataNode extends DefaultDataNode {
         };
     }
 
+    /**
+     * Returns a list of all the entries in this archive whose name starts
+     * with a given string.
+     *
+     * @param   level  the required prefix
+     * @return  a list of all the <tt>TarEntry</tt> objects in this archive 
+     *          whose names begin with <tt>level</tt>.  They appear in the
+     *          list in the same order as they appear in the archive
+     */
     private List getEntriesAtLevel( String level ) throws IOException {
         Set realDirs = new HashSet();
         Set impliedDirs = new TreeSet();
@@ -214,6 +323,12 @@ public class TarStreamDataNode extends DefaultDataNode {
         return levEnts;
     }
 
+    /**
+     * Returns a list of all the <tt>TarEntry</tt> objects in this archive.
+     *
+     * @return  a list of the entries of this archive, in order of their
+     *          appearance in the archive
+     */
     private synchronized List getEntries() throws IOException {
         if ( entries == null ) {
             entries = new ArrayList();
@@ -227,7 +342,20 @@ public class TarStreamDataNode extends DefaultDataNode {
         return entries;
     }
 
-    private synchronized InputStream getEntryInputStream( TarEntry reqEnt ) 
+    /**
+     * Returns an input stream giving the data from a given entry in this 
+     * archive.  This stream is independent of any other streams associated
+     * with the archive, so it can (and should) be closed by the user
+     * when it's finished with.  It has to read through the whole tar
+     * input stream from the beginning to get this, so it can be 
+     * expensive if you want a stream from a long way into a large tar
+     * archive on which reads are not cheap (for instance one coming
+     * over the wire, or a compressed one).
+     *
+     * @param   reqEnt  the entry for which the stream data is required
+     * @return  a stream containing the data in <tt>reqEnt</tt>
+     */
+    private InputStream getEntryInputStream( TarEntry reqEnt ) 
             throws IOException {
         int reqPos = entryPosition( reqEnt );
         if ( reqPos < 0 ) {
@@ -235,38 +363,35 @@ public class TarStreamDataNode extends DefaultDataNode {
                 "Entry " + reqEnt.getName() + " is not in the archive" );
         }
 
-        if ( tstream == null || reqPos < tpos ) {
-            if ( tstream != null ) {
-                tstream.close();
-            }
-            tstream = getTarInputStream();
-            tpos = 0;
-        }
-
+        TarInputStream tstream = getTarInputStream();
         for ( TarEntry ent;
               ( ent = (TarEntry) tstream.getNextEntry() ) != null; ) {
-            tpos++;
-
             if ( ent.getName().equals( reqEnt.getName() ) ) {
-                return new FilterInputStream( tstream ) {
-                    public boolean markSupported() {
-                        return false;
-                    }
-                    public void close() throws IOException {
-                        // don't close the TarInputStream!
-                    }
-                };
+                return tstream;
             }
         }
 
+        tstream.close();
         throw new IOException( "Entry " + reqEnt + " said it was in " +
                                "the TarInputStream but wasn't" );
     }
 
+    /**
+     * Returns a new TarInputStream associated with this archive.
+     *
+     * @return  a tar input stream
+     */
     private TarInputStream getTarInputStream() throws IOException {
         return new TarInputStream( datsrc.getInputStream() );
     }
 
+    /**
+     * Returns the index of a given entry into the list of all the entries
+     * in this archive.
+     *
+     * @param   reqEnt  the entry to locate
+     * @return  the position at which <tt>reqEnt</tt> appears in this archive
+     */
     private int entryPosition( TarEntry reqEnt ) throws IOException {
         if ( entries == null ) {
             entries = getEntries();
@@ -282,6 +407,13 @@ public class TarStreamDataNode extends DefaultDataNode {
         return -1;
     }
 
+    /**
+     * Indicates whether the given bytes look like the start of a tar archive.
+     *
+     * @param   magic  a buffer of bytes containing at least the first
+     *                 264 bytes of a potential tar stream
+     * @return  true   if <tt>magic</tt> looks like the start of a tar stream
+     */
     public static boolean isMagic( byte[] magic ) {
         return magic.length > 264
             && (char) magic[ 257 ] == 'u'

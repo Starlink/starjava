@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.reflect.Constructor;
@@ -15,6 +16,7 @@ public abstract class DataNodeBuilder {
     private Constructor constructor;
     private Class argClass;
     public static boolean verbose = false;
+    public static PrintStream verbStream = System.err;
 
     /**
      * Determine whether this builder can be used to work on an object
@@ -82,7 +84,7 @@ public abstract class DataNodeBuilder {
                              *  Return null. */
                             if ( target instanceof NoSuchDataException ) {
                                 if ( verbose ) {
-                                    target.printStackTrace();
+                                    target.printStackTrace( verbStream );
                                 }
                                 return null;
                             }
