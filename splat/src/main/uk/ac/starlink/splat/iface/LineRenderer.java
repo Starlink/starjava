@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     21-NOV-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Component;
@@ -6,6 +13,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.plot.PlotControl;
 
 /**
  * LineRenderer is a ListCellRenderer that displays a line in a given
@@ -14,14 +22,12 @@ import uk.ac.starlink.splat.data.SpecData;
  * spectrum will have when drawn (the text, if supplied, being the
  * spectrum name)
  *
- * @since $Date$
- * @since 21-NOV-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
- * @see PlotControl.
+ * @see PlotControl
  */
-public class LineRenderer extends DefaultListCellRenderer
+public class LineRenderer 
+    extends DefaultListCellRenderer
 {
     /**
      * The icon that renders the line.

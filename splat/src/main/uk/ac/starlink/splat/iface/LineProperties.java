@@ -16,7 +16,7 @@ import uk.ac.starlink.splat.plot.DivaPlot;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see DivaPlot, PlotConfigurator
+ * @see DivaPlot
  */
 public class LineProperties
 {

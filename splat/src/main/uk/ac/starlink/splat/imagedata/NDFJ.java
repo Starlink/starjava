@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     02-SEP-1999 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.imagedata;
 
 import java.io.Serializable;
@@ -12,14 +19,11 @@ import uk.ac.starlink.util.Loader;
 /**
  * Java interface for accessing data stored in NDFs.
  *
- * @since $Date$
- * @since 02-SEP-1999
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
- * @see Plot, PlotConfigurator
  */
-public class NDFJ implements Serializable
+public class NDFJ 
+    implements Serializable
 {
     //
     //  =========================
@@ -295,7 +299,7 @@ public class NDFJ implements Serializable
      *
      * @return NDFJ reference to the copy.
      *
-     * @see "ndfTemp & ndfCopy in SUN/33".
+     * @see "ndfTemp & ndfCopy in SUN/33"
      */
     public NDFJ getTempCopy()
     {
@@ -314,7 +318,7 @@ public class NDFJ implements Serializable
      *
      * @return NDFJ reference to the copy.
      *
-     * @see "ndfCopy in SUN/33".
+     * @see "ndfCopy in SUN/33"
      */
     public NDFJ getCopy( String name )
     {
@@ -341,7 +345,7 @@ public class NDFJ implements Serializable
      *
      * @return NDFJ reference to the copy.
      *
-     * @see "ndfTemp in SUN/33".
+     * @see "ndfTemp in SUN/33"
      */
     static public NDFJ get1DTempDouble( int size )
     {

@@ -43,24 +43,24 @@ public interface SpecDataAccess
     public String getFullName();
 
     /**
-     *  Get the range (i.e. data limits) of the spectral data.
+     *  Get the range (i.e.<!-- --> data limits) of the spectral data.
      */
     public double[] getRange();
 
     /**
-     *  Get the full range (i.e. data limits plus standard deviations)
+     *  Get the full range (i.e.<!-- --> data limits plus standard deviations)
      *  of the spectral data. 
      */
     public double[] getFullRange();
 
     /**
-     *  Get the dimension of the spectrum (i.e. the number of values
+     *  Get the dimension of the spectrum (i.e.<!-- --> the number of values
      *  it contains).
      */
     public int size();
 
     /**
-     *  Lookup the physical values (i.e. wavelength and data value)
+     *  Lookup the physical values (i.e.<!-- --> wavelength and data value)
      *  that correspond to a graphics X coordinate.
      *  <p>
      *  Note that this only works for first spectrum.

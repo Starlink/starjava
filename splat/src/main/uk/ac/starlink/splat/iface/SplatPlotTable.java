@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     27-SEP-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
@@ -32,13 +39,11 @@ import uk.ac.starlink.splat.util.FuzzyBoolean;
  * GlobalSpecPlotList object, of which this is also a kind of
  * view). The current plot is obviously the one selected in this window.
  *
- * @since $Date$
- * @since 27-SEP-2000
  * @author Peter W. Draper (Starlink, Durham University)
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
-public class SplatPlotTable extends JPanel
+public class SplatPlotTable
+    extends JPanel
 {
     /**
      * The JList containing primary view of available spectra

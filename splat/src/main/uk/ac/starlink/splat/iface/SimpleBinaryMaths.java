@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     14-FEB-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
@@ -36,14 +43,11 @@ import uk.ac.starlink.splat.util.Utilities;
  * can then have a simple maths operator (+,-,*,/) applied to
  * them. The result is then generated as a new spectrum.
  *
- * @since $Date$
- * @since 14-FEB-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research
- *            Councils
  */
-public class SimpleBinaryMaths extends JFrame
+public class SimpleBinaryMaths 
+    extends JFrame
 {
     /**
      * Content pane of frame.

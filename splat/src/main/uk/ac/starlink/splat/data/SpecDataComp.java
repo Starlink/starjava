@@ -149,7 +149,7 @@ public class SpecDataComp
     /**
      *  Get the index of a spectrum.
      *
-     *  @param index the index of the spectrum.
+     *  @param inspec the spectrum.
      */
     public int indexOf( SpecData inspec )
     {
@@ -549,7 +549,7 @@ public class SpecDataComp
     }
 
     /**
-     *  Lookup the physical values (i.e. wavelength and data value)
+     *  Lookup the physical values (i.e.<!-- --> wavelength and data value)
      *  that correspond to a graphics X coordinate.
      *  <p>
      *  Note that this only works for first spectrum.
@@ -565,7 +565,7 @@ public class SpecDataComp
     }
 
     /**
-     *  Lookup the physical values (i.e. wavelength and data value)
+     *  Lookup the physical values (i.e.&nbsp;wavelength and data value)
      *  that correspond to a graphics X coordinate, returned in
      *  formatted strings (could be hh:mm:ss.ss for instance).
      *  <p>
@@ -582,9 +582,10 @@ public class SpecDataComp
     }
 
     /**
-     *  Lookup interpolated physical values (i.e. wavelength and data value)
-     *  that correspond to a graphics X coordinate, returned in
-     *  formatted strings (could be hh:mm:ss.ss for instance).
+     *  Lookup interpolated physical values (i.e.<!-- --> 
+     *  wavelength and data value) that correspond to a 
+     *  graphics X coordinate, returned in formatted strings 
+     *  (could be hh:mm:ss.ss for instance).
      *  <p>
      *  Note that this only works for first spectrum.
      *

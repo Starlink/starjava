@@ -1,11 +1,17 @@
+/*
+ * Copyright (C) 2001-2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     13-JUN-2001 (Peter W. Draper):
+ *       Original version.
+ *     13-JUN-2003 (Peter W. Draper):
+ *       Modified to use Preferences as the backing store. Was using a
+ *       file "~/.splat/ProxyConfig.xml".
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -24,14 +30,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.XMLOutputter;
-
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.GridBagLayouter;
+import uk.ac.starlink.splat.util.ProxySetup;
+import uk.ac.starlink.splat.util.Utilities;
 
 /**
  * Create a dialog window for displaying and modifying the current proxy
@@ -56,13 +58,11 @@ import uk.ac.starlink.splat.util.GridBagLayouter;
  * would occur in an network aware applications startup code
  * (i.e. well before the creation of the frame itself).
  *
- * @since $Date$
- * @since 13-JUN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  */
-public class ProxySetupFrame extends JFrame
+public class ProxySetupFrame 
+    extends JFrame
 {
     /**
      *  Menubar and various menus and items that it contains.
@@ -81,15 +81,18 @@ public class ProxySetupFrame extends JFrame
     protected JButton cancelButton = new JButton();
 
     /**
+     * The ProxySetup instance.
+     */
+    private ProxySetup proxySetup = null;
+
+    /**
      * Create an instance.
      */
     public ProxySetupFrame()
     {
-        // If the backing store document hasn't been loaded yet, do it
-        // now.
-        if ( document == null ) {
-            restore( null );
-        }
+        // Restore any existing values.
+        proxySetup = ProxySetup.getInstance();
+
         initUI();
         initMenus();
         initFrame();
@@ -124,7 +127,7 @@ public class ProxySetupFrame extends JFrame
                 }
             });
 
-        JLabel hostLabel = new JLabel( "Proxy Server:" );
+        JLabel hostLabel = new JLabel( "Proxy server:" );
         layouter.add( hostLabel, false );
         layouter.add( hostName, true );
 
@@ -208,19 +211,13 @@ public class ProxySetupFrame extends JFrame
      */
     protected void matchToProperties()
     {
-        String proxySet = System.getProperty( "http.proxySet" );
-        boolean set = false;
-        if ( proxySet != null && 
-             proxySet.compareToIgnoreCase( "true" ) == 0 ) {
-            set = true;
-        }
-        needProxy.setSelected( set );
+        needProxy.setSelected( proxySetup.isProxySet() );
 
-        String proxyHost = System.getProperty( "http.proxyHost" );
+        String proxyHost = proxySetup.getProxyHost();
         if ( proxyHost != null ) {
             hostName.setText( proxyHost );
         }
-        String proxyPort = System.getProperty( "http.proxyPort" );
+        String proxyPort = proxySetup.getProxyPort();
         if ( proxyPort != null ) {
             portNumber.setText( proxyPort );
         }
@@ -232,12 +229,9 @@ public class ProxySetupFrame extends JFrame
      */
     protected void matchToInterface()
     {
-        boolean proxySet = needProxy.isSelected();
-        System.setProperty( "http.proxySet", "" + proxySet );
-        String proxyHost = hostName.getText();
-        System.setProperty( "http.proxyHost", proxyHost );
-        String proxyPort = portNumber.getText();
-        System.setProperty( "http.proxyPort", proxyPort );
+        proxySetup.setProxySet( needProxy.isSelected() );
+        proxySetup.setProxyHost( hostName.getText() );
+        proxySetup.setProxyPort( portNumber.getText() );
         checkEntryStates();
     }
 
@@ -268,7 +262,7 @@ public class ProxySetupFrame extends JFrame
         else {
             matchToProperties();
         }
-        store( null );
+        proxySetup.store();
         this.hide();
     }
 
@@ -302,22 +296,6 @@ public class ProxySetupFrame extends JFrame
 //
 // Backing store handling code.
 //
-// The backing store is only consulted twice in a typical session,
-// once when the application loads the proxy information, and again if
-// the user enters new proxy information. The system proxy variables
-// are the primary source of this information in a live application.
-//
-    /**
-     * Backing store document, only one per-application.
-     */
-    protected static Document document = null;
-
-    /**
-     * Document root Element. The actual configuration is saved as
-     * children of this element.
-     */
-    protected static Element rootElement = null;
-
     /**
      * Restore from backing store, updating the system properties.
      *
@@ -327,8 +305,7 @@ public class ProxySetupFrame extends JFrame
      */
     public static void restore( ProxySetupFrame target )
     {
-        recoverFromBackingStore();
-        decode( rootElement );
+        ProxySetup.getInstance().restore();
         if ( target != null ) {
             target.matchToProperties();
         }
@@ -338,7 +315,7 @@ public class ProxySetupFrame extends JFrame
      * Save state of system properties to backing store.
      *
      * @param target if not null, then this should be a
-     *               ProxySetupFrmae that has a setup that should be
+     *               ProxySetupFrame that has a setup that should be
      *               used in preference to the system properties. Note
      *               that after this method the system properties will
      *               be modified to reflect the stored state.
@@ -348,134 +325,6 @@ public class ProxySetupFrame extends JFrame
         if ( target != null ) {
             target.matchToInterface();
         }
-
-        //  Clear existing children.
-        rootElement = new Element( "proxy-state" );
-        document.setRootElement( rootElement );
-
-        encode( rootElement );
-        writeToBackingStore();
-    }
-
-    /**
-     * Initialise the local DOM from the backing store file. If not
-     * possible then an empty document is created. The backing store
-     * is expected to be in the application configuration file
-     * "ProxySetup.xml".
-     */
-    protected static void recoverFromBackingStore()
-    {
-        //  Locate the backing store file.
-        File backingStore = Utilities.getConfigFile( "ProxySetup.xml" );
-        if ( backingStore.canRead() ) {
-
-            //  And parse it into a Document.
-            SAXBuilder builder = new SAXBuilder( false );
-            try {
-                document  = builder.build( backingStore );
-            }
-            catch (Exception e) {
-                document = null;
-                e.printStackTrace();
-            }
-        }
-
-        //  If the document is still null create a default one.
-        if ( document == null ) {
-            rootElement = new Element( "proxy-state" );
-            document = new Document( rootElement );
-        }
-        else {
-            //  Locate the root Element.
-            rootElement = document.getRootElement();
-        }
-    }
-
-    /**
-     * Save the local DOM to backing store. This is written to the
-     * application configuration file "ProxySetup.xml".
-     */
-    protected static void writeToBackingStore()
-    {
-        File backingStore = Utilities.getConfigFile( "ProxySetup.xml" );
-        FileOutputStream f = null;
-        BufferedWriter r = null;
-        try {
-            f = new FileOutputStream( backingStore );
-            r = new BufferedWriter( new OutputStreamWriter( f ) );
-        } 
-        catch ( Exception fatal ) {
-            fatal.printStackTrace();
-            return;
-        }
-
-        XMLOutputter out = new XMLOutputter( "   ", true );
-        out.setTextNormalize( true );
-        try {
-            out.output( document, r );
-        }
-        catch ( Exception information ) {
-            information.printStackTrace();
-        }
-        try {
-            f.close();
-        }
-        catch ( Exception information ) {
-            information.printStackTrace();
-        }
-    }
-
-    /**
-     * Encode the system proxy properties as a series of child
-     * elements of a given root element. The encodings are simple
-     * strings.
-     *
-     * @param rootElement an element of the DOM.
-     */
-    public static void encode( Element rootElement )
-    {
-        addChildElement( rootElement, "http.proxySet",
-                         System.getProperty( "http.proxySet" ) );
-        addChildElement( rootElement, "http.proxyHost",
-                         System.getProperty( "http.proxyHost" ) );
-        addChildElement( rootElement, "http.proxyPort",
-                         System.getProperty( "http.proxyPort" ) );
-    }
-
-    /**
-     * Add an element with String value as a child of another
-     * element. 
-     *
-     * @param rootElement element of the DOM.
-     * @param name name of the tag
-     * @param value text of the new element.
-     */
-    protected static void addChildElement( Element rootElement, String name,
-                                           String value )
-    {
-        Element newElement = new Element( name );
-        if ( value != null ) {
-            newElement.setText( value );
-        }
-        rootElement.addContent( newElement );
-    }
-
-    /**
-     * Decode the proxy server state from an XML document that was
-     * encoded by this class. The properties are assumed correct when
-     * extracted in name and value.
-     *
-     * @param rootElement element of the DOM that has children written
-     *                    by the encode method of this class.
-     */
-    public static void decode( Element rootElement )
-    {
-        java.util.List children = rootElement.getChildren();
-        int size = children.size();
-        Element element = null;
-        for ( int i = 0; i < size; i++ ) {
-            element = (Element) children.get( i );
-            System.setProperty( element.getName(), element.getText() );
-        }
+        ProxySetup.getInstance().restore();
     }
 }

@@ -37,13 +37,14 @@ import javax.swing.border.*;
 import java.awt.*;
 
 /**
- * This class describes a theme using "blue-green" colors.
+ * This class describes a theme using blue-green colors.
  *
- * 1.3 07/22/99
+ * @since 1.3 07/22/99
  * @author Steve Wilson
  */
-public class AquaTheme extends DefaultMetalTheme {
-
+public class AquaTheme 
+    extends DefaultMetalTheme 
+{
     public String getName() { return "Aqua"; }
 
     private final ColorUIResource primary1 = new ColorUIResource(102, 153, 153);

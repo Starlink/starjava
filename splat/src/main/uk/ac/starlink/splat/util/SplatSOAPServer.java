@@ -56,7 +56,7 @@ public class SplatSOAPServer
      * Get the instance. Uses lazy instantiation so object does not
      * exist until the first invocation of this method. Make sure 
      * that the SplatBrowser to be used is set before making any of
-     * of this reference {@link #setSplatBrowser()}.
+     * of this reference {@link #setSplatBrowser}.
      */
     public static SplatSOAPServer getInstance()
     {

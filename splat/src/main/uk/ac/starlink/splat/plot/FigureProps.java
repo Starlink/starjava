@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     20-FEB-2002 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import java.awt.Color;
@@ -8,11 +15,8 @@ import java.awt.Color;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
- * @see Figure
- * @see Plot
+ * @see DivaPlot
  */
-
 public class FigureProps
 {
     /**

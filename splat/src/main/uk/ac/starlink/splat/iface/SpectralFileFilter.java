@@ -116,7 +116,7 @@ public class SpectralFileFilter
      *
      * Files that begin with "." are ignored.
      *
-     * @see FileFilter#accepts
+     * @see FileFilter#accept
      */
     public boolean accept( File f )
     {
@@ -157,11 +157,6 @@ public class SpectralFileFilter
     /**
      * Returns the human readable description of this filter. For
      * example: "JPEG and GIF Image Files (*.jpg, *.gif)"
-     *
-     * @see setDescription
-     * @see setExtensionListInDescription
-     * @see isExtensionListInDescription
-     * @see FileFilter#getDescription
      */
     public String getDescription()
     {
@@ -196,10 +191,6 @@ public class SpectralFileFilter
     /**
      * Sets the human readable description of this filter. For
      * example: filter.setDescription("Gif and JPG Images");
-     *
-     * @see setDescription
-     * @see setExtensionListInDescription
-     * @see isExtensionListInDescription
      */
     public void setDescription( String description )
     {
@@ -213,10 +204,6 @@ public class SpectralFileFilter
      *
      * Only relevent if a description was provided in the constructor
      * or using setDescription();
-     *
-     * @see getDescription
-     * @see setDescription
-     * @see isExtensionListInDescription
      */
     public void setExtensionListInDescription( boolean b )
     {
@@ -230,10 +217,6 @@ public class SpectralFileFilter
      *
      * Only relevent if a description was provided in the constructor
      * or using setDescription();
-     *
-     * @see getDescription
-     * @see setDescription
-     * @see setExtensionListInDescription
      */
     public boolean isExtensionListInDescription()
     {

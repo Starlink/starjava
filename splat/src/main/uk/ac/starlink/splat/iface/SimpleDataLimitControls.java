@@ -30,7 +30,7 @@ import uk.ac.starlink.splat.plot.DivaPlot;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see #DataLimits, #PlotConfigFrame.
+ * @see DataLimits
  */
 public class SimpleDataLimitControls
      extends JPanel
@@ -217,7 +217,7 @@ public class SimpleDataLimitControls
     }
 
     /**
-     * Cause the plot to redraw itself, i.e. apply our changes. Special case
+     * Cause the plot to redraw itself, i.e.<!-- --> apply our changes. Special case
      * we want to do a fit to height at the same time.
      */
     protected void updatePlot()

@@ -1,5 +1,11 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     26-OCT-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
-
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.event.ChangeEvent;
@@ -16,13 +22,11 @@ import javax.swing.event.EventListenerList;
  * the actual values used by the slider. Naturally default labelling
  * of the slider isn't very useful.
  *
- * @since $Date$
- * @since 26-OCT-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
-public class FloatJSliderModel implements BoundedRangeModel
+public class FloatJSliderModel 
+    implements BoundedRangeModel
 {
     /**
      * Reference to ChangeEvent, set when fireStateChanged invoked.

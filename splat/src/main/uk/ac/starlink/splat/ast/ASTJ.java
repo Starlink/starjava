@@ -32,11 +32,11 @@ import uk.ac.starlink.ast.UnitMap;
 import uk.ac.starlink.ast.Grf;
 
 /**
- * Java interface for AST manipulations based on a frameset (i.e. type
- * of operations needed to support WCS coordinates). The graphics
- * facilities (if used) are provided by the Grf class. This should
- * also be initialised before use and a reference to the object
- * passed.
+ * Java interface for AST manipulations based on a frameset 
+ * (i.e.<!-- --> type of operations needed to support WCS coordinates). 
+ * The graphics facilities (if used) are provided by the Grf
+ * class. This should also be initialised before use and a reference
+ * to the object passed.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -62,16 +62,7 @@ public class ASTJ
      */
     public ASTJ( FrameSet astref )
     {
-        setRef( astref, false );
-    }
-
-    /**
-     *  Initialise from an AST frameset reference. This form takes
-     *  possession of the reference and releases it when finalized.
-     */
-    public ASTJ( FrameSet astref, boolean manage )
-    {
-        setRef( astref, manage );
+        setRef( astref );
     }
 
     /**
@@ -144,9 +135,9 @@ public class ASTJ
     /**
      *  Set the main AST frameset.
      *
-     *  @param astref reference to the AST frameset.
+     *  @param astRef reference to the AST frameset.
      */
-    public void setRef( FrameSet astRef, boolean manage )
+    public void setRef( FrameSet astRef )
     {
         this.astRef = astRef;
         this.manageAstRef = manage;
@@ -352,7 +343,8 @@ public class ASTJ
     }
 
     /**
-     *  Draw a text string at a given position.
+     *  Draw a text string at a given position. A call to astPlot 
+     *  must be made before attempting to use this method.
      *
      *  @param text the string of text to plot.
      *
@@ -363,9 +355,6 @@ public class ASTJ
      *            graphics coordinates).
      *  @param just justification position of the text (two characters
      *              from the pairs {T,C,B} - {L,C,R}).
-     *
-     *  @notes a call to astPlot must be made before attempting to use
-     *         this method.
      */
     public void astText( String text, double[] position, float up[],
                          String just )
@@ -377,7 +366,8 @@ public class ASTJ
     }
 
     /**
-     *  Draw a graphics marker at given positions.
+     *  Draw a graphics marker at given positions. The points are 
+     *  stored in the arrays like [x0,y0,x1,y1...].
      *
      *  @param points the set of 2D positions to draw marker at,
      *                these coordinates are in the current frame of
@@ -385,7 +375,6 @@ public class ASTJ
      *  @param type   the type of marker to be drawn, these are
      *                defined by the class GrfMarker.
      *
-     *  @notes the points are stored in the arrays like [x0,y0,x1,y1...]
      */
     public void astMark2( double[] points, int type )
     {
@@ -514,7 +503,7 @@ public class ASTJ
     /**
      *  Get an attribute of an AST object as String.
      *
-     *  @param astref reference to AST object (such as an AstFrame,
+     *  @param astRef reference to AST object (such as an AstFrame,
      *                AstPlot etc.)
      *  @param attrib the AST attribute to return.
      *
@@ -530,7 +519,7 @@ public class ASTJ
     /**
      *  Get an attribute of an AST object as floating point value.
      *
-     *  @param astref reference to AST object (such as an AstFrame,
+     *  @param astRef reference to AST object (such as an AstFrame,
      *                AstPlot etc.)
      *  @param attrib the AST attribute to return.
      *
@@ -555,6 +544,7 @@ public class ASTJ
 
     /**
      *  Transform a set of 1D positions using an AstMapping.
+     *  The mapping must have nin and nout equal to 1.
      *
      *  @param mapping the AstMapping (frameset or Plot).
      *  @param points  the set of positions to transform.
@@ -562,8 +552,6 @@ public class ASTJ
      *                 transform.
      *
      *  @return double [] array of transformed positions.
-     *
-     *  @notes the mapping must have nin and nout equal to 1.
      *
      *  @deprecated Use direct ".tran1" method of mapping
      */
@@ -576,6 +564,7 @@ public class ASTJ
 
     /**
      *  Transform a set of 2D positions using an AstMapping.
+     *  The points are stored in the arrays like [x0,y0,x1,y1...].
      *
      *  @param mapping the AstMapping (frameset or Plot).
      *  @param points  the set of 2D positions to transform.
@@ -583,8 +572,6 @@ public class ASTJ
      *                 transform.
      *
      *  @return double [] array of transformed positions.
-     *
-     *  @notes the points are stored in the arrays like [x0,y0,x1,y1...]
      *
      *  @deprecated Use direct ".tran2" method of mapping.
      */
@@ -650,7 +637,7 @@ public class ASTJ
     /**
      *  Extract a 1D mapping from a FrameSet.
      *
-     *  @param mapping reference to the AST frameset.
+     *  @param frameset reference to the AST frameset.
      *  @param axis the axis whose mapping is to be extracted.
      *
      *  @return the 1D mapping
@@ -670,7 +657,7 @@ public class ASTJ
     /**
      *  Extract a 1D spectral axis frameset from a makeSpectral frameset.
      *
-     *  @param mapping reference to the makeSpectral frameset.
+     *  @param frameset reference to the makeSpectral frameset.
      *
      *  @return the 1D frameset
      */

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     22-JUN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.util.ArrayList;
@@ -9,14 +16,13 @@ import javax.swing.table.AbstractTableModel;
  * description of the data shown in a JTable that relates to a series
  * spectral line fits.
  *
- * @since $Date$
- * @since 22-JUN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Peter W. Draper
- * @see LineFitView, MultiTableView
+ * @see LineFitView
+ * @see MultiTableView
  */
-public class LineFitViewModel extends AbstractTableModel
+public class LineFitViewModel 
+    extends AbstractTableModel
 {
     /**
      * Array of objects that define the line properties.
@@ -45,7 +51,7 @@ public class LineFitViewModel extends AbstractTableModel
 //
     /**
      *  Returns the number of records managed by the data source
-     *  object (i.e. the number of lines).
+     *  object (i.e.<!-- --> the number of lines).
      */
     public int getRowCount() 
     {

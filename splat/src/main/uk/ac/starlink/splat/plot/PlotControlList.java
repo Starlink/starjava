@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     28-SEP-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import java.util.ArrayList;
@@ -13,16 +20,11 @@ import uk.ac.starlink.splat.util.SplatException;
  * updated whenever a spectrum is destroyed or added or removed from a
  * Plot.
  *
- * @since $Date$
- * @since 28-SEP-2000
- *
  * @version $Id$
  * @author Peter W. Draper
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  *
- * @see Plot
+ * @see DivaPlot
  * @see PlotControl
- * @see SpecDataComp
  * @see "The Singleton Design Pattern"
  */
 public class PlotControlList
@@ -175,7 +177,7 @@ public class PlotControlList
      * so return its index. The identifier of a plot is shown as part
      * of its title (the N part of <plotN>).
      *
-     * @param name the index of the plot whose "name" is required.
+     * @param identifier the index of the plot whose "name" is required.
      * @return the plot index, or -1 if not located.
      */
     public int indexOf( int identifier )

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     14-FEB-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.util.ArrayList;
@@ -8,12 +15,9 @@ import uk.ac.starlink.splat.data.SpecData;
  * Manage a list of selected spectra. Provides basic facilities to
  * add, remove and clear the list.
  *
- * @since $Date$
- * @since 14-FEB-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see SpecData.
+ * @see SpecData
  */
 public class SpecSubList
 {

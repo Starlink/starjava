@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     04-FEB-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.Figure;
@@ -19,11 +26,8 @@ import javax.swing.SwingConstants;
  * horizontal bounds of a figure. The natural figure movements
  * supported are vertical or horizontal movement and resizing.
  *
- * @since $Date$
- * @since 14-FEB-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  */
 public class RangeManipulator extends BoundsManipulator
 {

@@ -110,7 +110,7 @@ import uk.ac.starlink.splat.iface.SpecTransferHandler;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see Plot
+ * @see DivaPlot
  */
 public class PlotControl
     extends JPanel
@@ -1149,7 +1149,7 @@ public class PlotControl
 
     /**
      * Get the physical coordinates limits of the current view of the Plot
-     * (i.e. what you can see).
+     * (i.e.<!-- --> what you can see).
      *
      * @return array of four doubles, the lower X, lower Y, upper X and upper
      *      Y coordinates.
@@ -1174,8 +1174,9 @@ public class PlotControl
     }
 
     /**
-     * Get the physical coordinate limits of the complete Plot (i.e. the whole
-     * plot, including zoomed regions that you cannot see).
+     * Get the physical coordinate limits of the complete Plot
+     * (i.e.&nbsp;the whole plot, including zoomed regions that you
+     * cannot see).
      *
      * @return array of four doubles, the lower X, lower Y, upper X and upper
      *      Y coordinates.

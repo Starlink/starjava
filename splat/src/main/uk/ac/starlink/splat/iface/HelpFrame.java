@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     06-NOV-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
@@ -30,7 +37,7 @@ import uk.ac.starlink.splat.util.Utilities;
 /**
  * Creates a window that display the SPLAT HelpSet. This is used in
  * preference to the default HelpBrowser as we want to offer the
- * ability to select a font and to define a proxy server for 
+ * ability to select a font and to define a proxy server for
  * hyperlinks that leave the local system.
  * <p>
  * This class also offers an Action implementation for adding Help
@@ -40,13 +47,11 @@ import uk.ac.starlink.splat.util.Utilities;
  * therefore necessary that the user disposes of it when it is really
  * no longer required.
  *
- * @since $Date$
- * @since 06-NOV-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
-public class HelpFrame extends JFrame
+public class HelpFrame
+    extends JFrame
 {
     /**
      * The one instance of this class.
@@ -145,7 +150,7 @@ public class HelpFrame extends JFrame
      * Initialise frame properties (disposal, title, menus etc.).
      */
     protected void initFrame()
-    { 
+    {
         setTitle( Utilities.getTitle( "Help" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         setSize( new Dimension( 800, 500 ) );
@@ -193,7 +198,7 @@ public class HelpFrame extends JFrame
         helpComponent.setCurrentID( id );
 
         // Default font looks ugly (poor space proportions for some
-        // reason), so always set at least once for now. 
+        // reason), so always set at least once for now.
         if ( ! fontSet ) {
             Font f = UIManager.getFont( "TextField.font" );
             if ( f != null ) {
@@ -325,7 +330,7 @@ public class HelpFrame extends JFrame
         }
 
         //  Add an action to the top of the help system.
-        Action topAction = HelpFrame.getAction( "On SPLAT", 
+        Action topAction = HelpFrame.getAction( "On SPLAT",
                                                 "splat-help" );
         helpMenu.add( topAction );
 
@@ -335,7 +340,7 @@ public class HelpFrame extends JFrame
 //
 // HelpAction implementation.
 //
-    protected static ImageIcon helpImage = 
+    protected static ImageIcon helpImage =
         new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
 
     /**
@@ -344,12 +349,12 @@ public class HelpFrame extends JFrame
     protected static class HelpAction extends AbstractAction
     {
         protected String id = null;
-        public HelpAction( String menuDescription, String id ) 
+        public HelpAction( String menuDescription, String id )
         {
             super( menuDescription, helpImage );
             this.id = id;
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             showHelpEvent( id );
         }

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     19-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
@@ -13,14 +20,11 @@ import javax.swing.JTable;
  * unique name, attempts to repeat a name result in that tab being
  * re-created.
  *
- * @since $Date$
- * @since 19-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research
- * Councils
  */
-public class MultiTableView extends JPanel
+public class MultiTableView
+    extends JPanel
 {
     /**
      * The tabbed pane.
@@ -128,7 +132,7 @@ public class MultiTableView extends JPanel
     {
         JTable table = null;
         if ( exists( name ) ) {
-            JScrollPane pane = 
+            JScrollPane pane =
                 (JScrollPane) tabbedPane.getComponentAt( tabbedPane.indexOfTab( name ) );
             table = (JTable) pane.getViewport().getView();
         }

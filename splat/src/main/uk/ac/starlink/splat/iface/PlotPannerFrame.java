@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     13-JUN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
@@ -14,6 +21,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.Utilities;
 
@@ -24,12 +32,12 @@ import uk.ac.starlink.splat.util.Utilities;
  * rectangle can be "picked up" and moved to scroll the viewport
  * contents.
  *
- * @since $Date$
- * @since 13-JUN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see PlotControl, PlotControlFrame, Plot, PlotPanner.
+ * @see PlotControl
+ * @see PlotControlFrame
+ * @see DivaPlot
+ * @see PlotPanner
  */
 public class PlotPannerFrame extends JFrame
 {

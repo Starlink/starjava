@@ -33,7 +33,7 @@ public class AverageFilter
      *  Create an instance, averaging the given data using the given
      *  number of data elements about the current data position.
      *
-     *  @param array the array of values to be averaged.
+     *  @param data the array of values to be averaged.
      *  @param window the number of positions that are used for the
      *                average. Will be increased to the nearest odd
      *                integer and has a minimum value of 3.

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     08-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.toolbox.BasicFigure;
@@ -12,22 +19,20 @@ import javax.swing.event.EventListenerList;
 /**
  * PlotFigure extends the diva BasicFigure class to add support for
  * events that allow users of any derived figures to be made aware of
- * any changes, i.e. figure creation, removal and transformations.
- *
+ * any changes, i.e.&nbsp;figure creation, removal and transformations.
+ * <p>
  * All figures used on a Plot should be derived classes of this class,
  * or implement the necessary code to support the FigureListener
  * class. They should also invoke fireChanged in their translate and
  * transform methods (but not if calling super) and respect the
  * transformFreely state.
  *
- * @since $Date$
- * @since 08-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see Plot, Figure
+ * @see DivaPlot
  */
-public class BasicPlotFigure extends BasicFigure
+public class BasicPlotFigure
+    extends BasicFigure
     implements PlotFigure
 {
     /**

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     14-FEB-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
@@ -39,14 +46,11 @@ import uk.ac.starlink.ast.gui.DecimalField;
  * subtracted, multiplied or divided into the spectrum. The result is
  * then generated as a new spectrum.
  *
- * @since $Date$
- * @since 14-FEB-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research
- *            Councils
  */
-public class SimpleUnaryMaths extends JFrame
+public class SimpleUnaryMaths 
+    extends JFrame
 {
     /**
      * Content pane of frame.

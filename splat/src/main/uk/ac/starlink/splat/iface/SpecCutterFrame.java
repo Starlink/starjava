@@ -43,7 +43,7 @@ import uk.ac.starlink.splat.util.Utilities;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see #SpecCutter
+ * @see SpecCutter
  */
 public class SpecCutterFrame extends JFrame
 {

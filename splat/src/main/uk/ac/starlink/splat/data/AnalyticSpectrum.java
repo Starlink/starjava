@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     14-DEC-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.data;
 
 /**
@@ -12,12 +19,8 @@ package uk.ac.starlink.splat.data;
  * Semi-analytic procedures (such as interpolation of a real spectrum)
  * should also implement this interface.
  *
- * @since $Date$
- * @since 14-DEC-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research
- * Councils
  */
 public interface AnalyticSpectrum
 {

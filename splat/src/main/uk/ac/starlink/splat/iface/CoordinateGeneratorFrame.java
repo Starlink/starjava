@@ -48,7 +48,6 @@ public class CoordinateGeneratorFrame
      * Create an instance.
      *
      * @param coordinateGenerator the CoordinateGenerator instance.
-     * @param title for the window
      */
     public CoordinateGeneratorFrame( CoordinateGenerator coordinateGenerator )
     {

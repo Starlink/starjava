@@ -1,5 +1,11 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     04-OCT-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
-
 
 import javax.swing.table.AbstractTableModel;
 
@@ -12,12 +18,8 @@ import uk.ac.starlink.splat.util.ExceptionDialog;
  * mediating between the GlobalSpecPlotList object and a viewer of the
  * available plots and what spectra they are displaying.
  *
- * @since $Date$
- * @since 04-OCT-2000
  * @version $Id$
  * @author Peter W. Draper
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
- *
  */
 public class PlotTableModel extends AbstractTableModel
     implements PlotListener
@@ -58,7 +60,7 @@ public class PlotTableModel extends AbstractTableModel
 //
     /**
      *  Returns the number of records managed by the data source
-     *  object (i.e. the number of plots).
+     *  object (i.e.<!-- --> the number of plots).
      */
     public int getRowCount()
     {
@@ -182,7 +184,7 @@ public class PlotTableModel extends AbstractTableModel
     }
 
     /**
-     *  React to a plot change, i.e. a spectrum added. Don't know
+     *  React to a plot change, i.e.<!-- --> a spectrum added. Don't know
      *  which one (could be current added to a plot), so redraw
      *  everything.
      */

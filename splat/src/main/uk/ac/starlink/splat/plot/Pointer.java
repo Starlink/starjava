@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     05-DEC-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.AbstractFigure;
@@ -20,14 +27,12 @@ import javax.swing.event.EventListenerList;
  * Pointer is a Diva figure that can point up or down to identify
  * features. 
  *
- * @since $Date$
- * @since 05-DEC-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
- * @see Figure, AbstractFigure
+ * @see AbstractFigure
  */
-public class Pointer extends AbstractFigure 
+public class Pointer 
+    extends AbstractFigure 
 {
     // General path that describes the pointer figure.
     private GeneralPath shape;
@@ -94,7 +99,7 @@ public class Pointer extends AbstractFigure
      * @param x starting position of the pointer
      * @param y starting position of the pointer
      * @param length length of the pointer.
-     * @param size size of the arrow head.
+     * @param arrowsize size of the arrow head.
      */
     public Pointer( boolean down, double x, double y, double length, 
                     double arrowsize )
@@ -110,7 +115,7 @@ public class Pointer extends AbstractFigure
      * @param x starting position of the pointer
      * @param y starting position of the pointer
      * @param length length of the pointer.
-     * @param size size of the arrow head.
+     * @param arrowsize size of the arrow head.
      */
     public Pointer( boolean down, double x, double y, double length, 
                     double arrowsize, float width )

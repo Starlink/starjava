@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     12-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.GraphicsPane;
@@ -25,12 +32,8 @@ import diva.canvas.interactor.SelectionRenderer;
  * @version $Revision$
  * @author John Reekie
  *
- * @since $Date$
- * @since 12-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research
- *            Councils 
  */
 public class DivaController 
 {

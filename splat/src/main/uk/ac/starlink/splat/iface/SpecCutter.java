@@ -20,8 +20,8 @@ import uk.ac.starlink.splat.util.Sort;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see #SpecData
- * @see "The Singleton Design Pattern".
+ * @see SpecData
+ * @see "The Singleton Design Pattern"
  */
 public class SpecCutter
 {

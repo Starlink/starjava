@@ -294,20 +294,20 @@ public class SpecData
     protected String fullName = null;
 
     /**
-     * The range of coordinates spanned (i.e. min/max values in xPos and
+     * The range of coordinates spanned (i.e.<!-- --> min/max values in xPos and
      * yPos).
      */
     protected double[] range = new double[4];
 
     /**
-     * The full range of coordinates spanned (i.e. min/max values in xPos and
-     * yPos, plus the standard deviations in yPos).
+     * The full range of coordinates spanned (i.e.&nbsp;min/max values
+     * in xPos and yPos, plus the standard deviations in yPos).
      */
     protected double[] fullRange = new double[4];
 
     /**
      * Reference to ASTJ object that contains an AST FrameSet that wraps
-     * the spectrum FrameSet so that it can be plotted (i.e. makes it
+     * the spectrum FrameSet so that it can be plotted (i.e.&nbsp;makes it
      * suitably two dimensional). Marked "transient" it should always be
      * re-generated when a spectrum is loaded.
      */
@@ -350,7 +350,7 @@ public class SpecData
 
     /**
      * Whether this spectrum should be used when auto-ranging (certain classes
-     * of spectra, i.e. generated ones, could be expected to have artificial
+     * of spectra, i.e.<!-- --> generated ones, could be expected to have artificial
      * ranges).
      */
     protected boolean useInAutoRanging = true;
@@ -412,7 +412,7 @@ public class SpecData
 
 
     /**
-     * Get references to spectrum X data (i.e. the coordinates as a
+     * Get references to spectrum X data (i.e.<!-- --> the coordinates as a
      * single array).
      *
      * @return reference to spectrum X data.
@@ -424,7 +424,7 @@ public class SpecData
 
 
     /**
-     * Get references to spectrum Y data (i.e. the data values).
+     * Get references to spectrum Y data (i.e.<!-- --> the data values).
      *
      * @return reference to spectrum Y data.
      */
@@ -435,7 +435,7 @@ public class SpecData
 
 
     /**
-     * Get references to spectrum Y data errors (i.e. the data errors).
+     * Get references to spectrum Y data errors (i.e.<!-- --> the data errors).
      *
      * @return reference to spectrum Y data errors.
      */
@@ -661,7 +661,7 @@ public class SpecData
     /**
      * Create a new (memory-resident) spectrum from the given data and
      * coordinates (looses WCS as new coords are assumed no longer
-     * directly related, i.e. indices of data do not map to proper
+     * directly related, i.e.<!-- --> indices of data do not map to proper
      * coordinates using the WCS).
      */
     protected SpecData createNewSpectrum( String name, double[] coords,
@@ -722,7 +722,7 @@ public class SpecData
      * SpecDataImpl. Note this may not be 1D. It is made available
      * mainly for creating copies of SpecData (the ASTJ FrameSet is
      * not suitable for writing to disk file). Do not confuse this
-     * with the {@link getAst()} FrameSet, it is the original dataset
+     * with the {@link #getAst()} FrameSet, it is the original dataset
      * FrameSet.
      */
     public FrameSet getFrameSet()
@@ -1427,7 +1427,7 @@ public class SpecData
 
 
     /**
-     * Lookup the physical values (i.e. wavelength and data value) that
+     * Lookup the physical values (i.e.<!-- --> wavelength and data value) that
      * correspond to a graphics X coordinate.
      *
      * @param xg X graphics coordinate
@@ -1526,7 +1526,7 @@ public class SpecData
     }
 
     /**
-     * Lookup the physical values (i.e. wavelength and data value) that
+     * Lookup the physical values (i.e.&nbsp;wavelength and data value) that
      * correspond to a graphics X coordinate. Value is returned as formatted
      * strings for the selected axis (could be sky coordinates for instance).
      *
@@ -1548,8 +1548,8 @@ public class SpecData
 
 
     /**
-     * Return interpolated physical values (i.e. wavelength and data value)
-     * that correspond to a graphics X coordinate.
+     * Return interpolated physical values (i.e.&nbsp;wavelength and
+     * data value) that correspond to a graphics X coordinate.
      *
      * @param xg X graphics coordinate
      * @param plot AST plot needed to transform graphics position into

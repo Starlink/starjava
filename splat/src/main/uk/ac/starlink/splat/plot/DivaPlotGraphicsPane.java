@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     11-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.Figure;
@@ -26,14 +33,12 @@ import uk.ac.starlink.ast.Mapping;
  * <p>
  * Known figure types can be created and removed from the Pane.
  *
- * @since $Date$
- * @since 11-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see Plot, PlotConfigurator
+ * @see DivaPlot
  */
-public class DivaPlotGraphicsPane extends GraphicsPane
+public class DivaPlotGraphicsPane
+    extends GraphicsPane
 {
     /**
      * The controller

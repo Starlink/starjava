@@ -64,6 +64,7 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.data.SpecDataImpl;
 import uk.ac.starlink.splat.data.SpecList;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.GridBagLayouter;
@@ -91,18 +92,18 @@ import uk.ac.starlink.splat.util.Utilities;
  * plus more trivial options, like choosing the look and feel.
  * <p>
  * The actual display and interactive analysis of spectra takes place
- * in the plots (see {@link #PlotControlFrame}, {@link #PlotControl}
- * and {@link #DivaPlot}).
+ * in the plots (see {@link PlotControlFrame}, {@link PlotControl}
+ * and {@link DivaPlot}).
  *
  * @author Peter W. Draper
  * @version $Id$
  *
- * @see #GlobalSpecPlotList
- * @see #SplatSelectedProperties
- * @see #SplatPlotTable
- * @see #PlotControlFrame
- * @see #PlotControl
- * @see #DivaPlot
+ * @see GlobalSpecPlotList
+ * @see SplatSelectedProperties
+ * @see SplatPlotTable
+ * @see PlotControlFrame
+ * @see PlotControl
+ * @see DivaPlot
  */
 public class SplatBrowser
     extends JFrame
@@ -773,7 +774,7 @@ public class SplatBrowser
     }
 
     /**
-     *  Colourize, i.e. automatically set the colour of all spectra.
+     *  Colourize, i.e.&nbsp;automatically set the colour of all spectra.
      *  The colours applied depend on the number of spectra shown.
      */
     protected void colourizeSpectra()

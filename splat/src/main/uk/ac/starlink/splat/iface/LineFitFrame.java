@@ -69,7 +69,7 @@ import uk.ac.starlink.splat.util.VoigtFitter;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see #PlotControlFrame
+ * @see PlotControlFrame
  */
 public class LineFitFrame 
     extends JFrame 

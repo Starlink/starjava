@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     26-OCT-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.text.DecimalFormat;
@@ -24,14 +31,13 @@ import uk.ac.starlink.ast.gui.DecimalField;
  * Control of the exact formatting (and locale) is done by the 
  * DecimalFormat object.
  *
- * @since $Date$
- * @since 26-OCT-2000
  * @author Peter W. Draper
  * @version $Id$
- * @see BasicComboBoxEditor, DecimalField
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
+ * @see BasicComboBoxEditor
+ * @see DecimalField
  */
-public class DecimalComboBoxEditor extends BasicComboBoxEditor 
+public class DecimalComboBoxEditor 
+    extends BasicComboBoxEditor 
 {
     public DecimalComboBoxEditor( DecimalFormat format ) {
         super();

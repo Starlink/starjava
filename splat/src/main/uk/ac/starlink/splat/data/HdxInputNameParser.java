@@ -235,7 +235,7 @@ public class HdxInputNameParser
     }
 
     /**
-     *  Make name absolute (i.e. start with leading "/").
+     *  Make name absolute (i.e.&nbsp;start with leading "/").
      */
     public String absolute()
     {

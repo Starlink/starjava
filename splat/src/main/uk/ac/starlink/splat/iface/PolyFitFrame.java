@@ -56,7 +56,7 @@ import uk.ac.starlink.splat.util.Utilities;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see #PolynomialFitter
+ * @see PolynomialFitter
  */
 public class PolyFitFrame extends JFrame
 {

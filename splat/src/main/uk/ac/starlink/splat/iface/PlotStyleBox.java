@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     07-FEB-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import javax.swing.JComboBox;
@@ -6,13 +13,11 @@ import javax.swing.JComboBox;
  * PlotStyleBox extends a JComboBox by adding a default set of values
  * that correspond to the available line plotting styles.
  *
- * @since $Date$
- * @since 07-FEB-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  */
-public class PlotStyleBox extends JComboBox 
+public class PlotStyleBox 
+    extends JComboBox 
 {
     /**
      * The known plot styles. Note these correspond to

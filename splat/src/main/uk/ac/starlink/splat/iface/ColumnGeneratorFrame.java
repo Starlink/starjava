@@ -48,7 +48,6 @@ public class ColumnGeneratorFrame
      * Create an instance.
      *
      * @param columnGenerator the ColumnGenerator instance.
-     * @param title for the window
      */
     public ColumnGeneratorFrame( ColumnGenerator columnGenerator )
     {

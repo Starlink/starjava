@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/sh
 #+
 #  Name:
 #     apidocs
@@ -8,7 +8,7 @@
 
 #  Description:
 #     Locates and displays the API documentation. This should be
-#     found in $SPLAT_DIR as the directory "programming.htx". This is
+#     found in SPLAT documents directory "programming.htx". This is
 #     just a wrapper that gets the "showme" command to look in the right
 #     place.
 
@@ -32,5 +32,18 @@
 
 #-
 
-showme $SPLAT_DIR/programming.htx
+#  Skip the definition of SPLAT_DIR if it's in the standard place for
+#  old-SPLAT. Remove this when new SPLAT is the official release.
+if test "$SPLAT_DIR" = "/star/bin/splat" \
+        -o "$SPLAT_DIR" = "/stardev/bin/splat" ; then
+  SPLAT_DIR=""
+fi
+
+#  Locate this script or SPLAT_DIR to find our jar files etc.
+if test -z "$SPLAT_DIR"; then
+   SPLAT_DIR=`dirname $0`
+fi
+echo "SPLAT_DIR = $SPLAT_DIR"
+
+showme $SPLAT_DIR/../../docs/splat/programming.htx
 exit

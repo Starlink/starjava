@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     04-OCT-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.util.EventObject;
@@ -6,14 +13,12 @@ import java.util.EventObject;
  * PlotChangedEvent defines an event that describes a change to the
  * status of a Plot.
  *
- * @since $Date$
- * @since 04-OCT-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
-public class PlotChangedEvent extends EventObject {
-    
+public class PlotChangedEvent 
+    extends EventObject 
+{    
     /**
      *  Used when a plot is created.
      */
@@ -25,7 +30,7 @@ public class PlotChangedEvent extends EventObject {
     public static final int REMOVED = 1;
     
     /**
-     *  Used when plot is changed (i.e. a new spectrum is added).
+     *  Used when plot is changed (i.e.&nbsp;a new spectrum is added).
      */
     public static final int CHANGED = 1;
     

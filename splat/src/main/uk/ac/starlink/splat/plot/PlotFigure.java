@@ -1,16 +1,20 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     08-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 /**
  * PlotFigure defines an interface that any Figures drawn on a Plot
- * should implement. see BasicPlotFigure for a concrete implementation
+ * should implement. See BasicPlotFigure for a concrete implementation
  * of this interface.
  *
- * @since $Date$
- * @since 08-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see Plot, Figure
+ * @see DivaPlot
  */
 public interface PlotFigure
 {

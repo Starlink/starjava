@@ -3,7 +3,7 @@ package uk.ac.starlink.splat.plot;
 /**
  *  Java class to store the current state a Bar. 
  *  
- *  The state is defined as the position, current colour, line style &
+ *  The state is defined as the position, current colour, line style and
  *  width.  
  */
 

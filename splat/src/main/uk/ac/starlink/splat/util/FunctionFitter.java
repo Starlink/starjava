@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     21-MAY-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 /**
@@ -7,13 +14,12 @@ package uk.ac.starlink.splat.util;
  * of interface methods defined here. Any common functionality that
  * can be shared should also be implemented here.
  *
- * @since $Date$
- * @since 21-MAY-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see GaussianFitter, LorentzFitter and VoigtFitter */
-
+ * @see GaussianFitter
+ * @see LorentzFitter
+ * @see VoigtFitter 
+ */
 public abstract class FunctionFitter
 {
     /**

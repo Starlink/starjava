@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     7-MAR-2003 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.data;
 
 import nom.tam.fits.Header;
@@ -7,12 +14,11 @@ import nom.tam.fits.Header;
  * set of FITS headers. Derived classes that clone themselves should
  * attempt to preserve the headers if they have the capability.
  *
- * @since $Date$
- * @since 7-MAR-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see SpecDataImpl, NDFSpecDataImpl, FITSSpecDataImpl
+ * @see SpecDataImpl
+ * @see NDFSpecDataImpl
+ * @see FITSSpecDataImpl
  */
 public interface FITSHeaderSource
 {

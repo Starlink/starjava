@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     12-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.GraphicsPane;
@@ -18,14 +25,13 @@ import javax.swing.event.EventListenerList;
  * is released (uses of this are expected to be when creating figures
  * and zooming the plot).
  *
- * @since $Date$
- * @since 12-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see SelectionDragger, Plot
+ * @see SelectionDragger
+ * @see DivaPlot
  */
-public class DragRegion extends SelectionDragger
+public class DragRegion 
+    extends SelectionDragger
 {
     /**
      * Create a new DragRegion.

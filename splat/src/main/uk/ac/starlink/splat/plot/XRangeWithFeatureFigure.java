@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     19-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.event.MouseFilter;
@@ -11,14 +18,12 @@ import java.awt.geom.Rectangle2D;
  * Create a composite figure that contains a range defining figure and
  * a position defining figure.
  *
- * @since $Date$
- * @since 19-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  * @see PlotCompositeFigure
  */
-public class XRangeWithFeatureFigure extends PlotCompositeFigure
+public class XRangeWithFeatureFigure 
+    extends PlotCompositeFigure
 {
     /**
      * Reference to background Figure.

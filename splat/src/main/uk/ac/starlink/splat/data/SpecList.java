@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     28-SEP-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.data;
 
 import java.io.FileInputStream;
@@ -22,12 +29,8 @@ import uk.ac.starlink.ast.Plot;
  * and also updated whenever a spectrum is destroyed or added or
  * removed from a Plot.
  *
- * @since $Date$
- * @since 28-SEP-2000
- *
  * @version $Id$
  * @author Peter W. Draper
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  *
  * @see SpecDataFactory
  * @see "The Singleton Design Pattern"
@@ -216,7 +219,7 @@ public class SpecList implements Serializable
     }
 
     /**
-     *  Return the full (i.e. disk file) name of a spectrum.
+     *  Return the full (i.e.<!-- --> disk file) name of a spectrum.
      */
     public String getFullName( int index )
     {
@@ -257,7 +260,7 @@ public class SpecList implements Serializable
 
     /**
      *  See if a spectrum is already present using its specification
-     * (i.e. file name).
+     * (i.e.<!-- --> file name).
      */
     public boolean known( String fileName )
     {

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     24-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 /**
@@ -21,15 +28,12 @@ package uk.ac.starlink.splat.util;
  * the measurements. If no background is available then it is not
  * possible to measure the equivalent width.
  *
- * @since $Date$
- * @since 24-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @notes Does not extend FunctionFitter as very specialised.
  */
 public class QuickLineFitter 
 {
+    // Does not extend FunctionFitter as very specialised.
     /**
      * The centre of the spectral line.
      */
@@ -231,7 +235,7 @@ public class QuickLineFitter
      *
      * @return the value that devides the sum into frac and 1-frac parts.
      *
-     * @see Figaro:splitsum
+     * @see "Figaro:splitsum"
      */
     protected double splitSum( double sum, double frac, double[] data,
                                double[] back, double[] xcoords, double sign )

@@ -919,6 +919,10 @@ jsci_core.jar jsci_wavelet.jar ../astgui/astgui.jar ../ndx/ndx.jar
              doctitle="${Name}"
              classpathref="classpath">
 
+      <doclet name="com.sun.tools.doclets.standard.Standard">
+        <param name="-breakiterator"/>
+      </doclet>
+
       <!-- Get a list of directories that name all the potential
        !   java packages -->
       <packageset dir="${java.dir}" defaultexcludes="yes">

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     14-FEB-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 import java.io.BufferedReader;
@@ -27,11 +34,8 @@ import java.util.StringTokenizer;
  * This class is only suitable for files that are expected to contain
  * small numbers of data.
  *
- * @since $Date$
- * @since 14-FEB-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  */
 public class AsciiFileParser
 {

@@ -19,8 +19,6 @@ import uk.ac.starlink.splat.data.SpecData;
  *
  * @version $Id$
  * @author Peter W. Draper
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
- *
  */
 public class SpecListModel 
     extends AbstractListModel 
@@ -71,7 +69,7 @@ public class SpecListModel
 //  AbstractListModel)
 //
     /**
-     *  Return the length of the list (i.e. the number of spectra).
+     *  Return the length of the list (i.e.<!-- --> the number of spectra).
      */
     public int getSize() 
     {
@@ -91,8 +89,6 @@ public class SpecListModel
 //    
     /**
      *  React to a new spectrum being added.
-     *
-     *  @param index the index at which the new spectrum has been added.
      */
     public void spectrumAdded( SpecChangedEvent e ) 
     {

@@ -311,7 +311,7 @@ public class SplatSelectedProperties extends JPanel
     }
 
     /**
-     *  Update (i.e. change) the short name of all the selected spectra.
+     *  Update (i.e.<!-- --> change) the short name of all the selected spectra.
      */
     public void updateShortName()
     {

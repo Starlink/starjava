@@ -30,9 +30,9 @@ import uk.ac.starlink.splat.imagedata.NDFJ;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see #SpecDataImpl
- * @see #SpecData
- * @see #InputNameParser
+ * @see SpecDataImpl
+ * @see SpecData
+ * @see InputNameParser
  * @see "The Singleton Design Pattern"
  */
 public class SpecDataFactory
@@ -114,7 +114,7 @@ public class SpecDataFactory
      *  Attempt to open a given specification as a known type. If this
      *  fails then a SplatException will be thrown. Note that if the
      *  type is DEFAULT then this is equivalent to calling 
-     *  {@link get(String)}. 
+     *  {@link #get(String)}. 
      *
      *  @param specspec the specification of the spectrum to be opened.
      *  @param type the type of the spectrum (one of types defined in
@@ -327,7 +327,7 @@ public class SpecDataFactory
      * Create spectrum that can have its values modified or
      * individually editted. Initially the object contains no
      * coordinates or data, so space for these must be allocated and
-     * set using the {@link EditableSpecData.setData} method.
+     * set using the EditableSpecData.setData() methods.
      *
      * @param shortname the short name to use for the spectrum.
      *

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     13-JUN-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import java.awt.Graphics;
@@ -7,10 +14,10 @@ import java.util.Vector;
  *  Manager of interactive vertical bars shown in on a JComponent.
  *
  *  @author Peter W. Draper
- *  @history 13-JUN-2000, original version.
+ *  @version $Id$
  */
-public class BarManager {
-
+public class BarManager 
+{
     /**
      *  Vector of BarState objects. These contain the properties
      *  of the bars (coordinates, colour etc).

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     14-FEB-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 import com.sun.image.codec.jpeg.JPEGCodec;
@@ -39,11 +46,8 @@ import uk.ac.starlink.ast.gui.DecimalField;
  * Do not rely on the jpeg codec anywhere else, as it may not be
  * present.
  *
- * @since $Date$
- * @since 14-FEB-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  */
 public class JPEGUtilities
 {

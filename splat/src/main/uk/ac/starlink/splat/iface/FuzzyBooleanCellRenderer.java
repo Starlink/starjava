@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     21-JUN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Color;
@@ -14,13 +21,11 @@ import uk.ac.starlink.splat.util.FuzzyBoolean;
  * JCheckBox that has different backgrounds to differentiate between
  * the TRUE and MAYBE states (which are both ticked).
  *
- * @since $Date$
- * @since 22-JUN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils 
  */
-public class FuzzyBooleanCellRenderer extends JCheckBox 
+public class FuzzyBooleanCellRenderer 
+    extends JCheckBox 
     implements TableCellRenderer
 {
     public FuzzyBooleanCellRenderer() 
@@ -36,7 +41,7 @@ public class FuzzyBooleanCellRenderer extends JCheckBox
      * @param table the JTable
      * @param value the value to control the JCheckBox colour.
      * @param isSelected true if cell is selected
-     * @param isFocus true if cell has focus
+     * @param hasFocus true if cell has focus
      * @param row  the row of the cell to render
      * @param column the column of the cell to render
      * @return the table cell renderer

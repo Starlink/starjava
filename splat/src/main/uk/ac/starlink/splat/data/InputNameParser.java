@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     8-SEP-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.data;
 
 import java.io.File;
@@ -46,12 +53,8 @@ import java.io.File;
  *  then use its methods to get fully qualified names, slices, paths
  *  and disk file names.
  *
- * @since $Date$
- * @since 08-SEP-2000, original version.
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000-2001 Central Laboratory of the
- *            Research Councils 
  */
 public class InputNameParser 
 {
@@ -223,7 +226,7 @@ public class InputNameParser
     }
 
     /**
-     *  Make name absolute (i.e. start with leading "/").
+     *  Make name absolute (i.e.&nbsp;start with leading "/").
      */
     public String absolute() 
     {

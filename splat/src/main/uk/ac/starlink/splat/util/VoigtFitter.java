@@ -1,5 +1,11 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     04-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
-
 
 /**
  * VoigtFitter fits a Voigt (real part of the complex error function)
@@ -11,12 +17,9 @@ package uk.ac.starlink.splat.util;
  * evalArray() and evalPoint() methods. A chi squared residual to the
  * fit can be obtained from the getChi() method.
  *
- * @since $Date$
- * @since 04-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000-2001 Central Laboratory of the Research
- *            Councils */
+ */
 public class VoigtFitter 
     extends FunctionFitter 
     implements LevMarqFunc
@@ -243,7 +246,7 @@ public class VoigtFitter
      *     RAL ext. 5179
      *
      *
-     * @param x input position (wavelength)
+     * @param wavex input position (wavelength)
      * @param dyda partial derivates (as used for minimization).
      * @return the value of the function at the given position.
      *

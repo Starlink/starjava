@@ -61,7 +61,7 @@ public class LorentzFitter
      * @param y array of positions along Y. These are assumed precise.
      * @param scale initial estimate of the scale height.
      * @param centre initial estimate of the centre.
-     * @param sigma initial estimate of the width.
+     * @param width initial estimate of the width.
      */
     public LorentzFitter( double[] x, double[] y, double scale,
                           double centre, double width )
@@ -86,7 +86,7 @@ public class LorentzFitter
      * @param w weights (i.e. inverse variances).
      * @param scale initial estimate of the scale height.
      * @param centre initial estimate of the centre.
-     * @param sigma initial estimate of the width.
+     * @param width initial estimate of the width.
      */
     public LorentzFitter( double[] x, double[] y, double[] w,
                           double scale, double centre, double width )

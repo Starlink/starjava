@@ -1,5 +1,11 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     14-FEB-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
-
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
@@ -13,14 +19,13 @@ import uk.ac.starlink.splat.util.FuzzyBoolean;
  * states TRUE (from FALSE) and FALSE (from MAYBE or TRUE). So the
  * state MAYBE is lost. If you don't like this define a new class.
  *
- * @since $Date$
- * @since 14-FEB-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see #FuzzyBoolean, #SplatPlotTable.
+ * @see FuzzyBoolean
+ * @see SplatPlotTable
  */
-public class FuzzyBooleanCellEditor extends DefaultCellEditor 
+public class FuzzyBooleanCellEditor 
+    extends DefaultCellEditor 
 {
     /**
      * Create an instance.

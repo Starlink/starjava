@@ -25,9 +25,13 @@ import uk.ac.starlink.splat.plot.DivaPlot;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see XGraphicsRangeView, XGraphicsRange, DivaPlot, AstDouble
+ * @see XGraphicsRangesView
+ * @see XGraphicsRange
+ * @see DivaPlot
+ * @see AstDouble
  */
-public class XGraphicsRangesModel extends AbstractTableModel
+public class XGraphicsRangesModel 
+    extends AbstractTableModel
 {
     /**
      * The plot that displays the figures we're describing. Used to give
@@ -53,7 +57,7 @@ public class XGraphicsRangesModel extends AbstractTableModel
 //  AbstractListModel)
 //
     /**
-     * Return the row count (i.e. number of ranges).
+     * Return the row count (i.e.<!-- --> number of ranges).
      */
     public int getRowCount()
     {

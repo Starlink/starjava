@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     25-FEB-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 import cern.colt.matrix.DoubleMatrix2D;
@@ -15,11 +22,8 @@ import cern.jet.stat.Gamma;
  * evalArray() and evalPoint() methods. A chi squared residual to the fit
  * can be obtained from the getChi() method.
  *
-** @since $Date$
- * @since 12-DEC-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
 public class PolynomialFitter
 {

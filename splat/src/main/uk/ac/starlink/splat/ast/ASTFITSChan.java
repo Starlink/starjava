@@ -36,7 +36,7 @@ public class ASTFITSChan
      *  Default constructor. Creates a channel with null source and
      *  sink and the given encoding.
      *
-     *  @param
+     *  @param encoding the AST FITS channel encoding.
      */
     public ASTFITSChan( String encoding )
     {

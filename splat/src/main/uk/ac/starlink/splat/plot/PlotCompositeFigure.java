@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     19-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.Figure;
@@ -10,23 +17,23 @@ import javax.swing.event.EventListenerList;
 /**
  * PlotCompositeFigure extends the diva BackgroundedCompositeFigure
  * class to add support for events that allow users of any derived
- * figures to be made aware of any changes, i.e. composite figure
+ * figures to be made aware of any changes,<!-- --> i.e. composite figure
  * creation, removal and transformations.
- *
+ * <p>
  * All composite figures used on a Plot should be derived classes of
  * this class, or implement the necessary code to support the
  * FigureListener class. They should also invoke fireChanged in their
  * translate and transform methods (but not if calling super) and
  * respect the transformFreely state.
  * 
- * @since $Date$
- * @since 19-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see Plot, BackgroundedCompositeFigure, Figure 
+ * @see DivaPlot
+ * @see BackgroundedCompositeFigure
+ * @see Figure 
  */
-public class PlotCompositeFigure extends BackgroundedCompositeFigure
+public class PlotCompositeFigure 
+    extends BackgroundedCompositeFigure
     implements PlotFigure
 {
     /**

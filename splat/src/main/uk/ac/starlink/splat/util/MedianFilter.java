@@ -35,7 +35,7 @@ public class MedianFilter
      *  Create an instance, obtaining the median in a region window
      *  elements wide about each input position.
      *
-     *  @param array the array of values to be median filtered.
+     *  @param data the array of values to be median filtered.
      *  @param window the number of positions that are used for the
      *                window. Will be increased to the nearest odd
      *                integer and has a minimum value of 3.

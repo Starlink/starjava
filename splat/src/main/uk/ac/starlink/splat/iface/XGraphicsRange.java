@@ -354,9 +354,7 @@ public class XGraphicsRange
     }
 
     /**
-     * Sent when the figure is changed (i.e. moved or transformed).
-     *
-     * @param e Description of the Parameter
+     * Sent when the figure is changed (i.e.&nbsp;moved or transformed).
      */
     public void figureChanged( FigureChangedEvent e )
     {

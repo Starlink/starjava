@@ -169,7 +169,7 @@ public class SpecTableModel
 //
     /**
      *  Returns the number of records managed by the data source
-     *  object (i.e. the number of plots).
+     *  object (i.e.<!-- --> the number of plots).
      */
     public int getRowCount()
     {

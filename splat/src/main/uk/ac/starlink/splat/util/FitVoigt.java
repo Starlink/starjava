@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     04-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 import java.awt.Color;
@@ -21,9 +28,10 @@ import javax.swing.JPanel;
  * Fits a data spectrum using a voigt function.
  *
  * @author Peter W. Draper
- * @history 04-JAN-2001, original version
+ * @version $Id$
  */
-public class FitVoigt extends JPanel 
+public class FitVoigt 
+    extends JPanel 
 {
     /**
      *  Array of X positions used to plot the spectrum.
@@ -65,8 +73,7 @@ public class FitVoigt extends JPanel
     /**
      * Main routine.
      *
-     * @param args Command-line arguments
-     * @args  1 name of the spectrum file.
+     * @param args Command-line arguments, first is name of spectrum.
      */
     public static void main( String args[] ) throws IOException 
     {

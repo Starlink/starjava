@@ -39,11 +39,12 @@ import java.awt.*;
 /**
  * This class describes a theme using gray colors.
  *
- * 1.3 07/22/99
+ * @since 1.3 07/22/99
  * @author Steve Wilson
  */
-public class CharcoalTheme extends DefaultMetalTheme {
-
+public class CharcoalTheme 
+    extends DefaultMetalTheme 
+{
     public String getName() { return "Charcoal"; }
 
     private final ColorUIResource primary1 = new ColorUIResource(66, 33, 66);

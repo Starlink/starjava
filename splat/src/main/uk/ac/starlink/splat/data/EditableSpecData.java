@@ -18,7 +18,7 @@ import uk.ac.starlink.splat.util.SplatException;
 
 /**
  * Extends {@link SpecData} for types of SpecDataImpl that also
- * implement the EditableSpecDataImpl interface, i.e. this provides
+ * implement the EditableSpecDataImpl interface, i.e.&nbsp;this provides
  * facilities for modifying the values and coordinates of a
  * SpecData object.
  * <p>

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     03-NOV-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.AWTEvent;
@@ -30,13 +37,11 @@ import uk.ac.starlink.splat.util.Utilities;
  * of JDialog (i.e. use the .show() method to reveal, dialogs can be
  * modal or non-modal).
  *
- * @since $Date$
- * @since 03-NOV-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
-public class JFontChooser extends JDialog
+public class JFontChooser
+    extends JDialog
 {
     /**
      * Whether selected font is accepted.

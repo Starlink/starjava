@@ -58,15 +58,16 @@ import uk.ac.starlink.splat.util.Utilities;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see DivaPlot, SplatBrowser.
+ * @see DivaPlot 
+ * @see SplatBrowser
  */
 public class SpecAnimatorFrame 
     extends JFrame 
     implements PlotListener
 {
     /**
-     * The SplatBrowser that is a parent to this (i.e. invokes it). This is
-     * used to create new Plots.
+     * The SplatBrowser that is a parent to this (i.e.&nbsp;invokes
+     * it). This is used to create new Plots.
      */
     protected SplatBrowser browser = null;
 
@@ -810,7 +811,7 @@ public class SpecAnimatorFrame
     }
 
     /**
-     * Sent when a plot property is changed (i.e. spectrum added/removed?).
+     * Sent when a plot property is changed (i.e.<!-- --> spectrum added/removed?).
      */
     public void plotChanged( PlotChangedEvent e )
     {

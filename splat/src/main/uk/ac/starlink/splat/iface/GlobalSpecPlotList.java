@@ -1,5 +1,11 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     29-SEP-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
-
 
 import javax.swing.event.EventListenerList;
 
@@ -16,11 +22,8 @@ import uk.ac.starlink.splat.util.SplatException;
  * objects (i.e. views) that want to be updated about changes in the
  * lists of spectra or plots.
  *
- * @since $Date$
- * @since 29-SEP-2000
  * @version $Id$
  * @author Peter W. Draper
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  *
  * @see PlotControlList
  * @see SpecList
@@ -114,7 +117,8 @@ public class GlobalSpecPlotList
     }
 
     /**
-     *  See if a spectrum is already known by a specification (i.e. filename).
+     *  See if a spectrum is already known by a specification 
+     *  (i.e.<!-- --> filename).
      *
      *  @param name name to check.
      *
@@ -234,7 +238,7 @@ public class GlobalSpecPlotList
      *               SpecData.setKnownNumberProperty.
      *  @param value Object containing the new value.
      *
-     *  @see #SpecData.setKnownNumberProperty()
+     *  @see SpecData#setKnownNumberProperty
      */
     public void setKnownNumberProperty( SpecData spectrum, int what,
                                         Number value )

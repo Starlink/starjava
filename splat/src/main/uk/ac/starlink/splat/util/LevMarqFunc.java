@@ -1,14 +1,18 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     03-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 /**
  * LevMarqFunc is an interface that defines a method for evaluating
  * a function that is to be fitted by a LevMarq object.
  *
- * @since $Date$
- * @since 03-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
 
 //  This could be improved by using a container object to retain all

@@ -21,7 +21,7 @@ public class LorentzGenerator
      *
      * @param scale the scale height.
      * @param centre the centre.
-     * @param sigma the lorentzian width.
+     * @param width the lorentzian width.
      */
     public LorentzGenerator( double scale, double centre, double width )
     {

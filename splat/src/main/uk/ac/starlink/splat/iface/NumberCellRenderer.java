@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     22-JUN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Component;
@@ -18,13 +25,11 @@ import javax.swing.table.DefaultTableCellRenderer;
  * for many floating values (the DecimalNumber class could probably also
  * be used for more complex schemes).
  * 
- * @since $Date$
- * @since 22-JUN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils 
  */
-public class NumberCellRenderer extends DefaultTableCellRenderer
+public class NumberCellRenderer 
+    extends DefaultTableCellRenderer
 {
     /**
      * Returns a renderer for numbers in a JTable.
@@ -32,7 +37,7 @@ public class NumberCellRenderer extends DefaultTableCellRenderer
      * @param table the JTable
      * @param value the value to assign to the cell at [row, column].
      * @param isSelected true if cell is selected
-     * @param isFocus true if cell has focus
+     * @param hasFocus true if cell has focus
      * @param row  the row of the cell to render
      * @param column the column of the cell to render
      * @return the table cell renderer

@@ -105,7 +105,7 @@ public abstract class AbstractSpecDataImpl
     }
 
     /**
-     * Whether the class is a FITSHeaderSource, i.e. has FITS headers
+     * Whether the class is a FITSHeaderSource, i.e.<!-- --> has FITS headers
      * associated with it and implements FITSHeaderSource.
      * Implementations that can store FITS headers may want to access
      * these.
@@ -139,7 +139,7 @@ public abstract class AbstractSpecDataImpl
      * Set reference to another SpecDataImpl that is a "parent" of this
      * instance.
      *
-     * @see getParentImpl
+     * @see #getParentImpl
      */
     public void setParentImpl( SpecDataImpl parentImpl )
     {

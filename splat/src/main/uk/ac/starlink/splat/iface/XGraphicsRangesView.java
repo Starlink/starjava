@@ -56,7 +56,9 @@ import uk.ac.starlink.splat.plot.DivaPlot;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see DivaPlot, XGraphicsRange, XGraphicsRangesModel.
+ * @see DivaPlot
+ * @see XGraphicsRange
+ * @see XGraphicsRangesModel
  */
 public class XGraphicsRangesView
     extends JPanel

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     08-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import java.util.EventObject;
@@ -7,13 +14,11 @@ import diva.canvas.event.LayerEvent;
  * FigureChangedEvent defines an event that describes a change to a
  * figure drawn on a Plot.
  *
- * @since $Date$
- * @since 08-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  */
-public class FigureChangedEvent extends EventObject 
+public class FigureChangedEvent 
+    extends EventObject 
 {
     /**
      *  Used when a figure is created.
@@ -26,7 +31,7 @@ public class FigureChangedEvent extends EventObject
     public static final int REMOVED = 1;
     
     /**
-     *  Used when figure is changed (i.e. transformed).
+     *  Used when figure is changed (i.e.&nbsp;transformed).
      */
     public static final int CHANGED = 1;
     

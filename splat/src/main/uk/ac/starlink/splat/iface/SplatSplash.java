@@ -22,7 +22,7 @@ public class SplatSplash
      * Create an instance. This produces a copy of the AboutFrame
      * which is positioned at the centre of the screen and which has
      * no decorations. Note the window is not realized, do this
-     * yourself by calling {@link setVisible}.
+     * yourself by calling {@link #setVisible}.
      */
     public SplatSplash() 
     {

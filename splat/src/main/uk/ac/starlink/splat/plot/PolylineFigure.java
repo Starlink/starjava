@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     08-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.util.java2d.Polyline2D;
@@ -7,15 +14,12 @@ import java.awt.Paint;
 /**
  * A figure that displays a polyline that can have its vertices moved.
  *
- * @since $Date$
- * @since 08-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see BasicPlotFigure, BasicFigure
- *
+ * @see BasicPlotFigure
  */
-public class PolylineFigure extends PathPlotFigure
+public class PolylineFigure 
+    extends PathPlotFigure
 {
     /**
      * The Polyline that we're using.

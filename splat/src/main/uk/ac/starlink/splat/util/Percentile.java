@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     25-JUL-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 import java.util.Arrays;
@@ -8,11 +15,8 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 /**
  * Calculate the percentile limits for a given array of values.
  *
- * @since $Date$
- * @since 25-JUL-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  */
 public class Percentile
 {

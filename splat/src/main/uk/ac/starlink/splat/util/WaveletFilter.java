@@ -78,7 +78,7 @@ public class WaveletFilter
     /**
      * Create an instance, filtering the given data.
      *
-     * @param array the array of values to be filtered.
+     * @param data the array of values to be filtered.
      * @param wavelet the name of the wavelet filter 
      *                (from WaveletFilter.WAVELETS)
      * @param percent the percentage of wavelet coefficients to remove.

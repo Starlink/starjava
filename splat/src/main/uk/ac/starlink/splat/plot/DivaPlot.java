@@ -61,7 +61,7 @@ import uk.ac.starlink.splat.util.SplatException;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see #Diva,#ASTJ
+ * @see ASTJ
  */
 public class DivaPlot
      extends JCanvas
@@ -155,7 +155,7 @@ public class DivaPlot
 
     /**
      * Object that contains a description of the non-spectral AST properties
-     * of the plot (i.e. labels etc.).
+     * of the plot (i.e.&nbsp;labels etc.).
      */
     protected PlotConfiguration config = new PlotConfiguration();
 
@@ -612,7 +612,7 @@ public class DivaPlot
 
     /**
      * Update the plot to reflect any changes in the spectra being plotted
-     * (i.e. when a new spectrum is added).
+     * (i.e.<!-- --> when a new spectrum is added).
      *
      * @exception SplatException thrown if problems reading spectra.
      */
@@ -954,7 +954,7 @@ public class DivaPlot
      * of the vertical hair. Requires that a MouseMotionTracker has been
      * established by the trackMouseMotion method.
      *
-     * @see trackMouseMotion
+     * @see #trackMouseMotion
      */
     protected void showVHairCoords()
     {
@@ -1149,7 +1149,6 @@ public class DivaPlot
      * any interactive graphics objects.
      *
      * @return The graphicsPane value
-     * @see DivaPlotGraphicsPane, Diva, AbstractFigure, GraphicsPane
      */
     public DivaPlotGraphicsPane getGraphicsPane()
     {

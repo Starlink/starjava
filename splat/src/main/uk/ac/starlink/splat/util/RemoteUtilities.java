@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     12-JUL-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 import java.io.BufferedReader;
@@ -13,12 +20,8 @@ import java.net.Socket;
  * This class provides utility methods for remote control based
  * access to SPLAT.
  *
- * @since $Date$
- * @since 12-JUL-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see RemoveServer
  */
 public class RemoteUtilities
 {

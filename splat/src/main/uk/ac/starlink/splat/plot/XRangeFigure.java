@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     08-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import java.awt.Paint;
@@ -14,17 +21,13 @@ import java.awt.geom.Rectangle2D;
  * only be moved side to side, or a plain rectangle. This is meant to
  * represent a "range" along the X axis of a Plot.
  *
- * @since $Date$
- * @since 08-JAN-2001
- * @author John Reekie (original version, was
- *         diva.canvas.toolbox.BasicRectangle).
+ * @author John Reekie (original version, was diva.canvas.toolbox.BasicRectangle).
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see BasicPlotFigure, BasicFigure
- *
+ * @see BasicPlotFigure
  */
-public class XRangeFigure extends BasicPlotFigure
+public class XRangeFigure 
+    extends BasicPlotFigure
 {
     /**
      * Create a new rectangle with the given rectangle shape, a

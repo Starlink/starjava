@@ -2,6 +2,7 @@
  * Copyright (c) 1998 The Regents of the University of California.
  * All rights reserved.  See the file DIVA COPYRIGHT for details.
  *
+ * Copyright (C) 2001 Central Laboratory of the Research Councils
  */
 package uk.ac.starlink.splat.plot;
 
@@ -21,14 +22,12 @@ import java.awt.geom.Rectangle2D;
  * @version	$Revision$
  * @author 	John Reekie
  *
- * @since $Date$
- * @since 08-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see Plot, PlotConfigurator
+ * @see DivaPlot
  */
-public class PlotRectangle extends BasicPlotFigure 
+public class PlotRectangle 
+    extends BasicPlotFigure 
 {
     /** Create a new rectangle with the given rectangle shape, a
      * unit-width continuous stroke and no paint pattern.

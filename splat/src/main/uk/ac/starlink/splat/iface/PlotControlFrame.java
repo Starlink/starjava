@@ -135,7 +135,7 @@ public class PlotControlFrame
     /**
      *  Plot a spectrum.
      *
-     *  @param spectrum  Active SpecDataComp reference.
+     *  @param specDataComp Active SpecDataComp reference.
      *
      */
     public PlotControlFrame( SpecDataComp specDataComp )
