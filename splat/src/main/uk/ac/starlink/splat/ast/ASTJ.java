@@ -1,12 +1,12 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    21-SEP-1999 (Peter W. Draper):
-//       Original version.
-//    29-MAY-2002 (Peter W. Draper):
-//       Converted to use the JNIAST package, rather than my JNI
-//       wrappers. Removed all native functions.
-
+/* Copyright (C) 2002 Central Laboratory of the Research Councils
+ *
+ * History:
+ *    21-SEP-1999 (Peter W. Draper):
+ *       Original version.
+ *    29-MAY-2002 (Peter W. Draper):
+ *       Converted to use the JNIAST package, rather than my JNI
+ *       wrappers. Removed all native functions.
+ */
 package uk.ac.starlink.splat.ast;
 
 import java.awt.Dimension;
@@ -17,7 +17,18 @@ import java.io.Serializable;
 
 import javax.swing.JComponent;
 
-import uk.ac.starlink.ast.*;
+import uk.ac.starlink.ast.AstObject;
+import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.SpecFrame;
+import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.CmpFrame;
+import uk.ac.starlink.ast.CmpMap;
+import uk.ac.starlink.ast.LutMap;
+import uk.ac.starlink.ast.Plot;
+import uk.ac.starlink.ast.UnitMap;
+import uk.ac.starlink.ast.Grf;
 
 /**
  * Java interface for AST manipulations based on a frameset (i.e. type
@@ -68,18 +79,6 @@ public class ASTJ implements Serializable
     {
         setRef( astref, false );
         setGraphic( grfref );
-    }
-
-    /**
-     *  Finalise object. Free any resources associated with member
-     *  variables.
-     */
-    protected void finalize() throws Throwable
-    {
-        grfRef = null;
-        annulPlot();
-        annulRef();
-        super.finalize();
     }
 
     //
@@ -147,7 +146,6 @@ public class ASTJ implements Serializable
      */
     public void setRef( FrameSet astRef, boolean manage )
     {
-        annulRef();
         this.astRef = astRef;
         this.manageAstRef = manage;
     }
@@ -165,7 +163,6 @@ public class ASTJ implements Serializable
      */
     public void setPlot( Plot astPlot )
     {
-        annulPlot();
         this.astPlot = astPlot;
     }
 
@@ -193,28 +190,6 @@ public class ASTJ implements Serializable
     public Grf getGraphic()
     {
         return grfRef;
-    }
-
-    /**
-     *  Annul the current plot.
-     */
-    protected void annulPlot()
-    {
-        if ( astPlot != null ) {
-            astPlot.annul();
-            astPlot = null;
-        }
-    }
-
-    /**
-     *  Annul the current Ast frameset, if we're managing it.
-     */
-    protected void annulRef()
-    {
-        if ( manageAstRef && astRef != null ) {
-            astRef.annul();
-            astRef = null;
-        }
     }
 
     /**
@@ -285,9 +260,6 @@ public class ASTJ implements Serializable
         if ( astRef == null || grfRef == null ) {
             return;
         }
-
-        //  If we already have a plot then release it.
-        annulPlot();
 
         //  Find out the size of the graphics component. This is used
         //  to define the base graphics coordinate system.
@@ -498,18 +470,6 @@ public class ASTJ implements Serializable
     }
 
     /**
-     *  Annul (i.e. free) an AST reference of some kind.
-     *
-     *  @deprecated Use direct ".annul()" method
-     */
-    public static void astAnnul( AstObject ref )
-    {
-        if ( ref != null ) {
-            ref.annul();
-        }
-    }
-
-    /**
      *  Clone an AST reference of some kind.
      *
      *  @deprecated Use direct ".clone()" method
@@ -703,8 +663,6 @@ public class ASTJ implements Serializable
             Mapping map1 = framecopy.getMapping( FrameSet.AST__BASE,
                                                  FrameSet.AST__CURRENT );
             Mapping map2 = map1.simplify();
-            framecopy.annul();
-            map1.annul();
             return map2;
         }
         catch (Exception e) {
@@ -806,7 +764,6 @@ public class ASTJ implements Serializable
 
                 // Create the LutMap for axis 1
                 xmap = new LutMap( lutcoords, 1.0, 1.0 );
-                smap.annul();
             }
             else {
 
@@ -815,7 +772,6 @@ public class ASTJ implements Serializable
             }
 
             // Create a CmpMap using a unit mapping for the second axis.
-            map.annul();
             UnitMap unitMap = new UnitMap( 1 );
             map = new CmpMap( xmap, unitMap, false );
 
@@ -845,11 +801,15 @@ public class ASTJ implements Serializable
             frame1.clear( "Domain" );
             frame1.clear( "Title" );
 
-            // Coordinate or distance-v-data frame, uses selected axis from
-            // the current frame and a default axis.
-            iaxes[0] = axis;
-            iaxes[1] = 0;
-            Frame frame2 = cfrm.pickAxes( iaxes.length, iaxes, null );
+            // Coordinate or distance-v-data frame.
+            // Use selected axis from the current frame as the
+            // spectral axis.
+            Frame f1 = getSpectralAxisFrame( axis );
+
+            // Create the full frame using the spectral frame and
+            // another.
+            Frame f2 = new Frame( 1 );
+            Frame frame2 = new CmpFrame( f1, f2 );
 
             // Clear digits and format, unless set in the input
             // frameset. These can make a mess of SkyFrame formatting
@@ -889,23 +849,123 @@ public class ASTJ implements Serializable
             // and frame1 as base.
             result = new FrameSet( frame1 );
             result.addFrame( FrameSet.AST__BASE, map, frame2 );
-
-            //  Release various objects we've collected.
-            map.annul();
-            cfrm.annul();
-            if ( xmap != smap ) {
-                xmap.annul();
-            }
-            smap.annul();
-            unitMap.annul();
-            frame1.annul();
-            frame2.annul();
         }
         catch (Exception e) {
             // Just let it pass;
         }
         return result;
     }
+
+    /**
+     * Extract a spectral axis from the current FrameSet. The return
+     * is always a SpecFrame. If the selected axis of the current
+     * frame is a SpecFrame, then that is returned. Otherwise a search
+     * is made for a SpecFrame. Finally a SpecFrame is created using
+     * various heuristics (from sample code provided by David Berry,
+     * these use guesses from the available units).
+     */
+    public Frame getSpectralAxisFrame( int axis )
+    {
+        SpecFrame result = new SpecFrame();
+        if ( astRef == null ) {
+            return result;
+        }
+
+        // Pick out the axis that should be a SpecFrame.
+        int iaxes[] = new int[1];
+        iaxes[0] = axis;
+        Frame picked = astRef.pickAxes( 1, iaxes, null );
+
+        // Nothing to do if this is a SpecFrame.
+        if ( picked instanceof SpecFrame ) {
+            return picked;
+        }
+
+        // Before pushing on, attempt to find a SpecFrame within
+        // original FrameSet.
+        Frame randomGuess = astRef.findFrame( result, "" );
+        if ( randomGuess != null ) {
+            return randomGuess;
+        }
+
+        // Take a guess at creating a spectral axis from the picked
+        // axis.
+        String label = picked.getC( "Label(1)" );
+        label = label.toLowerCase();
+
+        if ( label.indexOf( "wave" ) != -1 ) {
+            // Wavelength.
+            result.setC( "System", "Wave" );
+        }
+        else if ( label.indexOf( "freq" ) != -1 ) {
+            // Frequency.
+            result.setC( "System", "Freq" );
+        }
+        else if ( label.indexOf( "v" ) != -1 ) {
+            //  Velocity of some kind.
+            if ( label.indexOf( "rad" ) != -1 ) {
+                // Radio velocity.
+                result.setC( "System", "Vrad" );
+            }
+            else if ( label.indexOf( "op" ) != -1 ) {
+                // Optical velocity.
+                result.setC( "System", "Vopt" );
+            }
+            else {
+                // Relativistic velocity.
+                result.setC( "System", "Velo" );
+            }
+        }
+        else if ( label.indexOf( "ener" ) != -1 ) {
+            // Energy.
+            result.setC( "System", "Energy" );
+        }
+        else if ( label.indexOf( "wavn" ) != -1 ) {
+            // Wave number.
+            result.setC( "System", "Wavn" );
+        }
+        else if ( label.indexOf( "awav" ) != -1 ) {
+            // Wavelength in air.
+            result.setC( "System", "Awav" );
+        }
+        else if ( label.indexOf( "zopt" ) != -1 ) {
+            // Redshift.
+            result.setC( "System", "Zopt" );
+        }
+        else if ( label.indexOf( "beta" ) != -1 ) {
+            // Beta factor.
+            result.setC( "System", "Beta" );
+        }
+        else {
+            // Label not recognized. Check the units by applying them
+            // to some likely systems.
+            String unit = picked.getC( "Unit(1)" );
+            try {
+                result.setC( "System", "Wave" );
+                result.setC( "Unit", unit );
+            }
+            catch (AstException e) {
+                try {
+                    result.setC( "System", "Freq" );
+                    result.setC( "Unit", unit );
+                }
+                catch (AstException e1) {
+                    try {
+                        result.setC( "System", "Vopt" );
+                        result.setC( "Unit", unit );
+                    }
+                    catch (AstException e2) {
+
+                        // Default, wavelength in angstroms.
+                        result.setC( "System", "Wave" );
+                        result.setC( "Unit", "Angstrom" );
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
 
     /**
      * Creates a FrameSet that only has one input and one output axis
@@ -939,8 +999,6 @@ public class ASTJ implements Serializable
             Frame tmpframe = framecopy.pickAxes( iaxis.length, iaxis, joined );
             framecopy.addFrame( FrameSet.AST__CURRENT, joined[0], tmpframe );
             framecopy.invert();
-            tmpframe.annul();
-            joined[0].annul();
         }
 
         // Select an axis in the current frame and tack this onto the
@@ -951,8 +1009,6 @@ public class ASTJ implements Serializable
             Mapping[] joined = new Mapping[1];
             Frame tmpframe = framecopy.pickAxes( iaxis.length, iaxis, joined );
             framecopy.addFrame( FrameSet.AST__CURRENT, joined[0], tmpframe );
-            tmpframe.annul();
-            joined[0].annul();
         }
         return framecopy;
     }
