@@ -12,7 +12,7 @@ import org.w3c.dom.Element;
  * <p>
  * For an abstract base class that implements lots of useful functions
  * that support this interface see 
- * {@link PrimitiveXMLEncodeAndDecode} and for one that also supports
+ * {@link PrimitiveXMLEncodeDecode} and for one that also supports
  * awt primitives (Fonts and Colors) see
  * {@link uk.ac.starlink.ast.gui.AbstractPlotControlsModel}.
  *
@@ -22,7 +22,7 @@ import org.w3c.dom.Element;
  * @version $Id$
  * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils 
  */
-public interface XMLEncodeAndDecode
+public interface XMLEncodeDecode
 {
     /**
      * Encode the internal state of this object so that it is rooted

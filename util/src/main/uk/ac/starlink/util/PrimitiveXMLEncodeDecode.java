@@ -22,7 +22,7 @@ import org.w3c.dom.NodeList;
  * An abstract base-class for objects that want to encode and decode
  * themselves from an XML stream.
  * <p>
- * It contains the {@link XMLEncodeAndDecode} interface (with an
+ * It contains the {@link XMLEncodeDecode} interface (with an
  * unimplemented encode() method) and a number of support methods for
  * encoding and decoding primitive values.
  * <p>
@@ -34,8 +34,8 @@ import org.w3c.dom.NodeList;
  * @author Peter W. Draper
  * @version $Id$
  */
-public abstract class PrimitiveXMLEncodeAndDecode
-    implements XMLEncodeAndDecode
+public abstract class PrimitiveXMLEncodeDecode
+    implements XMLEncodeDecode
 {
     //
     //  Define change listeners interface.
@@ -80,7 +80,7 @@ public abstract class PrimitiveXMLEncodeAndDecode
     }
 
     //
-    // Implementations of the XMLEncodeAndDecode methods.
+    // Implementations of the XMLEncodeDecode methods.
     //
 
     // Encode is object specific and has an empty default implementation.
