@@ -1,6 +1,5 @@
 package uk.ac.starlink.table.join;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -16,17 +15,20 @@ import uk.ac.starlink.table.ValueInfo;
  * defined by a scalar or vector error parameter submitted at construction
  * time.
  *
+ * <p>This abstract class defines the mechanics of the matching,
+ * but not the match parameters, which will presumably be to do 
+ * with error radii.
+ *
  * @author   Mark Taylor (Starlink)
  */
-public class CartesianMatchEngine implements MatchEngine {
+public abstract class AbstractCartesianMatchEngine implements MatchEngine {
 
-    private final int ndim;
-    private final int blockSize;
-    private boolean normaliseScores;
-    private double[] errs;
-    private double[] err2rs;
-    private double[] cellScales;
-    private DescribedValue errorValue = new ErrorValue();
+    private final int ndim_;
+    private final int blockSize_;
+    private boolean normaliseScores_;
+    private double[] errors_;
+    private double[] err2rs_;
+    private double[] cellScales_;
 
     /**
      * Scaling factor determining the size of a grid cell as a multiple of
@@ -38,19 +40,30 @@ public class CartesianMatchEngine implements MatchEngine {
     /**
      * Constructs a matcher which matches points in an
      * <tt>ndim</tt>-dimensional Cartesian space.
-     * An initial isotropic error margin is specified.
+     * The error array (error ellipsoid dimensions) is not initialised to
+     * anything sensible by this constructor.
      *
      * @param   ndim  dimensionality of the space
-     * @param   err  initial maximum distance between two matching points
      * @param   normaliseScores  <tt>true</tt> iff you want match scores 
      *                           to be normalised
      */
-    public CartesianMatchEngine( int ndim, double err, 
-                                 boolean normaliseScores ) {
-        this.ndim = ndim;
-        blockSize = (int) Math.pow( 3, ndim );
-        setError( err );
+    protected AbstractCartesianMatchEngine( int ndim, 
+                                            boolean normaliseScores ) {
+        ndim_ = ndim;
+        errors_ = new double[ ndim ];
+        err2rs_ = new double[ ndim ];
+        cellScales_ = new double[ ndim ];
+        blockSize_ = (int) Math.pow( 3, ndim );
         setNormaliseScores( normaliseScores );
+    }
+
+    /**
+     * Returns the number of dimensions of this matcher.
+     *
+     * @param  dimensionality of Cartesian space
+     */
+    public int getDimensions() {
+        return ndim_;
     }
 
     /**
@@ -74,10 +87,10 @@ public class CartesianMatchEngine implements MatchEngine {
 
         /* If any of the coordinates is too far away, reject it straight away.
          * This is a cheap test which will normally reject most requests. */
-        for ( int i = 0; i < ndim; i++ ) {
+        for ( int i = 0; i < ndim_; i++ ) {
             if ( Math.abs( ((Number) tuple1[ i ]).doubleValue() - 
                            ((Number) tuple2[ i ]).doubleValue() ) 
-                 > errs[ i ] ) {
+                 > errors_[ i ] ) {
                 return -1.0;
             }
         }
@@ -85,16 +98,16 @@ public class CartesianMatchEngine implements MatchEngine {
         /* We are in the right ball park - do an accurate calculation. */
         double spaceDist2 = 0.0; 
         double normDist2 = 0.0;
-        for ( int i = 0; i < ndim; i++ ) {
+        for ( int i = 0; i < ndim_; i++ ) {
             double d = ((Number) tuple1[ i ]).doubleValue() - 
                        ((Number) tuple2[ i ]).doubleValue();
             double d2 = d * d;
             spaceDist2 += d2;
-            normDist2 += d2 * err2rs[ i ];
+            normDist2 += d2 * err2rs_[ i ];
         }
         if ( normDist2 <= 1.0 ) {
-            return normaliseScores ? Math.sqrt( normDist2 ) 
-                                   : Math.sqrt( spaceDist2 );
+            return normaliseScores_ ? Math.sqrt( normDist2 ) 
+                                    : Math.sqrt( spaceDist2 );
         }
         else {
             return -1.0;
@@ -109,82 +122,59 @@ public class CartesianMatchEngine implements MatchEngine {
      *                representing coordinates of an object
      */
     public Object[] getBins( Object[] tuple ) {
-        double[] coords = new double[ ndim ];
-        for ( int i = 0; i < ndim; i++ ) {
-            coords[ i ] = ((Number) tuple[ i ]).doubleValue();
+        double[] coords = new double[ ndim_ ];
+        for ( int i = 0; i < ndim_; i++ ) {
+            if ( tuple[ i ] instanceof Number ) {
+                coords[ i ] = ((Number) tuple[ i ]).doubleValue();
+            }
+            else {
+                return NO_BINS;
+            }
         }
         return getCellBlock( coords );
     }
 
+    /**
+     * Returns an array of tuple infos, one for each Cartesian dimension.
+     */
     public ValueInfo[] getTupleInfos() {
-        ValueInfo[] infos = new ValueInfo[ ndim ];
-        for ( int i = 0; i < ndim; i++ ) {
+        ValueInfo[] infos = new ValueInfo[ ndim_ ];
+        for ( int i = 0; i < ndim_; i++ ) {
             DefaultValueInfo info = 
-                new DefaultValueInfo( "Co-ordinate " + ( i + 1 ),
+                new DefaultValueInfo( getCoordinateName( i ),
                                       Number.class,
-                                      "Cartesian co-ordinate #" + ( i + 1 ) );
+                                      getCoordinateDescription( i ) );
             info.setNullable( false );
             infos[ i ] = info;
-        }
-        if ( ndim == 2 || ndim == 3 ) {
-            ((DefaultValueInfo) infos[ 0 ]).setName( "X" );
-            ((DefaultValueInfo) infos[ 1 ]).setName( "Y" );
-            if ( ndim == 3 ) {
-                ((DefaultValueInfo) infos[ 2 ]).setName( "Z" );
-            }
         }
         return infos;
     }
 
-    public DescribedValue[] getMatchParameters() {
-        return new DescribedValue[] { errorValue };
-    }
+    public abstract DescribedValue[] getMatchParameters();
 
     /**
-     * Returns an array containing the principle radii of an ellipsoid
-     * that determines whether two points match. 
-     * The returned array is a clone of the internal data structure; 
-     * use <tt>setErrors</tt> to change the values.
+     * Returns the matching error along a given axis.
+     * This is the principle radius of an ellipsoid within which two points
+     * must fall in order to match.
      *
      * @return  error array
      */
-    public double[] getErrors() {
-        return (double[]) errs.clone();
+    protected double getError( int idim ) {
+        return errors_[ idim ];
     }
 
     /**
-     * Sets the array containing the principle radii of an ellipsoid
-     * that determines whether two points match.
+     * Sets one of the principle radii of the ellipsoid within which 
+     * two points have to fall in order to match.
      *
-     * @param  errors  error array
+     * @param  idim  index of axis
+     * @param  error  error along axis <tt>idim</tt>
      */
-    public void setErrors( double[] errors ) {
-        if ( errors.length != ndim ) {
-            throw new IllegalArgumentException( 
-                "Errors array wrong length " + errors.length +
-                " (should match dimensionality " + ndim + ")" );
-        }
-        this.errs = (double[]) errors.clone();
-        err2rs = new double[ ndim ];
-        cellScales = new double[ ndim ];
+    public void setError( int idim, double error ) {
         assert CELL_SCALE >= 1.0;
-        for ( int i = 0; i < ndim; i++ ) {
-            err2rs[ i ] = 1.0 / ( errs[ i ] * errs[ i ] );
-            cellScales[ i ] = 1.0 / ( CELL_SCALE * errs[ i ] );
-        }
-    }
-
-    /**
-     * Sets the maximum distance between two points that counts as a match.
-     * This is equivalent to calling {@link #setErrors} with an array 
-     * that has all the same values.
-     *
-     * @param  error  maximum distance for matching
-     */
-    public void setError( double error ) {
-        double[] errs = new double[ ndim ];
-        Arrays.fill( errs, error );
-        setErrors( errs );
+        errors_[ idim ] = error;
+        err2rs_[ idim ] = 1.0 / ( error * error );
+        cellScales_[ idim ] = 1.0 / ( CELL_SCALE * error );
     }
 
     /**
@@ -196,14 +186,13 @@ public class CartesianMatchEngine implements MatchEngine {
      * the score is the distance in the space defined by the supplied tuples.
      *
      * <p>If your errors are significantly anisotropic 
-     * (you've used {@link #setErrors} not {@link #setError}) 
      * and/or your coordinates do not represent a physical space, 
      * you probably want to set this false.
      *
      * @param  norm  <tt>true</tt> iff you want match scores to be normalised
      */
     public void setNormaliseScores( boolean norm ) {
-        normaliseScores = norm;
+        normaliseScores_ = norm;
     }
 
     /**
@@ -213,12 +202,31 @@ public class CartesianMatchEngine implements MatchEngine {
      * @return   <tt>true</tt> iff match scores will be normalised
      */
     public boolean getNormaliseScores() {
-        return normaliseScores;
+        return normaliseScores_;
     }
 
-    public String toString() {
-        return ndim + "d Cartesian";
+    /**
+     * Returns the name of one of the coordinates.
+     *
+     * @param  idim  index of coordinate
+     * @return  name to use for coordinate <tt>idim</tt>
+     */
+    String getCoordinateName( int idim ) {
+        return ndim_ <= 3 ? new String[] { "X", "Y", "Z" }[ idim ]
+                          : ( "Co-ord #" + ( idim + 1 ) );
     }
+
+    /**
+     * Returns the description of one of the coordinates.
+     *
+     * @param  idim  index of coordinate
+     * @return  description to use for coordinate <tt>idim</tt>
+     */
+    String getCoordinateDescription( int idim ) {
+        return "Cartesian co-ordinate #" + ( idim + 1 );
+    }
+
+    public abstract String toString();
 
     /**
      * Returns the cell label corresponding to the given coordinate set.
@@ -227,9 +235,9 @@ public class CartesianMatchEngine implements MatchEngine {
      * @return  ndim-dimensional array of cell label indices
      */
     private int[] getBaseLabel( double[] coords ) {
-        int[] label = new int[ ndim ];
-        for ( int i = 0; i < ndim; i++ ) {
-            label[ i ] = (int) Math.floor( coords[ i ] * cellScales[ i ] );
+        int[] label = new int[ ndim_ ];
+        for ( int i = 0; i < ndim_; i++ ) {
+            label[ i ] = (int) Math.floor( coords[ i ] * cellScales_[ i ] );
         }
         return label;
     }
@@ -250,13 +258,13 @@ public class CartesianMatchEngine implements MatchEngine {
          * Any point which is near the given one must lie in one of those 
          * cells. */
         Set cells = new HashSet();
-        int[] offset = new int[ ndim ];
-        double[] pos = new double[ ndim ];
-        for ( int icell = 0; icell < blockSize; icell++ ) {
+        int[] offset = new int[ ndim_ ];
+        double[] pos = new double[ ndim_ ];
+        for ( int icell = 0; icell < blockSize_; icell++ ) {
 
             /* Get the position of the next point. */
-            for ( int i = 0; i < ndim; i++ ) {
-                pos[ i ] = coords[ i ] + ( offset[ i ] - 1 ) * errs[ i ];
+            for ( int i = 0; i < ndim_; i++ ) {
+                pos[ i ] = coords[ i ] + ( offset[ i ] - 1 ) * errors_[ i ];
             }
 
             /* Ensure that the grid cell in which that point lies is 
@@ -265,7 +273,7 @@ public class CartesianMatchEngine implements MatchEngine {
             cells.add( cell );
 
             /* Bump the n-dimensional offset to the next point. */
-            for ( int j = 0; j < ndim; j++ ) {
+            for ( int j = 0; j < ndim_; j++ ) {
                 if ( ++offset[ j ] < 3 ) {
                     break;
                 }
@@ -276,7 +284,7 @@ public class CartesianMatchEngine implements MatchEngine {
         }
 
         /* Sanity check. */
-        for ( int i = 0; i < ndim; i++ ) {
+        for ( int i = 0; i < ndim_; i++ ) {
             assert offset[ i ] == 0;
         }
 
@@ -291,21 +299,21 @@ public class CartesianMatchEngine implements MatchEngine {
      */
     private class Cell {
 
-        private final int[] label;
-        private final CartesianMatchEngine encloser;
+        private final int[] label_;
+        private final AbstractCartesianMatchEngine encloser_;
 
         Cell( int[] label ) {
-            this.label = label;
-            this.encloser = CartesianMatchEngine.this;
+            label_ = label;
+            encloser_ = AbstractCartesianMatchEngine.this;
         }
 
         public boolean equals( Object o ) {
             if ( o instanceof Cell ) {
                 Cell other = (Cell) o;
-                if ( this.encloser == other.encloser ) {
-                    int[] otherLabel = other.label;
-                    for ( int i = 0; i < ndim; i++ ) {
-                        if ( otherLabel[ i ] != label[ i ] ) {
+                if ( this.encloser_ == other.encloser_ ) {
+                    int[] otherLabel = other.label_;
+                    for ( int i = 0; i < ndim_; i++ ) {
+                        if ( otherLabel[ i ] != label_[ i ] ) {
                             return false;
                         }
                     }
@@ -317,44 +325,22 @@ public class CartesianMatchEngine implements MatchEngine {
 
         public int hashCode() {
             int code = 37;
-            for ( int i = 0; i < ndim; i++ ) {
-                code = 23 * code + label[ i ];
+            for ( int i = 0; i < ndim_; i++ ) {
+                code = 23 * code + label_[ i ];
             }
             return code;
         }
 
         public String toString() {
             StringBuffer sbuf = new StringBuffer( "(" );
-            for ( int i = 0; i < ndim; i++ ) {
+            for ( int i = 0; i < ndim_; i++ ) {
                 if ( i > 0 ) {
                     sbuf.append( "," ); 
                 }
-                sbuf.append( label[ i ] );
+                sbuf.append( label_[ i ] );
             }
             sbuf.append( ")" );
             return sbuf.toString();
-        }
-    }
-
-    /**
-     * Implements the parameter which controls the matching error.
-     */
-    private class ErrorValue extends DescribedValue {
-        ErrorValue() {
-            super( new DefaultValueInfo( "Error", Double.class, 
-                                         "Maximum separation for match" ) );
-        }
-        public Object getValue() {
-            for ( int i = 0; i < ndim; i++ ) {
-                if ( errs[ i ] != errs[ 0 ] ) {
-                    throw new IllegalStateException( 
-                        "Uh oh - can't cope with anistotropic error" );
-                }
-            }
-            return new Double( errs[ 0 ] );
-        }
-        public void setValue( Object value ) {
-            setError( ((Double) value).doubleValue() );
         }
     }
 }

@@ -13,11 +13,11 @@ import uk.ac.starlink.table.ValueInfo;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class SphericalPolarMatchEngine extends CartesianMatchEngine {
+public class SphericalPolarMatchEngine extends IsotropicCartesianMatchEngine {
 
-    private Double[] work0 = new Double[ 3 ];
-    private Double[] work1 = new Double[ 3 ];
-    private Double[] work2 = new Double[ 3 ];
+    private Double[] work0_ = new Double[ 3 ];
+    private Double[] work1_ = new Double[ 3 ];
+    private Double[] work2_ = new Double[ 3 ];
 
     private static final DefaultValueInfo RA_INFO =
         new DefaultValueInfo( "RA", Number.class, "Right Ascension" );
@@ -44,17 +44,26 @@ public class SphericalPolarMatchEngine extends CartesianMatchEngine {
      */
     public SphericalPolarMatchEngine( double err ) {
         super( 3, err, false );
+        ((DefaultValueInfo) errorParam_.getInfo())
+                           .setUnitString( "Units of radius" );
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        polarToCartesian( tuple1, work1 );
-        polarToCartesian( tuple2, work2 );
-        return super.matchScore( work1, work2 );
+        polarToCartesian( tuple1, work1_ );
+        polarToCartesian( tuple2, work2_ );
+        return super.matchScore( work1_, work2_ );
     }
 
     public Object[] getBins( Object[] tuple ) {
-        polarToCartesian( tuple, work0 );
-        return super.getBins( work0 );
+        if ( tuple[ 0 ] instanceof Number &&
+             tuple[ 1 ] instanceof Number &&
+             tuple[ 2 ] instanceof Number ) {
+            polarToCartesian( tuple, work0_ );
+            return super.getBins( work0_ );
+        }
+        else {
+            return NO_BINS;
+        }
     }
 
     public ValueInfo[] getTupleInfos() {
@@ -63,34 +72,6 @@ public class SphericalPolarMatchEngine extends CartesianMatchEngine {
 
     public String toString() {
         return "Spherical Polar";
-    }
-
-    /**
-     * Sets the errors for matching.
-     *
-     * @param  errs  array with all the same elements 
-     * @throws  IllegalArgumentException  if not all elements of 
-     *          <tt>errs</tt> are equal (this would signal an 
-     *          anisotropic error range, not supported by this class)
-     */
-    public void setErrors( double[] errs ) {
-        if ( errs[ 1 ] != errs[ 0 ] || errs[ 2 ] != errs[ 0 ] ) {
-            throw new IllegalArgumentException(
-                "Only isotropic errors for spherical polars" );
-        }
-        super.setErrors( errs );
-    }
-   
-    /**
-     * Returns the isotropic error.
-     * The units are the same as those that range is specified in.
-     *
-     * @return  error margin for matches
-     */
-    public double getError() {
-        double[] errs = super.getErrors();
-        assert errs[ 1 ] == errs[ 0 ] && errs[ 2 ] == errs[ 0 ];
-        return errs[ 0 ];
     }
 
     /**
