@@ -286,7 +286,7 @@ public class StaticTreeViewer extends JFrame {
                 /* If there is only one child in the root, expand it. */
                 if ( nnode == 0 && ! it.hasNext() ) {
                     Object[] path = treeModel.getPathToRoot( child );
-                    jtree.expandPath( new TreePath( path ) );
+                    jtree.expandPathLater( new TreePath( path ) );
                 }
 
                 /* If one of the nodes is a demo data node, keep track of
@@ -329,7 +329,7 @@ public class StaticTreeViewer extends JFrame {
                              IconFactory.getIcon( IconFactory.OPEN ),
                              "Open the selected node" ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    jtree.expandPath( jtree.getSelectionPath() );
+                    jtree.expandPathLater( jtree.getSelectionPath() );
                 }
             };
 
