@@ -59,22 +59,35 @@ public class ArrayStructure {
         this.hobj = hobj;
 
         /* See if we appear to have a SIMPLE array. */
+        HDSObject dat;
         if ( hobj.datStruc() && 
              hobj.datShape().length == 0 &&
              hobj.datType().equals( "ARRAY" ) &&
              hobj.datThere( "DATA" ) &&
-             hobj.datThere( "ORIGIN" ) ) {
+             ( ( dat = hobj.datFind( "DATA" ) ) != null ) &&
+             ( ! dat.datStruc() )  &&
+             dat.datShape().length > 0 ) {
             storage = "SIMPLE";
-            dataObj = hobj.datFind( "DATA" );
+            dataObj = dat;
             long[] dims = dataObj.datShape();
-            HDSObject orgObj = hobj.datFind( "ORIGIN" );
-            long[] orgShape = orgObj.datShape();
-            if ( orgShape.length != 1 || 
-                 orgShape[ 0 ] != dims.length ||
-                 ! orgObj.datType().equals( "_INTEGER" ) ) {
-                throw new HDSException( "Format of ARY object is unexpected" );
+            long[] origin;
+            if ( hobj.datThere( "ORIGIN" ) ) {
+                HDSObject orgObj = hobj.datFind( "ORIGIN" );
+                long[] orgShape = orgObj.datShape();
+                if ( orgShape.length != 1 || 
+                     orgShape[ 0 ] != dims.length ||
+                     ! orgObj.datType().equals( "_INTEGER" ) ) {
+                    throw new HDSException( 
+                        "Format of ARY object is unexpected" );
+                }
+                origin = NDShape.intsToLongs( orgObj.datGetvi() );
             }
-            long[] origin = NDShape.intsToLongs( orgObj.datGetvi() );
+            else {
+                origin = new long[ dims.length ];
+                for ( int i = 0; i < dims.length; i++ ) {
+                    origin[ i ] = 1L;
+                }
+            }
             oshape = new OrderedNDShape( new NDShape( origin, dims ),
                                          Order.COLUMN_MAJOR );
         }
