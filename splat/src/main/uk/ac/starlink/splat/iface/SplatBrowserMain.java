@@ -88,8 +88,18 @@ public class SplatBrowserMain
 
             defaultType = (String) parser.getOptionValue( type );
             ndAction = (String) parser.getOptionValue( ndaction );
+
+            //  The axes values need to really start at 0.
             dispersionAxis = (Integer) parser.getOptionValue( dispax );
             selectAxis = (Integer) parser.getOptionValue( selectax );
+            if ( dispersionAxis != null ) {
+                dispersionAxis = new Integer( dispersionAxis.intValue() - 1 );
+            }
+            if ( selectAxis != null ) {
+                selectAxis = new Integer( selectAxis.intValue() - 1 );
+            }
+
+            //  Everything else should be spectra.
             spectraArgs = parser.getRemainingArgs();
             
             System.out.println( "defaultType = " + defaultType );
