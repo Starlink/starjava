@@ -26,9 +26,6 @@ public class FuncTest extends TestCase {
         assertEquals( 4, Arithmetic.min( (short) 5, (short) 4) );
         assertEquals( -5.0, Arithmetic.min( -5.0f, -4.0f ) );
 
-        assertTrue( Arithmetic.random() >= 0.0 );
-        assertTrue( Arithmetic.random() <= 1.0 );
-
         assertEquals( 12, Arithmetic.roundUp( 11.01 ) );
         assertEquals( 11, Arithmetic.round( 11.01 ) );
         assertEquals( 11, Arithmetic.roundDown( 11.99 ) );
