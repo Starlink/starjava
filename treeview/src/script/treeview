@@ -6,6 +6,15 @@ if test -z "$TREEVIEW_DIR"; then
    TREEVIEW_DIR=`dirname $0`
 fi
 
+#  Locate referenced server dirs.
+
+if test -z "$SPLAT_DIR"; then
+   SPLAT_DIR=${TREEVIEW_DIR}/../splat
+fi
+if test -z "$SOG_DIR"; then
+   SOG_DIR=${TREEVIEW_DIR}/../sog
+fi
+
 #  Locate the application jar file.  This is relative to this script.
 
 appjar="$TREEVIEW_DIR/../../lib/treeview/treeview.jar"
@@ -34,6 +43,9 @@ $starjava \
    -Duk.ac.starlink.treeview.cmdname="treeview" \
    -Duk.ac.starlink.treeview.sunbase="<unknown>" \
    -Duk.ac.starlink.treeview.stardir="<unknown>" \
-   -Duk.ac.starlink.treeview.scriptdir="<unknown>" \
+   -Duk.ac.starlink.treeview.sogdir="${SOG_DIR}" \
+   -Duk.ac.starlink.treeview.splatdir="${SPLAT_DIR}" \
+   -D.level="WARNING" \
+   -enableassertions \
    -jar $appjar $*
   

@@ -113,11 +113,13 @@ class ArrayBrowser extends JTable {
                     else {
                         if ( ( r < 0 || r >= rows ) &&
                              ( c >= 0 && c < cols ) ) {
-                            return Long.toString( (long) c + o0 );
+                            long p0 = o0 + ( (long) c );
+                            return Long.toString( p0 );
                         }
                         else if ( ( c < 0 || c >= cols ) &&
                                   ( r >= 0 && r < rows ) ) {
-                            return Long.toString( (long) r + o1 );
+                            long p1 = o1 + ( (long) rows - 1 - r );
+                            return Long.toString( p1 );
                         }
                         else {
                             return null;

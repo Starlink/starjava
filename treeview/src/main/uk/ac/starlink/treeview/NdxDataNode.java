@@ -11,6 +11,7 @@ import javax.swing.Action;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.xml.rpc.ServiceException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import uk.ac.starlink.array.AccessMode;
@@ -262,7 +263,7 @@ public class NdxDataNode extends DefaultDataNode {
      * @param   ndx  the NDX which is to be described
      * @throws  IOException  if anything goes wrong with the data access
      */
-    public static void addDataViews( DetailViewer dv, Ndx ndx ) 
+    public static void addDataViews( DetailViewer dv, final Ndx ndx ) 
             throws IOException{
         Requirements req = new Requirements( AccessMode.READ )
                           .setRandom( true );
@@ -347,14 +348,13 @@ public class NdxDataNode extends DefaultDataNode {
                                           .getIcon( IconFactory.SPLAT );
                 Action splatAct = new AbstractAction( "Splat", splatic ) {
                     public void actionPerformed( ActionEvent evt ) {
-                    //  try {
-                    //      displayer.displayNDX( ndx );
-                            System.out.println( "nope" );
-                    //  }
-                    //  catch ( ServiceException e ) {
-                            beep();  System.out.println( "nope" );
-                    //      e.printStackTrace();
-                    //  }
+                        try {
+                            displayer.displayNDX( ndx );
+                        }
+                        catch ( ServiceException e ) {
+                            beep();
+                            e.printStackTrace();
+                        }
                     }
                 };
                 actlist.add( splatAct );
@@ -368,14 +368,13 @@ public class NdxDataNode extends DefaultDataNode {
                                         .getIcon( IconFactory.SOG );
                 Action sogAct = new AbstractAction( "SoG", sogic ) {
                     public void actionPerformed( ActionEvent evt ) {
-                    //  try {
-                    //      displayer.displayNDX( ndx );
-                            System.out.println( "nope" );
-                    //  }
-                    //  catch ( ServiceException e ) {
+                        try {
+                            displayer.displayNDX( ndx );
+                        }
+                        catch ( ServiceException e ) {
                             beep();
-                    //      e.printStackTrace();
-                    //  }
+                            e.printStackTrace();
+                        }
                     }
                 };
                 actlist.add( sogAct );

@@ -25,8 +25,7 @@ import uk.ac.starlink.jaiutil.SimpleRenderedImage;
 
 /* The implementation of this class is largely pinched from HDXImage in
  * uk.ac.starlink.hdx.jai.  However it doesn't do any of the XML
- * mucking about that that class does.  It does work, to a degree,
- * within the hdx.jai package, though I haven't tested it in treeview. */
+ * mucking about that that class does. */
 
 public class NDArrayImage extends SimpleRenderedImage {
 
