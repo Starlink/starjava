@@ -217,9 +217,12 @@ public class HTMLTableWriter implements StarTableWriter {
         printLine( ostrm, 
                    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">" );
         printLine( ostrm, "<html>" );
-        printLine( ostrm, "<head><title>Table " + 
-                          escape( table.getName() ) +
-                          "</title></head>" );
+        String tname = table.getName();
+        if ( tname != null ) {
+            printLine( ostrm, "<head><title>Table " + 
+                              escape( tname ) +
+                              "</title></head>" );
+        }
         printLine( ostrm, "<body>" );
     }
 
