@@ -30,11 +30,7 @@ import java.net.URL;
  * If and only if it represents write access (WRITE or UPDATE)
  * then all the data will be copied from the scratch copy to the 
  * base array when the CopyNDArray is closed.  The CopyNDArray
- * will take care of closing the base array at an appropriate time;
- * for this reason it is generally not necessary or advisable to
- * make any further calls to the base array after a scratch copy
- * has been obtained by this method and, it is good practice to
- * discard the reference to the base array.
+ * will close the base array when it is closed itself.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -89,10 +85,9 @@ public class CopyNDArray extends ScratchNDArray {
         }
 
         /* If write access is not required, we have no further use for the
-         * base array - close it and discard the reference. */
+         * base array - discard the reference. */
         else {
             copyOnClose = false;
-            nda.close();
             nda = null;
         }
 
@@ -109,8 +104,10 @@ public class CopyNDArray extends ScratchNDArray {
 
         /* If necessary, copy all data back to the base NDArray, close it,
          * and discard the reference. */
-        if ( copyOnClose && nda != null ) {
-            NDArrays.copy( this, nda );
+        if ( nda != null ) {
+            if ( copyOnClose ) {
+                NDArrays.copy( this, nda );
+            }
             nda.close();
             nda = null;
         }
