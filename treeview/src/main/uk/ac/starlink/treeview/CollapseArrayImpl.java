@@ -15,7 +15,9 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
 
     private final NDArray baseNda;
     private final OrderedNDShape baseShape;
+    private final Type baseType;
     private final OrderedNDShape shape;
+    private final Type type;
     private final long collOrigin;
     private final long collLimit;
 
@@ -70,6 +72,15 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
         }
         this.shape = new OrderedNDShape( origin, dims, baseNda.getOrder() );
 
+        /* Decide on the data type of this array. */
+        this.baseType = nda.getType();
+        if ( baseType == Type.DOUBLE ) {
+            type = Type.DOUBLE;
+        }
+        else {
+            type = Type.FLOAT;
+        }
+
         /* Calculate the step between base array pixels which map to
          * the same collapsed array pixel. */
         long step = 1L;
@@ -81,6 +92,10 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
 
     public OrderedNDShape getShape() {
         return shape;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     public boolean isWritable() {
