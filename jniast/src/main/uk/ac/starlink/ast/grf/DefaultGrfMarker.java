@@ -45,49 +45,54 @@ public class DefaultGrfMarker
     public final static int SQUARE = 3;
 
     /**
+     * Use a star marker.
+     */
+    public final static int STAR = 4;
+
+    /**
      * Use a circle marker.
      */
-    public final static int CIRCLE = 4;
+    public final static int CIRCLE = 5;
 
     /**
      * Use a diamond marker.
      */
-    public final static int DIAMOND = 5;
+    public final static int DIAMOND = 6;
 
     /**
      * Use a pointing up triangle marker.
      */
-    public final static int UPTRIANGLE = 6;
+    public final static int UPTRIANGLE = 7;
 
     /**
      * Use a pointing down triangle marker.
      */
-    public final static int DOWNTRIANGLE = 7;
+    public final static int DOWNTRIANGLE = 8;
 
     /**
      * Use a filled square marker.
      */
-    public final static int FILLEDSQUARE = 8;
+    public final static int FILLEDSQUARE = 9;
 
     /**
      * Use a filled circle marker.
      */
-    public final static int FILLEDCIRCLE = 9;
+    public final static int FILLEDCIRCLE = 10;
 
     /**
      * Use a filled diamond marker.
      */
-    public final static int FILLEDDIAMOND = 10;
+    public final static int FILLEDDIAMOND = 11;
 
     /**
      * Use a filled pointing up triangle marker.
      */
-    public final static int FILLEDUPTRIANGLE = 11;
+    public final static int FILLEDUPTRIANGLE = 12;
 
     /**
      * Use a filled pointing down triangle marker.
      */
-    public final static int FILLEDDOWNTRIANGLE = 12;;
+    public final static int FILLEDDOWNTRIANGLE = 13;
 
     /**
      * Descriptions of the various types of markers. This is indexed by the
@@ -98,13 +103,16 @@ public class DefaultGrfMarker
         "cross",
         "plus",
         "square",
+        "star",
         "circle",
         "diamond",
-        "triangle",
+        "up triangle",
+        "down triangle",
         "filled square",
         "filled circle",
         "filled diamond",
-        "filled triangle"
+        "filled up triangle",
+        "filled down triangle"
     };
 
 
@@ -133,6 +141,9 @@ public class DefaultGrfMarker
                 break;
             case SQUARE:
                 drawSquare( g2, x, y, size, false );
+                break;
+            case STAR:
+                drawStar( g2, x, y, size );
                 break;
             case CIRCLE:
                 drawCircle( g2, x, y, size, false );
@@ -181,17 +192,22 @@ public class DefaultGrfMarker
 
 
     /**
-     * Draw a dot, should be a point really, but is a filled square.
+     * Return the number of markers.
+     *
+     */
+    public static int getNumMarkers()
+    {
+        return descriptions.length;
+    }
+
+
+    /**
+     * Draw a dot, should be a point really, but is a filled square of size 1.
      */
     protected static void drawDot( Graphics2D g2, double x, double y,
                                    double size )
     {
-        if ( size > 0.0 ) {
-            drawSquare( g2, x, y, size, true );
-        }
-        else {
-            drawSquare( g2, x, y, 0.001, true );
-        }
+        drawSquare( g2, x, y, 1.0, true );
     }
 
 
@@ -201,7 +217,7 @@ public class DefaultGrfMarker
     protected static void drawCross( Graphics2D g2, double x, double y,
                                      double size )
     {
-        double half = size * 0.5;
+        double half = size * 0.5 * 0.7071;
         g2.draw( new Line2D.Double( x - half, y + half, x + half, y - half ) );
         g2.draw( new Line2D.Double( x - half, y - half, x + half, y + half ) );
     }
@@ -237,6 +253,16 @@ public class DefaultGrfMarker
 
 
     /**
+     * Draw a star (cross+plus).
+     */
+    protected static void drawStar( Graphics2D g2, double x, double y,
+                                    double size )
+    {
+        drawCross( g2, x, y, size );
+        drawPlus( g2, x, y, size );
+    }
+
+    /**
      * Draw a circle.
      */
     protected static void drawCircle( Graphics2D g2, double x, double y,
@@ -252,15 +278,16 @@ public class DefaultGrfMarker
         }
     }
 
-
+    
     /**
      * Draw a diamond.
      */
     protected static void drawDiamond( Graphics2D g2, double x, double y,
                                        double size, boolean filled )
     {
-        double half = size * 0.5;
         GeneralPath path = new GeneralPath();
+        double half = size * 0.5;
+
         path.moveTo( (float) ( x - half ), (float) y );
         path.lineTo( (float) x, (float) ( y - half ) );
         path.lineTo( (float) ( x + half ), (float) y );
@@ -274,25 +301,28 @@ public class DefaultGrfMarker
 
 
     /**
-     * Draw a triangle
+     * Draw an equilateral triangle
      */
     protected static void drawTriangle( Graphics2D g2, double x, double y,
-                                        double size, boolean up, 
+                                        double size, boolean up,
                                         boolean filled )
     {
-        double half = size * 0.5;
         GeneralPath path = new GeneralPath();
+        double half = 0.5 * size;
+        double quar = 0.5 * half;
+        double delt = 0.433 * size;
+
         if ( up ) {
-            path.moveTo( (float) ( x - half ), (float) ( y - half ) );
-            path.lineTo( (float) ( x + half ), (float) ( y - half ) );
-            path.lineTo( (float) x, (float) ( y + half ) );
-            path.lineTo( (float) ( x - half ), (float) ( y - half ) );
+            path.moveTo( (float) x, (float) ( y - half ) );
+            path.lineTo( (float) ( x - delt ), (float) ( y + quar ) );
+            path.lineTo( (float) ( x + delt ), (float) ( y + quar ) );
+            path.lineTo( (float) x, (float) ( y - half ) );
         }
         else {
-            path.moveTo( (float) ( x - half ), (float) ( y + half ) );
-            path.lineTo( (float) ( x + half ), (float) ( y + half ) );
-            path.lineTo( (float) x, (float) ( y - half ) );
-            path.lineTo( (float) ( x - half ), (float) ( y + half ) );
+            path.moveTo( (float) x, (float) ( y + half ) );
+            path.lineTo( (float) ( x + delt ), (float) ( y - quar ) );
+            path.lineTo( (float) ( x - delt ), (float) ( y - quar ) );
+            path.lineTo( (float) x, (float) ( y + half ) );
         }
         g2.draw( path );
         if ( filled ) {
