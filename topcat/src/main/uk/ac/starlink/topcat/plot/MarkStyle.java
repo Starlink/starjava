@@ -36,7 +36,7 @@ public abstract class MarkStyle {
     }
 
     /**
-     * Draws this marker's shape at the origin in a graphics context.
+     * Draws this marker's shape centered at the origin in a graphics context.
      * Implementing classes don't need to worry about the colour.
      *
      * @param  g  graphics context
@@ -54,8 +54,9 @@ public abstract class MarkStyle {
     public abstract int getMaximumRadius();
 
     /**
-     * Draws this marker at a given position.  This method sets the colour
-     * of the graphics context and then calls {@link #drawShape}.
+     * Draws this marker centered at a given position.  
+     * This method sets the colour of the graphics context and 
+     * then calls {@link #drawShape}.
      *
      * @param  g  graphics context
      * @param  x  x position
@@ -169,7 +170,8 @@ public abstract class MarkStyle {
     public static MarkStyle openCircleStyle( Color color, final int size ) {
         final int off = -size;
         final int diam = size * 2;
-        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
+        return new ConvenienceMarkStyle( color, new Integer( size ), 
+                                         size + 1 ) {
             protected void drawShape( Graphics g ) {
                 g.drawOval( off, off, diam, diam );
             }
@@ -186,7 +188,8 @@ public abstract class MarkStyle {
     public static MarkStyle filledCircleStyle( Color color, final int size ) {
         final int off = -size;
         final int diam = size * 2;
-        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
+        return new ConvenienceMarkStyle( color, new Integer( size ), 
+                                         size + 1 ) {
             protected void drawShape( Graphics g ) {
                 g.fillOval( off, off, diam, diam );
 
@@ -207,7 +210,8 @@ public abstract class MarkStyle {
     public static MarkStyle openSquareStyle( Color color, final int size ) {
         final int off = -size;
         final int height = size * 2;
-        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
+        return new ConvenienceMarkStyle( color, new Integer( size ), 
+                                         size + 1 ) {
             protected void drawShape( Graphics g ) {
                 g.drawRect( off, off, height, height );
             }
@@ -224,7 +228,8 @@ public abstract class MarkStyle {
     public static MarkStyle filledSquareStyle( Color color, final int size ) {
         final int off = -size;
         final int height = size * 2 + 1;
-        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
+        return new ConvenienceMarkStyle( color, new Integer( size ),
+                                         size + 1 ) {
            protected void drawShape( Graphics g ) {
                 g.fillRect( off, off, height, height );
             }
@@ -240,7 +245,8 @@ public abstract class MarkStyle {
      */
     public static MarkStyle crossStyle( Color color, final int size ) {
         final int off = size;
-        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
+        return new ConvenienceMarkStyle( color, new Integer( size ),
+                                         size + 1 ) {
             protected void drawShape( Graphics g ) {
                 g.drawLine( -off, 0, off, 0 );
                 g.drawLine( 0, -off, 0, off );
@@ -257,7 +263,8 @@ public abstract class MarkStyle {
      */
     public static MarkStyle xStyle( Color color, final int size ) {
         final int off = size;
-        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
+        return new ConvenienceMarkStyle( color, new Integer( size ), 
+                                         size + 1 ) {
             protected void drawShape( Graphics g ) {
                 g.drawLine( -off, -off, off, off );
                 g.drawLine( off, -off, -off, off );
@@ -286,7 +293,8 @@ public abstract class MarkStyle {
     public static MarkStyle filledDiamondStyle( Color color, final int size ) {
         final int off = size;
         final Shape di = diamond( size );
-        return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
+        return new ConvenienceMarkStyle( color, new Integer( size ),
+                                         size + 1 ) {
             protected void drawShape( Graphics g ) {
                 if ( g instanceof Graphics2D ) {
                     Graphics2D g2 = (Graphics2D) g;
