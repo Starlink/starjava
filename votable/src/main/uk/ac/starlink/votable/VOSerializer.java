@@ -659,7 +659,9 @@ public abstract class VOSerializer {
                     /* Modify the arraysize attribute to match what the FITS
                      * serializer will write. */
                     if ( dims.length == 0 ) {
-                        atts.remove( "arraysize" );
+                        if ( ! "1".equals( atts.get( "arraysize" ) ) ) {
+                            atts.remove( "arraysize" );
+                        }
                     }
                     else {
                         StringBuffer arraysize = new StringBuffer();
