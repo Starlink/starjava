@@ -191,6 +191,9 @@
     <!-- JUnit -->
     <pathelement location="${star.jar.dir}/junit/junit.jar"/>
 
+    <!-- FITS - optional -->
+    <pathelement location="${star.jar.dir}/fits/fits.jar"/>
+
     <!-- HDS - optional -->
     <pathelement location="${star.jar.dir}/hds/hds.jar"/>
 
@@ -217,6 +220,8 @@
     <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
     <pathelement location="${star.build.dir}/junit/lib/junit/junit.jar"/>
     <pathelement location="${star.build.dir}/hds/lib/hds/hds.jar"/>
+    <pathelement location="${star.build.dir}/fits/lib/fits/fits.jar"/>
+    <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
   </extclasspath>
 
   <path id="built.classpath">
@@ -299,6 +304,9 @@
                classname="uk.ac.starlink.util.SourceReader"/>
 
     <fail message="No Util available" unless="util.present"/>
+
+    <!--  HDS and FITS, while desirable, are not required
+          (they are installed at runtime if present) -->
 
     <!--  Would like JUnit for testing -->
     <condition property="testframework.present">
@@ -391,7 +399,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" 
          value="../junit/junit.jar ../array/array.jar ../jniast/jniast.jar
-                ../util/util.jar ../hds/hds.jar"/>
+                ../util/util.jar ../fits/fits.jar ../hds/hds.jar"/>
       </manifest>
     </jar>
 
@@ -755,7 +763,7 @@
           unless="javadoc.notrequired">
     <uptodate property="javadoc.notrequired"
               targetfile="${dist.javadocs}/packages.html" >
-        <srcfiles dir= "${java.dir}" includes="**/*.java"/>
+        <srcfiles dir= "${java.dir}" includes="**/*.java **/*.html"/>
     </uptodate>
   </target>
 
@@ -793,7 +801,6 @@
           <exclude name="**/README"/>
           <exclude name="**/.*"/>
           <exclude name="**/*.swp"/>
-          <exclude name="**/*.html"/>
       </fileset>
     </copy>
 
