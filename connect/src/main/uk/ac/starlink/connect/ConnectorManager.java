@@ -7,6 +7,13 @@ import uk.ac.starlink.util.Loader;
 /**
  * Marshals provision of {@link Connector} objects.
  *
+ * <p>By default, if the requisite classes are available in this JVM,
+ * the following connectors are known:
+ * <ul>
+ * <li>{@link uk.ac.starlink.srb.SRBConnector} (SRB)
+ * <li>{@link uk.ac.starlink.astrogrid.TreeClientConnector} (MySpace V1)
+ * </ul>
+ *
  * @author   Mark Taylor
  * @since    21 Feb 2005
  */
