@@ -340,7 +340,8 @@
               doctitle="${FullName}"
               protected="true"
               classpathref="classpath"
-              source="1.4">
+              source="1.4"
+              maxmemory="128m">
 
       <!-- Get all possible package names from the build/java
        !   directories. Need to name all top-level packages
@@ -420,6 +421,10 @@
       </packageset>
 
       <packageset dir="rv/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="diva/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
