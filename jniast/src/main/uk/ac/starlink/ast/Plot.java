@@ -2598,8 +2598,8 @@ public class Plot extends FrameSet {
      * superscript instead of using a "^" character to represent
      * exponentiation.
      * <p>
-     * The default is to produce exponential labels if the corresponding 
-     * LogTicks attribute is non-zero.
+     * The default is to produce exponential labels if the major tick
+     * marks are logarithmically spaced (see the LogTicks attribute).
      * <h4>Notes</h4>
      * <br> - If no axis is specified, (e.g. "LogLabel" instead of
      * "LogLabel(2)"), then a "set" or "clear" operation will affect the
@@ -2638,8 +2638,8 @@ public class Plot extends FrameSet {
      * superscript instead of using a "^" character to represent
      * exponentiation.
      * <p>
-     * The default is to produce exponential labels if the corresponding 
-     * LogTicks attribute is non-zero.
+     * The default is to produce exponential labels if the major tick
+     * marks are logarithmically spaced (see the LogTicks attribute).
      * <h4>Notes</h4>
      * <br> - If no axis is specified, (e.g. "LogLabel" instead of
      * "LogLabel(2)"), then a "set" or "clear" operation will affect the
@@ -2679,8 +2679,8 @@ public class Plot extends FrameSet {
      * superscript instead of using a "^" character to represent
      * exponentiation.
      * <p>
-     * The default is to produce exponential labels if the corresponding 
-     * LogTicks attribute is non-zero.
+     * The default is to produce exponential labels if the major tick
+     * marks are logarithmically spaced (see the LogTicks attribute).
      * <h4>Notes</h4>
      * <br> - If no axis is specified, (e.g. "LogLabel" instead of
      * "LogLabel(2)"), then a "set" or "clear" operation will affect the
@@ -2847,20 +2847,23 @@ public class Plot extends FrameSet {
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
      * whether the major tick marks should be spaced logarithmically or 
-     * linearly. It takes a separate value for each physical axis of the
-     * Plot so that, for instance, the setting "LogTicks(2)=1" specifies
-     * that the major tick marks on the second axis should be spaced
-     * logarithmically.
+     * linearly in axis value. It takes a separate value for each physical 
+     * axis of the Plot so that, for instance, the setting "LogTicks(2)=1" 
+     * specifies that the major tick marks on the second axis should be 
+     * spaced logarithmically.
      * <p>
      * If the LogTicks value for a physical axis is non-zero, the major
      * tick marks on that axis will be spaced logarithmically (that is,
-     * there will be a constant ratio betwen adjacent tick mark values).
-     * An error will be reported if the dynamic range of the axis (the
-     * ratio of the largest to smallest displayed axis value) is less than
-     * 100.0. If the LogTicks value is zero, the major tick marks will be 
-     * evenly spaced (that is, there will be a constant difference between 
-     * adjacent tick mark values). The default is to produce logarithmically 
-     * spaced tick marks if the corresponding LogPlot attribute is non-zero.
+     * there will be a constant ratio between the axis values at adjacent 
+     * major tick marks). An error will be reported if the dynamic range of 
+     * the axis (the ratio of the largest to smallest displayed axis value) 
+     * is less than 10.0. If the LogTicks value is zero, the major tick marks 
+     * will be evenly spaced (that is, there will be a constant difference 
+     * between the axis values at adjacent major tick marks). The default is 
+     * to produce logarithmically spaced tick marks if the corresponding 
+     * LogPlot attribute is non-zero and the ratio of maximum axis value
+     * to minimum axis value is 100 or more. If either of these conditions
+     * is not met, the default is to produce linearly spaced tick marks.
      * <h4>Notes</h4>
      * <br> - The setting of the LogTicks attribute does not affect the mapping
      * of the plot onto the screen, which is controlled by attribute LogPlot.
@@ -2898,20 +2901,23 @@ public class Plot extends FrameSet {
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
      * whether the major tick marks should be spaced logarithmically or 
-     * linearly. It takes a separate value for each physical axis of the
-     * Plot so that, for instance, the setting "LogTicks(2)=1" specifies
-     * that the major tick marks on the second axis should be spaced
-     * logarithmically.
+     * linearly in axis value. It takes a separate value for each physical 
+     * axis of the Plot so that, for instance, the setting "LogTicks(2)=1" 
+     * specifies that the major tick marks on the second axis should be 
+     * spaced logarithmically.
      * <p>
      * If the LogTicks value for a physical axis is non-zero, the major
      * tick marks on that axis will be spaced logarithmically (that is,
-     * there will be a constant ratio betwen adjacent tick mark values).
-     * An error will be reported if the dynamic range of the axis (the
-     * ratio of the largest to smallest displayed axis value) is less than
-     * 100.0. If the LogTicks value is zero, the major tick marks will be 
-     * evenly spaced (that is, there will be a constant difference between 
-     * adjacent tick mark values). The default is to produce logarithmically 
-     * spaced tick marks if the corresponding LogPlot attribute is non-zero.
+     * there will be a constant ratio between the axis values at adjacent 
+     * major tick marks). An error will be reported if the dynamic range of 
+     * the axis (the ratio of the largest to smallest displayed axis value) 
+     * is less than 10.0. If the LogTicks value is zero, the major tick marks 
+     * will be evenly spaced (that is, there will be a constant difference 
+     * between the axis values at adjacent major tick marks). The default is 
+     * to produce logarithmically spaced tick marks if the corresponding 
+     * LogPlot attribute is non-zero and the ratio of maximum axis value
+     * to minimum axis value is 100 or more. If either of these conditions
+     * is not met, the default is to produce linearly spaced tick marks.
      * <h4>Notes</h4>
      * <br> - The setting of the LogTicks attribute does not affect the mapping
      * of the plot onto the screen, which is controlled by attribute LogPlot.
@@ -2950,20 +2956,23 @@ public class Plot extends FrameSet {
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
      * whether the major tick marks should be spaced logarithmically or 
-     * linearly. It takes a separate value for each physical axis of the
-     * Plot so that, for instance, the setting "LogTicks(2)=1" specifies
-     * that the major tick marks on the second axis should be spaced
-     * logarithmically.
+     * linearly in axis value. It takes a separate value for each physical 
+     * axis of the Plot so that, for instance, the setting "LogTicks(2)=1" 
+     * specifies that the major tick marks on the second axis should be 
+     * spaced logarithmically.
      * <p>
      * If the LogTicks value for a physical axis is non-zero, the major
      * tick marks on that axis will be spaced logarithmically (that is,
-     * there will be a constant ratio betwen adjacent tick mark values).
-     * An error will be reported if the dynamic range of the axis (the
-     * ratio of the largest to smallest displayed axis value) is less than
-     * 100.0. If the LogTicks value is zero, the major tick marks will be 
-     * evenly spaced (that is, there will be a constant difference between 
-     * adjacent tick mark values). The default is to produce logarithmically 
-     * spaced tick marks if the corresponding LogPlot attribute is non-zero.
+     * there will be a constant ratio between the axis values at adjacent 
+     * major tick marks). An error will be reported if the dynamic range of 
+     * the axis (the ratio of the largest to smallest displayed axis value) 
+     * is less than 10.0. If the LogTicks value is zero, the major tick marks 
+     * will be evenly spaced (that is, there will be a constant difference 
+     * between the axis values at adjacent major tick marks). The default is 
+     * to produce logarithmically spaced tick marks if the corresponding 
+     * LogPlot attribute is non-zero and the ratio of maximum axis value
+     * to minimum axis value is 100 or more. If either of these conditions
+     * is not met, the default is to produce linearly spaced tick marks.
      * <h4>Notes</h4>
      * <br> - The setting of the LogTicks attribute does not affect the mapping
      * of the plot onto the screen, which is controlled by attribute LogPlot.

@@ -142,6 +142,10 @@ public class Frame extends Mapping {
      * <br> - A "bad" value will also be returned if this function is
      * invoked with the AST error status set, or if it should fail for
      * any reason.
+     * @param   axis
+     * The index of the axis to which the supplied values refer. The
+     * first axis has index 1.
+     * 
      * @param   v1
      * The first axis value.
      * 
@@ -168,6 +172,10 @@ public class Frame extends Mapping {
      * <br> - A "bad" value will also be returned if this function is
      * invoked with the AST error status set, or if it should fail for
      * any reason.
+     * @param   axis
+     * The index of the axis to which the supplied values refer. The
+     * first axis has index 1.
+     * 
      * @param   v1
      * The original axis value.
      * 
@@ -618,6 +626,11 @@ public class Frame extends Mapping {
      * <br> - An error will be reported if the Frame is not 2-dimensional.
      * <br> - This function will return "bad" coordinate values (AST__BAD)
      * if any of the input coordinates has this value.
+     * @param   point1
+     * An array of double, with one element for each Frame axis
+     * (Naxes attribute). This should contain the coordinates of the
+     * point marking the start of the geodesic curve.
+     * 
      * @param   angle
      * The angle (in radians) from the positive direction of the second
      * axis, to the direction of the required position, as seen from
