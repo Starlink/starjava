@@ -127,11 +127,12 @@ public class HdxResourceType {
                     // An HDX is valid if all of its children are Element
                     // nodes; each one is recognised by
                     // HdxResourceType.match (ie, all are registered); and
-                    // each is valid.
+                    // each is valid according to _its_ validator.
+                    boolean log = logger.isLoggable(Level.FINE);
                     if (el == null)
                         throw new IllegalArgumentException
                                 ("HDX.validateElement received null argument");
-                    if (logger.isLoggable(Level.FINE))
+                    if (log)
                         logger.fine("validateElement("
                                     + HdxDocument.NodeUtil.serializeNode(el)
                                     + "):");
@@ -148,15 +149,17 @@ public class HdxResourceType {
                         }
                         HdxResourceType type = HdxResourceType.match((Element)n);
                         if (type == HdxResourceType.NONE) {
-                            logger.fine("...unrecognised child type");
+                            if (log)
+                                logger.fine("...unrecognised child type <"
+                                            + n.getNodeName() + ">");
                             return false;
                         }
                         if (!type.isValid((Element)n)) {
-                            logger.fine("...child not valid");
+                            if (log) logger.fine("...child not valid");
                             return false;
                         }
                     }
-                    logger.fine("...OK");
+                    if (log) logger.fine("...OK");
                     return true;
                 }
             });
