@@ -78,7 +78,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="ANT"/>
   <property name="name" value="ant"/>
-  <property name="version" value="1.5-2"/>
+  <property name="version" value="1.6-2-starlink"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="org.apache.tools.ant"/>
@@ -394,6 +394,7 @@
       <fileset dir="${dist.lib}">
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
+        <include name="**/LICENSE*"/>
       </fileset>
     </copy>
 
