@@ -9,7 +9,7 @@
   <xsl:param name="JAVADOCS"
              select="'http://andromeda.star.bris.ac.uk/starjavadocs/'"/>
   <xsl:param name="VERSION" select="'???'"/>
-  <xsl:param name="BASEDIR" select="."/>
+  <xsl:param name="BASEDIR" select="'.'"/>
 
   <!-- Top level element -->
 
@@ -562,7 +562,7 @@
       </xsl:attribute>
       <xsl:if test="function-available('ImageIcon:getIconWidth')">
         <xsl:variable name="srcFile" select="File:new($BASEDIR,$src)"/>
-        <xsl:variable name="srcLoc" select="java:toString($srcFile)"/>
+        <xsl:variable name="srcLoc" select="string(java:toString($srcFile))"/>
         <xsl:variable name="icon" select="ImageIcon:new($srcLoc)"/>
         <xsl:variable name="width" select="java:getIconWidth($icon)"/>
         <xsl:variable name="height" select="java:getIconHeight($icon)"/>
