@@ -15,7 +15,8 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.rmi.RemoteException;
+import java.io.InputStream;
+import java.io.IOException;
 
 import javax.media.jai.PlanarImage;
 import javax.swing.AbstractAction;
@@ -24,15 +25,21 @@ import javax.swing.SwingUtilities;
 
 import jsky.coords.CoordinateConverter;
 import jsky.coords.WorldCoordinateConverter;
+import jsky.image.ImageProcessor;
 import jsky.navigator.NavigatorImageDisplay;
 import jsky.util.gui.DialogUtil;
-import jsky.image.ImageProcessor;
 
 import org.w3c.dom.Element;
 
+import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
-//import uk.ac.starlink.hdx.HdxException;
+import uk.ac.starlink.ast.gui.ConfigurationStore;
+import uk.ac.starlink.ast.gui.GraphicsHints;
+import uk.ac.starlink.ast.gui.GraphicsHintsControls;
+import uk.ac.starlink.ast.gui.PlotConfiguration;
+import uk.ac.starlink.ast.gui.PlotConfigurator;
+import uk.ac.starlink.ast.gui.PlotController;
 import uk.ac.starlink.jaiutil.HDXImage;
 import uk.ac.starlink.jaiutil.HDXImageProcessor;
 import uk.ac.starlink.ndx.Ndx;
@@ -48,6 +55,7 @@ import uk.ac.starlink.ndx.Ndxs;
 
 public class SOGNavigatorImageDisplay
     extends NavigatorImageDisplay
+    implements PlotController
 {
     /**
      * Reference to the HDXImage displaying the NDX, if any.
@@ -75,6 +83,7 @@ public class SOGNavigatorImageDisplay
     {
         //  Use an ImageProcessor with HDX support.
         super( parent, new HDXImageProcessor() );
+        //super( parent );
     }
 
     /**
@@ -215,10 +224,12 @@ public class SOGNavigatorImageDisplay
             {
                 AbstractButton b = (AbstractButton) evt.getSource();
                 if ( b.isSelected() ) {
-                    drawGrid();
+                    showGridControls();
+                    //updatePlot();
                 }
                 else {
-                    eraseGrid();
+                    withdrawGridControls();
+                    //eraseGrid();
                 }
             }
         };
@@ -227,24 +238,54 @@ public class SOGNavigatorImageDisplay
         return gridAction;
     }
 
+    protected PlotConfigurator plotConfigurator = null;
+    protected PlotConfiguration plotConfiguration = new PlotConfiguration();
+    protected GraphicsHints graphicsHints = new GraphicsHints();
+
     /**
-     * Draw a grid over the currently displayed image.
+     * Display a window for controlling the appearance of the grid.
      */
-    public void drawGrid()
+    protected void showGridControls()
     {
-        drawGrid = true;
-        repaint();
+        if ( plotConfigurator == null ) {
+            plotConfigurator = 
+                new PlotConfigurator( "Grid Overlay Configuration",
+                                      this, plotConfiguration );
+
+            //  Add in extra graphics hints controls (anti-aliasing).
+            plotConfiguration.add( graphicsHints );
+            plotConfigurator.addExtraControls
+                ( new GraphicsHintsControls( graphicsHints ), true );
+
+            //  Set the default configuration of the controls.
+            InputStream defaultConfig = 
+                getClass().getResourceAsStream( "defaultgrid.xml" );
+            ConfigurationStore store = new ConfigurationStore( defaultConfig );
+            Element defaultElement = store.getState( 0 );
+            plotConfigurator.setDefaultState( defaultElement );
+            plotConfigurator.reset();
+            try {
+                defaultConfig.close();
+            }
+            catch (IOException e) {
+                // Do nothing.
+            }
+        }
+        plotConfigurator.setVisible( true );
     }
 
     /**
      * Erase the grid, if drawn.
      */
-    public void eraseGrid()
+    public void withdrawGridControls()
     {
         drawGrid = false;
         if ( astPlot != null ) {
             astPlot.clear();
             repaint();
+        }
+        if ( plotConfigurator != null ) {
+            plotConfigurator.setVisible( false );
         }
     }
 
@@ -269,7 +310,8 @@ public class SOGNavigatorImageDisplay
         CoordinateConverter cc = getCoordinateConverter();
         FrameSet frameSet = ((AstTransform)transform).getFrameSet();
 
-        //  Use the limits of the image to determine the graphics position.
+        //  Use the limits of the image to determine the graphics
+        //  position.
         double[] canvasbox = new double[4];
         Point2D.Double p = new Point2D.Double();
 
@@ -289,10 +331,10 @@ public class SOGNavigatorImageDisplay
         int dh = (int) Math.max( canvasbox[1], canvasbox[3] ) - yo;
         Rectangle graphRect = new Rectangle( xo, yo, dw, dh );
 
-        //  Transform these positions back into image
-        //  coordinates. These are suitably "untransformed" from the
-        //  graphics position and should be the bottom-left and
-        //  top-right corners.
+        //  Transform these positions back into image coordinates. 
+        //  These are suitably "untransformed" from the graphics 
+        //  position and should be the bottom-left and top-right 
+        //  corners.
         double[] basebox = new double[4];
         p = new Point2D.Double();
         p.setLocation( (double) xo, (double) (yo + dh) );
@@ -305,16 +347,21 @@ public class SOGNavigatorImageDisplay
         basebox[2] = p.x;
         basebox[3] = p.y;
 
-        //  Now create the astPlot.
+        //  Now create the astPlot, clearing existing graphics first.
+        if ( astPlot != null ) astPlot.clear();
         astPlot = new Plot( frameSet, graphRect, basebox );
 
-        astPlot.setGrid( true );
-        astPlot.setDrawAxes( true );
-        astPlot.setColour( "Grid", java.awt.Color.magenta.getRGB() );
-        astPlot.setColour( "Border", java.awt.Color.magenta.getRGB() );
-        astPlot.setColour( "NumLab", java.awt.Color.yellow.getRGB() );
-        astPlot.setColour( "TextLab", java.awt.Color.yellow.getRGB() );
-        astPlot.setColour( "Title", java.awt.Color.yellow.getRGB() );
+        String options = plotConfiguration.getAst();
+        System.out.println( "Options = " + options );
+        astPlot.set( options );
+
+        //astPlot.setGrid( true );
+        //astPlot.setDrawAxes( true );
+        //astPlot.setColour( "Grid", java.awt.Color.magenta.getRGB() );
+        //astPlot.setColour( "Border", java.awt.Color.magenta.getRGB() );
+        //astPlot.setColour( "NumLab", java.awt.Color.yellow.getRGB() );
+        //astPlot.setColour( "TextLab", java.awt.Color.yellow.getRGB() );
+        //astPlot.setColour( "Title", java.awt.Color.yellow.getRGB() );
         //astPlot.setLabelling( "Interior" );
         astPlot.grid();
     }
@@ -326,8 +373,15 @@ public class SOGNavigatorImageDisplay
 
         //  Redraw a grid if required.
         if ( drawGrid ) {
+
+            //  Draw the plot.
             doPlot();
             if ( astPlot != null ) {
+
+                //  Apply rendering hints.
+                graphicsHints.applyRenderingHints( g2D );
+
+                // And paint.
                 astPlot.paint( g2D );
             }
         }
@@ -374,5 +428,41 @@ public class SOGNavigatorImageDisplay
             return true;
         }
         return super.isJAIImageType( filename );
+    }
+
+
+//
+// PlotController interface.
+//    
+    /**
+     * Draw a grid over the currently displayed image.
+     */
+    public void updatePlot()
+    {
+        drawGrid = true;
+        repaint();
+    }
+
+    /**
+     * Set the image background colour.
+     */
+    public void setPlotColour( Color color )
+    {
+        setBackground( color );
+    }
+
+    /**
+     * Return a reference to the Frame used to define the
+     * current coordinates. Using the WCS FrameSet.
+     */
+    public Frame getPlotCurrentFrame()
+    {
+        WorldCoordinateConverter transform = getWCS();
+        if ( transform == null ||
+             ! getWCS().isWCS() ||
+             ! ( transform instanceof AstTransform ) ) {
+            return new Frame( 2 ); // Cannot return a null.
+        }
+        return (Frame) ((AstTransform)transform).getFrameSet();
     }
 }
