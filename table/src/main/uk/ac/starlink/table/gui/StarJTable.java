@@ -186,12 +186,22 @@ public class StarJTable extends JTable {
         }
 
         /* Configure the columns as calculated. */
-        table.setAutoResizeMode( AUTO_RESIZE_OFF );
         TableColumnModel tcm = table.getColumnModel();
+        int wtot = 0;
         for ( int icol = 0; icol < ncol; icol++ ) {
             int w = Math.max( widths[ icol ] + 8, MIN_WIDTH );
+            wtot += w;
             tcm.getColumn( icol ).setPreferredWidth( w );
         }
+
+        /* Switch resizing on or off according to whether the total width
+         * of the columns is less or greater than the width of the 
+         * table's display component. */
+        Component holder = table.getParent();
+        table.setAutoResizeMode( ( holder != null &&
+                                   wtot <= holder.getSize().width )
+                                 ? JTable.AUTO_RESIZE_ALL_COLUMNS
+                                 : JTable.AUTO_RESIZE_OFF );
     }
 
     /**
