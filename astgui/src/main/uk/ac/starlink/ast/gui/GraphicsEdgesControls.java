@@ -28,8 +28,8 @@ import javax.swing.SpinnerNumberModel;
 /**
  * GraphicsEdgesControls creates a "page" of widgets that are a view
  * of a GraphicsHints object. They provide the ability to configure
- * all the properties of the object (i.e. whether the edges are
- * clipped and how much space to reserve for the labelling).
+ * all the properties of the object (i.e. whether the graphics
+ * are clipped and how much space to reserve for the labelling).
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -46,7 +46,7 @@ public class GraphicsEdgesControls extends JPanel
     protected GraphicsEdges edges = null;
 
     /**
-     * Whether the spectrum lines should be clipped.
+     * Whether graphics should be clipped.
      */
     protected JCheckBox clip = new JCheckBox();
 
@@ -114,7 +114,7 @@ public class GraphicsEdgesControls extends JPanel
     {
         setLayout( new GridBagLayout() );
 
-        //  Clip spectrum lines to inside axes.
+        //  Clip graphics to within border.
         clip.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
                     matchClip();
@@ -138,7 +138,7 @@ public class GraphicsEdgesControls extends JPanel
             });
 
         //  Add labels for all fields.
-        addLabel( "Clip spectrum:", 0 );
+        addLabel( "Clip graphics:", 0 );
         addLabel( "X reserve:", 1 );
         addLabel( "Y reserve:", 2 );
 
@@ -174,7 +174,7 @@ public class GraphicsEdgesControls extends JPanel
         add( filly, gbc );
 
         //  Set tooltips.
-        clip.setToolTipText( "Clip spectral lines to lie with axes" );
+        clip.setToolTipText( "Clip graphics to lie within border" );
         xFraction.setToolTipText(
            "Set space reserved for X labels (fraction)");
         yFraction.setToolTipText(

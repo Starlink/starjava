@@ -13,7 +13,7 @@ import org.w3c.dom.Element;
  * GraphicsEdges defines options about how the edges of a plot should
  * be drawn (note these are not AST plot related). Currently this
  * covers the amount of space reserved around the plot for data labels
- * and whether any graphics should be clipped to lie within the axes.
+ * and whether any graphics should be clipped to lie within the border.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -21,7 +21,8 @@ import org.w3c.dom.Element;
  * @see PlotConfigurator
  * @see PlotConfiguration
  */
-public class GraphicsEdges extends AbstractPlotControlsModel
+public class GraphicsEdges 
+    extends AbstractPlotControlsModel
 {
     /**
      * Whether to clip the plotted data.
@@ -73,7 +74,7 @@ public class GraphicsEdges extends AbstractPlotControlsModel
     }
 
     /**
-     * See if graphics should be clipped to lie within axes.
+     * See if graphics should be clipped to lie within border.
      */
     public boolean isClipped()
     {
@@ -81,7 +82,7 @@ public class GraphicsEdges extends AbstractPlotControlsModel
     }
 
     /**
-     * Set if graphics should be clipped to lie within axes.
+     * Set if graphics should be clipped to lie within border.
      */
     public void setClipped( boolean clip )
     {
