@@ -42,6 +42,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     private NumberFormat fixFormatFloat5;
     private NumberFormat fixFormatFloat6;
     private NumberFormat intFormat;
+    private NumberFormat longFormat;
     private char decimalPoint;
     private String decimalPointString;
     private boolean likeHeading;
@@ -220,11 +221,15 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
             }
         }
 
+        /* Is it a long? */
+        else if ( obj instanceof Long ) {
+            setText( ((Long) obj).toString() + " " );
+        }
+
         /* Is it an integral number? */
-        else if ( ( obj instanceof Long ) ||
-             ( obj instanceof Integer ) ||
-             ( obj instanceof Short ) ||
-             ( obj instanceof Byte ) ) {
+        else if ( ( obj instanceof Integer ) ||
+                  ( obj instanceof Short ) ||
+                  ( obj instanceof Byte ) ) {
             setText( intFormat.format( ((Number) obj).intValue() ) + ' ' );
             return;
         }
