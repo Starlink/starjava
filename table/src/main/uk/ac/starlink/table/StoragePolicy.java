@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
 import uk.ac.starlink.table.storage.ListRowStore;
+import uk.ac.starlink.table.storage.DiscardRowStore;
 import uk.ac.starlink.table.storage.DiskRowStore;
 
 /**
@@ -26,7 +27,7 @@ public abstract class StoragePolicy {
     /**
      * Name of the system property which can be set to indicate the
      * initial setting of the default storage policy.
-     * Currently recognised values are "disk" and "memory";
+     * Currently recognised values are "disk", "memory" and "discard";
      */
     private static final String PREF_PROPERTY = "table.storage";
 
@@ -43,6 +44,9 @@ public abstract class StoragePolicy {
             }
             else if ( "memory".equals( pref ) ) {
                 defaultInstance_ = PREFER_MEMORY;
+            }
+            else if ( "discard".equals( pref ) ) {
+                defaultInstance_ = DISCARD;
             }
             else {
                 defaultInstance_ = PREFER_MEMORY;
@@ -178,4 +182,24 @@ public abstract class StoragePolicy {
             return "StoragePolicy.PREFER_DISK";
         }
     };
+
+    /**
+     * Storage policy which just throws away the rows it is given.
+     * Tables obtained from its row stores will have no rows.
+     * Obviously, this has rather limited application.
+     */
+    public static final StoragePolicy DISCARD = new StoragePolicy() {
+        public RowStore makeRowStore() {
+            return new DiscardRowStore();
+        }
+        public RowStore makeConfiguredRowStore( StarTable meta ) {
+            DiscardRowStore store = new DiscardRowStore();
+            store.acceptMetadata( meta );
+            return store;
+        }
+        public String toString() {
+            return "StoragePolicy.DISCARD";
+        }
+    };
+ 
 }
