@@ -36,6 +36,7 @@ import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.xml.XAstReader;
+import uk.ac.starlink.hdx.HdxException;
 import uk.ac.starlink.hdx.HdxResourceType;
 import uk.ac.starlink.hdx.HdxFactory;
 import uk.ac.starlink.util.SourceReader;
@@ -569,6 +570,10 @@ public class XMLNdxHandler implements NdxHandler {
         }
         catch ( TransformerException e ) {
             throw (IOException) new IOException( "Trouble writing XML" )
+                               .initCause( e );
+        }
+        catch ( HdxException e ) {
+            throw (IOException) new IOException( "Trouble with HDX" )
                                .initCause( e );
         }
         xstrm.close();
