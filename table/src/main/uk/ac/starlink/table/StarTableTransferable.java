@@ -6,12 +6,11 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.List;
 import java.util.ArrayList;
-import uk.ac.starlink.votable.DataFormat;
-import uk.ac.starlink.votable.VOTableWriter;
 
 /**
  * Implements Transferable based on a StarTable.
@@ -25,15 +24,18 @@ class StarTableTransferable implements Transferable {
 
     private final List flavorList = new ArrayList();
     private final StarTable table;
+    private final StarTableOutput outputter;
 
     /**
      * Constructs a new Transferable which can transfer a given StarTable.
      *
      * @param  table  table to transfer
      */
-    public StarTableTransferable( StarTable table ) {
+    public StarTableTransferable( StarTableOutput outputter, StarTable table ) {
+        this.outputter = outputter;
         this.table = table;
-        DataFlavor flavor = new DataFlavor( "application/xml", "StarTable" );
+        DataFlavor flavor = new DataFlavor( "application/xml",
+                                            "StarTable" );
         flavorList.add( flavor );
     }
 
@@ -62,8 +64,7 @@ class StarTableTransferable implements Transferable {
         new Thread() {
             public void run() {
                 try {
-                    new VOTableWriter( DataFormat.BINARY, true )
-                   .writeStarTable( table, ostrm, null );
+                    outputter.transferTable( table, ostrm );
                 }
                 catch ( IOException e ) {
                     // may well catch an exception if the reader stops reading
@@ -88,4 +89,5 @@ class StarTableTransferable implements Transferable {
         InputStream istrm = new PipedInputStream( ostrm );
         return new FilterInputStream( istrm ) {};
     }
+
 }

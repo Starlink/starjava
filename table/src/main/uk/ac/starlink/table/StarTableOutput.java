@@ -2,6 +2,8 @@ package uk.ac.starlink.table;
 
 import java.awt.datatransfer.Transferable;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.SQLException;
@@ -45,6 +47,9 @@ public class StarTableOutput {
         "uk.ac.starlink.mirage.MirageTableWriter",
     };
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
+
+    private StarTableWriter voWriter;
+    private Method voWriteMethod;
 
 
     /**
@@ -108,7 +113,9 @@ public class StarTableOutput {
                 logger.config( "Failed to register " + className + " - " + e );
             }
         }
+        initializeForTransferables();
     }
+ 
 
     /**
      * Gets the list of handlers which can actually do table output.
@@ -207,7 +214,12 @@ public class StarTableOutput {
      * @see  StarTableFactory#makeStarTable(java.awt.datatransfer.Transferable)
      */
     public Transferable transferStarTable( final StarTable startab ) {
-        return new StarTableTransferable( startab );
+        if ( voWriteMethod != null ) {
+            return new StarTableTransferable( this, startab );
+        }
+        else {
+            return null;
+        }
     }
  
     /**
@@ -312,4 +324,51 @@ public class StarTableOutput {
         this.jdbcHandler = handler;
     }
 
+    /**
+     * Sets up one serializer suitable for streaming objects during
+     * drag and drop.  Has to use reflection, since it uses VOTable classes,
+     * which are probably not around at compile time.
+     */
+    private void initializeForTransferables() {
+
+        /* Identify one which is suitable for serializing for transferables. */
+        for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
+            StarTableWriter handler = (StarTableWriter) it.next();
+            if ( handler.getFormatName().equals( "votable-binary-inline" ) ) {
+                try {
+                    Class[] args = new Class[] { StarTable.class,
+                                                 OutputStream.class };
+                    voWriteMethod = handler.getClass()
+                                   .getMethod( "writeStarTable", args );
+                    voWriter = handler;
+                }
+                catch ( NoSuchMethodException e ) {
+                    voWriter = null;
+                }
+            }
+        }
+        if ( voWriteMethod == null ) {
+            logger.warning( "No transferable serializer found" );
+        }
+    }
+
+    void transferTable( StarTable table, OutputStream ostrm ) 
+            throws IOException {
+        try {
+            voWriteMethod.invoke( voWriter, new Object[] { table, ostrm } );
+        }
+        catch ( InvocationTargetException e ) {
+            Throwable target = e.getTargetException();
+            if ( target instanceof IOException ) {
+                throw (IOException) target;
+            }
+            else {
+                System.err.println( "Reflection trouble!" );
+                target.printStackTrace( System.err );
+            }
+        }
+        catch ( Exception e ) {
+            e.printStackTrace( System.err );
+        }
+    }
 }
