@@ -93,6 +93,16 @@ public class NDXSpecDataImpl
     }
 
     /**
+     * Constructor - an NDX.
+     */
+    public NDXSpecDataImpl( Ndx ndx  )
+        throws SplatException
+    {
+        super( "Sourced NDX" );
+        open( ndx );
+    }
+
+    /**
      * Constructor. Initialise this spectrum by cloning the content of
      * another spectrum (usual starting point for saving).
      */
@@ -315,16 +325,31 @@ public class NDXSpecDataImpl
         setNames( "Wired NDX", true );
     }
 
+    /**
+     * Use an exiting NDX.
+     *
+     * @param ndx the NDX.
+     */
+    protected void open( Ndx ndx )
+        throws SplatException
+    {
+        this.ndx = ndx;
+        setNames( "NDX", true );
+        readData();
+    }
+
     //  Match names to title of the ndx, or generate a unique title from
     //  a prefix.
     protected void setNames( String defaultPrefix, boolean unique ) 
     {
         String title = ndx.hasTitle() ? ndx.getTitle() : "";
-        if ( ( title == null || title.equals( "" ) ) && unique ) {
-            title = defaultPrefix + " (" + (counter++) + ")";
-        }
-        else {
-            title = defaultPrefix;
+        if ( title == null || title.equals( "" ) ) {
+            if ( unique ) {
+                title = defaultPrefix + " (" + (counter++) + ")";
+            }
+            else {
+                title = defaultPrefix;
+            }
         }
         fullName = title;
         shortName = title;
