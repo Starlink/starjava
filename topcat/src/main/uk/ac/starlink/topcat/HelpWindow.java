@@ -41,7 +41,7 @@ import javax.swing.UIManager;
 public class HelpWindow extends AuxWindow {
 
     /** Location of the HelpSet file relative to this class. */
-    public static final String HELPSET_LOCATION = "help/sun178.hs";
+    public static final String HELPSET_LOCATION = "help/sun253.hs";
 
     private JLabel urlHead;
     private JTextField urlInfo;

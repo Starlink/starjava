@@ -108,7 +108,7 @@
 
   <!-- Directory containing miscellaneous docs -->
   <property name="src.docs" value="${src.dir}/docs"/>
-  <property name="user.doc" value="sun178"/>
+  <property name="user.doc" value="sun253"/>
 
   <!-- Directory containing any script required to execute or setup package-->
   <property name="script.dir" value="${src.dir}/script"/>
