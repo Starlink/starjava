@@ -24,7 +24,7 @@ package nom.tam.util;
   * <p>
   * Testing and timing routines are available in
   * the nom.tam.util.test.BufferedFileTester class.
-  * 
+  *
   *  Version 1.1 October 12, 2000: Fixed handling of EOF in array reads
   *  so that a partial array will be returned when an EOF is detected.
   *  Excess bytes that cannot be used to construct array elements will
@@ -34,33 +34,33 @@ package nom.tam.util;
 
 import java.io.*;
 
-public class BufferedFile 
+public class BufferedFile
   implements ArrayDataInput, ArrayDataOutput, RandomAccess {
 
     /** The current offset into the buffer */
     private int    bufferOffset;
-    
+
     /** The number of valid characters in the buffer */
     private int    bufferLength;
-    
+
     /** The declared length of the buffer array */
     private int	   bufferSize;
-      
+
     /** Counter used in reading arrays */
     private int    primitiveArrayCount;
-      
+
     /** The data buffer. */
     private byte[] buffer;
-      
+
     /** The name of the original file */
     private String filename;
-      
+
     /** The underlying access to the file system */
     private RandomAccessFile raf;
-    
+
     /** The offset of the beginning of the current buffer */
     private long fileOffset;
-    
+
     /** Is the buffer being used for input or output */
     private boolean doingInput;
 
@@ -68,7 +68,7 @@ public class BufferedFile
     public BufferedFile(String filename) throws IOException {
         this(filename, "r", 32768);
     }
-      
+
     /** Create a buffered file with the given mode.
      *  @param filename The file to be accessed.
      *  @param mode     A string composed of "r" and "w" for
@@ -77,7 +77,7 @@ public class BufferedFile
     public BufferedFile(String filename, String mode) throws IOException {
 	this(filename, mode, 32768);
     }
-    
+
     /** Create a buffered file with the given mode and a specified
      *  buffer size.
      *  @param filename The file to be accessed.
@@ -96,10 +96,10 @@ public class BufferedFile
 	bufferLength = 0;
 	fileOffset   = 0;
 	this.bufferSize = bufferSize;
-	
+
 	this.filename = filename;
     }
-      
+
     /** Create a buffered file using a mapped
 
 
@@ -111,7 +111,7 @@ public class BufferedFile
     public int read(byte[] buf) throws IOException {
 	return read(buf, 0, buf.length);
     }
-      
+
     /** Read into a segment of a byte array.
      *  @param buf    The array to be filled.
      *  @param offset The starting location for input.
@@ -120,14 +120,14 @@ public class BufferedFile
      */
     public int read(byte[] buf, int offset, int len) throws IOException {
 
-        checkBuffer(-1);        
+        checkBuffer(-1);
         int total = 0;
 
         // Ensure that the entire buffer is read.
         while (len > 0) {
-	    
+
 	    if (bufferOffset < bufferLength) {
-		
+
 		int get = len;
 		if (bufferOffset + get > bufferLength) {
 		    get = bufferLength - bufferOffset;
@@ -138,9 +138,9 @@ public class BufferedFile
 		offset += get;
 		total  += get;
 		continue;
-		
+
 	    } else {
-		
+
 	        // This might be pretty long, but we know that the
 		// old buffer is exhausted.
 		try {
@@ -163,7 +163,7 @@ public class BufferedFile
 		}
 	    }
         }
-    
+
         return total;
     }
 
@@ -178,7 +178,7 @@ public class BufferedFile
             flush();
         }
         doingInput = true;
-    
+
         if (bufferOffset + needBytes < bufferLength) {
 	    return;
         }
@@ -186,7 +186,7 @@ public class BufferedFile
          * and read in enough data to fill the current demand.
          */
         int len = bufferLength-bufferOffset;
-    
+
         /* Note that new location that the beginning of the buffer
          * corresponds to.
          */
@@ -197,7 +197,7 @@ public class BufferedFile
         needBytes   -= len;
         bufferLength = len;
         bufferOffset = 0;
-    
+
         while (needBytes > 0) {
 	    len = raf.read(buffer, bufferLength, bufferSize-bufferLength);
 	    if (len < 0) {
@@ -221,7 +221,7 @@ public class BufferedFile
      *                be negative.
      */
     public long skip(long offset) throws IOException {
-	
+
 	if (offset > 0 && fileOffset+bufferOffset+offset > raf.length()) {
 	    offset = raf.length() - fileOffset - bufferOffset;
 	    seek(raf.length());
@@ -239,12 +239,12 @@ public class BufferedFile
      *  does not extend the file unless data is written there.
      */
     public void seek(long offsetFromStart) throws IOException {
-    
+
         if (!doingInput) {
             // Have to flush before a seek...
 	    flush();
         }
-    
+
         // Are we within the current buffer?
         if (fileOffset <= offsetFromStart && offsetFromStart < fileOffset+bufferLength) {
 	    bufferOffset = (int) (offsetFromStart - fileOffset);
@@ -254,7 +254,7 @@ public class BufferedFile
 	    if (offsetFromStart < 0) {
 	        offsetFromStart = 0;
 	    }
-	
+
 	    fileOffset = offsetFromStart;
 	    raf.seek(fileOffset);
 
@@ -343,7 +343,7 @@ public class BufferedFile
     public char readChar() throws IOException {
         return convertToChar();
     }
-      
+
     /** Get a char from the buffer */
     private char convertToChar() throws IOException {
         checkBuffer(2);
@@ -363,11 +363,11 @@ public class BufferedFile
     private long convertToLong() throws IOException {
         checkBuffer(8);
         int x = bufferOffset;
-    
+
         int i1 =  buffer[x] << 24 | (buffer[x+1]&0xFF) << 16 | (buffer[x+2]&0xFF) << 8 | (buffer[x+3]&0xFF);
         int i2 =  buffer[x+4] << 24 | (buffer[x+5]&0xFF) << 16 | (buffer[x+6]&0xFF) << 8 | (buffer[x+7]&0xFF);
         bufferOffset += 8;
-    
+
         return  (((long) i1) << 32) | (((long)i2)&0x00000000ffffffffL);
     }
 
@@ -393,7 +393,7 @@ public class BufferedFile
     public void readFully(byte[] b) throws IOException {
         readFully(b, 0, b.length);
     }
-      
+
 
     /** Read a byte array fully.
      *  Since the read method of this class reads an entire
@@ -437,14 +437,14 @@ public class BufferedFile
         raf.seek(fileOffset + bufferOffset);
         String utf = raf.readUTF();
         fileOffset = raf.getFilePointer();
-    
+
         // Invalidate the buffer.
         bufferLength = 0;
         bufferOffset = 0;
-    
+
         return utf;
     }
-    
+
     /** Read a line of input.
      *  @return the next line.
      */
@@ -454,11 +454,11 @@ public class BufferedFile
         raf.seek(fileOffset + bufferOffset);
         String line = raf.readLine();
         fileOffset = raf.getFilePointer();
-    
+
         // Invalidate the buffer.
         bufferLength = 0;
         bufferOffset = 0;
-    
+
         return line;
     }
 
@@ -544,11 +544,11 @@ public class BufferedFile
         return primitiveArrayCount;
     }
 
-    
+
     public int read(boolean[] b) throws IOException {
 	return read(b, 0, b.length);
     }
-      
+
     public int read(boolean[] b, int start, int length) throws IOException {
 
 	int i = start;
@@ -582,7 +582,7 @@ public class BufferedFile
 	return read(c, 0, c.length);
     }
     public int read(char[] c, int start, int length) throws IOException {
-	
+
 	int i=start;
 	try {
             for(; i < start+length; i += 1) {
@@ -614,7 +614,7 @@ public class BufferedFile
     public int read(long[] l) throws IOException {
 	return read(l, 0, l.length);
     }
-      
+
     public int read(long[] l, int start, int length) throws IOException {
 
 	int i=start;
@@ -626,15 +626,15 @@ public class BufferedFile
 	} catch (EOFException e) {
 	    return eofCheck(e,start,i,8);
 	}
-	
+
     }
 
     public int read(float[] f) throws IOException {
 	return read(f, 0, f.length);
     }
-      
+
     public int read(float[] f, int start, int length) throws IOException {
-	
+
 	int i=start;
 	try {
             for (; i<start+length; i += 1) {
@@ -649,7 +649,7 @@ public class BufferedFile
     public int read(double[] d) throws IOException {
 	return read(d, 0, d.length);
     }
-      
+
     public int read(double[] d, int start, int length) throws IOException {
 
 	int i=start;
@@ -662,7 +662,7 @@ public class BufferedFile
 	    return eofCheck(e,start,i,8);
 	}
     }
-    
+
     /** See if an exception should be thrown during an array read. */
     private int eofCheck(EOFException e, int start, int index, int length)
 	throws EOFException {
@@ -672,7 +672,7 @@ public class BufferedFile
 	    return (index-start)*length;
 	}
     }
-    
+
     /**** Output Routines ****/
 
     private void needBuffer(int need) throws IOException  {
@@ -681,13 +681,13 @@ public class BufferedFile
 
             fileOffset += bufferOffset;
 	    raf.seek(fileOffset);
-	
+
 	    doingInput = false;
-	
+
 	    bufferOffset = 0;
 	    bufferLength = 0;
         }
-    
+
         if (bufferOffset + need >= bufferSize) {
             raf.write(buffer, 0, bufferOffset);
 	    fileOffset  += bufferOffset;
@@ -705,7 +705,7 @@ public class BufferedFile
     }
 
     public void write(byte[] buf, int offset, int length) throws IOException {
-    
+
         if (length < bufferSize) {
 	    /* If we can use the buffer do so... */
 	    needBuffer(length);
@@ -717,11 +717,11 @@ public class BufferedFile
 	     * we're done.
 	     */
             flush();
-	
+
 	    raf.write(buf, offset, length);
-	
+
 	    fileOffset += length;
-	
+
 	    doingInput = false;
 	    bufferOffset = 0;
 	    bufferLength = 0;
@@ -742,7 +742,7 @@ public class BufferedFile
 	    bufferLength = 0;
         }
     }
-    
+
     /** Clear up any pending output at cleanup.
      */
     protected void finalize() {
@@ -754,7 +754,7 @@ public class BufferedFile
 	} catch (Exception e) {
 	}
     }
-	
+
 
     /** Write a boolean value
       * @param b  The value to be written.  Externally true is represented as
@@ -775,7 +775,7 @@ public class BufferedFile
     }
 
     /** Write a byte value.
-      */ 
+      */
     public void writeByte(int b) throws IOException {
         convertFromByte(b);
     }
@@ -792,7 +792,7 @@ public class BufferedFile
     }
 
     private void convertFromInt(int i) throws IOException {
- 
+
         needBuffer(4);
         buffer[bufferOffset++] = (byte) (i >>> 24);
         buffer[bufferOffset++] = (byte) (i >>> 16);
@@ -809,7 +809,7 @@ public class BufferedFile
 
     private void convertFromShort(int s) throws IOException {
         needBuffer(2);
-    
+
         buffer[bufferOffset++] = (byte) (s >>> 8);
         buffer[bufferOffset++] = (byte)  s;
     }
@@ -831,7 +831,7 @@ public class BufferedFile
     public void writeLong(long l) throws IOException {
         convertFromLong(l);
     }
- 
+
     private void convertFromLong(long l) throws IOException {
         needBuffer(8);
 
@@ -929,7 +929,7 @@ public class BufferedFile
             case 'D': write((double[])o, 0, ((double[])o).length);
                       break;
             case 'L':
- 
+
                  // Handle two exceptions: an array of strings, or an
                  // array of objects. .
                  if (className.equals("[Ljava.lang.String;") ) {
@@ -948,7 +948,7 @@ public class BufferedFile
         }
 
     }
-      
+
     /** Write an array of booleans.
       */
     public void write(boolean[] b) throws IOException {
@@ -985,7 +985,7 @@ public class BufferedFile
     }
 
     /** Write an array of int's.
-      */ 
+      */
     public void write(int[] i) throws IOException {
 	write(i, 0, i.length);
     }
@@ -1000,7 +1000,7 @@ public class BufferedFile
     public void write(long[] l) throws IOException {
 	write(l, 0, l.length);
     }
-      
+
     public void write(long[] l, int start, int length) throws IOException {
 
         for (int i=start; i<start+length; i += 1) {
@@ -1013,7 +1013,7 @@ public class BufferedFile
     public void write(float[] f) throws IOException {
 	write(f, 0, f.length);
     }
-      
+
     public void write(float[] f, int start, int length) throws IOException {
         for (int i=start; i<start+length; i += 1) {
             convertFromInt(Float.floatToIntBits(f[i]));
@@ -1025,7 +1025,7 @@ public class BufferedFile
     public void write(double[] d) throws IOException {
 	write(d, 0, d.length);
     }
-      
+
     public void write(double[] d, int start, int length) throws IOException {
 
         for (int i=start; i<start+length; i += 1) {
@@ -1038,13 +1038,13 @@ public class BufferedFile
     public void write(String[] s) throws IOException {
 	write(s, 0, s.length);
     }
-      
+
     public void write(String[] s, int start, int length) throws IOException {
         for (int i=start; i<start+length; i += 1) {
             writeBytes(s[i]);
         }
     }
-      
+
 
     /** Close the file */
     public void close() throws IOException {
@@ -1060,6 +1060,15 @@ public class BufferedFile
         return raf.getFD();
     }
 
+    /**
+     * Return the FileChannel associated with the file. Used for
+     * efficient mapped access in JSky.
+     */
+    public java.nio.channels.FileChannel getChannel() {
+        // PWD: re-engineered this from JSky, hope it's all that's
+        // needed!
+	return raf.getChannel();
+    }
 
     /** Get the current length of the file.
      */
@@ -1067,7 +1076,7 @@ public class BufferedFile
         flush();
         return raf.length();
     }
-      
+
     /** Get the current offset into the file.
      */
     public long getFilePointer() {
@@ -1078,19 +1087,19 @@ public class BufferedFile
      *  the method of the same name in RandomAccessFile which
      *  is only available in JDK1.2 and greater.  This method
      *  may be deleted for compilation with earlier versions.
-     * 
+     *
      * @param newLength The number of bytes at which the file
      *                  is set.
-     *  
+     *
      */
     public void setLength(long newLength) throws IOException {
-	
+
         flush();
         raf.setLength(newLength);
 	if (newLength < fileOffset) {
 	    fileOffset = newLength;
 	}
-	
+
     }
 
 }
