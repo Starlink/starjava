@@ -11,22 +11,46 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.ast.FrameSet;
 
 /**
- * Extends the SpecDataImpl interface to include methods for modifying the
- * spectrum values.
+ * Extends the {@link SpecDataImpl} class to include methods for
+ * modifying the spectrum values by implementing the 
+ * {@link EditableSpecDataImpl} interface.
  *
  * @author Peter W. Draper
  * @version $Id$
  */      
-public interface EditableSpecDataImpl
-    extends SpecDataImpl
+public abstract class AbstractEditableSpecDataImpl
+    extends AbstractSpecDataImpl
+    implements EditableSpecDataImpl
 {
+    /**
+     * Constructor - create instance of class.
+     *
+     * @param name The specification of the spectrum (disk file name
+     * etc.).
+     */
+    public AbstractEditableSpecDataImpl( String name ) 
+    {
+        super( name );
+    }
+    
+    /**
+     * Constructor, clone from another spectrum.
+     *
+     * @param name a symbolic name for the spectrum.
+     * @param spectrum the spectrum to clone.
+     */
+    public AbstractEditableSpecDataImpl( String name, SpecData spectrum ) 
+    {
+        super( name, spectrum );
+    }
+
     /**
      * Change the complete spectrum data. Takes a copy of all data.
      *
      * @param coords the spectrum coordinates, one per data value.
      * @param data the spectrum data values.
      */
-    public void setData( double[] coords, double[] data )
+    abstract public void setData( double[] coords, double[] data )
         throws SplatException;
 
     /**
@@ -36,7 +60,7 @@ public interface EditableSpecDataImpl
      *                 coordinates.
      * @param data the spectrum data values.
      */
-    public void setData( FrameSet frameSet, double[] data )
+    abstract public void setData( FrameSet frameSet, double[] data )
         throws SplatException;
 
     /**
@@ -45,7 +69,7 @@ public interface EditableSpecDataImpl
      * @param coords the spectrum coordinates, one per data value.
      * @param data the spectrum data values.
      */
-    public void setDataQuick( double[] coords, double[] data )
+    abstract public void setDataQuick( double[] coords, double[] data )
         throws SplatException;
 
     /**
@@ -55,7 +79,7 @@ public interface EditableSpecDataImpl
      *                 coordinates.
      * @param data the spectrum data values.
      */
-    public void setDataQuick( FrameSet frameSet, double[] data )
+    abstract public void setDataQuick( FrameSet frameSet, double[] data )
         throws SplatException;
 
     /**
@@ -65,7 +89,8 @@ public interface EditableSpecDataImpl
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setData( double[] coords, double[] data, double[] errors )
+    abstract public void setData( double[] coords, double[] data, 
+                                  double[] errors )
         throws SplatException;
 
     /**
@@ -76,7 +101,8 @@ public interface EditableSpecDataImpl
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setData( FrameSet frameSet, double[] data, double[] errors )
+    abstract public void setData( FrameSet frameSet, double[] data, 
+                                  double[] errors )
         throws SplatException;
 
     /**
@@ -86,7 +112,8 @@ public interface EditableSpecDataImpl
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setDataQuick( double[] coords, double[] data, double[] errors )
+    abstract public void setDataQuick( double[] coords, double[] data, 
+                                       double[] errors )
         throws SplatException;
 
     /**
@@ -97,26 +124,26 @@ public interface EditableSpecDataImpl
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setDataQuick( FrameSet frameSet, double[] data, 
-                              double[] errors )
+    abstract public void setDataQuick( FrameSet frameSet, double[] data, 
+                                       double[] errors )
         throws SplatException;
 
     /**
      * Change a coordinate value.
      */
-    public void setXDataValue( int index, double value )
+    abstract public void setXDataValue( int index, double value )
         throws SplatException;
 
     /**
      * Change a data value.
      */
-    public void setYDataValue( int index, double value )
+    abstract public void setYDataValue( int index, double value )
         throws SplatException;
 
     /**
      * Change a data error value.
      */
-    public void setYDataErrorValue( int index, double value )
+    abstract public void setYDataErrorValue( int index, double value )
         throws SplatException;
 
     /**
@@ -125,6 +152,6 @@ public interface EditableSpecDataImpl
      * and map the base coordinates to some wavelength-related
      * coordinate.
      */
-    public void setAst( FrameSet frameSet )
+    abstract public void setAst( FrameSet frameSet )
         throws SplatException;
 }

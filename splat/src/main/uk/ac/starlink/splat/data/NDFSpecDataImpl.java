@@ -25,7 +25,8 @@ import uk.ac.starlink.splat.util.SplatException;
  * @version $Id$
  * @see "The Bridge Design Pattern"
  */
-public class NDFSpecDataImpl extends SpecDataImpl
+public class NDFSpecDataImpl 
+    extends AbstractSpecDataImpl
     implements FITSHeaderSource
 {
 //

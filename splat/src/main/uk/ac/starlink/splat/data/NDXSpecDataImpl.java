@@ -39,7 +39,8 @@ import uk.ac.starlink.splat.util.SplatException;
  * @since 28-MAY-2002
  * @see "The Bridge Design Pattern"
  */
-public class NDXSpecDataImpl extends SpecDataImpl
+public class NDXSpecDataImpl 
+    extends AbstractSpecDataImpl
 {
 
     //// Implementation of abstract methods.

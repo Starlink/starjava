@@ -2,7 +2,7 @@
  * Copyright (C) 2003 Central Laboratory of the Research Councils
  *
  *  History:
- *     01-SEP-2000 (Peter W. Draper):
+ *     11-APR-2003 (Peter W. Draper):
  *       Original version.
  */
 package uk.ac.starlink.splat.data;
@@ -21,44 +21,43 @@ import java.util.StringTokenizer;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 
+
 /**
- *  This class provides an implementation of SpecDataImpl to access
- *  spectra stored in text files.
+ * A LineIDSpecDataImpl that provides facilities for reading text files
+ * that have a coordinate, value and an associated String, typically a
+ * spectral line identification.
+ * <p>
+ * Text files are assumed to be plain and contain either two, three
+ * or more whitespace separated columns. If two columns are present
+ * then these are the wavelength and label, if three or more
+ * then the second column should be position of the label and the
+ * third the label.
  *  <p>
- *  Text files are assumed to be plain and contain either two, three
- *  or more whitespace separated columns. If two columns are present
- *  then these are the wavelength and data count, if three or more
- *  then the third column should be the error in the count.
+ * Whitespace separators are the space character, the tab character,
+ * the newline character, the carriage-return character, and the
+ * form-feed character. Any comments in the file must start in the
+ * first column and be indicated by the characters "!" or "#". Blank
+ * lines are also permitted.
  *  <p>
- *  Whitespace separators are the space character, the tab character,
- *  the newline character, the carriage-return character, and the
- *  form-feed character. Any comments in the file must start in the
- *  first column and be indicated by the characters "!" or "#". Blank
- *  lines are also permitted.
- *  <p>
- *  Since the actual storage for text files is memory resident this
- *  class extends MEMSpecDataImpl, providing the ability to
- *  change the content as this is an EditableSpecDataImpl (although
- *  this ability may not be expressed in any other interfaces)...
+ * Since the actual storage for text files is memory resident this
+ * class extends MEMSpecDataImpl, providing the ability to
+ * change the content as this is an EditableSpecDataImpl (although
+ * this ability may not be expressed in any other interfaces)...
  *
+ * @author Peter W. Draper
  * @version $Id$
- * @see SpecDataImpl
- * @see SpecData
- * @see "The Bridge Design Pattern"
  */
-public class TXTSpecDataImpl
+public class LineIDTXTSpecDataImpl
     extends MEMSpecDataImpl
+    implements LineIDSpecDataImpl
 {
-//
-// Implementation of abstract methods.
-//
     /**
      * Create an object by opening a text file and reading its
      * content.
      *
      * @param fileName the name of the text file.
      */
-    public TXTSpecDataImpl( String fileName )
+    public LineIDTXTSpecDataImpl( String fileName )
     {
         super( fileName );
         this.fullName = fileName;
@@ -66,16 +65,18 @@ public class TXTSpecDataImpl
     }
 
     /**
-     * Create an object by reading values from an existing SpecData
+     * Create an object by reading values from an existing LineIDSpecData
      * object. The text file is associated (so can be a save target),
      * but not opened.
      *
      * @param fileName the name of the text file.
      */
-    public TXTSpecDataImpl( String fileName, SpecData source )
+    public LineIDTXTSpecDataImpl( String fileName, LineIDSpecData source )
+        throws SplatException
     {
         super( fileName, source );
         this.fullName = fileName;
+        setLabels( source.getLabels() );
     }
 
     /**
@@ -83,11 +84,62 @@ public class TXTSpecDataImpl
      */
     public String getDataFormat()
     {
-        return "TEXT";
+        return "Line Identifiers (Text)";
     }
 
     /**
-     * Save the spectrum to disk-file.
+     * Return the line identification labels.
+     */
+    public String[] getLabels()
+    {
+        return labels;
+    }
+
+    /**
+     * Set all the labels.
+     */
+    public void setLabels( String[] labels ) 
+        throws SplatException
+    {
+        if ( coords == null || ( labels.length == coords.length ) ) {
+            this.labels = labels;
+        }
+        else {
+            throw new SplatException( "Array length must match coordinates" );
+        }
+    }
+
+    /**
+     * Get a specific label.
+     */ 
+    public String getLabel( int index )
+    {
+        if ( labels != null && ( index < labels.length ) ) {
+            return labels[index];
+        }
+        return null;
+    }
+
+    /**
+     * Set a specific label.
+     */
+    public void setLabel( int index, String label )
+    {
+        if ( getLabel( index ) != null ) {
+            labels[index] = label;
+        }
+    }
+
+    /**
+     * Return if there were a complete set of data positions.
+     */
+    public boolean haveDataPositions()
+    {
+        return haveDataPositions;
+    }
+
+    /**
+     * Save the state to disk-file.
      */
     public void save() throws SplatException
     {
@@ -101,7 +153,17 @@ public class TXTSpecDataImpl
     /**
      * Reference to the file.
      */
-    File file = null;
+    protected File file = null;
+
+    /**
+     * Reference to the line ID strings.
+     */
+    protected String[] labels = null;
+
+    /**
+     * Whether there are a complete set of data positions.
+     */
+    protected boolean haveDataPositions = false;
 
     /**
      * Open an existing text file and read the contents.
@@ -156,15 +218,8 @@ public class TXTSpecDataImpl
             return;
         }
 
-        //  Storage of all values go into ArrayList vectors, until we
-        //  know the exact sizes required.
-        ArrayList[] vec = new ArrayList[3];
-        vec[0] = new ArrayList();
-        vec[1] = new ArrayList();
-        vec[2] = new ArrayList();
-
-        //  Read file input until end of file occurs.
-        String clean = null;
+        //  First pass of file. Read file input until end of file
+        //  occurs.
         String raw = null;
         StringTokenizer st = null;
         int count = 0;
@@ -177,19 +232,48 @@ public class TXTSpecDataImpl
                 if ( raw.length() == 0 || raw.charAt(0) == '!' ||
                      raw.charAt(0) == '#' ) {
                     continue;
-                    //  TODO: restore shortname etc?
                 } else {
 
-                    // Read at least two floating numbers from line
+                    // Read at least 2 words from line
                     // and no more than 3.
                     st = new StringTokenizer( raw );
                     count = Math.min( st.countTokens(), 3 );
                     nwords = Math.max( count, nwords );
-                    for ( int i = 0; i < count; i++ ) {
-                        vec[i].add( new Float( st.nextToken() ) );
+                    nlines++;
+                }
+            }
+
+            // Second pass. Read the values.
+            coords = new double[nlines];
+            labels = new String[nlines];
+            data = new double[nlines];
+            nlines = 0;
+
+            f.close(); // Guaranteed rewind.
+            r.close();
+            f = new FileInputStream( file );
+            r = new BufferedReader( new InputStreamReader( f ) );
+
+            haveDataPositions = ( nwords == 3 );
+
+            while ( ( raw = r.readLine() ) != null ) {
+
+                //  Skip blank and comment lines.
+                if ( raw.length() == 0 || raw.charAt(0) == '!' ||
+                     raw.charAt(0) == '#' ) {
+                    continue;
+                } else {
+
+                    // Should be nwords per line.
+                    st = new StringTokenizer( raw );
+                    coords[nlines] = Float.parseFloat( st.nextToken() );
+                    if ( haveDataPositions ) {
+                        data[nlines] = Float.parseFloat( st.nextToken() );
+                        labels[nlines] = st.nextToken();
                     }
-                    for ( int i = count; i < 3; i++ ) {
-                        vec[i].add( new Float( 0.0 ) );
+                    else {
+                        labels[nlines]  = st.nextToken();
+                        data[nlines] = SpecData.BAD;
                     }
                     nlines++;
                 }
@@ -205,37 +289,19 @@ public class TXTSpecDataImpl
             }
             return;
         }
-        try {
-            r.close();
-            f.close();
-        } catch (Exception e) {
-            //  Do nothing.
-        }
-
-        //  Create memory needed to store these coordinates.
-        data = new double[nlines];
-        coords = new double[nlines];
-        if ( nwords == 3 ) {
-            errors = new double[nlines];
-        }
-
-        //  Now copy data into arrays and record the data range.
-        if ( nwords == 3 ) {
-            for ( int i = 0; i < nlines; i++ ) {
-                coords[i] = ((Float)vec[0].get(i)).floatValue();
-                data[i] = ((Float)vec[1].get(i)).floatValue();
-                errors[i] = ((Float)vec[2].get(i)).floatValue();
-            }
-        } else {
-            for ( int i = 0; i < nlines; i++ ) {
-                coords[i] = ((Float)vec[0].get(i)).floatValue();
-                data[i] = ((Float)vec[1].get(i)).floatValue();
-            }
-        }
 
         //  Create the AST frameset that describes the data-coordinate
         //  relationship.
-       createAst();
+        createAst();
+
+        // Close input file.
+        try {
+            r.close();
+            f.close();
+        } 
+        catch (Exception e) {
+            //  Do nothing.
+        }
     }
 
     /**
@@ -265,21 +331,12 @@ public class TXTSpecDataImpl
         }
 
         // Now write the data.
-        if ( errors == null ) {
-            for ( int i = 0; i < data.length; i++ ) {
-                try {
-                    r.write( coords[i] + " " + data[i] +"\n" );
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } else {
-            for ( int i = 0; i < data.length; i++ ) {
-                try {
-                    r.write( coords[i] + " " + data[i] + " " + errors[i] );
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        for ( int i = 0; i < data.length; i++ ) {
+            try {
+                r.write( coords[i] + " " + data[i] + " " + labels[i] );
+            } 
+            catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -287,8 +344,10 @@ public class TXTSpecDataImpl
             r.newLine();
             r.close();
             f.close();
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             //  Do nothing.
         }
     }
 }
+

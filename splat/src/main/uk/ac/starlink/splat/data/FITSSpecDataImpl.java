@@ -30,7 +30,8 @@ import uk.ac.starlink.splat.util.SplatException;
  *
  * @history 08-MAR-2002 Changed to nom.tam.fits version 0.93
  */
-public class FITSSpecDataImpl extends SpecDataImpl
+public class FITSSpecDataImpl 
+    extends AbstractSpecDataImpl
     implements FITSHeaderSource
 {
 //

@@ -31,7 +31,7 @@ import uk.ac.starlink.splat.ast.ASTJ;;
  * @see "The Bridge Design Pattern"
  */
 public class MEMSpecDataImpl
-    extends EditableSpecDataImpl
+    extends AbstractEditableSpecDataImpl
     implements FITSHeaderSource
 {
 //
