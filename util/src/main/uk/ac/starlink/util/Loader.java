@@ -202,4 +202,49 @@ public class Loader {
         }
     }
 
+    /**
+     * Attempts to obtain an instance of a class with a given name which
+     * is an instance of a given type.  If <tt>className</tt> is null or
+     * empty, null is returned directly.  Otherwise, if the class 
+     * <tt>className</tt>
+     * can be found using the default class loader, and if it is assignable
+     * from <tt>type</tt>, and if it has a no-arg constructor, an instance
+     * of it is constructed and returned.  Otherwise, <tt>null</tt> is
+     * returned, and a message may be written through the logging system.
+     *
+     * @param   className  name of the class to instantiate
+     * @param   type   class which the instantiated class must be assignable
+     *                 from
+     * @return  new <tt>className</tt> instance, or <tt>null</tt>
+     */
+    public static Object getClassInstance( String className, Class type ) {
+        if ( className == null || className.trim().length() == 0 ) {
+            return null;
+        }
+        Class clazz;
+        try {
+            clazz = Class.forName( className );
+        }
+        catch ( ClassNotFoundException e ) {
+            logger.warning( "Class " + e + " not found" );
+            return null;
+        }
+        catch ( LinkageError e ) {
+            logger.warning( e + " loading class " + className );
+            return null;
+        }
+        if ( ! type.isAssignableFrom( clazz ) ) {
+            logger.warning( "Class " + clazz.getName() +
+                            " is not a " + type.getName() );
+            return null;
+        }
+        try {
+            return clazz.newInstance();
+        }
+        catch ( Throwable th ) {
+            logger.warning( th + " instantiating " + clazz.getName() );
+            return null;
+        }
+    }
+
 }
