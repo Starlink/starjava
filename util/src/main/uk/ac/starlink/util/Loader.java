@@ -8,7 +8,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,6 +27,7 @@ public class Loader {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.util" );
     private static boolean propsLoaded = false;
+    private static Set warnings = new HashSet();
 
     /** 
      * Name of the file in the user's home directory from which properties
@@ -226,25 +232,80 @@ public class Loader {
             clazz = Class.forName( className );
         }
         catch ( ClassNotFoundException e ) {
-            logger.warning( "Class " + e + " not found" );
+            warn( "Class " + className + " not found" );
             return null;
         }
         catch ( LinkageError e ) {
-            logger.warning( e + " loading class " + className );
+            warn( e + " loading class " + className );
             return null;
         }
         if ( ! type.isAssignableFrom( clazz ) ) {
-            logger.warning( "Class " + clazz.getName() +
-                            " is not a " + type.getName() );
+            warn( "Class " + clazz.getName() + " is not a " + type.getName() );
             return null;
         }
         try {
             return clazz.newInstance();
         }
         catch ( Throwable th ) {
-            logger.warning( th + " instantiating " + clazz.getName() );
+            warn( th + " instantiating " + clazz.getName() );
             return null;
         }
     }
 
+    /**
+     * Attempts to obtain instances of a class from a colon-separated list
+     * of classnames in a named system property.  If the named property
+     * does not exists or contains no strings, an empty list is returned.
+     * Otherwise, {@link getClassInstance} is called on each colon-separated
+     * element of the property value, and if there is a non-null return, 
+     * it is added to the return list.  For colon-separated elements which
+     * do not correspond to usable classes, a message may be written 
+     * through the logging system.
+     *
+     * @param   propertyName  name of a system property containing 
+     *          colon-separated classnames
+     * @param   type   class which instantiated classes must be assignable from
+     * @return  list of new <tt>type</tt> instances (may be empty, but not null)
+     */
+    public static List getClassInstances( String propertyName, Class type ) {
+        List instances = new ArrayList();
+
+        /* Get the property value, if possible. */
+        String propVal;
+        try {
+            propVal = System.getProperty( propertyName );
+        }
+        catch ( SecurityException e ) {
+            return instances;
+        }
+        if ( propVal == null || propVal.trim().length() == 0 ) {
+            return instances;
+        }
+
+        /* Try to get an instance from each colon-separated element in turn. */
+        for ( StringTokenizer stok = new StringTokenizer( propVal, ":" );
+              stok.hasMoreElements(); ) {
+            String cname = stok.nextToken().trim();
+            Object inst = getClassInstance( cname, type );
+            if ( inst != null ) {
+                instances.add( inst );
+            }
+        } 
+
+        /* Return the list. */
+        return instances;
+    }
+
+    /**
+     * Register a warning.  Log it through the logger, unless we've said
+     * the same thing already.
+     * 
+     * @param  message  warning message
+     */
+    private static void warn( String message ) {
+        if ( ! warnings.contains( message ) ) {
+            logger.warning( message );
+            warnings.add( message );
+        }
+    }
 }
