@@ -136,6 +136,10 @@ public class StarTableDataNode extends DefaultDataNode {
         for ( int i = 0; i < ncols; i++ ) {
             ColumnInfo info = startable.getColumnInfo( i );
             dv.addKeyedItem( "Column " + ( i + 1 ), info.getName() );
+            if ( i > 4 ) {
+                dv.addText( "    ..." );
+                break;
+            }
         }
         dv.addPane( "Columns", new ComponentMaker() {
             public JComponent getComponent() {
