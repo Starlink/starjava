@@ -246,7 +246,7 @@ public class AsciiTable extends Data implements TableData {
 	    }
 	} catch (FormatException e) {
 	    throw new FitsException("Error parsing data at row,col:"+row+","+col
-				    +"  "+e);
+				    +"=\""+bp.getString(length)+"\"  "+e);
 	}
 	return true;
     }
