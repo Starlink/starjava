@@ -184,8 +184,8 @@ public class AstAxisLabels extends AbstractPlotControlsModel
         yGap = 0.01;
         xEdge = BOTTOM;
         yEdge = LEFT;
-        showXUnits = false;
-        showYUnits = false;
+        showXUnits = true;
+        showYUnits = true;
         fireChanged();
     }
 
