@@ -36,6 +36,7 @@ public class StarTableChooser extends JOptionPane {
     private JFileChooser chooser;
     private SQLReadDialog sqlDialog;
     private JTextField locField;
+    private JPanel actionsPanel;
 
     private static final int JDBC_OPTION = 101;
     private static final int BROWSE_OPTION = 102;
@@ -63,7 +64,7 @@ public class StarTableChooser extends JOptionPane {
         };
 
         /* Set up the panel for invoking other dialogs. */
-        JPanel actionsPanel = new JPanel();
+        actionsPanel = new JPanel();
         actionsPanel.add( new JButton( browseAction ) );
         actionsPanel.add( new JButton( jdbcAction ) );
 
@@ -237,6 +238,17 @@ public class StarTableChooser extends JOptionPane {
             st = getTable( getStarTableFactory(), loc, parent );
         }
         return st; 
+    }
+
+    /**
+     * Returns a container which can be used to hold custom controls.
+     * this container already holds some control buttons
+     * (the ones which cause auxiliary windows to be popped up).
+     *
+     * @return  container for buttons etc
+     */
+    public JPanel getActionPanel() {
+        return actionsPanel;
     }
 
     /**
