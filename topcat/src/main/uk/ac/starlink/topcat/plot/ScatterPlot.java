@@ -221,7 +221,7 @@ public class ScatterPlot extends JComponent implements Printable {
     }
 
     /**
-     * Implements the {@link java.awt.Printable} interface.
+     * Implements the {@link java.awt.print.Printable} interface.
      * At time of writing, this method is not used by TOPCAT, though it 
      * could be; in particular it is not used to implement the 
      * export to EPS functionality.
