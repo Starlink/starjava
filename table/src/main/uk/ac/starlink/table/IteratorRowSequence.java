@@ -6,7 +6,8 @@ import java.util.Iterator;
 /**
  * Implementation of <tt>RowSequence</tt> based on an Iterator which 
  * returns table rows in sequence.  The iterator's next method may 
- * throw an exception of the (unchecked) type {@link #PackagedIOException}
+ * throw an exception of the (unchecked) type 
+ * {@link IteratorRowSequence.PackagedIOException}
  * if it needs to throw something (<tt>Iterator.next</tt> is not declared
  * to throw any checked exceptions).
  */
@@ -23,7 +24,7 @@ public class IteratorRowSequence implements RowSequence {
      * table row (it must have one element for each column).
      * The <tt>next</tt> method may throw {@link #PackagedIOException}s.
      *
-     * @parameter   rowIt  iterator over the rows
+     * @param   rowIt  iterator over the rows
      */
     public IteratorRowSequence( Iterator rowIt ) {
         this.rowIt = rowIt;

@@ -34,6 +34,7 @@ public class StarTableModel extends AbstractTableModel {
      * @param   startable  the <tt>StarTable</tt> object
      * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
      *          returns <tt>false</tt>
+     * @see     uk.ac.starlink.table.Tables#randomTable
      */
     public StarTableModel( StarTable startable ) {
         this( startable, false );
@@ -49,6 +50,7 @@ public class StarTableModel extends AbstractTableModel {
      *          containing the row index
      * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
      *          returns <tt>false</tt>
+     * @see     uk.ac.starlink.table.Tables#randomTable
      */
     public StarTableModel( StarTable startable, boolean rowHeader ) {
         super();
