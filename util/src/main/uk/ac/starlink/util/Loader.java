@@ -180,10 +180,10 @@ public class Loader {
             Properties starProps = new Properties();
             starProps.load( new FileInputStream( propfile ) );
             System.getProperties().putAll( starProps );
-            logger.info( "Properties read from " + propfile );
+            logger.config( "Properties read from " + propfile );
         }
         catch ( FileNotFoundException e ) {
-            logger.info( "No properties file " + propfile + " found" );
+            logger.config( "No properties file " + propfile + " found" );
         }
         catch ( IOException e ) {
             logger.warning( "Error reading properties from " + propfile 

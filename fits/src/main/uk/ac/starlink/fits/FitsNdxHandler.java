@@ -319,8 +319,8 @@ public class FitsNdxHandler
         if ( container.getProtocol().equals( "file" ) ) {
             String filename = container.getPath();
             if ( new File( filename ).delete() ) {
-                logger.warning( "Deleted existing file " + filename +
-                                " prior to rewriting" );
+                logger.info( "Deleted existing file " + filename +
+                             " prior to rewriting" );
             }
             strm = new BufferedFile( filename, "rw" );
         }

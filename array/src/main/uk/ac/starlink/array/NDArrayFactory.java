@@ -56,11 +56,10 @@ public class NDArrayFactory {
             ArrayBuilder builder = 
                 (ArrayBuilder) meth.invoke( null, noArgs );
             builders.add( builder );
-            // logger.info( className + " registered" );
+            logger.config( className + " registered" );
         }
         catch ( ClassNotFoundException e ) {
-            logger.warning( className + 
-                            " not found - can't register" );
+            logger.config( className + " not found - can't register" );
         }
 
         catch ( InvocationTargetException e ) {
@@ -76,16 +75,15 @@ public class NDArrayFactory {
                          .invoke( null, noArgs );
                 }
                 catch ( Exception e2 ) {
-                    logger.warning( className + " " + e2 +
-                                    " - can't register" );
+                    logger.config( className + " " + e2 + " - can't register" );
                 }
             }
             else {
-                logger.warning( className + " " + e + " - can't register" );
+                logger.config( className + " " + e + " - can't register" );
             }
         }
         catch ( Exception e ) {
-            logger.warning( className + e + " - can't register" );
+            logger.config( className + e + " - can't register" );
         }
 
         /* Attempt to add a FitsArrayBuilder if the class is available. */
@@ -95,15 +93,13 @@ public class NDArrayFactory {
             Method meth = clazz.getMethod( "getInstance", noParams );
             ArrayBuilder builder = (ArrayBuilder) meth.invoke( null, noArgs );
             builders.add( builder );
-            // logger.info( className + " registered" );
+            logger.config( className + " registered" );
         }
         catch ( ClassNotFoundException e ) {
-            logger.warning( className +
-                            " class not found - can't register" );
+            logger.config( className + " class not found - can't register" );
         }
         catch ( Exception e ) {
-            logger.warning( "Failed to register " + className +
-                            ": - " + e );
+            logger.config( "Failed to register " + className + ": - " + e );
         }
     }
 

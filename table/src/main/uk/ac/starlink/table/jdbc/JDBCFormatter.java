@@ -9,7 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -19,8 +18,6 @@ import uk.ac.starlink.util.Loader;
 public class JDBCFormatter {
 
     private Connection conn;
-    private static Logger logger = 
-        Logger.getLogger( "uk.ac.starlink.table.jdbc" );
 
     public JDBCFormatter( Connection conn ) {
         this.conn = conn;

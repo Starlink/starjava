@@ -155,11 +155,11 @@ public class HelpWindow extends AuxWindow {
                     jhelp.setCurrentID( mapID );
                 }
                 catch ( InvalidHelpSetContextException e ) {
-                    logger.warning( "Bad help ID: " + helpID );
+                    logger.info( "Bad help ID: " + helpID );
                 }
             }
             else {
-                logger.warning( "Unknown help ID: " + helpID );
+                logger.info( "Unknown help ID: " + helpID );
             }
         }
     }

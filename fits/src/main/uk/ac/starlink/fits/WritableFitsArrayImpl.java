@@ -117,9 +117,9 @@ class WritableFitsArrayImpl implements ArrayImpl {
                         // ok
                     }
                     else {
-                        logger.warning( "FITS does not support non-NaN bad "
-                                      + "values for floating point types - "
-                                      + "using NaN" );
+                        logger.info( "FITS does not support non-NaN bad "
+                                     + "values for floating point types - "
+                                     + "using NaN" );
                     }
                 }
                 else { // integer type
@@ -294,8 +294,8 @@ class WritableFitsArrayImpl implements ArrayImpl {
                 if ( num < 0 ) {
                     throw new AssertionError();
                 }
-                logger.warning( "Writing " + num + " times " + " BLANK " +
-                                "value to skipped pixels in FITS output" );
+                logger.info( "Writing " + num + " times " + " BLANK " +
+                             "value to skipped pixels in FITS output" );
                 ChunkStepper cIt = new ChunkStepper( num );
                 Object buffer = type.newArray( cIt.getSize() );
                 handler.putBad( buffer, 0, cIt.getSize() );

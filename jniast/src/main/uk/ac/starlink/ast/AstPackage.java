@@ -36,7 +36,6 @@ public class AstPackage {
                 loaded = Boolean.TRUE;
             }
             catch ( LinkageError e ) {
-  e.printStackTrace();
                 loaded = Boolean.FALSE;
                 logger.warning( 
                     "JNIAST native library not on java.library.path " +

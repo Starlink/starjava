@@ -482,8 +482,8 @@ public class FitsTableWriter implements StarTableWriter {
                 /* Longs are slightly different - you can't write them to
                  * FITS directly so we write them as Integers. */
                 else if ( clazz == Long.class ) {
-                    logger.warning( "Truncating type of column " + icol +
-                                    " from Long to Integer" );
+                    logger.info( "Truncating type of column " + icol +
+                                 " from Long to Integer" );
                     fchar = 'J';
                     nbyte = 4;
                     trans = new ValueTranslator() {
@@ -499,8 +499,8 @@ public class FitsTableWriter implements StarTableWriter {
                     };
                 }
                 else if ( clazz == long[].class ) {
-                    logger.warning( "Truncating type of column " + icol +
-                                    " from long[] to int[]" );
+                    logger.info( "Truncating type of column " + icol +
+                                 " from long[] to int[]" );
                     fchar = 'J';
                     nbyte = 4;
                     final int fnel = nel;

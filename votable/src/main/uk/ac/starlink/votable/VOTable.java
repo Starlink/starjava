@@ -177,7 +177,7 @@ public class VOTable extends VOElement {
             parser = dbfact.newDocumentBuilder();
         }
         catch ( ParserConfigurationException e ) {
-            logger.warning( "Parser configuration failed first time: " + e );
+            logger.config( "Parser configuration failed first time: " + e );
 
             /* Failed for some reason - try it with nothing fancy then. */
             try {

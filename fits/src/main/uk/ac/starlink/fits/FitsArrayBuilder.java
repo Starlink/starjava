@@ -292,8 +292,8 @@ public class FitsArrayBuilder implements ArrayBuilder {
             /* First HDU - this will erase any existing data in that file. */
             if ( hdu == 0 ) {
                 if ( new File( filename ).delete() ) {
-                    logger.warning( "Deleted existing file " + filename + 
-                                    " prior to rewriting" );
+                    logger.info( "Deleted existing file " + filename + 
+                                 " prior to rewriting" );
                 }
                 stream = new BufferedFile( filename, "rw" );
             }

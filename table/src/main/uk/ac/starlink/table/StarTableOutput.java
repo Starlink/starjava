@@ -53,12 +53,13 @@ public class StarTableOutput {
                 Class clazz = Class.forName( className );
                 StarTableWriter handler = (StarTableWriter) clazz.newInstance();
                 handlers.add( handler );
+                logger.config( className + " registered" );
             }
             catch ( ClassNotFoundException e ) {
-                logger.warning( className + " not found - can't register" );
+                logger.config( className + " not found - can't register" );
             }
             catch ( Exception e ) {
-                logger.warning( "Failed to register " + className + " - " + e );
+                logger.config( "Failed to register " + className + " - " + e );
             }
         }
     }
