@@ -16,21 +16,24 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
+import java.util.logging.Logger;
 
 import javax.swing.JComponent;
 
-import uk.ac.starlink.ast.AstObject;
-import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.ast.Frame;
-import uk.ac.starlink.ast.Mapping;
-import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.CmpFrame;
 import uk.ac.starlink.ast.CmpMap;
-import uk.ac.starlink.ast.LutMap;
-import uk.ac.starlink.ast.Plot;
-import uk.ac.starlink.ast.UnitMap;
+import uk.ac.starlink.ast.FluxFrame;
+import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Grf;
+import uk.ac.starlink.ast.LutMap;
+import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.Plot;
+import uk.ac.starlink.ast.SpecFluxFrame;
+import uk.ac.starlink.ast.SpecFrame;
+import uk.ac.starlink.ast.UnitMap;
 
 /**
  * Java interface for AST manipulations based on a frameset (type of
@@ -45,6 +48,10 @@ import uk.ac.starlink.ast.Grf;
 public class ASTJ
     implements Serializable
 {
+    // Logger.
+    private static Logger logger =
+        Logger.getLogger( "uk.ac.starlink.splat.ast.ASTJ" );
+
     //  ============
     //  Constructors
     //  ============
@@ -242,14 +249,14 @@ public class ASTJ
      *                 which case use control of the Insets to provide
      *                 required space).
      *  @param ybottom Fraction of component display surface to be
-     *                 reserved on bottom for axes labels etc (can be zero, 
+     *                 reserved on bottom for axes labels etc (can be zero,
      *                 in which case use control of the Insets to provide
      *                 required space).
      *  @param options a string of AST options to use when creating plot.
      */
     public void astPlot( JComponent comp, double basebox[],
-                         double xleft, double xright, 
-                         double ytop, double ybottom, 
+                         double xleft, double xright,
+                         double ytop, double ybottom,
                          String options )
     {
         //  Do nothing if no AST frameset available.
@@ -681,7 +688,9 @@ public class ASTJ
      *  @param start first position in input base frame coordinates (GRID)
      *  @param end   last position in input base frame coordinates (GRID)
      *  @param label label for the data units (can be blank).
-     *  @param units data units (can be blank).
+     *  @param units data units (can be blank), if given these will be used to
+     *               construct a FluxFrame which may be part of a
+     *               SpecFluxFrame, if a SpecFrame can also be derived.
      *  @param dist  Spectral coordinates should be shown as a
      *               distance (rather than coordinate).
      *
@@ -698,21 +707,24 @@ public class ASTJ
         }
         FrameSet result = null;
 
-        // Create a mapping that has the coordinate measure for one
-        // axis and a unitmap to plot the data values.
+        // Create a mapping to transform from GRID positions to spectral
+        // coordinates and data values.
+        // ==================================================================
 
-        // Get a simplified mapping from the base to current frames
+        // Get a simplified mapping from the base to current frames. This will
+        // be used to transform from GRID coordinates to spectral
+        // coordinates. The complication is when the mapping isn't 1D.
         Mapping map = astRef.getMapping( FrameSet.AST__BASE,
                                          FrameSet.AST__CURRENT );
         Mapping smap = map.simplify();
 
-        // Save a pointer to the current frame
+        // Save a pointer to the current frame.
         Frame cfrm = astRef.getFrame( FrameSet.AST__CURRENT );
 
-        // See how many axes the current frame has
+        // See how many axes the current frame has.
         int nax = cfrm.getI( "Naxes" );
 
-        // And how input coordinates the base frame needs (ideally 1)
+        // And how many input coordinates the base frame needs (ideally 1).
         int nin = astRef.getI( "Nin" );
         Mapping xmap = null;
         if ( nax != 1 || nin != 1 ) {
@@ -755,33 +767,32 @@ public class ASTJ
             xmap = new LutMap( lutcoords, 1.0, 1.0 );
         }
         else {
-
-            // The simplified mapping should do.
+            // 1D already, so the simplified mapping should do.
             xmap = smap;
         }
 
-        // Create a CmpMap using a unit mapping for the second axis.
+        //  The data units map onto themselves directly so use a unitmap.
         UnitMap unitMap = new UnitMap( 1 );
+
+        //  Create a compound of these two mappings.
         map = new CmpMap( xmap, unitMap, false );
 
-        // Frame representing input coordinates, uses GRID axis of
-        // base frame and a default axis
+        // Get a Frame representing the input coordinates, uses a GRID axis of
+        // the base frame and a default axis.
         int[] iaxes = new int[2];
         iaxes[0] = 1;
         iaxes[1] = 0;
         Frame frame1 = astRef.getFrame( FrameSet.AST__BASE );
         frame1 = frame1.pickAxes( iaxes.length, iaxes, null );
 
-        // Set up label, symbol and units for axis 2
+        // Set up label, symbol and units for axis 2 (the data values axis).
         frame1.setC( "Symbol(2)", "Data" );
-
         if ( ! label.equals( "")  ) {
             frame1.setC( "Label(2)", label );
         }
         else {
             frame1.setC( "Label(2)", "Data value" );
         }
-
         if ( ! units.equals( "" ) ) {
             frame1.setC( "Unit(2)", units );
         }
@@ -790,14 +801,49 @@ public class ASTJ
         frame1.clear( "Domain" );
         frame1.clear( "Title" );
 
-        // Coordinate or distance-v-data frame.
-        // Use selected axis from the current frame as the spectral
-        // axis.
-        Frame f1 = getSpectralAxisFrame( axis );
+        // Create the coordinate or distance versus data frame.
+        // ====================================================
 
-        // Create the full frame using the spectral frame and another.
-        Frame f2 = new Frame( 1 );
-        Frame frame2 = new CmpFrame( f1, f2 );
+        // Use selected axis from the current frame as the spectral axis.
+        // This may be a SpecFrame, which adds units understanding.
+        Frame f1 = getSpectralAxisFrame( axis );
+        boolean haveSpecFrame = f1 instanceof SpecFrame;
+
+        // If we have data units that can be understood (as some kind of flux
+        // in general), then create a FluxFrame using them. Otherwise we use a
+        // plain Frame to just represent the data values/coordinates.
+        Frame f2 = null;
+        boolean haveFluxFrame = false;
+        if ( ! units.equals( "" ) && ! units.equals( "unknown" ) ) {
+            try {
+                f2 = new FluxFrame();
+                f2.setUnit( 1, units );
+
+                // Get the default System value from the FluxFrame. This will
+                // depend on the units. If the units do not correspond to any
+                // of the supported flux systems, then an exception will be
+                // thrown.
+                String system = f2.getSystem();
+                haveFluxFrame = true;
+            }
+            catch (AstException e) {
+                //  Units are invalid.
+                f2 = null;
+                logger.info( "Data units: " + units  + " (" + 
+                             e.getMessage() + ")" );
+            }
+        }
+        if ( f2 == null ) {
+            f2 = new Frame( 1 );
+        }
+
+        // Create the full frame using the spectral frame and flux frame.
+        Frame frame2 = null;
+        if ( haveSpecFrame && haveFluxFrame ) {
+            frame2 = new SpecFluxFrame( (SpecFrame) f1, (FluxFrame) f2 );
+        } else {
+            frame2 = new CmpFrame( f1, f2 );
+        }
 
         // Clear digits and format, unless set in the input frameset. These
         // can make a mess of SkyFrame formatting otherwise.
@@ -817,7 +863,7 @@ public class ASTJ
             frame2.setC( "Symbol(1)", "Offset" );
         }
 
-        // Set symbol, label and units for second axis */
+        // Set symbol, label and units for second axis, if not already done.
         frame2.setC( "Symbol(2)", "Data" );
         if ( ! label.equals( "" ) ) {
             frame2.setC( "Label(2)", label );
@@ -825,7 +871,9 @@ public class ASTJ
         else {
             frame2.setC( "Label(2)", "Data value" );
         }
-        if ( !units.equals( "" ) ) {
+
+        // If this is a FluxFrame then the units are already set (and active).
+        if ( ! haveFluxFrame && ! units.equals( "" ) ) {
             frame2.setC( "Unit(2)", units );
         }
 
@@ -988,8 +1036,8 @@ public class ASTJ
             }
         }
 
-        //  Created a SpecFrame, also need to attach this to the
-        //  current FrameSet.
+        //  Created a SpecFrame, also need to attach this to the current
+        //  FrameSet.
         Frame cfrm = astRef.getFrame( FrameSet.AST__CURRENT );
         int nax = cfrm.getI( "Naxes" );
         if ( nax == 1 ) {
