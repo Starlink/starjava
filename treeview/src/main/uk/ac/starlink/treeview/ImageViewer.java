@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.datanode.viewers.TreeviewLAF;
 
 /**
  * Displays the pixels of a 2-d array, optionally with an AST grid plotted

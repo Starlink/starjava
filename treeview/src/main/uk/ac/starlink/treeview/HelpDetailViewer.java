@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import javax.swing.JComponent;
+import uk.ac.starlink.datanode.nodes.ComponentMaker;
+import uk.ac.starlink.datanode.nodes.IconFactory;
+import uk.ac.starlink.datanode.nodes.NodeUtil;
+import uk.ac.starlink.datanode.viewers.StyledTextArea;
 
 /**
  * Displays help information.
@@ -11,7 +15,7 @@ import javax.swing.JComponent;
  * interface and sit in the detail pane of the Treeview window. 
  * However, it has no associated tree node.
  */
-class HelpDetailViewer extends DetailViewer {
+class HelpDetailViewer extends ApplicationDetailViewer {
 
     public final static String BUILD_PROPS = 
         "uk/ac/starlink/treeview/text/build.properties";
@@ -46,12 +50,12 @@ class HelpDetailViewer extends DetailViewer {
         addText( "Mark Taylor" );
 
         addSubHead( "Optional components" );
-        addKeyedItem( "JNIAST", TreeviewUtil.hasAST() ? "installed" 
-                                                      : "not installed" );
-        addKeyedItem( "JNIHDS", TreeviewUtil.hasHDS() ? "installed" 
-                                                      : "not installed" );
-        addKeyedItem( "JAI", TreeviewUtil.hasJAI() ? "installed" 
-                                                   : "not installed" );
+        addKeyedItem( "JNIAST", NodeUtil.hasAST() ? "installed" 
+                                                  : "not installed" );
+        addKeyedItem( "JNIHDS", NodeUtil.hasHDS() ? "installed" 
+                                                  : "not installed" );
+        addKeyedItem( "JAI", NodeUtil.hasJAI() ? "installed" 
+                                               : "not installed" );
 
         addSubHead( "Java" );
         addKeyedItem( "JRE", System.getProperty( "java.vendor" ) + " " 

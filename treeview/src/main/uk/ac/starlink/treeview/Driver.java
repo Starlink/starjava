@@ -12,6 +12,30 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
+import uk.ac.starlink.datanode.nodes.ARYDataNode;
+import uk.ac.starlink.datanode.nodes.CompressedDataNode;
+import uk.ac.starlink.datanode.nodes.DataNode;
+import uk.ac.starlink.datanode.nodes.DefaultDataNode;
+import uk.ac.starlink.datanode.nodes.FileDataNode;
+import uk.ac.starlink.datanode.nodes.FITSDataNode;
+import uk.ac.starlink.datanode.nodes.FtpDirectoryDataNode;
+import uk.ac.starlink.datanode.nodes.HDSDataNode;
+import uk.ac.starlink.datanode.nodes.HDXDataNode;
+import uk.ac.starlink.datanode.nodes.JDBCDataNode;
+import uk.ac.starlink.datanode.nodes.NDArrayDataNode;
+import uk.ac.starlink.datanode.nodes.NDFDataNode;
+import uk.ac.starlink.datanode.nodes.NdxDataNode;
+import uk.ac.starlink.datanode.nodes.NoSuchDataException;
+import uk.ac.starlink.datanode.nodes.NodeUtil;
+import uk.ac.starlink.datanode.nodes.PlainDataNode;
+import uk.ac.starlink.datanode.nodes.StarTableDataNode;
+import uk.ac.starlink.datanode.nodes.TarStreamDataNode;
+import uk.ac.starlink.datanode.nodes.VOTableDataNode;
+import uk.ac.starlink.datanode.nodes.WCSDataNode;
+import uk.ac.starlink.datanode.nodes.XMLDataNode;
+import uk.ac.starlink.datanode.nodes.ZipFileDataNode;
+import uk.ac.starlink.datanode.nodes.ZipStreamDataNode;
+import uk.ac.starlink.datanode.factory.DataNodeFactory;
 import uk.ac.starlink.fits.FitsNdxHandler;
 import uk.ac.starlink.hds.NDFNdxHandler;
 import uk.ac.starlink.util.Loader;
@@ -38,14 +62,14 @@ public class Driver {
         String cmdName = 
             System.getProperty( CMDNAME_PROPERTY );
         if ( cmdName == null ) {
-            cmdName = "uk.ac.starlink.treeview.Driver";
+            cmdName = "treeview";
         }
 
         /* Check requisites.  We may be able to proceed without JNIAST
          * and JNIHDS, but we should warn up front that their absence
          * is likely to lead to problems. */
-        boolean hasAST = TreeviewUtil.hasAST();
-        boolean hasHDS = TreeviewUtil.hasHDS();
+        boolean hasAST = NodeUtil.hasAST();
+        boolean hasHDS = NodeUtil.hasHDS();
 
         /* Set up a Map mapping flags to expected Node type of argument. */
         Map nodeTypeFlags = new HashMap();
@@ -127,7 +151,7 @@ public class Driver {
                     nodeFactory.getBuilders().removeAll( builders );
                 }
                 else if ( arg.equals( "-debug" ) ) {
-                    nodeFactory.debug = true;
+                    nodeFactory.setDebug( true );
                 }
                 else if ( arg.equals( "-demo" ) ) {
                     try {
@@ -185,11 +209,11 @@ public class Driver {
 
         /* View the tree. */
         if ( textView ) {
-            TreeviewUtil.setGUI( false );
+            NodeUtil.setGUI( false );
             viewAsText( root, textPath );
         }
         else {
-            TreeviewUtil.setGUI( true );
+            NodeUtil.setGUI( true );
             viewAsGUI( root, orient );
         }
     }

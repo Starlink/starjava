@@ -10,6 +10,8 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import junit.framework.AssertionFailedError;
 import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.util.TestCase;
@@ -22,6 +24,11 @@ import uk.ac.starlink.util.TestCase;
  * non-interactive tests.
  */
 public class TreeviewTest extends TestCase {
+
+    static {
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
+    }
 
     /**
      *  Name of the file giving the correct output of command:

@@ -3,19 +3,19 @@ package uk.ac.starlink.treeview;
 import java.io.IOException;
 import java.util.Iterator;
 import javax.swing.Icon;
-import uk.ac.starlink.array.NDShape;
-import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.datanode.nodes.DataNode;
+import uk.ac.starlink.datanode.nodes.DataObjectException;
+import uk.ac.starlink.datanode.nodes.DataType;
+import uk.ac.starlink.datanode.nodes.DetailViewer;
+import uk.ac.starlink.datanode.factory.CreationState;
+import uk.ac.starlink.datanode.factory.DataNodeFactory;
 
 /**
  * DataNode object which acts as a clone of an existing node.
  * It copies its attributes from a given node, but to some extent 
  * maintains its own state.
  */
-public class DuplicateDataNode implements DataNode,
-                                          Draggable,
-                                          TableNodeChooser.Choosable,
-                                          NdxNodeChooser.Choosable {
+public class DuplicateDataNode implements DataNode {
 
     private DataNode base;
 
@@ -80,6 +80,14 @@ public class DuplicateDataNode implements DataNode,
         return base.getPathSeparator();
     }
 
+    public boolean hasDataObject( DataType type ) {
+        return base.hasDataObject( type );
+    }
+
+    public Object getDataObject( DataType type ) throws DataObjectException {
+        return base.getDataObject( type );
+    }
+
     public void configureDetail( DetailViewer dv ) {
         base.configureDetail( dv );
     }
@@ -102,36 +110,5 @@ public class DuplicateDataNode implements DataNode,
 
     public String toString() {
         return base.toString();
-    }
-
-    public boolean isStarTable() {
-        return ( base instanceof TableNodeChooser.Choosable )
-                    ?  ((TableNodeChooser.Choosable) base).isStarTable()
-                    : false;
-    }
-
-    public StarTable getStarTable() throws IOException {
-        return ((TableNodeChooser.Choosable) base).getStarTable();
-    }
-
-    public boolean isNdx() {
-        return ( base instanceof NdxNodeChooser.Choosable )
-                    ? ((NdxNodeChooser.Choosable) base).isNdx()
-                    : false;
-    }
-
-    public NDShape getShape() {
-        return ((NdxNodeChooser.Choosable) base).getShape();
-    }
-
-    public Ndx getNdx() throws IOException {
-        return ((NdxNodeChooser.Choosable) base).getNdx();
-    }
-
-    public void customiseTransferable( DataNodeTransferable trans ) 
-            throws IOException {
-        if ( base instanceof Draggable ) {
-            ((Draggable) base).customiseTransferable( trans );
-        }
     }
 }

@@ -23,6 +23,7 @@ import uk.ac.starlink.array.Order;
 import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.WindowArrayImpl;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.datanode.viewers.TreeviewLAF;
 
 public class SliceViewer extends JPanel {
 

@@ -14,6 +14,7 @@ import org.apache.axis.encoding.XMLType;
 import org.w3c.dom.Element;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.hdx.HdxException;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxIO;
@@ -79,7 +80,7 @@ public abstract class NdxDisplayer {
      * @return   whether it's worth trying to call {@link #display}
      */
     public boolean canDisplay( Ndx ndx ) {
-        return TreeviewUtil.hasAST();
+        return NodeUtil.hasAST();
     }
 
     /**

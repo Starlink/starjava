@@ -2,13 +2,23 @@ package uk.ac.starlink.treeview;
 
 import java.awt.HeadlessException;
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 import junit.framework.TestCase;
+import uk.ac.starlink.datanode.nodes.DataNode;
+import uk.ac.starlink.datanode.nodes.NoSuchDataException;
+import uk.ac.starlink.datanode.tree.DataNodeJTree;
+import uk.ac.starlink.datanode.tree.DataNodeTreeModel;
 
 public class ModelTest extends TestCase {
+
+    static {
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+    }
 
     public void setUp() {
         String basedir = System.getProperty( "ant.basedir" );

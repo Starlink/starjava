@@ -108,12 +108,10 @@ public class NDArrayImage extends SimpleRenderedImage {
         bandOffsets[0] = 0;
         int pixelStride = 1;
         int scanlineStride = tileWidth;         
-        return RasterFactory.createPixelInterleavedSampleModel( dataType,
-                                                                tileWidth,
-                                                                tileHeight,
-                                                                pixelStride,
-                                                                scanlineStride,
-                                                                bandOffsets );
+        return RasterFactory
+              .createPixelInterleavedSampleModel( dataType, tileWidth,
+                                                  tileHeight, pixelStride,
+                                                  scanlineStride, bandOffsets );
     }
 
     private Object getArrayData( DataBuffer dbuf ) {

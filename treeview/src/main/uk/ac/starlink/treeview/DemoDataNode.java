@@ -2,6 +2,14 @@ package uk.ac.starlink.treeview;
 
 import java.io.File;
 import java.util.Iterator;
+import uk.ac.starlink.datanode.factory.CreationState;
+import uk.ac.starlink.datanode.factory.DataNodeFactory;
+import uk.ac.starlink.datanode.nodes.DataNode;
+import uk.ac.starlink.datanode.nodes.DetailViewer;
+import uk.ac.starlink.datanode.nodes.FileDataNode;
+import uk.ac.starlink.datanode.nodes.NdxDataNode;
+import uk.ac.starlink.datanode.nodes.IconFactory;
+import uk.ac.starlink.datanode.nodes.NoSuchDataException;
 
 /**
  * A DataNode implementation which displays Treeview's known demo data
@@ -76,7 +84,9 @@ public class DemoDataNode extends FileDataNode {
 
         /* Display the info panel not the overview immediately to make it
          * very clear to users what is going on. */
-        dv.setSelectedIndex( 1 );
+        if ( dv instanceof ApplicationDetailViewer ) {
+            ((ApplicationDetailViewer) dv).setSelectedIndex( 1 );
+        }
     }
 
     /**

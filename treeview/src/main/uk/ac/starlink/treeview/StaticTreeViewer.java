@@ -55,6 +55,19 @@ import org.astrogrid.store.tree.TreeClient;
 import org.astrogrid.store.tree.TreeClientException;
 import uk.ac.starlink.astrogrid.AGConnector;
 import uk.ac.starlink.astrogrid.AGConnectorFactory;
+import uk.ac.starlink.datanode.factory.CreationState;
+import uk.ac.starlink.datanode.factory.DataNodeBuilder;
+import uk.ac.starlink.datanode.factory.DataNodeFactory;
+import uk.ac.starlink.datanode.nodes.ComponentMaker;
+import uk.ac.starlink.datanode.nodes.DataNode;
+import uk.ac.starlink.datanode.nodes.ErrorDataNode;
+import uk.ac.starlink.datanode.nodes.IconFactory;
+import uk.ac.starlink.datanode.nodes.NoSuchDataException;
+import uk.ac.starlink.datanode.nodes.NodeUtil;
+import uk.ac.starlink.datanode.tree.DataNodeJTree;
+import uk.ac.starlink.datanode.tree.DataNodeTransferHandler;
+import uk.ac.starlink.datanode.tree.DataNodeTreeModel;
+import uk.ac.starlink.datanode.viewers.TextViewer;
 
 /**
  * Main class for the Treeview application.  The GUI provides a two-part
@@ -750,7 +763,7 @@ public class StaticTreeViewer extends JFrame {
     private void replaceWithParent( DataNode node ) {
         Object parentObj = node.getParentObject();
         assert parentObj != null; // otherwise action disabled
-        String path = TreeviewUtil.getNodePath( node );
+        String path = NodeUtil.getNodePath( node );
 
         /* Get the new node. */
         DataNode parentNode;
@@ -1202,7 +1215,7 @@ public class StaticTreeViewer extends JFrame {
     private JComponent makeDetail( DataNode node ) {
 
         /* Construct a viewer containing basic information about the node. */
-        DetailViewer dv = new DetailViewer( node );
+        ApplicationDetailViewer dv = makeDetailViewer( node );
         dv.addSeparator();
 
         /* Allow the node to customise the viewer according to
@@ -1221,7 +1234,7 @@ public class StaticTreeViewer extends JFrame {
                 } );
             }
             DataNodeFactory factory = creator.getFactory();
-            if ( factory != null && factory.debug ) {
+            if ( factory != null && factory.getDebug() ) {
                 dv.addSubHead( "Debug" );
                 dv.addKeyedItem( "Node class", node.getClass().getName() );
                 dv.addKeyedItem( "Parent node", creator.getParent() );
@@ -1235,7 +1248,16 @@ public class StaticTreeViewer extends JFrame {
         /* Return the component for display. */
         return dv.getComponent();
     }
-              
+
+    /**
+     * Constructs a new Detail Viewer suitable for a given data node.
+     *
+     * @param   node  data node
+     * @return   new viewer
+     */
+    private ApplicationDetailViewer makeDetailViewer( DataNode node ) {
+        return new ApplicationDetailViewer( node );
+    }
 
     /**
      * Helper class which handles getting detail components for selected nodes

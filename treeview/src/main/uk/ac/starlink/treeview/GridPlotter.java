@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
+import uk.ac.starlink.datanode.viewers.TreeviewLAF;
 
 /**
  * A Component which displays a coordinate grid and frame selection panel

@@ -19,6 +19,7 @@ import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.datanode.viewers.TreeviewLAF;
 
 /**
  * Views a 3-dimensional array by collapsing it along one axis.

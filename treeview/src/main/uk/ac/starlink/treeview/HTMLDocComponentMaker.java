@@ -2,6 +2,7 @@ package uk.ac.starlink.treeview;
 
 import java.io.IOException;
 import javax.swing.JComponent;
+import uk.ac.starlink.datanode.nodes.ComponentMaker;
 
 /**
  * Adaptor class to turn an HTMLViewer into a ComponentMaker.

@@ -5,8 +5,7 @@
  !
  !   This file describes how to build and install Treeview
  !   from a source and binary release. Treeview is an application
- !   package, i.e. provides user-level commands and interfaces, as
- !   well as a programming API.
+ !   package, i.e. provides user-level commands and interfaces.
  !
  !   The main targets are:
  !
@@ -80,7 +79,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="Treeview"/>
   <property name="name" value="treeview"/>
-  <property name="version" value="2.3"/>
+  <property name="version" value="3.0"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.treeview"/>
@@ -164,17 +163,14 @@
   <!-- Local webstart properties. Note this needs a local keystore,
    !   assumed to be called keystore in $star.build.dir, .. by
    !   default. -->
-  <property name="webstart.codebase" 
+  <property name="webstart.codebase"
            value="http://www.starlink.ac.uk/starjava/lib"/>
   <property name="webstart.alias" value="Starlink-UK"/>
   <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
   <property name="webstart.keypass" value="Vroomfondel"/>
   <property name="webstart.storepass" value="Majikthise"/>
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
-  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
-
-  <!-- Add any local ANT tasks that are required (these should be
-   !   moved to ANT if useful beyond the needs of this package) -->
+  <property name="home.page" value="http://www.starlink.ac.uk/treeview/"/>
 
   <!--
    !   =========
@@ -182,50 +178,29 @@
    !   =========
    !-->
 
-  <!-- Name all the jar files that we directly depend on. These will be
-   !   used to produce a full CLASSPATH that is equivalent to that
-   !   generated when these are referenced as optional bundled packages.
-   !   It's best to have a classpath (rather than use the extension
-   !   mechanism) during development as this allows us to compile
-   !   without having to work these dependencies out anyway (may
-   !   be fixed in Java1.5) plus we can execute against locally built
-   !   class files in preference to installed ones (an extra user-define
-   !   defined CLASSPATH can also be used as needed).
+  <!-- Installed jar files.
+   !
+   !   Name all the installed jar files of other packages that we depend on.
+   !
+   !   When compiling under Java 1.4 these will be used to produce a full
+   !   classpath that is equivalent to that generated when these are
+   !   referenced as optional bundled packages by the JVM.
+   !   When compiling under Java 1.5 (and probably later) this is just
+   !   a simple path of these jar files, as the expansion to a full optional
+   !   bundled package classpath is performed by the compiler
+   !
+   !   What that all means is that the manifest classpaths of these jar files
+   !   are honoured, the plain compiler pre Java 1.5 didn't do that. When Java
+   !   1.4 is no longer used the extclasspath type can be replaced by a simple
+   !   path.
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- Array -->
-    <pathelement location="${star.jar.dir}/array/array.jar"/>
+    <!-- Datanode -->
+    <pathelement location="${star.jar.dir}/datanode/datanode.jar"/>
 
-    <!-- Table -->
-    <pathelement location="${star.jar.dir}/table/table.jar"/>
-
-    <!-- JNIAST -->
-    <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
-
-    <!-- TAMFITS -->
-    <pathelement location="${star.jar.dir}/tamfits/tamfits.jar"/>
-
-    <!-- FITS -->
-    <pathelement location="${star.jar.dir}/fits/fits.jar"/>
-
-    <!-- JNIHDS -->
-    <pathelement location="${star.jar.dir}/jnihds/hds.jar"/>
-
-    <!-- HDS -->
-    <pathelement location="${star.jar.dir}/hds/hds.jar"/>
-
-    <!-- NDX -->
-    <pathelement location="${star.jar.dir}/ndx/ndx.jar"/>
-
-    <!-- VOTable -->
-    <pathelement location="${star.jar.dir}/votable/votable.jar"/>
-
-    <!-- Util -->
-    <pathelement location="${star.jar.dir}/util/util.jar"/>
-
-    <!-- TOPCAT -->
-    <pathelement location="${star.jar.dir}/topcat/topcat.jar"/>
+    <!-- AXIS -->
+    <pathelement location="${star.jar.dir}/axis/axis.jar"/>
 
     <!-- JSky -->
     <pathelement location="${star.jar.dir}/jsky/jsky.jar"/>
@@ -233,75 +208,47 @@
     <!-- JAIUtil -->
     <pathelement location="${star.jar.dir}/jaiutil/jaiutil.jar"/>
 
-    <!-- Splat -->
+    <!-- TOPCAT -->
+    <pathelement location="${star.jar.dir}/topcat/topcat.jar"/>
+
+    <!-- SPLAT -->
     <pathelement location="${star.jar.dir}/splat/splat.jar"/>
 
     <!-- SoG -->
     <pathelement location="${star.jar.dir}/sog/sog.jar"/>
 
-    <!-- Axis -->
-    <pathelement location="${star.jar.dir}/axis/axis.jar"/>
-
   </extclasspath>
 
-  <!-- Generate the local build classpath. This is the most difficult
-   !   part of handling the classpath. The local classes will be in
-   !   the "build/classes" part of each package, plus third party
-   !   packages will have their jar files in the "dist" directories.
-   !   Having the third party jars not installed means that building a
-   !   classpath based on their manifest class-paths will not resolve
-   !   all references (these may be to other third party jars, that
-   !   are normally resolved using relative URLs). The way that this
-   !   is resolved is simply to locate all "build/classes" directories
-   !   and all jar files in the "dist" parts and just add these all
-   !   to the classpath. Known third party dependencies are added
-   !   after the "build/classes" directories using the "extclasspath"
-   !   type, just so that they will be referred to first. If this
-   !   doesn't work as expected add the additional classes/jars to
-   !   the extra classpath.
+  <!-- Local build system jar files.
+   !
+   !   Name all the jar files of other packages that we depend on, which have
+   !   not been installed (should be same packages as in installed.classpath).
    !-->
   <extclasspath id="built.jarpath">
 
     <pathelement
-       location="${star.build.dir}/array/lib/array/array.jar"/>
+      location="${star.build.dir}/datanode/lib/datanode/datanode.jar"/>
     <pathelement
-       location="${star.build.dir}/table/lib/table/table.jar"/>
+      location="${star.build.dir}/axis/lib/axis/axis.jar"/>
     <pathelement
-       location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
+      location="${star.build.dir}/jsky/lib/jsky/jsky.jar"/>
     <pathelement
-       location="${star.build.dir}/tamfits/lib/tamfits/tamfits.jar"/>
+      location="${star.build.dir}/jaiutil/lib/jaiutil/jaiutil.jar"/>
     <pathelement
-       location="${star.build.dir}/fits/lib/fits/fits.jar"/>
+      location="${star.build.dir}/topcat/lib/topcat/topcat.jar"/>
     <pathelement
-       location="${star.build.dir}/jnihds/lib/jnihds/jnihds.jar"/>
+      location="${star.build.dir}/splat/lib/splat/splat.jar"/>
     <pathelement
-       location="${star.build.dir}/hds/lib/hds/hds.jar"/>
-    <pathelement
-       location="${star.build.dir}/ndx/lib/ndx/ndx.jar"/>
-    <pathelement
-       location="${star.build.dir}/votable/lib/votable/ndx.jar"/>
-    <pathelement
-       location="${star.build.dir}/util/lib/util/util.jar"/>
-    <pathelement
-       location="${star.build.dir}/topcat/lib/topcat/topcat.jar"/>
-    <pathelement
-       location="${star.build.dir}/jsky/lib/jsky/jsky.jar"/>
-    <pathelement
-       location="${star.build.dir}/jaiutil/lib/jaiutil/jaiutil.jar"/>
-    <pathelement
-       location="${star.build.dir}/splat/lib/splat/splat.jar"/>
-    <pathelement
-       location="${star.build.dir}/sog/lib/sog/sog.jar"/>
-    <pathelement
-       location="${star.build.dir}/axis/lib/axis/axis.jar"/>
+      location="${star.build.dir}/sog/lib/sog/sog.jar"/>
 
   </extclasspath>
 
-  <!-- "Local" third party jars. Normally these will be kept in their
-   !   own third party package, but may be kept here temporarily, say
-   !   if there are version conflicts that cannot be addressed.
-   !   They are installed with the package jar files and should be
-   !   entered into the main jar file manifest.
+  <!-- Find all local third party jars files.
+   !
+   !   Normally these will be kept in their own third party package, but may
+   !   be kept here temporarily, say if there are version conflicts that
+   !   cannot be addressed. They are installed with the package jar files and
+   !   should be entered into the main jar file manifest.
    !-->
   <path id="package.jars">
      <fileset dir="${src.jars.dir}">
@@ -309,48 +256,79 @@
      </fileset>
   </path>
 
+  <!-- Create the local build system CLASSPATH.
+   !
+   !   Create the classpath used when building this package as part of a full
+   !   build system without any dependency on any installed or external jar
+   !   files.
+   !
+   !   Classes compiled in the local build tree will be in the "build/classes"
+   !   part of each package. Third party packages, have do not have any source
+   !   code, just jar files, will have their jar files in their "dist"
+   !   directories (usually lib/{package_name}).
+   !
+   !   So the full built classpath is created by constructing a path
+   !   consisting of:
+   !
+   !      - all third party jar files in this package
+   !      - all build/classes directories in the local build system (these
+   !        will have the most recent class files)
+   !      - all jar files named in built.jarpath, i.e. named local build
+   !        system jar files (these can be normal packages in the "dist" state
+   !        or third party packages)
+   !      - all jar files in the "dist" directories of all packages in the
+   !        local build system (these are necessary to make sure that the jar
+   !        files in the previous part have their dependencies fulfilled,
+   !        without having them all installed)
+   !-->
   <path id="built.classpath">
 
-    <!-- Local third party jars -->
+    <!-- Third party jars held by this package -->
     <path refid="package.jars"/>
 
-    <!-- All locally built classes -->
+    <!-- All classes in the local build system -->
     <dirset dir="${star.build.dir}">
       <include name="*/build/classes"/>
     </dirset>
 
-    <!-- Directly dependent third party jars -->
+    <!-- Directly dependent jars in the local build system -->
     <path refid="built.jarpath"/>
 
-    <!-- Finally add all "dist" jar files to make sure everything is
-     !   resolved, including relative URLs out of the local package -->
+    <!-- All "dist" jar files to make sure everything is resolved, including
+     !   relative URLs of the local packages, without installation -->
     <fileset dir="${star.build.dir}">
       <include name="*/lib/*/*.jar"/>
     </fileset>
 
-    <!-- Note in passing a more elegant way to resolve these jars
-     !   would be to extend <extclasspath> to go looking for dependent
-     !   jars using an additional URL resolving mechanism-->
-
   </path>
 
-  <!-- Extra user-defined classpath. This is set by the property
-   !   "extra.class.path" (which can be defined locally using say
-   !   -Dextra.class.path=$CLASSPATH on the command line or by setting
-   !   the property in either of the properties files.-->
+  <!-- User-defined CLASSPATH.
+   !
+   !   This is set by the property "extra.class.path" (which can be defined
+   !   locally using say -Dextra.class.path=$CLASSPATH on the command line
+   !   or by setting the property in either of the properties files.-->
   <property name="extra.class.path" value=""/>
   <path id="local.classpath" path="${extra.class.path}"/>
 
-  <!-- Unification of all classpaths using extra, built, installed order-->
+  <!-- Create the full CLASSPATH used during compilation.
+   !
+   !   This is created from the user-defined classpath, followed by the
+   !   classpath for building against the local system, followed by the
+   !   classpath for building against an installed system.
+   !-->
   <path id="classpath">
     <path refid="local.classpath"/>
     <path refid="built.classpath"/>
     <path refid="installed.classpath"/>
   </path>
 
-  <!-- JUnit tests classpath, add tests.dir and tests.etc.dir so that
-   !   resources may be located there -->
-  <path id="tests-classpath">
+  <!-- Create the JUnit tests CLASSPATH.
+   ! 
+   !   Note that in addition to the build/classes and build/tests directory
+   !   we also add tests.dir and tests.etc.dir so that resources may be
+   !   located there. The full classpath is also used.
+   !-->  
+ <path id="tests-classpath">
     <pathelement location="${build.classes}"/>
     <pathelement location="${build.tests}"/>
     <pathelement location="${tests.dir}"/>
@@ -374,13 +352,23 @@
   <property name="tests-libpath" refid="tests-libpath.id"/>
 
   <!--
+   !    ===============
+   !    Extension tasks
+   !    ===============
+   !    Add any local or extension ANT tasks that are required. Local
+   !    tasks should be moved into the ANT package if used outside of this
+   !    package. 
+   !-->
+  <!-- <taskdef resource="extra-tasks.properties" classpathref="classpath"/> -->
+
+  <!--
    !    =========================================
    !    Check availability of direct dependencies
    !    =========================================
-   !    (could also use this to check optional elements).
    !
-   ! If any of the required dependencies are not present then
-   ! this throws a <fail> and exits the build.
+   !    Minimalist check of the required dependencies so that the build will
+   !    not proceed if some basic dependencies are not present on the
+   !    classpath. Optional components could also be checked here.
    !-->
   <target name="check_packages"
           depends="really_check_packages"
@@ -392,89 +380,40 @@
                classname="junit.framework.TestCase"/>
   </target>
 
-
   <target name="really_check_packages"
           if="but_its_too_slow">
 
-    <!-- Need Array -->
-    <available property="array.present"
+    <!-- Datanode -->
+    <available property="datanode.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.array.NDArray"/>
-    <fail message="No Array available" unless="array.present"/>
+               classname="uk.ac.starlink.datanode.nodes.DataNode"/>
+    <fail message="No Datanode available" unless="datanode.present"/>
 
-    <!-- Need Table -->
-    <available property="table.present"
+    <!-- AXIS -->
+    <available property="axis.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.table.StarTable"/>
-    <fail message="No Table available" unless="table.present"/>
+               classname="org.apache.axis.Message"/> 
+    <fail message="No Axis available" unless="axis.present"/>
 
-    <!-- Need JNIAST -->
-    <available property="jniast.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.ast.Grf"/>
-    <fail message="No JNIAST available" unless="jniast.present"/>
-
-    <!-- Need TAMFITS -->
-    <available property="tamfits.present"
-               classpathref="classpath"
-               classname="nom.tam.fits.Header"/>
-    <fail message="No TAMFITS available" unless="tamfits.present"/>
-
-    <!-- Need FITS -->
-    <available property="fits.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.fits.MappedFile"/>
-    <fail message="No FITS available" unless="fits.present"/>
-
-    <!-- Need JNIHDS -->
-    <available property="jnihds.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.hds.HDSObject"/>
-    <fail message="No JNIHDS available" unless="jnihds.present"/>
-
-    <!-- Need HDS -->
-    <available property="hds.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.hds.ArrayStructure"/>
-    <fail message="No HDS available" unless="hds.present"/>
-
-    <!-- Need NDX -->
-    <available property="ndx.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.ndx.Ndx"/>
-    <fail message="No NDX available" unless="ndx.present"/>
-
-    <!-- Need VOTable -->
-    <available property="votable.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.votable.VOTable"/>
-    <fail message="No VOTable available" unless="votable.present"/>
-
-    <!-- Need Util -->
-    <available property="util.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.util.TestCase"/>
-    <fail message="No Util available" unless="util.present"/>
-
-    <!-- Need TOPCAT -->
-    <available property="topcat.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.topcat.TableViewer"/>
-    <fail message="No TOPCAT available" unless="topcat.present"/>
-
-    <!-- Need JSky -->
+    <!-- JSky -->
     <available property="jsky.present"
                classpathref="classpath"
                classname="jsky.image.ImageProcessor"/>
     <fail message="No JSky available" unless="jsky.present"/>
 
-    <!-- Need JAIUtil -->
+    <!-- JAIUtil -->
     <available property="jaiutil.present"
                classpathref="classpath"
                classname="uk.ac.starlink.jaiutil.SimpleRenderedImage"/>
     <fail message="No JAIUtil available" unless="jaiutil.present"/>
 
-    <!-- Need Splat -->
+    <!-- TOPCAT -->
+    <available property="topcat.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.topcat.ControlWindow"/>
+    <fail message="No TOPCAT available" unless="topcat.present"/>
+
+    <!-- SPLAT -->
     <available property="splat.present"
                classpathref="classpath"
                classname="uk.ac.starlink.splat/data/SpecData"/>
@@ -485,18 +424,6 @@
                classpathref="classpath"
                classname="uk.ac.starlink.sog/SOG"/>
     <fail message="No SOG available" unless="sog.present"/>
-
-    <!-- Need Axis -->
-    <available property="axis.present"
-               classpathref="classpath"
-               classname="org.apache.axis.Message"/>
-    <fail message="No Axis available" unless="axis.present"/>
-
-    <!-- Need Ant -->
-    <available property="ant.present"
-               classpathref="classpath"
-               classname="org.apache.tools.tar.TarEntry"/>
-    <fail message="No Ant available" unless="ant.present"/>
 
   </target>
 
@@ -513,17 +440,6 @@
       <format property="year" pattern="yyyy"/>
     </tstamp>
 
-    <!-- This is a filterchain that can be used to copy-edit files
-     !   that require the package version, current date and/or time -->
-    <filterchain id="filters">
-      <replacetokens>
-        <token key="VERSION" value="${version}"/>
-        <token key="DATE" value="${TODAY}"/>
-        <token key="TIME" value="${TSTAMP}"/>
-        <token key="BUILT_BY" value="${user.name}"/>
-      </replacetokens>
-    </filterchain>
-
   </target>
 
 
@@ -535,7 +451,7 @@
    !  The results of the compilation are placed in the build.classes
    !  directory. Other files that are also needed in the classes tree
    !  (i.e. resources like images and property files) should also be
-   !  copied into place here. 
+   !  copied into place here.
    !-->
   <target name="build"
           depends="prepare, check_packages, build_demo"
@@ -552,26 +468,27 @@
 
       <classpath refid="classpath"/>
 
-      <!-- Exclude any files in the source tree that should not be
-       !   compiled -->
-      <exclude name="**/.*"/>
-      <exclude name="**/{Retired.java}"/>
-      <exclude name="**/notyet/*"/>
-      <exclude name="**/notnow/*"/>
-      <exclude name="**/*.html"/>
-      <exclude name="**/*.properties*"/>
+      <include name="**/*.java"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
-     !   (i.e. are discovered using "getResource()"). 
-     !   Some of these must be filtered (for keyword substitution),
-     !   and others must not be.  -->
+     !   (i.e. are discovered using "getResource()").
+     !   Some of these must be filtered (for keyword substitution) 
+     !   and others must not be. -->
+    <property name="filtered.resources" value="**/build.properties"/>
     <copy todir="${build.classes}">
-      <filterchain refid="filters"/>
-      <fileset dir="${src.dir}/resources" excludes="${unfiltered.files}"/>
+      <filterchain>
+        <replacetokens>
+          <token key="VERSION" value="${version}"/>
+          <token key="DATE" value="${TODAY}"/>
+          <token key="TIME" value="${TSTAMP}"/>
+          <token key="BUILT_BY" value="${user.name}"/>
+        </replacetokens>
+      </filterchain>
+      <fileset dir="${src.dir}/resources" includes="${filtered.resources}"/>
     </copy>
     <copy todir="${build.classes}">
-      <fileset dir="${src.dir}/resources" includes="${unfiltered.files}"/>
+      <fileset dir="${src.dir}/resources" excludes="${filtered.resources}"/>
     </copy>
 
     <!-- Local third party jars, if any. Copy straight into
@@ -595,7 +512,8 @@
     <property name="src.demo" value="${src.etc}/demo"/>
 
     <copy todir="${build.demo}">
-      <fileset dir="${src.demo}" excludes="**/Origins,votable/vizier.xml,zip/hello.jar"/>
+      <fileset dir="${src.demo}"
+               excludes="**/Origins,votable/vizier.xml,zip/hello.jar"/>
     </copy>
     <gzip src="${src.demo}/votable/vizier.xml" 
           zipfile="${build.demo}/votable/vizier.xml.gz"/>
@@ -604,7 +522,8 @@
     <tar destfile="${build.demo}/tar/demo.tar.gz"
          compression="gzip"
          basedir="${src.etc}"
-         includes="demo/fits/tables.fit,demo/votable/cover.xml,demo/zip/hello.jar"/>
+         includes="demo/fits/tables.fit,demo/votable/cover.xml,
+                   demo/zip/hello.jar"/>
 
   </target>
 
@@ -618,27 +537,26 @@
    !  created here. Note this requires a manifest file that defines the
    !  jars that we directly depend on (using relative URLs) on and
    !  defines the application entrance point. The jar files should be
-   !  placed directly in the distribution directories. 
+   !  placed directly in the distribution directories.
    !-->
   <target name="jars"
           depends="build"
           unless="runonly.install"
           description="-> creates the package jar file(s)">
 
-    <mkdir dir="${dist.lib.pkg}"/>
-
     <!-- Main Treeview jar file -->
+    <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/${name}.jar"
          basedir="${build.classes}">
-      <exclude name="**/.*"/>
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.treeview.Driver"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
+      <exclude name="**/.*"/>
     </jar>
 
-    <!-- Jar files for other commands -->
+    <!-- Jar files for other commands. -->
     <jar destfile="${dist.lib.pkg}/showndx.jar">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
@@ -653,8 +571,11 @@
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
-      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip" 
-               excludes="**/showndx.jar"/>
+      <fileset dir="${dist.lib}">
+        <include name="**/*.jar"/>
+        <include name="**/*.zip"/>
+        <exclude name="**/showndx.jar"/>
+      </fileset>
     </signjar>
 
   </target>
@@ -667,70 +588,43 @@
   <target name="webstart"
           description="-> create webstart descriptor files">
 
-    <!-- Create a webstart JNLP file for this package, this goes into
-     !   "dist.lib" -->
+    <!-- Create a webstart JNLP file for this application. 
+     !   This goes into "dist.lib" 
+     !-->
     <mkdir dir="${dist.lib}"/>
     <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
           codebase="${webstart.codebase}">
+
       <information>
-         <title>Treeview - a tool for displaying hierarchical structures</title>
+         <title>Treeview - tool for displaying hierarchical structures</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink Treeview - Webstart edition"</description>
+         <description>Starlink Treeview - Webstart edition</description>
          <offline_allowed/>
        </information>
+
        <security>
           <all_permissions/>
        </security>
+
        <resources>
          <j2se version="1.4+"/>
-         <jar href="${name}/${name}.jar"/>
-         <extension name="TREEVIEW-PARTS" href="${name}-parts.jnlp"/>
 
-         <!-- Decouple potential circular dependencies -->
+         <!-- The application main jar file -->
+         <jar href="${name}/${name}.jar"/>
+
+         <!-- Other applications that this application uses. Note
+          !   these shouuld not normally be named in the "parts"
+          !   component to avoid the possibility of circular
+          !   dependencies -->
          <extension name="TOPCAT-PARTS" href="topcat-parts.jnlp"/>
          <extension name="SPLAT-PARTS" href="splat-parts.jnlp"/>
-       </resources>
-       <application_desc main_class="uk.ac.starlink.treeview.Driver"/>
-     </jnlp>
-
-     <!-- May be needed as a component so provide that too -->
-     <jnlp toFile="${dist.lib}/${name}-parts.jnlp" href="${name}-parts.jnlp"
-          codebase="${webstart.codebase}">
-      <information>
-         <title>Treeview - a tool for displaying hierarchical structures</title>
-         <vendor>Starlink UK</vendor>
-         <homepage href="${home.page}"/>
-         <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink Treeview - Webstart edition"</description>
-         <offline_allowed/>
-       </information>
-       <security>
-          <all_permissions/>
-       </security>
-       <resources>
-         <j2se version="1.4+"/>
-         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"
-                  excludes="**/showndx.jar" />
-
-         <extension name="ARRAY" href="array.jnlp"/>
-         <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
-         <extension name="FITS" href="fits.jnlp"/>
-         <extension name="UTIL" href="util.jnlp"/>
-         <extension name="HDS" href="hds.jnlp"/>
-         <extension name="HDX" href="hdx.jnlp"/>
-         <extension name="NDX" href="ndx.jnlp"/>
-         <extension name="VOTABLE" href="votable.jnlp"/>
-         <extension name="JSKY-PARTS" href="jsky-parts.jnlp"/>
-         <extension name="JAIUTIL" href="jaiutil.jnlp"/>
          <extension name="SOG-PARTS" href="sog-parts.jnlp"/>
-         <extension name="JNIAST" href="jniast.jnlp"/>
-         <extension name="JNIHDS" href="jnihds.jnlp"/>
-         <extension name="ASTROGRID" href="astrogrid.jnlp"/>
-         <extension name="AGLIB" href="aglib.jnlp"/>
        </resources>
-       <component_desc/>
+
+       <!-- This an an application JNLP file. -->
+       <application_desc main_class="uk.ac.starlink.treeview.Driver"/>
      </jnlp>
 
   </target>
@@ -1006,8 +900,8 @@
       </fileset>
     </loggedcopy>
 
-    <!-- Also remove the package-specific directory 
-     !   (note exact format required -->
+    <!-- Also remove the package-specific directory
+     !   (note exact format required) -->
     <echo file="${install.log}" append="true">${star.lib.pkg}
 </echo>
 
@@ -1016,7 +910,6 @@
                 overwrite="${install.overwrite}"
                 logfileAppend="true">
       <fileset dir="${dist.docs}" excludes="${unfiltered.files}"/>
-      <filterchain refid="filters"/>
     </loggedcopy>
 
     <loggedcopy todir="${star.docs}" filtering="false"
@@ -1174,7 +1067,7 @@
    !  src/main tree. When javadocs can be generated incrementally this
    !  arrangement should be reworked to generate whatever is needed as
    !  part of the javadocs target.
-   ! 
+   !
    !  Application packages should only make public those parts of
    !  their internal APIs that they are prepared to support. Consider
    !  adding such code to proper class libraries (such as util).
@@ -1228,7 +1121,7 @@
           description="-> run JUnit tests"/>
 
   <target name="run-tests"
-          depends="install,compile-tests"
+          depends="install, compile-tests"
           if="junit.present">
 
     <junit printsummary="${junit.summary}" haltonfailure="yes"
@@ -1243,8 +1136,6 @@
       <sysproperty key="ant.basedir" value="${basedir}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
-      <sysproperty key="uk.ac.starlink.treeview.test.args"
-                   value="${treeview.args}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
@@ -1262,7 +1153,7 @@
 
   <target name="run-single-test"
           if="testcase"
-          depends="compile-tests"
+          depends="install, compile-tests"
           description="-> runs the single unit test defined in the testcase property">
 
     <junit printsummary="${junit.summary}"
@@ -1270,12 +1161,11 @@
           fork="${junit.fork}"
           filtertrace="${junit.filtertrace}">
 
+      <sysproperty key="hdx.home" value="${hdx.home}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="ant.basedir" value="${basedir}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
-      <sysproperty key="uk.ac.starlink.treeview.test.args"
-                   value="${treeview.args}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
       <classpath refid="tests-classpath"/>
@@ -1290,7 +1180,8 @@
   <target name="fullui"
           depends="compile-tests">
 
-    <!-- Run up Treeview from the local build, setup to be debugged from socket -->
+    <!-- Run up Treeview from the local build, setup to be debugged
+     !   from socket -->
     <java classname="uk.ac.starlink.treeview.Driver" fork="true">
       <classpath refid="tests-classpath"/>
       <jvmarg value="-Djava.library.path=${tests-libpath}"/>

@@ -1,7 +1,9 @@
 package uk.ac.starlink.treeview;
 
-import java.util.*;
-import java.io.*;
+import java.io.PrintStream;
+import java.util.Iterator;
+import uk.ac.starlink.datanode.nodes.DataNode;
+import uk.ac.starlink.datanode.nodes.NodeUtil;
 
 /**
  * Generates a textual representation of a tree of 
@@ -74,7 +76,7 @@ public class TreeWriter {
                 .append( "] " )
                 .append( node );
             if ( showPath ) {
-                String path = TreeviewUtil.getNodePath( node );
+                String path = NodeUtil.getNodePath( node );
                 if ( path != null ) {
                     line.append( "      " )
                         .append( path );

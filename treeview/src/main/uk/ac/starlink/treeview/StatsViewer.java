@@ -9,6 +9,7 @@ import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Type;
+import uk.ac.starlink.datanode.viewers.StyledTextArea;
 
 /**
  * Calculates and displays useful statistics for an array (pixel mean,

@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.Icon;
+import uk.ac.starlink.datanode.nodes.IconFactory;
 
 /**
  * Does symbolic preprocessing on HTML files.

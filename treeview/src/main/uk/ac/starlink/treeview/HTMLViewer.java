@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import java.awt.Toolkit;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,6 +18,7 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
+import uk.ac.starlink.datanode.nodes.IconFactory;
 
 /**
  * Views an HTML document.  Some pre-processing may be done on the raw
@@ -87,7 +89,7 @@ public class HTMLViewer extends JEditorPane {
         addHyperlinkListener( new HyperlinkListener() {
             public void hyperlinkUpdate( HyperlinkEvent ev ) {
                 if ( ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED ) {
-                    DefaultDataNode.beep();
+                    Toolkit.getDefaultToolkit().beep();
                 }
             }
         } );
