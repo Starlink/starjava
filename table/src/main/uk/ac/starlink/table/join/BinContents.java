@@ -17,7 +17,7 @@ import java.util.Set;
  * interested in, call {@link MatchEngine#getBins}, and then
  * associate it with each of the returned bins by calling 
  * {@link #putRowInBin} on this object.
- * When you're done, you can call {@link getLinks} to find all the
+ * When you're done, you can call {@link #getRowLinks} to find all the
  * distinct sets of rows that appear as bin contents.
  * Because of the declared semantics of the <tt>getBins</tt> call, 
  * what this gives you is a list of all the groups of rows which 

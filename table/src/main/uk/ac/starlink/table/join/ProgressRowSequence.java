@@ -34,7 +34,7 @@ public class ProgressRowSequence extends WrapperRowSequence {
     }
 
     /**
-     * Invokes {@link next} and also updates the progress indicator.
+     * Invokes {@link #next} and also updates the progress indicator.
      */
     public void nextProgress() throws IOException, InterruptedException {
         next();
