@@ -10,9 +10,11 @@
 
 #  Description:
 #     This script should be used as the "java" command when starting a
-#     Starlink program. It does two things: firstly locates a good JVM to
-#     use, and secondly sets the LD_LIBRARY_PATH to pick up the right 
-#     versions of shared libraries.
+#     Starlink program. It does the following things: 
+#        - locates a good JVM to use
+#        - sets the LD_LIBRARY_PATH to pick up the right versions of 
+#          shared libraries
+#        - configures logging properties in a sensible way
 #     
 #     The preferred "java" command is Starlink one; this increases the 
 #     likelihood that programs are only executed by JVMs that they have 
@@ -52,6 +54,8 @@
 #        examining the contents of the "/star/java/jrehome" file.
 #     22-NOV-2002 (MBT):
 #        Added manipulation of LD_LIBRARY_PATH.
+#     27-NOV-2002 (MBT):
+#        Added logging configuration
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -128,5 +132,10 @@ fi
 #  Export it.
 export LD_LIBRARY_PATH
 
+#  Set any necessary properties.
+
+props=""
+props="$props -Djava.util.logging.config.file=$bindir/../etc/logging.properties"
+
 #  Execute the java command with the command line arguments.
-$java ${1+"$@"}
+$java $props ${1+"$@"}

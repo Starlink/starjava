@@ -111,6 +111,9 @@
   <!-- Directory containing miscellaneous docs -->
   <property name="src.docs" value="${src.dir}/docs"/>
 
+  <!-- Directory containing miscellaneous files -->
+  <property name="src.etc" value="${src.dir}/etc"/>
+
   <!-- Directory containing any script required to execute or setup package-->
   <property name="script.dir" value="${src.dir}/script"/>
 
@@ -388,6 +391,7 @@
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
     <mkdir dir="${dist.bin}"/>
+    <mkdir dir="${dist.etc}"/>
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
 
@@ -395,6 +399,11 @@
      !   "bin" directory, not just the package bin. -->
     <copy todir="${dist.bin}">
       <fileset dir="${script.dir}/" />
+    </copy>
+
+    <!-- Copy etc files. These go directly into the "etc" directory too. -->
+    <copy todir="${dist.etc}">
+      <fileset dir="${src.etc}/" />
     </copy>
 
     <!-- Set permissions on contents of distribution directories -->
@@ -625,6 +634,15 @@
     <!-- Also remove the package-specific directory.
      !   Note exact format is required.-->
     <echo file="${install.log}" append="true">${star.lib.pkg}
+</echo>
+
+    <loggedcopy todir="${star.etc}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.etc}"/>
+    </loggedcopy>
+    <echo file="${install.log}" append="true">${star.etc.pkg}
 </echo>
 
     <loggedcopy todir="${star.docs}"
