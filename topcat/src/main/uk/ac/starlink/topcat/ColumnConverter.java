@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.join;
+package uk.ac.starlink.topcat;
 
 import uk.ac.starlink.table.ValueInfo;
 

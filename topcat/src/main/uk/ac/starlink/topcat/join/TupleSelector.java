@@ -14,6 +14,7 @@ import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.TablesListComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 
@@ -90,7 +91,7 @@ public class TupleSelector extends JPanel {
             }
         };
         for ( int j = 0; j < nCols; j++ ) {
-            ColumnData cdata = colSelectors[ j ].getSelectedColumn();
+            ColumnData cdata = colSelectors[ j ].getColumnData();
             if ( cdata == null ) {
                 throw new IllegalStateException( "No " + infos[ j ].getName() +
                                                  " column selected" );

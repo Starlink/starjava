@@ -33,6 +33,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 
@@ -64,6 +65,7 @@ public class TopcatModel {
     private final ComboBoxModel subsetSelectionModel;
     private final ButtonModel sortSenseModel;
     private final Collection listeners;
+    private final Map columnSelectorMap;
     private final int id;
     private String location;
     private String label;
@@ -160,6 +162,9 @@ public class TopcatModel {
 
         /* Set up a dummy row activator. */
         activator = Activator.NOP;
+
+        /* Set up a map to contain column selector models. */
+        columnSelectorMap = new HashMap();
 
         /* If there are any activation strings stored in the table, 
          * pull them out and store them. */
@@ -461,6 +466,25 @@ public class TopcatModel {
      */
     public SortOrder getSelectedSort() {
         return (SortOrder) sortSelectionModel.getSelectedItem();
+    }
+
+    /**
+     * Returns a ColumnSelectorModel which represents the current choice
+     * for a given ValueInfo for this table.  A map is maintained,
+     * so the same <tt>info</tt> will always result in getting the
+     * same selector model.  If it hasn't been seen before though, a
+     * new one will be created.
+     *
+     * @param  info  description of the column which is wanted
+     * @return  model which can be used for selection of a column in this
+     *          table with the characteristics of <tt>info</tt>
+     */
+    public ColumnSelectorModel getColumnSelectorModel( ValueInfo info ) {
+        if ( ! columnSelectorMap.containsKey( info ) ) {
+            columnSelectorMap.put( info, 
+                                   new ColumnSelectorModel( this, info ) );
+        }
+        return (ColumnSelectorModel) columnSelectorMap.get( info );
     }
 
     /**
