@@ -91,14 +91,16 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
+  <property name="source.version" value="1.4"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
 
   <!-- JUnit test options -->
-  <property name="junit.fork" value="false"/>
+  <property name="junit.fork" value="true"/>
   <property name="junit.filtertrace" value="on"/>
   <property name="junit.summary" value="no"/>
+  <property name="junit.assertions" value="-enableassertions"/>
 
   <!-- Directory containing the package source -->
   <property name="src.dir" value="${basedir}/src"/>
@@ -389,6 +391,7 @@
 
     <mkdir dir="${build.classes}"/>
     <javac srcdir="${java.dir}"
+           source="${source.version}"
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
@@ -869,19 +872,83 @@ value="../jsky/jsky.jar ../array/array.jar ../ndx/ndx.jar ../jaiutil/jaiutil.jar
    !   =================
    !   Compile testcases
    !   =================
-   ! Note these are not JUnit based
    !-->
   <target name="compile-tests"
           depends="build"
           if="junit.present">
+
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
            destdir="${build.tests}"
            debug="${debug}"
+           source="${source.version}"
            deprecation="${deprecation}" >
+
       <classpath refid="tests-classpath"/>
+
     </javac>
+
+  </target>
+
+  <!--
+   !   ============
+   !   Run testcase
+   !   ============
+   !-->
+  <target name="test"
+          depends="run-tests"
+          description="-> run JUnit tests"/>
+
+  <target name="run-tests"
+          depends="compile-tests"
+          if="junit.present">
+
+    <junit printsummary="${junit.summary}" haltonfailure="yes"
+           filtertrace="${junit.filtertrace}"
+           fork="${junit.fork}">
+
+      <classpath refid="tests-classpath"/>
+
+      <jvmarg value="${junit.assertions}"/>
+
+      <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="tests-classpath.value"
+                   value="${tests-classpath.value}"/>
+
+      <formatter type="brief" usefile="false"/>
+
+      <batchtest>
+        <fileset dir="${tests.dir}">
+          <include name="**/JUnit*"/>
+        </fileset>
+      </batchtest>
+
+    </junit>
+
+  </target>
+
+  <target name="run-single-test"
+          if="testcase"
+          depends="compile-tests"
+          description="-> runs the single unit test defined in the testcase property">
+
+    <junit printsummary="${junit.summary}"
+          haltonfailure="yes"
+          fork="${junit.fork}"
+          filtertrace="${junit.filtertrace}">
+
+      <sysproperty key="hdx.home" value="${hdx.home}"/>
+      <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="tests-classpath.value"
+                   value="${tests-classpath.value}"/>
+      <classpath refid="tests-classpath"/>
+      <jvmarg value="${junit.assertions}"/>
+      <formatter type="plain" usefile="false"/>
+      <test name="${testcase}"/>
+
+    </junit>
+
   </target>
 
   <!--
@@ -890,7 +957,7 @@ value="../jsky/jsky.jar ../array/array.jar ../ndx/ndx.jar ../jaiutil/jaiutil.jar
    !   ============
    ! Note these are not JUnit based.
    !-->
-  <target name="test"
+  <target name="fullui"
           depends="compile-tests">
 
     <!-- Run up SOG from the local build -->
@@ -901,6 +968,27 @@ value="../jsky/jsky.jar ../array/array.jar ../ndx/ndx.jar ../jaiutil/jaiutil.jar
       <arg line="-port 8082"/>
       <arg value="src/etc/data/cobe.xml"/>
     </java>
+
+  </target>
+
+  <target name="photomui"
+          depends="compile-tests">
+
+    <java classname="uk.ac.starlink.sog.photom.AperturePhotometryFrame" 
+          fork="true">
+      <classpath refid="tests-classpath"/>
+    </java>
+
+  </target>
+
+  <target name="photomws"
+          depends="compile-tests">
+
+    <java classname="uk.ac.starlink.sog.photom.PhotomWS" 
+          fork="true">
+      <classpath refid="tests-classpath"/>
+    </java>
+
   </target>
 
   <!--
@@ -925,7 +1013,8 @@ value="../jsky/jsky.jar ../array/array.jar ../ndx/ndx.jar ../jaiutil/jaiutil.jar
 
     <path id="jswat-classpath">
        <path refid="tests-classpath"/>
-       <pathelement location="/loc/pwdb/pdraper/java/jswat/jswat/jswat2.jar"/>
+       <pathelement 
+           location="/loc/pwdb/pdraper/java/jswat/jswat-2.10/jswat.jar"/>
        <pathelement location="/stardev/java/jdk-1.4.0_01/lib/tools.jar"/>
     </path> 
     <java classname="com.bluemarsh.jswat.Main" fork="true">
