@@ -34,10 +34,16 @@ public interface TableSink {
      * must match the metadata transmitted in this call in the same way
      * that rows of a StarTable must match its own metadata (number and
      * content clases of columns etc).
+     * If this sink cannot dispose of a table corresponding to <tt>meta</tt>
+     * then it may throw a TableFormatException - this may be the case
+     * if for instance <tt>meta</tt> has columns with types that this
+     * sink can't deal with.
      *
      * @param   meta   table metadata object
+     * @throws  TableFormatException  if this sink cannot accept table rows
+     *          matching the given metadata
      */
-    void acceptMetadata( StarTable meta );
+    void acceptMetadata( StarTable meta ) throws TableFormatException;
 
     /**
      * Takes delivery of one row of data.  <tt>row</tt> is an array of
@@ -52,5 +58,5 @@ public interface TableSink {
     /**
      * Signals that there are no more rows to be transmitted.
      */
-    void endRows();
+    void endRows() throws IOException;
 }
