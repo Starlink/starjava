@@ -10,6 +10,7 @@ import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -19,6 +20,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.util.DataSource;
 
 /**
  * Skeleton implementation of a {@link TableLoadDialog}.
@@ -52,6 +54,7 @@ public abstract class BasicTableLoadDialog extends JPanel
     private ComboBoxModel formatModel_;
     private TableConsumer consumer_;
     private TableSupplier supplier_;
+    private ComboBoxModel emptyModel_;
     
     /**
      * Constructor.
@@ -74,6 +77,7 @@ public abstract class BasicTableLoadDialog extends JPanel
             }
         };
         progBar_ = new JProgressBar();
+        emptyModel_ = new DefaultComboBoxModel();
     }
 
     public String getName() {
@@ -103,6 +107,7 @@ public abstract class BasicTableLoadDialog extends JPanel
         formatModel_ = formatModel;
         consumer_ = consumer;
         supplier_ = null;
+        setFormatModel( formatModel );
 
         /* Pop up the modal dialogue. */
         dia.show();
@@ -115,6 +120,7 @@ public abstract class BasicTableLoadDialog extends JPanel
         formatModel_ = null;
         consumer_ = null;
         supplier_ = null;
+        setFormatModel( emptyModel_ );
 
         /* Return status. */
         return ok;
@@ -161,6 +167,22 @@ public abstract class BasicTableLoadDialog extends JPanel
         dialog.setLocationRelativeTo( parent );
         dialog.pack();
         return dialog;
+    }
+
+    /**
+     * Installs a table format selector intot this dialogue.
+     * If it makes sense for a concrete dialogue implementation to 
+     * display format selection, it should override this method in
+     * such a way as to present the format model to the user for
+     * selection (presumably by setting it as the model of a 
+     * visible {@link javax.swing.JComboBox}).
+     * 
+     * <p>The default implementation does nothing (suitable for classes
+     * which can't make sense of varying table formats).
+     *
+     * @param   formatModel  selector model to install
+     */
+    protected void setFormatModel( ComboBoxModel formatModel ) {
     }
    
     /**
@@ -239,6 +261,24 @@ public abstract class BasicTableLoadDialog extends JPanel
          * @return  table id
          */
         String getTableID();
+    }
+
+    /**
+     * TableSupplier implementation based on a 
+     * {@link uk.ac.starlink.util.DataSource}.
+     */
+    public class DataSourceTableSupplier implements TableSupplier {
+        private final DataSource datsrc_;
+        public DataSourceTableSupplier( DataSource datsrc ) {
+            datsrc_ = datsrc;
+        }
+        public StarTable getTable( StarTableFactory factory, String format )
+                throws IOException {
+            return factory.makeStarTable( datsrc_, format );
+        }
+        public String getTableID() {
+            return datsrc_.getName();
+        }
     }
 
     /**
