@@ -115,6 +115,7 @@ public class TableViewer extends AuxWindow
     private Action nosubsetAct;
     private Action includeAct;
     private Action excludeAct;
+    private boolean canWrite = true;
 
     private static boolean standalone = false;
     private static StarTableFactory tabfact = new StarTableFactory();
@@ -214,6 +215,25 @@ public class TableViewer extends AuxWindow
                                        "all rows not currently selected" );
         nosubsetAct = new ViewerAction( "View all rows",
                                         "Don't use any row subsetting" );
+
+        /* Disable actions based on the security manager. */
+        SecurityManager sman = System.getSecurityManager();
+        if ( sman != null ) {
+            try {
+                sman.checkRead( "." );
+            }
+            catch ( SecurityException e ) {
+                newAct.setEnabled( false );
+            }
+            try {
+                sman.checkRead( "." );
+                sman.checkWrite( "tmp" );
+            }
+            catch ( SecurityException e ) {
+                saveAct.setEnabled( false );
+                canWrite = false;
+            }
+        }
 
         /* Set up a handler for instant drag'n'drop onto this application. */
         TransferHandler loadTransferHandler = new TransferHandler() {
@@ -730,7 +750,7 @@ public class TableViewer extends AuxWindow
      */
     private void configureActions() {
         boolean hasTable = dataModel != null;
-        saveAct.setEnabled( hasTable );
+        saveAct.setEnabled( hasTable && canWrite );
         dupAct.setEnabled( hasTable );
     }
 
@@ -1014,11 +1034,11 @@ public class TableViewer extends AuxWindow
             Comparable value;
             int sense = ascending ? 1 : -1;
             public int compareTo( Object o ) {
-                if ( value != null && o != null ) {
-                    return sense * 
-                           value.compareTo( (Comparable) ((Item) o).value );
+                Comparable oval = ((Item) o).value;
+                if ( value != null && oval != null ) {
+                    return sense * value.compareTo( oval );
                 }
-                else if ( value == null && o == null ) {
+                else if ( value == null && oval == null ) {
                     return 0;
                 }
                 else {
@@ -1225,9 +1245,15 @@ public class TableViewer extends AuxWindow
      * Main method for the table viewer application.
      */
     public static void main( String[] args ) {
-        Loader.loadProperties();
-        String cmdname = 
-            System.getProperty( "uk.ac.starlink.topcat.cmdname" );
+        String cmdname;
+        try {
+            Loader.loadProperties();
+            cmdname = System.getProperty( "uk.ac.starlink.topcat.cmdname" );
+        }
+        catch ( SecurityException e ) {
+            // never mind
+            cmdname = null;
+        }
         if ( cmdname == null ) {
             cmdname = "TableViewer";
         }
