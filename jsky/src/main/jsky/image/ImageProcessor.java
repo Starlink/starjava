@@ -6,6 +6,8 @@
  * who             when        what
  * --------------  ----------  ----------------------------------------
  * Allan Brighton  1999/11/17  Created
+ * Peter W. Draper 2002/10/01  Commented out use of extrema ImageOp
+ *                             as it returns NaN when NaNs are present
  */
 
 package jsky.image;
@@ -478,19 +480,22 @@ public class ImageProcessor {
             _minValue = _dataMin;
             _maxValue = _dataMax;
         }
-        else if (Float.isNaN(_blank)) {
-            // No blank pixel was defined (or it is NaN), use extrema operation, which should be faster, since
-            // it is implemented in native code.
-            try {
-                // the extrema op seems to have problems with very small images? (like dummy, blank images?)
-                double[][] extrema = ImageOps.extrema(_rescaledSourceImage, _roi, _xPeriod, _yPeriod);
-                _minValue = extrema[0][0];
-                _maxValue = extrema[1][0];
-            }
-            catch (Exception e) {
-                _minValue = _maxValue = 0.;
-            }
-        }
+// PWD: commented out as extrema doesn't seem to understand NaNs.
+//         else if (Float.isNaN(_blank)) {
+//             // No blank pixel was defined (or it is NaN), use extrema operation, which should be faster, since
+//             // it is implemented in native code.
+//             try {
+//                 // the extrema op seems to have problems with very small images? (like dummy, blank images?)
+//                 double[][] extrema = ImageOps.extrema(_rescaledSourceImage, _roi, _xPeriod, _yPeriod);
+//                 _minValue = extrema[0][0];
+//                 _maxValue = extrema[1][0];
+//             }
+//             catch (Exception e) {
+//                 _minValue = _maxValue = 0.;
+//             }
+//             System.out.println( "minValue = " + _minValue );
+//             System.out.println( "maxValue = " + _maxValue );
+//         }
         else {
             // A blank pixel was defined, use our MinMax operator
             double[] minMax = ImageOps.minMax(_rescaledSourceImage, _roi, _xPeriod, _yPeriod, _blank);
