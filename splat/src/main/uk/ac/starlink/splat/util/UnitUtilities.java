@@ -96,11 +96,11 @@ public class UnitUtilities
             return "Angstrom";
         }
 
-        //  Missing powers.
-        if ( lunit.equals( "cm2" ) ) {
+        //  Missing powers or case problems (CM^2).
+        if ( lunit.equals( "cm2" ) || lunit.equals( "cm^2" ) ) {
             return "cm^2";
         }
-        if ( lunit.equals( "m2" ) ) {
+        if ( lunit.equals( "m2" )  || lunit.equals( "m^2" ) ) {
             return "m^2";
         }
 
@@ -174,7 +174,12 @@ public class UnitUtilities
             return "m";
         }
 
-        //  Kilometre/meter/M.
+        // Centimetre/CM.
+        if ( lunit.equals( "cm" ) ) {
+            return "cm";
+        }
+
+        //  Kilometre/meter/KM.
         if ( lunit.equals( "km" ) || lunit.startsWith( "kilomet" ) ) {
             return "km";
         }
@@ -224,6 +229,7 @@ public class UnitUtilities
             "log10(10**-3*micron)",
             "0.01 micron",
             "ERG/CM2/S/A",
+            "ERG/CM**2/S/A",
             "W/CM2/UM",
             "WATT/M2",
             "watts/cm^2/micron",
@@ -237,9 +243,10 @@ public class UnitUtilities
         };
 
         System.out.println( "Checking units fixups" );
+        String fixed = null;
         for ( int i = 0; i < testUnits.length; i++ ) {
-            System.out.println( testUnits[i] + " = " + 
-                                fixUpUnits( testUnits[i] ) );
+            fixed = fixUpUnits( testUnits[i] );
+            System.out.println( testUnits[i] + " = " + fixed );
         }
     }
 }
