@@ -12,6 +12,7 @@ import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.QRDecomposition;
 import cern.jet.stat.Gamma;
 
+import uk.ac.starlink.splat.data.AnalyticSpectrum;
 
 /**
  * PolynomialFitter fits a polynomial of given degree to an set of
@@ -19,13 +20,14 @@ import cern.jet.stat.Gamma;
  *
  * To use this class create an instance with the data to be
  * fitted. Interpolated positions can then be obtained using the
- * evalArray() and evalPoint() methods. A chi squared residual to the fit
- * can be obtained from the getChi() method.
+ * evalYDataArray() and evalYData() methods. A chi squared residual to
+ * the fit can be obtained from the getChi() method.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
 public class PolynomialFitter
+    implements AnalyticSpectrum
 {
     /**
      * The coefficients of the fit.
@@ -141,7 +143,7 @@ public class PolynomialFitter
         chiSquare[0] = 0.0;
         double value = 0.0;
         for ( int i = 0; i < x.length; i++ ) {
-            value = ( y[i] - evalPoint( x[i] ) ) * w[i];
+            value = ( y[i] - evalYData( x[i] ) ) * w[i];
             chiSquare[0] += value * value;
         }
 
@@ -179,12 +181,12 @@ public class PolynomialFitter
      *          polynomial.
      * @return array of polynomial values at given X's.
      */
-    public double[] evalArray( double[] x )
+    public double[] evalYDataArray( double[] x )
     {
         double[] y = new double[x.length];
         if ( coeffs != null ) {
             for ( int i = 0; i < x.length; i++ ) {
-                y[i] = evalPoint( x[i] );
+                y[i] = evalYData( x[i] );
             }
         }
         return y;
@@ -196,7 +198,8 @@ public class PolynomialFitter
      * @param x X position at which to evaluate the current polynomial.
      * @return polynomial value at X
      */
-    public double evalPoint( double x ) {
+    public double evalYData( double x ) 
+    {
         double y = coeffs[0];
         double term = x;
         for ( int i = 1; i < coeffs.length; i++ ) {
@@ -217,7 +220,7 @@ public class PolynomialFitter
         double rmssum = 0.0;
         double dy = 0.0;
         for ( int i = 0; i < x.length; i++ ) {
-            dy = y[i] - evalPoint( x[i] );
+            dy = y[i] - evalYData( x[i] );
             rmssum += dy * dy;
         }
         return Math.sqrt( rmssum / (double)( x.length - 1 ) );

@@ -32,7 +32,7 @@ public class PolynomialInterp
 
     /**
      * Create an instance with no coordinates. A call to
-     * {@link setValues} must be made before any other methods.
+     * {@link #setValues} must be made before any other methods.
      */
     public PolynomialInterp()
     {
@@ -42,7 +42,7 @@ public class PolynomialInterp
     /**
      * Create an instance with no coordinates, but ready to work
      * with a given degree polynomial.
-     * A call to {@link setValues} must be made before any other
+     * A call to {@link #setValues} must be made before any other
      * methods.
      */
     public PolynomialInterp( int degree )
@@ -52,7 +52,7 @@ public class PolynomialInterp
 
     /**
      * Create an instance with the given coordinates for the given
-     * degree.  Interpolation is by X coordinate see the {@link interpolate}
+     * degree.  Interpolation is by X coordinate see the {@link #interpolate}
      * method. The X coordinates should be monotonic, either increasing or
      * decreasing. Same value X coordinates are not allowed.
      *
@@ -120,7 +120,7 @@ public class PolynomialInterp
     public double interpolate( double xp )
     {
         if ( x.length >= degree ) {
-            return fitter.evalPoint( xp );
+            return fitter.evalYData( xp );
         }
         return super.interpolate( xp );
     }
@@ -128,7 +128,7 @@ public class PolynomialInterp
     public double[] evalYDataArray( double[] xps )
     {
         if ( x.length >= degree ) {
-            return fitter.evalArray( xps );
+            return fitter.evalYDataArray( xps );
         }
         return super.evalYDataArray( xps );
     }

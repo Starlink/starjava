@@ -28,7 +28,7 @@ public class LorentzInterp
 
     /**
      * Create an instance with no coordinates. A call to 
-     * {@link setValues} must be made before any other methods.
+     * {@link #setValues} must be made before any other methods.
      */
     public LorentzInterp()
     {
@@ -37,7 +37,7 @@ public class LorentzInterp
 
     /**
      * Create an instance with the given coordinates. Interpolation 
-     * is by X coordinate see the {@link interpolate}  method. 
+     * is by X coordinate see the {@link #interpolate}  method. 
      * The X coordinates should be monotonic, either increasing or
      * decreasing. Same value X coordinates are not allowed.
      *
@@ -77,7 +77,7 @@ public class LorentzInterp
     public double interpolate( double xp )
     {
         if ( x.length > 2 ) {
-            return generator.evalPoint( xp ) + base;
+            return generator.evalYData( xp ) + base;
         }
         return super.interpolate( xp );
     }
