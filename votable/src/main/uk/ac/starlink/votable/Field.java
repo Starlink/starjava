@@ -1,6 +1,7 @@
 package uk.ac.starlink.votable;
 
 import java.lang.reflect.Array;
+import java.util.logging.Logger;
 import javax.xml.transform.Source;
 import org.w3c.dom.NodeList;
 
@@ -22,6 +23,8 @@ public class Field extends VOElement {
     private Values actualValues;
     private Values legalValues;
 
+    static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
+
     public Field( Source xsrc ) {
         this( xsrc, "FIELD" );
     }
@@ -29,11 +32,21 @@ public class Field extends VOElement {
     Field( Source xsrc, String tagname ) {
         super( xsrc, tagname );
 
-        /* Get array size. */
+        /* Get datatype. */
+        datatype = getAttribute( "datatype" );
+        boolean assumedType = false;
+        if ( datatype == null ) {
+            logger.warning( "Missing datatype attribute for " + getHandle() +
+                            " - assume char(*)" );
+            datatype = "char";
+            assumedType = true;
+        }
+
+        /* Get array size (as long as we haven't got an unknown datatype). */
         sliceSize = 1;
         isVariable = false;
-        if ( hasAttribute( "arraysize" ) ) {
-            String as = getAttribute( "arraysize" );
+        String as = assumedType ? "*" : getAttribute( "arraysize" );
+        if ( as != null ) {
             String[] dimtxt = as.split( "x" );
             int ndim = dimtxt.length;
             arraysize = new long[ ndim ];
@@ -84,8 +97,7 @@ public class Field extends VOElement {
             blank = actualValues.getNull();
         }
 
-        /* Get datatype and construct decoder. */
-        datatype = getAttribute( "datatype" );
+        /* Construct decoder. */
         decoder = Decoder.makeDecoder( datatype, arraysize, blank );
 
         /* Get simple attributes. */

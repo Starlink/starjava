@@ -93,12 +93,15 @@ public class Table extends VOElement {
      */
     static Table makeTable( Element tableEl, String systemId ) {
         Element dataEl = DOMUtils.getChildElementByName( tableEl, "DATA" );
+        if ( dataEl == null ) {
+            return new Table( new DOMSource( tableEl, systemId ) );
+        }
         Element tdEl = DOMUtils.getChildElementByName( dataEl, "TABLEDATA" );
         if ( tdEl != null ) {
             return new TabledataTable( tableEl, tdEl );
         }
         Element fitsEl = DOMUtils.getChildElementByName( dataEl, "FITS" );
-        if ( dataEl != null ) {
+        if ( fitsEl != null ) {
             return FitsTable.makeFitsTable( tableEl, fitsEl, systemId );
         }
         Element binEl = DOMUtils.getChildElementByName( dataEl, "BINARY" );
