@@ -21,7 +21,7 @@ import java.awt.event.MouseMotionListener;
  * @see JCanvas
  * @see DrawActions
  */      
-interface Draw
+public interface Draw
 {
     /** 
      * Return the instance of DrawGraphicsPane that is being used by
@@ -48,3 +48,4 @@ interface Draw
      */
     public Component getComponent();
 }
+
