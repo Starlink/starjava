@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  *
  *  History:
  *     25-SEP-2000 (Peter W. Draper):
@@ -24,15 +24,16 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.prefs.Preferences;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -1379,33 +1380,43 @@ public class SplatBrowser
 
     /**
      * Read and optionally display a file containing a stack of spectra.
+     *
+     * @param file containing serialized SpecList instance.
+     * @param display whether to display the new spectra in a new plot.
+     * @return the index of the plot created, -1 otherwise.
      */
-    public void readStack( File file, boolean display )
+    public int readStack( File file, boolean display )
     {
-        SpecList globalSpecList = SpecList.getInstance();
-        int nread = globalSpecList.readStack( file.getPath() );
-
-        //  If requested honour the display option.
-        if ( ( nread > 0 ) && display ) {
-            int count = globalList.specCount();
-            displayRange( count - nread, count - 1 );
+        try {
+            return readStack( new FileInputStream( file ), display );
         }
+        catch (Exception e) {
+            logger.log( Level.SEVERE, e.getMessage(), e );
+        }
+        return -1;
     }
 
     /**
      * Read and optionally display an InputStream that contains a stack of
      * spectra.
+     * 
+     * @param in stream with serialized SpecList instance.
+     * @param display whether to display the new spectra in a new plot.
+     * @return the index of the plot created, -1 otherwise.
      */
-    public void readStack( InputStream in, boolean display )
+    public int readStack( InputStream in, boolean display )
     {
+        int plotIndex = -1;
         SpecList globalSpecList = SpecList.getInstance();
         int nread = globalSpecList.readStack( in );
 
         //  If requested honour the display option.
         if ( ( nread > 0 ) && display ) {
             int count = globalList.specCount();
-            displayRange( count - nread, count - 1 );
+            deSelectAllPlots();
+            plotIndex = displayRange( count - nread, count - 1 );
         }
+        return plotIndex;
     }
 
     /**
@@ -2145,19 +2156,23 @@ public class SplatBrowser
      *
      * @param lower the index of the first spectrum to display.
      * @param upper the index of the last spectrum to display.
+     * 
+     * @return index of the plot if one is created, otherwise -1.
      */
-    public void displayRange( int lower, int upper )
+    public int displayRange( int lower, int upper )
     {
+        int index = -1;
         if ( lower <= upper ) {
             //  Get the current selection, this is restored later.
             int[] currentSelection = getSelectedSpectra();
 
             specList.setSelectionInterval( lower, upper );
-            multiDisplaySelectedSpectra( true );
+            index = multiDisplaySelectedSpectra( true );
             if ( currentSelection != null ) {
                 specList.setSelectedIndices( currentSelection );
             }
         }
+        return index;
     }
 
     /**

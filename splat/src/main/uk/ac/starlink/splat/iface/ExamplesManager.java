@@ -20,6 +20,8 @@ import java.util.logging.Logger;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import uk.ac.starlink.splat.plot.DivaPlot;
+
 /**
  * Class that makes any locally installed examples available and arranges for
  * them to be loaded into SPLAT. All examples are stored in SPLAT serialised
@@ -29,7 +31,7 @@ import javax.swing.JMenuItem;
  * <p>
  * The format of the list file is one example per-line, with the following
  * details, name of the stack file, title for the example (additional graphics
- * options?). Each part is separated by tabs.
+ * and plot options could be added?). Each part is separated by tabs.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -129,6 +131,16 @@ public class ExamplesManager
         String uri = item.getActionCommand();
         InputStream strm = 
             ExamplesManager.class.getResourceAsStream( uri );
-        browser.readStack( strm, true );
+        int plotIndex = browser.readStack( strm, true );
+
+        //  XXX in the future we could store both of the configurations
+        //  associated with a Plot and recover them (from the XML form).
+        //  For now just switch on log-scaling.
+        if ( plotIndex != -1 ) {
+            GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
+            DivaPlot  plot = globalList.getPlot( plotIndex ).getPlot();
+            plot.getAstAxes().setXLog( true );
+            plot.getAstAxes().setYLog( true );
+        }
     }
 }

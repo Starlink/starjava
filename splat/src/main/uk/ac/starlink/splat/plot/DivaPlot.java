@@ -519,14 +519,25 @@ public class DivaPlot
     }
 
     /**
-     * Get the ColourStore that can be used to control the
-     * background.
+
+     * Get the ColourStore that can be used to control the background.
      *
      * @return The background ColourStore.
      */
     public ColourStore getBackgroundColourStore()
     {
         return backgroundColourStore;
+    }
+
+    /**
+     * Convenience method for obtaining reference to the AstAxes instance.
+     * This is the one used by the PlotConfiguration.
+     *
+     * @return The AstAxes instance.
+     */
+    public AstAxes getAstAxes()
+    {
+        return astAxes;
     }
 
     /**
@@ -925,7 +936,7 @@ public class DivaPlot
                 mainGrf.establishContext( "GRID" );
                 mainPlot.grid();
 
-                //  Draw the spectra, if required. 
+                //  Draw the spectra, if required.
                 if ( xyScaled ) {
                     mainGrf.establishContext( "SPECTRA" );
                     drawSpectra();
