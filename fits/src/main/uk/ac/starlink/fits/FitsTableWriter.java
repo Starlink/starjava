@@ -275,13 +275,15 @@ public class FitsTableWriter implements StarTableWriter {
                     fchar = 'L';
                     nbyte = 1;
                     trans = new ValueTranslator() {
-                        boolean[] cell = new boolean[ 1 ];
-                        boolean[] blank = new boolean[] { false };
+                        byte[] cell = new byte[ 1 ];
+                        byte[] blank = new byte[] { (byte) 'F' };
                         public Object translate( Object base ) {
                             if ( base == null ) {
                                 return blank;
                             }
-                            cell[ 0 ] = ((Boolean) base).booleanValue();
+                            cell[ 0 ] = ((Boolean) base).booleanValue()
+                                      ? (byte) 'T' 
+                                      : (byte) 'F';
                             return cell;
                         }
                     };
@@ -531,10 +533,10 @@ public class FitsTableWriter implements StarTableWriter {
                     String unit = colinfo.getUnitString();
                     String tform = tforms[ icol ];
                     String tdim = tdims[ icol ];
-                    if ( name != null ) {
+                    if ( name != null && name.trim().length() > 0 ) {
                         hdr.addValue( "TTYPE" + jcol, name, "label" + forcol );
                     }
-                    if ( unit != null ) {
+                    if ( unit != null && unit.trim().length() > 0 ) {
                         hdr.addValue( "TUNIT" + jcol, unit, "units" + forcol );
                     }
                     hdr.addValue( "TFORM" + jcol, tform, "format" + forcol );
