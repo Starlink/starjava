@@ -247,7 +247,8 @@ public class FileDataNode extends DefaultDataNode {
     }
 
     public boolean equals( Object o ) {
-        return this.getClass().equals( o.getClass() )
+        return o != null 
+            && this.getClass().equals( o.getClass() )
             && ((FileDataNode) o).file.equals( this.file );
     }
 
