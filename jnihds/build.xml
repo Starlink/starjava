@@ -180,8 +180,8 @@
    !   It's best to have a classpath (rather than use the extension
    !   mechanism) during development as this allows us to compile
    !   without having to work these dependencies out anyway (may
-   !   be fixed in Java1.5) plus we can execute against locally build
-   !   class files in preference to installed ones (an externally
+   !   be fixed in Java1.5) plus we can execute against locally built
+   !   class files in preference to installed ones (an extra user-define
    !   defined CLASSPATH can also be used as needed).
    !-->
   <extclasspath id="installed.classpath">
@@ -194,17 +194,17 @@
    !   part of handling the classpath. The local classes will be in
    !   the "build/classes" part of each package, plus third party
    !   packages will have their jar files in the "dist" directories.
-   !   Having the third party jars not installed means that the
-   !   building a classpath based on their manifest class-paths will
-   !   not resolve all references (these may be to other third party
-   !   jars, that are normally resolved using relative URLs). The way
-   !   that this is resolved is simply to locate all "build/classes"
-   !   directories and all jar files in the "dist" parts and just add
-   !   these all to the classpath. Known third party dependencies are
-   !   added after the "build/classes" directories using the
-   !   "extclasspath" type, just so that they will be referred to
-   !   first. If this doesn't work as expected add the additional
-   !   classes/jars to the external classpath.
+   !   Having the third party jars not installed means that building a
+   !   classpath based on their manifest class-paths will not resolve
+   !   all references (these may be to other third party jars, that
+   !   are normally resolved using relative URLs). The way that this
+   !   is resolved is simply to locate all "build/classes" directories
+   !   and all jar files in the "dist" parts and just add these all
+   !   to the classpath. Known third party dependencies are added
+   !   after the "build/classes" directories using the "extclasspath"
+   !   type, just so that they will be referred to first. If this
+   !   doesn't work as expected add the additional classes/jars to
+   !   the extra classpath.
    !-->
   <extclasspath id="built.jarpath">
 
@@ -234,10 +234,14 @@
 
   </path>
 
-  <!-- CLASSPATH defined in the external environment -->
-  <path id="local.classpath" path="${java.class.path}"/>
+  <!-- Extra user-defined classpath. This is set by the property 
+   !   "extra.class.path" (which can be defined locally using say 
+   !   -Dextra.class.path=$CLASSPATH on the command line or by setting
+   !   the property in either of the properties files.-->
+  <property name="extra.class.path" value=""/>
+  <path id="local.classpath" path="${extra.class.path}"/>
 
-  <!-- Unification of all classpaths using local, built, installed order-->
+  <!-- Unification of all classpaths using extra, built, installed order-->
   <path id="classpath">
     <path refid="local.classpath"/>
     <path refid="built.classpath"/>

@@ -131,6 +131,7 @@
   <property name="build.classes" value="${build.dir}/classes"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
+  <property name="build.jni" value="${build.dir}/jni"/>
 
   <!-- Distribution directories, these are created in the current
    !   directory, unless dist.dir is redefined. Files that will be
@@ -173,7 +174,7 @@
    !   mechanism) during development as this allows us to compile
    !   without having to work these dependencies out anyway (may
    !   be fixed in Java1.5) plus we can execute against locally built
-   !   class files in preference to installed ones (an externally
+   !   class files in preference to installed ones (an extra user-define
    !   defined CLASSPATH can also be used as needed).
    !-->
   <extclasspath id="installed.classpath">
@@ -182,7 +183,7 @@
     <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
 
     <!-- NDArray-->
-    <pathelement location="${star.jar.dir}/array/array.jar"/>
+    <pathelement location="${star.jar.dir}/oldarray/array.jar"/>
 
     <!-- HDX -->
     <pathelement location="${star.jar.dir}/hdx/hdx.jar"/>
@@ -206,10 +207,10 @@
    !   after the "build/classes" directories using the "extclasspath"
    !   type, just so that they will be referred to first. If this
    !   doesn't work as expected add the additional classes/jars to
-   !   the external classpath.
+   !   the extra classpath.
    !-->
   <extclasspath id="built.jarpath">
-    <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
+    <pathelement location="${star.build.dir}/oldarray/lib/oldarray/array.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/hdx/lib/hdx/hdx.jar"/>
     <pathelement location="${star.build.dir}/soapserver/lib/soapserver/soapserver.jar"/>
@@ -252,10 +253,14 @@
 
   </path>
 
-  <!-- CLASSPATH defined in the external environment -->
-  <path id="local.classpath" path="${java.class.path}"/>
+  <!-- Extra user-defined classpath. This is set by the property 
+   !   "extra.class.path" (which can be defined locally using say 
+   !   -Dextra.class.path=$CLASSPATH on the command line or by setting
+   !   the property in either of the properties files.-->
+  <property name="extra.class.path" value=""/>
+  <path id="local.classpath" path="${extra.class.path}"/>
 
-  <!-- Unification of all classpaths using local, built, installed order-->
+  <!-- Unification of all classpaths using extra, built, installed order-->
   <path id="classpath">
     <path refid="local.classpath"/>
     <path refid="built.classpath"/>
@@ -423,6 +428,13 @@
      !   time and across JVMs, so beware. Clearly this is not portable.
      !-->
 
+    <!-- Copy all source code into the build directory (keeps any
+     !   intermediary files out of the source tree) -->
+    <copy todir="${build.jni}">
+      <fileset dir="${src.jni.dir}" includes="*"/>
+    </copy>
+    <chmod perm="ugo+rx" dir="${build.jni}" includes="*"/>
+
     <!-- Local and installed versions of any shareable libraries that we
      !   require to resolve against in a form for the UNIX "ld" command
      !-->
@@ -434,7 +446,7 @@
     
     <echo message="java.home=${java.home}"/>
     
-    <exec dir="${src.jni.dir}" executable="${src.jni.dir}/mk" os="Linux">
+    <exec dir="${build.jni}" executable="${build.jni}/mk" os="Linux">
       <env key="SYSTEM" value="ix86_Linux"/>
       <env key="JAVA_SYSTEM" value="linux"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
@@ -443,7 +455,7 @@
       <arg line="${mk.action}"/>
     </exec>
 
-    <exec dir="${src.jni.dir}" executable="${src.jni.dir}/mk" os="SunOS">
+    <exec dir="${build.jni}" executable="${build.jni}/mk" os="SunOS">
       <env key="SYSTEM" value="sun4_Solaris"/>
       <env key="JAVA_SYSTEM" value="solaris"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
@@ -452,7 +464,7 @@
       <arg line="${mk.action}"/>
     </exec>
 
-    <exec dir="${src.jni.dir}" executable="${src.jni.dir}/mk" os="OSF1">
+    <exec dir="${build.jni}" executable="${build.jni}/mk" os="OSF1">
       <env key="SYSTEM" value="alpha_OSF1"/>
       <env key="JAVA_SYSTEM" value="alpha"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
@@ -488,8 +500,9 @@
         <attribute name="Main-Class"
                    value="uk.ac.starlink.splat.iface.SplatBrowserMain"/>
         <attribute name="Class-Path"
-value="bsh-1.1a18.jar colt.jar diva.jar fits.jar jdom.jar jhall.jar
-../hdx/hdx.jar ../jniast/jniast.jar ../soapserver/soapserver.jar"/>
+value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar
+../tamfits/tamfits.jar ../hdx/hdx.jar ../jniast/jniast.jar 
+../soapserver/soapserver.jar"/>
       </manifest>
     </jar>
   </target>
@@ -702,10 +715,6 @@ value="bsh-1.1a18.jar colt.jar diva.jar fits.jar jdom.jar jhall.jar
     <delete dir="${dist.lib}"/>
     <delete dir="${dist.docs}"/>
     <delete dir="${dist.etc}"/>
-
-    <antcall target="execute_mk_script">
-      <param name="mk.action" value="clean"/>
-    </antcall>
 
   </target>
 

@@ -170,7 +170,7 @@
    !   mechanism) during development as this allows us to compile
    !   without having to work these dependencies out anyway (may 
    !   be fixed in Java1.5) plus we can execute against locally built
-   !   class files in preference to installed ones (an externally
+   !   class files in preference to installed ones (an extra user-define
    !   defined CLASSPATH can also be used as needed). 
    !-->
   <extclasspath id="installed.classpath">
@@ -206,7 +206,7 @@
    !   after the "build/classes" directories using the "extclasspath"
    !   type, just so that they will be referred to first. If this
    !   doesn't work as expected add the additional classes/jars to
-   !   the external classpath.
+   !   the extra classpath.
    !-->
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.dir}/oldarray/lib/oldarray/array.jar"/>
@@ -252,10 +252,14 @@
   
   </path>
 
-  <!-- CLASSPATH defined in the external environment -->
-  <path id="local.classpath" path="${java.class.path}"/>
+  <!-- Extra user-defined classpath. This is set by the property 
+   !   "extra.class.path" (which can be defined locally using say 
+   !   -Dextra.class.path=$CLASSPATH on the command line or by setting
+   !   the property in either of the properties files.-->
+  <property name="extra.class.path" value=""/>
+  <path id="local.classpath" path="${extra.class.path}"/>
 
-  <!-- Unification of all classpaths using local, built, installed order-->
+  <!-- Unification of all classpaths using extra, built, installed order-->
   <path id="classpath">
      <path refid="local.classpath"/>
      <path refid="built.classpath"/>
