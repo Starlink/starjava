@@ -30,13 +30,18 @@ import uk.ac.starlink.util.Loader;
 public class SplatBrowserMain
 {
     /**
+     * Reference to the SplatBrowser that is created.
+     */
+    protected SplatBrowser browser = null;
+
+    /**
      * Create the main window adding any command-line spectra.
      * @param args list of input spectra
      */
     public SplatBrowserMain( String[] args )
     {
         String[] realArgs = null;
-        if ( args.length != 0 && ! "".equals( args[0] ) ) {
+        if ( args != null && args.length != 0 && ! "".equals( args[0] ) ) {
             realArgs = args;
         }
         final String[] spectra = realArgs;
@@ -68,8 +73,8 @@ public class SplatBrowserMain
         SwingUtilities.invokeLater( new Runnable() {
                 public void run()
                 {
-                    SplatBrowser frame = new SplatBrowser( spectra );
-                    frame.setVisible( true );
+                    browser = new SplatBrowser( spectra );
+                    browser.setVisible( true );
                     try {
                         splashFrame.setVisible( false );
                     }
@@ -84,7 +89,7 @@ public class SplatBrowserMain
      * Load user properties and make guesses for any that are needed
      * and are not set.
      */
-    private void guessProperties()
+    public static void guessProperties()
     {
         Loader.loadProperties();
         Properties props = System.getProperties();
@@ -116,7 +121,15 @@ public class SplatBrowserMain
  
         //  Load the proxy server configuration, if set.
         ProxySetup.getInstance().restore();
-   }
+    }
+
+    /**
+     * Get a reference to the SplatBrowser being used.
+     */
+    public SplatBrowser getSplatBrowser()
+    {
+        return browser;
+    }
 
     /**
      * Main method. Starting point for SPLAT application.

@@ -232,11 +232,26 @@ public class SplatBrowser
     protected SpecXCoordTypeFrame xCoordTypeFrame = null;
 
     /**
+     * Whether the application is embedded. In this case application
+     * exit is assumed controlled by the embedding app.
+     */
+    protected boolean embedded = false;
+
+    /**
      *  Create a browser with no existing spectra.
      */
     public SplatBrowser()
     {
-        this( null );
+        this( null, false );
+    }
+
+    /**
+     *  Create a browser with no existing spectra that may be suitable
+     *  for embedding (not remote control, exit disabled).
+     */
+    public SplatBrowser( boolean embedded )
+    {
+        this( null, embedded );
     }
 
     /**
@@ -246,8 +261,22 @@ public class SplatBrowser
      *  @param inspec list of spectra to add. If null then none are
      *                added.
      */
-    public SplatBrowser( String[] inspec )
+    public SplatBrowser( String[] inspec ) 
     {
+        this( inspec, false );
+    }
+
+    /**
+     * Constructor, with list of spectra to initialise. All spectra
+     * given this way are displayed in a single plot.
+     *
+     *  @param inspec list of spectra to add. If null then none are
+     *                added.
+     *  @param embedded whether the application is embedded.
+     */
+    public SplatBrowser( String[] inspec, boolean embedded )
+    {
+        setEmbedded( embedded );
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
             initComponents();
@@ -732,20 +761,22 @@ public class SplatBrowser
      */
     protected void initRemoteServices()
     {
-        try {
-            //  Socket-based services.
-            RemoteServer remoteServer = new RemoteServer( this );
-            remoteServer.start();
-
-            //  SOAP based services.
-            SplatSOAPServer soapServer = SplatSOAPServer.getInstance();
-            soapServer.setSplatBrowser( this );
-            soapServer.start();
-        }
-        catch (Exception e) {
-            // Not fatal, just no remote control.
-            System.err.println( "Failed to start remote services" );
-            System.err.println( e.getMessage() );
+        if ( ! embedded ) {
+            try {
+                //  Socket-based services.
+                RemoteServer remoteServer = new RemoteServer( this );
+                remoteServer.start();
+                
+                //  SOAP based services.
+                SplatSOAPServer soapServer = SplatSOAPServer.getInstance();
+                soapServer.setSplatBrowser( this );
+                soapServer.start();
+            }
+            catch (Exception e) {
+                // Not fatal, just no remote control.
+                System.err.println( "Failed to start remote services" );
+                System.err.println( e.getMessage() );
+            }
         }
     }
 
@@ -1888,12 +1919,27 @@ public class SplatBrowser
     }
 
     /**
-     * A request to exit the application has been received.
+     * Set whether the application should behave as embedded.
+     */
+    public void setEmbedded( boolean embedded )
+    {
+        this.embedded = embedded;
+    }
+
+    /**
+     * A request to exit the application has been received. Only do
+     * this if we're not embedded. In that case just make the window 
+     * iconized.
      */
     protected void exitApplicationEvent()
     {
-        Utilities.saveFrameLocation( this, prefs, "SplatBrowser" );
-        System.exit( 0 );
+        if ( embedded ) {
+            setExtendedState( JFrame.ICONIFIED );
+        }
+        else {
+            Utilities.saveFrameLocation( this, prefs, "SplatBrowser" );
+            System.exit( 0 );
+        }
     }
 
     /**
