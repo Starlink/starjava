@@ -123,12 +123,11 @@ public class StoreControlFrame
 
         ImageIcon addImage = new ImageIcon(
             ImageHolder.class.getResource( "add.gif" ) );
-        AddAction addAction = new AddAction( "Add", addImage );
+        AddAction addAction = new AddAction( "Store", addImage );
         JButton addButton = new JButton( addAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( addButton );
-        addButton.setToolTipText
-            ( "Add the current configuration as a new entry" );
+        addButton.setToolTipText( "Store the current configuration" );
 
         ImageIcon updateImage = new ImageIcon(
             ImageHolder.class.getResource( "update.gif" ) );
