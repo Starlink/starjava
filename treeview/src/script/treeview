@@ -20,7 +20,8 @@
 #     simply invoking 'java -jar treeview.jar'.  If native libraries are
 #     being used, the system should be set up so that the directory
 #     containing them is on the java.library.path.  On Unix this would be
-#     done by putting wherever/java/lib on LD_LIBRARY_PATH.
+#     done by putting wherever/java/lib/arch on LD_LIBRARY_PATH, where
+#     arch is the architecture (e.g. i386 for linux, sparc for Solaris).
 
 #  Authors:
 #     MBT: Mark Taylor (Starlink)
@@ -64,11 +65,16 @@ fi
 
 demodir="$starjava_dir/etc/treeview/demo"
 
+#  Work out the architecture name (value of the java os.arch system property)
+
+archname=`$starjava_bin_dir/archname`
+
 #  Make sure that we get the installed shareable libraries.
+
 if test -z "$LD_LIBRARY_PATH"; then
-   LD_LIBRARY_PATH="$starjava_dir/lib"
+   LD_LIBRARY_PATH="$starjava_dir/lib/$archname"
 else
-   LD_LIBRARY_PATH="$starjava_dir/lib:${LD_LIBRARY_PATH}"
+   LD_LIBRARY_PATH="$starjava_dir/lib/$archname:${LD_LIBRARY_PATH}"
 fi
 export LD_LIBRARY_PATH
 

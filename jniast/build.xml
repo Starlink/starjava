@@ -146,6 +146,10 @@
   <property name="dist.etc.pkg" value="${dist.dir}/etc/${name}"/>
   <property name="dist.javadocs" value="${dist.dir}/docs/${name}/javadocs"/>
 
+  <!-- Architecture-specific files (shared libraries) will be placed in
+   !   an appropriate subdirectory of dist.lib -->
+  <property name="dist.lib.arch" value="${dist.lib}/${os.arch}"/>
+
   <!-- Version for zipped/tarred export files. -->
   <property name="dist.version" value="${name}-${version}"/>
 
@@ -421,7 +425,7 @@
      !-->
     <property name="java.shareables" value=""/>
 
-    <mkdir dir="${dist.lib}"/>
+    <mkdir dir="${dist.lib.arch}"/>
 
     <echo message="java.home=${java.home}"/>
 
@@ -432,7 +436,7 @@
       <env key="STARLINK" value="${stardev}"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib}"/>
+      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -443,7 +447,7 @@
       <env key="STARLINK" value="${stardev}"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib}"/>
+      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -454,7 +458,7 @@
       <env key="STARLINK" value="${stardev}"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib}"/>
+      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -722,6 +726,7 @@
 
     <mkdir dir="${dist.dir}"/>
     <mkdir dir="${dist.lib.pkg}"/>
+    <mkdir dir="${dist.lib.arch}"/>
     <mkdir dir="${dist.docs.pkg}"/>
 
     <!-- Set permissions on contents of distribution directory -->
@@ -915,9 +920,11 @@
     <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
+    <property name="star.lib.arch" value="${star.lib}/${os.arch}"/>
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.lib.pkg}"/>
     <mkdir dir="${star.docs.pkg}"/>
+    <mkdir dir="${star.lib.arch}"/>
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
@@ -969,6 +976,7 @@
          of these files can be missing if originally empty -->
     <mkdir dir="${dist.dir}"/>
     <mkdir dir="${dist.lib.pkg}"/>
+    <mkdir dir="${dist.lib.arch}"/>
     <mkdir dir="${dist.docs.pkg}"/>
 
     <!-- Do normal install, but with many targets switched off-->
@@ -1127,7 +1135,7 @@
            fork="${junit.fork}">
       <classpath refid="tests-classpath"/>
 
-      <sysproperty key="java.library.path" value="${dist.lib}"/>
+      <sysproperty key="java.library.path" value="${dist.lib.arch}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
@@ -1156,7 +1164,7 @@
           haltonfailure="yes"
           fork="${junit.fork}"
           filtertrace="${junit.filtertrace}">
-      <sysproperty key="java.library.path" value="${dist.lib}"/>
+      <sysproperty key="java.library.path" value="${dist.lib.arch}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
