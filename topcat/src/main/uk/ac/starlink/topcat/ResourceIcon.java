@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.MediaTracker;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -30,6 +31,12 @@ import javax.swing.plaf.metal.MetalCheckBoxIcon;
  * Handles the procurement of icons and other graphics for the TableViewer
  * and related classes.  All the icons required by these classes are
  * provided as static final members of this class.
+ * <p>
+ * This class should really implement {@link javax.swing.Icon} rather
+ * than extending {@link javax.swing.ImageIcon}.  However in Sun's J2SE1.4
+ * AbstractButton implementation there is a bit where it will only 
+ * grey out the icon if it actually is an ImageIcon.  So we inherit
+ * from there.
  * 
  * @author   Mark Taylor (Starlink)
  */
@@ -39,51 +46,51 @@ public class ResourceIcon implements Icon {
     public static final String PREFIX = "images/";
 
     /* All the class members are defined here. */
-    public static final ResourceIcon
+    public static final ImageIcon
 
         /* Special. */
-        DO_WHAT = new ResourceIcon( "burst.gif" ),
-        BLANK = new ResourceIcon( "blank24.gif" ),
+        DO_WHAT = makeIcon( "burst.gif" ),
+        BLANK = makeIcon( "blank24.gif" ),
 
         /* Adverts. */
-        TOPCAT = new ResourceIcon( "TopCat2.gif" ),
-        TOPCAT_LOGO = new ResourceIcon( "tc3.gif" ),
-        STARLINK = new ResourceIcon( "starlinklogo3.gif" ),
+        TOPCAT = makeIcon( "TopCat2.gif" ),
+        TOPCAT_LOGO = makeIcon( "tc3.gif" ),
+        STARLINK = makeIcon( "starlinklogo3.gif" ),
 
         /* Generic actions. */
-        CLOSE = new ResourceIcon( "multiply4.gif"),
-        LOAD = new ResourceIcon( "Open24.gif" ),
-        SAVE = new ResourceIcon( "Save24.gif" ),
-        PRINT = new ResourceIcon( "Print24.gif" ),
-        COPY = new ResourceIcon( "Copy24.gif" ),
-        REDO = new ResourceIcon( "Redo24.gif" ),
-        ADD = new ResourceIcon( "Plus1.gif" ),
-        REMOVE = new ResourceIcon( "Minus1.gif" ),
-        HELP = new ResourceIcon( "Help3.gif" ),
+        CLOSE = makeIcon( "multiply4.gif"),
+        LOAD = makeIcon( "Open24.gif" ),
+        SAVE = makeIcon( "Save24.gif" ),
+        PRINT = makeIcon( "Print24.gif" ),
+        COPY = makeIcon( "Copy24.gif" ),
+        REDO = makeIcon( "Redo24.gif" ),
+        ADD = makeIcon( "Plus1.gif" ),
+        REMOVE = makeIcon( "Minus1.gif" ),
+        HELP = makeIcon( "Help3.gif" ),
 
         /* Windows. */
-        COLUMNS = new ResourceIcon( "colmeta0.gif" ),
-        STATS = new ResourceIcon( "sigma0.gif" ),
-        PLOT = new ResourceIcon( "plot0.gif" ),
-        PARAMS = new ResourceIcon( "tablemeta0.gif" ),
-        VIEWER = new ResourceIcon( "browser1.gif" ),
-        SUBSETS = new ResourceIcon( "venn2.gif" ),
+        COLUMNS = makeIcon( "colmeta0.gif" ),
+        STATS = makeIcon( "sigma0.gif" ),
+        PLOT = makeIcon( "plot0.gif" ),
+        PARAMS = makeIcon( "tablemeta0.gif" ),
+        VIEWER = makeIcon( "browser1.gif" ),
+        SUBSETS = makeIcon( "venn2.gif" ),
 
         /* Specific actions. */
         UNSORT = DO_WHAT,
-        DELETE_COLUMN = new ResourceIcon( "ColumnDelete24.gif" ),
-        VISIBLE_SUBSET = new ResourceIcon( "spoints5.gif" ),
-        RESIZE = new ResourceIcon( "4way3.gif" ),
-        GRID_ON = new ResourceIcon( "gridon.gif" ),
-        GRID_OFF = new ResourceIcon( "gridoff.gif" ),
-        TO_COLUMN = new ResourceIcon( "Column.gif" ),
+        DELETE_COLUMN = makeIcon( "ColumnDelete24.gif" ),
+        VISIBLE_SUBSET = makeIcon( "spoints5.gif" ),
+        RESIZE = makeIcon( "4way3.gif" ),
+        GRID_ON = makeIcon( "gridon.gif" ),
+        GRID_OFF = makeIcon( "gridoff.gif" ),
+        TO_COLUMN = makeIcon( "Column.gif" ),
 
-        FORWARD = new ResourceIcon( "Forward24.gif" ),
-        BACKWARD = new ResourceIcon( "Back24.gif" ),
-        PAGE_SETUP = new ResourceIcon( "PageSetup24.gif" ),
+        FORWARD = makeIcon( "Forward24.gif" ),
+        BACKWARD = makeIcon( "Back24.gif" ),
+        PAGE_SETUP = makeIcon( "PageSetup24.gif" ),
 
         /* Metal. */
-        QUERY = new ResourceIcon( "query_message.gif" ),
+        QUERY = makeIcon( "query_message.gif" ),
 
         /* Dummy terminator. */
         dummy = DO_WHAT;
@@ -277,20 +284,77 @@ public class ResourceIcon implements Icon {
             Field field = fields[ i ];
             int mods = field.getModifiers();
             String name = field.getName();
-            if ( field.getType() == ResourceIcon.class &&
+            if ( Icon.class.isAssignableFrom( field.getType() ) &&
                  Modifier.isPublic( mods ) &&
                  Modifier.isStatic( mods ) &&
                  Modifier.isFinal( mods ) &&
                  name.equals( name.toUpperCase() ) ) {
+                Icon icon;
                 try {
-                    nameMap.put( name, field.get( null ) );
+                    icon = (Icon) field.get( null );
                 }
                 catch ( IllegalAccessException e ) {
                     throw new AssertionError( e );
                 }
+                ResourceIcon ricon;
+                if ( icon instanceof ResourceIcon ) {
+                    ricon = (ResourceIcon) icon;
+                }
+                else if ( icon instanceof ResourceImageIcon ) {
+                    ricon = ((ResourceImageIcon) icon).getResourceIcon();
+                }
+                else {
+                    throw new AssertionError();
+                }
+                nameMap.put( name, ricon );
             }
         }
         return nameMap;
+    }
+
+    /**
+     * Makes an Icon object from the location.  
+     * Really, this should only have to invoke the private ResourceIcon 
+     * constructor and return the new ResourceIcon.  However, there is a
+     * deficiency in Sun's J2SE1.4 AbstractButton implementation that
+     * will only grey out a button icon if it is actually an ImageIcon.
+     * We therefore make sure that the icons stored in this class 
+     * subclass from ImageIcon.  Nevertheless, the important parts of
+     * the implementation are taken from this class, not directly 
+     * from ImageIcon.
+     * 
+     * @param   location  the location of the image to make the ResourceIcon
+     * @return  a new Icon
+     */
+    private static ImageIcon makeIcon( String location ) {
+        return new ResourceImageIcon( new ResourceIcon( location ) );
+    }
+
+    private static class ResourceImageIcon extends ImageIcon {
+        ResourceIcon resourceIcon;
+        ResourceImageIcon( ResourceIcon resourceIcon ) {
+            this.resourceIcon = resourceIcon;
+        }
+        public ResourceIcon getResourceIcon() {
+            return resourceIcon;
+        }
+        protected void loadImage() {
+        }
+        public int getImageLoadStatus() {
+            return MediaTracker.COMPLETE;
+        }
+        public Image getImage() { 
+            return resourceIcon.getImage();
+        }
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+            resourceIcon.paintIcon( c, g, x, y );
+        }
+        public int getIconWidth() {
+            return resourceIcon.getIconWidth();
+        }
+        public int getIconHeight() {
+            return resourceIcon.getIconHeight();
+        }
     }
 
     /**
