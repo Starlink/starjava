@@ -136,6 +136,15 @@ public class MappedFile
         return nskip;
     }
 
+    /**
+     * Returns the length of the file.
+     *
+     * @return  file length in bytes
+     */
+    public int length() {
+        return niobuf.capacity();
+    }
+
     public void close() {
         // no action
     }
