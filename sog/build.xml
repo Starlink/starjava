@@ -459,7 +459,7 @@
     <mkdir dir="${dist.bin.pkg}"/>
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
-    <mkdir dir="${dist.etc.pkg}"/>
+    <!--<mkdir dir="${dist.etc.pkg}"/>-->
 
     <!-- Copy any startup scripts etc. -->
     <copy todir="${dist.bin.pkg}">
@@ -581,9 +581,9 @@
       <zipfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </zipfileset>
-      <zipfileset dir="${dist.etc}" prefix="${name}/etc">
+      <!--<zipfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
-      </zipfileset>
+      </zipfileset>-->
 
       <zipfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
@@ -610,9 +610,9 @@
       <tarfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </tarfileset>
-      <tarfileset dir="${dist.etc}" prefix="${name}/etc">
+      <!--<tarfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
-      </tarfileset>
+      </tarfileset>-->
 
       <tarfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
@@ -640,7 +640,7 @@
     <delete dir="${dist.bin}"/>
     <delete dir="${dist.lib}"/>
     <delete dir="${dist.docs}"/>
-    <delete dir="${dist.etc}"/>
+    <!--<delete dir="${dist.etc}"/>-->
 
   </target>
 
@@ -671,7 +671,7 @@
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.bin.pkg}"/>
     <mkdir dir="${star.lib.pkg}"/>
-    <mkdir dir="${star.etc.pkg}"/>
+    <!--<mkdir dir="${star.etc.pkg}"/>-->
     <mkdir dir="${star.docs.pkg}"/>
 
     <loggedcopy todir="${star.bin}"
@@ -731,7 +731,7 @@
      <mkdir dir="${dist.bin.pkg}"/>
      <mkdir dir="${dist.lib.pkg}"/>
      <mkdir dir="${dist.docs.pkg}"/>
-     <mkdir dir="${dist.etc.pkg}"/>
+     <!--<mkdir dir="${dist.etc.pkg}"/>-->
 
      <!-- Do normal install, but with many targets switched off-->
      <antcall target="install">
