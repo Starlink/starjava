@@ -57,6 +57,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.soap.TopcatSOAPClient;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -80,6 +81,7 @@ public class ApplicationDetailViewer implements DetailViewer {
     private final JTabbedPane tabbed_;
     private final StyledTextArea over_;
     private final List actions_ = new ArrayList();
+    private DataNode node_;
     private boolean actionsAdded_;
 
     /* Check that our assumptions about which classes correspond to
@@ -96,6 +98,7 @@ public class ApplicationDetailViewer implements DetailViewer {
      * @param  overName  overview panel name
      */
     public ApplicationDetailViewer( String overName ) {
+        node_ = null;
 
         /* Construct a tabbed pane.  We have to jump through a few hoops
          * to make sure that scroll bars are always painted in the right
@@ -150,6 +153,7 @@ public class ApplicationDetailViewer implements DetailViewer {
      */
     public ApplicationDetailViewer( DataNode node ) {
         this( "Overview" );
+        node_ = node;
 
         /* Add the items which apply to all nodes. */
         addIcon( node.getIcon() );
@@ -439,20 +443,7 @@ public class ApplicationDetailViewer implements DetailViewer {
 
         /* Add a button to launch TOPCAT. */
         if ( ncol > 0 ) {
-            Icon tcic = IconFactory.getIcon( IconFactory.TOPCAT );
-            addAction( new AbstractAction( "TOPCAT", tcic ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    try {
-                        ControlWindow.getInstance()
-                                     .addTable( tgetter.getRandomTable(),
-                                                "from Treeview", true );
-                    }
-                    catch ( IOException e ) {
-                        Toolkit.getDefaultToolkit().beep();
-                        e.printStackTrace();
-                    }
-                }
-            } );
+            addAction( new TopcatDisplayAction( tgetter ) );
         }
     }
 
@@ -637,6 +628,15 @@ public class ApplicationDetailViewer implements DetailViewer {
             }
             return randomTable;
         }
+
+        public StarTable getTable() {
+            return randomTable == null ? startab
+                                       : randomTable;
+        }
+
+        public URL getURL() {
+            return startab.getURL();
+        }
     }
 
     /**
@@ -704,6 +704,79 @@ public class ApplicationDetailViewer implements DetailViewer {
                 }
             }
             return effectiveImage;
+        }
+    }
+
+    /**
+     * Helper class providing an action which displays a table.
+     * It tries to do it using SOAP to an existing TOPCAT instance first,
+     * but if that doesn't exist it starts up TOPCAT in the current JVM.
+     */
+    private class TopcatDisplayAction extends AbstractAction {
+
+        final RandomTableGetter tgetter_;
+        final URL url_;
+        final String location_;
+        ControlWindow controlWindow_;
+
+        TopcatDisplayAction( RandomTableGetter tgetter ) {
+            super( "TOPCAT", IconFactory.getIcon( IconFactory.TOPCAT ) );
+            tgetter_ = tgetter;
+            url_ = tgetter.getURL();
+            location_ = url_ == null ? NodeUtil.getNodePath( node_ )
+                                     : url_.toString();
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            if ( controlWindow_ != null ) {
+                localDisplay();
+            }
+            else {
+                new Thread() {
+                    public void run() {
+                        try {
+                            remoteDisplay();
+                        }
+                        catch ( IOException e ) {
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    localDisplay();
+                                }
+                            } );
+                        }
+                    }
+                }.start();
+            }
+        }
+
+        private void localDisplay() {
+            if ( controlWindow_ == null ) {
+                controlWindow_ = ControlWindow.getInstance();
+            }
+            try {
+                final StarTable table = tgetter_.getRandomTable();
+                controlWindow_.addTable( table, location_, true );
+            }
+            catch ( IOException e ) {
+                Toolkit.getDefaultToolkit().beep();
+                e.printStackTrace();
+            }
+        }
+
+        private void remoteDisplay() throws IOException {
+            TopcatSOAPClient soapClient = new TopcatSOAPClient();
+            if ( url_ != null ) {
+                try {
+                    soapClient.displayTableByLocation( url_.toString(), null );
+                    return;
+                }
+                catch ( IOException e ) {
+                    // didn't work - fall through
+                }
+            }
+            else {
+                soapClient.displayTable( tgetter_.getTable(), location_ );
+            }
         }
     }
 
