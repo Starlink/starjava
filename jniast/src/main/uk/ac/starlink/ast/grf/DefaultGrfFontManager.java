@@ -127,7 +127,6 @@ public class DefaultGrfFontManager
             font = (Font) fonts.get( index );
         }
         catch ( IndexOutOfBoundsException e ) {
-            e.printStackTrace();
             font = defaultFont;
         }
         return font;
