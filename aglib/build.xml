@@ -166,12 +166,13 @@
    !  originator) should be signed here.
    !-->
   <target name="jars"
-          description="-> does nothing">
+          description="-> creates package jar files">
 
     <!-- Add the manifest to the jar file. -->
     <!-- Since the names are in flux, create a new jar file with the 
      !   name "aglib.jar" here; it will just contain the manifest
      !   pointing to the other jars. -->
+    <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/aglib.jar"
          basedir="${dist.dir}" excludes="**">
 
@@ -242,7 +243,7 @@
    !  Nothing to do, this package is permanently in this condition.
    !-->
   <target name="dist"
-          depends="jars,webstart"
+          depends="build,jars,webstart"
           description="-> make package ready for distribution">
   </target>
 
