@@ -9,11 +9,11 @@
    <tocitem target="Frog.Overview"          text="Overview"/>             
    <tocitem target="Frog.GettingStarted"    text="Getting started">        
      <tocitem target="Frog.DisplaySeries"   text="Displaying a time series"/>  
-     <tocitem target="Frog.BasicControl"    text="Basic control of the plot view"/>  
+     <tocitem target="Frog.BasicControl"    text="Basic control of the plot window"/>  
      <tocitem target="Frog.MetaData"        text="Meta data"/>  
      <tocitem target="Frog.MakingGram"      text="Making a periodogram"/>  
      <tocitem target="Frog.FoldingData"     text="Folding time series data"/>  
-     <tocitem target="Frog.FittingData"     text="Fitting folded data"/>  
+     <tocitem target="Frog.FitFoldedData"   text="Fitting folded data"/>  
    </tocitem>
    <tocitem target="Frog.ManipTimeSeries"   text="Manipulating time series">        
      <tocitem target="Frog.CombiningSeries" text="Combining individual series"/>  
@@ -33,10 +33,12 @@
      <tocitem target="Frog.FFT"             text="Creating a Fourier Transform using web services"/> 
    </tocitem>   
    <tocitem target="Frog.SupportedFormats"  text="Supported data formats"/>             
+   <tocitem target="Frog.Future"            text="Future improvements"/>       
    <tocitem target="Frog.Acknowledgments"   text="Acknowledgments"/>       
    <tocitem target="Frog.Changes"           text="Changes">          
      <tocitem target="Frog.ThisRelease"       text="This Release"/>          
    </tocitem>   
+   <tocitem target="Frog.GPLLicense"        text="License agreement"/>    
    <tocitem target="Frog.AboutThisDocument" text="About this document"/>    
   
 </toc>
