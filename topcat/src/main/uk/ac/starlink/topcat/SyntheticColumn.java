@@ -88,13 +88,12 @@ public class SyntheticColumn extends ColumnData {
         args = new Object[] { rowReader };
 
         /* Compile the expression. */
-        String exprsub = expression.replace( '#', JELRowReader.CURRENCY_SIGN );
         Library lib = JELUtils.getLibrary( rowReader );
-        compEx = Evaluator.compile( exprsub, lib, resultType );
+        compEx = Evaluator.compile( expression, lib, resultType );
 
         /* Work out the type of the compiled expression. */
         Class actualType =
-            new Parser( exprsub, lib ).parse( resultType ).resType;
+            new Parser( expression, lib ).parse( resultType ).resType;
         if ( actualType.isPrimitive() ) {
             actualType = JELUtils.wrapPrimitiveClass( actualType );
         }

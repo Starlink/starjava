@@ -48,13 +48,10 @@ import uk.ac.starlink.table.Tables;
  *     that column in the current row (as a primitive, if applicable) - 
  *     this can only work if the column name is a legal java identifier.
  * 
- * <dt>Row Subset £ID identifiers:
- * <dd>The character {@link #CURRENCY_SIGN} (pound sign) 
+ * <dt>Row Subset _ID identifiers:
+ * <dd>The character '_' 
  *     followed by the 1-based index of a defined row subset
  *     returns true iff the current column is part of the subset.
- *     Clients of this class are recommended to translate the
- *     <tt>CURRENCY_SIGN</tt> character to '#' for presentation 
- *     to users, as a more familiar symbol.
  *
  * <dt>Row Subset names:
  * <dd>The name of a subset (case-insensitive) returns true iff the current
@@ -75,9 +72,6 @@ public class JELRowReader extends DVMap {
     private boolean isNullExpression;
     private StarTable stable;
     private List subsets;
-
-    /** Pound sign. */
-    public static final char CURRENCY_SIGN = '\u00a3';
 
     /**
      * The string which, when prefixed to a column ideentifier, indicates
@@ -387,8 +381,8 @@ public class JELRowReader extends DVMap {
      */
     private short getSubsetIndex( String name ) {
 
-        /* Try the '£' + number format. */
-        if ( name.charAt( 0 ) == CURRENCY_SIGN ) {
+        /* Try the '_' + number format. */
+        if ( name.charAt( 0 ) == '_' ) {
             try {
                 int isub = Integer.parseInt( name.substring( 1 ) ) - 1;
                 if ( isub >= 0 && isub < subsets.size() ) {

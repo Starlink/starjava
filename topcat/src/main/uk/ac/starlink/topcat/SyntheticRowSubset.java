@@ -50,7 +50,6 @@ public class SyntheticRowSubset implements RowSubset {
         this.stable = stable;
         this.subsets = subsets;
         this.name = name;
-        this.expression = expression;
         setExpression( expression );
     }
 
@@ -62,9 +61,9 @@ public class SyntheticRowSubset implements RowSubset {
         args = new Object[] { rowReader };
 
         /* Compile the expression. */
-        String exprsub = expression.replace( '#', JELRowReader.CURRENCY_SIGN );
         Library lib = JELUtils.getLibrary( rowReader );
-        compEx = Evaluator.compile( exprsub, lib, boolean.class );
+        compEx = Evaluator.compile( expression, lib, boolean.class );
+        this.expression = expression;
     }
 
     public String getName() {

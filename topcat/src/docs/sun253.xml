@@ -1382,10 +1382,15 @@ is in each subset.  Again there are two ways of doing this:
     apply as to column names above.
     </p></dd>
 
-<dt>By #ID</dt>
+<dt>By _ID</dt>
 <dd><p>The "#ID" identifier of the subset may always be used to refer to it.
     Like the "$ID" identifier for columns above, this is a unique
-    index preceded by a special symbol, this time "#".
+    index preceded by a special symbol, this time the underscore, "_".
+    </p>
+
+    <p><strong>Note:</strong> in previous versions of TOPCAT the hash
+    sign ("#") was used instead of the underscore for this purpose;
+    the hash sign no longer has this meaning.
     </p></dd>
 </dl>
 In either case, the value will be a boolean value; these can be useful
@@ -3266,11 +3271,17 @@ button when the chosen table is selected in the
 widget with a row for each subset.  The columns of the JTable
 are as follows:
 <dl>
-<dt>#ID</dt>
+<dt>_ID</dt>
 <dd><p>A unique and unchanging identifier for the subset, which consists of
-    a "#" character followed by an integer.  This can be used to refer
+    a "_" character (underscore) followed by an integer.  
+    This can be used to refer
     to it in <ref id="jel" plaintextref="yes">expressions</ref>
     for synthetic columns or other subsets.
+    </p>
+
+    <p><strong>Note:</strong> in previous versions of TOPCAT the hash
+    sign ("#") was used instead of the underscore for this purpose;
+    the hash sign no longer has this meaning.
     </p></dd>
 
 <dt>Name</dt>
@@ -4827,7 +4838,7 @@ define the new subset:
     only rows for which it evaluates to true will be included in the subset.
     The values of the other columns in the same row are referenced
     using their names or $ID identifiers, and other subsets may be
-    referenced using their names of #ID identifiers.
+    referenced using their names or _ID identifiers.
     A range of logical and mathematical operators can be used;
     the rules for expression syntax are explained in <ref id="jel"/>.
     </p></dd>
