@@ -29,13 +29,15 @@
 #
 #       l|g|v scale t|f centre t|f sigma|width|gwidth t|f [lwidth] t|f
 #
-#    where "l" means a Lorentzian, "g" a Gaussian and "v" a Voigt profile.
+#    where "l" means a Lorentzian, "g" a Gaussian and "v" a Voigt profile, 
+#    and | means "or".
+#
 #    You are free to use any combination of profiles.
 #
 #    The "scale" is the height of the line, "centre" the central position
 #    (as a wavelength) and "sigma|width|gwidth" the width according to the
 #    line type. The "lwidth" value is needed for Voigt profiles. The "t|f"
-#    strings indicate if the preceeding value is to be fixed or allowed to
+#    strings indicate if the preceding value is to be fixed or allowed to
 #    float during the minimisation.
 #
 #    Example:
@@ -45,7 +47,7 @@
 #       l  1000 f 6520 f 2 f
 #
 #    Indicates a blend of three Lorentzian profiles should be fitted.
-#    All parameters are floating and will be optmised during the minimisation.
+#    All parameters are floating and will be optimised during the minimisation.
 
 # Arguments:
 #    spectrum
