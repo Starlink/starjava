@@ -30,7 +30,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 /**
- * JFontChooser is a dialog for choosing one of the available
+ * BasicFontChooser is a dialog for choosing one of the available
  * fonts. The size and style can also be selected. Usage follows that
  * of JDialog (i.e. use the .show() method to reveal, dialogs can be
  * modal or non-modal).
@@ -38,7 +38,7 @@ import javax.swing.SwingConstants;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class JFontChooser
+public class BasicFontChooser
     extends JDialog
 {
     /**
@@ -114,7 +114,7 @@ public class JFontChooser
     /**
      * Construct an instance with default configuration.
      */
-    public JFontChooser()
+    public BasicFontChooser()
     {
         this( "Font selection dialog" );
     }
@@ -122,7 +122,7 @@ public class JFontChooser
     /**
      * Construct an instance using the given window title.
      */
-    public JFontChooser( String title )
+    public BasicFontChooser( String title )
     {
         this( null, title, false );
     }
@@ -131,7 +131,7 @@ public class JFontChooser
      * Construct an instance, setting the parent, window title and
      * whether the dialog is modal.
      */
-    public JFontChooser( Frame owner, String title, boolean modal)
+    public BasicFontChooser( Frame owner, String title, boolean modal)
     {
         super( owner, title, modal );
         startup();
