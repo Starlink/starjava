@@ -120,6 +120,17 @@ public class BridgeNDArray extends DefaultArrayDescription implements NDArray {
         }
     }
 
+    /**
+     * Returns the <tt>ArrayImpl</tt> object supplying the implementation
+     * for this <tt>BridgeNDArray</tt>.
+     *
+     * @return  the object which supplies services to this
+     *          <tt>BridgeNDArray</tt>
+     */
+    public ArrayImpl getImpl() {
+        return impl;
+    }
+
     public String toString() {
         StringBuffer buf = new StringBuffer( "BridgeNDArray " );
         buf.append( arrayIsReadable ? "r" : "" )

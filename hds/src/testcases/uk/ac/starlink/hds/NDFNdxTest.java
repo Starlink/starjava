@@ -59,6 +59,6 @@ public class NDFNdxTest extends TestCase {
 
         Ndx ndx = builder.makeNdx( ndfURL, AccessMode.READ );
         Source xndx = ndx.toXML();
-        // new SourceReader().writeSource( xndx, System.out );
+        // new SourceReader().setIndent( 2 ).writeSource( xndx, System.out );
     }
 }

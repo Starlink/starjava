@@ -70,14 +70,14 @@ class MultiplexArrayAccess extends DefaultArrayAccess {
 
     public void read( Object buffer, int start, int size ) throws IOException {
         synchronized ( impl ) {
-            super.setOffset( offset );
+            setOffset( offset );
             super.read( buffer, start, size );
         }
     }
 
     public void write( Object buffer, int start, int size ) throws IOException {
         synchronized ( impl ) {
-            super.setOffset( offset );
+            setOffset( offset );
             super.write( buffer, start, size );
         }
     }

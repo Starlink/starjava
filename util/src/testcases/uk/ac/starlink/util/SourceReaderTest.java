@@ -91,7 +91,4 @@ public class SourceReaderTest extends TestCase {
 
     }
 
-    public void testWriteSource() throws TransformerException {
-    }
-        
 }

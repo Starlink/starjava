@@ -42,7 +42,7 @@ public class NDArrayFactory {
             Method meth = clazz.getMethod( "getInstance", noParams );
             ArrayBuilder builder = (ArrayBuilder) meth.invoke( null, noArgs );
             builders.add( builder );
-            logger.info( className + " registered" );
+            // logger.info( className + " registered" );
         }
         catch ( ClassNotFoundException e ) {
             logger.warning( className + 
@@ -53,14 +53,14 @@ public class NDArrayFactory {
                             ": - " + e );
         }
 
-        /* Attempt to add a FITSArrayBuilder if the class is available. */
-        className = "uk.ac.starlink.fits.FITSArrayBuilder";
+        /* Attempt to add a FitsArrayBuilder if the class is available. */
+        className = "uk.ac.starlink.fits.FitsArrayBuilder";
         try {
             Class clazz = Class.forName( className );
             Method meth = clazz.getMethod( "getInstance", noParams );
             ArrayBuilder builder = (ArrayBuilder) meth.invoke( null, noArgs );
             builders.add( builder );
-            logger.info( className + " registered" );
+            // logger.info( className + " registered" );
         }
         catch ( ClassNotFoundException e ) {
             logger.warning( className +

@@ -20,6 +20,8 @@ import uk.ac.starlink.ndx.NdxImpl;
 
 /**
  * Implementation of the NdxImpl interface based on an NDF.
+ * Since the NDF and NDX data models are pretty similar, the mapping of
+ * data items between the two forms is quite straightforward.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -91,7 +93,7 @@ class NDFNdxImpl implements NdxImpl {
                           .newInstance()
                           .newDocumentBuilder()
                           .newDocument();
-            Node etc = doc.createDocumentFragment();
+            Node etc = doc.createElement( "etc" );
             int ncomp = more.datNcomp();
             for ( int i = 0; i < ncomp; i++ ) {
                 HDSObject extobj = more.datIndex( i + 1 );
