@@ -137,6 +137,25 @@ public class FieldElement extends VOElement {
     }
 
     /**
+     * Returns the index of this field in a given table; that is the
+     * index of the column it represents.  The first FIELD child of a
+     * TABLE element has index 0, and so on.
+     * If this field is not associated with <tt>table</tt>, -1 is returned.
+     * 
+     * @param   table  table within which to locate this field
+     * @return  0-based index of this field in <tt>table</tt>, or -1
+     */
+    public int getIndexInTable( TableElement table ) {
+        FieldElement[] fields = table.getFields();
+        for ( int i = 0; i < fields.length; i++ ) {
+            if ( fields[ i ] == this ) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Returns a VALUES child of this element with the attribute
      * type='legal', or <tt>null</tt> if none exists.
      *
