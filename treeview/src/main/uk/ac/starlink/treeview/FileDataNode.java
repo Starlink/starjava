@@ -98,6 +98,7 @@ public class FileDataNode extends DefaultDataNode {
                 catch ( NoSuchDataException e ) {
                     child = getChildMaker().makeErrorDataNode( parent, e );
                 }
+                child.setLabel( subFiles[ index ].getName() );
                 index++;
                 return child;
             }
