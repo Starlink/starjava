@@ -1062,7 +1062,7 @@ public class TestCase extends junit.framework.TestCase {
     }
 
     private String combineMessages( String msg, String detail ) {
-        return ( msg == null ) ? ( msg + " - " + detail )
+        return ( msg != null ) ? ( msg + " - " + detail )
                                : detail;
     }
 
