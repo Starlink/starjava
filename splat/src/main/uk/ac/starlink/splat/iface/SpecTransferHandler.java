@@ -21,10 +21,13 @@ import javax.swing.TransferHandler;
 import javax.swing.JComponent;
 import javax.swing.JList;
 
-import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.NDXSpecDataImpl;
+import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
 
 /**
  * A TransferHandler for dragging and dropping SpecData instances.
@@ -35,7 +38,7 @@ import uk.ac.starlink.splat.util.SplatException;
  * and should be checked for the various types).
  * <p>
  * Notes that this all works between different JVMs as Transferables
- * contain serialized objects.
+ * containing serialized objects.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -49,20 +52,32 @@ public class SpecTransferHandler
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
+     * Spectra factory
+     */
+    protected SpecDataFactory specFactory = SpecDataFactory.getInstance();
+
+    /**
+     * Table factory.
+     */
+    protected StarTableFactory tableFactory = new StarTableFactory();
+
+    /**
+     * Various flavors we can import, doesn't include the
+     * tables. These are provided by the table factory.
      */
     public static final DataFlavor flavors[] = {
 
         // Define a flavor for transfering spectra.
-        new DataFlavor( DataFlavor.javaJVMLocalObjectMimeType +
-                        ";class=uk.ac.starlink.splat.iface.SpecTransferHandler",
-                        "Local SpecData" ),
+        new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType +
+                       ";class=uk.ac.starlink.splat.iface.SpecTransferHandler",
+                       "Local SpecData" ),
 
         // Flavors we can accept from Treeview.
         new DataFlavor( "application/xml;class=java.io.InputStream",
                         "NDX stream" ),
         new DataFlavor( DataFlavor.javaSerializedObjectMimeType +
                         ";class=java.net.URL", "URL" )
-        /*XXX Don't want one of these
+        /*XXX Don't want one of these yet.
           new DataFlavor( "application/fits;class=java.io.InputStream",
           "FITS stream" ),*/
     };
@@ -79,7 +94,9 @@ public class SpecTransferHandler
                 }
             }
         }
-        return false;
+
+        //  Check tables.
+        return tableFactory.canImport( flavor );
     }
 
     protected boolean checkImportComponent( JComponent comp )
@@ -138,8 +155,28 @@ public class SpecTransferHandler
     public boolean importData( JComponent comp, Transferable t )
     {
         if ( checkImportComponent( comp ) ) {
+            System.out.println( t );
             DataFlavor[] importFlavors = t.getTransferDataFlavors();
+
+            //  Tables first, there are more of these that look just
+            //  like URLS/FITS streams etc. XXXX Need to able to
+            //  distinguish these as some table classes are greedy and
+            //  will open any FITS file (with a table somewhere).
+            if ( tableFactory.canImport( importFlavors ) ) {
+                try {
+                    StarTable table = tableFactory.makeStarTable( t );
+                    if ( table != null ) {
+                        return importTable( comp, table );
+                    }
+                }
+                catch (Exception e) {
+                    //  Do nothing.
+                }
+            }
+
             for ( int j = 0; j < importFlavors.length; j++ ) {
+                
+                System.out.println( importFlavors[j] );
 
                 if ( flavors[0].match( importFlavors[j] ) ) {
                     return importSpecData( comp, t );
@@ -150,10 +187,11 @@ public class SpecTransferHandler
                 if ( flavors[2].match( importFlavors[j] ) ) {
                     return importURL( comp, t );
                 }
-                /*if ( flavors[3].match( importFlavors[j] ) ) {
-                  return importFITSStream( comp, t );
-                }*/
+                //if ( flavors[3].match( importFlavors[j] ) ) {
+                //    return importFITSStream( comp, t );
+                //}
             }
+
         }
         return false;
     }
@@ -161,8 +199,7 @@ public class SpecTransferHandler
     protected boolean importSpecData( JComponent comp, Transferable t )
     {
         try {
-            ArrayList spectra =
-                (ArrayList) t.getTransferData( flavors[0] );
+            ArrayList spectra = (ArrayList) t.getTransferData( flavors[0] );
             int added = 0;
 
             //  Add any unknowns to the global list (needed in both
@@ -244,6 +281,20 @@ public class SpecTransferHandler
             URL url = (URL) t.getTransferData( flavors[2] );
             NDXSpecDataImpl impl = new NDXSpecDataImpl( url );
             SpecData spectrum = new SpecData( impl );
+            displaySpectrum( comp, spectrum );
+            added = true;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return added;
+    }
+
+    protected boolean importTable( JComponent comp, StarTable table )
+    {
+        boolean added = false;
+        try {
+            SpecData spectrum = specFactory.get( table );
             displaySpectrum( comp, spectrum );
             added = true;
         }
