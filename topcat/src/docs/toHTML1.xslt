@@ -141,10 +141,11 @@
   </xsl:template>
 
   <xsl:template match="blockcode">
-    <pre><xsl:apply-templates select="text()"/></pre>
+    <pre><xsl:apply-templates"/></pre>
   </xsl:template>
 
   <xsl:template match="hidden"/>
+  <xsl:template match="imports"/>
 
   <xsl:template match="dt">
     <xsl:copy>

@@ -281,6 +281,9 @@
     </fo:block>
   </xsl:template>
 
+  <xsl:template match="hidden"/>
+  <xsl:template match="imports"/>
+
   <xsl:template match="blockquote">
     <fo:block xsl:use-attribute-sets="blockquote">
       <xsl:apply-templates/>
@@ -801,7 +804,7 @@
     <xsl:choose>
       <xsl:when test="function-available('String:replaceFirst')">
         <xsl:variable name="s0">
-          <xsl:apply-templates select="text()"/>
+          <xsl:apply-templates/>
         </xsl:variable>
         <xsl:variable name="s1"
                       select="String:replaceFirst(string($s0),'^\s*\n', '')"/>
@@ -814,7 +817,5 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-
-
 
 </xsl:stylesheet>
