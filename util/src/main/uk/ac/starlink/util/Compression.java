@@ -118,7 +118,7 @@ public abstract class Compression {
              * instances of this class do not support marking, which
              * screws up some things that the DataSource class tries to do.
              * So we fiddle the inflating stream to tell the truth. */
-            /* (bug report submitted by mbt to Sun, 29 Jan 2003) */
+            /* (bug ID 4812237 submitted to developer.java.sun.com by mbt) */
             return new GZIPInputStream( raw ) {
                 public boolean markSupported() {
                     return false;
