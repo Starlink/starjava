@@ -103,6 +103,7 @@ public class AuxWindow extends JFrame {
 
         /* Set up a toolbar. */
         toolBar = new JToolBar();
+        toolBar.addSeparator();
         toolBar.setFloatable( false );
         getContentPane().add( toolBar, BorderLayout.NORTH );
 
