@@ -1,0 +1,51 @@
+<html>
+<body>
+<h1>Treeview</h1>
+
+<p>The treeviewer gives a graphical view of hierarchical data.
+It can be used to display directory structures, HDS files, NDFs 
+and a number of other data structures.</p>
+
+<p>The display has two parts: the tree panel (initially on the left)
+displays the tree structure and the the information panel
+(where you see this help text) may show additional information about
+the selected node.  The relative sizes of the two panels can be changed
+by dragging the divider which separates them, and their positions 
+can be changed using the <i>View</i> menu or the toolbar buttons.</p>
+
+<p>The tree panel shows a number of nodes,
+one for each item given on the treeview command line.
+Each node is represented on a line, which contains an icon 
+indicating what kind of node it is, its name, and perhaps some brief
+descriptive information.  At the left of the line, if the node
+may have <i>children</i>, is a <i>handle</i> which indicates whether it is
+currently expanded (children visible) or collapsed (children invisible).</p>
+
+<p>When a node is selected some additional details may be 
+displayed in the information panel.
+
+<p>Operation is quite intuitive: 
+<ul>
+<li> select a node (to view additional data) by clicking once on the line
+<li> expand/collapse a node (to see its children) by clicking 
+     once on the handle
+<li> right-click on a node to refresh it or see its alter-egos
+</ul>
+There are other ways of performing these actions using 
+the mouse, menus, toolbar and keyboard.
+
+<p>The toolbar "++" button does a recursive expand on the selected node. 
+This expands the node, and all its children, and all its children's
+children ....  If you attempt this on a large structure (e.g. a 
+directory containing many files and subdirectories) it can expand
+an awful lot of nodes, so use it with caution.
+The "--" button does a recursive collapse on the selected node.
+This causes the treeviewer to forget all about the children of
+the selected node, so if it is expanded later it will have to 
+read the data again.
+There are equivalents of these buttons in the <i>Tree</i> menu.
+
+<p>More detailed information can be found in <a href="sun244.html">SUN/244</a>.
+
+</body>
+</html>

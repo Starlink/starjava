@@ -1,0 +1,39 @@
+#!/bin/sh
+
+#  Find where this script is located.
+
+if test -z "$TREEVIEW_DIR"; then
+   TREEVIEW_DIR=`dirname $0`
+fi
+
+#  Locate the application jar file.  This is relative to this script.
+
+appjar="$TREEVIEW_DIR/../../lib/treeview/treeview.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate the TREEVIEW jar file.  Please define TREEVIEW_JAR"
+fi
+
+#  Locate the java startup script.
+
+starjava="$TREEVIEW_DIR/../../bin/starjava"
+if test ! -f "$starjava"; then
+   echo "Failed to locate the 'starjava' script.  Trying with java on path"
+   starjava="starjava"
+fi
+
+#  Make sure that we get the installed shareable libraries.
+if test -z "$LD_LIBRARY_PATH"; then
+   LD_LIBRARY_PATH="${TREEVIEW_DIR}/../../lib"
+else
+   LD_LIBRARY_PATH="${TREEVIEW_DIR}/../../lib:${LD_LIBRARY_PATH}"
+fi
+
+#  Run Treeview.
+
+$starjava \
+   -Duk.ac.starlink.treeview.cmdname="treeview" \
+   -Duk.ac.starlink.treeview.sunbase="<unknown>" \
+   -Duk.ac.starlink.treeview.stardir="<unknown>" \
+   -Duk.ac.starlink.treeview.scriptdir="<unknown>" \
+   -jar $appjar $*
+  
