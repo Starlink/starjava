@@ -159,6 +159,17 @@ public class HDSObject {
         hdsOpen( String container, String accessMode ) throws HDSException;
 
     /**
+     * Show HDS statistics - see
+     * <a href="http://star-www.rl.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_SHOW">HDS_SHOW</a>.
+     *
+     * @param  topic  name of the topic on which to supply information.
+     *                One of "DATA", "FILES" or "LOCATORS".
+     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
+     */
+    public native static void
+        hdsShow( String topic ) throws HDSException;
+
+    /**
      * Trace object path - see
      * <a href="http://star-www.rl.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_TRACE">HDS_TRACE</a>.
      *

@@ -360,4 +360,11 @@ public class HDSObjectTest extends TestCase {
 
     }
 
+    //  Commented out because it's verbose.
+    //  public void testShow() throws HDSException {
+    //      HDSObject.hdsShow( "DATA" );
+    //      HDSObject.hdsShow( "FILES" );
+    //      HDSObject.hdsShow( "LOCATORS" );
+    //  }
+
 }

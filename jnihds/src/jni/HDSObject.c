@@ -707,6 +707,31 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( hdsOpen )(
 }
 
 
+JNIEXPORT void JNICALL NATIVE_METHOD( hdsShow )(
+   JNIEnv *env,          /* Interface pointer */
+   jclass class,         /* Class object */
+   jstring jTopic        /* Topic to show info on */
+) {
+   const char *topic;
+   DECLARE_CHARACTER( fTopic, 8 );
+
+   /* Convert java string to C. */
+   topic = (*env)->GetStringUTFChars( env, jTopic, NULL );
+
+   /* Convert C string to Fortran. */
+   cnfExprt( topic, fTopic, fTopic_length );
+
+   /* Release string copy. */
+   (*env)->ReleaseStringUTFChars( env, jTopic, topic );
+
+   /* Call HDS_SHOW to do the work. */
+   HDSCALL(
+      F77_CALL(hds_show)( CHARACTER_ARG(fTopic), INTEGER_ARG(status)
+                          TRAIL_ARG(fTopic) );
+   )
+}
+
+
 JNIEXPORT jint JNICALL NATIVE_METHOD( hdsTrace )(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */
