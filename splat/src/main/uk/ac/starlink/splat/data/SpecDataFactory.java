@@ -1,11 +1,13 @@
 /*
- * Copyright (C) 2000-2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     01-SEP-2000 (Peter W. Draper):
  *        Original version.
- *     01-MAR-2004 (Peter W. Draper);
+ *     01-MAR-2004 (Peter W. Draper):
  *        Added table handling changes.
+ *     26-AUG-2004 (Peter W. Draper):
+ *        Added support for URLs.
  */
 package uk.ac.starlink.splat.data;
 
@@ -308,14 +310,13 @@ public class SpecDataFactory
 
             //  Final option is a URL for a remote resource. We always make a
             //  local copy of these so that the file is guaranteed to be
-            //  around and we can try to determine a type for it. We need this
-            //  so that it's possible to determine which implementation should
-            //  handle the spectrum. Ultimately the temporary file created
-            //  will have the right file type, so we can use the usual
-            //  mechanisms.
+            //  around. Some of the implementations could probably deal with
+            //  Streams, but that's not part of any interface.
 
             //  XXX how to determine the format, mime types and files types
-            //  are the obvious way. I'd like to let treeview sort this out,
+            //  are the obvious way, but mime types are probably rarely
+            //  available, so we will need to use the usual file extensions
+            //  mechanisms. I'd like to let treeview sort this out,
             //  but treeview isn't a guaranteed dependency of SPLAT!
             if ( impl == null && url != null ) {
                 String newspec = remoteToLocalFile( url );
@@ -784,11 +785,19 @@ public class SpecDataFactory
             //  Contact the resource.
             InputStream is = url.openStream();
 
-            //  And read it into a local file.
+            //  And read it into a local file. 
+
+            //  Use the existing file extension if available, without 
+            //  a file extension this will currently fail.
+            InputNameParser namer = new InputNameParser( url.getPath() );
+            String type = namer.type();
+
+            //  Create a temporary file.
             TemporaryFileDataSource datsrc = 
-                new TemporaryFileDataSource( is, url.toString(),
-                                             "SPLAT", ".fits", null );
+                new TemporaryFileDataSource( is, url.toString(), "SPLAT", 
+                                             type, null );
             name = datsrc.getFile().getCanonicalPath();
+            datsrc.close();
         }
 
         catch (IOException e) {
