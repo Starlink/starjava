@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.gui;
 
+import java.awt.HeadlessException;
 import javax.swing.SwingUtilities;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
@@ -39,7 +40,10 @@ public class StarTableNodeChooserTest extends TestCase {
             }
         } );
 
-        if ( storedThrowable != null ) {
+        if ( storedThrowable instanceof HeadlessException ) {
+            System.out.println( "Headless environment - no GUI test" );
+        }
+        else if ( storedThrowable != null ) {
             throw storedThrowable;
         }
     }

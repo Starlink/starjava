@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import java.awt.HeadlessException;
 import java.io.File;
 import javax.swing.JFrame;
 import junit.framework.TestCase;
@@ -23,7 +24,12 @@ public class TreeChooserTest extends TestCase {
     }
 
     public void testTreeChooser() throws NoSuchDataException {
-        TreeNodeChooser chooser = new TreeNodeChooser( new DemoDataNode() );
+        try {
+            TreeNodeChooser chooser = new TreeNodeChooser( new DemoDataNode() );
+        }
+        catch ( HeadlessException e ) {
+            System.out.println( "Headless environment - no GUI test" );
+        }
     }
 
     public static void main( String[] args )

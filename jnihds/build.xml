@@ -1087,6 +1087,7 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
       <formatter type="plain" usefile="false"/>
 
@@ -1117,6 +1118,7 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
       <classpath refid="tests-classpath"/>
       <formatter type="plain" usefile="false"/>
       <test name="${testcase}"/>

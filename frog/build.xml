@@ -1044,6 +1044,7 @@
     <!-- Run up FROG from the local build -->
     <java classname="uk.ac.starlink.frog.FrogMain" fork="true">
       <classpath refid="tests-classpath"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
     </java>
   </target>
 

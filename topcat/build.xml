@@ -1063,6 +1063,7 @@
           classname="uk.ac.starlink.util.MultiXML"
           failonerror="yes"
           fork="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
       <arg value="-style"/> <arg value="${src.docs}/toHTML.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
       <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
@@ -1075,6 +1076,7 @@
           classname="uk.ac.starlink.util.MultiXML" 
           failonerror="yes"
           fork="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
       <arg value="-style"/> <arg value="${src.docs}/toHelp.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
       <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
@@ -1176,6 +1178,7 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="basedir" value="${basedir}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
       <formatter type="brief" usefile="false"/>
 
@@ -1205,6 +1208,7 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="basedir" value="${basedir}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>

@@ -996,6 +996,7 @@
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
       <formatter type="brief" usefile="false"/>
 
@@ -1024,6 +1025,7 @@
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>
