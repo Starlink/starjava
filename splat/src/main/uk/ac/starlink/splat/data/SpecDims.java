@@ -25,7 +25,7 @@ public final class SpecDims
     private int ndims = 0;
     private int firstaxis = 0;
     private int dispax = -1;
-    private int picked = -1;
+    private int collapseax = -1;
 
     /**
      * Constructor.
@@ -64,8 +64,8 @@ public final class SpecDims
         //  Don't know the dispersion axis yet.
         dispax = -1;
 
-        // Or the non-dispersion axis we've picked.
-        picked = -1;
+        // Or the non-dispersion axis we're going to collapse along.
+        collapseax = -1;
     }
 
     /**
@@ -122,13 +122,31 @@ public final class SpecDims
     }
 
     /**
+     * Set the dispersion axis. If not set (which is the default condition)
+     * then the a value will be determined by looking through the AST frameset
+     * of the associated SpecData for a spectral axis. To get that behaviour
+     * back just set the value to -1. If exclude is true then the value will
+     * be taken as a significant axis.
+     */
+    public void setDispAxis( int dispax, boolean exclude )
+    {
+        if ( exclude ) {
+            this.dispax = sigToRealAxis( dispax );
+        }
+        else {
+            this.dispax = dispax;
+        }
+    }
+
+    /**
      * Get the dispersion axis of the data backing a SpecData. If not found,
      * or the dispersion axis isn't significant then 1 is returned.
      * All dimension are counted unless exclude is set true.
      */
     public int getDispAxis( boolean exclude )
     {
-        //  Don't repeatably determine this.
+        //  Don't repeatably determine this, the guess will not change unless
+        //  the SpecData changes.
         if ( dispax == -1 ) {
             dispax = 0;
 
@@ -158,28 +176,45 @@ public final class SpecDims
     }
 
     /**
-     * Pick the first axis which isn't the dispersion axis. The axis numbers
-     * returned do not exclude non-significant dimensions, unless exclude is
-     * set to true.
+     * Set the non-dispersion axis. Collapses will happen along this axis,
+     * onto the dispersion axis. If not set a default axis will be picked from
+     * amongst the significant axes. If exclude is true then the index will
+     * be taken as meaning a significant axis.
      */
-    public int pickNonDispAxis( boolean exclude )
+    public void setCollapseAxis( int collapseax, boolean exclude )
     {
-        if ( picked == -1 ) {
+        if ( exclude ) {
+            this.collapseax = sigToRealAxis( collapseax );
+        }
+        else {
+            this.collapseax = collapseax;
+        }
+    }
+
+    /**
+     * Return the axis that any collapse should occur along. If not explicitly
+     * set the first axis which isn't the dispersion axis will be chosen. The
+     * axis numbers returned do not exclude non-significant dimensions, unless
+     * exclude is set to true.
+     */
+    public int getNonDispAxis( boolean exclude )
+    {
+        if ( collapseax == -1 ) {
             //  No choice made yet. Invoke getDispAxis to make sure of
             //  initialisation.
             int sigaxis = getDispAxis( false );
             for ( int i = 0; i < realDims.length; i++ ) {
                 if ( i != sigaxis && realDims[i] != 1 ) {
-                    picked = i;
+                    collapseax = i;
                     break;
                 }
             }
         }
 
         if ( exclude ) {
-            return realToSigAxis( picked );
+            return realToSigAxis( collapseax );
         }
-        return picked;
+        return collapseax;
     }
 
     /**

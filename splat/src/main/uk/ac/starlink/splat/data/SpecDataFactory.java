@@ -850,8 +850,14 @@ public class SpecDataFactory
      * @param specData the SpecData object to reprocess.
      * @param method the method to use when reprocessing, COLLAPSE, EXPAND or
      *               VECTORIZE.
+     * @param dispax the index of the dispersion axis, set to -1 for automatic
+     *               choice.
+     * @param collapseax the index of the axis collapse will occur along,  
+     *                   set to -1 for automatic choice. This may not be the 
+     *                   dispax.
      */
-    public SpecData[] reprocessTo1D( SpecData specData, int method )
+    public SpecData[] reprocessTo1D( SpecData specData, int method,
+                                     int dispax, int collapseax )
         throws SplatException
     {
         if ( method == VECTORIZE ) {
@@ -869,6 +875,11 @@ public class SpecDataFactory
 
         SpecData[] results = null;
         if ( ndims > 1 && ndims < 4 ) {
+            
+            //  Use choice of dispersion and collapse axis.
+            specDims.setDispAxis( dispax, true );
+            specDims.setCollapseAxis( collapseax, true );
+
             if ( method == COLLAPSE ) {
                 results = collapseSpecData( specData, specDims );
             }
@@ -901,7 +912,7 @@ public class SpecDataFactory
             //  have no data (all BAD values), we could purge these as they
             //  are useless. Note we get the size of the picked axis number of
             //  SpecData's back.
-            int stepaxis = specDims.pickNonDispAxis( true );
+            int stepaxis = specDims.getNonDispAxis( true );
             int displen = specDims.getSigDims()[stepaxis];
             results = new SpecData[displen];
             for ( int i = 0; i < displen; i++ ) {

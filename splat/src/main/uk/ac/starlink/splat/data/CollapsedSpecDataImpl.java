@@ -159,7 +159,7 @@ public class CollapsedSpecDataImpl
         //  The section is identified by making the picked axis offset equal
         //  to the given index along that axis (plus 1) and the size of that
         //  dimension is set to 1.
-        int picked = specDims.pickNonDispAxis( false );
+        int picked = specDims.getNonDispAxis( false );
         long[] origin = new long[dims.length];
         Arrays.fill( origin, 1L );
         origin[picked] = (long) index + 1;
