@@ -24,7 +24,4 @@ public class HdxException extends Exception {
         super( e.getMessage() );
         setStackTrace( e.getStackTrace() );
     }
-
-
-
 }

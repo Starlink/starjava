@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!DOCTYPE project SYSTEM "project.dtd">
 
 <!--
  !   HDX build file
@@ -97,7 +98,7 @@
   <property name="chmod.fail" value="false"/>
 
   <!-- JUnit test options -->
-  <property name="junit.fork" value="false"/>
+  <property name="junit.fork" value="true"/>
   <property name="junit.filtertrace" value="on"/>
   <property name="junit.summary" value="no"/>
 
@@ -274,6 +275,12 @@
 
   <!-- JUnit tests classpath -->
  <path id="tests-classpath">
+    <!-- XXX ARGH  How do I tell JUnit about my excluded.properties file? -->
+    <!--
+    <pathelement location="${src.jars.dir}/junit/runner/excluded.properties"/>
+    <pathelement location="${src.jars.dir}/junit/runner"/>
+    <pathelement location="${src.jars.dir}"/>
+    -->
     <pathelement location="${build.classes}"/>
     <pathelement location="${build.tests}"/>
     <pathelement location="${tests.dir}"/>
@@ -372,17 +379,18 @@
           description="-> compiles the source code">
 
     <mkdir dir="${build.classes}"/>
-    <javac srcdir="${java.dir}"
-           destdir="${build.classes}"
-           debug="${debug}"
-           deprecation="${deprecation}"
-           optimize="${optimize}">
+    <javac deprecation="${deprecation}"
+        source="1.4"
+        destdir="${build.classes}"
+        debug="${debug}"
+        srcdir="${java.dir}"
+        optimize="${optimize}">
 
       <classpath refid="classpath"/>
 
       <!-- Exclude any Java files in the source tree that should not be
        !   compiled -->
-      <exclude name="**/NdxDomImpl.java"/>
+      <!--<exclude name="**/NdxDomImpl.java"/> -->
       <exclude name="**/README*"/>
     </javac>
 
@@ -889,10 +897,11 @@
 
     <mkdir dir="${build.tests}"/>
 
-    <javac srcdir="${tests.dir}"
-           destdir="${build.tests}"
-           debug="${debug}"
-           deprecation="${deprecation}" >
+    <javac deprecation="${deprecation}" 
+      source="1.4"
+      destdir="${build.tests}"
+      debug="${debug}"
+      srcdir="${tests.dir}">
 
       <classpath refid="tests-classpath"/>
 
@@ -927,7 +936,8 @@
 
       <batchtest>
         <fileset dir="${tests.dir}">
-          <include name="**/JUnit*"/>
+          <!-- <include name="**/JUnit*"/> -->
+          <include name="**/*Test.java"/>
         </fileset>
       </batchtest>
 
@@ -971,3 +981,9 @@
   </target>
 
 </project>
+
+<!-- Local Variables: -->
+<!-- mode: xml -->
+<!-- sgml-indent-data: t -->
+<!-- sgml-indent-step: 2 -->
+<!-- End: -->
