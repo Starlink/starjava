@@ -6,6 +6,8 @@ import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Window;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -27,6 +29,7 @@ import javax.swing.Action;
 import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -41,6 +44,7 @@ import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.TransferHandler;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -211,6 +215,28 @@ public class TableViewer extends AuxWindow
         nosubsetAct = new ViewerAction( "View all rows",
                                         "Don't use any row subsetting" );
 
+        /* Set up a handler for instant drag'n'drop onto this application. */
+        TransferHandler loadTransferHandler = new TransferHandler() {
+            public boolean canImport( JComponent comp, DataFlavor[] flavors ) {
+                return tabfact.canImport( flavors );
+            }
+            public boolean importData( JComponent comp, Transferable trans ) {
+                StarTable st = tabfact.makeStarTable( trans );
+                if ( st != null ) {
+                    try {
+                        new TableViewer( Tables.randomTable( st ),
+                                         TableViewer.this );
+                        return true;
+                    }
+                    catch ( IOException e ) {
+                        ErrorDialog.showError( e, "Can't randomise table", 
+                                               TableViewer.this );
+                    }
+                }
+                return false;
+            }
+        };
+
         /* Configure the table. */
         if ( startab != null ) {
             setStarTable( startab );
@@ -303,7 +329,7 @@ public class TableViewer extends AuxWindow
 
         /* Toolbar. */
         JToolBar toolBar = getToolBar();
-        toolBar.add( newAct );
+        toolBar.add( newAct ).setTransferHandler( loadTransferHandler );
         toolBar.add( dupAct );
         toolBar.add( saveAct );
         toolBar.addSeparator();
@@ -1115,6 +1141,16 @@ public class TableViewer extends AuxWindow
             };
         }
         return columnRenderer;
+    }
+
+    /**
+     * Returns the StarTableFactory used by this class to construct all
+     * new tables.
+     *
+     * @return  the sole StarTableFactory instance used by this class
+     */
+    public static StarTableFactory getTableFactory() {
+        return tabfact;
     }
 
     /**

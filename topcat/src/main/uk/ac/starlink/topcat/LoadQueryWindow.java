@@ -2,6 +2,8 @@ package uk.ac.starlink.topcat;
 
 import java.awt.Component;
 import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -9,9 +11,11 @@ import java.sql.DriverManager;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.TransferHandler;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
@@ -82,6 +86,10 @@ public class LoadQueryWindow extends QueryWindow {
         JPanel controls = getAuxControlPanel();
         controls.add( new JButton( browseAction ) );
         controls.add( new JButton( jdbcAction ) );
+
+        /* Configure drag'n'drop operation. */
+        TransferHandler th = new LoadWindowTransferHandler();
+        ((JComponent) getContentPane()).setTransferHandler( th );
 
         /* Add a help button. */
         addHelp( "Read" );
@@ -293,6 +301,45 @@ public class LoadQueryWindow extends QueryWindow {
             jh.setAuthenticator( guiAuth );
         }
         guiAuth.setParentComponent( parent );
+    }
+
+    /**
+     * Transfer handler for this window, which will treat a drop of 
+     * a suitable dragged object as equivalent to typing something in
+     * the dialog box.
+     */
+    private class LoadWindowTransferHandler extends TransferHandler {
+
+         public boolean canImport( JComponent comp, DataFlavor[] flavors ) {
+             return tableFactory.canImport( flavors );
+         }
+
+         public boolean importData( JComponent comp, Transferable trans ) {
+             StarTable table = tableFactory.makeStarTable( trans );
+             if ( table == null ) {
+                 return false;
+             }
+             else {
+
+                 /* Perform any required pre-processing. */
+                 table = doctorTable( table );
+                 if ( table == null ) {
+                     return false;
+                 }
+
+                 /* Do whatever needs doing with the successfully created
+                  * StarTable. */
+                 performLoading( table );
+
+                 /* We're finished. */
+                 dispose();
+                 return true;
+             }
+         }
+
+         public int getSourceActions( JComponent comp ) {
+             return NONE;
+         }
     }
 
 }
