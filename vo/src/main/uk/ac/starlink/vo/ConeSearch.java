@@ -2,16 +2,21 @@ package uk.ac.starlink.vo;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import org.us_vo.www.SimpleResource;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
@@ -31,7 +36,7 @@ import uk.ac.starlink.votable.VOTableBuilder;
 public class ConeSearch {
 
     SimpleResource resource_;
-    private Logger logger_ = Logger.getLogger( "uk.ac.starlink" );
+    private Logger logger_ = Logger.getLogger( "uk.ac.starlink.vo" );
     
     /**
      * Constructs a new ConeSearch from a CONE-type resource.
@@ -171,6 +176,52 @@ public class ConeSearch {
      */
     public SimpleResource getResource() {
         return resource_;
+    }
+
+    /**
+     * Returns a list of described values which characterise this cone search.
+     *
+     * @return  cone search service metadata
+     */
+    public DescribedValue[] getMetadata() {
+        List metadata = new ArrayList();
+        addMetadatum( metadata, resource_.getShortName(), 
+                      "Service short name",
+                      "Short name for cone search service" );
+        addMetadatum( metadata, resource_.getTitle(), 
+                      "Service title", 
+                      "Cone search service title" );
+        addMetadatum( metadata, resource_.getDescription(), 
+                      "Service description", 
+                      "Description of cone search service" );
+        addMetadatum( metadata, resource_.getReferenceURL(), 
+                      "Service reference URL",
+                      "Descriptive URL for cone search service" );
+        addMetadatum( metadata, resource_.getPublisher(),
+                      "Service publisher",
+                      "Publisher for cone search service" );
+        addMetadatum( metadata, resource_.getServiceURL(),
+                      "Service endpoint",
+                      "Base URL for cone search service" );
+        return (DescribedValue[]) metadata.toArray( new DescribedValue[ 0 ] );
+    }
+
+    /**
+     * Adds a DescribedValue to a list of them, based on given values and
+     * characteristics.  If the given value is blank, it is not added.
+     *
+     * @param  metadata  list of DescribedValue objects
+     * @param  value     the value of the object to add
+     * @param  name      the name of the object
+     * @param  description  the description of the object
+     */
+    private static void addMetadatum( List metadata, String value, String name,
+                                      String description ) {
+        if ( value != null && value.trim().length() > 0 ) {
+            ValueInfo info = new DefaultValueInfo( name, String.class,
+                                                   description );
+            metadata.add( new DescribedValue( info, value ) );
+        }
     }
 
     public String toString() {
