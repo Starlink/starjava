@@ -57,9 +57,10 @@ Just type:
 
    % ant build
 
-and wait a while. If it reports that you cannot compile the Java
-files, make sure that the SDK is on your PATH (a javac command is
-required).
+in the top-level "source" directory, and wait a while. This recurses into each
+of the package subdirectories and performs "ant build" on each package. If it
+reports that you cannot compile the Java files, make sure that the SDK is on
+your PATH (a javac command is required).
 
    Install everything
    ------------------
@@ -80,4 +81,4 @@ STARJAVA already installed check the environment variables and aliases
 and re-define these as appropriate).
 
 
-Peter W. Draper 16-DEC-2003
+Peter W. Draper 17-MAR-2004
