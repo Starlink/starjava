@@ -1,5 +1,7 @@
 package uk.ac.starlink.ndx;
 
+import uk.ac.starlink.hdx.HdxException;
+
 import java.io.IOException;
 import java.net.URL;
 import javax.xml.transform.Source;
@@ -190,10 +192,12 @@ public interface Ndx {
      * @param  base  the base URL against which URLs written within the XML
      *           are considered relative.  If null, all are written absolute.
      * @return   an XML Source representation of this Ndx
+     * @throws HdxException if the XML cannot be generated
      * @see     uk.ac.starlink.util.SourceReader
      * @deprecated replaced by <code>getHdxFacade().getSource(base)</code>
      */
-    Source toXML( URL base );
+    Source toXML( URL base )
+            throws HdxException;
 
     /**
      * Obtains a HdxFacade, which enables us to examine and manipulate

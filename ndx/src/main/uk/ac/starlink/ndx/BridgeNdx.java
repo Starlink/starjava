@@ -422,14 +422,16 @@ public class BridgeNdx implements Ndx {
      *
      * @param  base  URL against which others are to be relativised
      * @return  an XML Source representation of this Ndx
+     * @throws HdxException if the XML cannot be generated
      * @deprecated replaced by
      * <code>getHdxFacade().getSource(URLUtils.urlToUri(base))</code>
      */
-    public Source toXML( URL base ) {
+    public Source toXML( URL base ) 
+            throws HdxException {
         /*
-        *  this method comes from the Ndx interface, but has the same
-        *  functionality as getSource
-        */
+         *  this method comes from the Ndx interface, but has the same
+         *  functionality as getSource
+         */
         return getHdxFacade().getSource( URLUtils.urlToUri(base) );
     }
     
