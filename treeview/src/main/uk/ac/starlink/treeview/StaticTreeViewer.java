@@ -671,6 +671,9 @@ public class StaticTreeViewer extends JFrame {
             public void actionPerformed( ActionEvent event ) {
                 MutableTreeNode tnode = 
                     (MutableTreeNode) tree.getLastSelectedPathComponent();
+                if ( tnode == demoNode ) {
+                    demoNode = null;
+                }
                 treeModel.removeNodeFromParent( tnode );
             }
         };
@@ -845,6 +848,7 @@ public class StaticTreeViewer extends JFrame {
             collapseSelAct.setEnabled( false );
             deleteAct.setEnabled( false );
             upAct.setEnabled( false );
+            setDetailPane( helpPanel );
         }
     }
 
