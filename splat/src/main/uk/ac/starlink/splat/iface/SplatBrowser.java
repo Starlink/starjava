@@ -525,7 +525,7 @@ public class SplatBrowser
         ImageIcon reOpenImage = 
             new ImageIcon( ImageHolder.class.getResource( "reopen.gif" ) );
         LocalAction reOpenAction  = new LocalAction( LocalAction.REOPEN,
-                                                   "Re-Open", openImage,
+                                                   "Re-Open", reOpenImage,
                                                    "Re-Open selected spectra");
         fileMenu.add( reOpenAction );
         toolBar.add( reOpenAction );
