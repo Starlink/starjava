@@ -163,7 +163,7 @@ public class VOTableWriter implements StarTableWriter {
                                   + "XMLSchema-instance" ) );
                 writer.newLine();
                 writer.write( serializer.formatAttribute( 
-                                  "xsl:noNamespaceSchemaLocation",
+                                  "xsi:noNamespaceSchemaLocation",
                                   "http://www.ivoa.net/xml/VOTable/VOTable/v"
                                   + votableVersion ) );
             }
