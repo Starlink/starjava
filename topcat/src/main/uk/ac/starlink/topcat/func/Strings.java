@@ -5,6 +5,7 @@
 
 package uk.ac.starlink.topcat.func;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -346,6 +347,29 @@ public class Strings {
      */
     public static String trim( String str ) {
         return str == null ? null : str.trim();
+    }
+
+    /**
+     * Takes an integer argument and returns a string representing the
+     * same numeric value but padded with leading zeros to a specified
+     * length.
+     *
+     * @example  <code>padWithZeros(23,5) = "00023"</code>
+     *
+     * @param  value  numeric value to pad
+     * @param  ndigit   the number of digits in the resulting string
+     * @return  a string evaluating to the same as <code>value</code> with
+     *          at least <code>ndigit</code> characters
+     */
+    public static String padWithZeros( long value, int ndigit ) {
+        String sval = Long.toString( value );
+        int sl = sval.length();
+        if ( sl < ndigit ) {
+            char[] cbuf = new char[ ndigit - sl ];
+            Arrays.fill( cbuf, '0' );
+            sval = new String( cbuf ) + sval;
+        }
+        return sval;
     }
 
     /**
