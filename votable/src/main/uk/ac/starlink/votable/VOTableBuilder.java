@@ -2,6 +2,7 @@ package uk.ac.starlink.votable;
 
 import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
+import java.util.regex.Pattern;
 import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -21,6 +22,9 @@ import uk.ac.starlink.util.SourceReader;
  */
 public class VOTableBuilder implements TableBuilder {
 
+    private static Pattern htmlPattern = 
+        Pattern.compile( "<x?html", Pattern.CASE_INSENSITIVE );
+
     /**
      * Makes a StarTable out of a DataSource which points to a VOTable.
      * If the source has a position attribute, it is currently 
@@ -35,6 +39,16 @@ public class VOTableBuilder implements TableBuilder {
      * @param  datsrc  the location of the VOTable document to use
      */
     public StarTable makeStarTable( DataSource datsrc ) throws IOException {
+
+        /* Check if the source looks like HTML.  If it does it is almost
+         * certainly not going to represent a valid VOTable, and trying
+         * to process it will be slow, since the parser may take some
+         * time to work out that it's not XML we are seeing.  
+         * In this case bail out. */
+        String sintro = new String( datsrc.getIntro() );
+        if ( htmlPattern.matcher( sintro ).lookingAt() ) {
+            return null;
+        }
 
         /* Try to get a VOTable object from this source. */
         VOTable votable;
