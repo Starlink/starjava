@@ -59,9 +59,9 @@ print <<'__EOT__';
             getAstConstantI( "JNIAST_RELEASE" ),
         };
         JNIAST_JAVA_VERSION = new int[] {
-            1,
-            8,
-            13,
+            2,
+            0,
+            4,
         };
 
         /* Check that the versions look consistent. */

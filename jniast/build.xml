@@ -81,7 +81,7 @@
   <!-- Note this version is the same as the required AST version. -->
   <property name="Name" value="JNIAST"/>
   <property name="name" value="jniast"/>
-  <property name="version" value="1.8-13"/>
+  <property name="version" value="2.0-4"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ast"/>
@@ -167,6 +167,7 @@
   <property name="src.perl" value="${src.dir}/perl"/>
   <property name="jdk" value="${java.home}/.."/>
   <property name="stardev" value="/stardev"/>
+  <property name="stardev.add" value="/stardev/local"/>
 
   <!-- Non-standard build file directories -->
   <property name="build.jni" value="${build.dir}/jni"/>
@@ -364,7 +365,6 @@
         <uptodate>
           <srcfiles dir="${basedir}">
             <include name="${build.ast}/grf.h"/>
-            <include name="${build.ast}/ast.h"/>
           </srcfiles>
           <mapper type="glob"
                   from="${build.ast}${file.separator}*"
@@ -454,6 +454,9 @@
      !   which should be stored in ${src.jni} along with the source
      !   code. Note some of these OS names seem to change from time to
      !   time and across JVMs, so beware. Clearly this is not portable.
+     !   Since the different OSs are detected and catered for here,
+     !   it would be possible to remove the mk step fairly easily and
+     !   make could be invoked directly from here, if preferred.
      !-->
 
     <!-- Local and installed versions of any shareable libraries that we
@@ -470,6 +473,8 @@
       <env key="SYSTEM" value="ix86_Linux"/>
       <env key="JAVA_SYSTEM" value="linux"/>
       <env key="STARLINK" value="${stardev}"/>
+      <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
+      <env key="ADDINCS" value="-I${stardev.add}/include"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
       <env key="TARGET_LIB" value="${dist.lib.arch}"/>
@@ -481,6 +486,8 @@
       <env key="SYSTEM" value="sun4_Solaris"/>
       <env key="JAVA_SYSTEM" value="solaris"/>
       <env key="STARLINK" value="${stardev}"/>
+      <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
+      <env key="ADDINCS" value="-I${stardev.add}/include"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
       <env key="TARGET_LIB" value="${dist.lib.arch}"/>
@@ -492,6 +499,8 @@
       <env key="SYSTEM" value="alpha_OSF1"/>
       <env key="JAVA_SYSTEM" value="alpha"/>
       <env key="STARLINK" value="${stardev}"/>
+      <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
+      <env key="ADDINCS" value="-I${stardev.add}/include"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
       <env key="TARGET_LIB" value="${dist.lib.arch}"/>
@@ -607,6 +616,18 @@
       <arg file="${src.perl}/SkyFrame.pl"/>
       <arg file="${build.ast}/skyframe.c"/>
     </exec>
+    <exec executable="${perl}" output="${build.java.pkg}/SpecFrame.java"
+          failonerror="yes">
+      <arg value="-I${src.perl}"/>
+      <arg file="${src.perl}/SpecFrame.pl"/>
+      <arg file="${build.ast}/specframe.c"/>
+    </exec>
+    <exec executable="${perl}" output="${build.java.pkg}/SpecMap.java"
+          failonerror="yes">
+      <arg value="-I${src.perl}"/>
+      <arg file="${src.perl}/SpecMap.pl"/>
+      <arg file="${build.ast}/specmap.c"/>
+    </exec>
     <exec executable="${perl}" output="${build.java.pkg}/SphMap.java"
           failonerror="yes">
       <arg value="-I${src.perl}"/>
@@ -663,8 +684,9 @@
 
     <copy todir="${build.jni}">
       <fileset dir="${src.jni}" includes="*.c *.h makefile mk ${link.script}"/>
-      <fileset dir="${build.ast}" includes="grf.h ast.h"/>
+      <fileset dir="${build.ast}" includes="grf.h"/>
     </copy>
+
     <chmod perm="ugo+rx">
       <fileset dir="${build.jni}" includes="mk ${link.script}"/>
     </chmod>
@@ -695,6 +717,8 @@
       <class name="${package.name}.Plot"/>
       <class name="${package.name}.SkyFrame"/>
       <class name="${package.name}.SlaMap"/>
+      <class name="${package.name}.SpecFrame"/>
+      <class name="${package.name}.SpecMap"/>
       <class name="${package.name}.SphMap"/>
       <class name="${package.name}.UnitMap"/>
       <class name="${package.name}.WcsMap"/>

@@ -636,6 +636,7 @@ my( @args );
    type => 'boolean',
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
@@ -645,6 +646,7 @@ makeSetAttrib( @args );
    type => 'int',
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
    
@@ -653,6 +655,7 @@ makeGetAttrib( @args );
    type => 'int',
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
    
@@ -661,6 +664,7 @@ makeGetAttrib( @args );
    type => 'boolean',
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
@@ -670,6 +674,7 @@ makeSetAttrib( @args );
    type => 'boolean',
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
    
@@ -678,6 +683,7 @@ makeGetAttrib( @args );
    type => 'boolean',
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
    

@@ -40,15 +40,6 @@ makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );
 
 @args = (
-   name => ( $aName = "epoch" ),
-   type => 'double',
-   purpose => AttPurpose( $aName ),
-   descrip => AttDescrip( $aName ),
-);
-makeGetAttrib( @args );
-makeSetAttrib( @args );
-
-@args = (
    name => ( $aName = "equinox" ),
    type => 'double',
    purpose => AttPurpose( $aName ),
@@ -84,15 +75,6 @@ makeSetAttrib( @args );
 
 @args = (
    name => ( $aName = "projection" ),
-   type => 'String',
-   purpose => AttPurpose( $aName ),
-   descrip => AttDescrip( $aName ),
-);
-makeGetAttrib( @args );
-makeSetAttrib( @args );
-
-@args = (
-   name => ( $aName = "system" ),
    type => 'String',
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),

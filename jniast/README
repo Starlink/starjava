@@ -1,10 +1,26 @@
 This is the JNI wrapper for the Starlink AST library.
 Its version numbers track the version numbers of AST (for versions >1.4);
-thus JNIAST V1.8-13 must be built against AST V1.8-13 or higher.
+thus JNIAST V2.0-4 must be built against AST V2.0-4 or higher.
 If it is not, the build may go ahead OK but the test should fail.
 
-Set the ADDLIBS environment variable to the location of the correct
-version of the AST library during build if it is not in the usual place.
+The location of the installed AST package and other supporting packages
+(in this case, just SLALIB) are given by the 'stardev' and 'stardev.add'
+properties which can be set, as usual in the build file or in your
+.stardev.properties file or on the command line.  These are used a bit
+the STARLINK and ADDLIBS environment variables in traditional 
+Starlink mk files; the stardev property should normally be set to 
+/star or /stardev (top of a normal starlink installation) and stardev.add
+may be set to the top of a tree in which selected preferred (presumably
+more recent) packages are installed (its default is /stardev/local).
+
+The components picked up from stardev.add and stardev (in that order of
+preference) are currently 
+   lib/libast*.a
+   lib/libsla.a
+   include/ast.h
+
+Note that the ast.h include file must match the libast*.a files or trouble
+may ensue.
 
 Partial change log:
 
@@ -37,5 +53,19 @@ Partial change log:
          an int as it should be.  This is a backwardly incompatible change.
 
       Attempted to report when the JNIAST and AST versions are not matching.
-         Doesn't work perfectly however since it is hard to ineterrogate
+         Doesn't work perfectly however since it is hard to interrogate
          the AST library at runtime about its version.
+
+17-MAR-2003:
+   Version 2.0-4:
+      Includes all the features of AST V2.0-4, the main ones being the 
+      new SpecFrame and SpecMap classes.
+
+      Modified the version checking and where the build picks up some files;
+      now controlled by the stardev and stardev.add properties defined in
+      the build file.
+
+      Some missing documentation was added: Class Applicability sections 
+      are now included for those attributes where non-trivial information
+      is contained therein.
+

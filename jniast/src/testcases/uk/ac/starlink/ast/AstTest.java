@@ -213,6 +213,13 @@ public class AstTest extends TestCase {
                 throw e;
             }
         }
+
+        // activeUnit
+        assertTrue( ! ff.getActiveUnit() );
+        ff.setActiveUnit( true );
+        assertTrue( ff.getActiveUnit() );
+        ff.setActiveUnit( false );
+        assertTrue( ! ff.getActiveUnit() );
     }
 
     public void testFrameSet() {
@@ -500,7 +507,7 @@ public class AstTest extends TestCase {
         int ast__air = WcsMap.AST__AIR;
         AstObject.getAstConstantD( "AST__BAD" );
 
-        assertEquals( "AST V2.0-4; JNIAST native V1.8-13; JNIAST java V1.8-13",
+        assertEquals( "AST V2.0-4; JNIAST native V2.0-4; JNIAST java V2.0-4",
                       AstObject.reportVersions() );
 
         String absentConstName = "ABSENT_CONSTANT";
@@ -518,6 +525,42 @@ public class AstTest extends TestCase {
         catch ( IllegalArgumentException e ) {
             assertTrue( e.getMessage().indexOf( absentConstName ) > 0 );
         }
+    }
+
+    public void testSpecMap() {
+        SpecMap smap = new SpecMap( 1, 0 );
+
+        // freq -> lambda
+        smap.specAdd( "FRtoWV", null );
+        double nu = 3e8;
+        double lambda = smap.tran1( 1, new double[] { nu }, true )[ 0 ];
+        assertEquals( 1.0, lambda, 0.01 );
+
+        // unit
+        smap.specAdd( "WVtoFR", new double[ 25 ] );
+        double a1 = 23.;
+        double a2 = smap.tran1( 1, new double[] { a1 }, true )[ 0 ];
+        assertEquals( a1, a2, 1e-8 );
+
+        // lambda -> freq
+        smap.specAdd( "FRtoWV", new double[ 0 ] );
+        double nu2 = smap.tran1( 1, new double[] { lambda }, true )[ 0 ];
+        assertEquals( nu, nu2, 1e-8 );
+    }
+
+    public void testSpecFrame() {
+        SpecFrame sf = new SpecFrame();
+        assertEquals( 1e5, sf.getRestFreq() );
+        sf.setRestFreq( "1 Hz" );
+        assertEquals( 1e-9, sf.getRestFreq() );
+
+        SkyFrame sky = new SkyFrame();
+        double lon = 0.5;
+        double lat = 1.23;
+        sf.setRefPos( sky, lon, lat );
+        double[] ll = sf.getRefPos( sky );
+        assertEquals( lon, ll[ 0 ] );
+        assertEquals( lat, ll[ 1 ] );
     }
 
     public void testException() {

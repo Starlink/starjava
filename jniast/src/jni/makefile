@@ -20,6 +20,10 @@ SOURCE_VARIANT = $(SYSTEM)
 
 STARLINK = /star
 
+#  Pathname of AST installation tree.
+
+STARLINK_AST = $(STARLINK)
+
 #  Pathnames of Starlink sub-directories that may be referenced when
 #  building this package.
 
@@ -93,6 +97,8 @@ C_ROUTINES = \
    Plot.c \
    SkyFrame.c \
    SlaMap.c \
+   SpecFrame.c \
+   SpecMap.c \
    SphMap.c \
    UnitMap.c \
    WcsMap.c \

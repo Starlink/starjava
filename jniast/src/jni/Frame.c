@@ -280,6 +280,20 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_Frame_format(
                                         : (*env)->NewStringUTF( env, result );
 }
 
+JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_Frame_getActiveUnit(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this          /* Instance object */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   int result;
+
+   /* Call the C function to do the work. */
+   ASTCALL(
+      result = astGetActiveUnit( pointer.Frame );
+   )
+   return result ? JNI_TRUE : JNI_FALSE;
+}
+
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_norm(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */
@@ -525,6 +539,23 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_resolve(
       )
    }
    return jD;
+}
+
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_setActiveUnit(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jboolean jvalue       /* New flag value */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   int value;
+
+   /* Turn the jboolean into an int. */
+   value = ( jvalue != JNI_FALSE ) ? 1 : 0;
+
+   /* Call the C function to do the work. */
+   ASTCALL(
+      astSetActiveUnit( pointer.Frame, value );
+   )
 }
 
 JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_unformat(

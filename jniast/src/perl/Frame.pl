@@ -213,6 +213,14 @@ makeNativeMethod(
 );
 
 makeNativeMethod(
+   name => ( $fName = "getActiveUnit" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'boolean', descrip => ReturnDescrip( $fName ), },
+   params => [],
+);
+
+makeNativeMethod(
    name => ( $fName = "norm" ),
    purpose => FuncPurpose( $fName ),
    descrip => FuncDescrip( $fName ),
@@ -339,6 +347,18 @@ makeNativeMethod(
    ],
 );
    
+makeNativeMethod(
+   name => ( $fName = "setActiveUnit" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'void' },
+   params => [
+      {
+         type => 'boolean', name => ( $aName = "value" ),
+         descrip => ArgDescrip( $fName, $aName ),
+      }
+   ],
+);
 
 makeNativeMethod(
    name => ( $fName = "unformat" ),
@@ -361,10 +381,21 @@ makeNativeMethod(
 my( @args );
 
 @args = (
+   name => ( $aName = "alignSystem" ),
+   type => "String",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
    name => ( $aName = "bottom" ),
    type => "double",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );
@@ -374,6 +405,7 @@ makeSetAttribByAxis( @args );
    type => "int",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
@@ -385,6 +417,7 @@ makeSetAttribByAxis( @args );
    type => "boolean",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );
@@ -394,6 +427,17 @@ makeSetAttribByAxis( @args );
    type => "String",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "epoch" ),
+   type => 'double',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
@@ -403,6 +447,7 @@ makeSetAttrib( @args );
    type => "String",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );
@@ -412,6 +457,7 @@ makeSetAttribByAxis( @args );
    type => "String",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );
@@ -421,6 +467,7 @@ makeSetAttribByAxis( @args );
    type => "boolean",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
@@ -430,6 +477,7 @@ makeSetAttrib( @args );
    type => "int",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
@@ -439,6 +487,7 @@ makeSetAttrib( @args );
    type => "int",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
@@ -448,6 +497,7 @@ makeSetAttrib( @args );
    type => "int",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
 
@@ -456,6 +506,7 @@ makeGetAttrib( @args );
    type => "boolean",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
@@ -474,15 +525,27 @@ makeSetAttrib( @args );
    type => "String",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );
+
+@args = (
+   name => ( $aName = "system" ),
+   type => 'String',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
 
 @args = (
    name => ( $aName = "title" ),
    type => "String",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
@@ -492,6 +555,7 @@ makeSetAttrib( @args );
    type => "double",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );
@@ -501,6 +565,7 @@ makeSetAttribByAxis( @args );
    type => "String",
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
 );
 makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );

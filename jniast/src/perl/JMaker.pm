@@ -205,11 +205,16 @@ sub makeSetAttrib {
    my( $name ) = $args{ 'name' };
    my( $purpose ) = $args{ 'purpose' };
    my( $descrip ) = $args{ 'descrip' };
+   my( $applic ) = $args{ 'applic' } 
+                 ? "<h4>Class Applicability</h4>\n" . $args{ 'applic' }
+                 : "";
    my( $extra ) = $args{ 'extra' } || "";
 
    my( $Name ) = capFirst( $name );
    my( $startText ) = jdocize( deSentence( $purpose ) || "$Name attribute" );
-   my( $moreText ) = jdocize( $descrip ) . jdocize( $extra );
+   my( $moreText ) = jdocize( $descrip ) 
+                   . jdocize( $applic )
+                   . jdocize( $extra );
    my( $setMethod ) = "set" . $typeLetters{ $type };
 
    print <<"__EOT__";
@@ -231,11 +236,16 @@ sub makeGetAttrib {
    my( $name ) = $args{ 'name' };
    my( $purpose ) = $args{ 'purpose' };
    my( $descrip ) = $args{ 'descrip' };
+   my( $applic ) = $args{ 'applic' } 
+                 ? "<h4>Class Applicability</h4>\n" . $args{ 'applic' }
+                 : "";
    my( $extra ) = $args{ 'extra' } || "";
 
    my( $Name ) = capFirst( $name );
    my( $startText ) = jdocize( deSentence( $purpose ) || "$Name attribute" );
-   my( $moreText ) = jdocize( $descrip ) . jdocize( $extra );
+   my( $moreText ) = jdocize( $descrip ) 
+                   . jdocize( $applic )
+                   . jdocize( $extra );
    my( $getMethod ) = "get" . $typeLetters{ $type };
 
    print <<"__EOT__";
@@ -257,11 +267,16 @@ sub makeSetAttribByAxis {
    my( $name ) = $args{ 'name' };
    my( $purpose ) = $args{ 'purpose' };
    my( $descrip ) = $args{ 'descrip' };
+   my( $applic ) = $args{ 'applic' } 
+                 ? "<h4>Class Applicability</h4>\n" . $args{ 'applic' }
+                 : "";
    my( $extra ) = $args{ 'extra' } || "";
 
    my( $Name ) = capFirst( $name );
    my( $startText ) = jdocize( deSentence( $purpose ) || "$Name attribute" );
-   my( $moreText ) = jdocize( $descrip ) . jdocize( $extra );
+   my( $moreText ) = jdocize( $descrip ) 
+                   . jdocize( $applic )
+                   . jdocize( $extra );
    my( $setMethod ) = "set" . $typeLetters{ $type };
 
    print << "__EOT__";
@@ -296,11 +311,16 @@ sub makeGetAttribByAxis {
    my( $name ) = $args{ 'name' };
    my( $purpose ) = $args{ 'purpose' };
    my( $descrip ) = $args{ 'descrip' };
+   my( $applic ) = $args{ 'applic' } 
+                 ? "<h4>Class Applicability</h4>\n" . $args{ 'applic' }
+                 : "";
    my( $extra ) = $args{ 'extra' } || "";
 
    my( $Name ) = capFirst( $name );
    my( $startText ) = jdocize( deSentence( $purpose ) || "$Name attribute" );
-   my( $moreText ) = jdocize( $descrip ) . jdocize( $extra );
+   my( $moreText ) = jdocize( $descrip ) 
+                   . jdocize( $applic )
+                   . jdocize( $extra );
    my( $getMethod ) = "get" . $typeLetters{ $type };
 
    print << "__EOT__";

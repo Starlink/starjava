@@ -46,6 +46,7 @@ use Exporter;
    ReturnDescrip
    AttPurpose
    AttDescrip
+   AttApplic
 );
 
 use strict;
@@ -58,6 +59,7 @@ my %argDescrip = ();
 my %returnDescrip = ();
 my %attPurpose = ();
 my %attDescrip = ();
+my %attApplic = ();
 
 
 my $chr1Use_rx = '[c\*]';
@@ -113,6 +115,11 @@ sub AttDescrip {
    return $attDescrip{ $name };
 }
 
+sub AttApplic {
+   my( $name ) = namify( shift );
+   return $attApplic{ $name };
+}
+
 
 #  Get the name of the source file we need.
 my( $srcname ) = $ARGV[ 0 ] or die( "Usage: $0 sourcefile\n" );
@@ -140,6 +147,7 @@ while ( $fileText =~ /\n\*att\+\+ *\n(.*?)\*att\-\- *\n/gs ) {
    my( $attName ) = namify( getName( $attPrologue ) );
    $attPurpose{ $attName } = getPurpose( $attPrologue );
    $attDescrip{ $attName } = getDescrip( $attPrologue );
+   $attApplic{ $attName } = getApplic( $attPrologue );
 }
 
 while ( $fileText =~ /\n\*\+\+ *\n(.*?)\*\-\- *\n/gs ) {
@@ -200,8 +208,13 @@ sub getDescrip {
    return $descrip;
 }
 
-
-
+sub getApplic {
+   my( $applic ) = getStanza( $_[ 0 ], "Applicability" );
+   $applic = strip( 6, $applic );
+   $applic = "<dl>\n" . $applic . "\n</dl>\n";
+   $applic =~ s%^([A-Z][A-Za-z]+) *$%<dt>$1</dt><dd>%mg;
+   return $applic;
+}
 
 sub getReturn {
    my( $return ) = getStanza( $_[ 0 ], "Return" );
