@@ -47,35 +47,43 @@ import uk.ac.starlink.splat.util.Utilities;
 public class AboutFrame extends JDialog
     implements ActionListener
 {
-    // XXX Serious hack, use an image in attempt to avoid partial
-    // redraws for V2 release. Please fix!!!!
+    //  XXX this doesn't draw correctly as a SPLASH screen XXX
+    //  Tried using a single image, but that doesn't work either.
 
     protected JButton okButton = new JButton();
-    //protected static ImageIcon splatImage =
-    //    new ImageIcon( ImageHolder.class.getResource( "hsplat.gif" ) );
     protected static ImageIcon splatImage =
-        new ImageIcon( ImageHolder.class.getResource( "splash.gif" ) );
+        new ImageIcon( ImageHolder.class.getResource( "hsplat.gif" ) );
+    protected static ImageIcon starlinkImage =
+        new ImageIcon( ImageHolder.class.getResource( "starlink_logo_small.gif" ) );
 
-//     protected String description =
-//         "<body> <html>" +
-//            "<h2 align=center> <font color=red>" +
-//               Utilities.getFullDescription() +
-//            "</font></h2>" +
-//         "</html></body>";
+    protected String description =
+        "<body> <html>" +
+        "<h2 align=center> <font color=red>" +
+        Utilities.getFullDescription() +
+        "</font></h2>" +
+        "</html></body>";
 
-//     protected String subdescription =
-//         "<body> <html>" +
-//            "<p align=center>Version: " +
-//               Utilities.getReleaseVersion() +
-//            "<br><br>" +
-//               Utilities.getCopyright() +
-//            "<br><br> Authors:<i> " +
-//               Utilities.getAuthors() +
-//            "</i>" +
-//            "<br><br> Licensing:<i> " +
-//               Utilities.getLicense() +
-//            "</i></p>" +
-//         "</html></body>";
+    protected String subdescription =
+        "<body> <html>" +
+        "<h5 align=center>Version: " +
+        Utilities.getReleaseVersion() +
+        "</h5>" + 
+        "<h5 align=center>" +
+        Utilities.getCopyright() +
+        "</h5>" + 
+        "<h5 align=center>Authors:<i> " +
+        Utilities.getAuthors() +
+        "</i></h5>" +
+        "<h5 align=center>Licensing:<i> " +
+        Utilities.getLicense() +
+        "</i></h5>" +
+        "<h5 align=center>Home page:<i> " +
+        Utilities.getSupportURL() +
+        "</i></h5>" +
+        "<h5 align=center>Bugs:<i> " +
+        Utilities.getSupportEmail() +
+        "</i></h5>" + 
+        "</html></body>";
 
     /**
      * Create an instance. Use the getAction() method not this.
@@ -88,7 +96,7 @@ public class AboutFrame extends JDialog
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
             initUI();
-            setSize( new Dimension( 450, 300 ) );
+            setSize( new Dimension( 550, 300 ) );
         }
         catch( Exception e ) {
             e.printStackTrace();
@@ -107,41 +115,44 @@ public class AboutFrame extends JDialog
         mainPane.setLayout( new BorderLayout() );
         mainPane.setBorder( BorderFactory.createEtchedBorder() );
 
-//         JPanel topPanel = new JPanel();
-//         JEditorPane htmlArea = new JEditorPane();
-//         JEditorPane subHtmlArea = new JEditorPane();
+        JPanel topPanel = new JPanel();
+        JEditorPane htmlArea = new JEditorPane();
+        JEditorPane subHtmlArea = new JEditorPane();
 
-        // Wait for image to load, the first time...
+        // Wait for images to load, the first time...
         MediaTracker mt = new MediaTracker( this );
         mt.addImage( splatImage.getImage(), 0 );
+        mt.addImage( starlinkImage.getImage(), 0 );
         try {
             mt.waitForAll();
-        } 
+        }
         catch ( Exception e ) {
             // Do nothing.
         }
-        JLabel image = new JLabel();
+        JLabel image1 = new JLabel();
+        JLabel image2 = new JLabel();
 
-//         htmlArea.setContentType( "text/html" );
-//         htmlArea.setBackground( image.getBackground() );
-//         htmlArea.setText( description );
-//         htmlArea.setEditable( false );
+        htmlArea.setContentType( "text/html" );
+        htmlArea.setBackground( image1.getBackground() );
+        htmlArea.setText( description );
+        htmlArea.setEditable( false );
 
-//         subHtmlArea.setContentType( "text/html" );
-//         subHtmlArea.setBackground( image.getBackground() );
-//         subHtmlArea.setText( subdescription );
-//         subHtmlArea.setEditable( false );
+        subHtmlArea.setContentType( "text/html" );
+        subHtmlArea.setBackground( image1.getBackground() );
+        subHtmlArea.setText( subdescription );
+        subHtmlArea.setEditable( false );
 
-        image.setIcon( splatImage );
-//         topPanel.add( image );
-//         topPanel.add( htmlArea );
+        image1.setIcon( splatImage );
+        image2.setIcon( starlinkImage );
+        topPanel.add( image1 );
+        topPanel.add( htmlArea );
+        topPanel.add( image2 );
 
         okButton.setText( "OK" );
         okButton.addActionListener( this );
 
-//         mainPane.add( topPanel, BorderLayout.NORTH );
-//         mainPane.add( subHtmlArea, BorderLayout.CENTER );
-        mainPane.add( image, BorderLayout.NORTH );
+        mainPane.add( topPanel, BorderLayout.NORTH );
+        mainPane.add( subHtmlArea, BorderLayout.CENTER );
 
         JPanel southPane = new JPanel();
         mainPane.add( southPane, BorderLayout.SOUTH );
