@@ -23,7 +23,7 @@ the main browser window.
 <p>The Synthetic Column dialogue asks you to enter the following 
 pieces of information for the new column you will create:
 <dl>
-<dt>Column Name
+<dt>Name
 <dd>The name of the new column.  This should preferably be unique 
     (different from all the other column names).  It will be easier to
     use it in other expressions if it also
@@ -35,13 +35,13 @@ pieces of information for the new column you will create:
     <li>Not too long
     </ul>
 
-<dt>Column Units
+<dt>Units
 <dd>The units of the column.  If the quantity it represents is dimensionless
     or you don't know the units, this can be left blank.  It would be
     a good idea to use a similar format for the units to that used for
     the existing columns in the table.
 
-<dt>Column Description
+<dt>Description
 <dd>A short textual description of what the values contained by this 
     column are.  May be left blank.
 
@@ -54,10 +54,26 @@ pieces of information for the new column you will create:
     by the names or $ID identifiers of those columns.
     The rules are explained in the 
     <a href="jel.html">Expression Syntax</a> section.
+    If the expression you enter doesn't make sense you will be shown
+    an error trace and asked to re-enter the expression.
+
+<dt>UCD
+<dd>A <a href="http://vizier.u-strasbg.fr/doc/UCD.htx">Unified 
+    Content Descriptor</a> for the column; a UCD is a semantic label
+    attached to the column indicating what kind of quantity it contains
+    by picking one option from a list defined by the 
+    <a href="http://cdsweb.u-strasbg.fr/">CDS</a>.
+    The list of known UCDs is available via a selection box, or you 
+    can type a UCD in by hand.  You may leave this blank if the you do not
+    wish to assign a UCD to the column. 
+    A brief description of the UCD selected is visible near the
+    selection box itself.
+
+<dt>Index
+<dd>Determines the position in the displayed table at which the new
+    column will initially appear.
 </dl>
 
-<p>If the expression you enter doesn't make sense you will be shown
-an error trace and asked to re-enter the expression.
 
 <p>If you wish to add more metadata items you can edit the appropriate
 cells in the Column Metadata Window grid (<em>though not all such

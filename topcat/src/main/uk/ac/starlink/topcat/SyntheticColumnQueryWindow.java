@@ -8,6 +8,7 @@ import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
+import uk.ac.starlink.table.gui.UCDSelector;
 import uk.ac.starlink.util.ErrorDialog;
 
 /**
@@ -24,6 +25,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
     private JTextField unitField;
     private JTextField descriptionField;
     private JTextField expressionField;
+    private UCDSelector ucdField;
     private ColumnIndexSpinner indexSpinner;
 
     /**
@@ -60,6 +62,10 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         /* Expression field. */
         expressionField = new JTextField( 24 );
         stack.addLine( "Expression", expressionField );
+
+        /* UCD field. */
+        ucdField = new UCDSelector();
+        stack.addLine( "UCD", ucdField );
 
         /* Index field. */
         indexSpinner = new ColumnIndexSpinner( columnModel );
@@ -129,6 +135,15 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
     }
 
     /**
+     * Returns the string that the user has chosen for the UCD field.
+     *
+     * @return  UCD identifier
+     */
+    public String getUCD() {
+        return ucdField.getID();
+    }
+
+    /**
      * Sets the index at which the new column should be inserted.
      *
      * @return  index
@@ -142,10 +157,14 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         String desc = getDescription();
         String unit = getUnit();
         String expr = getExpression();
+        String ucd = getUCD();
         int index = getIndex();
         DefaultValueInfo info = new DefaultValueInfo( name );
         if ( desc != null ) {
             info.setDescription( desc );
+        }
+        if ( ucd != null ) {
+            info.setUCD( ucd );
         }
         if ( info != null ) {
             info.setUnitString( unit );
