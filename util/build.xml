@@ -24,6 +24,7 @@
  !      jars             -> creates the package jar file
  !      javadocs         -> creates the API documentation
  !      javadoc-sources  -> does nothing
+ !      iutest           -> run up any user interface tests
  !!
  !! test targets yet to be done.
  !!
@@ -332,6 +333,14 @@
       <exclude name="**/NdxDomImpl.java"/>
       <exclude name="**/README*"/>
     </javac>
+
+    <!-- Copy extra files that should live with packages classes
+     !   (i.e. are discovered using "getResource()"). -->
+    <copy todir="${build.classes}">
+      <fileset dir="${java.dir}">
+        <include name="**/images/*"/>
+      </fileset>
+    </copy>
 
   </target>
 
@@ -890,7 +899,22 @@
     </junit>
   </target>
 
+  <!--
+   !  =====================
+   !  Run non-JUnit UI test
+   !  =====================
+   ! 
+   ! Use this to test interaction with a UI.
+   !-->
+  <target name="uitest"
+          depends="compile-tests"
+          description="Run up UIs for testing">
 
+    <java classname="TestProxySetupFrame" fork="true">
+      <classpath refid="tests-classpath"/>
+    </java>
+
+  </target>
 
   <!--
    ! Get a DTD for this build file. Documentation suggests may be incomplete!
