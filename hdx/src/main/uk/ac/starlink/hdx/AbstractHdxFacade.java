@@ -18,6 +18,9 @@ import uk.ac.starlink.util.URLUtils;
  * corresponding <code>getDOM</code> method, which is in turn
  * implemented using <code>synchronizeElement</code>.
  *
+ * <p>XXX <code>getDOM</code> method is almost certainly disappearing!
+ * Thus these class comments need a rewrite.
+ *
  * <p>As noted here, this abstract class implements
  * <code>getSource</code> in terms of <code>getDOM</code>, because
  * this is more often useful than the other way around.  Recall,
@@ -46,54 +49,70 @@ public abstract class AbstractHdxFacade implements HdxFacade {
     private Document dom;
 
     /**
-     * Produces a DOM representing this object, by creating a new top
-     * element, and calling <code>synchronizeElement</code> to acquire
-     * children which match the current state of the element.
+     * Produces a DOM representing this object, by creating a new
+     * <code>HdxContainer</code> and then extracting the first child,
+     * which is a DOM representation of this object.
+     * @throws HdxException if it cannot get the
+     * <code>HdxFactory</code> (which should mean, never)
      */
-    public Element getDOM(URI base) {
-        Element de;
-        if (dom == null) {
-            String elementname = getHdxResourceType().xmlName();
-            dom = HdxDOMImplementation
-                    .getInstance()
-                    .createDocument(null, elementname, null);
-            de = dom.createElement(elementname);
-            dom.appendChild(de);
-        } else {
-            de = dom.getDocumentElement();
-        }
-        try {
-            synchronizeElement(de, null);
-        } catch (HdxException e) {
-            // This is a can't happen error -- so ...
-            throw new PluginException
-                    ( "unable to synchronize Elements: " + e );
-        }
+    private Element getDOM(URI base) 
+            throws HdxException {
+        HdxContainer hdx = HdxFactory.getInstance().newHdxContainer(this);
+        Element thisElement = (Element)hdx.getDOM(null).getFirstChild();
+        assert HdxResourceType.match(thisElement) == getHdxResourceType();
         
         if (base == null)
-            return de;
+            return thisElement;
         else
-            // clone de, and return a relativized version of it
+            // clone thisElement, and return a relativized version of it
             return (Element)uk.ac.starlink.util.DOMUtils.relativizeDOM
-                    (de.cloneNode(true), base, null);
+                    (thisElement.cloneNode(true), base, null);
     }
-    
-//     public Element getDOM(URL base) {
-//         return getDOM(base == null ? null : URLUtils.urlToUri(base));
-//     }
 
+//     /**
+//      * Produces a DOM representing this object, by creating a new top
+//      * element, and calling <code>synchronizeElement</code> to acquire
+//      * children which match the current state of the element.
+//      */
+//     public Element getDOM(URI base) {
+//         Element de;
+//         if (dom == null) {
+//             String elementname = getHdxResourceType().xmlName();
+//             dom = HdxDOMImplementation
+//                     .getInstance()
+//                     .createDocument(null, elementname, null);
+//             de = dom.createElement(elementname);
+//             dom.appendChild(de);
+//         } else {
+//             de = dom.getDocumentElement();
+//         }
+//         try {
+//             synchronizeElement(de, null);
+//         } catch (HdxException e) {
+//             // This is a can't happen error -- so ...
+//             throw new PluginException
+//                     ( "unable to synchronize Elements: " + e );
+//         }
+        
+//         if (base == null)
+//             return de;
+//         else
+//             // clone de, and return a relativized version of it
+//             return (Element)uk.ac.starlink.util.DOMUtils.relativizeDOM
+//                     (de.cloneNode(true), base, null);
+//     }
+    
     /**
      * Produces a Source representing this object.
+     * @throws HdxException if the <code>Source</code> cannot be
+     * generated for some reason
      */
-    public Source getSource(URI base) {
+    public Source getSource(URI base) 
+            throws HdxException {
         return (base != null)
                 ? new DOMSource(getDOM(base), base.toString())
                 : new DOMSource(getDOM(base));
     }
-
-//     public Source getSource(URL base) {
-//         return getSource(URLUtils.urlToUri(base));
-//     }
 
     /**
      * Adds a new child to an element.
