@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.DoubleBuffer;
-import java.util.Arrays;
 import uk.ac.starlink.util.TestCase;
 
 public class HDSObjectTest extends TestCase {
@@ -261,7 +260,7 @@ public class HDSObjectTest extends TestCase {
         svdat1[ svdat1.length - 1 ] = "no";
         wcsArray.datPutvc( svdat1 );
         String[] svdat2 = wcsArray.datGetvc();
-        assertTrue( ! Arrays.equals( svdat, svdat2 ) );
+        assertArrayNotEquals( svdat, svdat2 );
         assertArrayEquals( svdat1, svdat2 );
         wcsArray.datPutvc( svdat );  // restore it
 
@@ -289,17 +288,17 @@ public class HDSObjectTest extends TestCase {
 
         dataArray.datPutvd( dvdat1 );
         double[] dvdat2 = dataArray.datGetvd();
-        assertTrue( ! Arrays.equals( dvdat, dvdat2 ) );
+        assertArrayNotEquals( dvdat, dvdat2 );
         assertArrayEquals( dvdat1, dvdat2 );
 
         dataArray.datPutvr( fvdat1 );
         float[] fvdat2 = dataArray.datGetvr();
-        assertTrue( ! Arrays.equals( fvdat, fvdat2 ) );
+        assertArrayNotEquals( fvdat, fvdat2 );
         assertArrayEquals( fvdat1, fvdat2 );
 
         dataArray.datPutvi( ivdat1 );
         int[] ivdat2 = dataArray.datGetvi();
-        assertTrue( ! Arrays.equals( ivdat, ivdat2 ) );
+        assertArrayNotEquals( ivdat, ivdat2 );
         assertArrayEquals( ivdat1, ivdat2 );
 
         dataArray.datPutvd( dvdat );  // restore it.
