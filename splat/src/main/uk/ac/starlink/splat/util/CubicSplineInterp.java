@@ -1,0 +1,127 @@
+/*
+ * Some parts:
+ *
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     12-NOV-2003 (Peter W. Draper):
+ *       Original version.
+ */
+
+package uk.ac.starlink.splat.util;
+
+/**
+ *   Interpolate values using a natural cubic spline.
+ *
+ * @author Peter W. Draper
+ * @version $Id$
+ */
+public class CubicSplineInterp
+    extends Interpolator
+{
+    // Spline coefficients
+    private double[] c = null;
+
+    /**
+     * Create an instance with the given coordinates and values.
+     * Interpolation is by coordinate producing a new value using the
+     * {@link interpolate} method. The coordinates should be
+     * monotonic, either increasing or decreasing. Same value
+     * coordinates are not allowed.
+     *
+     * @param x the coordinates to be interpolated.
+     * @param y the values of the coordinates.
+     */
+    public CubicSplineInterp( double[] x, double[] y )
+    {
+        super( x, y );
+    }
+
+    public void setValues( double[] x, double[] y )
+    {
+        // See which way the coordinates increase. If not increasing
+        // we need to create an inverted list.
+        if ( x[1] < x[0] ) {
+            decr = true;
+            this.x = new double[x.length];
+            for ( int i = 0; i < x.length; i++ ) {
+                this.x[i] = -x[i];
+            }
+        }
+        else {
+            decr = false;
+            this.x = x;
+        }
+        this.y = y;
+
+        c = new double[x.length+1];
+        evalCoeffs();
+    }
+
+    /**
+     * Evaluate the coefficients for each position.
+     */
+    private void evalCoeffs()
+    {
+	int i, k;
+	double ip, s, dx1, i_dx2;
+
+	/* Assumes that n >= 4 and x is monotonically increasing */
+        int n = x.length;
+        double[] u = new double[n];
+
+	c[1] = c[n] = u[1] = 0.0;
+	for (i = 1; i < n-1; i++) {
+            i_dx2 = 1.0 / (x[i+1] - x[i-1]);
+            dx1 = x[i] - x[i-1];
+            s = dx1 * i_dx2;
+            ip = 1.0 / (s * c[i-1] + 2.0);
+            c[i] = (s - 1.0) * ip;
+            u[i] = (y[i+1] - y[i]) / (x[i+1] - x[i]) - (y[i] - y[i-1]) / dx1;
+            u[i] = (6.0 * u[i] * i_dx2 - s * u[i-1]) * ip;
+	}
+	for (k = n-2; k >= 0; k--) {
+            c[k] = c[k] * c[k+1] + u[k];
+        }
+	return;
+    }
+
+    public double interpolate( double xp )
+    {
+        //  Locate the position of xp.
+        if ( decr ) xp = -xp;
+        int[] bounds = binarySearch( x, xp );
+        int klo = bounds[0];
+        int khi = bounds[1];
+        if ( khi == klo ) {
+            klo = khi - 1;
+        }
+	double h, ih, b, a, yp;
+
+	h = x[khi] - x[klo];
+	ih = 1.0 / h;
+	a = (x[khi] - xp) * ih;
+	b = (xp - x[klo]) * ih;
+	yp = a * y[klo] + b * y[khi] + 
+            ((a*a*a - a) * c[klo] + (b*b*b - b) * c[khi]) * (h*h) / 6.0;
+	return yp;
+    }
+
+    /** Simple test entry point */
+    public static void main( String[] args )
+    {
+        double[] x = new double[10];
+        double[] y = new double[10];
+
+        for ( int i = 0; i < 10; i++ ) {
+            x[i] = i + 1;
+            y[i] = Math.sin( i + 1 );
+        }
+        CubicSplineInterp si = new CubicSplineInterp( x, y );
+
+        for ( int i = 0; i < 10; i++ ) {
+            double value = si.interpolate( i + 1.25 );
+            System.out.println( value );
+        }
+    }
+}

@@ -8,7 +8,7 @@
 package uk.ac.starlink.splat.util;
 
 /**
- * Provides various sorting facilities used in SPLAT.
+ * Provides various sorting and searching facilities used in SPLAT.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -167,5 +167,74 @@ public final class Sort
         int t = ia[i];
         ia[i] = ia[j];
         ia[j] = t;
+    }
+
+
+    /**
+     * Return two indices of the values in an array that lie above and
+     * below a given value. If the value doesn't lie within the range
+     * the two indices are returned as the nearest end point. The
+     * array of values must be increasing or decreasing
+     * monotonically.
+     *
+     * @param array the array of values to be searched
+     * @param value the value to be located
+     */
+    public static int[] binarySearch( double[] array, double value )
+    {
+        int bounds[] = new int[2];
+        int low = 0;
+        int high = array.length - 1;
+        boolean increases = ( array[low] < array[high] );
+
+        // Check off scale.
+        if ( ( increases && value < array[low] ) ||
+             ( ! increases && value > array[low] ) ) {
+            high = low;
+        }
+        else if ( ( increases && value > array[high] ) ||
+                  ( ! increases && value < array[high] ) ) {
+            low = high;
+        }
+        else {
+            //  Use a binary search as values should be sorted to increase
+            //  in either direction (wavelength, pixel coordinates etc.).
+            int mid = 0;
+            if ( increases ) {
+                while ( low < high - 1 ) {
+                    mid = ( low + high ) / 2;
+                    if ( value < array[mid] ) {
+                        high = mid;
+                    }
+                    else if ( value > array[mid] ) {
+                        low = mid;
+                    }
+                    else {
+                        // Exact match.
+                        low = high = mid;
+                        break;
+                    }
+                }
+            }
+            else {
+                while ( low < high - 1 ) {
+                    mid = ( low + high ) / 2;
+                    if ( value > array[mid] ) {
+                        high = mid;
+                    }
+                    else if ( value < array[mid] ) {
+                        low = mid;
+                    }
+                    else {
+                        // Exact match.
+                        low = high = mid;
+                        break;
+                    }
+                }
+            }
+        }
+        bounds[0] = low;
+        bounds[1] = high;
+        return bounds;
     }
 }
