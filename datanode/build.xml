@@ -559,11 +559,12 @@
     </jar>
 
     <!-- Sign all jar files -->
-    <signjar jar="${dist.lib.pkg}/${name}.jar"
-             alias="${webstart.alias}"
+    <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}"/>
+             storepass="${webstart.storepass}">
+       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+    </signjar>
 
   </target>
 
@@ -600,6 +601,21 @@
          <!-- Define the main library jar file -->
          <jar href="${name}/${name}.jar"/>
 
+         <!-- And dependencies -->
+         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"
+                                    excludes="${name}/${name}.jar"/>
+         <extension name="UTIL" href="util.jnlp"/>
+         <extension name="ARRAY" href="array.jnlp"/>
+         <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
+         <extension name="JNIAST" href="jniast.jnlp"/>
+         <extension name="TAMFITS" href="tamfits.jnlp"/>
+         <extension name="FITS" href="fits.jnlp"/>
+         <extension name="JNIHDS" href="jnihds.jnlp"/>
+         <extension name="HDS" href="hds.jnlp"/>
+         <extension name="NDX" href="ndx.jnlp"/>
+         <extension name="VOTABLE" href="votable.jnlp"/>
+         <extension name="ASTROGRID" href="astrogrid.jnlp"/>
+         <extension name="AGLIB" href="aglib.jnlp"/>
        </resources>
 
        <!-- This is a component -->
