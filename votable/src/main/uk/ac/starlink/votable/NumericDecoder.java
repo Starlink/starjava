@@ -143,7 +143,7 @@ abstract class NumericDecoder extends Decoder {
     static short parseShort( String txt ) {
         int pos = 0;
         int leng = txt.length();
-        while ( txt.charAt( pos ) == ' ' ) {
+        while ( pos < leng && txt.charAt( pos ) == ' ' ) {
             pos++;
         }
         if ( leng - pos > 1 ) {
@@ -165,7 +165,7 @@ abstract class NumericDecoder extends Decoder {
     static int parseInt( String txt ) {
         int pos = 0;
         int leng = txt.length();
-        while ( txt.charAt( pos ) == ' ' ) {
+        while ( pos < leng && txt.charAt( pos ) == ' ' ) {
             pos++;
         }
         if ( leng - pos > 1 ) {
@@ -187,7 +187,7 @@ abstract class NumericDecoder extends Decoder {
     static long parseLong( String txt ) {
         int pos = 0;
         int leng = txt.length();
-        while ( txt.charAt( pos ) == ' ' ) {
+        while ( pos < leng && txt.charAt( pos ) == ' ' ) {
             pos++;
         }
         if ( leng - pos > 1 ) {
@@ -209,10 +209,13 @@ abstract class NumericDecoder extends Decoder {
     static float parseFloat( String txt ) {
         int pos = 0;
         int leng = txt.length();
-        while ( txt.charAt( pos ) == ' ' ) {
+        while ( pos < leng && txt.charAt( pos ) == ' ' ) {
             pos++;
         }
-        if ( leng - pos > 1 ) {
+        if ( leng - pos == 0 ) {
+            return Float.NaN;
+        }
+        else if ( leng - pos > 1 ) {
             if ( txt.charAt( pos + 1 ) == 'I' &&
                  txt.indexOf( "Inf" ) == 1 ) {
                 return txt.charAt( pos ) == '-' ? Float.NEGATIVE_INFINITY
@@ -232,10 +235,13 @@ abstract class NumericDecoder extends Decoder {
     static double parseDouble( String txt ) {
         int pos = 0;
         int leng = txt.length();
-        while ( txt.charAt( pos ) == ' ' ) {
+        while ( pos < leng && txt.charAt( pos ) == ' ' ) {
             pos++;
         }
-        if ( leng - pos > 1 ) {
+        if ( leng - pos == 0 ) {
+            return Double.NaN;
+        }
+        else if ( leng - pos > 1 ) {
             if ( txt.charAt( pos + 1 ) == 'I' &&
                  txt.indexOf( "Inf" ) == 1 ) {
                 return txt.charAt( pos ) == '-' ? Double.NEGATIVE_INFINITY

@@ -53,7 +53,8 @@ class BitDecoder extends NumericDecoder {
     }
 
     void decodeString1( Object array, int index, String txt ) {
-        ((boolean[]) array)[ index ] = txt.charAt( 0 ) == '1';
+        ((boolean[]) array)[ index ] = txt.length() > 0
+                                    && txt.charAt( 0 ) == '1';
     }
 }
 
