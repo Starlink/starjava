@@ -74,7 +74,7 @@
     <p><xsl:apply-templates/></p>
   </xsl:template>
 
-  <xsl:template match="dd/p[count(.)=1]">
+  <xsl:template match="dd/p[position()=1]">
     <xsl:apply-templates/>
   </xsl:template>
 
@@ -82,6 +82,12 @@
     <xsl:copy>
       <xsl:apply-templates/>
     </xsl:copy>
+  </xsl:template>
+
+  <xsl:template match="m">
+    <i>
+      <xsl:apply-templates/>
+    </i>
   </xsl:template>
 
   <xsl:template match="label">
