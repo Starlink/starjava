@@ -26,6 +26,8 @@
 #        Adapted for JNIAST.
 #     26-NOV-2002 (MBT):
 #        Now strips leading -L from ADDLIBS elements.
+#     26-AUG-2004 (MBT):
+#        Use LIBADD not ADDLIBS.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -36,14 +38,14 @@
 #.
 
 #  Set the list of directories we will search for the libraries.
-#  If this in ADDLIBS first followed by any directories in 
+#  If this in LIBADD first followed by any directories in 
 #  $STARLINK/lib or /star/lib. Decided against LD_LIBRARY_PATH
 #  as this contains things like "/usr/lib" which we don't want to pick
 #  up any libraries from.
 
 library_path=""
-if test "$ADDLIBS" != ""; then
-   library_path="`echo ' '$ADDLIBS|sed 's/ -L/ /g'` "
+if test "$LIBADD" != ""; then
+   library_path="`echo ' '$LIBADD|sed 's/ -L/ /g'` "
 fi
 #if test "$LD_LIBRARY_PATH" != ""; then
 #   library_path="${library_path}`echo $LD_LIBRARY_PATH| sed 's/:/ /g'` "
