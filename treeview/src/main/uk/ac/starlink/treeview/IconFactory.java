@@ -85,6 +85,7 @@ public class IconFactory {
     public static final short STARLINK_LOGO = 402;
     public static final short HANDLE1 = 403;
     public static final short HANDLE2 = 404;
+    public static final short STAR_LOGO = 405;
    
     private static boolean festive = isFestive();
     private static Map iconMap = new HashMap();
@@ -200,6 +201,7 @@ public class IconFactory {
             case STARLINK_LOGO:  iname = "starlinklogo3.gif";        break;
             case HANDLE1:        iname = "handle1.gif";              break;
             case HANDLE2:        iname = "handle2.gif";              break;
+            case STAR_LOGO:      iname = "starlinklogo1b.gif";       break;
             default:
                 throw new IllegalArgumentException( 
                     "Unknown icon identifier (programming error)" );
