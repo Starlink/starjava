@@ -28,7 +28,8 @@ public abstract class SRBNode implements Node {
         file_ = srbFile;
         root_ = srbRoot;
         isRoot_ = srbFile.equals( srbRoot );
-        name_ = isRoot_ ? file_.toString() : file_.getName();
+        String name = file_.getName();
+        name_ = name.substring( name.indexOf( '/' ) + 1 );
     }
 
     public String getName() {
