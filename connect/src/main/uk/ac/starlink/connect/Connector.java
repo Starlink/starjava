@@ -20,7 +20,7 @@ public interface Connector {
 
     /**
      * Returns an icon which labels this connector.
-     * The icon should preferably be 24x24 pixels.
+     * The icon should preferably be 20x20 pixels.
      * Null may be returned if you have no suitable icon.
      *
      * @return   icon for this connector
