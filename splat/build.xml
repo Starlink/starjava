@@ -96,7 +96,7 @@
 
   <!-- JUnit test options -->
   <property name="junit.fork" value="false"/>
-  <property name="junit.filtertrace" value="off"/>
+  <property name="junit.filtertrace" value="on"/>
   <property name="junit.summary" value="no"/>
 
   <!-- Directory containing the package source -->
