@@ -22,6 +22,7 @@ import java.io.DataOutputStream;
 
 import org.w3c.dom.Element;
 
+import uk.ac.starlink.diva.interp.BasicInterpolatorFactory;
 import uk.ac.starlink.diva.interp.Interpolator;
 import uk.ac.starlink.diva.interp.InterpolatorFactory;
 import uk.ac.starlink.util.PrimitiveXMLEncodeDecode;
@@ -112,7 +113,7 @@ public class FigureProps
      * The InterpolatorFactory reference.
      */
     protected InterpolatorFactory interpolatorFactory = 
-        InterpolatorFactory.getReference();
+        BasicInterpolatorFactory.getInstance();
 
     /**
      * A String for a text display.
@@ -849,8 +850,10 @@ public class FigureProps
     protected void writeInterpolator( Element element )
     {
         // Add interpolator type as a string.
-        int type = InterpolatorFactory.getReference().getInterpolatorType(interpolator);
-        String name = InterpolatorFactory.getReference().getShortName( type );
+        int type = BasicInterpolatorFactory.getInstance()
+            .getInterpolatorType( interpolator );
+        String name = BasicInterpolatorFactory.getInstance()
+            .getShortName( type );
         element.setAttribute( "type", name );
 
         //  Add X and Y vertices.
