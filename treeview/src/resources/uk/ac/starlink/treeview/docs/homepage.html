@@ -170,15 +170,24 @@ can display them hierarchically:
   <li>WCS information can be displayed in various formats (XML, FITS, AST)
   </ul>
 
-<dt><img src="IconFactory.DIRECTORY" alt="Directory">&nbsp;<b>Directories</b>
+<dt><img src="IconFactory.DIRECTORY" alt="Directory">&nbsp;<b>Directories:</b>
 <dd>
   <ul>
   <li>Hierarchical view of file systems
   </ul>
 
-<dt><img src="IconFactory.COMPRESSED" alt="Compressed">&nbsp;<b>Compressed data</b>
+<dt><img src="IconFactory.FILE" alt="File">&nbsp;<b>Files:</b>
+<dd>
+  <ul>
+  <li>Hex dump or text content of file can be shown.
+  <li>File system information is displayed.
+  </ul>
+
+<dt><img src="IconFactory.COMPRESSED" alt="Compressed">&nbsp;<b>Compressed data:</b>
+  <dd>
   <ul>
   <li>Files compressed in gzip or bzip2 format can be viewed.
+  <li>Hex dump or text of uncompressed content can be shown.
   </ul>
 
 </dl>
@@ -255,6 +264,8 @@ never reach the top.
 <li>Allow SPLAT/SoG invocation for all arrays (not just NDX/NDF nodes)
 <li>Tooltip balloons for tabs in detail panel
 <li>Integrated invocation of <a href="http://www.bell-labs.com/project/mirage/">Mirage</a> for tables
+<li>Improved spectrum coordinate display (using AST V2)
+<li>WCS 'grid' panel for 1-d arrays
 <li>Better feedback/control while nodes are expanding
 <li>Zoom in/out for image display
 <li>GSD (Global Section Datafile) file support (pure java or JNI?)
@@ -262,9 +273,9 @@ never reach the top.
 <li>Improve the on-line help
 <li>Specify XML elements on command line using XPath expressions
 <li>Histogram view for arrays
+<li>Linear plot display for each point in a data cube
 <li>HTML file support
 <li>Graphics file support (gif jpeg etc)
-<li>WCS 'grid' panel for 1-d arrays
 <li>Proper handling of NDF AXIS information
 <li>FITS-like display of NDF MORE.FITS extension
 <li>Improve SPLAT/SoG interprocess communication (it's a bit unreliable)
@@ -272,9 +283,10 @@ never reach the top.
 <li>Use of WCS in &gt;2-d arrays
 <li>Permit editing of some viewed structures
 <li>Allow detaching of tabbed detail panel
+<li>Glob data node
 <li>Restructure for user extensibility, so custom node types can be 
     added dynamically
-<li>AIPS++ table support (pure java or JNI?)
+<li>AIPS++ table support (pure java or JNI or CORBA?)
 <li>Allow visual feedback during/interruption of node expansion
 <li>Better memory management (there are leaks)
 <li>One-click demo mode
