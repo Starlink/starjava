@@ -154,6 +154,10 @@
   <property name="dist.etc.pkg" value="${dist.etc}/${name}"/>
   <property name="dist.javadocs" value="${dist.docs}/${name}/javadocs"/>
 
+  <!-- Architecture-specific files (shared libraries) will be placed in
+   !   an appropriate subdirectory of dist.lib -->
+  <property name="dist.lib.arch" value="${dist.lib}/${os.arch}"/>
+
   <!-- Version for zipped/tarred export files. -->
   <property name="dist.version" value="${name}-${version}"/>
 
@@ -442,10 +446,12 @@
      !   require to resolve against in a form for the UNIX "ld" command
      !-->
     <property name="jniast.share"
-        value="-L${star.jar.dir} -L${star.build.dir}/jniast/lib -ljniast"/>
+        value="-L${star.jar.dir}/${os.arch}
+               -L${star.build.dir}/jniast/lib/${os.arch} -ljniast"/>
+
     <property name="java.shareables" value="${jniast.share}"/>
 
-    <mkdir dir="${dist.lib}"/>
+    <mkdir dir="${dist.lib.arch}"/>
     
     <echo message="java.home=${java.home}"/>
     
@@ -454,7 +460,7 @@
       <env key="JAVA_SYSTEM" value="linux"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib}"/>
+      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -463,7 +469,7 @@
       <env key="JAVA_SYSTEM" value="solaris"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib}"/>
+      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -472,7 +478,7 @@
       <env key="JAVA_SYSTEM" value="alpha"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib}"/>
+      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -534,6 +540,7 @@ value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar ../astgui/astgui.jar
     <mkdir dir="${dist.dir}"/>
     <mkdir dir="${dist.bin.pkg}"/>
     <mkdir dir="${dist.lib.pkg}"/>
+    <mkdir dir="${dist.lib.arch}"/>
     <mkdir dir="${dist.docs.pkg}"/>
     <mkdir dir="${dist.etc.pkg}"/>
 
@@ -745,12 +752,14 @@ value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar ../astgui/astgui.jar
     <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
+    <property name="star.lib.arch" value="${star.lib}/${os.arch}"/>
 
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.bin.pkg}"/>
     <mkdir dir="${star.lib.pkg}"/>
     <mkdir dir="${star.etc.pkg}"/>
     <mkdir dir="${star.docs.pkg}"/>
+    <mkdir dir="${star.lib.arch}"/>
 
     <loggedcopy todir="${star.bin}"
                 logfile="${install.log}"
@@ -818,6 +827,7 @@ value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar ../astgui/astgui.jar
      <mkdir dir="${dist.dir}"/>
      <mkdir dir="${dist.bin.pkg}"/>
      <mkdir dir="${dist.lib.pkg}"/>
+     <mkdir dir="${dist.lib.arch}"/>
      <mkdir dir="${dist.docs.pkg}"/>
      <mkdir dir="${dist.etc.pkg}"/>
 
