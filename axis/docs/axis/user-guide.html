@@ -2,9 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.73 [en] (WinNT; U) [Netscape]">
    <title>Axis User's Guide</title>
-<!-- saved from url=(0022)http://internet.e-mail -->
 <style type="text/css">
 <!--
 .example { background:#ccccff }
@@ -24,7 +22,6 @@ h1 {  margin-left: -30px}
 
 <h1>
 Axis User's Guide</h1>
-<i>Beta 2 Version</i> 
 <h3>
 Table of Contents</h3>
 
@@ -50,7 +47,7 @@ Table of Contents</h3>
 
 <h2>
 <a NAME="Introduction"></a>Introduction</h2>
-Welcome to Axis, the third generation of Apache SOAP! This is the <b>beta 2</b> 
+Welcome to Axis, the third generation of Apache SOAP! This is the <b>1.0</b> 
 version. 
 <h3>
 What is SOAP?</h3>
@@ -158,14 +155,17 @@ This release includes the following features:
 See the <a href="install.html">Axis Installation Guide</a>
 for instructions on installing Axis as a web application on your J2EE server.
 <p>Before running the examples in this guide, you'll need to make sure
-that your CLASSPATH includes (note:  if you build axis from a CVS checkout, these will be in xml-axis/java/build/lib instead of xml-axis-beta2/lib):
+that your CLASSPATH includes 
+(note:  if you build axis from a CVS checkout, 
+these will be in xml-axis/java/build/lib instead of axis-1_0/lib):
 <ul>
-<li>xml-axis-beta2/lib/axis.jar</li>
-<li>xml-axis-beta2/lib/jaxrpc.jar</li>
-<li>xml-axis-beta2/lib/commons-logging.jar</li>
-<li>xml-axis-beta2/lib/tt-bytecode.jar</li>
-<li>xml-axis-beta2/lib/wsdl4j.jar</li>
-  <li>xml-axis-beta2/ <i><font color="#9966FF">(for the sample code)</font></i></li>
+<li>axis-1_0/lib/axis.jar</li>
+<li>axis-1_0/lib/jaxrpc.jar</li>
+<li>axis-1_0/lib/saaj.jar</li>
+<li>axis-1_0/lib/commons-logging.jar</li>
+<li>axis-1_0/lib/commons-dicovery.jar</li>
+<li>axis-1_0/lib/wsdl4j.jar</li>
+  <li>axis-1_0/ <i><font color="#9966FF">(for the sample code)</font></i></li>
   <li>A JAXP-1.1 compliant XML parser such as xerces or crimson</li>
 </ul>
 <h2>
@@ -177,7 +177,7 @@ Let's take a look at an example Web Service client that will call the <b>echoStr
 method on the public Axis server at Apache.
 <pre class="example">1&nbsp;&nbsp; import org.apache.axis.client.Call;
 2&nbsp;&nbsp; import org.apache.axis.client.Service;
-3&nbsp;&nbsp; import javax.xml.rpc.namespace.QName;
+3&nbsp;&nbsp; import javax.xml.namespace.QName;
 4&nbsp;&nbsp;&nbsp;
 5&nbsp;&nbsp; public class TestClient {
 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; public static void main(String [] args) {
@@ -399,10 +399,11 @@ service. The actual class which handles this is <b>org.apache.axis.providers.jav
   ...
 &lt;/service&gt;</pre>
 <h4>Using the AdminClient</h4>
-Once we have this file, we need to send it to an Axis server in order to
-actually deploy the described service. We do this with the AdminClient,
-or the "org.apache.axis.client.AdminClient" class. An invocation of the
-AdminClient looks like this:
+Once we have this file, we need to send it to an Axis server in order to actually 
+deploy the described service. We do this with the AdminClient, or the "org.apache.axis.client.AdminClient" 
+class. If you have deployed Axis on a server other than Tomcat, you may need to 
+use the -p <em>&lt;port&gt;</em> argument. The default port is 8080.  
+A typical invocation of the AdminClient looks like this: 
 <pre class="example">% java org.apache.axis.client.AdminClient deploy.wsdd
 &lt;Admin>Done processing&lt;/Admin></pre>
 This command has now made our service accessible via SOAP. Check it out
@@ -474,6 +475,153 @@ access to your machine. If you do this, please make sure to add security
 to your configuration!</b>
 <h2>
 <a NAME="DataMapping"></a>XML &lt;-> Java Data Mapping in Axis</h2>
+
+<h3>How your Java types map to SOAP/XML types</h3>
+
+The JAX-RPC specification determines how Java types are mapped to WSDL and vice versa. 
+So read chapters 4 and 5 of the <a href="http://java.sun.com/xml/jaxrpc/">
+specification</a> to fully understand how things are converted. Here are
+some of the salient points. 
+
+
+<h4>Standard mappings from WSDL to Java</h4>
+<table>
+<tr><td>xsd:base64Binary </td><td><tt>byte[]</tt></td></tr>
+<tr><td>xsd:boolean </td><td><tt>boolean</tt></td></tr>
+<tr><td>xsd:byte </td><td><tt>byte</tt></td></tr>
+<tr><td>xsd:dateTime </td><td><tt>java.util.Calendar</tt></td></tr>
+<tr><td>xsd:decimal </td><td><tt>java.math.BigDecimal</tt></td></tr>
+<tr><td>xsd:double </td><td><tt>double</tt></td></tr>
+<tr><td>xsd:float </td><td><tt>float</tt></td></tr>
+<tr><td>xsd:hexBinary </td><td><tt>byte[]</tt></td></tr>
+<tr><td>xsd:int</td><td><tt> int</tt></td></tr>
+<tr><td>xsd:integer</td><td><tt>java.math.BigInteger</tt></td></tr>
+<tr><td>xsd:long </td><td><tt>long</tt></td></tr>
+<tr><td>xsd:QName </td><td><tt>javax.xml.namespace.QName</tt></td></tr>
+<tr><td>xsd:short </td><td><tt>short</tt></td></tr>
+<tr><td>xsd:string</td><td><tt>java.lang.String</tt></td></tr>
+</table>
+<p>
+
+If the WSDL says that an object can be <tt>nillable</tt>, that is the
+caller may choose to return a value of <tt>nil</tt>, then the primitive
+data types are replaced by their wrapper classes, such as Byte, Double,
+Boolean, etc. 
+
+<p>
+
+Alongside the XSD datatypes are the SOAP 'section 5' datatypes that are
+all nillable, and so only ever map to the wrapper classes. These
+datatypes date from an era before XML Schema; now that XSD is final and
+support is common, there should be no reason to write services that
+serve the SOAP datatypes rather than the XSD alternatives. 
+
+<h3>Exceptions</h3>
+
+This is an area which causes plenty of confusion, and indeed, the author
+of this section is not entirely sure how everything works, especially
+from an interop perspective. This means treat this section as
+incomplete and potentially inaccurate. See also section 5.5.5 and
+chapter 14 in the JAX-RPC specification
+
+<h4>RemoteExceptions map to SOAP Faults</h4>
+
+If the server method throws a <tt>java.rmi.RemoteException</tt> then
+this will be mapped into a SOAP Fault. The <tt>faultcode</tt> of this will contain
+the classname of the fault. The recipient is expected to deserialize the
+body of the fault against the classname. 
+
+<p>
+
+Obviously, if the recipient does not know how to create an instance of
+the received fault, this mechanism does not work. Unless you include
+information about the exception class in the WSDL description of the
+service, or sender and receiver share the implementation, 
+you can only reliably throw <tt>java.rmi.RemoteException</tt>
+instances, rather than subclasses.
+
+<p>
+
+When an implementation in another language receives such an exception,
+it should see the name of the class as the faultCode, but still be left
+to parse the body of the exception. You need to experiment to find out
+what happens there. 
+
+<h4>Exceptions are represented as <tt>wsdl:fault</tt> elements</h4>
+ 
+If a method is marked as throwing an <tt>Exception</tt>, that is not
+an instance or a subclass of <tt>java.rmi.RemoteException</tt>, then
+things are subtly different. The exception is no longer a SOAP Fault, but
+described as a <tt>wsdl:fault</tt> in the WSDL of the method. 
+
+According to the JAX-RPC specification, your subclass of Exception 
+must have accessor methods to access all the fields in the object to be
+marshalled <i>and</i> a constructor that takes as parameters all the 
+same fields (i.e arguments of the same name and type). This is a kind of
+immutable variant of a normal JavaBean. The fields in the object must be
+of the datatypes that can be reliably mapped into WSDL.
+
+<p>
+
+If your exception meet this specification, then the WSDL describing the
+method will describe the exception too, enabling callers to create stub
+implementations of the exception , regardless of platform. 
+
+<p>
+
+Again, to be sure of interoperability, you need to be experiment a bit.
+Remember, the calling language may not have the notion of Exceptions, or
+at least not be as rigorous as Java in the rules as to how exceptions
+must be handled. 
+
+<h4>What Axis can not send via SOAP</h4>
+
+<h5>Unsigned data</h5>
+
+You cannot consume or generate services that use unsigned datatypes with
+pure JAX-RPC, because there are no unsigned dataypes in Java. 
+<p>
+Axis does have support for the unsigned types, so you can consume services
+written in C++, C# and the like, and re-implement interfaces designed for 
+those languages. Be very wary about exporting unsigned datatypes, however, as to
+do so will stop Java clients that do not use Axis or another SOAP client library 
+with unsigned support from using them. At least, until 
+a revision of JAX-RPC adds this. 
+
+
+<h5>Arbitrary Objects without registration</h5>
+
+You cannot send arbitrary Java objects over the wire and expect them to
+be understood at the far end. With RMI you can send and receive
+<tt>Serializable</tt> Java objects, but that is because you are running
+Java at both ends. Axis will only send objects for which there is a
+registered Axis serializer. This document will shortly show how to use
+the BeanSerializer to serialize any class that follows the JavaBean
+pattern of accessor and mutator. To serve up objects you must either
+register your classes with this BeanSerializer, or there must be
+serialization support built in to Axis.
+
+
+<h5>Java Collections</h5>
+
+Some of the Collection classes, such as <tt>HashTable</tt> do have
+serializers, but there is no formal interoperability with other SOAP
+implementations, and nothing in the SOAP specifications which covers
+complex objects. The most reliable way to send aggregate objects is to
+use arrays. 
+
+This is an ongoing issue with SOAP interop; expect it to slowly improve
+over time.
+
+<h5>Remote References</h5>
+
+This is neither part of the SOAP specification, or the JAX-RPC
+specification. You cannot return some object reference and expect the
+caller to be able to use it as an endpoint for SOAP calls or as a
+parameter in other calls. Instead you must use some other reference
+mechanism, such as storing them in a <tt>HashMap</tt> with numeric or
+string keys that can be passed over the wire. 
+
 
 <h3>
 Encoding Your Beans - the BeanSerializer</h3>
@@ -711,20 +859,22 @@ behavior, JAX-RPC specifies the use of holder classes.&nbsp; A holder class
 is simply a class that contains an instance of its type.&nbsp; For example,
 the holder for the Phone class would be:</p>
 <pre class="example">
+package samples.addr.holders;
 public final class PhoneHolder implements javax.xml.rpc.holders.Holder {
-    public Phone value;
+    public samples.addr.Phone value;
 
     public PhoneHolder()
     {
     }
 
-    public PhoneHolder(Phone value) {
+    public PhoneHolder(samples.addr.Phone value) {
         this.value = value;
     }
 }
 </pre>
 <p>A holder class is <b>only</b> generated for a type if that type is used as
-an inout or out parameter.</p>
+an inout or out parameter.  Note that the holder class has the suffix "Holder" 
+appended to the class name, and it is generated in a sub-package with the "holders". </p>
 <p>The holder classes for the primitive types can be found in javax.xml.rpc.holders.</p>
 <h4>PortTypes</h4>
 <p>The Service Definition Interface (SDI) is the interface that's derived
@@ -1071,7 +1221,9 @@ mailing list.
 <p>The current list of published interfaces is as follows:
 <ul>
 <li>
-JAX-RPC interfaces.  At the time of this writing, JAX-RPC is still in the public review stage of its existence, meaning that it may still change.  As it does, the JAX-RPC interfaces may also change.  JAX-RPC is expected to become official some time during the summer of 2002.
+JAX-RPC interfaces.  
+These interfaces are from JAX-RPC 1.0 specification, and will change only when 
+new versions of the specification are released.
 <ul>
 <li>javax.xml.messaging.Endpoint</li>
 <li>javax.xml.messaging.URLEndpoint</li>
@@ -1128,7 +1280,7 @@ JAX-RPC interfaces.  At the time of this writing, JAX-RPC is still in the public
 <li>javax.xml.transform.Source</li>
 </ul>
 </li>
-<li>AXIS interfaces:
+<li>AXIS interfaces. These have less guarantees of stability:
 <ul>
 <li>org.apache.axis.AxisFault</li>
 <li>org.apache.axis.Handler</li>
