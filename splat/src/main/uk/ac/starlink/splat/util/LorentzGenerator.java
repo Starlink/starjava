@@ -15,6 +15,7 @@ package uk.ac.starlink.splat.util;
  */
 public class LorentzGenerator
     extends LorentzFitter
+    implements FunctionGenerator
 {
     /**
      * Generate positions for a lorentzian
@@ -25,9 +26,9 @@ public class LorentzGenerator
      */
     public LorentzGenerator( double scale, double centre, double width )
     {
-        this.scale = scale;
-        this.centre = centre;
-        this.width = width;
+        params[SCALE] = scale;
+        params[CENTRE] = centre;
+        params[WIDTH] = width;
     }
 
     //
@@ -40,9 +41,9 @@ public class LorentzGenerator
      * @param x array of X positions at which to evaluate.
      * @return array of values at given X's.
      */
-    public double[] evalArray( double[] x )
+    public double[] evalYDataArray( double[] x )
     {
-        return super.evalArray( x );
+        return super.evalYDataArray( x );
     }
 
     /**
@@ -51,8 +52,8 @@ public class LorentzGenerator
      * @param x X position at which to evaluate.
      * @return value at X
      */
-    public double evalPoint( double x )
+    public double evalYData( double x )
     {
-        return super.evalPoint( x );
+        return super.evalYData( x );
     }
 }

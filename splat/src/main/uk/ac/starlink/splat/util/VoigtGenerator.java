@@ -16,6 +16,7 @@ package uk.ac.starlink.splat.util;
  */      
 public class VoigtGenerator 
     extends VoigtFitter
+    implements FunctionGenerator
 {
     //
     // Implementation: just sub-class VoigtFitter avoiding the fitting
@@ -33,10 +34,10 @@ public class VoigtGenerator
     public VoigtGenerator( double scale, double centre, double gwidth, 
                            double lwidth )
     {
-        this.scale = scale;
-        this.centre = centre;
-        this.gwidth = gwidth;
-        this.lwidth = lwidth;
+        params[SCALE] = scale;
+        params[CENTRE] = centre;
+        params[GWIDTH] = gwidth;
+        params[LWIDTH] = lwidth;
         setPeak();
     }
     
@@ -50,9 +51,9 @@ public class VoigtGenerator
      * @param x array of X positions at which to evaluate.
      * @return array of values at given X's.
      */
-    public double[] evalArray( double[] x )
+    public double[] evalYDataArray( double[] x )
     {
-        return super.evalArray( x );
+        return super.evalYDataArray( x );
     }
 
     /**
@@ -61,8 +62,8 @@ public class VoigtGenerator
      * @param x X position at which to evaluate.
      * @return value at X
      */
-    public double evalPoint( double x )
+    public double evalYData( double x )
     {
-        return super.evalPoint( x );
+        return super.evalYData( x );
     }
 }
