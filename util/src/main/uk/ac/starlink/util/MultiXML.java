@@ -150,6 +150,12 @@ public class MultiXML {
 
         /* Do the work. */
         worker.run();
+
+        /* Exit explicitly - this is here because of a bug in the JVM
+         * (#4701990) which can fails to exit when the system property 
+         * <code>java.awt.headless</code> is set - that can be a useful
+         * property to set when running this. */
+        System.exit( 0 );
     }
 
     /**
