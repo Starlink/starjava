@@ -190,8 +190,8 @@
     <!-- NDArray-->
     <pathelement location="${star.jar.dir}/array/array.jar"/>
 
-    <!-- HDX -->
-    <!--<pathelement location="${star.jar.dir}/hdx/hdx.jar"/>-->
+    <!-- DIVA -->
+    <pathelement location="${star.jar.dir}/diva/diva.jar"/>
 
     <!-- JAIUtil -->
     <pathelement location="${star.jar.dir}/jaiutil/jaiutil.jar"/>
@@ -222,6 +222,7 @@
     <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
     <pathelement location="${star.build.dir}/fits/lib/fits/fits.jar"/>
     <pathelement location="${star.build.dir}/hds/lib/hds/hds.jar"/>
+    <pathelement location="${star.build.dir}/diva/lib/diva/diva.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
   </extclasspath>
 
