@@ -57,3 +57,7 @@ V1.3.
 V1.3-1
  - Added Starlink logo to all windows at PTW's suggestion
  - Added 2MASS cutout servers to activation window
+V1.3-2
+ - Fixed VOTable bug in reading empty TD elements (float, double)
+
+Loading changed - asynchronous, MySpace available, paste text into table list.
