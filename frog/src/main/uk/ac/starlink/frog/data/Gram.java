@@ -156,7 +156,12 @@ public class Gram implements GramAccess, AnalyticSeries, Serializable
      * Gram is a Chi-Sq periodogram
      */
     public final static int CHISQ = 11;  
-    
+
+    /**
+     * Gram isn't a periodogram at all, its a "Simple Line"
+     */
+    public final static int LINE = 12;   
+       
     
     //  ===================
     //  Protected variables

@@ -25,6 +25,7 @@ import uk.ac.starlink.frog.data.TimeSeriesComp;
 import uk.ac.starlink.frog.data.TimeSeriesManager;
 import uk.ac.starlink.frog.data.GramManager;
 import uk.ac.starlink.frog.data.GramFactory;
+import uk.ac.starlink.frog.data.DrawSimpleLineOnGramImpl;
 import uk.ac.starlink.frog.iface.PlotControlFrame;
 import uk.ac.starlink.frog.iface.images.ImageHolder;
 import uk.ac.starlink.frog.iface.GramControlFrameListener;
@@ -630,13 +631,44 @@ public class GramControlFrame extends JInternalFrame
            doMetaData( ); 
         }
         
+        // create a line
+        // -------------
+        double[] xLine = new double[2];
+        double[] yLine = new double[2];
+        
+        xLine[0] = 1.0/bestPeriod;
+        xLine[1] = 1.0/bestPeriod;
+        yLine[0] = 0.5*range[3];
+        yLine[1] = 0.95*range[3];
+        
+        
         // draw a line on the plot to denote the best period
         // -------------------------------------------------
-       
-        // ###################################################
-        // # ADD CODE HERE                                   #
-        // ###################################################
         
+        DrawSimpleLineOnGramImpl lineImpl = 
+            new DrawSimpleLineOnGramImpl( "Best Period at " + bestPeriod );
+            lineImpl.setData( yLine, xLine );
+       
+        Gram lineGram = null;
+        debugManager.print("    Adding marker to plot...");
+        
+        try {
+           lineGram = new Gram( lineImpl );
+         } catch ( FrogException e ) {
+           debugManager.print("    FrogException creating Maker Line...");
+           e.printStackTrace();
+           return;
+         } 
+         
+         lineGram.setType( Gram.LINE );
+         lineGram.setPlotStyle( Gram.POLYLINE );
+         lineGram.setLineColour( Color.red.getRGB() );
+         lineGram.setLineThickness( 1.5 );
+         
+         GramComp thisComp = plot.getGramComp();
+         thisComp.add( lineGram );
+         this.getPlot().updatePlot();
+                
        
      }
      
