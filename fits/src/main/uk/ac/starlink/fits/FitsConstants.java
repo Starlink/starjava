@@ -11,8 +11,12 @@ import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
 import nom.tam.fits.TruncatedFileException;
 import nom.tam.util.ArrayDataInput;
+import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.Cursor;
 import uk.ac.starlink.array.Type;
+import uk.ac.starlink.util.Compression;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.FileDataSource;
 
 /**
  * Utility class providing some constants and static methods related to 
@@ -139,6 +143,58 @@ public class FitsConstants {
                (char) buffer[ 6 ] == ' ' &&
                (char) buffer[ 7 ] == ' ' &&
                (char) buffer[ 8 ] == '=';
+    }
+
+    /**
+     * Returns an input stream which can be used with the various FITS
+     * classes based on a given DataSource object.  If the DataSource
+     * has a position attribute, it will be interpreted as the zero-based
+     * index of the HDU to start the stream at.  Otherwise, the stream
+     * will start at the primary HDU (as if position="0").
+     * 
+     * @param  datsrc  the DataSource pointing to the file/HDU required
+     * @return  an ArrayDataInput acquired from <tt>datsrc</tt>,
+     *          and positioned according to its position
+     */
+    public static ArrayDataInput getInputStream( DataSource datsrc ) 
+            throws IOException {
+        ArrayDataInput strm;
+
+        /* Get a stream for the whole file. */
+        if ( datsrc instanceof FileDataSource && 
+             datsrc.getCompression() == Compression.NONE ) {
+            strm = new MappedFile( ((FileDataSource) datsrc)
+                                  .getFile().toString() );
+        }
+        else {
+            strm = new BufferedDataInputStream( datsrc.getInputStream() );
+        }
+
+        /* If we have a position, try to position the stream accordingly. */
+        String pos = datsrc.getPosition();
+        if ( pos != null ) {
+
+            /* Get a non-negative HDU index. */
+            int ihdu;
+            try {
+                ihdu = Integer.parseInt( pos );
+            }
+            catch ( NumberFormatException e ) {
+                throw new IllegalArgumentException(
+                    "Position indicator \"" + pos +
+                    "\" is not an integer (should be HDU index) " + e );
+            }
+            if ( ihdu < 0 ) {
+                throw new IllegalArgumentException(
+                    "HDU index " + ihdu + " is < 0. " );
+            }
+
+            /* Skip forward the right number of HDUs. */
+            skipHDUs( strm, ihdu );
+        }
+
+        /* Return the stream. */
+        return strm;
     }
 
     /**
