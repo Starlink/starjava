@@ -1,0 +1,269 @@
+<?xml version="1.0"?>
+<!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
+<VOTABLE version="1.0">
+	<DESCRIPTION>Output from the messier catalog at VirtualSky.org</DESCRIPTION>
+	<DEFINITIONS>
+		<COOSYS ID="myJ2000" system="eq_FK5" equinox="2000." epoch="2000."/>
+	</DEFINITIONS>
+	<RESOURCE>
+		<PARAM ID="RA" datatype="E" value="200.0"/>
+		<PARAM ID="DE" datatype="E" value="40.0"/>
+		<PARAM ID="SR" datatype="E" value="30.0"/>
+		<PARAM ID="PositionalError" datatype="E" value="0.1"/>
+		<PARAM ID="Credit" datatype="A" arraysize="*" value="Charles Messier, Richard Gelderman"/>
+		<TABLE>
+			<DESCRIPTION>Output from messier Catalog Server</DESCRIPTION>
+			<FIELD ID="I" name="Messier Number" datatype="char" arraysize="*" ucd="ID_MAIN">
+				<DESCRIPTION>Messier Number</DESCRIPTION>
+			</FIELD>
+			<FIELD ID="RA" name="Right Ascension" datatype="float" unit="degrees" ucd="POS_EQ_RA_MAIN">
+				<DESCRIPTION>Right Ascension J2000</DESCRIPTION>
+			</FIELD>
+			<FIELD ID="DE" name="Declination" datatype="float" unit="degrees" ucd="POS_EQ_DEC_MAIN">
+				<DESCRIPTION>Declination J2000</DESCRIPTION>
+			</FIELD>
+			<FIELD ID="Name" name="Common Name" datatype="char" arraysize="*">
+				<DESCRIPTION>Common Name</DESCRIPTION>
+			</FIELD>
+			<FIELD ID="Size" name="Object Size" datatype="char" arraysize="*" ucd="EXTENSION_AREA">
+				<DESCRIPTION>Object size on the sky</DESCRIPTION>
+			</FIELD>
+			<FIELD ID="Magnitude" name="Magnitude" datatype="float" unit="mag" ucd="PHOT_MAG_OPTICAL">
+				<DESCRIPTION>Optical magnitude</DESCRIPTION>
+			</FIELD>
+			<FIELD ID="Type" name="Object classification" datatype="char" arraysize="*" ucd="CLASS_OBJECT">
+				<DESCRIPTION>Object classification</DESCRIPTION>
+			</FIELD>
+			<FIELD ID="Constellation" name="Constellation" datatype="char" arraysize="*">
+				<DESCRIPTION>Constellation</DESCRIPTION>
+			</FIELD>
+			<FIELD ID="Description" name="Description" datatype="char" arraysize="*" ucd="REMARKS">
+				<DESCRIPTION>Description</DESCRIPTION>
+			</FIELD>
+			<DATA>
+				<TABLEDATA>
+					<TR>
+						<TD>3</TD>
+						<TD>205.5</TD>
+						<TD>28.402</TD>
+						<TD/>
+						<TD> 16.2'</TD>
+						<TD>6.4004</TD>
+						<TD>Globular Cluster</TD>
+						<TD>Canes Venatici</TD>
+						<TD> M3 is one of more heavily studied globular clusters due to its position in the galaxy, putting it far from interstellar absorbtion. More than 200 variable stars have been observed out of a total of near 50,000. Being one of the brightest clusters, M3 is </TD>
+					</TR>
+					<TR>
+						<TD>40</TD>
+						<TD>185.5999</TD>
+						<TD>58.07998</TD>
+						<TD>Double Star WNC4</TD>
+						<TD/>
+						<TD>9.599996</TD>
+						<TD>Double Star</TD>
+						<TD>Ursa Major</TD>
+						<TD/>
+					</TR>
+					<TR>
+						<TD>85</TD>
+						<TD>186.31</TD>
+						<TD>18.19999</TD>
+						<TD/>
+						<TD> 7.4'x5.5'</TD>
+						<TD>9.2011</TD>
+						<TD>Elliptical Galaxy</TD>
+						<TD>Coma Berenices</TD>
+						<TD> M85 is a fairly bright irregular galaxy of the Virgo cluster. It is believed to be about 40,000 light years across, with a mass of 100 billion suns. </TD>
+					</TR>
+					<TR>
+						<TD>51</TD>
+						<TD>202.43000001</TD>
+						<TD>47.21999</TD>
+						<TD>Whirlpool Galaxy</TD>
+						<TD> 11.0'</TD>
+						<TD>8.4004</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Canes Venatici</TD>
+						<TD> M51 is better known as the "Whirlpool Galaxy" due to its pronounced spiral form. This was the first to be seen as a spiral in the mid-19th century.  With a luminosity of 10 billion suns and a diameter of 100,000 light years, M51 is roughly equivalent to </TD>
+					</TR>
+					<TR>
+						<TD>53</TD>
+						<TD>198.18000001</TD>
+						<TD>18.18</TD>
+						<TD/>
+						<TD> 12.6'</TD>
+						<TD>7.7002</TD>
+						<TD>Globular Cluster</TD>
+						<TD>Coma Berenices</TD>
+						<TD> M53 is a globular cluster with about 100,000 stars and is approaching us at 70 miles/second.</TD>
+					</TR>
+					<TR>
+						<TD>63</TD>
+						<TD>198.91</TD>
+						<TD>42.054</TD>
+						<TD>Sunflower Galaxy</TD>
+						<TD> 15'x9'</TD>
+						<TD>8.599996</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Canes Venatici</TD>
+						<TD> M63 "Sunflower Galaxy" is a fine, very regular spiral galaxy with a bright nucleus. This is an example of "multiple arm" spirals due to two apparent sets of arms, one close in to the center, and the outer, looser set. The diameter is around 90,000 light </TD>
+					</TR>
+					<TR>
+						<TD>64</TD>
+						<TD>194.13</TD>
+						<TD>21.69999</TD>
+						<TD>Black Eye Galaxy</TD>
+						<TD> 10.0'x5.0'</TD>
+						<TD>8.5</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Coma Berenices</TD>
+						<TD> M64 is called "The Black Eye" galaxy due to its dark dust lane sweeping around the nucleus.  M64 is believed to be about 50,000 light years in diameter, or half of our own Milky Way. </TD>
+					</TR>
+					<TR>
+						<TD>88</TD>
+						<TD>187.93000001</TD>
+						<TD>14.43</TD>
+						<TD/>
+						<TD> 6.1' X 2.8'</TD>
+						<TD>9.5</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Coma Berenices</TD>
+						<TD> M88 (NGC4501) is a spiral galaxy of about 60,000 light years across. It is one of the faster moving objects, heading away from us at nearly 1300 miles/second. Messier discovered M88 in 1781, and described it merely as a "nebula without a star".  </TD>
+					</TR>
+					<TR>
+						<TD>90</TD>
+						<TD>189.15000001</TD>
+						<TD>13.18</TD>
+						<TD/>
+						<TD> 11.4'x4.7'</TD>
+						<TD>9.5</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Virgo</TD>
+						<TD> Spiral galaxy M90 was discovered by Messier in 1781 and is about 80,000 light years across. </TD>
+					</TR>
+					<TR>
+						<TD>91</TD>
+						<TD>188.81</TD>
+						<TD>14.52</TD>
+						<TD/>
+						<TD> 5.0' X 4.1'</TD>
+						<TD>10.201</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Coma Berenices</TD>
+						<TD> M91 Near NGC 4571</TD>
+					</TR>
+					<TR>
+						<TD>94</TD>
+						<TD>192.65000001</TD>
+						<TD>41.133</TD>
+						<TD/>
+						<TD> 14.0'x12.0'</TD>
+						<TD>8.199993</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Canes Venatici</TD>
+						<TD> M94 is a bright, nearly face-on spiral. It is about 33,000 light years across. M94 is interesting in that it is believed to be the victim of a violent explosion several million years ago.</TD>
+					</TR>
+					<TR>
+						<TD>97</TD>
+						<TD>168.63</TD>
+						<TD>55.031</TD>
+						<TD>Owl Nebula</TD>
+						<TD> 3.4x3.0</TD>
+						<TD>11.201</TD>
+						<TD>Planetary Nebula</TD>
+						<TD>Ursa Major</TD>
+						<TD> M97, the "Owl Nebula", is one of the largest planetary nebula. Its surface brightness is fairly low. It is estimated to be about 3 light years in diameter. Its central star sits at 14th magnitude, and is one of the hottest objects known, blazing away at </TD>
+					</TR>
+					<TR>
+						<TD>98</TD>
+						<TD>183.41</TD>
+						<TD>14.92</TD>
+						<TD/>
+						<TD> 9.9'x2.2'</TD>
+						<TD>10.1</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Coma Berenices</TD>
+						<TD> M98 is a fairly large spiral galaxy discovered in 1781. It is nearly edge on to us, and is an estimated 80 light years across. The galaxy is moving in the opposite direction from the rest of the Virgo cluster, coming towards us at a rate of around 125 mi</TD>
+					</TR>
+					<TR>
+						<TD>99</TD>
+						<TD>184.65000001</TD>
+						<TD>14.43</TD>
+						<TD/>
+						<TD> 5.0'x4.7'</TD>
+						<TD>9.8007</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Coma Berenices</TD>
+						<TD> M99  is a nearly face on spiral about half the size of the Milky Way, being 50,000 light years across. This is one of the fastest galaxies in the Virgo cluster, speeding away from us at nearly 1500 miles/second.</TD>
+					</TR>
+					<TR>
+						<TD>100</TD>
+						<TD>185.68000001</TD>
+						<TD>15.83</TD>
+						<TD/>
+						<TD> 6.8'x5.8'</TD>
+						<TD>9.4004</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Coma Berenices</TD>
+						<TD> M100 is a nearly face-on spiral, similar to M99. It is a little over 100,000 light years across, about the same size as M31. Its arms have been estimated to be roughly 3000 light years thick.  </TD>
+					</TR>
+					<TR>
+						<TD>101</TD>
+						<TD>210.75</TD>
+						<TD>54.375</TD>
+						<TD>Pinwheel Galaxy</TD>
+						<TD> 28'x28'</TD>
+						<TD>7.7002</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Ursa Major</TD>
+						<TD> The beautiful face-on galaxy, M101 "Pinwheel" was discovered in 1781. It is estimated to have a mass of equivalent to about 16 billion of our suns or only 10% of the Milky Way. This makes it one of the lowest density galaxies known. M101 is also believed</TD>
+					</TR>
+					<TR>
+						<TD>102</TD>
+						<TD>210.75</TD>
+						<TD>54.375</TD>
+						<TD/>
+						<TD/>
+						<TD>7.7002</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Ursa Major</TD>
+						<TD> Duplicate of M101 M 103</TD>
+					</TR>
+					<TR>
+						<TD>106</TD>
+						<TD>184.68000001</TD>
+						<TD>47.32</TD>
+						<TD/>
+						<TD> 22.0'x9.0'</TD>
+						<TD>8.3007</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Canes Venatici</TD>
+						<TD> M106 is a fine spiral galaxy about equal in mass to our own Milky Way, 160 billion solar masses. It has two main arms extending out of an otherwise fairly uniform disk.</TD>
+					</TR>
+					<TR>
+						<TD>108</TD>
+						<TD>167.83000001</TD>
+						<TD>55.68</TD>
+						<TD/>
+						<TD> 8.8'x2.2'</TD>
+						<TD>10.1</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Ursa Major</TD>
+						<TD> M108 is another one of the extended objects added to Messier's catalog in 1954 (based on his original notes). It is a nearly edge-on spiral galaxy about one-tenth the mass of the Milky Way.</TD>
+					</TR>
+					<TR>
+						<TD>109</TD>
+						<TD>179.3499</TD>
+						<TD>53.39999</TD>
+						<TD/>
+						<TD> 8.3'x4.6'</TD>
+						<TD>9.8007</TD>
+						<TD>Spiral Galaxy</TD>
+						<TD>Ursa Major</TD>
+						<TD> NGC3992</TD>
+					</TR>
+				</TABLEDATA>
+			</DATA>
+		</TABLE>
+	</RESOURCE>
+</VOTABLE>

@@ -32,6 +32,10 @@ if test ! -f "$starjava"; then
    starjava="java"
 fi
 
+#  Locate demo data.
+
+demodir="$TREEVIEW_DIR/../../etc/treeview/demo"
+
 #  Make sure that we get the installed shareable libraries.
 if test -z "$LD_LIBRARY_PATH"; then
    LD_LIBRARY_PATH="${TREEVIEW_DIR}/../../lib"
@@ -44,8 +48,7 @@ export LD_LIBRARY_PATH
 
 $starjava \
    -Duk.ac.starlink.treeview.cmdname="treeview" \
-   -Duk.ac.starlink.treeview.sunbase="<unknown>" \
-   -Duk.ac.starlink.treeview.stardir="<unknown>" \
+   -Duk.ac.starlink.treeview.demodir="${demodir}" \
    -Duk.ac.starlink.treeview.sogdir="${SOG_DIR}" \
    -Duk.ac.starlink.treeview.splatdir="${SPLAT_DIR}" \
    -enableassertions \
