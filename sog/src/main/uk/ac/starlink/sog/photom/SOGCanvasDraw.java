@@ -172,12 +172,11 @@ public class SOGCanvasDraw extends CanvasDraw
     public void mouseDragged( MouseEvent e )
     {
         if ( drawingMode == ANNULAR_CIRCLE ) {
-            // XXX Nothing to do use the default size...
-            //if ( figure != null ) {
-            //    System.out.println( "Dragging annulus" );
-            //    int radius = e.getX() - startX;
-            //    ((AnnulusFigure) figure).setRadius( radius );
-            //}
+            // Change the radius.
+            if ( figure != null ) {
+                int radius = e.getX() - startX;
+                ((AnnulusFigure) figure).setRadius( radius );
+            }
         }
         else {
             super.mouseDragged( e );
@@ -187,7 +186,7 @@ public class SOGCanvasDraw extends CanvasDraw
     public void mouseReleased( MouseEvent e )
     {
         if ( drawingMode == ANNULAR_CIRCLE ) {
-            finishFigure(); // has a default size.
+            finishFigure();
         }
         else {
             super.mouseReleased( e );

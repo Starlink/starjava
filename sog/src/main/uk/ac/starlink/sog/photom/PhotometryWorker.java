@@ -45,7 +45,7 @@ public class PhotometryWorker
 {
     /**
      * Create an instance and establish the end-point that will be
-     * used to access the photometry service. The default is 
+     * used to access the photometry service. The default is
      * "http://localhost:8083/services/PhotomWSServices", which
      * assumes the an instance of {@link PhotomWS} is running on the
      * local machine with the default port. If set the system property
@@ -60,12 +60,12 @@ public class PhotometryWorker
     private static URL endpoint = null;
 
     /** The default end point for the photometry web-service */
-    private static String defaultEndpoint = 
+    private static String defaultEndpoint =
         "http://localhost:8083/services/PhotomWSServices";
 
     /**
      * Establish the photometry service end-point. Set to the default,
-     * unless "photom.webservice" is set and is a valid URL. 
+     * unless "photom.webservice" is set and is a valid URL.
      * TODO: start using a discovery service and WSDL files...
      */
     protected void establishEndpoint()
@@ -127,12 +127,12 @@ public class PhotometryWorker
             throw new ServiceException("Error converting PhotomList to XML",e);
         }
         Document document = builder.newDocument();
-        Element photomListElement = 
+        Element photomListElement =
             document.createElement( photomList.getTagName() );
         photomList.encode( photomListElement );
 
         //  Transform the PhotometryGlobals into an Element.
-        Element globalsElement = 
+        Element globalsElement =
             document.createElement( globals.getTagName() );
         globals.encode( globalsElement );
 
@@ -172,8 +172,13 @@ public class PhotometryWorker
             photomList.decode( result );
             aperturePhotometry.calculationsDone();
         }
-        catch (Exception e) {
-            throw new ServiceException( e.getMessage(), e );
+        catch (RemoteException e) {
+            //  Fine, but we'd like to know the real cause. This is
+            //  the wrapped exception, so extract it and throw an
+            //  exception based on it.
+            throw new ServiceException
+                ( "Failed to invoke photometry service: " 
+                  + e.getCause().getMessage(), e.getCause() );
         }
     }
 }

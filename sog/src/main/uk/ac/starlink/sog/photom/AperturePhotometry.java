@@ -83,8 +83,6 @@ public class AperturePhotometry
         this.parent = parent;
         this.imageDisplay = imageDisplay;
 
-        
-
         setLayout( new BorderLayout() );
 
         add( makeViewPane(), BorderLayout.CENTER );

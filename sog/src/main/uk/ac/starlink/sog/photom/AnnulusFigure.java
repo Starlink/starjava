@@ -50,6 +50,7 @@ public class AnnulusFigure extends ImageFigure
      */
     public void setPosition( Point2D.Double pt )
     {
+        repaint();
         mainArea.setPosition( pt );
         repaint();
     }
@@ -67,6 +68,7 @@ public class AnnulusFigure extends ImageFigure
      */
     public void setRadius( double radius )
     {
+        repaint();
         mainArea.setRadius( radius );
         repaint();
     }
@@ -84,6 +86,7 @@ public class AnnulusFigure extends ImageFigure
      */
     public void setInnerscale( double innerscale )
     {
+        repaint();
         mainArea.setInnerscale( innerscale );
         repaint();
     }
@@ -101,6 +104,7 @@ public class AnnulusFigure extends ImageFigure
      */
     public void setOuterscale( double outerscale )
     {
+        repaint();
         mainArea.setOuterscale( outerscale );
         repaint();
     }
