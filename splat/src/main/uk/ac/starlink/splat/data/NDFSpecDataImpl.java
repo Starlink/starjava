@@ -321,10 +321,10 @@ public class NDFSpecDataImpl
         FrameSet frameSet = source.getAst().getRef();
         String label = frameSet.getC( "Label(2)" );
         String unit = frameSet.getC( "Unit(2)" );
-        if ( label != null ) {
+        if ( label != null && ( ! label.equals( "" ) ) ) {
             theNDF.setCharComp( "label", label );
         }
-        if ( unit != null ) {
+        if ( unit != null && ( ! unit.equals( "" ) ) ) {
             theNDF.setCharComp( "units", unit );
         }
     }
