@@ -1,0 +1,40 @@
+
+   AST & SPLAT
+   -----------
+
+Since it confused me when returning to work on SPLAT, here's a few
+words about AST and coordinates.
+
+There are three sources of coordinate information available in SPLAT.
+
+   1) the AST FrameSet constructed from the original data. This
+      maps indices of the data values into coordinates. This is the
+      primary place that this relationship is kept. 
+
+      For the various data access implementations this can be created 
+      in various ways. For NDFs this is the WCS component, which 
+      will also be created from FITS headers, if no WCS is available.
+      For FITS files this will be created from any WCS headers,
+      otherwise you get a unit transform. For the text file 
+      implementation this is a lookup table for mapping indices
+      to the original coordinates. The memory based form also uses 
+      a lookup table, unless cloning from another spectrum, in which
+      in uses a copy.
+
+
+    2) the AST FrameSet used for plotting. This is currently wrapped
+       in an ASTJ object by SpecData (for largely historical reasons)
+       and is 2D, the first dimension is ideally the mapping extracted
+       from the main FrameSet (transforming indices to wavelength),
+       the second axis is just to represent data values and currently
+       uses a UnitMap. This FrameSet should be re-generated whenever
+       the underlying FrameSet is updated. Never save this FrameSet
+       with a spectrum.
+
+    3) an array of coordinates, the SpecData.getXData() return. This
+       is an array of coordinates produced by transforming the indices
+       of each data value and should be used when looking up things
+       quickly. This should also be generated when the main FrameSet
+       changes. Note it also has a secondary role, namely to allow the
+       editing of single coordinates. In that case it will become part
+       of a LutMap that replaces the main FrameSet.
