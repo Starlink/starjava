@@ -126,8 +126,8 @@ public class NDFSpecDataImpl
     }
 
     /**
-     * Save the spectrum to disk-file. Assumes that the spectrum
-     * hasn't already been saved and is resident in a temporary NDF.
+     * Save the spectrum to disk-file. Assumes that the spectrum hasn't
+     * already been saved and is resident in a temporary NDF.  
      * TODO: deal with situation when above isn't true.
      */
     public void save()
@@ -136,12 +136,7 @@ public class NDFSpecDataImpl
         //  Create a copy of the current NDF (which should be a
         //  temporary one, as only cloned NDFs can really be saved).
         NDFJ newNDF = theNDF.getCopy( fullName );
-
-        //  Extract a frameset that characterises the wavelength axis
-        //  coordinate transformation and update the NDF to use this
-        //  as its WCS.
-        FrameSet newwcs = ASTJ.get1DFrameSet( getAst() );
-        newNDF.saveAst( newwcs );
+        newNDF.saveAst( getAst() );
         theNDF = newNDF;
     }
 
@@ -312,9 +307,21 @@ public class NDFSpecDataImpl
             theNDF.setCharComp( "Title", source.getShortName() );
         }
 
-        //  Set the AST component, note we get this from the
-        //  implementation not the SpecData (otherwise get DATAPLOT
-        //  parts)? Not written to NDF until saved.
+        //  Set the AST component, note we get this from the implementation
+        //  not the SpecData. Not written to NDF until saved. XXX
+        //  dimensionality, if it is 1 then we'd be better off using the
+        //  SpecData WCS.
         theNDF.setAst( source.getFrameSet() );
+
+        //  Set the Units and Label if we can.
+        FrameSet frameSet = source.getAst().getRef();
+        String label = frameSet.getC( "Label(2)" );
+        String unit = frameSet.getC( "Unit(2)" );
+        if ( label != null ) {
+            theNDF.setCharComp( "label", label );
+        }
+        if ( unit != null ) {
+            theNDF.setCharComp( "units", unit );
+        }
     }
 }
