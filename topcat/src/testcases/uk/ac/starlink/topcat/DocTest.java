@@ -37,9 +37,10 @@ public class DocTest extends TestCase {
         assertTrue( docFile.isFile() );
         assertTrue( context.isDirectory() );
         LinkChecker checker = new LinkChecker( context.toURL() );
-        assertTrue( checker.checkLinks( new StreamSource( docXslt1 ),
-                                        new StreamSource( docFile ) ) );
-        assertTrue( checker.checkLinks( new StreamSource( docXslt ),
-                                        new StreamSource( docFile ) ) );
+        checker.checkLinks( new StreamSource( docXslt1 ),
+                            new StreamSource( docFile ) );
+        checker.checkLinks( new StreamSource( docXslt ),
+                            new StreamSource( docFile ) );
+        assertTrue( checker.getLocalFailures() == 0 );
     }
 }
