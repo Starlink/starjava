@@ -105,7 +105,6 @@ public abstract class BasicTableLoadDialog extends JPanel
         supplier_ = null;
 
         /* Pop up the modal dialogue. */
-        setBusy( false );
         dia.show();
         setBusy( false );
 
@@ -170,13 +169,14 @@ public abstract class BasicTableLoadDialog extends JPanel
      * the current state (as filled in by the user) of this component.
      * If the state is not suitable for an attempt at loading a table
      * (e.g. some components are filled in in an obviously wrong way)
-     * then an exception should be thrown.
+     * then a runtime exception such as <tt>IllegalStateException</tt>
+     * or <tt>IllegalArgumentException</tt> should be thrown.
      *
      * @return  table supplier corresponding to current state of this component
-     * @throws  IllegalStateException  if validation fails
+     * @throws  RuntimeException  if validation fails
      */
     protected abstract TableSupplier getTableSupplier()
-            throws IllegalStateException;
+            throws RuntimeException;
 
     /**
      * Returns the action associated with hitting the OK dialogue button.
