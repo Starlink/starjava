@@ -196,7 +196,7 @@ public class NdxDataNode extends DefaultDataNode {
             children.add( bb );
         }
     
-        if ( ndx.hasWCS() ) {
+        if ( Driver.hasAST && ndx.hasWCS() ) {
             DataNode wnode;
             try {
                 wnode = childMaker.makeDataNode( ndx.getAst() );
@@ -288,7 +288,7 @@ public class NdxDataNode extends DefaultDataNode {
         final NDArray image =
             NDArrays.toRequiredArray( Ndxs.getMaskedImage( ndx ), req );
     
-        final FrameSet ast = Ndxs.getAst( ndx );
+        final FrameSet ast = Driver.hasAST ? Ndxs.getAst( ndx ) : null;
         final NDShape shape = image.getShape();
         final int ndim = shape.getNumDims();
         final String title = ndx.hasTitle() ? ndx.getTitle()
@@ -303,7 +303,7 @@ public class NdxDataNode extends DefaultDataNode {
         final int endim = eimage.getShape().getNumDims();
 
         /* Add data views as appropriate. */
-        if ( ndx.hasWCS() && ndim == 2 && endim == 2 ) {
+        if ( Driver.hasAST && ndx.hasWCS() && ndim == 2 && endim == 2 ) {
             dv.addPane( "WCS grids", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     return new GridPlotter( 200, shape, ast );
@@ -328,7 +328,7 @@ public class NdxDataNode extends DefaultDataNode {
             }
         } );
 
-        if ( endim == 1 ) {
+        if ( endim == 1 && Driver.hasAST ) {
             dv.addPane( "Graph view", new ComponentMaker() {
                 public JComponent getComponent()
                         throws IOException, SplatException {

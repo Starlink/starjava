@@ -4,12 +4,15 @@ import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.util.*;
-import uk.ac.starlink.ast.AstObject;
-import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.ast.AstPackage;
+import uk.ac.starlink.hds.HDSPackage;
 
 public class Driver {
     public final static String CMDNAME_PROPERTY =
         "uk.ac.starlink.treeview.cmdname";
+
+    public static boolean hasAST;
+    public static boolean hasHDS;
 
     public static void main( String[] args ) {
         boolean textView = false;
@@ -25,22 +28,8 @@ public class Driver {
         /* Check requisites.  We may be able to proceed without JNIAST
          * and JNIHDS, but we should warn up front that their absence
          * is likely to lead to problems. */
-        try {
-            double b = AstObject.AST__BAD;
-        }
-        catch ( UnsatisfiedLinkError e ) {
-            System.err.println( 
-                "WARNING: Requisite package JNIAST (uk.ac.starlink.ast) " +
-                "is not installed" );
-        }
-        try {
-            int s = HDSObject.DAT__SZNAM;
-        }
-        catch ( UnsatisfiedLinkError e ) {
-            System.err.println(
-                "WARNING: Requisite package JNIHDS (uk.ac.starlink.hds) " +
-                "is not installed" );
-        }
+        hasAST = AstPackage.isAvailable();
+        hasHDS = HDSPackage.isAvailable();
 
         /* Treat the special case in which no command-line arguments are
          * specified and give a very simple usage message. */
@@ -50,11 +39,17 @@ public class Driver {
      
         /* Set up a HashMap mapping flags to expected Node type of argument. */
         HashMap nodeTypeFlags = new HashMap();
-        nodeTypeFlags.put( "-hds", HDSDataNode.class );
+        if ( hasHDS ) {
+            nodeTypeFlags.put( "-hds", HDSDataNode.class );
+        }
         nodeTypeFlags.put( "-file", FileDataNode.class );
-        nodeTypeFlags.put( "-ary", ARYDataNode.class );
-        nodeTypeFlags.put( "-ndf", NDFDataNode.class );
-        nodeTypeFlags.put( "-wcs", WCSDataNode.class );
+        if ( hasHDS ) {
+            nodeTypeFlags.put( "-ary", ARYDataNode.class );
+            nodeTypeFlags.put( "-ndf", NDFDataNode.class );
+        }
+        if ( hasAST ) {
+            nodeTypeFlags.put( "-wcs", WCSDataNode.class );
+        }
         nodeTypeFlags.put( "-zip", ZipFileDataNode.class );
         nodeTypeFlags.put( "-fit", FITSDataNode.class );
         nodeTypeFlags.put( "-xml", XMLDocumentDataNode.class );

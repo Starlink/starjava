@@ -32,6 +32,7 @@ import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.array.NDArrayFactory;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Type;
+import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.xml.XAstReader;
 import uk.ac.starlink.util.SourceReader;
@@ -191,7 +192,8 @@ public class XMLNdxHandler implements NdxHandler {
                 else if ( tagname.equals( "badbits" ) ) {
                     badbits = Long.decode( getTextContent( cel ) ).intValue();
                 }
-                else if ( tagname.equals( "wcs" ) ) {
+                else if ( tagname.equals( "wcs" ) && 
+                          AstPackage.isAvailable() ) {
                     Source wcssrc = null;
                     for ( Node ch = cel.getFirstChild(); ch != null; 
                           ch = ch.getNextSibling() ) {

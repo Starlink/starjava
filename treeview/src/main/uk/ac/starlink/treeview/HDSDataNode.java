@@ -92,6 +92,9 @@ public class HDSDataNode extends DefaultDataNode {
 
     protected static HDSObject getHDSFromPath( String path )
             throws NoSuchDataException {
+        if ( ! Driver.hasHDS ) {
+            throw new NoSuchDataException( "HDS subsystem not installed" );
+        }
         if ( path.endsWith( ".sdf" ) ) {
             path = path.substring( 0, path.length() - 4 );
         }
@@ -113,6 +116,9 @@ public class HDSDataNode extends DefaultDataNode {
     protected static HDSObject getHDSFromFile( File file ) 
             throws NoSuchDataException {
         HDSReference ref;
+        if ( ! Driver.hasHDS ) {
+            throw new NoSuchDataException( "HDS subsystem not installed" );
+        }
         try {
             ref = new HDSReference( file );
         }

@@ -112,6 +112,7 @@ public class NDArrayDataNode extends DefaultDataNode {
      *
      * @param  dv   the DetailViewer into which the new views are to be placed
      * @param  nda  the NDArray which is to be described
+     * @param  wcs  WCS FrameSet corresponding to data grid.  May be null
      * @throws  IOException  if something goes wrong in the data access
      */
     public static void addDataViews( DetailViewer dv, NDArray nda, 
@@ -157,7 +158,7 @@ public class NDArrayDataNode extends DefaultDataNode {
                 return new StatsViewer( rnda );
             }
         } );
-        if ( endim == 1 ) {
+        if ( endim == 1 && Driver.hasAST ) {
             dv.addPane( "Graph view", new ComponentMaker() {
                 public JComponent getComponent() 
                         throws IOException, SplatException {

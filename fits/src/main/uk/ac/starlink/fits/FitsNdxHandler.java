@@ -41,6 +41,7 @@ import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.AstObject;
+import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.FitsChan;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ndx.BridgeNdx;
@@ -185,31 +186,38 @@ public class FitsNdxHandler implements NdxHandler {
             /* Try to get an image NDArray at this URL. */
             final NDArray image = fab.makeNDArray( url, mode );
 
-            /* Get the WCS information. */
+            /* Get the WCS information, if possible. */
             final FrameSet wcs;
-            final Iterator cardIt = hdr.iterator();
-            Iterator lineIt = new Iterator() {
-                public boolean hasNext() { 
-                    return cardIt.hasNext();
+            if ( AstPackage.isAvailable() ) {
+                final Iterator cardIt = hdr.iterator();
+                Iterator lineIt = new Iterator() {
+                    public boolean hasNext() { 
+                        return cardIt.hasNext();
+                    }
+                    public Object next() {
+                        return cardIt.next().toString();
+                    }
+                    public void remove() { 
+                        throw new UnsupportedOperationException();
+                    }
+                };
+                FitsChan fchan = new FitsChan( lineIt );
+                AstObject aobj;
+                try {
+                    aobj = fchan.read();
                 }
-                public Object next() {
-                    return cardIt.next().toString();
+                catch ( AstException e ) {
+                    aobj = null;
                 }
-                public void remove() { 
-                    throw new UnsupportedOperationException();
+                if ( aobj instanceof FrameSet ) {
+                    wcs = (FrameSet) aobj;
                 }
-            };
-            FitsChan fchan = new FitsChan( lineIt );
-            AstObject aobj;
-            try {
-                aobj = fchan.read();
+                else {
+                    wcs = null;
+                }
             }
-            catch ( AstException e ) {
-                aobj = null;
-            }
-            if ( aobj instanceof FrameSet ) {
-                wcs = (FrameSet) aobj;
-            }
+
+            /* AST subsystem is not present, do without it. */
             else {
                 wcs = null;
             }

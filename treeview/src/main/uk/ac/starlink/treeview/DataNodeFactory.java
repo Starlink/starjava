@@ -73,29 +73,13 @@ public class DataNodeFactory implements Cloneable {
     private List tried;
     private List builders;
 
-    private static final Class[] initialClasses = new Class[] {
-        NDFDataNode.class,
-        WCSDataNode.class,
-        ARYDataNode.class,
-        HistoryDataNode.class,
-        HDSDataNode.class,
-        FITSDataNode.class,
-        NdxDataNode.class,
-        XMLDocumentDataNode.class,
-        XMLElementDataNode.class,
-        XMLCommentDataNode.class,
-        XMLTextDataNode.class,
-        XMLDataNode.class,
-        ZipFileDataNode.class,
-        NDArrayDataNode.class,
-        FileDataNode.class
-    };
+    private static List defaultClassList;
 
     /**
      * Initialises a new <code>DataNodeFactory</code> with default settings.
      */
     public DataNodeFactory() {
-        setNodeClassList( Arrays.asList( initialClasses ) );
+        setNodeClassList( getDefaultClassList() );
         builders.addAll( 0, getSpecialBuilders() );
     }
 
@@ -322,6 +306,48 @@ public class DataNodeFactory implements Cloneable {
         specials.add( fileBuilder );
         specials.add( stringBuilder );
         return specials;
+    }
+
+    /**
+     * Returns the default class list which is installed into a new
+     * DataNodeFactory on initialisation. 
+     */
+    public static List getDefaultClassList() {
+        if ( defaultClassList == null ) {
+            Class[] classes = new Class[] {
+                NDFDataNode.class,
+                WCSDataNode.class,
+                ARYDataNode.class,
+                HistoryDataNode.class,
+                HDSDataNode.class,
+                FITSDataNode.class,
+                NdxDataNode.class,
+                XMLDocumentDataNode.class,
+                XMLElementDataNode.class,
+                XMLCommentDataNode.class,
+                XMLTextDataNode.class,
+                XMLDataNode.class,
+                ZipFileDataNode.class,
+                NDArrayDataNode.class,
+                FileDataNode.class,
+            };
+            defaultClassList = new ArrayList( Arrays.asList( classes ) );
+
+            /* Some of the classes are contingent on having working HDS and
+             * AST subsystems available, which may not be the case if the 
+             * corresponding native libraries are not present.  Remove classes
+             * we know that we will not be able to deal with. */
+            if ( ! Driver.hasHDS ) {
+                defaultClassList.remove( NDFDataNode.class );
+                defaultClassList.remove( ARYDataNode.class );
+                defaultClassList.remove( HistoryDataNode.class );
+                defaultClassList.remove( HDSDataNode.class );
+            }
+            if ( ! Driver.hasAST ) {
+                defaultClassList.remove( WCSDataNode.class );
+            }
+        }
+        return defaultClassList;
     }
 
 
