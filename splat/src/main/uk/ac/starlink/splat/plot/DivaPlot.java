@@ -805,12 +805,12 @@ public class DivaPlot
                     }
                     else {
                         astJ.astPlot( this, baseBox, 
-                                      0.05, 0.00, 0.03, 0.03, 
+                                      0.05, 0.00, 0.03, 0.05, 
                                       config.getAst() );
                     }
                 }
                 else {
-                    astJ.astPlot( this, baseBox, 0.05, 0.00, 0.03, 0.03, "" );
+                    astJ.astPlot( this, baseBox, 0.05, 0.00, 0.03, 0.05, "" );
                 }
 
                 // The plot must use our Grf implementation.
