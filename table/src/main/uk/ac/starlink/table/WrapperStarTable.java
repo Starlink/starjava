@@ -18,17 +18,17 @@ import java.util.List;
  * @author   Mark Taylor (Starlink)
  * @see      WrapperRowSequence
  */
-public class WrapperTable implements StarTable {
+public class WrapperStarTable implements StarTable {
 
     protected StarTable baseTable;
 
     /**
-     * Constructs a new <tt>WrapperTable</tt> from a given base table.
+     * Constructs a new <tt>WrapperStarTable</tt> from a given base table.
      *
      * @param  baseTable  the table to which methods invoked upon the
      *         new wrapper table will be forwarded
      */
-    public WrapperTable( StarTable baseTable ) {
+    public WrapperStarTable( StarTable baseTable ) {
         this.baseTable = baseTable;
     }
 
@@ -92,6 +92,20 @@ public class WrapperTable implements StarTable {
 
     public Object[] getRow( long irow ) throws IOException {
         return baseTable.getRow( irow );
+    }
+
+    /**
+     * Convenience method to get an <tt>int</tt> value from a <tt>long</tt>.
+     * If the supplied long integer <tt>lval</tt> is out of the range
+     * which can be represented in an <tt>int</tt>, then unlike a
+     * typecast, this method will throw an <tt>IllegalArgumentException</tt>.
+     *
+     * @param  the <tt>long</tt> value to convert
+     * @return an <tt>int</tt> value which has the same value as <tt>lval</tt>
+     * @throws IllegalArgumentException  if the conversion cannot be done
+     */
+    public static int checkedLongToInt( long lval ) {
+        return AbstractStarTable.checkedLongToInt( lval );
     }
 
 }

@@ -11,7 +11,7 @@ import java.io.IOException;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class ColumnPermutedStarTable extends WrapperTable {
+public class ColumnPermutedStarTable extends WrapperStarTable {
 
     private int[] colMap;
     private int ncol;

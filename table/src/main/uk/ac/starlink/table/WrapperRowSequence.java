@@ -12,7 +12,7 @@ import java.io.IOException;
  * which modify the view of the base sequence in useful ways.
  *
  * @author   Mark Taylor (Starlink)
- * @see      WrapperTable
+ * @see      WrapperStarTable
  */
 public class WrapperRowSequence implements RowSequence {
 
