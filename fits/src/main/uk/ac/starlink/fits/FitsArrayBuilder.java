@@ -33,6 +33,7 @@ import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Type;
 import uk.ac.starlink.array.TypeConverter;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Turns URLs which reference FITS array resources into NDArray objects.
@@ -117,7 +118,11 @@ public class FitsArrayBuilder implements ArrayBuilder {
          * random access. */
         if ( container.getProtocol().equals( "file" ) ) {
             String modechars = ( mode == AccessMode.READ ) ? "r" : "rw";
-            String filename = container.getPath();
+            
+            /*  Get filename of container. Use round trip to File and back
+                to deal with escaped characters in URL? */
+            File file = new File( URLUtils.urlToUri( container ) );
+            String filename = file.getPath();
 
             /* Work out the start and size of the relevant HDU. */
             BufferedFile bstrm = new BufferedFile( filename );
