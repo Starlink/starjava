@@ -599,7 +599,10 @@ public class TableSpecDataImpl
         if ( desc == null ) {
             desc = columnInfos[column].getUCD();
             if ( desc != null ) {
-                desc = UCD.getUCD( desc ).getDescription();
+                UCD ucd = UCD.getUCD( desc );
+                if ( ucd != null ) {
+                    desc = ucd.getDescription();
+                }
             }
             if ( desc == null ) {
                 desc = columnInfos[column].getName();
