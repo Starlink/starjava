@@ -41,6 +41,7 @@ import jsky.util.gui.DialogUtil;
 
 import org.w3c.dom.Element;
 
+import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
@@ -444,20 +445,22 @@ public class SOGNavigatorImageDisplay
         //  be used to construct an AstTransform that can be used instead of a
         //  WCSTransform.
         Ndx ndx = hdxImage.getCurrentNDX();
-        try {
-            FrameSet frameSet = Ndxs.getAst( ndx );
-            if ( frameSet != null ) {
-                setWCS( new AstTransform( frameSet, getImageWidth(),
-                                          getImageHeight() ) );
+        if ( AstPackage.isAvailable() ) {
+            try {
+                FrameSet frameSet = Ndxs.getAst( ndx );
+                if ( frameSet != null ) {
+                    setWCS( new AstTransform( frameSet, getImageWidth(),
+                                              getImageHeight() ) );
+                }
+            }
+            catch( Exception e ) {
+                e.printStackTrace();
+                setWCS( null );
+                return;
             }
         }
-        catch( Exception e ) {
-            e.printStackTrace();
-            setWCS( null );
-            return;
-        }
-        catch( NoClassDefFoundError e ) {
-            e.printStackTrace();
+        else {
+            System.err.println( "No WCS support available" );
             setWCS( null );
             return;
         }
@@ -506,20 +509,11 @@ public class SOGNavigatorImageDisplay
     protected void showGridControls()
     {
         if ( plotConfiguration == null ) {
-            try {
+            if ( AstPackage.isAvailable() ) {
                 plotConfiguration = new PlotConfiguration();
             }
-            catch ( UnsatisfiedLinkError e ) {
-                //  Failed to load libraries for plotting overlaying.
-                plotConfiguration = null;
-                System.out.println( "Cannot display WCS grids, no AST support" );
-                return;
-            }
-            catch( NoClassDefFoundError e ) {
-                //  Failed to find an AST class, must have failed to load
-                //  JNIAST libraries already.
-                plotConfiguration = null;
-                System.out.println( "Cannot display WCS grids, no AST support" );
+            else {
+                System.err.println("Cannot display WCS grids, no AST support");
                 return;
             }
         }
