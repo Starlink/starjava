@@ -104,6 +104,8 @@ class HelpDetailViewer extends DetailViewer {
             addKnownIcon( IconFactory.FRAME, "AST WCS coordinate Frame" );
             addKnownIcon( IconFactory.SKYFRAME, 
                           "AST WCS Sky coordinate Frame" );
+            addKnownIcon( IconFactory.SPECFRAME,
+                          "AST WCS Spectral coordinate Frame" );
 
             ta.addSeparator();
             addKnownIcon( IconFactory.STRUCTURE, "HDS data structure" );
@@ -121,6 +123,7 @@ class HelpDetailViewer extends DetailViewer {
             addKnownIcon( IconFactory.XML_PI, "XML processing instruction" );
 
             ta.addSeparator();
+            addKnownIcon( IconFactory.HDX_CONTAINER, "HDX container" );
             addKnownIcon( IconFactory.NDX, "NDX structure" );
 
             ta.addSeparator();
