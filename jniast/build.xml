@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
- !  JNIAST build file
+ !   JNIAST build file
  !
  !   This file describes how to build the JNIAST package from a source
  !   release. It requires Apache ANT and a Java Development Kit.
@@ -64,9 +64,12 @@
    !   directory by default -->
   <property name="star.archive.dir" value="${basedir}"/>
 
+  <!-- URL and package-list for linking against full Java docs -->
+  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
+
   <!-- The environment CLASSPATH is ignored by Ant tasks. -->
   <property name="build.sysclasspath" value="ignore"/>
-
 
   <!--
    !  ================
@@ -122,8 +125,6 @@
   <property name="build.classes" value="${build.dir}/classes"/>
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.jni" location="${build.dir}/jni"/>
-  <property name="build.lib" value="${build.dir}/lib"/>
-  <property name="build.javadocs" value="${build.dir}/javadocs"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
 
@@ -174,9 +175,6 @@
   <property name="shared.object" value="lib${name}.so"/>
   <property name="link.script" value="${name}_libraries"/>
 
-
-
-
   <!--
    !   =========
    !   CLASSPATH
@@ -223,13 +221,13 @@
 
   <path id="built.classpath">
 
+    <!-- Directly dependent third party jars -->
+    <path refid="built.jarpath"/>
+
     <!-- All locally built classes -->
     <dirset dir="${star.build.dir}">
       <include name="*/build/classes"/>
     </dirset>
-
-    <!-- Directly dependent third party jars -->
-    <path refid="built.jarpath"/>
 
     <!-- Finally add all "dist" jar files to make sure everything is
      !   resolved, including relative URLs out of the local package -->
@@ -694,16 +692,16 @@
           unless="runonly.install"
           description="-> creates the package jar file">
 
-    <mkdir dir="${build.lib}"/>
-    <jar destfile="${build.lib}/${name}.jar" basedir="${build.classes}">
+    <mkdir dir="${dist.lib.pkg}"/>
+    <jar destfile="${dist.lib.pkg}/${name}.jar" basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" value=""/>
       </manifest>
     </jar>
 
-    <mkdir dir="${build.lib}"/>
-    <zip destfile="${build.lib}/${name}_src.zip" basedir="${build.java}"/>
+    <mkdir dir="${dist.lib.pkg}"/>
+    <zip destfile="${dist.lib.pkg}/${name}_src.zip" basedir="${build.java}"/>
 
   </target>
 
@@ -725,26 +723,6 @@
     <mkdir dir="${dist.dir}"/>
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
-
-    <copy todir="${dist.lib.pkg}">
-      <fileset dir="${build.lib}">
-        <include name="**/*.jar"/>
-        <include name="**/*.zip"/>
-      </fileset>
-    </copy>
-
-    <copy todir="${dist.lib}">
-      <fileset dir="${build.lib}" includes="**/*.so"/>
-    </copy>
-
-    <copy todir="${dist.javadocs}">
-      <fileset dir="${build.javadocs}" excludes="${unfiltered.files}"/>
-      <filterchain refid="filters"/>
-    </copy>
-
-    <copy todir="${dist.javadocs}" filtering="false">
-      <fileset dir="${build.javadocs}" includes="${unfiltered.files}"/>
-    </copy>
 
     <!-- Set permissions on contents of distribution directory -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
@@ -1046,18 +1024,24 @@
           unless="javadoc.notrequired"
           description="-> creates the API documentation">
 
-    <mkdir dir="${build.javadocs}"/>
+    <mkdir dir="${dist.javadocs}"/>
     <javadoc useexternalfile="yes"
-             destdir="${build.javadocs}"
+             destdir="${dist.javadocs}"
              author="true"
              version="true"
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
-             classpath="classpath">
+             classpathref="classpath">
 
       <!-- Exclude broken and test files etc. from the document -->
-      <fileset dir="${build.java}" defaultexcludes="yes"/>
+      <packageset dir="${build.java}" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <!-- Link to the full Java API at SUNs website -->
+      <link offline="true" href="${javaapi.url}"
+            packagelistLoc="${javaapi.lis}"/>
 
       <group title="${Name} API" packages="${package.name}*"/>
 
@@ -1076,7 +1060,7 @@
           unless="javadoc.notrequired">
 
     <uptodate property="javadoc.notrequired"
-              targetfile="${build.javadocs}/packages.html" >
+              targetfile="${dist.javadocs}/packages.html" >
         <srcfiles dir= "${build.java}" includes="**/*.java"/>
     </uptodate>
 
