@@ -123,7 +123,6 @@ public class SplatSOAPServer
         //  Create the HTTP/SOAP server. Need our local description to
         //  define the SOAP services offered (by this class). 
         URL deployURL = SplatSOAPServer.class.getResource( "deploy.wsdd" );
-        System.out.println( deployURL );
 
         //  Check if this port is already bound. In which case give up
         //  now!
@@ -144,11 +143,11 @@ public class SplatSOAPServer
             server = new AppHttpSOAPServer( portNumber );
             server.start();
             server.addSOAPService( deployURL );
-            System.out.println( "port = " + portNumber );
+            System.out.println( "Remote services port: " + portNumber );
         }
         catch ( Exception e ) {
             e.printStackTrace();
-            throw new RuntimeException("Failed to start SPLAT SOAP services");
+            throw new RuntimeException( "Failed to start SPLAT SOAP services" );
         }
     }
 

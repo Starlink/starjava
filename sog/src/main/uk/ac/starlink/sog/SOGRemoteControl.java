@@ -155,7 +155,6 @@ public class SOGRemoteControl
         //  Create the HTTP/SOAP server. Need our local description to
         //  define the SOAP services offered (by this class). 
         URL deployURL = SOGRemoteControl.class.getResource( "deploy.wsdd" );
-        System.out.println( deployURL );
 
         //  Check if this port is already bound. In which case give up
         //  now!
@@ -177,7 +176,7 @@ public class SOGRemoteControl
             _server = new AppHttpSOAPServer( portNumber );
             _server.start();
             _server.addSOAPService( deployURL );
-            System.out.println( "port = " + portNumber );
+            System.out.println( "Remote services port: " + portNumber );
         }
         catch ( Exception e ) {
             e.printStackTrace();

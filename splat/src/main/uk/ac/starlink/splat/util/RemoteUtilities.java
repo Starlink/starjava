@@ -67,7 +67,6 @@ public class RemoteUtilities
         if ( contactFile != null ) {
             try {
                 contactFile.createNewFile();
-                System.out.println( "Remote control established" );
                 Runtime.getRuntime().exec( "chmod 600 " +
                                            contactFile.getPath() );
             } 
