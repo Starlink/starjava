@@ -27,4 +27,4 @@ fi
 export LD_LIBRARY_PATH
 
 #  Run NDTOOLS.
-$starjava -enableassertions -jar $appjar $*
+$starjava -enableassertions -jar $appjar "$@"
