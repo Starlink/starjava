@@ -66,6 +66,7 @@ public class BufferIterator implements Iterator {
      * @param   length     the total number of elements to iterate over
      * @param   type       the type of the primitive buffer which the
      *                     <tt>next</tt> method will return at each iteration
+     */
     public BufferIterator( long length ) {
         chunkIt = new ChunkIterator( length );
         this.type = type;
