@@ -11,6 +11,9 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.Point;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -78,7 +81,7 @@ import uk.ac.starlink.votable.VOTableBuilder;
  */
 public class SSAQueryBrowser
     extends JFrame
-    implements ActionListener
+    implements ActionListener, MouseListener
 {
     /**
      * The object holding the list of servers that we should use for SSA
@@ -625,15 +628,23 @@ public class SSAQueryBrowser
 
                 //  Set widths of columns.
                 table.configureColumnWidths( 200, 5 );
+
+                //  Double click on row means load that spectrum.
+
+                table.addMouseListener( this );
             }
         }
     }
 
     /**
-     * Get the main SPLAT browser to download and display any selected
+     * Get the main SPLAT browser to download and display spectra.
+     * <p>
+     * Can either display all the spectra, just the selected spectra, or the
+     * spectrum from a row in a given table. If table is null, then the
+     * selected parameter determines the behaviour of all or just the selected
      * spectra.
      */
-    protected void displaySpectra( boolean selected )
+    protected void displaySpectra( boolean selected, StarJTable table, int row )
     {
         //  List of all spectra to be loaded and their data formats and short
         //  names.
@@ -641,12 +652,17 @@ public class SSAQueryBrowser
         ArrayList typeList = new ArrayList();
         ArrayList nameList = new ArrayList();
 
-        //  Visit all the tabbed StarJTables.
-        Iterator i = starJTables.iterator();
-        RowSequence rseq = null;
-        while ( i.hasNext() ) {
-            extractSpectraFromTable( (StarJTable) i.next(), specList,
-                                     typeList, nameList, selected );
+        if ( table == null ) {
+            //  Visit all the tabbed StarJTables.
+            Iterator i = starJTables.iterator();
+            while ( i.hasNext() ) {
+                extractSpectraFromTable( (StarJTable) i.next(), specList,
+                                         typeList, nameList, selected, -1 );
+            }
+        }
+        else {
+            extractSpectraFromTable( table, specList, typeList, nameList,
+                                     selected, row );
         }
 
         //  If we have no spectra complain and stop.
@@ -694,18 +710,26 @@ public class SSAQueryBrowser
     /**
      * Extract all the links to spectra for downloading, plus the associated
      * data formats, if available from the rows of table. Can return the
-     * selected spectra, if requested, otherwise all spectra are returned.
+     * selected spectra, if requested, otherwise all spectra are returned or
+     * if a row value other than -1 is given just one row.
      */
-    private void extractSpectraFromTable( StarJTable table, 
+    private void extractSpectraFromTable( StarJTable table,
                                           ArrayList specList,
-                                          ArrayList typeList, 
-                                          ArrayList nameList, 
-                                          boolean selected )
+                                          ArrayList typeList,
+                                          ArrayList nameList,
+                                          boolean selected,
+                                          int row )
     {
         int[] selection = null;
-        //  Check for a selection if required.
-        if ( selected ) {
+
+        //  Check for a selection if required, otherwise we're using the given
+        //  row.
+        if ( selected && row == -1 ) {
             selection = table.getSelectedRows();
+        }
+        else if ( row != -1 ) {
+            selection = new int[1];
+            selection[0] = row;
         }
 
         // Only do this if we're processing all rows or we have a selection.
@@ -810,7 +834,7 @@ public class SSAQueryBrowser
         int[] types = new int[ntypes];
         String type = null;
         for ( int k = 0; k < ntypes; k++ ) {
-            type = (String) typeList.get( k );
+            type = ((String) typeList.get( k )).trim();
             if ( type.equals( "application/fits" ) ) {
                 //  FITS format, is that image or table?
                 types[k] = SpecDataFactory.FITS;
@@ -883,17 +907,36 @@ public class SSAQueryBrowser
         }
 
         if ( source.equals( displaySelectedButton ) ) {
-            displaySpectra( true );
+            displaySpectra( true, null, -1 );
             return;
         }
         if ( source.equals( displayAllButton ) ) {
-            displaySpectra( false );
+            displaySpectra( false, null, -1 );
             return;
         }
 
     }
 
+    //
+    // MouseListener interface. Double clicks display the clicked spectrum.
+    //
+    public void mousePressed( MouseEvent e ) {}
+    public void mouseReleased( MouseEvent e ) {}
+    public void mouseEntered( MouseEvent e ) {}
+    public void mouseExited( MouseEvent e ) {}
+    public void mouseClicked( MouseEvent e )
+    {
+        if ( e.getClickCount() == 2 ) {
+            StarJTable table = (StarJTable) e.getSource();
+            Point p = e.getPoint();
+            int row = table.rowAtPoint( p );
+            displaySpectra( false, table, row );
+        }
+    }
+
+    //
     //  Action for switching servers active state on and off.
+    //
     class ServerAction
         extends AbstractAction
     {
@@ -911,7 +954,9 @@ public class SSAQueryBrowser
         }
     }
 
+    //
     //  Action for switching name resolvers.
+    //
     class ResolverAction
         extends AbstractAction
     {
