@@ -56,7 +56,14 @@ public class UnitUtilities
             word = fixUp( word );
             cleaned.append( word );
         }
-        return cleaned.toString();
+        result = cleaned.toString();
+        
+        //  Fixup completely wrong strings... FUSE server misses /s completely.
+        if ( "erg/cm^2/Angstrom".equals( result ) ) {
+            result = "erg/cm^2/s/Angstrom";
+        }
+
+        return result;
     }
 
     /**
@@ -225,7 +232,8 @@ public class UnitUtilities
             "erg /s /cm2 /angstroms",
             "0.1nm",
             "COUNTS",
-            "1.0E-17 erg/cm^2/s/Ang"
+            "1.0E-17 erg/cm^2/s/Ang",
+            "erg/cm**2/A"
         };
 
         System.out.println( "Checking units fixups" );
