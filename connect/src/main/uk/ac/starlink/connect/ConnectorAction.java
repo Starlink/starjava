@@ -122,9 +122,12 @@ public class ConnectorAction extends AbstractAction {
             field.addActionListener( okAction_ );
 
             /* Fill in an initial default value if available. */
-            String dfault = key.getDefault();
-            if ( dfault != null ) {
-                field.setText( dfault );
+            Object dfault = key.getDefault();
+            if ( dfault instanceof String ) {
+                field.setText( (String) dfault );
+            }
+            else if ( dfault instanceof char[] ) {
+                field.setText( new String( (char[]) dfault ) );
             }
             else if ( firstEmpty == null ) {
                 firstEmpty = field;
