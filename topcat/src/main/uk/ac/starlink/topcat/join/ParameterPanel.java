@@ -33,9 +33,8 @@ public class ParameterPanel extends JPanel {
             Box line = Box.createHorizontalBox();
             line.add( new JLabel( info.getName() + ": " ) );
             line.add( new ParameterEditor( param ) );
-            String units = info.getUnitString();
-            if ( units != null && units.trim().length() > 0 ) {
-                line.add( new JLabel( " (" + units + ")" ) );
+            if ( i > 0 ) {
+                main.add( Box.createVerticalStrut( 5 ) );
             }
             main.add( line );
         }

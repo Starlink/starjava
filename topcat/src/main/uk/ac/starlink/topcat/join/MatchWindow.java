@@ -33,7 +33,14 @@ import uk.ac.starlink.table.join.RangeModelProgressIndicator;
 import uk.ac.starlink.table.join.SphericalPolarMatchEngine;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.func.Coords;
 
+/**
+ * Window for selecting the characteristics of and invoking a match 
+ * (table join) operation.
+ *
+ * @author   Mark Taylor (Starlink)
+ */
 public class MatchWindow extends AuxWindow implements ItemListener {
 
     private final int nTable;
@@ -349,8 +356,8 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * @return  match engine array
      */
     private static MatchEngine[] getEngines() {
-        double someAngle = 1e-5;
-        double someLength = 0.1;
+        double someAngle = Coords.ARC_SECOND;
+        double someLength = 1.0;
         double[] someLengths1 = new double[ 1 ];
         double[] someLengths2 = new double[ 2 ];
         double[] someLengths3 = new double[ 3 ];
