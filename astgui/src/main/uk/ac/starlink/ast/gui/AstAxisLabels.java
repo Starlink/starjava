@@ -180,8 +180,7 @@ public class AstAxisLabels extends AbstractPlotControlsModel
         yLabel = NULL_LABEL;
         colour = Color.black;
         font = null;
-        xGap = 0.07;
-        // this is fudged, should be 0.01
+        xGap = 0.01;
         yGap = 0.01;
         xEdge = BOTTOM;
         yEdge = LEFT;

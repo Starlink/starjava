@@ -64,7 +64,9 @@ public class DecimalField extends JTextField
         double retVal = 0.0;
         try {
             retVal = decimalFormat.parse( getText() ).doubleValue();
-        } catch ( ParseException e ) {
+        } 
+        catch ( ParseException e ) {
+            // Return default value.
         }
         return retVal;
     }
@@ -78,7 +80,9 @@ public class DecimalField extends JTextField
         int retVal = 0;
         try {
             retVal = decimalFormat.parse( getText() ).intValue();
-        } catch ( ParseException e ) {
+        } 
+        catch ( ParseException e ) {
+            // Return default value.
         }
         return retVal;
     }
