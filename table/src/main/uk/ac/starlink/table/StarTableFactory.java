@@ -336,12 +336,15 @@ public class StarTableFactory {
            .append( "\"" );
         Iterator it = defaultBuilders_.iterator();
         if ( it.hasNext() ) {
-            msg.append( "\nTried handlers:\n" );
+            msg.append( " (tried" );
             while ( it.hasNext() ) {
-                msg.append( "    " )
-                   .append( it.next() )
-                   .append( "\n" );
+                msg.append( " " )
+                   .append( ((TableBuilder) it.next()).getFormatName() );
+                if ( it.hasNext() ) {
+                    msg.append( ',' );
+                }
             }
+            msg.append( ')' );
         }
         else {
             msg.append( " - no table handlers available" );
