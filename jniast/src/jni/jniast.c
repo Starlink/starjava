@@ -106,6 +106,10 @@ void jniastInitialize( JNIEnv *env ) {
         (*env)->FindClass( env, "java/lang/NoClassDefFoundError" ) ) ) &&
    ( OutOfMemoryErrorClass = (jclass) (*env)->NewGlobalRef( env,
         (*env)->FindClass( env, "java/lang/OutOfMemoryError" ) ) ) &&
+   ( DoubleClass = (jclass) (*env)->NewGlobalRef( env,
+        (*env)->FindClass( env, "java/lang/Double" ) ) ) &&
+   ( IntegerClass = (jclass) (*env)->NewGlobalRef( env,
+        (*env)->FindClass( env, "java/lang/Integer" ) ) ) &&
    ( objclass = (*env)->FindClass( env, "java/lang/Object" ) ) &&
    ( classclass = (*env)->FindClass( env, "java/lang/Class" ) ) &&
 
@@ -138,6 +142,12 @@ void jniastInitialize( JNIEnv *env ) {
    ( SystemGcMethodID =
         (*env)->GetStaticMethodID( env, SystemClass, "gc", 
                                    "()V" ) ) &&
+   ( DoubleConstructorID =
+        (*env)->GetMethodID( env, DoubleClass, "<init>",
+                             "(D)V" ) ) &&
+   ( IntegerConstructorID =
+        (*env)->GetMethodID( env, IntegerClass, "<init>",
+                             "(I)V" ) ) &&
 
    /* Construct the object used for synchronizing calls to the AST library. */
    ( AstLock = (jobject) (*env)->NewGlobalRef( env,

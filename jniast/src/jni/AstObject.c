@@ -118,6 +118,13 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
       else TRY_CONST( AST__SZP )
       else TRY_CONST( AST__WCSBAD )
 
+      /* KeyMap entry types. */
+      else TRY_CONST( AST__INTTYPE )
+      else TRY_CONST( AST__DOUBLETYPE )
+      else TRY_CONST( AST__STRINGTYPE )
+      else TRY_CONST( AST__OBJECTTYPE )
+      else TRY_CONST( AST__BADTYPE )
+
       /* GRF attribute types. */
       else TRY_CONST( GRF__STYLE )
       else TRY_CONST( GRF__WIDTH )

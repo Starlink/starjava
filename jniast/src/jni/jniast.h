@@ -51,6 +51,7 @@ typedef union {
    AstFrameSet *FrameSet;    /* Pointer to C AstFrameSet struct */
    AstGrismMap *GrismMap;    /* Pointer to C AstGrismMap struct */
    AstIntraMap *IntraMap;    /* Pointer to C AstIntraMap struct */
+   AstKeyMap *KeyMap;        /* Pointer to C AstKeyMap struct */
    AstLutMap *LutMap;        /* Pointer to C AstLutMap struct */
    AstMapping *Mapping;      /* Pointer to C AstMapping struct */
    AstMathMap *MathMap;      /* Pointer to C AstMathMap struct */
@@ -79,14 +80,18 @@ typedef union {
 /* External variables. */
 jobject AstLock;
 jclass AstExceptionClass;
+jclass DoubleClass;
 jclass DoubleArrayClass;
 jclass ErrorClass;
+jclass IntegerClass;
 jclass MappingClass;
 jmethodID ObjectHashCodeMethodID;
 jmethodID ObjectToStringMethodID;
 jmethodID AstExceptionConstructorID;
 jmethodID ClassGetNameMethodID;
 jmethodID ErrorConstructorID;
+jmethodID DoubleConstructorID;
+jmethodID IntegerConstructorID;
 
 
 /* Utility function prototypes. */

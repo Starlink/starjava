@@ -91,6 +91,7 @@ C_ROUTINES = \
    FrameSet.c \
    GrismMap.c \
    IntraMap.c \
+   KeyMap.c \
    LutMap.c \
    Mapping.c \
    MathMap.c \
