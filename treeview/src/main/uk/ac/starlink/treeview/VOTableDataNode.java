@@ -2,8 +2,10 @@ package uk.ac.starlink.treeview;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import javax.swing.JComponent;
 import javax.xml.transform.Source;
@@ -17,6 +19,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOElementFactory;
 
 /**
  * Node representing a top-level VOTable document.
@@ -24,6 +27,7 @@ import uk.ac.starlink.votable.VOElement;
 public class VOTableDataNode extends DocumentDataNode {
 
     private String name;
+    private VOElement vocel;
 
     public VOTableDataNode( XMLDocument xdoc ) throws NoSuchDataException {
         super( xdoc );
@@ -56,43 +60,22 @@ public class VOTableDataNode extends DocumentDataNode {
         return "#";
     }
 
+    private VOElement getVOElement() throws IOException, SAXException {
+        if ( vocel == null ) {
+            vocel = VOElementFactory.makeVOElement( getDocument() );
+        }
+        return vocel;
+    }
+
     public Iterator getChildIterator() {
+        List children = new ArrayList();
         try {
-            Element votel = ((Document) getDocument().getNode())
-                           .getDocumentElement();
-            final Iterator baseIt = getChildIterator( votel );
-            return new Iterator() {
-                private DataNode next = nextUseful();
-                public boolean hasNext() {
-                    return next != null;
-                }
-                public Object next() {
-                    if ( next == null ) {
-                        throw new NoSuchElementException();
-                    }
-                    DataNode item = next;
-                    next = nextUseful();
-                    return item;
-                }
-                public void remove() {
-                    throw new UnsupportedOperationException();
-                }
-                public DataNode nextUseful() {
-                    if ( ! baseIt.hasNext() ) {
-                        return null;
-                    }
-                    DataNode item = (DataNode) baseIt.next();
-                    if ( item.getClass().equals( VOComponentDataNode.class ) ) {
-                        Element el = ((VOComponentDataNode) item).getElement();
-                        String name = el.getTagName();
-                        if ( name.equals( "DESCRIPTION" ) ||
-                             name.equals( "INFO" ) ) {
-                            return nextUseful();
-                        }
-                    }
-                    return item;
-                }
-            };
+            for ( Iterator it = VOComponentDataNode
+                               .getChildElements( getVOElement() ).iterator(); 
+                  it.hasNext(); ) {
+                Source xsrc = ((VOElement) it.next()).getSource();
+                children.add( makeChild( xsrc ) );
+            }
         }
         catch ( IOException e ) {
             return Collections.singleton( makeErrorChild( e ) ).iterator();
@@ -100,6 +83,7 @@ public class VOTableDataNode extends DocumentDataNode {
         catch ( SAXException e ) {
             return Collections.singleton( makeErrorChild( e ) ).iterator();
         }
+        return children.iterator();
     }
 
     public void configureDetail( DetailViewer dv ) {
@@ -113,10 +97,9 @@ public class VOTableDataNode extends DocumentDataNode {
          * are a bit too insignificant to warrant that. */
         dv.addPane( "Document Metadata", new ComponentMaker() {
             public JComponent getComponent() {
-                Document doc;
-                DOMSource docsrc;
+                VOElement voel;
                 try {
-                    docsrc = getDocument();
+                    voel = getVOElement();
                 }
                 catch ( IOException e ) {
                     return new TextViewer( e );
@@ -127,22 +110,15 @@ public class VOTableDataNode extends DocumentDataNode {
                 StyledTextArea sta = new StyledTextArea();
                 sta.setWrap( true );
 
-                /* Get VOElement corresponding to VOTABLE element. */
-                DOMSource dsrc = 
-                    new DOMSource( ((Document) docsrc.getNode())
-                                  .getDocumentElement(),
-                                   docsrc.getSystemId() );
-                VOElement vocel = VOElement.makeVOElement( dsrc );
-
                 /* Deal with any DESCRIPTION. */
-                String description = vocel.getDescription();
+                String description = voel.getDescription();
                 if ( description != null ) {
                     sta.addSubHead( "Description" );
                     sta.addText( description );
                 }
 
                 /* Deal with any INFOs. */
-                VOElement[] infos = vocel.getChildrenByName( "INFO" );
+                VOElement[] infos = voel.getChildrenByName( "INFO" );
                 if ( infos.length > 0 ) {
                     sta.addSubHead( "Infos" );
                     for ( int i = 0; i < infos.length; i++ ) {

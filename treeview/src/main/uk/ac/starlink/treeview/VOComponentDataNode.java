@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import javax.swing.JComponent;
 import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -21,11 +20,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.UCD;
-import uk.ac.starlink.votable.Param;
-import uk.ac.starlink.votable.Table;
+import uk.ac.starlink.votable.ParamElement;
+import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.SourceReader;
@@ -43,53 +44,36 @@ public class VOComponentDataNode extends DefaultDataNode
         "STREAM", "COOSYS",
     } ) );
 
-    protected final Element vocel;
+    protected final VOElement vocel;
     protected final String systemId;
     private String name;
     private Object parentObj;
-    private NodeList tables;
+    private TableElement[] tables;
     private StarTable startable;
 
     public VOComponentDataNode( Source xsrc ) throws NoSuchDataException {
         Node domNode;
         try {
-            domNode = new SourceReader().getDOM( xsrc );
+            vocel = VOElementFactory.makeVOElement( xsrc );
         }
-        catch ( TransformerException e ) {
+        catch ( SAXException e ) {
             throw new NoSuchDataException( e );
         }
-        if ( domNode instanceof Element ) {
-            vocel = (Element) domNode;
-        }
-        else if ( domNode instanceof Document ) {
-            vocel = ((Document) domNode).getDocumentElement();
-            if ( vocel.getTagName() != "VOTABLE" ) {
-                throw new NoSuchDataException( "Document is not VOTABLE" );
-            }
-        }
-        else {
-            throw new NoSuchDataException( "Source is not an element" );
+        catch ( IOException e ) {
+            throw new NoSuchDataException( e );
         }
         this.systemId = xsrc.getSystemId();
 
-        if ( ! voTagNames.contains( vocel.getTagName() ) || 
-             vocel.getPrefix() != null ) {
+        if ( ! voTagNames.contains( vocel.getTagName() ) ) {
             throw new NoSuchDataException( "Not a known VOTable element" );
         }
 
         String idval = vocel.getAttribute( "ID" );
         String nameval = vocel.getAttribute( "name" );
-        if ( nameval.length() > 0 ) {
-            name = nameval;
-        }
-        else if ( idval.length() > 0 ) {
-            name = idval;
-        }
-        else {
-            name = vocel.getTagName();
-        }
+        name = vocel.getHandle();
 
-        parentObj = new DOMSource( vocel.getParentNode(), systemId );
+        parentObj = new DOMSource( vocel.getElement().getParentNode(),
+                                   systemId );
 
         setLabel( name );
         setIconID( IconFactory.VOCOMPONENT );
@@ -147,50 +131,53 @@ public class VOComponentDataNode extends DefaultDataNode
     }
 
     public Iterator getChildIterator() {
-        return new Iterator() {
-            private Node next = firstUsefulSibling( vocel.getFirstChild() );
-            public boolean hasNext() {
-                return next != null;
+        List children = new ArrayList();
+        for ( Iterator it = getChildElements( vocel ).iterator(); 
+              it.hasNext(); ) {
+            Source xsrc = ((VOElement) it.next()).getSource();
+            children.add( makeChild( xsrc ) );
+        }
+        return children.iterator();
+    }
+
+    static List getChildElements( VOElement vocel ) {
+        List children = new ArrayList( Arrays.asList( vocel.getChildren() ) );
+        for ( Iterator it = children.iterator(); it.hasNext(); ) {
+            VOElement childEl = (VOElement) it.next();
+            String childName = childEl.getTagName();
+            if ( childName.equals( "DESCRIPTION" ) ||
+                 childName.equals( "INFO" ) ||
+                 childName.equals( "PARAM" ) ||
+                 childName.equals( "COOSYS" ) ) {
+                it.remove();
             }
-            public Object next() {
-                if ( next == null ) {
-                    throw new NoSuchElementException();
-                }
-                Node nd = next;
-                next = firstUsefulSibling( nd.getNextSibling() );
-                try {
-                    Source xsrc = new DOMSource( nd, systemId );
-                    DataNode child = makeChild( xsrc );
-                    return makeChild( xsrc );
-                }
-                catch ( Exception e ) {
-                    return makeErrorChild( e );
-                }
-            }
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-        };
+        }
+        return children;
     }
 
     public void configureDetail( DetailViewer dv ) {
         dv.addKeyedItem( "Element name", vocel.getTagName() );
-        addVOComponentViews( dv, vocel, systemId );
+        addVOComponentViews( dv, vocel );
     }
 
-    Element getElement() {
+    VOElement getElement() {
         return vocel;
     }
 
-    private NodeList getTables() {
+    private TableElement[] getTables() {
         if ( tables == null ) {
-            tables = vocel.getElementsByTagName( "TABLE" );
+            VOElement[] tableEls = vocel.getDescendantsByName( "TABLE" );
+            int nt = tableEls.length;
+            tables = new TableElement[ nt ];
+            for ( int i = 0; i < nt; i++ ) {
+                tables[ i ] = (TableElement) tableEls[ i ];
+            }
         }
         return tables;
     }
 
     public boolean isStarTable() {
-        return getTables().getLength() == 1;
+        return getTables().length == 1;
     }
 
     public StarTable getStarTable() throws IOException {
@@ -198,17 +185,16 @@ public class VOComponentDataNode extends DefaultDataNode
             throw new IllegalStateException();
         }
         if ( startable == null ) {
-            Element tel = (Element) getTables().item( 0 );
-            DOMSource xsrc = new DOMSource( tel, systemId );
-            startable = new VOStarTable( new Table( xsrc ) );
+            startable = new VOStarTable( tables[ 0 ] );
         }
         return startable;
     }
 
-    public static void addVOComponentViews( DetailViewer dv, final Element el,
-                                            final String systemId ) {
+    public static void addVOComponentViews( DetailViewer dv, 
+                                            final VOElement voel ) {
 
         /* Collect useful children. */
+        String systemId = voel.getSystemId();
         Map atts = new TreeMap();
         String description = null;
         List infonames = new ArrayList();
@@ -216,7 +202,9 @@ public class VOComponentDataNode extends DefaultDataNode
         final List params = new ArrayList();
         final List coosyss = new ArrayList();
         int ninfo = 0;
-        for ( Node child = el.getFirstChild(); child != null;
+
+        
+        for ( Node child = voel.getElement().getFirstChild(); child != null;
               child = child.getNextSibling() ) {
             if ( child instanceof Attr ) {
                 Attr att = (Attr) child;
@@ -230,18 +218,20 @@ public class VOComponentDataNode extends DefaultDataNode
                     description = DOMUtils.getTextContent( childEl ).trim();
                 }
                 else if ( elname.equals( "INFO" ) ) {
-                    String infohandle = 
-                        VOElement.makeVOElement( childSrc ).getHandle();
+                    String infohandle = VOElementFactory
+                                       .makeVOElement( childEl, systemId )
+                                       .getHandle();
                     String infovalue = childEl.getAttribute( "value" );
                     infonames.add( infohandle );
                     infovals.add( infovalue );
                     ninfo++;
                 }
                 else if ( elname.equals( "PARAM" ) ) {
-                    params.add( new Param( childSrc ) );
+                    params.add( new ParamElement( childEl, systemId ) );
                 }
                 else if ( elname.equals( "COOSYS" ) ) {
-                    coosyss.add( VOElement.makeVOElement( childSrc ) );
+                    coosyss.add( VOElementFactory
+                                .makeVOElement( childEl, systemId ) );
                 }
             }
         }
@@ -298,7 +288,7 @@ public class VOComponentDataNode extends DefaultDataNode
         if ( params.size() > 0 ) {
             dv.addSubHead( "Params" );
             for ( Iterator it = params.iterator(); it.hasNext(); ) {
-                Param param = (Param) it.next();
+                ParamElement param = (ParamElement) it.next();
                 String val = param.getValue();
                 String unit = param.getUnit();
                 if ( unit != null ) {
@@ -315,34 +305,10 @@ public class VOComponentDataNode extends DefaultDataNode
 
         /* XML view. */
         dv.addPane( "XML content", new ComponentMaker() {
-            public JComponent getComponent() throws TransformerException {
-                return new TextViewer( new DOMSource( el, systemId ) );
+            public JComponent getComponent() {
+                return new TextViewer( voel.getSource() );
             }
         } );
-    }
-
-    /**
-     * Takes a given node and returns it, or the first of its siblings which
-     * is of interest to this class.  To count as useful, it must be an
-     * Element, and must not have the of one of the generic VOTable 
-     * components which are treated internally.
-     * These are currently INFO, PARAM, DESCRIPTION and COOSYS.
-     */
-    private static Node firstUsefulSibling( Node sib ) {
-        if ( sib == null ) {
-            return null;
-        }
-        if ( ! ( sib instanceof Element ) ) {
-            return firstUsefulSibling( sib.getNextSibling() );
-        }
-        String elname = ((Element) sib).getTagName();
-        if ( elname.equals( "DESCRIPTION" ) ||
-             elname.equals( "INFO" ) ||
-             elname.equals( "PARAM" ) ||
-             elname.equals( "COOSYS" ) ) {
-            return firstUsefulSibling( sib.getNextSibling() );
-        }
-        return sib;
     }
    
     /**
@@ -373,7 +339,7 @@ public class VOComponentDataNode extends DefaultDataNode
             setKeyOrder( keyOrder );
             int np = params.size();
             for ( int i = 0; i < np; i++ ) {
-                Param param = (Param) params.get( i );
+                ParamElement param = (ParamElement) params.get( i );
                 addEntry( i, ID_KEY, param.getAttribute( "ID" ) );
                 addEntry( i, UNIT_KEY, param.getAttribute( "unit" ) );
                 addEntry( i, DATATYPE_KEY, param.getAttribute( "datatype" ) );

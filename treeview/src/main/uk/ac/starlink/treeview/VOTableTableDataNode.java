@@ -12,26 +12,25 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.votable.Field;
+import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOStarTable;
-import uk.ac.starlink.votable.Table;
+import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.util.DOMUtils;
 
 public class VOTableTableDataNode extends VOComponentDataNode 
                  implements Draggable, TableNodeChooser.Choosable {
 
-    private Table votable;
+    private TableElement votable;
     private StarTable startable;
     private String desc;
 
     public VOTableTableDataNode( Source xsrc ) throws NoSuchDataException {
         super( xsrc, "TABLE" );
-        try {
-            votable = new Table( xsrc );
+        if ( ! ( getElement() instanceof TableElement ) ) {
+            throw new NoSuchDataException( "Not a TABLE element" );
         }
-        catch ( TransformerException e ) {
-            throw new NoSuchDataException( e );
-        }
+        votable = (TableElement) getElement();
         long nrows = votable.getRowCount();
         desc = "(" 
              + votable.getColumnCount() 
@@ -60,17 +59,17 @@ public class VOTableTableDataNode extends VOComponentDataNode
     public void configureDetail( DetailViewer dv ) {
 
         /* DATA element implementation. */
-        Element dat = DOMUtils.getChildElementByName( vocel, "DATA" );
+        VOElement dat = vocel.getChildByName( "DATA" );
         if ( dat != null ) {
-            Element imp = 
-                    DOMUtils.getFirstElementSibling( dat.getFirstChild() );
-            if ( imp != null ) {
-                dv.addKeyedItem( "Data implementation", imp.getTagName() );
+            VOElement[] dataChildren = dat.getChildren();
+            if ( dataChildren.length > 0 ) {
+                String imp = dataChildren[ 0 ].getTagName();
+                dv.addKeyedItem( "Data implementation", imp );
             }
         }
 
         /* Generic items. */
-        addVOComponentViews( dv, vocel, systemId );
+        addVOComponentViews( dv, vocel );
         try {
             StarTableDataNode.addDataViews( dv, getStarTable() );
         }
@@ -97,7 +96,7 @@ public class VOTableTableDataNode extends VOComponentDataNode
             for ( Iterator it = startable.getParameters().iterator();
                   it.hasNext(); ) {
                 if ( ((DescribedValue) it.next())
-                    .getInfo().getName().equals( "Description" ) ) {
+                    .getInfo().getName().equalsIgnoreCase( "Description" ) ) {
                     it.remove();
                 }
             }
