@@ -413,6 +413,21 @@
       <fileset dir="${src.docs}" includes="figures/*"/>
     </copy>
 
+    <!-- Do a custom javadoc run on the classes whose documentation is 
+     !   required at runtime, writing the result to the built resources
+     !   location. -->
+    <javadoc destdir="${build.classes}"
+             classpathref="classpath"
+             public="true"
+             doclet="uk.ac.starlink.topcat.doc.HtmlDoclet"
+             additionalparam="-headings"
+             docletpath="${build.classes}"
+             source="${source.version}">
+      <packageset dir="${java.dir}" defaultexcludes="yes">
+        <include name="uk/ac/starlink/topcat/func"/>
+      </packageset>
+    </javadoc>
+
     <!-- Version string. -->
     <echo file="${build.classes}/uk/ac/starlink/topcat/version-string"
           message="${version}"/>
@@ -497,6 +512,7 @@
          includes="demo/votable/gliese2.vot,demo/fits/gliese2.FIT,demo/others/**"/>
     <echo append="true" file="${demo.list}" message="demo.tar.bz2&#xA;"/>
   </target>
+
 
   <!--
    !   ============================
@@ -974,6 +990,7 @@
        !   java packages -->
       <packageset dir="${java.dir}" defaultexcludes="yes">
          <include name="**"/>
+         <exclude name="uk/ac/starlink/topcat/doc"/>
       </packageset>
 
       <!-- Link to the full Java API at SUNs website -->
