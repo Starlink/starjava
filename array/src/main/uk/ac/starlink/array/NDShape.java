@@ -297,6 +297,52 @@ public class NDShape implements Cloneable {
     }
 
     /**
+     * Turns a string specification of a shape into an NDShape object.
+     * This method is effectively the inverse of {@link #toString()}.
+     * <p>
+     * Each dimension specification is separated from the next using 
+     * a comma, and may be given as <i>lower</i>:<i>upper</i> inclusive
+     * bounds or <i>origin</i>+<i>dimension</i>.  So a 100x100 array
+     * with origin (50,50) may be written:
+     * <pre>
+     *     50:149,50:149
+     * </pre>
+     * or
+     * <pre>
+     *     50+100,50+100
+     * <pre>
+     * Straggling whitespace is tolerated.
+     *
+     * @param  str  the string representing the shape.
+     * @return the corresponding NDShape
+     * @throws IllegalArgumentException  if <tt>str</tt> does not match
+     *         one of the understood formats for a shape
+     */
+    public static NDShape fromString( String str ) {
+        String[] specs = str.split( " *, *", -1 );
+        int ndim = specs.length;
+        long[] origin = new long[ ndim ];
+        long[] dims = new long[ ndim ];
+        for ( int i = 0; i < ndim; i++ ) {
+            String spec = specs[ i ];
+            if ( spec.indexOf( ':' ) >= 0 ) {
+                String[] lu = spec.split( " *: *", 2 );
+                origin[ i ] = Integer.parseInt( lu[ 0 ] );
+                dims[ i ] = Integer.parseInt( lu[ 1 ] ) - origin[ i ] + 1;
+            }
+            else if ( spec.indexOf( '+' ) >= 0 ) {
+                String[] od = spec.split( " *\\+ *", 2 );
+                origin[ i ] = Integer.parseInt( od[ 0 ] );
+                dims[ i ] = Integer.parseInt( od[ 1 ] );
+            }
+            else {
+                throw new IllegalArgumentException( "Bad shape format " + str );
+            }
+        }
+        return new NDShape( origin, dims );
+    }
+
+    /**
      * Convenience method for converting an array of <tt>int</tt> values 
      * to an array of <tt>long</tt> values.
      *
