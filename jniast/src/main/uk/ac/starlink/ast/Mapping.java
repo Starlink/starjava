@@ -866,18 +866,76 @@ public class Mapping extends AstObject {
      * find the rate of change (input numbering starts at 1 for the first 
      * input).
      * 
-     * @param   d2
-     * optional array - if not <code>null</code>, an estimate of the
-     *             second derivative of the Mapping function at the specified
-     *             point will be written into its first element
-     *          
      * @return  The rate of change of Mapping output "ax1" with respect to input 
      * "ax2", evaluated at "at", or AST__BAD if the value cannot be 
      * calculated.
      * 
      * @throws  AstException  if an error occurred in the AST library
      */
-    public native double rate( double[] at, int ax1, int ax2, double[] d2 );
+    public native double rate( double[] at, int ax1, int ax2 );
+
+    /** 
+     * Obtain a linear approximation to a Mapping, if appropriate.   
+     * This function tests the forward coordinate transformation
+     * implemented by a Mapping over a given range of input coordinates. If
+     * the transformation is found to be linear to a specified level of
+     * accuracy, then an array of fit coefficients is returned. These
+     * may be used to implement a linear approximation to the Mapping's
+     * forward transformation within the specified range of output coordinates. 
+     * If the transformation is not sufficiently linear, no coefficients 
+     * are returned.
+     * <h4>Notes</h4>
+     * <br> - This function fits the Mapping's forward transformation. To fit
+     * the inverse transformation, the Mapping should be inverted using
+     * astInvert
+     * before invoking this function.
+     * <br> - A value of zero
+     * will be returned if this function is invoked
+     * with the global error status set, or if it should fail for any
+     * reason.
+     * <p>
+     *       If this mapping is not linear to the given tolerance, <tt>null</tt>
+     *       will be returned.
+     *    
+     * @param   lbnd
+     * Pointer to an array of doubles
+     * containing the lower bounds of a box defined within the input 
+     * coordinate system of the Mapping. The number of elements in this 
+     * array should equal the value of the Mapping's Nin attribute. This
+     * box should specify the region over which linearity is required.
+     * 
+     * @param   ubnd
+     * Pointer to an array of doubles
+     * containing the upper bounds of the box specifying the region over
+     * which linearity is required.
+     * 
+     * @param   tol
+     * The maximum permitted deviation from linearity, expressed as
+     * a positive Cartesian displacement in the output coordinate
+     * space of the Mapping. If a linear fit to the forward
+     * transformation of the Mapping deviates from the true transformation 
+     * by more than this amount at any point which is tested, then no fit
+     * coefficients will be returned.
+     * 
+     * @return  Pointer to an array of doubles 
+     * in which to return the co-efficients of the linear
+     * approximation to the specified transformation. This array should
+     * have at least "( Nin + 1 ) * Nout", elements. The first Nout elements 
+     * hold the constant offsets for the transformation outputs. The 
+     * remaining elements hold the gradients. So if the Mapping has 2 inputs 
+     * and 3 outputs the linear approximation to the forward transformation 
+     * is:
+     * <p>
+     *    X_out = result[0] + result[3]*X_in + result[4]*Y_in 
+     * <p>
+     *    Y_out = result[1] + result[5]*X_in + result[6]*Y_in 
+     * <p>
+     *    Z_out = result[2] + result[7]*X_in + result[8]*Y_in
+     * <p>
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native double[] linearApprox( double[] lbnd, double[] ubnd, double tol );
 
     /**
      * Get 

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -435,6 +436,11 @@ public class AstTest extends TestCase {
         assertArrayEquals( yin, resultP[ 0 ] );
         assertArrayEquals( xin, resultP[ 1 ] );
 
+        double[] linCoeffs = zoomer.linearApprox( new double[] { 0, 0, },
+                                                  new double[] { 1, 1, },
+                                                  0.01 );
+        assertArrayEquals( new double[] { 0, 0, 2, 0, 0, 2 }, linCoeffs );
+
         MathMap skidoo = new MathMap( 1, 1, new String[] { "a = x + 23" },
                                       new String[] { "x = a - 23" } );
         skidoo.setSimpFI( true );
@@ -456,12 +462,10 @@ public class AstTest extends TestCase {
         assertArrayEquals( small, skidoodiks.tran1( 1, small, false ) );
 
         // rate
-        double[] d2 = new double[] { -21. };
-        assertEquals( 2.0, zoomer.rate( new double[ 2 ], 1, 1, null ) );
-        assertEquals( 0.0, zoomer.rate( new double[ 2 ], 1, 2, d2 ) );
-        assertEquals( d2[ 0 ], 0.0 );
+        assertEquals( 2.0, zoomer.rate( new double[ 2 ], 1, 1 ) );
+        assertEquals( 0.0, zoomer.rate( new double[ 2 ], 1, 2 ) );
         try {
-            zoomer.rate( new double[ 1 ], 1, 2, null );
+            zoomer.rate( new double[ 1 ], 1, 2 );
             fail();
         }
         catch ( IllegalArgumentException e ) {
@@ -542,6 +546,11 @@ public class AstTest extends TestCase {
         double x = 29.;
         assertEquals( 3 * x * x, 
                       poly.tran1( 1, new double[] { x }, true )[ 0 ] );
+
+        double[] lbnd = new double[] { 0 };
+        double[] ubnd = new double[] { 1 };
+        assertNull( poly.linearApprox( lbnd, ubnd, 1e-5 ) );
+        assertNotNull( poly.linearApprox( lbnd, ubnd, 1e+5 ) );
     }
 
     public void testGrismMap() {

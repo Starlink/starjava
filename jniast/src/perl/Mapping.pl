@@ -650,14 +650,36 @@ makeNativeMethod(
          type => 'int',
          descrip => ArgDescrip( $fName, $aName ),
       },
+   ],
+);
+
+makeNativeMethod(
+   name => ( $fName = "linearApprox" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   extra => q{
+      If this mapping is not linear to the given tolerance, <tt>null</tt>
+      will be returned.
+   },
+   return => {
+      type => 'double[]',
+      descrip => ArgDescrip( $fName, "fit" ),
+   },
+   params => [
       {
-         name => ( $aName = "d2" ),
+         name => ( $aName = "lbnd" ),
          type => 'double[]',
-         descrip => q{
-            optional array - if not <code>null</code>, an estimate of the
-            second derivative of the Mapping function at the specified
-            point will be written into its first element
-         },
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "ubnd" ),
+         type => 'double[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "tol" ),
+         type => 'double',
+         descrip => ArgDescrip( $fName, $aName ),
       },
    ],
 );
