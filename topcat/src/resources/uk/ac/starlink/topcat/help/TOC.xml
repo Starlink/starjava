@@ -21,6 +21,7 @@
       <tocitem target="VOTableWrite" text="VOTable"/>
       <tocitem target="JDBCWrite" text="JDBC"/>
       <tocitem target="TextWrite" text="Text"/>
+      <tocitem target="LatexWrite" text="LaTeX"/>
       <tocitem target="MirageWrite" text="Mirage"/>
     </tocitem>
   </tocitem>
