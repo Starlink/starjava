@@ -186,7 +186,41 @@ public class FoldSeriesDialog extends JInternalFrame
             e.printStackTrace();
         }
     }
+    
+    /**
+     * Create an instance of the dialog and proceed to fold the time series
+     * around the user provided ephemeris 
+     *
+     * @param f The PlotControlFrame holding the TimeSeries of interest
+     * @param b Bool, if true we'll bin the data into a user set number of bins.
+     * @param s Bool, if true then we want to fit a sin() + cos() function
+     * @param z Default value for the zero point
+     * @param p Default value for the period
+     * @param n Default value for the number of phase bins
+     */
+    public FoldSeriesDialog( PlotControlFrame f, boolean b, boolean s, 
+                             double z, double p, int n )
+    {
+        super( "Fold Time Series", false, true, false, false );
 
+        frame = f;           // grab the interesting frame
+        binData = b;         // we want to bin the data up
+        fitData = s;         // we want to fit the data
+        zeroPoint = z;       
+        period = p;
+        phaseBins = n;
+        
+        zeroEntry.setText( new Double(zeroPoint).toString() );
+        periodEntry.setText( new Double(period).toString() );
+        binEntry.setText( new Integer(phaseBins).toString() );
+       
+        try {
+            // Build the User Interface
+            initUI( );
+        } catch( Exception e ) {
+            e.printStackTrace();
+        }
+    }
     /**
      * Initialize the user interface components.
      */

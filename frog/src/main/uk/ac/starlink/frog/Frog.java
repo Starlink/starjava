@@ -18,6 +18,7 @@ import uk.ac.starlink.frog.iface.GramControlFrame;
 import uk.ac.starlink.frog.iface.AboutFrame;
 
 import uk.ac.starlink.frog.iface.CombineSeriesDialog;
+import uk.ac.starlink.frog.iface.CopyFitToSeriesDialog;
 import uk.ac.starlink.frog.iface.ArithmeticDialog;
 import uk.ac.starlink.frog.iface.TrigArithmeticDialog;
 import uk.ac.starlink.frog.iface.FakeDataCreationDialog;
@@ -118,6 +119,12 @@ public class Frog extends JFrame
      */
      JMenuItem combineSeriesItem = null;
      
+    /**
+     * The copy fit operations menu entry, will be disabled if open
+     * series (with fits) number less than 2
+     */
+     JMenuItem copyFitItem = null; 
+         
     /**
      * The arithmetic operation menu entry, will be disabled if no
      * time series are open
@@ -506,6 +513,18 @@ public class Frog extends JFrame
        }); 
        operationsMenu.add(trigArithSeriesItem); 
        trigArithSeriesItem.setEnabled( false );         
+       
+       // Copy Fit
+       copyFitItem = new JMenuItem("Copy Fit to Time Series");
+       copyFitItem.addActionListener( new ActionListener() {
+           public void actionPerformed(ActionEvent e) { 
+
+               debugManager.print( "Creating Copy Fit to Series Dialog...");
+               doCopyFit( );     
+           }
+       }); 
+       operationsMenu.add(copyFitItem); 
+       copyFitItem.setEnabled( false );
         
        // Periodic Fake Data
        JMenuItem fakePeriodicItem = new JMenuItem("Create Fake Periodic Data");
@@ -532,7 +551,20 @@ public class Frog extends JFrame
         mainDesktop.add(combine);
         combine.show();
      } 
-
+     
+   /**
+     * Spawn a CopyFitToSeriesDialog popup
+     *
+     * @see CopyFitToSeriesDialog
+     */
+     protected void doCopyFit() 
+     {
+        // Create a new Copy Fit frame
+        CopyFitToSeriesDialog copy = new CopyFitToSeriesDialog( );
+        mainDesktop.add(copy);
+        copy.show();
+     } 
+     
     /**
      * Spawn a ArithmeticDialog popup
      *
@@ -1259,6 +1291,13 @@ public class Frog extends JFrame
        } else {
           trigArithSeriesItem.setEnabled( false );
        } 
+       
+       // Copy Fit from one series to next
+       if ( seriesManager.getFitCount() >= 1 ) {
+          copyFitItem.setEnabled( true );
+       } else {
+          copyFitItem.setEnabled( false );
+       }   
        
     }
     

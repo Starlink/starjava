@@ -954,7 +954,9 @@ public class PlotControlFrame extends JInternalFrame
         
         // add the fit to the current frame 
         timeSeriesComp.add( fittedSeries );
+        debugManager.print("           Updating plot and toggling menu..." );
         plot.updatePlot();
+        debugManager.getFrog().toggleMenuItemsOnSeriesUpdate();
         debugManager.print("           Fitted: " + fit.toString() );      
         rawSeriesItem.setEnabled(false);
                

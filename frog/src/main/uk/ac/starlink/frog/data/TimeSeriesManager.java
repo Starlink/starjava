@@ -2,6 +2,7 @@ package uk.ac.starlink.frog.data;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.Arrays;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -130,7 +131,65 @@ public class TimeSeriesManager
      {
          return seriesMap.size();
      }  
-     
+       
+    /**
+     * Get the number of series (with fits) indexed by the manager
+     */
+     public int getFitCount() 
+     {
+         
+         debugManager.print("             getFitCount()" );
+         
+         //
+         int fitCount = 0;
+         debugManager.print("               fitCount = " + fitCount );
+         
+         // grab a list of current keys in the manager
+         Object [] timeSeriesList = this.getSeriesKeys();
+         Arrays.sort(timeSeriesList);
+      
+         for ( int i=0; i < timeSeriesList.length; i++ ) {
+
+             TimeSeriesComp seriesComp = this.getSeries( 
+                                                  (String)timeSeriesList[i] );
+             debugManager.print("               Checking " +
+                                 (String)timeSeriesList[i]);
+      
+             // count them
+             boolean fitFlag = false;
+             for ( int k=0; k < seriesComp.count(); k++ ) {
+             
+                 debugManager.print("                 Series " + k + " of " +
+                                 seriesComp.count() ); 
+                 
+                 TimeSeries thisSeries = seriesComp.get(k);
+                 debugManager.print( "                 Series " + k +
+                               " is of type " + thisSeries.getType() ); 
+                               
+                 if ( thisSeries.getType() == TimeSeries.SINCOSFIT ) {
+                     fitFlag = true;
+                     debugManager.print("                 Series "+ k + " of " +
+                                 (seriesComp.count()-1) + " is a SINCOSFIT" );
+                     break;
+                 } else {
+                     fitFlag = false;
+                     debugManager.print("                 Series "+ k + " of " +
+                                 (seriesComp.count()-1) + " is not a fit" );
+                 }   
+             }
+             
+             if( fitFlag ) {
+                fitCount = fitCount + 1;
+                fitFlag = false;         
+                debugManager.print("               fitCount = " + fitCount );
+             }   
+         
+          }
+        
+          return fitCount;
+         
+     } 
+      
    /**
     * Return a unique ID for a series (hopefully)
     */

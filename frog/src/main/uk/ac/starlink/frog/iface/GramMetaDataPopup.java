@@ -170,10 +170,13 @@ public class GramMetaDataPopup extends JInternalFrame
        TimeSeries popupSeries = popupTimeComp.getSeries();
        String key = seriesManager.getKey( popupTimeComp );
        
-       doc = doc + "<li>The periodogram is associated with " + key + "\n";
+       doc = doc + "<li>The periodogram is associated with <strong>" 
+             + key + "</strong>\n";
        
        if ( popupGram.getType() ==  Gram.UNCLASSIFIED ) {
-          doc = doc + "<li>The periodogram type is unknown</ul>\n";
+          doc = doc + "<li>The periodogram is of unknown type\n" +
+           "<li><font color=red>Warning: Possible programming error?</font>\n"
+           + "</ul>\n";
   
        } else if ( popupGram.getType() == Gram.FOURIER ) { 
           doc = doc + "<li>The periodogram is a Fourier Transform</ul>\n";
@@ -184,8 +187,26 @@ public class GramMetaDataPopup extends JInternalFrame
 
        }
        
+       // best fit period?
+       String periodDoc = "";
+       if ( popupGram.haveBestPeriod() ) {
+        
+         double range[] = popupGram.getRange();        
+       
+         periodDoc = "<h2><u>Best Period</u></h2>\n"; 
+         periodDoc = periodDoc + "<ul>\n"
+                     + " <li> Minimum Frequency is " + range[0] + "\n"
+                     + " <li> Maximum Frequency is " + range[1] + "\n"
+                     + " <li> Maximum power at frequency of " + 
+                         1.0/popupGram.getBestPeriod() + "\n"
+                     + " <li> This corresponds to a period of " +
+                          popupGram.getBestPeriod() + "\n</ul>\n";  
+
+       }
+       
+       
        // drop document into textArea
-       doc = doc + "</body></html>";
+       doc = doc + periodDoc + "</body></html>";
        debugManager.print("             Passing HTML Document to textPane...");
        debugManager.print("\n" + doc + "\n");
        textPane.setText( doc );

@@ -21,16 +21,22 @@ import uk.ac.starlink.topcat.TableViewer;
 
 import uk.ac.starlink.frog.data.Gram;
 import uk.ac.starlink.frog.data.GramComp;
+import uk.ac.starlink.frog.data.TimeSeriesComp;
+import uk.ac.starlink.frog.data.TimeSeriesManager;
 import uk.ac.starlink.frog.data.GramManager;
 import uk.ac.starlink.frog.data.GramFactory;
+import uk.ac.starlink.frog.iface.PlotControlFrame;
 import uk.ac.starlink.frog.iface.images.ImageHolder;
 import uk.ac.starlink.frog.iface.GramControlFrameListener;
+import uk.ac.starlink.frog.iface.FoldSeriesDialog;
 import uk.ac.starlink.frog.plot.GramControl;
 import uk.ac.starlink.frog.plot.DivaPlot;
 import uk.ac.starlink.frog.util.FrogException;
 import uk.ac.starlink.frog.util.FrogDebug;
 import uk.ac.starlink.frog.util.Utilities;
 import uk.ac.starlink.frog.util.JPEGUtility;
+import uk.ac.starlink.frog.gram.BestPeriod;
+
 
 /**
  * GramControlFrame provides a top-level wrapper for a GramControl
@@ -49,13 +55,19 @@ public class GramControlFrame extends JInternalFrame
      */
     protected FrogDebug debugManager = FrogDebug.getReference();
 
-
    /**
      *  Manager Class for Gram
      */
     protected GramManager 
          gramManager = GramManager.getReference();
-         
+
+   /**
+     *  Manager Class for TimeSeries
+     */
+    protected TimeSeriesManager 
+         seriesManager = TimeSeriesManager.getReference();
+
+                   
     /**
      *  GramControl object for displaying the gram.
      */
@@ -83,6 +95,11 @@ public class GramControlFrame extends JInternalFrame
     protected JMenu fileMenu = new JMenu();
     protected JMenu displayMenu = new JMenu();
     protected JMenu opsMenu = new JMenu();
+       
+    /**
+      * the "fold on best period" menu item
+      */
+    protected JMenu foldMenu;
 
     /**
      * Magnitude Checkbox Menu Item
@@ -537,10 +554,118 @@ public class GramControlFrame extends JInternalFrame
     {
        opsMenu.setText( "Operations" ); 
        menuBar.add( opsMenu );
+       
+       // Find Best Period
+       JMenuItem bestItem;
+       bestItem = new JMenuItem("Find Best Period");
+       bestItem.addActionListener( new ActionListener() {
+           public void actionPerformed(ActionEvent e) { 
+
+               debugManager.print( "Finding best period...");
+               doBestPeriod( );     
+           }
+        }); 
+        opsMenu.add(bestItem);               
+        
+        foldMenu = new JMenu( "Fold around Best Period" );
+        foldMenu.addMenuListener( new MenuListener() {
+           public void menuSelected(MenuEvent e) {   
+           
+              // Fold series
+              JMenuItem foldSeriesItem = new JMenuItem("Fold Only");
+              foldSeriesItem.addActionListener( new ActionListener() {
+                  public void actionPerformed(ActionEvent e) { 
+                      debugManager.print( "Creating Fold Series Dialog...");
+                      doBestFold( false, false );     
+                  }
+              }); 
+              foldMenu.add(foldSeriesItem);         
+        
+              // Fold and binseries
+              JMenuItem binSeriesItem = new JMenuItem("Fold and Bin Data");
+              binSeriesItem.addActionListener( new ActionListener() {
+                  public void actionPerformed(ActionEvent e) { 
+                      debugManager.print( "Creating Fold Series Dialog...");
+                      doBestFold( true, false );     
+                  }
+              }); 
+              foldMenu.add(binSeriesItem);        
+                   
+           }
+             
+           public void menuDeselected(MenuEvent e) {
+              foldMenu.removeAll();
+           }
+           
+           public void menuCanceled(MenuEvent e) { 
+              foldMenu.removeAll();
+           }      
+        
+        });
+        opsMenu.add(foldMenu);
+        foldMenu.setEnabled( false );
+        
+        
     
     }
-
-
+  
+   /**
+     * Find the best period
+     *
+     */
+     protected void doBestPeriod( ) 
+     {
+        // Find the best period (highest peak or lowest trough)
+        debugManager.print( "  doBestPeriod()");
+        
+        Gram gram = gramManager.getGram(this).getGram();
+        double range[] = gram.getRange();        
+        double bestPeriod = BestPeriod.find ( gram, range[0], range[1] );
+        
+        gram.setBestPeriod( bestPeriod );
+        foldMenu.setEnabled(true); 
+        this.getPlot().setStatusTextOne( " Best Period: " + bestPeriod ); 
+        
+        if( gramManager.getAuto() ) {
+           doMetaData( ); 
+        }
+        
+        // draw a line on the plot to denote the best period
+        // -------------------------------------------------
+       
+        // ###################################################
+        // # ADD CODE HERE                                   #
+        // ###################################################
+        
+       
+     }
+     
+   /**
+     * fold around the best period, spawn a FoldSeriesDialog popup
+     *
+     * @param bin If true the series will be binned after folding
+     * @param fit If true the series will be fitted after folding
+     * @see FoldSeriesDialog  
+     */
+     protected void doBestFold( boolean b, boolean f ) 
+     {
+        // Find the best period (highest peak or lowest trough)
+        debugManager.print( "  doBestFold( b, f)");
+        Gram gram = gramManager.getGram(this).getGram();
+        double bestPeriod = gram.getBestPeriod( );
+        
+        // grab the PlotControlFrame associated with the time series
+        // of which this is a periodogram
+        TimeSeriesComp comp = gram.getTimeSeriesComp();
+        PlotControlFrame frame = seriesManager.getFrame( comp );
+        
+        // spawn the plot control frame
+        FoldSeriesDialog fold = new FoldSeriesDialog( 
+                                   frame, b, f , 0.0, bestPeriod, 25 );
+        debugManager.getFrog().getDesktop().add(fold);
+        fold.show();        
+     }
+     
     /**
      * Spawn a TableViewer popup
      *
@@ -602,5 +727,6 @@ public class GramControlFrame extends JInternalFrame
         new TableViewer( sTable, null );
   
      }      
+
         
 }

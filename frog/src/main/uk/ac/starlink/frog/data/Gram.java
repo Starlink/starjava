@@ -218,6 +218,12 @@ public class Gram implements GramAccess, AnalyticSeries, Serializable
      */
     protected double[] range = new double[4];
 
+   /**
+     * The best period
+     */
+    protected double bestPeriod = -999;
+
+
     /**
      * The full range of coordinates spanned (i.e. min/max values in xPos and
      * yPos, plus the standard deviations in yPos).
@@ -341,6 +347,26 @@ public class Gram implements GramAccess, AnalyticSeries, Serializable
 
 
     /**
+     * Get a symbolic name for gram.
+     *
+     * @return the best period in the gram
+     */
+    public double getBestPeriod()
+    {
+        return bestPeriod;
+    }
+
+    /**
+     * Change best period of the gram
+     *
+     * @param period the best period
+     */
+    public void setBestPeriod( double period )
+    {
+        this.bestPeriod = period;
+    }
+    
+    /**
      * Get references to gram X data (i.e. the coordinates).
      *
      * @return reference to gram X data.
@@ -382,6 +408,17 @@ public class Gram implements GramAccess, AnalyticSeries, Serializable
     {
         return ( yErr != null );
     }
+
+    /**
+     * Return if best period is available
+     *
+     * @return true if periodogram has a best period value avaialble
+     */
+    public boolean haveBestPeriod()
+    {
+        return ( bestPeriod > 0.0 );
+    }
+
 
      /**
       * Set if the Y axis should be flipped.
