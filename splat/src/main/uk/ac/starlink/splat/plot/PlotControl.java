@@ -78,6 +78,10 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.iface.SpecTransferHandler;
 
+import uk.ac.starlink.diva.FigureListener;
+import uk.ac.starlink.diva.FigureChangedEvent;
+import uk.ac.starlink.diva.DragRegion;
+
 /**
  * A PlotControl object consists of a Plot inside a scrolled pane and various
  * controls in a panel. The Plot allows you to display many spectra. Plots

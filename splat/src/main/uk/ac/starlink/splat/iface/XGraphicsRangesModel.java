@@ -1,8 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    07-JAN-2001 (Peter W. Draper):
-//       Original version.
+/*
+ * Copyright (C) 2001-2004 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *    07-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 
 package uk.ac.starlink.splat.iface;
 
@@ -11,7 +13,7 @@ import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;
 
 import uk.ac.starlink.ast.gui.AstDouble;
-import uk.ac.starlink.splat.plot.XRangeFigure;
+import uk.ac.starlink.diva.XRangeFigure;
 import uk.ac.starlink.splat.plot.DivaPlot;
 
 /**
@@ -52,10 +54,10 @@ public class XGraphicsRangesModel
      */
     protected ArrayList rangeObjects = new ArrayList();
 
-//
-//  Implement rest of ListModel interface (listeners are free from
-//  AbstractListModel)
-//
+    //
+    //  Implement rest of ListModel interface (listeners are free from
+    //  AbstractListModel)
+    //
     /**
      * Return the row count (i.e.<!-- --> number of ranges).
      */
@@ -86,7 +88,7 @@ public class XGraphicsRangesModel
     }
 
     /**
-     * Set the value of an element (when editted by hand).
+     * Set the value of an element (when edited by hand).
      *
      * @param oValue the new value.
      * @param row the new value row.
@@ -161,10 +163,10 @@ public class XGraphicsRangesModel
         return AstDouble.class;
     }
 
-//
-//  Bespoke interface. Allow the addition, removal and query of a
-//  new XGraphicsRange objects.
-//
+    //
+    //  Bespoke interface. Allow the addition, removal and query of a
+    //  new XGraphicsRange objects.
+    //
     /**
      * React to a new range being added.
      */

@@ -1,34 +1,39 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    07-JAN-2001 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2001-2004 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     07-JAN-2001 (Peter W. Draper):
+ *        Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import diva.canvas.event.EventLayer;
 import diva.canvas.event.LayerListener;
 
 import java.awt.Color;
-import java.awt.Cursor;
+import java.awt.event.ActionEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import javax.swing.Action;
 
 import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.diva.DragRegion;
+import uk.ac.starlink.diva.DrawActions;
+import uk.ac.starlink.diva.DrawFigureFactory;
+import uk.ac.starlink.diva.FigureChangedEvent;
+import uk.ac.starlink.diva.FigureListener;
+import uk.ac.starlink.diva.FigureProps;
+import uk.ac.starlink.diva.XRangeFigure;
 import uk.ac.starlink.splat.ast.ASTJ;
-import uk.ac.starlink.splat.plot.DivaPlotGraphicsPane;
-import uk.ac.starlink.splat.plot.DragRegion;
-import uk.ac.starlink.splat.plot.FigureChangedEvent;
-import uk.ac.starlink.splat.plot.FigureListener;
-import uk.ac.starlink.splat.plot.FigureProps;
-import uk.ac.starlink.splat.plot.XRangeFigure;
 import uk.ac.starlink.splat.plot.DivaPlot;
+import uk.ac.starlink.splat.plot.DivaPlotGraphicsPane;
 
 /**
  * XGraphicsRange defines a class for creating and interacting (in a DivaPlot
  * sense) with an XRangeFigure. The XRangeFigure is created on a DivaPlot's
  * DivaPlotGraphicsPane. Provision to convert between the graphics coordinates
- * of the DivaPlot and the units of the X dimension (i.e. wavelength are provided)
+ * of the DivaPlot and the units of the X dimension (i.e. wavelength are
+ * provided)
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -47,12 +52,12 @@ public class XGraphicsRange
     protected DivaPlotGraphicsPane pane = null;
 
     /**
-     * The default cursor.
+     * DivaPlot DrawActions.
      */
-    protected Cursor defaultCursor = null;
+    protected DrawActions drawActions = null;
 
     /**
-     * Reference to the XRangeFigure (used to access it via
+     * Reference to the XRangeFigure (used to access it via 
      * DivaPlotGraphicsPane).
      */
     protected XRangeFigure figure = null;
@@ -61,14 +66,11 @@ public class XGraphicsRange
      * Listener for creation events.
      */
     protected LayerListener listener = null;
+
     /**
-     * Description of the Field
+     * Listener for changes to the figure.
      */
     protected FigureListener figureListener = null;
-    /**
-     * Description of the Field
-     */
-    protected EventLayer eventLayer = null;
 
     /**
      * The model that stores references to all ranges for this plot.
@@ -76,7 +78,8 @@ public class XGraphicsRange
     protected XGraphicsRangesModel model = null;
 
     /**
-     * The colour of the figure.
+     * The fill colour of the figure, XRangeFigures are not filled by
+     * default, which isn't so good.
      */
     protected Color colour = Color.green;
 
@@ -90,10 +93,10 @@ public class XGraphicsRange
      *
      * @param plot DivaPlot that is to display the range.
      * @param model XGraphicsRangesModel model that arranges to have the
-     *      properties of the range displayed (may be null).
+     *              properties of the range displayed (may be null).
      * @param colour the colour of any figures.
      * @param constrain whether figures are fixed to move only in X and have
-     *      initial size of the full Y dimension of plot.
+     *                  initial size of the full Y dimension of plot.
      */
     public XGraphicsRange( DivaPlot plot, XGraphicsRangesModel model,
                            Color colour, boolean constrain )
@@ -102,7 +105,7 @@ public class XGraphicsRange
         this.model = model;
         this.colour = colour;
         this.constrain = constrain;
-        getInitialPlace();
+        startInteraction();
     }
 
     /**
@@ -135,13 +138,12 @@ public class XGraphicsRange
     protected void setPlot( DivaPlot plot )
     {
         this.plot = plot;
-        this.pane = plot.getGraphicsPane();
+        pane = (DivaPlotGraphicsPane) plot.getGraphicsPane();
+        drawActions = plot.getDrawActions();
     }
 
     /**
      * Return a description of the range.
-     *
-     * @return Description of the Return Value
      */
     public String toString()
     {
@@ -157,8 +159,7 @@ public class XGraphicsRange
     /**
      * Report if an XRangeFigure is the one being used here.
      *
-     * @param extFigure Description of the Parameter
-     * @return The figure value
+     * @param extFigure figure to check
      */
     public boolean isFigure( XRangeFigure extFigure )
     {
@@ -179,10 +180,10 @@ public class XGraphicsRange
         if ( figure != null ) {
             FigureProps props = pane.getFigureProps( figure );
             double[] gRange = new double[4];
-            gRange[0] = props.getXCoordinate();
-            gRange[1] = props.getYCoordinate();
-            gRange[2] = props.getXCoordinate() + props.getXLength();
-            gRange[3] = props.getYCoordinate() + props.getYLength();
+            gRange[0] = props.getX1();
+            gRange[1] = props.getY1();
+            gRange[2] = props.getX1() + props.getWidth();
+            gRange[3] = props.getY1() + props.getHeight();
             Mapping astMap = plot.getMapping();
             double[][] wRange = ASTJ.astTran2( astMap, gRange, true );
             result[0] = wRange[0][0];
@@ -212,62 +213,25 @@ public class XGraphicsRange
 
             //  Transform graphics coordinates from old values to new values.
             FigureProps props = pane.getFigureProps( figure );
-            double scale = ( gRange[0][1] - gRange[0][0] ) / props.getXLength();
+            double scale = ( gRange[0][1] - gRange[0][0] ) / props.getWidth();
             AffineTransform at = new AffineTransform();
             at.translate( gRange[0][0], 0.0 );
             at.scale( scale, 1.0 );
-            at.translate( -props.getXCoordinate(), 0.0 );
+            at.translate( -props.getX1(), 0.0 );
             figure.transform( at );
         }
     }
 
     /**
-     * Get the initial place that a range should be drawn at.
+     * Configure the DivaPlot DrawActions instance to create an XRangeFigure.
      */
-    protected void getInitialPlace()
+    protected void startInteraction()
     {
-        figureListener =
-            new FigureListener()
-            {
-                public void figureCreated( FigureChangedEvent e )
-                {
-                    // Do nothing
-                }
+        drawActions.setDrawingMode( DrawActions.XRANGE );
 
-                public void figureRemoved( FigureChangedEvent e )
-                {
-                    createFromDrag( e );
-                }
-
-                public void figureChanged( FigureChangedEvent e )
-                {
-                    // Do nothing
-                }
-            };
-        pane.disableFigureDraggerSelection();
-        pane.addFigureDraggerListener( figureListener );
-
-        //  Change the cursor. This remains in effect until the
-        //  createFromDrag method is called.
-        defaultCursor = plot.getCursor();
-        plot.setCursor( Cursor.getPredefinedCursor( Cursor.CROSSHAIR_CURSOR ) );
-    }
-
-    /**
-     * Create the region at a place given by region dragged out on the canvas.
-     *
-     * @param e Description of the Parameter
-     */
-    protected void createFromDrag( FigureChangedEvent e )
-    {
-        Rectangle2D.Double figLimits =
-            (Rectangle2D.Double) ( (DragRegion) e.getSource() ).getFinalShape();
-        createFigure( figLimits );
-
-        //  Remove drag region interactions.
-        pane.removeFigureDraggerListener( figureListener );
-        pane.enableFigureDraggerSelection();
-        plot.setCursor( defaultCursor );
+        //  Need to see the completed event, this should be issued by the
+        //  DivaPlotGraphicsPane and will be dispatched to figureCreated().
+        drawActions.addFigureListener( this );
     }
 
     /**
@@ -294,20 +258,31 @@ public class XGraphicsRange
      */
     protected void createFigure( Rectangle2D.Double limits )
     {
-        FigureProps props = null;
+        FigureProps props = new FigureProps( limits.x, limits.y, limits.width,
+                                             limits.height, colour );
+        if ( props.getWidth() == 0.0 ) {
+            props.setWidth( 20.0 );
+        }
+        figure = (XRangeFigure) pane.createFigure( DrawFigureFactory.XRANGE,
+                                                   props );
+        registerFigure( figure );
+    }
+
+    /**
+     * Register the XRangeFigure after it has been created.
+     */
+    protected void registerFigure( XRangeFigure figure )
+    {
+        this.figure = figure;
+        figure.setFillPaint( colour );
+
+        // If figure is contrained, fit it to the Y axis range.
         if ( constrain ) {
             float[] gLimits = plot.getGraphicsLimits();
-            props = new FigureProps( limits.x, gLimits[3], limits.width,
-                                     gLimits[1] - gLimits[3], colour );
+            Rectangle2D r = (Rectangle2D) figure.getShape();
+            r.setFrame( r.getX(), gLimits[3], r.getWidth(), 
+                        gLimits[1] - gLimits[3] );
         }
-        else {
-            props = new FigureProps( limits.x, limits.y, limits.width,
-                                     limits.height, colour );
-        }
-        if ( props.getXLength() == 0.0 ) {
-            props.setXLength( 20.0 );
-        }
-        figure = (XRangeFigure) pane.addFigure( pane.XRANGE, props );
         figure.setConstrain( constrain );
 
         //  Register an interest in the fate of this figure.
@@ -317,6 +292,10 @@ public class XGraphicsRange
         if ( model != null ) {
             model.addRange( this );
         }
+
+        //  Lower behind spectra and repaint.
+        drawActions.lowerFigure( figure );
+        figure.repaint();
     }
 
     /**
@@ -324,9 +303,7 @@ public class XGraphicsRange
      */
     public void delete()
     {
-        //  Set the figure invisible and repaint it (need to do this).
-        figure.setVisible( false );
-        figure.repaint();
+        drawActions.deleteFigure( figure );
         figure = null;
     }
 
@@ -334,16 +311,22 @@ public class XGraphicsRange
 
     /**
      * Sent when the figure is created.
-     *
-     * @param e Description of the Parameter
      */
     public void figureCreated( FigureChangedEvent e )
     {
-        //  Update something?
+        System.out.println( "Created Figure in XGraphicsRange" );
+        //  Is this an XRangeFigure?
+        if ( e.getSource() instanceof XRangeFigure ) {
+
+            registerFigure( (XRangeFigure) e.getSource() );
+
+            //  Remove interest in further creations.
+            drawActions.removeFigureListener( this );
+        }
     }
 
     /**
-     * Sent when the figure is removed.
+     * Sent when the figure is removed elsewhere.
      *
      * @param e Description of the Parameter
      */
@@ -351,6 +334,7 @@ public class XGraphicsRange
     {
         // Kill this also and any references to it.
         figure = null;
+        System.out.println( "Figure removed" );
     }
 
     /**
@@ -358,8 +342,9 @@ public class XGraphicsRange
      */
     public void figureChanged( FigureChangedEvent e )
     {
+        System.out.println( "Figure changed" );
+
         // Update any references to show new coordinates.
         model.changeRange( pane.indexOf( (XRangeFigure) e.getSource() ) );
     }
-
 }

@@ -36,11 +36,12 @@ import uk.ac.starlink.ast.gui.ComponentColourControls;
 import uk.ac.starlink.ast.gui.GraphicsEdgesControls;
 import uk.ac.starlink.ast.gui.GraphicsHintsControls;
 import uk.ac.starlink.ast.gui.PlotConfigurator;
+import uk.ac.starlink.diva.DrawActions;
+import uk.ac.starlink.diva.DrawFigureStore;
+import uk.ac.starlink.diva.DrawGraphicsMenu;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.plot.DivaGraphicsMenu;
 import uk.ac.starlink.splat.plot.DivaPlot;
-import uk.ac.starlink.splat.plot.DivaPlotCanvasDraw;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.JPEGUtilities;
 import uk.ac.starlink.splat.util.SplatException;
@@ -428,9 +429,13 @@ public class PlotControlFrame
      */
     protected void setupGraphicsMenu()
     {
-        DivaPlotCanvasDraw canvasDraw =
-            new DivaPlotCanvasDraw( plot.getPlot() );
-        menuBar.add( new DivaGraphicsMenu( canvasDraw ) );
+        DrawActions drawActions = plot.getPlot().getDrawActions();
+        DrawFigureStore store = 
+            new DrawFigureStore( Utilities.getApplicationName(),
+                                 "figurestore.xml",
+                                 "drawfigure" );
+        drawActions.setFigureStore( store );
+        menuBar.add( new DrawGraphicsMenu( drawActions ) );
     }
 
     /**
@@ -485,6 +490,12 @@ public class PlotControlFrame
      */
     protected void printJPEGDisplay()
     {
+//         try {
+//             plot.getPlot().update(); // Force redraw.
+//         }
+//         catch (SplatException e) {
+//             //  Do nothing, it should be harmless.
+//         }
         JPEGUtilities.showJPEGChooser( plot.getPlot() );
     }
 

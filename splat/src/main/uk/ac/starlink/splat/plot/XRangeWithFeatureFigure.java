@@ -12,7 +12,11 @@ import diva.canvas.interactor.BoundedDragInteractor;
 import diva.canvas.interactor.Interactor;
 
 import java.awt.Color;
+import java.awt.Paint;
 import java.awt.geom.Rectangle2D;
+
+import uk.ac.starlink.diva.DrawCompositeFigure;
+import uk.ac.starlink.diva.XRangeFigure;
 
 /**
  * Create a composite figure that contains a range defining figure and
@@ -20,10 +24,10 @@ import java.awt.geom.Rectangle2D;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see PlotCompositeFigure
+ * @see DrawCompositeFigure
  */
 public class XRangeWithFeatureFigure 
-    extends PlotCompositeFigure
+    extends DrawCompositeFigure
 {
     /**
      * Reference to background Figure.
@@ -40,8 +44,8 @@ public class XRangeWithFeatureFigure
      */
     public XRangeWithFeatureFigure( double xleft, double ytop, 
                                     double xcentre, double width, 
-                                    double height, Color backColour, 
-                                    Color lineColour )
+                                    double height, Paint backColour, 
+                                    Paint lineColour )
     {
         super();
 
@@ -49,6 +53,7 @@ public class XRangeWithFeatureFigure
         //  to represent an X position.
         backFigure = new XRangeFigure( xleft, ytop, width, height, 
                                        backColour );
+
         //lineFigure = new XRangeFigure( xcentre, ytop, 2.0, height, 
         //                               lineColour );
         lineFigure = new Pointer( true, xcentre, ytop, height * 0.5 );

@@ -9,17 +9,17 @@ package uk.ac.starlink.splat.util;
 
 import com.sun.image.codec.jpeg.JPEGCodec;
 import com.sun.image.codec.jpeg.JPEGImageEncoder;
+import com.sun.image.codec.jpeg.JPEGEncodeParam;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -37,6 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * This class provides any JPEG utilities used in SPLAT. At present
@@ -91,8 +92,7 @@ public class JPEGUtilities
         //  Get the Graphics2D object needed to render into this.
         Graphics2D g2d = image.createGraphics();
 
-        //  Scale the graphics to fit the width and height if
-        //  requested.
+        //  Scale the graphics to fit the width and height if requested.
         if ( fit ) {
             fitToWidthAndHeight( g2d, component, width, height );
         }
@@ -101,11 +101,14 @@ public class JPEGUtilities
         component.print( g2d );
         g2d.dispose();
 
-        // JPEG-encode the image and write to file.
+        // JPEG-encode the image and write to file. Use perfect
+        // quality as we don't to loose anything at this stage.
         try {
             OutputStream os =  new FileOutputStream( outputFile );
             JPEGImageEncoder encoder =  JPEGCodec.createJPEGEncoder( os );
-            encoder.encode( image );
+            JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(image);
+            param.setQuality( 1.0F, true );
+            encoder.encode( image, param );
             os.close();
         }
         catch (Exception e) {
@@ -232,26 +235,19 @@ public class JPEGUtilities
 
             //  Configure and populate the controls for selecting
             //  size and name options.
-            JPanel centrePanel = new JPanel( new GridBagLayout() );
+            JPanel centrePanel = new JPanel();
             centrePanel.setBorder
-                (BorderFactory.createTitledBorder("JPEG image properties")); 
+                (BorderFactory.createTitledBorder("JPEG image properties"));
 
             //  Choose whether to scale to fit.
             fitButton.setSelected( false );
 
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets( 5, 5, 5, 5 );
-            gbc.fill = GridBagConstraints.NONE;
-            gbc.anchor = GridBagConstraints.EAST;
-            gbc.weightx = 0.0;
-            gbc.gridwidth = 1;
-            centrePanel.add( new JLabel( "Scale to fit:" ), gbc );
+            GridBagLayouter layouter =
+                new GridBagLayouter( centrePanel, GridBagLayouter.SCHEME3 );
+            layouter.setInsets( new Insets( 5, 5, 5, 5 ) );
 
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 1.0;
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            centrePanel.add( fitButton, gbc );
+            layouter.add( new JLabel( "Scale to fit:" ), false );
+            layouter.add( fitButton, true );
             fitButton.setToolTipText
                 ( "Scale plot graphics to fit the width and height" );
 
@@ -260,17 +256,8 @@ public class JPEGUtilities
             xSize = new DecimalField( 0, 10, decimalFormat );
             xSize.setIntValue( component.getWidth() );
 
-            gbc.fill = GridBagConstraints.NONE;
-            gbc.anchor = GridBagConstraints.EAST;
-            gbc.weightx = 0.0;
-            gbc.gridwidth = 1;
-            centrePanel.add( new JLabel( "X size:" ), gbc );
-
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 1.0;
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            centrePanel.add( xSize, gbc );
+            layouter.add( new JLabel( "X size:" ), false );
+            layouter.add( xSize, true );
             xSize.setToolTipText( "Width, in pixels, of the "+
                                   "output image (default is actual size" );
 
@@ -278,47 +265,30 @@ public class JPEGUtilities
             ySize = new DecimalField( 0, 10, decimalFormat );
             ySize.setIntValue( component.getHeight() );
 
-            gbc.fill = GridBagConstraints.NONE;
-            gbc.anchor = GridBagConstraints.EAST;
-            gbc.weightx = 0.0;
-            gbc.gridwidth = 1;
-            centrePanel.add( new JLabel( "Y size:" ), gbc );
-
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 1.0;
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            centrePanel.add( ySize, gbc );
+            layouter.add( new JLabel( "Y size:" ), false );
+            layouter.add( ySize, true );
             ySize.setToolTipText( "Height, in pixels, of the "+
                                   "output image (default is actual size" );
-            
+
             //  Get a name for the file.
-            fileName.setText( Utilities.getReleaseName() + ".jpg" );
+            fileName.setText( Utilities.getApplicationName() + ".jpg" );
 
-            gbc.fill = GridBagConstraints.NONE;
-            gbc.anchor = GridBagConstraints.EAST;
-            gbc.weightx = 0.0;
-            gbc.gridwidth = 1;
-            centrePanel.add( new JLabel( "Output file:" ), gbc );
-
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 1.0;
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            centrePanel.add( fileName, gbc );
+            layouter.add( new JLabel( "Output file:" ), false );
+            layouter.add( fileName, true );
             fileName.setToolTipText( "Name for the output JPEG file" );
+            layouter.eatSpare();
 
             //  Configure and place the OK and Cancel buttons.
             JPanel buttonPanel = new JPanel();
             buttonPanel.setBorder( BorderFactory.createEmptyBorder(10,10,0,0));
-            buttonPanel.setLayout( new BoxLayout( buttonPanel, 
+            buttonPanel.setLayout( new BoxLayout( buttonPanel,
                                                   BoxLayout.X_AXIS ) );
             buttonPanel.add( Box.createHorizontalGlue() );
             buttonPanel.add( okButton );
             buttonPanel.add( Box.createHorizontalGlue() );
             buttonPanel.add( cancelButton );
             buttonPanel.add( Box.createHorizontalGlue() );
-            
+
             //  Set various close window buttons.
             okButton.setText( "OK" );
             okButton.addActionListener( new ActionListener() {

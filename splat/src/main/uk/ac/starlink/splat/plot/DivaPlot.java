@@ -36,11 +36,15 @@ import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.grf.DefaultGrf;
+import uk.ac.starlink.ast.gui.AstTicks;
 import uk.ac.starlink.ast.gui.ColourStore;
 import uk.ac.starlink.ast.gui.GraphicsEdges;
 import uk.ac.starlink.ast.gui.GraphicsHints;
 import uk.ac.starlink.ast.gui.PlotConfiguration;
-import uk.ac.starlink.ast.gui.AstTicks;
+import uk.ac.starlink.diva.Draw;
+import uk.ac.starlink.diva.DrawActions;
+import uk.ac.starlink.diva.DrawGraphicsPane;
+import uk.ac.starlink.diva.FigureStore;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.DataLimits;
 import uk.ac.starlink.splat.data.SpecData;
@@ -64,8 +68,8 @@ import uk.ac.starlink.splat.util.SplatException;
  * @see ASTJ
  */
 public class DivaPlot
-     extends JCanvas
-     implements Printable, MouseListener
+    extends JCanvas
+    implements Draw, Printable, MouseListener
 {
     /**
      * X scale factor for displaying data.
@@ -195,6 +199,11 @@ public class DivaPlot
     protected boolean showVHair = false;
 
     /**
+     * The instance of DrawActions to be used.
+     */
+    protected DrawActions drawActions = null;
+
+    /**
      * Plot a series of spectra.
      *
      * @param spectra reference to spectra.
@@ -260,7 +269,8 @@ public class DivaPlot
 
         //  Add a DivaPlotGraphicsPane to use for displaying
         //  interactive graphics elements.
-        graphicsPane = new DivaPlotGraphicsPane();
+        graphicsPane = 
+            new DivaPlotGraphicsPane( DrawActions.getTypedDecorator() );
         setCanvasPane( graphicsPane );
         getCanvasPane().setAntialiasing( false );
 
@@ -275,7 +285,7 @@ public class DivaPlot
 
         //  Create Figure that contains the spectra.
         GrfFigure grfFigure = new GrfFigure( this );
-        graphicsPane.recordFigure( grfFigure );
+        graphicsPane.addFigure( grfFigure );
 
         //  Create the required DefaultGrf object to draw AST graphics.
         javaGrf = new DefaultGrf( this );
@@ -741,15 +751,12 @@ public class DivaPlot
     }
 
     /**
-     * PaintComponent method for drawing/redrawing graphics when interface
-     * requires it.
+     *  Redraw all AST graphics, includes grid (axes) and spectra.
      *
      * @param g Graphics object
      */
-    //public void paintComponent( Graphics g )
-    public void redrawAll( Graphics2D g )
+    public void redrawAll( Graphics2D g ) 
     {
-        //super.paintComponent( g );
         if ( spectra.count() == 0 ) {
             return;
         }
@@ -771,18 +778,20 @@ public class DivaPlot
                     oldAstPlot = (Plot) oldAstPlot.clone();
                 }
                 
-                //  Create an astPlot for the graphics, this is matched to
-                //  the component size and is how we get an apparent
-                //  rescale of drawing. So that we get linear axis 1
-                //  coordinates we must choose the current frame as the
-                //  base frame (so that the mapping from graphics to
-                //  physical is linear). We also add any AST plotting
-                //  configuration options. TODO: stop using ASTJ class.
+                //  Create an astPlot for the graphics, this is
+                //  matched to the component size and is how we get an
+                //  apparent rescale of drawing. So that we get linear
+                //  axis 1 coordinates we must choose the current
+                //  frame as the base frame (so that the mapping from
+                //  graphics to physical is linear). We also add any
+                //  AST plotting configuration options.
+
+                //  TODO: stop using ASTJ class.
                 FrameSet astref = astJ.getRef();
                 int current = astref.getCurrent();
                 int base = astref.getBase();
                 astref.setBase( current );
-                
+
                 if ( config != null ) {
                     if ( graphicsEdges != null ) {
                         astJ.astPlot( this, baseBox,
@@ -802,7 +811,7 @@ public class DivaPlot
                 // The plot must use our Grf implementation.
                 astJ.getPlot().setGrf( javaGrf );
 
-                //  Restore the base plot as promised.
+                //  Restore the base plot.
                 astref.setBase( base );
 
                 //  If requested (i.e. the default gap is chosen) then
@@ -1150,17 +1159,6 @@ public class DivaPlot
     }
 
     /**
-     * Return reference to the DivaPlotGraphicsPane object. Use this to create
-     * any interactive graphics objects.
-     *
-     * @return The graphicsPane value
-     */
-    public DivaPlotGraphicsPane getGraphicsPane()
-    {
-        return graphicsPane;
-    }
-
-    /**
      * Return reference to the FrameSet used to transform from
      * graphics to world coordinates. This is really a direct
      * reference to the AstPlot, so do not modify it (any changes
@@ -1198,9 +1196,9 @@ public class DivaPlot
         return this.showVHair;
     }
 
-//
-// PlotScaleChanged event interface
-//
+    //
+    // PlotScaleChanged event interface
+    //
     protected EventListenerList plotScaledListeners = new EventListenerList();
 
     /**
@@ -1241,11 +1239,11 @@ public class DivaPlot
         }
     }
 
-//
-//  Implement the MouseListener interface. The purpose of this is to
-//  simply make sure that we receive the keyboard focus when anyone
-//  clicks on this component. TODO: understand why this is necessary.
-//
+    //
+    //  Implement the MouseListener interface. The purpose of this is to
+    //  simply make sure that we receive the keyboard focus when anyone
+    //  clicks on this component. TODO: understand why this is necessary.
+    //
     public void mouseClicked( MouseEvent e )
     {
         requestFocus();
@@ -1265,5 +1263,38 @@ public class DivaPlot
     public void mouseReleased( MouseEvent e )
     {
         //  Do nothing.
+    }
+
+    //
+    // Draw interface. Also requires addMouseListener and
+    // addMouseMotionListener (part of JComponent).
+    //
+
+    //  Return our version of DrawGraphicsPane (DivaPlotGraphicsPane).
+    public DrawGraphicsPane getGraphicsPane()
+    {
+        return graphicsPane;
+    }
+
+    //  Return a reference to this.
+    public Component getComponent()
+    {
+        return this;
+    }
+
+    //
+    // DrawActions. Used when creating interactive figures on this.
+    //
+    /**
+     * Return the instance of {@link DrawActions} to use with this DivaPlot.
+     * Note this is setup to not provide save/restore. A user of this class
+     * should add an implementation of {@link FigureStore} to enable this.
+     */
+    public DrawActions getDrawActions()
+    {
+        if ( drawActions == null ) {
+            drawActions = new DrawActions( this, null );
+        }
+        return drawActions;
     }
 }

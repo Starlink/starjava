@@ -1,9 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    07-JAN-2001 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2002-2004 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *    07-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import diva.canvas.interactor.SelectionEvent;
@@ -38,11 +39,13 @@ import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.ast.gui.AstCellEditor;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlotGraphicsPane;
-import uk.ac.starlink.splat.plot.XRangeFigure;
 import uk.ac.starlink.splat.util.AsciiFileParser;
+import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
+
+import uk.ac.starlink.diva.XRangeFigure;
 
 /**
  * XGraphicsRangesView is controller and view for any ranges associated with
@@ -138,10 +141,10 @@ public class XGraphicsRangesView
     protected void setPlot( DivaPlot plot )
     {
         this.plot = plot;
-        this.pane = plot.getGraphicsPane();
+        pane = (DivaPlotGraphicsPane) plot.getGraphicsPane();
 
         //  Listen out for figures being selected.
-        this.pane.addSelectionListener( this );
+        pane.addSelectionListener( this );
     }
 
     /**
@@ -264,8 +267,8 @@ public class XGraphicsRangesView
      */
     protected void createRange()
     {
-        XGraphicsRange xRange = new XGraphicsRange( plot, model,
-            colour, constrain );
+        XGraphicsRange xRange = new XGraphicsRange( plot, model, colour,
+                                                    constrain );
     }
 
     /**
@@ -276,9 +279,8 @@ public class XGraphicsRangesView
      */
     protected void createRange( double[] range )
     {
-        XGraphicsRange xRange = new XGraphicsRange( plot, model,
-            colour, constrain,
-            range );
+        XGraphicsRange xRange = new XGraphicsRange( plot, model, colour,
+                                                    constrain, range );
     }
 
     /**
@@ -407,9 +409,9 @@ public class XGraphicsRangesView
         return constrain;
     }
 
-//
-//  Utilities for interacting with disk files.
-//
+    //
+    //  Utilities for interacting with disk files.
+    //
     /**
      * File chooser used for reading and writing text files.
      */
@@ -546,7 +548,7 @@ public class XGraphicsRangesView
 
         // Add a header to the file.
         try {
-            r.write( "# File created by Splat \n" );
+            r.write( "# File created by "+ Utilities.getReleaseName() +"\n" );
         }
         catch ( Exception e ) {
             e.printStackTrace();
@@ -619,11 +621,12 @@ public class XGraphicsRangesView
     }
 
 
-//
-//  SelectionListener interface.
-//
+    //
+    //  SelectionListener interface.
+    //
     /**
-     * Called when a figure is selected on the graphics pane.
+     * Called when a figure is selected on the graphics pane. We're only
+     * interested in XRangeFigures that we've created.
      */
     public void selectionChanged( SelectionEvent e )
     {
@@ -632,6 +635,7 @@ public class XGraphicsRangesView
         int nok = 0;
         for ( int i = 0; i < ranges.length; i++ ) {
             if ( ranges[i] instanceof XRangeFigure ) {
+                // Check this is "ours".
                 int index = model.findFigure( (XRangeFigure) ranges[i] );
                 if ( index != -1 ) {
                     indices[nok++] = index;
@@ -656,8 +660,7 @@ public class XGraphicsRangesView
             //  Select the affected rows.
             selectionModel.clearSelection();
             for ( int i = 0; i < indices.length; i++ ) {
-                selectionModel.addSelectionInterval( indices[i],
-                    indices[i] );
+                selectionModel.addSelectionInterval( indices[i], indices[i] );
             }
         }
     }

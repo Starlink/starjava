@@ -14,6 +14,7 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import javax.swing.JViewport;
 import uk.ac.starlink.splat.util.SplatException;
 
@@ -75,6 +76,22 @@ public class GrfFigure
         return null;
     }
 
+    //  Has no fill.
+    public boolean hit( Rectangle2D r )
+    {
+        return false;
+    }
 
+    //  Contains nothing.
+    public boolean contains( Point2D p ) 
+    {
+        return false;
+    }
+
+    //  Never intersects anything.
+    public boolean intersects( Rectangle2D r ) 
+    {
+        return false;
+    }
 }
 

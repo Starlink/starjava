@@ -23,6 +23,9 @@ import java.awt.geom.Rectangle2D;
 
 import javax.swing.event.EventListenerList;
 
+import uk.ac.starlink.diva.FigureListener;
+import uk.ac.starlink.diva.FigureChangedEvent;
+
 /**
  * Pointer is a Diva figure that can point up or down to identify
  * features. 
