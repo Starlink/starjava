@@ -22,6 +22,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ComboBoxEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -498,8 +499,8 @@ public class SpecXCoordTypeFrame
         label = new JLabel( "Units: " );
         gbl.add( label, false );
         gbl.add( systemUnitsBox, true );
-        systemUnitsBox.setToolTipText( "Coordinate system for the " +
-                                       "spectrum coordinates" );
+        systemUnitsBox.setToolTipText( "Units for the spectral " +
+                                       "coordinate system" );
 
         // Standard of rest.
         stdOfRestBox = new JComboBox( stdOfRest.keySet().toArray() );
@@ -696,7 +697,7 @@ public class SpecXCoordTypeFrame
             buffer.append( "System=" + value );
         }
 
-        value = (String) systemUnitsBox.getSelectedItem();
+        value = (String) systemUnitsBox.getEditor().getItem();
         if ( isValid( value ) ) {
             buffer.append( ",Unit(1)=" + value );
         }
@@ -729,7 +730,7 @@ public class SpecXCoordTypeFrame
 
         value = restFrequency.getText();
         if ( isValid( value ) ) {
-            String units = (String) restFrequencyUnits.getSelectedItem();
+            String units = (String) restFrequencyUnits.getEditor().getItem();
             buffer.append( ",RestFreq=" + value + units );
         }
 
@@ -771,9 +772,13 @@ public class SpecXCoordTypeFrame
         Frame picked = frameSet.pickAxes( 1, iaxes, null );
 
         // Now set the values. Note we write to FrameSet not Frame as
-        // this makes the system remap.
+        // this makes the system remap. Try values out on a copy first
+        // as this protects against making the FrameSet bad by
+        // establishing a partial set of attributes.
         if ( picked instanceof SpecFrame ) {
             try {
+                FrameSet localCopy = (FrameSet) frameSet.copy();
+                localCopy.set( attributes );
                 frameSet.set( attributes );
 
                 // Do a full update to get the changes
@@ -829,9 +834,15 @@ public class SpecXCoordTypeFrame
         }
 
         // Now set the values. Note we write to Frame not FrameSet as
-        // this just reset attributes, rather than have them remapped.
-        current = frameSet.getFrame( FrameSet.AST__CURRENT );
+        // this just sets the attributes, rather than have them
+        // remapped. Use a copy of the FrameSet so we can back out
+        // when errors happen (these can leave the FrameSet quite
+        // mixed up).
+        FrameSet localCopy = (FrameSet) frameSet.copy();
+        current = localCopy.getFrame( FrameSet.AST__CURRENT );
         try {
+            current.set( attributes );
+            current = localCopy.getFrame( FrameSet.AST__CURRENT );
             current.set( attributes );
 
             // Do a full update to get the changes propagated throughout.
@@ -841,6 +852,8 @@ public class SpecXCoordTypeFrame
             }
             catch (SplatException e) {
                 new ExceptionDialog( this, e );
+
+                
             }
         }
         catch (AstException e) {
@@ -953,8 +966,8 @@ public class SpecXCoordTypeFrame
      * to null. To reset values set them to "", except for system
      * which should be set to "Unknown".
      */
-    public void setInterface( String system, String unit, 
-                              String stdofrest, String geolon, 
+    public void setInterface( String system, String unit,
+                              String stdofrest, String geolon,
                               String geolat, String refra, String refdec,
                               String restfreq, String sourcevrf,
                               String sourcevel, String epoch )
