@@ -274,7 +274,7 @@ public class IconFactory {
         Calendar now = Calendar.getInstance();
         int month = now.get( Calendar.MONTH );
         int day = now.get( Calendar.DAY_OF_MONTH );
-        return ( month == Calendar.DECEMBER )
-            && ( day >= 21 && day <= 31 );
+        return ( month == Calendar.DECEMBER && day >= 21 )
+            || ( month == Calendar.JANUARY && day <= 6 );
     }
 }
