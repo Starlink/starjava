@@ -7,11 +7,16 @@
  */
 package uk.ac.starlink.splat.data;
 
+import java.util.List;
+
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.UCD;
@@ -19,12 +24,12 @@ import uk.ac.starlink.table.UCD;
 /**
  * This class provides access to spectral data stored in tables.
  * <p>
- * The tables supported are any that the {@link uk.ac.starlink.table} 
+ * The tables supported are any that the {@link uk.ac.starlink.table}
  * package supports.
  * <p>
  * As tables can contain many columns it is necessary to provide for
  * the selection of coordinate, value and error columns. These are
- * provided through the standard {@link SpecDataImpl}. 
+ * provided through the standard {@link SpecDataImpl}.
  *
  * @version $Id$
  * @see SpecDataImpl
@@ -51,6 +56,12 @@ public class TableSpecDataImpl
     /** Dimension of a column. */
     private int[] dims = new int[1];
 
+    /** Counter for generating application unique names */
+    protected static int uniqueCount = 0;
+
+    /** Type to save table as (FITS etc.) */
+    protected String saveType = null;
+
     /**
      * Create an object by opening a resource and reading its
      * content.
@@ -61,22 +72,27 @@ public class TableSpecDataImpl
         throws SplatException
     {
         super( tablespec );
-        this.fullName = tablespec;
         openTable( tablespec );
+        setName( starTable );
     }
 
     /**
      * Create an object by reading values from an existing SpecData
-     * object. The target table is associated (so can be a save target),
-     * but not opened.
+     * object. The target table is associated (so can be a
+     * {@link #save} target), but not written to.
      *
      * @param tablespec the name of the table.
+     * @param source the SpecData.
+     * @param saveType the type that should be used if this is saved to disk.
      */
-    public TableSpecDataImpl( String tablespec, SpecData source )
+    public TableSpecDataImpl( String tablespec, SpecData source,
+                              String saveType )
         throws SplatException
     {
         super( tablespec, source );
         this.fullName = tablespec;
+        this.saveType = saveType;
+        makeMemoryTable();
     }
 
     /**
@@ -88,8 +104,25 @@ public class TableSpecDataImpl
         throws SplatException
     {
         super( starTable.getName() );
-        this.fullName = starTable.getName();
+        setName( starTable );
         openTable( starTable );
+    }
+
+    /**
+     * Create an object by reusing an existing instance if StarTable.
+     *
+     * @param starTable reference to a {@link StarTable}.
+     * @param shortName a short name for the table.
+     * @param fullName a long name for the table.
+     */
+    public TableSpecDataImpl( StarTable starTable, String shortName,
+                              String fullName )
+        throws SplatException
+    {
+        super( shortName );
+        openTable( starTable );
+        this.shortName = shortName;
+        this.fullName = fullName;
     }
 
     /**
@@ -97,13 +130,13 @@ public class TableSpecDataImpl
      */
     public String getDataFormat()
     {
-        return "TABLE"; // Can we be more specific?
+        return "TABLE";
     }
 
     /**
      * Save the spectrum to disk.
      */
-    public void save() 
+    public void save()
         throws SplatException
     {
         saveToTable( fullName );
@@ -114,7 +147,7 @@ public class TableSpecDataImpl
         return dims;
     }
 
-    // 
+    //
     // Column mutability interface.
     //
 
@@ -127,7 +160,7 @@ public class TableSpecDataImpl
     {
         return columnNames[coordColumn];
     }
-    
+
     public void setCoordinateColumnName( String name )
         throws SplatException
     {
@@ -195,6 +228,14 @@ public class TableSpecDataImpl
         }
     }
 
+    /**
+     * Get the list of formats that are supported.
+     */
+    public static List getKnownFormats()
+    {
+        return writer.getKnownFormats();
+    }
+
     //
     // Implementation specific methods and variables.
     //
@@ -203,6 +244,30 @@ public class TableSpecDataImpl
      * Reference to the StarTable.
      */
     protected StarTable starTable = null;
+
+    /**
+     * Writer for tables.
+     */
+    protected static StarTableOutput writer = new StarTableOutput();
+
+   /**
+     * Set the full and short names of this object from the table if
+     * possible, if not use a generated name.
+     */
+    protected void setName( StarTable starTable )
+    {
+        fullName = null;
+        shortName = starTable.getName();
+        if ( starTable.getURL() != null ) {
+            fullName = starTable.getURL().toString();
+        }
+        if ( fullName == null || fullName.equals( "" ) ) {
+            fullName = "StarTable " + uniqueCount++;
+        }
+        if ( shortName == null || shortName.equals( "" ) ) {
+            shortName = fullName;
+        }
+    }
 
     /**
      * Open a table.
@@ -218,7 +283,7 @@ public class TableSpecDataImpl
             readTable();
         }
         catch (Exception e) {
-            throw new SplatException( "Failed to open table: " + 
+            throw new SplatException( "Failed to open table: " +
                                       starTable.getName(), e );
         }
     }
@@ -243,6 +308,90 @@ public class TableSpecDataImpl
     }
 
     /**
+     * Make the current columns (stored in memory) into a table. This
+     * table then becomes the current table.
+     */
+    protected void makeMemoryTable()
+    {
+        columnInfos = new ColumnInfo[3];
+
+        if ( parentImpl instanceof TableSpecDataImpl ) {
+            //  Source implementation is a table. Use the available
+            //  ColumnInfos.
+            TableSpecDataImpl tsdi = (TableSpecDataImpl) parentImpl;
+            columnInfos[0] = new ColumnInfo( tsdi.columnInfos[0] );
+            columnInfos[1] = new ColumnInfo( tsdi.columnInfos[1] );
+            if ( tsdi.columnInfos[2] != null ) {
+                columnInfos[2] = new ColumnInfo( tsdi.columnInfos[2] );
+            }
+            else {
+                columnInfos[2] = null;
+            }
+
+            columnInfos[0].setContentClass( Double.class );
+            columnInfos[1].setContentClass( Double.class );
+            if ( columnInfos[2] != null ) {
+                columnInfos[2].setContentClass( Double.class );
+            }
+        }
+        else {
+            //  Values based on AST FrameSet description.
+            FrameSet frameSet = parentImpl.getAst();
+
+            // Coordinates
+            String label = frameSet.getLabel( 1 );
+            if ( label == null ) {
+                label = "Coordinates";
+            }
+            String units = frameSet.getUnit( 1 );
+            columnInfos[0] = new ColumnInfo( label, Double.class,
+                                             "Spectral coordinates" );
+            if ( units != null ) {
+                columnInfos[0].setUnitString( units );
+            }
+
+            int current = frameSet.getCurrent();
+            int base = frameSet.getBase();
+            frameSet.setCurrent( base );
+
+            //  Data values.
+            label = frameSet.getLabel( 1 );
+            if ( label == null ) {
+                label = "Values";
+            }
+            units = frameSet.getUnit( 1 );
+            columnInfos[1] = new ColumnInfo( label, Double.class,
+                                             "Spectral data values" );
+            if ( units != null ) {
+                columnInfos[1].setUnitString( units );
+            }
+            frameSet.setCurrent( current );
+
+            //  Errors.
+            if ( errors != null ) {
+                label = "Errors";
+                columnInfos[2] = new ColumnInfo( label, Double.class,
+                                                 "Spectral data errors" );
+                if ( units != null ) {
+                    columnInfos[2].setUnitString( units );
+                }
+            }
+            else {
+                columnInfos[2] = null;
+            }
+        }
+        int nrows = coords.length;
+        ColumnStarTable newTable = ColumnStarTable.makeTableWithRows( nrows );
+        newTable.addColumn( ArrayColumn.makeColumn( columnInfos[0], coords ) );
+        newTable.addColumn( ArrayColumn.makeColumn( columnInfos[1], data ) );
+        if ( errors != null || columnInfos[2] != null ) {
+            newTable.addColumn( ArrayColumn.makeColumn( columnInfos[2],
+                                                        errors ) );
+        }
+        starTable = newTable;
+    }
+
+    /**
      * Create a new table with the current content.
      *
      * @param tablespec name of the table.
@@ -250,7 +399,12 @@ public class TableSpecDataImpl
     protected void saveToTable( String tablespec )
         throws SplatException
     {
-        // TODO write this part.
+        try {
+            writer.writeStarTable( starTable, tablespec, saveType );
+        }
+        catch (Exception e) {
+            throw new SplatException( "Error saving table", e );
+        }
     }
 
     /**
@@ -269,7 +423,7 @@ public class TableSpecDataImpl
             columnNames[i] = columnInfos[i].getName();
         }
 
-        coordColumn = 
+        coordColumn =
             TableColumnChooser.getInstance().getCoordMatch( columnNames );
         if ( coordColumn == -1 ) {
             // No match for coordinates, look for "first" numeric column.
@@ -282,7 +436,7 @@ public class TableSpecDataImpl
             }
         }
 
-        dataColumn = 
+        dataColumn =
             TableColumnChooser.getInstance().getDataMatch( columnNames );
         if ( dataColumn == -1 ) {
             // No match for data, look for "second" numeric column.
@@ -305,9 +459,9 @@ public class TableSpecDataImpl
         }
 
         //  No fallback for errors, just don't have any.
-        errorColumn = 
+        errorColumn =
             TableColumnChooser.getInstance().getErrorMatch( columnNames );
-        
+
         //  Find the size of the table. Limited to 2G cells.
         dims[0] = (int) starTable.getRowCount();
 
@@ -326,17 +480,6 @@ public class TableSpecDataImpl
         //  Create the AST frameset that describes the data-coordinate
         //  relationship.
         createAst();
-    }
-
-    /**
-     * Write spectral data to the file.
-     *
-     * @param file File object.
-     */
-    protected void writeData()
-        throws SplatException
-    {
-        // TODO: anything.
     }
 
     /**
@@ -372,13 +515,13 @@ public class TableSpecDataImpl
             Number value;
             while( rseq.hasNext() ) {
                 rseq.next();
-                
+
                 value = (Number) rseq.getCell( coordColumn );
                 coords[i] = value.doubleValue();
-                
+
                 value = (Number) rseq.getCell( dataColumn );
                 data[i] = value.doubleValue();
-                
+
                 if ( errorColumn != -1 ) {
                     value = (Number) rseq.getCell( errorColumn );
                     errors[i] = value.doubleValue();
@@ -397,7 +540,7 @@ public class TableSpecDataImpl
 
         // Add what we can find out about the units of the coordinates
         // and data and add these to the current Frame. These may be
-        // changed into a SpecFrame by the SpecData wrapper. 
+        // changed into a SpecFrame by the SpecData wrapper.
         int current = astref.getCurrent();
         int base = astref.getBase();
 
@@ -418,7 +561,7 @@ public class TableSpecDataImpl
         String unit = columnInfos[column].getUnitString();
         if ( unit != null && ! "".equals( unit ) ) {
             astref.setUnit( 1, unit );
-        }        
+        }
 
         // If the description doesn't exist, then try for a UCD
         // description, if that doesn't exist just use the column name.
