@@ -70,6 +70,11 @@
   <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
+  <!-- Web proxy configuration, you will usually override these in
+   !   ~/.stardev.properties or .properties -->
+  <property name="http.proxyPort" value="8080"/>
+  <property name="http.proxyHost" value=""/>
+
   <!--
    !  ================
    !  Local Properties
@@ -470,7 +475,8 @@
           description="-> acquires web service definition java source files">
 
     <mkdir dir="${build.java}"/>
-    <axis-wsdl2java output="${build.java}" 
+    <setproxy proxyport="${http.proxyPort}" proxyHost="${http.proxyHost}"/>
+    <axis-wsdl2java output="${build.java}"
                     url="http://nvo.stsci.edu/voregistry/registry.asmx?WSDL"/>
   </target>
 
