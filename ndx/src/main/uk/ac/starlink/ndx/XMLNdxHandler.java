@@ -223,7 +223,7 @@ public class XMLNdxHandler implements NdxHandler {
             loc = el.getAttribute( "url" );
         }
         else {
-            String loc = getTextContent( el );
+            loc = getTextContent( el );
         }
  
         if ( loc == null || loc.trim().length() == 0 ) {
