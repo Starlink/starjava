@@ -2,99 +2,104 @@ package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
- * Provides a graphical viewer for StarTable objects.
+ * Extends the <tt>JTable</tt> for use with <tt>StarTable</tt> objects.
  * This convenience class adapts a JTable and sets it components appropriately
- * for viewing a StarTable.  The main jobs it does are to set its 
- * model to a suitable StarTableModel and set up some suitable cell renderers.
- * It also provides the method {@link #configureColumnWidths} which
- * sets the column widths according to the contents of the first few
+ * for viewing a StarTable.  The main jobs it does are to set its
+ * model to a suitable StarTableModel and make sure the cell renderers
+ * are set up suitably.
+ * It also provides {@link #configureColumnWidths} and related methods 
+ * which sets the column widths according to the contents of the first few
  * rows of the table.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class StarJTable extends JTable {
 
-    private static TableCellRenderer basicRenderer = 
-        new StarTableCellRenderer();
-    private static TableCellRenderer borderRenderer =
-        new StarTableCellRenderer( true );
-
-    private StarTableModel tmodel;
+    private boolean rowHeader;
+    private StarTable startable;
 
     /**
-     * Constructs a StarJTable from a StarTable object.
-     * The supplied StarTable must provide random access
-     * (<tt>startable.isRandom()</tt> returns true).
+     * Constructs a new <tt>StarJTable</tt>, optionally with a dummy
+     * first column displaying the row number.
      *
-     * @param  startable  the StarTable to view
+     * @param  rowHeader  whether column 0 should contain row indices
      */
-    public StarJTable( StarTable startable ) {
-
-        /* Construct a table model to contain the actual data. */
-        super( new StarTableModel( startable ) );
-        tmodel = (StarTableModel) getModel();
-
-        /* Do some cosmetic setup. */
-        setAutoResizeMode( AUTO_RESIZE_OFF );
-
-        /* Set up default renderers for various classes.  The default 
-         * renderer doesn't do numbers very well, it often truncates them. */
-        setDefaultRenderer( Object.class, basicRenderer );
-        setDefaultRenderer( Number.class, basicRenderer );
-        setDefaultRenderer( Float.class, basicRenderer );
-        setDefaultRenderer( Double.class, basicRenderer );
+    public StarJTable( boolean rowHeader ) {
+        super();
+        this.rowHeader = rowHeader;
     }
 
     /**
-     * Sets a new StarTableModel.
+     * Construsts a new <tt>StarJTable</tt> to display a given 
+     * <tt>StarTable</tt>, 
+     * optionally with a dummy first column displaying the row number.
      *
-     * @param  model  a new StarTableModel
-     * @throws  IllegalArgumentException   if <tt>model</tt> is not a 
-     *          StarTableModel
+     * @param  startable  the <tt>StarTable</tt> to display
+     * @param  rowHeader  whether column 0 should contain row indices
      */
-    public void setModel( TableModel model ) {
-        if ( model instanceof StarTableModel ) {
-            this.tmodel = (StarTableModel) model;
-            super.setModel( model );
-        }
-        else { 
-            throw new IllegalArgumentException(
-                "You can only set a StarJTable model to a StarTableModel" );
-        }
-    }
-
-    public TableModel getModel() {
-        return tmodel;
+    public StarJTable( StarTable startable, boolean rowHeader ) {
+        this( rowHeader );
+        setStarTable( startable, rowHeader );
     }
 
     /**
-     * Gets an appropriate cell renderer for a given cell.
+     * Indicates whether the first column of this table is a dummy column
+     * displaying the row index.
+     *
+     * @return  <tt>true</tt> iff column 0 displays row index
      */
-    public TableCellRenderer getCellRenderer( int irow, int icol ) {
-        if ( irow < tmodel.getExtraRows() || icol < tmodel.getExtraColumns() ) {
-            return borderRenderer;
+    public boolean hasRowHeader() {
+        return rowHeader;
+    }
+
+    /**
+     * Sets this <tt>StarJTable</tt> up to display a given 
+     * <tt>StarTable</tt> object,
+     * optionally with a dummy first column displaying the row number.
+     *
+     * @param  startable  the <tt>StarTable</tt> to display
+     * @param  rowHeader  whether column 0 should contain row indices
+     */
+    public void setStarTable( StarTable startable, boolean rowHeader ) {
+        setModel( new StarTableModel( startable, rowHeader ) );
+        this.startable = startable;
+
+        /* Set up renderers. */
+        TableColumnModel tcm = getColumnModel();
+        int extraCols = rowHeader ? 1 : 0;
+        if ( rowHeader ) {
+            tcm.getColumn( 0 ).setCellRenderer( getRowHeaderRenderer() );
         }
-        else {
-            return getDefaultRenderer( tmodel.getBodyColumnClass( icol ) );
+        for ( int icol = 0; icol < startable.getColumnCount(); icol++ ) {
+            ValueInfo cinfo = startable.getColumnInfo( icol );
+            TableCellRenderer crend = cinfo.getCellRenderer();
+            if ( crend == null ) {
+                crend = new ValueInfoCellRenderer( cinfo );
+            }
+            tcm.getColumn( extraCols + icol ).setCellRenderer( crend );
         }
     }
 
     /**
      * Sets the width of each column heuristically from the contents of
-     * the cells headers and cells.  Should be called after any 
+     * the cells headers and cells.  Should be called after any
      * default renderers have been set.
      *
      * @param  maxpix   the maximum column width allowed (pixels)
-     * @param  nrows    the number of rows of the tables to survey 
+     * @param  nrows    the number of rows of the tables to survey
      *                  for working out column widths.  If a number greater
-     *                  than the number of rows in the table is given, 
+     *                  than the number of rows in the table is given,
      *                  all rows will be surveyed
      */
     public void configureColumnWidths( int maxpix, int nrows ) {
@@ -111,13 +116,14 @@ public class StarJTable extends JTable {
      *
      * @param   table  the JTable whose widths are to be set
      * @param   maxpix the maximum column width allowed (pixels)
-     * @param  nrows    the number of rows of the tables to survey 
+     * @param  nrows    the number of rows of the tables to survey
      *                  for working out column widths.  If a number greater
-     *                  than the number of rows in the table is given, 
+     *                  than the number of rows in the table is given,
      *                  all rows will be surveyed
      */
-    public static void configureColumnWidths( JTable table, int maxpix, 
+    public static void configureColumnWidths( JTable table, int maxpix,
                                               int nrows ) {
+        table.setAutoResizeMode( AUTO_RESIZE_OFF );
         TableColumnModel tcm = table.getColumnModel();
         int ncol = table.getColumnCount();
         for ( int icol = 0; icol < ncol; icol++ ) {
@@ -154,18 +160,47 @@ public class StarJTable extends JTable {
          * more width. */
         int nr = Math.min( table.getRowCount(), nrows );
         for ( int i = 0; i < nr; i++ ) {
-             Object cellObj = table.getModel().getValueAt( i, icol );
-             Component cellComp = 
-                 table.getCellRenderer( i, icol )
-                .getTableCellRendererComponent( table, cellObj, false, false,
-                                                i, icol );
-             int cellWidth = cellComp.getPreferredSize().width;
-             if ( cellWidth > width ) {
-                 width = cellWidth;
-             }
+            width = Math.max( width, getCellWidth( table, i, icol ) );
         }
 
         /* Return the maximum cell width found plus a little bit of padding. */
         return Math.max( width + 10, 50 );
     }
+
+    /**
+     * Returns the preferred width in pixels of a given cell in a JTable.
+     * The table should be configured with its proper renderers and model
+     * before this is called.  It is assumed that focus and selection 
+     * does not affect the size.
+     *
+     * @param  jtab  the table
+     */
+    public static int getCellWidth( JTable jtab, int irow, int icol ) {
+        TableCellRenderer rend = jtab.getCellRenderer( irow, icol );
+        Object value = jtab.getValueAt( irow, icol );
+        Component comp = 
+            rend.getTableCellRendererComponent( jtab, value, false, false, 
+                                                irow, icol );
+        return comp.getPreferredSize().width;
+    }
+
+    /**
+     * Returns a renderer suitable for heading-like content.
+     * 
+     * @param  a renderer
+     */
+    private static TableCellRenderer getRowHeaderRenderer() {
+        DefaultTableCellRenderer rend = new DefaultTableCellRenderer();
+
+        /* Where are these property names documented?  Don't know, but
+         * you can find them in the source code of
+         * javax.swing.plaf.basic.BasicLookAndFeel,
+         * javax.swing.plaf.metal.MetalLookAndFeel. */
+        rend.setFont( UIManager.getFont( "TableHeader.font" ) );
+        rend.setBackground( UIManager.getColor( "TableHeader.background" ) );
+        rend.setForeground( UIManager.getColor( "TableHeader.foreground" ) );
+        rend.setHorizontalAlignment( SwingConstants.RIGHT );
+        return rend;
+    }
+
 }
