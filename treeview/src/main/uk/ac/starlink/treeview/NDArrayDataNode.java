@@ -163,7 +163,7 @@ public class NDArrayDataNode extends DefaultDataNode {
                 }
             }
         } );
-        dv.addPane( "Array statistics", new ComponentMaker() {
+        dv.addPane( "Statistics", new ComponentMaker() {
             public JComponent getComponent() {
                 return new StatsViewer( rnda );
             }
