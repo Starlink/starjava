@@ -22,17 +22,16 @@ import uk.ac.starlink.util.DataSource;
  * <p>
  * Here are the rules:
  * <ul>
- * <li>Bytes in the file are interpreted as ASCII characters
- *     (UTF-8-encoded Unicode)</li>
+ * <li>Bytes in the file are interpreted as ASCII characters</li>
  * <li>Each table row is represented by a single line of text</li>
  * <li>Lines are terminated by one or more contiguous line termination
  *     characters: line feed (0x0A) or carriage return (0x0D)</li>
  * <li>Within a line, fields are separated by one or more whitespace
  *     characters: space (" ") or tab (0x09)</li>
  * <li>A field is either an unquoted sequence of non-whitespace characters,
- *     or a sequence of non-newline characters between matching quote
- *     characters: either single quotes (') or double quotes (") - 
- *     spaces are therefore allowed in quoted fields.</li>
+ *     or a sequence of non-newline characters between matching
+ *     single (') or double (") quote characters -
+ *     spaces are therefore allowed in quoted fields</li>
  * <li>Within a quoted field, whitespace characters are permitted and are
  *     treated literally</li>
  * <li>Within a quoted field, any character preceded by a backslash character
