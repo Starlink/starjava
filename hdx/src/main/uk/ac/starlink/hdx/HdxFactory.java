@@ -126,8 +126,8 @@ public class HdxFactory {
                     classname = propname.substring(prefix.length());
                     Boolean loadflag = Boolean.valueOf
                             (HdxProperties.getProperty(propname));
-                    if (logger.isLoggable(Level.INFO))
-                        logger.info
+                    if (logger.isLoggable(Level.CONFIG))
+                        logger.config
                                 ("HdxDocumentFactory class " + classname + ":"
                                  + (loadflag.booleanValue()?"LOAD":"NOLOAD"));
                     if (loadflag.booleanValue()) {
@@ -212,9 +212,9 @@ public class HdxFactory {
      */
     public static void registerHdxDocumentFactory(HdxDocumentFactory factory) {
         hdxFactoryList.add(0, factory);
-        if (logger.isLoggable(Level.INFO))
-            logger.info("Registered HdxDocumentFactory "
-                        + factory.getClass().getName());
+        if (logger.isLoggable(Level.CONFIG))
+            logger.config("Registered HdxDocumentFactory "
+                          + factory.getClass().getName());
     }
 
 

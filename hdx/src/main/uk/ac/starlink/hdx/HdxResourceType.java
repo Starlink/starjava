@@ -174,7 +174,7 @@ public class HdxResourceType {
                     classname = propname.substring(prefix.length());
                     Boolean loadflag = Boolean.valueOf
                             (HdxProperties.getProperty(propname));
-                    logger.info
+                    logger.config
                             ("HdxResourceType class " + classname + ":"
                              + (loadflag.booleanValue() ? "LOAD" : "NOLOAD"));
                     if (loadflag.booleanValue()) {
@@ -266,7 +266,7 @@ public class HdxResourceType {
             return null;
         HdxResourceType t = new HdxResourceType(name);
         resourceTypeMap.put(name, t);
-        logger.info("Registered new HDX resource type " + t);
+        logger.config("Registered new HDX resource type " + t);
         return t;
     }
 
@@ -431,10 +431,10 @@ public class HdxResourceType {
          */
         if (handlers == null)
             handlers = new LinkedList();
-        if (logger.isLoggable(Level.INFO))
-            logger.info("HdxResourceType.registerHdxResourceFactory for "
-                        + toString()
-                        + " type=" + factory.getClass().getName());
+        if (logger.isLoggable(Level.CONFIG))
+            logger.config("HdxResourceType.registerHdxResourceFactory for "
+                          + toString()
+                          + " type=" + factory.getClass().getName());
         handlers.add(0, factory);
     }
 
