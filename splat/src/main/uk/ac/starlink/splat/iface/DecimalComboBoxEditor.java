@@ -1,0 +1,50 @@
+package uk.ac.starlink.splat.iface;
+
+import java.text.DecimalFormat;
+
+import javax.swing.border.Border;
+import javax.swing.plaf.basic.BasicComboBoxEditor;
+
+/**
+ * DecimalComboBoxEditor extends BasicComboBoxEditor to provide a
+ * mechanism for making the editable values of a JComboBox decimal
+ * numbers of somekind (either floating point or integers). 
+ * <p>
+ * For instance to get a floating point editor combobox you would do
+ * something like:
+ * <pre>
+ *    JComboBox box = new JComboBox();
+ *    DecimalFormat format = new DecimalFormat();
+ *    DecimalComboBoxEditor editor = new DecimalComboBoxEditor(format);
+ *    box.setEditor( editor );
+ *    box.setEditable( true );
+ * </pre>
+ * Control of the exact formatting (and locale) is done by the 
+ * DecimalFormat object.
+ *
+ * @since $Date$
+ * @since 26-OCT-2000
+ * @author Peter W. Draper
+ * @version $Id$
+ * @see BasicComboBoxEditor, DecimalField
+ * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
+ */
+public class DecimalComboBoxEditor extends BasicComboBoxEditor 
+{
+    public DecimalComboBoxEditor( DecimalFormat format ) {
+        super();
+        editor = new BorderlessDecimalField( 0, 9, format );
+    }
+
+    //  Local class to stop DecimalField from getting a border.
+    static class BorderlessDecimalField extends DecimalField 
+    {
+        public BorderlessDecimalField( double value , int width,
+                                       DecimalFormat format ) 
+        {
+            super(value, width, format );
+        }
+        
+        public void setBorder( Border b ) {}
+    }
+}

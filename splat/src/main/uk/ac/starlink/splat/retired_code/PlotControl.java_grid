@@ -1,0 +1,710 @@
+package star.jspec.plot;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.geom.*;
+import java.awt.print.*;
+import java.io.*;
+import java.lang.*;
+import java.text.*;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.border.*;
+
+import star.jspec.*;
+import star.jspec.data.*;
+import star.jspec.iface.*;
+import star.jspec.imagedata.*;
+import star.jspec.util.*;
+
+import diva.canvas.*;
+import diva.canvas.event.*;
+
+/**
+ * PlotControl objects contain a Plot and various controls for
+ * displaying a number of spectra.
+ * <p>
+ * The controls are limited to scaling in X and Y and a continuous
+ * readout of the cursor position.
+ *
+ * @author Peter W. Draper
+ * @version $Id$
+ * @since $Date$
+ * @since 16-SEP-1999, original version
+ * @copyright Copyright (C) 2000-2001 Central Laboratory of the
+ *            Research Councils
+ */
+public class PlotControl
+    extends JPanel
+    implements MouseMotionTracker, JSpecListener, FigureListener,
+               PlotScaledListener
+{
+    /**
+     *  Plot object for displaying the spectra.
+     */
+    protected Plot plot;
+
+    /**
+     *  SpecDataComp object for retaining all spectra references.
+     */
+    protected SpecDataComp spectra = new SpecDataComp();
+
+    /**
+     *  The global list of spectra and plots.
+     */
+    protected GlobalSpecPlotList globalList= GlobalSpecPlotList.getReference();
+
+    /**
+     *  Scrolled pane that contains the Plot.
+     */
+    protected JScrollPane scrollPane;
+
+    /**
+     *  Zoom factor controls and labels.
+     */
+    protected JComboBox xScale = new JComboBox();
+    protected JComboBox yScale = new JComboBox();
+    protected JLabel xScaleLabel = new JLabel( "X scale: ", JLabel.RIGHT );
+    protected JLabel yScaleLabel = new JLabel( "Y scale: ", JLabel.RIGHT );
+
+    /**
+     *  Labels for displaying the current coordinates under the cursor.
+     */
+    protected JLabel xValue = new JLabel( "", JLabel.LEADING );
+    protected JLabel yValue = new JLabel( "", JLabel.LEADING );
+    protected JLabel xValueLabel =
+        new JLabel( "X coordinate: ", JLabel.RIGHT );
+    protected JLabel yValueLabel =
+        new JLabel( "Y value: ", JLabel.RIGHT );
+
+    /**
+     *  Panel for plot controls.
+     */
+    //protected JPanel controlPanel = new JPanel( new GridBagLayout() );
+    protected JPanel controlPanel = new JPanel();
+
+    /**
+     *  Panel for Plot. Use BorderLayout so that we can get a
+     *  preferred size that fills all the center.
+     */
+    protected JPanel plotPanel = new JPanel( new BorderLayout() );
+
+    /**
+     *  The name of this plot (unique among plots).
+     */
+    String name = null;
+
+    /**
+     *  Count of all plots (used to generate name).
+     */
+    static int plotCounter = 0;
+
+    /**
+     *  Create a Plot, adding spectra later.
+     */
+    public PlotControl() throws JSpecException
+    {
+        initUI();
+    }
+
+    /**
+     *  Plot a spectrum.
+     *
+     *  @param spectrum  Active SpecDataComp reference.
+     */
+    public PlotControl( SpecDataComp spectra ) throws JSpecException
+    {
+        this.spectra = spectra;
+        initUI();
+    }
+
+    /**
+     *  Plot a spectrum.
+     *
+     *  @param file  name of file containing spectrum.
+     */
+    public PlotControl( String file ) throws JSpecException
+    {
+        //  Check spectrum exists.
+        SpecDataFactory factory = SpecDataFactory.getReference();
+        SpecData source = factory.get( file );
+        if ( source == null ) {
+            System.err.println( "Spectrum '" + file + "' cannot be found" );
+        }
+        spectra = new SpecDataComp( source );
+        initUI();
+    }
+
+    /**
+     *  Set the Graphics configuration window.
+     */
+    public void setConfig( PlotConfig config )
+    {
+        plot.setConfig( config );
+    }
+
+    /**
+     *  Create the UI controls.
+     */
+    protected void initUI() throws JSpecException
+    {
+        //  Initialisations.
+        setLayout( new BorderLayout() );
+        setDoubleBuffered( true );
+
+        //  Generate our name.
+        name = "<plot" + plotCounter + ">";
+        plotCounter++;
+
+        //  Add the control panel.
+        controlPanel.setBorder( BorderFactory.createEtchedBorder() );
+        add( controlPanel, BorderLayout.NORTH );
+
+        //  Add the plot panel. Put in center to fill complete region.
+        add( plotPanel, BorderLayout.CENTER );
+
+        //  Add borders to the coordinate readout labels. Make them
+        //  standout a bit.
+        xValue.setBorder( BorderFactory.createEtchedBorder() );
+        yValue.setBorder( BorderFactory.createEtchedBorder() );
+
+        //  Add the coordinate display labels to the controlPanel.
+        controlPanel.setLayout( new GridLayout( 2, 0 ) );
+        controlPanel.add( new JPanel() );
+        controlPanel.add( xValueLabel );
+        xValue.setText( "          " );
+        controlPanel.add( xValue );
+        controlPanel.add( yValueLabel );
+        yValue.setText( "          " );
+        controlPanel.add( yValue );
+        controlPanel.add( new JPanel() );
+
+        //  Add the zoom factor controls and set their default values.
+        addZoomControls();
+
+        //  Create an Plot object so that it can be called upon to
+        //  do the drawing.
+        plot = new Plot( spectra );
+        plot.addPlotScaledListener( this );
+
+        //  Plot does the drawing of the spectrum, but is contained
+        //  with a JScrollPane, so its size can be greater than the
+        //  viewable surface.
+        scrollPane = new JScrollPane( plot );
+
+        //  Make the JScrollPane/Plot fill the area available by
+        //  placing it in the center of the BorderLayout
+        plotPanel.add( scrollPane, BorderLayout.CENTER );
+
+        //  Get the Plot to track mouse motion events to update
+        //  our X and Y readout widgets.
+        plot.trackMouseMotion( this );
+
+        //  Set the description of the coordinates (note this should
+        //  be done if spectrum changes really, not here).
+        xValueLabel.setText( plot.getLabel( 1 ) + ": " );
+        yValueLabel.setText( plot.getLabel( 2 ) + ": " );
+
+        //  Register ourselves with the global list of plots and
+        //  spectra so we can see if any of our displayed spectra are
+        //  changed (or removed).
+        GlobalSpecPlotList.getReference().addJSpecListener( this );
+
+        //  A region dragged out with mouse button 2 should zoom to
+        //  that region. Need to listen for events that trigger this.
+        //  Also just pressing 2 zooms in by 1 factor and pressing 3
+        //  zooms out.
+        plot.getGraphicsPane().addZoomDraggerListener( this );
+    }
+
+    /**
+     * Return the Plot reference.
+     */
+    public Plot getPlot()
+    {
+        return plot;
+    }
+
+    /**
+     *  Add controls for zoom.
+     */
+    protected void addZoomControls()
+    {
+        //  Place the labels and JComboBoxes.
+        JPanel xScalePanel = new JPanel();
+        JButton xIncrement = new JButton( "+" );
+        xScalePanel.add( xScale );
+        xScalePanel.add( xIncrement );
+
+        controlPanel.add( new JPanel() );
+        controlPanel.add( xScaleLabel );
+        controlPanel.add( xScale );
+        controlPanel.add( yScaleLabel );
+        controlPanel.add( yScale );
+        controlPanel.add( new JPanel() );
+
+        float incr = 0.5F;
+        for ( int i = 2; i < 41; i++ ) {
+            Float value = new Float( incr * (float) i );
+            xScale.addItem( value );
+            yScale.addItem( value );
+        }
+
+        //  The input to these fields should only be decimals and can
+        //  be editted.
+        DecimalComboBoxEditor xEditor =
+            new DecimalComboBoxEditor( new DecimalFormat() );
+        DecimalComboBoxEditor yEditor =
+            new DecimalComboBoxEditor( new DecimalFormat() );
+        xScale.setEditor( xEditor );
+        yScale.setEditor( yEditor );
+        xScale.setEditable( true );
+        yScale.setEditable( true );
+
+        //  The initial scale is 1.0 (do now to avoid pre-emptive
+        //  trigger).
+        resetScales();
+
+        //  When an item is selected update the zoom.
+        xScale.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent e ) {
+                maybeScaleAboutCentre();
+            }
+        });
+        yScale.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent e ) {
+                maybeScaleAboutCentre();
+            }
+        });
+    }
+
+    /**
+     * Set the display scale factor to that shown.
+     */
+    public void setScale()
+    {
+        plot.setScale( getXScale(), getYScale() );
+    }
+
+    /**
+     * Set the display scale factor to that shown, keeping the current
+     * centre of field, unless a centre is already pending.
+     */
+    public void maybeScaleAboutCentre()
+    {
+        if ( origin == null ) {
+            double[] centre = getCentre();
+            zoomAbout( 0, centre[0], centre[1] );
+        } else {
+            setScale();  //  Centre already pending, so just do it.
+        }
+    }
+
+    /**
+     *  Set the display scale factors. Also scales the plot.
+     */
+    public void setScale( float xs, float ys )
+    {
+        xScale.setSelectedItem( new Float( xs ) );
+        yScale.setSelectedItem( new Float( ys ) );
+    }
+
+    /**
+     *  Scale the scale factors.
+     */
+    public void scaleScale( float xs, float ys )
+    {
+        setScale( xs * getXScale(), ys * getYScale() );
+    }
+
+    /**
+     *  Get the current X scale factor.
+     */
+    public float getXScale()
+    {
+        float xs = 1.0F;
+        Object xObj = xScale.getSelectedItem();
+        if ( xObj instanceof Float ) {
+            xs = ((Float) xObj).floatValue();
+        } else {
+            //  Not a Float so get string and convert.
+            xs = (new Float( xObj.toString() )).floatValue();
+        }
+        return xs;
+    }
+
+    /**
+     *  Get the current Y scale factor.
+     */
+    public float getYScale()
+    {
+        float ys = 1.0F;
+        Object yObj = yScale.getSelectedItem();
+        if ( yObj instanceof Float ) {
+            ys = ((Float) yObj).floatValue();
+        } else {
+            //  Not a Float so get string and convert.
+            ys = (new Float( yObj.toString() )).floatValue();
+        }
+        return ys;
+    }
+
+    /**
+     *  Reset the apparent scales of the Plot. This means that
+     *  whatever the current size of the Plot its scale becomes 1x1.
+     */
+    public void resetScales()
+    {
+        xScale.setSelectedIndex( 0 );
+        yScale.setSelectedIndex( 0 );
+    }
+
+    /**
+     *  Fit spectrum to the displayed width.
+     */
+    public void fitToWidth()
+    {
+        //  Make sure that the plot is the same size as the viewport
+        //  and the resize. Otherwise the plot will just refit itself.
+        JViewport viewport = scrollPane.getViewport();
+        Dimension size = viewport.getExtentSize();
+        plot.setSize( size );
+        plot.fitToWidth();
+        xScale.setSelectedIndex( 0 );
+        setScale();
+    }
+
+    /**
+     *  Fit spectrum to the displayed height.
+     */
+    public void fitToHeight()
+    {
+        //  Make sure that the plot is the same size as the viewport
+        //  and the resize. Otherwise the plot will just refit itself.
+        JViewport viewport = scrollPane.getViewport();
+        Dimension size = viewport.getExtentSize();
+        plot.setSize( size );
+        plot.fitToHeight();
+        yScale.setSelectedIndex( 0 );
+        setScale();
+    }
+
+    /**
+     *  Update the displayed coordinates (implementation from PlotMouseMotion).
+     */
+    public void updateCoords( String x, String y )
+    {
+        xValue.setText( x );
+        yValue.setText( y );
+    }
+
+    /**
+     *  Make a printable copy of the Plot content.
+     */
+    public void print()
+    {
+        PrinterJob pj = PrinterJob.getPrinterJob();
+
+        //  Get the page format that the user requires. Default to
+        //  landscape. Note doesn't seem to be anyway of changing the
+        //  default to A4. The documenation suggests that this is
+        //  locale specific, but I couldn't get that to make a
+        //  difference either.
+        PageFormat dpf = new PageFormat();
+        dpf.setOrientation( PageFormat.LANDSCAPE );
+        PageFormat pf = pj.pageDialog( dpf );
+
+        //  If the default PageFormat object has been modified then we
+        //  can proceed. It is unmodified if the cancel option was
+        //  chosen.
+        if ( dpf != pf ) {
+            pj.setPrintable( plot, pf );
+            if ( pj.printDialog() ) {
+                try {
+                    pj.print();
+                }
+                catch ( PrinterException e ) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     *  Add a SpecData reference to the list of displayed spectra.
+     *
+     *  @param spec reference to a spectrum.
+     */
+    public void addSpectrum( SpecData spec )
+    {
+        spectra.add( spec );
+        updatePlot();
+    }
+
+    /**
+     *  Remove a spectrum from the Plot.
+     *
+     *  @param plot reference to a spectrum.
+     */
+    public void removeSpectrum( SpecData spec )
+    {
+        spectra.remove( spec );
+        updatePlot();
+    }
+
+    /**
+     *  Remove a spectrum from the Plot.
+     *
+     *  @param index of the spectrum.
+     */
+    public void removeSpectrum( int index )
+    {
+        spectra.remove( index );
+        updatePlot();
+    }
+
+    /**
+     *  Get the number of spectrum currently plotted.
+     */
+    public int specCount()
+    {
+        return spectra.count();
+    }
+
+    /**
+     *  Say if a spectrum is being plotted.
+     */
+    public boolean isDisplayed( SpecData spec )
+    {
+        return spectra.have( spec );
+    }
+
+    /**
+     *  Return the name of this plot (unique among plots).
+     */
+    public String getName()
+    {
+        return name;
+    }
+
+    /**
+     *  Return reference to SpecDataComp.
+     */
+    public SpecDataComp getSpecDataComp()
+    {
+        return spectra;
+    }
+
+    /**
+     *  Increment the scale in both dimensions about a centre.
+     */
+    public void zoomAbout( int increment, double x, double y )
+    {
+        //  Record the centre of the region. This must be applied
+        //  after the scaling is complete (doesn't usual work
+        //  otherwise as scrollbars movement is bounded).
+        double[] gCoords = new double[2];
+        gCoords[0] = x;
+        gCoords[1] = y;
+        origin = plot.transform( gCoords, true );
+
+        //  Scale the plot by the increment.
+        float xs = Math.max( getXScale() + increment, 1.0F );
+        float ys = Math.max( getYScale() + increment, 1.0F );
+        setScale( xs, ys );
+    }
+
+    /**
+     *  Padding kept around any zoomed region.
+     */
+    private static final double ZOOMPADDING = 1.10;
+
+    /**
+     *  Zoom/scroll the Plot to display a given rectangular region.
+     */
+    public void zoomToRectangularRegion( Rectangle2D region )
+    {
+        if ( region != null &&
+             region.getWidth() != 0.0 && region.getHeight() != 0.0 ) {
+
+            //  Scale the region to allow some "slack" around it. When
+            //  zooming this looks much better (and is less confusing).
+            double centreX = region.getX() + region.getWidth() / 2.0;
+            double centreY = region.getY() + region.getHeight() / 2.0;
+            double scaledWidth = region.getWidth() * ZOOMPADDING;
+            double scaledHeight = region.getHeight() * ZOOMPADDING;
+
+            //  Record the centre of the region. This must be applied
+            //  after the scaling is complete (doesn't usual work
+            //  otherwise as scrollbars movement is bounded).
+            double[] gCoords = new double[2];
+            gCoords[0] = centreX;
+            gCoords[1] = centreY;
+            origin = plot.transform( gCoords, true );
+
+            //  Get the viewport size and scale region.
+            JViewport viewport = scrollPane.getViewport();
+            Dimension viewSize = viewport.getViewSize();
+            float xs = (float)((double)viewSize.width / scaledWidth);
+            float ys = (float)((double)viewSize.height / scaledHeight);
+            setScale( xs, ys );
+
+        } else if ( region != null ) {
+            zoomAbout( 1, region.getX(), region.getY() );
+        }
+    }
+
+    /**
+     * The scroll position that should be established after a change
+     * in plot scale.
+     */
+    private double[] origin = null;
+
+    /**
+     * Make any adjustments needed to respond to a change in scale by
+     * the Plot.
+     */
+    public void plotScaleChanged( PlotScaleChangedEvent e )
+    {
+        //  If needed set the centre of the plot.
+        if ( origin != null ) {
+            //  Define the limits of the scrollbars to be somewhat
+            //  greater the Plot preferred size. This allows sloppy
+            //  edges, spiking the BoundedRangeModel...
+            Dimension plotSize = plot.getPreferredSize();
+            scrollPane.getHorizontalScrollBar().setMaximum( plotSize.width*2 );
+            scrollPane.getHorizontalScrollBar().setMinimum( -plotSize.width );
+            scrollPane.getVerticalScrollBar().setMaximum( plotSize.height*2 );
+            scrollPane.getVerticalScrollBar().setMinimum( -plotSize.height );
+
+            double[] gCoords = plot.transform( origin, false );
+            setCentre( gCoords[0], gCoords[1] );
+            origin = null;
+        }
+    }
+
+    /**
+     * Set the viewport to show a given position as the centre.
+     */
+    public void setCentre( double x, double y )
+    {
+        JViewport port = scrollPane.getViewport();
+        Dimension viewsize = port.getExtentSize();
+        Dimension fullsize = port.getExtentSize();
+        int left = (int) ( x - viewsize.getWidth() / 2.0 );
+        int right = (int) ( y - viewsize.getHeight() / 2.0 );
+        port.setViewPosition( new Point( left, right ) );
+    }
+
+    /**
+     * Get the centre of the current view.
+     */
+    public double[] getCentre()
+    {
+        JViewport port = scrollPane.getViewport();
+        Rectangle view = port.getViewRect();
+        double[] centre = new double[2];
+        centre[0] = view.getX() + view.getWidth() / 2.0;
+        centre[1] = view.getY() + view.getHeight() / 2.0;
+        return centre;
+    }
+
+    /**
+     * Update the plot. Should be called when events that require the
+     * Plot to redraw itself occur (i.e. when spectra are added or
+     * removed and when the Plot configuration is changed).
+     */
+    public void updatePlot()
+    {
+        try {
+            plot.update();
+            // Need this call as autoscaling changes apparent Plot size,
+            // this resets the base size to whatever is current.
+            resetScales();
+        } catch (JSpecException e) {
+            //  Do nothing, probably not fatal.
+        }
+    }
+
+    //
+    //  Implement the JSpecListener interface.
+    //
+    /**
+     *  A new spectrum is added. Do nothing, until it is added to this
+     *  plot.
+     */
+    public void spectrumAdded( JSpecChangedEvent e )
+    {
+        // Do nothing.
+    }
+
+    /**
+     *  React to a spectrum being removed, if one of ours.
+     */
+    public void spectrumRemoved( JSpecChangedEvent e )
+    {
+        int globalIndex = e.getIndex();
+        SpecData spectrum = globalList.getSpectrum( globalIndex );
+        int localIndex = spectra.indexOf( spectrum );
+        if ( localIndex > -1 ) {
+            removeSpectrum( localIndex );
+        }
+    }
+
+    /**
+     *  React to a spectrum property change, if one of ours.
+     */
+    public void spectrumChanged( JSpecChangedEvent e )
+    {
+        int globalIndex = e.getIndex();
+        SpecData spectrum = globalList.getSpectrum( globalIndex );
+        int localIndex = spectra.indexOf( spectrum );
+        if ( localIndex > -1 ) {
+            updatePlot();
+        }
+    }
+
+    /**
+     *  React to a change in the global current spectrum. Do nothing.
+     */
+    public void spectrumCurrent( JSpecChangedEvent e )
+    {
+        // Do nothing.
+    }
+
+    //
+    //  Implement the FigureListener interface.
+    //
+    /**
+     *  Sent when the zoom figure is created. Do nothing.
+     */
+    public void figureCreated( FigureChangedEvent e )
+    {
+        //  Do nothing.
+    }
+
+    /**
+     *  Sent when a zoom interaction is complete. Events by mouse
+     *  button 3 are assumed to mean unzoom.
+     */
+    public void figureRemoved( FigureChangedEvent e )
+    {
+        Rectangle2D region = (Rectangle2D)
+            ((DragRegion)e.getSource()).getFinalShape();
+        LayerEvent le = e.getLayerEvent();
+        if ( le.getModifiers() == LayerEvent.BUTTON3_MASK ) {
+            zoomAbout( -1, region.getX(), region.getY() );
+        } else {
+            zoomToRectangularRegion( region );
+        }
+    }
+
+    /**
+     *  Send when the zoom figure is changed. Do nothing.
+     */
+    public void figureChanged( FigureChangedEvent e )
+    {
+        //  Do nothing.
+    }
+}
