@@ -153,7 +153,9 @@ public class TableCopy {
             }
             else {
                 System.err.println();
-                System.err.println( e.getMessage() );
+                String msg = e.getMessage();
+                System.err.println( msg != null && msg.trim().length() > 0 
+                                       ? msg : e.toString() );
                 System.err.println( usage );
             }
             System.exit( 1 );
