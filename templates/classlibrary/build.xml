@@ -63,8 +63,12 @@
   <property name="star.build.dir" value="${basedir}/../"/>
 
   <!-- Directory that any archives should be placed into. The local
-   !   directort by default -->
+   !   directory by default -->
   <property name="star.archive.dir" value="${basedir}"/>
+
+  <!-- URL and package-list for linking against full Java docs -->
+  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!--
    !  ================
@@ -220,13 +224,13 @@
 
   <path id="built.classpath">
 
+    <!-- Local third party jars -->
+    <path refid="package.jars"/>
+
     <!-- All locally built classes -->
     <dirset dir="${star.build.dir}">
       <include name="*/build/classes"/>
     </dirset>
-
-    <!-- Local third party jars -->
-    <path refid="package.jars"/>
 
     <!-- Directly dependent third party jars -->
     <path refid="built.jarpath"/>
@@ -788,10 +792,15 @@
              defaultexcludes="yes"
              classpathref="classpath">
 
-      <!-- Exclude broken and test files etc. from the document -->
-      <fileset dir="${java.dir}" defaultexcludes="yes">
-          <exclude name="**/README"/>
-      </fileset>
+      <!-- Get a list of directories that name all the potential
+       !   java packages -->
+      <packageset dir="${java.dir}" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <!-- Link to the full Java API at SUNs website -->
+      <link offline="true" href="${javaapi.url}"
+            packagelistLoc="${javaapi.lis}"/>
 
       <group title="${Name} API" packages="${package.name}*"/>
 

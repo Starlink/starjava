@@ -67,7 +67,7 @@
   <property name="star.build.dir" value="${basedir}/../"/>
 
   <!-- Directory that any archives should be placed into. The local
-   !   directort by default -->
+   !   directory by default -->
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!--
