@@ -189,7 +189,11 @@ public abstract class StoragePolicy {
      * to deal with.
      * Temporary disk files are written in the default temporary 
      * directory, which is the value of the <tt>java.io.tmpdir</tt>
-     * system property.
+     * system property.  These files will be deleted when the JVM exits,
+     * if not before.  They will <em>probably</em> be deleted around the
+     * time they are no longer needed (when the RowStore in question is 
+     * garbage collected), though this cannot be guaranteed since it
+     * depends on the details of the JVM's GC implementation.
      */
     public static final StoragePolicy PREFER_DISK = new StoragePolicy() {
         public RowStore makeRowStore() {

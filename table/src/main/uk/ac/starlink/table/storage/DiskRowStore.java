@@ -22,6 +22,12 @@ import uk.ac.starlink.table.WrapperStarTable;
 
 /**
  * Implementation of RowStore which stores data on disk.
+ * The temporary file is deleted by the finalizer (if it runs) or failing
+ * that at JVM exit.  Since there's no guarantee when or if the finalizer
+ * will run even after this object is a candidate for garbage collection,
+ * this does raise the possibility that large numbers of potentially large
+ * temporary files will accumulate during JVM operation.
+ * It depends on your GC.
  *
  * @author   Mark Taylor (Starlink)
  * @since    3 Aug 2004
@@ -171,6 +177,26 @@ public class DiskRowStore implements RowStore {
             throw new IllegalStateException( "endRows not called" );
         }
         return storedTable_;
+    }
+
+    /**
+     * Finalizer deletes the temporary file used to cache the table data.
+     */
+    public void finalize() throws Throwable {
+        try {
+            if ( file_.exists() ) {
+                if ( file_.delete() ) {
+                    logger_.info( "Deleting temporary file " + file_ );
+                }
+                else {
+                    logger_.warning( "Failed to delete temporary file " 
+                                   + file_ );
+                }
+            }
+        }
+        finally {
+            super.finalize();
+        }
     }
 
     /**
