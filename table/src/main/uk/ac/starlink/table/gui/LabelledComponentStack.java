@@ -6,6 +6,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -45,6 +46,15 @@ public class LabelledComponentStack extends JPanel {
      * @param  comp  the component 
      */
     public void addLine( String name, String pad, Component comp ) {
+
+        /* Add some vertical padding except for the first added line. */
+        if ( cons.gridy > 0 ) {
+            cons.gridx = 0;
+            Component strut = Box.createVerticalStrut( 4 );
+            layer.setConstraints( strut, cons );
+            add( strut );
+            cons.gridy++;
+        }
 
         /* Add the name. */
         Component nameComp = new JLabel( name + ":  " );
