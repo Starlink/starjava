@@ -140,6 +140,7 @@
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
   <property name="build.jni" value="${build.dir}/jni"/>
+  <property name="build.examples" value="${build.classes}/examples"/>
 
   <!-- Distribution directories, these are created in the current
    !   directory, unless dist.dir is redefined. Files that will be
@@ -418,7 +419,7 @@
    !  (i.e. resources like images) should also be copied into place here.
    !-->
   <target name="build"
-          depends="prepare, check_packages"
+          depends="prepare, check_packages, build_examples"
           unless="runonly.install"
           description="-> compiles the source code">
 
@@ -472,6 +473,22 @@
     </antcall>
 
   </target>
+
+
+  <!-- 
+   !   =============================
+   !   Copy example data into place.
+   !   =============================
+   !-->
+  <target name="build_examples">
+
+    <mkdir dir="${build.examples}"/>
+    <copy todir="${build.examples}">
+      <fileset dir="${src.etc}/examples" excludes="**/*.sdf"/>
+    </copy>
+
+  </target>
+
 
   <!--
    !  ===================================
@@ -571,6 +588,9 @@
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
+
+    <jar destfile="${dist.lib.pkg}/${name}_examples.jar"
+         basedir="${build.examples}"/>
 
     <!-- Sign all jar files -->
     <signjar alias="${webstart.alias}"
