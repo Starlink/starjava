@@ -129,6 +129,10 @@ public abstract class AbstractStarTable implements StarTable {
         return Tables.checkedLongToInt( lval );
     }
 
+    /**
+     * The <tt>AbstractStarTable</tt> implementation of this method 
+     * returns <tt>false</tt>.
+     */
     public boolean isRandom() {
         return false;
     }
