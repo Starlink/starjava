@@ -29,6 +29,8 @@
 #  History:
 #     01-AUG-2002 (PWD):
 #        Original version.
+#     21-OCT-2004 (PWD):
+#        Added Cygwin support.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -50,6 +52,11 @@ if test -z "$SPLAT_DIR"; then
 fi
 echo "SPLAT_DIR = $SPLAT_DIR"
 
+#  Check if we are running Cygwin.
+cygwin=false;
+case "`uname`" in
+  CYGWIN*) cygwin=true ;;
+esac
 
 # Set the amount of memory that we use for the heap. Increase this
 # if you start getting out of memory errors. Decrease it for smaller 
@@ -58,7 +65,7 @@ if test -z "$SPLAT_MAXMEM"; then
    SPLAT_MAXMEM=128m
 fi
 
-# If NDF format conversion if switched on them pass this information into 
+# If NDF format conversion if switched on then pass this information into 
 # SPLAT.
 defines=""
 if test ! -z "$NDF_FORMATS_IN"; then
@@ -77,9 +84,16 @@ if test ! -f "$appjar"; then
    echo "Failed to locate the SPLAT application. Please define SPLAT_DIR"
    exit
 fi
+if $cygwin; then
+   appjar=`cygpath --windows "$appjar"`
+fi
 
 #  Location of the etc directory (needed for line id files).
-defines="$defines -Dsplat.etc.dir=$SPLAT_DIR/../etc/splat"
+etcdir="$SPLAT_DIR/../etc/splat"
+if $cygwin; then
+    etcdir=`cygpath --windows "$etcdir"`
+fi
+defines="$defines -Dsplat.etc.dir=$etcdir"
 
 #  Need the port and default configuration for the web services.
 defines="$defines \

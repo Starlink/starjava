@@ -66,13 +66,28 @@ do
    shift
 done
 
+#  Check for Cygwin and transform paths.
+case "`uname`" in
+  CYGWIN*) 
+    if test -n "$CLASSPATH"; then
+       CLASSPATH=`cygpath --path --windows "${appjar}:$CLASSPATH"`
+    else
+       CLASSPATH=`cygpath --windows "${appjar}"`
+    fi
+  ;;
+  *)
+    CLASSPATH="${appjar}:${CLASSPATH}"
+  ;;
+esac
+
+
 #  Run topcat
 
 cmd="$starjava \
         $javaArgs \
         -enableassertions \
         -Duk.ac.starlink.topcat.cmdname=topcat \
-        -classpath ${appjar}:${CLASSPATH} uk.ac.starlink.topcat.Driver \
+        -classpath \${CLASSPATH} uk.ac.starlink.topcat.Driver \
         $appArgs"
 eval "$cmd"
 
