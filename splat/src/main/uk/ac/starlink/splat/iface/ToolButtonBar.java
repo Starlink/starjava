@@ -137,8 +137,17 @@ public class ToolButtonBar
             {
                 public void componentResized( ComponentEvent e )
                 {
+                    //  If layout of parent isn't our BorderLayout then the
+                    //  toolbar is detached and we should leave it alone.
+                    if ( ! toolBar.getParent().equals( container ) ) {
+                        return;
+                    }
+
                     //  Actual size of toolbar.
                     Dimension pref = toolBar.getSize();
+
+                    // If not realized do nothing.
+                    if ( pref.width == 0 || pref.height == 0 ) return;
 
                     //  Size of the first button. Assume this is typical.
                     Dimension one = 
