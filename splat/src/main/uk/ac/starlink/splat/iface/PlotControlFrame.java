@@ -32,6 +32,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
+import uk.ac.starlink.ast.Plot;
+import uk.ac.starlink.ast.gui.AstFigureStore;
+import uk.ac.starlink.ast.gui.AstPlotSource;
 import uk.ac.starlink.ast.gui.ComponentColourControls;
 import uk.ac.starlink.ast.gui.GraphicsEdgesControls;
 import uk.ac.starlink.ast.gui.GraphicsHintsControls;
@@ -430,10 +433,11 @@ public class PlotControlFrame
     protected void setupGraphicsMenu()
     {
         DrawActions drawActions = plot.getPlot().getDrawActions();
-        DrawFigureStore store = 
-            new DrawFigureStore( Utilities.getApplicationName(),
-                                 "FigureStore.xml",
-                                 "drawnfigures" );
+        AstFigureStore store = 
+            new AstFigureStore( (AstPlotSource) plot.getPlot(),
+                                Utilities.getApplicationName(),
+                                "FigureStore.xml",
+                                "drawnfigures" );
         drawActions.setFigureStore( store );
         menuBar.add( new DrawGraphicsMenu( drawActions ) );
     }
