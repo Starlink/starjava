@@ -305,6 +305,10 @@ public class NDShape implements Cloneable {
      * Returns a string representation of a shape.
      * This currently returns a string like "(10+5,20+8)" for a shape with
      * origin (10,20) and dimensions (5,8).
+     * <p>
+     * As a special case, if any of the origin elements has the value 
+     * <tt>Long.MIN_VALUE</tt>, then a "<tt>*</tt>" is written
+     * in the corresponding position.
      *
      * @param  shape  the shape to describe
      * @return   a string describing shape
@@ -313,10 +317,16 @@ public class NDShape implements Cloneable {
         StringBuffer buf = new StringBuffer( "(" );
         int ndim = shape.ndim;
         for ( int i = 0; i < ndim; i++ ) {
-            buf.append( shape.origin[ i ] )
-               .append( '+' )
-               .append( shape.dims[ i ] )
-               .append( ( i < ndim - 1 ) ? ',' : ')' );
+            long o = shape.origin[ i ];
+            if ( o == Long.MIN_VALUE ) {
+                buf.append( '*' );
+            }
+            else {
+                buf.append( shape.origin[ i ] )
+                   .append( '+' )
+                   .append( shape.dims[ i ] );
+            }
+            buf.append( ( i < ndim - 1 ) ? ',' : ')' );
         }
         return buf.toString();
     }
@@ -325,6 +335,7 @@ public class NDShape implements Cloneable {
      * Returns a string representation of a position.
      * This is a utility function which returns a string indicating the
      * value of a position vector, in a form like "(10,20,23)".
+     * <p>
      * As a special case, if any of the elements has the value 
      * <tt>Long.MIN_VALUE</tt>, then a "<tt>*</tt>" is written
      * in the corresponding position.
