@@ -100,7 +100,7 @@
   <property name="junit.summary" value="no"/>
 
   <!-- Directory containing the package source -->
-  <property name="src.dir" value="src"/>
+  <property name="src.dir" value="${basedir}/src"/>
 
   <!-- Directory containing the java source (top of the namespace)-->
   <property name="java.dir" value="${src.dir}/main"/>
@@ -121,7 +121,7 @@
   <property name="unfiltered.files" value="**/*.gif,**/*.jpg,**/*.sdf"/>
 
   <!-- Directories to receive the various build components -->
-  <property name="build.dir" value="build"/>
+  <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
   <property name="build.jni" location="${build.dir}/jni"/>
   <property name="build.java" value="${build.dir}/java"/>
