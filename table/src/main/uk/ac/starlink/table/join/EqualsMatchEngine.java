@@ -17,10 +17,10 @@ public class EqualsMatchEngine implements MatchEngine {
 
     private static Object[] NO_BINS = new Object[ 0 ];
 
-    public boolean matches( Object[] tuple1, Object[] tuple2 ) {
+    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
         Object o1 = tuple1[ 0 ];
         Object o2 = tuple2[ 0 ];
-        return o1 != null && o2 != null && o1.equals( o2 );
+        return ( o1 != null && o2 != null && o1.equals( o2 ) ) ? 0.0 : -1.0; 
     }
 
     public Object[] getBins( Object[] tuple ) {

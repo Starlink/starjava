@@ -16,8 +16,8 @@ import uk.ac.starlink.table.ValueInfo;
  * such as RA and Dec.
  * <p>
  * The business end of the interface consists of two methods.  
- * One simply tests whether two
- * tuples count as the same or not (in practice, this is likely to 
+ * One tests whether two tuples as count matching or not,
+ * and assigns a closeness score if they are (in practice, this is likely to 
  * compare corresponding elements of the two submitted tuples allowing
  * for some error in each one).  The second is a bit more subtle:
  * it must identify a set of bins into which possible matches for the tuple
@@ -30,8 +30,8 @@ import uk.ac.starlink.table.ValueInfo;
  * Formally, the requirements for correct implementations of this 
  * interface are as follows:
  * <ol>
- * <li><tt>matches(t1,t2)</tt> == <tt>matches(t2,t1)</tt>
- * <li><tt>matches(t1,t2)</tt> implies a non-zero intersection of 
+ * <li><tt>matchScore(t1,t2)</tt> == <tt>matchScore(t2,t1)</tt>
+ * <li><tt>matchScore(t1,t2)&gt;=0</tt> implies a non-zero intersection of 
  *     <tt>getBins(t1)</tt> and <tt>getBins(t2)</tt>
  * </ol>
  * The best efficiency will be achieved when:
@@ -65,14 +65,30 @@ public interface MatchEngine {
     Object[] getBins( Object[] tuple );
 
     /**
-     * Indicates whether two tuples are to be linked.
+     * Indicates whether two tuples count as matching each other, and if
+     * so how closely.  If <tt>tuple1</tt> and <tt>tuple2</tt> are
+     * considered as a matching pair, then a non-negative value should
+     * be returned indicating how close the match is - the higher the 
+     * number the worse the match, and a return value of zero indicates
+     * a 'perfect' match.  
+     * If the two tuples do not consitute a matching pair, then 
+     * a negative number (conventionally -1.0) should be returned.
+     * This return value can be thought of as (and will often
+     * correspond physically with) the distance in some real or notional
+     * space between the points represented by the two submitted tuples.
+     *
+     * <p>If there's no reason to do otherwise, the range 0..1 is 
+     * recommended for successul matches.  However, if the result has 
+     * some sort of physical meaning (such as a distance in real space) 
+     * that may be used instead.
      *
      * @param  tuple1  one tuple
      * @param  tuple2  the other tuple
-     * @return  <tt>true</tt> iff <tt>tuple1</tt> should be considered a
-     *          match for <tt>tuple2</tt>
+     * @return  'distance' between <tt>tuple1</tt> and <tt>tuple2</tt>; 
+     *          0 is a perfect match, larger values indicate worse matches,
+     *          negative values indicate no match
      */
-    boolean matches( Object[] tuple1, Object[] tuple2 );
+    double matchScore( Object[] tuple1, Object[] tuple2 );
 
     /**
      * Returns a set of ValueInfo objects indicating what is required for

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,6 +33,7 @@ public class RowMatcher {
     private final StarTable[] tables;
     private final int nTable;
     private ProgressIndicator indicator = new NullProgressIndicator();
+    private long startTime;
 
     /**
      * Constructs a new matcher with match characteristics defined by
@@ -88,14 +90,17 @@ public class RowMatcher {
             throw new IllegalStateException( "findPairMatches only makes sense"
                                            + " for 2 tables" );
         }
+        startMatch();
 
         /* Get all the possible inter-table pairs. */
-        Collection pairs = findInterPairs( getBinContents(), 0, 1 );
+        Map pairScores = findInterPairs( getBinContents(), 0, 1 );
 
         /* Make sure that no row is represented more than once
          * (this isn't necessary for the result to make sense, but it's 
          * probably what the caller is expecting). */
-        eliminateMultipleRowEntries( pairs );
+        eliminateMultipleRowEntries( pairScores );
+        Collection pairs = new HashSet( pairScores.keySet() );
+        pairScores = null;
 
         /* We now have a set of links corresponding to all the matches
          * with one entry for each of two or more of the input tables.
@@ -113,6 +118,7 @@ public class RowMatcher {
         /* Sort and return. */
         List pairList = new ArrayList( pairs );
         Collections.sort( pairList );
+        endMatch();
         return pairList;
     }
 
@@ -148,6 +154,7 @@ public class RowMatcher {
                 "Options length " + useAll.length +
                 " differs from table count " + nTable );
         }
+        startMatch();
 
         /* Get all the possible pairs. */
         Set pairs = findPairs( getBinContents() );
@@ -192,6 +199,7 @@ public class RowMatcher {
         Collections.sort( selected );
 
         /* Return the matched list. */
+        endMatch();
         return selected;
     }
 
@@ -213,6 +221,7 @@ public class RowMatcher {
             throw new IllegalStateException( "Internal matches only make sense "
                                            + "with a single table" );
         }
+        startMatch();
 
         /* Locate all the pairs. */
         Collection links = findPairs( getBinContents() );
@@ -228,6 +237,7 @@ public class RowMatcher {
         /* Sort and return the list. */
         links = new ArrayList( links );
         Collections.sort( (List) links );
+        endMatch();
         return (List) links;
     }
 
@@ -242,7 +252,6 @@ public class RowMatcher {
      *         to the match engine's criteria
      * @return  a set of RowLink objects which represent all the actual
      *          distinct row pairs from <tt>possibleLinks</tt>
-     * @see   #findInterPairs
      */
     private Set findPairs( Collection possibleLinks )
             throws IOException, InterruptedException {
@@ -271,8 +280,9 @@ public class RowMatcher {
                         RowLink pair = new RowLink( link.getRef( i ),
                                                     link.getRef( j ) );
                         if ( ! pairSet.contains( pair ) ) {
-                            if ( engine.matches( binnedRows[ i ], 
-                                                 binnedRows[ j ] ) ) {
+                            double score = engine.matchScore( binnedRows[ i ],
+                                                              binnedRows[ j ] );
+                            if ( score >= 0 ) {
                                 pairSet.add( pair );
                             }
                         }
@@ -288,20 +298,27 @@ public class RowMatcher {
     /**
      * Identifies all the pairs of equivalent rows from a set of RowLinks
      * between rows from two specified tables.
-     * This will return a subset of the result which would be returned 
-     * by {@link #findPairs(java.util.Collection)}, but it should be a bit
-     * more efficient.
-     * The original set is not affected.
+     * The returned object is a {@link RowLink}->{@link java.lang.Number} map,
+     * in which the keys represent pairs of matching rows, 
+     * and the values are their match scores, as obtained from 
+     * {@link MatchEngine#matchScore}.
+     *
+     * <p>The original set is not affected.
+     *
+     * <p>Since links are being sought between a pair of tables, a more
+     * efficient algorithm can be used than for {@link #findPairs}.
      *
      * @param  possibleLinks  a set of {@link RowLink} objects which 
      *         correspond to groups of possibly matched objects 
      *         according to the match engine's criteria
-     * @see   #findPairs
+     * @param  index1  index of the first table
+     * @param  index2  index of the second table
+     * @return  a RowLink-&gt;Double map
      */
-    private Set findInterPairs( Collection possibleLinks,
+    private Map findInterPairs( Collection possibleLinks,
                                 int index1, int index2 )
             throws IOException, InterruptedException {
-        Set pairSet = new HashSet();
+        Map pairMap = new HashMap();
         double nLink = (double) possibleLinks.size();
         int iLink = 0;
         indicator.startStage( "Locating inter-table pairs" );
@@ -332,7 +349,7 @@ public class RowMatcher {
 
                     /* Do a pairwise comparison of each eligible pair in the
                      * group.  If they match, add the new pair to the set
-                     * of pairs. */
+                     * of matched pairs. */
                     for ( int i = 0; i < nref; i++ ) {
                         RowRef refI = link.getRef( i );
                         int iTableI = refI.getTableIndex();
@@ -342,10 +359,13 @@ public class RowMatcher {
                             if ( iTableI == index1 && iTableJ == index2 ||
                                  iTableI == index2 && iTableJ == index1 ) {
                                 RowLink pair = new RowLink( refI, refJ );
-                                if ( ! pairSet.contains( pair ) ) {
-                                    if ( engine.matches( binnedRows[ i ],
-                                                         binnedRows[ j ] ) ) {
-                                        pairSet.add( pair );
+                                if ( ! pairMap.containsKey( pair ) ) {
+                                    double score = 
+                                        engine.matchScore( binnedRows[ i ],
+                                                           binnedRows[ j ] );
+                                    if ( score >= 0 ) {
+                                        pairMap.put( pair, 
+                                                     new Double( score ) );
                                     }
                                 }
                             }
@@ -356,7 +376,7 @@ public class RowMatcher {
             indicator.setLevel( ++iLink / nLink );
         }
         indicator.endStage();
-        return pairSet;
+        return pairMap;
     }
 
     /**
@@ -418,14 +438,19 @@ public class RowMatcher {
         /* Replace the value at each bin with a RowLink, since they count
          * as equal if they have the same contents, which means they 
          * are suitable keys for unique inclusion in a set. */
+        double nl = (double) rowMap.size();
+        indicator.startStage( "Consolidating potential match groups" );
+        long il = 0;
         for ( Iterator it = rowMap.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
             entry.setValue( new RowLink( (Collection) entry.getValue() ) );
+            indicator.setLevel( il++ / nl );
         }
 
         /* Obtain a set containing an entry for each unique contents of a
          * bin. */
         Set binContents = new HashSet( rowMap.values() );
+        indicator.endStage();
 
         /* Report on bin occupancy. */
         int nref = 0;
@@ -574,51 +599,78 @@ public class RowMatcher {
     }
 
     /**
-     * Goes through a set of pairs and makes sure that no RowRef is
+     * Goes through a set of matched pairs and makes sure that no RowRef is
      * contained in more than one pair.  If multiple pairs exist containing
-     * the same RowRef, all but one are discarded.  
-     * The pairs in the list may only contain RowRefs with a table index
-     * of 0 or 1.
+     * the same RowRef, all but one (the one with the lowest score) 
+     * are discarded.  
+     * <p>The input collection must be a 
+     * {@link RowLink}-&gt;{@link java.lang.Number} map;
+     * the keys are 2-ref <tt>RowLink</tt>s representing a matched pair, and
+     * the values give the match score, as per {@link MatchEngine#matchScore}.
+     * The pairs may only contain RowRefs with a table index of 0 or 1.
      * 
-     * <p>The decision about which pairs are discarded is currently taken
-     * at random; ideally the one with the best match should be retained.
-     * MatchEngine does not currently provide enough information to make
-     * this possible.
-     *
-     * @param   pairs  set of 2-ref {@link RowLink} objects - on exit
-     *          each RowRef will only appear in at most one RowRef in
-     *          these pairs
+     * @param   pairScores  map {@link RowLink}-&gt;<tt>Number</tt> objects
+     *          representing matched pairs - on exit
+     *          each RowRef will only appear in at most one RowLink in
+     *          the keys
      */
-    private void eliminateMultipleRowEntries( Collection pairs ) 
+    private void eliminateMultipleRowEntries( Map pairScores ) 
             throws InterruptedException {
 
-        /* Go through the pairs keeping track of which RowRefs we have
-         * seen using a Set of RowRefs.  Remove any whose rows have been
-         * seen before. */
-        Set refSet = new HashSet();
-        double nPair = pairs.size();
+        /* Set up a map to keep track of the best score so far keyed by
+         * RowRef. */
+        Map bestRowScores = new HashMap();
+
+        /* We will be copying entries from the input map to an output one,
+         * retaining only the best matches for each row. */
+        Map inPairs = pairScores;
+        Map outPairs = new HashMap();
+
+        /* Iterate over each entry in the input set, deleting it and 
+         * selectively copying to the output set as we go. 
+         * This means we don't need double the amount of memory. */
+        double nPair = inPairs.size();
         int iPair = 0;
         indicator.startStage( "Eliminating multiple row references" );
-        for ( Iterator it = pairs.iterator(); it.hasNext(); ) {
-            RowLink pair = (RowLink) it.next();
+        for ( Iterator it = inPairs.entrySet().iterator(); it.hasNext(); ) {
+
+            /* Get the next pair and its score. */
+            Map.Entry entry = (Map.Entry) it.next();
+            RowLink pair = (RowLink) entry.getKey();
+            Number score = (Number) entry.getValue();
             assert pair.size() == 2;
+            assert score != null;
+            double scoreVal = score.doubleValue();
             RowRef ref1 = pair.getRef( 0 );
             RowRef ref2 = pair.getRef( 1 );
             assert ref1.getTableIndex() == 0;
             assert ref2.getTableIndex() == 1;
-            boolean seen1 = refSet.contains( ref1 );
-            boolean seen2 = refSet.contains( ref2 );
-            if ( seen1 || seen2 ) {
-                it.remove();
+            Number score1 = (Number) bestRowScores.get( ref1 );
+            Number score2 = (Number) bestRowScores.get( ref2 );
+
+            /* If neither row in this pair has been seen before, or we 
+             * have a better match this time than previous appearances,
+             * copy this entry across to the output set. */
+            if ( ( score1 == null || scoreVal < score1.doubleValue() ) &&
+                 ( score2 == null || scoreVal < score2.doubleValue() ) ) {
+                outPairs.put( pair, score );
+                bestRowScores.put( ref1, score );
+                bestRowScores.put( ref2, score );
             }
-            else {
-                refSet.add( ref1 );
-                refSet.add( ref2 );
-            }
+
+            /* In any case, remove it from the input set. */
+            it.remove();
+
+            /* Report on progress. */
             indicator.setLevel( ++iPair / nPair );
         }
         indicator.endStage();
-        assert refSet.size() == 2 * pairs.size();
+        assert inPairs.isEmpty();
+
+        /* Repopulate the supplied input set with the output set. */
+        assert pairScores == inPairs;  // so..
+        assert pairScores.isEmpty();
+        pairScores.putAll( outPairs );
     }
 
     /**
@@ -778,6 +830,22 @@ public class RowMatcher {
                                                   + " is not random access" );
             }
         }
+    }
+
+    /**
+     * Signals the start of a user-visible matching process.
+     */
+    private void startMatch() {
+        startTime = new Date().getTime();
+    }
+
+    /**
+     * Signals the end of a user-visible matching process.
+     */
+    private void endMatch() {
+        long millis = new Date().getTime() - startTime;
+        indicator.logMessage( "Elapsed time for match: " + ( millis / 1000 ) + 
+                              " seconds" );
     }
 
     /**

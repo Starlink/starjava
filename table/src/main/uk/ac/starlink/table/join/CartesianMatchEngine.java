@@ -22,6 +22,7 @@ public class CartesianMatchEngine implements MatchEngine {
 
     private final int ndim;
     private final int blockSize;
+    private boolean normaliseScores;
     private double[] errs;
     private double[] err2rs;
     private double[] cellScales;
@@ -41,24 +42,35 @@ public class CartesianMatchEngine implements MatchEngine {
      *
      * @param   ndim  dimensionality of the space
      * @param   err  initial maximum distance between two matching points
+     * @param   normaliseScores  <tt>true</tt> iff you want match scores 
+     *                           to be normalised
      */
-    public CartesianMatchEngine( int ndim, double err ) {
+    public CartesianMatchEngine( int ndim, double err, 
+                                 boolean normaliseScores ) {
         this.ndim = ndim;
         blockSize = (int) Math.pow( 3, ndim );
         setError( err );
+        setNormaliseScores( normaliseScores );
     }
 
     /**
      * Matches two tuples if they represent the coordinates of nearby points.
+     * If they match (fall within the same error ellipsoid) the return
+     * value is a non-negative value giving the distance between them.
+     * According to the value of the <tt>normaliseScores</tt> flag,
+     * this is either the actual distance between the points (Pythagoras)
+     * or the same thing normalised to the range between 0 (same position) 
+     * and 1 (on the boundary of the error ellipsoid).
+     * If they don't match, -1 is returned.
      *
      * @param  tuple1  <tt>ndim</tt>-element array of <tt>Number</tt> objects
      *                 representing coordinates of first object
      * @param  tuple2  <tt>ndim</tt>-element array of <tt>Number</tt> objects
      *                 representing coordinates of second object
-     * @return  <tt>true</tt> if <tt>tuple1</tt> and <tt>tuple2</tt> fall
-     *          within the same error ellipsoid
+     * @return  the separation of the points represented by <tt>tuple1</tt>
+     *          and <tt>tuple2</tt> if they match, or -1 if they don't
      */
-    public boolean matches( Object[] tuple1, Object[] tuple2 ) {
+    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
 
         /* If any of the coordinates is too far away, reject it straight away.
          * This is a cheap test which will normally reject most requests. */
@@ -66,18 +78,27 @@ public class CartesianMatchEngine implements MatchEngine {
             if ( Math.abs( ((Number) tuple1[ i ]).doubleValue() - 
                            ((Number) tuple2[ i ]).doubleValue() ) 
                  > errs[ i ] ) {
-                return false;
+                return -1.0;
             }
         }
 
         /* We are in the right ball park - do an accurate calculation. */
-        double dist = 0.0; 
+        double spaceDist2 = 0.0; 
+        double normDist2 = 0.0;
         for ( int i = 0; i < ndim; i++ ) {
             double d = ((Number) tuple1[ i ]).doubleValue() - 
                        ((Number) tuple2[ i ]).doubleValue();
-            dist += d * d * err2rs[ i ];
+            double d2 = d * d;
+            spaceDist2 += d2;
+            normDist2 += d2 * err2rs[ i ];
         }
-        return dist <= 1.0;
+        if ( normDist2 <= 1.0 ) {
+            return normaliseScores ? Math.sqrt( normDist2 ) 
+                                   : Math.sqrt( spaceDist2 );
+        }
+        else {
+            return -1.0;
+        }
     }
 
     /**
@@ -134,11 +155,6 @@ public class CartesianMatchEngine implements MatchEngine {
     /**
      * Sets the array containing the principle radii of an ellipsoid
      * that determines whether two points match.
-     * <p>
-     * Note you should not set anisotropic errors (not all elements having
-     * the same value) if you are using the Separation parameter, 
-     * since that is currently defined as a scalar; doing so
-     * this may result in an unwelcome unchecked error.
      *
      * @param  errors  error array
      */
@@ -160,7 +176,8 @@ public class CartesianMatchEngine implements MatchEngine {
 
     /**
      * Sets the maximum distance between two points that counts as a match.
-     * This is equivalent to setting the value of the Error parameter.
+     * This is equivalent to calling {@link #setErrors} with an array 
+     * that has all the same values.
      *
      * @param  error  maximum distance for matching
      */
@@ -168,6 +185,35 @@ public class CartesianMatchEngine implements MatchEngine {
         double[] errs = new double[ ndim ];
         Arrays.fill( errs, error );
         setErrors( errs );
+    }
+
+    /**
+     * Determines whether the results of the {@link #matchScore} method
+     * will be normalised or not.  
+     * If <tt>norm</tt> is true, 
+     * successful matches always result in a score between 0 and 1; 
+     * if it's false, 
+     * the score is the distance in the space defined by the supplied tuples.
+     *
+     * <p>If your errors are significantly anisotropic 
+     * (you've used {@link #setErrors} not {@link #setError}) 
+     * and/or your coordinates do not represent a physical space, 
+     * you probably want to set this false.
+     *
+     * @param  norm  <tt>true</tt> iff you want match scores to be normalised
+     */
+    public void setNormaliseScores( boolean norm ) {
+        normaliseScores = norm;
+    }
+
+    /**
+     * Indicates whether the results of the {@link #matchScore} method
+     * will be normalised.
+     *
+     * @return   <tt>true</tt> iff match scores will be normalised
+     */
+    public boolean getNormaliseScores() {
+        return normaliseScores;
     }
 
     public String toString() {

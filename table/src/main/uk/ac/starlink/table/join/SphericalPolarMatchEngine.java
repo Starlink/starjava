@@ -43,13 +43,13 @@ public class SphericalPolarMatchEngine extends CartesianMatchEngine {
      * @param   err  maximum separation for a match
      */
     public SphericalPolarMatchEngine( double err ) {
-        super( 3, err );
+        super( 3, err, false );
     }
 
-    public boolean matches( Object[] tuple1, Object[] tuple2 ) {
+    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
         polarToCartesian( tuple1, work1 );
         polarToCartesian( tuple2, work2 );
-        return super.matches( work1, work2 );
+        return super.matchScore( work1, work2 );
     }
 
     public Object[] getBins( Object[] tuple ) {

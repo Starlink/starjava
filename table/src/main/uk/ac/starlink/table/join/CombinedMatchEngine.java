@@ -59,7 +59,8 @@ public class CombinedMatchEngine implements MatchEngine {
         }
     }
 
-    public boolean matches( Object[] tuple1, Object[] tuple2 ) {
+    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+        double totalScore = 0.0;
         for ( int i = 0; i < nPart; i++ ) {
             Object[] subTuple1 = work1[ i ];
             Object[] subTuple2 = work2[ i ];
@@ -67,11 +68,13 @@ public class CombinedMatchEngine implements MatchEngine {
                               subTuple1, 0, tupleSizes[ i ] );
             System.arraycopy( tuple2, tupleStarts[ i ],
                               subTuple2, 0, tupleSizes[ i ] );
-            if ( ! engines[ i ].matches( subTuple1, subTuple2 ) ) {
-                return false;
+            double score = engines[ i ].matchScore( subTuple1, subTuple2 );
+            if ( score < 0 ) {
+                return -1.;
             }
+            totalScore += score;
         }
-        return true;
+        return totalScore;
     }
 
     public Object[] getBins( Object[] tuple ) {

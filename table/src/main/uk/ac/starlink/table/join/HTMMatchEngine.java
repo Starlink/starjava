@@ -112,9 +112,10 @@ public class HTMMatchEngine implements MatchEngine {
      *                  of first point
      * @param   radec2  2-element array of Number objects giving RA &amp; dec
      *                  of second point
-     * @return  <tt>true</tt> iff <tt>radec1</tt> is close to <tt>radec2</tt>
+     * @return  distance in radians between <tt>radec1</tt> and <tt>radec2</tt>
+     *          if they are close enough to match, otherwise -1
      */
-    public boolean matches( Object[] radec1, Object[] radec2 ) {
+    public double matchScore( Object[] radec1, Object[] radec2 ) {
 
         /* Cheap test which will throw out most comparisons straight away:
          * see if the separation in declination is greater than the maximum
@@ -122,14 +123,14 @@ public class HTMMatchEngine implements MatchEngine {
         double dec1 = ((Number) radec1[ 1 ]).doubleValue();
         double dec2 = ((Number) radec2[ 1 ]).doubleValue();
         if ( Math.abs( dec1 - dec2 ) > separation ) {
-            return false;
+            return -1.0;
         }
 
         /* Declinations at least are close; do a proper test. */
         double ra1 = ((Number) radec1[ 0 ]).doubleValue();
         double ra2 = ((Number) radec2[ 0 ]).doubleValue();
         double sep = calculateSeparation( ra1, dec1, ra2, dec2 );
-        return sep <= separation;
+        return sep <= separation ? sep : -1.0;
     }
 
     /**
