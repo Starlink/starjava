@@ -127,7 +127,8 @@ public class JDBCStarTable extends AbstractStarTable {
              * an object from that column and using its class, but then it
              * might be null...). */
             try {
-                Class ccls = this.getClass().forName( rsmeta.getColumnClassName( jcol ) );
+                Class ccls = this.getClass()
+                            .forName( rsmeta.getColumnClassName( jcol ) );
                 col.setContentClass( ccls );
             }
             catch ( ClassNotFoundException e ) {
@@ -243,8 +244,10 @@ public class JDBCStarTable extends AbstractStarTable {
 
     public RowSequence getRowSequence() throws IOException {
         final ResultSet rset;
+        final Connection conn;
         try {
-            rset = connx.getConnection().createStatement().executeQuery( sql );
+            conn = connx.getConnection();
+            rset = conn.createStatement().executeQuery( sql );
             checkConsistent( rset );
         }
         catch ( SQLException e ) {
@@ -318,6 +321,7 @@ public class JDBCStarTable extends AbstractStarTable {
             public void close() throws IOException {
                 try {
                     rset.close();
+                    conn.close();
                 }
                 catch ( SQLException e ) {
                     throw (IOException) new IOException( e.getMessage() )
