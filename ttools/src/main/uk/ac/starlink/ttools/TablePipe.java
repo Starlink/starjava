@@ -49,6 +49,7 @@ public class TablePipe extends TableTask {
         DeleteColumnFilter.class.getName(),
         ExplodeFilter.class.getName(),
         RandomFilter.class.getName(),
+        SequentialFilter.class.getName(),
     };
 
     public TablePipe() {
