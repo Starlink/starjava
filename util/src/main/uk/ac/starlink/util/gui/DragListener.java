@@ -11,7 +11,7 @@ import javax.swing.event.MouseInputAdapter;
  * TransferHandler.exportAsDrag() when it sees one.
  * Note this must be installed as 
  * <em>both</em> a {@link java.awt.event.MouseListener} 
- * <em>and</em>  a {@link javax.swing.event.MouseMotionListener}
+ * <em>and</em>  a {@link java.awt.event.MouseMotionListener}
  * on the component it's watching.
  * 
  * @author   Mark Taylor (Starlink)
