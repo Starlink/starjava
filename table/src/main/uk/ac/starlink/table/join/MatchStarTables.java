@@ -63,9 +63,12 @@ public class MatchStarTables {
      * @param   tables  array of constituent tables
      * @param   rowLinks   set of RowLink objects which define which rows
      *          in one table are associated with which rows in the others
+     * @param   fixActs  actions to take for deduplicating column names
+     *          (array of the same length as <tt>tables</tt>)
      */
     public static StarTable makeJoinTable( StarTable[] tables,
-                                           Collection rowLinks ) {
+                                           Collection rowLinks,
+                                           JoinStarTable.FixAction[] fixActs ) {
 
         /* Set up index map arrays for each of the constituent tables. */
         int nTable = tables.length;
@@ -106,7 +109,7 @@ public class MatchStarTables {
         }
         StarTable[] subTables = 
             (StarTable[]) subTableList.toArray( new StarTable[ 0 ] );
-        JoinStarTable joined = new JoinStarTable( subTables );
+        JoinStarTable joined = new JoinStarTable( subTables, fixActs );
         joined.setName( "Joined" );
         return joined;
     }
@@ -221,10 +224,13 @@ public class MatchStarTables {
      * @param  maxSize   maximum number of entries in a RowLink to count as
      *                   an output row; also the width of the output table
      *                   (as a multiple of the width of the input table)
+     * @param  fixActs   actions to take for deduplicating column names
+     *                   (<tt>width</tt>-element array, or <tt>null</tt>)
      */
     public static StarTable makeParallelMatchTable( StarTable table, int iTable,
                                                     Collection links, int width,
-                                                    int minSize, int maxSize ) {
+                                                    int minSize, int maxSize,
+                                           JoinStarTable.FixAction[] fixActs ) {
 
         /* Get rid of any links which we won't be using. */
         for ( Iterator it = links.iterator(); it.hasNext(); ) {
@@ -295,7 +301,7 @@ public class MatchStarTables {
         }
 
         /* Construct a new table from all the parallel ones. */
-        JoinStarTable joined = new JoinStarTable( subTables ) {
+        JoinStarTable joined = new JoinStarTable( subTables, fixActs ) {
             public ColumnInfo getColumnInfo( int icol ) {
                 return colinfos[ icol ];
             }

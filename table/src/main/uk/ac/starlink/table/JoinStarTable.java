@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +21,10 @@ import java.util.Set;
  * (typically they will all have the same number of rows).
  * Random access is only available if it is available in all the 
  * constituent tables.
+ * <p>
+ * While this table is active, the columns that the constituent tables 
+ * had at the time of its construction shouldn't change their characteristics
+ * in incompatible ways or disappear.  It's OK to add new columns though.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -32,18 +37,28 @@ public class JoinStarTable extends AbstractStarTable {
     private final int nTab;
     private final int nCol;
     private final boolean isRandom;
+    private final ColumnInfo[] colInfos;
+    private final List auxData;
 
     /**
      * Constructs a new JoinStarTable from a list of constituent tables.
-     * The number of columns in the constituent tables should not 
-     * subseqently be altered while the constructed join table is still active.
      *
      * @param  tables  array of constituent table objects providing the 
      *         data and metadata for a new joined table
+     * @param  fixCols actions to be taken in modifying column names from
+     *         the originals (may be null for no action)
      */
-    public JoinStarTable( StarTable[] tables ) {
-        this.tables = (StarTable[]) tables.clone();
+    public JoinStarTable( StarTable[] tables, FixAction[] fixCols ) {
         nTab = tables.length;
+        this.tables = (StarTable[]) tables.clone();
+        if ( fixCols == null ) {
+            fixCols = new FixAction[ nTab ];
+            Arrays.fill( fixCols, FixAction.NO_ACTION );
+        }
+        if ( fixCols.length != nTab ) {
+            throw new IllegalArgumentException( 
+                "Incompatible length of array arguments" );
+        }
 
         /* Work out the total number of columns in this table (sum of all
          * constituent tables). */
@@ -68,6 +83,43 @@ public class JoinStarTable extends AbstractStarTable {
             }
         }
         assert icol == nCol;
+
+        /* Set up the column as copies of those from the base tables.
+         * Keep a record of which columns have duplicate names. */
+        colInfos = new ColumnInfo[ nCol ];
+        Set colNames = new HashSet();
+        Set colDups = new HashSet();
+        icol = 0;
+        for ( int itab = 0; itab < nTab; itab++ ) {
+            for ( int ic = 0; ic < nCols[ itab ]; ic++ ) {
+                colInfos[ icol ] =
+                    new ColumnInfo( tables[ itab ].getColumnInfo( ic ) ); 
+                String name = colInfos[ icol ].getName();
+                ( colNames.contains( name ) ? colDups : colNames ).add( name );
+                icol++;
+            } 
+        }
+        assert icol == nCol;
+
+        /* Fix any duplicated names if required. */
+        icol = 0;
+        for ( int itab = 0; itab < nTab; itab++ ) {
+            for ( int ic = 0; ic < nCols[ itab ]; ic++ ) {
+                String name = colInfos[ icol ].getName();
+                boolean isDup = colDups.contains( name );
+                colInfos[ icol ].setName( fixCols[ itab ]
+                                         .getFixedName( name, isDup ) );
+                icol++;
+            }
+        }
+        assert icol == nCol;
+
+        /* Store auxiliary metadata. */
+        Set auxInfos = new LinkedHashSet();
+        for ( int itab = 0; itab < nTab; itab++ ) {
+            auxInfos.addAll( tables[ itab ].getColumnAuxDataInfos() );
+        }
+        auxData = new ArrayList( auxInfos );
 
         /* Store the parameters as the ordered union of all the parameters
          * of the constituent tables. */
@@ -95,21 +147,6 @@ public class JoinStarTable extends AbstractStarTable {
         return Collections.unmodifiableList( Arrays.asList( tables ) );
     }
 
-    /**
-     * Returns the auxiliary metadata of this table.  This is initially
-     * formed of the union of the auxiliary metadata objects of the
-     * constituent tables.
-     *
-     * @param  auxiliary metadata
-     */
-    public List getColumnAuxDataInfos() {
-        Set infos = new LinkedHashSet();
-        for ( int itab = 0; itab < nTab; itab++ ) {
-            infos.addAll( tables[ itab ].getColumnAuxDataInfos() );
-        }
-        return new ArrayList( infos );
-    }
-
     public int getColumnCount() {
         return nCol;
     }
@@ -128,7 +165,7 @@ public class JoinStarTable extends AbstractStarTable {
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        return tablesByColumn[ icol ].getColumnInfo( indicesByColumn[ icol ] );
+        return colInfos[ icol ];
     }
 
     public boolean isRandom() {
@@ -150,8 +187,8 @@ public class JoinStarTable extends AbstractStarTable {
         int icol = 0;
         for ( int itab = 0; itab < nTab; itab++ ) {
             Object[] subrow = tables[ itab ].getRow( irow );
-            System.arraycopy( subrow, 0, row, icol, subrow.length );
-            icol += subrow.length;
+            System.arraycopy( subrow, 0, row, icol, nCols[ itab ] );
+            icol += nCols[ itab ];
         }
         assert icol == nCol;
         return row;
@@ -219,8 +256,8 @@ public class JoinStarTable extends AbstractStarTable {
             int icol = 0;
             for ( int itab = 0; itab < nTab; itab++ ) {
                 Object[] subrow = rseqs[ itab ].getRow();
-                System.arraycopy( subrow, 0, row, icol, subrow.length );
-                icol += subrow.length;
+                System.arraycopy( subrow, 0, row, icol, nCols[ itab ] );
+                icol += nCols[ itab ];
             }
             assert icol == nCol;
             return row;
@@ -228,6 +265,75 @@ public class JoinStarTable extends AbstractStarTable {
 
         public long getRowIndex() {
             return index;
+        }
+    }
+
+    /**
+     * Class defining the possible actions for doctoring
+     * column names when joining tables.  
+     * Joining tables can cause confusion if columns with the same names
+     * exist in some of them.  An instance of this class defines 
+     * how the join should behave in this case.
+     */
+    public static class FixAction {
+
+        /** Column names should be left alone. */
+        public static final FixAction NO_ACTION = 
+            new FixAction( "No Action", null, false, false );
+
+        private final String name;
+        private final String appendage;
+        private final boolean renameDup;
+        private final boolean renameAll;
+
+        /**
+         * Private constructor.
+         */
+        private FixAction( String name, String appendage,
+                           boolean renameDup, boolean renameAll ) {
+            this.name = name;
+            this.appendage = appendage;
+            this.renameDup = renameDup;
+            this.renameAll = renameAll;
+        }
+
+        /**
+         * Returns an action indicating that column names which would be 
+         * duplicated elsewhere in the result table should be modified
+         * by appending a given string.
+         *
+         * @param  appendage  string to append to duplicate columns
+         */
+        public static FixAction makeRenameDuplicatesAction( String appendage ) {
+            return new FixAction( "Fix Duplicates: " + appendage, appendage, 
+                                  true, false );
+        }
+
+        /**
+         * Returns an action indicating that all column names should be
+         * modified by appending a given string.
+         *
+         * @param  appendage  string to append to columns
+         */
+        public static FixAction makeRenameAllAction( String appendage ) {
+            return new FixAction( "Fix All: " + appendage, appendage,
+                                  true, true );
+        }
+
+        /**
+         * Returns the, possibly modified, name of a column.
+         *
+         * @param  origName  unmodified column name
+         * @param  isDup  whether the column name would be duplicated
+         *         in the set of unmodified names
+         */
+        private String getFixedName( String origName, boolean isDup ) {
+            return renameAll || ( renameDup && isDup ) ? origName + appendage 
+                                                       : origName;
+        }
+
+        public String toString() {
+            return name;
         }
     }
 }
