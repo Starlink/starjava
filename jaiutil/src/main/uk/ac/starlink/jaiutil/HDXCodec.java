@@ -167,15 +167,7 @@ public final class HDXCodec extends ImageCodec
      */
     public boolean isFormatRecognized( byte[] header ) 
     {
-
-        boolean known = ( ( header[0] == '<' ) &&
-                          ( header[1] == '?' ) &&
-                          ( header[2] == 'x' || header[2] == 'X' ) &&
-                          ( header[3] == 'm' || header[3] == 'M' ) &&
-                          ( header[4] == 'l' || header[4] == 'L' ) );
-        System.out.println( "isFormatRecognized: " + known );
-
-        return ( ( header[0] == '<' ) &&
+       return ( ( header[0] == '<' ) &&
                  ( header[1] == '?' ) &&
                  ( header[2] == 'x' || header[2] == 'X' ) &&
                  ( header[3] == 'm' || header[3] == 'M' ) &&

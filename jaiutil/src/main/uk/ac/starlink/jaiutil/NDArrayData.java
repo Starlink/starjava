@@ -16,7 +16,8 @@ import uk.ac.starlink.array.NDShape;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see Plot, PlotConfigurator
+ * @see Plot 
+ * @see PlotConfigurator
  * @since 18-MAY-2002
  */
 public abstract class NDArrayData

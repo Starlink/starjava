@@ -39,22 +39,16 @@ import javax.media.jai.TiledImage;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-////import uk.ac.starlink.hdx.array.NDArray;
-////import uk.ac.starlink.hdx.array.Type;
-////import uk.ac.starlink.hdx.Ndx;
-////import uk.ac.starlink.hdx.HdxException;
-////import uk.ac.starlink.hdx.HdxContainer;
-////import uk.ac.starlink.hdx.HdxContainerFactory;
-
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.dom.DOMSource;
 
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.Requirements;
 import uk.ac.starlink.array.Type;
-//import uk.ac.starlink.ndx.NdxException;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxIO;
+import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.ndx.XMLNdxHandler;
 
 /**
@@ -167,11 +161,6 @@ public class HDXImage
         throws IOException
     {
         this.param = param;
-        ////HdxContainerFactory hdxFactory = HdxContainerFactory.getInstance();
-        ////hdxContainer = hdxFactory.readHdx( new InputStreamReader(input) );
-        ////ndxs = hdxContainer.getNdxList();
-
-        //  Pure NDX methods for now.
         XMLNdxHandler xmlHandler = XMLNdxHandler.getInstance();
         StreamSource xmlSource = new StreamSource( input );
         Ndx ndx = xmlHandler.makeNdx( xmlSource, AccessMode.READ );
@@ -187,9 +176,6 @@ public class HDXImage
     public HDXImage( String fileOrUrl )
         throws IOException
     {
-        ////HdxContainerFactory hdxFactory = HdxContainerFactory.getInstance();
-        ////hdxContainer = hdxFactory.readHdx( getURL( fileOrUrl ) );
-        ////ndxs = hdxContainer.getNdxList();
         NdxIO ndxIO = new NdxIO();
         Ndx ndx = ndxIO.makeNdx( fileOrUrl, AccessMode.READ );
         ndxs.add( ndx );
@@ -220,10 +206,6 @@ public class HDXImage
     public HDXImage( Element element, int page )
         throws IOException
     {
-        ////HdxContainerFactory hdxFactory = HdxContainerFactory.getInstance();
-        ////hdxContainer = hdxFactory.readHdx( element );
-        ////ndxs = hdxContainer.getNdxList();
-
         XMLNdxHandler xmlHandler = XMLNdxHandler.getInstance();
         DOMSource xmlSource = new DOMSource( element );
         Ndx ndx = xmlHandler.makeNdx( xmlSource, AccessMode.READ );
@@ -299,17 +281,17 @@ public class HDXImage
     public void setNDX( int num )
         throws IOException
     {
-        System.out.println( "num = " + num );
         if ( ndxs == null || num >= ndxs.size() ) {
             throw new IOException( "Cannot select NDX (" + num + ")" );
         }
-        System.out.println( "size = " + ndxs.size() );
 
         // Access the NDX and realize one of its components (TODO:
-        // support more than data) as an NDArray.
+        // support more than data) as an NDArray. Use a MaskedImage to
+        // apply any quality bad pixels.
         ndxIndex = num;
         Ndx ndx = (Ndx) ndxs.get( ndxIndex );
-        ndArray = ndx.getImage();
+        Requirements req = new Requirements();
+        ndArray = Ndxs.getMaskedImage( ndx, req );
 
         // Set variables required by the base class for tiling
         long[] axes = ndArray.getShape().getDims();
