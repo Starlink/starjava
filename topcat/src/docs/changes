@@ -59,5 +59,7 @@ V1.3-1
  - Added 2MASS cutout servers to activation window
 V1.3-2
  - Fixed VOTable bug in reading empty TD elements (float, double)
+ - Doesn't complain too much about overwriting old tables now
 
 Loading changed - asynchronous, MySpace available, paste text into table list.
+Added -myspace, -cone, -siap flags.

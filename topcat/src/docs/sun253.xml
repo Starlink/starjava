@@ -132,7 +132,8 @@ each of the columns (though some entries might be blank).
 A common astronomical example of a table is an object catalogue.
 </p>
 
-<p>TOPCAT can read in tables in a number of formats, allow you to
+<p>TOPCAT can read in tables in a number of formats from various sources, 
+allow you to
 inspect and manipulate them in various ways, and if you have
 edited them optionally write them out in the modified state for later use,
 again in a variety of formats.
@@ -152,6 +153,8 @@ Here is a summary of its main capabilities:
     column is selected</li>
 <li>Perform flexible matching of rows in the same or different tables</li>
 <li>Concatenate the rows of existing tables to create new ones</li>
+<li>Acquire tables from web services, external filestores or other 
+    customisable sources</li>
 <li>Write modified tables out in original or different format</li>
 </ul>
 </p>
@@ -2469,6 +2472,11 @@ The following ones have special significance within TOPCAT:
     (see <ref id="jelExtend"/>).
     </p></dd>
 
+<dt><code>startable.load.dialogs</code></dt>
+<dd><p>Can be set to a (colon-separated) list of custom table load dialogue
+    classes (see <ref id="customLoadDialogs"/>).
+    </p></dd>
+
 <dt><code>startable.readers</code></dt>
 <dd><p>Can be set to a (colon-separated) list of custom table format input
     handler classes (see <ref id="customHandlers"/>).
@@ -3005,6 +3013,45 @@ introduced since the last version:
 <li>Error in parsing empty VOTable TD elements fixed.</li>
 </ul>
 </p></dd>
+
+<dt>Version 1.4 (Jan 2005)</dt>
+<dd><p><dl>
+
+    <dt>Load Dialogues</dt>
+    <dd><p>The graphical table load dialogue has been overhauled, and now
+        has two main new features.  First, it has been rewritten so that
+        the GUI does not freeze during a long load; it is still currently
+        not possible to interact with other TOPCAT windows while a load is
+        taking place, but you can now cancel a load that is in progress.
+        </p>
+
+        <p>Secondly, the provision of load dialogues has been modularised,
+        and a number of new dialogues provided.  The new ones are:
+        <ul>
+        <li>MySpace browser</li>
+        <li>Registry Query</li>
+        <li>Cone Search</li>
+        <li>SIAP Query</li>
+        </ul>
+        If the required classes are present, you can acquire tables from 
+        these external sources as well as the traditional methods of loading
+        from disk etc.  Furthermore it is possible to plug in additional
+        load dialogues at runtime using the <code>startable.load.dialogs</code>
+        system property.
+        </p></dd>
+
+    <dt>Packaging</dt>
+    <dd><p>The program can now be obtained in two standalone forms:
+        <code>topcat-full.jar</code> and <code>topcat-lite.jar</code>.
+        The former is much larger than before (11 Mbyte), 
+        since it contains a number
+        of classes to support custom load dialogues such as the MySpace
+        browser and web service interaction, as well as the SoG classes.
+        The latter contains only the classes for the core functionality,
+        and is much smaller (3 Mbyte).
+        </p></dd>
+
+    </dl></p></dd>
 
 </dl>
 </p>
