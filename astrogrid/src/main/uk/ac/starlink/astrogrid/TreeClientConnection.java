@@ -37,7 +37,7 @@ class TreeClientConnection extends Connection {
         super( connector, authValues );
         tc_ = tc;
         root_ = new MyspaceBranch( tc_.getRoot() ) {
-            public String getName() {
+            public String toString() {
                 return ivorn.toString();
             }
         };
