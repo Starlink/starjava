@@ -303,23 +303,46 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         final String OLD_SUFFIX = "_old";
         final ColumnList columnList = tcModel.getColumnList();
         final ColumnInfo baseInfo = baseCol.getColumnInfo();
-        String baseName = 
+        final String baseName = 
             TopcatUtils.getBaseName( baseInfo.getName(), OLD_SUFFIX );
         int pos = columnList.getModelIndex( columnList.indexOf( baseCol ) );
         SyntheticColumnQueryWindow qwin = 
             new SyntheticColumnQueryWindow( tcModel, pos, parent ) {
                 protected boolean perform() {
+
+                    /* Create a new column based on the current state of this
+                     * window. */
                     SyntheticColumn col = makeColumn();
                     if ( col == null ) {
                         return false;
                     }
-                    String dname = 
-                        TopcatUtils.getDistinctName( columnList, getName(), 
-                                                     OLD_SUFFIX );
-                    if ( ! dname.equals( baseInfo.getName() ) ) {
-                        tcModel.renameColumn( baseCol, dname );
+
+                    /* Check if any column in the table has the same name
+                     * as the one we're adding.  If so, rename it. */
+                    String newName = col.getColumnInfo().getName();
+                    int ncol = columnList.size();
+                    for ( int i = 0; i < ncol; i++ ) {
+                        TableColumn tcol = columnList.getColumn( i );
+                        if ( tcol instanceof StarTableColumn ) {
+                            StarTableColumn stcol = (StarTableColumn) tcol;
+                            ColumnInfo cinfo = stcol.getColumnInfo();
+                            String cname = cinfo.getName();
+                            if ( cname.equals( newName ) ) {
+                                String bname = TopcatUtils
+                                              .getBaseName( cname, OLD_SUFFIX );
+                                String rname = TopcatUtils
+                                              .getDistinctName( columnList,
+                                                                bname, 
+                                                                OLD_SUFFIX );
+                                tcModel.renameColumn( stcol, rname );
+                            }
+                        }
                     }
+
+                    /* Hide the old column. */
                     tcModel.getColumnModel().removeColumn( baseCol );
+
+                    /* Add the new column. */
                     tcModel.appendColumn( col, getIndex() );
                     return true;
                 }
