@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -11,6 +12,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilterOutputStream;
@@ -88,13 +92,34 @@ public class PlotWindow extends TopcatViewWindow
     private final Action fromvisibleAction_;
     private JFileChooser printSaver_;
     private BitSet visibleRows_;
-    private MarkStyleProfile markers_ = MarkStyleProfile.spots( 4 );
+    private PointRegistry visiblePoints_;
+    private MarkStyleProfile markers_ = MARKER_PROFILES[ 1 ];
 
     private static final double MILLISECONDS_PER_YEAR
                               = 365.25 * 24 * 60 * 60 * 1000;
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
+    private static MarkStyleProfile[] MARKER_PROFILES = new MarkStyleProfile[] {
+        MarkStyleProfile.spots( "Pixels", 0 ),
+        MarkStyleProfile.spots( "Dots", 1 ),
+        MarkStyleProfile.spots( "Spots", 2 ),
+        MarkStyleProfile.filledShapes( "Coloured Shapes", 3, null ),
+        MarkStyleProfile.filledShapes( "Black Shapes", 3, Color.black ),
+        MarkStyleProfile.openShapes( "Coloured Outlines", 3, null ),
+        MarkStyleProfile.openShapes( "Black Outlines", 3, Color.black ),
+        MarkStyleProfile.ghosts( "Faint Transparent Pixels", 0, 0.1f ),
+        MarkStyleProfile.ghosts( "Medium Transparent Pixels", 0, 0.4f ),
+        MarkStyleProfile.ghosts( "Faint Transparent Dots", 1, 0.1f ),
+        MarkStyleProfile.ghosts( "Medium Transparent Dots", 1, 0.4f ),
+    };
+
+    /**
+     * Constructs a new PlotWindow.
+     *
+     * @param  tcModel  data model whose data the window will plot
+     * @param  parent   parent component (may be used for positioning)
+     */
     public PlotWindow( TopcatModel tcModel, Component parent ) {
         super( tcModel, "Table Plotter", parent );
         tcModel_ = tcModel;
@@ -181,6 +206,16 @@ public class PlotWindow extends TopcatViewWindow
         plotPanel.add( plot_, BorderLayout.CENTER );
         plotPanel.setPreferredSize( new Dimension( 500, 300 ) );
 
+        /* Listen for point-clicking events on the plot. */
+        /* I have to reach right in to find the plot surface component to
+         * add the mouse listener to it; it would be tidier to just add
+         * the listener to the plot component itself, but that doesn't
+         * receive the mouse events.  I don't understand which components
+         * in the hierarchy receive the mouse events (had this problem 
+         * before) - can anyone tell me where this is documented?? */
+        plot_.getSurface().getComponent()
+             .addMouseListener( new PointClickListener() );
+
         /* Arrange the components in the top level window. */
         JPanel mainArea = getMainArea();
         mainArea.add( plotPanel, BorderLayout.CENTER );
@@ -260,6 +295,26 @@ public class PlotWindow extends TopcatViewWindow
         fromvisibleAction_.setEnabled( false );
         subsetMenu.add( fromvisibleAction_ );
         getJMenuBar().add( subsetMenu );
+
+        /* Construct a new menu for marker profile selection. */
+        JMenu markerMenu = new JMenu( "Marker Types" );
+        markerMenu.setMnemonic( KeyEvent.VK_M );
+        MarkStyleProfile[] profiles = MARKER_PROFILES;
+        for ( int i = 0; i < profiles.length; i++ ) {
+            final MarkStyleProfile profile = profiles[ i ];
+            String name = profile.getName();
+            Icon icon = profile.getIcon();
+            Action profileAct = new BasicAction( name, icon, 
+                                                 "Set default marker types to "
+                                                 + name ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    markers_ = profile;
+                    replot();
+                }
+            };
+            markerMenu.add( profileAct );
+        }
+        getJMenuBar().add( markerMenu );
 
         /* Add actions to the toolbar. */
         getToolBar().add( printAction );
@@ -373,6 +428,7 @@ public class PlotWindow extends TopcatViewWindow
         RowSubset[] sets = state.getSubsets();
         int nset = sets.length;
         BitSet visible = new BitSet();
+        PointRegistry plotted = new PointRegistry();
         int nVisible = 0;
         for ( int ip = 0; ip < np; ip++ ) {
             Point point = surface.dataToGraphics( xv[ ip ], yv[ ip ] );
@@ -382,15 +438,28 @@ public class PlotWindow extends TopcatViewWindow
                 long lp = (long) ip;
                 for ( int is = 0; is < nset; is++ ) {
                     if ( sets[ is ].isIncluded( lp ) ) {
-                        nVisible++;
                         visible.set( ip );
+                        plotted.addPoint( ip, point );
+                        nVisible++;
                         break;
                     }
                 }
             }
         }
+        plotted.ready();
+        visiblePoints_ = plotted;
         visibleRows_ = visible;
         fromvisibleAction_.setEnabled( nVisible > 0 );
+    }
+
+    /**
+     * Do something with the point of a given index.
+     * This is invoked, for instance, when a point has been clicked on.
+     *
+     * @param   ip   row index for the point to be activated
+     */
+    private void activatePoint( int ip ) {
+        System.out.println( "    row index: " + ip );
     }
 
     /**
@@ -615,6 +684,21 @@ public class PlotWindow extends TopcatViewWindow
 
     public void surfaceChanged() {
         forceReplot();
+    }
+
+    /**
+     * Mouse listener to handle clicks on given points.
+     */
+    private class PointClickListener extends MouseAdapter {
+        public void mouseClicked( MouseEvent evt ) {
+            int butt = evt.getButton();
+            if ( butt == MouseEvent.BUTTON1 ) {
+                int ip = visiblePoints_.getClosestPoint( evt.getPoint(), 3 );
+                if ( ip >= 0 ) {
+                    activatePoint( ip );
+                }
+            }
+        }
     }
 
 }
