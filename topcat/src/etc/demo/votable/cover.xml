@@ -11,7 +11,7 @@
 		<PARAM name="SR" datatype="float" value="30.0"/>
 		<PARAM name="PositionalError" datatype="float" value="0.1"/>
 		<PARAM name="Credit" datatype="char" arraysize="*" value="Charles Messier, Richard Gelderman"/>
-		<TABLE>
+		<TABLE name="Messier Objects">
 			<DESCRIPTION>Output from messier Catalog Server</DESCRIPTION>
 			<FIELD ID="I" name="Messier Number" datatype="char" arraysize="*" ucd="ID_MAIN">
 				<DESCRIPTION>Messier Number</DESCRIPTION>
