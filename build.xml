@@ -156,6 +156,9 @@
     <echo message="Executing FITS target: ${what}"/> 
     <ant dir="./fits" target="${what}"/> 
 
+    <echo message="Executing DIVA target: ${what}"/> 
+    <ant dir="./diva" target="${what}"/> 
+
     <echo message="Executing Pal target: ${what}"/>
     <ant dir="./pal" target="${what}"/>
 
