@@ -305,11 +305,6 @@ public class StaticTreeViewer extends JFrame {
                     TreePath path = tree.getPathForLocation( x, y );
                     if ( path != null ) {
 
-                        /* Cause the popup to select this mode as well - this
-                         * is not essential but avoids some display anomalies
-                         * and it is reasonable behaviour in any case. */
-                        tree.setSelectionPath( path );
-
                         /* Activate the popup menu. */
                         JPopupMenu popup = alterEgoPopup( path );
                         if ( popup != null ) {
@@ -600,6 +595,8 @@ public class StaticTreeViewer extends JFrame {
                 }
             }
         };
+        chooseNewNodeAct.putValue( Action.SHORT_DESCRIPTION,
+            "Add a new file to the tree" );
 
         /* Action for displaying demo data. */
         Action demoAct =
@@ -823,10 +820,11 @@ public class StaticTreeViewer extends JFrame {
 
     /*
      * Replace a node at the given path with a new one.  This is done
-     * in a similar way to treeCollapse.
+     * in a similar way to treeCollapse.  This also causes the new node
+     * to be selected.  This is not essential, but avoids some display
+     * anomalies, and it is not an unreasonable thing to do in any case.
      */
     private void replaceNode( TreePath tpath, MutableTreeNode tnode ) {
-        boolean selected = ( tree.getSelectionPath() == tpath );
         TreePath parentPath = tpath.getParentPath();
         MutableTreeNode parent = (MutableTreeNode) parentPath
                                                   .getLastPathComponent();
@@ -835,10 +833,10 @@ public class StaticTreeViewer extends JFrame {
         int pos = treeModel.getIndexOfChild( parent, oldtnode );
         treeModel.removeNodeFromParent( oldtnode );
         treeModel.insertNodeInto( tnode, parent, pos );
-        if ( selected ) {
-            TreePath newpath = parentPath.pathByAddingChild( tnode );
-            tree.setSelectionPath( newpath );
-        }
+
+        /* Select the new node. */
+        TreePath newpath = parentPath.pathByAddingChild( tnode );
+        tree.setSelectionPath( newpath );
     }
 
     /*
