@@ -30,6 +30,8 @@ import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.XMLNdxHandler;
 import uk.ac.starlink.soap.AppHttpSOAPServer;
 
+import jsky.util.ProxyServerUtil;
+
 /**
  * A test "web-service" wrapper for the PHOTOM application
  *
@@ -65,6 +67,10 @@ public class PhotomWS
                 instance = null;
             }
         }
+
+        // Setup the same proxy server as SoG.
+        ProxyServerUtil.init();
+
         return instance;
     }
 
