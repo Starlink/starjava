@@ -89,6 +89,7 @@ public class ResourceIcon implements Icon {
         UNSORT = DO_WHAT,
         DELETE_COLUMN = makeIcon( "ColumnDelete24.gif" ),
         VISIBLE_SUBSET = makeIcon( "spoints5.gif" ),
+        BLOB_SUBSET = makeIcon( "blob2.gif" ),
         RESIZE = makeIcon( "4way3.gif" ),
         GRID_ON = makeIcon( "gridon.gif" ),
         GRID_OFF = makeIcon( "gridoff.gif" ),
