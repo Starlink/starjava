@@ -111,7 +111,7 @@ public class TableViewer extends JFrame {
     private static StarTableChooser chooser;
     private static StarTableSaver saver;
 
-    private static final String DEFAULT_TITLE = "Table Viewer";
+    private static final String DEFAULT_TITLE = "TOPCAT";
     private static int MAX_COLUMN_WIDTH = 300;
     private static int MAX_SAMPLE_ROWS = 20;
 
