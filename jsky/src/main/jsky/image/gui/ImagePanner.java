@@ -6,6 +6,8 @@
  * who             when        what
  * --------------  ----------  ----------------------------------------
  * Allan Brighton  1999/05/03  Created
+ * Peter W. Draper 2002/09/20  Worked around problem with supporting 
+ *                             non-FITS Planar images.
  */
 
 package jsky.image.gui;
@@ -228,8 +230,11 @@ public class ImagePanner extends JComponent
         if (o != null && o instanceof PlanarImage) {
             // The preview image is scaled down by an integer value, sich as 1/2x, 1/3x, ...
 	    PlanarImage preview = (PlanarImage) o;
-	    FITSImage fitsImage = (FITSImage)im.getProperty("#fits_image");
-	    if (fitsImage != null) {
+
+            Object fi = im.getProperty( "#fits_image" );
+            if ( fi != null && fi instanceof FITSImage ) { // PWD: Check is
+                                                           // FITSImage before casting.
+                FITSImage fitsImage = (FITSImage)fi;
 		w = fitsImage.getRealWidth();
 		h = fitsImage.getRealHeight();
 	    }
