@@ -1,6 +1,6 @@
 
   <!ENTITY % paracontent "( #PCDATA
-                            | em | strong | code
+                            | em | strong | code | m
                             | webref | javadoc | ref
                             | blockquote | blockcode | verbatim
                             | dl | ul | ol
@@ -36,6 +36,7 @@
   <!ELEMENT em %paracontent;>
   <!ELEMENT strong %paracontent;>
   <!ELEMENT code %paracontent;>
+  <!ELEMENT m ( #PCDATA )>
   <!ELEMENT verbatim %paracontent;>
   <!ELEMENT hidden ( #PCDATA )>
   <!ELEMENT imports ( #PCDATA )>
