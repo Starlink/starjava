@@ -607,9 +607,6 @@
          <jar href="${name}/${name}.jar"/>
          <extension name="TOPCAT-PARTS" href="${name}-parts.jnlp"/>
 
-         <!-- Decouple potential circular dependencies -->
-         <extension name="TREEVIEW-PARTS" href="treeview-parts.jnlp"/>
-
          <!-- Get AstroGrid parts direct from source. -->
          <extension name="ASTROGRID-CDK" 
                     href="http://software.astrogrid.org/jnlp/astrogrid-cdk-core/astrogrid-cdk-core.jnlp"/>
@@ -638,6 +635,7 @@
        <resources>
          <j2se version="1.4+"/>
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+         <extension name="DATANODE" href="datanode.jnlp"/>
          <extension name="UTIL" href="util.jnlp"/>
          <extension name="HELP" href="help.jnlp"/>
          <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
