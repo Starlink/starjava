@@ -98,6 +98,20 @@ public class ColumnInfo extends DefaultValueInfo {
     }
 
     /**
+     * Gets an item of auxiliary metadata from its specification.
+     * Currently this just calls <tt>getAuxDatumByName(vinfo.getName())</tt>,
+     * but may be revised in future to match on other attributes.
+     *
+     * @param  vinfo  the data item to match
+     * @return  a <tt>DescribedValue</tt> object representing the 
+     *          auxiliary metadata item matching <tt>vinfo</tt> for this column,
+     *          or <tt>null</tt> if none exists
+     */
+    public DescribedValue getAuxDatum( ValueInfo vinfo ) {
+        return getAuxDatumByName( vinfo.getName() );
+    }
+
+    /**
      * Adds the given DescribedValue to the list of auxiliary metadata
      * for this object.  If an item in the metadata list with the same
      * name as the supplied value already exists, it is removed from the

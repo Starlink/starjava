@@ -120,6 +120,27 @@ public interface ValueInfo {
     int[] getShape();
 
     /**
+     * May indicate the size of a value element stored as the value of
+     * this info.  The total size of the value will in this case be the
+     * return value of this method multiplied by the number of elements,
+     * as indicated by {@link #getShape} (or by 1, if <tt>getShape</tt>
+     * is null).
+     * <p>
+     * The exact meaning of the value returned is dependent on this 
+     * ValueInfo.  This method was introduced to return the maximum
+     * number of characters in a <tt>String</tt>-class ValueInfo; 
+     * this information is necessary for writing out to certain formats (FITS).
+     * Other ValueInfo types however may use it for their own purposes.
+     * <p>
+     * ValueInfo instances which decline to supply this information 
+     * should return -1 from this method.
+     * 
+     * @return   notional size of each element an array of values described
+     *           by this info
+     */
+    int getElementSize();
+
+    /**
      * Indicates whether values returned described by this object may have the
      * value <tt>null</tt>.  In general this should return <tt>true</tt>, 
      * which implies no assertion about the return values (they may or 

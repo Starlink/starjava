@@ -27,6 +27,7 @@ public class DefaultValueInfo implements ValueInfo {
     private Class contentClass = Object.class;
     private boolean isNullable;
     private int[] shape = new int[] { -1 };
+    private int elementSize = -1;
     private TableCellRenderer cellRenderer;
     private TableCellEditor cellEditor;
 
@@ -90,6 +91,7 @@ public class DefaultValueInfo implements ValueInfo {
         setDescription( base.getDescription() );
         setContentClass( base.getContentClass() );
         setShape( base.getShape() );
+        setElementSize( base.getElementSize() );
         setNullable( base.isNullable() );
     }
 
@@ -213,6 +215,19 @@ public class DefaultValueInfo implements ValueInfo {
             }
         }
         this.shape = shape;
+    }
+
+    public int getElementSize() {
+        return elementSize;
+    }
+
+    /**
+     * Sets the element size of values described by this object.
+     *
+     * @param  size  the element size
+     */
+    public void setElementSize( int size ) {
+        this.elementSize = size;
     }
 
     public boolean isNullable() {
