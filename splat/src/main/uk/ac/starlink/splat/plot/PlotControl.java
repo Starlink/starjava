@@ -463,12 +463,7 @@ public class PlotControl
         //  Plot does the drawing of the spectrum, but is contained
         //  with a JScrollPane, so its size can be greater than the
         //  viewable surface.
-        //scroller = new JScrollPane( plot );
         scroller = new JScrollPane( plot );
-
-        // Set scrollbar policy.
-        // JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-        // JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
 
         //  Make the JScrollPane/Plot fill the area available by
         //  placing it in the center of the BorderLayout
@@ -746,7 +741,7 @@ public class PlotControl
         graphics[1][0] = currentGraphics[1];
         zoomAbout( 0, 0, graphics[0][0], graphics[1][0] );
         try {
-            plot.update( false );
+            plot.update( true );
         }
         catch ( Exception e ) {
             //  Do nothing.
