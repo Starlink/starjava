@@ -1,0 +1,507 @@
+<?xml version="1.0"?>
+
+<!--
+ !  {Package} build file
+ !
+ !   This file describes how to build and install the {Package}
+ !   package from its binary release. {Package} is a pre-built third
+ !   party package that is permanently in the "dist" configuration.
+ !
+ !   The main targets are:
+ !
+ !      build            -> makes copies of local files that will be modified
+ !      clean            -> removes local copies
+ !      deinstall        -> undo the install target
+ !      dist             -> makes package into dist state
+
+ !      export           -> creates the full distribution archives
+ !      export-runonly   -> same as export
+ !      export-source    -> same as export
+ !      install          -> install distribution into Starlink tree
+ !      install-runonly  -> same as install
+ !      jars             -> add manifest and signs jar files
+ !      javadocs         -> does nothing
+ !      javadoc-sources  -> does nothing
+ !      test             -> may run a test for checking package function
+ !
+ !   The targets that do nothing are provided for compatibility with
+ !   the normal build system.
+ !
+ !   Authors:
+ !      Peter W. Draper (16-SEP-2002)
+ !
+ !   Version:
+ !      $Id$
+ !
+ !-->
+
+<project name="Build file for {Package}" default="build" basedir=".">
+
+  <!-- If either or both of these files exist then any properties
+   !   contained within them will override those defined here.  -->
+  <property file="${user.home}/.stardev.properties"/>
+  <property file=".properties"/>
+
+  <!-- Properties will also be set for all environment variables
+   !   (PATH becomes "env.PATH"), generally not a good idea as names
+   !   are OS dependent -->
+  <property environment="env"/>
+
+  <!--
+   !  =================
+   !  Global Properties
+   !  =================
+   !-->
+
+  <!-- Directory for the Starlink installation (usually /star/java)-->
+  <property name="star.dir" value="${basedir}/../../"/>
+
+  <!-- Directory to install into (install target, usually /star/java)-->
+  <property name="star.install" value="${star.dir}"/>
+
+  <!-- Directory that contains the Starlink jar tree -->
+  <property name="star.jar.dir" value="${star.dir}/lib"/>
+
+  <!-- Directory that contains the locally built sources (usually
+   !   /star/java/source for full distribution) -->
+  <property name="star.build.dir" value="${basedir}/../"/>
+
+  <!-- Directory that any archives should be placed into. The local
+   !   directory by default -->
+  <property name="star.archive.dir" value="${basedir}"/>
+
+  <!--
+   !  ================
+   !  Local Properties
+   !  ================
+   !-->
+
+  <!-- Define the package name and current versions -->
+  <property name="Name" value="{PACKAGE}"/>
+  <property name="name" value="{package}"/>
+  <property name="version" value="1.0"/>
+
+  <!-- Extra task options, if any -->
+  <property name="chmod.fail" value="false"/>
+
+  <!-- Directory containing the package source -->
+  <property name="src.dir" value="${basedir}/src"/>
+
+  <!-- Directory containing any unmodified jars of this package -->
+  <property name="src.jars.dir" value="${src.dir}/lib"/>
+
+  <!-- Distribution directories, these are the actual state of this
+   !   package at all times -->
+  <property name="dist.dir" value="${basedir}"/>
+
+  <property name="dist.bin" value="${dist.dir}/bin"/>
+  <property name="dist.lib" value="${dist.dir}/lib"/>
+  <property name="dist.docs" value="${dist.dir}/docs"/>
+
+  <property name="dist.bin.pkg" value="${dist.bin}/${name}"/>
+  <property name="dist.lib.pkg" value="${dist.lib}/${name}"/>
+  <property name="dist.docs.pkg" value="${dist.docs}/${name}"/>
+
+  <!-- Version for zipped/tarred export files. -->
+  <property name="dist.version" value="${name}-${version}"/>
+
+  <!-- File for logging the files that are copied by the install target -->
+  <property name="install.log" value=".${name}.install"/>
+  <property name="install.overwrite" value="true"/>
+
+  <!-- Local webstart properties. Note this needs a local keystore,
+   !   assumed to be called keystore in $star.build.dir, .. by
+   !   default. -->
+  <property name="webstart.codebase"
+            value="http://www.starlink.ac.uk/starjava/lib"/>
+  <property name="webstart.alias" value="Starlink-UK"/>
+  <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
+  <property name="webstart.keypass" value="Vroomfondel"/>
+  <property name="webstart.storepass" value="Majikthise"/>
+  <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
+  <property name="home.page" value="{package_original_home_page}"/>
+
+  <!--
+   !   =================
+   !   Prepare the build
+   !   =================
+   !
+   !  Do any jobs that are required before any other target can proceed.
+   !-->
+  <target name="prepare">
+
+    <tstamp>
+      <format property="year" pattern="yyyy"/>
+    </tstamp>
+
+  </target>
+
+  <!--
+   !   ==============
+   !   Build the code
+   !   ==============
+   !
+   !-->
+  <target name="build"
+          depends="prepare"
+          description="-> make local copies of files for modification">
+
+    <mkdir dir="${dist.lib.pkg}"/>
+    <copy todir="${dist.lib.pkg}">
+       <fileset dir="${src.jars.dir}"/>
+    </copy>
+
+  </target>
+
+  <!--
+   !   ===========================
+   !   Create the package jar file
+   !   ===========================
+   !
+
+   !  Update the manifest of the package main jar file, if
+   !  needed. This is typically the jar file with the main package
+   !  classes. If this package has more than one such jar file, then
+   !  update them all.
+   !
+   !  Packages whose jar files are not already signed (by the
+   !  originator) should be signed here.
+   !-->
+  <target name="jars"
+          description="-> does nothing">
+
+     <!-- Add the manifest to the jar file, just an update -->
+    <jar destfile="${dist.lib.pkg}/{package.jar}" basedir="${dist.dir}"
+         update="true" excludes="**">
+
+      <!-- Create the manifest, note wraps in column 80 are done
+       !   automatically, so just use a single line. Dependencies
+       !   are named using relative URLs-->
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
+      </manifest>
+
+    </jar>
+
+    <!-- Sign all jar files -->
+    <signjar alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+    </signjar>
+
+  </target>
+
+  <!--
+   !   ========================================
+   !   Make package JNLP file for Java webstart
+   !   ========================================
+   !-->
+  <target name="webstart"
+          description="-> create webstart descriptor files">
+
+    <!-- Create a webstart JNLP file for this package.
+     !   This goes into "dist.lib".
+     !-->
+    <mkdir dir="${dist.lib}"/>
+    <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
+          codebase="${webstart.codebase}">
+
+      <information>
+         <title>{Package} - {description}</title>
+         <vendor>{Vendor}</vendor>
+         <homepage href="${home.page}"/>
+         <icon href="${webstart.starlink_logo}"/>
+         <description>{Package} - Webstart edition</description>
+         <offline_allowed/>
+      </information>
+
+      <security>
+        <all_permissions/>
+      </security>
+
+      <resources>
+        <j2se version="1.4+"/>
+        <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+      </resources>
+
+      <component_desc/>
+
+     </jnlp>
+
+  </target>
+
+  <!--
+   !   =============================
+   !   Create the local distribution
+   !   =============================
+   !
+   !  Nothing to do, this package is permanently in this condition.
+   !-->
+  <target name="dist"
+          depends="jars,webstart"
+          description="-> make package ready for distribution">
+  </target>
+
+  <!--
+   !   ========================
+   !   Create the full releases
+   !   ========================
+   !
+   !  Creates the full "zip", "tar" and "bzip" archives of the
+   !  package.
+   !
+   !  The archive names are ${dist.version}.<ext>.
+   !-->
+  <target name="export"
+          description="-> creates the full distribution archives">
+
+    <antcall target="create_archives">
+      <param name="archive.name" value="${dist.version}"/>
+    </antcall>
+
+  </target>
+
+  <!--
+   !   ==========================
+   !   Create the source releases
+   !   ==========================
+   !
+   !  Creates the source only "zip", "tar" and "bzip" archives.
+   !  Same as export, except for the name.
+   !
+   !  The archive names are ${dist.version}-src.<ext>.
+   !-->
+  <target name="export-source"
+          description="-> creates the source distribution archives">
+
+    <antcall target="create_archives">
+      <param name="archive.name" value="${dist.version}-src"/>
+    </antcall>
+
+  </target>
+
+  <!--
+   !   ===========================
+   !   Create the runonly releases
+   !   ===========================
+   !
+   !  Creates the runonly "zip", "tar" and "bzip" archives of the
+   !  products of the "dist" target. Same as export, except for the
+   !  name.
+   !
+   !  The archive names are ${dist.version}-bin.<ext>.
+   !-->
+  <target name="export-runonly"
+          description="-> creates the runonly distribution archives">
+
+    <antcall target="create_archives">
+      <param name="archive.name" value="${dist.version}-bin"/>
+    </antcall>
+
+  </target>
+
+  <!--
+   ! Create release archives of the various types required.
+   ! For this package these are all the same just set the property
+   ! "archive.name" to define what name to use for the outfile
+   ! files. The archives are also written into the directory
+   ! ${star.archive.dir} (the local directory by default).
+   !-->
+  <target name="create_archives"
+          depends="dist">
+
+    <mkdir dir="${star.archive.dir}"/>
+    <zip destfile="${star.archive.dir}/${archive.name}.zip">
+
+      <zipfileset dir="${dist.docs}" prefix="${name}/docs"/>
+      <zipfileset dir="${dist.dir}" includes="build.xml" prefix="${name}"/>
+      <zipfileset dir="${dist.bin}" prefix="${name}/bin"/>
+      <zipfileset dir="${dist.lib}" prefix="${name}/lib"/>
+
+    </zip>
+
+    <tar longfile="gnu" destfile="${archive.name}.tar">
+
+      <tarfileset dir="${dist.docs}" prefix="${name}/docs"/>
+      <tarfileset dir="${dist.dir}" prefix="${name}">
+        <include name="build.xml"/>
+      </tarfileset>
+
+      <tarfileset dir="${dist.bin}" prefix="${name}/bin"/>
+      <tarfileset dir="${dist.lib}" prefix="${name}/lib"/>
+
+    </tar>
+
+    <gzip zipfile="${star.archive.dir}/${archive.name}.tar.gz"
+          src="${archive.name}.tar"/>
+    <bzip2 zipfile="${star.archive.dir}/${archive.name}.tar.bz2"
+           src="${archive.name}.tar"/>
+    <delete file="${archive.name}.tar"/>
+
+  </target>
+
+  <!--
+   !   ============================================
+   !   Cleans up build and distribution directories
+   !   ============================================
+   ! Does nothing.
+   !-->
+  <target name="clean"
+          description="-> removes local copies">
+
+    <delete dir="${dist.lib}"/>
+
+  </target>
+
+  <!--
+   !   ================================
+   !   Install into the "Starlink" tree
+   !   ================================
+   !
+   ! Installs the package into another set of directories.
+   !
+   ! An installed system is potentially "undoable" as the copied names
+   ! are logged to "${install.log}".
+   !-->
+  <target name="install"
+          depends="dist"
+          description="-> install distribution into Starlink tree">
+
+    <!-- Installation based directories (based on "star.install")-->
+    <property name="star.bin" value="${star.install}/bin"/>
+    <property name="star.bin.pkg" value="${star.bin}/${name}"/>
+    <property name="star.lib" value="${star.install}/lib"/>
+    <property name="star.lib.pkg" value="${star.lib}/${name}"/>
+    <property name="star.docs" value="${star.install}/docs"/>
+    <property name="star.docs.pkg" value="${star.docs}/${name}"/>
+
+    <mkdir dir="${star.install}"/>
+    <mkdir dir="${star.bin}"/>
+    <mkdir dir="${star.lib}"/>
+    <mkdir dir="${star.docs}"/>
+
+    <loggedcopy todir="${star.bin}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="false">
+      <fileset dir="${dist.bin}"/>
+    </loggedcopy>
+
+    <!-- Also remove the package-specific directory.
+     !   Note exact format is required.-->
+    <echo file="${install.log}" append="true">${star.bin.pkg}
+</echo>
+
+    <loggedcopy todir="${star.lib}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.lib}"/>
+    </loggedcopy>
+    <echo file="${install.log}" append="true">${star.lib.pkg}
+</echo>
+
+    <loggedcopy todir="${star.docs}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.docs}"/>
+    </loggedcopy>
+    <echo file="${install.log}" append="true">${star.docs.pkg}
+</echo>
+
+  </target>
+
+  <!--
+   !   ========================================
+   !   Install runonly into the "Starlink" tree
+   !   =========================================
+   !
+   ! Same as install.
+   !-->
+  <target name="install-runonly"
+          description="-> install distribution into Starlink tree">
+
+     <antcall target="install"/>
+
+  </target>
+
+  <!--
+   !   ===================================
+   !   De-install from the "Starlink" tree
+   !   ===================================
+   !
+   ! Uses the content of the "${install.log}" to remove the files
+   ! that were copied into place by the install target.
+   !-->
+
+ <target name="deinstall"
+          description="-> undo the install target">
+
+    <available file="${install.log}" property="install.log.present"/>
+
+    <antcall target="real_deinstall"/>
+
+  </target>
+
+  <!-- Real deinstall target. Only activated if "install.log.present"
+   !   is defined -->
+  <target name="real_deinstall"
+          if="install.log.present">
+
+    <loadfile property="files" srcFile="${install.log}"/>
+    <listdelete>
+      <filelist dir="/" files="${files}"/>
+    </listdelete>
+
+    <delete file="${install.log}"/>
+
+  </target>
+
+  <!--
+   !   =============================
+   !   Creates the API documentation
+   !   =============================
+   !
+   !  Does nothing.
+   !-->
+  <target name="javadocs"
+          description="-> does nothing">
+  </target>
+
+  <!--
+   !   ==========================================
+   !   Creates the API documentation java sources
+   !   ==========================================
+   !
+   !  Does nothing.
+   !-->
+  <target name="javadoc-sources"
+          description="-> does nothing">
+  </target>
+
+  <!--
+   !   ============
+   !   Run testcase
+   !   ============
+   !-->
+  <target name="test"
+          description="-> does nothing"/>
+
+  <!--
+   ! Get a DTD for this build file. Documentation suggests may be incomplete!
+   !
+   ! Use:
+   !
+   !    <!DOCTYPE project PUBLIC "-//ANT//DTD project//EN" "./project.dtd">
+   !
+   ! at head of document to include.
+   !-->
+  <target name="dtd">
+     <antstructure output="project.dtd"/>
+  </target>
+
+</project>
