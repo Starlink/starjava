@@ -80,9 +80,6 @@ public class HDSArrayBuilder implements ArrayBuilder {
             HDSObject aryObj = href.getObject( HDSReference.hdsMode( mode ) );
             ArrayStructure ary = new ArrayStructure( aryObj );
 
-            /* Make the array's data array the primary locator. */
-            ary.getData().datPrmry( true );
-
             /* Construct an ArrayImpl, which will remove any temporary file
              * when it is finished with. */
             ArrayImpl impl = new HDSArrayImpl( ary, mode ) {
@@ -93,6 +90,10 @@ public class HDSArrayBuilder implements ArrayBuilder {
                     }
                 }
             };
+
+            /* Annul the primary locator now it is taken care of by the 
+             * HDSArrayImpl. */
+            aryObj.datAnnul();
 
             /* Return an NDArray. */
             return new BridgeNDArray( impl, url );
@@ -109,6 +110,8 @@ public class HDSArrayBuilder implements ArrayBuilder {
 
     /**
      * Constructs an NDArray based on an existing HDS array object.
+     * The supplied HDSObject <tt>ary</tt> may be primary or secondary
+     * and may be annulled following this call.
      *
      * @param  ary  the ArrayStructure to be viewed as an NDArray
      * @param  mode  the read/write/update mode for the NDArray
@@ -139,11 +142,14 @@ public class HDSArrayBuilder implements ArrayBuilder {
             HDSType htype = HDSType.fromJavaType( type );
             ArrayStructure ary = new ArrayStructure( aryObj, shape, htype );
 
-            /* Make its data array the primary locator. */
-            ary.getData().datPrmry( true );
-
-            /* Make an NDArray from it and return it. */
+            /* Make an ArrayImpl from it. */
             ArrayImpl impl = new HDSArrayImpl( ary, AccessMode.WRITE );
+
+            /* Annul the primary locator now it is taken care of by the
+             * HDSArrayImpl. */
+            aryObj.datAnnul();
+
+            /* Make an NDArray and return it. */
             return new BridgeNDArray( impl, url );
         }
         catch ( HDSException e ) {

@@ -61,6 +61,18 @@ public class NDFNdxHandler implements NdxHandler {
         }
     }
 
+    /**
+     * Creates an NDX with the given mode from a URL referening an HDS file.
+     * Note that the primary locator via which the resulting NDX is 
+     * accessed will not be 
+     * annulled except under control of the garbage collector at such
+     * time as all references are known to have disappeared.
+     * This means that a writable NDX may not get flushed until 
+     * the GC wakes up or the controlling process ends.
+     *
+     * @param  url  the location of the HDS object
+     * @param  mode  the read/write/update mode for data access 
+     */
     public Ndx makeNdx( URL url, AccessMode mode ) throws IOException {
         if ( mode != AccessMode.READ && ! url.getProtocol().equals( "file" ) ) {
             throw new IOException( "Remote " + mode + " access not supported "

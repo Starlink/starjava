@@ -56,7 +56,6 @@ public class ArrayStructure {
      *          tree or <tt>hobj</tt> does not represent an array
      */
     public ArrayStructure( HDSObject hobj ) throws HDSException {
-        hobj.datPrmry( true );
         this.hobj = hobj;
 
         /* See if we appear to have a SIMPLE array. */
@@ -136,7 +135,6 @@ public class ArrayStructure {
         populateArrayStructure( struct, shape, htype );
 
         /* Store the fields of this object. */
-        struct.datPrmry( true );
         this.hobj = struct;
         this.dataObj = struct.datFind( "DATA" );
         this.oshape = new OrderedNDShape( shape, Order.COLUMN_MAJOR );
@@ -159,7 +157,6 @@ public class ArrayStructure {
         parent.datNew( name, "ARRAY", SCALAR_DIMS );
         HDSObject struct = parent.datFind( name );
         populateArrayStructure( struct, shape, htype );
-        struct.datPrmry( true );
         this.hobj = struct;
         this.dataObj = struct.datFind( "DATA" );
         this.oshape = new OrderedNDShape( shape, Order.COLUMN_MAJOR );

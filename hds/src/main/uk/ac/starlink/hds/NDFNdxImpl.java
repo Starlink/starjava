@@ -37,7 +37,9 @@ class NDFNdxImpl implements NdxImpl {
 
     /**
      * Present an NdxImpl view of an existing NDF specified by an 
-     * <tt>HDSReference</tt>.
+     * <tt>HDSReference</tt>.  The HDS file will only be closed 
+     * (the last primary locator to the structure will only be annulled)
+     * at such time as the object gets finalised by the garbage collector.
      *
      * @param   nref  an HDSReference pointing to the NDF
      * @param   persistentUrl  the URL referring to the NDF; if <tt>nref</tt>
@@ -56,6 +58,14 @@ class NDFNdxImpl implements NdxImpl {
     /**
      * Present an NdxImpl view of an existing NDF specified by an
      * <tt>HDSObject</tt>.
+     * <p>
+     * A reference is kept to the supplied HDSObject <tt>nobj</tt>,
+     * but no further action is taken to ensure that a primary locator
+     * to the NDF structure is retained.  Calling code should therefore
+     * either set <tt>nobj</tt> itself primary (in which case it will
+     * be annulled during garbage collection when this NDFNdxImpl is no 
+     * longer referenced), or retain a suitable primary locator for as
+     * long as this NDFNdxImpl will be used.
      *
      * @param   nobj  the HDSObject where the NDF lives
      * @param   persistentUrl  the URL referring to <tt>nobj</tt>, 
@@ -68,7 +78,6 @@ class NDFNdxImpl implements NdxImpl {
      */
     public NDFNdxImpl( HDSObject nobj, URL persistentUrl, AccessMode mode )
             throws HDSException {
-        nobj.datPrmry( true );
         this.ndf = nobj;
         this.persistentUrl = persistentUrl;
         this.mode = mode;
