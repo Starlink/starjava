@@ -355,6 +355,24 @@ public class ActivationQueryWindow extends QueryWindow {
             }
         }
 
+        /**
+         * If a column exists with the named UCD, select it in the selector.
+         *
+         * @param  ucd  UCD to match
+         */
+        protected void selectColumnByUCD( String ucd ) {
+            for ( int i = 0; i < colSelector_.getItemCount(); i++ ) {
+                TableColumn tcol = (TableColumn) colSelector_.getItemAt( i );
+                if ( tcol instanceof StarTableColumn ) {
+                    ColumnInfo cinfo = ((StarTableColumn) tcol).getColumnInfo();
+                    if ( ucd.equals( cinfo.getUCD() ) ) {
+                        colSelector_.setSelectedIndex( i );
+                        break;
+                    }
+                }
+            }
+        }
+
         abstract Activator makeActivator( TableColumn tcol );
 
     }
@@ -365,6 +383,10 @@ public class ActivationQueryWindow extends QueryWindow {
     private class ImageActivatorFactory extends ColumnActivatorFactory {
         ImageActivatorFactory() {
             super( "Image" );
+
+            /* If this is the result of a SIAP query, select the acref 
+             * field for display by default. */
+            selectColumnByUCD( "VOX:Image_AccessReference" );
         }
         Activator makeActivator( final TableColumn tcol ) {
             return new ColumnActivator( "image", tcol ) {
