@@ -16,7 +16,7 @@ public class TextTest extends TestCase {
     }
 
     public void testReader() throws IOException {
-        StarTable table = new TextTableBuilder()
+        StarTable table = new AsciiTableBuilder()
                          .makeStarTable( new TableDataSource(), true,
                                          StoragePolicy.PREFER_MEMORY );
 
