@@ -7,7 +7,6 @@ import javax.swing.JComponent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -28,7 +27,7 @@ public class VOTableDataNode extends VOComponentDataNode {
     }
 
     public VOTableDataNode( File file ) throws NoSuchDataException {
-        this( new StreamSource( file ) );
+        this( FileDataNodeBuilder.makeDOMSource( file ) );
         name = file.getName();
         setLabel( name );
     }

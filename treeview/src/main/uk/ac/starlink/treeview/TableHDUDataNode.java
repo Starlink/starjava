@@ -12,6 +12,9 @@ import nom.tam.fits.TableData;
 import nom.tam.fits.TableHDU;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
+import uk.ac.starlink.fits.FitsStarTable;
+import uk.ac.starlink.table.ColumnHeader;
+import uk.ac.starlink.table.StarTable;
 
 /**
  * An implementation of the {@link DataNode} interface for 
@@ -29,7 +32,6 @@ public class TableHDUDataNode extends HDUDataNode {
     private Icon icon;
     private JComponent fullview;
     private Header header;
-    private FitsTableColumn[] columns;
 
     /**
      * Initialises a <code>TableHDUDataNode</code> from an <code>Header</code>
@@ -65,22 +67,6 @@ public class TableHDUDataNode extends HDUDataNode {
             int ncols = hdr.getIntValue( "TFIELDS" );
             int nrows = hdr.getIntValue( "NAXIS2" );
 
-            columns = new FitsTableColumn[ ncols ];
-            for ( int i = 1; i <= ncols; i++ ) {
-                FitsTableColumn col = new FitsTableColumn();
-                columns[ i - 1 ] = col;
-                col.setFormat( hdr.getStringValue( "TFORM" + i ) );
-                col.setType( hdr.getStringValue( "TTYPE" + i ) );
-                col.setUnit( hdr.getStringValue( "TUNIT" + i ) );
-                if ( hdr.containsKey( "TNULL" + i ) ) {
-                    col.setBlank( 
-                        new Integer( hdr.getIntValue( "TNULL" + i ) ) );
-                }
-                col.setScale( hdr.getDoubleValue( "TSCALE" + i, 1.0 ) );
-                col.setZero( hdr.getDoubleValue( "TZERO" + i, 0.0 ) );
-                col.setDisp( hdr.getStringValue( "TDISP" + i ) );
-            }
-            
             description = type + " table (" + ncols + "x" + nrows + ")";
         }
         catch ( FitsException e ) {
@@ -111,32 +97,34 @@ public class TableHDUDataNode extends HDUDataNode {
             dv.addKeyedItem( "HDU type", hduType );
             dv.addKeyedItem( "Number of header cards",
                              header.getNumberOfCards() );
-            int nrows = tdata.getNRows();
-            int ncols = tdata.getNCols();
+
+            final StarTable startable = new FitsStarTable( thdu );
+            int nrows = startable.getNumRows();
+            int ncols = startable.getNumColumns();
             dv.addKeyedItem( "Columns", ncols );
             dv.addKeyedItem( "Rows", nrows );
             dv.addSubHead( "Columns" );
             for ( int i = 0; i < ncols; i++ ) {
-                String fmt;
-                try {
-                    fmt = thdu.getColumnFormat( i );
-                }
-                catch ( FitsException e ) {
-                    fmt = e.getMessage();
-                }
-                dv.addKeyedItem( "Column " + ( i + 1 ), columns[ i ] );
+                ColumnHeader head = startable.getHeader( i );
+                dv.addKeyedItem( "Column " + ( i + 1 ), head.getName() );
             }
             dv.addPane( "Header cards", new ComponentMaker() {
                 public JComponent getComponent() {
                     return new TextViewer( header.iterator() );
                 }
             } );
-            dv.addPane( "Table view", new ComponentMaker() {
+            dv.addPane( "Column details", new ComponentMaker() {
                 public JComponent getComponent() {
-                    return new TableBrowser( thdu, columns );
+                    MetamapGroup metagroup =
+                        new StarTableMetamapGroup( startable );
+                    return new MetaTable( metagroup );
                 }
             } );
-
+            dv.addPane( "Table data", new ComponentMaker() {
+                public JComponent getComponent() {
+                    return new TreeviewJTable( startable );
+                }
+            } );
         }
         return fullview;
     }
