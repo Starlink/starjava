@@ -135,17 +135,17 @@ data values.
 
 <P>
 Support for spectral coordinates is provided by the Starlink AST library
-(<A HREF="http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/sun211.html?xref_">SUN/211</A>) using an implementation of the FITS-WCS paper III
+(<A HREF="/star/docs/sun211.htx/sun211.html#xref_">SUN/211</A>) using an implementation of the FITS-WCS paper III
 <I>Representations of spectral coordinates in FITS</I>
 (Greisen,
 Valdes, Calabretta &amp; Allen).
-AST also provides the flux conversion utilities used by <I>SPLAT-VO</I> which is based
-on interpreting the units strings system described in FITS-WCS paper I
-<I>Representation of World Coordinate in FITS</I>
-by Greisen &amp; Calabretta. This does not use the dimensional analysis-only
-approach which cannot deal with dimensionless systems like magnitudes and
-conversions from Jy to Jy/sr and Jy to temperature, however, at present
-flux systems are restricted to flux per unit frequency and per unit wavelength.
+AST also provides the flux and data value conversion utilities used by 
+<I>SPLAT-VO</I> which is based on interpreting the units strings system described 
+in FITS-WCS paper I <I>Representation of World Coordinate in FITS</I>
+by Greisen &amp; Calabretta. 
+Conversion between fluxes is currently restricted to flux per unit wavelength
+and flux per unit frequency is provided and does not require any "dimensional
+analysis" information to be present, just correctly formed units strings.
 
 <P>
 The SSAP query is limited to just a cone region on the sky and optional query

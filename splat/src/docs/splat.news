@@ -11,7 +11,7 @@
    Starlink AST library which can transform coordinates between various
    spectral systems (wavelength, frequency, energy and velocity) and between a
    growing number of flux systems (currently flux per unit frequency and per
-   unit wavelength). This allows you to view various spectral from differing
+   unit wavelength). This allows you to view various spectra from differing
    energy domains as a spectral energy distribution.
 
    Other changes of note in this release:
@@ -24,4 +24,3 @@
       - a new tool for setting the data units of spectra has been introduced.
 
 Peter W. Draper (p.w.draper@durham.ac.uk)          24th January 2005
-

@@ -1267,13 +1267,13 @@ Support for spectral coordinates is provided by the Starlink AST library
 \textit{Representations of spectral coordinates in FITS}
 (Greisen,
 Valdes, Calabretta \& Allen).
-AST also provides the flux conversion utilities used by \SPLAT\ which is based
-on interpreting the units strings system described in FITS-WCS paper I
-\textit{Representation of World Coordinate in FITS}
-by Greisen \& Calabretta. This does not use the dimensional analysis-only
-approach which cannot deal with dimensionless systems like magnitudes and
-conversions from Jy to Jy/sr and Jy to temperature, however, at present
-flux systems are restricted to flux per unit frequency and per unit wavelength.
+AST also provides the flux and data value conversion utilities used by 
+\SPLAT\ which is based on interpreting the units strings system described 
+in FITS-WCS paper I \textit{Representation of World Coordinate in FITS}
+by Greisen \& Calabretta. 
+Conversion between fluxes is currently restricted to flux per unit wavelength
+and flux per unit frequency is provided and does not require any "dimensional
+analysis" information to be present, just correctly formed units strings.
 
 The SSAP query is limited to just a cone region on the sky and optional query
 parameters are not supported.
