@@ -10,7 +10,6 @@
      <!-- The Map file. This documents IDs to URLs -->
      <maps>
           <mapref location="Map.jhm"/>
-          <homeID>splash</homeID>
      </maps>
 
      <!-- Navigation views of various kinds (tabbed panes)-->

@@ -4,6 +4,8 @@
          "http://java.sun.com/products/javahelp/toc_1_0.dtd">
 
 <toc version="1.0">
+
    <tocitem target="main-help" text="Application Help"/>
    <tocitem target="sub-help" text="Window Help"/>
+
 </toc>
