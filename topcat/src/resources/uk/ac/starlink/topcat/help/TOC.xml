@@ -12,7 +12,7 @@
     <tocitem target="DirectInvoke" text="Direct invocation"/>
   </tocitem>
 
-  <tocitem target="TableCopy" text="Table conversion"/>
+  <tocitem target="TableCopy" text="tablecopy command"/>
 
   <tocitem target="IO" text="I/O">
 

@@ -21,6 +21,14 @@ or "spec23.fits.gz#1" and the second one using the name.
 "spec23.fits.gz#2".  The suffix "#0" is never used for a legal
 FITS file, since the primary HDU cannot contain a table.
 
+<p>You can select which extension to use more conveniently than
+by specifying the HDU numbers if you use the 
+<a href="load-node.html">Hierarchy Browser</a> to load the table.
+
+<p>If the table is stored in a FITS binary table extension in a file
+on local disk in uncompressed form, then any size table can be
+loaded (TOPCAT does not load the table into memory in this case).
+
 <p>Compressed FITS files, or ones referred to as URLs, may be used.
 
 </body>
