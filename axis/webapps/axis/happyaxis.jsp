@@ -1,11 +1,68 @@
 <html>
+<%@ page import="java.io.InputStream,
+                 java.io.IOException,
+                 javax.xml.parsers.SAXParser,
+                 javax.xml.parsers.SAXParserFactory"
+   session="false" %>
+ <%
+    /*
+     * The Apache Software License, Version 1.1
+     *
+     * Copyright (c) 2002 The Apache Software Foundation.  All rights
+     * reserved.
+     *
+     * Redistribution and use in source and binary forms, with or without
+     * modification, are permitted provided that the following conditions
+     * are met:
+     *
+     * 1. Redistributions of source code must retain the above copyright
+     *    notice, this list of conditions and the following disclaimer.
+     *
+     * 2. Redistributions in binary form must reproduce the above copyright
+     *    notice, this list of conditions and the following disclaimer in
+     *    the documentation and/or other materials provided with the
+     *    distribution.
+     *
+     * 3. The end-user documentation included with the redistribution, if
+     *    any, must include the following acknowlegement:
+     *       "This product includes software developed by the
+     *        Apache Software Foundation (http://www.apache.org/)."
+     *    Alternately, this acknowlegement may appear in the software itself,
+     *    if and wherever such third-party acknowlegements normally appear.
+     *
+     * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+     *    Foundation" must not be used to endorse or promote products derived
+     *    from this software without prior written permission. For written
+     *    permission, please contact apache@apache.org.
+     *
+     * 5. Products derived from this software may not be called "Apache"
+     *    nor may "Apache" appear in their names without prior written
+     *    permission of the Apache Group.
+     *
+     * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
+     * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+     * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
+     * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+     * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+     * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+     * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+     * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+     * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     * SUCH DAMAGE.
+     * ====================================================================
+     *
+     * This software consists of voluntary contributions made by many
+     * individuals on behalf of the Apache Software Foundation.  For more
+     * information on the Apache Software Foundation, please see
+     * <http://www.apache.org/>.
+     */
+%>
 <head>
 <title>Axis Happiness Page</title>
 </head>
 <body bgcolor='#ffffff'>
-<%@ page import="java.io.InputStream,
-                 java.io.IOException"
-    session="false" %>
 <%!
 
     /*
@@ -14,6 +71,8 @@
      * but here we want to validate JSP compilation too, and have a drop-in
      * page for easy re-use
      * @author Steve 'configuration problems' Loughran
+     * @author dims
+     * @author Brian Ewins
      */
 
 
@@ -24,8 +83,9 @@
     public String getInstallHints(HttpServletRequest request) {
 
         String hint=
-            "<B><I>Note:</I></B> On Tomcat 4.x, you may need to put libraries that contain "
-            +"java.* or javax.* packages into CATALINA_HOME/commons/lib";
+            "<B><I>Note:</I></B> On Tomcat 4.x and Java1.4, you may need to put libraries that contain "
+            +"java.* or javax.* packages into CATALINA_HOME/common/lib"
+            +"<br>jaxrpc.jar and saaj.jar are two such libraries.";
         return hint;
     }
 
@@ -78,34 +138,57 @@
                    String description,
                    String errorText,
                    String homePage) throws IOException {
-
-       Class clazz = classExists(classname);
-       if(clazz == null)  {
+        try {
+            Class clazz = classExists(classname);
+            if(clazz == null)  {
+               String url="";
+               if(homePage!=null) {
+                  url="<br>  See <a href="+homePage+">"+homePage+"</a>";
+               }
+               out.write("<p>"+category+": could not find class "+classname
+                   +" from file <b>"+jarFile
+                   +"</b><br>  "+errorText
+                   +url
+                   +"<p>");
+               return 1;
+            } else {
+               String location = getLocation(out, clazz);
+               if(location == null) {
+                  out.write("Found "+ description + " (" + classname + ")<br>");
+               }
+               else {
+                  out.write("Found "+ description + " (" + classname + ") at " + location + "<br>");
+               }
+               return 0;
+            }
+        } catch(NoClassDefFoundError ncdfe) { 
             String url="";
             if(homePage!=null) {
                 url="<br>  See <a href="+homePage+">"+homePage+"</a>";
             }
-            out.write("<p>"+category+": could not find class "+classname
+            out.write("<p>"+category+": could not find a dependency"
+                    +" of class "+classname
                     +" from file <b>"+jarFile
-                    +"</b><br>  "+errorText
+                    +"</b><br> "+errorText
                     +url
+                    +"<br>The root cause was: "+ncdfe.getMessage()
+                    +"<br>This can happen e.g. if "+classname+" is in" 
+                    +" the 'common' classpath, but a dependency like "
+                    +" activation.jar is only in the webapp classpath."
                     +"<p>");
             return 1;
-        } else {
-            String location = getLocation(out, clazz);
-            if(location == null) {
-                out.write("Found "+ description + " (" + classname + ")<br>");
-            }
-            else {
-                out.write("Found "+ description + " (" + classname + ") at " + location + "<br>");
-            }
-            return 0;
         }
     }
 
+    /**
+     * get the location of a class
+     * @param out
+     * @param clazz
+     * @return the jar file or path where a class was found
+     */
 
-    String getLocation(JspWriter out, 
-                       Class clazz) throws IOException {
+    String getLocation(JspWriter out,
+                       Class clazz) {
         try {
             java.net.URL url = clazz.getProtectionDomain().getCodeSource().getLocation();
             String location = url.toString();
@@ -122,7 +205,7 @@
             }
         } catch (Throwable t){
         }
-        return null;
+        return "an unknown location";
     }
 
     /**
@@ -195,10 +278,71 @@
             return 1;
         }
     }
+
+
+    /**
+     *  get servlet version string
+     *
+     */
+
+    public String getServletVersion() {
+        ServletContext context=getServletConfig().getServletContext();
+        int major = context.getMajorVersion();
+        int minor = context.getMinorVersion();
+        return Integer.toString(major) + '.' + Integer.toString(minor);
+    }
+
+
+
+    /**
+     * what parser are we using.
+     * @return the classname of the parser
+     */
+    private String getParserName() {
+        SAXParser saxParser = getSAXParser();
+        if (saxParser == null) {
+            return "Could not create an XML Parser";
+        }
+
+        // check to what is in the classname
+        String saxParserName = saxParser.getClass().getName();
+        return saxParserName;
+    }
+
+    /**
+     * Create a JAXP SAXParser
+     * @return parser or null for trouble
+     */
+    private SAXParser getSAXParser() {
+        SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+        if (saxParserFactory == null) {
+            return null;
+        }
+        SAXParser saxParser = null;
+        try {
+            saxParser = saxParserFactory.newSAXParser();
+        } catch (Exception e) {
+        }
+        return saxParser;
+    }
+
+    /**
+     * get the location of the parser
+     * @return path or null for trouble in tracking it down
+     */
+
+    private String getParserLocation(JspWriter out) {
+        SAXParser saxParser = getSAXParser();
+        if (saxParser == null) {
+            return null;
+        }
+        String location = getLocation(out,saxParser.getClass());
+        return location;
+    }
     %>
 <html><head><title>Axis Happiness Page</title></head>
 <body>
-
+<h1>Axis Happiness Page</h1>
 <h2>Examining webapp configuration</h2>
 
 <p>
@@ -227,11 +371,23 @@
             "Axis will not work",
             "http://xml.apache.org/axis/");
 
+    needed+=needClass(out, "org.apache.commons.discovery.Resource",
+            "commons-discovery.jar",
+            "Jakarta-Commons Discovery",
+            "Axis will not work",
+            "http://jakarta.apache.org/commons/discovery.html");
+
     needed+=needClass(out, "org.apache.commons.logging.Log",
             "commons-logging.jar",
-            "Jakarta-commons logging",
+            "Jakarta-Commons Logging",
             "Axis will not work",
             "http://jakarta.apache.org/commons/logging.html");
+
+    needed+=needClass(out, "org.apache.log4j.Layout",
+            "log4j-1.2.8.jar",
+            "Log4j",
+            "Axis may not work",
+            "http://jakarta.apache.org/log4j");
 
     //should we search for a javax.wsdl file here, to hint that it needs
     //to go into an approved directory? because we dont seem to need to do that.
@@ -270,6 +426,11 @@
             "XML Security is not supported",
             "http://xml.apache.org/security/");
 
+    wanted += wantClass(out, "javax.net.ssl.SSLSocketFactory",
+            "jsse.jar or java1.4+ runtime",
+            "Java Secure Socket Extension",
+            "https is not supported",
+            "http://java.sun.com/products/jsse/");
     /*
      * resources on the classpath path
      */
@@ -307,7 +468,7 @@
     out.write("</h3>");
     //hint if anything is missing
     if(needed>0 || wanted>0 ) {
-       out.write(getInstallHints(request));
+        out.write(getInstallHints(request));
     }
 
     %>
@@ -316,16 +477,35 @@
     web service will work, because there are many configuration options that we do
     not check for. These tests are <i>necessary</i> but not <i>sufficient</i>
     <hr>
+
+    <h2>Examining Application Server</h2>
+    <%
+        String servletVersion=getServletVersion();
+        String xmlParser=getParserName();
+        String xmlParserLocation = getParserLocation(out);
+
+    %>
+    <table>
+        <tr><td>Servlet version</td><td><%= servletVersion %></td></tr>
+        <tr><td>XML Parser</td><td><%= xmlParser %></td></tr>
+        <tr><td>XML ParserLocation</td><td><%= xmlParserLocation %></td></tr>
+    </table>
+<% if(xmlParser.indexOf("crimson")>=0) { %>
+    <p>
+    <b>We recommend <a href="http://xml.apache.org/xerces2-j/">Xerces 2</a>
+        over Crimson as the XML parser for Axis</b>
+    </p>
+<%    } %>
+
     <h2>Examining System Properties</h2>
 <%
     /** 
      * Dump the system properties
      */
-    java.util.Enumeration e;
+    java.util.Enumeration e=null;
     try {
         e= System.getProperties().propertyNames();
     } catch (SecurityException se) {
-        e=null;
     }
     if(e!=null) {
         out.write("<pre>");

@@ -150,7 +150,7 @@
 
     /** print out the jar versions for a context-relative directory */
     public void listContextPath(String title, JspWriter out, String path, String comment)  throws IOException {
-        listVersions(title, out,scanDir(this.getServletContext().getRealPath(path)), comment);
+        listVersions(title, out,scanDir(getServletConfig().getServletContext().getRealPath(path)), comment);
     }
 
     /** print out the jar versions for a given list of files */
@@ -176,9 +176,9 @@
 <table>
 <tr>
     <td>Servlet Engine</td>
-    <td><%= this.getServletContext().getServerInfo() %></td>
-    <td><%= this.getServletContext().getMajorVersion() %></td>
-    <td><%= this.getServletContext().getMinorVersion() %></td>
+    <td><%= getServletConfig().getServletContext().getServerInfo() %></td>
+    <td><%= getServletConfig().getServletContext().getMajorVersion() %></td>
+    <td><%= getServletConfig().getServletContext().getMinorVersion() %></td>
 </tr>
 <tr>
     <td>Java VM</td>
@@ -206,7 +206,7 @@ listClasspathProperty("System jars", out,"java.class.path", null);
 listDirpathProperty("Extra system jars", out,"java.ext.dirs", null);
 listContextPath("Webapp jars", out, "/WEB-INF/lib", null);
 // identify the container...
-String container=this.getServletContext().getServerInfo();
+String container=getServletConfig().getServletContext().getServerInfo();
 if (container.startsWith("Tomcat Web Server/3.2")) {
     String home=System.getProperty("tomcat.home");
     if(home!=null) {

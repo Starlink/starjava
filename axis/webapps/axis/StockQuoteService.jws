@@ -53,12 +53,10 @@
  * <http://www.apache.org/>.
  */
 
-import java.io.*;
-import java.util.* ;
-import java.net.URL;
-
-import org.w3c.dom.* ;
-import org.apache.axis.utils.XMLUtils ;
+import org.apache.axis.utils.XMLUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * See \samples\stock\readme for info.
