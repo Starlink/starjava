@@ -1,0 +1,10 @@
+#BEGIN
+# name  CI_lines
+# system FREQ
+# unit MHz
+# StdOfRest Source
+# sourcevrf Topocentric
+# sourcevel 0.0
+#END
+492160.7 1_-_0
+809343.5 2_-_1

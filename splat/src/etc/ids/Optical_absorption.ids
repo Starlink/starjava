@@ -1,5 +1,5 @@
 #BEGIN
-# name Optical_obsorption_lines
+# name Optical_absorption_lines
 # system WAVE
 # unit Angstrom
 # StdOfRest Source

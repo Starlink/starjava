@@ -1,0 +1,10 @@
+#BEGIN
+# name  CH_lines
+# system FREQ
+# unit MHz
+# StdOfRest Source
+# sourcevrf Topocentric
+# sourcevel 0.0
+#END
+178875.2474 2_-1_3_3_-_2_1_2_2
+532723.3105 1_1_2_1_-_1_-1_1_1

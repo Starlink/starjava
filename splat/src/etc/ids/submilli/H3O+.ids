@@ -1,0 +1,9 @@
+#BEGIN
+# name  H3O+_lines
+# system FREQ
+# unit MHz
+# StdOfRest Source
+# sourcevrf Topocentric
+# sourcevel 0.0
+#END
+364797.427 3_2_0_-_2_2_1

@@ -1,0 +1,15 @@
+#BEGIN
+# name  13-CO_lines
+# system FREQ
+# unit MHz
+# StdOfRest Source
+# sourcevrf Topocentric
+# sourcevel 0.0
+#END
+220398.6765 2_-_1
+330587.9601 3_-_2
+440765.1668 4_-_3
+550926.3029 5_-_4
+661067.2801 6_-_5
+771184.1376 7_-_6
+881272.8339 8_-_7
