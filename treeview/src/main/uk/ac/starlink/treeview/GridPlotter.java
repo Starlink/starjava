@@ -1,16 +1,13 @@
 package uk.ac.starlink.treeview;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.Border;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
@@ -57,7 +54,7 @@ public class GridPlotter extends JPanel {
                 super.configurePlot( plot );
             }
         };
-        plotPan.setBorder( BorderFactory.createLineBorder( Color.BLACK, 2 ) );
+        TreeviewLAF.configureMainPanel( plotPan );
         add( plotPan, BorderLayout.CENTER );
 
         /* Construct a current-frame selector. */
@@ -81,10 +78,10 @@ public class GridPlotter extends JPanel {
         
         /* Put the selector in a box. */
         Box controlBox = new Box( BoxLayout.X_AXIS );
-        controlBox.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         controlBox.add( new JLabel( "Plotted co-ordinate frame: " ) );
         controlBox.add( selecter );
         controlBox.add( Box.createGlue() );
+        TreeviewLAF.configureControlPanel( controlBox );
 
         /* Display the box in this panel. */
         add( controlBox, BorderLayout.NORTH );

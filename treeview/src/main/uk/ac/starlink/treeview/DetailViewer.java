@@ -175,30 +175,6 @@ public class DetailViewer {
         } );
     }
 
-    public void addPane( String title, final ComponentMaker2 maker ) {
-        final Container ybox = new Box( BoxLayout.Y_AXIS );
-        addPane( title, ybox );
-        tabbed.addChangeListener( new ChangeListener() {
-            private boolean done = false;
-            synchronized public void stateChanged( ChangeEvent evt ) {
-                if ( tabbed.getSelectedComponent() == ybox && ! done ) {
-                    done = true;
-                    tabbed.removeChangeListener( this );
-                    try {
-                        JComponent[] components = maker.getComponents();
-                        ybox.add( components[ 0 ] );
-                        ybox.add( new JScrollPane( components[ 1 ] ) );
-                        ybox.add( Box.createGlue() );
-                    }
-                    catch ( Exception e ) {
-                        JComponent comp = new JTextArea( e.toString() );
-                        e.printStackTrace();
-                    }
-                }
-            }
-        } );
-    }
-
     /**
      * Selects the numbered pane for display as if the user had selected
      * the tab; number 0 is the initial

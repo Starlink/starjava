@@ -1,18 +1,15 @@
 package uk.ac.starlink.treeview;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Container;
 import java.awt.CardLayout;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import javax.swing.BorderFactory;
-import javax.swing.JComponent;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.array.BridgeNDArray;
@@ -23,32 +20,13 @@ import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.WindowArrayImpl;
 import uk.ac.starlink.ast.FrameSet;
 
-/** 
- * Displays the pixels of a N-d array.  One plane is shown at a time,
- * with a slider to select which plane you want to see.
- */
-class CubeViewer implements ComponentMaker2 {
- 
-    private JPanel imageHolder;
-    private CardLayout flipper;
-    private Set planeSet;
-    private JComponent[] components;
-    private NDArray nda;
-    private FrameSet wcs;
+public class SliceViewer extends JPanel {
     
+    public SliceViewer( final NDArray nda, final FrameSet wcs ) {
+        super( new BorderLayout() );
 
-    /**
-     * Construct a cube viewer.
-     * 
-     * @param  nda  the array data to view
-     * @param  wcs  the associated WCS, may be null
-     */
-    public CubeViewer( NDArray nda, FrameSet wcs ) {
-        this.nda = nda;
-        this.wcs = wcs;
-
-        /* Set up a hash of the images we have constructed. */
-        planeSet = new HashSet();
+        /* Set up a box for basic viewer controls. */
+        Box controlBox = new Box( BoxLayout.Y_AXIS );
 
         /* Get a shape of which each pixel represents one of the possible
          * 2-dimensional slices of our NDArray.  It's a copy of the original
@@ -67,72 +45,66 @@ class CubeViewer implements ComponentMaker2 {
             }
         }
         if ( ndummy != 0 ) {
-            throw new IllegalArgumentException( 
-                "Too few non-dummy dimensions " + shape ); 
+            throw new IllegalArgumentException(
+                "Too few non-dummy dimensions " + shape );
         }
         final OrderedNDShape depthShape =
             new OrderedNDShape( depthOrigin, depthDims, shape.getOrder() );
         int nplanes = (int) depthShape.getNumPixels();
 
-        /* Set up the controls. */
+        /* Create and place the main viewer. */
+        final CardLayout flipper = new CardLayout();
+        final JPanel imageHolder = new JPanel( flipper );
+
+        /* Set up a slice selection slider. */
         final JSlider slider = new JSlider( 0, nplanes - 1 );
         final JLabel planeLabel = new JLabel();
+        final Set planeSet = new HashSet();
         slider.addChangeListener( new ChangeListener() {
-            public void stateChanged( ChangeEvent e ) {
+            public void stateChanged( ChangeEvent evt ) {
                 int value = slider.getValue();
                 long[] spec = depthShape.offsetToPosition( (long) value );
-                planeLabel.setText( makeName( spec ) + "   " );
+                String name = makeName( spec );
+                planeLabel.setText( name + "   " );
                 if ( ! slider.getValueIsAdjusting() ) {
-                    displayPlane( spec );
+
+                    /* Display the plane. */
+                    if ( ! planeSet.contains( name ) ) {
+                        try {
+                            planeSet.add( name );
+                            NDArray slice = getSlice( nda, spec );
+                            assert slice.getShape().getNumDims() == 2;
+                            ImageViewer iv = new ImageViewer( slice, wcs );
+                            imageHolder.add( iv, name );
+                        }
+                        catch ( IOException e ) {
+                            e.printStackTrace();
+                        }
+                    }
+                    flipper.show( imageHolder, name );
                 }
             }
         } );
 
-        /* Arrange the components in the window. */
-        JPanel sliderHolder = new JPanel( new BorderLayout( 5, 5 ) );
-        sliderHolder.add( slider, BorderLayout.CENTER );
-        sliderHolder.add( planeLabel, BorderLayout.EAST );
-        sliderHolder.add( new JLabel( "  " ), BorderLayout.WEST );
-        Border baseBorder = BorderFactory.createLineBorder( Color.black );
-        Border border = BorderFactory
-                       .createTitledBorder( baseBorder, "Slice selector" );
-        sliderHolder.setBorder( border );
-        flipper = new CardLayout( 10, 10 );
-        imageHolder = new JPanel( flipper );
-
-        /* Record them for later use. */
-        components = new JComponent[] { sliderHolder, imageHolder };
-
         /* Message the slider to generate the first image. */
         slider.setValue( 0 );
-    }
 
+        /* Place the viewer. */
+        add( imageHolder, BorderLayout.CENTER );
 
-    public JComponent[] getComponents() {
-        return components;
-    }
+        /* Place the slider in the control box. */
+        Box sliderBox = new Box( BoxLayout.X_AXIS );
+        sliderBox.add( new JLabel( "Slice selector: " ) );
+        sliderBox.add( slider );
+        sliderBox.add( new JLabel( "    " ) );
+        sliderBox.add( planeLabel );
+        controlBox.add( sliderBox );
 
-    /**
-     * Display the slice specified by the given slice specification,
-     * and cache it or whatever for future use.
-     *
-     * @param  spec  slice specification (see getSlice)
-     */
-    private void displayPlane( long[] spec ) {
-        String name = makeName( spec );
-        if ( ! planeSet.contains( name ) ) {
-            try {
-                planeSet.add( name );
-                NDArray slice = getSlice( nda, spec );
-                assert slice.getShape().getNumDims() == 2;
-                ImageViewer iv = new ImageViewer( slice, wcs );
-                imageHolder.add( iv, name );
-            }
-            catch ( IOException e ) {
-                e.printStackTrace();
-            }
+        /* Place the control panel. */
+        if ( controlBox.getComponentCount() > 0 ) {
+            TreeviewLAF.configureControlPanel( controlBox );
+            add( controlBox, BorderLayout.NORTH );
         }
-        flipper.show( imageHolder, name );
     }
 
 
@@ -184,10 +156,10 @@ class CubeViewer implements ComponentMaker2 {
         }
         assert iok == nok;
         NDShape sliceShape = new NDShape( sliceOrigin, sliceDims );
- 
+
         /* View the original array through the window. */
         NDShape window = new NDShape( windowOrigin, windowDims );
-        NDArray winarray = 
+        NDArray winarray =
             new BridgeNDArray( new WindowArrayImpl( nda, window ) );
 
         /* And view that with duff dimensions removed. */
@@ -200,4 +172,5 @@ class CubeViewer implements ComponentMaker2 {
     private String makeName( long[] spec ) {
         return NDShape.toString( spec );
     }
+
 }

@@ -354,13 +354,13 @@ public class NdxDataNode extends DefaultDataNode {
         }
 
         if ( endim > 2 && Driver.hasJAI ) {
-            dv.addPane( "Slice display", new ComponentMaker2() {
-                public JComponent[] getComponents() {
+            dv.addPane( "Slice view", new ComponentMaker() {
+                public JComponent getComponent() {
                     if ( endim != ndim ) {
-                        return new CubeViewer( image, null ).getComponents();
+                        return new SliceViewer( image, null );
                     }
                     else {
-                        return new CubeViewer( image, ast ).getComponents();
+                        return new SliceViewer( image, ast );
                     }
                 }
             } );

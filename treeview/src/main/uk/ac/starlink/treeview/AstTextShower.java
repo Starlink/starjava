@@ -4,7 +4,6 @@ import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.text.*;
 import uk.ac.starlink.ast.*;
 
@@ -22,28 +21,30 @@ public class AstTextShower extends JPanel {
     public AstTextShower( AstObject astob ) {
 
         /* Set layout for this component. */
-        setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+        setLayout( new BorderLayout() );
 
         /* Make containers to put controls into. */
+        Box controlbox = new Box( BoxLayout.Y_AXIS );
         Box commbox = new Box( BoxLayout.X_AXIS );
         Box fullbox = new Box( BoxLayout.X_AXIS );
         Box textbox = new Box( BoxLayout.X_AXIS );
 
         /* Set some borders. */
-        Border edges = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
-        commbox.setBorder( edges );
-        fullbox.setBorder( edges );
-        textbox.setBorder( 
-            BorderFactory.createCompoundBorder( 
-                BorderFactory.createLineBorder( Color.BLACK, 2 ),
-                BorderFactory.createMatteBorder( 5, 5, 5, 5, Color.WHITE ) ) );
+        TreeviewLAF.configureControl( commbox );
+        TreeviewLAF.configureControl( fullbox );
+        TreeviewLAF.configureMainPanel( textbox );
+
+        /* Arrange the components. */
+        controlbox.add( commbox );
+        controlbox.add( fullbox );
+        add( controlbox, BorderLayout.NORTH );
+        add( textbox, BorderLayout.CENTER );
 
         /* Construct the text area view and model. */
         final JTextArea ta = new JTextArea();
         final Document doc = ta.getDocument();
         ta.setEditable( false );
         textbox.add( ta );
-        textbox.add( Box.createGlue() );
 
         /* Set up a channel for writing AstObjects into the text area. */
         final Channel chan = new Channel() {
@@ -106,11 +107,6 @@ public class AstTextShower extends JPanel {
         bm.addActionListener( listen );
         b0.addActionListener( listen );
         bp.addActionListener( listen );
-
-        /* Put the constituent components into this container. */
-        add( commbox );
-        add( fullbox );
-        add( textbox );
 
         /* Click one of the buttons to trigger the initial display. */
         b0.doClick();
