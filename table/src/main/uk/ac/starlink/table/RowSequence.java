@@ -9,6 +9,9 @@ import java.io.IOException;
  * This object has a current row index which starts off at -1,
  * that is before the first row; the <tt>next</tt> method must be
  * invoked before the first row can be accessed.
+ * <p>
+ * A RowSequence cannot in general be expected to be used safely from 
+ * multiple threads.
  *
  * @author   Mark Taylor (Starlink)
  */

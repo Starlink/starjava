@@ -21,6 +21,11 @@ import java.util.List;
  * Additionally, if the {@link #isRandom} method returns <tt>true</tt>
  * then the random access methods {@link #getRow} and {@link #getCell}
  * may be used to access table contents directly.
+ * <p>
+ * For random tables, the <tt>getRow</tt> and <tt>getCell</tt> methods
+ * should be thread-safe.  Separate <tt>RowSequence</tt> objects obtained
+ * from the same table should be safely usable from different threads, 
+ * but a given <tt>RowSequence</tt> in general will not.
  *
  * @author   Mark Taylor (Starlink)
  */
