@@ -1,39 +1,3 @@
 <body>
 Defines an interface for access to astronomical tables.
-
-<h2>Cell contents</h2>
-<p>The StarTable interface, like the JTable interface, allows each cell
-in a table to contain any Object.  However, if all you know about
-something is that it is an Object, there is not much useful that 
-you can do with it.  A JTable by default looks for a number of
-types of objects and displays them specially (Dates, primitive wrapper
-objects), but anything else is just turned into a string using its
-<tt>toString</tt> method.
-
-<p>This package knows about a number of additional types, as listed
-below.  There is no requirement that the contents of a cell be one
-of these, but the classes in this package may be expected to deal
-sensibly with objects of these types, while other objects will just
-be treated as simple objects - turned into strings and not much else.
-It is therefore a good idea to have your <tt>StarTable</tt>s 
-present their data in accordance with the following guidelines.
-
-<ul>
-<li>Single numbers should be represented by one of the primitive wrapper types:
-    <pre>
-    Byte, Short, Integer, Long, Float, Double
-    </pre>
-<li>A 1-dimensional array should be represented as a normal java array;
-    an array of primitives should be used rather than an array of wrapper
-    objects where applicable (that is, use float[] not Float[]).
-<li>An array of characters should normally be represented as a String.
-<li>A 2-d array of characters should normally be represented as String[] array.
-<li>An N-dimensional array of objects or primitives should be represented
-    as a ShapedArray (though this won't be possible if it has more than
-    Integer.MAX_VALUE elements)
-</ul>
-It is recommended that complex numbers are represented in the same
-way as non-complex ones but with an extra dimension of size 2.
-
-
 </body>

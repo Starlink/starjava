@@ -146,7 +146,7 @@ public interface StarTable {
     /**
      * Returns the contents of a given table row.  The returned value is
      * equivalent to an array formed of all the objects returned by 
-     * <tt>getValueAt(irow,icol)</tt> for all the columns <tt>icol</tt> 
+     * <tt>getCell(irow,icol)</tt> for all the columns <tt>icol</tt> 
      * in sequence.
      *
      * @param  irow  the index of the row to retrieve

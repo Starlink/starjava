@@ -5,6 +5,10 @@ import java.io.IOException;
 /**
  * A column which can supply and possibly store cells in array-like storage
  * as well as supply column metadata.
+ * Note there is nothing in this class which describes the number of
+ * elements it contains (length of the column).  Columns are intended to be 
+ * managed by tables, and it is the table which should keep track of
+ * this information.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -70,6 +74,10 @@ public abstract class ColumnData {
      * @param   val  the object to store
      * @param   irow  the row to store it in
      * @throws  UnsupportedOperationException  if !{@link #isWritable}
+     * @throws  NullPointerException  if <tt>val==null</tt> and 
+     *          this column is not nullable
+     * @throws  ArrayStoreException  if <tt>val</tt> is not compatible
+     *          with the content class of this column
      * @throws  IOException  if there is some problem writing
      */
     public void storeValue( long irow, Object val ) throws IOException {
@@ -81,7 +89,7 @@ public abstract class ColumnData {
      * The implementation in the <tt>ColumnData</tt> class returns 
      * <tt>false</tt>
      *
-     * @return  true  iff {@link storeValue} can be used 
+     * @return  true  iff {@link #storeValue} can be used 
      */
     public boolean isWritable() {
         return false;
