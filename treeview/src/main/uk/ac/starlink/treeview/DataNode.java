@@ -11,7 +11,7 @@ import javax.swing.Icon;
  * methods which can be used to represent the node, such as a name, 
  * an icon and an opportunity to do custom configuration of an
  * object which provides more detailed (graphical) description of the node.
- *
+ * <p>
  * Implementing classes will normally also supply one or more constructors
  * based on other classes (for instance <code>String</code>, 
  * <code>File</code> or other types of <code>DataNode</code>) -
@@ -23,6 +23,11 @@ import javax.swing.Icon;
  * by this or other classes.  In this way a <code>DataNode</code> of
  * a given type does not need to know all about the kinds of child
  * nodes it can have.
+ * <p>
+ * Although you can implement this interface directly and everything 
+ * should work fine, it is probably a good idea to inherit from 
+ * {@link DefaultDataNode}.  The separation of interface and implementation
+ * is as much for clarity of documentation as anything.
  *
  * @author   Mark Taylor (Starlink)
  * @version  $Id$
