@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#   Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+#   Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
 #   reserved.
 
 cygwin=false;
@@ -48,7 +48,9 @@ export CLASSPATH
 
 if [ "$REALANTHOME" != "" ] ; then
   ANT_INSTALL="-Dant.install=$REALANTHOME"
+else
+  ANT_INSTALL="-emacs"
 fi
 
-bootstrap/bin/ant -emacs $ANT_INSTALL $*
+bootstrap/bin/ant -emacs "$ANT_INSTALL" $*
 
