@@ -1378,7 +1378,7 @@ from TOPCAT:
 existing ones:
 <dl>
 
-<dt>&IMG.MATCH; <ref id="MatchWindow">Match Tables</ref></dt>
+<dt>&IMG.MATCH1; <ref id="MatchWindow">Match Tables</ref></dt>
 <dd><p>Pops up a window which allows you to specify and execute various
     row matching operations.
     </p></dd>
