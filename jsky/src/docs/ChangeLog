@@ -1,0 +1,735 @@
+2002-08-11  Version 2.0
+
+	* Refactored catalog classes to be more flexible and allow for
+	  different URL and data formats (*** Incompatible Change ***).
+	  Replaced most of the classes in the "jsky.catalog.skycat"
+	  package with more generic versions under jsky.catalog.
+
+	* Added a new catalog package: "jsky.catalog.astrocat", which is
+	  based on a new XML format that can replace or be used along with
+	  the previously used Skycat catalog config file (skycat.cfg).
+	  The default list of available catalogs is now by default in the
+	  resource file resources/conf/AstroCat.xml (see the comments in
+	  resources/AstroCat.dtd for more information).
+	  
+	* Added support for the ISRA catalogs and image servers (see
+	  http://irsa.ipac.caltech.edu/).
+
+	* Added Performance improvements for displaying FITS image files.  New
+	  JDK1.4 features (memory mapped buffers) are now used to speed up
+	  image display for large images. 
+
+	* Changed the way image tiles are cached for FITS files. The new
+	  version uses the JAI tile cache and should be more efficient
+	  with memory. 
+	
+	* Note: JSky now requires JDK-1.4.0_01 and JAI-1.1.1_01, since
+	  earlier JDK versions contain bugs that caused the application to
+	  run out of memory! 
+
+	* Added special support for zooming out FITS images. In the
+	  previous version, large images had to be read in completely and
+	  then scaled down. Now the scaling is done while reading in the
+	  image using memory mapped buffers.
+
+	* Changed the source directory structure. Java classes are now under
+	  ./src, resources are under ./resources.
+
+	* Merged in changes from Sandy Grosvenor (GSFC) in the
+	  jsky.science, jsky.util, and jsky.util.gui packages. The changes
+	  include a new RangeSlider class (renamed previous RangeSlider
+	  class to VRangeSlider), some javadoc improvements, bug fixes,
+	  and a few new classes.
+
+	* Reformatted all java source files using IntelliJ Idea, to get a uniform
+	  indentation and tab width.
+
+	* Changed the font used for printing tables (class PrintableJTable) to be
+	  smaller, to save space.
+
+2002-02-28  Version 1.3
+	
+	* Tested with jdk1.4 (The source release contains a patched version of
+	  diva.jar that works with jdk1.4).
+
+	* Started internationalizing some of the user interface classes.
+	  There are now some new package subdirectories named i18n that
+	  contain property files with names like gui.properties, or
+	  gui_<locale>.properties.  These will eventually contain foreign
+	  language support. If you are interested in contributing
+	  translations, please send email to abrighton@gemini.edu.
+	
+	* Added the jsky.image.BasicImageReadableProcessor interface,
+	  which is now used by a number of image related classes (provided
+	  by Frank Tanner of STScI).
+
+	* Added support for Java based catalogs (contributed by Guillaume Helle). 
+	  A Java based catalog can be referenced in the catalog config file by 
+	  a URL of the form java://<className>?<arg1>&<arg2>&...&<argn>. The given 
+	  class should implement the jsky.catalog.Catalog interface.
+	  See jsky.catalog.skycat/TestCatalog.java for an example of usage.
+
+	* Added support for proxy servers in the catalog window.
+
+	* Upgraded to the latest JFreeChart version (0.7.3).
+	
+	* Various bug fixes and code improvements.  
+	
+2001-12-18  Version 1.2
+
+	* Changed widgets to conform more to the standard Java look and
+	  feel guidelines described in
+	  http://java.sun.com/products/jlf/ed2/book/index.html.
+
+	* Catalog classes: minor changes and bug fixes. Added a new method
+	  to the Catalog interface: "boolean setQueryRegionFromImage()",
+	  which can be used to stop the GUI from setting the query region
+	  from the image automatically.
+
+	* Fixed a number format bug in the "Select Area..." feature of the
+	  catalog window.
+
+	* Added support for local command catalogs under Windows (previously
+	  this only worked on UNIX systems).
+
+	* Catalog table display: added a tab to the Configure window where
+	  you can select which table columns to display or hide. The
+	  settings are remembered on a per catalog basis between sessions.
+
+	* Changed the label on the catalog window "Go" button to "Query".
+
+	* Added a catalog window menu item to toggle the visibility of the
+	  catalog tree subwindow (upper left). The setting is remembered
+	  between sessions.
+
+2001-10-22  Version 1.1
+
+	* Added an entry for the 2mass catalog to the default catalog
+	  config file (accessed via CDS) and added code to avoid an error
+	  message that you get when the query result is empty and does not
+	  contain a valid header.
+	
+	* The catalog browser now displays the copyright information for
+	  catalogs, if available (copyright field in catalog config file).
+
+	* Bug fix: Local catalogs are now searched in a background thread
+	  like remote catalogs, since the user may enter an object name
+	  that needs to be resolved by a name server, which could cause
+	  the application to hang if not done in a background thread.
+	  
+	* Fixed a bug where catalog symbols could end up using the
+	  composite selected for a graphics object.
+
+	* Added the jsky.catalog.gui.TableSelectionListenexr and related
+	  classes and code changes provided by Daniella Malin.
+
+	* Fixed some problems that showed up when displaying color images,
+	  such as JPEG (The pan window was not being updated correctly).
+
+	* Fixed problems displaying image and graphics when the image is
+	  flipped (ImageProcessor.setFlipX/Y).
+
+	* Replaced the H-Compress sources under jsky/ca/nrc/cadc with a
+	  jar file hcompress.jar, which is also available from
+	  http://cadcwww.hia.nrc.ca/software/hcompress/ (change in
+	  conf/config.sh.in).
+
+	* Changed the ImageDisplay, ImageZoom, ImagePanner, and
+	  PickObjects classes to use composition instead of
+	  inheritance. Previously protected members are now private, and
+	  some new accessor methods were added.
+
+	* Removed the jsky.catalog.astrores package and the dependence on the
+	  XML jar file xerces.jar. Also removed some astrores related fields
+	  from the FieldDesc interface (UCD, format, unit). 
+
+	* Updated the Diva jar file to diva-0.3.
+
+	* Fixed a bug in the display of the current pixel value in the bottom panel.
+	  
+
+2001-05-19  Version 1.0
+	
+	* Implemented the histogram equalization color scaling algorithm
+	  and enabled the button for it in the Colors popup window.
+
+	* The Colors popup window now displays the current colormap and
+	  color scale settings.
+
+	* Various changes in the jsky.image package to improve performance
+	  when setting image cut levels.
+
+	* Fixed a problem where the "Stop" button in the progress dialog
+	  for a catalog query did not always stop the background thread.
+
+	* Selecting a catalog from the catalog tree no longer starts the
+	  query automatically (selecting it from the catalog menu in the
+	  image window does though).
+
+	* Added tool tips to a number of widgets.
+
+	* Added popup menus to the catalog tree and table displays.  The
+	  new catalog tree menu allows you to copy and paste catalogs
+	  between catalog directories as well as change the order in which
+	  the catalogs are listed. Only the top level catalog list is
+	  editable.
+
+	* Added a new "Pick Objects" feature and menu item under the
+	  Catalogs menu. This pops up a window with a small zoom image
+	  that helps you locate an object (star, galaxy) in the main
+	  image. When you click in the main image, a centroid algorithm
+	  locates the center of the selected object, displays statistics
+	  about it, and optionally adds the information to a catalog
+	  table.
+
+2001-04-04  Version 0.24
+	
+	* Moved to JAI-1.1 (from JAI-1.0.2).  Note that this means you
+	  need to install the new JAI version. If you use the CLASSPATH
+	  install variant, make sure to modify conf/config.sh to include
+	  JAI in the class path and set LD_LIBRARY_PATH to include the JAI
+	  lib directory (on UNIX systems).
+	
+	* Added an arrow button in the upper right corner of the image
+	  window to toggle the visibility of the pan and zoom windows (Now
+	  you can hide the pan/zoom frame so that it doesn't block part of
+	  the image).
+
+	* Fixed a bug that caused the image history menu and cache to not
+	  be restored correctly and changed the suffix used for image files
+	  in the cache (~/.jsky/cache) to use .fits for FITS files, etc.
+
+	* Added support for ContentType=text/plain as the result of a
+	  query (needed for the Simbad "More Info" links). The text is
+	  displayed in the same way as HTML results in a popup window.
+
+	* Added a new class NamedCoordinates that combines an object name
+	  and the associated coordinates.
+
+	* Changed the package name for the CADC hcompress package back to
+	  the original ca.nrc.cadc.arch.io.
+
+2001-02-15  Version 0.23
+	
+	* Fixed a bug plotting catalog symbols for images with other than a
+	  J2000 equinox
+
+	* Minor bug fixes for replotting previously plotted catalogs
+
+	* Added method to get the center coordinates of the catalog symbol
+	  at the mouse position (class SkycatTablePlotter).
+	
+2001-02-15  Version 0.22
+	
+	* New feature: Graphics menu item: "Save Graphics with Image", 
+	  saves any drawings made via the graphics menu to a FITS binary 
+	  table in the image. The graphics are then reloaded automatically
+	  whenever the image is reloaded.
+
+	* Now you can delete a selected FITS extension/HDU (except not the
+	  primary extension).
+
+	* Now that FITS images can be edited (add/delete HDUs), there is also
+	  a popup dialog that asks if the modified image should be changed
+	  before switching to a new image.
+
+	* Changed the layout of the catalog window so that you can see the
+	  query parameters and results at the same time.
+
+	* Local catalogs can now also be searched in the same way as remote
+	  catalogs (same as skycat).
+
+	* Replaced the status bar (StatusPanel) at bottom of the image and
+	  catalog windows with a popup progress window (ProgressPanel)
+	  and simplified the handling of background tasks, fixing a
+	  number of bugs along the way.
+
+	* Catalog queries are now started automatically (you don't have to
+	  push the "Go" button.
+
+	* Added a tiled background image to the desktop when using
+	  internal frames.
+
+	* New catalog window menu item: "Save with image".  Now you can
+	  save catalog tables as binary FITS tables along with the
+	  image. The symbol plotting information is also saved, so that
+	  when you reload the image latter on, the catalog symbols are
+	  automatically plotted. (This is compatible with the same feature
+	  in Skycat.)
+
+	* JSkyCay now displays the version number in the frame header.
+
+	* Fixed a bug in printing multi-page catalog tables, where only the
+	  first page printed.
+
+	* Various bug fixes.
+	
+2001-01-09  Version 0.21
+
+	* Fixed a bug in the "New Window" menu item when using internal
+	  frames.
+
+	* Upgraded nom.tam.fits package to the latest version (jar files
+	  included in release again now)
+
+	* Added NASA/GSFC JSky sources (in jsky.science and
+	  jsky.util). These were taken from the SEA/VTT source tree.
+
+	* Added a new package defining a TimeLine widget: jsky.timeline.
+	  This is a slightly modified version of the the SEA/VTT TimeLine
+	  class.
+
+	* Replaced the Java-1.x based Graph package with JFreeChart, which
+	  is based on Swing widgets (See the README file for the URL).
+
+	* Added a new widget: jsky.util.gui.RangeScale, which is a
+	  modified version of a VisAD widget by the same name, used for
+	  editing a range of values, such as low and high cut levels.
+
+	* Changed the image cut levels window to use the new JFreeChart
+	  package and replaced the two sliders with the new RangeScale
+	  widget. Since the new graph display is Swing based, the cut
+	  levels window now also works with internal frames.
+
+	* Added new items to the Graphics "Fill" and "Outline" menus to
+	  specify no fill or outline.
+
+	* Added a "Composite" submenu to the Graphics menu, for changing
+	  the transparency of graphics items.
+
+	* Removed the dependency on TclJava/Jacl package, which was used
+	  to deal with Tcl style lists and to evaluate plot symbol
+	  expressions based on table column values - for performance
+	  reasons. Now the jsky.util.TclUtil class has been rewritten to
+	  handle Tcl lists in a faster and more simple way (we don't need
+	  the complete Tcl parsing functionality here).  Expressions are
+	  now handled by a new class and package (see below).
+	
+	* Added a new class jsky.util.JavaExpr, which is based on the JEL
+	  (Java Expression Language) package. The new class is used to
+	  evaluate dynamic java expressions at runtime. The expressions
+	  are specified in the catalog config file (skycat.cfg) or in the
+	  window interface (see the Configure button) and may contain
+	  variables, which are the column heading names for a catalog
+	  table.  For backward compatibility with the skycat config file
+	  syntax, variables may still be specified as "$colName", however
+	  now the syntax is Java based, so just "colName" will also
+	  work. Tcl and Java expression syntax are fairly similar, so in
+	  most cases there will be no difference between the old skycat
+	  config entries and the new ones, however the new syntax is Java
+	  based. The expressions are compiled to Java byte codes on the
+	  fly and evaluated with different values for each line in a
+	  catalog table.
+
+	* Reimplemented the catalog symbol plotting code to remove the
+	  dependence on the Diva package. Using specialized drawing
+	  methods instead of the more general Diva figures improved the
+	  performance greatly, especially for large tables, where
+	  thousands of symbols need to be drawn.
+
+2000-09-15  Version 0.19
+
+	* Added a new class: jsky.image.graphics.ShapeUtil, with utility
+	  methods for creating various shapes for drawing, including
+	  support for drawing arrows.
+
+	* Added a rectangle to the zoom window (jsky.image.gui.ImageZoom)
+	  to show the center pixel.
+
+	* Added a compass symbol to the pan window (jsky.image.gui.ImagePan)
+	  to show WCS north and east.
+
+	* Changed the direction of the X axis for blank images in
+	  WCSTransform to have east at left.
+
+	* Added a "WCS measure band" feature to measure world coordinate
+	  distances in the image window (drag mouse button 2 or 3,
+	  pressing shift or control changes the display).
+
+	* The zoom window now also works while the mouse button is pressed.
+
+	* Added a check for images without WCS support in
+	  DivaMainImageDisplay.loadCachedImage().
+
+	* Added support for B1950 equinox when searching catalogs and
+	  changed the text box to a menu containing J2000 and
+	  B1950. Currently, all coordinates are displayed in J2000,
+	  although you can enter them also in B1950. An option may be
+	  added later to set the equinox for display.
+
+	* Changed the text in the image history menu (Go menu) to include
+	  the file name, object name and center position, and added a
+	  menu item to clear the history.
+
+	* Made the catalog history menu persistent (like the image history
+	  menu), so that the most commonly used catalogs are accessible
+	  from the Go menu.  The image and catalog history information is
+	  saved to a file under ~/.jsky (or c:/windows/.jsky) when the
+	  application exits (only implemented for jdk1.3 or later).
+
+	* Added bounds checks in jsky.coords.WCSTransform.
+
+	* Added a comment column to the window displaying the FITS keywords.
+	  Now there are 3 columns: keyword, value, and comment.
+
+	* Added the jsky.util.gui.TableUtil class, with utility methods for
+	  dealing with JTables and moved the JTable related methods from
+	  jsky.util.JavaUtil to the new class.
+
+	* Added support for displaying FITS tables as catalogs.
+
+	* Added code to display the FITS header for the selected HDU. If the
+	  FITS header window is open when you click on a line in the FITS
+	  extensions popup window, the header for that extension will be
+	  displayed.
+
+	* Added the jsky.util.QuickSort class (from the OT sources).
+
+	* Added catalog window menu item: "Delete Selected Rows".
+
+	* Added a "Graphics" menu to the image display window, with entries
+	  for drawing figures.
+	
+
+2000-08-28  Version 0.18
+
+	* Split the jsky.util.HMS class into HMS and DMS classes (for
+	  hours:min:sec and deg:min:sec).
+
+	* Replaced the use of jsky.util.Format with java.text.NumberFormat
+	  (for formatting numbers) and deleted the Format class.
+
+	* Fixed a bug in the transformation of graphics objects, such as
+	  catalog symbols (The symbols were not being translated and
+	  scaled correctly, since the AffineTransform object was not
+	  always up to date).
+
+2000-08-27  Version 0.17
+
+	* Improvements in the handling of blank images (with WCS support,
+	  for catalog plotting)
+
+	* Big performance improvements for sorting tables by clicking on a
+	  given column heading (in class JSortedTable).
+
+	* Added a "Configure..." button to the catalog table display window
+	  and a new GUI for configuring the plot symbols for catalogs.
+	  The changes are saved in ~/.jsky/skycat.cfg, in the same format
+	  as the skycat config file.
+
+	* Added support for saving user preferences, by default under
+	  ~/.jsky.  Now the window positions and sizes are saved and
+	  restored, as well as the image color and cut level settings (on
+	  a per image basis). The toolbar options are also saved and
+	  restored.  Most of the work is handled by the
+	  jsky.util.Preferences class.
+
+	* In jsky.image.ImageProcessor: removed all calls to update().
+	  Now you need to call ImageProcessor.update() after changing any
+	  of the ImageProcessor settings (NOTE: INCOMPATIBLE CHANGE).  The
+	  change was necessary for performance reasons, to avoid unneeded
+	  calls to update.
+
+	* Fixed table/plot symbol selection bugs with sorted tables (table sorting
+	  was not taken into account when selecting the plot symbols).
+
+2000-08-09  Version 0.16
+
+	* Fixed a problem displaying numbers in catalog tables with jdk1.3
+	  (went back to default table renderer for numbers).
+
+	* Added support for popup menus in the GenericToolBar class.
+
+2000-08-03  Version 0.15
+
+	* Fixed problems with interrupting background threads
+
+	* For JSkyCat: changed the default to use internal frames under Windows.
+	
+	* Added support for loading H-Compressed images (based on sources
+	  provided by Patrick Dowler <Patrick.Dowler@nrc.ca> of the CADC.
+	  (Reading of gzipped FITS files is also supported by the Fits I/O
+	  library being used). Note that saving of compressed images is not
+	  supported yet.
+	  
+	* Fixed a colormap calculation bug that caused FITS images to look
+	  much darker and duller than they should.
+	
+	* Fixed a bug in the display of the pixel values in the status panel 
+	  (the Y-axis was inverted for FITS files).
+
+	* Added code to select the correct row in a catalog table when the
+	  plot symbol is selected and to scroll the table to make the row
+	  visible, if needed, and added code to select the correct symbol
+	  when a table row is selected.
+
+	* Added history items to the image and catalog window "Go" menus,
+	  to return to a previously viewed image, catalog, table, etc.
+
+	* Added code to send HTML pages to netscape, if it is running, and
+	  otherwise use a Java based HTML viewer.
+
+2000-07-24  Version 0.13
+
+	* Added support for saving and printing images and catalog tables
+	  as well as sorting catalog tables by column (all based on
+	  modified versions of NASA SEA/VTT classes).
+
+	* Added a catalog menu for the image and catalog windows, which is
+	  generated based on the catalog config file (like the Skycat
+	  Data-Servers menu).
+
+	* Implemented the "Select Image Area" button in the catalog window
+	  and automatically default to using the settings from the current
+	  image.
+
+	* Included a copy of the skycat.cfg catalog config file in the
+	  jsky.catalog.skycat package and changed the fallback default
+	  from the ESO web version to this local one. You can override
+	  this by passing -Djsky.catalog.skycat.config=$(SKYCAT_CONFIG) to
+	  java at startup.
+
+	* Tested under JDK1.3 and fixed some JTable related problems that
+	  turned up.
+
+	* Switched from the IBM XML4J to the Apache Xerces XML library and
+	  updated the jsky.catalog.astrores classes to use the new SAX2 API.
+
+	* Ported the Gemini Observing Tool (OT) to use Swing and JSky
+	  widgets.  A first version of this package (jsky.app.ot) is also
+	  available from the JSky ftp repository
+	  (See ftp://ftp.eso.org/pub/archive/jsky/ot/README.html).
+
+2000-06-02  Version 0.12
+
+	* Changed the release tar file to include the class files,
+	  documentation and required jar files, for convenience.
+
+	* Added support for groups of graphic items, which are selected as
+	  one item
+	
+	* Added support for master/slave graphic items, where dragging one
+	  item also drags the others, but, unlike groups, they are not
+	  selected as one object
+
+	* Added support for "listeners" on graphic objects, so you can be
+	  notified whenever an object is selected, moved or resized
+
+2000-05-26  Version 0.11 
+
+	* Implemented support for Skycat style catalogs and symbol
+	  plotting.
+
+	* Added graphics support (based on the Diva package) for drawing
+	  on the image canvas, plotting symbols, etc.
+
+	* Added a number of interfaces for image display: BasicImageDisplay,
+	  GraphicsImageDisplay, MainImageDisplay, for coordinate conversion:
+	  CoordinateConverter, WorldCoordinateConverter, and for graphics:
+	  CanvasGraphics.
+
+	* Added a "navigator" package that combines the image display and
+	  catalog browsing features.
+
+	* Changed the jskycat application class to be based on the navigator 
+	  classes.
+
+	* Update the jsky/bin/jskycat script (assumes that you put the jar files
+	  in jsky/lib).
+	  
+	* Removed the sources for these external packages: nom.tam.fits, graph.
+	  Now you just include the necessary jar files in the classpath in the
+	  master makefile. The JSky ftp dir contains a tar file (jars.tar.gz)
+	  with all of the necessary jar files.
+
+	* Moved the WCSTransform class from GOV.* to jsky.coords and changed it
+	  to implement the new WorldCoordinateConverter interface.
+
+	* Changed the layout of the image display window (ImageDisplayCtrl) to
+	  save space and leave more room for the image.
+
+	* Added image rotation to the ImageProcessor class and the user interface,
+	  removed flipXY. (Currently the graphics classes only transform figures 
+	  correctly for angles like +-90 or +=180 deg. I'm still working on a
+	  fix. One fundamental question is whether to transform graphics at all,
+	  or just to redraw them from scratch using world (or other) coordinates.
+
+2000-02-08  Version 0.10 
+
+	* Updated the FITS code to use the latest FITS library version
+	  from Thomas McGlynn. The new library supports image tiles, so
+	  that you don't have to read the entire image into memory. This
+	  improves performance for large images, especially files with
+	  image extensions.  Performance is better for short images
+	  (BITPIX=16) than for floating point though.
+
+	* Implemented incremental image loading for files and URLs. For
+	  URLs, you can see the download progress. For files, you may also
+	  see the individual image tiles being displayed, depending on the
+	  performance.
+
+	* Added a toolbar to the image window with buttons for going back
+	  and forth between images, for opening a new image and for
+	  interrupting a download in progress.
+
+	* Added a status bar at the bottom of the main image window to
+	  display the download progress for URLs.
+
+	* Added a new class MainImageDisplay that adds features to the
+	  ImageDisplay class that are needed by "main" image windows, but
+	  not by others, such as the zoom window or pan window.
+
+	* Implemented the CatalogNavigator class, which displays a tree of
+	  catalogs and lets you navigate the catalog hierarchy and make
+	  querries.  The CatalogNavigator can display XML (astrores DTD)
+	  files and HTML.  A subclass of CatalogNavigator called
+	  JSkyCatNavigator adds the ability to display images as well.
+	  The CatalogNavigator also has a toolbar that lets you go back
+	  and forth between catalogs, open a new catalog or interrupt a
+	  search or download operation.
+
+1999-12-23  Version 0.9  
+
+	* Fixed a number of bugs in the handling of floating point
+	  and byte images.
+
+	* Fixed some bugs in the handling of BZERO, BSCALE, and BLANK.
+
+	* Added RenderingHints argument to ImageOps.rescale(), needed to
+	  convert the image to "float" after processing with BZERO and
+	  BSCALE (the rescale operator does not do this automatically,
+	  which could result in image values being truncated to 0 after
+	  applying BZERO and BSCALE).
+
+	* Fixed some problems with the pan window and small images.
+
+	* Changed the XML parser used by the astrores classes to IBM's
+	  XML4J 3.0.0EA3, after experiencing problems with the older 
+	  Sun XML parser. You can get the IBM XML parser from
+	  http://www.alphaworks.ibm.com/tech/xml4j. Note that the catalog
+	  classes are still in the early development stage.
+	  
+	
+1999-12-18  Version 0.8 
+
+	* Added View menu item "Scale Interpolation" to select the
+	  interpolation for scaling and zooming the image.
+
+	* Added View menu item "Smooth Scrolling", to enable immediate
+	  mode panning.
+
+	* Added RenderingHints argument to ImageOps.scale() and used it to
+	  turn off tile caching in the zoom window, which was causing
+	  "out of memory" problems.
+
+	* Added getFits method to FITSImage to return the internal Fits
+	  object.
+
+	* Replaced the inner "for loop" in the FITS data classes with
+	  System.arraycopy(), which should be faster, since it is
+	  implemented in native code and doesn't check the array bounds
+	  each time through the loop.
+
+	* Changed the colormap names.
+
+1999-12-14  Version 0.7  
+
+	* Added color scaling algorithms (square root, log).
+
+	  Images are now centered when loaded (previously only small
+	  images were centered).
+
+	  Implemented support for FITS extensions. Now a window pops
+	  displaying a table of FITS HDUs and allows you to choose an
+	  image to display (tables not supported yet).
+	  A new package was added for this: org.eso.jsky.image.fits.gui.
+
+	  Moved ImageChangeEvent to the org.eso.jsky.image package, since
+	  it is needed by some classes there. Also added support for
+	  colormap and cut level change events.
+
+	  the ImageProcessor class is no longer dependent on the
+	  ImageDisplay class. Instead, the setSourceImage() and
+	  autoSetCutLevels() methods now have an extra argument, which
+	  specifies the region of interest or visible area of the image.
+	  This is needed to avoid having to scan the entire image when
+	  automatically setting the cut levels. When you set the source
+	  image for the image processor, you need to pass a Rectangle2D
+	  argument describing the origin, width, and height of the visible
+	  area of the image, (or the area of interest), in the coordinates
+	  of the source image.
+
+1999-12-10    
+
+	* Added "Look and Feel" menu and org.eso.jsky.util.LookAndFeelMenu
+	  class.
+
+1999-12-09    
+
+	* Added color scaling algorithms for log scale and square root
+	  scale and implemented the "Reset" button in the Color popup
+	  window.
+
+1999-12-08  version 0.6   
+
+	* Changed the package structure to use org.eso.jsky.* for the ESO
+	  JSky related classes (instead of just jsky.*).
+	
+	  Added color handling. Now you can select colormaps and intensity
+	  tables and manipulate the colormap with the colorbar. (Only
+	  linear scaling is implemented in this version.)
+
+	  Replaced the ImageStatistics operator with two new ones: MinMax
+	  gets the min and max pixel values, ignoring bad pixels.
+	  CutLevel tries to find the best cut levels for the visible area
+	  of the image.
+
+	  Makefile changes: All of the makefiles changed. Each makefile
+	  now defines the $(TOP) variable, so that it doesn't need to be
+	  defined in master.mk. This makes it more likely that the
+	  master.mk include file will not need to be edited at all
+	  (if the default classpath is OK).
+
+	  Now using JAI-1.0.1, which is installed into the JDK1.2.x dir,
+	  so it no longer needs to be in the classpath.
+
+	  Added support for world coordinates and conversion between pixel
+	  and world coordinates (Thanks to Jeremy Jones
+	  <Jeremy.E.Jones@gsfc.nasa.gov> for providing the Java port of
+	  Doug Mink's wcssubs package).
+	   
+	  Added support for 3 and 4 dimensional FITS images, where the 3rd
+	  and 4th dimensions are of size 1 (Thanks to Jeremey Jones for
+	  the fix).
+
+	  Did some performace tuning.
+
+1999-11-23  version 0.4   
+
+	* Fixed a number of bugs and optimized performance by making sure
+	  no unecessary image generation is done. Also added special
+	  handling for the pan window image.  Now the FITS codec generates
+	  a small preview image on request.  The median-filter code is
+	  temporarily disabled in this version, as is the handling of
+	  BLANK pixels. It will reappear in a later version.
+	    
+	  NOTE: The next version will have a different package structure:
+	  org.eso.jsky.image, instead of jsky.image, etc...
+
+1999-11-15  version 0.3  
+
+	* Started setting up an ftp repository for JSky. Minor changes in
+	  top level Makefile and scripts.
+
+1999-11-15  version 0.2    
+
+	* Fixed a number of bugs dealing with panning and zooming. The
+	  previous version had problems with images that were not
+	  square. Also fixed the the flipX/Y and rotate methods.
+
+1999-06-03  Version 0.1  
+
+	* Initial version, including basic JAI FITS support, image display
+	  widgets (ImageDisplay, ImageDisplayControl), and basic catalog
+	  widgets (Catalog, LocalCatalog, TableDisplay).
+
