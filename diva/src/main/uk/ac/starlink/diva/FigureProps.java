@@ -111,7 +111,8 @@ public class FigureProps
     /**
      * The InterpolatorFactory reference.
      */
-    private InterpolatorFactory interpolatorFactory = InterpolatorFactory.getReference();
+    protected InterpolatorFactory interpolatorFactory = 
+        InterpolatorFactory.getReference();
 
     /**
      * A String for a text display.
@@ -136,6 +137,15 @@ public class FigureProps
     public FigureProps()
     {
         reset();
+    }
+
+    /**
+     *  Copy constructor.
+     */
+    public FigureProps( FigureProps props )
+    {
+        reset();
+        copy( props );
     }
 
     /**
@@ -239,6 +249,29 @@ public class FigureProps
         setText( null );
         setFont( null );
         setComposite( null );
+    }
+
+    /**
+     *  Copy all items from another instance.
+     */
+    public void copy( FigureProps props )
+    {
+        setType( props.getType() );
+        setX1( props.getX1() );
+        setY1( props.getY1() );
+        setX2( props.getX2() );
+        setY2( props.getY2() );
+        setXArray( props.getXArray() );
+        setYArray( props.getYArray() );
+        setWidth( props.getWidth() );
+        setHeight( props.getHeight() );
+        setOutline( props.getOutline() );
+        setFill( props.getFill() );
+        setInterpolator( props.getInterpolator() );
+        setThickness( props.getThickness() );
+        setText( props.getText() );
+        setFont( props.getFont() );
+        setComposite( props.getComposite() );
     }
 
     /**
