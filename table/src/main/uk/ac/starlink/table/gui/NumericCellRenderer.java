@@ -37,8 +37,6 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     private boolean likeHeading;
     private String badText;
     private Color badColor;
-    private Color bgColor;
-    private Color fgColor;
     private Object badValue = new Object();
     private Class clazz;
     private Font font;
@@ -110,8 +108,6 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
      */
     protected void setValue( Object value ) {
         setText( null );
-        setBackground( bgColor );
-        setForeground( fgColor );
         Object obj;
 
         /* Is it bad? */
