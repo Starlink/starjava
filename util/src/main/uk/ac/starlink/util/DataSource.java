@@ -39,7 +39,7 @@ public abstract class DataSource {
     { clearState(); }
 
     /** The number of bytes read by the {@link characterise} method. */
-    private static final int TESTED_BYTES = 512;
+    private static final int TESTED_BYTES = 256;
 
     /** Maximum line length for stream considered as ASCII. **/
     private static final int MAX_LINE_LENGTH = 240;
@@ -85,7 +85,7 @@ public abstract class DataSource {
             byte[] magic = new byte[ nReq ];
             int nGot = raw.read( magic );
             raw.reset();
-            this.compress = Compression.getCompression( magic );
+            compress = Compression.getCompression( magic );
             this.strm = compress.decompress( raw );
         }
         return compress;
@@ -227,7 +227,7 @@ public abstract class DataSource {
             /* Mark it, read enough bytes into the supplied buffer, 
              * and reset to the start. */
             strm.mark( nReq );
-            nGot = strm.read( buffer );
+            nGot = strm.read( buffer, 0, nReq );
             strm.reset();
 
             /* Record whether the file is empty or not. */
