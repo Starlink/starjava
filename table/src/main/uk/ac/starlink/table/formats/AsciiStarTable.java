@@ -57,11 +57,13 @@ import uk.ac.starlink.util.DataSource;
  *     </li>
  * <li>Empty lines are ignored</li>
  * <li>Anything after a hash character "#" (except one in a quoted string)
- *     on a line is ignored as far as table data goes.  
- *     However, lines which start with a "#" at the start of the table 
+ *     on a line is ignored as far as table data goes;
+ *     any line which starts with a "!" is also ignored.
+ *     However, lines which start with a "#" or "!" at the start of the table 
  *     (before any data lines) will be interpreted as metadata as follows:
  *     <ul>
- *     <li>The last "#"-starting line before the first data line may contain
+ *     <li>The last "#"/"!"-starting line before the first data line may 
+ *         contain
  *         the column names.  If it has the same number of fields as
  *         there are columns in the table, each field will be taken to be
  *         the title of the corresponding column.  Otherwise, it will be
@@ -192,6 +194,7 @@ public class AsciiStarTable extends StreamStarTable {
     protected List readRow( PushbackInputStream in ) throws IOException {
         List cellList = new ArrayList();
         while ( cellList.size() == 0 ) {
+            boolean startLine = true;
             for ( boolean endLine = false; ! endLine; ) {
                 int c = in.read();
                 switch ( (char) c ) {
@@ -220,10 +223,23 @@ public class AsciiStarTable extends StreamStarTable {
                         in.unread( c );
                         cellList.add( readString( in ) );
                         break;
+                    case '!':
+                        if ( startLine ) {
+                            if ( ! dataStarted_ ) {
+                                comments_.add( eatLine( in ) );
+                            }
+                            else {
+                                eatLine( in );
+                            }
+                            endLine = true;
+                            break;
+                        }
+                        // if not at start of line fall through to...
                     default:
                         in.unread( c );
                         cellList.add( readToken( in ) );
                 }
+                startLine = false;
             }
         }
         dataStarted_ = true;
