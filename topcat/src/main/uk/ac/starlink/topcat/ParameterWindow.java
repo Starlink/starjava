@@ -56,9 +56,10 @@ public class ParameterWindow extends TopcatViewWindow
     private static final ValueInfo URL_INFO =
         new DefaultValueInfo( "URL", URL.class, "URL of original table" );
     private static final ValueInfo NCOL_INFO =
-        new DefaultValueInfo( "Columns", Integer.class, "Number of columns" );
+        new DefaultValueInfo( "Column Count", Integer.class, 
+                              "Number of columns" );
     private static final ValueInfo NROW_INFO =
-        new DefaultValueInfo( "Rows", Long.class, "Number of rows" );
+        new DefaultValueInfo( "Row Count", Long.class, "Number of rows" );
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.topcat" );
