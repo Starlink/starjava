@@ -70,7 +70,7 @@ public abstract class RestrictedColumnComboBoxModel
     }
 
     public synchronized void columnRemoved( TableColumnModelEvent evt ) {
-        int index = evt.getToIndex();
+        int index = evt.getFromIndex();
         TableColumn tcol = (TableColumn) modelColumns.get( index );
         modelColumns.remove( tcol );
         int pos = activeColumns.indexOf( tcol );
