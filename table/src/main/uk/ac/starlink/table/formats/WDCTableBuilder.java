@@ -38,8 +38,8 @@ public class WDCTableBuilder implements TableBuilder {
 
         /* Return a new table based on this understanding. */
         WDCStarTable st = new WDCStarTable( wdcReader, datsrc );
-        // st.setURL( datsrc.getURL() );
-        // st.setName( datsrc.getName() );
+        st.setURL( datsrc.getURL() );
+        st.setName( datsrc.getName() );
         return st;
     }
 

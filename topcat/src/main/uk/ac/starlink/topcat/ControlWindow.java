@@ -793,7 +793,9 @@ public class ControlWindow extends AuxWindow
             }
             try {
                 table = Tables.randomTable( table );
-                addTable( Tables.randomTable( table ), "dropped", true );
+                String loc = table.getName();
+                loc = loc == null ? "dropped" : loc;
+                addTable( table, loc, true );
                 return true;
             }
             catch ( IOException e ) {

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -50,6 +52,7 @@ public class VOStarTable extends AbstractStarTable {
         this.tdata = votable.getData();
         int ncol = tdata.getColumnCount();
         colinfos = new ColumnInfo[ ncol ];
+        setName( calculateName( votable ) );
     }
 
     public int getColumnCount() {
@@ -159,10 +162,6 @@ public class VOStarTable extends AbstractStarTable {
         return params;
     }
 
-    public String getName() {
-        return votable.getName();
-    }
-
     public List getColumnAuxDataInfos() {
         return auxDataInfos;
     }
@@ -194,6 +193,56 @@ public class VOStarTable extends AbstractStarTable {
         }
     }
     
+    /**
+     * Works out a suitable name for a given table element.
+     *
+     * @param  table element
+     * @return  label string
+     */
+    private static String calculateName( TableElement table ) {
+
+        /* If there is a name attribute, use that. */
+        if ( table.getName() != null ) {
+            return table.getName();
+        }
+
+        /* Otherwise, try to get a system ID (document base name). */
+        String sysid = table.getSystemId();
+
+        /* Shorten the system ID to a reasonable length. */
+        if ( sysid != null ) {
+            int sindex = sysid.lastIndexOf( '/' );
+            if ( sindex < 0 || sindex == sysid.length() - 1 ) {
+                sindex = sysid.lastIndexOf( '\\' );
+            }
+            if ( sindex > 0 && sindex < sysid.length() - 1 ) {
+                sysid = sysid.substring( sindex + 1 );
+            }
+        }
+
+        /* Work out whether how many TABLE elements there are in the 
+         * document. */
+        Element tabEl = table.getElement();
+        Element top = tabEl.getOwnerDocument().getDocumentElement();
+        NodeList tables = top.getElementsByTagName( "TABLE" );
+        int index = 0;
+        int ntab = tables.getLength();
+        if ( ntab > 1 ) {
+            for ( int i = 0; i < ntab; i++ ) {
+                if ( tables.item( i ) == tabEl ) {
+                    index = i + 1;
+                    break;
+                }
+            }
+        }
+        if ( index == 0 ) {
+            return sysid == null ? "votable" : sysid;
+        }
+        else {
+            return ( sysid == null ? "" : sysid )
+                 + "#" + index;
+        }
+    }
 
     /**
      * Returns a ValueInfo object suitable for holding the values in a

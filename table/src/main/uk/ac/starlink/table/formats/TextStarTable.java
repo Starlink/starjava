@@ -74,7 +74,14 @@ public class TextStarTable extends RandomStarTable {
      *
      * @param  stream  the data stream containing the table text
      */
-    public TextStarTable( InputStream stream ) throws IOException {
+    public TextStarTable( DataSource datsrc ) throws IOException {
+
+        /* Get the input stream. */
+        InputStream stream = datsrc.getInputStream();
+
+        /* Configure from the data source. */
+        setName( datsrc.getName() );
+        setURL( datsrc.getURL() );
 
         /* Get a List of Lists of Strings for the table data. */
         readStringCells( stream );

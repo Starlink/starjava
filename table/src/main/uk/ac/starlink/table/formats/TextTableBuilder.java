@@ -22,6 +22,6 @@ public class TextTableBuilder implements TableBuilder {
 
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom )
             throws IOException {
-        return new TextStarTable( datsrc.getInputStream() );
+        return new TextStarTable( datsrc );
     }
 }
