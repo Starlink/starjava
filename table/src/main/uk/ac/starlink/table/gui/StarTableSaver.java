@@ -3,6 +3,7 @@ package uk.ac.starlink.table.gui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.sql.DriverManager;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
@@ -169,9 +170,13 @@ public class StarTableSaver extends JOptionPane {
                         String loc = locField.getText();
                         if ( loc != null && loc.trim().length() > 0 ) {
                             String format = getFormat();
-                            saveTable( getStarTableOutput(), startab, loc,
-                                       format, parent );
-                            done = true;
+                            File floc = new File( loc );
+                            if ( ! floc.exists() ||
+                                 confirmOverwrite( parent, floc ) ) {
+                                saveTable( getStarTableOutput(), startab, loc,
+                                           format, parent );
+                                done = true;
+                            }
                         }
                         break;
                     case CANCEL_OPTION:
@@ -283,8 +288,11 @@ public class StarTableSaver extends JOptionPane {
                           == JFileChooser.APPROVE_OPTION ) {
             String loc = chooser.getSelectedFile().toString();
             String format = getFormat();
-            saveTable( getStarTableOutput(), startab, loc, format, parent );
-            done = true;
+            File floc = new File( loc );
+            if ( ! floc.exists() || confirmOverwrite( parent, floc ) ) {
+                saveTable( getStarTableOutput(), startab, loc, format, parent );
+                done = true;
+            }
         }
         return done;
     }
@@ -354,5 +362,32 @@ public class StarTableSaver extends JOptionPane {
         this.sqlDialog = sqlDialog;
     }
 
-
+    /**
+     * Requests confirmation from the user that an existing file can be
+     * overwritten.
+     *
+     * @param  parent   the parent component, used for positioning 
+     *         dialog boxes
+     * @param  name of the file to overwrite
+     * @return  <tt>true</tt> if the user agrees it's OK to overwrite
+     */
+    private boolean confirmOverwrite( Component parent, File loc ) {
+        String[] msg = new String[] {
+            "You have selected the output file " + loc + ".",
+            "A file with this name already exists, " +
+            "do you wish to overwrite it?",
+            "",
+            "IMPORTANT: in some cases, overwriting a file while it is being",
+            "edited in TOPCAT can cause an error, losing the data completely.",
+            "If in doubt, you are advised to save using a new name.",
+        };
+        Object cancelOption = "Cancel";
+        Object overwriteOption = "Overwrite";
+        Object[] options = new Object[] { cancelOption, overwriteOption };
+        int result = JOptionPane
+                    .showOptionDialog( parent, msg, "Confirm overwrite", 0,
+                                       JOptionPane.WARNING_MESSAGE, null,
+                                       options, cancelOption );
+        return result == 1;
+    }
 }
