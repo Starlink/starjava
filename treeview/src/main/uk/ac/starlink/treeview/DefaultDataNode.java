@@ -45,13 +45,13 @@ public class DefaultDataNode implements DataNode {
     }
 
     /**
-     * Constructs a <code>DefaultDataNode</code> from an Exception.
+     * Constructs a <code>DefaultDataNode</code> from a Throwable.
      *
-     * @param  ex  the exception
+     * @param  th  the throwable
      */
-    public DefaultDataNode( Exception ex ) {
-        this( ex.getMessage() );
-        ex.printStackTrace();
+    public DefaultDataNode( Throwable th ) {
+        this( th.getMessage() );
+        th.printStackTrace();
         nodetype = "Error message";
         this.name = "Error";
         setLabel( name );

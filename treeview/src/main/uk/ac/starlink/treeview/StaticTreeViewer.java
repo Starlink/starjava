@@ -168,8 +168,8 @@ public class StaticTreeViewer extends JFrame {
         } );
 
         /* Set up default sizes for the two panels in the splitter. */
-        Dimension treesize = new Dimension( 450, 400 );
-        Dimension detailsize = new Dimension( 450, 400 );
+        Dimension treesize = new Dimension( 500, 400 );
+        Dimension detailsize = new Dimension( 500, 400 );
 
         /* Construct the container for the tree. */
         final JScrollPane treePanel = new JScrollPane( tree );
@@ -190,7 +190,7 @@ public class StaticTreeViewer extends JFrame {
         javax.swing.Timer timer = 
             new javax.swing.Timer( 3000, new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
-                    treePanel.setMinimumSize( new Dimension( 100, 100 ) );
+                    treePanel.setMinimumSize( new Dimension( 200, 100 ) );
                 }
             } );
         timer.setRepeats( false );
@@ -346,6 +346,7 @@ public class StaticTreeViewer extends JFrame {
             statWatcher.showNodeCount();
         }
         timer.start();
+        splitter.validate();
     }
 
     private void setDetailPane( JComponent detail ) {
@@ -590,8 +591,7 @@ public class StaticTreeViewer extends JFrame {
                         (DefaultMutableTreeNode) treeModel.getRoot();
                     try {
                         File file = fileChooser.getSelectedFile();
-                        DataNode dnode = nodeMaker
-                                        .makeDataNode( File.class, file );
+                        DataNode dnode = nodeMaker.makeDataNode( file );
                         dnode.setLabel( file.getAbsolutePath() );
                         DefaultMutableTreeNode tnode = 
                             new DefaultMutableTreeNode( dnode );
@@ -905,18 +905,20 @@ public class StaticTreeViewer extends JFrame {
         CreationState creator = dn.getCreator();
         JPopupMenu popper = new JPopupMenu(); 
         if ( creator != null ) {
-            final Class cclass = creator.getObjectClass();
+            final DataNodeBuilder builder = creator.getBuilder();
             final Object cobj = creator.getObject();
 
             /* Add the reload menu item. */
             final Class origclass = dn.getClass();
             Action reload = new AbstractAction( "Reload", dn.getIcon() ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    DataNodeFactory cfact = new DataNodeFactory();
-                    cfact.setNodeClassList( new Class[] { origclass } );
                     DataNode newdn;
                     try {
-                        newdn = cfact.makeDataNode( cclass, cobj );
+                        newdn = builder.buildNode( cobj );
+                        if ( newdn == null ) {
+                            throw new NoSuchDataException( 
+                                "Data no longer available" );
+                        }
                         newdn.setLabel( dn.getLabel() );
                     }
                     catch ( NoSuchDataException e ) {
@@ -932,15 +934,15 @@ public class StaticTreeViewer extends JFrame {
 
             /* Add the alterego menu items, if any. */
             DataNodeFactory cfact = new DataNodeFactory();
-            Class[] dnclasses = (Class[]) cfact.getNodeClassList().clone();
+            List dnclasses = cfact.getNodeClassList();
             List alteregos = new ArrayList();
-            for ( int i = 0; i < dnclasses.length; i++ ) {
-                Class dnclass = dnclasses[ i ];
+            for ( Iterator cit = dnclasses.iterator(); cit.hasNext(); ) {
+                Class dnclass = (Class) cit.next();
                 if ( dnclass != dn.getClass() ) {
                     try {
-                        cfact.setNodeClassList( new Class[] { dnclass } );
-                        final DataNode newdn = 
-                            cfact.makeDataNode( cclass, cobj );
+                        cfact.setNodeClassList( Collections
+                                               .singletonList( dnclass ) );
+                        final DataNode newdn = cfact.makeDataNode( cobj );
                         newdn.setLabel( dn.getLabel() );
                         String text = newdn.getNodeTLA() + ": " 
                                     + newdn.toString();

@@ -58,7 +58,7 @@ public class Driver {
         nodeTypeFlags.put( "-wcs", WCSDataNode.class );
         nodeTypeFlags.put( "-zip", ZipFileDataNode.class );
         nodeTypeFlags.put( "-fit", FITSDataNode.class );
-        // nodeTypeFlags.put( "-xml", XMLDocumentDataNode.class );
+        nodeTypeFlags.put( "-xml", XMLDocumentDataNode.class );
         // nodeTypeFlags.put( "-hdx", HDXContainerDataNode.class );
         nodeTypeFlags.put( "-ndx", NdxDataNode.class );
         nodeTypeFlags.put( "-nda", NDArrayDataNode.class );
@@ -98,7 +98,7 @@ public class Driver {
                     orient = StaticTreeViewer.DETAIL_NONE;
                 }
                 else if ( arg.equals( "-strict" ) ) {
-                    nodeFactory.setNodeClassList( new Class[ 0 ] );
+                    nodeFactory.setNodeClassList( new ArrayList() );
                 }
                 else if ( arg.equals( "-debug" ) ) {
                     nodeFactory.setVerbose( true );
@@ -122,13 +122,10 @@ public class Driver {
                 catch ( NoSuchDataException e ) {
                     String msg = "\nNo such object \"" + arg + "\"\n";
                     msg += "(tried";
-                    Class[] tried = nodeFactory.getClassesTried();
-                    for ( int i = 0; i < tried.length; i++ ) {
-                        String cname = tried[ i ].getName();
-                        msg += " " 
-                             + cname.substring( cname.lastIndexOf( '.' ) + 1,
-                                                cname.indexOf( "DataNode" ) )
-                             + ( ( i == tried.length - 1 ) ? ")" : "," );
+                    List tried = nodeFactory.getClassesTried();
+                    for ( Iterator it = tried.iterator(); it.hasNext(); ) {
+                        msg += it.toString()
+                             + ( it.hasNext() ? ":" : "" );
                     }
                     msg += ".";
                     exitWithError( msg );

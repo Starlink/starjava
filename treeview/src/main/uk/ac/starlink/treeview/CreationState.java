@@ -12,14 +12,15 @@ package uk.ac.starlink.treeview;
 class CreationState {
     private final DataNodeFactory fact;
     private final Object obj;
-    private final Class clazz;
-    public CreationState( DataNodeFactory fact, Class clazz, Object obj ) {
+    private final DataNodeBuilder builder;
+    public CreationState( DataNodeFactory fact, DataNodeBuilder builder,
+                          Object obj ) {
         this.fact = fact;
-        this.clazz = clazz;
+        this.builder = builder;
         this.obj = obj;
     }
-    public Class getObjectClass() {
-        return clazz;
+    public DataNodeBuilder getBuilder() {
+        return builder;
     }
     public DataNodeFactory getFactory() {
         return fact;
@@ -29,7 +30,7 @@ class CreationState {
     }
     public String toString() {
         return "Factory: " + fact + ";  " 
-             + "Class: " + clazz + ";  "
+             + "Builder: " + builder + ";  "
              + "Object: " + obj;
     }
 }

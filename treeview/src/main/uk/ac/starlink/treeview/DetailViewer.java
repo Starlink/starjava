@@ -250,10 +250,6 @@ public class DetailViewer {
     /**
      * Returns a Writer object into which a limited number of lines of text
      * for display in the detail viewer window can be written.  
-     * If more than maxLines lines are 
-     * written, a {@link DetailViewer.MaxLinesWrittenException} will be
-     * thrown by the <code>write</code> method of the returned Writer
-     * object responsible for exceeding the limit.
      *
      * @param   maxLines  the maximum number of lines which can be written
      *                    before the Writer will throw a
@@ -264,8 +260,7 @@ public class DetailViewer {
     public Writer limitedLineAppender( final int maxLines ) {
         return new Writer() {
             private int nline = 0;
-            public void write( char[] cbuf, int off, int len ) 
-                        throws MaxLinesWrittenException {
+            public void write( char[] cbuf, int off, int len ) {
                 String buf = new String( cbuf, off, len );
                 boolean truncate = false;
                 int pos = 0;
@@ -280,17 +275,12 @@ public class DetailViewer {
                 }
                 append( "screed", buf );
                 if ( truncate ) {
-                    throw new MaxLinesWrittenException();
+                    append( "screed", "   ...." );
                 }
             }
             public void flush() {}
             public void close() {}
         };
-    }
-
-    /* Exception thrown by limitedLineAppender. */
-    public static class MaxLinesWrittenException extends IOException {
-        MaxLinesWrittenException() {}
     }
 
     public JTextArea addTextArea() {

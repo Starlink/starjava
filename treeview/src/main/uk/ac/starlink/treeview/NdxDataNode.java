@@ -144,7 +144,7 @@ public class NdxDataNode extends DefaultDataNode {
 
         DataNode im;
         try {
-            im = childMaker.makeDataNode( NDArray.class, ndx.getImage() );
+            im = childMaker.makeDataNode( ndx.getImage() );
         }
         catch ( NoSuchDataException e ) {
             im = new DefaultDataNode( e );
@@ -155,8 +155,7 @@ public class NdxDataNode extends DefaultDataNode {
         if ( ndx.hasVariance() ) {
             DataNode var;
             try {
-                var = childMaker
-                     .makeDataNode( NDArray.class, ndx.getVariance() );
+                var = childMaker.makeDataNode( ndx.getVariance() );
             }
             catch ( NoSuchDataException e ) {
                 var = new DefaultDataNode( e );
@@ -168,8 +167,7 @@ public class NdxDataNode extends DefaultDataNode {
         if ( ndx.hasQuality() ) {
             DataNode qual;
             try {
-                qual = childMaker
-                      .makeDataNode( NDArray.class, ndx.getQuality() );
+                qual = childMaker.makeDataNode( ndx.getQuality() );
             }
             catch ( NoSuchDataException e ) {
                 qual = new DefaultDataNode( e );
@@ -321,7 +319,7 @@ public class NdxDataNode extends DefaultDataNode {
             } );
         }
 
-        if ( ndim == 2 ) {
+        if ( ndim == 2 || endim == 2 ) {
             dv.addPane( "Image display", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     if ( endim == 2 && ndim != 2 ) {
@@ -334,7 +332,7 @@ public class NdxDataNode extends DefaultDataNode {
             } );
         }
 
-        if ( ndim > 2 ) {
+        if ( endim > 2) {
             dv.addPane( "Slice display", new ComponentMaker2() {
                 public JComponent[] getComponents() {
                     if ( endim != ndim ) {
