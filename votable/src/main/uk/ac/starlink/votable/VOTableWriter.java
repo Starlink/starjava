@@ -49,6 +49,26 @@ public class VOTableWriter implements StarTableWriter {
         Logger.getLogger( "uk.ac.starlink.votable" );
 
     /**
+     * Constructs a default VOTableWriter.
+     * Output is in TABLEDATA format.
+     */
+    public VOTableWriter() {
+        this( DataFormat.TABLEDATA, true );
+    }
+
+    /**
+     * Constructs a VOTableWriter with specified output characteristics.
+     *
+     * @param   dataFormat   the format in which tables will be written
+     * @param   inline       whether output of streamed formats should be
+     *                       inline and base64-encoded or not
+     */
+    public VOTableWriter( DataFormat dataFormat, boolean inline ) {
+        this.dataFormat = dataFormat;
+        this.inline = inline;
+    }
+
+    /**
      * Writes a StarTable to a given location.
      * The <tt>location</tt> is interpreted as a filename, unless it
      * is the string "<tt>-</tt>", in which case it is taken to 
