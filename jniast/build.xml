@@ -1118,6 +1118,7 @@
         <include name="**/*.zip"/>
         <include name="**/*.so"/>
         <include name="**/*.dll"/>
+        <include name="**/*.jnilib"/>
       </fileset>
     </loggedcopy>
 
