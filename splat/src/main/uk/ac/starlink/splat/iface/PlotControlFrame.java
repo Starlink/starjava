@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  *
  *  History:
  *     29-SEP-2000 (Peter W. Draper):
