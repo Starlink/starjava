@@ -71,7 +71,7 @@ public abstract class DataSource {
      *
      * @return  the length of the raw input stream, or -1
      */
-    protected long getRawLength() {
+    public long getRawLength() {
         return -1L;
     }
 
@@ -79,10 +79,13 @@ public abstract class DataSource {
      * Returns the length of the stream returned by <tt>getInputStream</tt>
      * in bytes, if known.
      * A return value of -1 indicates that the length is unknown.
+     * The return value of this method may change from -1 to a positive
+     * value during the life of this object if it happens to work out
+     * how long it is.
      *
      * @return  the length of the stream in bytes, or -1
      */
-    public long getLength() throws IOException {
+    public long getLength() {
 
         /* If we know the length because we have read off the end, return
          * that value. */

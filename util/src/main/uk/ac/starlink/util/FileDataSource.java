@@ -45,7 +45,7 @@ public class FileDataSource extends DataSource {
      *
      * return  file length
      */
-    protected long getRawLength() {
+    public long getRawLength() {
         return file.length();
     }
 
