@@ -64,7 +64,7 @@ public class Utilities
      */
     public static String getReleaseVersion()
     {
-        return "0.6.0 + Web Services";
+        return "0.7.0 + Web Services";
     }
 
     /**
