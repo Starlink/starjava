@@ -29,6 +29,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.TemporaryFileDataSource;
 import uk.ac.starlink.votable.VOTableBuilder;
@@ -186,6 +187,16 @@ public class SpecDataFactory
             return get( specspec );
         }
 
+        //  The specification could be for a local or remote file and in URL
+        //  or local file format. We need to know so that we can make a local
+        //  copy and construct a RemoteSpecData.
+        NameParser namer = new NameParser( specspec );
+        boolean isRemote = namer.isRemote();
+        if ( namer.isRemote() && type != TABLE && type != HDX ) {
+            PathParser pathParser = remoteToLocalFile( namer.getURL() );
+            specspec = pathParser.ndfname();
+        }
+
         SpecDataImpl impl = null;
         switch (type)
         {
@@ -202,7 +213,14 @@ public class SpecDataFactory
             }
             break;
             case HDX: {
-                impl = new NDXSpecDataImpl( specspec );
+                //  HDX should download remote files as it needs to keep the
+                //  basename to locate other references.
+                if ( namer.isRemote() ) {
+                    impl = new NDXSpecDataImpl( namer.getURL() );
+                }
+                else {
+                    impl = new NDXSpecDataImpl( specspec );
+                }
             }
             break;
             case TABLE: {
@@ -221,7 +239,7 @@ public class SpecDataFactory
         if ( impl == null ) {
             throwReport( specspec, true );
         }
-        return makeSpecDataFromImpl( impl );
+        return makeSpecDataFromImpl( impl, isRemote, namer.getURL() );
     }
 
     /**
@@ -244,95 +262,68 @@ public class SpecDataFactory
         // NOTE: This method may be used by TOPCAT classes.
 
         SpecDataImpl impl = null;
-        String name = null;
-        String format = null;
         URL url = null;
-        URI uri = null;
+        boolean isRemote = false;
 
-        // Look for local file with simple naming format.
-        InputNameParser namer = new InputNameParser( specspec );
-        if ( namer.exists() ) {
-            name = namer.ndfname();
-            format = namer.format();
-        }
-        else {
-            // Name could be specified as a URL and still be local.
-            url = URLUtils.makeURL( specspec );
-            try {
-                uri = URLUtils.urlToUri( url );
-                File testFile = new File( uri );
-                if ( testFile.exists() ) {
-                    namer = new InputNameParser( testFile.getCanonicalPath() );
-                    name = namer.ndfname();
-                    format = namer.format();
-                }
+        //  See what kind of specification we have.
+        try {
+            NameParser namer = new NameParser( specspec );
+            isRemote = namer.isRemote();
+            url = namer.getURL();
+
+            //  Remote HDX/VOTable-like files should be downloaded by the
+            //  library. A local copy loses the basename context.
+            if ( isRemote && namer.getFormat().equals( "XML" ) ) {
+                impl = makeXMLSpecDataImpl( specspec, true, url );
             }
-            catch ( Exception e ) {
-                e.printStackTrace();
-                //  Do nothing. A general report should follow.
+            else { 
+                //  Remote plainer formats (FITS, NDF) need a local copy.
+                if ( isRemote ) {
+                    PathParser p = remoteToLocalFile( url );
+                    namer = new NameParser( p.ndfname() );
+                }
+                impl = makeLocalFileImpl( namer.getName(), namer.getFormat() );
             }
         }
-
-        //  If we have located this specification as a local file just get on
-        //  with opening it.
-        if ( name != null ) {
-            if ( format.equals( "NDF" ) ) {
-                impl = makeNDFSpecDataImpl( name );
-            }
-            else if ( format.equals( "FITS" ) ) {
-                impl = makeFITSSpecDataImpl( name );
-            }
-            else if ( format.equals( "TEXT" ) ) {
-                impl = new TXTSpecDataImpl( name );
-            }
-            else if ( format.equals( "XML" ) ) {
-                impl = makeXMLSpecDataImpl( name );
-            }
-            else {
-                throw new SplatException( "Spectrum '" + specspec +
-                                          "' has an unknown format." );
-            }
-        }
-        else {
-            //  Local file doesn't exist. Could be an HDX or VOTable sent down
-            //  the wire, check the format and try this for all XML types.
-            if ( url == null ) {
-                if ( "XML".equals( format ) ) {
-                    impl = makeXMLSpecDataImpl( specspec );
-                }
-                else if ( ".ids".equals( namer.path() ) ) {
-                    //  A line identifier file, with type ".ids".
-                    //  XXX Note such a file will be misidentified as an NDF
-                    //  with path ".ids".
-                    impl = new LineIDTXTSpecDataImpl( specspec );
-                }
-            }
-
-            //  Final option is a URL for a remote resource. We always make a
-            //  local copy of these so that the file is guaranteed to be
-            //  around. Some of the implementations could probably deal with
-            //  Streams, but that's not part of any interface.
-
-            //  XXX how to determine the format, mime types and files types
-            //  are the obvious way, but mime types are probably rarely
-            //  available, so we will need to use the usual file extensions
-            //  mechanisms. I'd like to let treeview sort this out,
-            //  but treeview isn't a guaranteed dependency of SPLAT!
-            if ( impl == null && url != null ) {
-                String newspec = remoteToLocalFile( url );
-                if ( newspec != null ) {
-                    return get( newspec );
-                }
-            }
+        catch (SplatException e) {
+            impl = null;
         }
 
-        // Occasionally everything fails.
+        //  Try construct an intelligent report.
         if ( impl == null ) {
             throwReport( specspec, false );
         }
-        return makeSpecDataFromImpl( impl );
+        return makeSpecDataFromImpl( impl, isRemote, url );
     }
 
+    /**
+     * Make a SpecDataImpl for a known local file with the given format.
+     */
+    protected SpecDataImpl makeLocalFileImpl( String name, String format )
+        throws SplatException
+    {
+        SpecDataImpl impl = null;
+        if ( format.equals( "NDF" ) ) {
+            impl = makeNDFSpecDataImpl( name );
+        }
+        else if ( format.equals( "FITS" ) ) {
+            impl = makeFITSSpecDataImpl( name );
+        }
+        else if ( format.equals( "TEXT" ) ) {
+            impl = new TXTSpecDataImpl( name );
+        }
+        else if ( format.equals( "XML" ) ) {
+            impl = makeXMLSpecDataImpl( name, false, null );
+        }
+        else if ( format.equals( "IDS" ) ) {
+            impl = new LineIDTXTSpecDataImpl( name );
+        }
+        else {
+            throw new SplatException
+                ( "Spectrum '" + name + "' has an unknown format." );
+        }
+        return impl;
+    }
 
     /**
      * Make an implementation for an NDF. If native NDF supported
@@ -345,7 +336,7 @@ public class SpecDataFactory
             return new NDFSpecDataImpl( specspec );
         }
 
-        //  No native NDF available.
+        //  No native NDF available, use NDX access.
         URL url = null;
         try {
             url = new URL( "file:" + specspec + ".sdf" );
@@ -403,9 +394,12 @@ public class SpecDataFactory
 
     /**
      * Make an implementation for an arbitrary XML file. This could be a
-     * VOTable or an HDX/NDX.
+     * VOTable or an HDX/NDX. If isRemote is true then the resource isn't
+     * local and the URL value will be used to access the file.
      */
-    protected SpecDataImpl makeXMLSpecDataImpl( String specspec )
+    protected SpecDataImpl makeXMLSpecDataImpl( String specspec, 
+                                                boolean isRemote, 
+                                                URL url )
         throws SplatException
     {
         SpecDataImpl impl = null;
@@ -413,7 +407,13 @@ public class SpecDataFactory
         //  Check if this is a VOTable first (signature easier to check).
         Exception tableException = null;
         try {
-            DataSource datsrc = new FileDataSource( specspec );
+            DataSource datsrc = null;
+            if ( isRemote ) {
+                datsrc = new URLDataSource( url );
+            }
+            else {
+                datsrc = new FileDataSource( specspec );
+            }
             StarTable starTable =
                 new VOTableBuilder().makeStarTable( datsrc, true,
                                                     storagePolicy );
@@ -425,7 +425,12 @@ public class SpecDataFactory
             tableException = e;
         }
         try {
-            impl = new NDXSpecDataImpl( specspec );
+            if ( isRemote ) {
+                impl = new NDXSpecDataImpl( url );
+            }
+            else {
+                impl = new NDXSpecDataImpl( specspec );
+            }
         }
         catch (Exception e) {
             if ( tableException != null ) {
@@ -437,9 +442,12 @@ public class SpecDataFactory
     }
 
     /**
-     * Make a suitable SpecData for a given implementation.
+     * Make a suitable SpecData for a given implementation. If the spectrum is
+     * remote and not a line identifier, then a {@link RemoteSpecData} object
+     * is constructed.
      */
-    protected SpecData makeSpecDataFromImpl( SpecDataImpl impl )
+    protected SpecData makeSpecDataFromImpl( SpecDataImpl impl,
+                                             boolean isRemote, URL url  )
         throws SplatException
     {
         SpecData specData = null;
@@ -447,7 +455,12 @@ public class SpecDataFactory
             specData = new LineIDSpecData( (LineIDTXTSpecDataImpl) impl );
         }
         else {
-            specData = new SpecData( impl );
+            if ( isRemote ) {
+                specData = new RemoteSpecData( impl, url );
+            }
+            else {
+                specData = new SpecData( impl );
+            }
         }
         return specData;
     }
@@ -502,8 +515,8 @@ public class SpecDataFactory
     public SpecData getClone( SpecData source, String specspec )
         throws SplatException
     {
-        InputNameParser namer = new InputNameParser( specspec );
-        String targetType = namer.format();
+        NameParser namer = new NameParser( specspec );
+        String targetType = namer.getFormat();
         String sourceType = source.getDataFormat();
 
         //  Create an implementation object using the source to
@@ -515,15 +528,15 @@ public class SpecDataFactory
                                               (LineIDSpecData) source );
         }
         else if ( targetType.equals( "NDF" ) ) {
-            impl = new NDFSpecDataImpl( namer.ndfname(), source );
+            impl = new NDFSpecDataImpl( namer.getName(), source );
         }
         if ( targetType.equals( "FITS" ) ) {
-            impl = new FITSSpecDataImpl( namer.ndfname(), source );
+            impl = new FITSSpecDataImpl( namer.getName(), source );
         }
         if ( targetType.equals( "TEXT" ) ) {
-            impl = new TXTSpecDataImpl( namer.ndfname(), source );
+            impl = new TXTSpecDataImpl( namer.getName(), source );
         }
-        SpecData specData = makeSpecDataFromImpl( impl );
+        SpecData specData = makeSpecDataFromImpl( impl, false, null );
         specData.setType( source.getType() );
         return specData;
     }
@@ -586,7 +599,7 @@ public class SpecDataFactory
                }
             }
         }
-        SpecData specData = makeSpecDataFromImpl( impl );
+        SpecData specData = makeSpecDataFromImpl( impl, false, null );
         specData.setType( source.getType() );
         return specData;
     }
@@ -775,35 +788,43 @@ public class SpecDataFactory
     /**
      * Given a URL for a remote resource make a local, temporary, copy. The
      * temporary file should have the correct file extension for the type of
-     * remote data and it's name is returned as the result (null if a failure
-     * occurs).
+     * remote data an {@link PathParser} is returned as the result (null
+     * if a failure occurs).
      */
-    protected String remoteToLocalFile( URL url )
+    protected PathParser remoteToLocalFile( URL url )
     {
-        String name = null;
+        //  URL for a remote resource. We always make a local copy of
+        //  these so that the file is guaranteed to be around. Some of
+        //  the implementations could probably deal with Streams, but
+        //  that's not part of any interface.
+
+        //  XXX how to determine the format, mime types and files
+        //  types are the obvious way, but mime types are probably
+        //  rarely available, so we will need to use the usual file
+        //  extensions mechanisms. I'd like to let treeview sort this
+        //  out, but treeview isn't a guaranteed dependency of SPLAT!
+
+        PathParser namer = null;
         try {
             //  Contact the resource.
             InputStream is = url.openStream();
 
-            //  And read it into a local file. 
-
-            //  Use the existing file extension if available, without 
-            //  a file extension this will currently fail.
-            InputNameParser namer = new InputNameParser( url.getPath() );
-            String type = namer.type();
+            //  And read it into a local file. Use the existing file extension
+            //  if available, without a file extension this will currently
+            //  fail.
+            namer = new PathParser( url.getPath() );
 
             //  Create a temporary file.
-            TemporaryFileDataSource datsrc = 
-                new TemporaryFileDataSource( is, url.toString(), "SPLAT", 
-                                             type, null );
-            name = datsrc.getFile().getCanonicalPath();
+            TemporaryFileDataSource datsrc =
+                new TemporaryFileDataSource( is, url.toString(), "SPLAT",
+                                             namer.type(), null );
+            namer.setPath( datsrc.getFile().getCanonicalPath() );
             datsrc.close();
         }
-
-        catch (IOException e) {
+        catch (Exception e) {
             e.printStackTrace();
+            namer = null;
         }
-        return name;
+        return namer;
     }
-
 }

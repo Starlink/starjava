@@ -214,6 +214,11 @@ public class SplatBrowser
     protected boolean displayNewFiles = false;
 
     /**
+     *  Location chooser.
+     */
+    protected HistoryStringDialog locationChooser = null;
+
+    /**
      *  Stack open or save chooser.
      */
     protected BasicFileChooser stackChooser = null;
@@ -508,6 +513,16 @@ public class SplatBrowser
                                                    "Open spectra" );
         fileMenu.add( openAction );
         toolBar.add( openAction );
+
+        //  Add action to open a spectrum using a typed in location (URL).
+        ImageIcon locationImage = 
+            new ImageIcon( ImageHolder.class.getResource( "location.gif" ) );
+        LocalAction locationAction  = new LocalAction( LocalAction.LOCATION,
+                                                       "Location", 
+                                                       locationImage,
+                                                       "Open location" );
+        fileMenu.add( locationAction );
+        toolBar.add( locationAction );
 
         //  Add action to browse the local file system and look for tables
         //  etc. in sub-components.
@@ -1255,6 +1270,30 @@ public class SplatBrowser
         }
         else {
             stackChooser.setAccessory( null );
+        }
+    }
+
+    /**
+     * Enable the location chooser. An attempt to open the result as a
+     * spectrum is made. This offers the ability to enter an arbitrary string
+     * as a spectrum, such as a URL.
+     */
+    protected void showLocationChooser()
+    {
+        if ( locationChooser == null ) {
+            locationChooser = new HistoryStringDialog( this, "URL/Location", 
+                                                       "Enter a location" );
+        }
+        String result = locationChooser.showDialog( locationChooser );
+        if ( result != null ) {
+            newFiles = new File[1];
+            newFiles[0] = new File( result );
+
+            //  If the user requested that opened spectra are also
+            //  displayed, then respect this.
+            displayNewFiles = openDisplayCheckBox.isSelected();
+            openUsertypeIndex = openUsertypeBox.getSelectedIndex();
+            threadLoadChosenSpectra();
         }
     }
 
@@ -2234,28 +2273,29 @@ public class SplatBrowser
     {
         public static final int SAVE = 0;
         public static final int OPEN = 1;
-        public static final int BROWSE = 2;
-        public static final int REOPEN = 3;
-        public static final int SINGLE_DISPLAY = 4;
-        public static final int MULTI_DISPLAY = 5;
-        public static final int ANIMATE_DISPLAY = 6;
-        public static final int SPEC_VIEWER = 7;
-        public static final int XCOORDTYPE_VIEWER = 8;
-        public static final int SAVE_STACK = 9;
-        public static final int READ_STACK = 10;
-        public static final int REMOVE_SPECTRA = 11;
-        public static final int SELECT_SPECTRA = 12;
-        public static final int DESELECT_SPECTRA = 13;
-        public static final int COLOURIZE = 14;
-        public static final int REMOVE_PLOTS = 15;
-        public static final int SELECT_PLOTS = 16;
-        public static final int DESELECT_PLOTS = 17;
-        public static final int BINARY_MATHS = 18;
-        public static final int UNARY_MATHS = 19;
-        public static final int COPY_SPECTRA = 20;
-        public static final int COPYSORT_SPECTRA = 21;
-        public static final int CREATE_SPECTRUM = 22;
-        public static final int EXIT = 23;
+        public static final int LOCATION = 2;
+        public static final int BROWSE = 3;
+        public static final int REOPEN = 4;
+        public static final int SINGLE_DISPLAY = 5;
+        public static final int MULTI_DISPLAY = 6;
+        public static final int ANIMATE_DISPLAY = 7;
+        public static final int SPEC_VIEWER = 8;
+        public static final int XCOORDTYPE_VIEWER = 9;
+        public static final int SAVE_STACK = 10;
+        public static final int READ_STACK = 11;
+        public static final int REMOVE_SPECTRA = 12;
+        public static final int SELECT_SPECTRA = 13;
+        public static final int DESELECT_SPECTRA = 14;
+        public static final int COLOURIZE = 15;
+        public static final int REMOVE_PLOTS = 16;
+        public static final int SELECT_PLOTS = 17;
+        public static final int DESELECT_PLOTS = 18;
+        public static final int BINARY_MATHS = 19;
+        public static final int UNARY_MATHS = 20;
+        public static final int COPY_SPECTRA = 21;
+        public static final int COPYSORT_SPECTRA = 22;
+        public static final int CREATE_SPECTRUM = 23;
+        public static final int EXIT = 24;
 
         private int type = 0;
 
@@ -2285,6 +2325,11 @@ public class SplatBrowser
 
                case OPEN: {
                    showOpenFileChooser();
+               }
+               break;
+
+               case LOCATION: {
+                   showLocationChooser();
                }
                break;
 

@@ -289,7 +289,7 @@ public class FITSSpecDataImpl
         throws SplatException
     {
         //  Parse the name to extract the HDU reference.
-        InputNameParser namer = new InputNameParser( fileName );
+        PathParser namer = new PathParser( fileName );
         hdunum = namer.fitshdunum();
         String name = null;
         if ( namer.type().equals( ".sdf" ) && ! namer.path().equals( "" ) ) {
@@ -337,7 +337,7 @@ public class FITSSpecDataImpl
     {
         //  Parse the name to extract the HDU reference and container
         //  file name. Extension number is ignored for now.
-        InputNameParser namer = new InputNameParser( fullName );
+        PathParser namer = new PathParser( fullName );
         hdunum = namer.fitshdunum();
         String container = null;
         if ( namer.type().equals( ".sdf" ) && ! namer.path().equals( "" ) ) {

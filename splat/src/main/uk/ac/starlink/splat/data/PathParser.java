@@ -1,25 +1,29 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     8-SEP-2000 (Peter W. Draper):
- *       Original version.
+ *        Original version.
+ *     27-AUG-2004 (Peter W. Draper):
+ *        Was InputNameParser, but refactored into PathParser when SPLAT
+ *        started dealing with URLs.
  */
 package uk.ac.starlink.splat.data;
 
 import java.io.File;
 
 /**
- *  InputNameParser - class for encapsulating naming strategies that
- *                    differentiate the various data formats used to
- *                    store spectra.
- * <p>
- *  These names may be simple disk file names, such as the top-level
- *  containers of NDF, FITS, TEXT and XML data, or more complex ones
- *  that include NDF slices, FITS extensions and possibly HDS component
- *  paths.
+ *  Parser for the path part of a spectrum specification.
+ *
+ *  The path is the file name part of a specification, plus any trailing
+ *  qualifiers that indicate a part of the file that should be used.
+ *  The file name extension is used to determine the type of the spectrum.
+ *  The path may describe simple disk file names, such as the top-level
+ *  containers of NDF, FITS, TEXT and XML data, or more complex ones that
+ *  include NDF slices, FITS extensions and possibly HDS component paths.
+ *
  *  <p>
- *  So the sort of names that we might get for spectra are:
+ *  So the sort of paths that we might get for spectra are:
  *  <ul>
  *    <li> file.fits -- FITS may also be .fit .fits.gz .fits.Z etc.
  *
@@ -50,38 +54,37 @@ import java.io.File;
  *
  *    <li> file.xml -- an HDX file that may contain an NDX.
  *  </ul>
- *  To use this class create an object with the spectra specification,
- *  then use its methods to get fully qualified names, slices, paths
- *  and disk file names.
+ *  To use this class create an object with the spectral path,
+ *  then use its methods to get fully qualified names, slices,
+ *  and disk file names etc.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
-public class InputNameParser 
+public class PathParser
 {
     /**
-     *  Constructor - single argument, the spectra specification.
+     *  Create an instance parsing the given path.
      */
-    public InputNameParser( String specspec ) 
+    public PathParser( String specpath )
     {
-        this.specspec = specspec;
-        parseName();
+        setPath( specpath );
     }
 
     /**
      *  Default Constructor.
      */
-    public InputNameParser() 
+    public PathParser()
     {
         //  Do nothing.
     }
 
     /**
-     *  Set the name.
+     *  Set the spectral path specification.
      */
-    public void setName( String specspec ) 
+    public void setPath( String specpath )
     {
-        this.specspec = specspec;
+        this.specpath = specpath;
         parseName();
     }
 
@@ -89,7 +92,7 @@ public class InputNameParser
      *  Get the fully expanded name. Do not add the FITS extension,
      *  unless it is needed (i.e. we have a slice) when requested.
      */
-    public String fullname() 
+    public String fullname()
     {
         if ( fitsext_.equals( "" ) || ! slice_.equals( "" ) ) {
             return fullname_;
@@ -101,7 +104,7 @@ public class InputNameParser
     /**
      *  Get the diskfile name.
      */
-    public String diskfile() 
+    public String diskfile()
     {
         return diskfile_;
     }
@@ -109,7 +112,7 @@ public class InputNameParser
     /**
      *  Get the NDF slice.
      */
-    public String slice() 
+    public String slice()
     {
         return slice_;
     }
@@ -117,7 +120,7 @@ public class InputNameParser
     /**
      *  Get the FITS extension.
      */
-    public String fitsext() 
+    public String fitsext()
     {
         return fitsext_;
     }
@@ -126,7 +129,7 @@ public class InputNameParser
      *  Get the FITS extension number. Note this is 0, if an NDF slice
      *  is available.
      */
-    public int fitshdunum() 
+    public int fitshdunum()
     {
         if ( slice_.equals( "" ) ) {
             return fitshdu_;
@@ -134,30 +137,30 @@ public class InputNameParser
             return 0;
         }
     }
-    
+
     /**
      *  Get the HDS path.
      */
-    public String path() 
+    public String path()
     {
         return path_;
     }
 
-    /** 
+    /**
      *  Get the diskfile type.
      */
-    public String type() 
+    public String type()
     {
         return type_;
     }
 
     /**
-     *  Get the "data format" of the file. This is one of "NDF",
-     *  "FITS", "TEXT" or "XML", depending on what the file extension and
-     *  suitability to process are. If the file cannot be recognised
-     *  then "UNKNOWN" is returned;
+     *  Get the "data format" of the file. This is one of "NDF", "FITS",
+     *  "TEXT" or "XML", depending on what the file extension and suitability
+     *  to process are. If the file cannot be recognised then "UNKNOWN" is
+     *  returned;
      */
-    public String format() 
+    public String format()
     {
         if ( type_.indexOf( ".fit" ) > -1 ||
              type_.indexOf( ".FIT" ) > -1 ) {
@@ -176,9 +179,9 @@ public class InputNameParser
             return "NDF";
         }
 
-        //  If the file type matches a string in NDF_FORMATS_IN,
-        //  that's great. Note this needs to be set using:
-        //  -Dndf.formats.in=$NDF_FORMATS_IN on the command-line.
+        //  If the file type matches a string in NDF_FORMATS_IN, that's great,
+        //  the NDF library will process this for us. Note this needs to be
+        //  set using: -Dndf.formats.in=$NDF_FORMATS_IN on the command-line.
         String ndfFormatsIn = System.getProperty( "ndf.formats.in", "" );
         if ( ! ndfFormatsIn.equals( "" ) ) {
             if ( ndfFormatsIn.indexOf( type_ ) > -1 ) {
@@ -193,19 +196,19 @@ public class InputNameParser
      *  fullname without the ".sdf". TODO: do we need single quotes to get
      *  any FITS extensions out to ADAM tasks?
      */
-    public String ndfname() 
+    public String ndfname()
     {
         if ( type_.equals( ".sdf" ) ) {
             int i1 = fullname_.indexOf( ".sdf" );
             if ( i1 > -1 ) {
-                String name = fullname_.substring( 0, i1 ) + 
+                String name = fullname_.substring( 0, i1 ) +
                               fullname_.substring( i1 + 4 );
                 return name;
             } else {
                 return "";
             }
         }
-        
+
 
         //  Foreign format. Always return these in single quotes to protect
         //  special characters.
@@ -216,11 +219,11 @@ public class InputNameParser
         //return "'" + fullname_ + "'";
         return fullname_;
    }
-    
-    /**  
+
+    /**
      *  Check if diskfile exists, is readable and a plain file.
      */
-    public boolean exists () 
+    public boolean exists ()
     {
         File file = new File( diskfile_ );
         return ( file.canRead() && file.isFile() );
@@ -229,19 +232,19 @@ public class InputNameParser
     /**
      *  Make name absolute (i.e.&nbsp;start with leading "/").
      */
-    public String absolute() 
+    public String absolute()
     {
-        File file = new File( specspec );
-        specspec = file.getAbsolutePath();
+        File file = new File( specpath );
+        specpath = file.getAbsolutePath();
         parseName();
-        return specspec;
+        return specpath;
     }
 
-    /**  
+    /**
      *  Parse the spectrum specification, obtaining the fully expanded
      *  name, the diskfile name and any NDF extended parts.
      */
-    protected void parseName() 
+    protected void parseName()
     {
         reset();
         getSlice();
@@ -254,15 +257,15 @@ public class InputNameParser
         getFullname();
     }
 
-    /** 
+    /**
      *  Get any slice information from the image name.
      */
-    protected void getSlice () 
+    protected void getSlice ()
     {
-        int i1 = specspec.lastIndexOf( "(" );
-        int i2 = specspec.lastIndexOf( ")" );
+        int i1 = specpath.lastIndexOf( "(" );
+        int i2 = specpath.lastIndexOf( ")" );
         if ( i1 > -1 && i2 > -1 ) {
-            slice_ = specspec.substring( i1, i2 + 1 );
+            slice_ = specpath.substring( i1, i2 + 1 );
         } else {
             slice_ = "";
         }
@@ -275,21 +278,21 @@ public class InputNameParser
      *  formats for specifying the extension, the usual [n], plus #n, which is
      *  used by the tables libraries.
      */
-    protected void getFitsext() 
+    protected void getFitsext()
     {
-        int i1 = specspec.lastIndexOf( "[" );
-        int i2 = specspec.lastIndexOf( "]" );
+        int i1 = specpath.lastIndexOf( "[" );
+        int i2 = specpath.lastIndexOf( "]" );
         if ( i1 == -1 || i2 == -1 ) {
-            i1 = specspec.lastIndexOf( "#" );
+            i1 = specpath.lastIndexOf( "#" );
             if ( i1 > -1 ) {
-                i2 = specspec.length() - 1;
+                i2 = specpath.length() - 1;
             }
         }
         if ( i1 > -1 && i2 > -1 ) {
-            fitsext_ = specspec.substring( i1, i2 + 1 );
+            fitsext_ = specpath.substring( i1, i2 + 1 );
             try {
-                fitshdu_ = Integer.parseInt(specspec.substring( i1 + 1, i2 ));
-            } 
+                fitshdu_ = Integer.parseInt(specpath.substring( i1 + 1, i2 ));
+            }
             catch ( Exception e ) {
                 fitshdu_ = 0;
             }
@@ -305,9 +308,9 @@ public class InputNameParser
      *  directory separator. If no type is given then it defaults to
      * ".sdf".
      */
-    protected void getType() 
+    protected void getType()
     {
-        File file = new File( specspec );
+        File file = new File( specpath );
         String name = file.getName();
         int i1 = name.indexOf( "." );
         if ( i1 > -1 ) {
@@ -325,11 +328,11 @@ public class InputNameParser
         }
     }
 
-    /**  
+    /**
      *  Check if the file type is known to the NDF system, or is a FITS
      *  or TEXT description.
      */
-    protected boolean checkType () 
+    protected boolean checkType ()
     {
         if ( format().equals( "UNKNOWN" ) ) {
             return false;
@@ -340,36 +343,36 @@ public class InputNameParser
     /**
      *  Construct name of diskfile. Assumes type_ already set.
      */
-    protected void getDiskfile() 
+    protected void getDiskfile()
     {
-        int i1 = specspec.indexOf( type_ );
+        int i1 = specpath.indexOf( type_ );
         if ( i1 > -1 ) {
-            diskfile_ = specspec.substring( 0, i1 ) + type_;
+            diskfile_ = specpath.substring( 0, i1 ) + type_;
         } else {
 
-            //  Type not in specspec, so fallback to path_.
-            i1 = specspec.indexOf( path_ );
+            //  Type not in specpath, so fallback to path_.
+            i1 = specpath.indexOf( path_ );
             if ( i1 > -1 && ! path_.equals( "" ) ) {
-                diskfile_ = specspec.substring( 0, i1 ) + type_;
+                diskfile_ = specpath.substring( 0, i1 ) + type_;
             } else {
 
                 //  No type or path, so name must be complete, just remove
                 //  slice.
                 int i2;
                 if ( ! slice_.equals( "" ) ) {
-                    i2 = specspec.indexOf( slice_ );
-                    diskfile_ = specspec.substring( 0, i2 ) + type_;
+                    i2 = specpath.indexOf( slice_ );
+                    diskfile_ = specpath.substring( 0, i2 ) + type_;
                 } else {
-                    diskfile_ = specspec + type_;
+                    diskfile_ = specpath + type_;
                 }
             }
         }
     }
 
-    /**  
+    /**
      *  Construct the full name from the various parts.
      */
-    protected void getFullname() 
+    protected void getFullname()
     {
         fullname_ = diskfile_ + path_ + fitsext_ + slice_;
     }
@@ -379,7 +382,7 @@ public class InputNameParser
      *  been failed, so missing type information implies an NDF and the
      *  current potential path is stored in "type_".
      */
-    protected void getPath() 
+    protected void getPath()
     {
         int i1 = type_.indexOf( ".sdf" );
         int i2;
@@ -416,7 +419,7 @@ public class InputNameParser
     /**
      *  Reset internal configuration (when new name supplied).
      */
-    protected void reset() 
+    protected void reset()
     {
         fullname_ = "";
         diskfile_ = "";
@@ -428,9 +431,9 @@ public class InputNameParser
     }
 
     /**
-     *  Name of the spectrum as supplied by the user.
+     *  Value of the full spectrum path.
      */
-    protected String specspec = "";
+    protected String specpath = "";
 
     /**
      *  Fully expanded name.
@@ -470,15 +473,15 @@ public class InputNameParser
     /**
      *  Test method.
      */
-    public static void main( String[] args ) 
+    public static void main( String[] args )
     {
-        InputNameParser namer = new InputNameParser();
+        PathParser namer = new PathParser();
         String names[] = {
-            "file.fits", 
-            "file.fits[1]", 
-            "file", 
+            "file.fits",
+            "file.fits[1]",
+            "file",
             "file.txt",
-            "file.lis", 
+            "file.lis",
             "file.imh",
             "file(1:100,2:200)",
             "file.sdf(1:100,2:200)",
@@ -492,7 +495,7 @@ public class InputNameParser
             System.out.println( "" );
             System.out.println( "Parsing: " + names[i] );
             System.out.println( "======== ");
-            namer.setName( names[i] );
+            namer.setPath( names[i] );
             System.out.println( "fullname = " + namer.fullname() );
             System.out.println( "diskfile = " + namer.diskfile() );
             System.out.println( "slice = " + namer.slice() );
