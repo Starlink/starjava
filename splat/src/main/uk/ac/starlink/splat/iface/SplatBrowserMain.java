@@ -14,6 +14,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.util.ProxySetup;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -112,7 +113,10 @@ public class SplatBrowserMain
             props.setProperty( "axis.ServerFactory",
                                "uk.ac.starlink.soap.AppAxisServerFactory" );
         }
-    }
+ 
+        //  Load the proxy server configuration, if set.
+        ProxySetup.getInstance().restore();
+   }
 
     /**
      * Main method. Starting point for SPLAT application.

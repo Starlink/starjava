@@ -325,6 +325,6 @@ public class ProxySetupFrame
         if ( target != null ) {
             target.matchToInterface();
         }
-        ProxySetup.getInstance().restore();
+        ProxySetup.getInstance().store();
     }
 }

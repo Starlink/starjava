@@ -70,7 +70,7 @@ public class ASTJ
      */
     public ASTJ( FrameSet astref, Grf grfref )
     {
-        setRef( astref, false );
+        setRef( astref );
         setGraphic( grfref );
     }
 
@@ -99,12 +99,6 @@ public class ASTJ
      *  Reference to Ast frameset.
      */
     protected FrameSet astRef = null;
-
-    /**
-     *  Whether astRef is managed by this object (if so then is
-     *  annulled as required).
-     */
-    protected boolean manageAstRef = false;
 
     /**
      *  Reference to astPlot, created by last call to astPlot.
@@ -140,7 +134,6 @@ public class ASTJ
     public void setRef( FrameSet astRef )
     {
         this.astRef = astRef;
-        this.manageAstRef = manage;
     }
 
     /**

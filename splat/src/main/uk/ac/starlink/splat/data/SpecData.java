@@ -1101,7 +1101,7 @@ public class SpecData
                                       impl.getProperty( "label" ),
                                       impl.getProperty( "units" ),
                                       false );
-                astJ = new ASTJ( specref, true );
+                astJ = new ASTJ( specref );
 
                 //  Get the mapping for the X axis and check that it is
                 //  useful, i.e. we can invert it.
