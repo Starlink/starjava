@@ -16,6 +16,7 @@ import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TestCase;
+import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableWriter;
 
@@ -137,25 +138,23 @@ public class FormatsTest extends TestCase {
     public void testVOTable() throws IOException, SAXException {
         VOTableWriter vohandler = new VOTableWriter();
 
-        assertEquals( VOTableWriter.Format.TABLEDATA,
-                      vohandler.getDataFormat() );
+        assertEquals( DataFormat.TABLEDATA, vohandler.getDataFormat() );
         assertTrue( vohandler.getInline() );
         exerciseVOTableWriter( vohandler, getTempFile( "in-td.vot" ), false );
 
-        vohandler.setDataFormat( VOTableWriter.Format.FITS );
+        vohandler.setDataFormat( DataFormat.FITS );
         vohandler.setInline( false );
         assertTrue( ! vohandler.getInline() );
         exerciseVOTableWriter( vohandler, getTempFile( "ex-fits.vot" ), true );
 
-        vohandler.setDataFormat( VOTableWriter.Format.FITS );
+        vohandler.setDataFormat( DataFormat.FITS );
         vohandler.setInline( true );
-        assertEquals( VOTableWriter.Format.FITS,
-                      vohandler.getDataFormat() );
+        assertEquals( DataFormat.FITS, vohandler.getDataFormat() );
         exerciseVOTableWriter( vohandler, getTempFile( "in-fits.vot" ), true );
 
-        vohandler.setDataFormat( VOTableWriter.Format.BINARY );
+        vohandler.setDataFormat( DataFormat.BINARY );
         vohandler.setInline( false );
-        assertEquals( VOTableWriter.Format.BINARY, vohandler.getDataFormat() );
+        assertEquals( DataFormat.BINARY, vohandler.getDataFormat() );
         assertTrue( ! vohandler.getInline() );
         exerciseVOTableWriter( vohandler, getTempFile( "ex-bin.vot" ), true );
 
