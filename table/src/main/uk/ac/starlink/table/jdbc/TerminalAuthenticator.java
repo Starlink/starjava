@@ -11,15 +11,21 @@ import java.io.InputStreamReader;
 public class TerminalAuthenticator implements JDBCAuthenticator {
 
     public String[] authenticate() throws IOException {
+        return new String[] { readUser(), readPassword() };
+    }
+
+    public static String readUser() throws IOException {
         BufferedReader rdr = 
             new BufferedReader( new InputStreamReader( System.in ) );
         System.out.print( "JDBC User: " );
-        String user = rdr.readLine();
-        String password = getMaskedString( "JDBC Password: " );
-        return new String[] { user, password };
+        return rdr.readLine();
     }
 
-    private String getMaskedString( String prompt ) throws IOException {
+    public static String readPassword() throws IOException {
+        return getMaskedString( "JDBC Password: " );
+    }
+
+    private static String getMaskedString( String prompt ) throws IOException {
         StringBuffer sbuf = new StringBuffer();
         int linesep0 = (int) System.getProperty( "line.separator" ).charAt( 0 );
         Thread masker = new MaskingThread( prompt );
