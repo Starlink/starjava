@@ -254,7 +254,7 @@ public class NDXSpecDataImpl extends SpecDataImpl
             throw new RuntimeException( "Document contains no NDXs" );
         }
 
-        String title = ndx.getTitle();
+        String title = ndx.hasTitle() ? ndx.getTitle() : "";
         if ( title == null || title.equals( "" ) ) {
             title = "Wired NDX (" + (counter++) + ")";
         }
