@@ -977,7 +977,7 @@
 
       <batchtest>
         <fileset dir="${tests.dir}">
-          <include name="**/*Test*"/>
+          <include name="**/*Test.java"/>
         </fileset>
       </batchtest>
 
