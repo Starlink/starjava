@@ -121,10 +121,8 @@ public class NdxTest extends TestCase {
             ndxio.outputNdx( filename, vndx );
         }
         else {
-            SourceReader sr = new SourceReader();
-            sr.setIndent( 2 );
-            new SourceReader().writeSource( vndx.toXML( null ), 
-                                            new FileOutputStream( filename ) ); 
+            new SourceReader().writeSource( vndx.getHdxFacade().getSource( null ), 
+                                            new FileOutputStream( filename ) );
         }
 
         if ( fitsPresent ) {
