@@ -1107,6 +1107,9 @@
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
+      <sysproperty key="http.proxyHost" value="${http.proxyHost}"/>
+      <sysproperty key="http.proxyPort" value="${http.proxyPort}"/>
+
       <formatter type="brief" usefile="false"/>
 
       <batchtest>
@@ -1135,6 +1138,10 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+
+      <sysproperty key="http.proxyHost" value="${http.proxyHost}"/>
+      <sysproperty key="http.proxyPort" value="${http.proxyPort}"/>
+
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>
