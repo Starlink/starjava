@@ -11,6 +11,7 @@
  *                 2002/06/18  Converted for HDX mark II
  *                 2002/09/24  Converted for NDX only (HDX mark III in
  *                             preparation).
+ *                 2002/10/07  Converted to use the JAI default TileCache.
  */
 package uk.ac.starlink.jaiutil;
 
@@ -33,7 +34,9 @@ import java.net.URL;
 import java.util.List;
 import java.util.ArrayList;
 
+import javax.media.jai.JAI;
 import javax.media.jai.RasterFactory;
+import javax.media.jai.TileCache;
 import javax.media.jai.TiledImage;
 
 import org.w3c.dom.Document;
@@ -124,14 +127,9 @@ public class HDXImage
     protected static int defaultTileHeight = 128;
 
     /**
-     * Max number of bytes to keep in the tile cache
-     */
-    protected static final int MAX_TILE_BYTES = 32*1024*1024; // 32 MB
-
-    /**
      * Object used to cache tiles
      */
-    protected MyTileCache tileCache;
+    protected TileCache tileCache = JAI.getDefaultInstance().getTileCache();
 
     /**
      * Contains caller parameters (TODO: could specify component?).
@@ -317,10 +315,6 @@ public class HDXImage
             if ( height / tileHeight <=  1 ) {
                 tileHeight = height;
             }
-
-            //  Note cache set only for double precision images (8).
-            tileCache = new MyTileCache( width, height, tileWidth,
-                                         tileHeight, 8, MAX_TILE_BYTES );
             initData();
 
             //  Choose appropriate sample and color models.
@@ -330,7 +324,7 @@ public class HDXImage
     }
 
     /**
-     * Return the Bad pixel value for the current NDArray. 
+     * Return the Bad pixel value for the current NDArray.
      * Returns Double.NaN if none is defined.
      */
     public double getBadValue()
@@ -365,11 +359,12 @@ public class HDXImage
     }
 
     /**
-     * Try to save memory by clearing out the tile cache
+     * Try to save memory by clearing out the tile cache for this
+     * image.
      */
     public void clearTileCache()
     {
-        tileCache.clear();
+        tileCache.removeTiles( this );
     }
 
     /**
@@ -378,7 +373,7 @@ public class HDXImage
      * @param name the name of the property to get, as a String.
      * @return a reference to the property value or null if not found.
      */
-    public Object getProperty(String name)
+    public Object getProperty( String name )
     {
         if ( name.equals( "#num_pages" ) ) {
             return Integer.toString( getNumNDXs() );
@@ -499,7 +494,7 @@ public class HDXImage
             if ( nativeType ==  Type.SHORT ) {
                 ndArrayData = new NDArrayDataShort( ndArray );
                 dataType = DataBuffer.TYPE_SHORT;
-            } 
+            }
             else if ( nativeType == Type.SHORT ) {
                 ndArrayData = new NDArrayDataByte( ndArray );
                 dataType = DataBuffer.TYPE_BYTE;
@@ -511,13 +506,13 @@ public class HDXImage
             else if ( nativeType == Type.FLOAT ) {
                 ndArrayData = new NDArrayDataFloat( ndArray );
                 dataType = DataBuffer.TYPE_FLOAT;
-            } 
+            }
             else if ( nativeType == Type.DOUBLE ) {
                 ndArrayData = new NDArrayDataDouble( ndArray );
                 dataType = DataBuffer.TYPE_DOUBLE;
             }
             else {
-                   throw new RuntimeException( "Invalid data type" + 
+                   throw new RuntimeException( "Invalid data type" +
                                                ndArray.getType() );
             }
         }
@@ -539,12 +534,12 @@ public class HDXImage
                                                        new Point( 0, 0 ) );
         }
 
-        Raster tile = tileCache.getTile( tileX, tileY );
+        Raster tile = tileCache.getTile( this, tileX, tileY );
         if ( tile == null ) {
             Point origin = new Point( tileXToX( tileX ), tileYToY( tileY ) );
             tile = RasterFactory.createWritableRaster( sampleModel, origin );
             fillTile( tile );
-            tileCache.add( tileX, tileY, tile );
+            tileCache.add( this, tileX, tileY, tile );
         }
         else {
             //System.out.println("XXX use old tile(" + tileX + ", " + tileY + ")");
@@ -586,7 +581,7 @@ public class HDXImage
 
     /**
      * Get a reference to the current NDX. This allows access to other
-     * goodies such as WCS information and the size of the image etc. 
+     * goodies such as WCS information and the size of the image etc.
      * Notes that you should use this reference and then throw it away
      * as currently this HDXImage may change the NDX that it is using.
      */
