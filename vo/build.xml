@@ -1074,7 +1074,7 @@
 
       <batchtest>
         <fileset dir="${tests.dir}">
-          <include name="**/JUnit*"/>
+          <include name="**/*Test*"/>
         </fileset>
       </batchtest>
 
