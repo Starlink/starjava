@@ -381,8 +381,15 @@
 
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
+    <mkdir dir="${dist.bin}"/>
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
+
+    <!-- Copy any scripts. Note for "util" these can be found in the
+     !   "bin" directory, not just the package bin. -->
+    <copy todir="${dist.bin}">
+      <fileset dir="${script.dir}/" />
+    </copy>
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
@@ -573,18 +580,36 @@
     <property name="star.lib" value="${star.install}/lib"/>
     <property name="star.etc" value="${star.install}/etc"/>
     <property name="star.docs" value="${star.install}/docs"/>
-    <property name="star.bin.pkg" value="${star.bin}/${name}"/>
     <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
     <mkdir dir="${star.install}"/>
+    <mkdir dir="${star.bin}"/>
     <mkdir dir="${star.lib.pkg}"/>
     <mkdir dir="${star.docs.pkg}"/>
+
+    <loggedcopy todir="${star.bin}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="false">
+      <fileset dir="${dist.bin}"/>
+    </loggedcopy>
+
+   <chmod perm="ugo+rx" failonerror="${chmod.fail}">
+      <fileset dir="${star.bin}">
+        <present targetdir="${dist.bin}" present="both"/>
+      </fileset>
+    </chmod>
+
+    <!-- Also remove the package-specific directory. 
+     !   Note exact format is required.-->
+    <echo file="${install.log}" append="true">${star.bin.pkg}
+</echo>
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="false">
+                logfileAppend="true">
       <fileset dir="${dist.lib}">
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
