@@ -4,7 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -33,9 +37,10 @@ import java.util.regex.Pattern;
  * @see   <a href="http://vizier.u-strasbg.fr/doc/UCD.htx">Unified 
  *        Content Descriptors</a>
  */
-public class UCD {
+public class UCD implements Comparable {
 
     private static Map ucdMap;
+    private static List ucdList;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
     public static final String UCD_DEFINITIONS_LOC = 
         "/uk/ac/starlink/table/text/UCDs";
@@ -44,8 +49,8 @@ public class UCD {
     private final String description;
 
     /**
-     * Private constructor.  This is only invoked by the <tt>populateMap</tt>
-     * method.
+     * Private constructor.  This is only invoked by the
+     * {@link #ensureInitialised} method.
      */
     private UCD( String id, String description ) {
         this.id = id;
@@ -71,6 +76,14 @@ public class UCD {
     }
 
     /**
+     * Implements the {@link java.lang.Comparable} interface, comparing
+     * alphabetically by ID.
+     */
+    public int compareTo( Object other ) {
+        return id.compareTo( ((UCD) other).id );
+    }
+
+    /**
      * Returns the UCD object corresponding to a given UCD ID string.
      * Returns <tt>null</tt> if no UCD with the given name is known.
      *
@@ -80,11 +93,22 @@ public class UCD {
      *          <tt>null</tt> if none can be found
      */
     public static UCD getUCD( String id ) {
-        if ( ucdMap == null ) {
-            populateMap();
-        }
+        ensureInitialised();
         UCD ucd = (UCD) ucdMap.get( id.trim() );
         return ucd;
+    }
+
+    /**
+     * Returns an iterator over all the known UCDs.
+     * The iterator returns the UCDs in their natural order (alphabetic
+     * by ID).
+     *
+     * @return  an Iterator which iterates over all the existing <tt>UCD</tt> 
+     *          objects
+     */
+    public static Iterator getUCDs() {
+        ensureInitialised();
+        return ucdList.iterator();
     }
 
     /**
@@ -100,8 +124,16 @@ public class UCD {
      * Reads the text list of all defined UCDs to populate the lookup
      * table used by the <tt>getUCD</tt> method.
      */
-    private static void populateMap() {
+    private static void ensureInitialised() {
+
+        /* If this has already been done, no work is now required. */
+        if ( ucdMap != null ) {
+            return;
+        }
+
+        /* Otherwise, populate the map. */
         ucdMap = new HashMap();
+        ucdList = new ArrayList();
         InputStream strm = UCD.class.getResourceAsStream( UCD_DEFINITIONS_LOC );
         if ( strm == null ) {
             logger.warning( "No resource " + UCD_DEFINITIONS_LOC 
@@ -116,16 +148,33 @@ public class UCD {
             for ( String line; ( line = rdr.readLine() ) != null; ) {
                 Matcher mat = pat.matcher( line );
                 if ( mat.matches() ) {
-                    String id = mat.group( 1 );
-                    String description = mat.group( 2 );
-                    ucdMap.put( id, new UCD( id, description ) );
+                    String id = unEscape( mat.group( 1 ) );
+                    String description = unEscape( mat.group( 2 ) );
+                    UCD ucd = new UCD( id, description );
+                    ucdMap.put( id, ucd );
+                    ucdList.add( ucd );
                 }
             }
+            Collections.sort( ucdList );
         }
         catch ( IOException e ) {
             logger.warning( "Trouble reading " + UCD_DEFINITIONS_LOC 
                           + ": " + e );
         }
+    }
+
+    /**
+     * Returns the plain text version of an HTML string.  This does not
+     * attempt to be comprehensive, but copes with the characters we
+     * expect to get.
+     *
+     * @param  text  the HTML-like input string
+     * @return  a plain-text equivalent of <tt>text</tt>
+     */
+    private static String unEscape( String text ) {
+        return text
+              .replaceAll( "&lt;", "<" )
+              .replaceAll( "&gt;", ">" );
     }
  
 }
