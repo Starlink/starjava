@@ -359,7 +359,7 @@ public class FITSSpecDataImpl
             if ( scard != null ) {
                 HeaderCard card = new HeaderCard( scard );
                 if ( card != null ) {
-                    setDataUnits( card.getValue() );
+                    setDataLabel( card.getValue() );
                 }
             }
         }
