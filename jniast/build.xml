@@ -326,22 +326,25 @@
     </filterchain>
 
     <!-- Work out what doesn't need to be done -->
+    <!-- Note there are hard-coded names of basedir subdirectories here -
+     !   this isn't very nice but I can't get the uptodate task to
+     !   play ball without doing this.  If you can, by all means fix. -->
     <condition property="java.assembled">
       <and>
         <uptodate>
-          <srcfiles dir="${basedir}" includes="${src.perl}/*.pl"/>
+          <srcfiles dir="${basedir}" includes="src/perl/*.pl"/>
           <mapper type="glob" 
-                  from="${src.perl}${file.separator}*.pl"
-                  to="${build.java}${file.separator}${package.path}${file.separator}*.java"/>
+                  from="src/perl/*.pl"
+                  to="build/java/${package.path}/*.java"/>
         </uptodate>
         <uptodate>
           <srcfiles dir="${basedir}">
-            <include name="${java.dir}/**/*.java"/>
-            <include name="${java.dir}/**/*.html"/>
+            <include name="src/main/**/*.java"/>
+            <include name="src/main/**/*.html"/>
           </srcfiles>
           <mapper type="glob"
-                  from="${java.dir}${file.separator}*"
-                  to="${build.java}${file.separator}*"/>
+                  from="src/main/*"
+                  to="build/java/*"/>
         </uptodate>
       </and>
     </condition>
@@ -349,26 +352,16 @@
     <condition property="jni.assembled">
       <and>
         <uptodate>
-          <srcfiles dir="${basedir}" includes="${src.perl}/*.pl"/>
+          <srcfiles dir="${basedir}" includes="src/perl/*.pl"/>
           <mapper type="glob" 
-                  from="${src.perl}${file.separator}*.pl"
-                  to="${build.java}${file.separator}${package.path}${file.separator}*.java"/>
+                  from="src/perl/*.pl"
+                  to="build/java/${package.path}*.java"/>
         </uptodate>
         <uptodate>
-          <srcfiles dir="${basedir}">
-            <include name="${src.jni}/*"/>
-          </srcfiles>
+          <srcfiles dir="${basedir}" includes="src/jni/*"/>
           <mapper type="glob"
-                  from="${src.jni}${file.separator}*"
-                  to="${build.jni}${file.separator}*"/>
-        </uptodate>
-        <uptodate>
-          <srcfiles dir="${basedir}">
-            <include name="${build.ast}/grf.h"/>
-          </srcfiles>
-          <mapper type="glob"
-                  from="${build.ast}${file.separator}*"
-                  to="${build.jni}${file.separator}*"/>
+                  from="src/jni/*"
+                  to="build/jni/*"/>
         </uptodate>
       </and>
     </condition>
