@@ -24,12 +24,15 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.prefs.Preferences;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -111,6 +114,10 @@ public class SplatBrowser
     extends JFrame
     implements ItemListener, ActionListener
 {
+    // Logger.
+    private static Logger logger =
+        Logger.getLogger( "uk.ac.starlink.splat.iface.SplatBrowser" );
+
     /**
      *  The global list of spectra and plots.
      */
@@ -380,7 +387,7 @@ public class SplatBrowser
             initComponents();
         }
         catch ( Exception e ) {
-            e.printStackTrace();
+            logger.log( Level.SEVERE, e.getMessage(), e );
             return;
         }
 
@@ -589,7 +596,7 @@ public class SplatBrowser
                                                        "Open location" );
         fileMenu.add( locationAction );
         toolBar.add( locationAction );
- 
+
         //  Add action to do a search of any SSAP servers.
         ImageIcon ssapImage =
             new ImageIcon( ImageHolder.class.getResource( "ssap.gif" ) );
@@ -638,7 +645,6 @@ public class SplatBrowser
                              readStackImage,
                              "Read back spectra stored in a disk file");
         fileMenu.add( readStackAction );
-        //toolBar.add( readStackAction );
 
         //  Add an action to save the stack of spectra.
         ImageIcon saveStackImage =
@@ -647,7 +653,6 @@ public class SplatBrowser
             new LocalAction( LocalAction.SAVE_STACK, "Save stack",
                              saveStackImage, "Save all spectra to disk file" );
         fileMenu.add( saveStackAction );
-        //toolBar.add( saveStackAction );
 
         //  Add an action to exit application.
         ImageIcon exitImage =
@@ -833,6 +838,9 @@ public class SplatBrowser
         //  Add the LookAndFeel selections.
         new SplatLookAndFeelManager( contentPane, optionsMenu );
 
+        //  Add sub-menu to make the various example datasets available.
+        new ExamplesManager( optionsMenu, this );
+
         //  Add option to choose a different colour for each spectrum as they
         //  are loaded.
         colourAsLoadedItem = new JCheckBoxMenuItem( "Auto-colour" );
@@ -992,8 +1000,8 @@ public class SplatBrowser
             }
             catch (Exception e) {
                 // Not fatal, just no remote control.
-                System.err.println( "Failed to start remote services" );
-                System.err.println( e.getMessage() );
+                logger.warning( "Failed to start remote services" );
+                logger.warning( e.getMessage() );
             }
         }
     }
@@ -1011,7 +1019,7 @@ public class SplatBrowser
                         initRemoteServices();
                     }
                     catch (Exception e) {
-                        e.printStackTrace();
+                        logger.log( Level.INFO, e.getMessage(), e );
                     }
                 }
             };
@@ -1359,20 +1367,44 @@ public class SplatBrowser
         if ( result == stackChooser.APPROVE_OPTION ) {
             File file = stackChooser.getSelectedFile();
             if ( file.exists() && file.canRead() ) {
-                SpecList globalSpecList = SpecList.getInstance();
-                int nread = globalSpecList.readStack( file.getPath() );
-
-                //  If requested honour the display option.
-                if ( ( nread > 0 ) && stackOpenDisplayCheckBox.isSelected() ) {
-                    int count = globalList.specCount();
-                    displayRange( count - nread, count - 1 );
-                }
+                readStack( file, stackOpenDisplayCheckBox.isSelected() );
             }
             else {
                 JOptionPane.showMessageDialog
                     ( this, "Cannot read file:" + file.getPath(),
                       "File access error", JOptionPane.ERROR_MESSAGE );
             }
+        }
+    }
+
+    /**
+     * Read and optionally display a file containing a stack of spectra.
+     */
+    public void readStack( File file, boolean display )
+    {
+        SpecList globalSpecList = SpecList.getInstance();
+        int nread = globalSpecList.readStack( file.getPath() );
+
+        //  If requested honour the display option.
+        if ( ( nread > 0 ) && display ) {
+            int count = globalList.specCount();
+            displayRange( count - nread, count - 1 );
+        }
+    }
+
+    /**
+     * Read and optionally display an InputStream that contains a stack of
+     * spectra.
+     */
+    public void readStack( InputStream in, boolean display )
+    {
+        SpecList globalSpecList = SpecList.getInstance();
+        int nread = globalSpecList.readStack( in );
+
+        //  If requested honour the display option.
+        if ( ( nread > 0 ) && display ) {
+            int count = globalList.specCount();
+            displayRange( count - nread, count - 1 );
         }
     }
 
@@ -1456,7 +1488,7 @@ public class SplatBrowser
 
     /**
      * Load and display a list of spectra with some pre-defined properties
-     * that should be applied to the spectra immediately after loading. 
+     * that should be applied to the spectra immediately after loading.
      * Uses a thread to load the files so that we do not block the UI.
      *
      * @param props properties of the spectra to be loaded, including names.
@@ -1561,7 +1593,7 @@ public class SplatBrowser
     public void tryAddSpectrum( SpectrumIO.Props props )
         throws SplatException
     {
-        SpecData spectrum = specDataFactory.get( props.getSpectrum(), 
+        SpecData spectrum = specDataFactory.get( props.getSpectrum(),
                                                  props.getType() );
         addSpectrum( spectrum );
         props.apply( spectrum );
@@ -1810,7 +1842,7 @@ public class SplatBrowser
             }
         }
         if ( lastException != null ) {
-            new ExceptionDialog( this, "Failed to display spectra", 
+            new ExceptionDialog( this, "Failed to display spectra",
                                  lastException );
             return -1;
         }
@@ -1870,7 +1902,7 @@ public class SplatBrowser
             lastException = e;
         }
         if ( lastException != null ) {
-            new ExceptionDialog( this, "Failed to display spectra", 
+            new ExceptionDialog( this, "Failed to display spectra",
                                  lastException );
             return -1;
         }
@@ -2148,7 +2180,7 @@ public class SplatBrowser
                     globalList.add( newSpec );
                 }
                 catch (Exception e) {
-                    e.printStackTrace();
+                    logger.log( Level.INFO, e.getMessage(), e );
                 }
             }
         }
@@ -2292,7 +2324,7 @@ public class SplatBrowser
             globalList.add( globalIndex, target );
         }
         catch ( SplatException e ) {
-            e.printStackTrace();
+            logger.log( Level.INFO, e.getMessage(), e );
         }
     }
 
