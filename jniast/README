@@ -22,6 +22,9 @@ preference) are currently
 Note that the ast.h include file must match the libast*.a files or trouble
 may ensue.
 
+Since 3-FEB-2004 (see below) these additional packages are not required
+for a simple build/install cycle.
+
 Partial change log:
 
 14-MAR-2003:
@@ -69,3 +72,13 @@ Partial change log:
       are now included for those attributes where non-trivial information
       is contained therein.
 
+3-FEB-2004:
+   Build system is changed so that 'ant build' doesn't need any funny
+   dependencies (for instance stardev or perl).  Some auto-generated
+   files are checked into the CVS repository now.  All of these feature
+   a banner at the top indicating that they are auto-generated and should
+   not be edited by hand.  Two new targets 'build-source' and 'build-native'
+   do the generation of these files from the true sources and place
+   them in the src/ tree ready for checkin if you're happy with them.
+   These targets should be invoked (and the results checked in) when
+   the true source files on which they depend are altered.
