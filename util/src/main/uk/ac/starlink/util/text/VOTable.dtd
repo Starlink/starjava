@@ -32,22 +32,21 @@
 <!ATTLIST PARAM
         ID   ID    #IMPLIED
         unit CDATA #IMPLIED
-        datatype (boolean | bit | unsignedByte | short | int | long | char
-	| unicodeChar | float | double | floatComplex | doubleComplex) 
+        datatype (boolean | bit | unsignedByte | short | int | long | char | unicodeChar | float | double | floatComplex | doubleComplex) #REQUIRED
         precision CDATA #IMPLIED
         width CDATA #IMPLIED
         ref   IDREF #IMPLIED
-        name  CDATA 
+        name  CDATA #IMPLIED
         ucd   CDATA #IMPLIED
 	utype CDATA #IMPLIED
-        value CDATA 
+        value CDATA #IMPLIED
         arraysize CDATA #IMPLIED
 >
 
 <!-- A PARAMref is a reference to a PARAM -->
-<!ELEMENT PARAMref>
+<!ELEMENT PARAMref EMPTY>
 <!ATTLIST PARAMref
-	ref   IDREF
+	ref   IDREF  #REQUIRED
 >
 
 <!-- A TABLE is a sequence of FIELDS and LINKS and DESCRIPTION,
@@ -77,12 +76,11 @@
 <!ATTLIST FIELD
         ID   ID    #IMPLIED
         unit CDATA #IMPLIED
-        datatype (boolean | bit | unsignedByte | short | int | long | char
-	| unicodeChar | float | double | floatComplex | doubleComplex) 
+        datatype (boolean | bit | unsignedByte | short | int | long | char | unicodeChar | float | double | floatComplex | doubleComplex) #REQUIRED
         precision CDATA #IMPLIED
         width CDATA #IMPLIED
         ref   IDREF #IMPLIED
-        name  CDATA 
+        name  CDATA #IMPLIED
         ucd   CDATA #IMPLIED
 	utype CDATA #IMPLIED
         arraysize CDATA #IMPLIED
@@ -90,9 +88,9 @@
 >
 
 <!-- A FIELDref is a reference to a FIELD -->
-<!ELEMENT FIELDref>
+<!ELEMENT FIELDref EMPTY>
 <!ATTLIST FIELDref
-	ref   IDREF
+	ref   IDREF  #REQUIRED
 >
 
 <!-- VALUES expresses the values that can be taken by the data in a column. -->
