@@ -8,7 +8,7 @@ package uk.ac.starlink.ast;
 
 /**
  * Java interface to the AST SpecFluxFrame class
- *  - compound spectram/flux Frame. 
+ *  - compound spectrum/flux Frame. 
  * A SpecFluxFrame combines a SpecFrame and a FluxFrame into a single 
  * 2-dimensional compound Frame. Such a Frame can for instance be used
  * to describe a Plot of a spectrum in which the first axis represents

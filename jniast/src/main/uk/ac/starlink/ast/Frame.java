@@ -2768,8 +2768,8 @@ public class Frame extends Mapping {
      *    The FluxFrame class supports the following System values and
      *    associated systems for measuring observed value:
      * <p>
-     *    - "FLUXDEN": Flux density in frequency units (W/m^2/Hz)
-     *    - "FLUXDENW": Flux density in wavelength units (W/m^2/Angstrom)
+     *    - "FLXDN": Flux density in frequency units (W/m^2/Hz)
+     *    - "FLXDNW": Flux density in wavelength units (W/m^2/Angstrom)
      * <p>
      *    The above lists specified the default units for each System. If an 
      *    explicit value is set for the Unit attribute but no value is set 
@@ -2777,7 +2777,7 @@ public class Frame extends Mapping {
      *    string (if the units are not appropriate for describing any of the 
      *    supported Systems then an error will be reported when an attempt is 
      *    made to access the System value). If no value has been specified for
-     *    either Unit or System, then System=FLUXDEN and Unit=W/m^2/Hz are
+     *    either Unit or System, then System=FLXDN and Unit=W/m^2/Hz are
      *    used.
      * </dl>
      * 
@@ -2926,8 +2926,8 @@ public class Frame extends Mapping {
      *    The FluxFrame class supports the following System values and
      *    associated systems for measuring observed value:
      * <p>
-     *    - "FLUXDEN": Flux density in frequency units (W/m^2/Hz)
-     *    - "FLUXDENW": Flux density in wavelength units (W/m^2/Angstrom)
+     *    - "FLXDN": Flux density in frequency units (W/m^2/Hz)
+     *    - "FLXDNW": Flux density in wavelength units (W/m^2/Angstrom)
      * <p>
      *    The above lists specified the default units for each System. If an 
      *    explicit value is set for the Unit attribute but no value is set 
@@ -2935,7 +2935,7 @@ public class Frame extends Mapping {
      *    string (if the units are not appropriate for describing any of the 
      *    supported Systems then an error will be reported when an attempt is 
      *    made to access the System value). If no value has been specified for
-     *    either Unit or System, then System=FLUXDEN and Unit=W/m^2/Hz are
+     *    either Unit or System, then System=FLXDN and Unit=W/m^2/Hz are
      *    used.
      * </dl>
      * 
