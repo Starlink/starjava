@@ -12,8 +12,7 @@ import nom.tam.fits.TableData;
 import nom.tam.fits.TableHDU;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
-import uk.ac.starlink.fits.FitsConstants;
-import uk.ac.starlink.fits.FitsStarTable;
+import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -86,27 +85,7 @@ public class TableHDUDataNode extends HDUDataNode
         if ( starTable == null ) {
             try {
                 ArrayDataInput istrm = hdudata.getArrayData();
-
-                /* Skip the header which we have already seen. */
-                Header hdr = new Header( istrm );
-
-                /* Read the table data. */
-                TableHDU thdu;
-                if ( tdata instanceof BinaryTable ) {
-                    ((BinaryTable) tdata).read( istrm );
-                    thdu = new BinaryTableHDU( header, (Data) tdata );
-                }
-                else if ( tdata instanceof AsciiTable ) {
-                    ((AsciiTable) tdata).read( istrm );
-                    ((AsciiTable) tdata).getData();
-                    thdu = new AsciiTableHDU( header, (Data) tdata );
-                }
-                else {
-                    throw new IOException( "Unknown FITS table type " + tdata );
-                }
-
-                /* Make a StarTable out of it. */
-                starTable = new FitsStarTable( thdu );
+                starTable = FitsTableBuilder.attemptReadTable( istrm );
             }
             catch ( FitsException e ) {
                 throw (IOException) new IOException( e.getMessage() ) 
