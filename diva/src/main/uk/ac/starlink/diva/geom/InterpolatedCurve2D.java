@@ -581,7 +581,7 @@ public class InterpolatedCurve2D
     
     /**
      * Sort an array using the index produced by the 
-     * {@link insertionSort} method.
+     * {@link #insertionSort} method.
      */
     public static double[] applySortIndex( double[] a, int[] remap, 
                                            boolean incr )

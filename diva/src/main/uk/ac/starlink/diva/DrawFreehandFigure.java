@@ -13,7 +13,7 @@ import java.awt.Paint;
 
 /**
  * A figure that displays a polyline that can have its vertices moved,
- * intended for use as a freehand (i.e. many vertices) figure, same as
+ * intended for use as a freehand (i.e.<!-- --> many vertices) figure, same as
  * Polyline figure but can be identified as needing different treatment.
  *
  * @author Peter W. Draper

@@ -24,7 +24,7 @@ import javax.swing.event.EventListenerList;
 /**
  * DrawCompositeFigure extends the Diva BackgroundedCompositeFigure
  * class to add support for events that allow users of any derived
- * figures to be made aware of any changes,<!-- --> i.e. composite figure
+ * figures to be made aware of any changes, i.e.<!-- --> composite figure
  * creation, removal and transformations.
  * <p>
  * All composite figures used on a {@link Draw} implementation should

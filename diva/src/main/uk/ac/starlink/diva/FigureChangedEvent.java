@@ -31,7 +31,7 @@ public class FigureChangedEvent
     public static final int REMOVED = 1;
     
     /**
-     *  Used when figure is changed (i.e.&nbsp;transformed).
+     *  Used when figure is changed (i.e.<!-- -->transformed).
      */
     public static final int CHANGED = 1;
     
