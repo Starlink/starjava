@@ -1,3 +1,9 @@
+   The grid drawn around the spectra can now be forced to stay within
+   the visible region of the plot window. This makes it easier to view
+   the spectral data values and coordinates, but at a performance cost.
+   Switch on the option "Only display grid axes in visible area" to 
+   see this in action.
+
    The plot scale factors now apply to graphics size. Previously they applied
    to the spectrum coordinates. This makes it easy to control the plot when
    displaying spectra with very different coordinates (like those downloaded
@@ -11,6 +17,9 @@
 
    Fixed long standing problem with graphics corruption between plots.
    (When current spectrum was shared drawing appeared in all effected plots).
+
+   Postscript output of a plot is now written in the named directory, not
+   the default directory.
 
 
 1 Starlink SPLAT now a tool for the Virtual Observatory
