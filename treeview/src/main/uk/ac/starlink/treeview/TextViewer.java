@@ -7,13 +7,9 @@ import java.io.Writer;
 import java.util.Iterator;
 import java.awt.Font;
 import javax.swing.JTextArea;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
 import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.stream.StreamResult;
+import uk.ac.starlink.util.SourceReader;
 
 /**
  * A component which presents textual data in a monospaced font.
@@ -48,20 +44,10 @@ class TextViewer extends JTextArea {
         this();
 
         /* Obtain and configure a transformer to turn the XML into text. */
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer trans = tf.newTransformer();
-        trans.setOutputProperty( OutputKeys.INDENT, "yes" );
-        trans.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
-        trans.setOutputProperty( OutputKeys.METHOD, "xml" );
-
-        /* Attempt to set the indent amount; this may have no effect if we
-         * don't have an apache transformer, but at worst it is harmless. */
-        trans.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", 
-                                 "2" );
-        Result xres = new StreamResult( appender );
-
-        /* Do the transformation. */
-        trans.transform( xsrc, xres );
+        SourceReader sr = new SourceReader();
+        sr.setIndent( 2 );
+        sr.setIncludeDeclaration( false );
+        sr.writeSource( xsrc, appender );
     }
 
      
