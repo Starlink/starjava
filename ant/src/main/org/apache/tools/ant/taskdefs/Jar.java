@@ -116,11 +116,6 @@ public class Jar extends Zip {
     private FilesetManifestConfig filesetManifestConfig;
 
     /**
-     *  Whether to create manifest file on finalizeOutputStream?
-     */
-    private boolean manifestOnFinalize = true;
-
-    /**
      * whether to merge the main section of fileset manifests;
      * value is true if filesetmanifest is 'merge'
      */
@@ -297,12 +292,16 @@ public class Jar extends Zip {
      *
      * @param config setting for found manifest behavior.
      */
-    /*
     public void setFilesetmanifest(FilesetManifestConfig config) {
         filesetManifestConfig = config;
         mergeManifestsMain = "merge".equals(config.getValue());
+
+        if (filesetManifestConfig != null
+            && ! filesetManifestConfig.getValue().equals("skip")) {
+
+            doubleFilePass = true;
+        }
     }
-    */
 
     /**
      * Adds a zipfileset to include in the META-INF directory.
@@ -317,9 +316,8 @@ public class Jar extends Zip {
 
     protected void initZipOutputStream(ZipOutputStream zOut)
         throws IOException, BuildException {
-        if (filesetManifestConfig == null
-            || filesetManifestConfig.getValue().equals("skip")) {
-            manifestOnFinalize = false;
+
+        if (! skipWriting) {
             Manifest jarManifest = createManifest();
             writeManifest(zOut, jarManifest);
         }
@@ -362,7 +360,7 @@ public class Jar extends Zip {
     }
 
     private void writeManifest(ZipOutputStream zOut, Manifest manifest)
-         throws IOException {
+        throws IOException {
         for (Enumeration e = manifest.getWarnings();
              e.hasMoreElements();) {
             log("Manifest warning: " + (String) e.nextElement(),
@@ -386,11 +384,7 @@ public class Jar extends Zip {
     }
 
     protected void finalizeZipOutputStream(ZipOutputStream zOut)
-            throws IOException, BuildException {
-        if (manifestOnFinalize) {
-            Manifest jarManifest = createManifest();
-            writeManifest(zOut, jarManifest);
-        }
+        throws IOException, BuildException {
 
         if (index) {
             createIndexList(zOut);
@@ -459,7 +453,9 @@ public class Jar extends Zip {
                            long lastModified, File fromArchive, int mode)
         throws IOException {
         if (MANIFEST_NAME.equalsIgnoreCase(vPath))  {
-            filesetManifest(fromArchive, is);
+            if (! doubleFilePass || (doubleFilePass && skipWriting)) {
+                filesetManifest(fromArchive, is);
+            }
         } else {
             super.zipFile(is, zOut, vPath, lastModified, fromArchive, mode);
         }
@@ -535,11 +531,12 @@ public class Jar extends Zip {
      * out-of-date.  Subclasses overriding this method are supposed to
      * set this value correctly in their call to
      * super.getResourcesToAdd.
-     * @return an array of resources to add for each fileset passed in.
+     * @return an array of resources to add for each fileset passed in as well
+     *         as a flag that indicates whether the archive is uptodate.
      *
      * @exception BuildException if it likes
      */
-    protected Resource[][] getResourcesToAdd(FileSet[] filesets,
+    protected ArchiveState getResourcesToAdd(FileSet[] filesets,
                                              File zipFile,
                                              boolean needsUpdate)
         throws BuildException {
@@ -585,7 +582,8 @@ public class Jar extends Zip {
         
         ZipOutputStream zOut = null;
         try {
-            log("Building jar: " + getDestFile().getAbsolutePath());
+            log("Building MANIFEST-only jar: " 
+                + getDestFile().getAbsolutePath());
             zOut = new ZipOutputStream(new FileOutputStream(getDestFile()));
 
             zOut.setEncoding(getEncoding());
@@ -622,9 +620,14 @@ public class Jar extends Zip {
     protected void cleanUp() {
         super.cleanUp();
 
-        manifest = null;
-        configuredManifest = savedConfiguredManifest;
-        filesetManifest = null;
+        // we want to save this info if we are going to make another pass
+        if (! doubleFilePass || (doubleFilePass && ! skipWriting))
+            {
+                manifest = null;
+                configuredManifest = savedConfiguredManifest;
+                filesetManifest = null;
+                originalManifest = null;
+            }
     }
 
     /**
