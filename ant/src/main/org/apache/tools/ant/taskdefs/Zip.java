@@ -93,7 +93,7 @@ import org.apache.tools.zip.ZipOutputStream;
  *
  * @author James Davidson <a href="mailto:duncan@x180.com">duncan@x180.com</a>
  * @author Jon S. Stevens <a href="mailto:jon@clearink.com">jon@clearink.com</a>
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
+ * @author Stefan Bodewig
  * @author <a href="mailto:levylambert@tiscali-dsl.de">Antoine Levy-Lambert</a>
  *
  * @since Ant 1.1
@@ -124,11 +124,14 @@ public class Zip extends MatchingTask {
     protected Hashtable addedDirs = new Hashtable();
     private Vector addedFiles = new Vector();
 
+    protected boolean doubleFilePass = false;
+    protected boolean skipWriting = false;
+
     private static FileUtils fileUtils = FileUtils.newFileUtils();
 
-    /** 
+    /**
      * true when we are adding new files into the Zip file, as opposed
-     * to adding back the unchanged files 
+     * to adding back the unchanged files
      */
     private boolean addingNewFiles = false;
 
@@ -309,15 +312,29 @@ public class Zip extends MatchingTask {
      * validate and build
      */
     public void execute() throws BuildException {
+
+        if (doubleFilePass) {
+            skipWriting = true;
+            executeMain();
+            skipWriting = false;
+            executeMain();
+        }
+        else {
+            executeMain();
+        }
+    }
+
+    public void executeMain() throws BuildException {
+
         if (baseDir == null && filesets.size() == 0
             && groupfilesets.size() == 0 && "zip".equals(archiveType)) {
             throw new BuildException("basedir attribute must be set, "
-                                     + "or at least " 
+                                     + "or at least "
                                      + "one fileset must be given!");
         }
 
         if (zipFile == null) {
-            throw new BuildException("You must specify the " 
+            throw new BuildException("You must specify the "
                                      + archiveType + " file to create!");
         }
 
@@ -327,7 +344,11 @@ public class Zip extends MatchingTask {
         // we don't need to update if the original file doesn't exist
 
         addingNewFiles = true;
-        doUpdate = doUpdate && zipFile.exists();
+        if (doUpdate && !zipFile.exists()) {
+            doUpdate = false;
+            log("ignoring update attribute as " + archiveType
+                + " doesn't exist.", Project.MSG_DEBUG);
+        }
 
         // Add the files found in groupfileset to fileset
         for (int i = 0; i < groupfilesets.size(); i++) {
@@ -339,7 +360,7 @@ public class Zip extends MatchingTask {
             File basedir = scanner.getBasedir();
             for (int j = 0; j < files.length; j++) {
 
-                log("Adding file " + files[j] + " to fileset", 
+                log("Adding file " + files[j] + " to fileset",
                     Project.MSG_VERBOSE);
                 ZipFileSet zf = new ZipFileSet();
                 zf.setSrc(new File(basedir, files[j]));
@@ -364,13 +385,15 @@ public class Zip extends MatchingTask {
         vfss.copyInto(fss);
         boolean success = false;
         try {
-            Resource[][] addThem = getResourcesToAdd(fss, zipFile, false);
+            // can also handle empty archives
+            ArchiveState state = getResourcesToAdd(fss, zipFile, false);
 
             // quick exit if the target is up to date
-            // can also handle empty archives
-            if (isEmpty(addThem)) {
+            if (!state.isOutOfDate()) {
                 return;
             }
+
+            Resource[][] addThem = state.getResourcesToAdd();
 
             if (doUpdate) {
                 renamedFile =
@@ -392,14 +415,18 @@ public class Zip extends MatchingTask {
 
             log(action + archiveType + ": " + zipFile.getAbsolutePath());
 
-            ZipOutputStream zOut =
-                new ZipOutputStream(new FileOutputStream(zipFile));
-            zOut.setEncoding(encoding);
+            ZipOutputStream zOut = null;
             try {
-                if (doCompress) {
-                    zOut.setMethod(ZipOutputStream.DEFLATED);
-                } else {
-                    zOut.setMethod(ZipOutputStream.STORED);
+
+                if (! skipWriting) {
+                    zOut = new ZipOutputStream(new FileOutputStream(zipFile));
+
+                    zOut.setEncoding(encoding);
+                    if (doCompress) {
+                        zOut.setMethod(ZipOutputStream.DEFLATED);
+                    } else {
+                        zOut.setMethod(ZipOutputStream.STORED);
+                    }
                 }
                 initZipOutputStream(zOut);
 
@@ -462,7 +489,7 @@ public class Zip extends MatchingTask {
                 }
             }
         } catch (IOException ioe) {
-            String msg = "Problem creating " + archiveType + ": " 
+            String msg = "Problem creating " + archiveType + ": "
                 + ioe.getMessage();
 
             // delete a bogus ZIP file (but only if it's not the original one)
@@ -517,7 +544,7 @@ public class Zip extends MatchingTask {
             prefix = zfs.getPrefix();
             fullpath = zfs.getFullpath();
             dirMode = zfs.getDirMode();
-            fileMode = zfs.getDirMode();
+            fileMode = zfs.getFileMode();
         }
 
         if (prefix.length() > 0 && fullpath.length() > 0) {
@@ -666,17 +693,38 @@ public class Zip extends MatchingTask {
      * out-of-date.  Subclasses overriding this method are supposed to
      * set this value correctly in their call to
      * super.getResourcesToAdd.
-     * @return an array of resources to add for each fileset passed in.
+     * @return an array of resources to add for each fileset passed in as well
+     *         as a flag that indicates whether the archive is uptodate.
      *
      * @exception BuildException if it likes
      */
-    protected Resource[][] getResourcesToAdd(FileSet[] filesets,
+    protected ArchiveState getResourcesToAdd(FileSet[] filesets,
                                              File zipFile,
                                              boolean needsUpdate)
         throws BuildException {
 
         Resource[][] initialResources = grabResources(filesets);
         if (isEmpty(initialResources)) {
+            if (needsUpdate && doUpdate) {
+                /*
+                 * This is a rather hairy case.
+                 *
+                 * One of our subclasses knows that we need to update the
+                 * archive, but at the same time, there are no resources
+                 * known to us that would need to be added.  Only the
+                 * subclass seems to know what's going on.
+                 *
+                 * This happens if <jar> detects that the manifest has changed,
+                 * for example.  The manifest is not part of any resources
+                 * because of our support for inline <manifest>s.
+                 *
+                 * If we invoke createEmptyZip like Ant 1.5.2 did,
+                 * we'll loose all stuff that has been in the original
+                 * archive (bugzilla report 17780).
+                 */
+                return new ArchiveState(true, initialResources);
+            }
+
             if (emptyBehavior.equals("skip")) {
                 if (doUpdate) {
                     log(archiveType + " archive " + zipFile 
@@ -696,16 +744,18 @@ public class Zip extends MatchingTask {
                 // Create.
                 createEmptyZip(zipFile);
             }
-            return initialResources;
+            return new ArchiveState(needsUpdate, initialResources);
         }
 
+        // initialResources is not empty
+
         if (!zipFile.exists()) {
-            return initialResources;
+            return new ArchiveState(true, initialResources);
         }
 
         if (needsUpdate && !doUpdate) {
             // we are recreating the archive, need all resources
-            return initialResources;
+            return new ArchiveState(true, initialResources);
         }
 
         Resource[][] newerResources = new Resource[filesets.length][];
@@ -773,10 +823,10 @@ public class Zip extends MatchingTask {
 
         if (needsUpdate && !doUpdate) {
             // we are recreating the archive, need all resources
-            return initialResources;
+            return new ArchiveState(true, initialResources);
         }
         
-        return newerResources;
+        return new ArchiveState(needsUpdate, newerResources);
     }
 
     /**
@@ -822,21 +872,23 @@ public class Zip extends MatchingTask {
         log("adding directory " + vPath, Project.MSG_VERBOSE);
         addedDirs.put(vPath, vPath);
 
-        ZipEntry ze = new ZipEntry (vPath);
-        if (dir != null && dir.exists()) {
-            // ZIPs store time with a granularity of 2 seconds, round up
-            ze.setTime(dir.lastModified() + 1999);
-        } else {
-            // ZIPs store time with a granularity of 2 seconds, round up
-            ze.setTime(System.currentTimeMillis() + 1999);
-        }
-        ze.setSize (0);
-        ze.setMethod (ZipEntry.STORED);
-        // This is faintly ridiculous:
-        ze.setCrc (EMPTY_CRC);
-        ze.setUnixMode(mode);
+        if (! skipWriting) {
+            ZipEntry ze = new ZipEntry (vPath);
+            if (dir != null && dir.exists()) {
+                // ZIPs store time with a granularity of 2 seconds, round up
+                ze.setTime(dir.lastModified() + 1999);
+            } else {
+                // ZIPs store time with a granularity of 2 seconds, round up
+                ze.setTime(System.currentTimeMillis() + 1999);
+            }
+            ze.setSize (0);
+            ze.setMethod (ZipEntry.STORED);
+            // This is faintly ridiculous:
+            ze.setCrc (EMPTY_CRC);
+            ze.setUnixMode(mode);
 
-        zOut.putNextEntry (ze);
+            zOut.putNextEntry (ze);
+        }
     }
 
     /**
@@ -875,62 +927,65 @@ public class Zip extends MatchingTask {
 
         entries.put(vPath, vPath);
 
-        ZipEntry ze = new ZipEntry(vPath);
-        ze.setTime(lastModified);
+        if (! skipWriting) {
+            ZipEntry ze = new ZipEntry(vPath);
+            ze.setTime(lastModified);
 
-        /*
-         * XXX ZipOutputStream.putEntry expects the ZipEntry to know its
-         * size and the CRC sum before you start writing the data when using
-         * STORED mode.
-         *
-         * This forces us to process the data twice.
-         *
-         * I couldn't find any documentation on this, just found out by try
-         * and error.
-         */
-        if (!doCompress) {
-            long size = 0;
-            CRC32 cal = new CRC32();
-            if (!in.markSupported()) {
-                // Store data into a byte[]
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            /*
+            * ZipOutputStream.putNextEntry expects the ZipEntry to
+            * know its size and the CRC sum before you start writing
+            * the data when using STORED mode.
+            *
+            * This forces us to process the data twice.
+            *
+            * In DEFLATED mode, it will take advantage of a Zip
+            * Version 2 feature where size can be stored after the
+            * data (as the data itself signals end of data).
+            */
+            if (!doCompress) {
+                long size = 0;
+                CRC32 cal = new CRC32();
+                if (!in.markSupported()) {
+                    // Store data into a byte[]
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-                byte[] buffer = new byte[8 * 1024];
-                int count = 0;
-                do {
-                    size += count;
-                    cal.update(buffer, 0, count);
-                    bos.write(buffer, 0, count);
-                    count = in.read(buffer, 0, buffer.length);
-                } while (count != -1);
-                in = new ByteArrayInputStream(bos.toByteArray());
+                    byte[] buffer = new byte[8 * 1024];
+                    int count = 0;
+                    do {
+                        size += count;
+                        cal.update(buffer, 0, count);
+                        bos.write(buffer, 0, count);
+                        count = in.read(buffer, 0, buffer.length);
+                    } while (count != -1);
+                    in = new ByteArrayInputStream(bos.toByteArray());
 
-            } else {
-                in.mark(Integer.MAX_VALUE);
-                byte[] buffer = new byte[8 * 1024];
-                int count = 0;
-                do {
-                    size += count;
-                    cal.update(buffer, 0, count);
-                    count = in.read(buffer, 0, buffer.length);
-                } while (count != -1);
-                in.reset();
+                } else {
+                    in.mark(Integer.MAX_VALUE);
+                    byte[] buffer = new byte[8 * 1024];
+                    int count = 0;
+                    do {
+                        size += count;
+                        cal.update(buffer, 0, count);
+                        count = in.read(buffer, 0, buffer.length);
+                    } while (count != -1);
+                    in.reset();
+                }
+                ze.setSize(size);
+                ze.setCrc(cal.getValue());
             }
-            ze.setSize(size);
-            ze.setCrc(cal.getValue());
+
+            ze.setUnixMode(mode);
+            zOut.putNextEntry(ze);
+
+            byte[] buffer = new byte[8 * 1024];
+            int count = 0;
+            do {
+                if (count != 0) {
+                    zOut.write(buffer, 0, count);
+                }
+                count = in.read(buffer, 0, buffer.length);
+            } while (count != -1);
         }
-
-        ze.setUnixMode(mode);
-        zOut.putNextEntry(ze);
-
-        byte[] buffer = new byte[8 * 1024];
-        int count = 0;
-        do {
-            if (count != 0) {
-                zOut.write(buffer, 0, count);
-            }
-            count = in.read(buffer, 0, buffer.length);
-        } while (count != -1);
         addedFiles.addElement(vPath);
     }
 
@@ -1068,6 +1123,30 @@ public class Zip extends MatchingTask {
     public static class Duplicate extends EnumeratedAttribute {
         public String[] getValues() {
             return new String[] {"add", "preserve", "fail"};
+        }
+    }
+
+    /**
+     * Holds the up-to-date status and the out-of-date resources of
+     * the original archive.
+     *
+     * @since Ant 1.5.3
+     */
+    public static class ArchiveState {
+        private boolean outOfDate;
+        private Resource[][] resourcesToAdd;
+
+        ArchiveState(boolean state, Resource[][] r) {
+            outOfDate = state;
+            resourcesToAdd = r;
+        }
+
+        public boolean isOutOfDate() {
+            return outOfDate;
+        }
+
+        public Resource[][] getResourcesToAdd() {
+            return resourcesToAdd;
         }
     }
 }
