@@ -60,7 +60,12 @@ public class Utilities
      */
     public static File getConfigDirectory()
     {
-        File dir = new File( System.getProperty( "user.home" ), ".soap" );
+        File dir = null;
+        if ( javaProp.getProperty("adam.user") != null ) {
+           dir = new File ( javaProp.getProperty( "adam.user" ) );
+        } else {
+           dir = new File( javaProp.getProperty( "user.home" ), ".soap" );
+        }
         if ( ! dir.exists() ) {
             try {
                 dir.mkdir();
