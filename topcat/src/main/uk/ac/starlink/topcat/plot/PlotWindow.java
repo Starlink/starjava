@@ -52,6 +52,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.OverlayLayout;
 import javax.swing.table.TableColumn;
@@ -115,10 +116,12 @@ public class PlotWindow extends TopcatViewWindow
     private boolean activeBlob_;
     private boolean replotted_;
 
-    private static final double MILLISECONDS_PER_YEAR
-                              = 365.25 * 24 * 60 * 60 * 1000;
     private static final Object EPS = "EPS";
     private static final Object GIF = "GIF";
+    private static final double MILLISECONDS_PER_YEAR
+                              = 365.25 * 24 * 60 * 60 * 1000;
+    private static final ListCellRenderer colRenderer_ = 
+        new ColumnCellRenderer();
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
@@ -129,16 +132,16 @@ public class PlotWindow extends TopcatViewWindow
     private static final MarkStyleProfile MARKERS5;
     private static final MarkStyleProfile[] MARKER_PROFILES = 
                                             new MarkStyleProfile[] {
-        MarkStyleProfile.spots( "Pixels", 0 ),
         MARKERS1 =
-        MarkStyleProfile.spots( "Dots", 1 ),
+        MarkStyleProfile.spots( "Pixels", 0 ),
         MARKERS2 =
-        MarkStyleProfile.spots( "Spots", 2 ),
+        MarkStyleProfile.spots( "Dots", 1 ),
         MARKERS3 =
-        MarkStyleProfile.filledShapes( "Small Coloured Shapes", 3, null ),
+        MarkStyleProfile.spots( "Spots", 2 ),
         MARKERS4 =
-        MarkStyleProfile.filledShapes( "Medium Coloured Shapes", 4, null ),
+        MarkStyleProfile.filledShapes( "Small Coloured Shapes", 3, null ),
         MARKERS5 =
+        MarkStyleProfile.filledShapes( "Medium Coloured Shapes", 4, null ),
         MarkStyleProfile.filledShapes( "Large Coloured Shapes", 5, null ),
         MarkStyleProfile.filledShapes( "Small Black Shapes", 3, Color.black ),
         MarkStyleProfile.filledShapes( "Medium Black Shapes", 4, Color.black ),
@@ -844,7 +847,7 @@ public class PlotWindow extends TopcatViewWindow
         JComboBox box = new JComboBox( boxModel );
 
         /* Give it a suitable renderer. */
-        box.setRenderer( new ColumnCellRenderer() );
+        box.setRenderer( colRenderer_ );
         return box;
     }
 
