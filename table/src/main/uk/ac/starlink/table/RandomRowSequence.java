@@ -21,12 +21,12 @@ public class RandomRowSequence implements RowSequence {
      */
     public RandomRowSequence( StarTable startab ) {
         this.startab = startab;
-        long nrow = startab.getRowCount();
         if ( ! startab.isRandom() ) {
             throw new IllegalArgumentException( 
                 "Table " + startab + " is not random access" );
         }
-        if ( startab.getColumnCount() < 0L ) {
+        long nrow = startab.getRowCount();
+        if ( nrow < 0L ) {
             throw new IllegalArgumentException( 
                 "Table " + startab + " row count unknown " +
                 "(getRowCount()=" + nrow + ")" );
