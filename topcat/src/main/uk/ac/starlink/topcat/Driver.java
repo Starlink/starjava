@@ -12,6 +12,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
@@ -46,6 +49,8 @@ public class Driver {
     private static StarTableFactory tabfact = new StarTableFactory( true );
     private static ControlWindow control;
     private static String[] extraLoaders;
+    private static final ValueInfo DEMOLOC_INFO = 
+        new DefaultValueInfo( "DemoLoc", String.class, "Demo file location" );
     private static String[] KNOWN_DIALOGS = new String[] {
         "uk.ac.starlink.datanode.tree.TreeTableLoadDialog",
         SQLReadDialog.class.getName(),
@@ -53,7 +58,6 @@ public class Driver {
         "uk.ac.starlink.vo.ConeSearchDialog",
         "uk.ac.starlink.vo.SiapTableLoadDialog",
         "uk.ac.starlink.vo.RegistryTableLoadDialog",
-        "uk.ac.starlink.topcat.DemoLoadDialog",
     };
 
     /**
@@ -304,7 +308,10 @@ public class Driver {
             for ( int i = 0; i < demoTables.length; i++ ) {
                 StarTable table = demoTables[ i ];
                 if ( table != null ) {
-                    addTableLater( table, "[Demo]:" + table.getName() );
+                    String loc = table
+                                .getParameterByName( DEMOLOC_INFO.getName() )
+                                .getValue().toString();
+                    addTableLater( table, "[Demo]:" + loc );
                 }
             }
         }
@@ -413,7 +420,7 @@ public class Driver {
                 catch ( Throwable th ) {
                     System.err.println( "Class loading error for optional " +
                                         "loader:" );
-                    System.err.println( "   " + th );
+                    th.printStackTrace( System.err );
                     System.exit( 1 );
                 }
             }
@@ -435,10 +442,11 @@ public class Driver {
     static StarTable[] getDemoTables() {
         String base = TopcatUtils.DEMO_LOCATION + '/';
         String[] demoNames = new String[] {
-            "863sub.fits",
-            "vizier.xml.gz#6",
+            "6dfgs_mini.xml.bz2",
+            // "863sub.fits",
+            // "vizier.xml.gz#6",
             "cover.xml",
-            "tables.fit.gz#2",
+            // "tables.fit.gz#2",
         };
         int ntab = demoNames.length;
         if ( demoTables == null ) {
@@ -467,11 +475,9 @@ public class Driver {
                             datsrc.setPosition( frag );
                         }
                         StarTable table = demoFactory.makeStarTable( datsrc );
-                        table = new WrapperStarTable( table ) {
-                            public String getName() {
-                                return demoName;
-                            }
-                        };
+                        table.getParameters()
+                             .add( new DescribedValue( DEMOLOC_INFO,
+                                                       demoName ) );
                         demoTables[ i ] = demoFactory.randomTable( table );
                     }
                     else {

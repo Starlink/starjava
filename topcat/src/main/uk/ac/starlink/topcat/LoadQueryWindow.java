@@ -86,6 +86,21 @@ public abstract class LoadQueryWindow extends QueryWindow {
                 }.invoke();
             }
         } );
+
+        try {
+            final TableLoadDialog treed = new DemoLoadDialog();
+            Action treedAct = new BasicAction( treed.getName(), null,
+                                               treed.getDescription() ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    treed.showLoadDialog( LoadQueryWindow.this,
+                                          tableFactory_, null, tableConsumer_ );
+                }
+            };
+            demoMenu.add( treedAct );
+        }
+        catch ( Throwable e ) {
+            logger_.info( "Error instantiating demo load dialog" + e );
+        }
         getJMenuBar().add( demoMenu );
 
         /* Help button. */
