@@ -393,6 +393,7 @@
      !   (i.e. are discovered using "getResource()"). -->
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
+        <include name="**/deploy.wsdd"/>
         <include name="**/images/**"/>
       </fileset>
     </copy>

@@ -638,8 +638,8 @@ public class GramControlFrame extends JInternalFrame
         
         xLine[0] = 1.0/bestPeriod;
         xLine[1] = 1.0/bestPeriod;
-        yLine[0] = 0.5*range[3];
-        yLine[1] = 0.95*range[3];
+        yLine[0] = 0.8*range[3];
+        yLine[1] = 0.99*range[3];
         
         
         // draw a line on the plot to denote the best period

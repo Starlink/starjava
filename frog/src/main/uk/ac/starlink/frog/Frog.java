@@ -28,6 +28,8 @@ import uk.ac.starlink.frog.iface.DebugConsole;
 import uk.ac.starlink.frog.util.Utilities;
 import uk.ac.starlink.frog.util.FrogDebug;
 import uk.ac.starlink.frog.util.FrogException;
+import uk.ac.starlink.frog.util.FrogSOAPServer;
+import uk.ac.starlink.frog.util.RemoteServer;
 
 // Data Handlers
 import uk.ac.starlink.frog.data.TimeSeriesManager;
@@ -161,7 +163,12 @@ public class Frog extends JFrame
      * Number of series currently loaded by the addNewSeries method.
      */
     private int filesDone = 0;
-    
+
+    /**
+     * Whether the application is embedded. In this case application
+     * exit is assumed controlled by the embedding app.
+     */
+    protected boolean embedded = false;    
   
     /**
      *  Create a browser with no existing time series.
@@ -249,7 +256,24 @@ public class Frog extends JFrame
              
             // Open the chosen files into internal frames
             debugManager.print( "    Calling threadLoadChosenSeries()...");
-            threadLoadChosenSeries( "TimeSeries" );
+            
+            SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                         threadLoadChosenSeries( "TimeSeries" );
+                         threadInitRemoteServices();
+                    }
+            });
+            
+        } else {
+            // Make sure we start the remote services, but avoid
+            // contention with image loading by also doing this as
+            // above when there are files to be loaded.
+            SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        threadInitRemoteServices();
+                    }
+            });        
+        
         }
     }     
 
@@ -1409,6 +1433,63 @@ public class Frog extends JFrame
               
     }     
     
+  /**
+     * Initialise the remote control services. These are currently via
+     * a socket interface and SOAP based services.
+     *
+     * This creates a file ~/.splat/.remote with a configuration
+     * necessary to contact this through the remote socket control
+     * service.
+     *
+     * @see RemoteServer
+     */
+    protected void initRemoteServices()
+    {
+        debugManager.print("    initRemoteServices()");
+        if ( ! embedded ) {
+            try {
+                //  Socket-based services.
+                RemoteServer remoteServer = new RemoteServer( this );
+                remoteServer.start();
+                
+                //  SOAP based services.
+                FrogSOAPServer soapServer = FrogSOAPServer.getInstance();
+                soapServer.setFrog( this );
+                soapServer.start();
+            }
+            catch (Exception e) {
+                // Not fatal, just no remote control.
+                debugManager.print( "    Failed to start remote services..." );
+                debugManager.print( e.getMessage() );
+            }
+        }
+    }
+
+    /**
+     * Initialise the remote control services in a separate
+     * thread. Use this to get UI going quickly, but note that the
+     * remote services may take some time to initialise.
+     */
+    protected void threadInitRemoteServices()
+    {
+        debugManager.print("  threadInitRemoteServices()");
+        Thread loadThread = new Thread( "Remote services loader" ) {
+                public void run() {
+                    try {
+                        initRemoteServices();
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+
+        // Thread runs at lowest priority and is a daemon (i.e. runs
+        // until application exits, but does not hold lock to exit).
+        loadThread.setDaemon( true );
+        loadThread.setPriority( Thread.MIN_PRIORITY );
+        loadThread.start();
+    }
      
     
     /**
@@ -1430,12 +1511,37 @@ public class Frog extends JFrame
     {
         super.processWindowEvent( e );
         if ( e.getID() == WindowEvent.WINDOW_CLOSING ) {
-            debugManager.print( "WindowEvent System.exit(0)");
-            System.exit(0);
+            debugManager.print( "WindowEvent.WINDOW_CLOSING");
+            debugManager.print( "Checking for embedded flag...");
+            exitApplicationEvent();
         }
         
         
     }    
+
+
+    /**
+     * Set whether the application should behave as embedded.
+     */
+    public void setEmbedded( boolean embedded )
+    {
+        this.embedded = embedded;
+    }
+
+    /**
+     * A request to exit the application has been received. Only do
+     * this if we're not embedded. In that case just make the window 
+     * iconized.
+     */
+    protected void exitApplicationEvent()
+    {
+        if ( embedded ) {
+            setExtendedState( JFrame.ICONIFIED );
+        }
+        else {
+            System.exit( 0 );
+        }
+    }
        
 // End of Class
 }
