@@ -1,14 +1,14 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
-import uk.ac.starlink.table.formats.HTMLTableWriter;
-import uk.ac.starlink.table.formats.LatexTableWriter;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 
 /**
@@ -57,36 +57,47 @@ public class StarTableOutput {
             String className = defaultHandlerClasses[ i ];
             try {
                 Class clazz = this.getClass().forName( className );
-                StarTableWriter handler = (StarTableWriter) clazz.newInstance();
-                handlers.add( handler );
-                logger.config( className + " registered" );
 
-                /* Add VOTable variants. */
-                if ( clazz.getName()
-                          .equals( "uk.ac.starlink.votable.VOTableWriter" ) ) {
-                    try {
-                        List extras = (List) 
-                            clazz.getMethod( "getVariantHandlers",
-                                             new Class[ 0 ] )
-                           .invoke( null, new Object[ 0 ] );
-                        handlers.addAll( extras );
-                        logger.config( "Variant VOTable handlers registered" );
+                /* See if the class provides a method which can return
+                 * a list of handlers. */
+                StarTableWriter[] writers = null;
+                try {
+                    Method getList = clazz.getMethod( "getStarTableWriters", 
+                                                       new Class[ 0 ] );
+                    int mods = getList.getModifiers();
+                    if ( Modifier.isStatic( mods ) && 
+                         Modifier.isPublic( mods ) ) {
+                        Class retClass = getList.getReturnType();
+                        if ( retClass.isArray() && 
+                             StarTableWriter.class
+                            .isAssignableFrom( retClass.getComponentType() ) ) {
+                            writers = (StarTableWriter[]) 
+                                      getList.invoke( null, new Object[ 0 ] );
+                        }
                     }
-                    catch ( Exception e ) {
-                        logger.config( "No variant VOTable handlers" );
+                }
+                catch ( NoSuchMethodException e ) {
+                    // no problem
+                }
+
+                /* If we got a list, use that. */
+                if ( writers != null ) {
+                    for ( int j = 0; j < writers.length; j++ ) {
+                        StarTableWriter handler = writers[ j ];
+                        handlers.add( handler );
+                        logger.config( "Handler " + handler.getFormatName() +
+                                       " registered" );
                     }
                 }
 
-                /* Add HTML variants. */
-                if ( clazz.equals( HTMLTableWriter.class ) ) {
-                    handlers.add( new HTMLTableWriter( false ) );
-                    logger.config( "Variant HTML handler registered" );
-                }
-
-                /* Add Latex variants. */
-                if ( clazz.equals( LatexTableWriter.class ) ) {
-                    handlers.add( new LatexTableWriter( true ) );
-                    logger.config( "Variant LaTeX handler registered" );
+                /* Otherwise, just instantiate the class with a no-arg
+                 * constructor. */
+                else {
+                    StarTableWriter handler = 
+                        (StarTableWriter) clazz.newInstance();
+                    handlers.add( handler );
+                    logger.config( "Handler " + handler.getFormatName() +
+                                   " registered" );
                 }
             }
             catch ( ClassNotFoundException e ) {

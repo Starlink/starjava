@@ -147,6 +147,18 @@ public class HTMLTableWriter implements StarTableWriter {
     }
 
     /**
+     * Returns a selection of useful HTMLTableWriters.
+     *
+     * @return   array containing one standalone and one TABLE-only writer
+     */
+    public static StarTableWriter[] getStarTableWriters() {
+        return new StarTableWriter[] {
+            new HTMLTableWriter( true ),
+            new HTMLTableWriter( false ),
+        };
+    }
+
+    /**
      * Outputs a row of header or data cells.
      * 
      * @param  ostrm  the stream for output

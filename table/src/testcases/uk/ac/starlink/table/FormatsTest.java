@@ -133,6 +133,26 @@ public class FormatsTest extends TestCase {
                 checkStarTable( st2 );
             }
         }
+        String[] knownFormats = new String[] {
+            "fits",
+            "votable-tabledata",
+            "votable-binary-inline",
+            "votable-fits-href",
+            "votable-binary-href",
+            "votable-fits-inline",
+            "text",
+            "html",
+            "html-element",
+            "latex",
+            "latex-document",
+            "mirage",
+        };
+        String[] gotFormats = new String[ handlers.size() ];
+        for ( int j = 0; j < handlers.size(); j++ ) {
+            gotFormats[ j ] = ((StarTableWriter) handlers.get( j ))
+                             .getFormatName().toLowerCase();
+        }
+        assertArrayEquals( knownFormats, gotFormats );
     }
 
     public void testVOTable() throws IOException, SAXException {

@@ -420,20 +420,18 @@ public class VOTableWriter implements StarTableWriter {
     }
 
     /**
-     * Returns a list of votables with variant values of attributes.
-     * Currently it returns a list of all the ones you get by using 
-     * non-default values for the constructor parameters, that is
-     * BINARY and FITS each in inline and href variants (a list of 4).
+     * Returns a list of votable writers with variant values of attributes.
      *
      * @return   non-standard VOTableWriters.
      */
-    public static List getVariantHandlers() {
-        List variants = new ArrayList();
-        variants.add( new VOTableWriter( DataFormat.BINARY, true ) );
-        variants.add( new VOTableWriter( DataFormat.BINARY, false ) );
-        variants.add( new VOTableWriter( DataFormat.FITS, true ) );
-        variants.add( new VOTableWriter( DataFormat.FITS, false ) );
-        return variants;
+    public static StarTableWriter[] getStarTableWriters() {
+        return new StarTableWriter[] {
+            new VOTableWriter( DataFormat.TABLEDATA, true ),
+            new VOTableWriter( DataFormat.BINARY, true ),
+            new VOTableWriter( DataFormat.FITS, false ),
+            new VOTableWriter( DataFormat.BINARY, false ),
+            new VOTableWriter( DataFormat.FITS, true ),
+        };
     }
 
     /**

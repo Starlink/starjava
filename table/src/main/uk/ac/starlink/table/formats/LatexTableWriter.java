@@ -149,6 +149,18 @@ public class LatexTableWriter implements StarTableWriter {
     }
 
     /**
+     * Returns a useful list of LatexTableWriters.
+     *
+     * @return  array containing one standalone and one tabular-only writer
+     */
+    public static StarTableWriter[] getStarTableWriters() {
+        return new LatexTableWriter[] {
+            new LatexTableWriter( false ),
+            new LatexTableWriter( true ),
+        };
+    }
+
+    /**
      * For standalone output, this method is invoked to output any text
      * preceding the <code>tabular</code> environment.  May be overridden to
      * modify the form of output documents.
