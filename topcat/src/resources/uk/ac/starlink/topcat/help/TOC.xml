@@ -6,7 +6,11 @@
 <toc version="1.0">
 
   <tocitem target="Introduction" text="Introduction"/>
-  <tocitem target="Invoke" text="Invoking TOPCAT"/>
+
+  <tocitem target="Invoke" text="Invoking TOPCAT">
+    <tocitem target="ScriptInvoke" text="TOPCAT script"/>
+    <tocitem target="DirectInvoke" text="Direct invocation"/>
+  </tocitem>
 
   <tocitem target="IO" text="I/O">
     <tocitem target="Read" text="Loading tables" image="LOAD">

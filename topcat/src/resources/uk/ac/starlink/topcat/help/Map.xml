@@ -16,6 +16,8 @@
   <mapID target="Introduction" url="intro.html"/>
 
   <mapID target="Invoke" url="invoke.html"/>
+  <mapID target="ScriptInvoke" url="script.html"/>
+  <mapID target="DirectInvoke" url="direct.html"/>
 
   <mapID target="IO" url="io.html"/>
   <mapID target="Read" url="io.html#read"/>

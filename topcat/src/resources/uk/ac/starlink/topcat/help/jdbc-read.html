@@ -32,7 +32,11 @@ For the Connector/J driver for MySQL this would look like:
 Secondly, make sure that the named class is on your classpath when
 TOPCAT is run.  On Unix, do this by ensuring that the jar file containing
 the driver class is one of the colon-separated entries in your
-CLASSPATH environment variable.
+CLASSPATH environment variable.  Note that this will not work if
+you are invoking TOPCAT directly using Java's '-jar' flag, or 
+equivalently doing something like clicking on a jar file - 
+see the section on <a href="direct.html">Invoking TOPCAT directly</a>
+for more discussion of this.
 
 <p>Database queries have the form
 <pre>
@@ -51,7 +55,8 @@ constructed from certain rows from the table "swaa" in the database
 <p>Fortunately you do not have to construct this by hand, there is
 a dialogue box to assist in putting it together.
 You can use this by pressing the "SQL Database" button in the
-"Open Table" dialogue.  This box includes optional username and password
+"Open Table" dialogue (this button will be greyed out if no JDBC
+drivers are installed).  This dialogue includes optional username and password
 inputs for establishing the connection with the database.  
 If you do not specify them
 and the database server rejects the connection you will be prompted
