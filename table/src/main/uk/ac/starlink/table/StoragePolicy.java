@@ -148,8 +148,7 @@ public abstract class StoragePolicy {
         RowStore store = makeConfiguredRowStore( table );
         RowSequence rseq = table.getRowSequence();
         try {
-            while ( rseq.hasNext() ) {
-                rseq.next();
+            while ( rseq.next() ) {
                 store.acceptRow( rseq.getRow() );
             }
         }

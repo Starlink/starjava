@@ -114,8 +114,7 @@ public abstract class RandomWrapperStarTable extends WrapperStarTable {
          * storeNextRow method before the constructor has completed. */
         try {
             synchronized ( this ) {
-                while ( baseSeq.hasNext() ) {
-                    baseSeq.next();
+                while ( baseSeq.next() ) {
                     storeNextRow( baseSeq.getRow() );
                     rowsStored++;
                 }
@@ -153,12 +152,11 @@ public abstract class RandomWrapperStarTable extends WrapperStarTable {
         synchronized ( this ) {
             while ( lrow >= rowsStored ) {
                 if ( baseSeq != null ) {
-                    if ( baseSeq.hasNext() ) {
-                        baseSeq.next();
+                    if ( baseSeq.next() ) {
                         storeNextRow( baseSeq.getRow() );
                         rowsStored++;
                     }
-                    if ( ! baseSeq.hasNext() ) {
+                    else {
                         baseSeq.close();
                         baseSeq = null;
                     }

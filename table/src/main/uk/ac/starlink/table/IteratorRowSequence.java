@@ -30,12 +30,14 @@ public class IteratorRowSequence implements RowSequence {
         this.rowIt = rowIt;
     }
 
-    public boolean hasNext() {
-        return rowIt.hasNext();
-    }
-
-    public void next() throws IOException {
-        currentRow = (Object[]) rowIt.next();
+    public boolean next() throws IOException {
+        if ( rowIt.hasNext() ) {
+            currentRow = (Object[]) rowIt.next();
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     public Object[] getRow() {

@@ -38,14 +38,16 @@ public class ProgressRowSequence extends WrapperRowSequence {
     /**
      * Invokes {@link #next} and also updates the progress indicator.
      */
-    public void nextProgress() throws IOException, InterruptedException {
-        next();
+    public boolean nextProgress() throws IOException, InterruptedException {
+        boolean result = next();
         indicator_.setLevel( lrow_ / nrow_ );
+        return result;
     }
 
-    public void next() throws IOException {
-        super.next();
+    public boolean next() throws IOException {
+        boolean result = super.next();
         lrow_++;
+        return result;
     }
 
     /**

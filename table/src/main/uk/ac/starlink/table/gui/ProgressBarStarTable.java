@@ -45,16 +45,16 @@ public class ProgressBarStarTable extends WrapperStarTable {
                     progBar.setValue( irow );
                 }
             };
-            public void next() throws IOException {
+            public boolean next() throws IOException {
                 irow++;
                 if ( --counter < 0 ) {
                     SwingUtilities.invokeLater( updater );
                     counter = every;
                 }
-                super.next();
                 if ( Thread.interrupted() ) {
                     throw new IOException( "Operation interrupted" );
                 }
+                return super.next();
             }
             public void close() throws IOException {
                 setZero();

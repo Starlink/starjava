@@ -110,13 +110,7 @@ class TableBodies {
             return new RowStepper() {
                 RowSequence rseq = startab.getRowSequence();
                 public Object[] nextRow() throws IOException {
-                    if ( rseq.hasNext() ) {
-                        rseq.next();
-                        return rseq.getRow();
-                    }
-                    else {
-                        return null;
-                    }
+                    return rseq.next() ? rseq.getRow() : null;
                 }
             };
         }

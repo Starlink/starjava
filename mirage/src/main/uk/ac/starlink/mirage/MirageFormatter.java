@@ -89,8 +89,7 @@ public class MirageFormatter {
         strm.println( "#\n# Table data" );
         RowSequence rseq = table.getRowSequence();
         try {
-            while ( rseq.hasNext() ) {
-                rseq.next();
+            while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 for ( int i = 0; i < ncol; i++ ) {
                     if ( isUsed[ i ] ) {

@@ -63,8 +63,7 @@ public class VOTableTest extends TestCase {
             RowStepper rstep = tab.getData().getRowStepper();
             List rows = new ArrayList();
             for ( int ir = 0; ir < nrow; ir++ ) {
-                assertTrue( rseq.hasNext() );
-                rseq.next();
+                assertTrue( rseq.next() );
                 Object[] row = rstep.nextRow();
                 assertNotNull( row );
                 assertEquals( ncol, row.length );
@@ -81,7 +80,7 @@ public class VOTableTest extends TestCase {
                 rows.add( row );
             }
             assertNull( rstep.nextRow() );
-            assertTrue( ! rseq.hasNext() );
+            assertTrue( ! rseq.next() );
             rseq.close();
 
             assertEquals( "Procyon",

@@ -122,8 +122,7 @@ public class LatexTableWriter extends StreamStarTableWriter {
             printLine( ostrm, "\\hline" );
 
             /* Write the data. */
-            while ( rseq.hasNext() ) {
-                rseq.next();
+            while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 print( ostrm, "  " );
                 for ( int i = 0; i < ncol; i++ ) {

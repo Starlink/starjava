@@ -143,27 +143,25 @@ public abstract class BintableStarTable extends AbstractStarTable {
                     final int rowLength = getRowLength();
                     long lrow = -1L;
                     Object[] row = BEFORE_START;
-                    public boolean hasNext() {
-                        return lrow < nrow - 1;
-                    }
-                    public void next() throws IOException {
-                        if ( hasNext() ) {
+
+                    public boolean next() throws IOException {
+                        if ( lrow < nrow - 1 ) {
                             if ( row == null ) {
-                                IOUtils.skipBytes( stream, 
-                                                   (long) rowLength );
+                                IOUtils.skipBytes( stream, (long) rowLength );
                             }
-                            else {
-                                row = null;
-                            }
+                            row = null;
                             lrow++;
+                            return true;
                         }
                         else {
-                            throw new NoSuchElementException();
+                            return false;
                         }
                     }
+
                     public Object getCell( int icol ) throws IOException {
                         return getRow()[ icol ];
                     }
+
                     public Object[] getRow() throws IOException {
                         if ( row == BEFORE_START ) {
                             throw new IllegalStateException(
@@ -174,6 +172,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
                         }
                         return row;
                     }
+
                     public void close() throws IOException {
                         stream.close();
                     }

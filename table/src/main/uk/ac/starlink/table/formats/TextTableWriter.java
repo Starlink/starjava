@@ -67,9 +67,11 @@ public class TextTableWriter extends StreamStarTableWriter {
         boolean allRowsSampled = false;
         RowSequence srseq = startab.getRowSequence();
         try {
-            for ( long lrow = 0; srseq.hasNext() && lrow < sampledRows; 
-                  lrow++ ) {
-                srseq.next();
+            for ( long lrow = 0; lrow < sampledRows; lrow++ ) {
+                if ( ! srseq.next() ) {
+                    allRowsSampled = true;
+                    break;
+                }
                 Object[] row = srseq.getRow();
                 for ( int i = 0; i < ncol; i++ ) {
                     String formatted = cinfos[ i ]
@@ -78,9 +80,6 @@ public class TextTableWriter extends StreamStarTableWriter {
                         cwidths[ i ] = formatted.length();
                     }
                 }
-            }
-            if ( ! srseq.hasNext() ) {
-                allRowsSampled = true;
             }
         }
         finally {
@@ -126,8 +125,7 @@ public class TextTableWriter extends StreamStarTableWriter {
             printColumnHeads( strm, cwidths, cinfos );
 
             /* Print data. */
-            while ( rseq.hasNext() ) {
-                rseq.next();
+            while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 String[] data = new String[ ncol ];
                 for ( int i = 0; i < ncol; i++ ) {

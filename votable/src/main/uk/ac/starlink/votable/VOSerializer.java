@@ -447,8 +447,7 @@ public abstract class VOSerializer {
             int ncol = encoders.length;
             RowSequence rseq = table.getRowSequence();
             try {
-                while ( rseq.hasNext() ) {
-                    rseq.next();
+                while ( rseq.next() ) {
                     writer.write( "  <TR>" );
                     writer.newLine();
                     Object[] rowdata = rseq.getRow();
@@ -589,8 +588,7 @@ public abstract class VOSerializer {
             int ncol = encoders.length;
             RowSequence rseq = table.getRowSequence();
             try {
-                while ( rseq.hasNext() ) {
-                    rseq.next();
+                while ( rseq.next() ) {
                     Object[] row = rseq.getRow();
                     for ( int icol = 0; icol < ncol; icol++ ) {
                         Encoder encoder = encoders[ icol ];

@@ -235,15 +235,9 @@ public class JoinStarTable extends AbstractStarTable {
             assert icol == nCol;
         }
 
-        public void next() throws IOException {
+        public boolean next() throws IOException {
             for ( int itab = 0; itab < nTab; itab++ ) {
-                rseqs[ itab ].next();
-            }
-        }
-
-        public boolean hasNext() {
-            for ( int itab = 0; itab < nTab; itab++ ) {
-                if ( ! rseqs[ itab ].hasNext() ) {
+                if ( ! rseqs[ itab ].next() ) {
                     return false;
                 }
             }

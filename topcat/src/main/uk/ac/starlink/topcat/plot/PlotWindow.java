@@ -830,8 +830,7 @@ public class PlotWindow extends TopcatViewWindow
         double[] x = new double[ nrow ];
         double[] y = new double[ nrow ];
         RowSequence rseq = dataModel.getRowSequence();
-        for ( int irow = 0; rseq.hasNext(); irow++ ) {
-            rseq.next();
+        for ( int irow = 0; rseq.next(); irow++ ) {
             x[ irow ] = doubleValue( rseq.getCell( xcol ) );
             y[ irow ] = doubleValue( rseq.getCell( ycol ) );
         } 

@@ -411,8 +411,7 @@ public class RowMatcher {
                 new ProgressRowSequence( tables[ itab ], indicator,
                                          "Binning rows for table " + 
                                          (itab + 1 ) );
-            for ( long lrow = 0; rseq.hasNext(); lrow++ ) {
-                rseq.nextProgress();
+            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
                 Object[] keys = engine.getBins( rseq.getRow() );
                 int nkey = keys.length;
                 if ( nkey > 0 ) {
@@ -541,8 +540,7 @@ public class RowMatcher {
                                          "Binning rows for table " + 
                                          ( index1 + 1 ) );
             long exclude1 = 0;
-            for ( long lrow1 = 0; rseq1.hasNext(); lrow1++ ) {
-                rseq1.nextProgress();
+            for ( long lrow1 = 0; rseq1.nextProgress(); lrow1++ ) {
                 Object[] row = rseq1.getRow();
                 if ( inRange( row, min, max ) ) {
                     Object[] keys = engine.getBins( row );
@@ -572,8 +570,7 @@ public class RowMatcher {
                                          "Binning rows for table " + 
                                          ( index2 + 1 ) );
             long exclude2 = 0;
-            for ( long lrow2 = 0; rseq2.hasNext(); lrow2++ ) {
-                rseq2.nextProgress();
+            for ( long lrow2 = 0; rseq2.nextProgress(); lrow2++ ) {
                 Object[] row = rseq2.getRow();
                 if ( inRange( row, min, max ) ) {
                     Object[] keys = engine.getBins( row );
@@ -1043,8 +1040,7 @@ public class RowMatcher {
                                      "Assessing range of coordinates " +
                                      "from table " + ( tIndex + 1 ) );
         try {
-            for ( long lrow = 0; rseq.hasNext(); lrow++ ) {
-                rseq.nextProgress();
+            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
                 Object[] row = rseq.getRow();
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     if ( isComparable[ icol ] ) {
@@ -1140,8 +1136,7 @@ public class RowMatcher {
                                      "for table " + ( tIndex + 1 ) );
         long nInclude = 0;
         try {
-            for ( long lrow = 0; rseq.hasNext(); lrow++ ) {
-                rseq.nextProgress();
+            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
                 if ( inRange( rseq.getRow(), min, max ) ) {
                     nInclude++;
                 }

@@ -71,38 +71,23 @@ public class RowSubsetStarTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        return new RowSequence() {
-            RowSequence baseSeq = baseTable.getRowSequence();
+        return new WrapperRowSequence( baseTable.getRowSequence() ) {
             int iBase = -1;
 
-            public boolean hasNext() {
-                return mask.nextSetBit( iBase + 1 ) >= 0;
-            }
-
-            public void next() throws IOException {
-                int nextBase = mask.nextSetBit( iBase + 1 );
-                if ( nextBase == -1 ) {
-                    assert ! hasNext();
-                    throw new IllegalStateException( "No more rows" );
+            public boolean next() throws IOException {
+                int leng = mask.length();
+                while ( ! mask.get( iBase + 1 ) ) {
+                    if ( iBase + 1 >= leng ) {
+                        return false;
+                    }
+                    else {
+                        super.next();
+                        iBase++;
+                    }
                 }
-                int nskip = nextBase - iBase;
-                assert nskip > 0;
-                while ( nskip-- > 0 ) {
-                    baseSeq.next();
-                    iBase++;
-                }
-            }
-
-            public Object getCell( int icol ) throws IOException {
-                return baseSeq.getCell( icol );
-            }
-
-            public Object[] getRow() throws IOException {
-                return baseSeq.getRow();
-            }
-
-            public void close() throws IOException {
-                baseSeq.close();
+                super.next();
+                iBase++;
+                return true;
             }
         };
     }

@@ -27,12 +27,8 @@ public class WrapperRowSequence implements RowSequence {
         this.baseSeq = baseSeq;
     }
 
-    public void next() throws IOException {
-        baseSeq.next();
-    }
-
-    public boolean hasNext() {
-        return baseSeq.hasNext();
+    public boolean next() throws IOException {
+        return baseSeq.next();
     }
 
     public Object getCell( int icol ) throws IOException {

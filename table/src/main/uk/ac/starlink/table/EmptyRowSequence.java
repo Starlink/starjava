@@ -10,11 +10,7 @@ import java.util.NoSuchElementException;
  */
 public class EmptyRowSequence implements RowSequence {
 
-    public void next() {
-        throw new NoSuchElementException();
-    }
-
-    public boolean hasNext() {
+    public boolean next() {
         return false;
     }
 

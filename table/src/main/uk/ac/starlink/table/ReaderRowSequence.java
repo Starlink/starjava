@@ -14,13 +14,7 @@ import java.util.NoSuchElementException;
  */
 public abstract class ReaderRowSequence implements RowSequence {
 
-    private Object[] nextRow;
     private Object[] row;
-    private IOException pendingException;
-
-    public ReaderRowSequence() throws IOException {
-        nextRow = readRow();
-    }
 
     /**
      * Acquires the next row of objects from the input stream.
@@ -35,16 +29,9 @@ public abstract class ReaderRowSequence implements RowSequence {
      */
     protected abstract Object[] readRow() throws IOException;
 
-    public void next() throws IOException {
-        if ( ! hasNext() ) {
-            throw new NoSuchElementException();
-        }
-        row = nextRow;
-        nextRow = readRow();
-    }
-
-    public boolean hasNext() {
-        return nextRow != null;
+    public boolean next() throws IOException {
+        row = readRow();
+        return row != null;
     }
 
     public Object getCell( int icol ) {

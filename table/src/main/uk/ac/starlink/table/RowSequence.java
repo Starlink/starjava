@@ -14,8 +14,7 @@ import java.io.IOException;
  * <pre>
  *     RowSequence rseq = table.getRowSequence();
  *     try {
- *         while ( rseq.hasNext() ) {
- *             rseq.next();
+ *         while ( rseq.next() ) {
  *             Object[] row = rseq.getRow();
  *                ...
  *         }
@@ -33,25 +32,20 @@ import java.io.IOException;
 public interface RowSequence {
 
     /**
-     * Advances the current row to the next one.  
+     * Attempts to advances the current row to the next one.
+     * If <tt>true</tt> is returned the attempt has been successful,
+     * and if <tt>false</tt> is returned there are no more rows in this 
+     * sequence.
      * Since the initial position of a RowSequence is before the first row,
      * this method must be called before current row data
      * can be accessed using the 
      * {@link #getCell(int)} or {@link #getRow()} methods.
-     * An unchecked exception such as <tt>NoSuchElementException</tt>
-     * will be thrown if {@link #hasNext} returns <tt>false</tt>.
      *
-     * @throws  IOException if there is some error in the positioning
+     * @return  <tt>true</tt> iff this sequence has been advanced to the
+     *          next row
+     * @throws  IOException if there is some error
      */
-    void next() throws IOException;
-
-    /**
-     * Indicates whether this table contains any more rows after the current
-     * one.
-     *
-     * @return  <tt>true</tt> iff another row exists
-     */
-    boolean hasNext();
+    boolean next() throws IOException;
 
     /**
      * Returns the contents of a cell in the current row.

@@ -43,13 +43,18 @@ public class ProgressLineStarTable extends WrapperStarTable {
             long alarm = System.currentTimeMillis() + INITIAL_WAIT;
             long irow = 0L;
 
-            public void next() throws IOException {
-                super.next();
-                irow++;
-                if ( System.currentTimeMillis() > alarm ) {
-                    alarm = System.currentTimeMillis() + INTERVAL;
-                    out_.print( ps.getProgressLine( irow ) );
-                    started = true;
+            public boolean next() throws IOException {
+                if ( super.next() ) {
+                    irow++;
+                    if ( System.currentTimeMillis() > alarm ) {
+                        alarm = System.currentTimeMillis() + INTERVAL;
+                        out_.print( ps.getProgressLine( irow ) );
+                        started = true;
+                    }
+                    return true;
+                }
+                else {
+                    return false;
                 }
             }
 

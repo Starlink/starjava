@@ -79,8 +79,7 @@ public class CsvTableWriter extends StreamStarTableWriter {
 
             /* Write the data. */
             String[] dataRow = new String[ ncol ];
-            while ( rseq.hasNext() ) {
-                rseq.next();
+            while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     dataRow[ icol ] = cinfos[ icol ]

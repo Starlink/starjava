@@ -129,8 +129,7 @@ public class Tables {
         sink.acceptMetadata( source );
         RowSequence rseq = source.getRowSequence();
         try {
-            while ( rseq.hasNext() ) {
-                rseq.next();
+            while ( rseq.next() ) {
                 sink.acceptRow( rseq.getRow() );
             }
         }
@@ -208,8 +207,7 @@ public class Tables {
 
         /* Read all cells. */
         long lrow = 0L;
-        while ( rseq.hasNext() ) {
-            rseq.next();
+        while ( rseq.next() ) {
             Object[] row = rseq.getRow();
             for ( int icol = 0; icol < ncol; icol++ ) {
 

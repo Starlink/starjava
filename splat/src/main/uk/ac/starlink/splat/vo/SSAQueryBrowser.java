@@ -787,8 +787,7 @@ public class SSAQueryBrowser
                     if ( ! selected && selection == null ) {
                         //  Using all rows.
                         rseq = starTable.getRowSequence();
-                        while ( rseq.hasNext() ) {
-                            rseq.next();
+                        while ( rseq.next() ) {
                             value = ((String)rseq.getCell( linkcol )).trim();
                             props = new SpectrumIO.Props( value );
                             if ( typecol != -1 ) {
@@ -827,8 +826,7 @@ public class SSAQueryBrowser
                         rseq = starTable.getRowSequence();
                         int k = 0; // Table row
                         int l = 0; // selection index
-                        while ( rseq.hasNext() ) {
-                            rseq.next();
+                        while ( rseq.next() ) {
                             if ( k == selection[l] ) {
 
                                 // Store this one as matches selection.

@@ -121,8 +121,7 @@ public class JDBCFormatter {
         /* Add the data. */
         RowSequence rseq = table.getRowSequence();
         try {
-            while ( rseq.hasNext() ) {
-                rseq.next();
+            while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 int pix = 0;
                 for ( int icol = 0; icol < ncol; icol++ ) {

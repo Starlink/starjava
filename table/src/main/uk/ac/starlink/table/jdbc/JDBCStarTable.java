@@ -256,34 +256,16 @@ public class JDBCStarTable extends AbstractStarTable {
         }
         return new RowSequence() {
 
-            public void next() throws IOException {
-               if ( hasNext() ) {
-                    try {
-                        boolean valid = rset.next();
-                        if ( ! valid ) {
-                            throw new IOException( "Next row not valid??" );
-                        }
-                    }
-                    catch ( SQLException e ) {
-                        throw (IOException) new IOException( e.getMessage() )
-                                           .initCause( e );
-                    }
-                }
-                else {
-                    throw new IllegalStateException( "No next row" );
-                }
-            }        
-
-            public boolean hasNext() {
+            public boolean next() throws IOException {
                 try {
-                    return ! rset.isLast();
+                    return rset.next();
                 }
                 catch ( SQLException e ) {
-                    logger.warning( e.getMessage() );
-                    return false;
+                     throw (IOException) new IOException( e.getMessage() )
+                                        .initCause( e );
                 }
             }
-
+             
             public Object getCell( int icol ) throws IOException {
                 try {
                     if ( rset.isBeforeFirst() ) {

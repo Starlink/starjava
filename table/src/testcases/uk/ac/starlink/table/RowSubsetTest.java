@@ -32,8 +32,7 @@ public class RowSubsetTest extends TestCase {
     private static void assertHasRows( int nrows, StarTable st ) 
             throws IOException {
         int count = 0; 
-        for ( RowSequence rseq = st.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
+        for ( RowSequence rseq = st.getRowSequence(); rseq.next(); ) {
             count++;
         }
         assertEquals( nrows, count );
@@ -42,14 +41,12 @@ public class RowSubsetTest extends TestCase {
     private static int[] getData( StarTable st ) 
             throws IOException {
         int nrow = 0;
-        for ( RowSequence rseq = st.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
+        for ( RowSequence rseq = st.getRowSequence(); rseq.next(); ) {
             nrow++;
         }
         int[] data = new int[ nrow ];
         int i = 0;
-        for ( RowSequence rseq = st.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
+        for ( RowSequence rseq = st.getRowSequence(); rseq.next(); ) {
             data[ i++ ] = ((Integer) rseq.getCell( 0 )).intValue();
         }
         assertEquals( nrow, i );

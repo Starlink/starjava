@@ -101,8 +101,7 @@ public class FitsTableSerializer {
             /* Get the maximum dimensions. */
             RowSequence rseq = table.getRowSequence();
             try {
-                while ( rseq.hasNext() ) {
-                    rseq.next();
+                while ( rseq.next() ) {
                     nrow++;
                     for ( int icol = 0; icol < ncol; icol++ ) {
                         if ( useCols[ icol ] &&
@@ -334,8 +333,7 @@ public class FitsTableSerializer {
         long nWritten = 0L;
         RowSequence rseq = table.getRowSequence();
         try {
-            while ( rseq.hasNext() ) {
-                rseq.next();
+            while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     ColumnWriter writer = colWriters[ icol ];

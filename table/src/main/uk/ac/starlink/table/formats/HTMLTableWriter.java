@@ -125,8 +125,7 @@ public class HTMLTableWriter extends StreamStarTableWriter {
             printLine( ostrm, "<TR><TD colspan='" + ncol + "'></TD></TR>" );
 
             /* Output the table data. */
-            while ( rseq.hasNext() ) {
-                rseq.next();
+            while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 String[] cells = new String[ ncol ];
                 for ( int icol = 0; icol < ncol; icol++ ) {

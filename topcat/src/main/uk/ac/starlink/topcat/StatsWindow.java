@@ -634,19 +634,22 @@ public class StatsWindow extends TopcatViewWindow {
             IOException interruption = null;
             long lrow = 0L;
             ngoodrow = 0L;
-            for ( ; rseq.hasNext(); lrow++ ) {
-                long lrow1 = lrow + 1;
+            for ( ; true; lrow++ ) {
+                long lrow1 = lrow;
 
                 /* A thread interruption may manifest itself here as an
                  * exception (see ProgressBarStarTable).  If so, save the
                  * exception and break out. */
                 try {
-                    rseq.next();
+                    if ( ! rseq.next() ) {
+                        break;
+                    }
                 }
                 catch ( IOException e ) {
                     interruption = e;
                     break;
                 }
+
                 if ( rset.isIncluded( lrow ) ) {
                     ngoodrow++;
                     Object[] row = rseq.getRow();

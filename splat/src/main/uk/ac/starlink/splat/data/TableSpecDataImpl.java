@@ -498,8 +498,7 @@ public class TableSpecDataImpl
             RowSequence rseq = starTable.getRowSequence();
             int i = 0;
             double v = 0.0;
-            while( rseq.hasNext() ) {
-                rseq.next();
+            while( rseq.next() ) {
                 Number value = (Number) rseq.getCell( index );
                 v = value.doubleValue();
                 if ( v != v ) {  // Double.isNaN
@@ -525,8 +524,7 @@ public class TableSpecDataImpl
             int i = 0;
             Number value;
             double v;
-            while( rseq.hasNext() ) {
-                rseq.next();
+            while( rseq.next() ) {
 
                 value = (Number) rseq.getCell( coordColumn );
                 v = value.doubleValue();

@@ -1,7 +1,6 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -20,8 +19,7 @@ public class ConcatStarTable extends WrapperStarTable {
 
     private final StarTable[] tables_;
 
-    private static final RowSequence EMPTY_SEQUENCE =
-        new IteratorRowSequence( new ArrayList().iterator() );
+    private static final RowSequence EMPTY_SEQUENCE = new EmptyRowSequence();
  
     /**
      * Constructs a new concatenated table.
@@ -97,47 +95,20 @@ public class ConcatStarTable extends WrapperStarTable {
     private class ConcatRowSequence implements RowSequence {
         final Iterator tabIt_ = Arrays.asList( tables_ ).iterator();
         RowSequence rseq_ = EMPTY_SEQUENCE;
-        boolean finished_;
 
-        public void next() throws IOException {
-            if ( hasNext() ) {
-                assert rseq_.hasNext();
-                rseq_.next();
-            }
-            else {
-                throw new IllegalStateException( "No more rows" );
-            }
-        }
-
-        public boolean hasNext() {
-            if ( finished_ ) {
-                return false;
-            }
-            else {
-                while ( ! rseq_.hasNext() ) {
-                    try {
-                        rseq_.close();
-                    }
-                    catch ( IOException e ) {
-                        // surely this doesn't matter
-                    }
-                    if ( tabIt_.hasNext() ) {
-                        try {
-                            rseq_ = ((StarTable) tabIt_.next())
-                                   .getRowSequence();
-                        }
-                        catch ( IOException e ) {
-                            rseq_ = new ErrorRowSequence( e );
-                        }
-                    } 
-                    else {
-                        rseq_ = EMPTY_SEQUENCE;
-                        finished_ = true;
-                        return false;
-                    }
+        public boolean next() throws IOException {
+            while ( ! rseq_.next() ) {
+                if ( rseq_ != EMPTY_SEQUENCE ) {
+                    rseq_.close();
                 }
-                return true;
+                if ( tabIt_.hasNext() ) {
+                    rseq_ = ((StarTable) tabIt_).getRowSequence();
+                }
+                else {
+                    return false;
+                }
             }
+            return true;
         }
 
         public void close() throws IOException {
@@ -150,30 +121,6 @@ public class ConcatStarTable extends WrapperStarTable {
 
         public Object[] getRow() throws IOException {
             return rseq_.getRow();
-        }
-    }
-
-    /**
-     * RowSequence that throws an IOException whenever possible.
-     */
-    private static class ErrorRowSequence implements RowSequence {
-        final IOException ex_;
-        ErrorRowSequence( IOException ex ) {
-            ex_ = ex;
-        }
-        public Object getCell( int icol ) throws IOException {
-            throw ex_;
-        }
-        public Object[] getRow() throws IOException {
-            throw ex_;
-        }
-        public void next() throws IOException {
-            throw ex_;
-        }
-        public boolean hasNext() {
-            return true;  // otherwise the exception will never get seen
-        }
-        public void close() {
         }
     }
 }

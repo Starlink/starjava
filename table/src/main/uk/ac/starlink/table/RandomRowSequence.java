@@ -34,15 +34,14 @@ public class RandomRowSequence implements RowSequence {
         }
     }
 
-    public boolean hasNext() {
-        return irow < getRowCount() - 1;
-    }
-
-    public void next() {
-        if ( ! hasNext() ) {
-            throw new NoSuchElementException();
+    public boolean next() {
+        if ( irow < getRowCount() - 1 ) {
+            irow++;
+            return true;
         }
-        irow++;
+        else {
+            return false;
+        }
     }
 
     public Object[] getRow() throws IOException {

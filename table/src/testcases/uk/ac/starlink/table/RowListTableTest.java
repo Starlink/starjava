@@ -23,8 +23,7 @@ public class RowListTableTest extends TestCase {
         Tables.checkTable( rl );
         assertEquals( fixed.getColumnCount(), rl.getColumnCount() );
         assertEquals( 0, rl.getRowCount() );
-        for ( RowSequence rseq = fixed.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
+        for ( RowSequence rseq = fixed.getRowSequence(); rseq.next(); ) {
             rl.addRow( rseq.getRow() );
         }
         Tables.checkTable( rl );

@@ -299,11 +299,8 @@ public class FormatsTest extends TestCase {
 
         RowSequence rseq1 = t1.getRowSequence();
         RowSequence rseq2 = t2.getRowSequence();
-        while ( rseq1.hasNext() ) {
-            assertTrue( rseq1.hasNext() );
-            assertTrue( rseq2.hasNext() );
-            rseq1.next();
-            rseq2.next();
+        while ( rseq1.next() ) {
+            assertTrue( rseq2.next() );
             for ( int icol = 0; icol < ncol; icol++ ) {
                 Object cell1 = rseq1.getCell( icol );
                 Object cell2 = rseq2.getCell( icol );
@@ -331,8 +328,8 @@ public class FormatsTest extends TestCase {
                 }
             }
         }
-        assertTrue( ! rseq1.hasNext() );
-        assertTrue( ! rseq2.hasNext() );
+        assertTrue( ! rseq1.next() );
+        assertTrue( ! rseq2.next() );
         rseq1.close();
         rseq2.close();
     }
@@ -415,10 +412,8 @@ public class FormatsTest extends TestCase {
 
         RowSequence rseq1 = t1.getRowSequence();
         RowSequence rseq2 = t2.getRowSequence();
-        while ( rseq1.hasNext() ) {
-            assertTrue( rseq2.hasNext() );
-            rseq1.next();
-            rseq2.next();
+        while ( rseq1.next() ) {
+            assertTrue( rseq2.next() );
             Object[] row1 = rseq1.getRow();
             Object[] row2 = rseq2.getRow();
             for ( int icol = 0; icol < ncol; icol++ ) {
@@ -471,11 +466,8 @@ public class FormatsTest extends TestCase {
         RowSequence rseq1 = t1.getRowSequence();
         RowSequence rseq2 = t2.getRowSequence();
         int irow = 0;
-        while ( rseq1.hasNext() ) {
-            assertTrue( rseq1.hasNext() );
-            assertTrue( rseq2.hasNext() );
-            rseq1.next();
-            rseq2.next();
+        while ( rseq1.next() ) {
+            assertTrue( rseq2.next() );
             Object[] row1 = rseq1.getRow();
             Object[] row2 = rseq2.getRow();
             for ( int i = 0; i < ncol; i++ ) {
@@ -487,8 +479,8 @@ public class FormatsTest extends TestCase {
             }
             irow++;
         }
-        assertTrue( ! rseq1.hasNext() );
-        assertTrue( ! rseq2.hasNext() );
+        assertTrue( ! rseq1.next() );
+        assertTrue( ! rseq2.next() );
         rseq1.close();
         rseq2.close();
     }
@@ -593,8 +585,7 @@ public class FormatsTest extends TestCase {
             }
         }
         long lrow = 0;
-        for ( RowSequence rseq = st.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
+        for ( RowSequence rseq = st.getRowSequence(); rseq.next(); ) {
             for ( int icol = 0; icol < ncol; icol++ ) {
                 Object[] row = rseq.getRow();
                 Object cell = row[ icol ];

@@ -217,12 +217,11 @@ public class SerializerTest extends TestCase {
 
                 RowStepper rstep = rstore.getRowStepper();
                 RowSequence rseq = table0.getRowSequence();
-                while ( rseq.hasNext() ) {
-                    rseq.next();
+                while ( rseq.next() ) {
                     assertArrayEquals( rseq.getRow(), rstep.nextRow() );
                 }
                 rseq.close();
-                assertTrue( ! rseq.hasNext() );
+                assertTrue( ! rseq.next() );
                 assertNull( rstep.nextRow() );
             }
 
@@ -308,7 +307,7 @@ public class SerializerTest extends TestCase {
             irow++;
         }
         assertEquals( table0.getRowCount(), irow );
-        assertTrue( ! rseq.hasNext() );
+        assertTrue( ! rseq.next() );
         assertNull( rstep.nextRow() );
         rseq.close();
     }
