@@ -216,7 +216,7 @@ public class SplatSelectedProperties
         pointType.setToolTipText
             ( "Type of points used when drawing spectrum" );
 
-        for ( int i = 0; i <= 10; i++ ) {
+        for ( int i = 0; i < 13; i++ ) {
             pointType.addItem( new Integer( i ) );
         }
         pointType.addActionListener( this );

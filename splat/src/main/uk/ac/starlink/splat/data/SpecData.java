@@ -25,6 +25,7 @@ import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfState;
+import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 
 //  IMPORT NOTE: modifying the member variables could change the
 //  serialization signature of this class. If really need to then
@@ -458,7 +459,7 @@ public class SpecData
     /**
      * The type of point that is drawn.
      */
-    protected int pointType = 0;
+    protected int pointType = DefaultGrfMarker.DOT;
 
     //  ==============
     //  Public methods
@@ -1492,16 +1493,17 @@ public class SpecData
         //  lines, not geodesics (this makes it much faster). Need to
         //  establish line properites first, draw polyline and then
         //  restore properties.
+        boolean line = ( plotStyle != POINT );
         DefaultGrf defaultGrf = (DefaultGrf) grf;
-        DefaultGrfState oldState = setGrfAttributes( defaultGrf );
+        DefaultGrfState oldState = setGrfAttributes( defaultGrf, line );
 
         defaultGrf.setClipRegion( cliprect );
 
-        if ( plotStyle == POINT ) {
-            renderPointSpectrum( defaultGrf, xpos, ypos, pointType );
+        if ( line ) {
+            renderSpectrum( defaultGrf, xpos, ypos );
         }
         else {
-            renderSpectrum( defaultGrf, xpos, ypos );
+            renderPointSpectrum( defaultGrf, xpos, ypos, pointType );
         }
 
         defaultGrf.attribute( Grf.GRF__COLOUR, errorColour, Grf.GRF__LINE );
@@ -1509,7 +1511,7 @@ public class SpecData
 
         defaultGrf.setClipRegion( null );
 
-        resetGrfAttributes( defaultGrf, oldState );
+        resetGrfAttributes( defaultGrf, oldState, line );
     }
 
 
@@ -1605,23 +1607,40 @@ public class SpecData
      * @return the graphics state of the Grf object before being modified by
      *      this method.
      */
-    protected DefaultGrfState setGrfAttributes( DefaultGrf grf )
+    protected DefaultGrfState setGrfAttributes( DefaultGrf grf, boolean line )
     {
         DefaultGrfState oldState = new DefaultGrfState();
-        oldState.setColour( grf.attribute( Grf.GRF__COLOUR, BAD,
-                                           Grf.GRF__LINE ) );
-        oldState.setStyle( grf.attribute( Grf.GRF__STYLE, BAD,
-                                          Grf.GRF__LINE ) );
-        oldState.setWidth( grf.attribute( Grf.GRF__WIDTH, BAD,
-                                          Grf.GRF__LINE ) );
-        oldState.setAlpha( grf.attribute( grf.GRF__ALPHA, BAD,
-                                          Grf.GRF__LINE ) );
+        if ( line ) {
+            oldState.setColour( grf.attribute( Grf.GRF__COLOUR, BAD,
+                                               Grf.GRF__LINE ) );
+            oldState.setStyle( grf.attribute( Grf.GRF__STYLE, BAD,
+                                              Grf.GRF__LINE ) );
+            oldState.setWidth( grf.attribute( Grf.GRF__WIDTH, BAD,
+                                              Grf.GRF__LINE ) );
+            oldState.setAlpha( grf.attribute( grf.GRF__ALPHA, BAD,
+                                              Grf.GRF__LINE ) );
 
-        //  Set new one from object members.
-        grf.attribute( Grf.GRF__WIDTH, lineThickness, Grf.GRF__LINE );
-        grf.attribute( Grf.GRF__STYLE, lineStyle, Grf.GRF__LINE );
-        grf.attribute( Grf.GRF__COLOUR, lineColour, Grf.GRF__LINE );
-        grf.attribute( grf.GRF__ALPHA, alphaComposite, Grf.GRF__LINE );
+            //  Set new one from object members.
+            grf.attribute( Grf.GRF__WIDTH, lineThickness, Grf.GRF__LINE );
+            grf.attribute( Grf.GRF__STYLE, lineStyle, Grf.GRF__LINE );
+            grf.attribute( Grf.GRF__COLOUR, lineColour, Grf.GRF__LINE );
+            grf.attribute( grf.GRF__ALPHA, alphaComposite, Grf.GRF__LINE );
+
+        }
+        else {
+            oldState.setColour( grf.attribute( Grf.GRF__COLOUR, BAD,
+                                               Grf.GRF__MARK ) );
+            oldState.setSize( grf.attribute( Grf.GRF__SIZE, BAD,
+                                             Grf.GRF__MARK ) );
+            oldState.setAlpha( grf.attribute( grf.GRF__ALPHA, BAD,
+                                              Grf.GRF__MARK ) );
+
+            //  Set new one from object members.
+            grf.attribute( Grf.GRF__SIZE, lineThickness, Grf.GRF__MARK );
+            grf.attribute( Grf.GRF__COLOUR, lineColour, Grf.GRF__MARK );
+            grf.attribute( grf.GRF__ALPHA, alphaComposite, Grf.GRF__MARK );
+
+        }
         return oldState;
     }
 
@@ -1632,12 +1651,27 @@ public class SpecData
      * @param oldState the state to return Grf object to.
      */
     protected void resetGrfAttributes( DefaultGrf grf,
-                                       DefaultGrfState oldState )
+                                       DefaultGrfState oldState, 
+                                       boolean line )
     {
-        grf.attribute( Grf.GRF__COLOUR, oldState.getColour(), Grf.GRF__LINE );
-        grf.attribute( Grf.GRF__STYLE, oldState.getStyle(), Grf.GRF__LINE );
-        grf.attribute( Grf.GRF__WIDTH, oldState.getWidth(), Grf.GRF__LINE );
-        grf.attribute( grf.GRF__ALPHA, oldState.getAlpha(), Grf.GRF__LINE );
+        if ( line ) {
+            grf.attribute( Grf.GRF__COLOUR, oldState.getColour(), 
+                           Grf.GRF__LINE );
+            grf.attribute( Grf.GRF__STYLE, oldState.getStyle(), 
+                           Grf.GRF__LINE );
+            grf.attribute( Grf.GRF__WIDTH, oldState.getWidth(), 
+                           Grf.GRF__LINE );
+            grf.attribute( grf.GRF__ALPHA, oldState.getAlpha(), 
+                           Grf.GRF__LINE );
+        }
+        else {
+            grf.attribute( Grf.GRF__COLOUR, oldState.getColour(), 
+                           Grf.GRF__MARK );
+            grf.attribute( Grf.GRF__SIZE, oldState.getSize(), 
+                           Grf.GRF__MARK );
+            grf.attribute( grf.GRF__ALPHA, oldState.getAlpha(), 
+                           Grf.GRF__MARK );
+        }
     }
 
 
