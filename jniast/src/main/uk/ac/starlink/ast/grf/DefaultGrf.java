@@ -770,10 +770,10 @@ public class DefaultGrf
         //  rendered lines a lot (these are drawn completely to see if
         //  they intersect the graphics clip, which can be very slow,
         //  when thick, stroked and anti-aliased). Note some very
-        //  zoomed plots could have missing sides with this strategy
-        //  because the axis border-lines can extend from one side of
-        //  the component to the other they can be completely
-        //  rejected, so lines with a few points are always drawn.
+        //  zoomed plots could have missing lines at the edgess with
+        //  this strategy because the axis border-lines can extend
+        //  from one side of the component to the other they can be
+        //  completely rejected, so lines with a few points are always drawn.
         int xlower = globalClip.x - globalClip.width;
         int xupper = globalClip.x + globalClip.width * 2;
 
@@ -782,6 +782,7 @@ public class DefaultGrf
         int x[] = new int[xPos.length];
         int y[] = new int[xPos.length];
         int j = 0;
+        int t = 0;
         if ( xPos.length > 20 ) {
 
             //  Clip long lines.
@@ -796,6 +797,7 @@ public class DefaultGrf
                         if ( j > 0 ) {
                             if ( y[j] != y[j - 1] || x[j] != x[j - 1] ) {
                                 j++;
+                                t++;
                             }
                         }
                         else {
@@ -812,6 +814,35 @@ public class DefaultGrf
             }
             if ( j > 0 ) {
                 g2.drawPolyline( x, y, j );
+            }
+
+            //  We must draw a "few" points for the sense of the
+            //  polyline to be clear (the 4 comes from watching the
+            //  SPLAT vertical hair with histogram spectrum, this just
+            //  redraws the line, plus some "damage", since the damage
+            //  region is small not all local lines are re-drawn).
+            if ( t < 4 ) {
+                int[] bounds = bound( (double) xlower, xPos );
+                // Pick a few extra points...
+                int lower = Math.max( 0, bounds[0] - 5 );
+                int upper = Math.min( xPos.length, bounds[1] + 5 );
+                j = 0;
+                for ( int i = lower; i < upper; i++ ) {
+                    if ( xPos[i] != BAD && yPos[i] != BAD ) {
+                        x[j] = (int) xPos[i];
+                        y[j] = (int) yPos[i];
+                        j++;
+                    }
+                    else {
+                        if ( j > 0 ) {
+                            g2.drawPolyline( x, y, j );
+                            j = 0;
+                        }
+                    }
+                }
+                if ( j > 0 ) {
+                    g2.drawPolyline( x, y, j );
+                }
             }
         }
         else {
@@ -977,6 +1008,37 @@ public class DefaultGrf
         g2.setStroke( oldstroke );
     }
 
+    /**
+     * Locate the indices of the two coordinates that lie closest to a
+     * given coordinate.
+     *
+     * @param xcoord the coordinate value to bound.
+     * @param values the coordinates to check, these should be sorted
+     *               in increasing order.
+     *
+     * @return array of two integers, the lower and upper indices.
+     */
+    public static int[] bound( double xcoord, double[] values )
+    {
+        //  Use a binary search as values should be sorted to increase.
+        int low = 0;
+        int high = values.length - 1;
+        int mid = 0;
+
+        while ( low < high - 1 ) {
+            mid = ( low + high ) / 2;
+            if ( xcoord < values[mid] ) {
+                high = mid;
+            }
+            else {
+                low = mid;
+            }
+        }
+        int bounds[] = new int[2];
+        bounds[0] = low;
+        bounds[1] = high;
+        return bounds;
+    }
 
     //
     // Grf implementation. Mostly pinched from the old JNIAST SplatGrf
