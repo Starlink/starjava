@@ -104,7 +104,8 @@ public class HDSArrayBuilder implements ArrayBuilder {
             if ( isTemp ) {
                 file.delete();
             }
-            throw (IOException) new IOException().initCause( e );
+            throw (IOException) new IOException( e.getMessage() )
+                    .initCause( e );
         }
     }
 
