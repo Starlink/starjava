@@ -323,7 +323,8 @@ class NDFNdxImpl implements NdxImpl {
             if ( baseRef != null ) {
                 HDSReference iref = (HDSReference) baseRef.clone();
                 iref.push( iname );
-                iurl = URLUtils.makeURL( context.toString(), iref.getURL().toString().replaceFirst( "^file://localhost", "" ) );
+                iurl = URLUtils.makeURL( context.toString(), 
+                                         getLocation( iref ) );
             }
             inda = new BridgeNDArray( new HDSArrayImpl( iary, mode ), iurl );
         }
@@ -340,7 +341,8 @@ class NDFNdxImpl implements NdxImpl {
             if ( baseRef != null ) {
                 HDSReference vref = (HDSReference) baseRef.clone();
                 vref.push( vname );
-                vurl = URLUtils.makeURL( context.toString(), vref.getURL().toString().replaceFirst( "file://localhost", "" ) );
+                vurl = URLUtils.makeURL( context.toString(), 
+                                         getLocation( vref ) );
             }
             vnda = new BridgeNDArray( new HDSArrayImpl( vary, mode ), vurl );
         }
@@ -354,7 +356,8 @@ class NDFNdxImpl implements NdxImpl {
             if ( baseRef != null ) {
                 qref = (HDSReference) baseRef.clone();
                 qref.push( qname );
-                qurl = URLUtils.makeURL( context.toString(), qref.getURL().toString().replaceFirst( "^file://localhost", "" ) );
+                qurl = URLUtils.makeURL( context.toString(),
+                                         getLocation( qref ) );
             }
 
             if ( qobj.datType().equals( "QUALITY" ) ) {
@@ -368,10 +371,25 @@ class NDFNdxImpl implements NdxImpl {
 
             qnda = new BridgeNDArray( new HDSArrayImpl( qary, mode ), qurl );
         }
-
+ 
         return new NDArray[] { inda, vnda, qnda };
     }
  
+
+    /**
+     * Return the location part of a HDSReference as a String.
+     */
+    protected static String getLocation( HDSReference ref ) {
+        
+        // Clearly just returning the filename and optional fragment
+        // isn't a full URL reconstruction...
+        URL url = ref.getURL();
+        String frag = url.getRef();
+        if ( frag != null ) {
+            return url.getPath() + "#" + frag;
+        }
+        return url.getPath();
+    }
 
     /**
      * Returns the HDS character array object containing the channelised
