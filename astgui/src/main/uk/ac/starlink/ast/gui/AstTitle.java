@@ -23,7 +23,8 @@ import uk.ac.starlink.ast.grf.DefaultGrfFontManager;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class AstTitle extends AbstractPlotControlsModel
+public class AstTitle 
+    extends AbstractPlotControlsModel
 {
     /**
      * Whether title is set or unset.
