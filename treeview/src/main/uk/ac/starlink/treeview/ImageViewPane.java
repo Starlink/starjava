@@ -8,6 +8,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 import javax.media.jai.PlanarImage;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import jsky.image.ImageProcessor;
@@ -123,6 +124,7 @@ public class ImageViewPane extends JPanel {
 
         /* No coordinates - just stick the PlanarImage into this panel. */
         else {
+            disp.setBorder( BorderFactory.createLineBorder( Color.BLACK, 1 ) );
             mainPanel = disp;
         }
         add( mainPanel );
