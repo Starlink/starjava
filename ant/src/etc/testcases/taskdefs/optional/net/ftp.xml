@@ -1,0 +1,108 @@
+<project name="ftp-test" basedir=".">
+    <property file="../../../../../../ftp.properties"/>
+    <property name="ftp.user" value="${user.name}"/>
+    <property name="ftp.host" value="localhost"/>
+    <property name="ftp.port" value="21" />
+    <property name="ftp.password" value="sunshine" />
+    <property name="ftp.filesep" value="/"/>
+    <property name="tmp.dir" location="tmp"/>
+    <property name="tmp.get.dir" location="tmp.get"/>
+    <fileset dir="${tmp.get.dir}" id="fileset-destination-with-selector">
+        <include name="alpha/**"/>
+        <filename name="**/alpha.xml" />
+    </fileset>
+    <fileset dir="${tmp.dir}" id="fileset-source-without-selector">
+        <include name="alpha/**"/>
+    </fileset>
+    <fileset dir="${tmp.get.dir}" id="fileset-destination-without-selector">
+        <include name="alpha/**"/>
+    </fileset>
+    <fileset dir="${tmp.get.dir}" id="fileset-destination-followsymlinks" followsymlinks="true">
+        <include name="alpha/**"/>
+    </fileset>
+    <fileset dir="${tmp.get.dir}" id="fileset-destination-nofollowsymlinks" followsymlinks="false">
+        <include name="alpha/**"/>
+    </fileset>
+    <target name="setup">
+        <mkdir dir="${tmp.get.dir}"/>
+        <mkdir dir="${tmp.dir}/alpha/beta/gamma"/>
+        <touch file="${tmp.dir}/alpha/beta/gamma/gamma.xml"/>
+        <touch file="${tmp.dir}/alpha/beta/beta.xml"/>
+    </target>
+    <target name="ftp-get-with-selector">
+        <ftp action="get"
+            server="${ftp.host}"
+            userid="${ftp.user}"
+            password="${ftp.password}"
+            separator="${ftp.filesep}"
+            remotedir="${tmp.dir}">
+            <fileset refid="fileset-destination-with-selector"/>
+        </ftp>
+    </target>
+    <target name="children-of-excluded-dir-setup" depends="setup">
+        <mkdir dir="${tmp.dir}/delta"/>
+        <touch file="${tmp.dir}/delta/delta.xml"/>
+    </target>
+    <target name="cleanup">
+        <delete dir="${tmp.dir}" quiet="true"/>
+        <delete dir="${tmp.get.dir}" quiet="true"/>
+    </target>
+    <target name="symlink-setup" depends="setup">
+        <mkdir dir="${tmp.dir}/epsilon/gamma"/>
+        <delete dir="${tmp.dir}/alpha/beta"/>
+        <symlink link="${tmp.dir}/alpha/beta" resource="${tmp.dir}/epsilon"/>
+        <touch file="${tmp.dir}/alpha/beta/gamma/gamma.xml"/>
+    </target>
+    <target name="ftp-get-directory-symbolic-link" depends="symlink-setup">
+        <ftp action="get"
+            server="${ftp.host}"
+            userid="${ftp.user}"
+            password="${ftp.password}"
+            separator="${ftp.filesep}"
+            remotedir="${tmp.dir}"
+            >
+            <fileset refid="fileset-destination-followsymlinks"/>
+        </ftp>
+    </target>
+    <target name="ftp-get-directory-no-symbolic-link" depends="symlink-setup">
+        <ftp action="get"
+            server="${ftp.host}"
+            userid="${ftp.user}"
+            password="${ftp.password}"
+            separator="${ftp.filesep}"
+            remotedir="${tmp.dir}"
+            >
+            <fileset refid="fileset-destination-nofollowsymlinks"/>
+        </ftp>
+    </target>
+    <target name="symlink-file-setup" depends="setup">
+        <delete file="${tmp.dir}/alpha/beta/gamma/gamma.xml"/>
+        <symlink link="${tmp.dir}/alpha/beta/gamma/gamma.xml"
+            resource="${tmp.dir}/alpha/beta/beta.xml"/>
+    </target>
+    <target name="ftp-delete">
+        <!-- this target can produce an error if the rmdir does not work -->
+        <!-- there can be problems with the rmdir action if the directories are not removed in a proper order -->
+        <!-- which means beginning by the leaves of the tree, going back to the trunk -->
+        <ftp action="del"
+            server="${ftp.host}"
+            userid="${ftp.user}"
+            password="${ftp.password}"
+            separator="${ftp.filesep}"
+            remotedir="${tmp.dir}">
+            <fileset dir="${tmp.get.dir}">
+                <include name="**"/>
+            </fileset>
+        </ftp>
+        <ftp action="rmdir"
+            server="${ftp.host}"
+            userid="${ftp.user}"
+            password="${ftp.password}"
+            separator="${ftp.filesep}"
+            remotedir="${tmp.dir}">
+            <fileset dir="${tmp.get.dir}">
+                <include name="**"/>
+            </fileset>
+        </ftp>
+    </target>
+</project>
