@@ -65,7 +65,7 @@ public class AuxWindow extends JFrame {
         setTitle( makeTitle( baseTitle, startab ) );
         setDefaultCloseOperation( DISPOSE_ON_CLOSE );
         if ( parent != null ) {
-            setLocationRelativeTo( parent );
+            positionAfter( parent, this );
         }
 
         /* Set up a basic menubar with a File menu. */
@@ -317,7 +317,7 @@ public class AuxWindow extends JFrame {
      * @param   first   first window, or <tt>null</tt>
      * @param   second  second window
      */
-    public static void positionAfter( Window first, Window second ) {
+    public static void positionAfter( Component first, Window second ) {
         Point pos = null; 
         if ( first != null ) {
             pos = first.getLocation();
@@ -325,8 +325,8 @@ public class AuxWindow extends JFrame {
         if ( pos == null ) {
             pos = new Point( 20, 20 );
         }
-        pos.x += 40;
-        pos.y += 40;
+        pos.x += 60;
+        pos.y += 60;
         second.setLocation( pos );
     }
 
