@@ -1225,10 +1225,7 @@ public class SplatBrowser
             return true;
         }
         catch ( SplatException e ) {
-            JOptionPane.showMessageDialog( this,
-                                           e.getMessage(),
-                                           "Error opening spectrum",
-                                           JOptionPane.ERROR_MESSAGE);
+            new ExceptionDialog( this, e );
         }
         return false;
     }
