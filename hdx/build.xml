@@ -475,9 +475,9 @@
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
-    <copy todir="${dist.docs.pkg}">
+    <!--<copy todir="${dist.docs.pkg}">
       <fileset dir="${src.docs}"/>
-    </copy>
+    </copy>-->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
