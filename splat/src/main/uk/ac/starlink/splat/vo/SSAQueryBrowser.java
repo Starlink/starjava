@@ -43,6 +43,8 @@ import jsky.catalog.skycat.SkycatConfigEntry;
 import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.ConnectionUtil;
+import jsky.util.gui.ProgressPanel;
+import jsky.util.SwingWorker;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
@@ -415,62 +417,112 @@ public class SSAQueryBrowser
         processQueryList( queryList );
     }
 
+    private ProgressPanel progressPanel = null;
+    private SwingWorker worker = null;
+
+    /**
+     * If it does not already exist, make the panel used to display
+     * the progress of network access.
+     */
+    protected void makeProgressPanel() 
+    {
+        if ( progressPanel == null ) {
+            progressPanel = ProgressPanel.makeProgressPanel
+                ( "Querying SSA servers for spectra..." );
+
+            //  When the cancel button is pressed we want to stop the
+            //  SwingWorker thread.
+            progressPanel.addActionListener( new ActionListener() 
+            {
+                public void actionPerformed( ActionEvent e ) 
+                {
+                    if ( worker != null ) {
+                        worker.interrupt();
+                        worker = null;
+                    }
+                }
+            });
+        }
+    }
+
     /**
      * Process a list of URL queries to SSA servers and display the
      * results. All processing is performed in a background Thread.
-     * 
-     * XXX need to use an interruptable thread.
      */
     protected void processQueryList( ArrayList queryList )
     {
         final ArrayList localQueryList = queryList;
-        Thread thread = new Thread( "SSA server queries" ) {
-                public void run() 
-                {
-                    Iterator i = localQueryList.iterator();
-                    StarTableFactory factory = new StarTableFactory();
-                    TableBuilder[] blist = { new VOTableBuilder() };
-                    factory.setDefaultBuilders( blist );
-                    StarTable starTable = null;
+        makeProgressPanel();
 
-                    int j = 0;
-                    while( i.hasNext() ) {
-                        try {
-                            SSAQuery ssaQuery = (SSAQuery) i.next();
-                            URL url = ssaQuery.getQueryURL();
-                            System.out.println( "URL = " + url );
-                            starTable = factory.makeStarTable( url );
-                            ssaQuery.setStarTable( starTable );
-                            System.out.println( starTable );
-                            
-                            uk.ac.starlink.table.StarTableOutput sto = 
-                                new uk.ac.starlink.table.StarTableOutput();
-                            sto.writeStarTable( starTable, 
-                                                "votable" + j + ".xml", null);
-                            j++;
-                        }
-                        catch (IOException ie) {
-                            //  XXX Should make a proper report.
-                            ie.printStackTrace();
-                        }
-                    }
+        worker = new SwingWorker() 
+        {
+            boolean interrupted = false;
+            public Object construct() 
+            {
+                try {
+                    runProcessQueryList( localQueryList );
                 }
-            };
+                catch (InterruptedException e) {
+                    interrupted = true;
+                }
+                return null;
+            }
 
-        //  Start the nameserver.
-        thread.start();
+            public void finished() 
+            {
+                System.out.println( "SwingWorker finished: " + interrupted );
+                progressPanel.stop();
+                worker = null;
+                queryThread = null;
+                
+                //  Display the results.
+                if ( ! interrupted ) {
+                    makeResultsDisplay( localQueryList );
+                }
+            }
+        };
+        worker.start();
+    }
 
-        // Wait for completion?
-        try {
-            thread.join();
+    private Thread queryThread = null;
+
+    /**
+     * Do the query to all the SSAP servers.
+     */
+    private void doProcessQueryList( ArrayList queryList )
+        throws InterruptedException
+    {
+        Iterator i = queryList.iterator();
+        StarTableFactory factory = new StarTableFactory();
+        TableBuilder[] blist = { new VOTableBuilder() };
+        factory.setDefaultBuilders( blist );
+        StarTable starTable = null;
+        
+        //int j = 0;
+        while( i.hasNext() ) {
+            try {
+                SSAQuery ssaQuery = (SSAQuery) i.next();
+                URL url = ssaQuery.getQueryURL();
+                progressPanel.logMessage
+                    ( ssaQuery.getDescription() );
+                starTable = factory.makeStarTable( url );
+                ssaQuery.setStarTable( starTable );
+                
+                //uk.ac.starlink.table.StarTableOutput sto = 
+                //    new uk.ac.starlink.table.StarTableOutput();
+                //sto.writeStarTable( starTable, 
+                //                    "votable" + j + ".xml", null);
+                //j++;
+            }
+            catch (IOException ie) {
+                progressPanel.logMessage( ie.getMessage() );
+                ie.printStackTrace();
+            }
+            if ( Thread.interrupted() ) {
+                throw new InterruptedException();
+            }
         }
-        catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.out.println( "Completed" );
-
-        //  Display the results.
-        makeResultsDisplay( localQueryList );
+        progressPanel.logMessage( "Completed downloads" );
     }
 
     /**
