@@ -36,7 +36,7 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 
 /**
  * SpecData defines an interface for general access to spectral datasets of
- * differing fundamental data types and represents the main data model used 
+ * differing fundamental data types and represents the main data model used
  * in SPLAT.
  * <p>
  *
@@ -373,6 +373,25 @@ public class SpecData
      * in xPos and yPos, plus the standard deviations * nsigma in yPos).
      */
     protected double[] fullRange = new double[4];
+
+    /**
+     * The coordinates and data values of the points used to define the
+     * range. These may be needed when a transformation of the region that the
+     * spectrum is drawn into is performed (the actual points are required for
+     * potentially non-linear transformations, like flux when it depends on
+     * wavelength).
+     */
+    protected double[] xEndPoints = new double[4];
+    protected double[] yEndPoints = new double[4];
+
+    /**
+     * The coordinates and data values of the points used to define the
+     * full range. These may be needed when a transformation of the region
+     * that the spectrum is drawn into is performed (the actual points are
+     * required for potentially non-linear transformations, like flux when it
+     * depends on wavelength). Note that the X versions are same as xEndPoints.
+     */
+    protected double[] yFullEndPoints = new double[4];
 
     /**
      * Reference to ASTJ object that contains an AST FrameSet that wraps
@@ -821,6 +840,48 @@ public class SpecData
     public double[] getFullRange()
     {
         return fullRange;
+    }
+
+    /**
+     * Get the coordinates of the points used to define the range in the X axis.
+     *
+     * @return reference to array of 4 values, x1, y1, y2, y2.
+     */
+    public double[] getXEndPoints()
+    {
+        return xEndPoints;
+    }
+
+    /**
+     * Get the coordinates of the points used to define the range in the Y axis.
+     *
+     * @return reference to array of 4 values, x1, y1, y2, y2.
+     */
+    public double[] getYEndPoints()
+    {
+        return yEndPoints;
+    }
+
+    /**
+     * Get the coordinates of the points used to define the full range in the
+     * X axis.
+     *
+     * @return reference to array of 4 values, x1, y1, y2, y2.
+     */
+    public double[] getXFullEndPoints()
+    {
+        return xEndPoints;
+    }
+
+    /**
+     * Get the coordinates of the points used to define the full range in the
+     * Y axis.
+     *
+     * @return reference to array of 4 values, x1, y1, y2, y2.
+     */
+    public double[] getYFullEndPoints()
+    {
+        return yFullEndPoints;
     }
 
 
@@ -1370,64 +1431,127 @@ public class SpecData
     public void setRange()
     {
         double xMin = Double.MAX_VALUE;
-        double xMax = -Double.MAX_VALUE;
-        double yMin = xMin;
-        double yMax = xMax;
-        double fullYMin = xMin;
-        double fullYMax = xMax;
-        if ( yErr != null ) {
-            for ( int i = 0; i < yPos.length; i++ ) {
-                if ( yPos[i] != SpecData.BAD ) {
-                    xMin = Math.min( xMin, xPos[i] );
-                    xMax = Math.max( xMax, xPos[i] );
-                    yMin = Math.min( yMin, yPos[i] );
-                    yMax = Math.max( yMax, yPos[i] );
+        double xMinY = 0.0;
 
-                    fullYMin = Math.min( fullYMin,
-                                         yPos[i] - ( yErr[i] * errorNSigma ) );
-                    fullYMax = Math.max( fullYMax,
-                                         yPos[i] + ( yErr[i] * errorNSigma ) );
+        double xMax = -Double.MAX_VALUE;
+        double xMaxY = 0.0;
+
+        double yMin = xMin;
+        double yMinX = 0.0;
+
+        double yMax = xMax;
+        double yMaxX = 0.0;
+
+        double fullYMin = xMin;
+        double fullYMinX = 0.0;
+        double fullYMax = xMax;
+        double fullYMaxX = 0.0;
+        double tmp;
+
+
+        if ( yErr != null ) {
+
+            for ( int i = yPos.length - 1; i >= 0; i-- ) {
+                if ( yPos[i] != SpecData.BAD ) {
+                    if ( xPos[i] < xMin ) {
+                        xMin = xPos[i];
+                        xMinY = yPos[i];
+                    }
+                    if ( xPos[i] > xMax ) {
+                        xMax = xPos[i];
+                        xMaxY = yPos[i];
+                    }
+                    if ( yPos[i] < yMin ) {
+                        yMin = yPos[i];
+                        yMinX = xPos[i];
+                    }
+                    if ( yPos[i] > yMax ) {
+                        yMax = yPos[i];
+                        yMaxX = xPos[i];
+                    }
+                    
+                    tmp = yPos[i] - ( yErr[i] * errorNSigma );
+                    if ( tmp < fullYMin ) {
+                        fullYMin = tmp;
+                        fullYMinX = xPos[i];
+                    }
+
+                    tmp = yPos[i] + ( yErr[i] * errorNSigma );
+                    if ( tmp > fullYMax ) {
+                        fullYMax = tmp;
+                        fullYMaxX = xPos[i];
+                    }
                 }
             }
         }
         else {
-            for ( int i = 0; i < yPos.length; i++ ) {
+            for ( int i = yPos.length - 1; i >= 0 ; i-- ) {
                 if ( yPos[i] != SpecData.BAD ) {
-                    xMin = Math.min( xMin, xPos[i] );
-                    xMax = Math.max( xMax, xPos[i] );
-                    yMin = Math.min( yMin, yPos[i] );
-                    yMax = Math.max( yMax, yPos[i] );
+                    if ( xPos[i] < xMin ) {
+                        xMin = xPos[i];
+                        xMinY = yPos[i];
+                    }
+                    if ( xPos[i] > xMax ) {
+                        xMax = xPos[i];
+                        xMaxY = yPos[i];
+                    }
+                    if ( yPos[i] < yMin ) {
+                        yMin = yPos[i];
+                        yMinX = xPos[i];
+                    }
+                    if ( yPos[i] > yMax ) {
+                        yMax = yPos[i];
+                        yMaxX = xPos[i];
+                    }
                 }
             }
+            fullYMin = yMin;
+            fullYMax = yMax;
+            fullYMinX = yMinX;
+            fullYMaxX = yMaxX;
         }
         if ( xMin == Double.MAX_VALUE ) {
             xMin = 0.0;
+            xMinY = 0.0;
         }
         if ( xMax == -Double.MAX_VALUE ) {
             xMax = 0.0;
+            xMaxY = 0.0;
         }
 
-        //  Record data ranges.
+        //  Record plain range.
         range[0] = xMin;
         range[1] = xMax;
         range[2] = yMin;
         range[3] = yMax;
 
+        //  And the "full" version.
         fullRange[0] = xMin;
         fullRange[1] = xMax;
-        if ( yErr != null ) {
-            fullRange[2] = fullYMin;
-            fullRange[3] = fullYMax;
-        }
-        else {
-            fullRange[2] = yMin;
-            fullRange[3] = yMax;
-        }
+        fullRange[2] = fullYMin;
+        fullRange[3] = fullYMax;
 
         //  Add slack so that error bars do not abutt the edges.
         double slack = ( fullRange[3] - fullRange[2] ) * SLACK;
         fullRange[2] = fullRange[2] - slack;
         fullRange[3] = fullRange[3] + slack;
+
+        //  Coordinates of positions used to determine plain range.
+        xEndPoints[0] = xMin;
+        xEndPoints[1] = xMinY;
+        xEndPoints[2] = xMax;
+        xEndPoints[3] = xMaxY;
+
+        yEndPoints[0] = yMinX;
+        yEndPoints[1] = yMin;
+        yEndPoints[2] = yMaxX;
+        yEndPoints[3] = yMax;
+
+        //  Coordinates of positions used to determine full range.
+        yFullEndPoints[0] = fullYMinX;
+        yFullEndPoints[1] = fullRange[2];
+        yFullEndPoints[2] = fullYMaxX;
+        yFullEndPoints[3] = fullRange[3];
     }
 
     /**
