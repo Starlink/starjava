@@ -208,11 +208,20 @@ public class DrawFigureFactory
     /** Create a polyline Figure using the given properties */
     public DrawFigure createPolyline( FigureProps props )
     {
-        return createPolyline( props.getX1(),
-                               props.getY1(),
-                               props.getOutline(),
-                               props.getThickness(),
-                               props.getComposite() );
+        if ( props.getXArray() != null ) {
+            return createPolyline( props.getXArray(),
+                                   props.getYArray(),
+                                   props.getOutline(),
+                                   props.getThickness(),
+                                   props.getComposite() );
+        }
+        else {
+            return createPolyline( props.getX1(),
+                                   props.getY1(),
+                                   props.getOutline(),
+                                   props.getThickness(),
+                                   props.getComposite() );
+        }
     }
 
     /** Create a polyline Figure using the given parameters */
@@ -223,40 +232,106 @@ public class DrawFigureFactory
                                        composite );
     }
 
+    /** Create a polyline Figure using the given parameters */
+    public DrawFigure createPolyline( double[] x, double[] y, Paint outline,
+                                      double thickness, 
+                                      AlphaComposite composite )
+    {
+        Polyline2D.Double pl = new Polyline2D.Double();
+        pl.moveTo( x[0], y[0] );
+        for ( int i = 1; i < x.length; i++ ) {
+            pl.lineTo( x[i], y[i] );
+        }
+        return new DrawPolylineFigure( pl, outline, (float) thickness,
+                                       composite );
+    }
+
     /** Create a polygon Figure using the given properties */
     public DrawFigure createPolygon( FigureProps props )
     {
-        return createPolygon( props.getX1(),
-                              props.getY1(),
-                              props.getFill(),
-                              props.getOutline(),
-                              props.getThickness(),
-                              props.getComposite() );
+        if ( props.getXArray() != null ) {
+            return createPolygon( props.getXArray(),
+                                  props.getYArray(),
+                                  props.getFill(),
+                                  props.getOutline(),
+                                  props.getThickness(),
+                                  props.getComposite() );
+            
+        }
+        else {
+            return createPolygon( props.getX1(),
+                                  props.getY1(),
+                                  props.getFill(),
+                                  props.getOutline(),
+                                  props.getThickness(),
+                                  props.getComposite() );
+        }
+
     }
 
     /** Create a polygon Figure using the given parameters */
-    public DrawFigure createPolygon( double x, double y, Paint fill, Paint outline,
-                                 double thickness, AlphaComposite composite )
+    public DrawFigure createPolygon( double x, double y, Paint fill, 
+                                     Paint outline, double thickness, 
+                                     AlphaComposite composite )
     {
         return new DrawPolygonFigure( x, y, fill, outline, (float) thickness,
                                       composite );
     }
 
+    /** Create a polygon Figure using the given parameters */
+    public DrawFigure createPolygon( double[] x, double[] y, Paint fill, 
+                                     Paint outline, double thickness, 
+                                     AlphaComposite composite )
+    {
+        Polygon2D.Double pg = new Polygon2D.Double();
+        pg.moveTo( x[0], y[0] );
+        for ( int i = 1; i < x.length; i++ ) {
+            pg.lineTo( x[i], y[i] );
+        }
+        return new DrawPolygonFigure( pg, fill, outline, (float) thickness,
+                                      composite );
+    }
+
+
     /** Create a freehand Figure using the given properties */
     public DrawFigure createFreehand( FigureProps props )
     {
-        return createFreehand( props.getX1(),
-                               props.getY1(),
-                               props.getOutline(),
-                               props.getThickness(),
-                               props.getComposite() );
+        if ( props.getXArray() != null ) {
+            return createFreehand( props.getXArray(),
+                                   props.getYArray(),
+                                   props.getOutline(),
+                                   props.getThickness(),
+                                   props.getComposite() );
+        }
+        else {
+            return createFreehand( props.getX1(),
+                                   props.getY1(),
+                                   props.getOutline(),
+                                   props.getThickness(),
+                                   props.getComposite() );
+        }
     }
 
     /** Create a freehand Figure using the given parameters */
     public DrawFigure createFreehand( double x, double y, Paint outline,
-                                  double thickness, AlphaComposite composite )
+                                      double thickness, 
+                                      AlphaComposite composite )
     {
         return new DrawFreehandFigure( x, y, outline, (float) thickness,
+                                       composite );
+    }
+
+    /** Create a freehand Figure using the given parameters */
+    public DrawFigure createFreehand( double[] x, double[] y, Paint outline,
+                                      double thickness, 
+                                      AlphaComposite composite )
+    {
+        Polyline2D.Double pl = new Polyline2D.Double();
+        pl.moveTo( x[0], y[0] );
+        for ( int i = 1; i < x.length; i++ ) {
+            pl.lineTo( x[i], y[i] );
+        }
+        return new DrawFreehandFigure( pl, outline, (float) thickness,
                                        composite );
     }
 
@@ -298,13 +373,22 @@ public class DrawFigureFactory
 
     /** Create a curve Figure using the given parameters */
     public DrawFigure createCurve( double x1, double y1,
-                               Interpolator interpolator,
-                               Paint outline, double thickness,
-                               AlphaComposite composite )
+                                   Interpolator interpolator,
+                                   Paint outline, double thickness,
+                                   AlphaComposite composite )
     {
-        return new InterpolatedCurveFigure( interpolator, x1, y1,
-                                            outline, (float) thickness,
-                                            composite );
+        // If the interpolator has coordinates, these are used.
+        if ( interpolator.getCount() > 0 ) {
+            InterpolatedCurve2D c2d = new InterpolatedCurve2D( interpolator );
+            return new InterpolatedCurveFigure( c2d, outline,
+                                                (float) thickness, composite );
+
+        }
+        else {
+            return new InterpolatedCurveFigure( interpolator, x1, y1,
+                                                outline, (float) thickness,
+                                                composite );
+        }
     }
 
     /** Create a xrange Figure using the given properties */
