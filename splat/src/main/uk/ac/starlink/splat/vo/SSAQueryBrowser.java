@@ -55,6 +55,8 @@ import jsky.util.gui.ProgressPanel;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
+import uk.ac.starlink.splat.iface.SpectrumIO;
+import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
@@ -385,16 +387,16 @@ public class SSAQueryBrowser
         String objectName = nameField.getText().trim();
         if ( objectName != null && objectName.length() > 0 ) {
 
-            final QueryArgs queryArgs = 
+            final QueryArgs queryArgs =
                 new BasicQueryArgs( resolverCatalogue );
 
             // If objectName has spaces we should protect them.
             objectName = objectName.replaceAll( " ", "%20" );
             queryArgs.setId( objectName );
 
-            Thread thread = new Thread( "Name server" ) 
+            Thread thread = new Thread( "Name server" )
             {
-                public void run() 
+                public void run()
                 {
                     try {
                         QueryResult r = resolverCatalogue.query( queryArgs );
@@ -403,7 +405,7 @@ public class SSAQueryBrowser
                                 ((TableQueryResult) r).getCoordinates( 0 );
                             if ( coords instanceof WorldCoords ) {
                                 //  Enter values into RA and Dec fields.
-                                String[] radec = 
+                                String[] radec =
                                     ((WorldCoords) coords).format();
                                 raField.setText( radec[0] );
                                 decField.setText( radec[1] );
@@ -427,9 +429,10 @@ public class SSAQueryBrowser
     /**
      * Setup the default name servers (SIMBAD and NED) to use to resolve
      * astronomical object names. Note these are just those used in JSky.
-     * A better implementation should reuse the JSky classes. 
+     * A better implementation should reuse the JSky classes.
      * <p>
      * XXX refactor these into an XML file external to the application.
+     * Maybe switch to the CDS Sesame webservice.
      */
     private void setDefaultNameServers()
     {
@@ -455,8 +458,7 @@ public class SSAQueryBrowser
     }
 
     /**
-     * Perform the query to all the known SSA servers (XXX need to select
-     * which servers to use).
+     * Perform the query to all the currently selected servers.
      */
     public void doQuery()
     {
@@ -512,7 +514,7 @@ public class SSAQueryBrowser
     }
 
     /**
-     * If it does not already exist, make the panel used to display
+     * If it does not already exist, make the panel for displaying
      * the progress of network access.
      */
     protected void makeProgressPanel()
@@ -654,8 +656,7 @@ public class SSAQueryBrowser
                 //  Set widths of columns.
                 table.configureColumnWidths( 200, 5 );
 
-                //  Double click on row means load that spectrum.
-
+                //  Double click on row means load just that spectrum.
                 table.addMouseListener( this );
             }
         }
@@ -669,26 +670,23 @@ public class SSAQueryBrowser
      * selected parameter determines the behaviour of all or just the selected
      * spectra.
      */
-    protected void displaySpectra( boolean selected, StarJTable table, 
+    protected void displaySpectra( boolean selected, StarJTable table,
                                    int row )
     {
         //  List of all spectra to be loaded and their data formats and short
-        //  names.
+        //  names etc.
         ArrayList specList = new ArrayList();
-        ArrayList typeList = new ArrayList();
-        ArrayList nameList = new ArrayList();
 
         if ( table == null ) {
             //  Visit all the tabbed StarJTables.
             Iterator i = starJTables.iterator();
             while ( i.hasNext() ) {
-                extractSpectraFromTable( (StarJTable) i.next(), specList,
-                                         typeList, nameList, selected, -1 );
+                extractSpectraFromTable( (StarJTable) i.next(), specList, 
+                                         selected, -1 );
             }
         }
         else {
-            extractSpectraFromTable( table, specList, typeList, nameList,
-                                     selected, row );
+            extractSpectraFromTable( table, specList, selected, row );
         }
 
         //  If we have no spectra complain and stop.
@@ -705,44 +703,28 @@ public class SSAQueryBrowser
             return;
         }
 
-        //  Create the String[] list of names and also transform MIME types
-        //  into SPLAT types.
         int nspec = specList.size();
-
-        String[] spectra = new String[nspec];
+        SpectrumIO.Props[] props = new SpectrumIO.Props[nspec];
         for ( int k = 0; k < nspec; k++ ) {
-            spectra[k] = ((String) specList.get( k )).trim();
-        }
-
-        String[] names = null;
-        if ( nameList.size() > 0 ) {
-            names = new String[nspec];
-            for ( int k = 0; k < nspec; k++ ) {
-                names[k] = ((String) nameList.get( k )).trim();
-            }
-        }
-
-        int ntypes = typeList.size();
-        int[] types = null;
-        if ( ntypes > 0 ) {
-            types = mimeToSPLATTypes( typeList );
+            props[k] = (SpectrumIO.Props) specList.get( k );
         }
 
         //  And load and display...
-        browser.threadLoadSpectra( spectra, types, names );
+        browser.threadLoadSpectra( props );
         browser.toFront();
     }
 
     /**
      * Extract all the links to spectra for downloading, plus the associated
-     * data formats, if available from the rows of table. Can return the
-     * selected spectra, if requested, otherwise all spectra are returned or
-     * if a row value other than -1 is given just one row.
+     * information available in the VOTable. Each set of spectral information
+     * is used to populated a SpectrumIO.Prop object that is added to the
+     * specList list.
+     * <p>
+     * Can return the selected spectra, if requested, otherwise all spectra
+     * are returned or if a row value other than -1 is given just one row.
      */
     private void extractSpectraFromTable( StarJTable table,
                                           ArrayList specList,
-                                          ArrayList typeList,
-                                          ArrayList nameList,
                                           boolean selected,
                                           int row )
     {
@@ -769,17 +751,27 @@ public class SSAQueryBrowser
             int linkcol = -1;
             int typecol = -1;
             int namecol = -1;
+            int axescol = -1;
+            int unitscol = 1;
             ColumnInfo colInfo;
+            String ucd;
             for( int k = 0; k < ncol; k++ ) {
                 colInfo = starTable.getColumnInfo( k );
-                if (colInfo.getUCD().equalsIgnoreCase("DATA_LINK")) {
+                ucd = colInfo.getUCD().toLowerCase();
+                if ( ucd.equals( "data_link" ) ) {
                     linkcol = k;
                 }
-                if (colInfo.getUCD().equalsIgnoreCase("VOX:SPECTRUM_FORMAT")) {
+                if ( ucd.equals( "vox:spectrum_format" ) ) {
                     typecol = k;
                 }
-                if (colInfo.getUCD().equalsIgnoreCase("VOX:IMAGE_TITLE")) {
+                if ( ucd.equals( "vox:image_title" ) ) {
                     namecol = k;
+                }
+                if ( ucd.equals( "vox:spectrum_axes" ) ) {
+                    axescol = k;
+                }
+                if ( ucd.equals( "vox:spectrum_units" ) ) {
+                    unitscol = k;
                 }
             }
 
@@ -787,19 +779,35 @@ public class SSAQueryBrowser
             //  that are appropriate.
             if ( linkcol != -1 ) {
                 RowSequence rseq = null;
+                SpectrumIO.Props props;
+                String shortname;
+                String[] axes;
+                String[] units;
                 try {
                     if ( ! selected && selection == null ) {
                         //  Using all rows.
                         rseq = starTable.getRowSequence();
                         while ( rseq.hasNext() ) {
                             rseq.next();
-                            specList.add( rseq.getCell( linkcol ) );
+                            props = new SpectrumIO.Props((String)rseq.getCell(linkcol));
                             if ( typecol != -1 ) {
-                                typeList.add( rseq.getCell( typecol ) );
+                                props.setType
+                                    (mimeToSPLATType((String)rseq.getCell(typecol)));
                             }
                             if ( namecol != -1 ) {
-                                nameList.add( rseq.getCell( namecol ) );
+                                props.setShortName((String)rseq.getCell( namecol ) );
                             }
+                            if ( axescol != -1 ) {
+                                axes = ((String)rseq.getCell( axescol )).split("\\s");
+                                props.setCoordColumn( axes[0] );
+                                props.setDataColumn( axes[1] );
+                            }
+                            if ( unitscol != -1 ) {
+                                units = ((String)rseq.getCell( unitscol )).split("\\s");
+                                props.setCoordUnits( units[0] );
+                                props.setDataUnits( units[1] );
+                            }
+                            specList.add( props );
                         }
                     }
                     else {
@@ -815,13 +823,25 @@ public class SSAQueryBrowser
                             if ( k == selection[l] ) {
 
                                 // Store this one as matches selection.
-                                specList.add( rseq.getCell( linkcol ) );
+                                props = new SpectrumIO.Props((String)rseq.getCell(linkcol));
                                 if ( typecol != -1 ) {
-                                    typeList.add( rseq.getCell(typecol) );
+                                    props.setType
+                                        (mimeToSPLATType((String)rseq.getCell(typecol)));
                                 }
                                 if ( namecol != -1 ) {
-                                    nameList.add( rseq.getCell( namecol ) );
+                                    props.setShortName((String)rseq.getCell( namecol ) );
                                 }
+                                if ( axescol != -1 ) {
+                                    axes = ((String)rseq.getCell( axescol )).split("\\s");
+                                    props.setCoordColumn( axes[0] );
+                                    props.setDataColumn( axes[1] );
+                                }
+                                if ( unitscol != -1 ) {
+                                    units = ((String)rseq.getCell( unitscol )).split("\\s");
+                                    props.setCoordUnits( units[0] );
+                                    props.setDataUnits( units[1] );
+                                }
+                                specList.add( props );
 
                                 //  Move to next selection.
                                 l++;
@@ -851,39 +871,30 @@ public class SSAQueryBrowser
     }
 
     /**
-     * Convert a list of mime types into the equivalent SPLAT types (these are
+     * Convert a of mime types into the equivalent SPLAT type (these are
      * int constants defined in SpecDataFactory).
      */
-    private int[] mimeToSPLATTypes( ArrayList typeList )
+    private int mimeToSPLATType( String type )
     {
-        int ntypes = typeList.size();
-        int[] types = new int[ntypes];
-        String type = null;
-        for ( int k = 0; k < ntypes; k++ ) {
-            type = ((String) typeList.get( k )).trim();
-            if ( type.equals( "application/fits" ) ) {
-                //  FITS format, is that image or table?
-                types[k] = SpecDataFactory.FITS;
-            }
-            else if ( type.equals( "spectrum/fits" ) ) {
-                //  FITS format, is that image or table? Don't know who
-                //  thought this was a mime-type?
-                types[k] = SpecDataFactory.FITS;
-            }
-            else if ( type.equals( "text/plain" ) ) {
-                //  ASCII table of some kind.
-                types[k] = SpecDataFactory.TABLE;
-            }
-            else if ( type.equals( "application/x-votable+xml" ) ) {
-                // VOTable spectrum.
-                types[k] = SpecDataFactory.TABLE;
-            }
-            else {
-                // Hope the URL has a recognisable file extension.
-                types[k] = SpecDataFactory.DEFAULT;
-            }
+        int stype = SpecDataFactory.DEFAULT;
+        if ( type.equals( "application/fits" ) ) {
+            //  FITS format, is that image or table?
+            stype = SpecDataFactory.FITS;
         }
-        return types;
+        else if ( type.equals( "spectrum/fits" ) ) {
+            //  FITS format, is that image or table? Don't know who
+            //  thought this was a mime-type?
+            stype = SpecDataFactory.FITS;
+        }
+        else if ( type.equals( "text/plain" ) ) {
+            //  ASCII table of some kind.
+            stype = SpecDataFactory.TABLE;
+        }
+        else if ( type.equals( "application/x-votable+xml" ) ) {
+            // VOTable spectrum.
+            stype = SpecDataFactory.TABLE;
+        }
+        return stype;
     }
 
     /**
@@ -924,7 +935,7 @@ public class SSAQueryBrowser
     public static void main( String[] args )
     {
         try {
-            SSAQueryBrowser b = 
+            SSAQueryBrowser b =
                 new SSAQueryBrowser( new SSAServerList(), null );
             b.pack();
             b.setVisible( true );
