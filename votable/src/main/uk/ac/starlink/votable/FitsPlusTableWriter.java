@@ -14,6 +14,7 @@ import nom.tam.fits.HeaderCard;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableWriter;
 
 /**
  * TableWriter which writes table data into the first extension of a FITS file, 
@@ -46,9 +47,10 @@ public class FitsPlusTableWriter extends FitsTableWriter {
     private static String XML_ENCODING = "UTF-8";
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.table.formats" );
+    private String formatName_ = "fits-plus";
 
     public String getFormatName() {
-        return "fits";
+        return formatName_;
     }
 
     /**
@@ -199,6 +201,22 @@ public class FitsPlusTableWriter extends FitsTableWriter {
             int pad = FitsConstants.FITS_BLOCK - partial;
             strm.write( new byte[ pad ] );
         }
+    }
+
+    /**
+     * Returns a list of FITS-plus table writers with variant values of
+     * attributes.
+     * In fact this just returns two functionally identical instances
+     * but with different format names: one is "fits" and the other is
+     * "fits-plus".
+     *
+     * @param  table writers
+     */
+    public static StarTableWriter[] getStarTableWriters() {
+        FitsPlusTableWriter w1 = new FitsPlusTableWriter();
+        FitsPlusTableWriter w2 = new FitsPlusTableWriter();
+        w1.formatName_ = "fits";
+        return new StarTableWriter[] { w1, w2 };
     }
 
     /**
