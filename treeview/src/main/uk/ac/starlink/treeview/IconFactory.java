@@ -31,6 +31,7 @@ public class IconFactory {
     public static final short DELETE = 31;
     public static final short UP = 32;
     public static final short DOWN = 33;
+    public static final short HOME = 34;
     public static final short ARY0 = 91;
     public static final short ARY1 = 92;
     public static final short ARY2 = 93;
@@ -136,6 +137,7 @@ public class IconFactory {
             case DELETE:         iname = "trasha2.gif";              break;
             case UP:             iname = "Up.gif";                   break;
             case DOWN:           iname = "Down.gif";                 break;
+            case HOME:           iname = "Home24.gif";               break;
             case STOP:           iname = "Stop.gif";                 break;
             case EXIT:           iname = "multiply3.gif";            break;
             case HELP:           iname = "Help2.gif";                break;
