@@ -364,8 +364,8 @@ public class SpecDataFactory
     {
         return new EditableSpecData( new MEMSpecDataImpl( shortname ) );
     }
-    /**
 
+    /**
      * Copy a spectrum into one that can have its values modified or
      * individually editted. If the SpecData is an instance if
      * LineIDSpecData then another LineIDSpecData instance will be

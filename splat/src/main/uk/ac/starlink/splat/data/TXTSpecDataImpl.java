@@ -185,8 +185,8 @@ public class TXTSpecDataImpl
                      raw.charAt(0) == '#' ) {
                     continue;
                     //  TODO: restore shortname etc?
-                } else {
-
+                } 
+                else {
                     // Read at least one or two floating numbers from line
                     // and no more than 3.
                     st = new StringTokenizer( raw );
@@ -285,16 +285,17 @@ public class TXTSpecDataImpl
         if ( errors == null ) {
             for ( int i = 0; i < data.length; i++ ) {
                 try {
-                    r.write( coords[i] + " " + data[i] +"\n" );
+                    r.write( coords[i]+" "+data[i]+"\n" );
                 } 
                 catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        } else {
+        } 
+        else {
             for ( int i = 0; i < data.length; i++ ) {
                 try {
-                    r.write( coords[i] + " " + data[i] + " " + errors[i] );
+                    r.write( coords[i]+ " "+data[i]+" "+errors[i]+"\n");
                 } 
                 catch (Exception e) {
                     e.printStackTrace();
