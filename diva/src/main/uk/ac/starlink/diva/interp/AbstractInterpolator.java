@@ -81,7 +81,7 @@ public abstract class AbstractInterpolator
         this.y = y;
 
         // See which way the X coordinates increase, if wanted.
-        if ( check && x.length > 1 ) {
+        if ( check && x.length >= 2 ) {
             if ( x[1] < x[0] ) {
                 decr = true;
             }

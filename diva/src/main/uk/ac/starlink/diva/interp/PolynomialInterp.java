@@ -44,7 +44,7 @@ public class PolynomialInterp
     {
         this.x = x;
         this.y = y;
-        if ( check ) {
+        if ( check  && x.length >= 2 ) {
             if ( x[1] < x[0] ) {
                 decr = true;
             }
