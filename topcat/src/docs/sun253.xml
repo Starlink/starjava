@@ -2759,18 +2759,98 @@ are welcomed.
 <p>Releases to date have been as follows:
 <dl>
 
-<dt>Version 1.3-2 (6 Dec 2004)</dt>
-<dd><p>Bug fix:
+<dt>Version 0.3b (4 June 2003)</dt>
+<dd><p>First public release
+</p></dd>
+
+<dt>Version 0.4b (8 July 2003)</dt>
+<dd><p>
 <ul>
-<li>Error in parsing empty VOTable TD elements fixed.</li>
+<li>Row subset count column in subsets window.</li>
+<li>Fixed and improved broken Parameter window.</li>
+<li>Fixed output of table name and parameters.</li>
+<li>Output to LaTeX <code>tabular</code> environment now available.</li>
+<li>SQL access buttons now greyed out when no JDBC drivers are present.</li>
+<li>UCD selection now available from New Synthetic Column dialogue.</li>
+<li>Column metadata display made more logical and flexible.</li>
+<li>Column cardinality now calculated in Stats window.</li>
+<li>Sythetic column expressions and most other column metadata now
+    editable.</li>
+<li>Null value support in evaluated expressions.</li>
+<li>Integral example data provided.</li>
+<li>Hierarchical browser for tables available in load dialogue.</li>
 </ul>
 </p></dd>
 
-<dt>Version 1.3-1 (10 November 2004)</dt>
-<dd><p>Minor changes:
+<dt>Version 0.4-1b (10 July 2003)</dt>
+<dd><p>
 <ul>
-<li>2MASS cutout servers now available from Activation Window</li>
-<li>Added Starlink logo to all windows</li>
+<li>Fixed a VOTable output bug (not escaping XML special characters).</li>
+<li>Fixed a serious FITS output bug.</li>
+<li>Improved bad value handling for FITS tables.</li>
+</ul>
+</p></dd>
+
+<dt>Version 0.5b (20 October 2003)</dt>
+<dd><p>
+<ul>
+<li>Can now read plain text format tables.</li>
+<li>FITS files of arbitrary size can now be read
+    (they are not loaded into memory).</li>
+<li>TOPCAT can now run without errors in a secure environment
+    (e.g. as an unsigned jar file under WebStart).  Of course some actions
+    such as Save Table are unavailable in this context.</li>
+<li>Files compressed with Unix <code>compress</code> now work
+    (as well as gzip and bzip2).</li>
+<li>Added hierarchy browser to load dialog.</li>
+<li>Added integral demo data (accessible from load dialog).</li>
+<li>Can now drag tables from
+    <webref url="http://www.starlink.ac.uk/treeview/">Treeview</webref>
+    into TOPCAT load dialog (or load button).</li>
+<li>Some bugfixes.</li>
+</ul>
+</p></dd>
+
+<dt>Version 0.5-1 (18 November 2003)</dt>
+<dd><p>
+<ul>
+<li>Rewrite of FITS binary table access for big efficiency improvements.</li>
+<li>It's now possible to plug in user-defined algebraic methods at runtime.</li>
+<li>Improved unit testing leads to some bugfixes.</li>
+</ul>
+</p></dd>
+
+<dt>Version 1.1-0 (21 April 2004)</dt>
+<dd><p>
+<ul>
+<li>User interface redesigned - now based around Control Window 
+    not table browser (much easier to work with multiple tables).</li>
+<li>Extensive facilities for table joining by matching rows between 
+    multiple tables or within a single one.</li>
+<li>Documentation much improved and available on- or off-line as &SUN.253;.</li>
+<li>Self-contained table access library 
+    <webref url="http://www.starlink.ac.uk/stil/">STIL</webref> now provided
+    as a separate product.</li>
+<li>Tables can be concatenated.</li>
+<li>Better top-level control over window proliferation.</li>
+<li>Columns can now be hidden/revealed not just deleted.</li>
+<li>Additional output formats/variants supported:
+    <ul>
+    <li>VOTable using BINARY or FITS encoding, inline or by reference</li>
+    <li>Machine-readable plain ASCII stream</li>
+    <li>HTML &lt;TABLE&gt; element or document</li>
+    </ul>
+</li>
+<li>Hybrid DOM/SAX parsing of VOTables for improved efficiency/memory usage.</li>
+<li>New flag <code>-demo</code> starts up with demo data.</li>
+<li>Miscellaneous efficiency improvements and bug fixes.</li>
+</ul>
+</p></dd>
+
+<dt>Version 1.1-3 (5 May 2004)</dt>
+<dd><p>
+<ul>
+<li>Functions provided for radians&lt;-&gt;sexagesimal conversion</li>
 </ul>
 </p></dd>
 
@@ -2911,99 +2991,19 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Version 1.1-3 (5 May 2004)</dt>
-<dd><p>
+<dt>Version 1.3-1 (10 November 2004)</dt>
+<dd><p>Minor changes:
 <ul>
-<li>Functions provided for radians&lt;-&gt;sexagesimal conversion</li>
+<li>2MASS cutout servers now available from Activation Window</li>
+<li>Added Starlink logo to all windows</li>
 </ul>
 </p></dd>
 
-<dt>Version 1.1-0 (21 April 2004)</dt>
-<dd><p>
+<dt>Version 1.3-2 (6 Dec 2004)</dt>
+<dd><p>Bug fix:
 <ul>
-<li>User interface redesigned - now based around Control Window 
-    not table browser (much easier to work with multiple tables).</li>
-<li>Extensive facilities for table joining by matching rows between 
-    multiple tables or within a single one.</li>
-<li>Documentation much improved and available on- or off-line as &SUN.253;.</li>
-<li>Self-contained table access library 
-    <webref url="http://www.starlink.ac.uk/stil/">STIL</webref> now provided
-    as a separate product.</li>
-<li>Tables can be concatenated.</li>
-<li>Better top-level control over window proliferation.</li>
-<li>Columns can now be hidden/revealed not just deleted.</li>
-<li>Additional output formats/variants supported:
-    <ul>
-    <li>VOTable using BINARY or FITS encoding, inline or by reference</li>
-    <li>Machine-readable plain ASCII stream</li>
-    <li>HTML &lt;TABLE&gt; element or document</li>
-    </ul>
-</li>
-<li>Hybrid DOM/SAX parsing of VOTables for improved efficiency/memory usage.</li>
-<li>New flag <code>-demo</code> starts up with demo data.</li>
-<li>Miscellaneous efficiency improvements and bug fixes.</li>
+<li>Error in parsing empty VOTable TD elements fixed.</li>
 </ul>
-</p></dd>
-
-<dt>Version 0.5-1 (18 November 2003)</dt>
-<dd><p>
-<ul>
-<li>Rewrite of FITS binary table access for big efficiency improvements.</li>
-<li>It's now possible to plug in user-defined algebraic methods at runtime.</li>
-<li>Improved unit testing leads to some bugfixes.</li>
-</ul>
-</p></dd>
-
-<dt>Version 0.5b (20 October 2003)</dt>
-<dd><p>
-<ul>
-<li>Can now read plain text format tables.</li>
-<li>FITS files of arbitrary size can now be read
-    (they are not loaded into memory).</li>
-<li>TOPCAT can now run without errors in a secure environment
-    (e.g. as an unsigned jar file under WebStart).  Of course some actions
-    such as Save Table are unavailable in this context.</li>
-<li>Files compressed with Unix <code>compress</code> now work
-    (as well as gzip and bzip2).</li>
-<li>Added hierarchy browser to load dialog.</li>
-<li>Added integral demo data (accessible from load dialog).</li>
-<li>Can now drag tables from
-    <webref url="http://www.starlink.ac.uk/treeview/">Treeview</webref>
-    into TOPCAT load dialog (or load button).</li>
-<li>Some bugfixes.</li>
-</ul>
-</p></dd>
-
-<dt>Version 0.4-1b (10 July 2003)</dt>
-<dd><p>
-<ul>
-<li>Fixed a VOTable output bug (not escaping XML special characters).</li>
-<li>Fixed a serious FITS output bug.</li>
-<li>Improved bad value handling for FITS tables.</li>
-</ul>
-</p></dd>
-
-<dt>Version 0.4b (8 July 2003)</dt>
-<dd><p>
-<ul>
-<li>Row subset count column in subsets window.</li>
-<li>Fixed and improved broken Parameter window.</li>
-<li>Fixed output of table name and parameters.</li>
-<li>Output to LaTeX <code>tabular</code> environment now available.</li>
-<li>SQL access buttons now greyed out when no JDBC drivers are present.</li>
-<li>UCD selection now available from New Synthetic Column dialogue.</li>
-<li>Column metadata display made more logical and flexible.</li>
-<li>Column cardinality now calculated in Stats window.</li>
-<li>Sythetic column expressions and most other column metadata now
-    editable.</li>
-<li>Null value support in evaluated expressions.</li>
-<li>Integral example data provided.</li>
-<li>Hierarchical browser for tables available in load dialogue.</li>
-</ul>
-</p></dd>
-
-<dt>Version 0.3b (4 June 2003)</dt>
-<dd><p>First public release
 </p></dd>
 
 </dl>
