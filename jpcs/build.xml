@@ -279,10 +279,10 @@
           unless="runonly.install">
 
     <!-- Need SAX -->
-    <available property="sax.present"
+  <!--  <available property="sax.present"
                classpathref="classpath"
                classname="org.apache.xerces/parsers/SAXParser"/>
-    <fail message="No SAX available" unless="sax.present"/>
+    <fail message="No SAX available" unless="sax.present"/> -->
 
     <!-- Need JUnit for testcases, not essential -->
     <condition property="testframework.present">
