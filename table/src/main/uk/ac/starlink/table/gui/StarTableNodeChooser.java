@@ -33,6 +33,7 @@ public class StarTableNodeChooser {
     private static Method chooseMethod;
     private static Method setRootNodeMethod;
     private static Method setRootObjectMethod;
+    private static Method getChosenPathMethod;
     private static Boolean isAvailable;
 
     private Object chooserObject;
@@ -43,6 +44,7 @@ public class StarTableNodeChooser {
     static final String CHOOSE_METHOD = "chooseStarTable";
     static final String SETROOTOBJECT_METHOD = "setRootObject";
     static final String SETROOTNODE_METHOD = "setRootNode";
+    static final String GETCHOSENPATH_METHOD = "getChosenPath";
 
     /**
      * Constructs a new chooser object if the requisite classes are 
@@ -149,7 +151,7 @@ public class StarTableNodeChooser {
     }
 
     /**
-     * Sets the root node fo the chooser.
+     * Sets the root node of the chooser.
      *
      * @param  node  new root node
      */
@@ -157,6 +159,33 @@ public class StarTableNodeChooser {
         try {
             setRootNodeMethod.invoke( chooserObject, 
                                       new Object[] { dataNode } );
+        }
+        catch ( IllegalAccessException e ) {
+            throw new AssertionError( e );
+        }
+        catch ( InvocationTargetException e ) {
+            Throwable e2 = e.getTargetException();
+            if ( e2 instanceof Error ) {
+                throw (Error) e2;
+            }
+            else if ( e2 instanceof RuntimeException ) {
+                throw (RuntimeException) e2;
+            }
+            else {
+                throw new AssertionError( e2 );
+            }
+        }
+    }
+
+    /**
+     * Returns the path string for the node which is currently chosen.
+     *
+     * @return  chosen node path, or <tt>null</tt>
+     */
+    public String getChosenPath() {
+        try {
+           return (String) getChosenPathMethod
+                          .invoke( chooserObject, new Object[ 0 ] );
         }
         catch ( IllegalAccessException e ) {
             throw new AssertionError( e );
@@ -235,5 +264,8 @@ public class StarTableNodeChooser {
         setRootNodeMethod = chooserClass
                            .getMethod( SETROOTNODE_METHOD,
                                        new Class[] { nodeClass } );
+        getChosenPathMethod = chooserClass
+                             .getMethod( GETCHOSENPATH_METHOD,
+                                         new Class[ 0 ] );
     }
 }

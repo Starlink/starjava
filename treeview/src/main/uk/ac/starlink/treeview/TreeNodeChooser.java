@@ -353,6 +353,16 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     }
 
     /**
+     * Returns the path of the currently chosen node.
+     *
+     * @return  chosen node path, or <tt>null</tt> if none is chosen
+     */
+    public String getChosenPath() {
+        return chosenNode == null ? null
+                                  : TreeviewUtil.getNodePath( chosenNode );
+    }
+
+    /**
      * Constructs the dialog component used by the {@link #chooseDataNode} 
      * method.
      * This can be overridden by subclasses to customise the dialog's
