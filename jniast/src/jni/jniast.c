@@ -514,7 +514,7 @@ char *jniastEscapePercents( JNIEnv *env, const char *buf ) {
 *-
 */
    char *buf2;
-   char *p1;
+   const char *p1;
    char *p2;
 
    /* Allocate a buffer which is big enough (in the worst case, every 
