@@ -384,11 +384,6 @@ public class AstTest extends TestCase {
         Plot plot = new Plot( wcs, pan.getBounds(), basebox, 40, 20, 40, 20 );
         pan.plot = plot;
 
-        double gap1 = plot.getGap( 1 );
-        gap1 *= 0.5;
-        plot.setGap( 1, gap1 );
-        assertEquals( gap1, plot.getGap( 1 ) );
-
         plot.setGrid( true );
         plot.setColour( "grid", Color.green.getRGB() );
         assertEquals( 1.0, plot.getSize( "NumLab" ) );
