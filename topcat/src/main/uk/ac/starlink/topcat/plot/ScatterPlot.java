@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Shape;
 import java.awt.print.PageFormat;
@@ -41,6 +42,7 @@ public class ScatterPlot extends JComponent implements Printable {
      */
     public ScatterPlot( PlotSurface surface ) {
         setLayout( new OverlayLayout( this ) );
+        setOpaque( false );
         add( new ScatterDataPanel() );
         setSurface( surface );
     }
@@ -57,6 +59,7 @@ public class ScatterPlot extends JComponent implements Printable {
         }
         surface_ = surface;
         surface_.setState( state_ );
+        surface_.getComponent().setOpaque( false );
         add( surface_.getComponent() );
     }
 
@@ -185,7 +188,7 @@ public class ScatterPlot extends JComponent implements Printable {
      * @param  g  graphics context
      * @param  gs  surface which defines the mapping of data to graphics space
      */
-    private void drawPoints( Graphics g, GraphicsSurface gs ) {
+    private void drawPoints( Graphics g, PlotSurface gs ) {
         Points points = points_;
         PlotState state = state_;
 
@@ -218,13 +221,37 @@ public class ScatterPlot extends JComponent implements Printable {
     }
 
     /**
-     * Implements {@link java.awt.print.Printable} interface.
-     *
+     * Implements the {@link java.awt.Printable} interface.
+     * At time of writing, this method is not used by TOPCAT, though it 
+     * could be; in particular it is not used to implement the 
+     * export to EPS functionality.
+     * The code is mostly pinched from SPLAT.
      */
     public int print( Graphics g, PageFormat pf, int pageIndex ) {
         if ( pageIndex == 0 ) {
-            GraphicsSurface printSurface = surface_.print( g, pf );
-            drawPoints( g, printSurface );
+
+            /* Get a graphics object scaled for this component to print on. */
+            Graphics2D g2 = (Graphics2D) g.create();
+            int gap = 70;  // points
+            double pageWidth = pf.getImageableWidth() - 2.0 * gap;
+            double pageHeight = pf.getImageableHeight() - 2.0 * gap;
+            double xinset = pf.getImageableX() + gap;
+            double yinset = pf.getImageableY() + gap;
+            double compWidth = (double) getWidth();
+            double compHeight = (double) getHeight();
+            double xscale = pageWidth / compWidth;
+            double yscale = pageHeight / compHeight;
+            if ( xscale < yscale ) {
+                yscale = xscale;
+            }
+            else {
+                xscale = yscale;
+            }
+            g2.translate( xinset, yinset );
+            g2.scale( xscale, yscale );
+
+            /* Draw the plot. */
+            print( g2 );
             return PAGE_EXISTS;
         }
         else {
