@@ -1,5 +1,6 @@
 package uk.ac.starlink.fits;
 
+import java.awt.datatransfer.DataFlavor;
 import java.io.EOFException;
 import java.io.IOException;
 import nom.tam.fits.AsciiTable;
@@ -99,6 +100,17 @@ public class FitsTableBuilder implements TableBuilder {
                 strm.close();
             }
         }
+    }
+
+    /**
+     * Returns <tt>true</tt> for a flavor with the MIME type "application/fits".
+     */
+    public boolean canImport( DataFlavor flavor ) {
+        if ( flavor.getPrimaryType().equals( "application" ) &&
+             flavor.getSubType().equals( "fits" ) ) {
+            return true;
+        }
+        return false;
     }
 
     /**
