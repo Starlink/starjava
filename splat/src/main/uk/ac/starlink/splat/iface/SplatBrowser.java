@@ -1288,11 +1288,6 @@ public class SplatBrowser
         if ( result != null ) {
             newFiles = new File[1];
             newFiles[0] = new File( result );
-
-            //  If the user requested that opened spectra are also
-            //  displayed, then respect this.
-            displayNewFiles = openDisplayCheckBox.isSelected();
-            openUsertypeIndex = openUsertypeBox.getSelectedIndex();
             threadLoadChosenSpectra();
         }
     }

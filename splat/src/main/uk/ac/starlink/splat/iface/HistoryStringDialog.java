@@ -134,7 +134,7 @@ public class HistoryStringDialog
      */
     protected void acceptValue()
     {
-        value = (String) comboBox.getSelectedItem();
+        value = (String) comboBox.getEditor().getItem();
     }
 
     /**
