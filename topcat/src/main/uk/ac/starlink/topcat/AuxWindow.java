@@ -59,6 +59,7 @@ public class AuxWindow extends JFrame {
     private boolean isStandalone;
 
     private Action aboutAct;
+    private Action controlAct;
     private Action closeAct;
     private Action exitAct;
     private Action helpAct;
@@ -91,10 +92,13 @@ public class AuxWindow extends JFrame {
         fileMenu = new JMenu( "File" );
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
+        controlAct = new AuxAction( "Control Window", ResourceIcon.CONTROL,
+                                    "Ensure Control Window is visible" );
         closeAct = new AuxAction( "Close", ResourceIcon.CLOSE,
                                   "Close this window" );
         exitAct = new AuxAction( "Exit", ResourceIcon.EXIT,
                                  "Exit the application" );
+        fileMenu.add( controlAct );
         JMenuItem closeItem = fileMenu.add( closeAct );
         closeItem.setMnemonic( KeyEvent.VK_C );
         isStandalone = Driver.isStandalone();
@@ -226,6 +230,9 @@ public class AuxWindow extends JFrame {
                     }
                     else if ( act == exitAct ) {
                         exitFound = true;
+                    }
+                    else if ( act == controlAct ) {
+                        fileMenu.remove( item );
                     }
                 }
             }
@@ -490,6 +497,9 @@ public class AuxWindow extends JFrame {
             }
             else if ( this == exitAct ) {
                 ControlWindow.getInstance().exit( true );
+            }
+            if ( this == controlAct ) {
+                ControlWindow.getInstance().makeVisible();
             }
             else if ( this == aboutAct ) {
                 JOptionPane.showMessageDialog( AuxWindow.this, getAbout(),

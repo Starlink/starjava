@@ -76,6 +76,7 @@ public class ResourceIcon implements Icon {
         HIDE_WINDOWS = makeIcon( "hide1.gif" ),
 
         /* Windows. */
+        CONTROL = makeIcon( "controlw.gif" ),
         COLUMNS = makeIcon( "colmeta0.gif" ),
         STATS = makeIcon( "sigma0.gif" ),
         PLOT = makeIcon( "plot0.gif" ),
