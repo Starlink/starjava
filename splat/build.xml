@@ -609,10 +609,8 @@
          <j2se version="1.4+"/>
          <j2se version="1.4+"/>
          <jar href="splat/splat.jar" main="true"/>
-         <extension name="SPLAT_PARTS" href="splat-parts.jnlp"/>
-
-         <!-- Decouple potential circular dependencies -->
-         <extension name="TREEVIEW-PARTS" href="treeview-parts.jnlp"/>
+         <extension name="SPLAT-PARTS" href="splat-parts.jnlp"/>
+         <extension name="JSKY-PARTS" href="jsky-parts.jnlp"/>
        </resources>
        <application_desc main_class="uk.ac.starlink.splat.SplatMain"/>
      </jnlp>
@@ -635,6 +633,7 @@
        <resources>
          <j2se version="1.4+"/>
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+         <extension name="DATANODE" href="datanode.jnlp"/>
          <extension name="ASTGUI" href="astgui.jnlp"/>
          <extension name="NDX" href="ndx.jnlp"/>
          <extension name="JNIAST" href="jniast.jnlp"/>
