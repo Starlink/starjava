@@ -15,7 +15,7 @@ import java.util.TreeMap;
  * straightforward parts of the <tt>StarTable</tt> interface.
  * This implementation assumes that random access is not available;
  * subclasses which provide random access should override 
- * the <tt>isRandom</tt>, <tt>getCell</tt> and <tt>getRow</tt> methods.
+ * the <tt>isRandom</tt>, <tt>getCell</tt> and perhaps <tt>getRow</tt> methods.
  *
  * @author   Mark Taylor (Starlink)
  */
