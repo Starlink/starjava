@@ -38,7 +38,7 @@ import uk.ac.starlink.util.URLDataSource;
  * preferred results of the <tt>makeStarTable</tt> methods.
  * Setting this flag to <tt>true</tt> does <em>not</em> guarantee
  * that returned tables will have random access 
- * (the {@link Tables#randomTable} method should be used for that),
+ * (the {@link #randomTable} method should be used for that),
  * but this flag is passed to builders as a hint in case they know
  * how to make either random or non-random tables.
  *
@@ -165,6 +165,23 @@ public class StarTableFactory {
             storagePolicy = StoragePolicy.getDefaultPolicy();
         }
         return storagePolicy;
+    }
+
+    /**
+     * Returns a table based on a given table and guaranteed to have
+     * random access.  If the original table <tt>table</tt> has random
+     * access then it is returned, otherwise a new random access table
+     * is built using its data.
+     *
+     * <p>This convenience method is equivalent to 
+     * <tt>getStoragePolicy().randomTable(table)</tt>.
+     *
+     * @param  table  original table
+     * @return  a table with the same data as <tt>table</tt> and with
+     *          <tt>isRandom()==true</tt>
+     */
+    public StarTable randomTable( StarTable table ) throws IOException {
+        return getStoragePolicy().randomTable( table );
     }
 
     /**
