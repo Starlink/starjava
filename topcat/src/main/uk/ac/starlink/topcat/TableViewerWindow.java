@@ -158,7 +158,7 @@ public class TableViewerWindow extends TopcatViewWindow
                                           MAX_SAMPLE_ROWS );
 
         /* Add help information. */
-        addHelp( "TableViewer" );
+        addHelp( "TableViewerWindow" );
 
         /* Display. */
         pack();

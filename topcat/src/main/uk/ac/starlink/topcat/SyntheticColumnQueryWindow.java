@@ -77,7 +77,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         getToolBar().addSeparator();
 
         /* Add help information. */
-        addHelp( "SyntheticColumn" );
+        addHelp( "synthetic" );
 
         /* Show the window. */
         pack();
