@@ -158,8 +158,8 @@ public class StoreConfiguration
     public void initFromBackingStore()
     {
         //  Locate the backing store file.
-        File backingStore = Utilities.getConfigFile( applicationName,
-                                                     storeName );
+        File backingStore = StoreFileUtils.getConfigFile( applicationName,
+                                                          storeName );
         if ( backingStore.canRead() ) {
             try {
                 FileInputStream inputStream =
@@ -318,8 +318,8 @@ public class StoreConfiguration
         if ( applicationName == null || storeName == null ) {
             return;
         }
-        File backingStore = Utilities.getConfigFile( applicationName,
-                                                     storeName );
+        File backingStore = StoreFileUtils.getConfigFile( applicationName,
+                                                          storeName );
         FileOutputStream f = null;
         try {
             f = new FileOutputStream( backingStore );
