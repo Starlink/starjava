@@ -23,9 +23,9 @@ import java.util.StringTokenizer;
  * <li>They may have comments which are whole line and in-line.
  *     Comments are indicated by a single character. Totally empty
  *     lines are ignored.</li>
- * <li>The number of fields (i.e. columns) in the table is fixed and
- *     it is an error is this isn't true.</li>
- * <li>The data formats of each field are not fixed and can be
+ * <li>The number of fields (i.e. columns) in the table may be fixed
+ *     it can be an error if this isn't true.</li>
+ * <li>The data formats of each field are not known and can be
  *     requested for conversion to various formats.
  * <li>Fields are separated by a given character (i.e. space, comma,
  *     tab) and multiple repeats of these are contracted to one
@@ -40,19 +40,19 @@ import java.util.StringTokenizer;
 public class AsciiFileParser
 {
     /**
-     * The number of fields in the file.
+     * Whether the number of fields is fixed.
+     */
+    protected boolean fixed = false;
+
+    /**
+     * The number of fixed fields in the file.
      */
     protected int nFields = 0;
 
     /**
-     * The number of data containing rows in the file.
+     * A list that contains arrays of each set of Strings parsed from each row.
      */
-    protected int nRows = 0;
-
-    /**
-     * The list of all extracted fields as Strings.
-     */
-    protected ArrayList pList = new ArrayList();
+    protected ArrayList rowList = new ArrayList();
 
     /**
      * The character used for single-line comments. Defaults to #.
@@ -81,6 +81,16 @@ public class AsciiFileParser
     }
 
     /**
+     * Create an instance.
+     *
+     * @param fixed whether fixed format is required.
+     */
+    public AsciiFileParser( boolean fixed )
+    {
+        setFixed( fixed );
+    }
+
+    /**
      * Create an instance and parse a given File.
      *
      * @param file reference a File that describes the input file.
@@ -91,18 +101,51 @@ public class AsciiFileParser
     }
 
     /**
+     * Create an instance and parse a given File.
+     *
+     * @param file reference a File that describes the input file.
+     * @param fixed whether fixed format is required.
+     */
+    public AsciiFileParser( File file, boolean fixed )
+    {
+        setFixed( fixed );
+        parse( file );
+    }
+
+    /**
+     * Set whether the file is expected to have a fixed number of fields.
+     *
+     * @param fixed whether fixed format is required.
+     */
+    public void setFixed( boolean fixed )
+    {
+        this.fixed = fixed;
+    }
+
+    /**
+     * Get whether the file is expected to have a fixed number of fields.
+     *
+     * @return true if a fixed number of fields is expected.
+     */
+    public boolean isFixed()
+    {
+        return fixed;
+    }
+
+    /**
      * Parse a file using the current configuration.
      *
      * @param file reference a File that describes the input file.
      */
     public void parse( File file )
     {
-        pList.clear();
+        rowList.clear();
         decode( file );
     }
 
     /**
-     * Get the number of fields located in the file.
+     * Get the number of fields located in the file. If not fixed this is the
+     * minimum.
      */
     public int getNFields()
     {
@@ -110,12 +153,35 @@ public class AsciiFileParser
     }
 
     /**
+     * Get the number of fields in a row.
+     */
+    public int getNFields( int row )
+    {
+        if ( rowList.size() > row ) {
+            return ( (String[]) rowList.get( row ) ).length;
+        }
+        return 0;
+    }
+
+    /**
      * Get the number of rows located in the file.
      */
     public int getNRows()
     {
-        return nRows;
+        return rowList.size();
     }
+
+    /**
+     * Get the parsed Strings in a row.
+     */
+    public String[] getRow( int row )
+    {
+        if ( rowList.size() > row ) {
+            return (String[]) rowList.get( row );
+        }
+        return null;
+    }
+
 
     /**
      * Get the String value of a field.
@@ -127,11 +193,13 @@ public class AsciiFileParser
      */
     public String getStringField( int row, int column )
     {
-        if ( row < nRows && column < nFields ) {
-            return (String) pList.get(indexOf(row,column));
-        } else {
-            return null;
+        String[] line = getRow( row );
+        if ( line != null ) {
+            if ( column < line.length ) {
+                return line[column];
+            }
         }
+        return null;
     }
 
     /**
@@ -144,9 +212,11 @@ public class AsciiFileParser
      */
     public int getIntegerField( int row, int column )
     {
-        if ( row < nRows && column < nFields ) {
-            return Integer.parseInt((String)pList.get(indexOf(row,column)));
-        } else {
+        String value = getStringField( row, column );
+        if ( value != null ) {
+            return Integer.parseInt( value );
+        }
+        else {
             return 0;
         }
     }
@@ -161,23 +231,13 @@ public class AsciiFileParser
      */
     public double getDoubleField( int row, int column )
     {
-        if ( row < nRows && column < nFields ) {
-            return Double.parseDouble((String)pList.get(indexOf(row,column)));
-        } else {
+        String value = getStringField( row, column );
+        if ( value != null ) {
+            return Double.parseDouble( value );
+        }
+        else {
             return 0.0;
         }
-    }
-
-    /**
-     * Get the index of a field in the storage array.
-     * @param row the row index of the field required.
-     * @param column the column index of the field required.
-     *
-     * @return index (in pList) of the required element.
-     */
-    protected int indexOf( int row, int column )
-    {
-        return row * nFields + column;
     }
 
     /**
@@ -245,16 +305,14 @@ public class AsciiFileParser
             return;
         }
 
-        //  Get a BufferedReader to read the file line-by-line. Note
-        //  we are avoiding using StreamTokenizer directly, and doing
-        //  our own parsing, as this doesn't deal with floating point
-        //  values very well.
+        //  Get a BufferedReader to read the file line-by-line.
         FileInputStream f = null;
         BufferedReader r = null;
         try {
             f = new FileInputStream( file );
             r = new BufferedReader( new InputStreamReader( f ) );
-        } catch ( Exception e ) {
+        }
+        catch ( Exception e ) {
             e.printStackTrace();
             return;
         }
@@ -264,6 +322,11 @@ public class AsciiFileParser
         String clean = null;
         int nlines = 0;
         int nwords = 0;
+        int trail = 0;
+        int count = 0;
+        nFields = 4096;                // Large number.
+        StringTokenizer st = null;
+        String[] items = null;
         try {
             while ( ( raw = r.readLine() ) != null ) {
 
@@ -271,43 +334,55 @@ public class AsciiFileParser
                 if ( raw.length() == 0 ||
                      raw.charAt(0) == singleComment ) {
                     continue;
-                } else {
+                }
+                else {
 
                     //  Trim any trailing comments.
-                    int trail = raw.indexOf( inlineComment );
+                    trail = raw.indexOf( inlineComment );
                     if ( trail != -1 ) {
                         raw = raw.substring( 0, trail -1 );
                     }
 
                     //  Tokenize the line.
-                    StringTokenizer st = null;
                     if ( delims == null ) {
                         st = new StringTokenizer( raw );
-                    } else {
+                    }
+                    else {
                         st = new StringTokenizer( raw, delims );
                     }
-                    int count = st.countTokens();
-                    if ( nRows != 0 && count != nRows ) {
+                    count = st.countTokens();
+
+                    // If this isn't the first proper line and we want a fixed
+                    // number of fields, the test it has changed.
+                    if ( fixed && nlines != 0 && count != nFields ) {
                         System.err.println( "File contains incorrect "+
-                                            "number of fields (line '" + 
+                                            "number of fields (line '" +
                                             raw + "') -- ignored" );
                         continue; // wrong number of columns
                     }
-                    nFields = count;
-                    for ( int i = 0; i < count; i++ ) {
-                        pList.add( st.nextToken() );
+                    if ( fixed ) {
+                        nFields = count;
                     }
+                    else {
+                        nFields = Math.min( nFields, count );
+                    }
+                    items = new String[count];
+                    for ( int i = 0; i < count; i++ ) {
+                        items[i] = st.nextToken();
+                    }
+                    rowList.add( items );
                     nlines++;
                 }
             }
-            nRows = nlines;
-        } catch ( IOException e ) {
+        }
+        catch ( IOException e ) {
             e.printStackTrace();
         }
         try {
             r.close();
             f.close();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             //  Do nothing.
         }
     }
