@@ -50,19 +50,27 @@ public class TableCopy {
 
         /* Construct the help message. */
         StringBuffer help = new StringBuffer( usage );
+        help.append( "\n   Auto-detected in-formats:\n" );
+        for ( Iterator it = treader.getDefaultBuilders().iterator();
+              it.hasNext(); ) {
+            help.append( "      " )
+                .append( ((TableBuilder) it.next())
+                        .getFormatName().toLowerCase() )
+                .append( '\n' );
+        }
         help.append( "\n   Known in-formats:\n" );
         for ( Iterator it = treader.getKnownFormats().iterator();
               it.hasNext(); ) {
             help.append( "      " )
-                .append( ( (String) it.next() ).toLowerCase() )
-                .append( "\n" );
+                .append( ((String) it.next()).toLowerCase() )
+                .append( '\n' );
         }
         help.append( "\n   Known out-formats:\n" );
         for ( Iterator it = twriter.getKnownFormats().iterator(); 
               it.hasNext(); ) {
             help.append( "      " )
-                .append( ( (String) it.next() ).toLowerCase() )
-                .append( "\n" );
+                .append( ((String) it.next()).toLowerCase() )
+                .append( '\n' );
         }
 
         /* Process the command line arguments. */
