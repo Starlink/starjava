@@ -10,9 +10,11 @@ fi
 
 if test -z "$SPLAT_DIR"; then
    SPLAT_DIR=${TREEVIEW_DIR}/../splat
+   export SPLAT_DIR
 fi
 if test -z "$SOG_DIR"; then
    SOG_DIR=${TREEVIEW_DIR}/../sog
+   export SOG_DIR
 fi
 
 #  Locate the application jar file.  This is relative to this script.
@@ -36,6 +38,7 @@ if test -z "$LD_LIBRARY_PATH"; then
 else
    LD_LIBRARY_PATH="${TREEVIEW_DIR}/../../lib:${LD_LIBRARY_PATH}"
 fi
+export LD_LIBRARY_PATH
 
 #  Run Treeview.
 
