@@ -1,7 +1,72 @@
 <?xml version="1.0" ?>
 <hdx>
 <ndx>
-<image>reduced_data1.sdf</image>
-<!-- <variance uri="file:test2.fits" >file:test3.fits</variance> -->
+<title>Output from FLATCOR</title>
+<image>reduced_data1.sdf#data_array</image>
+<variance>reduced_data1.sdf#variance</variance>
+  <wcs encoding="AST-XML">
+    <FrameSet>
+      <_attribute name="Nframe" value="4"/>
+      <_attribute name="Currnt" value="4"/>
+      <_attribute name="Nod2" value="4"/>
+      <_attribute name="Nod3" value="2"/>
+      <_attribute name="Nod4" value="3"/>
+      <_attribute name="Lnk2" value="1"/>
+      <_attribute name="Lnk3" value="2"/>
+      <_attribute name="Lnk4" value="1"/>
+      <Frame label="Frm1">
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" quoted="true" value="GRID"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <Frame label="Frm2">
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" quoted="true" value="PIXEL"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <Frame label="Frm3">
+        <_attribute name="Title" quoted="true" value="Alignment of CCDGENERATE test data"/>
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" quoted="true" value="CCD_GEN"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <Frame label="Frm4">
+        <_attribute name="Title" quoted="true" value="Alignment by REGISTER"/>
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" quoted="true" value="CCD_REG"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <WinMap label="Map2">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+        <_attribute name="Sft1" value="5.5"/>
+        <_attribute name="Sft2" value="0.5"/>
+      </WinMap>
+      <WinMap label="Map3">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+        <_attribute name="Sft1" value="-1"/>
+        <_attribute name="Sft2" value="-1"/>
+      </WinMap>
+      <WinMap label="Map4">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+        <_attribute name="Sft1" value="4.5"/>
+        <_attribute name="Sft2" value="-0.5"/>
+      </WinMap>
+    </FrameSet>
+  </wcs>
+  <etc>
+    <FITS type="_CHAR*80">
+      <!--Extension content not yet implemented-->
+    </FITS>
+    <CCDPACK type="CCDPACK_EXT">
+      <!--Extension content not yet implemented-->
+    </CCDPACK>
+  </etc>
 </ndx>
 </hdx>

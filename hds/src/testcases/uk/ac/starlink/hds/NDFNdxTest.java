@@ -210,15 +210,7 @@ public class NDFNdxTest extends TestCase {
             assertEquals( ndx1.getTitle(), ndx2.getTitle() );
         }
         if ( ndx2.hasEtc() ) {
-            StringWriter sw1 = new StringWriter();
-            StringWriter sw2 = new StringWriter();
-            SourceReader sr = new SourceReader();
-            sr.setIncludeDeclaration( false );
-            sr.setIndent( 0 );
-            sr.writeSource( ndx1.getEtc(), sw1 );
-            sr.writeSource( ndx2.getEtc(), sw2 );
-            assertEquals( sw1.toString().replaceAll( "\\s", "" ),
-                          sw2.toString().replaceAll( "\\s", "" ) );
+            assertSourceEquals( ndx1.getEtc(), ndx2.getEtc(), NO_WHITESPACE );
         }
         assertEquals( astNormalize( ndx1.getAst() ), 
                       astNormalize( ndx2.getAst() ) );
