@@ -186,12 +186,6 @@
     <!-- Util -->
     <pathelement location="${star.jar.dir}/util/util.jar"/>
 
-    <!-- FITS - optional -->
-    <pathelement location="${star.jar.dir}/fits/fits.jar"/>
-
-    <!-- HDS - optional -->
-    <pathelement location="${star.jar.dir}/hds/hds.jar"/>
-
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -213,8 +207,6 @@
   <extclasspath id="built.jarpath">
 
     <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
-    <pathelement location="${star.build.dir}/fits/lib/fits/fits.jar"/>
-    <pathelement location="${star.build.dir}/hds/lib/hds/hds.jar"/>
 
   </extclasspath>
 
@@ -293,9 +285,6 @@
                    classname="uk.ac.starlink.util.TestCase"/>
       </and>
     </condition>
-
-    <!-- HDS and FITS, while desirable, are not required 
-         (they are installed at runtime if present) -->
 
   </target>
 
