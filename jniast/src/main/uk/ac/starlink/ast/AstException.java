@@ -36,22 +36,34 @@ public class AstException extends RuntimeException {
     /**
      * Construct an AstException with a given status value.
      *
-     * @param  message  an explanatory message
+     * @param  msgText  an explanatory message
      * @param  status   the numerical status value
      */
-    public AstException( String message, int status ) {
-        super( message );
+    public AstException( String msgText, int status ) {
+        super( msgText + " (" + getErrName( status ) + ")" );
         this.status = status;
     }
 
     /**
-     * Get the status value corresponding to the exception.  This ought
-     * to correspond to one of this class's static final member fields.
+     * Get the status value corresponding to this exception.  This ought
+     * to correspond to the value of one of this class's static 
+     * final member fields.
      *
      * @return  the error status value
      */
     public int getStatus() {
         return status;
+    }
+
+    /**
+     * Get the symbolic name corresponding to this exception's status value.
+     * This ought to correspond to the name of one of this class's 
+     * static final memeber fields.
+     *
+     * @return  the error status name
+     */
+    public String getStatusName() {
+        return getErrName( status );
     }
 
     /**
@@ -62,6 +74,15 @@ public class AstException extends RuntimeException {
      * @throws IllegalArgumentException  if no error of that name exists
      */
     private native static int getErrConst( String ident );
+
+    /**
+     * Returns the name of the string that corresponds to a given
+     * integer status code.  For instance getStatusName(0)=="SAI__OK".
+     *
+     * @param  code
+     * @return symbolic name for error status <code>code</code>
+     */
+    private native static String getErrName( int code );
 
     /**
      * Status constant for no error.  
