@@ -554,6 +554,37 @@ public class DataNodeFactory {
     }
 
     /**
+     * Sets the {@link CreationState} of a datanode and its ancestors.
+     * The node is queried for its parent object, and a new datanode is
+     * made out of this and inserted into the CreationState as its
+     * parent.  The same is recursively done to the parent, until there
+     * is no parent object or node creation fails.
+     *
+     * @param  node  node whose ancestors are to be filled in
+     */
+    public void fillInAncestors( DataNode node ) {
+        while ( node != null ) {
+            Object parentObject = node.getParentObject();
+            if ( parentObject != null ) {
+                try {
+                    DataNode parentNode = makeDataNode( null, parentObject );
+                    CreationState creator = 
+                        new CreationState( parentNode, parentObject );
+                    creator.setFactory( this );
+                    node.setCreator( creator );
+                    node = parentNode;
+                }
+                catch ( NoSuchDataException e ) {
+                    node = null;
+                }
+            }
+            else {
+                node = null;
+            }
+        }
+    }
+
+    /**
      * Indicates whether this factory is running in debug mode.
      *
      * @return   debug mode flag
