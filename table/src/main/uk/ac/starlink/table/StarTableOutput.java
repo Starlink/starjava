@@ -257,6 +257,27 @@ public class StarTableOutput {
         }
         else {
             File file = new File( location );
+
+            /* If the file exists, attempt to delete it before attempting
+             * to write to it.  This is potentially important since we 
+             * don't want to scribble all over a file which may already 
+             * be mapped - quite likely if we're overwriting mapped a 
+             * FITS file.
+             * On POSIX deleting (unlinking) a mapped file will keep its data
+             * safe until it's unmapped.  On Windows, deleting it will 
+             * fail - in this case we throw an exception. */
+            if ( file.exists() ) {
+                if ( file.delete() ) {
+                    logger.info( "Deleting file \"" + location + 
+                                 "\" prior to overwriting" );
+                }
+                else {
+                    throw new IOException( "Can't delete \"" + location + 
+                                           "\" prior to overwriting" );
+                }
+            }
+
+            /* Return a new stream which will write to the file. */
             return new FileOutputStream( file );
         }
     }
