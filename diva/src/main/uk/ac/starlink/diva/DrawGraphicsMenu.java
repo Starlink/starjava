@@ -315,7 +315,7 @@ public class DrawGraphicsMenu
         JMenu menu = new JMenu( "Curve type" );
 
         ButtonGroup group = new ButtonGroup();
-        int n = InterpolatorFactory.NUM_INTERPOLATORS;
+        int n = drawActions.getInterpolatorFactory().getInterpolatorCount();
         for ( int i = 0; i < n; i++ ) {
             JRadioButtonMenuItem menuItem =
                 new JRadioButtonMenuItem( drawActions.getCurveAction(i) );
