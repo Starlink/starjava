@@ -3,6 +3,8 @@ package uk.ac.starlink.table;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -14,6 +16,7 @@ public class TableCopy {
 
     /**
      * Copies a table from one format to another.
+     * See usage message (invoke with '-help') for details.
      */
     public static void main( String[] args ) throws IOException {
 
@@ -23,35 +26,65 @@ public class TableCopy {
         Loader.loadProperties();
 
         /* Get the factory objects. */
-        StarTableOutput twriter = new StarTableOutput();
         StarTableFactory treader = new StarTableFactory( false );
+        StarTableOutput twriter = new StarTableOutput();
 
         /* Construct the usage message. */
-        StringBuffer usage = new StringBuffer();
         String cmdname = System.getProperty( "uk.ac.starlink.table.cmdname" );
         if ( cmdname == null ) {
             cmdname = "TableCopy";
         }
-        usage.append( "\n   Usage: " )
+        String usage = new StringBuffer()
+             .append( "\nUsage: " )
              .append( cmdname )
              .append( " [-disk]" )
-             .append( " [-ofmt <out-format>] <in-table> <out-table>\n" );
-        usage.append( "\n   Known out-formats:\n" );
+             .append( " [-debug]" )
+             .append( " [-h[elp]]" )
+             .append( " [-v[erbose]]" )
+             .append( "\n                " )
+             .append( " [-ifmt <in-format>]" )
+             .append( " [-ofmt <out-format>]" )
+             .append( "\n                " )
+             .append( " <in-table> <out-table>\n" )
+             .toString();
+
+        /* Construct the help message. */
+        StringBuffer help = new StringBuffer( usage );
+        help.append( "\n   Known in-formats:\n" );
+        for ( Iterator it = treader.getKnownFormats().iterator();
+              it.hasNext(); ) {
+            help.append( "      " )
+                .append( ( (String) it.next() ).toLowerCase() )
+                .append( "\n" );
+        }
+        help.append( "\n   Known out-formats:\n" );
         for ( Iterator it = twriter.getKnownFormats().iterator(); 
               it.hasNext(); ) {
-            usage.append( "      " )
-                 .append( ( (String) it.next() ).toLowerCase() )
-                 .append( "\n" );
+            help.append( "      " )
+                .append( ( (String) it.next() ).toLowerCase() )
+                .append( "\n" );
         }
 
         /* Process the command line arguments. */
+        String ifmt = null;
         String ofmt = null;
         String iloc = null;
         String oloc = null;
+        boolean debug = false;
+        boolean verbose = false;
         for ( Iterator it = Arrays.asList( args ).iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
-                if ( arg.equals( "-ofmt" ) ) {
+                if ( arg.equals( "-ifmt" ) ) {
+                    if ( it.hasNext() ) {
+                        ifmt = (String) it.next();
+                    }
+                    else {
+                        System.err.println( usage );
+                        System.exit( 1 );
+                    }
+                }
+                else if ( arg.equals( "-ofmt" ) ) {
                     if ( it.hasNext() ) {
                         ofmt = (String) it.next();
                     }
@@ -63,8 +96,14 @@ public class TableCopy {
                 else if ( arg.equals( "-disk" ) ) {
                     treader.setStoragePolicy( StoragePolicy.PREFER_DISK );
                 }
+                else if ( arg.equals( "-debug" ) ) {
+                    debug = true;
+                }
+                else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
+                    verbose = true;
+                }
                 else if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
-                    System.out.println( usage );
+                    System.out.println( help );
                     System.exit( 0 );
                 }
                 else {
@@ -84,6 +123,12 @@ public class TableCopy {
             }
         }
 
+        /* Adjust logging level if necessary. */
+        if ( verbose ) {
+            Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.INFO );
+        }
+
+        /* Check we have input and output table locations. */
         if ( iloc == null || oloc == null ) {
             System.err.println( usage );
             System.exit( 1 );
@@ -91,7 +136,10 @@ public class TableCopy {
 
         /* Get the input table. */
         try {
-            StarTable startab = treader.makeStarTable( iloc );
+            StarTable startab = treader.makeStarTable( iloc, ifmt );
+            if ( verbose ) {
+                startab = new ProgressLineStarTable( startab, System.err );
+            }
 
             /* Write it to the requested destination. */
             twriter.writeStarTable( startab, oloc, ofmt );
@@ -99,9 +147,15 @@ public class TableCopy {
         /* In the event of an error getting the format, write it out 
          * without the (user-intimidating) stacktrace. */
         }
-        catch ( UnknownTableFormatException e ) {
-            System.err.println( e.getMessage() );
-            System.err.println( usage );
+        catch ( IOException e ) {
+            if ( debug ) {
+                e.printStackTrace( System.err );
+            }
+            else {
+                System.err.println();
+                System.err.println( e.getMessage() );
+                System.err.println( usage );
+            }
             System.exit( 1 );
         }
     }
