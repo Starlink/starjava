@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.gui;
 
+import java.awt.Color;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -29,6 +30,12 @@ public class StarTableCellRenderer extends DefaultTableCellRenderer {
     private NumberFormat sciFormat;
     private NumberFormat fixFormat;
     private NumberFormat intFormat;
+    private boolean likeHeading;
+    private String badText;
+    private Color badColor;
+    private Color bgColor;
+    private Color fgColor;
+    private Object badValue = new Object();
 
     /**
      * Construct a new StarTableCellRenderer.
@@ -68,6 +75,14 @@ public class StarTableCellRenderer extends DefaultTableCellRenderer {
             ((DecimalFormat) intFormat)
             .applyPattern( " #########0;-#########0" );
         }
+
+        /* Configure bad value representation. */
+        Color goodColor = UIManager.getColor( "Table.foreground" );
+        badColor = new Color( goodColor.getRed(),
+                              goodColor.getGreen(),
+                              goodColor.getBlue(),
+                              goodColor.getAlpha() / 3 );
+        badText = "BAD";
     }
 
 
@@ -84,7 +99,16 @@ public class StarTableCellRenderer extends DefaultTableCellRenderer {
     protected void setValue( Object value ) {
         setText( null );
         setIcon( null );
+        setBackground( bgColor );
+        setForeground( fgColor );
         setHorizontalAlignment( LEFT );
+
+        /* Is it bad? */
+        if ( ( ! likeHeading ) && isBadValue( value ) ) {
+            setForeground( badColor );
+            setText( badText );
+            return;
+        }
 
         /* Is it null? */
         if ( value == null ) {
@@ -165,22 +189,51 @@ public class StarTableCellRenderer extends DefaultTableCellRenderer {
      *         By default it looks like a cell in the table body.
      */
     public void setHeadingStyle( boolean likeHeading ) {
+        this.likeHeading = likeHeading;
 
         /* Where are these property names documented?  Don't know, but
          * you can find them in the source code of 
          * javax.swing.plaf.basic.BasicLookAndFeel,
          * javax.swing.plaf.metal.MetalLookAndFeel. */
         if ( likeHeading ) {
-            setForeground( UIManager.getColor( "TableHeader.foreground" ) );
-            setBackground( UIManager.getColor( "TableHeader.background" ) );
+            bgColor = UIManager.getColor( "TableHeader.background" );
+            fgColor = UIManager.getColor( "TableHeader.foreground" );
             setFont( UIManager.getFont( "TableHeader.font" ) );
             setHorizontalAlignment( SwingConstants.CENTER );
         }
         else {
-            setForeground( UIManager.getColor( "Table.foreground" ) );
-            setBackground( UIManager.getColor( "Table.background" ) );
+            bgColor = UIManager.getColor( "Table.background" );
+            fgColor = UIManager.getColor( "Table.foreground" );
             setFont( UIManager.getFont( "Table.font" ) );
             setHorizontalAlignment( SwingConstants.LEFT );
+        }
+    }
+
+    /**
+     * Sets a value to be regarded as bad when found in a non-header cell.
+     * Any cell containing an object which <tt>equals()</tt> this value
+     * will be represented specially in the table body (currently a 
+     * greyed-out "BAD" string).
+     * Note that <tt>null</tt> means that null objects will be regarded as
+     * bad; if you want nulls to receive default treatment, call this
+     * method with some otherwise-unreferenced object of type <tt>Object</tt>.
+     *
+     * @param  badValue  the special bad value
+     */
+    public void setBadValue( Object badValue ) {
+        this.badValue = badValue;
+    }
+
+    /**
+     * Tests against the bad value.  Make sure that we can't get a 
+     * NullPointerException here.
+     */
+    private boolean isBadValue( Object val ) {
+        if ( badValue == null ) {
+            return val == null;
+        }
+        else {
+            return badValue.equals( val );
         }
     }
 }
