@@ -25,53 +25,53 @@ public class DataLimits
      * Whether to fit Plot to match the data X data range into it's
      * visible area.
      */
-    protected boolean xFit;
+    private boolean xFit;
 
     /**
      * Whether to fit Plot to match the data Y data range into it's
      * visible area.
      */
-    protected boolean yFit;
+    private boolean yFit;
 
     /**
      * Whether to autoscale the X axis.
      */
-    protected boolean xAutoscaled;
+    private boolean xAutoscaled;
 
     /**
      * Whether to autoscale the Y axis.
      */
-    protected boolean yAutoscaled;
+    private boolean yAutoscaled;
 
     /**
      * Whether the displayed range should be flipped along any X axis.
      */
-    protected boolean xFlipped;
+    private boolean xFlipped;
 
     /**
      * Whether the displayed range should be flipped along any Y axis.
      */
-    protected boolean yFlipped;
+    private boolean yFlipped;
 
     /**
      * Lower limit of the X axis.
      */
-    protected double xLower;
+    private double xLower;
 
     /**
      * Upper limit of the X axis.
      */
-    protected double xUpper;
+    private double xUpper;
 
     /**
      * Lower limit of the Y axis.
      */
-    protected double yLower;
+    private double yLower;
 
     /**
      * Upper limit of the Y axis.
      */
-    protected double yUpper;
+    private double yUpper;
 
     /**
      * Create an instance.
@@ -120,8 +120,10 @@ public class DataLimits
      */
     public void setXAutoscaled( boolean xAutoscaled )
     {
-        this.xAutoscaled = xAutoscaled;
-        fireChanged();
+        if ( this.xAutoscaled != xAutoscaled ) {
+            this.xAutoscaled = xAutoscaled;
+            fireChanged();
+        }
     }
 
     /**
@@ -129,8 +131,10 @@ public class DataLimits
      */
     public void setYAutoscaled( boolean yAutoscaled )
     {
-        this.yAutoscaled = yAutoscaled;
-        fireChanged();
+        if ( this.yAutoscaled != yAutoscaled ) {
+            this.yAutoscaled = yAutoscaled;
+            fireChanged();
+        }
     }
 
 
@@ -155,8 +159,10 @@ public class DataLimits
      */
     public void setXFlipped( boolean xFlipped )
     {
-        this.xFlipped = xFlipped;
-        fireChanged();
+        if ( this.xFlipped != xFlipped ) {
+            this.xFlipped = xFlipped;
+            fireChanged();
+        }
     }
 
     /**
@@ -164,8 +170,10 @@ public class DataLimits
      */
     public void setYFlipped( boolean yFlipped )
     {
-        this.yFlipped = yFlipped;
-        fireChanged();
+        if ( this.yFlipped != yFlipped ) {
+            this.yFlipped = yFlipped;
+            fireChanged();
+        }
     }
 
     /**
@@ -173,8 +181,10 @@ public class DataLimits
      */
     public void setXLower( double xLower )
     {
-        this.xLower = xLower;
-        fireChanged();
+        if ( this.xLower != xLower ) {
+            this.xLower = xLower;
+            fireChanged();
+        }
     }
 
     /**
@@ -199,8 +209,10 @@ public class DataLimits
      */
     public void setXUpper( double xUpper )
     {
-        this.xUpper = xUpper;
-        fireChanged();
+        if ( this.xUpper != xUpper ) {
+            this.xUpper = xUpper;
+            fireChanged();
+        }
     }
 
     /**
@@ -225,8 +237,10 @@ public class DataLimits
      */
     public void setYLower( double yLower )
     {
-        this.yLower = yLower;
-        fireChanged();
+        if ( this.yLower != yLower ) {
+            this.yLower = yLower;
+            fireChanged();
+        }
     }
 
     /**
@@ -251,8 +265,10 @@ public class DataLimits
      */
     public void setYUpper( double yUpper )
     {
-        this.yUpper = yUpper;
-        fireChanged();
+        if ( this.yUpper != yUpper ) {
+            this.yUpper = yUpper;
+            fireChanged();
+        }
     }
 
     /**
@@ -289,7 +305,9 @@ public class DataLimits
      */
     public void setXFit( boolean xFit )
     {
-        this.xFit = xFit;
+        if ( this.xFit != xFit ) {
+            this.xFit = xFit;
+        }
     }
 
     /**
@@ -309,7 +327,9 @@ public class DataLimits
      */
     public void setYFit( boolean yFit )
     {
-        this.yFit = yFit;
+        if ( this.yFit != yFit ) {
+            this.yFit = yFit;
+        }
     }
 
 //
