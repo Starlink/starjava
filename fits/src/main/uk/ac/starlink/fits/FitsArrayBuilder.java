@@ -159,6 +159,37 @@ public class FitsArrayBuilder implements ArrayBuilder {
 
         /* Get an ArrayDataInput from which to construct the FITS NDArray. */
         ArrayDataInput stream = getReadableStream( url, mode );
+        if ( stream == null ) {
+            return null;
+        }
+
+        return makeNDArray( stream, mode, url );
+    }
+
+    /**
+     * Makes a readable NDArray from a data input stream. 
+     * It will have no URL.  Update access may be possible, but only
+     * if <tt>stream</tt> implements {@link nom.tam.fits.ArrayDataOutput}.
+     *
+     * @param  stream the input stream supplying the HDU at which the
+     *                FITS array data can be found
+     * @param  mode   read/write/update access mode
+     * @return  the NDArray constructed from <tt>stream</tt>
+     * @throws IOException  if some I/O error occurs or the stream does
+     *                      not contain FITS array data
+     */
+    public NDArray makeNDArray( ArrayDataInput stream, AccessMode mode ) 
+            throws IOException {
+        return makeNDArray( stream, mode, null );
+    }
+
+    /**
+     * Makes a readable NDArray from an input stream.  A URL may be
+     * supplied but serves only to set the URL of the resulting NDArray,
+     * no connection is made to it to get data.
+     */
+    private NDArray makeNDArray( ArrayDataInput stream, AccessMode mode, 
+                                 URL url ) throws IOException {
 
         /* Make the ArrayImpl. */
         ArrayImpl impl;
@@ -201,7 +232,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
             };
 
             /* Create a new NDArray which consists of the old one wrapped
-             * in a scaling function.  Note the new one given the URL,
+             * in a scaling function.  Note the new one is given the URL,
              * not the wrapped one.  Although the new one is virtual, this
              * is correct, since turning the URL into an NDArray (via this 
              * factory) will always result in the scaled NDArray, since 
