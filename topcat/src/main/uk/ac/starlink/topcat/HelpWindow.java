@@ -171,6 +171,7 @@ public class HelpWindow extends AuxWindow {
                         Font font = UIManager.getFont( "TextField.font" );
                         if ( font != null ) {
                             jhelp.setFont( font );
+                            fontSet = true;
                         }
                     }
                 }
