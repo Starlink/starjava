@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
+<VOTABLE version="1.0">
+<DESCRIPTION>Test VOTable using FITS encoding</DESCRIPTION>
+
+  <RESOURCE type="results">
+    <TABLE>
+      <FIELD name="Flux" datatype="float" unit="Jy"/>
+      <FIELD name="Delta X" datatype="float" unit="Degrees"/>
+      <FIELD name="Delta Y" datatype="float" unit="Degrees"/>
+      <DATA>
+        <FITS extnum="2">
+          <STREAM href="file:../fits/tables.fit"
+                  actuate="onLoad"
+                  encoding="none" />
+        </FITS>
+      </DATA>
+    </TABLE>
+  </RESOURCE>
+</VOTABLE>
