@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
@@ -49,9 +51,25 @@ public class JDBCFormatter {
         int ncol = table.getColumnCount();
         int[] sqlTypes = new int[ ncol ];
         boolean first = true;
+        Set cnames = new HashSet();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo col = table.getColumnInfo( icol );
-            String colName = col.getName().replaceAll( "\\s+", "_" );
+            String colName = col.getName();
+
+            /* Massage the column name to make sure it is in a sensible
+             * format. */
+            colName = colName.replaceAll( "[\\s\\.\\(\\)\\[\\]\\-\\+]+", "_" );
+            if ( colName.length() > 64 ) {
+                colName = colName.substring( 0, 60 );
+            }
+
+            /* Check that we don't have a duplicate column name. */
+            while ( cnames.contains( colName ) ) {
+                colName = colName + "_" + ( icol + 1 );
+            }
+            cnames.add( colName );
+
+            /* Add the column name to the statement string. */
             sqlTypes[ icol ] = getSqlType( col.getContentClass() );
             if ( sqlTypes[ icol ] != Types.NULL ) {
                 if ( ! first ) {

@@ -62,31 +62,11 @@ import uk.ac.starlink.util.Loader;
  */
 public class TableViewer extends JFrame {
 
-    /**
-     * Container for the data held by this viewer.  This model is not 
-     * affected by changes to the data view such as the order of the results 
-     * presented in the viewer.  It can have columns added to it but
-     * not removed.
-     */
     private PlasticStarTable dataModel;
-
-    /**
-     * The table model used by this viewer's JTable for table display. 
-     * This is based on dataModel, but can be reordered and configured
-     * to display only a subset of the rows and so on.
-     */
     private ViewerTableModel viewModel;
-
-    /**
-     * The table column model used by this viewer's JTable for table display.
-     * This can be manipulated either programmatically or as a consequence
-     * of user interaction with the JTable (dragging columns around)
-     * to modify the mapping of columns visible in this viewer to 
-     * columns in the dataModel.
-     */
     private TableColumnModel columnModel;
-  
     private OptionsListModel subsets;
+
     private JTable jtab;
     private TableRowHeader rowHead;
     private JScrollPane scrollpane;
@@ -224,16 +204,12 @@ public class TableViewer extends JFrame {
             launchMenu.add( mirageAct ).setIcon( null );
         }
 
-        /* Plot menu. */
-        JMenu plotMenu = new JMenu( "Plot" );
-        mb.add( plotMenu );
-        plotMenu.add( plotAct ).setIcon( null );
-
-        /* Metadata menu. */
-        JMenu metaMenu = new JMenu( "Metadata" );
-        mb.add( metaMenu );
-        metaMenu.add( paramAct ).setIcon( null );
-        metaMenu.add( colinfoAct ).setIcon( null );
+        /* Windows menu. */
+        JMenu winMenu = new JMenu( "Windows" );
+        mb.add( winMenu );
+        winMenu.add( paramAct );
+        winMenu.add( colinfoAct );
+        winMenu.add( plotAct );
 
         /* Subset menu. */
         JMenu subsetMenu = new JMenu( "Subsets" );
@@ -314,6 +290,56 @@ public class TableViewer extends JFrame {
      */
     public static boolean isStandalone() {
         return standalone;
+    }
+
+    /**
+     * Returns the container for the data held by this viewer.
+     * This model, which is a <tt>StarTable</tt> object, is not 
+     * affected by changes to the data view such as the order of the results 
+     * presented in the viewer.  It can have columns added to it but
+     * not removed.  
+     *
+     * @return  the data model
+     */
+    public PlasticStarTable getDataModel() {
+        return dataModel;
+    }
+
+    /**
+     * Returns the table model used by this viewer's 
+     * <tt>JTable</tt> for table display. 
+     * This is based on the <tt>dataModel</tt>, 
+     * but can be reordered and configured
+     * to display only a subset of the rows and so on.
+     *
+     * @return  the table model
+     */
+    public ViewerTableModel getViewModel() {
+        return viewModel;
+    }
+
+    /**
+     * Returns the table column model used by this viewer's <tt>JTable</tt>
+     * for table display.
+     * This can be manipulated either programmatically or as a consequence
+     * of user interaction with the JTable (dragging columns around)
+     * to modify the mapping of columns visible in this viewer to 
+     * columns in the dataModel.
+     *
+     * @return  the column model
+     */
+    public TableColumnModel getColumnModel() {
+        return columnModel;
+    }
+
+    /**
+     * Returns the <tt>ListModel</tt> which keeps track of which 
+     * <tt>RowSubset</tt> objects are available.
+     * 
+     * @return   the RowSubset list model
+     */
+    public OptionsListModel getSubsets() {
+        return subsets;
     }
 
     /**
@@ -421,6 +447,7 @@ public class TableViewer extends JFrame {
      * TableColumnModel to put it in at the right place, and 
      * ensures that everybody is notified about what has gone on.
      *
+     * @param  col  the new column
      * @param  colIndex  the column index at which the new column is
      *         to be appended
      */
@@ -446,6 +473,15 @@ public class TableViewer extends JFrame {
         /* Set its width. */
         StarJTable.configureColumnWidth( jtab, MAX_COLUMN_WIDTH,
                                          MAX_SAMPLE_ROWS, colIndex );
+    }
+
+    /**
+     * Appends a new column to the existing table as the last column.
+     *
+     * @param  col  the new column
+     */
+    public void appendColumn( ColumnData col ) {
+        appendColumn( col, columnModel.getColumnCount() );
     }
 
     /**
@@ -607,8 +643,7 @@ public class TableViewer extends JFrame {
         Action addcolAct = new AbstractAction( "New column" ) {
             public void actionPerformed( ActionEvent evt ) {
                 Component parent = TableViewer.this;
-                ColumnData coldata = new ColumnDialog( dataModel, subsets )
-                                    .obtainColumn( parent );
+                ColumnData coldata = obtainColumn( parent );
                 if ( coldata != null ) {
                     appendColumn( coldata, jcol + 1 );
                 }
@@ -635,6 +670,7 @@ public class TableViewer extends JFrame {
     private class ViewerAction extends BasicAction {
 
         private final Window parent = TableViewer.this;
+        private final TableViewer tv = TableViewer.this;
 
         ViewerAction( String name, int iconId, String shortdesc ) {
             super( name, iconId, shortdesc );
@@ -697,7 +733,7 @@ public class TableViewer extends JFrame {
 
             /* Display column parameters. */
             else if ( this == colinfoAct ) {
-                new ColumnInfoWindow( dataModel, columnModel, parent );
+                new ColumnInfoWindow( tv );
             }
 
             /* Set the row order back to normal. */
@@ -779,6 +815,24 @@ public class TableViewer extends JFrame {
             catch ( IOException e ) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    /**
+     * Sort the displayed table according to the order of values in a 
+     * given column.
+     *
+     * @param  icol  the index of the column to be sorted on in 
+     *               this viewer's model; if < 0, natural sorting will
+     *               be applied
+     * @param  ascending  true for ascending sort, false for descending
+     */
+    public void sortBy( int icol, boolean ascending ) throws IOException {
+        if ( icol >= 0 ) {
+            setOrder( getSortOrder( icol, ascending ) );
+        }
+        else {
+            setOrder( null );
         }
     }
 
@@ -878,6 +932,19 @@ public class TableViewer extends JFrame {
         else {
             return name;
         }
+    }
+
+    /**
+     * Pops up a modal dialog to ask the user the details of a new Column.
+     *
+     * @param  parent component, used for positioning
+     * @return  a new ColumnData specified by the user, or <tt>null</tt> if
+     *          he bailed out
+     */
+    public ColumnData obtainColumn( Component parent ) {
+        ColumnData coldat = new ColumnDialog( dataModel, subsets )
+                           .obtainColumn( parent );
+        return coldat;
     }
 
     /**

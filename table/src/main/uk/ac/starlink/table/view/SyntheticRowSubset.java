@@ -5,6 +5,7 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import uk.ac.starlink.table.StarTable;
@@ -96,7 +97,7 @@ public class SyntheticRowSubset implements RowSubset {
     private Library getLibrary() {
         Class[] staticLib = new Class[] { Math.class, Float.class };
         Class[] dynamicLib = new Class[] { JELRowReader.class };
-        Class[] dotClasses = new Class[] { String.class };
+        Class[] dotClasses = new Class[] { String.class, Date.class };
         DVMap resolver = rowReader;
         Hashtable cnmap = null;
         return new Library( staticLib, dynamicLib, dotClasses,

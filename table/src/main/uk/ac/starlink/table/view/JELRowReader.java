@@ -2,6 +2,7 @@ package uk.ac.starlink.table.view;
 
 import gnu.jel.DVMap;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.table.StarTable;
@@ -137,6 +138,12 @@ public class JELRowReader extends DVMap {
             }
             else if ( clazz.equals( String[].class ) ) {
                 return "StringArray";
+            }
+            else if ( clazz.equals( Date.class ) ) {
+                return "Date";
+            }
+            else if ( clazz.equals( Date[].class ) ) {
+                return "DateArray";
             }
             else if ( clazz.getComponentType() != null ) {
                 return "ObjectArray";
@@ -399,6 +406,12 @@ public class JELRowReader extends DVMap {
     }
     public String[] getStringArrayProperty( int icol ) {
         return (String[]) getValue( icol );
+    }
+    public Date getDateProperty( int icol ) {
+        return (Date) getValue( icol );
+    }
+    public Date[] getDateArrayProperty( int icol ) {
+        return (Date[]) getValue( icol );
     }
     public Object getObjectProperty( int icol ) {
         return getValue( icol );
