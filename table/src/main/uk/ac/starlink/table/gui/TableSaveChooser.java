@@ -126,13 +126,12 @@ public abstract class TableSaveChooser extends JPanel {
         List buttList = new ArrayList();
         for ( int i = 0; i < saverDialogs.length; i++ ) {
             final TableSaveDialog tsd = saverDialogs[ i ];
-            final StarTable table = getTable();
             Action saverAction = new AbstractAction( tsd.getName() ) {
                 public void actionPerformed( ActionEvent evt ) {
                     if ( tsd.showSaveDialog( TableSaveChooser.this,
                                              getTableOutput(),
                                              formatSelector_.getModel(),
-                                             table ) ) {
+                                             getTable() ) ) {
                         done();
                     }
                 }
@@ -266,6 +265,7 @@ public abstract class TableSaveChooser extends JPanel {
         progBar_ = new JProgressBar();
         dialog_.getContentPane().add( progBar_, BorderLayout.SOUTH );
         setEnabled( true );
+        dialog_.pack();
         dialog_.show();
         dialog_ = null;
         progBar_ = null;
@@ -330,7 +330,6 @@ public abstract class TableSaveChooser extends JPanel {
         pane.add( cancelBox, BorderLayout.SOUTH );
 
         /* Position. */
-        dialog.pack();
         dialog.setLocationRelativeTo( parent );
         return dialog;
     }
