@@ -119,7 +119,7 @@ public abstract class SaveWorker {
      * Begins the save.  Should be invoked from the event dispatch thread.
      */
     public void invoke() {
-        worker_ = new Thread() {
+        worker_ = new Thread( "Saver thread" ) {
             Throwable error;
             public void run() {
                 try {
@@ -146,8 +146,8 @@ public abstract class SaveWorker {
                 } );
             }
         };
-        saveStarted();
         worker_.start();
+        saveStarted();
     }
 
     /**
@@ -180,6 +180,7 @@ public abstract class SaveWorker {
             "to " + location_,
         };
         ErrorDialog.showError( progPopup_, "Save Error", error, msg );
+        progPopup_.dispose();
     }
 
     /**
