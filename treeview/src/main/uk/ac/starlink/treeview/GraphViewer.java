@@ -144,6 +144,17 @@ public class GraphViewer extends DivaPlot {
         public String getDataFormat() {
             return "NDX";
         }
+        public String getProperty( String key ) {
+            if ( key.equals( "label" ) ) {
+                return "";
+            }
+            else if ( key.equals( "units" ) ) {
+                return "";
+            }
+            else {
+                return "";
+            }
+        }
         public void save() throws SplatException {
             throw new SplatException( "Not built to save" );
         }
