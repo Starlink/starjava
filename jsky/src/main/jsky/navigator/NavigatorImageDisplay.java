@@ -24,6 +24,7 @@ import jsky.catalog.CatalogDirectory;
 import jsky.catalog.TableQueryResult;
 import jsky.catalog.gui.CatalogNavigatorOpener;
 import jsky.catalog.gui.TablePlotter;
+import jsky.image.ImageProcessor;
 import jsky.image.fits.codec.FITSImage;
 import jsky.image.fits.gui.FITSKeywordsFrame;
 import jsky.image.fits.gui.FITSKeywordsInternalFrame;
@@ -39,6 +40,7 @@ import jsky.util.gui.SwingUtil;
  *
  * @version $Revision: 1.34 $
  * @author Allan Brighton
+ * @author Peter W. Draper
  */
 public class NavigatorImageDisplay extends DivaMainImageDisplay
         implements CatalogNavigatorOpener {
@@ -71,6 +73,19 @@ public class NavigatorImageDisplay extends DivaMainImageDisplay
         }
     };
 
+
+    /**
+     * Construct a NavigatorImageDisplay widget.
+     *
+     * @param parent the top level parent frame (or internal frame)
+     *               used to close the window 
+     * @param processor an ImageProcessor to use
+     */
+    public NavigatorImageDisplay(Component parent, ImageProcessor processor) {
+        super(new NavigatorPane(), parent, processor);
+        _navigatorPane = (NavigatorPane) getCanvasPane();
+    }
+    //PWD: need so that sub-classes can provide own ImageProcessor
 
     /**
      * Construct a NavigatorImageDisplay widget.
