@@ -93,13 +93,15 @@ public class StatsViewer extends StyledTextArea implements Runnable {
             addKeyedItem( "Standard deviation", 
                           (float) Math.sqrt( stats.variance ) );
             addSeparator();
-            addKeyedItem( "Minimum pixel value", stats.minValue );
-            addKeyedItem( "      at pixel",
-                          NDShape.toString( stats.minPosition ) );
-            addKeyedItem( "Maximum pixel value", stats.maxValue );
-            addKeyedItem( "      at pixel",
-                          NDShape.toString( stats.maxPosition ) );
-            addSeparator();
+            if ( stats.minValue != null && stats.maxValue != null ) {
+                addKeyedItem( "Minimum pixel value", stats.minValue );
+                addKeyedItem( "      at pixel",
+                              NDShape.toString( stats.minPosition ) );
+                addKeyedItem( "Maximum pixel value", stats.maxValue );
+                addKeyedItem( "      at pixel",
+                              NDShape.toString( stats.maxPosition ) );
+                addSeparator();
+            }
             long ngood = stats.numGood;
             long nbad = npix - ngood;
             addKeyedItem( "Total number of pixels", npix );
