@@ -93,6 +93,34 @@ public class InterpolatedCurve2D
     }
 
     /**
+     * Create extra X coordinates for interpolation points.
+     */
+    protected void extendXCoords( double newx )
+    {
+        if ( xCoords == null ) {
+            return; // Could throw an exception.
+        }
+        int offset = xCoords.length;
+        double prev = xCoords[offset-1];
+        int nextra = interpolator.stepGuess();
+        int newlength = offset + nextra;
+
+        double[] temp = new double[newlength];
+
+        double step = ( newx - prev ) / (double) nextra;
+
+        System.arraycopy( xCoords, 0, temp, 0, offset );
+
+        for ( int i = 0; i < nextra - 1; i++ ) {
+            temp[offset+i] = prev + ( i + 1.0 ) * step;
+        }
+        temp[temp.length-1] = newx;
+        xCoords = temp;
+
+        recalc = true;
+    }
+
+    /**
      * Get the interpolator.
      */
     public Interpolator getInterpolator()
@@ -233,36 +261,7 @@ public class InterpolatedCurve2D
     public void lineTo( double x, double y )
     {
         interpolator.appendValue( x, y );
-        extendXCoords( x );
-    }
-
-    /**
-     * Create extra X coordinates for interpolation points. Called
-     * after a lineTo adds a new point at the end of the X coordinates.
-     */
-    protected void extendXCoords( double newx )
-    {
-        if ( xCoords == null ) {
-            return; // Could throw an exception.
-        }
-        int offset = xCoords.length;
-        double prev = xCoords[offset-1];
-        int nextra = interpolator.stepGuess();
-        int newlength = offset + nextra;
-
-        double[] temp = new double[newlength];
-
-        double step = ( newx - prev ) / (double) nextra;
-
-        System.arraycopy( xCoords, 0, temp, 0, offset );
-
-        for ( int i = 0; i < nextra - 1; i++ ) {
-            temp[offset+i] = prev + ( i + 1.0 ) * step;
-        }
-        temp[temp.length-1] = newx;
-        xCoords = temp;
-
-        recalc = true;
+        orderVertices(); // Pick up new coordinates.
     }
 
     /**
@@ -336,7 +335,7 @@ public class InterpolatedCurve2D
                 }
                 //  Add some slack for rounding errors...
                 currentBounds = new Rectangle2D.Double( x1 - 6, y1 - 6,
-                                                        x2 - x1 + 6, 
+                                                        x2 - x1 + 6,
                                                         y2 - y1 + 6 );
             }
             rebound = false;
@@ -395,6 +394,15 @@ public class InterpolatedCurve2D
     {
         checkIndex( index );
         return yCoords[index];
+    }
+
+    /**
+     * Return if the Interpolator is full, i.e. will ignore or refuse any
+     * further vectices.
+     */
+    public boolean isFull()
+    {
+        return interpolator.isFull();
     }
 
     /**
@@ -563,7 +571,7 @@ public class InterpolatedCurve2D
         int i;
         int j;
         double v;
-        
+
         for ( i = 1; i < size; i++ ) {
             v = a[i];
             j = i;
@@ -578,12 +586,12 @@ public class InterpolatedCurve2D
 
         return remap;
     }
-    
+
     /**
-     * Sort an array using the index produced by the 
+     * Sort an array using the index produced by the
      * {@link #insertionSort} method.
      */
-    public static double[] applySortIndex( double[] a, int[] remap, 
+    public static double[] applySortIndex( double[] a, int[] remap,
                                            boolean incr )
     {
         //  XXX move this in UTIL package sometime.
