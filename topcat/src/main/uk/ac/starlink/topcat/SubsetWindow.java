@@ -121,6 +121,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
             }
         };
         ListSelectionModel selectionModel = jtab.getSelectionModel();
+        selectionModel.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         selectionModel.addListSelectionListener( selList );
         selList.valueChanged( null );
  
