@@ -543,6 +543,27 @@ public class SpecData
 
 
     /**
+     * Set the data units.
+     *
+     * @param dataUnits data units string in AST format.
+     */
+    public void setDataUnits( String dataUnits )
+    {
+        impl.setDataUnits( dataUnits );
+    }
+
+
+    /**
+     * Set the data label.
+     *
+     * @param dataLabel label describing the data values.
+     */
+    public void setDataLabel( String dataLabel )
+    {
+        impl.setDataLabel( dataLabel );
+    }
+
+    /**
      * Save the spectrum to disk (if supported). Uses the current state of the
      * spectrum (i.e. any file names etc.) to decide how to do this.
      *
