@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.ErrorDialog;
@@ -146,7 +147,7 @@ public class Driver {
         if ( cmdname == null ) {
             cmdname = Driver.class.getName();
         }
-        String usage = "Usage: " + cmdname + " [-demo] [table ...]";
+        String usage = "Usage: " + cmdname + " [-demo] [-disk] [table ...]";
         setStandalone( true );
 
         /* Process flags.
@@ -160,6 +161,10 @@ public class Driver {
             }
             else if ( args[ i ].equals( "-demo" ) ) {
                 demo = true;
+                args[ i ] = null;
+            }
+            else if ( args[ i ].equals( "-disk" ) ) {
+                tabfact.setStoragePolicy( StoragePolicy.PREFER_DISK );
                 args[ i ] = null;
             }
             else if ( args[ i ].startsWith( "-" ) ) {
