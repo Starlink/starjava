@@ -51,6 +51,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
     private final Action replacecolAct;
     private final Action hidecolAct;
     private final Action revealcolAct;
+    private final Action explodecolAct;
     private ColumnInfo indexColumnInfo;
     private JTable jtab;
     private AbstractTableModel metaTableModel;
@@ -334,7 +335,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         } );
 
         /* Define actions. */
-        addcolAct = new ColumnInfoAction( "New synthetic column",
+        addcolAct = new ColumnInfoAction( "New Synthetic Column",
                                           ResourceIcon.ADD,
                                           "Add a new column defined " +
                                           "algebraically from existing ones" );
@@ -348,6 +349,10 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         revealcolAct = new ColumnInfoAction( "Reveal Selected Column(s)",
                                              ResourceIcon.REVEAL,
                                              "Reveal All Selected columns" );
+        explodecolAct = new ColumnInfoAction( "Explode Vector Column",
+                                              ResourceIcon.EXPLODE,
+                                              "Replace N-element array column "
+                                              + "with N scalar columns" );
         final Action sortupAct = new SortAction( true );
         final Action sortdownAct = new SortAction( false );
 
@@ -358,6 +363,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         colMenu.add( replacecolAct );
         colMenu.add( hidecolAct );
         colMenu.add( revealcolAct );
+        colMenu.add( explodecolAct );
         colMenu.add( sortupAct );
         colMenu.add( sortdownAct );
         getJMenuBar().add( colMenu );
@@ -373,8 +379,20 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                 int nsel = jtab.getSelectedRowCount();
                 boolean hasSelection = nsel > 0;
                 boolean hasUniqueSelection = nsel == 1;
+                boolean hasArraySelection;
+                if ( nsel == 1 ) {
+                    StarTableColumn tcol =
+                        (StarTableColumn)
+                         getColumnFromRow( jtab.getSelectedRow() );
+                    int nel = getElementCount( tcol.getColumnInfo() );
+                    hasArraySelection = nel > 0;
+                }
+                else {
+                    hasArraySelection = false;
+                }
                 hidecolAct.setEnabled( hasSelection );
                 revealcolAct.setEnabled( hasSelection );
+                explodecolAct.setEnabled( hasArraySelection );
                 sortupAct.setEnabled( hasUniqueSelection );
                 sortdownAct.setEnabled( hasUniqueSelection );
                 replacecolAct.setEnabled( hasUniqueSelection );
@@ -389,6 +407,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         getToolBar().add( replacecolAct );
         getToolBar().add( hidecolAct );
         getToolBar().add( revealcolAct );
+        getToolBar().add( explodecolAct );
         getToolBar().addSeparator();
         getToolBar().add( sortupAct );
         getToolBar().add( sortdownAct );
@@ -436,6 +455,75 @@ public class ColumnInfoWindow extends TopcatViewWindow {
     }
 
     /**
+     * Returns the number of elements per cell in a ValueInfo.
+     * The result is a positive integer only if the info represents an
+     * array value with a fixed length.
+     *
+     * @param   info  description of a value
+     * @return   fixed number of scalar elements described by <tt>info</tt>,
+     *           or a non-positive number if it's not suitable
+     */
+    private int getElementCount( ValueInfo info ) {
+        if ( info.isArray() ) {
+            int[] shape = info.getShape();
+            int nel = 1;
+            for ( int i = 0; i < shape.length; i++ ) {
+                int dim = shape[ i ];
+                if ( dim >= 0 ) {
+                    nel *= dim;
+                }
+                else {
+                    return -1;
+                }
+            }
+            return nel;
+        }
+        return 0; 
+    }
+
+    /**
+     * Replaces an N-element array-valued column in the table with 
+     * N scalar-valued columns.  More precisely, it adds N new columns
+     * after the original and then hides the original.
+     */
+    private void explodeColumn( StarTableColumn tcol ) {
+        ColumnInfo baseInfo = tcol.getColumnInfo();
+        int insertPos = columnList.getModelIndex( columnList.indexOf( tcol ) );
+        String baseName = baseInfo.getName();
+        String baseDesc = baseInfo.getDescription();
+        String baseExpr = baseInfo.getAuxDatum( TopcatUtils.COLID_INFO )
+                                  .getValue().toString();
+        ColumnInfo elInfo = new ColumnInfo( baseInfo );
+        elInfo.setShape( null );
+        int ipos = 0;
+        for ( Iterator it = new ShapeIterator( baseInfo.getShape() );
+              it.hasNext(); ipos++ ) {
+            int[] pos = (int[]) it.next();
+            StringBuffer postxt = new StringBuffer();
+            for ( int i = 0; i < pos.length; i++ ) {
+                postxt.append( '_' );
+                postxt.append( Integer.toString( pos[ i ] + 1 ) );
+            }
+            ColumnInfo colInfo = new ColumnInfo( elInfo );
+            colInfo.setName( baseName + postxt.toString() );
+            colInfo.setDescription( "Element " + ( ipos + 1 ) + " of " +
+                                    baseName );
+            String colExpr = baseExpr + '[' + ipos + ']';
+            try {
+                SyntheticColumn elcol =
+                    new SyntheticColumn( colInfo, dataModel, null,
+                                         colExpr, null );
+                tcModel.appendColumn( elcol, ++insertPos );
+            }
+            catch ( CompilationException e ) {
+                throw (AssertionError) new AssertionError( e.getMessage() )
+                                      .initCause( e );
+            }
+        }
+        columnModel.removeColumn( tcol );
+    }
+
+    /**
      * Returns a ColumnInfo object describing a fictitious column zero
      * which contains index information.
      */
@@ -447,6 +535,40 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                                                JELRowReader.COLUMN_ID_CHAR +
                                                "0" ) );
         return cinfo;
+    }
+
+    /**
+     * Iterates over an int array representing a hypercuboidal shape,
+     * returning a position array each time.
+     */
+    private class ShapeIterator implements Iterator {
+        final int[] shape_;
+        final int ndim_;
+        int[] pos_;
+        ShapeIterator( int[] shape ) {
+            shape_ = shape;
+            ndim_ = shape.length;
+            pos_ = new int[ ndim_ ];
+        }
+        public boolean hasNext() {
+            return pos_ != null;
+        }
+        public Object next() {
+            int[] next = (int[]) pos_.clone();
+            for ( int j = 0; j < ndim_; j++ ) {
+                if ( ++pos_[ j ] < shape_[ j ] ) {
+                    return next;
+                }
+                else {
+                    pos_[ j ] = 0;
+                }
+            }
+            pos_ = null;
+            return next;
+        }
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**
@@ -548,6 +670,32 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                 }
                 else {
                     logger.warning( "Replace column enabled erroneously" );
+                }
+            }
+
+            /* Replace an N-element array column with N scalar columns. */
+            else if ( this == explodecolAct ) {
+                if ( jtab.getSelectedRowCount() == 1 ) {
+                    int selrow = jtab.getSelectedRow();
+                    StarTableColumn tcol =
+                        (StarTableColumn) getColumnFromRow( selrow );
+                    ColumnInfo cinfo = tcol.getColumnInfo();
+                    int nel = getElementCount( cinfo );
+                    if ( nel > 0 ) {
+                        String yesOpt = "OK";
+                        String noOpt = "Cancel";
+                        String msg = "Replace array column " + cinfo.getName()
+                                   + " with " + nel + " scalar columns?";
+                        if ( JOptionPane
+                            .showOptionDialog( parent, msg, "Explode Column",
+                                               JOptionPane.YES_NO_OPTION,
+                                               JOptionPane.QUESTION_MESSAGE,
+                                               null, 
+                                               new String[] { yesOpt, noOpt },
+                                               yesOpt ) == 0 ) {
+                            explodeColumn( tcol );
+                        }
+                    }
                 }
             }
 
