@@ -96,7 +96,7 @@ public class SyntheticColumn extends ColumnData {
         Class actualType =
             new Parser( exprsub, lib ).parse( resultType ).resType;
         if ( actualType.isPrimitive() ) {
-            actualType = wrapPrimitiveClass( actualType );
+            actualType = JELUtils.wrapPrimitiveClass( actualType );
         }
 
         /* Configure the column data type correctly for this expression. */
@@ -140,39 +140,4 @@ public class SyntheticColumn extends ColumnData {
         }
     }
 
-    /**
-     * Turns a primitive class into the corresponding wrapper class.
-     *
-     * @param   prim  primitive class
-     * @return  the corresponding non-primitive wrapper class
-     */
-    private static Class wrapPrimitiveClass( Class prim ) {
-        if ( prim == boolean.class ) {
-            return Boolean.class;
-        }
-        else if ( prim == char.class ) {
-            return Character.class;
-        }
-        else if ( prim == byte.class ) {
-            return Byte.class;
-        }
-        else if ( prim == short.class ) {
-            return Short.class;
-        }
-        else if ( prim == int.class ) {
-            return Integer.class;
-        }
-        else if ( prim == long.class ) {
-            return Long.class;
-        }
-        else if ( prim == float.class ) {
-            return Float.class;
-        }
-        else if ( prim == double.class ) {
-            return Double.class;
-        }
-        else {
-            throw new IllegalArgumentException( prim + " is not primitive" ); 
-        }
-    }
 }
