@@ -1,17 +1,22 @@
 package uk.ac.starlink.fits;
 
+import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import nom.tam.fits.BasicHDU;
+import nom.tam.fits.FitsException;
 import nom.tam.fits.FitsUtil;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
 import nom.tam.fits.TruncatedFileException;
 import nom.tam.util.ArrayDataInput;
+import nom.tam.util.ArrayDataOutput;
 import nom.tam.util.BufferedDataInputStream;
+import nom.tam.util.BufferedDataOutputStream;
 import nom.tam.util.BufferedFile;
 import nom.tam.util.Cursor;
 import uk.ac.starlink.array.Type;
@@ -286,6 +291,61 @@ public class FitsConstants {
         }
 
         return pad + count * 80;
+    }
+
+    /**
+     * Writes a header object to a DataOutput.
+     *
+     * @param   strm  destination stream
+     * @param   hdr  the header to write
+     */
+    public static void writeHeader( final DataOutput strm, Header hdr )
+            throws IOException {
+        ArrayDataOutput ostrm =
+            new BufferedDataOutputStream( new OutputStream() {
+                public void write( int b ) throws IOException {
+                    strm.write( b );
+                }
+                public void write( byte[] b ) throws IOException {
+                    strm.write( b );
+                }
+                public void write( byte[] b, int off, int len )
+                        throws IOException {
+                    strm.write( b, off, len );
+                }
+            } );
+        try {
+            hdr.write( ostrm );
+            ostrm.flush();
+        }
+        catch ( FitsException e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
+        }
+    }
+
+    /**
+     * Writes a null header representing an empty primary HDU to a stream.
+     *
+     * @param  strm  stream to write to
+     */
+    public static void writeEmptyPrimary( DataOutput strm )
+        throws IOException {
+        try {
+            Header dummy = new Header();
+            dummy.addValue( "SIMPLE", true, "Standard FITS format" );
+            dummy.addValue( "BITPIX", 8, "Character data" );
+            dummy.addValue( "NAXIS", 0, "No image, just extensions" );
+            dummy.addValue( "EXTEND", true, "There are standard extensions" );
+            dummy.insertComment(
+                      "Dummy header; see following table extension" );
+            dummy.insertCommentStyle( "END", "" );
+            writeHeader( strm, dummy );
+        }
+        catch ( FitsException e ) {
+            throw (IOException) new IOException( e.toString() )
+                               .initCause( e );
+        }
     }
 
     /**
