@@ -315,7 +315,8 @@ public class NDArrays {
      *
      * @param  nda  the NDArray on which to base the result
      * @param  req  a Requirements object indicating the characteristics
-     *              required
+     *              required.  If <tt>null</tt>, then <tt>nda</tt> is returned
+     *              with no further action
      * @return   an NDArray with the same data as nda and the characteristics
      *           indicated by req
      * @throws   IOException  if a new scratch array has to be created and
@@ -325,6 +326,11 @@ public class NDArrays {
      */
     public static NDArray toRequiredArray( NDArray nda, Requirements req ) 
             throws IOException {
+
+        /* Degenerate case of no requirements - return original. */
+        if ( req == null ) {
+            return nda;
+        }
 
         /* Get required characteristics. */
         Type type = req.getType();
