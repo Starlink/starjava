@@ -175,7 +175,7 @@
 #  from libraries written in Fortran which the AST library (or the C
 #  program) calls.  The value here is worked out by the autoconf macro
 #  AC_FC_LIBRARY_LDFLAGS.
-      flibs=' -L/mbt/starauto/lib -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.2 -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.2/../../.. -lfrtbegin -lg2c -lm -lgcc_s'
+      flibs=' -L/mbt/starauto2/lib -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.2 -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.2/../../.. -lfrtbegin -lg2c -lm -lgcc_s'
 
 #  This function searches the directory path specified in PATH, looking for
 #  an executable file which is not a directory. If found, it echos the full

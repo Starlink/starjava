@@ -61,56 +61,59 @@ FACILITY AST
 359,PTRIN,pointer invalid
 360,PTRNG,range of points invalid
 361,RDERR,read error
-362,REMIN,invalid attempt to remove last Frame
-363,SCSIN,sky coordinate system invalid
-364,SELIN,axis selection invalid
-365,SLAIN,bad SLALIB transformation type
-366,TRNND,coordinate transformation not defined
-367,UNMQT,unmatched quotes
-368,VSMAL,valid area too small
-369,WCSAX,non-existent longitude or latitude axis
-370,WCSNC,too few mapping coordinates
-371,WCSPA,invalid projection parameters
-372,WCSTY,unknown projection type
-373,XSOBJ,too many Objects in use at once
-374,ZOOMI,zoom factor invalid
-375,BADCI,bad coordinate index
-376,ILOST,FrameSet integrity lost
-377,ITFER,error in IntraMap transformation function
-378,ITFNI,IntraMap transformation function name invalid
-379,MBBNF,Mapping bounding box not found
-380,MRITF,multiple registration of IntraMap transformation function
-381,OCLUK,Object class unknown
-382,UNFER,error while unformatting a coordinate value
-383,URITF,unregistered IntraMap transformation function
-384,GBDIN,grid bounds invalid
-385,NGDIN,number of grid dimensions invalid
-386,PATIN,positional accuracy tolerance invalid
-387,SISIN,sub-pixel interpolation scheme invalid
-388,SSPIN,scale size in pixels invalid
-389,UINER,error in user-supplied sub-pixel interpolation function
-390,UK1ER,error in user-supplied 1-d sub-pixel interpolation kernel
-391,COMIN,invalid comma in expression
-392,CONIN,invalid constant in expression
-393,DUVAR,duplicate variable name
-394,INNTF,invalid number of transformation functions
-395,MIOPA,missing or invalid operand in expression
-396,MIOPR,missing or invalid operator in expression
-397,MISVN,missing variable name
-398,MLPAR,missing left parenthesis in expression
-399,MRPAR,missing right parenthesis in expression
-400,NORHS,missing right hand side in function
-401,UDVOF,undefined variable or function in expression
-402,VARIN,variable name invalid
-403,WRNFA,wrong number of function arguments in expression
-404,BADUN,invalid units specification
-405,NORSF,no rest frequency is defined
-406,NOSOR,no standard of rest is defined
-407,SPCIN,invalid SpecMap
-408,XMLNM,invalid XML name or prefix
-409,XMLCM,invalid XML comment text
-410,XMLPT,invalid XML processing instruction target text
-411,XMLIT,invalid XML content item index
-412,XMLWF,supplied XML document is not well formed
-413,ZERAX,Range of log axis scale includes zero
-414,BADOC,Invalid parameters for offset sky coordinate system
+362,REGIN,invalid or corrupted Region structure supplied
+363,REMIN,invalid attempt to remove last Frame
+364,SCSIN,sky coordinate system invalid
+365,SELIN,axis selection invalid
+366,SLAIN,bad SLALIB transformation type
+367,TRNND,coordinate transformation not defined
+368,UNMQT,unmatched quotes
+369,VSMAL,valid area too small
+370,WCSAX,non-existent longitude or latitude axis
+371,WCSNC,too few mapping coordinates
+372,WCSPA,invalid projection parameters
+373,WCSTY,unknown projection type
+374,XSOBJ,too many Objects in use at once
+375,ZOOMI,zoom factor invalid
+376,BADCI,bad coordinate index
+377,ILOST,FrameSet integrity lost
+378,ITFER,error in IntraMap transformation function
+379,ITFNI,IntraMap transformation function name invalid
+380,MBBNF,Mapping bounding box not found
+381,MRITF,multiple registration of IntraMap transformation function
+382,OCLUK,Object class unknown
+383,UNFER,error while unformatting a coordinate value
+384,URITF,unregistered IntraMap transformation function
+385,GBDIN,grid bounds invalid
+386,NGDIN,number of grid dimensions invalid
+387,PATIN,positional accuracy tolerance invalid
+388,SISIN,sub-pixel interpolation scheme invalid
+389,SSPIN,scale size in pixels invalid
+390,UINER,error in user-supplied sub-pixel interpolation function
+391,UK1ER,error in user-supplied 1-d sub-pixel interpolation kernel
+392,COMIN,invalid comma in expression
+393,CONIN,invalid constant in expression
+394,DUVAR,duplicate variable name
+395,INNTF,invalid number of transformation functions
+396,MIOPA,missing or invalid operand in expression
+397,MIOPR,missing or invalid operator in expression
+398,MISVN,missing variable name
+399,MLPAR,missing left parenthesis in expression
+400,MRPAR,missing right parenthesis in expression
+401,NORHS,missing right hand side in function
+402,UDVOF,undefined variable or function in expression
+403,VARIN,variable name invalid
+404,WRNFA,wrong number of function arguments in expression
+405,BADUN,invalid units specification
+406,NORSF,no rest frequency is defined
+407,NOSOR,no standard of rest is defined
+408,SPCIN,invalid SpecMap
+409,XMLNM,invalid XML name or prefix
+410,XMLCM,invalid XML comment text
+411,XMLPT,invalid XML processing instruction target text
+412,XMLIT,invalid XML content item index
+413,XMLWF,supplied XML document is not well formed
+414,ZERAX,Range of log axis scale includes zero
+415,BADOC,Invalid parameters for offset sky coordinate system
+416,MPGER,error getting a named value from a KeyMap
+417,MPIND,invalid integer index supplied for a KeyMap entry

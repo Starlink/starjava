@@ -32,7 +32,9 @@ f     AST_FRAME
 
 *  Attributes:
 *     In addition to those attributes common to all Mappings, every
-*     Frame also has the following attributes:
+*     Frame also has the following attributes (if the Frame has only one
+*     axis, the axis specifier can be omited from the following attribute 
+*     names):
 *
 *     - AlignSystem: Coordinate system used to align Frames
 *     - Bottom(axis): Lowest axis value to display
@@ -164,10 +166,16 @@ f     - AST_UNFORMAT: Read a formatted coordinate value for a Frame axis
 *     24-JAN-2004 (DSB):
 *        o  Added astFields.
 *        o  Added argument "fmt" to Abbrev.
+*     24-MAR-2004 (DSB):
+*        Add protected function astIsUnitFrame.
 *     7-SEP-2004 (DSB):
 *        Modified SetUnit to exclude any trailing spaces
 *     8-SEP-2004 (DSB):
-*        Added astResolvePoints.
+*        - Added astResolvePoints.
+*        - Override astEqual.
+*     29-NOV-2004 (DSB):
+*        - Set/Get/Test/ClearAttrib: Allow axis specifier to be omitted from 
+*        axis attribute names if the Frame only has one axis.
 *class--
 */
 
@@ -600,6 +608,7 @@ static const char *(* parent_getattrib)( AstObject *, const char * );
 static int (* parent_testattrib)( AstObject *, const char * );
 static void (* parent_clearattrib)( AstObject *, const char * );
 static void (* parent_setattrib)( AstObject *, const char * );
+static int (* parent_equal)( AstObject *, AstObject * );
 
 /* Define other static variables. */
 static char label_buff[ LABEL_BUFF_LEN + 1 ]; /* Default Label string buffer */
@@ -637,6 +646,7 @@ static int ConsistentMaxAxes( AstFrame *, int );
 static int ConsistentMinAxes( AstFrame *, int );
 static int DefaultMaxAxes( AstFrame * );
 static int DefaultMinAxes( AstFrame * );
+static int Equal( AstObject *, AstObject * );
 static int Fields( AstFrame *, int, const char *, const char *, int, char **, int *, double * );
 static int GetDigits( AstFrame * );
 static int GetDirection( AstFrame *, int );
@@ -694,6 +704,7 @@ static int TestPreserveAxes( AstFrame * );
 static int TestSymbol( AstFrame *, int );
 static int TestTitle( AstFrame * );
 static int TestUnit( AstFrame *, int );
+static int IsUnitFrame( AstFrame * );
 static int Unformat( AstFrame *, int, const char *, double * );
 static int ValidateAxis( AstFrame *, int, const char * );
 static AstSystemType ValidateSystem( AstFrame *, AstSystemType, const char * );
@@ -1237,7 +1248,7 @@ f        The global status.
 *  Returned Value:
 c     astAxDistance
 f     AST_AXDISTANCE = DOUBLE PRECISION
-*        The distance between the two axis values.
+*        The distance from the first to the second axis value.
 
 *  Notes:
 *     - This function will return a "bad" result value (AST__BAD) if
@@ -1574,8 +1585,11 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
    AstFrame *pfrm;               /* Pointer to primary Frame containing axis */
    AstFrame *this;               /* Pointer to the Frame structure */
    char *axis_attrib;            /* Pointer to axis attribute name */
+   const char *old_attrib;       /* Pointer to supplied attribute name string */
    int axis;                     /* Frame axis number */
    int axis_nc;                  /* No. characters in axis attribute name */
+   int free_axis_attrib;         /* Should axis_attrib be freed? */
+   int has_axis;                 /* Does attrib name include axis specifier? */
    int len;                      /* Length of attrib string */
    int nc;                       /* No. characters read by astSscanf */
    int oldrep;                   /* Original error reporting state */
@@ -1587,6 +1601,21 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Obtain a pointer to the Frame structure. */
    this = (AstFrame *) this_object;
+
+/* Set a flag indicating if the attribute name includes an axis
+   specifier. */
+   has_axis = ( strchr( attrib, '(' ) != NULL );
+
+/* A flag indicating that we do not need to free the axis_attrib memory. */
+   free_axis_attrib = 0;
+
+/* Initialise things to avoid compiler warnings. */   
+   axis_attrib = NULL;
+   old_attrib = NULL;
+
+/* Jump back to here if we are trying the same attribute but with an explicit 
+   axis "(1)" added to the end of the name. */
+L1:
 
 /* Obtain the length of the "attrib" string. */
    len = strlen( attrib );
@@ -1725,10 +1754,10 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute was not identified above, but appears to refer to
    a Frame axis, then it may refer to an Axis object of a derived type
    (which has additional attributes not recognised here). */
-   } else if ( nc = 0,
-               ( 1 == astSscanf( attrib, "%*[^()]%n(%d)%n",
-                                      &axis_nc, &axis, &nc ) )
-               && ( nc >= len ) ) {
+   } else if( !free_axis_attrib && ( nc = 0,
+                 ( 1 == astSscanf( attrib, "%*[^()]%n(%d)%n",
+                                      &axis_nc, &axis, &nc ) ) 
+               && ( nc >= len ) ) ) {
 
 /* Validate the axis index and extract the attribute name. */
       (void) astValidateAxis( this, axis - 1, "astClear" );
@@ -1789,9 +1818,41 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Not recognised. */
 /* --------------- */
-/* If the attribute is still not recognised, pass it on to the parent
-   method for further interpretation. */
+/* If the attribute is still not recognised, and the Frame has only 1 axis,
+   and the attribute name does not already include an axis specifier, try 
+   again after appending "(1)" to the end of the attribute name. */
+   } else if( !has_axis && astGetNaxes( this ) == 1 ) {
+
+/* Take a copy of the supplied name, allowing 3 extra characters for the
+   axis specifier "(1)". */
+      axis_attrib = astStore( NULL, attrib, len + 4 );
+
+/* Indicate we should free the axis_attrib memory. */
+      free_axis_attrib = 1;
+
+/* Add in the axis specifier. */
+      strcpy( axis_attrib + len, "(1)" );
+
+/* Use the new attribute name instead of the supplied name. */
+      old_attrib = attrib;
+      attrib = axis_attrib;
+
+/* Indicate the attribute name now has an axis specifier. */
+      has_axis = 1;
+
+/* Jump back to try interpreting the new attribute name. */
+      goto L1;
+
+/* Not recognised. */
+/* --------------- */
+/* If the attribute name is still not recognised, pass it on to the parent
+   method for further interpretation. First re-instate the original attrib 
+   name string if it was changed above. */
    } else {
+      if( free_axis_attrib ) {
+         attrib = old_attrib;
+         axis_attrib = astFree( axis_attrib );
+      }
       (*parent_clearattrib)( this_object, attrib );
    }
 }
@@ -2775,6 +2836,85 @@ f     invoked with STATUS set to an error value, or if it should fail for
    return result;
 }
 
+static int Equal( AstObject *this_object, AstObject *that_object ) {
+/*
+*  Name:
+*     Equal
+
+*  Purpose:
+*     Test if two Frames are equivalent.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "frame.h"
+*     int Equal( AstObject *this, AstObject *that ) 
+
+*  Class Membership:
+*     Frame member function (over-rides the astEqual protected
+*     method inherited from the Mapping class).
+
+*  Description:
+*     This function returns a boolean result (0 or 1) to indicate whether
+*     two Frames are equivalent.
+
+*  Parameters:
+*     this
+*        Pointer to the first Frame.
+*     that
+*        Pointer to the second Frame.
+
+*  Returned Value:
+*     One if the Frames are equivalent, zero otherwise.
+
+*  Notes:
+*     - The two Frames are considered equivalent if the Mapping between 
+*     them is a UnitMap.
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstFrame *that;            /* Pointer to the second Frame structure */
+   AstFrame *this;            /* Pointer to the first Frame structure */
+   AstFrameSet *fs;           /* FrameSet connecting the two Frames */
+   AstMapping *map1;          /* Mapping connecting the two Frames */
+   AstMapping *map2;          /* Simplified mapping connecting two Frames */
+   int result;                /* Result value to return */
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Checks that the second object is of the same class as the first . */
+   if( !strcmp( astGetClass( this_object ), astGetClass( that_object ) ) ){
+
+/* Obtain pointers to the two Frame structures. */
+      this = (AstFrame *) this_object;
+      that = (AstFrame *) that_object;
+
+/* Get the Mapping between them, and see if it is a UnitMap. */
+      fs = astConvert( that, this, "" );
+      if( fs ) {
+         map1 = astGetMapping( fs, AST__BASE, AST__CURRENT );
+         map2 = astSimplify( map1 );
+         result = astIsAUnitMap( map2 );
+         map1 = astAnnul( map1 );
+         map2 = astAnnul( map2 );
+         fs = astAnnul( fs );
+      }
+   }
+
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
 static int Fields( AstFrame *this, int axis, const char *fmt, 
                    const char *str, int maxfld, char **fields, 
                    int *nc, double *val ) {
@@ -3678,6 +3818,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
    AstFrame *this;               /* Pointer to the Frame structure */
    AstSystemType system;         /* System code */
    char *axis_attrib;            /* Pointer to axis attribute name */
+   const char *old_attrib;       /* Pointer to supplied attribute name string */
    const char *result;           /* Pointer value to return */
    double dval;                  /* Double attibute value */
    double epoch;                 /* Epoch attribute value (as MJD) */
@@ -3685,6 +3826,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
    int axis_nc;                  /* No. characters in axis attribute name */
    int digits;                   /* Digits attribute value */
    int direction;                /* Direction attribute value */
+   int free_axis_attrib;         /* Should axis_attrib be freed? */
+   int has_axis;                 /* Does attrib name include axis specifier? */
    int len;                      /* Length of attrib string */
    int match_end;                /* MatchEnd attribute value */
    int max_axes;                 /* MaxAxes attribute value */
@@ -3706,6 +3849,21 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Obtain a pointer to the Frame structure. */
    this = (AstFrame *) this_object;
+
+/* Set a flag indicating if the attribute name includes an axis
+   specifier. */
+   has_axis = ( strchr( attrib, '(' ) != NULL );
+
+/* A flag indicating that we do not need to free the axis_attrib memory. */
+   free_axis_attrib = 0;
+
+/* Initialise things to avoid compiler warnings. */   
+   axis_attrib = NULL;
+   old_attrib = NULL;
+
+/* Jump back to here if we are trying the same attribute but with an explicit 
+   axis "(1)" added to the end of the name. */
+L1:
 
 /* Obtain the length of the attrib string. */
    len = strlen( attrib );
@@ -3924,10 +4082,10 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute was not identified above, but appears to refer to
    a Frame axis, then it may refer to an Axis object of a derived type
    (which has additional attributes not recognised here). */
-   } else if ( nc = 0,
+   } else if ( !free_axis_attrib && ( nc = 0,
                ( 1 == astSscanf( attrib, "%*[^()]%n(%d)%n",
                                       &axis_nc, &axis, &nc ) )
-               && ( nc >= len ) ) {
+               && ( nc >= len ) ) ) {
 
 /* Validate the axis index and extract the attribute name. */
       (void) astValidateAxis( this, axis - 1, "astGet" );
@@ -3988,9 +4146,41 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Not recognised. */
 /* --------------- */
-/* If the attribute name was not recognised, pass it on to the parent
-   method for further interpretation. */
+/* If the attribute is still not recognised, and the Frame has only 1 axis,
+   and the attribute name does not already include an axis specifier, try 
+   again after appending "(1)" to the end of the attribute name. */
+   } else if( !has_axis && astGetNaxes( this ) == 1 ) {
+
+/* Take a copy of the supplied name, allowing 3 extra characters for the
+   axis specifier "(1)". */
+      axis_attrib = astStore( NULL, attrib, len + 4 );
+
+/* Indicate we should free the axis_attrib memory. */
+      free_axis_attrib = 1;
+
+/* Add in the axis specifier. */
+      strcpy( axis_attrib + len, "(1)" );
+
+/* Use the new attribute name instead of the supplied name. */
+      old_attrib = attrib;
+      attrib = axis_attrib;
+
+/* Indicate the attribute name now has an axis specifier. */
+      has_axis = 1;
+
+/* Jump back to try interpreting the new attribute name. */
+      goto L1;
+
+/* Not recognised. */
+/* --------------- */
+/* If the attribute name is still not recognised, pass it on to the parent
+   method for further interpretation. First re-instate the original attrib 
+   name string if it was changed above. */
    } else {
+      if( free_axis_attrib ) {
+         attrib = old_attrib;
+         axis_attrib = astFree( axis_attrib );
+      }
       result = (*parent_getattrib)( this_object, attrib );
    }
 
@@ -4410,6 +4600,7 @@ void astInitFrameVtab_(  AstFrameVtab *vtab, const char *name ) {
    vtab->GetSymbol = GetSymbol;
    vtab->GetTitle = GetTitle;
    vtab->GetUnit = GetUnit;
+   vtab->IsUnitFrame = IsUnitFrame;
    vtab->Match = Match;
    vtab->Norm = Norm;
    vtab->AxDistance = AxDistance;
@@ -4491,6 +4682,8 @@ void astInitFrameVtab_(  AstFrameVtab *vtab, const char *name ) {
    replace them with pointers to the new member functions. */
    object = (AstObjectVtab *) vtab;
 
+   parent_equal = object->Equal;
+   object->Equal = Equal;
    parent_clearattrib = object->ClearAttrib;
    object->ClearAttrib = ClearAttrib;
    parent_getattrib = object->GetAttrib;
@@ -4514,6 +4707,48 @@ void astInitFrameVtab_(  AstFrameVtab *vtab, const char *name ) {
    astSetCopy( vtab, Copy );
    astSetDelete( vtab, Delete );
    astSetDump( vtab, Dump, "Frame", "Coordinate system description" );
+}
+
+static int IsUnitFrame( AstFrame *this ){
+/*
+*+
+*  Name:
+*     astIsUnitFrame
+
+*  Purpose:
+*     Is this Frame equivalent to a UnitMap?
+
+*  Type:
+*     Protected virtual function.
+
+*  Synopsis:
+*     #include "frame.h"
+*     int astIsUnitFrame( AstFrame *this )
+
+*  Class Membership:
+*     Frame method.
+
+*  Description:
+*     This function returns a flag indicating if the supplied Frame is
+*     equivalent to a UnitMap when treated as a Mapping (note, the Frame
+*     class inherits from Mapping and therefore every Frame is also a Mapping).
+
+*  Parameters:
+*     this 
+*        Pointer to the Frame.
+
+*  Returned Value:
+*     A non-zero value is returned if the supplied Frame is equivalent to
+*     a UnitMap when treated as a Mapping.
+
+*-
+*/
+
+/* Check the local error status. */
+   if( !astOK ) return 0;
+
+/* The base Frame class is always equivalent to a UnitMap. */
+   return 1;
 }
 
 static int Match( AstFrame *template, AstFrame *target,
@@ -6371,6 +6606,7 @@ static AstPointSet *ResolvePoints( AstFrame *this, const double point1[],
    double *basisv;               /* Pointer to array holding basis vector */
    double *d1;                   /* Pointer to next parallel component value */
    double *d2;                   /* Pointer to next perpendicular component value */
+   double *ip;                   /* Pointer to next input axis value */
    double bv;                    /* Length of basis vector */
    double c;                     /* Constant value */
    double d;                     /* Component length */
@@ -6452,11 +6688,26 @@ static AstPointSet *ResolvePoints( AstFrame *this, const double point1[],
    ptr_in = astGetPoints( in );
    ptr_out = astGetPoints( result );
 
+/* Store points to the first two axis arrays in the returned PointSet. */
+   d1 = ptr_out[ 0 ];
+   d2 = ptr_out[ 1 ];
+
 /* Allocate work space. */
    basisv = astMalloc( sizeof( double )*(size_t) nax );
 
-/* Check pointers can be used safely */
-   if( astOK ) {
+/* If the Frame has only one axis, then the supplied basic vector is
+   irrelevant - the returned perpendicular distances are always zero and
+   the returned parallel distances are just the distances from point1 
+   to each input point. */
+   if( nax < 2 && astOK ) {
+      ip = ptr_in[ 0 ];
+      for( ipoint = 0; ipoint < npoint; ipoint++, d1++, d2++, ip++ ) {
+         *d1 = astAxDistance( this, 1, point1[0], *ip );
+         *d2 = 0.0;
+      }
+
+/* Now deal with Frames which have 2 or more axes */
+   } else if( astOK ){
 
 /* Check if the supplied positions defining the basis vector are good.
    Store the basis vector, and get its squared length. */
@@ -6622,7 +6873,7 @@ f     If the ActiveUnit flag is .TRUE., setting a new Unit value for an
 *     is assigned to the Unit attribute.
 *
 c     Note, if a non-zero value is set for the ActiveUnit flag, then changing a
-*     Note, if a .TRUE. value is set for the ActiveUnit flag, then changing a
+f     Note, if a .TRUE. value is set for the ActiveUnit flag, then changing a
 *     Unit value for the current Frame within a FrameSet will result in the
 *     Frame being re-mapped (that is, the Mappings which define the
 *     relationships between Frames within the FrameSet will be modified to
@@ -6716,6 +6967,9 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
    AstFrame *this;               /* Pointer to the Frame structure */
    AstSystemType system_code;    /* System code */
    char *axis_setting;           /* Pointer to axis attribute setting string */
+   const char *equals;           /* Pointer to equals sign */
+   const char *old_setting;      /* Pointer to supplied setting string */
+   const char *op;               /* Pointer to opening parenthesis */
    double dval;                  /* Double attibute value */
    double mjd;                   /* Epoch as a Modified Julian Date */
    int axis;                     /* Index for the Frame axis */
@@ -6726,6 +6980,8 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
    int domain;                   /* Offset of Domain string */
    int epoch;                    /* Offset of Epoch string */
    int format;                   /* Offset of axis Format string */
+   int free_axis_setting;        /* Should axis_setting be freed? */
+   int has_axis;                 /* Does setting include an axis specifier? */
    int label;                    /* Offset of axis Label string */
    int len;                      /* Length of setting string */
    int match_end;                /* Match final axes of target? */
@@ -6747,6 +7003,25 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 
 /* Obtain a pointer to the Frame structure. */
    this = (AstFrame *) this_object;
+
+/* Find the offset to the first equal sign in the setting string. */
+   equals = strchr( setting, '=' );
+
+/* Set a flag indicating if the attribute name includes an axis
+   specifier. */
+   op = strchr( setting, '(' );
+   has_axis = ( !op || op > equals ) ? 0 : 1;
+
+/* A flag indicating that we do not need to free the axis_setting memory. */
+   free_axis_setting = 0;
+
+/* Initialise things to avoid compiler warnings. */   
+   axis_setting = NULL;
+   old_setting = NULL;
+
+/* Jump back to here if we are trying the same attribute setting but with
+   an explicit axis "(1)" added to the attribute name. */
+L1:
 
 /* Obtain the length of the setting string. */
    len = strlen( setting );
@@ -6960,10 +7235,10 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 /* If the attribute was not identified above, but appears to refer to
    a Frame axis, then it may refer to an Axis object of a derived type
    (which has additional attributes not recognised here). */
-   } else if ( nc = 0,
+   } else if ( !free_axis_setting && ( nc = 0,
                ( 1 == astSscanf( setting, "%*[^()]%n(%d)%n=%*[^\n]%n",
                                        &axis_nc, &axis, &axis_value, &nc ) )
-               && ( nc >= len ) ) {
+               && ( nc >= len ) ) ) {
 
 /* Validate the axis index and copy the attribute setting string. */
       (void) astValidateAxis( this, axis - 1, "astSet" );
@@ -7031,9 +7306,44 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 
 /* Not recognised. */
 /* --------------- */
+/* If the attribute is still not recognised, and the Frame has only 1 axis,
+   and the attribute name does not already include an axis specifier, try 
+   again after appending "(1)" to the end of the attribute name. */
+   } else if( !has_axis && astGetNaxes( this ) == 1 && equals ) {
+
+/* Take a copy of the supplied setting, allowing 3 extra characters for the
+   axis specifier "(1)". */
+      axis_setting = astStore( NULL, setting, len + 4 );
+
+/* Indicate we should free the axis_setting memory. */
+      free_axis_setting = 1;
+
+/* Add in the axis specifier. */
+      strcpy( axis_setting + ( equals - setting ), "(1)" );
+
+/* Add in the equals sign and attribute value. */
+      strcpy( axis_setting + ( equals - setting ) + 3, equals );
+
+/* Use the new setting instead of the supplied setting. */
+      old_setting = setting;
+      setting = axis_setting;
+
+/* Indicate the setting now has an axis specifier. */
+      has_axis = 1;
+
+/* Jump back to try interpreting the new setting string. */
+      goto L1;
+
+/* Not recognised. */
+/* --------------- */
 /* If the attribute is still not recognised, pass it on to the parent
-   method for further interpretation. */
+   method for further interpretation. First re-instate the original setting 
+   string if it was changed above. */
    } else {
+      if( free_axis_setting ) {
+         setting = old_setting;
+         axis_setting = astFree( axis_setting );
+      }
       (*parent_setattrib)( this_object, setting );
    }
 
@@ -7724,8 +8034,11 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
    AstFrame *pfrm;               /* Pointer to primary Frame containing axis */
    AstFrame *this;               /* Pointer to the Frame structure */
    char *axis_attrib;            /* Pointer to axis attribute name */
+   const char *old_attrib;       /* Pointer to supplied attribute name string */
    int axis;                     /* Frame axis number */
    int axis_nc;                  /* No. characters in axis attribute name */
+   int free_axis_attrib;         /* Should axis_attrib be freed? */
+   int has_axis;                 /* Does attrib name include axis specifier? */
    int len;                      /* Length of attrib string */
    int nc;                       /* No. characters read by astSscanf */
    int oldrep;                   /* Original error reporting state */
@@ -7741,6 +8054,21 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Obtain a pointer to the Frame structure. */
    this = (AstFrame *) this_object;
+
+/* Set a flag indicating if the attribute name includes an axis
+   specifier. */
+   has_axis = ( strchr( attrib, '(' ) != NULL );
+
+/* A flag indicating that we do not need to free the axis_attrib memory. */
+   free_axis_attrib = 0;
+
+/* Initialise things to avoid compiler warnings. */   
+   axis_attrib = NULL;
+   old_attrib = NULL;
+
+/* Jump back to here if we are trying the same attribute but with an explicit 
+   axis "(1)" added to the end of the name. */
+L1:
 
 /* Obtain the length of the attrib string. */
    len = strlen( attrib );
@@ -7877,10 +8205,10 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute was not identified above, but appears to refer to
    a Frame axis, then it may refer to an Axis object of a derived type
    (which has additional attributes not recognised here). */
-   } else if ( nc = 0,
+   } else if ( !free_axis_attrib && ( nc = 0,
                ( 1 == astSscanf( attrib, "%*[^()]%n(%d)%n",
                                       &axis_nc, &axis, &nc ) )
-               && ( nc >= len ) ) {
+               && ( nc >= len ) ) ) {
 
 /* Validate the axis index and extract the attribute name. */
       (void) astValidateAxis( this, axis - 1, "astTest" );
@@ -7941,9 +8269,41 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Not recognised. */
 /* --------------- */
-/* If the attribute is still not recognised, pass it on to the parent
-   method for further interpretation. */
+/* If the attribute is still not recognised, and the Frame has only 1 axis,
+   and the attribute name does not already include an axis specifier, try 
+   again after appending "(1)" to the end of the attribute name. */
+   } else if( !has_axis && astGetNaxes( this ) == 1 ) {
+
+/* Take a copy of the supplied name, allowing 3 extra characters for the
+   axis specifier "(1)". */
+      axis_attrib = astStore( NULL, attrib, len + 4 );
+
+/* Indicate we should free the axis_attrib memory. */
+      free_axis_attrib = 1;
+
+/* Add in the axis specifier. */
+      strcpy( axis_attrib + len, "(1)" );
+
+/* Use the new attribute name instead of the supplied name. */
+      old_attrib = attrib;
+      attrib = axis_attrib;
+
+/* Indicate the attribute name now has an axis specifier. */
+      has_axis = 1;
+
+/* Jump back to try interpreting the new attribute name. */
+      goto L1;
+
+/* Not recognised. */
+/* --------------- */
+/* If the attribute name is still not recognised, pass it on to the parent
+   method for further interpretation. First re-instate the original attrib 
+   name string if it was changed above. */
    } else {
+      if( free_axis_attrib ) {
+         attrib = old_attrib;
+         axis_attrib = astFree( axis_attrib );
+      }
       result = (*parent_testattrib)( this_object, attrib );
    }
 
@@ -9460,11 +9820,10 @@ f     AST_FINDFRAME or AST_CONVERT) as a template to match another (target)
 *     will accept any of the values which may be assigned to the System
 *     attribute.
 *
-*     The Mapping returned by 
-f     AST_FINDFRAME or AST_CONVERT 
-c     astFindFrame or astConvert
-*     will use the coordinate system specified by the AlignSystem attribute as 
-*     an intermediate coordinate system. The total returned Mapping will first
+c     The Mapping returned by AST_FINDFRAME or AST_CONVERT will use the
+f     The Mapping returned by astFindFrame or astConvert will use the
+*     coordinate system specified by the AlignSystem attribute as an
+*     intermediate coordinate system. The total returned Mapping will first
 *     map positions from the first Frame into this intermediate coordinate
 *     system, using the attributes of the first Frame. It will then map
 *     these positions from the intermediate coordinate system into the
@@ -9572,6 +9931,13 @@ astMAKE_TEST(Frame,AlignSystem,( this->alignsystem != AST__BADSYSTEM ))
 *        - "FK5" or "EQUATORIAL": The modern FK5 (barycentric) equatorial
 *        coordinate system. This should be qualified by an Equinox value.
 *
+*        - "J2000": An equatorial coordinate system based on the mean
+*        dynamical equator and equinox of the J2000 epoch. The dynamical
+*        equator and equinox differ slightly from those used by the FK5
+*        model, and so a "J2000" SkyFrame will differ slightly from an
+*        "FK5(Equinox=J2000)" SkyFrame. The J2000 System need not be 
+*        qualified by an Equinox value
+*
 *        - "GAPPT", "GEOCENTRIC" or "APPARENT": The geocentric apparent
 *        equatorial coordinate system, which gives the apparent positions
 *        of sources relative to the true plane of the Earth's equator and
@@ -9644,6 +10010,21 @@ f        is .TRUE.
 *        its enclosing FrameSet in order to reflect the change in units
 c        (see astSetActiveUnit function for further information).
 f        (see AST_SETACTIVEUNIT routine for further information).
+*     FluxFrame
+*        The FluxFrame class supports the following System values and
+*        associated systems for measuring observed value:
+*
+*        - "FLUXDEN": Flux density in frequency units (W/m^2/Hz)
+*        - "FLUXDENW": Flux density in wavelength units (W/m^2/Angstrom)
+*
+*        The above lists specified the default units for each System. If an 
+*        explicit value is set for the Unit attribute but no value is set 
+*        for System, then the default System value is determined by the Unit 
+*        string (if the units are not appropriate for describing any of the 
+*        supported Systems then an error will be reported when an attempt is 
+*        made to access the System value). If no value has been specified for
+*        either Unit or System, then System=FLUXDEN and Unit=W/m^2/Hz are
+*        used.
 *att--
 */
 /* Clear the System value by setting it to AST__BADSYSTEM. */
@@ -11029,6 +11410,10 @@ int astMatch_( AstFrame *this, AstFrame *target,
    return (**astMEMBER(this,Frame,Match))( this, target,
                                            template_axes, target_axes,
                                            map, result );
+}
+int astIsUnitFrame_( AstFrame *this ){
+   if ( !astOK ) return 0;
+   return (**astMEMBER(this,Frame,IsUnitFrame))( this );
 }
 void astNorm_( AstFrame *this, double value[] ) {
    if ( !astOK ) return;

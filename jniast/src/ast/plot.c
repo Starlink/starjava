@@ -523,6 +523,9 @@ f     - Title: The Plot title drawn using AST_GRID
 *        - In GetTicks (linear tick marks section) ensure that 10
 *        *different* gap sizes are used before giving up. Previously, the
 *        10 tests could include duplicated gap values.
+*     8-NOV-2004 (DSB):
+*        - In Norm1, try more alternative "other axis" values before
+*        accepting that a tick mark value cannot be normalised.
 *class--
 */
 
@@ -614,7 +617,7 @@ f     - Title: The Plot title drawn using AST_GRID
 *  Parameters:
 *     attr
 *        The name of the attribute to be cleared, as it appears in the function
-*        name (e.g. Label in "astClearLabelAt").
+*        name (e.g. LabelAt in "astClearLabelAt").
 *     component
 *        The name of the class structure component that holds the attribute
 *        value.
@@ -799,7 +802,7 @@ type astGet##attr##_( AstPlot *this, int axis ) { \
 *  Parameters:
 *      attr
 *         The name of the attribute to be set, as it appears in the function
-*         name (e.g. Label in "astSetLabelAt").
+*         name (e.g. LabelAt in "astSetLabelAt").
 *      type
 *         The C type of the attribute.
 *      component
@@ -888,7 +891,7 @@ void astSet##attr##_( AstPlot *this, int axis, type value ) { \
 *  Parameters:
 *      attr
 *         The name of the attribute to be tested, as it appears in the function
-*         name (e.g. Label in "astTestLabelAt").
+*         name (e.g. LabelAt in "astTestLabelAt").
 *      assign
 *         An expression that evaluates to 0 or 1, to be used as the returned
 *         value. This can use the string "axis" to represent the zero-based
@@ -4157,6 +4160,7 @@ static int Boundary( AstPlot *this, const char *method, const char *class ){
    int limit;              /* Maximum grid dimension */
    int nbndry;             /* No. of boundary cells with current flag value */
    int ncell;              /* No. of cells along each edge of coarse grid */
+   int rate_disabled;      /* Was the astRate method initially disabled? */
    int rdim;               /* No. of points along each edge of fine grid */
    int ret;                /* Any regions containing bad physical coords? */
    int rsize;              /* No. of points in fine grid */
@@ -4186,6 +4190,12 @@ static int Boundary( AstPlot *this, const char *method, const char *class ){
    power = -0.666666666;
    dim = (int) pow( tol, power ) + 10;
    if( dim > 400 ) dim = 400;
+
+/* Disable the astRate method in order to improve the speed of
+   evaluating the Mapping in cases where the Mapping includes an
+   AstRateMap. Note the original value of hte flag so that it can be
+   re-instated at the end. */
+   rate_disabled = astRateState( 1 );
 
 /* Create the grid. */
    ptr2 = MakeGrid( this, NULL, map, dim, this->xlo, this->xhi, this->ylo, 
@@ -4436,6 +4446,9 @@ static int Boundary( AstPlot *this, const char *method, const char *class ){
           }
        }
     }
+
+/* Re-instate the original setting of the "astRate disabled" flag. */
+   astRateState( rate_disabled );
 
 /* Release the remaining resources. */
    map = astAnnul( map );
@@ -11201,7 +11214,7 @@ static int FindMajTicks( AstMapping *map, AstFrame *frame, int axis,
 
 /* Loop round increasing the nfill value until an unreasonably large value 
    of nfill is reached. The loop will exit early via a break statement when 
-   all small holes in the axis coeerage are filled in. */
+   all small holes in the axis coverage are filled in. */
    lnfill = nfill;
    linc = -100000;
    while( nfill < 100 && astOK ){
@@ -19483,6 +19496,7 @@ static void Norm1( AstMapping *map, int axis, int nv, double *vals,
    double *a;                 /* Pointer to next axis value */
    double *b;                 /* Pointer to next axis value */
    int i;                     /* Loop count */
+   int itry;                  /* Loop count for re-try loop */
    int nbad;                  /* No. of bad values found after transformation */
    int *flags;                /* Pointer to flags array */
 
@@ -19535,52 +19549,66 @@ static void Norm1( AstMapping *map, int axis, int nv, double *vals,
       }
    }
 
+/* We now try normalising any remaining bad positions using different
+   values for the other axis. This may result in some or all of the
+   remaining points being normalised succesfully. */
+   for( itry = 0; itry < 10; itry++ ) {
+
 /* If the above transformation produced any bad values, try again with a
    different value on the other axis. */
-   if( astOK && nbad > 0 ) {
-      b = ptr1[ 1 - axis ];
-      for( i = 0; i < nv; i++){
-         *(b++) = refval + 0.1*width;
-      }
-
+      if( astOK && nbad > 0 ) {
+         b = ptr1[ 1 - axis ];
+         for( i = 0; i < nv; i++){
+            *(b++) = refval + 0.1*( itry + 1 )*width;
+         }
+   
 /* Transform to graphics coords and back to world coords. */
-      (void) astTransform( map, pset1, 0, pset2 );
-      (void) astTransform( map, pset2, 1, pset1 );
-
+         (void) astTransform( map, pset1, 0, pset2 );
+         (void) astTransform( map, pset2, 1, pset1 );
+   
 /* Copy any good positions back into the returned vals array. Count
    remaining bad positions. */
-      a = ptr1[ axis ];
-      nbad = 0;
-      for( i = 0; i < nv; i++, a++ ){
-         if( *a != AST__BAD ) {
-            vals[ i ] = *a;
-            flags[ i ] = 1;
-            *a = AST__BAD;
-         } else if( !flags[ i ] ) {
-            nbad++;
-            *a = vals[ i ];
+         a = ptr1[ axis ];
+         nbad = 0;
+         for( i = 0; i < nv; i++, a++ ){
+            if( *a != AST__BAD ) {
+               vals[ i ] = *a;
+               flags[ i ] = 1;
+               *a = AST__BAD;
+            } else if( !flags[ i ] ) {
+               nbad++;
+               *a = vals[ i ];
+            }
          }
       }
-   }
 
-/* If the above transformation produced any bad values, try one last time 
-   with yet another different value on the other axis. */
-   if( astOK && nbad > 0 ) {
-      b = ptr1[ 1 - axis ];
-      for( i = 0; i < nv; i++){
-         *(b++) = refval - 0.1*width;
-      }
-
+/* If the above transformation produced any bad values, try again with a
+   different value on the other axis. */
+      if( astOK && nbad > 0 ) {
+         b = ptr1[ 1 - axis ];
+         for( i = 0; i < nv; i++){
+            *(b++) = refval - 0.1*( itry + 1 )*width;
+         }
+   
 /* Transform to graphics coords and back to world coords. */
-      (void) astTransform( map, pset1, 0, pset2 );
-      (void) astTransform( map, pset2, 1, pset1 );
-
-/* Copy any good positions back into the returned vals array. */
-      a = ptr1[ axis ];
-      for( i = 0; i < nv; i++, a++ ) {
-         if( !flags[ i ] ) vals[ i ] = *a;
+         (void) astTransform( map, pset1, 0, pset2 );
+         (void) astTransform( map, pset2, 1, pset1 );
+   
+/* Copy any good positions back into the returned vals array. Count
+   remaining bad positions. */
+         a = ptr1[ axis ];
+         nbad = 0;
+         for( i = 0; i < nv; i++, a++ ){
+            if( *a != AST__BAD ) {
+               vals[ i ] = *a;
+               flags[ i ] = 1;
+               *a = AST__BAD;
+            } else if( !flags[ i ] ) {
+               nbad++;
+               *a = vals[ i ];
+            }
+         }
       }
-
    }
 
 /* Free resources. */
