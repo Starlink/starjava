@@ -4,6 +4,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Map;
 import java.util.HashMap;
@@ -62,65 +63,70 @@ class DomNdxImpl implements NdxImpl {
      */
     DomNdxImpl (Element elem)
             throws HdxException {
-        if (HdxResourceType.match(elem) != BridgeNdx.getHdxType())
-            throw new HdxException("Element " + elem.getTagName()
-                                   + " wrong type for DomNdxImpl constructor");
-        //logger.fine("New DomNdxImpl: elem=" + elem);
+        if ( HdxResourceType.match( elem ) != BridgeNdx.getHdxResourceType() )
+            throw new HdxException( "Element " + elem.getTagName()
+                                    + " wrong type for DomNdxImpl constructor");
         ndxElement = elem;
     }
 
     public NDArray getImage() {
-        return getChildArray("image");
+        return getChildArray( "image" );
     }
 
     public NDArray getVariance() {
-        return getChildArray("variance");
+        return getChildArray( "variance" );
     }
 
     public NDArray getQuality() {
-        return getChildArray("quality");
+        return getChildArray( "quality" );
     }
 
     public String getTitle() {
-        return getChildText(HdxResourceType.TITLE.xmlName(),
-                            HdxResourceType.TITLE.getHoistAttribute());
+        return getChildText( HdxResourceType.TITLE.xmlName(),
+                             HdxResourceType.TITLE.getHoistAttribute() );
     }
 
     public int getBadBits() {
-        String bytestr = getChildText("badbits", "value");
-        return (bytestr == null) ? (byte) 0
-                                 : Byte.decode(bytestr).byteValue();
+        String bytestr = getChildText( "badbits", "value" );
+        return ( bytestr == null ) ? (byte) 0
+                                   : Byte.decode(bytestr).byteValue();
     }
 
     public Object getWCS() {
-        // XXX "wcs" will turn into an HdxResourceType when Ast/WCS is
-        // finalised (it had better!).  At that point, we should stop
-        // hard-coding the element name in here.
-        return getChildElement("wcs");
+        /*
+         * XXX "wcs" will turn into an HdxResourceType when Ast/WCS is
+         * finalised (it had better!).  At that point, we should stop
+         * hard-coding the element name in here.
+         */
+        return getChildElement( "wcs" );
     }
 
     public Source getEtc() {
-        // XXX "etc" MIGHT turn into an HdxResourceType when `etc' is
-        // finalised.  At that point, we should stop
-        // hard-coding the element name in here.
-        Element etcElement = getChildElement("etc");
-        // NdxImpl#getEtc asserts that this method _will_not_ be
-        // called unless NdxImpl#hasEtc is true, so assert this, since
-        // it's clearly a programming error if this isn't true.
+        /*
+         * XXX "etc" MIGHT turn into an HdxResourceType when `etc' is
+         * finalised.  At that point, we should stop
+         * hard-coding the element name in here.
+         */
+        Element etcElement = getChildElement( "etc" );
+        /*
+         * NdxImpl#getEtc asserts that this method _will_not_ be
+         * called unless NdxImpl#hasEtc is true, so assert this, since
+         * it's clearly a programming error if this isn't true.
+         */
         assert etcElement != null;
-        return new javax.xml.transform.dom.DOMSource(etcElement);
+        return new javax.xml.transform.dom.DOMSource( etcElement );
     }
     
     public boolean hasImage() {
-        return hasChildArray("data");
+        return hasChildArray( "data" );
     }
 
     public boolean hasVariance() {
-        return hasChildArray("variance");
+        return hasChildArray( "variance" );
     }
 
     public boolean hasQuality() {
-        return hasChildArray("quality");
+        return hasChildArray( "quality" );
     }
 
     public boolean hasTitle() {
@@ -128,11 +134,11 @@ class DomNdxImpl implements NdxImpl {
     }
 
     public boolean hasWCS() {
-        return getChildElement("wcs") != null;
+        return getChildElement( "wcs" ) != null;
     }
 
     public boolean hasEtc() {
-        return getChildElement("etc") != null;
+        return getChildElement( "etc" ) != null;
     }
 
     public String toString() {
@@ -140,8 +146,8 @@ class DomNdxImpl implements NdxImpl {
     }
 
     /** Save an NDObjectDomNode for later retrieval. */
-    private void putChild (String r, Object n) {
-        contents.put (r, n);
+    private void putChild ( String r, Object n ) {
+        contents.put ( r, n );
         return;
     }
 
@@ -154,16 +160,16 @@ class DomNdxImpl implements NdxImpl {
      * @param res the name of the element to return
      * @return the required element, or null if none can be found.
      */
-    private Element getChildElement (String xmlname) {
-        if (ndxElement == null)
+    private Element getChildElement ( String xmlname ) {
+        if ( ndxElement == null )
             return null;
 
         for (Node kid = ndxElement.getFirstChild();
              kid != null;
              kid = kid.getNextSibling()) {
-            if (kid.getNodeType() == Node.ELEMENT_NODE
-                && ((Element)kid).getTagName().equals(xmlname)) {
-                return (Element)kid;
+            if ( kid.getNodeType() == Node.ELEMENT_NODE
+                && ((Element)kid).getTagName().equals( xmlname ) ) {
+                return ( Element )kid;
             }
         }
         return null;
@@ -178,40 +184,40 @@ class DomNdxImpl implements NdxImpl {
      *
      * @return the indexed object, or null if nothing was found.
      */
-    private NDArray getChildArray (String xmlname) {
-        if (!contents.containsKey(xmlname))
+    private NDArray getChildArray ( String xmlname ) {
+        if ( !contents.containsKey(xmlname) )
         {
-            Element kid = getChildElement(xmlname);
-            if (kid == null) {
-                putChild(xmlname, null);
+            Element kid = getChildElement( xmlname );
+            if ( kid == null ) {
+                putChild( xmlname, null );
             } else {
                 try {
-                    URL url = getURLFromElement(kid);
-                    if (url == null) {
-                        logger.warning("No URL in element: " + kid);
-                        putChild(xmlname, null);
+                    URL url = getURLFromElement( kid );
+                    if ( url == null ) {
+                        logger.warning( "No URL in element: " + kid );
+                        putChild( xmlname, null );
                     } else {
                         putChild (xmlname,
                                   new NDArrayFactory()
                                   .makeNDArray
-                                  (url, AccessMode.READ));
+                                  ( url, AccessMode.READ) );
                     }
-                } catch (IOException ex) {
-                    logger.warning("Error creating NDArray ("
-                                       + ex + ")");
-                    putChild (xmlname, null);
-                } catch (HdxException ex) {
-                    logger.warning("Error creating NDArray ("
-                                       + ex + ")");
-                    putChild (xmlname, null);
+                } catch ( IOException ex ) {
+                    logger.warning( "Error creating NDArray ("
+                                    + ex + ")" );
+                    putChild ( xmlname, null );
+                } catch ( HdxException ex ) {
+                    logger.warning( "Error creating NDArray ("
+                                    + ex + ")" );
+                    putChild ( xmlname, null );
                 }
             }
         }
-        return (NDArray) contents.get(xmlname);
+        return (NDArray) contents.get( xmlname );
     }
 
-    private boolean hasChildArray (String xmlname) {
-        return (getChildArray(xmlname) != null);
+    private boolean hasChildArray ( String xmlname ) {
+        return ( getChildArray( xmlname ) != null );
     }
 
     /**
@@ -228,64 +234,53 @@ class DomNdxImpl implements NdxImpl {
      * @return The text value as a String, or null if there was no such element
      *         or it had no associated text.
      */
-    private String getChildText (String xmlname, String substAttribute) {
-        if (!contents.containsKey(xmlname))
+    private String getChildText ( String xmlname, String substAttribute ) {
+        if ( !contents.containsKey( xmlname ) )
         {
-            Element kid = getChildElement(xmlname);
-            if (kid == null)
-                putChild(xmlname, null);
+            Element kid = getChildElement( xmlname );
+            if ( kid == null )
+                putChild( xmlname, null );
             else {
                 if (substAttribute != null
-                    && kid.hasAttribute(substAttribute))
-                    putChild(xmlname, kid.getAttribute(substAttribute));
+                    && kid.hasAttribute( substAttribute) )
+                    putChild( xmlname, kid.getAttribute(substAttribute) );
                 else
-                    putChild(xmlname, kid.getNodeValue());
+                    putChild( xmlname, kid.getNodeValue() );
             }
         }
-        return (String) contents.get(xmlname);
+        return (String) contents.get( xmlname );
     }
 
 
     /**
      * Finds the URL associated with an element.  Examine, in order,
-     * the "url" and "uri" attributes, then the element content.  We
-     * assume that, if the "url" attribute is not present, there is
-     * only a <em>single</em> text node below this one.
+     * the element's <code>url</code> and <code>uri</code> attributes.
      *
-     * <p>XXX Will soon forbid getting URL from element content, and
-     * possibly from the "uri" attribute, too, restricting it to the
-     * "url" attribute alone.
+     * <p>XXX We may soon forbid getting the URL from the "uri"
+     * attribute, restricting it to the "url" attribute alone.
      *
      * @return the URL, or null if none is available.
-     * @throws HdxException if the node violates the assumption that
-     * it has only a single text node child, or if the given URL is
-     * malformed.
+     * @throws HdxException the given URL is malformed.
      */
-    private URL getURLFromElement(Element e)
+    private URL getURLFromElement( Element e )
             throws HdxException {
 
-        String urlString = e.getAttribute("url");
+        String urlString = e.getAttribute( "url" );
         assert urlString != null;
-        if (urlString.length() == 0)
-            urlString = e.getAttribute("uri");
+        if ( urlString.length() == 0 )
+            urlString = e.getAttribute( "uri" );
         assert urlString != null;
 
         URL url;
-        try {
-
-            if (urlString.length() == 0)
-                url = null;
-            else
-                url = new URL(urlString);
-
-        } catch (java.net.MalformedURLException ex) {
-            throw new HdxException("Element " + e.getTagName()
-                                   + ": URL " + urlString + " malformed");
-        }
-
-        logger.fine("DomNdxImpl.getURLFromElement(" + e.toString()
-                    + ")=" + (url==null ? "<null>" : url.toString()));
-
+        if ( urlString.length() == 0 )
+            url = null;
+        else
+            url = uk.ac.starlink.hdx.HdxFactory
+                    .findFactory( e )
+                    .fullyResolveURI( urlString, e );
+        
+        logger.fine( "DomNdxImpl.getURLFromElement(" + e + ")=" + url );
         return url;
+            
     }
 }
