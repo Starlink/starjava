@@ -9,6 +9,8 @@ import java.awt.image.DataBufferShort;
 import java.awt.image.DataBufferInt;
 import javax.media.jai.DataBufferFloat;     //   !
 import javax.media.jai.DataBufferDouble;    //   !
+import javax.media.jai.JAI;
+import javax.media.jai.TileCache;
 import java.awt.Point;
 import com.sun.media.jai.codec.ImageCodec;
 import javax.media.jai.RasterFactory; 
@@ -20,7 +22,6 @@ import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Requirements;
 import uk.ac.starlink.array.Type;
-import uk.ac.starlink.jaiutil.MyTileCache;
 import uk.ac.starlink.jaiutil.SimpleRenderedImage;
 
 /* The implementation of this class is largely pinched from HDXImage in
@@ -33,8 +34,10 @@ public class NDArrayImage extends SimpleRenderedImage {
     private int defaultTileWidth = 100;
     private int defaultTileHeight = 100;
     private static final int MAX_TILE_BYTES = 32*1024*1024;
-    private MyTileCache tileCache;
     private long[] origin;
+
+    public final static TileCache tileCache = 
+        JAI.getDefaultInstance().getTileCache();
 
     public NDArrayImage( NDArray nda ) throws IOException {
 
@@ -64,11 +67,6 @@ public class NDArrayImage extends SimpleRenderedImage {
             tileHeight = height;
         }
 
-        /* Get a tile cache. */
-        tileCache = new MyTileCache( width, height, tileWidth, tileHeight,
-                                     nda.getType().getNumBytes(),
-                                     MAX_TILE_BYTES );
-
         /* Make sample model and colour model. */
         sampleModel = makeSampleModel( getDataType( nda.getType() ), 
                                        tileWidth, tileHeight );
@@ -77,12 +75,12 @@ public class NDArrayImage extends SimpleRenderedImage {
 
 
     public synchronized Raster getTile( int tileX, int tileY ) {
-        Raster tile = tileCache.getTile( tileX, tileY );
+        Raster tile = tileCache.getTile( this, tileX, tileY );
         if ( tile == null ) {
             Point origin = new Point( tileXToX( tileX ), tileYToY( tileY ) );
             tile = RasterFactory.createWritableRaster( sampleModel, origin );
             fillTile( tile );
-            tileCache.add( tileX, tileY, tile );
+            tileCache.add( this, tileX, tileY, tile );
         }
         return tile;
     }
