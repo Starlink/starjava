@@ -220,7 +220,20 @@
     <pathelement location="${star.build.dir}/junit/lib/junit/junit.jar"/>
   </extclasspath>
 
+  <!-- "Local" third party jars. 
+   !   They are installed with the package jar files and should be
+   !   entered into the main jar file manifest.
+   !-->
+  <path id="package.jars">
+     <fileset dir="${src.jars.dir}">
+        <include name="*.jar"/>
+     </fileset>
+  </path>
+
   <path id="built.classpath">
+
+    <!-- Local third party jars -->
+    <path refid="package.jars"/>
 
     <!-- Directly dependent third party jars -->
     <path refid="built.jarpath"/>
@@ -354,6 +367,15 @@
       </fileset>
     </copy>
 
+    <!-- Local third party jars, if any. Copy straight into
+     !   distribution directories to save on unnecessary copies and to
+     !   make these available for resolution by other locally built
+     !   packages that are using this one -->
+    <mkdir dir="${dist.lib.pkg}"/>
+    <copy todir="${dist.lib.pkg}">
+       <fileset dir="${src.jars.dir}"/>
+    </copy>
+
   </target>
 
   <!--
@@ -381,8 +403,6 @@
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
-
-    <zip destfile="${dist.lib.pkg}/${name}_src.zip" basedir="${java.dir}"/>
 
     <!-- Sign all jar files -->
     <signjar jar="${dist.lib.pkg}/${name}.jar"
