@@ -121,7 +121,7 @@ public abstract class WindowAction extends BasicAction {
      *
      * @param  parent  component which may be used for placing the new window
      */
-    protected abstract Window getWindow( Component parent );
+    public abstract Window getWindow( Component parent );
 
     /**
      * Indicates whether the window associated with this window is 
