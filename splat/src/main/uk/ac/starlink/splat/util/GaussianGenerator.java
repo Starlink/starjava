@@ -31,10 +31,31 @@ public class GaussianGenerator
      */
     public GaussianGenerator( double scale, double centre, double sigma )
     {
-        super();
+        this( scale, false, centre, false, sigma, false );
+    }
+
+    /**
+     * Generate positions for a gaussian profile. Also records which
+     * parameters should be considered fixed by any fitting procedures.
+     *
+     * @param scale the scale height.
+     * @param scaleFixed should scale be considered fixed.
+     * @param centre the centre.
+     * @param centreFixed should centre be considered fixed.
+     * @param sigma the gaussian sigma.
+     * @param sigmaFixed should sigma be considered fixed.
+     */
+    public GaussianGenerator( double scale, boolean scaleFixed,
+                              double centre, boolean centreFixed,
+                              double sigma, boolean sigmaFixed )
+    {
         params[SCALE] = scale;
         params[CENTRE] = centre;
         params[SIGMA] = sigma;
+        
+        fixed[SCALE] = scaleFixed;
+        fixed[CENTRE] = centreFixed;
+        fixed[SIGMA] = sigmaFixed;
     }
 
     //

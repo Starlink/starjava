@@ -16,14 +16,14 @@ import uk.ac.starlink.splat.data.AnalyticSpectrum;
  * interfaces.
  * <p>
  * Examples of derived classes are GaussianFitter, LorentzFitter and
- * VoigtFitter. A abstract base class for FunctionFitters is provided in 
+ * VoigtFitter. A abstract base class for FunctionFitters is provided in
  * {@link AbstractFunctionFitter}.
  *
  * @author Peter W. Draper
  * @version $Id$
  * @see GaussianFitter
  * @see LorentzFitter
- * @see VoigtFitter 
+ * @see VoigtFitter
  * @see AbstractFunctionFitter
  * @see AnalyticSpectrum
  * @see LevMarqFunc
@@ -70,9 +70,9 @@ public interface FunctionFitter
 
     /**
      * Return the number of parameters used to describe this
-     * function. This is the size of the {@link LevMarqFunc#eval}  
+     * function. This is the size of the {@link LevMarqFunc#eval}
      * a parameter.
-     * 
+     *
      * @return number of parameters used to describe this function.
      */
     public int getNumParams();
@@ -87,15 +87,15 @@ public interface FunctionFitter
      */
     public void setParams( double[] params );
 
-    /** 
-     * Return the floating states of the various parameters. This
+    /**
+     * Return the fixed or floating states of the various parameters. This
      * determines if the values are fixed and should not be changed,
      * or may float. The default state should be floating.
      */
-    //public boolean[] getFloating();
-    
+    public boolean[] getFixed();
+
     /**
-     * Set the floating state of the variuous parameters.
+     * Set the fixed state of the various parameters.
      */
-    //public void setFloating( boolean[] floating );
+    public void setFixed( boolean[] fixed );
 }

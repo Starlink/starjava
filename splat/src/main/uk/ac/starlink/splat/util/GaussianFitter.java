@@ -31,6 +31,11 @@ public class GaussianFitter
      */
     protected double[] params = new double[3];
 
+    /**
+     * Whether the parameters are fixed or floating.
+     */
+    protected boolean[] fixed = new boolean[3];
+
     // Access to parameters.
     public static final int SCALE = 0;
     public static final int CENTRE = 1;
@@ -58,15 +63,7 @@ public class GaussianFitter
     public GaussianFitter( double[] x, double[] y, double scale,
                            double centre, double sigma )
     {
-        // Default weights are 1.0.
-        double[] w = new double[x.length];
-        for (int i = 0; i < x.length; i++ ) {
-            w[i] = 1.0;
-        }
-        params[SCALE] = scale;
-        params[CENTRE] = centre;
-        params[SIGMA] = sigma;
-        doFit( x, y, w );
+        this( x, y, null, scale, centre, sigma );
     }
 
     /**
@@ -82,9 +79,42 @@ public class GaussianFitter
     public GaussianFitter( double[] x, double[] y, double[] w,
                            double scale, double centre, double sigma )
     {
+        this( x, y, w, scale, false, centre, false, sigma, false );
+    }
+
+    /**
+     * Fit a gaussian to weighted data points, possible fixing some parameters
+     * to the initial estimate.
+     *
+     * @param x array of positions along X. These are assumed precise.
+     * @param y array of positions along Y.
+     * @param w weights (i.e. inverse variances).
+     * @param scale initial estimate of the gaussian scale.
+     * @param scaleFixed whether the scale value should be fixed.
+     * @param centre initial estimate of the gaussian centre.
+     * @param centreFixed whether the centre value should be fixed.
+     * @param sigma initial estimate of the gaussian sigma.
+     * @param sigmaFixed whether the sigma value should be fixed.
+     */
+    public GaussianFitter( double[] x, double[] y, double[] w,
+                           double scale, boolean scaleFixed,
+                           double centre, boolean centreFixed,
+                           double sigma, boolean sigmaFixed )
+    {
         params[SCALE] = scale;
         params[CENTRE] = centre;
         params[SIGMA] = sigma;
+        fixed[SCALE] = scaleFixed;
+        fixed[CENTRE] = centreFixed;
+        fixed[SIGMA] = sigmaFixed;
+
+        if ( w == null ) {
+            // Default weights are 1.0.
+            w = new double[x.length];
+            for (int i = 0; i < x.length; i++ ) {
+                w[i] = 1.0;
+            }   
+        }
         doFit( x, y, w );
     }
 
@@ -112,9 +142,9 @@ public class GaussianFitter
         }
 
         //  Set the initial guesses.
-        lm.setParam( 1, params[SCALE] );
-        lm.setParam( 2, params[CENTRE] );
-        lm.setParam( 3, params[SIGMA] );
+        lm.setParam( 1, params[SCALE], fixed[SCALE] );
+        lm.setParam( 2, params[CENTRE], fixed[CENTRE] );
+        lm.setParam( 3, params[SIGMA], fixed[SIGMA] );
 
         //  And mimimise.
         lm.fitData();
@@ -203,6 +233,20 @@ public class GaussianFitter
         this.params[0] = params[0];
         this.params[1] = params[1];
         this.params[2] = params[2];
+    }
+
+    //  Get the fixed/floating state of parameters.
+    public boolean[] getFixed()
+    {
+        return fixed;
+    }
+
+    // Set the fixed state of the various parameters.
+    public void setFixed( boolean[] fixed )
+    {
+        this.fixed[0] = fixed[0];
+        this.fixed[1] = fixed[1];
+        this.fixed[2] = fixed[2];
     }
 
     //

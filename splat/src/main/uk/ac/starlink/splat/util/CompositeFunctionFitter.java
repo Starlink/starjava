@@ -9,10 +9,11 @@ package uk.ac.starlink.splat.util;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Arrays;
 
 /**
  * Combines a set of {@link FunctionGenerator}s so that they are
- * presented as a single FunctionFitter. The individual components
+ * presented as a single {@link FunctionFitter}. The individual components
  * are combined as a linear combination.
  *
  * @author Peter W. Draper
@@ -22,7 +23,13 @@ public class CompositeFunctionFitter
     extends AbstractFunctionFitter
 {
     // XXX could optimise a lot of this. Use FunctionGenerator[]
-    // array, pre-allocate suba and subdyda...
+    // array, pre-allocate suba and subdyda... 
+    //
+    // XXX Sitting here with better things to do an obvious refactoring of the
+    // Fitter and Generator classes is to make Generators for each model the
+    // basic type and use this class to create Fitters for the specific
+    // models, but history has the logic the other way around as Fitters came
+    // first.
 
     /**
      * The list of {@link FunctionGenerator}s that are being managed.
@@ -40,6 +47,16 @@ public class CompositeFunctionFitter
     public CompositeFunctionFitter()
     {
         funcs = new ArrayList();
+    }
+
+    /**
+     * Perform the fit on all FunctionGenerators using unit weights.
+     */
+    public void doFit( double[] x, double[] y )
+    {
+        double[] w = new double[x.length];
+        Arrays.fill( w, 1.0 );
+        doFit( x, y, w );
     }
 
     /**
@@ -67,8 +84,9 @@ public class CompositeFunctionFitter
 
         // Need to access and set all parameters.
         double[] params = getParams();
+        boolean[] fixed = getFixed();
         for ( int i = 0; i < params.length; i++ ) {
-            lm.setParam( i + 1, params[i] );
+            lm.setParam( i + 1, params[i], fixed[i] );
         }
 
         // And mimimise.
@@ -76,6 +94,12 @@ public class CompositeFunctionFitter
 
         // Record estimate of goodness of fit.
         chiSquare = lm.getChisq();
+
+        //  And reset all FunctionGenerators to the new values.
+        for ( int i = 0; i < params.length; i++ ) {
+            params[i] = lm.getParam( i + 1 );
+        }
+        setParams( params );
     }
 
     /**
@@ -104,22 +128,48 @@ public class CompositeFunctionFitter
 
     public double getCentre()
     {
-        return 0.0;
+        //  Return mean position.
+        int size = funcs.size();
+        double sum = 0.0;
+        if ( size > 0 ) {
+            for ( int i = 0; i < size; i++ ) {
+                sum += ((FunctionGenerator) funcs.get( i )).getCentre();
+            }
+            sum /= (double) size;
+        }
+        return sum;
     }
 
     public double getScale()
     {
-        return 0.0;
+        //  Hmm, what does this mean? Maximum, mean or sum? I choose mean.
+        int size = funcs.size();
+        double sum = 0.0;
+        if ( size > 0 ) {
+            for ( int i = 0; i < size; i++ ) {
+                sum += ((FunctionGenerator) funcs.get( i )).getScale();
+            }
+            sum /= (double) size;
+        }
+        return sum;
     }
 
     public double getFlux()
     {
-        return 0.0;
+        //  Sum flux of all components.
+        int size = funcs.size();
+        double sum = 0.0;
+        if ( size > 0 ) {
+            for ( int i = 0; i < size; i++ ) {
+                sum += ((FunctionGenerator) funcs.get( i )).getFlux();
+            }
+        }
+        return sum;
     }
 
     public double getChi()
     {
-        return 0.0;
+        return chiSquare;
     }
 
     // Evaluate the composite function at a series of positions.
@@ -133,7 +183,7 @@ public class CompositeFunctionFitter
             for ( int i = 1; i < size; i++ ) {
                 values =
                     ((FunctionGenerator) funcs.get( i )).evalYDataArray( x );
-                for ( int j = 0; j < values.length; i++ ) {
+                for ( int j = 0; j < values.length; j++ ) {
                     sums[j] += values[j];
                 }
             }
@@ -185,16 +235,68 @@ public class CompositeFunctionFitter
         return params;
     }
 
-    // Set all params... Does nothing just required for the interface.
+    // Set all params, does the reverse of getParams. Order depends on 
+    // the FunctionGenerators in use, so not much use to anyone else.
     public void setParams( double[] params )
     {
-        // Do nothing.
+        int size = funcs.size();
+        double[] pars;
+        int offset = 0;
+        int npars = 0;
+        FunctionGenerator g;
+        for ( int i = 0; i < size; i++ ) {
+            g = ((FunctionGenerator) funcs.get( i ));
+            npars = g.getNumParams();
+            pars = new double[npars];
+            for ( int j = 0; j < pars.length; j++ ) {
+                pars[j] = params[offset++];
+            }
+            g.setParams( pars );
+        }
+    }
+
+    // Get whether parameters are fixed in a single array.
+    public boolean[] getFixed()
+    {
+        int total = getNumParams();
+        boolean[] fixed = new boolean[total];
+
+        int size = funcs.size();
+        boolean[] fix;
+        int offset = 0;
+        for ( int i = 0; i < size; i++ ) {
+            fix = ((FunctionGenerator) funcs.get( i )).getFixed();
+            for ( int j = 0; j < fix.length; j++ ) {
+                fixed[offset++] = fix[j];
+            }
+        }
+        return fixed;
+    }
+
+    // Set whether parameters are fixed... This depends on the order of the
+    // given FunctionGenerators
+    public void setFixed( boolean[] fixed )
+    {
+        int size = funcs.size();
+        boolean[] fixs;
+        int offset = 0;
+        int nfixs = 0;
+        FunctionGenerator g;
+        for ( int i = 0; i < size; i++ ) {
+            g = ((FunctionGenerator) funcs.get( i ));
+            nfixs = g.getNumParams();
+            fixs = new boolean[nfixs];
+            for ( int j = 0; j < fixs.length; j++ ) {
+                fixs[j] = fixed[offset++];
+            }
+            g.setFixed( fixs );
+        }
     }
 
     //
-    // Evaluate the composite function given a set of full
-    // parameters. Returns the derivate of the function at the
-    // position. Part of the LevMarqFunc interface.
+    // Evaluate the composite function given a set of full parameters. Returns
+    // the derivate of the function at the position. Part of the 
+    // {@link LevMarqFunc} interface.
     //
     public double eval( double x, double[] a, int na, double[] dyda )
     {
@@ -204,22 +306,22 @@ public class CompositeFunctionFitter
             double[] suba;
             double[] subdyda;
             int npar;
-            int offset = 0;
+            int offset = 1;
             FunctionGenerator gen;
             for ( int i = 0; i < size; i++ ) {
                 gen = (FunctionGenerator) funcs.get( i );
 
                 // Copy the parameters needed for this sub-function.
                 npar = gen.getNumParams();
-                suba = new double[npar];
-                for ( int j = 0, k = offset; j < npar; j++ ) {
+                suba = new double[npar+1];
+                for ( int j = 1, k = offset; j <= npar; j++ ) {
                     suba[j] = a[k++];
                 }
 
                 //  Evaluate, copying the derivates returned.
-                subdyda = new double[npar];
+                subdyda = new double[npar+1];
                 sum += gen.eval( x, suba, npar, subdyda );
-                for ( int j = 0; j < npar; j++ ) {
+                for ( int j = 1; j <= npar; j++ ) {
                     dyda[offset++] = subdyda[j];
                 }
             }

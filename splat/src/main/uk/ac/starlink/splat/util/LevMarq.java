@@ -86,7 +86,7 @@ public class LevMarq
 
         //  Initialise local variables.
         mfit = mparam;
-        converge = 0.999;
+        converge = 0.9999;
     }
 
     /**
@@ -196,6 +196,23 @@ public class LevMarq
     }
 
     /**
+     *  Puts value f into parameter n and sets the floating/fixed attribute.
+     */
+    public void setParam( int n, double f, boolean fixed )
+    {
+        if ( n <= mparam ) {
+            a[n] = f;
+            if( fixed ) {
+                ia[n] = 0;      // fix the parameter with value f
+            }
+            else {
+                ia[n] = 1;      // parameter has initial value f,
+                                // but can float during fit
+            }
+        }
+    }
+
+    /**
      *  Returns the value of the nth parameter.
      */
     public double getParam( int n )
@@ -270,7 +287,22 @@ public class LevMarq
     }
 
     /**
-     *  Sets parameter n  to be fixed.
+     *  Sets parameter n to be fixed or floating during fitting.
+     */
+    public void setParamFixed( int n, boolean fixed )
+    {
+        if ( n <= mparam ) {
+            if ( fixed ) {
+                ia[n] = 0;
+            }
+            else {
+                ia[n] = 1;
+            }
+        }
+    }
+
+    /**
+     *  Sets parameter n to be fixed.
      */
     public void setParamFixed( int n )
     {
@@ -718,7 +750,8 @@ public class LevMarq
                 ratio = chi2 / oldchi2;
 		ncount = 1;
             }
-        } while ( ratio <= converge );
+        } 
+        while ( ratio <= converge );
 
 	alambda = 0.0;
 	mrqmin();

@@ -28,6 +28,11 @@ public class VoigtFitter
      */
     protected double[] params = new double[4];
 
+    /**
+     * Whether the parameters are fixed or floating.
+     */
+    protected boolean[] fixed = new boolean[4];
+
     // Access to parameters.
     public static final int SCALE = 0;
     public static final int GWIDTH = 1;
@@ -62,18 +67,7 @@ public class VoigtFitter
     public VoigtFitter( double[] x, double[] y, double scale,
                         double centre, double gwidth, double lwidth )
     {
-        params[SCALE] = scale;
-        params[GWIDTH] = gwidth;
-        params[LWIDTH] = lwidth;
-        params[CENTRE] = centre;
-        peak = 1.0;
-
-        // Default weights are 1.0.
-        double[] w = new double[x.length];
-        for (int i = 0; i < x.length; i++ ) {
-            w[i] = 1.0;
-        }
-        doFit( x, y, w );
+        this( x, y, null, scale, centre, gwidth, lwidth );
     }
 
     /**
@@ -91,11 +85,49 @@ public class VoigtFitter
                         double scale, double centre, double gwidth,
                         double lwidth )
     {
+        this( x, y, null, scale, false, centre, false, gwidth, false, 
+              lwidth, false );
+    }
+
+    /**
+     * Fit a Voigt to weighted data points.
+     *
+     * @param x array of positions along X. These are assumed precise.
+     * @param y array of positions along Y.
+     * @param w weights (i.e. inverse variances, null for defaults).
+     * @param scale initial estimate of the scale height.
+     * @param scaleFixed is scale value fixed.
+     * @param centre initial estimate of the centre.
+     * @param centreFixed is centre value fixed.
+     * @param gwidth initial estimate of the Gaussian width.
+     * @param gwidthFixed is gwidth value fixed.
+     * @param lwidth initial estimate of the Lorentzian width.
+     * @param lwidthFixed is lwidth value fixed.
+     */
+    public VoigtFitter( double[] x, double[] y, double[] w,
+                        double scale, boolean scaleFixed, 
+                        double centre, boolean centreFixed, 
+                        double gwidth, boolean gwidthFixed, 
+                        double lwidth, boolean lwidthFixed )
+    {
         params[SCALE] = scale;
         params[GWIDTH] = gwidth;
         params[LWIDTH] = lwidth;
         params[CENTRE] = centre;
         peak = 1.0;
+
+        fixed[SCALE] = scaleFixed;
+        fixed[GWIDTH] = gwidthFixed;
+        fixed[LWIDTH] = lwidthFixed;
+        fixed[CENTRE] = centreFixed;
+
+        if ( w == null ) {
+            // Default weights are 1.0.
+            w = new double[x.length];
+            for (int i = 0; i < x.length; i++ ) {
+                w[i] = 1.0;
+            }
+        }            
         doFit( x, y, w );
     }
 
@@ -119,10 +151,10 @@ public class VoigtFitter
         }
 
         //  Set the initial guesses.
-        lm.setParam( 1, params[SCALE] );
-        lm.setParam( 2, params[GWIDTH] );
-        lm.setParam( 3, params[LWIDTH] );
-        lm.setParam( 4, params[CENTRE] );
+        lm.setParam( 1, params[SCALE], fixed[SCALE] );
+        lm.setParam( 2, params[GWIDTH], fixed[GWIDTH] );
+        lm.setParam( 3, params[LWIDTH], fixed[LWIDTH] );
+        lm.setParam( 4, params[CENTRE], fixed[CENTRE] );
 
         //  Each solution is scaled by a re-normalisation factor
         //  (i.e. so that error function peak is 1).
@@ -240,6 +272,21 @@ public class VoigtFitter
         this.params[1] = params[1];
         this.params[2] = params[2];
         this.params[3] = params[3];
+    }
+
+    //  Get the fixed/floating state of parameters.
+    public boolean[] getFixed()
+    {
+        return fixed;
+    }
+
+    // Set the fixed state of the various parameters.
+    public void setFixed( boolean[] fixed )
+    {
+        this.fixed[0] = fixed[0];
+        this.fixed[1] = fixed[1];
+        this.fixed[2] = fixed[2];
+        this.fixed[3] = fixed[3];
     }
 
     /**

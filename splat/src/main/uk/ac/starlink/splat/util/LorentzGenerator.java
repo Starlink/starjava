@@ -18,7 +18,7 @@ public class LorentzGenerator
     implements FunctionGenerator
 {
     /**
-     * Generate positions for a lorentzian
+     * Generate positions for a Lorentzian
      *
      * @param scale the scale height.
      * @param centre the centre.
@@ -26,9 +26,31 @@ public class LorentzGenerator
      */
     public LorentzGenerator( double scale, double centre, double width )
     {
+        this( scale, false, centre, false, width, false );
+    }
+
+    /**
+     * Generate positions for a Lorentzian. Also records which parameters
+     * should be considered fixed by any fitting procedures.
+     *
+     * @param scale the scale height.
+     * @param scaleFixed should scale be considered fixed.
+     * @param centre the centre.
+     * @param centreFixed should centre be considered fixed.
+     * @param width the lorentzian width.
+     * @param widthFixed should width be considered fixed.
+     */
+    public LorentzGenerator( double scale, boolean scaleFixed,
+                             double centre, boolean centreFixed,
+                             double width, boolean widthFixed )
+    {
         params[SCALE] = scale;
         params[CENTRE] = centre;
         params[WIDTH] = width;
+
+        fixed[SCALE] = scaleFixed;
+        fixed[CENTRE] = centreFixed;
+        fixed[WIDTH] = widthFixed;
     }
 
     //
