@@ -7,17 +7,20 @@
  */
 package uk.ac.starlink.splat.util;
 
-import java.net.URL;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
 
 import uk.ac.starlink.soap.AppHttpSOAPServer;
-import uk.ac.starlink.splat.iface.SplatBrowser;
-import uk.ac.starlink.splat.iface.PlotControlFrame;
-import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.soap.util.RemoteUtilities;
 import uk.ac.starlink.splat.data.NDXSpecDataImpl;
+import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.iface.PlotControlFrame;
+import uk.ac.starlink.splat.iface.SplatBrowser;
 
 /**
  * Implements the SOAP web services offered by the SPLAT application. There is
@@ -26,15 +29,21 @@ import uk.ac.starlink.splat.data.NDXSpecDataImpl;
  * <p>
  * The port used to communicate with this server is chosen by using a given
  * base number and searching from that for the first free port (the default
- * search point is 8081).
+ * search point is 8081). The port chosen is reported, via the logging system,
+ * as this is potentially a security issue (as the cookie mechanism is not
+ * enforced for backwards compatibility).
  *
  * @author Peter W. Draper
  * @version $Id$
  */
 public class SplatSOAPServer
 {
-    /** 
-     * The application HTTP/SOAP server 
+    // Logger.
+    private static Logger logger =
+        Logger.getLogger( "uk.ac.starlink.splat.util.SplatSOAPServer" );
+
+    /**
+     * The application HTTP/SOAP server
      */
     private AppHttpSOAPServer server = null;
 
@@ -43,7 +52,7 @@ public class SplatSOAPServer
      */
     private SplatBrowser browserMain = null;
 
-    /** 
+    /**
      * The port number being used for the server.
      */
     private int portNumber = 8081;
@@ -52,6 +61,11 @@ public class SplatSOAPServer
      * The instance.
      */
     private static SplatSOAPServer instance = null;
+
+    /**
+     * Cookie used to validate contacts (not required at present).
+     */
+    private String cookie = null;
 
     /**
      * Get the instance. Uses lazy instantiation so object does not exist
@@ -66,7 +80,7 @@ public class SplatSOAPServer
                 instance = new SplatSOAPServer();
             }
             catch (IOException e) {
-                e.printStackTrace();
+                logger.log( Level.INFO, e.getMessage(), e );
                 instance = null;
             }
         }
@@ -74,7 +88,7 @@ public class SplatSOAPServer
     }
 
     /**
-     * Listen for remote RPC SOAP requests.
+     * Constructor. Private to avoid instantiation.
      */
     private SplatSOAPServer()
         throws IOException
@@ -100,9 +114,10 @@ public class SplatSOAPServer
 
     /**
      * Set the base port number to be used when starting the HTTP server.
-     * This may not be the actual port used.
+     * This may not be the actual port used, use {@link #getPortNumber} to
+     * query for that after the server is started.
      */
-    public void setPortNumber( int portNum ) 
+    public void setPortNumber( int portNum )
     {
         portNumber = portNum;
     }
@@ -117,26 +132,31 @@ public class SplatSOAPServer
 
     /**
      * Start the remote services. Do not forget to use this method as
-     * no services are available until after it is invoked. 
+     * no services are available until after it is invoked.
      */
     public void start()
     {
         //  Create the HTTP/SOAP server. Need our local description to
-        //  define the SOAP services offered (by this class). 
+        //  define the SOAP services offered (by this class).
         URL deployURL = SplatSOAPServer.class.getResource( "deploy.wsdd" );
 
         try {
             server = new AppHttpSOAPServer( portNumber );
             server.start();
             server.addSOAPService( deployURL );
-            
+
             //  Port may have been switched, so get port value back.
             portNumber = server.getPort();
-            System.out.println( "Remote services port: " + portNumber );
+            logger.warning("Remote services port '" + portNumber + "' opened");
+
+            //  Write the contact file and obtain the verification cookie.
+            cookie = RemoteUtilities
+                .writeContactFile( portNumber,
+                                   Utilities.getApplicationName() );
         }
         catch ( Exception e ) {
-            e.printStackTrace();
-            throw new RuntimeException( "Failed to start SPLAT SOAP services" );
+            logger.log( Level.INFO, e.getMessage(), e );
+            throw new RuntimeException("Failed to start SPLAT SOAP services");
         }
     }
 
@@ -156,8 +176,10 @@ public class SplatSOAPServer
     }
 
 //
-// Define the actual services, these are mediated through a static
-// class SOAPServices.
+// Define the actual services, these are mediated through a static class
+// SplatSOAPServices. Note the cookie should really be used as a check on the
+// authenticity of the requestor, but it isn't for backwards compatibility
+// reasons.
 //
     /**
      * Display a spectrum by name.
@@ -170,6 +192,22 @@ public class SplatSOAPServer
         return (plot == null);
     }
 
+    /**
+     * Display a spectrum by name. Security verified version.
+     *
+     * @param specspec the spectrum specification
+     */
+    public boolean displaySpectrum( String cookie, String specspec )
+    {
+        if ( cookie != null && cookie.equals( this.cookie ) ) {
+            PlotControlFrame plot = browserMain.displaySpectrum( specspec );
+            return (plot == null);
+        }
+        else {
+            logger.severe( "Non secure displaySpectrum called" );
+        }
+        return false;
+    }
 
     /**
      * Accept an NDX as Element description and display it.
@@ -185,5 +223,25 @@ public class SplatSOAPServer
         catch( SplatException e ) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Accept an NDX as Element description and display it. Security enabled
+     * version.
+     */
+    public void displayNDX( String cookie, Element ndxElement )
+    {
+        if ( cookie != null && cookie.equals( this.cookie ) ) {
+            try {
+                NDXSpecDataImpl impl = new NDXSpecDataImpl( ndxElement );
+                SpecData spectrum = new SpecData( impl );
+                browserMain.addSpectrum( spectrum );
+                browserMain.displaySpectrum( spectrum );
+            }
+            catch( SplatException e ) {
+                e.printStackTrace();
+            }
+        }
+        logger.severe( "Non-secure displayNDX called" );
     }
 }

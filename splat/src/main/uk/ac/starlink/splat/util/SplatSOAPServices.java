@@ -3,7 +3,7 @@ package uk.ac.starlink.splat.util;
 import org.w3c.dom.Element;
 
 /**
- * Accessor class for all the SOAP web services offered by the SOG
+ * Accessor class for all the SOAP web services offered by the SPLAT
  * application. 
  *
  * @author Peter W. Draper
@@ -26,5 +26,22 @@ public class SplatSOAPServices
     public static void displayNDX( Element ndxElement )
     {
         SplatSOAPServer.getInstance().displayNDX( ndxElement );
+    }
+
+    /**
+     * Display a spectrum. Requires the security cookie.
+     */
+    public static boolean displaySpectrum( String cookie, String specspec )
+    {
+        return SplatSOAPServer.getInstance().displaySpectrum( cookie, 
+                                                              specspec );
+    }
+
+    /**
+     * Accept an NDX as Element description. Requires the security cookie.
+     */
+    public static void displayNDX( String cookie, Element ndxElement )
+    {
+        SplatSOAPServer.getInstance().displayNDX( cookie, ndxElement );
     }
 }
