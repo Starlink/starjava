@@ -59,12 +59,12 @@ public class AxesControls extends JPanel
     private JCheckBox showY = new JCheckBox();
 
     /**
-     * Whether the X axis is to drawn logarithmically.
+     * Whether the X axis is to drawn with log scaling.
      */
     private JCheckBox logX = new JCheckBox();
 
     /**
-     * Whether the Y axis is to drawn logarithmically.
+     * Whether the Y axis is to drawn with log scaling.
      */
     private JCheckBox logY = new JCheckBox();
 
@@ -211,8 +211,8 @@ public class AxesControls extends JPanel
         //  Set tooltips.
         showX.setToolTipText( "Display an X axis" );
         showY.setToolTipText( "Display a Y axis" );
-        logX.setToolTipText( "Use logarithmic spacing for X axis" );
-        logY.setToolTipText( "Use logarithmic spacing for Y axis" );
+        logX.setToolTipText( "Use logarithmic scaling of X axis" );
+        logY.setToolTipText( "Use logarithmic scaling of Y axis" );
         interior.setToolTipText( "Display axes in interior, if needed" );
         xLabelAt.setToolTipText(
             "Origin coordinate for Y axis (units of Y), <Return> to accept" );
