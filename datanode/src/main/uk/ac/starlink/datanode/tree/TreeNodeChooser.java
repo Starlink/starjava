@@ -32,17 +32,22 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
+import uk.ac.starlink.connect.ConnectorAction;
+import uk.ac.starlink.datanode.factory.CreationState;
 import uk.ac.starlink.datanode.factory.DataNodeFactory;
 import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.datanode.nodes.EmptyDataNode;
 import uk.ac.starlink.datanode.nodes.IconFactory;
 import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.datanode.nodes.NoSuchDataException;
+import uk.ac.starlink.datanode.tree.select.NodeRootComboBox;
 
 /**
  * A component which presents a tree of nodes and allows navigation 
@@ -75,9 +80,13 @@ import uk.ac.starlink.datanode.nodes.NoSuchDataException;
  * visible (parents and siblings of choosable ones) too, but branches
  * which contain no choosable nodes will not be displayed expanded in the GUI.
  * <p>
- * The initial root of the chooser is the current directory 
- * (<tt>user.dir</tt> system property).  This can be changed programattically
- * using the {@link #setRoot} or {@link #setRootObject} methods.
+ * The chooser initially has no root, so contains no items.
+ * To set it up with the usual set of root items selectable,
+ * call {@link #addDefaultRoots}.  To modify the 
+ * current tree root subsequently you can call the
+ * {@link #setRoot} or {@link #setRootObject} methods.
+ * If it has no roots by the time is is first made visible, 
+ * <tt>addDefaultRoots</tt> will be called automatically.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -86,10 +95,13 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     private DataNodeJTree jtree;
     private DataNodeFactory nodeMaker = new DataNodeFactory();
     private InfoPanel infoPanel;
-    private NodeAncestorComboBox rootSelector;
+    private NodeRootComboBox rootSelector;
     private JLabel nameLabel;
     private JLabel typeLabel;
     private JLabel descLabel;
+    private final JComponent logBox;
+    private final JButton logButton;
+    private final JLabel logLabel;
     private JTextField gotoField;
     private Action chooseAction;
     private Action cancelAction;
@@ -123,7 +135,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
 
         /* Set up the selector for choosing the root node. */
         Box rootBox = Box.createHorizontalBox();
-        rootSelector = new NodeAncestorComboBox();
+        rootSelector = new NodeRootComboBox( nodeMaker );
         rootSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 if ( evt.getStateChange() == ItemEvent.SELECTED ) {
@@ -131,6 +143,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
                     if ( node != null ) {
                         setRoot( node );
                     }
+                    setConnectorAction( rootSelector.getConnectorAction() );
                 }
             }
         } );
@@ -146,7 +159,19 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
             rootBox.add( butt );
         }
         topBox.add( rootBox );
-        topBox.add( Box.createVerticalStrut( 10 ) );
+        topBox.add( Box.createVerticalStrut( 5 ) );
+
+        /* Add a button to hold the login/logout button for remote 
+         * filestores. */
+        logBox = Box.createHorizontalBox();
+        logButton = new JButton();
+        logLabel = new JLabel();
+        logBox.add( logLabel );
+        logBox.add( Box.createHorizontalStrut( 5 ) );
+        logBox.add( logButton );
+        logBox.add( Box.createHorizontalGlue() );
+        topBox.add( logBox );
+        topBox.add( Box.createVerticalStrut( 5 ) );
 
         /* Construct and place the tree widget itself. */
         jtree = new DataNodeJTree( new DataNodeTreeModel() );
@@ -229,19 +254,36 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         bottomBox.add( Box.createVerticalStrut( 10 ) );
         bottomBox.add( buttonBox );
 
-        /* Ensure the actions are in an appropriate state the first time this
-         * window is displayed.  Can't invoke it directly here in the
-         * constructor, since  it involves invocation of methods which 
-         * may be overridden by subclasses. */
-        addComponentListener( new ComponentAdapter() {
-            boolean done;
-            public void componentShown( ComponentEvent evt ) {
-                if ( ! done ) {
-                    configureActionAvailability( null );
+        /* Arrange for some actions to take place the first time the 
+         * component is displayed. */
+        addAncestorListener( new AncestorListener() {
+            public void ancestorAdded( AncestorEvent evt ) {
+
+                /* If no roots have been added, add the default ones now. */
+                if ( rootSelector.getItemCount() == 0 ) {
+                    addDefaultRoots();
                 }
-                done = true;
+
+                /* Configure action availablity.  Can't do this in the
+                 * constructor, since it involves invocation of methods which
+                 * may be overridden by subclasses. */
+                configureActionAvailability( null );
+
+                /* Ensure that these actions don't happen again. */
+                removeAncestorListener( this );
             }
+            public void ancestorMoved( AncestorEvent evt ) {}
+            public void ancestorRemoved( AncestorEvent evt ) {}
         } );
+    }
+
+    /**
+     * Adds the default root items to the node selector box.
+     * This includes the current directory and any known external 
+     * connectors (see {@link uk.ac.starlink.connect.ConnectorManager}).
+     */
+    public void addDefaultRoots() {
+        rootSelector.addDefaultRoots();
     }
 
     /**
@@ -252,7 +294,9 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      * @param obj  object from which to form new root node.
      */
     public void setRootObject( Object obj ) throws NoSuchDataException {
-        setRoot( getNodeMaker().makeDataNode( null, obj ) );
+        DataNode node = nodeMaker.makeDataNode( null, obj );
+        nodeMaker.fillInAncestors( node );
+        setRoot( node );
     }
 
     /**
@@ -297,7 +341,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         setBusy( false );
         configureActionAvailability( null );
         jtree.expandPathLater( new TreePath( root ) );
-        rootSelector.setBottomNode( root );
+        rootSelector.getModel().setSelectedItem( root );
     }
 
     /**
@@ -350,10 +394,6 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      */
     public DataNode chooseDataNode( Component parent, String buttonText,
                                     String title ) {
-        if ( jtree.getModel().getRoot() instanceof EmptyDataNode ) {
-            File dir = new File( System.getProperty( "user.dir" ) );
-            attemptSetRootObject( dir );
-        }
         currentDialog = createDialog( parent );
         if ( ! currentDialog.isModal() ) {
             throw new IllegalStateException( 
@@ -439,6 +479,12 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         jtree.setCursor( busy ? busyCursor : null );
     }
 
+    private void setConnectorAction( ConnectorAction act ) {
+        logButton.setAction( act );
+        logLabel.setText( act == null ? null : act.getConnector().getName() );
+        logBox.setVisible( act != null );
+    }
+
     /**
      * This method, called from the constructor, constructs all the
      * actions associated with toolbar-type buttons and returns a 
@@ -451,10 +497,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
             new BasicAction( "Up", IconFactory.getIcon( IconFactory.UP ), 
                              "Move root up one level" ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    Object parentObj = getRoot().getParentObject();
-                    if ( parentObj != null ) {
-                        attemptSetRootObject( parentObj );
-                    }
+                    setRoot( getParent( getRoot() ) );
                 }
             };
 
@@ -527,8 +570,8 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
                                    && isChoosable( selectedNode );
         boolean isSelectedParent = selectedNode != null 
                                 && selectedNode.allowsChildren();
-        upAction.setEnabled( ((DataNode) jtree.getModel().getRoot())
-                            .getParentObject() != null );
+        upAction.setEnabled( getParent( (DataNode) jtree.getModel().getRoot() )
+                             != null );
         chooseAction.setEnabled( isSelectedChoosable );
         downAction.setEnabled( isSelectedParent );
         searchSelectedAction.setEnabled( isSelectedParent );
@@ -632,6 +675,18 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      */
     public Action getSearchAllAction() {
         return searchAllAction;
+    }
+
+    /**
+     * Returns the parent node of a datanode.
+     *
+     * @param   node   node
+     * @return   node parent, or null if it's a root
+     */
+    private static DataNode getParent( DataNode node ) {
+        CreationState creator = node.getCreator();
+        return creator == null ? null
+                               : creator.getParent();
     }
 
     /**
