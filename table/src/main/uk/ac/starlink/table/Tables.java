@@ -13,6 +13,25 @@ import uk.ac.starlink.table.jdbc.JDBCStarTable;
 public class Tables {
 
     /**
+     * ValueInfo which may be used as part of a column's metadata to indicate
+     * a special value (preferably a {@link java.lang.Number} 
+     * that should be interpreted as a null (blank).
+     * This should only be used on nullable columns, and really only
+     * on ones with a contentClass which is an integer (or possibly boolean)
+     * type; for other types, there is usually a value which can 
+     * conventionally be understood to mean blank.
+     * Note this is here as a standard key to use when software components
+     * wish to communicate this information; the table system does not
+     * guarantee to honour instances of this value in a column's 
+     * auxiliary data.  It is the job of a StarTable instance to ensure
+     * that a <tt>null</tt> is returned from the table interrogation methods
+     * if that is what is meant.
+     */
+    public static ValueInfo NULL_VALUE_INFO =
+        new DefaultValueInfo( "NULL_VALUE", Object.class,
+                              "Integer value which represents a null" );
+
+    /**
      * Returns a table based on a given table and guaranteed to have 
      * random access.  If the original table <tt>stab</tt> has random
      * access then it is returned, otherwise a new random access table

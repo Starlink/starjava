@@ -6,6 +6,9 @@ import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -121,6 +124,9 @@ abstract class Encoder {
     /**
      * Returns an Encoder suitable for encoding values described by a
      * given ValueInfo object.
+     * If <tt>info</tt> is a ColumnInfo, then the preferred binary 
+     * representation of bad values can be submitted in its auxiliary
+     * metadata under the key {@link Tables#NULL_VALUE_INFO}.
      *
      * @param   info  a description of the type of value which needs to
      *          be encoded
@@ -134,6 +140,19 @@ abstract class Encoder {
         final boolean isVariable = dims != null 
                                 && dims.length > 0 
                                 && dims[ dims.length - 1 ] < 0;
+
+        /* Try to work out a representation to use for blank integer values. */
+        Number nullObj = null;
+        if ( info instanceof ColumnInfo ) {
+            DescribedValue nullValue = 
+                ((ColumnInfo) info).getAuxDatum( Tables.NULL_VALUE_INFO );
+            if ( nullValue != null ) {
+                Object o = nullValue.getValue();
+                if ( o instanceof Number ) {
+                    nullObj = (Number) o;
+                }
+            }
+        }
 
         if ( clazz == Boolean.class ) {
             return new ScalarEncoder( info, "boolean", null ) {
@@ -156,7 +175,8 @@ abstract class Encoder {
 
         else if ( clazz == Byte.class ||
                   clazz == Short.class ) {
-            final int badVal = Short.MIN_VALUE;
+            final int badVal = nullObj == null ? Short.MIN_VALUE 
+                                               : nullObj.intValue();
             String badString = isNullable ? Integer.toString( badVal ) : null;
             return new ScalarEncoder( info, "short", badString ) {
                 public void encodeToStream( Object val, DataOutput out ) 
@@ -169,7 +189,8 @@ abstract class Encoder {
         }
 
         else if ( clazz == Integer.class ) {
-            final int badVal = Integer.MIN_VALUE;
+            final int badVal = nullObj == null ? Integer.MIN_VALUE
+                                               : nullObj.intValue();
             String badString = isNullable ? Integer.toString( badVal ) 
                                           : null;
             return new ScalarEncoder( info, "int", badString ) {
@@ -183,7 +204,8 @@ abstract class Encoder {
         }
 
         else if ( clazz == Long.class ) {
-            final long badVal = Long.MIN_VALUE;
+            final long badVal = nullObj == null ? Long.MIN_VALUE
+                                                : nullObj.longValue();
             String badString = isNullable ? Long.toString( badVal ) : null;
             return new ScalarEncoder( info, "long", badString ) {
                 public void encodeToStream( Object val, DataOutput out )

@@ -12,6 +12,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ReaderRowSequence;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DOMUtils;
 
@@ -32,6 +33,7 @@ public class VOStarTable extends AbstractStarTable {
         "ID", String.class, "VOTable ID attribute" );
     private final static ValueInfo datatypeInfo = new DefaultValueInfo(
         "Datatype", String.class, "VOTable data type name" );
+    private final static ValueInfo nullInfo = Tables.NULL_VALUE_INFO;
     private final static ValueInfo widthInfo = new DefaultValueInfo(
         "Width", Integer.class, "VOTable width attribute" );
     private final static ValueInfo precisionInfo = new DefaultValueInfo(
@@ -39,7 +41,7 @@ public class VOStarTable extends AbstractStarTable {
     private final static ValueInfo typeInfo = new DefaultValueInfo(
         "Type", String.class, "VOTable type attribute" );
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        idInfo, datatypeInfo, widthInfo, precisionInfo, typeInfo,
+        idInfo, datatypeInfo, nullInfo, widthInfo, precisionInfo, typeInfo,
     } );
 
     /**
@@ -86,6 +88,30 @@ public class VOStarTable extends AbstractStarTable {
             String datatype = field.getAttribute( "datatype" );
             if ( datatype != null ) {
                 auxdata.add( new DescribedValue( datatypeInfo, datatype ) );
+            }
+
+            String blankstr = field.getNull();
+            if ( blankstr != null ) {
+                Object blank = blankstr;
+                try {
+                    Class clazz = cinfo.getContentClass();
+                    if ( clazz == Byte.class ) {
+                        blank = Byte.valueOf( blankstr );
+                    }
+                    else if ( clazz == Short.class ) {
+                        blank = Short.valueOf( blankstr );
+                    }
+                    else if ( clazz == Integer.class ) {
+                        blank = Integer.valueOf( blankstr );
+                    }
+                    else if ( clazz == Long.class ) {
+                        blank = Long.valueOf( blankstr );
+                    }
+                }
+                catch ( NumberFormatException e ) {
+                    blank = blankstr;
+                }
+                auxdata.add( new DescribedValue( nullInfo, blank ) );
             }
 
             String width = field.getAttribute( "width" );

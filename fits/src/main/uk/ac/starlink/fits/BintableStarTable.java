@@ -20,6 +20,7 @@ import uk.ac.starlink.table.RandomRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
@@ -44,8 +45,8 @@ public abstract class BintableStarTable extends AbstractStarTable {
 
     /* Auxiliary metadata for columns. */
     private final static ValueInfo tnullInfo = new DefaultValueInfo(
-        "Blank",
-        Long.class,
+        Tables.NULL_VALUE_INFO.getName(),
+        Tables.NULL_VALUE_INFO.getContentClass(),
         "Bad value indicator (TNULLn card)" );
     private final static ValueInfo tscalInfo = new DefaultValueInfo(
         "Scale",

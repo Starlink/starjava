@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -45,13 +46,15 @@ public class FitsTableSerializer {
 
         /* Work out column shapes, and check if any are unknown (variable
          * last dimension). */
-                boolean hasVarShapes = false;
+        boolean hasVarShapes = false;
+        boolean hasNullableInts = false;
         int[][] shapes = new int[ ncol ][];
         int[] maxChars = new int[ ncol ];
         boolean[] useCols = new boolean[ ncol ];
         boolean[] varShapes = new boolean[ ncol ];
         boolean[] varChars = new boolean[ ncol ];
         boolean[] varElementChars = new boolean[ ncol ];
+        boolean[] nullableInts = new boolean[ ncol ];
         Arrays.fill( useCols, true );
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo colinfo = colInfos[ icol ];
@@ -78,12 +81,19 @@ public class FitsTableSerializer {
                     hasVarShapes = true;
                 }
             }
+            else if ( colinfo.isNullable() && 
+                      ( clazz == Byte.class || clazz == Short.class ||
+                        clazz == Integer.class || clazz == Long.class ) ) {
+                nullableInts[ icol ] = true;
+                hasNullableInts = true;
+            }
         }
 
         /* If necessary, make a first pass through the table data to
          * find out the maximum size of variable length fields and the length
          * of the table. */
-        if ( hasVarShapes || nrow < 0 ) {
+        boolean[] hasNulls = new boolean[ ncol ];
+        if ( hasVarShapes || hasNullableInts || nrow < 0 ) {
             int[] maxElements = new int[ ncol ];
             nrow = 0L;
 
@@ -94,10 +104,17 @@ public class FitsTableSerializer {
                 nrow++;
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     if ( useCols[ icol ] &&
-                         ( varShapes[ icol ] || varChars[ icol ] ||
-                           varElementChars[ icol ] ) ) {
+                         ( varShapes[ icol ] || 
+                           varChars[ icol ] ||
+                           varElementChars[ icol ] || 
+                           ( nullableInts[ icol ] && ! hasNulls[ icol ] ) ) ) {
                         Object cell = rseq.getCell( icol );
-                        if ( cell != null ) {
+                        if ( cell == null ) {
+                            if ( nullableInts[ icol ] ) {
+                                hasNulls[ icol ] = true;
+                            }
+                        }
+                        else {
                             if ( varChars[ icol ] ) {
                                 int leng = ((String) cell).length();
                                 maxChars[ icol ] =
@@ -159,8 +176,9 @@ public class FitsTableSerializer {
             if ( useCols[ icol ] ) {
                 ColumnInfo cinfo = colInfos[ icol ];
                 ColumnWriter writer =
-                    makeColumnWriter( cinfo.getContentClass(), shapes[ icol ],
-                                      maxChars[ icol ] );
+                    makeColumnWriter( cinfo, shapes[ icol ], maxChars[ icol ],
+                                      nullableInts[ icol ] 
+                                      && hasNulls[ icol ] );
                 if ( writer == null ) {
                     logger.warning( "Ignoring column " + cinfo.getName() +
                                     " - don't know how to write to FITS" );
@@ -227,6 +245,13 @@ public class FitsTableSerializer {
                     String unit = colinfo.getUnitString();
                     if ( unit != null && unit.trim().length() > 0 ) {
                         hdr.addValue( "TUNIT" + jcol, unit, "units" + forcol );
+                    }
+
+                    /* Blank. */
+                    Number bad = colwriter.getBadNumber();
+                    if ( bad != null ) {
+                        hdr.addValue( "TNULL" + jcol, bad.toString(),
+                                      "blank value" + forcol );
                     }
 
                     /* Shape. */
@@ -348,14 +373,19 @@ public class FitsTableSerializer {
      * Returns a column writer capable of writing a given column to
      * a stream in FITS format.
      *
-     * @param   clazz  class of values to write
+     * @param   cinfo  describes the column to write
      * @param   shape  shape for array values
      * @param   elementSize  element size
+     * @param   nullableInt  true if we are going to have to store nulls in
+     *          an integer column
      * @return  a suitable column writer, or <tt>null</tt> if we don't
      *          know how to write this to FITS
      */
-    private static ColumnWriter makeColumnWriter( Class clazz, int[] shape,
-                                                  int eSize ) {
+    private static ColumnWriter makeColumnWriter( ColumnInfo cinfo, int[] shape,
+                                                  int eSize, 
+                                                  final boolean nullableInt ) {
+        Class clazz = cinfo.getContentClass();
+
         int n1 = 1;
         if ( shape != null ) {
             for ( int i = 0; i < shape.length; i++ ) {
@@ -363,6 +393,18 @@ public class FitsTableSerializer {
             }
         }
         final int nel = n1;
+
+        Number blankNum = null;
+        if ( nullableInt ) {
+            DescribedValue blankVal = 
+                cinfo.getAuxDatum( Tables.NULL_VALUE_INFO );
+            if ( blankVal != null ) {
+                Object blankObj = blankVal.getValue();
+                if ( blankObj instanceof Number ) {
+                    blankNum = (Number) blankObj;
+                }
+            }
+        }
 
         if ( clazz == Boolean.class ) {
             return new ColumnWriter( 'L', 1 ) {
@@ -378,38 +420,53 @@ public class FitsTableSerializer {
             /* Byte is a bit tricky since a FITS byte is unsigned, while
              * a byte in a StarTable (a java byte) is signed. */
             final byte[] buf = new byte[ 1 ];
+            final byte badVal = blankNum == null ? (byte) 0
+                                                 : blankNum.byteValue();
             return new ColumnWriter( 'B', 1 ) {
                 void writeValue( DataOutput stream, Object value )
                         throws IOException {
                     byte b = (value != null) ? ((Number) value).byteValue()
-                                             : (byte) 0;
+                                             : badVal;
                     buf[ 0 ] = (byte) ( b ^ (byte) 0x80 );
                     stream.write( buf );
                 }
                 double getZero() {
                     return -128.0;
                 }
+                Number getBadNumber() {
+                    return nullableInt ? new Byte( badVal ) : null;
+                }
             };
         }
         else if ( clazz == Short.class ) {
+            final short badVal = blankNum == null ? Short.MIN_VALUE
+                                                  : blankNum.shortValue();
             return new ColumnWriter( 'I', 2 ) {
                 void writeValue( DataOutput stream, Object value )
                         throws IOException {
                     short sval = ( value != null )
                                ? ((Number) value).shortValue()
-                               : (short) 0;
+                               : badVal;
                     stream.writeShort( sval );
+                }
+                Number getBadNumber() {
+                    return nullableInt ? new Short( badVal ) : null;
                 }
             };
         }
         else if ( clazz == Integer.class ) {
+            final int badVal = blankNum == null ? Integer.MIN_VALUE
+                                                : blankNum.intValue();
             return new ColumnWriter( 'J', 4 ) {
                 void writeValue( DataOutput stream, Object value )
                         throws IOException {
                     int ival = ( value != null )
                              ? ((Number) value).intValue()
-                             : 0;
+                             : badVal;
                     stream.writeInt( ival );
+                }
+                Number getBadNumber() {
+                    return nullableInt ? new Integer( badVal ) : null;
                 }
             };
         }
@@ -748,6 +805,16 @@ public class FitsTableSerializer {
          */
         double getScale() {
             return 1.0;
+        }
+
+        /**
+         * Returns the number to be used for blank field output (TNULLn).
+         * Only relevant for integer scalar items.
+         *
+         * @return  magic bad value 
+         */
+        Number getBadNumber() {
+            return null;
         }
     }
 }

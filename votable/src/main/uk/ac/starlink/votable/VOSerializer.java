@@ -11,8 +11,12 @@ import java.util.logging.Logger;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.WrapperStarTable;
 
 /**
  * Class which knows how to serialize a table's fields and data to a
@@ -105,6 +109,51 @@ public abstract class VOSerializer {
     public static VOSerializer makeSerializer( DataFormat dataFormat,
                                                StarTable table )
             throws IOException {
+
+        /* Ensure that columns have NULL_VALUE_INFO keys in their auxiliary
+         * metadata if they need them (that is, if they are nullable
+         * integer typed columns).  This may be required to ensure that 
+         * null values get serialized properly. */
+        ValueInfo badKey = Tables.NULL_VALUE_INFO;
+        int ncol = table.getColumnCount();
+        final ColumnInfo[] colInfos = new ColumnInfo[ ncol ];
+        int modified = 0;
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo cinfo = new ColumnInfo( table.getColumnInfo( icol ) );
+            Class clazz = cinfo.getContentClass();
+            if ( cinfo.isNullable() && 
+                 Number.class.isAssignableFrom( clazz ) &&
+                 cinfo.getAuxDatum( badKey ) == null ) {
+                Number badValue;
+                if ( clazz == Byte.class || clazz == Short.class ) {
+                    badValue = new Short( Short.MIN_VALUE );
+                }
+                else if ( clazz == Integer.class ) {
+                    badValue = new Integer( Integer.MIN_VALUE );
+                }
+                else if ( clazz == Long.class ) {
+                    badValue = new Long( Long.MIN_VALUE );
+                }
+                else {
+                    badValue = null;
+                }
+                if ( badValue != null ) {
+                    modified++;
+                    cinfo.getAuxData()
+                         .add( new DescribedValue( badKey, badValue ) );
+                }
+            }
+            colInfos[ icol ] = cinfo;
+        }
+        if ( modified > 0 ) {
+            table = new WrapperStarTable( table ) {
+                public ColumnInfo getColumnInfo( int icol ) {
+                    return colInfos[ icol ];
+                }
+            };
+        }
+
+        /* Return a serializer. */
         if ( dataFormat == DataFormat.TABLEDATA ) {
             return new TabledataVOSerializer( table );
         }
