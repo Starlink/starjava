@@ -56,16 +56,6 @@ public class FileDataNode extends DefaultDataNode {
     }
 
     /**
-     * Initialises a <code>FileDataNode</code> from a <code>String</code>.
-     *
-     * @param  fileName  the absolute or relative name of the file from
-     *                   which the node is to be created
-     */
-    public FileDataNode( String fileName ) throws NoSuchDataException {
-        this( new File( fileName ) );
-    }
-
-    /**
      * Initialises a <code>FileDataNode</code> from a top-level HDSObject.
      *
      * @param  hobj  an HDSObject at the top of its container file
@@ -74,7 +64,6 @@ public class FileDataNode extends DefaultDataNode {
     public FileDataNode( HDSObject hobj ) throws NoSuchDataException {
         this( getTopLevelFile( hobj ) );
     }
-
 
     public boolean allowsChildren() {
         return file.isDirectory() && file.canRead();

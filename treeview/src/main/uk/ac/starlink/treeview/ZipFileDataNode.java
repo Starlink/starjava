@@ -41,15 +41,6 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
         setLabel( file.getName() );
     }
 
-    /**
-     * Initialises a <code>ZipFileDataNode</code> from a <code>String</code>.
-     *
-     * @param  fileName  the absolute or relative name of the zip file.
-     */
-    public ZipFileDataNode( String fileName ) throws NoSuchDataException {
-        this( new File( fileName ) );
-    }
-
     public boolean hasParentObject() {
         return file.getAbsoluteFile().getParentFile() != null;
     }

@@ -1,8 +1,13 @@
 package uk.ac.starlink.treeview;
 
-import java.util.*;
-import java.io.*;
-import java.text.*;
+import java.io.File;
+import java.io.PrintStream;
+import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import uk.ac.starlink.util.DataSource;
 
 /**
  * Factory class for constructing {@link DataNode} objects.
@@ -205,28 +210,44 @@ public class DataNodeFactory implements Cloneable {
         }
         Class objClass = obj.getClass();
         tried = new ArrayList();
+        DataNode newNode = null;
+        CreationState creator = null;
         for ( Iterator buildIt = builders.iterator(); buildIt.hasNext(); ) {
             DataNodeBuilder builder = (DataNodeBuilder) buildIt.next();
             if ( builder.suitable( objClass ) ) {
                 if ( verbose ) {
-                    verbStream.println( "    " + builder );
+                    verbStream.println( "\n" + builder );
                 }
-                DataNode newNode = builder.buildNode( obj );
-                if ( newNode != null ) {
+                try {
+                    newNode = builder.buildNode( obj );
+                    creator = new CreationState( this, builder, parent, obj );
+                    break;
+                }
+                catch ( NoSuchDataException e ) {
                     if ( verbose ) {
-                        verbStream.println( "SUCCESS: " + newNode + "\n" );
+                        verbStream.print( "    " );
+                        e.printStackTrace( verbStream );
                     }
-                    newNode.setCreator( 
-                        new CreationState( this, builder, parent, obj ) );
-                    return newNode;
+                    tried.add( builder );
                 }
-                tried.add( builder );
             }
         }
 
         /* Dropped off the end of the loop - no success. */
-        throw new NoSuchDataException( 
-             "No suitable node could be constructed for " + obj );
+        if ( newNode == null ) {
+            throw new NoSuchDataException( 
+                "No suitable node could be constructed for " + obj );
+        }
+
+        /* We have successfully created a new node.  Do some additional
+         * configuration before returning it to the caller. */
+        assert newNode != null;
+        assert creator != null;
+        if ( verbose ) {
+            verbStream.println( "    SUCCESS: " + newNode + "\n" );
+        }
+        newNode.setCreator( creator );
+        return DataNodeBuilder.configureNode( newNode, obj );
     }
 
     /**
@@ -267,7 +288,6 @@ public class DataNodeFactory implements Cloneable {
         return buf.toString();
     }
 
-  
     /** 
      * Determines whether verbose information about attempted constructions
      * is written.  Output is to standard error.  

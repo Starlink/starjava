@@ -1053,7 +1053,14 @@ public class StaticTreeViewer extends JFrame {
             for ( Iterator bit = builders.iterator(); bit.hasNext(); ) {
                 DataNodeBuilder builder = (DataNodeBuilder) bit.next();
                 if ( builder.suitable( cobj.getClass() ) ) {
-                    final DataNode newdn = builder.buildNode( cobj );
+                    DataNode newdn1;
+                    try {
+                        newdn1 = builder.buildNode( cobj );
+                    }
+                    catch ( NoSuchDataException e ) {
+                        newdn1 = null;
+                    }
+                    final DataNode newdn = newdn1;
                     if ( newdn == null || 
                          nodetypes.contains( newdn.getClass() ) ||
                          newdn instanceof ErrorDataNode ) {

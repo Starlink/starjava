@@ -121,6 +121,9 @@ class HTMLProcessor {
         catch ( IllegalAccessException e ) {
             throw new IllegalArgumentException( symbol );
         }
+        catch ( Exception e ) {
+            throw new RuntimeException( symbol, e );
+        }
     }
 
     private static Icon makeIcon( String symbol ) {

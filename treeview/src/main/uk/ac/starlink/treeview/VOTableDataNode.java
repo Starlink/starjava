@@ -26,17 +26,6 @@ public class VOTableDataNode extends VOComponentDataNode {
         super( xsrc, "VOTABLE" );
     }
 
-    public VOTableDataNode( File file ) throws NoSuchDataException {
-        this( FileDataNodeBuilder.makeDOMSource( file ) );
-        name = file.getName();
-        setLabel( name );
-        setPath( file.getAbsolutePath() );
-    }
-
-    public VOTableDataNode( String string ) throws NoSuchDataException {
-        this( new File( string ) );
-    }
-
     public String getNodeTLA() {
         return "VOT";
     }

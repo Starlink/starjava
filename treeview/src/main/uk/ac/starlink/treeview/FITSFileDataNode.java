@@ -34,10 +34,6 @@ public class FITSFileDataNode extends FITSDataNode {
         this( makeFileDataSource( file ) );
     }
 
-    public FITSFileDataNode( String fileName ) throws NoSuchDataException {
-        this( new File( fileName ) );
-    }
-
     public String getName() {
         return name;
     }
@@ -57,6 +53,16 @@ public class FITSFileDataNode extends FITSDataNode {
                 return file + ":" + start + "+" + size;
             }
         };
+    }
+
+    public static FileDataSource makeFileDataSource( File file ) 
+            throws NoSuchDataException {
+        try {
+            return new FileDataSource( file );
+        }
+        catch ( IOException e ) {
+            throw new NoSuchDataException( e );
+        }
     }
 
 }

@@ -142,8 +142,16 @@ public class NDArrayDataNode extends DefaultDataNode {
          * out how to do that properly yet, so the views below either use
          * the original array with its WCS or the effective array with
          * a blank WCS. */
-        final NDArray enda = effectiveArray( rnda );
-        final int endim = enda.getShape().getNumDims();
+        final NDArray enda; 
+        final int endim;
+        if ( shape.getNumPixels() > 1 ) {
+            enda = effectiveArray( rnda );
+            endim = enda.getShape().getNumDims();
+        }
+        else {
+            enda = nda;
+            endim = ndim;
+        }
 
         /* Add data views as appropriate. */
         if ( wcs != null && ndim == 2 && endim == 2 ) {

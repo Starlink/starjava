@@ -21,20 +21,6 @@ public class CompressedDataNode extends DefaultDataNode {
     private JComponent fullView;
     private final String name;
 
-    public CompressedDataNode( File file ) throws NoSuchDataException {
-        this( makeDataSource( file ) );
-        setPath( file.getAbsolutePath() );
-    }
-
-    public CompressedDataNode( URL url ) throws NoSuchDataException {
-        this( new URLDataSource( url ) );
-        setPath( url.toString() );
-    }
-
-    public CompressedDataNode( String name ) throws NoSuchDataException {
-        this( PlainDataNode.makeDataSource( name ) );
-    }
-
     public CompressedDataNode( DataSource datsrc ) throws NoSuchDataException {
         this.datsrc = datsrc;
         try {
@@ -47,12 +33,8 @@ public class CompressedDataNode extends DefaultDataNode {
             throw new NoSuchDataException( 
                 "Data source uses no known compression format" );
         }
-        this.name = getName( datsrc );
+        this.name = datsrc.getName();
         setLabel( name );
-        String path = getPath( datsrc );
-        if ( path != null ) {
-            setPath( path );
-        }
     }
 
     public String getName() {
@@ -94,7 +76,7 @@ public class CompressedDataNode extends DefaultDataNode {
                 dv.addKeyedItem( "Decompressed size", cookLeng );
             }
             try {
-                if ( ! datsrc.isASCII() ) {
+                if ( datsrc.isASCII() ) {
                     dv.addPane( "Text view", new ComponentMaker() {
                         public JComponent getComponent() throws IOException {
                             return new TextViewer( datsrc.getInputStream() );

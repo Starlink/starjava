@@ -38,10 +38,9 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
         return DataSource.class.isAssignableFrom( objClass );
     }
 
-    public DataNode buildNode( Object obj ) {
-        if ( ! ( obj instanceof DataSource ) ) {
-            return null;
-        }
+    public DataNode buildNode( Object obj ) throws NoSuchDataException {
+
+        /* Should be a DataSource. */
         DataSource datsrc = (DataSource) obj;
 
         /* Get the magic number. */
@@ -51,83 +50,56 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
             minsize = datsrc.getMagic( magic );
         }
         catch ( IOException e ) {
-            return null;
+            throw new NoSuchDataException( e );
         }
 
-        try {
 
-            /* Zip file? */
-            if ( ZipArchiveDataNode.isMagic( magic ) ) {
-                return new ZipStreamDataNode( datsrc );
-            }
-
-            /* FITS file? */
-            if ( FITSDataNode.isMagic( magic ) ) {
-                return new FITSStreamDataNode( datsrc );
-            }
-
-            /* Tar file? */
-            if ( TarStreamDataNode.isMagic( magic ) ) {
-                return new TarStreamDataNode( datsrc );
-            }
-
-            /* XML file? */
-            else if ( XMLDataNode.isMagic( magic ) ) {
-                String path = DefaultDataNode.getPath( datsrc );
-                String label = DefaultDataNode.getName( datsrc );
-                DOMSource xsrc = makeDOMSource( datsrc );
-
-                /* NDX? */
-                try {
-                    DataNode dn = new NdxDataNode( xsrc );
-                    dn.setLabel( label );
-                    if ( path != null ) {
-                        dn.setPath( path );
-                    }
-                    return dn;
-                }
-                catch ( NoSuchDataException e ) {
-                    if ( verbose ) {
-                        e.printStackTrace( verbStream );
-                    }
-                }
-
-                /* VOTable? */
-                try {
-                    DataNode dn = new VOTableDataNode( xsrc );
-                    dn.setLabel( label );
-                    if ( path != null ) {
-                        dn.setPath( path );
-                    }
-                    return dn;
-                }
-                catch ( NoSuchDataException e ) {
-                    if ( verbose ) {
-                        e.printStackTrace( verbStream );
-                    }
-                }
-
-                /* Normal XML file? */
-                DataNode dn = new XMLDataNode( xsrc );
-                dn.setLabel( label );
-                if ( path != null ) {
-                    dn.setPath( path );
-                }
-                return dn;
-            }
-
-            /* Don't know what it is.  Return null. */
-            return null;
+        /* Zip file? */
+        if ( ZipArchiveDataNode.isMagic( magic ) ) {
+            return configureNode( new ZipStreamDataNode( datsrc ), datsrc );
         }
 
-        /* A NoSuchDataException means we couldn't construct a node which
-         * the magic number looked like we could.  Abdicate responsibility. */
-        catch ( NoSuchDataException e ) {
-            if ( verbose ) {
-                e.printStackTrace( verbStream );
-            }
-            return null;
+        /* FITS file? */
+        if ( FITSDataNode.isMagic( magic ) ) {
+            return configureNode( new FITSStreamDataNode( datsrc ), datsrc );
         }
+
+        /* Tar file? */
+        if ( TarStreamDataNode.isMagic( magic ) ) {
+            return configureNode( new TarStreamDataNode( datsrc ), datsrc );
+        }
+
+        /* XML file? */
+        else if ( XMLDataNode.isMagic( magic ) ) {
+            DOMSource xsrc = makeDOMSource( datsrc );
+
+            /* NDX? */
+            try {
+                return configureNode( new NdxDataNode( xsrc ), datsrc );
+            }
+            catch ( NoSuchDataException e ) {
+                if ( verbose ) {
+                    verbStream.print( "    " );
+                    e.printStackTrace( verbStream );
+                }
+            }
+
+            /* VOTable? */
+            try {
+                return configureNode( new VOTableDataNode( xsrc ), datsrc );
+            }
+            catch ( NoSuchDataException e ) {
+                if ( verbose ) {
+                    e.printStackTrace( verbStream );
+                }
+            }
+
+            /* Normal XML file? */
+            return configureNode( new XMLDataNode( xsrc ), datsrc );
+        }
+
+        /* Don't know what it is. */
+        throw new NoSuchDataException( this + ": don't know" );
     }
 
     public String toString() {

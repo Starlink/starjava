@@ -43,7 +43,7 @@ public class WCSDataNode extends DefaultDataNode {
     }
 
     /**
-     * Constructs a WCSDataNode from a Hierarchical.
+     * Constructs a WCSDataNode from an HDS object.
      */
     public WCSDataNode( HDSObject hobj ) throws NoSuchDataException {
         this( getWcsFromHds( hobj ) );

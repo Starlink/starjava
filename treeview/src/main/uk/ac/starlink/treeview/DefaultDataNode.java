@@ -6,12 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.awt.*;
-import java.net.URL;
 import javax.swing.*;
 import javax.swing.tree.*;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.FileDataSource;
-import uk.ac.starlink.util.URLDataSource;
 
 /**
  * A basic implementation of the {@link DataNode} interface.
@@ -36,6 +33,7 @@ public class DefaultDataNode implements DataNode {
     private DataNodeFactory childMaker;
     private JComponent fullView;
     private CreationState creator;
+    private Object parentObject;
 
     /**
      * Constructs a blank <code>DefaultDataNode</code>.
@@ -78,11 +76,20 @@ public class DefaultDataNode implements DataNode {
     }
 
     public boolean hasParentObject() {
-        return false;
+        return parentObject != null;
     }
 
     public Object getParentObject() {
-        throw new UnsupportedOperationException();
+        if ( hasParentObject() ) {
+            return parentObject;
+        }
+        else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public void setParentObject( Object parent ) {
+        this.parentObject = parent;
     }
 
     public void setLabel( String label ) {
@@ -281,42 +288,6 @@ public class DefaultDataNode implements DataNode {
     }
 
     /**
-     * Gets an input stream from a file.  The main work that this 
-     * convenience method does is to rethrow an IOException as a 
-     * NoSuchDataException.
-     *
-     * @param  file  the file
-     * @return  a new input stream based on <tt>file</tt>
-     * @throws  NoSuchDataException  if something goes wrong (like the file
-     *          doesn't exist)
-     */
-    public static InputStream getInputStream( File file )
-            throws NoSuchDataException {
-        try {
-            return new FileInputStream( file );
-        }
-        catch ( IOException e ) {
-            throw new NoSuchDataException( e );
-        }
-    }
-
-    public static DataSource makeDataSource( File file )
-            throws NoSuchDataException {
-        try {
-            return new FileDataSource( file );
-        }
-        catch ( IOException e ) {
-            throw new NoSuchDataException( e );
-        }
-    }
-
-    public static FileDataSource makeFileDataSource( File file )
-            throws NoSuchDataException {
-        return (FileDataSource) makeDataSource( file );
-    }
-        
-
-    /**
      * Gets the first few bytes of a file.
      * This utility function is suitable for magic number checks.
      *
@@ -379,32 +350,4 @@ public class DefaultDataNode implements DataNode {
         return buf;
     }
 
-    /**
-     * Returns an absolute path for the given datasource, if one is known
-     * Otherwise returns null.
-     *
-     * @param  datsrc  the data source to identify
-     * @return its absolute path, or <tt>null</tt> if not known
-     */
-    public static String getPath( DataSource datsrc ) {
-        if ( datsrc instanceof FileDataSource ) {
-            return ((FileDataSource) datsrc).getFile().getAbsolutePath();
-        }
-        else if ( datsrc instanceof URLDataSource ) {
-            return ((URLDataSource) datsrc).getURL().toString();
-        }
-        else if ( datsrc instanceof PathedDataSource ) {
-            return ((PathedDataSource) datsrc).getPath();
-        }
-        return null;
-    }
-
-    public static String getName( DataSource datsrc ) {
-        if ( datsrc instanceof FileDataSource ) {
-            return ((FileDataSource) datsrc).getFile().getName();
-        }
-        else {
-            return datsrc.getName();
-        }
-    }
 }

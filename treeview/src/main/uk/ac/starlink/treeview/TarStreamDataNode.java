@@ -44,30 +44,8 @@ public class TarStreamDataNode extends DefaultDataNode {
         if ( ! isMagic( magic ) ) {
             throw new NoSuchDataException( "Wrong magic number for tar" );
         }
-        name = getName( datsrc );
+        name = datsrc.getName();
         setLabel( name );
-        String path = getPath( datsrc );
-        if ( path != null ) {
-            setPath( path );
-        }
-    }
-
-    /**
-     * Constructs a TarStreamDataNode from a File.
-     * 
-     * @param  file  the file
-     */
-    public TarStreamDataNode( File file ) throws NoSuchDataException {
-        this( makeDataSource( file ) );
-    }
-
-    /**
-     * Constructs a TarStreamDataNode from a filename.
-     *
-     * @param  fileName  the filename
-     */
-    public TarStreamDataNode( String fileName ) throws NoSuchDataException {
-        this( new File( fileName ) );
     }
 
     public String getName() {

@@ -24,12 +24,8 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
      * Constructs a ZipStreamDataNode from a DataSource object.
      */
     public ZipStreamDataNode( DataSource datsrc ) throws NoSuchDataException {
-        super( getName( datsrc ), getMagic( datsrc ) );
+        super( datsrc.getName(), getMagic( datsrc ) );
         this.datsrc = datsrc;
-        String path = getPath( datsrc );
-        if ( path != null ) {
-            setPath( path );
-        }
     }
 
     protected synchronized List getEntries() throws IOException {

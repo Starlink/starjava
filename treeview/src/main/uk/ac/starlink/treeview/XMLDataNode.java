@@ -138,27 +138,6 @@ public class XMLDataNode extends DefaultDataNode {
         setLabel( name );
     }
 
-    public XMLDataNode( File file ) throws NoSuchDataException {
-        this( FileDataNodeBuilder.makeDOMSource( file ) );
-        this.name = file.getName();
-        setLabel( name );
-        setPath( file.getAbsolutePath() );
-    }
-
-    public XMLDataNode( String loc ) throws NoSuchDataException {
-        this( new File( loc ) );
-    }
-
-    public XMLDataNode( DataSource datsrc ) throws NoSuchDataException {
-        this( SourceDataNodeBuilder.makeDOMSource( datsrc ) );
-        this.name = getName( datsrc );
-        setLabel( name );
-        String path = getPath( datsrc );
-        if ( path != null ) {
-            setPath( path );
-        }
-    }
-
     public String getName() {
         return name;
     }
@@ -344,7 +323,53 @@ public class XMLDataNode extends DefaultDataNode {
     }
 
 
+    /**
+     * This tests for the likely start of an XML file.  It's just a guess
+     * though - it can come up with false positives and (worse) false
+     * negatives.
+     */
     public static boolean isMagic( byte[] magic ) {
+       int pos;
+
+       /* UTF-8. */
+       pos = 0;
+       byte c;
+       if ( magic.length > 2 && 
+            magic[ pos++ ] == (byte) '<' && ( magic[ pos ] == (byte) '?' || 
+                                              magic[ pos ] == (byte) '!' ) ) {
+           return true;
+       }
+
+       /* Big-endian UCS-2. */
+       pos = 0;
+       if ( magic.length > 6 &&
+            magic[ pos++ ] == 0xfe && magic[ pos++ ] == 0xff &&
+            magic[ pos++ ] == 0x00 && magic[ pos++ ] == '<' &&
+            magic[ pos++ ] == 0x00 && ( magic[ pos ] == (byte) '?' ||
+                                        magic[ pos ] == (byte) '!' ) ) {
+           return true;
+       }
+
+       /* Little-endian UCS-2. */
+       pos = 0;
+       if ( magic.length > 6 &&
+            magic[ pos++ ] == 0xff && magic[ pos++ ] == 0xfe &&
+            magic[ pos++ ] == (byte) '<' && magic[ pos++ ] == 0x00 &&
+            ( magic[ pos ] == (byte) '?' ||
+              magic[ pos++ ] == (byte) '!' ) && magic[ pos++ ] == 0x00 ) {
+           return true;
+       }
+
+       /* Nope. */
+       return false;
+   }
+
+
+    /**
+     * This tests for the XML declaration.  Unfortunately, it's not always
+     * there.
+     */
+    public static boolean isMagic2( byte[] magic ) {
         int pos;
 
         /* UTF-8. */

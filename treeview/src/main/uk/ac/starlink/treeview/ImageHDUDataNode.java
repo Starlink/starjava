@@ -184,8 +184,14 @@ public class ImageHDUDataNode extends HDUDataNode {
     public Icon getIcon() {
         if ( icon == null ) {
             if ( shape != null ) {
-                icon = IconFactory.getInstance()
-                                  .getArrayIcon( shape.getNumDims() );
+                if ( shape.getNumPixels() == 1 ) {
+                    icon = IconFactory.getInstance()
+                                      .getArrayIcon( 0 );
+                }
+                else {
+                    icon = IconFactory.getInstance()
+                                      .getArrayIcon( shape.getNumDims() );
+                }
             }
             else {
                 icon = IconFactory.getInstance()

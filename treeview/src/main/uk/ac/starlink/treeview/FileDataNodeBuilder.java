@@ -58,13 +58,20 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
         return File.class.isAssignableFrom( objClass );
     }
 
-    public DataNode buildNode( Object obj ) {
-        if ( ! ( obj instanceof File ) ) {
-            return null;
-        }
+    public DataNode buildNode( Object obj ) throws NoSuchDataException {
+
+        /* Should be a file. */
         File file = (File) obj;
-        if ( ! file.exists() || ! file.canRead() || ! file.isFile() ) {
-            return null;
+        if ( ! file.exists() ) {
+            throw new NoSuchDataException( "File " + file + " does not exist" );
+        }
+        if ( ! file.canRead() ) {
+            throw new NoSuchDataException( "File " + file + " not readable" );
+        }
+
+        /* See if it's a directory. */
+        if ( file.isDirectory() ) {
+            return configureNode( new FileDataNode( file ), file );
         }
 
         DataSource datsrc = null;
@@ -76,7 +83,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             /* If there is compression, pass it to the handler for streams. */
             Compression compress = datsrc.getCompression();
             if ( datsrc.getCompression() != Compression.NONE ) {
-                return sourceBuilder.buildNode( datsrc );
+                return configureNode( sourceBuilder.buildNode( datsrc ), file );
             }
 
             /* Get the magic number. */
@@ -92,23 +99,15 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
                     istrm = new BufferedDataInputStream( strm1 );
                     Header hdr = new Header( istrm );
                     if ( hdr.containsKey( "NDX_XML" ) ) {
-                        try {
-                            return new NdxDataNode( file );
-                        }
-                        catch ( NoSuchDataException e ) {
-                        }
+                        return configureNode( new NdxDataNode( file ), file );
                     }
                     else {
-                        try {
-                            return new FITSFileDataNode( file );
-                        }
-                        catch ( NoSuchDataException e ) {
-                        }   
+                        return configureNode( new FITSFileDataNode( file ), 
+                                              file );
                     }
-                    return null;
                 }
                 catch ( FitsException e ) {
-                    return null;
+                    throw new NoSuchDataException( e );
                 }
                 finally {
                     if ( istrm != null ) {
@@ -124,29 +123,25 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
                 try {
                     hobj = new HDSReference( file ).getObject( "READ" );
                     try {
-                        DataNode dn = new NDFDataNode( hobj );
-                        dn.setLabel( file.getName() );
-                        return dn;
+                        return configureNode( new NDFDataNode( hobj ), file );
                     }
                     catch ( NoSuchDataException e ) {
-                        DataNode dn = new HDSDataNode( hobj );
-                        dn.setLabel( file.getName() );
-                        return dn;
+                        return configureNode( new HDSDataNode( hobj ), file );
                     }
                 }
                 catch ( HDSException e ) {
-                    return null;
+                    throw new NoSuchDataException( e );
                 }
             }
 
             /* Zip/jar file? */
             if ( ZipArchiveDataNode.isMagic( magic ) ) {
-                return new ZipFileDataNode( file );
+                return configureNode( new ZipFileDataNode( file ), file );
             }
 
             /* Tar file? */
             if ( TarStreamDataNode.isMagic( magic ) ) {
-                return new TarStreamDataNode( file );
+                return configureNode( new TarStreamDataNode( datsrc ), file );
             }
 
             /* XML file? */
@@ -155,55 +150,37 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
                 /* NDX? */
                 try {
-                    DataNode dn = new NdxDataNode( xsrc );
-                    dn.setLabel( file.getName() );
-                    return dn;
+                    return configureNode( new NdxDataNode( xsrc ), file );
                 }
                 catch ( NoSuchDataException e ) {
                 }
 
                 /* VOTable? */
                 try {
-                    DataNode dn = new VOTableDataNode( xsrc );
-                    dn.setLabel( file.getName() );
-                    return dn;
+                    return configureNode( new VOTableDataNode( xsrc ), file );
                 }
                 catch ( NoSuchDataException e ) {
                 }
 
                 /* Normal XML file? */
-                DataNode dn = new XMLDataNode( xsrc );
-                dn.setLabel( file.getName() );
-                return dn;
+                return configureNode( new XMLDataNode( xsrc ), file );
             }
 
-            /* We don't know what it is.  Return null. */
-            return null;
-        }
-
-        /* A NoSuchDataException means we couldn't construct a node which
-         * the magic number looked like we could.  Abdicate responsibility. */
-        catch ( NoSuchDataException e ) {
-            return null;
+            /* We don't know what it is. */
+            throw new NoSuchDataException( this + ": don't know" );
         }
 
         /* IOException means some interesting I/O condition occurred.  
          * This shouldn't happen often - log to the user but return null
          * to allow other builders to have a go. */
         catch ( IOException e ) {
-            e.printStackTrace();
-            return null;
+            throw new NoSuchDataException( e );
         }
 
         /* Clear up. */
         finally {
-            try {
-                if ( datsrc != null ) {
-                    datsrc.close();
-                }
-            }
-            catch ( IOException e ) {
-                e.printStackTrace();
+            if ( datsrc != null ) {
+                datsrc.close();
             }
         }
     }
@@ -214,46 +191,12 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
     public static DOMSource makeDOMSource( File file )
             throws NoSuchDataException {
-
-        /* Get a DocumentBuilder. */
-        DocumentBuilderFactory dbfact = DocumentBuilderFactory.newInstance();
-        dbfact.setValidating( false );
-        DocumentBuilder parser;
         try {
-            parser = dbfact.newDocumentBuilder();
-        }
-        catch ( ParserConfigurationException e ) {
-            System.err.println( e.getMessage() );
-
-            /* Failed for some reason - try it with nothing fancy then. */
-            try {
-                parser = DocumentBuilderFactory.newInstance()
-                          .newDocumentBuilder();
-            }
-            catch ( ParserConfigurationException e2 ) {
-                throw new NoSuchDataException( e2 );  // give up then
-            }
-        }
-        parser.setEntityResolver( TreeviewEntityResolver.getInstance() );
-
-        /* Parse the XML file. */
-        Document doc;
-        try {
-            doc = parser.parse( file );
-        }
-        catch ( SAXException e ) {
-            throw new NoSuchDataException( "XML parse error on file " + file,
-                                           e );
+            FileDataSource datsrc = new FileDataSource( file );
+            return SourceDataNodeBuilder.makeDOMSource( datsrc );
         }
         catch ( IOException e ) {
-            throw new NoSuchDataException( "I/O trouble during XML parse of " +
-                                           "file " + file, e );
+            throw new NoSuchDataException( e );
         }
-
-        /* Turn it into a DOMSource. */
-        DOMSource dsrc = new DOMSource( doc );
-        dsrc.setSystemId( file.toString() );
-        return dsrc;
     }
-
 }

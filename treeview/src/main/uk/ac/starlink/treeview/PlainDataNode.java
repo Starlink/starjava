@@ -22,27 +22,14 @@ public class PlainDataNode extends DefaultDataNode {
     private JComponent fullView;
     private Boolean isText;
 
-    public PlainDataNode( File file ) throws NoSuchDataException {
-        this( makeDataSource( file ) );
-        setPath( file.getAbsolutePath() );
-    }
-
-    public PlainDataNode( String name ) throws NoSuchDataException {
-        this( makeDataSource( name ) );
-    }
-
     public PlainDataNode( DataSource datsrc ) throws NoSuchDataException {
 
         /* Get a data source which is guaranteed not to do automatic 
          * decompression. */
         this.datsrc = datsrc.forceCompression( Compression.NONE );
 
-        this.name = getName( datsrc );
+        this.name = datsrc.getName();
         setLabel( name );
-        String path = getPath( datsrc );
-        if ( path != null ) {
-            setPath( path );
-        }
     }
 
     public String getName() {
@@ -106,16 +93,6 @@ public class PlainDataNode extends DefaultDataNode {
                     return new TextViewer( e );
                 }
             } );
-        }
-    }
-
-    public static DataSource makeDataSource( String name )
-            throws NoSuchDataException {
-        try {
-            return DataSource.makeDataSource( name );
-        }
-        catch ( IOException e ) {
-            throw new NoSuchDataException( e );
         }
     }
 

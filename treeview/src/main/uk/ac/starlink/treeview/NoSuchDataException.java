@@ -1,5 +1,9 @@
 package uk.ac.starlink.treeview;
 
+/**
+ * Exception thrown when construction of a DataNode fails with some reasonable
+ * cause.
+ */
 public class NoSuchDataException extends Exception {
     public NoSuchDataException( String message ) {
         super( message );

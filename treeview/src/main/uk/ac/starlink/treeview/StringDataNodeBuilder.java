@@ -33,36 +33,26 @@ public class StringDataNodeBuilder extends DataNodeBuilder {
         return String.class.isAssignableFrom( objClass );
     }
 
-    public DataNode buildNode( Object obj ) {
+    public DataNode buildNode( Object obj ) throws NoSuchDataException {
 
         /* It should be a string. */
-        if ( ! ( obj instanceof String ) ) {
-            return null;
-        }
         String string = (String) obj;
 
         /* If a file by this name exists, delegate to the file handler. */
         File file = new File( string );
-        DataNode dn;
         if ( file.exists() ) {
-            dn = fileBuilder.buildNode( file );
-            if ( dn != null ) {
-                return dn;
-            }
+            return fileBuilder.buildNode( file );
         }
 
         /* Try to turn it into a URL and use that as a data source. */
         try {
             URL url = new URL( string );
             DataSource datsrc = new URLDataSource( url );
-            dn = sourceBuilder.buildNode( datsrc );
-            if ( dn != null ) {
-                return dn;
-            }
             try {
-                datsrc.close();
+                return sourceBuilder.buildNode( datsrc );
             }
-            catch ( IOException e ) {
+            catch ( NoSuchDataException e ) {
+                datsrc.close();
             }
         }
         catch ( MalformedURLException e ) {
@@ -70,7 +60,7 @@ public class StringDataNodeBuilder extends DataNodeBuilder {
         }
 
         /* No more ideas - return null. */
-        return null;
+        throw new NoSuchDataException( this + ": don't know" );
     }
           
 
