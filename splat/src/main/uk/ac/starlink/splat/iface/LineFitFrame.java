@@ -1120,7 +1120,7 @@ public class LineFitFrame
             values[0] = value;
             values[1] = value;
             
-            constantSpectrum.setData( coords, values );
+            constantSpectrum.setSimpleData( coords, values );
             constantSpectrum.setType( SpecData.POLYNOMIAL );
             constantSpectrum.setUseInAutoRanging( false );
             constantSpectrum.setShortName( "Constant " + value );
@@ -1146,7 +1146,7 @@ public class LineFitFrame
         try {
             EditableSpecData lineSpec = SpecDataFactory.getInstance()
                 .createEditable( name );
-            lineSpec.setData( coords, data );
+            lineSpec.setSimpleData( coords, data );
             lineSpec.setType( SpecData.LINEFIT );
             lineSpec.setUseInAutoRanging( false );
             globalList.add( lineSpec );

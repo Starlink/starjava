@@ -526,10 +526,10 @@ public class PolyFitFrame
             EditableSpecData newSpec = 
                 SpecDataFactory.getInstance().createEditable( name );
             if ( errors == null ) {
-                newSpec.setData( spectrum.getFrameSet(), data );
+                newSpec.setFullData( spectrum.getFrameSet(), data );
             }
             else {
-                newSpec.setData( spectrum.getFrameSet(), data, errors );
+                newSpec.setFullData( spectrum.getFrameSet(), data, errors );
             }
             globalList.add( newSpec );
 
