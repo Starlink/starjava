@@ -8,6 +8,8 @@
 package uk.ac.starlink.splat.data;
 
 import java.io.File;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.imagedata.NDFJ;
@@ -139,7 +141,7 @@ public class SpecDataFactory
             }
             break;
             case HDS: {
-                impl = new NDFSpecDataImpl( specspec );
+                impl = makeNDFSpecDataImpl( specspec );
             }
             break;
             case TEXT: {
@@ -188,8 +190,8 @@ public class SpecDataFactory
         InputNameParser namer = new InputNameParser( specspec );
         if ( namer.exists() ) {
             String type = namer.format();
-            if ( type.equals( "NDF" ) && NDFJ.supported() ) {
-                impl = new NDFSpecDataImpl( namer.ndfname() );
+            if ( type.equals( "NDF" ) ) {
+                impl = makeNDFSpecDataImpl( namer.ndfname() );
             }
             else if ( type.equals( "FITS" ) ) {
                 impl = new FITSSpecDataImpl( namer.ndfname() );
@@ -231,8 +233,32 @@ public class SpecDataFactory
         return makeSpecDataFromImpl( impl );
     }
 
+
     /**
-     * Make a suitable SpecData for a given implementation.x
+     * Make an implementation for an NDF. If native NDF supported
+     * isn't available then an attempt to create a wrapping NDX is made.
+     */
+    protected SpecDataImpl makeNDFSpecDataImpl( String specspec )
+        throws SplatException
+    {
+        if ( NDFJ.supported() ) {
+            return new NDFSpecDataImpl( specspec );
+        }
+
+        //  No native NDF available.
+        URL url = null;
+        try {
+            url = new URL( "file:" + specspec + ".sdf" );
+            System.out.println( "NDF = " + url );
+        }
+        catch (MalformedURLException e) {
+            throw new SplatException( e );
+        }
+        return new NDXSpecDataImpl( url );
+    }
+
+    /**
+     * Make a suitable SpecData for a given implementation.
      */
     protected SpecData makeSpecDataFromImpl( SpecDataImpl impl )
         throws SplatException
