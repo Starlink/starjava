@@ -129,6 +129,19 @@
    !-->
   <target name="build"
           description="-> does nothing">
+
+    <!-- Add the manifest to the axis.jar file, just an update -->
+    <jar destfile="lib/oldarray/array.jar" basedir="${dist.dir}"
+         update="true" excludes="**">
+
+      <!-- Create the manifest, note wraps in column 80 so avoid
+       !   this. TODO: perform this task automatically?-->
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Class-Path" value="../util/util.jar"/>
+      </manifest>
+    </jar>
+
   </target>
 
   <!--
