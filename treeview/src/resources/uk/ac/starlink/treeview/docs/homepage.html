@@ -95,19 +95,6 @@ Treeview understands the structure of the following kinds of nodes and
 can display them hierarchically:
 <dl>
 
-<dt><img src="IconFactory.NDF" alt="NDF">&nbsp;<b>Starlink HDS and NDF structures:</b>
-<dd>
-  <ul>
-  <li>The structure of arbitrarily complicated HDS files can be seen.
-  <li>All array views described above are supported.
-  <li>Magic bad values are treated properly.
-  <li>The co-ordinate Frames can be viewed in several formats 
-      (native, XML and a variety of FITS encodings)
-  <li>The extent of a 2-d array in any of its WCS co-ordinate Frames 
-      can be displayed, with a grid plotted.
-  <li>NDF HISTORY components are shown
-  </ul>
-
 <dt><img src="IconFactory.FITS" alt="FITS">&nbsp;<b>FITS files:</b>
 <dd>
   <ul>
@@ -121,6 +108,25 @@ can display them hierarchically:
   <li>WCS information can be plotted over image pixels or showing array extent
       for 2-d images
   <li>WCS information can be displayed in different FITS/non-FITS encodings
+  </ul>
+
+<dt><img src="IconFactory.NDF" alt="NDF">&nbsp;<b>Starlink NDF files:</b>
+<dd>
+  <ul>
+  <li>All array views described above are supported.
+  <li>Magic bad values are treated properly.
+  <li>The co-ordinate Frames can be viewed in several formats 
+      (native, XML and a variety of FITS encodings)
+  <li>The extent of a 2-d array in any of its WCS co-ordinate Frames 
+      can be displayed, with a grid plotted.
+  <li>NDF HISTORY components are shown
+  </ul>
+
+<dt><img src="IconFactory.STRUCTURE" alt="HDS">&nbsp;<b>Starlink HDS container files:</b>
+<dd>
+  <ul>
+  <li>The structure of arbitrarily complicated HDS files can be seen.
+  <li>All array views described above are supported for array components.
   </ul>
 
 <dt><a name="node.votable"></a><img src="IconFactory.VOTABLE" alt="VOTable">&nbsp;<b>VOTable files:</b>
@@ -143,6 +149,7 @@ can display them hierarchically:
   <li>Summary or full display of each node can be seen
   <li>Known structures (NDX, VOTable) embedded in larger documents 
       are recognised
+  <li>Many standard XML encodings supported
   </ul>
 
 <dt><img src="IconFactory.ZIPFILE" alt="Zip file">&nbsp;<b>Zip files:</b>
@@ -330,6 +337,10 @@ know and I may set one up.
 <li>Treeview WWW page: <a href="http://www.starlink.ac.uk/treeview/">http://www.starlink.ac.uk/treeview/</a>
 <li>Starlink: <a href="http://www.starlink.ac.uk/">http://www.starlink.ac.uk/</a>
 </ul>
+
+<!-- <img src="IconFactory.ARY1">
+     <img src="IconFactory.ARY2">
+     <img src="IconFactory.ARY3"> Never you mind. -->
 
 </body>
 </html>
