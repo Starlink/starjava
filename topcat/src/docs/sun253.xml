@@ -2342,32 +2342,35 @@ The load dialogue flags are:
 
 <dt>-tree</dt>
 <dd><p>Hierarchy browser (<ref id="TreeTableLoadDialog"/>),
-    used for content-sensitive browsing of the filespace.</p></dd>
+    used for content-sensitive browsing of the filespace
+    (not available with topcat-lite).</p></dd>
 
 <dt>-sql</dt>
 <dd><p>SQL query (<ref id="SQLReadDialog"/>),
     used for obtaining tables
-    from an SQL query on a rleational database</p></dd>
+    from an SQL query on a rleational database
+    (only available if <ref id="jdbcConfig">JDBC</ref> 
+    is set up correctly).</p></dd>
 
 <dt>-cone</dt>
 <dd><p>Cone search dialogue (<ref id="ConeSearchDialog"/>),
     used for obtaining catalogues of sources in a region of the sky
-    from remote data servers</p></dd>
+    from remote data servers (not available with topcat-lite).</p></dd>
 
 <dt>-myspace</dt>
 <dd><p>MySpace browser (<ref id="MyspaceTableLoadDialog"/>), 
     used for loading tables from AstroGrid's 
-    MySpace remote file store</p></dd>
+    MySpace remote file store (not available with topcat-lite).</p></dd>
 
 <dt>-registry</dt>
 <dd><p>Registry query dialogue <em>(experimental)</em>,
     used for obtaining the results of a query on a VO resource registry
-    as a table</p></dd>
+    as a table (not available with topcat-lite).</p></dd>
 
 <dt>-siap</dt>
 <dd><p>Simple Image Access Protocol dialogue <em>(experimental)</em>,
     used for obtaining the results of SIAP queries on remote data 
-    servers.</p></dd>
+    servers (not available with topcat-lite).</p></dd>
 
 </dl>
 These flags in most circumstances do just the same as adding the
@@ -4795,6 +4798,11 @@ to use one of the other load methods and specify table format explicitly.
 as described in <ref id="demoData"/>.
 </p>
 
+<p>Note that this window requires certain optional 
+components of the TOPCAT installation,
+and will not be available if you have the topcat-lite configuration.
+</p>
+
 <subsubsubsect>
 <subhead><title>Navigation</title></subhead>
 
@@ -4961,6 +4969,11 @@ on the service you have selected, but it will contain at least
 columns representing Right Ascension and Declination.
 </p>
 
+<p>Note that this window requires certain optional 
+components of the TOPCAT installation,
+and will not be available if you have the topcat-lite configuration.
+</p>
+
 </subsubsect>
 
 <subsubsect id="MyspaceTableLoadDialog">
@@ -4996,6 +5009,11 @@ button at the top of the window.
 
 <p>The current implementation of MySpace spews a lot of text to
 standard output when any of this is going on.
+</p>
+
+<p>Note that this window requires certain optional 
+components of the TOPCAT installation,
+and will not be available if you have the topcat-lite configuration.
 </p>
 
 </subsubsect>
