@@ -1,7 +1,12 @@
+// The doc comments in this class are processed to produce user-visible
+// documentation as part of the package build process.  For this reason
+// care should be taken to make the doc comment style comprehensible,
+// consistent, concise, and not over-technical.
+
 package uk.ac.starlink.topcat.func;
 
 /**
- * Activation methods which interact with the Sloane Digital Sky Server.
+ * Specialist display functions for use with the Sloane Digital Sky Server.
  *
  * <p>At time of writing this is not installed in the available set of
  * activation methods by default.

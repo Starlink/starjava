@@ -1,3 +1,8 @@
+// The doc comments in this class are processed to produce user-visible
+// documentation as part of the package build process.  For this reason
+// care should be taken to make the doc comment style comprehensible,
+// consistent, concise, and not over-technical.
+
 package uk.ac.starlink.topcat.func;
 
 import java.util.regex.Matcher;
@@ -6,12 +11,9 @@ import uk.ac.starlink.pal.AngleDR;
 import uk.ac.starlink.pal.Pal;
 
 /**
- * Class containing expressions for angle transformations and manipulations.
+ * Functions for angle transformations and manipulations.
  * In particular, methods for translating between radians and HH:MM:SS.S
  * or DDD:MM:SS.S type sexagesimal representations are provided.
- *
- * <p>The public functionality is all in static public methods 
- * (suitable for use within TOPCAT's JEL extensions.
  *
  * @author   Mark Taylor (Starlink)
  * @since    30 Apr 2004
@@ -28,7 +30,7 @@ public class Coords {
      * string.  No fractional part of the seconds field is given.
      *
      * @param  rad  angle in radians
-     * @return  DMS-format string representing <tt>rad</tt>
+     * @return  DMS-format string representing <code>rad</code>
      */
     public static String radiansToDms( double rad ) {
         return radiansToDms( rad, 0 );
@@ -40,7 +42,7 @@ public class Coords {
      *
      * @param  rad  angle in radians
      * @param  secFig  number of decimal places in the seconds field
-     * @return  HMS-format string representing <tt>rad</tt>
+     * @return  HMS-format string representing <code>rad</code>
      */
     public static String radiansToDms( double rad, int secFig ) {
         double degrees = radiansToDegrees( rad );
@@ -58,7 +60,7 @@ public class Coords {
      * string.  No fractional part of the seconds field is given.
      *
      * @param  rad  angle in radians
-     * @return  HMS-format string representing <tt>rad</tt>
+     * @return  HMS-format string representing <code>rad</code>
      */
     public static String radiansToHms( double rad ) {
         return radiansToHms( rad, 0 );
@@ -70,7 +72,7 @@ public class Coords {
      *
      * @param  rad  angle in radians
      * @param  secFig  number of decimal places in the seconds field
-     * @return  HMS-format string representing <tt>rad</tt>
+     * @return  HMS-format string representing <code>rad</code>
      */
     public static String radiansToHms( double rad, int secFig ) {
         double degrees = radiansToDegrees( rad );
@@ -87,12 +89,12 @@ public class Coords {
     /**
      * Converts a formatted degrees:minutes:seconds string to an angle
      * in radians.  Delimiters may be colon, space, characters 
-     * <tt>dm[s]</tt>, or some others.
+     * <code>dm[s]</code>, or some others.
      * Additional spaces and leading +/- are permitted.
      *
      * @param  dms  formatted DMS string
-     * @return  angle in radians specified by <tt>dms</tt>
-     * @throws  NumberFormatException  if <tt>dms</tt> can't be parsed as
+     * @return  angle in radians specified by <code>dms</code>
+     * @throws  NumberFormatException  if <code>dms</code> can't be parsed as
      *          a degrees:minutes:seconds string
      */
     public static double dmsToRadians( String dms ) {
@@ -110,12 +112,12 @@ public class Coords {
     /**
      * Converts a formatted hours:minutes:seconds string to an angle
      * in radians.  Delimiters may be colon, space, characters 
-     * <tt>hm[s]</tt>, or some others.
+     * <code>hm[s]</code>, or some others.
      * Additional spaces and leading +/- are permitted.
      *
      * @param  hms  formatted HMS string
-     * @return  angle in radians specified by <tt>hms</tt>
-     * @throws  NumberFormatException  if <tt>dms</tt> can't be parsed as
+     * @return  angle in radians specified by <code>hms</code>
+     * @throws  NumberFormatException  if <code>dms</code> can't be parsed as
      *          an hours:minutes:seconds string
      */
     public static double hmsToRadians( String hms ) {
@@ -135,10 +137,10 @@ public class Coords {
      *
      * <p>In conversions of this type, one has to be careful to get the 
      * sign right in converting angles which are between 0 and -1 degrees.
-     * This routine uses the sign bit of the <tt>deg</tt> argument,
+     * This routine uses the sign bit of the <code>deg</code> argument,
      * taking care to distinguish between +0 and -0 (their internal 
      * representations are different for floating point values).
-     * It is illegal for the <tt>min</tt> or <tt>sec</tt> arguments
+     * It is illegal for the <code>min</code> or <code>sec</code> arguments
      * to be negative.
      *
      * @param  deg  degrees part of angle
@@ -168,7 +170,7 @@ public class Coords {
      *
      * <p>In conversions of this type, one has to be careful to get the
      * sign right in converting angles which are between 0 and -1 hours.
-     * This routine uses the sign bit of the <tt>hour</tt> argument,
+     * This routine uses the sign bit of the <code>hour</code> argument,
      * taking care to distinguish between +0 and -0 (their internal 
      * representations are different for floating point values).
      *
@@ -290,7 +292,7 @@ public class Coords {
     /**
      * Converts a B1950.0 FK4 position to J2000.0 FK5 yielding Right Ascension.
      * This assumes zero proper motion in the FK5 frame.
-     * The <tt>bepoch</tt> parameter is the epoch at which the position in
+     * The <code>bepoch</code> parameter is the epoch at which the position in
      * the FK4 frame was determined.
      *
      * @param   raFK4   right ascension in B1950.0 FK4 system (radians)
@@ -309,7 +311,7 @@ public class Coords {
     /**
      * Converts a B1950.0 FK4 position to J2000.0 FK5 yielding Declination.
      * This assumes zero proper motion in the FK5 frame.
-     * The <tt>bepoch</tt> parameter is the epoch at which the position in
+     * The <code>bepoch</code> parameter is the epoch at which the position in
      * the FK4 frame was determined.
      *
      * @param   raFK4   right ascension in B1950.0 FK4 system (radians)
@@ -367,7 +369,7 @@ public class Coords {
      * negative zero.
      *
      * @param  value  value for testing
-     * @return  true iff <tt>value</tt>'s sign bit is set
+     * @return  true iff <code>value</code>'s sign bit is set
      */
     private static boolean isNegative( double value ) {
         return ( Double.doubleToLongBits( value ) & 0x8000000000000000L ) != 0;

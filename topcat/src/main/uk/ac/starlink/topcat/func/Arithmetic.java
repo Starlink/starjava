@@ -1,11 +1,13 @@
+// The doc comments in this class are processed to produce user-visible 
+// documentation as part of the package build process.  For this reason
+// care should be taken to make the doc comment style comprehensible,
+// consistent, concise, and not over-technical.
+
 package uk.ac.starlink.topcat.func;
 
 /**
  * Standard arithmetic functions including things like rounding, 
  * sign manipulation, and maximum/minimum functions.
- * Most of the functionality here is taken directly from the
- * {@link java.lang.Math} class - the documentation here has been simplified
- * somewhat to make it easier to read.
  *
  * @author   Mark Taylor (Starlink)
  * @since    2 Sep 2004
@@ -62,7 +64,7 @@ public class Arithmetic {
      * is rounded to an integer by adding 1/2, taking the floor of the
      * result, and casting the result to type <code>long</code>. In other
      * words, the result is equal to the value of the expression:
-     * <p><pre>(long)Math.floor(a + 0.5d)</pre>
+     * <code>Math.floor(a+0.5)</code>.
      *
      * @param   x   a floating-point value to be rounded to a
      *          <code>long</code>.
@@ -82,8 +84,7 @@ public class Arithmetic {
      * uniform distribution from that range.
      * <p>
      * When this method is first called, it creates a single new
-     * pseudorandom-number generator, exactly as if by the expression
-     * <blockquote><pre>new java.util.Random</pre></blockquote>
+     * pseudorandom-number generator.
      * This new pseudorandom-number generator is used thereafter for all
      * calls to this method and is used nowhere else.
      *

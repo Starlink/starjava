@@ -1,3 +1,8 @@
+// The doc comments in this class are processed to produce user-visible
+// documentation as part of the package build process.  For this reason
+// care should be taken to make the doc comment style comprehensible,
+// consistent, concise, and not over-technical.
+
 package uk.ac.starlink.topcat.func;
 
 import java.awt.Component;
@@ -19,7 +24,7 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
- * Containing methods for display of spectra and images.
+ * Functions for display of spectra and images in external viewer applications.
  *
  * @author   Mark Taylor (Starlink)
  * @since    20 Aug 2004
@@ -36,7 +41,7 @@ public class Display {
     /**
      * Displays the file at a given location as an image 
      * in a graphical (SoG) viewer.
-     * <tt>loc</tt> should be a filename or URL, pointing to an image in 
+     * <code>loc</code> should be a filename or URL, pointing to an image in 
      * a format that SOG understands (this includes FITS, compressed FITS,
      * and NDFs).
      * 
@@ -115,7 +120,7 @@ public class Display {
      * you're asking for more than you've asked for before.
      *
      * @param  nsog  number of viewers required
-     * @return  <tt>nsog</tt>-element array of SOG image displays
+     * @return  <code>nsog</code>-element array of SOG image displays
      */
     private static SOGNavigatorImageDisplay[] getSoggers( int nsog ) {
         assert TopcatUtils.canSog();
@@ -143,7 +148,7 @@ public class Display {
     /**
      * Displays the resource at a given location as a spectrum in a 
      * spectrum viewer program (SPLAT).
-     * <tt>loc</tt> should be a filename pointing to a spectrum
+     * <code>loc</code> should be a filename pointing to a spectrum
      * in a format that SPLAT understands (includes FITS, NDF).
      * In some cases, a URL can be used too.
      *

@@ -1,7 +1,12 @@
+// The doc comments in this class are processed to produce user-visible
+// documentation as part of the package build process.  For this reason
+// care should be taken to make the doc comment style comprehensible,
+// consistent, concise, and not over-technical.
+
 package uk.ac.starlink.topcat.func;
 
 /**
- * Contains methods for simple logging output.
+ * Functions for simple logging output.
  * 
  * @author   Mark Taylor (Starlink)
  * @since    2 Sep 2004

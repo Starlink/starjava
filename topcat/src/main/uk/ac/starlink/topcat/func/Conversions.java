@@ -1,7 +1,14 @@
+// The doc comments in this class are processed to produce user-visible
+// documentation as part of the package build process.  For this reason
+// care should be taken to make the doc comment style comprehensible,
+// consistent, concise, and not over-technical.
+
 package uk.ac.starlink.topcat.func;
 
+import java.util.Arrays;
+
 /**
- * Contains functions for coverting between strings and numeric values.
+ * Functions for coverting between strings and numeric values.
  *
  * @author   Mark Taylor (Starlink)
  * @since    2 Sep 2004
@@ -12,7 +19,7 @@ public class Conversions {
      * Turns a numeric value into a string.
      *
      * @param  value  numeric value
-     * @return  a string representation of <tt>value</tt>
+     * @return  a string representation of <code>value</code>
      */
     public static String toString( double value ) {
         return Double.toString( value );
@@ -24,7 +31,7 @@ public class Conversions {
      * value will result.
      *
      * @param  str  string containing numeric representation
-     * @return  byte value of <tt>str>
+     * @return  byte value of <code>str</code>
      */
     public static byte parseByte( String str ) {
         return Byte.parseByte( str );
@@ -36,7 +43,7 @@ public class Conversions {
      * value will result.
      *
      * @param  str  string containing numeric representation
-     * @return  byte value of <tt>str>
+     * @return  byte value of <code>str</code>
      */
     public static short parseShort( String str ) {
         return Short.parseShort( str );
@@ -48,7 +55,7 @@ public class Conversions {
      * value will result.
      *
      * @param  str  string containing numeric representation
-     * @return  byte value of <tt>str>
+     * @return  byte value of <code>str</code>
      */
     public static int parseInt( String str ) {
         return Integer.parseInt( str );
@@ -60,7 +67,7 @@ public class Conversions {
      * value will result.
      *
      * @param  str  string containing numeric representation
-     * @return  byte value of <tt>str>
+     * @return  byte value of <code>str</code>
      */
     public static float parseFloat( String str ) {
         return Float.parseFloat( str );
@@ -72,7 +79,7 @@ public class Conversions {
      * value will result.
      *
      * @param  str  string containing numeric representation
-     * @return  byte value of <tt>str>
+     * @return  byte value of <code>str</code>
      */
     public static double parseDouble( String str ) {
         return Double.parseDouble( str );
@@ -84,9 +91,9 @@ public class Conversions {
      * If it is out of range, a blank value will result.
      *
      * @param  value  numeric value for conversion
-     * @return  value converted to type byte
+     * @return  <code>value</code> converted to type byte
      */
-    public byte toByte( double value ) {
+    public static byte toByte( double value ) {
         if ( value < Byte.MIN_VALUE || value > Byte.MAX_VALUE ) {
             throw new NumberFormatException();
         }
@@ -101,9 +108,9 @@ public class Conversions {
      * If it is out of range, a blank value will result.
      *
      * @param  value  numeric value for conversion
-     * @return  value converted to type short
+     * @return  <code>value</code> converted to type short
      */
-    public short toShort( double value ) {
+    public static short toShort( double value ) {
         if ( value < Short.MIN_VALUE || value > Byte.MAX_VALUE ) {
             throw new NumberFormatException();
         }
@@ -118,9 +125,9 @@ public class Conversions {
      * If it is out of range, a blank value will result.
      *
      * @param  value  numeric value for conversion
-     * @return  value converted to type int
+     * @return  <code>value</code> converted to type int
      */
-    public int toInteger( double value ) {
+    public static int toInteger( double value ) {
         if ( value < Integer.MIN_VALUE || value > Integer.MAX_VALUE ) {
             throw new NumberFormatException();
         }
@@ -135,9 +142,9 @@ public class Conversions {
      * If it is out of range, a blank value will result.
      *
      * @param  value  numeric value for conversion
-     * @return  value converted to type long 
+     * @return  <code>value</code> converted to type long 
      */
-    public long toLong( double value ) {
+    public static long toLong( double value ) {
         if ( value < Long.MIN_VALUE || value > Long.MAX_VALUE ) {
             throw new NumberFormatException();
         }
@@ -152,9 +159,9 @@ public class Conversions {
      * If it is out of range, a blank value will result.
      *
      * @param  value  numeric value for conversion
-     * @return  value converted to type float 
+     * @return  <code>value</code> converted to type float 
      */
-    public float toFloat( double value ) {
+    public static float toFloat( double value ) {
         if ( value < -Float.MAX_VALUE || value > Float.MAX_VALUE ) {
             return Float.NaN;
         }
@@ -166,13 +173,35 @@ public class Conversions {
     /**
      * Converts the numeric argument to a
      * double (64-bit signed integer) result.
-     * If it is out of range, a blank value will result.
      *
      * @param  value  numeric value for conversion
-     * @return  value converted to type double 
+     * @return  <code>value</code> converted to type double 
      */
-    public double toDouble( double value ) {
+    public static double toDouble( double value ) {
         return value;
+    }
+
+    /**
+     * Takes an integer argument and returns a string representing the
+     * same numeric value but padded with leading zeros to a specified
+     * length.
+     *
+     * @example  <code>padWithZeros(23,5) = "00023"</code>
+     *
+     * @param  value  numeric value to pad
+     * @param  ndigit   the number of digits in the resulting string
+     * @return  a string evaluating to the same as <code>value</code> with
+     *          at least <code>ndigit</code> characters
+     */
+    public static String padWithZeros( long value, int ndigit ) {
+        String sval = Long.toString( value );
+        int sl = sval.length();
+        if ( sl < ndigit ) {
+            char[] cbuf = new char[ ndigit - sl ];
+            Arrays.fill( cbuf, '0' );
+            sval = new String( cbuf ) + sval;
+        }
+        return sval;
     }
 
 }
