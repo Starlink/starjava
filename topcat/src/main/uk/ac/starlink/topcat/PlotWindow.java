@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -190,7 +191,9 @@ public class PlotWindow extends TopcatViewWindow implements ActionListener {
                 }
             }
         };
-        getFileMenu().insert( printAction, 0 );
+        int fileMenuPos = 0;
+        getFileMenu().insert( printAction, fileMenuPos++ );
+        getFileMenu().insertSeparator( fileMenuPos++ );
 
         /* Get a menu for selecting row subsets to plot. */
         CheckBoxMenu subMenu = subsets.makeCheckBoxMenu( "Subsets to plot" );
@@ -329,6 +332,7 @@ public class PlotWindow extends TopcatViewWindow implements ActionListener {
 
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
+        plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( resizeAction );
         plotMenu.add( replotAction );
         JMenuItem gridItem = new JCheckBoxMenuItem( gridAction );
@@ -339,6 +343,7 @@ public class PlotWindow extends TopcatViewWindow implements ActionListener {
 
         /* Construct a new menu for subset operations. */
         JMenu subsetMenu = new JMenu( "Subsets" );
+        subsetMenu.setMnemonic( KeyEvent.VK_S );
         subsetMenu.add( subMenu );
         fromvisibleAction = new BasicAction( "New subset from visible",
                                              ResourceIcon.VISIBLE_SUBSET,

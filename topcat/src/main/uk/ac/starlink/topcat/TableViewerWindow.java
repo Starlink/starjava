@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -13,6 +14,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ListSelectionModel;
+import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -46,6 +48,7 @@ public class TableViewerWindow extends TopcatViewWindow
     private final PlasticStarTable dataModel;
     private final ViewerTableModel viewModel;
     private final TableColumnModel columnModel;
+    private final OptionsListModel subsets;
 
     private JTable jtab;
     private TableRowHeader rowHead;
@@ -67,12 +70,13 @@ public class TableViewerWindow extends TopcatViewWindow
      *         of <tt>sibling</tt>.  May be <tt>null</tt>
      * @throws  IllegalArgumentException  if <tt>!startab.isRandom()</tt>
      */
-    public TableViewerWindow( TopcatModel tcModel, Component parent ) {
+    public TableViewerWindow( final TopcatModel tcModel, Component parent ) {
         super( tcModel, "Table Browser", parent );
         this.tcModel = tcModel;
         this.dataModel = tcModel.getDataModel();
         this.viewModel = tcModel.getViewModel();
         this.columnModel = tcModel.getColumnModel();
+        this.subsets = tcModel.getSubsets();
 
         /* Set up the JTable. */
         jtab = new JTable(); 
@@ -163,6 +167,22 @@ public class TableViewerWindow extends TopcatViewWindow
         getToolBar().add( includeAct );
         getToolBar().add( excludeAct );
         getToolBar().addSeparator();
+
+        /* Add a subsets menu. */
+        JMenu subsetMenu = new JMenu( "Subsets" );
+        subsetMenu.setMnemonic( KeyEvent.VK_S );
+        subsetMenu.add( includeAct );
+        subsetMenu.add( excludeAct );
+        Action applysubsetAct = new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+                int index = evt.getID();
+                tcModel.applySubset( (RowSubset) subsets.get( index ) );
+            }
+        };
+        JMenu applysubsetMenu =
+            subsets.makeJMenu( "Apply Subset", applysubsetAct );
+        subsetMenu.add( applysubsetMenu );
+        getJMenuBar().add( subsetMenu );
 
         /* Add help information. */
         addHelp( "TableViewerWindow" );
