@@ -21,7 +21,7 @@ fi
 
 appjar="$TREEVIEW_DIR/../../lib/treeview/treeview.jar"
 if test ! -f "$appjar"; then
-   echo "Failed to locate the TREEVIEW jar file.  Please define TREEVIEW_JAR"
+   echo "Failed to locate the TREEVIEW jar file.  Please define TREEVIEW_DIR"
 fi
 
 #  Locate the java startup script.
@@ -29,7 +29,7 @@ fi
 starjava="$TREEVIEW_DIR/../../bin/starjava"
 if test ! -f "$starjava"; then
    echo "Failed to locate the 'starjava' script.  Trying with java on path"
-   starjava="starjava"
+   starjava="java"
 fi
 
 #  Make sure that we get the installed shareable libraries.
