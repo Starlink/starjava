@@ -873,7 +873,9 @@ public class TableViewer extends AuxWindow
             this.ascending = ascending;
             String name = tcol.getIdentifier().toString();
             putValue( SHORT_DESCRIPTION,
-                      "Sort rows by ascending value of " + name );
+                      "Sort rows by " +
+                      ( ascending ? "ascending" : "descending" ) +
+                      " value of " + name );
         }
 
         public void actionPerformed( ActionEvent evt ) {
