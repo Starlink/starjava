@@ -4,6 +4,9 @@
  *  History:
  *     14-FEB-2001 (Peter W. Draper):
  *       Original version.
+ *     26-JUN-2003 (Peter W. Draper):
+ *       Divide always produced BAD values as test against divide by
+ *       zero was flawed.
  */
 package uk.ac.starlink.splat.iface;
 
@@ -366,8 +369,9 @@ public class SimpleBinaryMaths
     {
         double[] result = new double[one.length];
         for ( int i = 0; i < one.length; i++ ) {
-            if ( one[i] != SpecData.BAD && two[i] != SpecData.BAD
-                 && two[i] == 0.0 ) {
+            if ( one[i] != SpecData.BAD && 
+                 two[i] != SpecData.BAD && 
+                 two[i] != 0.0 ) {
                 result[i] = one[i] / two[i];
             }
             else {
