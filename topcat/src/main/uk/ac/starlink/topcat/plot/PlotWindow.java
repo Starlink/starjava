@@ -132,7 +132,7 @@ public class PlotWindow extends TopcatViewWindow
     private static final MarkStyleProfile MARKERS5;
     static final MarkStyleProfile[] MARKER_PROFILES = new MarkStyleProfile[] {
         MARKERS1 =
-        MarkStyleProfile.spots( "Pixels", 0 ),
+        MarkStyleProfile.points( "Pixels" ),
         MARKERS2 =
         MarkStyleProfile.spots( "Dots", 1 ),
         MARKERS3 =
@@ -546,6 +546,11 @@ public class PlotWindow extends TopcatViewWindow
 
             /* If the axes are different from the last time we plotted, 
              * fix it so that all the points are included. */
+            /* This has the effect of rescaling even if the axes are just
+             * flipped, which probably isn't what the user wants to see,
+             * but implementation details mean that it's not easy to get
+             * away without doing this, so if you want to change that 
+             * make sure you check it still works properly afterwards. */
             if ( ! state.sameAxes( lastState ) ) {
                 plot_.rescale();
             }
