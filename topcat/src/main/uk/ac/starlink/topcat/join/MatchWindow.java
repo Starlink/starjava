@@ -75,8 +75,8 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         paramContainer = new JPanel( paramCards );
         for ( int i = 0; i < nEngine; i++ ) {
             MatchEngine engine = engines[ i ];
-            String label = engine.toString();
-            paramContainer.add( new ParameterPanel( engine ), label );
+            paramContainer.add( new ParameterPanel( engine ),
+                                labelFor( engine ) );
         }
 
         /* Prepare a combo box which can select the engines. */
@@ -183,8 +183,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
     private void updateDisplay() {
         MatchEngine engine = getMatchEngine();
         if ( engine != null ) {
-            String label = engine.toString();
-            paramCards.show( paramContainer, label );
+            paramCards.show( paramContainer, labelFor( engine ) );
             specScroller.setViewportView( getMatchSpec().getPanel() );
         }
     }
@@ -232,6 +231,18 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         super.dispose();
     }
 
+    /**
+     * Returns a string which identifies a MatchEngine.  This is used
+     * by the CardLayoutManager; if the labels are not distinct for all
+     * the engines, there's trouble.  If CardLayoutManager were written
+     * sensibly it would be possible to key components by Object not
+     * String, and this wouldn't be necessary.
+     */
+    private static String labelFor( MatchEngine engine ) {
+        return engine.getClass() + ":" 
+             + engine.toString() + "@"
+             + System.identityHashCode( engine );
+    }
 
     /**
      * Helper class representing the thread which performs the
