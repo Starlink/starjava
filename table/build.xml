@@ -145,7 +145,7 @@
   <property name="dist.docs" value="${dist.dir}/docs"/>
   <property name="dist.etc" value="${dist.dir}/etc"/>
 
-  <property name="dist.bin.pkg" value="${dist.bin}/${name}"/>
+  <property name="dist.bin.pkg" value="${dist.bin}"/>
   <property name="dist.lib.pkg" value="${dist.lib}/${name}"/>
   <property name="dist.docs.pkg" value="${dist.docs}/${name}"/>
   <property name="dist.etc.pkg" value="${dist.etc}/${name}"/>
@@ -400,7 +400,13 @@
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
     <mkdir dir="${dist.lib.pkg}"/>
+    <mkdir dir="${dist.bin.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
+
+    <!-- Copy application scripts. -->
+    <copy todir="${dist.bin.pkg}">
+      <fileset dir="${script.dir}/"/>
+    </copy>
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
@@ -415,11 +421,9 @@
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
-    <!--
-      <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
-         <fileset dir="${dist.bin}"/>
-      </chmod>
-    -->
+    <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
+       <fileset dir="${dist.bin}"/>
+    </chmod>
 
   </target>
 
@@ -618,21 +622,6 @@
      !   the class library may not have any scripts), then make sure
      !   that the first loggedcopy has logfileAppend="false" so that
      !   the copy logfile is initialised -->
-    <!-- 
-      <loggedcopy todir="${star.bin}"
-                  logfile="${install.log}"
-                  overwrite="${install.overwrite}"
-                  logfileAppend="false">
-        <fileset dir="${dist.bin}"/>
-      </loggedcopy>
-
-      <chmod perm="ugo+rx" failonerror="${chmod.fail}">
-        <fileset dir="${star.bin}">
-          <present targetdir="${dist.bin}" present="both"/>
-        </fileset>
-      </chmod>
-    -->
-
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
@@ -642,6 +631,19 @@
         <include name="**/*.zip"/>
       </fileset>
     </loggedcopy>
+
+    <loggedcopy todir="${star.bin}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.bin}"/>
+    </loggedcopy>
+
+    <chmod perm="ugo+rx" failonerror="${chmod.fail}">
+      <fileset dir="${star.bin}">
+        <present targetdir="${dist.bin}" present="both"/>
+      </fileset>
+    </chmod>
 
     <!-- Also remove the package-specific directory.
      !   Note exact format is required.-->

@@ -19,10 +19,9 @@ import uk.ac.starlink.table.jdbc.JDBCHandler;
  * handlers are installed:
  * <ul>
  * <li> {@link uk.ac.starlink.table.TextTableWriter}
- * <li> {@link uk.ac.starlink.fits.FitsTableWriter}
  * <li> {@link uk.ac.starlink.votable.VOTableWriter}
- * <li> {@link uk.ac.starlink.mirage.MirageTableWriter}
  * </ul>
+ * It can additionally write to JDBC tables.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -32,8 +31,6 @@ public class StarTableOutput {
     private JDBCHandler jdbcHandler;
     private static String[] defaultHandlerClasses = {
         "uk.ac.starlink.table.TextTableWriter",
-        "uk.ac.starlink.mirage.MirageTableWriter",
-        "uk.ac.starlink.fits.FitsTableWriter",
         "uk.ac.starlink.votable.VOTableWriter",
     };
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
@@ -98,17 +95,20 @@ public class StarTableOutput {
      *         a <tt>StarTableWriter</tt> object (which may or may not be 
      *         registered with this <tt>StarTableOutput</tt>), or else
      *         a string which matches one of the registered 
-     *         <tt>StarTableWriter</tt>s (first match is used).  Ignored for
-     *         <tt>jdbc:</tt>-protocol locations
+     *         <tt>StarTableWriter</tt>s (first match is used),
+     *         or <tt>null</tt> to indicate that a handler should be 
+     *         selected based on the value of <tt>location</tt>.
+     *         Ignored for <tt>jdbc:</tt>-protocol locations
+     * @throws UnknownTableFormatException  if no suitable handler is known
      */
     public void writeStarTable( StarTable startab, String location,
                                 String format )
-            throws IOException {
+            throws UnknownTableFormatException, IOException {
 
         /* Handle the JDBC case. */
         if ( location.startsWith( "jdbc:" ) ) {
             try {
-                getJdbcHandler().createJDBCTable( startab, location );
+                getJDBCHandler().createJDBCTable( startab, location );
                 return;
             }
             catch ( SQLException e ) {
@@ -118,22 +118,32 @@ public class StarTableOutput {
         }
 
         else {
+
+            /* See if the specified format is suitable for any known handler. */
             StarTableWriter handler = getHandler( location, format );
             if ( handler != null ) {
                 handler.writeStarTable( startab, location );
             }
-            else {
 
-                /* Failure. */
-                StringBuffer msg = new StringBuffer();
-                msg.append( "No suitable handler for writing table.\n" )
-                   .append( "Known formats:" );
-                for ( Iterator it = getKnownFormats().iterator();
-                      it.hasNext(); ) {
-                    msg.append( ' ' )
-                       .append( it.next() );
+            /* If not, throw an UnknownTableFormatException. */
+            else {
+                if ( format != null ) {
+                    throw new UnknownTableFormatException(
+                        "No handler for table format " + format );
                 }
-                throw new IOException( msg.toString() );
+                else {
+                    StringBuffer msg = new StringBuffer();
+                    msg.append( "No handler specified for writing table.\n" )
+                       .append( "Known formats: " );
+                    for ( Iterator it = getKnownFormats().iterator();
+                          it.hasNext(); ) {
+                        msg.append( it.next() );
+                        if ( it.hasNext() ) {
+                            msg.append( ", " );
+                        }
+                    }
+                    throw new UnknownTableFormatException( msg.toString() );
+                }
             }
         }
     }
@@ -195,11 +205,6 @@ public class StarTableOutput {
             }
         }
 
-        /* Otherwise just write using the first handler we have. */
-        if ( handlers.size() > 0 ) {
-            return (StarTableWriter) handlers.get( 0 );
-        }
-
         /* No luck. */
         return null;
     }
@@ -220,12 +225,27 @@ public class StarTableOutput {
         return kf;
     }
 
-    private JDBCHandler getJdbcHandler() {
+    /**
+     * Returns the JDBCHandler object used for writing tables to JDBC
+     * connections.
+     *
+     * @return  the JDBC handler
+     */
+    public JDBCHandler getJDBCHandler() {
         if ( jdbcHandler == null ) {
             jdbcHandler = new JDBCHandler();
         }
         return jdbcHandler;
     }
 
+    /**
+     * Sets the JDBCHandler object used for writing tables to JDBC 
+     * connections.
+     *
+     * @param  handler  the handler to use
+     */
+    public void setJDBCHandler( JDBCHandler handler ) {
+        this.jdbcHandler = handler;
+    }
 
 }

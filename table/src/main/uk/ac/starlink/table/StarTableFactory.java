@@ -102,6 +102,15 @@ public class StarTableFactory {
             TableBuilder builder = (TableBuilder) it.next();
             StarTable startab = builder.makeStarTable( datsrc );
             if ( startab != null ) {
+                if ( startab instanceof AbstractStarTable ) {
+                    AbstractStarTable abst = (AbstractStarTable) startab;
+                    if ( abst.getName() == null ) {
+                        abst.setName( datsrc.getName() );
+                    }
+                    if ( abst.getURL() == null ) {
+                        abst.setURL( datsrc.getURL() );
+                    }
+                }
                 return startab;
             }
         }
