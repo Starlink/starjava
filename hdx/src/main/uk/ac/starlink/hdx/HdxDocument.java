@@ -214,7 +214,7 @@ public class HdxDocument
 
     public Node importNode(Node importedNode, boolean deep) 
             throws DOMException {
-        Node retNode;
+        Node retNode = null;
         switch (importedNode.getNodeType()) {
           case Node.ELEMENT_NODE: 
               {
@@ -230,10 +230,12 @@ public class HdxDocument
             break;
           
           default:
-            throw new DOMException
-                (DOMException.NOT_SUPPORTED_ERR,
-                 "HdxDocument.importNode: importing node type "
-                 + importedNode.getNodeType() + " not supported");
+            retNode = createTextNode( importedNode.getNodeValue() );
+          //   System.out.println( "Failed to import node:" + importedNode );
+          //  throw new DOMException
+          //      (DOMException.NOT_SUPPORTED_ERR,
+          //       "HdxDocument.importNode: importing node type "
+          //       + importedNode.getNodeType() + " not supported");
         }
 
         if (deep)
