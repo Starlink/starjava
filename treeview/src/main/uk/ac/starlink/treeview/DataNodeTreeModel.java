@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -630,34 +629,6 @@ public class DataNodeTreeModel implements TreeModel {
                                               int[] indices, 
                                               Object[] children ) {
             super.fireTreeStructureChanged( source, path, indices, children );
-        }
-    }
-
-    /**
-     * Empty node implementation provides a default root node.
-     */
-    private static class EmptyDataNode extends DefaultDataNode {
-        public boolean allowsChildren() {
-            return true;
-        }
-        public Iterator getChildIterator() {
-            return new Iterator() {
-                public boolean hasNext() {
-                    return false;
-                }
-                public Object next() {
-                    throw new NoSuchElementException();
-                }
-                public void remove() {
-                    throw new UnsupportedOperationException();
-                }
-            };
-        }
-        public String getName() {
-            return "Empty";
-        }
-        public String toString() {
-            return getName();
         }
     }
 

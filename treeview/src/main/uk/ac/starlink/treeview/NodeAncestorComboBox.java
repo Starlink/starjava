@@ -92,28 +92,30 @@ public class NodeAncestorComboBox extends JComboBox {
                                                     isSelected, hasFocus );
 
             /* Customise the label by using the node name. */
-            DataNode node = (DataNode) value;
-            rendered.setText( node.getName() );
+            if ( value != null ) {
+                DataNode node = (DataNode) value;
+                rendered.setText( node.getName() );
 
-            /* Customise the label by using the node icon.  We add some 
-             * space to the left of the icon to get the nodes indenting
-             * hierarchically. */
-            final Icon baseIcon = node.getIcon();
-            if ( baseIcon != null ) {
-                final int offset = 20 + index * 10;
-                Icon icon = new Icon() {
-                    public int getIconHeight() {
-                        return baseIcon.getIconHeight();
-                    }
-                    public int getIconWidth() {
-                        return baseIcon.getIconWidth() + offset;
-                    }
-                    public void paintIcon( Component c, Graphics g,
-                                           int x, int y ) {
-                        baseIcon.paintIcon( c, g, x + offset, y );
-                    }
-                };
-                rendered.setIcon( icon );
+                /* Customise the label by using the node icon.  We add some 
+                 * space to the left of the icon to get the nodes indenting
+                 * hierarchically. */
+                final Icon baseIcon = node.getIcon();
+                if ( baseIcon != null ) {
+                    final int offset = 20 + index * 10;
+                    Icon icon = new Icon() {
+                        public int getIconHeight() {
+                            return baseIcon.getIconHeight();
+                        }
+                        public int getIconWidth() {
+                            return baseIcon.getIconWidth() + offset;
+                        }
+                        public void paintIcon( Component c, Graphics g,
+                                               int x, int y ) {
+                            baseIcon.paintIcon( c, g, x + offset, y );
+                        }
+                    };
+                    rendered.setIcon( icon );
+                }
             }
 
             /* Return the rendered label. */

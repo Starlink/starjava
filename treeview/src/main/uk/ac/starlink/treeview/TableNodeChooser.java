@@ -38,10 +38,6 @@ public class TableNodeChooser extends TreeNodeChooser {
      */
     public TableNodeChooser( DataNode root ) {
         super( root );
-        if ( root == null ) {
-            File dir = new File( System.getProperty( "user.dir" ) );
-            setRoot( getNodeMaker().makeChildNode( null, dir ) );
-        }
 
         /* Add some buttons for recursive searches. */
         Action findSelectedAction = getSearchSelectedAction();

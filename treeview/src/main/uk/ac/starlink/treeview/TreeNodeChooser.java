@@ -338,6 +338,10 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      */
     public DataNode chooseDataNode( Component parent, String buttonText,
                                     String title ) {
+        if ( jtree.getModel().getRoot() instanceof EmptyDataNode ) {
+            File dir = new File( System.getProperty( "user.dir" ) );
+            attemptSetRootObject( dir );
+        }
         currentDialog = createDialog( parent );
         if ( ! currentDialog.isModal() ) {
             throw new IllegalStateException( 
