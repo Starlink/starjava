@@ -100,7 +100,10 @@ public class XMLElementDataNode extends XMLDataNode {
             desc = '"' + val.substring( 0, Math.min( 80, val.length() ) ) + '"';
         }
 
-        return desc.substring( 0, Math.min( 40, desc.length() ) );
+        if ( desc.length() > 42 ) {
+            desc = desc.substring( 0, 40 ) + "...";
+        }
+        return desc;
     }
 
 }
