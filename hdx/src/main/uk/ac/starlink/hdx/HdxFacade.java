@@ -3,13 +3,26 @@ package uk.ac.starlink.hdx;
 import org.w3c.dom.*;
 
 /**
- * An <code>HdxFacade</code> maintains an object's representation as a DOM.  As well
- * as generating the DOM representation, this type provides optional
- * support for altering the underlying object through a DOM interface.
+ * An <code>HdxFacade</code> maintains an object's representation as a
+ * DOM.  As well as generating the DOM representation, this type
+ * provides optional support for altering the underlying object
+ * through a DOM interface.  Although it is implementations of this
+ * interface which are ultimately responsible for generating XML in
+ * the HDX system, the methods here are <em>not</em> intended to be
+ * invoked directly by application code: instead, use the method {@link
+ * HdxFactory#newHdxContainer(HdxFacade)}, and use the DOM and Source
+ * methods on the resulting <code>HdxContainer</code>.  Though this
+ * may seem roundabout, it means that the resulting XML has been
+ * through whatever normalization or relativization steps are
+ * required.
+ *
+ * <p>XXX <code>getDOM</code> method is almost certainly disappearing!
+ * Thus these class comments need a rewrite.
  *
  * <p>Only the <code>synchronizeElement</code>,
  * <code>getObject</code> and <code>getHdxResourceType</code> methods
- * need have non-trivial implementations.  
+ * need have non-trivial implementations.  This interface can most
+ * efficiently be implemented by extending <code>AbstractHdxFacade</code>.
  *
  * <p>The <code>getDOM</code> and <code>getSource</code> methods, can
  * be straightforwardly implemented in terms of
@@ -45,36 +58,39 @@ public interface HdxFacade extends Cloneable {
      * just this sort of reason; but that's fine in fact, since that
      * memento would then merely be a duplicate reference to the reference
      * to the object as an HdxFacade.
+     *
+     * <p>XXX The methods in this class throw very few exceptions: this
+     * may not be appropriate, and this might change.
      */
 
-    /**
-     * Produces a DOM representing this object..  The element type
-     * returned by this method must match the type returned by the
-     * facade's {@link #getHdxResourceType}.
-     *
-     * <p>The returned DOM may be a snapshot or may be live.  It is
-     * therefore not guaranteed that operations on the DOM are safe
-     * under concurrent modifications of the underlying object.
-     *
-     * <p>The XML in general may contain URLs, for instance referencing the
-     * array components of the NDX.  How these are written is determined
-     * by the <code>base</code> parameter; URLs will be written as relative
-     * URLs relative to <code>base</code> if this is possible (e.g. if they
-     * share a part of their path).  If there is no common part of the
-     * path, including the case in which <code>base</code> is <code>null</code>,
-     * then an absolute reference will be written.
-     *
-     * @param  base  the base URI against which URIs written within the XML
-     *           are considered relative.  If null, all are written absolute.
-     * @return an element representing the object
-     */
-    public Element getDOM(java.net.URI base);
+//     /**
+//      * Produces a DOM representing this object..  The element type
+//      * returned by this method must match the type returned by the
+//      * facade's {@link #getHdxResourceType}.
+//      *
+//      * <p>The returned DOM may be a snapshot or may be live.  It is
+//      * therefore not guaranteed that operations on the DOM are safe
+//      * under concurrent modifications of the underlying object.
+//      *
+//      * <p>The XML in general may contain URLs, for instance referencing the
+//      * array components of the NDX.  How these are written is determined
+//      * by the <code>base</code> parameter; URLs will be written as relative
+//      * URLs relative to <code>base</code> if this is possible (e.g. if they
+//      * share a part of their path).  If there is no common part of the
+//      * path, including the case in which <code>base</code> is <code>null</code>,
+//      * then an absolute reference will be written.
+//      *
+//      * @param  base  the base URI against which URIs written within the XML
+//      *           are considered relative.  If null, all are written absolute.
+//      * @return an element representing the object
+//      */
+//     public Element getDOM(java.net.URI base);
 
     /**
      * Adds attributes and children to the given element, to represent
      * the current state of the object as a DOM.  The implementing
-     * object should add elements and attributes to the given element
-     * using the <code>Document</code> obtained from by invoking
+     * object should add or update elements and attributes on the given element
+     * using the <code>Document</code> obtained by invoking
      * {@link Node#getOwnerDocument} on the element.  This
      * <code>Document</code> will in fact be an instance of 
      * {@link uk.ac.starlink.hdx.HdxDocument}, which implements the standard
@@ -128,7 +144,8 @@ public interface HdxFacade extends Cloneable {
      * update the DOM.  The method should regard this as something
      * akin to a `can't happen' error: this thrown exception will
      * be converted to a <code>DOMException</code> if that is
-     * reasonable, but if not, may be converted to a {@link PluginException}.
+     * reasonable for the caller, but if not, may be converted to a
+     * {@link PluginException}.
      */
     public Object synchronizeElement(Element el, Object memento)
             throws HdxException;
@@ -152,11 +169,15 @@ public interface HdxFacade extends Cloneable {
      * then an absolute reference will be written.
      *
      * @param  base  the base URI against which URIs written within the XML
-     *           are considered relative.  If null, all are written absolute.
-     * @see     uk.ac.starlink.util.SourceReader
+     *               are considered relative.  If null, all are
+     *               written absolute.
      * @return a Source representing the object
+     * @throws HdxException if the <code>Source</code> cannot be
+     *               generated fo some reason
+     * @see     uk.ac.starlink.util.SourceReader
      */
-    public javax.xml.transform.Source getSource(java.net.URI base);
+    public javax.xml.transform.Source getSource(java.net.URI base)
+            throws HdxException;
 
     /**
      * Sets an attribute on an element.  If an attribute is `set' to a
