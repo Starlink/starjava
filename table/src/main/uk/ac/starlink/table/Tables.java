@@ -91,6 +91,25 @@ public class Tables {
     }
 
     /**
+     * Copies the data and metadata from a <tt>StarTable</tt> into a 
+     * table sink.  
+     * This method is supplied for convenience; its implementation is
+     * very straightforward.
+     *
+     * @param   source  table to be copied
+     * @param   sink    table destination
+     */
+    public static void copyStarTable( StarTable source, TableSink sink ) 
+            throws IOException {
+        sink.acceptMetadata( source );
+        for ( RowSequence rseq = source.getRowSequence(); rseq.hasNext(); ) {
+            rseq.next();
+            sink.acceptRow( rseq.getRow() );
+        }
+        sink.endRows();
+    }
+
+    /**
      * Diagnostic method which tests the invariants of a StarTable.
      * This method returns no value, and throws an exception if a table
      * is illegal in some way.
