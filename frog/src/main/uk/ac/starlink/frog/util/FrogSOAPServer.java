@@ -16,6 +16,8 @@ import uk.ac.starlink.soap.AppHttpSOAPServer;
 import uk.ac.starlink.frog.Frog;
 import uk.ac.starlink.frog.iface.PlotControlFrame;
 import uk.ac.starlink.frog.data.TimeSeries;
+import uk.ac.starlink.frog.data.TimeSeriesImpl;
+import uk.ac.starlink.frog.data.TXTTimeSeriesImpl;
 import uk.ac.starlink.frog.util.FrogDebug;
 
 /**
@@ -185,6 +187,26 @@ public class FrogSOAPServer
     {
        debugManager.print( "Called displaySeries() via SOAP Service");
        debugManager.print( "Passed:\n" + series );
+       
+       // break the String into lines
+       String[] lines = series.split("\\n");
+       
+       // Create a TimeSeriesImpl
+       TimeSeriesImpl impl = null;
+       try {
+          impl = new TXTTimeSeriesImpl( lines );
+       
+          // Wrap the implementation in a time series object
+          TimeSeries newSeries = new TimeSeries( impl );
+          newSeries.setOrigin( "a SOAP message" );
+          newSeries.setType( TimeSeries.TIMESERIES );
+       
+          // add it to the Frog Main Window
+          browserMain.addSeries( newSeries );
+       } catch (FrogException e) {
+           e.printStackTrace();
+           return false;
+       }   
        return true;       
     }
 

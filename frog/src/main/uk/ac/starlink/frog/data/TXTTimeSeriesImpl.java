@@ -73,6 +73,27 @@ public class TXTTimeSeriesImpl extends TimeSeriesImpl
     }
 
     /**
+     * Create an object by getting an array of Strings, each String will
+     * a data point (x,y,err) or (x,y)
+     *
+     * @param string[] An array String object
+     * @param 
+     */
+    public TXTTimeSeriesImpl( String[] lines ) throws FrogException
+    {
+        super();
+        
+        debugManager.print("              TXTTimeSeriesImpl( String [] )");
+        this.fullName = "Created from SOAP Message";
+        this.shortName = "Created from SOAP Message";
+        try {
+           readString( lines );
+        } catch(FrogException e) {
+           throw e;
+        }   
+    }
+ 
+    /**
      * Create an object by reading values from an existing TimeSeries
      * object. The text file is associated (so can be a save target),
      * but not opened.
@@ -412,6 +433,111 @@ public class TXTTimeSeriesImpl extends TimeSeriesImpl
         //  relationship.
        createAst();
     }
+
+  /**
+     * Read in the data from a String
+     *
+     * @param string A String containing the data
+     */
+    protected void readString( String[] lines ) throws FrogException
+    {
+        debugManager.print("                TXTTimeSeriesImp readString()");
+
+        //  Storage of all values go into ArrayList vectors, until we
+        //  know the exact sizes required.
+        ArrayList[] vec = new ArrayList[3];
+        vec[0] = new ArrayList();
+        vec[1] = new ArrayList();
+        vec[2] = new ArrayList();
+
+        //  Read file input until end of file occurs.
+        String raw = null;
+        String clean = null;
+        int nlines = 0;
+        int nwords = 0;
+        
+        for( int k = 0; k < lines.length; k++ ) {
+           
+           //  Skip blank and comment lines.
+           if ( lines[k].length() == 0 || lines[k].charAt(0) == '!' ||
+                lines[k].charAt(0) == '#' ) {
+               continue;
+               //  TODO: restore shortname etc?
+           } else {
+
+               // Read at least two floating numbers from line
+               // and no more than 3.
+               StringTokenizer st = new StringTokenizer( lines[k] );
+               int count = Math.min( st.countTokens(), 3 );
+               nwords = Math.max( count, nwords );
+               
+               for ( int i = 0; i < count; i++ ) {
+                   vec[i].add( new Double( st.nextToken() ) );
+               }
+               for ( int i = count; i < 3; i++ ) {
+                   vec[i].add( new Double( 0.0 ) );
+               }
+               nlines++;
+           }
+        }
+        
+        //  Create memory needed to store these coordinates.
+        data = new double[nlines];
+        coords = new double[nlines];
+        if ( nwords == 3 ) {
+            errors = new double[nlines];
+        }
+
+        //  Now copy data into arrays and record the data range.
+        try {
+          if ( nwords == 3 ) {
+              for ( int i = 0; i < nlines; i++ ) {
+                  coords[i] = ((Double)vec[0].get(i)).doubleValue();
+                  data[i] = ((Double)vec[1].get(i)).doubleValue();
+                  errors[i] = ((Double)vec[2].get(i)).doubleValue();
+              }
+          } else {
+              for ( int i = 0; i < nlines; i++ ) {
+                  coords[i] = ((Double)vec[0].get(i)).doubleValue();
+                  data[i] = ((Double)vec[1].get(i)).doubleValue();
+              }
+          }
+
+          debugManager.print( "                Inital Data Read");
+          debugManager.print( "                ----------------");
+          debugManager.print( "                coords.length = " +
+                              coords.length);
+
+          if (nwords == 3 ) {
+             for ( int i = 0; i < coords.length; i++ ) {
+               debugManager.print( "                " + i + ": " + 
+                    coords[i] + "    " + data[i]  + "    " + errors[i] );
+             }       
+          } else {
+             for ( int i = 0; i < coords.length; i++ ) {
+               debugManager.print( "                " + i + ": " + 
+                                   coords[i] + "    " + data[i] );         
+          
+             }
+          }   
+          
+        } catch (Exception e ) {
+            debugManager.print( 
+               "                Problem reading from String[] array" );
+            debugManager.print( 
+               "                Throwing FrogException..." );   
+               
+            FrogException fe = new FrogException( 
+                               "Problem reading data..." );
+            fe.initCause( e );
+            throw fe;  
+        }
+        
+        //  Create the AST frameset that describes the data-coordinate
+        //  relationship.
+       createAst();
+    }
+
 
     /**
      * Create an AST frameset that relates the series coordinates to

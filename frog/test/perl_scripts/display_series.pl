@@ -1,9 +1,47 @@
 #!/home/perl/bin/perl
 
   use SOAP::Lite;
+  use Getopt::Long;
 
-  my $service = SOAP::Lite->service(
-      "http://dastardly.astro.ex.ac.uk:8084/services/FrogSOAPServices?wsdl" );
+  unless ( scalar @ARGV >= 1 ) {
+     die "USAGE: $0 [-host host] [-port port] -file filename\n";
+  }
     
-  print $service->displaySeries( "0.0 23.0 0.1\n0.1 21.0 0.2\n" ) . "\n";    
+  my $status = GetOptions( "host=s"       => \$host,
+                           "port=s"       => \$port,
+                           "file=s"       => \$file );
+  
+  # default hostname
+  unless ( defined $host ) {
+     # localhost.localdoamin
+     $host = "127.0.0.1";
+  } 
 
+  # default port
+  unless( defined $port ) {
+     # default port for the user agent
+     $port = 8084;   
+  } 
+  
+  my $data;
+  if( defined $file ) {
+     unless ( open ( FILE, "<$file") ) {
+        die "ERROR: Cannot open $file\n";
+     }
+     undef $/;
+     $data = <FILE>;
+     close FILE;
+  } else {
+     die "ERROR: No data file specified.\n";
+  }
+  
+  my $service = SOAP::Lite->service(
+      "http://$host:$port/services/FrogSOAPServices?wsdl" );
+    
+  print $service->displaySeries( $data ) . "\n";    
+
+
+             
+             
+             
+             

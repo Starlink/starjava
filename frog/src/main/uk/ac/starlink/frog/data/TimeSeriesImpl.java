@@ -19,6 +19,12 @@ public abstract class TimeSeriesImpl implements Serializable
     /**
      * Constructor - create instance of class.
      *
+     */
+    public TimeSeriesImpl( ) {}
+     
+     /**
+     * Constructor - create instance of class.
+     *
      * @param name The specification of the time series (disk file name
      * etc.).
      */

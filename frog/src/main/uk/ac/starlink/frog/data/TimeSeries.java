@@ -980,7 +980,8 @@ public class TimeSeries
     /**
      * Set the origin of the series data.
      *
-     * @param origin the associated original TimeSeries (or "from File")
+     * @param origin the associated original TimeSeries (or "a File", 
+     *               "a SOAP message" )
      */
     public void setOrigin( String s )
     {
