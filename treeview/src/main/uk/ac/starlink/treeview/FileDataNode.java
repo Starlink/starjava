@@ -160,7 +160,20 @@ public class FileDataNode extends DefaultDataNode {
             /* If it looks like a text file, add the option to view the
              * content. */
             try {
-                if ( new StreamCheck( file ).isText() ) {
+                StreamCheck sc = new StreamCheck( file );
+
+            //  HTML viewing does work but there are problems with it; 
+            //  for one thing I can't make the HTML load asynchronously.
+            //  If I do have HTML viewing, I'm not sure if it should be 
+            //  here or (more likely) an HTMLDataNode.
+            //  if ( sc.isHTML() ) {
+            //      dv.addPane( "HTML view", new ComponentMaker() {
+            //          public JComponent getComponent() throws IOException {
+            //              return new HTMLViewer( file );
+            //          }
+            //      } );
+            //  }
+                if ( sc.isText() ) {
                     dv.addPane( "File text", new ComponentMaker() {
                         public JComponent getComponent() throws IOException {
                             return new TextViewer( new FileReader( file ) );
