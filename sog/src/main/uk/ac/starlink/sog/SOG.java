@@ -540,7 +540,7 @@ public class SOG
      *
      * @return The imageDisplay value
      */
-    protected MainImageDisplay getImageDisplay()
+    public MainImageDisplay getImageDisplay()
     {
         if ( imageFrame instanceof SOGNavigatorImageDisplayFrame ) {
             return ((SOGNavigatorImageDisplayFrame)imageFrame).
