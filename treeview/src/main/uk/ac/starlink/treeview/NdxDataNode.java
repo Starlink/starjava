@@ -313,8 +313,16 @@ public class NdxDataNode extends DefaultDataNode {
          * out how to do that properly yet, so the views below either use
          * the original array with its WCS or the effective array with
          * a blank WCS. */
-        final NDArray eimage = NDArrayDataNode.effectiveArray( image );
-        final int endim = eimage.getShape().getNumDims();
+        final NDArray eimage;
+        final int endim;
+        if ( shape.getNumPixels() > 1 ) {
+            eimage = NDArrayDataNode.effectiveArray( image );
+            endim = eimage.getShape().getNumDims();
+        }
+        else {
+            eimage = image;
+            endim = ndim;
+        }
 
         /* Add data views as appropriate. */
         if ( Driver.hasAST && ndx.hasWCS() && ndim == 2 && endim == 2 ) {
