@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * Abstract wrapper table which can provide a random-access view of a
@@ -86,6 +87,18 @@ public abstract class RandomWrapperStarTable extends WrapperStarTable {
      */
     public int getColumnCount() {
         return colinfos.length;
+    }
+
+    /**
+     * Returns the URL of the base table.  Unlike most WrapperStarTables,
+     * this is a reasonable thing to do, since although this isn't identical
+     * to the base table, its data and metadata are identical, it's only
+     * the mode of access which is different.
+     *
+     * @return  URL of the base table
+     */
+    public URL getURL() {
+        return baseTable.getURL();
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
