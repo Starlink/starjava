@@ -3,7 +3,10 @@ package uk.ac.starlink.ast;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.transform.TransformerException;
 import junit.framework.TestCase;
+import org.w3c.dom.Element;
+import uk.ac.starlink.util.SourceReader;
 
 public class XmlChanTest extends TestCase {
 
@@ -27,6 +30,15 @@ public class XmlChanTest extends TestCase {
     public void testConstants() {
         assertEquals( "http://www.starlink.ac.uk/ast/xml/", 
                       XmlChan.AST__XMLNS );
+    }
+
+    public void testNamespace() throws TransformerException, IOException {
+        Frame frame = new Frame( 2 );
+        MemoryXmlChan chan = new MemoryXmlChan();
+        chan.write( frame );
+        Element top = new SourceReader().getElement( chan.getSource() );
+        assertEquals( "Frame", top.getNodeName() );
+        assertEquals( XmlChan.AST__XMLNS, top.getNamespaceURI() );
     }
 
 }
