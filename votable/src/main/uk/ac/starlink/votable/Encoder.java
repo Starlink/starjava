@@ -3,6 +3,8 @@ package uk.ac.starlink.votable;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.net.URL;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -129,6 +131,28 @@ abstract class Encoder {
                 content.append( "<DESCRIPTION>" )
                        .append( VOSerializer.formatText( desc ) )
                        .append( "</DESCRIPTION>" );
+            }
+        }
+
+        /* URL-type auxiliary metadata can be encoded as LINK elements. */
+        if ( info instanceof ColumnInfo ) {
+            for ( Iterator it = ((ColumnInfo) info).getAuxData().iterator();
+                  it.hasNext(); ) {
+                DescribedValue dval = (DescribedValue) it.next();
+                ValueInfo linkInfo = dval.getInfo();
+                if ( URL.class.equals( linkInfo.getContentClass() ) ) {
+                    String linkName = linkInfo.getName();
+                    URL linkUrl = (URL) dval.getValue();
+                    if ( linkName != null && linkUrl != null ) {
+                        content.append( "<LINK" )
+                               .append( VOSerializer
+                                       .formatAttribute( "title", linkName ) )
+                               .append( VOSerializer
+                                       .formatAttribute( "href", 
+                                                         linkUrl.toString() ) )
+                               .append( "/>" );
+                    }
+                }
             }
         }
     }
