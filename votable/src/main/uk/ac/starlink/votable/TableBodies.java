@@ -165,6 +165,7 @@ class TableBodies {
         final Decoder[] decoders;
         final Element tabledataEl;
         final int ncol;
+        Element[] rows;
  
         TabledataTabularData( Decoder[] decoders, Element tabledataEl ) {
             super( getClasses( decoders ) );
@@ -174,15 +175,62 @@ class TableBodies {
         }
 
         public long getRowCount() {
-            long nrow = 0;
-            for ( Node node = tabledataEl.getFirstChild(); node != null;
-                  node = node.getNextSibling() ) {
-                if ( node instanceof Element &&
-                     ((Element) node).getTagName().equals( "TR" ) ) {
-                    nrow++;
+            if ( rows == null ) {
+                long nrow = 0;
+                for ( Node node = tabledataEl.getFirstChild(); node != null;
+                      node = node.getNextSibling() ) {
+                    if ( node instanceof Element &&
+                         ((Element) node).getTagName().equals( "TR" ) ) {
+                        nrow++;
+                    }
                 }
+                return nrow;
             }
-            return nrow;
+            else {
+                return rows.length;
+            }
+        }
+
+        public boolean isRandom() {
+            return true;
+        }
+
+        private Element[] getRows() {
+            List rowList = new ArrayList();
+            if ( rows == null ) {
+                for ( Element trEl = 
+                          firstSibling( "TR", tabledataEl.getFirstChild() );
+                      trEl != null;
+                      trEl = firstSibling( "TR", trEl.getNextSibling() ) ) {
+                     rowList.add( trEl );
+                }
+                rows = (Element[]) rowList.toArray( new Element[ 0 ] );
+            }
+            return rows;
+        }
+
+        public Object[] getRow( long irow ) {
+            return getRow( getRows()[ (int) irow ] );
+        }
+
+        public Object getCell( long irow, int icol ) {
+            Element trEl = getRows()[ (int) irow ];
+            int jcol = 0;
+            for ( Element tdEl = firstSibling( "TD", trEl.getFirstChild() );
+                  tdEl != null && icol < ncol;
+                  tdEl = firstSibling( "TD", tdEl.getNextSibling() ) ) {
+                if ( jcol == icol ) {
+                    String txt = DOMUtils.getTextContent( tdEl );
+                    if ( txt != null && txt.length() > 0 ) {
+                        return decoders[ icol ].decodeString( txt );
+                    }
+                    else {
+                        return null;
+                    }
+                }
+                jcol++;
+            }
+            return null;
         }
 
         public RowStepper getRowStepper() {
@@ -193,34 +241,39 @@ class TableBodies {
                     if ( trEl == null ) {
                         return null;
                     }
-                    Object[] row = new Object[ ncol ];
-                    int icol = 0;
-                    for ( Element tdEl = 
-                              firstSibling( "TD", trEl.getFirstChild() );
-                          tdEl != null && icol < ncol; 
-                          tdEl = firstSibling( "TD", tdEl.getNextSibling() ) ) {
-                        String txt = DOMUtils.getTextContent( tdEl );
-                        if ( txt != null && txt.length() > 0 ) {
-                            row[ icol ] = decoders[ icol ].decodeString( txt );
-                        }
-                        icol++;
-                    }
+                    Object[] row = getRow( trEl );
                     trEl = firstSibling( "TR", trEl.getNextSibling() );
                     return row;
                 }
-                Element firstSibling( String tag, Node node ) {
-                    if ( node == null ) {
-                        return null;
-                    }
-                    else if ( node instanceof Element &&
-                              ((Element) node).getTagName().equals( tag ) ) {
-                        return (Element) node;
-                    }
-                    else {
-                        return firstSibling( tag, node.getNextSibling() );
-                    }
-                }
             };
+        }
+
+        private Object[] getRow( Element trEl ) {
+            Object[] row = new Object[ ncol ];
+            int icol = 0;
+            for ( Element tdEl = firstSibling( "TD", trEl.getFirstChild() );
+                  tdEl != null && icol < ncol;
+                  tdEl = firstSibling( "TD", tdEl.getNextSibling() ) ) {
+                String txt = DOMUtils.getTextContent( tdEl );
+                if ( txt != null && txt.length() > 0 ) {
+                    row[ icol ] = decoders[ icol ].decodeString( txt );
+                }
+                icol++;
+            }
+            return row;
+        }
+
+        private static Element firstSibling( String tag, Node node ) {
+            if ( node == null ) {
+                return null;
+            }
+            else if ( node instanceof Element &&
+                      ((Element) node).getTagName().equals( tag ) ) {
+                return (Element) node;
+            }
+            else {
+                return firstSibling( tag, node.getNextSibling() );
+            }
         }
     }
 
