@@ -90,6 +90,12 @@ public class TableHDUDataNode extends HDUDataNode {
             DetailViewer dv = new DetailViewer( this );
             fullview = dv.getComponent();
             dv.addSeparator();
+            dv.addKeyedItem( "Number of header cards",
+                             header.getNumberOfCards() );
+            dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
+            dv.addKeyedItem( "Blocks of data", 
+                             FitsConstants.getDataSize( header ) / 2880 );
+            dv.addSeparator();
             dv.addKeyedItem( "HDU type", hduType );
 
             /* Make the table. */
@@ -119,15 +125,9 @@ public class TableHDUDataNode extends HDUDataNode {
 
                 /* Get and display info about the table. */
                 int ncols = startable.getColumnCount();
-                int nrows = startable.getRowCount();
+                long nrows = startable.getRowCount();
                 dv.addKeyedItem( "Columns", ncols );
                 dv.addKeyedItem( "Rows", nrows );
-                dv.addSeparator();
-                dv.addKeyedItem( "Number of header cards",
-                                 header.getNumberOfCards() );
-                dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
-                dv.addKeyedItem( "Blocks of data", 
-                                 FitsConstants.getDataSize( header ) / 2880 );
 
                 dv.addSubHead( "Columns" );
                 for ( int i = 0; i < ncols; i++ ) {

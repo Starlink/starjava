@@ -30,6 +30,8 @@ public class StarJTable extends JTable {
 
     /**
      * Constructs a StarJTable from a StarTable object.
+     * The supplied StarTable must provide random access
+     * (<tt>startable.isRandom()</tt> returns true).
      *
      * @param  startable  the StarTable to view
      */

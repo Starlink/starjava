@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -14,6 +15,7 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import uk.ac.starlink.table.ColumnHeader;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 
 /**
  * An implementation of TableModel which can be constructed from a StarTable.
@@ -31,10 +33,29 @@ public class StarTableModel extends AbstractTableModel {
     private Map[] headMetas;
     private Class[] colClasses;
 
+    /**
+     * Constructs a StarTableModel from a StarTable object.  The StarTable
+     * must have random access (<tt>startab.isRandom()</tt> returns true).
+     *
+     * @param  startab  the StarTable on which to base this TableModel
+     */
     public StarTableModel( StarTable startable ) {
         super();
-        extraCols = 1;
         this.startable = startable;
+
+        /* Ensure that we have a random access table to use, and that it
+         * is not unfeasibly big. */
+        if ( ! startable.isRandom() ) {
+            throw new IllegalArgumentException( 
+                "Table " + startable + " does not have random access" );
+        }
+        if ( startable.getRowCount() > Integer.MAX_VALUE ) {
+            throw new IllegalArgumentException( 
+                "Table has too many rows (" + startable.getRowCount() +
+                " > Integer.MAX_VALUE)" );
+        }
+
+        extraCols = 1;
         SortedSet headRowSet = new TreeSet( new HeadingComparator() );
         headMetas = new HashMap[ startable.getColumnCount() ];
         colClasses = new Class[ startable.getColumnCount() + extraCols ];
@@ -81,7 +102,8 @@ public class StarTableModel extends AbstractTableModel {
     }
 
     public int getRowCount() {
-        return startable.getRowCount() + extraRows;
+        assert startable.getRowCount() < Integer.MAX_VALUE;
+        return (int) ( startable.getRowCount() + extraRows );
     }
 
     public Object getValueAt( int irow, int icol ) {
@@ -100,8 +122,13 @@ public class StarTableModel extends AbstractTableModel {
                 cell = new Integer( irow - extraRows + 1 );
             }
             else {
-                cell = startable.getValueAt( irow - extraRows, 
-                                             icol - extraCols );
+                try {
+                    startable.setCurrent( irow - extraRows );
+                    cell = startable.getCell( icol - extraCols );
+                }
+                catch ( IOException e ) {
+                    cell = e.getMessage();
+                }
             }
         }
         return cell;

@@ -30,6 +30,8 @@ public class ColumnHeader {
     /**
      * The name of this column.  Should be a short string suitable
      * for presentation in the heading of a graphical table.
+     * The name ought to be unique among the headers of the table in which
+     * this one appears, and not <tt>null</tt>.
      *
      * @return  column name
      */
@@ -107,7 +109,7 @@ public class ColumnHeader {
     /**
      * Returns the java class of objects contained in this column.
      * The intention is that any object retrieved from this column using
-     * the {@link StarTable#getValueAt} method will be in instance of this
+     * in a {@link StarTable} will be in instance of this
      * class or one of its subclasses.
      *
      * @return  the class of items in this column

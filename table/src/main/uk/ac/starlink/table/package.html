@@ -1,5 +1,5 @@
 <body>
-Defines an interface for astronomical table formats.
+Defines an interface for access to astronomical tables.
 
 <h2>Cell contents</h2>
 <p>The StarTable interface, like the JTable interface, allows each cell
@@ -19,26 +19,18 @@ It is therefore a good idea to have your <tt>StarTable</tt>s
 present their data in accordance with the following guidelines.
 
 <ul>
-<li>Single numbers may be represented by one of the primitive wrapper types:
+<li>Single numbers should be represented by one of the primitive wrapper types:
     <pre>
     Byte, Short, Integer, Long, Float, Double
     </pre>
-    or as single-element numeric arrays:
-    <pre>
-    byte[1], short[1], int[1], long[1], float[1], double[1]
-    </pre>
-    These two forms are considered equivalent.
-<li>A 1-element object array is treated the same as the object itself.
 <li>A 1-dimensional array should be represented as a normal java array;
     an array of primitives should be used rather than an array of wrapper
     objects where applicable (that is, use float[] not Float[]).
-<li>An array of characters should be represented as a String.
-<li>A 2-d array of characters should be represented as String[] array.
+<li>An array of characters should normally be represented as a String.
+<li>A 2-d array of characters should normally be represented as String[] array.
 <li>An N-dimensional array of objects or primitives should be represented
     as a ShapedArray (though this won't be possible if it has more than
     Integer.MAX_VALUE elements)
-<li>A ShapedArray with one dimension (a 1-element dims array) is treated
-    the same as a normal java array.
 </ul>
 It is recommended that complex numbers are represented in the same
 way as non-complex ones but with an extra dimension of size 2.

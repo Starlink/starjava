@@ -1,5 +1,6 @@
 package uk.ac.starlink.fits;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,7 +12,7 @@ import nom.tam.fits.Header;
 import nom.tam.fits.TableData;
 import nom.tam.fits.TableHDU;
 import uk.ac.starlink.table.ColumnHeader;
-import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.RandomStarTable;
 
 /**
  * An implementation of the StarTable interface which uses FITS TABLE
@@ -19,7 +20,7 @@ import uk.ac.starlink.table.StarTable;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class FitsStarTable implements StarTable {
+public class FitsStarTable extends RandomStarTable {
 
     private final TableHDU thdu;
     private final int nrow;
@@ -52,7 +53,7 @@ public class FitsStarTable implements StarTable {
      *
      * @param  thdu  a TableHDU object containing data
      */
-    public FitsStarTable( TableHDU thdu ) {
+    public FitsStarTable( TableHDU thdu ) throws IOException {
         this.thdu = thdu;
         nrow = thdu.getNRows();
         ncol = thdu.getNCols();
@@ -128,7 +129,7 @@ public class FitsStarTable implements StarTable {
                 colhead.setContentClass( Double.class );
             }
             else if ( nrow > 0 ) {
-                Object test = getValueAt( 0, i );
+                Object test = getCell( 0, i );
                 if ( test != null ) {
                     colhead.setContentClass( test.getClass() );
                 }
@@ -136,26 +137,53 @@ public class FitsStarTable implements StarTable {
         }
     }
 
-    public int getRowCount() {
-        return nrow;
+    public long getRowCount() {
+        return (long) nrow;
     }
 
     public int getColumnCount() {
         return ncol;
     }
 
-    public Object getValueAt( int irow, int icol ) {
+    public Object getCell( long lrow, int icol ) throws IOException {
+        int irow = (int) lrow;
+        assert (long) irow == lrow;
 
-        /* Get the cell contents from the fits table. */
-        Object base;
         try {
-            base = thdu.getElement( irow, icol );
+            return packageValue( thdu.getElement( irow, icol ), icol );
         }
         catch ( FitsException e ) {
-            e.printStackTrace();
-            return "???";
+            throw (IOException) new IOException().initCause( e );
         }
+    }
 
+    public Object[] doGetRow( long lrow ) throws IOException {
+        int irow = (int) lrow;
+        assert (long) irow == lrow;
+        Object[] row;
+        try {
+            row = thdu.getRow( irow );
+        }
+        catch ( FitsException e ) {
+            throw (IOException) new IOException().initCause( e );
+        }
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            row[ icol ] = packageValue( row[ icol ], icol );
+        }
+        return row;
+    }
+
+    /**
+     * Turns the object got from the fits getElement call into the
+     * object we want to return from this table.  That includes
+     * scaling it if necessary, spotting blank values, and turning 
+     * it from a 1-element array to a Number object.
+     *
+     * @param   base  the object got from the fits table
+     * @param   icol  the column from which <tt>base</tt> comes
+     * @return  the object representing the value of the cell
+     */
+    private Object packageValue( Object base, int icol ) {
         /* Data is normally returned as a 1-element array. */
         Class cls = base.getClass().getComponentType();
         if ( cls != null && Array.getLength( base ) == 1 ) {

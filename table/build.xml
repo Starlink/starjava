@@ -79,7 +79,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="Table"/>
   <property name="name" value="table"/>
-  <property name="version" value="0.2"/>
+  <property name="version" value="0.3"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.table"/>
@@ -183,7 +183,9 @@
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- {No external dependencies} -->
+    <!-- UTIL -->
+    <pathelement location="${star.jar.dir}/util/util.jar"/>
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -203,8 +205,7 @@
    !   the extra classpath.
    !-->
   <extclasspath id="built.jarpath">
-
-    <!-- {No external dependencies} -->
+    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
   </extclasspath>
 
   <path id="built.classpath">
@@ -268,7 +269,11 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!--  {No external dependencies} -->
+    <!-- Need Util -->
+    <available property="util.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.util.DataSource"/>
+    <fail message="No Util available" unless="util.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -365,7 +370,8 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path" value=""/>
+        <attribute name="Class-Path" 
+                   value="../util/util.jar"/>
       </manifest>
     </jar>
 

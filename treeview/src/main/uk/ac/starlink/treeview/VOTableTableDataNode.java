@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import java.io.IOException;
 import javax.swing.JComponent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -7,8 +8,9 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.votable.Field;
-import uk.ac.starlink.votable.RandomVOStarTable;
+import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.Table;
 import uk.ac.starlink.votable.VOTableFormatException;
 import uk.ac.starlink.util.DOMUtils;
@@ -89,7 +91,7 @@ public class VOTableTableDataNode extends VOComponentDataNode {
 
             /* Column view. */
             dv.addPane( "Column details", new ComponentMaker() {
-                public JComponent getComponent() {
+                public JComponent getComponent() throws IOException {
                     MetamapGroup metagroup =
                         new StarTableMetamapGroup( getStarTable() );
                     return new MetaTable( metagroup );
@@ -99,7 +101,7 @@ public class VOTableTableDataNode extends VOComponentDataNode {
             /* Table view. */
             if ( dat != null ) {
                 dv.addPane( "Table contents", new ComponentMaker() {
-                    public JComponent getComponent() {
+                    public JComponent getComponent() throws IOException {
                         return new TreeviewJTable( getStarTable() );
                     }
                 } );
@@ -108,9 +110,9 @@ public class VOTableTableDataNode extends VOComponentDataNode {
         return fullView;
     }
 
-    private StarTable getStarTable() {
+    private StarTable getStarTable() throws IOException {
         if ( startable == null ) {
-            startable = new RandomVOStarTable( votable );
+            startable = Tables.randomTable( new VOStarTable( votable ) );
         }
         return startable;
     }

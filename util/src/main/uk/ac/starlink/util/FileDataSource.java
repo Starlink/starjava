@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * A DataSource implementation based on a {@link java.io.File}.
@@ -56,5 +58,15 @@ public class FileDataSource extends DataSource {
      */
     public File getFile() {
         return file;
+    }
+
+    public URL getURL() {
+        try {
+            return file.toURI().toURL();
+        }
+        catch ( MalformedURLException e ) {
+            throw new AssertionError( "What's wrong with URL " 
+                                    + file.toURI() + "??" );
+        }
     }
 }

@@ -10,6 +10,14 @@ class BooleanDecoder extends NumericDecoder {
         super( arraysize );
     }
 
+    public Class getBaseClass() {
+        return char.class;
+    }
+
+    public boolean isNull( Object array, int index ) {
+        return ((char[]) array)[ index ] == bad;
+    }
+
     void setNullValue( String txt ) {
         // silly
     }

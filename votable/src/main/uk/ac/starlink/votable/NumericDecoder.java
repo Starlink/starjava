@@ -96,11 +96,16 @@ abstract class NumericDecoder extends Decoder {
 
 class ShortDecoder extends NumericDecoder {
     private short bad;
+    private boolean hasBad = false;
     ShortDecoder( long[] arraysize ) {
         super( arraysize );
     }
+    public Class getBaseClass() {
+        return short.class;
+    }
     void setNullValue( String txt ) {
         bad = Short.parseShort( txt );
+        hasBad = true;
     }
     Object getEmptyArray( int size ) {
         return new short[ size ];
@@ -114,6 +119,9 @@ class ShortDecoder extends NumericDecoder {
     }
     void setBad1( Object array, int index ) {
         ((short[]) array)[ index ] = bad;
+    }
+    public boolean isNull( Object array, int index ) {
+        return hasBad && ((short[]) array)[ index ] == bad;
     }
 }
 
@@ -130,11 +138,16 @@ class UnsignedByteDecoder extends ShortDecoder {
 
 class IntDecoder extends NumericDecoder {
     private int bad;
+    private boolean hasBad = false;
     IntDecoder( long[] arraysize ) {
         super( arraysize );
     }
+    public Class getBaseClass() {
+        return int.class;
+    }
     void setNullValue( String txt ) {
         bad = Integer.parseInt( txt );
+        hasBad = true;
     }
     Object getEmptyArray( int size ) {
         return new int[ size ];
@@ -149,15 +162,23 @@ class IntDecoder extends NumericDecoder {
     void setBad1( Object array, int index ) {
         ((int[]) array)[ index ] = bad;
     }
+    public boolean isNull( Object array, int index ) {
+        return hasBad && ((int[]) array)[ index ] == bad;
+    }
 }
 
 class LongDecoder extends NumericDecoder {
     private long bad;
+    private boolean hasBad = false;
     LongDecoder( long[] arraysize ) {
         super( arraysize );
     }
+    public Class getBaseClass() {
+        return long.class;
+    }
     void setNullValue( String txt ) {
         bad = Long.parseLong( txt );
+        hasBad = true;
     }
     Object getEmptyArray( int size ) {
         return new long[ size ];
@@ -172,11 +193,17 @@ class LongDecoder extends NumericDecoder {
     void setBad1( Object array, int index ) {
         ((long[]) array)[ index ] = bad;
     }
+    public boolean isNull( Object array, int index ) {
+        return hasBad && ((long[]) array)[ index ] == bad;
+    }
 }
 
 class FloatDecoder extends NumericDecoder {
     FloatDecoder( long[] arraysize ) {
         super( arraysize );
+    }
+    public Class getBaseClass() {
+        return float.class;
     }
     void setNullValue( String txt ) {
         // no action
@@ -194,11 +221,17 @@ class FloatDecoder extends NumericDecoder {
     void setBad1( Object array, int index ) {
         ((float[]) array)[ index ] = Float.NaN;
     }
+    public boolean isNull( Object array, int index ) {
+        return Float.isNaN( ((float[]) array)[ index ] );
+    }
 }
 
 class DoubleDecoder extends NumericDecoder {
     DoubleDecoder( long[] arraysize ) {
         super( arraysize );
+    }
+    public Class getBaseClass() {
+        return double.class;
     }
     void setNullValue( String txt ) {
         // no action
@@ -215,5 +248,8 @@ class DoubleDecoder extends NumericDecoder {
     }
     void setBad1( Object array, int index ) {
         ((double[]) array)[ index ] = Double.NaN;
+    }
+    public boolean isNull( Object array, int index ) {
+        return Double.isNaN( ((double[]) array)[ index ] );
     }
 }

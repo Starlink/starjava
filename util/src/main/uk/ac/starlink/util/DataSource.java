@@ -63,6 +63,18 @@ public abstract class DataSource {
     abstract protected InputStream getRawInputStream() throws IOException;
 
     /**
+     * Returns a URL which corresponds to this data source, if one exists.
+     * An {@link java.net.URL#openConnection} method call on the URL
+     * returned by this method should provide a stream with the
+     * same content as the {@link #getRawInputStream} method of this
+     * data source.  If no such URL exists or is known, then <tt>null</tt>
+     * should be returned.
+     *
+     * @return  a URL corresponding to this source, or <tt>null</tt>
+     */
+    abstract public URL getURL();
+
+    /**
      * Returns the length in bytes of the stream returned by 
      * <tt>getRawInputStream</tt>, if known.  If the length is not known
      * then -1 should be returned.
@@ -122,6 +134,27 @@ public abstract class DataSource {
      */
     public void setName( String name ) {
         this.name = name;
+    }
+
+    /**
+     * Returns a System ID for this DataSource; this is a string 
+     * representation of a file name or URL, as used by 
+     * {@link javax.xml.transform.Source} and friends.
+     * The return value may be <tt>null</tt> if none is known.
+     *
+     * @return  the System ID string for this source, or <tt>null</tt>
+     */
+    public String getSystemId() {
+        URL url = getURL();
+        if ( url == null ) {
+            return null;
+        }
+        else if ( url.getProtocol().equals( "file" ) ) {
+            return url.getPath();
+        }
+        else {
+            return url.toString();
+        }
     }
 
     /**
@@ -211,6 +244,9 @@ public abstract class DataSource {
             DataSource forced = new DataSource() {
                 protected InputStream getRawInputStream() throws IOException {
                     return base.getRawInputStream();
+                }
+                public URL getURL() {
+                    return base.getURL();
                 }
             };
             forced.setName( base.getName() );
@@ -531,9 +567,8 @@ public abstract class DataSource {
         }
  
         /* Otherwise, see if we can make sense of it as a URL. */
-        URL url;
         try {
-            url = new URL( name );
+            URL url = new URL( name );
             return new URLDataSource( url );
         }
         catch ( MalformedURLException e ) {

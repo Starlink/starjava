@@ -85,7 +85,7 @@ public class Field extends VOElement {
         }
 
         /* Get datatype and construct decoder. */
-        String datatype = getAttribute( "datatype" );
+        datatype = getAttribute( "datatype" );
         decoder = Decoder.makeDecoder( datatype, arraysize, blank );
 
         /* Get simple attributes. */

@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import org.apache.tools.bzip2.CBZip2InputStream;
@@ -112,6 +113,9 @@ public class DataSourceTest extends TestCase {
         public String getName() {
             return RESOURCE_NAME;
         }
+        public URL getURL() {
+            return null;
+        }
     } 
 
     private static class GzipDataSource extends DataSource {
@@ -134,6 +138,9 @@ public class DataSourceTest extends TestCase {
         }
         public String getName() {
             return RESOURCE_NAME + ".gz";
+        }
+        public URL getURL() {
+            return null;
         }
     }
 
@@ -159,6 +166,9 @@ public class DataSourceTest extends TestCase {
         }
         public String getName() {
             return RESOURCE_NAME + ".bz2";
+        }
+        public URL getURL() {
+            return null;
         }
     }
 

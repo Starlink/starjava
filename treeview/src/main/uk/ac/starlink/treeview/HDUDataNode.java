@@ -101,13 +101,13 @@ public class HDUDataNode extends DefaultDataNode {
             DetailViewer dv = new DetailViewer( this );
             fullview = dv.getComponent();
             dv.addSeparator();
-            dv.addKeyedItem( "HDU type", hduType );
-            dv.addSeparator();
             dv.addKeyedItem( "Number of header cards",
                              header.getNumberOfCards() );
             dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
             dv.addKeyedItem( "Blocks of data", 
                              FitsConstants.getDataSize( header ) / 2880 );
+            dv.addSeparator();
+            dv.addKeyedItem( "HDU type", hduType );
             dv.addPane( "Header cards", new ComponentMaker() {
                 public JComponent getComponent() {
                     return new TextViewer( header.iterator() );

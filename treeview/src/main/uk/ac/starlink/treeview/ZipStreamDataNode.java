@@ -3,6 +3,7 @@ package uk.ac.starlink.treeview;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -105,6 +106,9 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                                     InputStream strm = 
                                         getEntryInputStream( zent );
                                     return strm;
+                                }
+                                public URL getURL() {
+                                    return null;
                                 }
                             };
                         ssrc.setName( subname );

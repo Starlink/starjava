@@ -158,9 +158,9 @@ public class Table extends VOElement {
 
     /**
      * Indicates whether there are more rows to be obtained using the
-     * {@link #hasNextRow} method.
+     * {@link #nextRow} method.
      *
-     * @return  <tt>true</tt> iff <tt>hasNextRow</tt> can be called
+     * @return  <tt>true</tt> iff <tt>nextRow</tt> can be called
      */
     public boolean hasNextRow() {
         return false;

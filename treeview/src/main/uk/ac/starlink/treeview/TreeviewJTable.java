@@ -11,6 +11,10 @@ public class TreeviewJTable extends StarJTable {
 
     private static TableCellRenderer tvrend = new TreeviewCellRenderer();
 
+    /**
+     * Makes a JTable out of a StarTable.  <tt>startable</tt> must provide
+     * random access.
+     */
     public TreeviewJTable( StarTable startable ) {
         super( startable );
         setDefaultRenderer( Object.class, tvrend );

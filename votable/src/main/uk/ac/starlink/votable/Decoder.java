@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
-import uk.ac.starlink.table.ShapedArray;
 
 /**
  * Decoder object associated with a Field.
@@ -60,13 +59,26 @@ abstract class Decoder {
     abstract public Object decodeStream( DataInput strm ) throws IOException;
 
     /**
-     * Returns the blank value as an Object if an appropriate one exists.
+     * Indicates whether an element of a given array matches the Null value
+     * used by this decoder.
      *
-     * @return  a Number representing the bad value, or <tt>null</tt>
+     * @param  array  the array in which the element to check is
+     * @param  index  the index into <tt>array</tt> at which the element to
+     *         check is
+     * @return <tt>true</tt> iff the <tt>index</tt>'th element of <tt>array</tt>
+     *         matches the Null value for this decoder
      */
-    public Object getNull() {
-        return blank;
-    }
+    abstract public boolean isNull( Object array, int index );
+
+    /**
+     * Returns the base class for objects returned by this decoder.
+     * Objects returned by the <tt>decode*</tt> methods of this decoder
+     * will be arrays of the class returned by this method.
+     *
+     * @param  the class of which decoded values are arrays (or possibly
+     *         NDArrays or something, depending on <tt>packageArray</tt>
+     */
+    abstract public Class getBaseClass();
 
     /**
      * Does required setup for a decoder given its shape.
@@ -130,8 +142,8 @@ abstract class Decoder {
     /**
      * Turns a primitive numeric array into an object suitable for
      * returning as the result of a cell query.
-     * The returned object may be the submitted array itself, or
-     * it may be an ShapedArray based on it.
+     * <p>The current implementation just returns the array itself;
+     * in principle you could decide to return it as an NDArray or something.
      *
      * @param  array  a java array object
      */
@@ -141,13 +153,9 @@ abstract class Decoder {
         if ( arraysize.length <= 1 ) {
             return array;
         }
-
-        /* Otherwise, work out its shape and return it as a ShapedArray. */
-        long[] dims = (long[]) arraysize.clone();
-        if ( isVariable ) {
-            dims[ dims.length - 1 ] = Array.getLength( array ) / sliceSize;
+        else {
+            return array;
         }
-        return new ShapedArray( array, longsToInts( dims ) );
     }
 
     /**
@@ -327,6 +335,10 @@ abstract class Decoder {
             super( new long[] { -1L } );
         }
 
+        public Class getBaseClass() {
+            return String.class;
+        }
+
         public Object decodeString( String txt ) {
             StringTokenizer st = new StringTokenizer( txt );
             int ntok = st.countTokens();
@@ -343,6 +355,10 @@ abstract class Decoder {
         }
 
         void setNullValue( String txt ) {}
+
+        public boolean isNull( Object array, int index ) {
+            return false;
+        }
     }
 
     private static int[] longsToInts( long[] larray ) {

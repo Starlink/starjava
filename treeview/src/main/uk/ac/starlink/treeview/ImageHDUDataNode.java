@@ -210,6 +210,12 @@ public class ImageHDUDataNode extends HDUDataNode {
             DetailViewer dv = new DetailViewer( this );
             fullview = dv.getComponent();
             dv.addSeparator();
+            dv.addKeyedItem( "Number of header cards", 
+                             header.getNumberOfCards() );
+            dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
+            dv.addKeyedItem( "Blocks of data", 
+                             FitsConstants.getDataSize( header ) / 2880 );
+            dv.addSeparator();
             dv.addKeyedItem( "HDU type", hduType );
             if ( shape != null ) {
                 dv.addKeyedItem( "Shape", NDShape.toString( shape.getDims() ) );
@@ -220,12 +226,6 @@ public class ImageHDUDataNode extends HDUDataNode {
             if ( blank != null ) {
                 dv.addKeyedItem( "Blank value", blank );
             }
-            dv.addSeparator();
-            dv.addKeyedItem( "Number of header cards", 
-                             header.getNumberOfCards() );
-            dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
-            dv.addKeyedItem( "Blocks of data", 
-                             FitsConstants.getDataSize( header ) / 2880 );
 
             if ( wcs != null ) {
                 dv.addSubHead( "World coordinate system" );

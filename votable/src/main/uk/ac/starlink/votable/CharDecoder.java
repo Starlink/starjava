@@ -5,9 +5,14 @@ import java.io.IOException;
 
 class CharDecoder extends Decoder {
     private char bad = ' ';
+    private String badString;
 
     public CharDecoder( long[] arraysize ) {
         super( arraysize );
+    }
+
+    public Class getBaseClass() {
+        return String.class;
     }
 
     public Object decodeString( String txt ) {
@@ -80,7 +85,19 @@ class CharDecoder extends Decoder {
     }
 
     void setNullValue( String txt ) {
-        // no action
+        badString = txt;
+    }
+
+    public boolean isNull( Object obj, int index ) {
+        if ( obj instanceof String ) {
+            return obj.equals( badString );
+        }
+        else if ( obj instanceof String[] ) {
+            return ((String[]) obj)[ index ].equals( badString );
+        }
+        else {
+            return false;
+        }
     }
 }
 

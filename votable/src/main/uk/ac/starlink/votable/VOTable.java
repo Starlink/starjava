@@ -15,6 +15,7 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import uk.ac.starlink.util.DataSource;
 
 /**
  * Class representing the top-level VOTABLE element of a VOTable document.
@@ -141,6 +142,15 @@ public class VOTable extends VOElement {
             throws IOException, SAXException {
         this( new DOMSource( getParser( validate ).parse( file ),
                              file.toString() ) );
+    }
+
+    /**
+     */
+    public VOTable( DataSource datsrc, boolean validate )
+            throws IOException, SAXException {
+        this( new DOMSource( getParser( validate )
+                            .parse( datsrc.getInputStream() ),
+                             datsrc.getSystemId() ) );
     }
 
     /**

@@ -17,6 +17,14 @@ class BitDecoder extends NumericDecoder {
         super( arraysize );
     }
 
+    public Class getBaseClass() {
+        return char.class;
+    }
+
+    public boolean isNull( Object array, int index ) {
+        return false;
+    }
+
     public Object decodeStream( DataInput strm ) throws IOException {
         int num = getNumItems( strm );
         char[] result = new char[ num ];

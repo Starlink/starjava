@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -174,6 +175,9 @@ public class TarStreamDataNode extends DefaultDataNode {
                                     strm = new BufferedInputStream( strm );
 
                                     return strm;
+                                }
+                                public URL getURL() {
+                                    return null;
                                 }
                             };
                         ssrc.setName( subname );
