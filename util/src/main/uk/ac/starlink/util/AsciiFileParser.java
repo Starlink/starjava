@@ -5,7 +5,7 @@
  *     14-FEB-2001 (Peter W. Draper):
  *       Original version.
  */
-package uk.ac.starlink.splat.util;
+package uk.ac.starlink.util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -367,7 +367,7 @@ public class AsciiFileParser
                     count = st.countTokens();
 
                     // If this isn't the first proper line and we want a fixed
-                    // number of fields, the test it has changed.
+                    // number of fields, then test it has changed.
                     if ( fixed && nlines != 0 && count != nFields ) {
                         System.err.println( "File contains incorrect "+
                                             "number of fields (line '" +
