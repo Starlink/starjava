@@ -17,10 +17,12 @@ public class EscapeTest extends TestCase {
         String tidy = "Axis   one  ";
 
         GrfEscape.setEscapes( true );
-        Plot p2 = new Plot( new Frame( 2 ), new Rectangle( 512, 512 ),
-                            new double[] { 0., 0., 512., 512. } );
-        p2.set( "label(1)=" + tricky );
-        assertEquals( tricky, p2.getLabel(1) );
+        if ( ! isHeadless() ) {
+            Plot p2 = new Plot( new Frame( 2 ), new Rectangle( 512, 512 ),
+                                new double[] { 0., 0., 512., 512. } );
+            p2.set( "label(1)=" + tricky );
+            assertEquals( tricky, p2.getLabel(1) );
+        }
         GrfEscape.setEscapes( false );
     }
 
@@ -123,13 +125,15 @@ public class EscapeTest extends TestCase {
     }
 
     public void exerciseSet( String l1, String l2 ) {
-        Plot plot = new Plot( new Frame( 2 ), new Rectangle( 512, 512 ),
-                              new double[] { 0., 0., 512., 512. } );
         String setting = "label(1)=" + l1 + ",label(2)=" + l2;
+        if ( ! isHeadless() ) {
+            Plot plot = new Plot( new Frame( 2 ), new Rectangle( 512, 512 ),
+                                  new double[] { 0., 0., 512., 512. } );
 
-        plot.set( setting );
-        assertEquals( l1, plot.getLabel( 1 ) );
-        assertEquals( l2, plot.getLabel( 2 ) );
+            plot.set( setting );
+            assertEquals( l1, plot.getLabel( 1 ) );
+            assertEquals( l2, plot.getLabel( 2 ) );
+        }
 
         Frame frm = new Frame( 2 );
         frm.set( setting );
