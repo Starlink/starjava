@@ -1,0 +1,29 @@
+<body>
+Classes for hierarchical browsing of directory and data structures.
+<p>
+Using the classes available in this package, hierarchical data 
+structures can be viewed interactively.
+The GUI side is based on a Swing <code>JTree</code> component,
+and the underlying data model is supplied by classes conforming
+to the package's <code>DataNode</code> interface.
+<p>
+Adding knowledge of a new type of hierarchical data is done by
+providing a new class implementating <code>DataNode</code>.
+Such new <code>DataNode</code> implementors must be able to do the
+following:
+<ul>
+<li>supply their children on request (though not necessarily know 
+    what type of node each child represents) - this should be done
+    by using a <code>DataNodeFactory</code>
+<li>provide a textual and iconic representation of itself
+<li>possible provide a <code>JComponent</code> giving fuller details
+    of itself
+<li>have one or more constructors based on fairly generic objects such
+    as <code>String</code>, <code>File</code>, other types of 
+    <code>DataNode</code>
+</ul>
+The <code>DataNodeFactory</code> class should then be informed of
+the existence of the new class.
+<p>
+
+</body>
