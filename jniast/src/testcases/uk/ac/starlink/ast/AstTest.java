@@ -3,6 +3,7 @@ package uk.ac.starlink.ast;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -147,6 +148,13 @@ public class AstTest extends TestCase {
             }
         }
         assertEquals( 10 - ncomm, fchan.getNcard() );
+
+        assertTrue( ! fchan.getCarLin() );
+        fchan.setCarLin( true );
+        assertTrue( fchan.getCarLin() );
+        assertTrue( fchan.getDefB1950() );
+        fchan.setDefB1950( false );
+        assertTrue( ! fchan.getDefB1950() );
     }
 
     public void testFrame() {
@@ -186,6 +194,25 @@ public class AstTest extends TestCase {
         pnorm[ 1 ] += 2 * Math.PI;
         sky.norm( pnorm );
         assertArrayEquals( pnorm, pn1 );
+
+        // atts
+        Frame ff = new Frame( 2 );
+        try {
+            assertTrue( ! ff.test( "top(2)" ) );
+            ff.setTop( 2, -100.0 );
+            assertTrue( ff.test( "top(2)" ) );
+            assertEquals( -100.0, ff.getTop( 2 ) );
+        }
+        catch ( AstException e ) {
+            if ( e.getMessage().indexOf( "is invalid for a Axis" ) > 0 ) {
+                e.printStackTrace( System.out );
+                System.out.println( AstObject.reportVersions() );
+                assertTrue( "You probably have the wrong AST version", false );
+            }
+            else {
+                throw e;
+            }
+        }
     }
 
     public void testFrameSet() {
@@ -450,6 +477,15 @@ public class AstTest extends TestCase {
         plot.text( "AST", new double[] { 4e4, 4e4 },
                    new float[] { 1, -1 }, "BL" );
 
+        // boundingBox, invisible
+        plot.setInvisible( true );
+        plot.curve( new double[] { 1000., 1000. }, 
+                    new double[] { 2000., 2000. } );
+        Rectangle2D linbox = plot.boundingBox();
+        assertTrue( pan.getBounds().contains( linbox ) );
+        assertTrue( linbox.getHeight() > 5. && linbox.getWidth() > 5. );
+        plot.setInvisible( false );
+
         toplev.setVisible( true );
 
         try {
@@ -460,6 +496,29 @@ public class AstTest extends TestCase {
         }
     }
 
+    public void testAstConstants() {
+        int ast__air = WcsMap.AST__AIR;
+        AstObject.getAstConstantD( "AST__BAD" );
+
+        assertEquals( "AST V2.0-4; JNIAST native V1.8-13; JNIAST java V1.8-13",
+                      AstObject.reportVersions() );
+
+        String absentConstName = "ABSENT_CONSTANT";
+        try {
+            AstObject.getAstConstantI( absentConstName );
+            assertTrue( false );
+        }
+        catch ( Error e ) {
+            assertTrue( e.getMessage().indexOf( absentConstName ) > 0 );
+        }
+        try {
+            AstObject.getAstConstantD( absentConstName );
+            assertTrue( false );
+        }
+        catch ( Error e ) {
+            assertTrue( e.getMessage().indexOf( absentConstName ) > 0 );
+        }
+    }
 
     public static Test suite() {
         return new TestSuite( AstTest.class );

@@ -257,6 +257,24 @@ my( @cardArgs ) = (
 makeGetAttrib( @cardArgs );
 makeSetAttrib( @cardArgs );
 
+my( @carLinArgs ) = (
+   name => ( $aName = "carLin" ),
+   type => "boolean",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @carLinArgs );
+makeSetAttrib( @carLinArgs );
+
+my( @defB1950Args ) = (
+   name => ( $aName = "defB1950" ),
+   type => "boolean",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @defB1950Args );
+makeSetAttrib( @defB1950Args );
+
 my( @encodingArgs ) = (
    name => ( $aName = "encoding" ),
    type => "String",

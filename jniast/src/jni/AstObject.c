@@ -27,6 +27,7 @@
 #include "jniast.h"
 #include "uk_ac_starlink_ast_AstObject.h"
 
+#define BUFLENG 256
 
 /* Class methods. */
 
@@ -45,6 +46,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
    const char *name;
    jint result;
    int success = 0;
+   char namcopy[ BUFLENG ]; 
 
    name = jniastGetUTF( env, jName );
    if ( name != NULL ) {
@@ -54,8 +56,16 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
          result = (jint) Xname; \
          success = 1; \
       }
+      /* Version identifiers. */
+      TRY_CONST( AST_MAJOR_VERS )
+      else TRY_CONST( AST_MINOR_VERS )
+      else TRY_CONST( AST_RELEASE )
+      else TRY_CONST( JNIAST_MAJOR_VERS )
+      else TRY_CONST( JNIAST_MINOR_VERS )
+      else TRY_CONST( JNIAST_RELEASE )
+
       /* Interpolation schemes. */
-      TRY_CONST( AST__NEAREST )
+      else TRY_CONST( AST__NEAREST )
       else TRY_CONST( AST__LINEAR )
       else TRY_CONST( AST__SINC )
       else TRY_CONST( AST__SINCSINC )
@@ -104,6 +114,8 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
       else TRY_CONST( AST__QSC )
       else TRY_CONST( AST__NCP )
       else TRY_CONST( AST__TSC )
+      else TRY_CONST( AST__TPN )
+      else TRY_CONST( AST__SZP )
       else TRY_CONST( AST__WCSBAD )
 
       /* GRF attribute types. */
@@ -120,10 +132,14 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
 #undef TRY_CONST
    }
 
+   if ( ! success ) {
+      strncpy( namcopy, name, BUFLENG );
+   }
    jniastReleaseUTF( env, jName, name );
    if ( ! success ) {
       jniastThrowError( env, 
-                        "There is no AST int constant called \"%s\"", name );
+                        "There is no AST int constant called \"%s\"", namcopy );
+
    }
    return result;
 }
@@ -136,6 +152,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantD(
    const char *name;
    jdouble result;
    int success = 0;
+   char namcopy[ BUFLENG ];
 
    name = jniastGetUTF( env, jName );
    if ( name != NULL ) {
@@ -149,10 +166,14 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantD(
 #undef TRY_CONST
    }
 
+   if ( ! success ) {
+      strncpy( namcopy, name, BUFLENG - 1 );
+   }
    jniastReleaseUTF( env, jName, name );
    if ( ! success ) {
       jniastThrowError( env, 
-                        "There is no AST double constant called \"%s\"", name );
+                        "There is no AST double constant called \"%s\"", 
+                        namcopy );
    }
    return result;
 }

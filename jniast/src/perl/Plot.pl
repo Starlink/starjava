@@ -12,10 +12,10 @@ my( $fName );
 print <<'__EOT__';
 package uk.ac.starlink.ast;
 
-import java.awt.Rectangle;
 import java.awt.Graphics;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import javax.swing.JPanel;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -71,24 +71,24 @@ print <<__EOT__;
    private Grf grfobj;
 
     /**
-     * Creates a $cName which plots onto a given Rectangle.
+     * Creates a $cName which plots onto a given rectangle.
      *
      * \@param  frame    $frameDescrip
-     * \@param  graphrect the Rectangle which will form the area
+     * \@param  graphrect the rectangle which will form the area
      *                  onto which plotting is done (note this excludes the
      *                  area used for graph annotation).
      * \@param  basebox  $baseboxDescrip
      */
-    public Plot( Frame frame, Rectangle graphrect, double[] basebox ) {
+    public Plot( Frame frame, Rectangle2D graphrect, double[] basebox ) {
         this( frame, graphrect, basebox, 0, 0, 0, 0 );
     }
 
     /**
-     * Creates a $cName which plots onto a given Rectangle with 
+     * Creates a $cName which plots onto a given rectangle with 
      * specified proportional spaces round the edge.
      *
      * \@param  frame    $frameDescrip
-     * \@param  graphrect  the Rectangle within which both the plot and 
+     * \@param  graphrect  the rectangle within which both the plot and 
      *                    space for axis annotations etc will be drawn
      * \@param  basebox  $baseboxDescrip
      * \@param  lgap     gap in graphics coordinates (pixels) free for
@@ -103,18 +103,20 @@ print <<__EOT__;
      *                      the specified gaps don't leave enough room for
      *                      any plotting
      */
-    public Plot( Frame frame, Rectangle graphrect, double[] basebox,
+    public Plot( Frame frame, Rectangle2D graphrect, double[] basebox,
                  int lgap, int rgap, int bgap, int tgap ) {
 
         /* Check that the bounds are sensible. */
-        if ( lgap + rgap >= graphrect.width || lgap < 0 || rgap < 0 ||
-             tgap + bgap >= graphrect.height || tgap < 0 || bgap < 0 ) {
+        if ( lgap + rgap >= graphrect.getWidth() || lgap < 0 || rgap < 0 ||
+             tgap + bgap >= graphrect.getHeight() || tgap < 0 || bgap < 0 ) {
             throw new AstException( "Gaps leave no space for the plot" );
         }
         float[] graphbox = new float[ 4 ];
         graphbox[ 0 ] = (float) ( graphrect.getX() + lgap );
-        graphbox[ 1 ] = (float) ( graphrect.getY() + graphrect.height - bgap );
-        graphbox[ 2 ] = (float) ( graphrect.getX() + graphrect.width - rgap );
+        graphbox[ 1 ] = (float) ( graphrect.getY() + 
+                                  graphrect.getHeight() - bgap );
+        graphbox[ 2 ] = (float) ( graphrect.getX() + 
+                                  graphrect.getWidth() - rgap );
         graphbox[ 3 ] = (float) ( graphrect.getY() + tgap );
         construct( frame, graphbox, basebox );
 
@@ -125,8 +127,8 @@ print <<__EOT__;
          * component for this purpose. */
         JFrame toplevel = new JFrame();
         JComponent comp = new JPanel();
-        comp.setPreferredSize( new Dimension( graphrect.width,
-                                              graphrect.height ) );
+        comp.setPreferredSize( new Dimension( graphrect.getBounds().width,
+                                              graphrect.getBounds().height ) );
         toplevel.getContentPane().add( comp );
         toplevel.pack();
         comp.getGraphics().setClip( graphrect );
@@ -223,6 +225,20 @@ makeNativeMethod(
    purpose => FuncPurpose( $fName ),
    descrip => FuncDescrip( $fName ),
    return => { type => 'void' },
+   params => [],
+);
+
+makeNativeMethod(
+   name => ( $fName = "boundingBox" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => {
+      type => 'Rectangle2D',
+      descrip => q{
+          a rectangle giving the bounds of the area affected by the
+          previous plot call
+      },
+   },
    params => [],
 );
 
@@ -488,7 +504,7 @@ makeSetAttribByAxis( @args );
 
 @args = (
    name => ( $aName = "font" ),
-   type => 'String',
+   type => 'int',
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
    extra => q{
@@ -518,6 +534,15 @@ makeSetAttrib( @args );
 
 @args = (
    name => ( $aName = "grid" ),
+   type => 'boolean',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "invisible" ),
    type => 'boolean',
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),

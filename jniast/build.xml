@@ -78,9 +78,10 @@
    !-->
 
   <!-- Define the package name and current versions -->
+  <!-- Note this version is the same as the required AST version. -->
   <property name="Name" value="JNIAST"/>
   <property name="name" value="jniast"/>
-  <property name="version" value="1.3"/>
+  <property name="version" value="1.8-13"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ast"/>
@@ -504,7 +505,8 @@
    !   Some of these are copied direct from the source directory, some
    !   are generated from perl source.
    !-->
-  <target name="assemble_java" unless="java.assembled" depends="get_ast_source">
+  <target name="assemble_java" unless="java.assembled" 
+          depends="prepare, get_ast_source">
 
     <mkdir dir="${build.java}"/>
 
@@ -656,7 +658,7 @@
    !   from source directories, some are generated from perl source
    !   or using javah from class files.
    !-->
-  <target name="assemble_jni" depends="build_classes, get_ast_source" 
+  <target name="assemble_jni" depends="prepare, build_classes, get_ast_source" 
           unless="jni.assembled">
 
     <copy todir="${build.jni}">

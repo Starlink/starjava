@@ -361,6 +361,15 @@ makeNativeMethod(
 my( @args );
 
 @args = (
+   name => ( $aName = "bottom" ),
+   type => "double",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttribByAxis( @args );
+makeSetAttribByAxis( @args );
+
+@args = (
    name => ( $aName = "digits" ),
    type => "int",
    purpose => AttPurpose( $aName ),
@@ -477,6 +486,15 @@ makeSetAttribByAxis( @args );
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
+
+@args = ( 
+   name => ( $aName = "top" ),
+   type => "double",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttribByAxis( @args );
+makeSetAttribByAxis( @args );
 
 @args = (
    name => ( $aName = "unit" ),

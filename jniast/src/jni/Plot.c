@@ -37,6 +37,7 @@ typedef struct {
 /* Static variables. */
 static PlotInfo _currentinfo;
 static PlotInfo *CurrentInfo;
+static jclass Rectangle2DFloatClass;
 static jmethodID GrfAttrMethodID;
 static jmethodID GrfFlushMethodID;
 static jmethodID GrfLineMethodID;
@@ -44,6 +45,7 @@ static jmethodID GrfMarkMethodID;
 static jmethodID GrfTextMethodID;
 static jmethodID GrfQchMethodID;
 static jmethodID GrfTxExtMethodID;
+static jmethodID Rectangle2DFloatConstructorID;
 static jfieldID PlotGrfFieldID;
 
 
@@ -131,6 +133,40 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_border(
       astBorder( pointer.Plot );
    )
 }
+
+JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Plot_boundingBox(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this          /* Instance object */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   float lbnd[ 2 ];
+   float ubnd[ 2 ];
+   float x;
+   float y;
+   float w;
+   float h;
+
+   /* Get the bounding box from AST. */
+   PLOTCALL(
+      astBoundingBox( pointer.Plot, lbnd, ubnd );
+   )
+
+   if ( ! (*env)->ExceptionCheck( env ) ) {
+
+       /* Construct a Rectangle2D object which packages the result. */
+       x = lbnd[ 0 ];
+       y = lbnd[ 1 ];
+       w = ubnd[ 0 ] - lbnd[ 0 ];
+       h = ubnd[ 1 ] - lbnd[ 1 ];
+       return (jobject) (*env)->NewObject( env, Rectangle2DFloatClass, 
+                                           Rectangle2DFloatConstructorID,
+                                           x, y, w, h );
+   }
+   else {
+       return NULL;
+   }
+}
+
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_clip(
    JNIEnv *env,          /* Interface pointer */
@@ -515,6 +551,8 @@ static void initializeIDs( JNIEnv *env ) {
            (*env)->FindClass( env, PACKAGE_PATH "Plot" ) ) ) &&
       ( GrfClass = (jclass) (*env)->NewGlobalRef( env,
            (*env)->FindClass( env, PACKAGE_PATH "Grf" ) ) ) &&
+      ( Rectangle2DFloatClass = (jclass) (*env)->NewGlobalRef( env,
+           (*env)->FindClass( env, "java/awt/geom/Rectangle2D$Float" ) ) ) &&
 
       /* Get Method IDs. */
       ( GrfAttrMethodID = (*env)->GetMethodID( env, GrfClass, "attr",
@@ -534,6 +572,9 @@ static void initializeIDs( JNIEnv *env ) {
                                                 "(Ljava/lang/String;FF"
                                                 "Ljava/lang/String;FF)"
                                                 "[[F" ) ) &&
+      ( Rectangle2DFloatConstructorID = 
+                            (*env)->GetMethodID( env, Rectangle2DFloatClass, 
+                            "<init>", "(FFFF)V" ) ) &&
 
       /* Get Field IDs. */
       ( PlotGrfFieldID = (*env)->GetFieldID( env, PlotClass, "grfobj", 

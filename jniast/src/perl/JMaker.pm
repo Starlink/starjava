@@ -332,18 +332,48 @@ my( $elementList ) = jdocize( q{
 
     The available elements are:
     <ul>
-    <li> Border: The Plot border drawn using astBorder or astGrid 
-    <li> Grid: Grid lines drawn using astGridLine or astGrid 
-    <li> Curves: Geodesic curves drawn using astCurve, 
-                 astGenCurve or astPolyCurve 
-    <li> NumLab: Numerical axis labels drawn using astGrid 
-    <li> TextLab: Descriptive axis labels drawn using astGrid 
-    <li> Title: The Plot title drawn using astGrid 
-    <li> Markers: Graphical markers (symbols) drawn using astMark 
-    <li> Strings: Text strings drawn using astText 
-    <li> Ticks: Tick marks (both major and minor) drawn using astGrid 
-    <li> Axes: Axis lines drawn through tick marks within 
-               the plotting area using astGrid 
+    <li> Axes: Axis lines drawn through tick marks
+                using <tt>astGrid</tt>
+    <li> Axis1: Axis line drawn through tick marks on axis 1
+                using <tt>astGrid</tt>
+    <li> Axis2: Axis line drawn through tick marks on axis 2
+                using <tt>astGrid</tt>
+    <li> Border: The Plot border
+                drawn using <tt>astBorder</tt> or <tt>astGrid</tt>
+    <li> Curves: Geodesic curves
+                drawn using <tt>astCurve</tt>, <tt>astGenCurve</tt> 
+                or <tt>astPolyCurve</tt>
+    <li> Grid: Grid lines
+                drawn using <tt>astGridLine</tt> or <tt>astGrid</tt> 
+    <li> Grid1: Grid lines which cross axis 1,
+                drawn using <tt>astGridLine</tt>
+                or <tt>astGrid</tt>
+    <li> Grid2: Grid lines which cross axis 2,
+                drawn using <tt>astGridLine</tt> or <tt>astGrid</tt>
+    <li> Markers: Graphical markers (symbols)
+                drawn using <tt>astMark</tt>
+    <li> NumLab: Numerical axis labels 
+                drawn using <tt>astGrid</tt>
+    <li> NumLab1: Numerical labels for axis 1
+                drawn using <tt>astGrid</tt>
+    <li> NumLab2: Numerical labels for axis 2
+                drawn using <tt>astGrid</tt>
+    <li> Strings: Text strings
+                drawn using <tt>astText </tt>
+    <li> TextLab: Descriptive axis labels
+                drawn using <tt>astGrid</tt>
+    <li> TextLab1: Descriptive label for axis 1
+                drawn using <tt>astGrid</tt>
+    <li> TextLab2: Descriptive label for axis 2
+                drawn using <tt>astGrid</tt>
+    <li> Ticks: Tick marks (both major and minor)
+                drawn using <tt>astGrid</tt>
+    <li> Ticks1: Tick marks (both major and minor) for axis 1 
+                drawn using <tt>astGrid</tt>
+    <li> Ticks2: Tick marks (both major and minor) for axis 2
+                drawn using <tt>astGrid</tt>
+    <li> Title: The Plot title
+                drawn using <tt>astGrid</tt>
     </ul>
 } );
 
@@ -357,12 +387,13 @@ sub makeSetAttribByElement {
 
    my( $Name ) = capFirst( $name );
    my( $startText ) = jdocize( deSentence( $purpose ) || "$Name attribute" );
-   my( $moreText ) = jdocize( $descrip ) . jdocize( $extra );
+   my( $moreText ) = jdocize( $descrip );
+   my( $extraText ) = jdocize( $extra );
    my( $setMethod ) = "set" . $typeLetters{ $type };
 
    print <<"__EOT__";
     /**
-     * Set $startText by graphical element.  $moreText $elementList
+     * Set $startText by graphical element.  $moreText $elementList $extraText
      *
      * \@param  element  name of the graphical element for which the attribute
      *                  is to be set
@@ -391,12 +422,13 @@ sub makeGetAttribByElement {
 
    my( $Name ) = capFirst( $name );
    my( $startText ) = jdocize( deSentence( $purpose ) || "$Name attribute" );
-   my( $moreText ) = jdocize( $descrip ) . jdocize( $extra );
+   my( $moreText ) = jdocize( $descrip );
+   my( $extraText ) = jdocize( $extra );
    my( $getMethod ) = "get" . $typeLetters{ $type };
 
    print <<"__EOT__";
     /**
-     * Get $startText by graphical element.  $moreText $elementList
+     * Get $startText by graphical element.  $moreText $elementList $extraText
      * 
      * \@param  element  name of the graphical element for which the attribute
      *                  is to be got

@@ -11,8 +11,10 @@ my( $fName );
 my( $aName );
 
 print "package uk.ac.starlink.ast;\n\n";
+print "import java.io.IOException;\n";
+print "import java.util.logging.Logger;\n";
 print "import uk.ac.starlink.util.Loader;\n";
-print "import java.io.IOException;\n\n";
+print "\n";
 
 makeClassHeader( 
    Name => $cName,
@@ -29,8 +31,12 @@ print <<'__EOT__';
     /** Holds the C pointer to the AST object.  Used by native code. */
     protected long pointer = 0;
 
-    /** Bad coordinate value. */
-    public static double AST__BAD;
+    /** Library version numbers. */
+    static int[] AST_VERSION;
+    static int[] JNIAST_NATIVE_VERSION;
+    static int[] JNIAST_JAVA_VERSION;
+
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.ast" );
 
     /* This call performs the native static initialisation required before
      * any of the AST native methods can work.  Since all the AST objects
@@ -40,8 +46,36 @@ print <<'__EOT__';
     static {
         Loader.loadLibrary( "jniast" );
         nativeInitialize();
-        AST__BAD = getAstConstantD( "AST__BAD" );
+
+        /* Set and check consistency of component versions. */
+        AST_VERSION = new int[] { 
+            getAstConstantI( "AST_MAJOR_VERS" ),
+            getAstConstantI( "AST_MINOR_VERS" ),
+            getAstConstantI( "AST_RELEASE" ),
+        };
+        JNIAST_NATIVE_VERSION = new int[] { 
+            getAstConstantI( "JNIAST_MAJOR_VERS" ),
+            getAstConstantI( "JNIAST_MINOR_VERS" ),
+            getAstConstantI( "JNIAST_RELEASE" ),
+        };
+        JNIAST_JAVA_VERSION = new int[] {
+            1,
+            8,
+            13,
+        };
+
+        /* Check that the versions look consistent. */
+        if ( ! versionGreaterEqual( AST_VERSION,
+                                    JNIAST_NATIVE_VERSION ) ||
+             ! versionGreaterEqual( JNIAST_NATIVE_VERSION, 
+                                    JNIAST_JAVA_VERSION ) ) {
+            logger.warning( "Inconsistent component versions: "
+                          + reportVersions() );
+        }
     }
+
+    /** Bad coordinate value. */
+    public static double AST__BAD = getAstConstantD( "AST__BAD" );
 
     /**
      * Dummy constructor.  This constructor does not create a valid
@@ -222,6 +256,66 @@ print <<'__EOT__';
         }
     }
 
+    /**
+     * Returns a string giving the versions of AST and of JNIAST.
+     *
+     * @return  versions of the components of this package
+     */
+    public static String reportVersions() {
+        return new StringBuffer()
+            .append( "AST " )
+            .append( reportVersion( AST_VERSION ) )
+            .append( "; " )
+            .append( "JNIAST native " )
+            .append( reportVersion( JNIAST_NATIVE_VERSION ) )
+            .append( "; " )
+            .append( "JNIAST java " )
+            .append( reportVersion( JNIAST_JAVA_VERSION ) )
+            .toString();
+    }
+
+    /**
+     * Turns a 3-element version identifier into a human-readable string.
+     *
+     * @return  version string of the form  Vmajor.minor-relase
+     */
+    private static String reportVersion( int[] vers ) {
+        return new StringBuffer()
+            .append( 'V' )
+            .append( vers[ 0 ] )
+            .append( '.' )
+            .append( vers[ 1 ] )
+            .append( '-' )
+            .append( vers[ 2 ] )
+            .toString();
+    }
+
+    /**
+     * Compares two versions indicators.
+     *
+     * @param  vers1 first version indicator as (major,minor,release)
+     * @param  vers2 second version indicator as (major,minor,release)
+     * @return <tt>true</tt> iff <tt>vers1</tt> represents a later 
+     *         or equal version than <tt>vers2</tt>
+     */
+    private static boolean versionGreaterEqual( int[] vers1, int[] vers2 ) {
+        if ( vers1[ 0 ] == vers2[ 0 ] ) {
+            if ( vers1[ 1 ] == vers2[ 1 ] ) {
+                if ( vers1[ 2 ] == vers2[ 2 ] ) {
+                    return true;
+                }
+                else {
+                    return vers1[ 2 ] > vers2[ 2 ];
+                }
+            }
+            else {
+                return vers1[ 1 ] > vers2[ 1 ];
+            }
+        }
+        else {
+            return vers1[ 0 ] > vers2[ 0 ];
+        }
+    }
 
 __EOT__
 

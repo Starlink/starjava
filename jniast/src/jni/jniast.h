@@ -32,6 +32,10 @@
 /* Constants. */
 #define PACKAGE_PATH "uk/ac/starlink/ast/"
 
+/* Required versions of the AST package. */
+#define JNIAST_MAJOR_VERS 1
+#define JNIAST_MINOR_VERS 8
+#define JNIAST_RELEASE 13
 
 /* Typedefs. */
 typedef union {

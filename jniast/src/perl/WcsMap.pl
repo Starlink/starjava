@@ -24,7 +24,7 @@ print "public class WcsMap extends Mapping {\n";
 my( $type );
 foreach $type ( qw( AZP TAN SIN STG ARC ZPN ZEA AIR CYP CAR
                     MER CEA COP COD COE COO BON PCO GLS SFL
-                    PAR AIT MOL CSC QSC NCP TSC WCSBAD ) ) {
+                    PAR AIT MOL CSC QSC NCP TSC TPN SZP WCSBAD ) ) {
    print "   /** Indicates FITS-WCS mapping of type $type. */\n";
    print "   public static final int AST__$type = "
        . "getAstConstantI( \"AST__$type\" );\n\n"
