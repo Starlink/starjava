@@ -198,6 +198,7 @@ public class Loader {
                     // no action
                 }
             }
+            propsLoaded = true;
         }
     }
 
