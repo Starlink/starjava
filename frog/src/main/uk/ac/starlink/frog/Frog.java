@@ -46,7 +46,7 @@ import uk.ac.starlink.frog.data.GramComp;
 import uk.ac.starlink.frog.data.Gram;
 
 // JavaHelp
-//import uk.ac.starlink.help.HelpFrame;
+import uk.ac.starlink.help.HelpFrame;
 import uk.ac.starlink.frog.help.HelpHolder;
 
 /**
@@ -919,11 +919,12 @@ public class Frog extends JFrame
      */
     protected void createHelpMenu()
     {     
+        /**        
         JMenu helpMenu = new JMenu( "Help" );
         menuBar.add( Box.createHorizontalGlue() );
         menuBar.add( helpMenu );
         
-        //  help dialog        
+        //  help dialog
         final String helpString =  Utilities.getReleaseName() + " Help System";
         JMenuItem helpItem = new JMenuItem( helpString );
         helpItem.addActionListener( new ActionListener() {
@@ -965,7 +966,34 @@ public class Frog extends JFrame
            }              
         }); 
         helpMenu.add(helpItem);  
+        **/
         
+        // help menu (using Peter's uk.ac.starlink.help classes)
+        debugManager.print( "Creating Help Menu using uk.ac.starlink.help");
+        final String helpString =  Utilities.getReleaseName() + " Help System";
+        
+        menuBar.add( Box.createHorizontalGlue() );
+        JToolBar dummy = null;
+        JMenu helpMenu = HelpFrame.createHelpMenu( null, null,
+                                                  "Frog.SplashPage", helpString,
+                                                   menuBar, dummy );
+        
+        HelpFrame.setHelpTitle( helpString);
+        
+        try {
+       
+           URL url = Frog.class.getResource( "/FrogHelpSet.hs" );
+           if ( url == null ) {
+             throw new FrogException( "Failed to locate HelpSet" );
+           }
+           debugManager.print("  HelpSet = " + url.toString() );
+                   
+           //HelpSet helpSet = new HelpSet( null, url );
+           HelpFrame.addHelpSet( url );
+	} catch (Exception exception) {
+	         debugManager.print("  Cannot find FrogHelpSet.hs");
+                 exception.printStackTrace();
+     	}
         
         //  about dialog        
         final String aboutString =  "About " + Utilities.getReleaseName();

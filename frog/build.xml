@@ -207,6 +207,9 @@
     <!-- NDArray-->
     <pathelement location="${star.jar.dir}/array/array.jar"/>
 
+    <!-- Help-->
+    <pathelement location="${star.jar.dir}/help/help.jar"/>
+    
     <!-- HDX -->
     <!--<pathelement location="${star.jar.dir}/hdx/hdx.jar"/>-->
 
