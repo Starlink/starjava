@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * A DataSource implementation based on a {@link @java.io.File}.
+ * A DataSource implementation based on a {@link java.io.File}.
  *
  * @author   Mark Taylor (Starlink)
  */

@@ -1,6 +1,7 @@
 package uk.ac.starlink.util;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -12,8 +13,7 @@ import java.net.URL;
  * Represents a stream-like source of data.
  * Instances of this class can be used to encapsulate the data available
  * from a stream.  The idea is that the stream should return the same
- * sequence of bytes each time; if it does not, unpredictable behaviour
- * may result.
+ * sequence of bytes each time.
  * <p>
  * As well as providing the facility for several different objects to
  * get their own copy of the underlying input stream, this class also
@@ -21,6 +21,10 @@ import java.net.URL;
  * reading the magic number.
  * Compression types are as understood by the associated {@link Compression}
  * class.
+ * <p>
+ * Any implementation which implements {@link #getRawInputStream} in such
+ * a way as to return different byte sequences on different occasions
+ * may lead to unpredictable behaviour from this class.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -78,6 +82,15 @@ public abstract class DataSource {
      * @return  the length of the stream in bytes, or -1
      */
     public long getLength() throws IOException {
+
+        /* If we know the length because we have read off the end, return
+         * that value. */
+        if ( eofPos < Integer.MAX_VALUE ) {
+            return (long) eofPos;
+        }
+
+        /* If the raw length is known and there is no compression we can 
+         * return that value.  Otherwise, we just have to say we don't know. */
         long rawleng = getRawLength();
         if ( rawleng < 0L || getCompression() != Compression.NONE ) {
             return -1L;
@@ -166,7 +179,7 @@ public abstract class DataSource {
      * The returned <tt>DataSource</tt> object may be the same object 
      * as this one, but 
      * if it has a different compression mode from <tt>compress</tt>
-     * a new one will be created.  As with {@link setCompression},
+     * a new one will be created.  As with {@link #setCompression},
      * the consequences of using a different value of <tt>compress</tt>
      * than the correct one (other than {@link Compression#NONE}
      * are unpredictable.
@@ -214,11 +227,30 @@ public abstract class DataSource {
      *          underlying data source, decompressing it if appropriate
      */
     public synchronized InputStream getInputStream() throws IOException {
+
+        /* If we have already read up to the end of the stream, we can
+         * return a stream based on our copy of it.  This is likely to
+         * be cheaper than the alternatives. */
+        if ( eofPos < Integer.MAX_VALUE ) {
+            assert magic.length == eofPos;
+            return new ByteArrayInputStream( magic );
+        }
+
+        /* Find out what compression we are using.  This may have the
+         * side effect of getting us a stream. */
         Compression compress = getCompression();
+
+        /* Return either an existing stream, or a decompressed version of
+         * a new raw stream got from the implementation. */
         InputStream result = ( strm == null ) 
                              ? compress.decompress( getRawInputStream() ) 
                              : strm;
+
+        /* Make sure that we don't try to use the stream we've just returned
+         * at a later date. */
         strm = null;
+
+        /* Return the result. */
         return result;
     }
 
@@ -229,6 +261,16 @@ public abstract class DataSource {
      * enough bytes in the source.  Bytes beyond this number will be
      * left alone.  Any known compression in the underlying data source
      * is taken care of.
+     * <p>
+     * Bytes read by this method are remembered by this DataSource for
+     * future use, so that multiple cheap calls of this method may 
+     * be made as long as the length of <tt>buffer</tt> does not increase
+     * on successive calls.  Furthermore, if the end of the stream 
+     * is reached (because <tt>buffer.length</tt> exceeds the length of
+     * the, possibly decompressed, stream) then this object will know
+     * all the bytes in this stream and no subsequent calls to 
+     * {@link #getRawInputStream} will be made.  Unless 
+     * {@link #clearState} is called of course.
      *
      * @param  buffer  a buffer into which the start of this source should
      *                 be written.
@@ -277,6 +319,11 @@ public abstract class DataSource {
             /* If we fell off the end of the stream, remember where it was. */
             if ( nGot < nReq ) {
                 eofPos = nGot;
+
+                /* In this case we can also discard any stream we have,
+                 * since we won't need it again - we can just use the
+                 * copy in the magic buffer if we need to read it again. */
+                close();
             }
 
             /* Keep a copy of the bytes that we read. */
@@ -412,13 +459,14 @@ public abstract class DataSource {
     public synchronized void close() throws IOException {
         if ( strm != null ) {
             strm.close();
+            strm = null;
         }
     }
 
     /**
      * Returns a short description of this source (name plus compression type).
      *
-     * @return  same as {@link getName}
+     * @return  description of this DataSource
      */
     public String toString() {
         String result = getName();
