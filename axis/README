@@ -1,13 +1,18 @@
-This is an extracted part of Axis RC1. 
+This is an extracted part of Axis 1.1.  The docs and webapps directories
+contain the unmodified, imported, equivalent directories from the actual
+release.
 
-The "axis.war" file in the lib directory is just a jar of the contents
-of the webapps/axis directory, minus the "lib" directory. It may need 
-cleaning up for a proper release (there are example servlets that may 
-be inappropriate).
+The "axis.war" file in the lib directory is just a jar of the contents of the
+webapps/axis directory, minus the "lib" directory, with a server-config.wsdd
+file added.
 
-A copy of this has been placed in the axis.jar file in the same
-directory as the AxisEngine class. This means that the war file 
-maybe located:
+The src/lib directory is a copy of axis/lib, but with the following change --
+a copy of axis.war has been placed in the axis.jar file in the same directory
+as the AxisEngine class. This means that the war file maybe located:
 
    URL warFile = AxisEngine.class.getResource( "axis.war" );
 
+Miscelleaneous directories.
+
+  webapps/lib is copy of webapps/axis/WEB_INF/lib, what is this for,
+  I suspect it can be removed.
