@@ -863,24 +863,15 @@ public class DivaPlot
         //  we need to draw everything, but when we're tracking the grid to
         //  just the visible area (visibleOnly mode) we also need to redraw
         //  the grid, regardless of whether a scale has occurred or not, but
-        //  under that circumstance we do not draw the more expensive spectra,
-        //  unless we really need to.
-
+        //  under that circumstance we do not draw the more expensive spectra.
         try {
             if ( xyScaled || visibleOnly ) {
-
-                //  If visibleOnly mode is set and the plot is made non-linear
-                //  by drawing using a log scale, all our optimisations about
-                //  just redrawing the grid are no good, so this is nearly
-                //  like xyScaled.
-                boolean nonLinear = 
-                    visibleOnly && ( astAxes.getXLog() || astAxes.getYLog() );
 
                 //  If needed keep reference to existing AstPlot so we know
                 //  how graphics coordinates are already drawn and can rescale
                 //  any overlay graphics to the correct size.
                 Plot oldAstPlot = mainPlot;
-                if ( xyScaled || nonLinear ) {
+                if ( xyScaled ) {
                     if ( oldAstPlot != null ) {
                         oldAstPlot = (Plot) oldAstPlot.clone();
                     }
@@ -921,7 +912,7 @@ public class DivaPlot
                     }
                 }
 
-                if ( xyScaled || nonLinear ) {
+                if ( xyScaled ) {
                     //  Clear all existing AST graphics
                     mainGrf.reset();
                 }
@@ -935,7 +926,7 @@ public class DivaPlot
                 mainPlot.grid();
 
                 //  Draw the spectra, if required. 
-                if ( xyScaled || nonLinear ) {
+                if ( xyScaled ) {
                     mainGrf.establishContext( "SPECTRA" );
                     drawSpectra();
 
@@ -1053,6 +1044,12 @@ public class DivaPlot
                                        size.width - rgap - lgap,
                                        size.height - bgap - tgap );
             mainPlot = new Plot( astref, graphrect, baseBox );
+
+            //  Apply options as these may include log-scaling which effects
+            //  the range.
+            if ( options != null ) {
+                mainPlot.set( options );
+            }
 
             //  Now determine equivalent rectangle for the visible region.
             graphrect = new Rectangle( visrect.x + lgap,
