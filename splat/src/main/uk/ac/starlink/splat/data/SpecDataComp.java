@@ -497,7 +497,7 @@ public class SpecDataComp
     }
 
     /**
-     *  Get the data range of all the spectra
+     *  Get the data ranges of all the spectra
      */
     public double[] getRange()
         throws SplatException
@@ -516,16 +516,23 @@ public class SpecDataComp
 
         int count = spectra.size();
         SpecData spectrum = null;
-        double[] newrange;
+        double[] newrange = null;
+        double[] xEndPoints;
+        double[] yEndPoints;
         FrameSet mapping = null;
 
         for ( int i = 0; i < count; i++ ) {
             spectrum = (SpecData) spectra.get( i );
             if ( ! spectrum.equals( currentSpec ) ) {
-                newrange = spectrum.getRange();
                 if ( coordinateMatching ) {
+                    xEndPoints = spectrum.getXEndPoints();
+                    yEndPoints = spectrum.getYEndPoints();
                     mapping = (FrameSet) mappings.get( spectrum );
-                    newrange = transformRange( mapping, newrange );
+                    newrange = transformEndPoints( mapping, xEndPoints, 
+                                                   yEndPoints );
+                }
+                else {
+                    newrange = spectrum.getRange();
                 }
                 checkRangeLimits( newrange, range );
             }
@@ -556,7 +563,7 @@ public class SpecDataComp
 
 
     /**
-     * Get the range of a spectrum. Includes space for errorbars in they are
+     * Get the range of a spectrum. Includes space for errorbars if they are
      * being drawn and if we have been asked to include it.
      */
     protected double[] getSpectrumRange( SpecData spectrum )
@@ -592,16 +599,29 @@ public class SpecDataComp
 
         int count = spectra.size();
         SpecData spectrum = null;
-        double[] newrange;
+        double[] newrange = null;
+        double[] xEndPoints;
+        double[] yEndPoints;
         FrameSet mapping = null;
 
         for ( int i = 0; i < count; i++ ) {
             spectrum = (SpecData) spectra.get( i );
             if ( ! spectrum.equals( currentSpec ) ) {
-                newrange = getSpectrumRange( spectrum );
                 if ( coordinateMatching ) {
+                    if ( spectrum.isDrawErrorBars() && errorbarAutoRanging ) {
+                        xEndPoints = spectrum.getXFullEndPoints();
+                        yEndPoints = spectrum.getYFullEndPoints();
+                    }
+                    else {
+                        xEndPoints = spectrum.getXEndPoints();
+                        yEndPoints = spectrum.getYEndPoints();
+                    }
                     mapping = (FrameSet) mappings.get( spectrum );
-                    newrange = transformRange( mapping, newrange );
+                    newrange = transformEndPoints( mapping, xEndPoints,
+                                                   yEndPoints );
+                }
+                else {
+                    newrange = getSpectrumRange( spectrum );
                 }
                 checkRangeLimits( newrange, range );
             }
@@ -632,7 +652,9 @@ public class SpecDataComp
         regenerateMappings();
 
         int count = spectra.size();
-        double newrange[];
+        double newrange[] = null;
+        double[] xEndPoints;
+        double[] yEndPoints;
         SpecData spectrum = null;
         FrameSet mapping;
 
@@ -640,10 +662,22 @@ public class SpecDataComp
             spectrum = (SpecData)spectra.get( i );
             if ( ! spectrum.equals( currentSpec ) ) {
                 if ( spectrum.isUseInAutoRanging() ) {
-                    newrange = getSpectrumRange( spectrum );
                     if ( coordinateMatching ) {
+                        if ( spectrum.isDrawErrorBars() && 
+                             errorbarAutoRanging ) {
+                            xEndPoints = spectrum.getXFullEndPoints();
+                            yEndPoints = spectrum.getYFullEndPoints();
+                        }
+                        else {
+                            xEndPoints = spectrum.getXEndPoints();
+                            yEndPoints = spectrum.getYEndPoints();
+                        }
                         mapping = (FrameSet) mappings.get( spectrum );
-                        newrange = transformRange( mapping, newrange );
+                        newrange = transformEndPoints( mapping, xEndPoints, 
+                                                       yEndPoints );
+                    }
+                    else {
+                        newrange = getSpectrumRange( spectrum );
                     }
                     checkRangeLimits( newrange, range );
                 }
@@ -662,7 +696,6 @@ public class SpecDataComp
         return transformRange( (FrameSet) mappings.get( referenceSpec ),
                                range );
     }
-
 
     /**
      * Transform range-like position-pairs using a given mapping.
@@ -689,6 +722,47 @@ public class SpecDataComp
         for ( int i = 0; i < xin.length; i++ ) {
             result[i] = tmp[0][i];
             result[i+xin.length] = tmp[1][i];
+        }
+        return result;
+    }
+
+    /**
+     * Transform the end-points of a spectrum to determine a new range. This
+     * makes sure that the mapping is applied to real points on a spectrum not
+     * a bounding range. When dealing with SpecFluxFrames this matters.
+     *
+     * The input coordinates are two sets of [x1,y1,x2,y2,x3,y3,x4,y4] arrays.
+     */
+    protected double[] transformEndPoints( FrameSet mapping, double[] xEndPoints,
+                                           double[] yEndPoints )
+    {
+        if ( xEndPoints == null || yEndPoints == null ) return null;
+
+        //  2D coords, so need separate X,Y coords.
+        double xin[] = new double[xEndPoints.length];
+        double yin[] = new double[xin.length];
+        for ( int i = 0, j = 0; i < xin.length; i++, j++ ) {
+            xin[i] = xEndPoints[j];
+            yin[i] = xEndPoints[j+1];
+            i++;
+            xin[i] = yEndPoints[j];
+            yin[i] = yEndPoints[j+1];
+            j++;
+        }
+        double[][] tmp = mapping.tran2( xin.length, xin, yin, false );
+
+        // Pick out the min/max pairs.
+        double[] result = new double[4];
+        result[0] = Double.MAX_VALUE;
+        result[1] = -Double.MAX_VALUE;
+        result[2] = Double.MAX_VALUE;
+        result[3] = -Double.MAX_VALUE;
+
+        for ( int i = 0; i < xin.length; i++ ) {
+            result[0] = Math.min( result[0], tmp[0][i] );
+            result[1] = Math.max( result[1], tmp[0][i] );
+            result[2] = Math.min( result[2], tmp[1][i] );
+            result[3] = Math.max( result[3], tmp[1][i] );
         }
         return result;
     }
