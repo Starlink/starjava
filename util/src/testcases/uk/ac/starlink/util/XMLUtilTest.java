@@ -17,7 +17,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import uk.ac.starlink.util.gui.AWTXMLEncodeAndDecode;
+import uk.ac.starlink.util.gui.AWTXMLEncodeDecode;
 
 public class XMLUtilTest extends TestCase 
 {
@@ -26,18 +26,18 @@ public class XMLUtilTest extends TestCase
         super( name );
     }
         
-    public void testXMLEncodeAndDecode()
+    public void testXMLEncodeDecode()
         throws ParserConfigurationException
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.newDocument();
 
-        TestXMLEncodeAndDecode obj1 = new TestXMLEncodeAndDecode();
+        TestXMLEncodeDecode obj1 = new TestXMLEncodeDecode();
         Element rootElement = doc.createElement( obj1.getTagName() );
         obj1.encode( rootElement );
 
-        TestXMLEncodeAndDecode obj2 = new TestXMLEncodeAndDecode();
+        TestXMLEncodeDecode obj2 = new TestXMLEncodeDecode();
         obj2.decode( rootElement );
         assertTrue( obj1.sameValue( obj2 ) );
         assertTrue( obj2.sameValue( obj1 ) );
@@ -45,7 +45,7 @@ public class XMLUtilTest extends TestCase
 
     // Create a class whose instances can be encoded and decoded to an
     // Element.
-    class TestXMLEncodeAndDecode extends PrimitiveXMLEncodeAndDecode
+    class TestXMLEncodeDecode extends PrimitiveXMLEncodeDecode
     {
         // The configuration, one for each primitive type known.
         String  value1 = "Java";
@@ -57,12 +57,12 @@ public class XMLUtilTest extends TestCase
         AlphaComposite value7 = 
             AlphaComposite.getInstance( AlphaComposite.SRC_ATOP, 0.7999F );
 
-        TestXMLEncodeAndDecode()
+        TestXMLEncodeDecode()
         {
             // Do nothing.
         }
 
-        public boolean sameValue( TestXMLEncodeAndDecode comparison )
+        public boolean sameValue( TestXMLEncodeDecode comparison )
         {
             if ( value1.equals( comparison.value1 ) &&
                  ( Double.compare( value2, comparison.value2 ) == 0 ) &&
@@ -82,12 +82,12 @@ public class XMLUtilTest extends TestCase
             addChildElement( rootElement, "name2", value2 );
             addChildElement( rootElement, "name3", value3 );
             addChildElement( rootElement, "name4", value4 );
-            AWTXMLEncodeAndDecode.addChildElement( rootElement,
-                                                   "name5", value5 );
-            AWTXMLEncodeAndDecode.addChildElement( rootElement,
-                                                   "name6", value6 );
-            AWTXMLEncodeAndDecode.addChildElement( rootElement, 
-                                                   "name7", value7 );
+            AWTXMLEncodeDecode.addChildElement( rootElement,
+                                                "name5", value5 );
+            AWTXMLEncodeDecode.addChildElement( rootElement,
+                                                "name6", value6 );
+            AWTXMLEncodeDecode.addChildElement( rootElement, 
+                                                "name7", value7 );
         }
 
         public String getTagName() 
@@ -114,15 +114,15 @@ public class XMLUtilTest extends TestCase
                 return;
             }
             if ( name.equals( "name5" ) ) {
-                value5 = AWTXMLEncodeAndDecode.fontFromString( value );
+                value5 = AWTXMLEncodeDecode.fontFromString( value );
                 return;
             }
             if ( name.equals( "name6" ) ) {
-                value6 = AWTXMLEncodeAndDecode.colorFromString( value );
+                value6 = AWTXMLEncodeDecode.colorFromString( value );
                 return;
             }
             if ( name.equals( "name7" ) ) {
-                value7 = AWTXMLEncodeAndDecode.compositeFromString( value );
+                value7 = AWTXMLEncodeDecode.compositeFromString( value );
                 return;
             }
             throw new RuntimeException( "unknown name: "+name+" ("+value+")");
