@@ -174,9 +174,6 @@
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
   <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
 
-  <!-- Add any local ANT tasks that are required (these should be
-   !   moved to ANT if useful beyond the needs of this package) -->
-
   <!--
    !   =========
    !   CLASSPATH
@@ -330,6 +327,16 @@
     <pathelement location="${star.jar.dir}/${os.arch}"/>
   </path>
   <property name="tests-libpath" refid="tests-libpath.id"/>
+
+  <!--
+   !    ===============
+   !    Extension tasks
+   !    ===============
+   !    Add any local or extension ANT tasks that are required. Local
+   !    tasks should be moved into the ANT package if used outside of this
+   !    package. 
+   !-->
+  <taskdef resource="axis-tasks.properties" classpathref="classpath"/>
 
   <!--
    !    =========================================
