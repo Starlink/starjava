@@ -13,6 +13,7 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -23,6 +24,7 @@ import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.splat.ast.ASTJ;
+import uk.ac.starlink.splat.ast.ASTChannel;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfState;
@@ -484,6 +486,21 @@ public class SpecData
      * The size of any points.
      */
     protected double pointSize = 5.0;
+
+    /**
+     * Serialized form of the backing implementation AST FrameSet. This is
+     * only used when the object is serialized itself and cannot be relied on
+     * at any time.
+     */
+    protected String[] serializedFrameSet = null;
+
+    /**
+     * Data units and label for storage in serialized form. These are only
+     * used when the object is serialized and cannot be used for any other
+     * purpose.
+     */
+    protected String serializedDataUnits = null;
+    protected String serializedDataLabel = null;
 
     //  ==============
     //  Public methods
@@ -2197,12 +2214,39 @@ public class SpecData
 //  Serializable interface.
 //
     /**
-     * Restore a SpecData object from a serialized state. Note all objects
-     * restored by this route are assigned a MEMSpecDataImpl object, as the
-     * association between a disk file and deserialized object cannot be
-     * guaranteed (TODO: might like to store some details about the original
-     * file somewhere). This method is also necessary so that AST objects can
-     * be restored.
+     * Store this object in a serialized state. The main purpose of providing
+     * this method is to also accommodate the serialization of the current
+     * implementation FrameSet (by AST).
+     */
+    private void writeObject( ObjectOutputStream out )
+        throws IOException
+    {
+        //  Serialize the AST FrameSet.
+        serializedFrameSet = new String[1];
+        ASTChannel chan = new ASTChannel( serializedFrameSet );
+        chan.write( impl.getAst() );
+        serializedFrameSet = new String[chan.getIndex()];
+        chan.setArray( serializedFrameSet );
+        chan.write( impl.getAst() );
+
+        //  Store data units and label.
+        serializedDataUnits = impl.getProperty( "units" );
+        serializedDataLabel = impl.getProperty( "label" );
+        
+        //  And store all member variables.
+        out.defaultWriteObject();
+
+        //  Finished.
+        serializedFrameSet = null;
+    }
+
+    /**
+     * Restore an object from a serialized state. Note all objects restored by
+     * this route are assigned a MEMSpecDataImpl object, as the association
+     * between a disk file and deserialized object cannot be guaranteed 
+     * (TODO: might like to store some details about the original file
+     * somewhere). This method is also necessary so that AST objects can be
+     * restored.
      *
      * @param in the serialized stream containing object of this class.
      * @exception IOException Description of the Exception
@@ -2212,18 +2256,48 @@ public class SpecData
         throws IOException, ClassNotFoundException
     {
         try {
-            //  XXX how to restore the Ast FrameSets describing the spectral
-            //  coordinates...
+            // Restore state of member variables.
             in.defaultReadObject();
+
+            //  Create the backing impl.
             MEMSpecDataImpl newImpl = new MEMSpecDataImpl( shortName );
             fullName = null;
-            if ( haveYDataErrors() ) {
-                newImpl.setSimpleData( getXData(), getYData(), getYDataErrors() );
+
+            //  Restore the AST FrameSet, if available.
+            if ( serializedFrameSet != null ) {
+                ASTChannel chan = new ASTChannel( serializedFrameSet );
+                FrameSet frameSet = (FrameSet) chan.read();
+                serializedFrameSet = null;
+
+                if ( serializedDataUnits != null ) {
+                    newImpl.setDataUnits( serializedDataUnits );
+                    serializedDataUnits = null;
+                }
+                if ( serializedDataLabel != null ) {
+                    newImpl.setDataLabel( serializedDataLabel );
+                    serializedDataLabel = null;
+                }
+
+                if ( haveYDataErrors() ) {
+                    newImpl.setFullData( frameSet, getYData(), 
+                                         getYDataErrors() );
+                }
+                else {
+                    newImpl.setFullData( frameSet, getYData() );
+                }
             }
             else {
-                newImpl.setSimpleData( getXData(), getYData() );
+                if ( haveYDataErrors() ) {
+                    newImpl.setSimpleData( getXData(), getYData(), 
+                                           getYDataErrors() );
+                }
+                else {
+                    newImpl.setSimpleData( getXData(), getYData() );
+                }
             }
             this.impl = newImpl;
+
+            //  Full reset of state.
             readData();
         }
         catch ( SplatException e ) {
