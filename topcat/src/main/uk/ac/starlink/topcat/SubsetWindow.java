@@ -405,7 +405,9 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
         void count() {
    
             /* Prepare for the calculations. */
-            final RowSubset[] rsets = (RowSubset[]) 
+            final RowSubset[] rsets = subsets == null 
+                                    ? new RowSubset[ 0 ]
+                                    : (RowSubset[]) 
                                       subsets.toArray( new RowSubset[ 0 ] );
             final int nrset = rsets.length;
             final long[] counts = new long[ nrset ];

@@ -82,8 +82,10 @@ public class SyntheticColumn extends ColumnData {
 
         /* Get an up-to-date RowReader (an old one may not be aware of recent
          * changes to the StarTable or subset list). */
-        RowSubset[] subsetArray = 
-            (RowSubset[]) subsets.toArray( new RowSubset[ 0 ] );
+        RowSubset[] subsetArray = subsets == null
+                                ? new RowSubset[ 0 ]
+                                : (RowSubset[]) 
+                                  subsets.toArray( new RowSubset[ 0 ] );
         rowReader = new RandomJELRowReader( stable, subsetArray );
 
         /* Compile the expression. */
