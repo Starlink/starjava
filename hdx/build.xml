@@ -811,7 +811,8 @@
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
-             classpathref="classpath">
+             classpathref="classpath"
+             source="1.4">
 
       <!-- Get a list of directories that name all the potential
        !   java packages -->
