@@ -3,14 +3,19 @@ package uk.ac.starlink.topcat;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 
@@ -19,10 +24,11 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
  * for some input.  These are like non-modal dialogues, but share 
  * some of the TOPCAT (AuxWindow) look and feel.
  */
-public abstract class QueryWindow extends AuxWindow {
+public abstract class QueryWindow extends AuxWindow implements WindowListener {
 
     private JPanel controls;
     private LabelledComponentStack stack;
+    private Action okAction;
     protected Border blankBorder = 
         BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
 
@@ -47,7 +53,7 @@ public abstract class QueryWindow extends AuxWindow {
 
         /* Set up the action for completing this dialogue - invoke the 
          * perform method until it returns true. */
-        Action okAction = new AbstractAction( "OK" ) {
+        okAction = new AbstractAction( "OK" ) {
             public void actionPerformed( ActionEvent evt ) {
                 if ( perform() ) {
                     dispose();
@@ -59,6 +65,9 @@ public abstract class QueryWindow extends AuxWindow {
         controls = new JPanel();
         controls.add( new JButton( okAction ) );
         controls.add( new JButton( cancelAction ) );
+
+        /* React to window events. */
+        addWindowListener( this );
 
         /* Place the components into the window. */
         Box iconBox = new Box( BoxLayout.Y_AXIS );
@@ -89,4 +98,59 @@ public abstract class QueryWindow extends AuxWindow {
     protected LabelledComponentStack getStack() {
         return stack;
     }
+
+    /**
+     * Give focus to the first input field in the stack.
+     */
+    private void initFocus() {
+        getFirstFocusableField().requestFocusInWindow();
+    }
+
+    /**
+     * Returns the first focusable field in the stack of input fields.
+     *
+     * @return  an input component which can receive focus
+     */
+    private Component getFirstFocusableField() {
+        Component[] fields = stack.getFields();
+        for ( int i = 0; i < fields.length; i++ ) {
+            if ( fields[ i ].isFocusable() ) {
+                return fields[ i ];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Do configuration of keys for the input fields in the stack.
+     * We configure the Enter key to close the window.
+     */
+    private void configureKeys() {
+        Object okKey = new Object();
+        KeyStroke hitEnter = KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 );
+        Component[] fields = stack.getFields();
+        for ( int i = 0; i < fields.length; i++ ) {
+            if ( fields[ i ] instanceof JComponent ) {
+                JComponent field = (JComponent) fields[ i ];
+                field.getInputMap().put( hitEnter, okKey );
+                field.getActionMap().put( okKey, okAction );
+            }
+        }
+    }
+
+    /*
+     * WindowListener implementation
+     */
+    public void windowOpened( WindowEvent evt ) {
+        initFocus();
+        configureKeys(); 
+    }
+    public void windowActivated( WindowEvent evt ) {
+        initFocus();
+    }
+    public void windowClosed( WindowEvent evt ) {}
+    public void windowClosing( WindowEvent evt ) {}
+    public void windowDeactivated( WindowEvent evt ) {}
+    public void windowDeiconified( WindowEvent evt ) {}
+    public void windowIconified( WindowEvent evt ) {}
 }
