@@ -1386,26 +1386,4 @@ public class DrawActions
             setCurve( interpolator );
         }
     }
-    
-    /**
-     * Local class used to save the current graphics.
-     */
-    class CurveAction
-        extends AbstractAction
-    {
-        int interpolator = InterpolatorFactory.HERMITE;
-
-        public CurveAction( int interpolator )
-        {
-            super( InterpolatorFactory.shortNames[interpolator] );
-            this.interpolator = interpolator;
-        }
-
-        public void actionPerformed( ActionEvent evt )
-        {
-            setCurve( interpolator );
-        }
-    }
-    
-    
 }

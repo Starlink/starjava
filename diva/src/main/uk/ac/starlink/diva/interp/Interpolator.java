@@ -7,8 +7,6 @@
  */
 package uk.ac.starlink.diva.interp;
 
-import uk.ac.starlink.splat.util.Sort;
-
 /**
  *  Abstract superclass for all interpolators. Interpolation assumes a
  *  monotonic set of X coordinates (the ordinates) and an arbitrary
@@ -264,7 +262,59 @@ public abstract class Interpolator
      */
     protected int[] binarySearch( double[] array, double value )
     {
-        return Sort.binarySearch( array, value );
-    }
+        int bounds[] = new int[2];
+        int low = 0;
+        int high = array.length - 1;
+        boolean increases = ( array[low] < array[high] );
 
+        // Check off scale.
+        if ( ( increases && value < array[low] ) ||
+             ( ! increases && value > array[low] ) ) {
+            high = low;
+        }
+        else if ( ( increases && value > array[high] ) ||
+                  ( ! increases && value < array[high] ) ) {
+            low = high;
+        }
+        else {
+            //  Use a binary search as values should be sorted to increase
+            //  in either direction (wavelength, pixel coordinates etc.).
+            int mid = 0;
+            if ( increases ) {
+                while ( low < high - 1 ) {
+                    mid = ( low + high ) / 2;
+                    if ( value < array[mid] ) {
+                        high = mid;
+                    }
+                    else if ( value > array[mid] ) {
+                        low = mid;
+                    }
+                    else {
+                        // Exact match.
+                        low = high = mid;
+                        break;
+                    }
+                }
+            }
+            else {
+                while ( low < high - 1 ) {
+                    mid = ( low + high ) / 2;
+                    if ( value > array[mid] ) {
+                        high = mid;
+                    }
+                    else if ( value < array[mid] ) {
+                        low = mid;
+                    }
+                    else {
+                        // Exact match.
+                        low = high = mid;
+                        break;
+                    }
+                }
+            }
+        }
+        bounds[0] = low;
+        bounds[1] = high;
+        return bounds;
+    }
 }
