@@ -30,6 +30,7 @@ public class StarTableNodeChooser {
     private static Class chooserClass;
     private static Constructor chooserConstructor;
     private static Method chooseMethod;
+    private static Method setRootMethod;
     private static Boolean isAvailable;
 
     private Object chooserObject;
@@ -38,6 +39,7 @@ public class StarTableNodeChooser {
     static final String CHOOSER_CLASS = 
         "uk.ac.starlink.treeview.TableNodeChooser";
     static final String CHOOSE_METHOD = "chooseStarTable";
+    static final String SETROOT_METHOD = "setRoot";
 
     /**
      * Constructs a new chooser object if the requisite classes are 
@@ -111,6 +113,33 @@ public class StarTableNodeChooser {
     }
 
     /**
+     * Sets the root node of the chooser.
+     *
+     * @param   dataNode  a uk.ac.starlink.treeview.DataNode object at which
+     *          the chooser should be rooted
+     */
+    public void setRootNode( Object dataNode ) {
+        try {
+            setRootMethod.invoke( chooserObject, new Object[] { dataNode } );
+        }
+        catch ( IllegalAccessException e ) {
+            throw new AssertionError( e );
+        }
+        catch ( InvocationTargetException e ) {
+            Throwable e2 = e.getTargetException();
+            if ( e2 instanceof Error ) {
+                throw (Error) e2;
+            }
+            else if ( e2 instanceof RuntimeException ) {
+                throw (RuntimeException) e2;
+            }
+            else {
+                throw new AssertionError( e2 );
+            }
+        }
+    }
+
+    /**
      * Indicates whether it will be possible to construct a 
      * StarTableNodeChooser object.  It may not be if the requisite classes
      * are not in place.
@@ -155,9 +184,12 @@ public class StarTableNodeChooser {
     static void reflect()
             throws ClassNotFoundException, LinkageError, NoSuchMethodException {
         chooserClass = Class.forName( CHOOSER_CLASS );
+        Class nodeClass = Class.forName( "uk.ac.starlink.treeview.DataNode" );
         chooserConstructor = chooserClass.getConstructor( new Class[ 0 ] );
         chooseMethod = chooserClass
                       .getMethod( CHOOSE_METHOD, 
                                   new Class[] { Component.class } );
+        setRootMethod = chooserClass
+                       .getMethod( SETROOT_METHOD, new Class[] { nodeClass } );
     }
 }
