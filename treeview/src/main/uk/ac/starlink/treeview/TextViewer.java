@@ -21,7 +21,7 @@ public class TextViewer extends JTextArea {
 
     private Writer appender = new Writer() {
         public void write( char[] cbuf, int off, int len ) {
-            append( new String( cbuf, off, len ) );
+            TextViewer.this.append( new String( cbuf, off, len ) );
         }
         public void close() {}
         public void flush() {}

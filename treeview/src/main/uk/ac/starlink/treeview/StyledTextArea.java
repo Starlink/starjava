@@ -197,9 +197,9 @@ public class StyledTextArea extends JTextPane {
                         }
                     }
                 }
-                append( "screed", buf );
+                StyledTextArea.this.append( "screed", buf );
                 if ( truncate ) {
-                    append( "screed", "   ...." );
+                    StyledTextArea.this.append( "screed", "   ...." );
                 }
             }
             public void flush() {}
