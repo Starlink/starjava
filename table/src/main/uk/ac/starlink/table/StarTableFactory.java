@@ -42,8 +42,8 @@ import uk.ac.starlink.util.URLDataSource;
  *     implement <tt>TableBuilder</tt> and have no-arg constructor).
  *     Such a class must be on the classpath, but need not have been 
  *     specified previously to the factory.
- * <li>The empty string or <tt>null</tt> - in this case automatic 
- *     format detection is used.
+ * <li>The empty string or <tt>null</tt> or {@link #AUTO_HANDLER} - 
+ *     in this case automatic format detection is used.
  * </ul>
  *
  * <p>In the case of automatic format detection (no format specified),
@@ -83,14 +83,13 @@ import uk.ac.starlink.util.URLDataSource;
  * which implement the {@link TableBuilder} interface and have a no-arg
  * constructor will be instantiated and added to the known handler list.
  *
- * <p>The factory has a flag <tt>wantRandom</tt> which determines 
- * whether random-access tables are
- * preferred results of the <tt>makeStarTable</tt> methods.
- * Setting this flag to <tt>true</tt> does <em>not</em> guarantee
- * that returned tables will have random access 
- * (the {@link #randomTable} method should be used for that),
- * but this flag is passed to builders as a hint in case they know
- * how to make either random or non-random tables.
+ * <p>The factory has a flag <tt>requireRandom</tt> which determines 
+ * whether the <tt>makeStarTable</tt> methods are guaranteed to return
+ * tables which provide random access (<tt>StarTable.isRandom()==true<tt>).
+ * <strong>NOTE</strong> the meaning (and name) of this flag has changed
+ * as of STIL version 2.1.  Previously it was only a hint that random
+ * tables were preferred.  Now setting it true guarantees that all 
+ * tables returned by the factory are random.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -99,7 +98,7 @@ public class StarTableFactory {
     private List defaultBuilders_;
     private List knownBuilders_;
     private JDBCHandler jdbcHandler_;
-    private boolean wantRandom_;
+    private boolean requireRandom_;
     private StoragePolicy storagePolicy_;
 
     /**
@@ -128,7 +127,7 @@ public class StarTableFactory {
 
     /**
      * Constructs a StarTableFactory with a default list of builders
-     * which will not preferentially construct random-access tables.
+     * which is not guaranteed to construct random-access tables.
      */
     public StarTableFactory() {
         this( false );
@@ -136,13 +135,12 @@ public class StarTableFactory {
 
     /**
      * Constructs a StarTableFactory with a default list of builders
-     * specifying whether it should preferentially construct random-access
-     * tables.
+     * specifying whether it will return random-access tables.
      *
-     * @param   wantRandom  whether random-access tables are preferred
+     * @param   requireRandom  whether random-access tables will be constructed
      */
-    public StarTableFactory( boolean wantRandom ) {
-        wantRandom_ = wantRandom;
+    public StarTableFactory( boolean requireRandom ) {
+        requireRandom_ = requireRandom;
         defaultBuilders_ = new ArrayList();
 
         /* Attempt to add default handlers if they are available. */
@@ -257,24 +255,32 @@ public class StarTableFactory {
     }
 
     /**
-     * Sets whether random-access tables are by preference 
-     * created by this factory.
+     * Sets whether random-access tables will be constructed by this factory.
+     * If this flag is set <tt>true</tt> then any table returned by
+     * the various <tt>makeStarTable</tt> methods is guaranteed to 
+     * provide random access (its {@link StarTable#isRandom} method will 
+     * return <tt>true</tt>).  If the flag is false, then returned 
+     * tables may or may not be random-access.
      *
-     * @param  wantRandom  whether, preferentially, this factory should
-     *         create random-access tables
+     * @param  requireRandom  whether this factory will create 
+     *         random-access tables
      */
-    public void setWantRandom( boolean wantRandom ) {
-        wantRandom_ = wantRandom;
+    public void setRequireRandom( boolean requireRandom ) {
+        requireRandom_ = requireRandom;
     }
 
     /**
-     * Returns the <tt>wantRandom</tt> flag.
+     * Returns the <tt>requireRandom</tt> flag.
+     * If this flag is set <tt>true</tt> then any table returned by
+     * the various <tt>makeStarTable</tt> methods is guaranteed to 
+     * provide random access (its {@link StarTable#isRandom} method will 
+     * return <tt>true</tt>).  If the flag is false, then returned 
+     * tables may or may not be random-access.
      *
-     * @return  whether, preferentially, this factory should create 
-     *          random-access tables
+     * @return  whether this factory will create random-access tables
      */
-    public boolean wantRandom() {
-        return wantRandom_;
+    public boolean requireRandom() {
+        return requireRandom_;
     }
 
     /**
@@ -334,8 +340,10 @@ public class StarTableFactory {
         for ( Iterator it = defaultBuilders_.iterator(); it.hasNext(); ) {
             TableBuilder builder = (TableBuilder) it.next();
             try {
-                StarTable startab = builder.makeStarTable( datsrc, wantRandom(),
-                                                           getStoragePolicy() );
+                StarTable startab = 
+                    builder.makeStarTable( datsrc, requireRandom(),
+                                           getStoragePolicy() );
+                startab = prepareTable( startab );
                 startab.setURL( datsrc.getURL() );
                 if ( startab.getName() == null ) {
                     startab.setName( datsrc.getName() );
@@ -387,7 +395,8 @@ public class StarTableFactory {
     public StarTable makeStarTable( String location )
             throws TableFormatException, IOException {
         if ( location.startsWith( "jdbc:" ) ) {
-            return getJDBCHandler().makeStarTable( location, wantRandom() );
+            return prepareTable( getJDBCHandler()
+                                .makeStarTable( location, requireRandom() ) );
         }
         else {
             return makeStarTable( DataSource.makeDataSource( location ) );
@@ -438,8 +447,9 @@ public class StarTableFactory {
         TableBuilder builder = getTableBuilder( handler );
         StarTable startab;
         try {
-            startab = builder.makeStarTable( datsrc, wantRandom(),
+            startab = builder.makeStarTable( datsrc, requireRandom(),
                                              getStoragePolicy() );
+            startab = prepareTable( startab );
         }
 
         /* If the table handler fails to load the table, rethrow the exception
@@ -490,7 +500,8 @@ public class StarTableFactory {
     public StarTable makeStarTable( String location, String handler )
             throws TableFormatException, IOException {
         if ( location.startsWith( "jdbc:" ) ) {
-            return getJDBCHandler().makeStarTable( location, wantRandom() );
+            return prepareTable( getJDBCHandler()
+                                .makeStarTable( location, requireRandom() ) );
         }
         else {
             return makeStarTable( DataSource.makeDataSource( location ),
@@ -603,10 +614,10 @@ public class StarTableFactory {
                             }
                         };
                         StarTable startab =
-                            builder.makeStarTable( datsrc, wantRandom(),
+                            builder.makeStarTable( datsrc, requireRandom(),
                                                    getStoragePolicy() );
                         if ( startab != null ) {
-                            return startab;
+                            return prepareTable( startab );
                         }
                         else {
                             msg.append( "Tried: " )
@@ -730,5 +741,17 @@ public class StarTableFactory {
         /* Failed to find any handler for name. */
         throw new TableFormatException( "No table handler available for " 
                                       + name );
+    }
+
+    /**
+     * Prepares a table for return from one of the makeStarTable methods.
+     * Currently what this does is to randomise it if it needs randomising.
+     *
+     * @param  startab  table to prepare
+     * @return  prepared table - may be <tt>startab</tt> or a new one
+     */
+    private StarTable prepareTable( StarTable startab ) throws IOException {
+        return requireRandom() ? randomTable( startab )
+                               : startab;
     }
 }

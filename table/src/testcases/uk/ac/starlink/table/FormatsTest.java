@@ -352,12 +352,18 @@ public class FormatsTest extends TestCase {
         assertFitsTableEquals( t1, t3 );
         assertFitsTableEquals( t1, t3 );
 
-        StarTable t4 = new StarTableFactory( true )
+        StarTable t4 = new StarTableFactory( false )
                       .makeStarTable( "file:" + loc );
         assertTrue( t4 instanceof BintableStarTable );
         assertTrue( ! t4.isRandom() );
         checkStarTable( t4 );
         assertFitsTableEquals( t1, t4 );
+
+        StarTable t5 = new StarTableFactory( true )
+                      .makeStarTable( "file:" + loc );
+        assertTrue( t5.isRandom() );
+        checkStarTable( t5 );
+        assertFitsTableEquals( t1, t5 );
 
         // assertTableEquals( t3, t4 );
 
