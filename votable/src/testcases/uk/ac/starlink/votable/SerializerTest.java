@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.net.ConnectException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -128,106 +129,115 @@ public class SerializerTest extends TestCase {
 
     public void testSerializers()
             throws IOException, SAXException, TransformerException {
-
-        int ncol = table0.getColumnCount();
-
-        VOSerializer tSer = VOSerializer
-                           .makeSerializer( DataFormat.TABLEDATA, table0 );
-        VOSerializer bSer = VOSerializer
-                           .makeSerializer( DataFormat.BINARY, table0 );
-        VOSerializer fSer = VOSerializer
-                           .makeSerializer( DataFormat.FITS, table0 );
-
-        ByteArrayOutputStream bytestream = new ByteArrayOutputStream();
-        BufferedWriter writer = 
-            new BufferedWriter( new OutputStreamWriter( bytestream ) );
-
-        writer.write( "<!DOCTYPE VOTABLE SYSTEM " +
-                      "'http://us-vo.org/xml/VOTable.dtd'>" );
-        writer.newLine();
-        writer.write( "<VOTABLE version='1.0'>" );
-        writer.newLine();
-        writer.write( "<RESOURCE>" );
-        writer.newLine();
-
-        writeTableInline( tSer, writer );
-        writeTableInline( bSer, writer );
-        writeTableInline( fSer, writer );
-        File tmpDir = new File( System.getProperty( "java.io.tmpdir" ) );
-        File bTempFile = File.createTempFile( "stest", ".bin", tmpDir );
-        File fTempFile = File.createTempFile( "stest", ".fits", tmpDir );
-        writeTableHref( bSer, writer, bTempFile );
-        writeTableHref( fSer, writer, fTempFile );
-
-        /* Can't write TABLEDATA as a stream. */
         try {
-            tSer.writeHrefDataElement( writer, "/dev/null", null );
-            fail();
-        }
-        catch ( UnsupportedOperationException e ) {
-        }
 
-        writer.write( "</RESOURCE>" );
-        writer.newLine();
-        writer.write( "</VOTABLE>" );
-        writer.close();
-        byte[] xmltext = bytestream.toByteArray();
-        // new FileOutputStream( "j" ).write( xmltext );
+            int ncol = table0.getColumnCount();
 
-        assertValidXML( new InputSource( 
-                            new ByteArrayInputStream( xmltext ) ) );
+            VOSerializer tSer = VOSerializer
+                               .makeSerializer( DataFormat.TABLEDATA, table0 );
+            VOSerializer bSer = VOSerializer
+                               .makeSerializer( DataFormat.BINARY, table0 );
+            VOSerializer fSer = VOSerializer
+                               .makeSerializer( DataFormat.FITS, table0 );
 
-        /* Test all constructors, validating and not.  There are significantly
-         * different paths through the code for each one, in particular 
-         * depending on whether the parse to DOM is done inside or outside
-         * the VOTable package. */
-        List vodocs = new ArrayList();
-        Document docnode1 = (Document) new SourceReader()
-                           .getDOM( new StreamSource( asStream( xmltext ) ) );
-        vodocs.add( VOElementFactory
-                   .makeVOElement( new ByteArrayInputStream( xmltext ), 
-                                   null ) );
-        vodocs.add( VOElementFactory.makeVOElement( docnode1, null ) );
-        Source xsrc = new DOMSource( docnode1, null );
-        vodocs.add( VOElementFactory.makeVOElement( (Source) xsrc ) );
-        vodocs.add( VOElementFactory.makeVOElement( (DOMSource) xsrc ) );
-        DOMSource dsrc0 = VOElementFactory.
-            transformToDOM( new StreamSource( asStream( xmltext ) ), false );
-        DOMSource dsrc1 = VOElementFactory.
-            transformToDOM( new StreamSource( asStream( xmltext ) ), true );
-        vodocs.add( VOElementFactory.makeVOElement( dsrc0 ) );
-        vodocs.add( VOElementFactory.makeVOElement( dsrc1 ) );
-        for ( Iterator it = vodocs.iterator(); it.hasNext(); ) {
-            exerciseVOTableDocument( (VOElement) it.next() );
-        }
+            ByteArrayOutputStream bytestream = new ByteArrayOutputStream();
+            BufferedWriter writer = 
+                new BufferedWriter( new OutputStreamWriter( bytestream ) );
 
-        /* Test the streamStarTable method; get each table in turn. */
-        for ( int itable = 0; itable < 5; itable++ ) {
-            RowStore rstore = new RowStore();
-            InputSource saxsrc = 
-                new InputSource( new ByteArrayInputStream( xmltext ) );
-            TableStreamer.streamStarTable( saxsrc, rstore, itable );
+            writer.write( "<!DOCTYPE VOTABLE SYSTEM " +
+                          "'http://us-vo.org/xml/VOTable.dtd'>" );
+            writer.newLine();
+            writer.write( "<VOTABLE version='1.0'>" );
+            writer.newLine();
+            writer.write( "<RESOURCE>" );
+            writer.newLine();
 
-            RowStepper rstep = rstore.getRowStepper();
-            RowSequence rseq = table0.getRowSequence();
-            while ( rseq.hasNext() ) {
-                rseq.next();
-                assertArrayEquals( rseq.getRow(), rstep.nextRow() );
+            writeTableInline( tSer, writer );
+            writeTableInline( bSer, writer );
+            writeTableInline( fSer, writer );
+            File tmpDir = new File( System.getProperty( "java.io.tmpdir" ) );
+            File bTempFile = File.createTempFile( "stest", ".bin", tmpDir );
+            File fTempFile = File.createTempFile( "stest", ".fits", tmpDir );
+            writeTableHref( bSer, writer, bTempFile );
+            writeTableHref( fSer, writer, fTempFile );
+
+            /* Can't write TABLEDATA as a stream. */
+            try {
+                tSer.writeHrefDataElement( writer, "/dev/null", null );
+                fail();
             }
-            assertTrue( ! rseq.hasNext() );
-            assertNull( rstep.nextRow() );
-        }
+            catch ( UnsupportedOperationException e ) {
+            }
 
-        try {
-            TableStreamer.streamStarTable(
+            writer.write( "</RESOURCE>" );
+            writer.newLine();
+            writer.write( "</VOTABLE>" );
+            writer.close();
+            byte[] xmltext = bytestream.toByteArray();
+            // new FileOutputStream( "j" ).write( xmltext );
+
+            assertValidXML( new InputSource( 
+                                new ByteArrayInputStream( xmltext ) ) );
+
+            /* Test all constructors, validating and not.  There are
+             * significantly different paths through the code for each one,
+             * in particular depending on whether the parse to DOM is
+             * done inside or outside the VOTable package. */
+            List vodocs = new ArrayList();
+            Document docnode1 =
+                (Document) new SourceReader()
+                          .getDOM( new StreamSource( asStream( xmltext ) ) );
+            vodocs.add( VOElementFactory
+                       .makeVOElement( new ByteArrayInputStream( xmltext ), 
+                                       null ) );
+            vodocs.add( VOElementFactory.makeVOElement( docnode1, null ) );
+            Source xsrc = new DOMSource( docnode1, null );
+            vodocs.add( VOElementFactory.makeVOElement( (Source) xsrc ) );
+            vodocs.add( VOElementFactory.makeVOElement( (DOMSource) xsrc ) );
+            DOMSource dsrc0 = VOElementFactory.
+                transformToDOM( new StreamSource( asStream( xmltext ) ),
+                                false );
+            DOMSource dsrc1 = VOElementFactory.
+                transformToDOM( new StreamSource( asStream( xmltext ) ), 
+                                true );
+            vodocs.add( VOElementFactory.makeVOElement( dsrc0 ) );
+            vodocs.add( VOElementFactory.makeVOElement( dsrc1 ) );
+            for ( Iterator it = vodocs.iterator(); it.hasNext(); ) {
+                exerciseVOTableDocument( (VOElement) it.next() );
+            }
+
+            /* Test the streamStarTable method; get each table in turn. */
+            for ( int itable = 0; itable < 5; itable++ ) {
+                RowStore rstore = new RowStore();
+                InputSource saxsrc = 
+                    new InputSource( new ByteArrayInputStream( xmltext ) );
+                TableStreamer.streamStarTable( saxsrc, rstore, itable );
+
+                RowStepper rstep = rstore.getRowStepper();
+                RowSequence rseq = table0.getRowSequence();
+                while ( rseq.hasNext() ) {
+                    rseq.next();
+                    assertArrayEquals( rseq.getRow(), rstep.nextRow() );
+                }
+                assertTrue( ! rseq.hasNext() );
+                assertNull( rstep.nextRow() );
+            }
+
+            try {
+                TableStreamer.streamStarTable(
                        new InputSource( new ByteArrayInputStream( xmltext ) ),
                        new RowStore(), 5 );
-            fail();
+                fail();
+            }
+            catch ( SAXException e ) {
+                // ok
+            }
         }
-        catch ( SAXException e ) {
-            // ok
+        catch ( ConnectException e ) {
+            System.err.println( "Couldn't perform test - failed to make " +
+                                "connection (probably to remote VOTable DTD)" );
+            e.printStackTrace( System.err );
         }
-
     }
 
     private static InputStream asStream( byte[] text ) {
