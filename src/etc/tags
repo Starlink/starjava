@@ -33,3 +33,14 @@ r0-4:
            AST, or later, needs to be available.
            Treeview test target fails, but treeview once installed works.
            One directory needs to be created during install for sog.
+
+r0-5:
+   Date:   29-APR-2003
+   Tagger: Mark Taylor
+   Info:   JNIAST uses AST2, FROG introduced, TOPCAT available within
+           Table package and many other things too no doubt.
+           This tag does not include changes in non-HDX packages to match 
+           recent HDX updates; its purpose is to serve as a marker for 
+           the last, known-working, non-HDX versions of NDX, FITS, HDS etc.
+           All tests succeed apart from HDX (and maybe FROG?)
+
