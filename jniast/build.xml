@@ -463,6 +463,10 @@
       <param name="pj.cfile" value="fitschan.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="FluxFrame"/>
+      <param name="pj.cfile" value="fluxframe.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="Frame"/>
       <param name="pj.cfile" value="frame.c"/>
     </antcall>
@@ -517,6 +521,10 @@
     <antcall target="perl_to_java">
       <param name="pj.class" value="SkyFrame"/>
       <param name="pj.cfile" value="skyframe.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="SpecFluxFrame"/>
+      <param name="pj.cfile" value="specfluxframe.c"/>
     </antcall>
     <antcall target="perl_to_java">
       <param name="pj.class" value="SpecFrame"/>
@@ -746,6 +754,7 @@
       <class name="${package.name}.CmpMap"/>
       <class name="${package.name}.DSBSpecFrame"/>
       <class name="${package.name}.FitsChan"/>
+      <class name="${package.name}.FluxFrame"/>
       <class name="${package.name}.Frame"/>
       <class name="${package.name}.FrameSet"/>
       <class name="${package.name}.GrismMap"/>
@@ -761,6 +770,7 @@
       <class name="${package.name}.ShiftMap"/>
       <class name="${package.name}.SkyFrame"/>
       <class name="${package.name}.SlaMap"/>
+      <class name="${package.name}.SpecFluxFrame"/>
       <class name="${package.name}.SpecFrame"/>
       <class name="${package.name}.SpecMap"/>
       <class name="${package.name}.SphMap"/>

@@ -330,6 +330,40 @@ public class AstTest extends TestCase {
         assertTrue( ! sk8.getAlignOffset() );
     }
 
+    public void testFluxFrame() {
+        FluxFrame ff0 = new FluxFrame();
+        SpecFrame sf = new SpecFrame();
+        FluxFrame ff1 = new FluxFrame( 1., sf );
+        FluxFrame ff2 = new FluxFrame( 1., sf );
+        ff1.setSystem( "FLXDN" );
+        ff2.setSystem( "FLXDNW" );
+        assertEquals( "FLXDN", ff1.getSystem() );
+        assertEquals( "FLXDNW", ff2.getSystem() );
+        FrameSet cfs = ff1.convert( ff2, "" );
+        double[] ans = cfs.tran1( 1, new double[] { 1. }, true );
+
+        // Not 100% certain this is what it should be, but looks pretty
+        // plausible.
+        assertEquals( 1.0, 3e8 * 1e10 / ans[ 0 ], 0.001 );
+
+        assertEquals( "W/m^2/Hz", ff1.getUnit( 1 ) );
+
+        assertEquals( 1.0, ff2.getSpecVal() );
+        ff2.setSpecVal( 109. );
+        assertEquals( 109., ff2.getSpecVal() );
+    }
+
+    public void testSpecFluxFrame() {
+        SpecFrame sf = new SpecFrame();
+        FluxFrame ff = new FluxFrame();
+        SpecFluxFrame sff = new SpecFluxFrame( sf, ff );
+        Frame[] fs = sff.decompose();
+        assertEquals( sf, fs[ 0 ] );
+        assertEquals( ff, fs[ 1 ] );
+        assertTrue( sf.sameObject( fs[ 0 ] ) );
+        assertTrue( ff.sameObject( fs[ 1 ] ) );
+    }
+
     public void testDSBSpecFrame() {
         DSBSpecFrame dsb = new DSBSpecFrame();
 
