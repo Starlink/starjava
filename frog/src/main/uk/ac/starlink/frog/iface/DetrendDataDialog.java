@@ -510,7 +510,8 @@ public class DetrendDataDialog extends JInternalFrame
          }
          
          // grab the origin
-         if( currentSeries.getOrigin().equals( "a File" ) ) {
+         if( currentSeries.getOrigin().equals( "a File" ) ||
+             currentSeries.getOrigin().equals( "a SOAP message" )  ) {
               String key = seriesManager.getKey( inital );
               newSeries.setOrigin( key );
               debugManager.print("            setOrigin( " + key + ")");
