@@ -1,0 +1,26 @@
+March 20, 2003
+
+The latest version of the code will generally
+be available in the v0.9 directory unless and
+until a major new release is made.
+
+The code for specific earlier versions may be found
+in subdirectories.
+
+Changes for 0.96
+
+   - The handling of PCOUNT, GCOUNT and EXTEND keywords
+     was changed in images so that the first two
+     are only generated for extensions and the first
+     only for primary HDU's.
+     
+   - A bug in the creation of ASCII Table Headers was fixed.
+     Some of the header cards in the header were being
+     inserted as if they were comments, allowing multiple
+     copies to be generated.
+     This was also possible when a Header was created
+     from an array of strings.
+     
+Changes for 0.96a
+   
+   - Updated version number in Fits.java
