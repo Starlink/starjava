@@ -351,11 +351,11 @@ public class TickControls extends JPanel
         layouter.add( "Y log spacing:", false );
         layouter.add( yLogSpacing, true );
 
-        layouter.add( "X log gap", false );
+        layouter.add( "X log gap:", false );
         layouter.add( xLogGap, false );
         layouter.eatLine();
 
-        layouter.add( "Y log gap", false );
+        layouter.add( "Y log gap:", false );
         layouter.add( yLogGap, false );
         layouter.eatLine();
 
