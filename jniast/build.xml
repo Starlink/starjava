@@ -694,7 +694,7 @@
     </jar>
 
     <mkdir dir="${build.lib}"/>
-    <jar destfile="${build.lib}/${name}_src.jar" basedir="${build.java}"/>
+    <zip destfile="${build.lib}/${name}_src.zip" basedir="${build.java}"/>
 
   </target>
 
@@ -714,10 +714,8 @@
           description="-> creates the local binary distribution">
 
     <mkdir dir="${dist.dir}"/>
-    <mkdir dir="${dist.bin.pkg}"/>
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
-    <mkdir dir="${dist.etc.pkg}"/>
 
     <copy todir="${dist.lib.pkg}">
       <fileset dir="${build.lib}">
@@ -740,9 +738,6 @@
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
-    <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
-       <fileset dir="${dist.bin}"/>
-    </chmod>
 
   </target>
 
@@ -787,7 +782,7 @@
   <target name="export-source"
           description="-> creates the source distribution archives">
 
-     <antcall target="create_archives">
+    <antcall target="create_archives">
       <param name="source.required" value="true"/>
       <param name="archive.name" value="${dist.version}-src"/>
     </antcall> 
@@ -810,7 +805,7 @@
   <target name="export-runonly"
           description="-> creates the runonly distribution archives">
 
-     <antcall target="create_archives">
+    <antcall target="create_archives">
       <param name="binary.required" value="true"/>
       <param name="archive.name" value="${dist.version}-bin"/>
     </antcall>
@@ -832,19 +827,22 @@
 
     <mkdir dir="${star.archive.dir}"/>
 
-    <zip destfile="${star.archive.dir}/${archive.name}.zip">
+    <condition property="os.spec" value="-${os.name}">
+      <isset property="binary.required"/>
+    </condition>
+    <condition property="os.spec" value="">
+      <not>
+        <isset property="binary.required"/>
+      </not>
+    </condition>
+
+    <zip destfile="${star.archive.dir}/${archive.name}${os.spec}.zip">
 
       <!-- All releases have the documentation and build file -->
       <zipfileset dir="${dist.docs}" prefix="${name}/docs"/>
       <zipfileset dir="${dist.dir}" includes="build.xml" prefix="${name}"/>
 
-      <zipfileset dir="${dist.bin}" prefix="${name}/bin">
-        <include name="**" if="binary.required"/>
-      </zipfileset>
       <zipfileset dir="${dist.lib}" prefix="${name}/lib">
-        <include name="**" if="binary.required"/>
-      </zipfileset>
-      <zipfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
       </zipfileset>
 
@@ -856,7 +854,8 @@
 
     <!-- Note: creating a tar file with empty directories doesn't
      !   work, so the directory structure may be incomplete -->
-    <tar longfile="gnu" destfile="${archive.name}.tar">
+    <property name="tarfile.name" value="${archive.name}${os.spec}.tar"/>
+    <tar longfile="gnu" destfile="${tarfile.name}">
 
       <!-- All releases have the documentation and build file -->
       <tarfileset dir="${dist.docs}" prefix="${name}/docs"/>
@@ -864,13 +863,7 @@
         <include name="build.xml"/>
       </tarfileset>
 
-      <tarfileset dir="${dist.bin}" prefix="${name}/bin">
-        <include name="**" if="binary.required"/>
-      </tarfileset>
       <tarfileset dir="${dist.lib}" prefix="${name}/lib">
-        <include name="**" if="binary.required"/>
-      </tarfileset>
-      <tarfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
       </tarfileset>
 
@@ -879,11 +872,11 @@
       </tarfileset>
     </tar>
 
-    <gzip zipfile="${star.archive.dir}/${archive.name}.tar.gz"
-          src="${archive.name}.tar"/>
-    <bzip2 zipfile="${star.archive.dir}/${archive.name}.tar.bz2"
-           src="${archive.name}.tar"/>
-    <delete file="${archive.name}.tar"/>
+    <gzip zipfile="${star.archive.dir}/${tarfile.name}.gz" 
+          src="${tarfile.name}"/>
+    <bzip2 zipfile="${star.archive.dir}/${tarfile.name}.bz2"
+           src="${tarfile.name}"/>
+    <delete file="${tarfile.name}"/>
 
   </target>
 
