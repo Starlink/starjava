@@ -2,7 +2,6 @@ package uk.ac.starlink.topcat;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -257,7 +256,12 @@ public class ColumnInfoWindow extends AuxWindow {
 
     private int getModelIndexFromRow( int irow ) {
         assert irow != 0;
-        return columnModel.getColumn( irow - 1 ).getModelIndex();
+        return getColumnFromRow( irow ).getModelIndex();
+    }
+
+    private TableColumn getColumnFromRow( int irow ) {
+        assert irow != 0;
+        return columnModel.getColumn( irow - 1 );
     }
 
     private ColumnInfo getColumnInfo( int irow ) {
@@ -294,18 +298,12 @@ public class ColumnInfoWindow extends AuxWindow {
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            try { 
-                int irow = jtab.getSelectedRow();
-                if ( irow > 0 ) {
-                    int jcol = getModelIndexFromRow( irow );
-                    tv.sortBy( jcol, ascending );
-                }
-                else {
-                    tv.sortBy( -1, ascending );
-                }
+            int irow = jtab.getSelectedRow();
+            if ( irow > 0 ) {
+                tv.sortBy( getColumnFromRow( irow ), ascending );
             }
-            catch ( IOException e ) {
-                e.printStackTrace();
+            else {
+                tv.sortBy( null, ascending );
             }
         }
     }
