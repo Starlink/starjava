@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalogs PUBLIC "-//JSky//DTD for Catalog Access//EN" "AstroCat.dtd">
+<!--
+
+  This document describes the top level catalog directory and lists
+  the names and types of the catalogs that will appear in the user
+  interface menus. The path attribute of a catalog element points to a
+  file containing a detailed description. Catalogs with no path
+  attribute refer to catalogs that are defined elsewhere, such as in
+  one of the catalog subdirectories (see "Skycat Catalogs", and "IRSA
+  Catalogs" below).
+
+-->
+
+<catalogs version="0.1">
+
+<!-- 
+  Catalog Subdirectories 
+  
+  The next two lines describe the Skycat and IRSA catalog directories, and the classes
+  that implement them. 
+-->
+  <catalog name="Skycat Catalogs" type="directory" class="jsky.catalog.skycat.SkycatConfigFile"/>
+  <catalog name="IRSA Catalogs"   type="directory" class="jsky.catalog.irsa.IRSAConfig"/>
+
+
+<!-- The GSC2 catalog at ESO, described in XML (instead of in the skycat.cfg file) 
+  <catalog name="Guide Star Catalog at ESO (v2)" type="catalog" path="gsc2_eso.xml"/>
+-->
+
+<!-- Include references to some of the Skycat catalogs (Should be defined in the skycat.cfg file) -->
+
+  <catalog name="2MASS Catalog at CDS"/>
+  <catalog name="ABELL at CADC"/>
+  <catalog name="GSC-2 at ESO"/>
+  <catalog name="GSC-2 at STScI"/>
+  <catalog name="Guide Star Catalog at CADC"/>
+  <catalog name="Guide Star Catalog at ESO"/>
+  <catalog name="USNO at CADC"/>
+  <catalog name="USNO at ESO"/>
+  <catalog name="QSO at CADC"/>
+  <catalog name="RC3 at CADC"/>
+  <catalog name="SAO at CADC"/>
+  <catalog name="IRAS at CADC"/>
+  <catalog name="PPM at ESO"/>
+  <catalog name="SIMBAD via ESO"/>
+  <catalog name="ZCAT at CADC"/>
+  <catalog name="NED at ESO"/>
+
+<!-- Skycat Archives (should be defined in the skycat.cfg file) -->
+
+  <catalog name="CFHT Archive at CADC"/>
+  <catalog name="HST Archive at CADC"/>
+  <catalog name="NTT Archive at ESO"/>
+
+<!-- Skycat Image Servers (should be defined in the skycat.cfg file) -->
+  <catalog name="Digitized Sky at CADC (2nd Generation)"/>
+  <catalog name="Digitized Sky at CADC"/>
+  <catalog name="Digitized Sky at ESO"/>
+
+
+<!-- IRSA Catalogs (defined in the IRSA config file, nph-catlist.xml)
+
+  <catalog name="2MASS Second Incremental Release Point Source Catalog (PSC)"/>
+  <catalog name="USNOA-2"/>
+  <catalog name="The ROSAT Bright Sources"/>
+  <catalog name="The ROSAT Faint Sources"/>
+-->
+
+<!-- IRSA Image Servers -->
+  <catalog name="2MASS Quick-Look Image Retrieval Service" type="imagesvr" path="2MASSImg.xml"/>
+
+<!-- (These still need testing)
+  <catalog name="ISSA Image Service" type="imagesvr" path="ISSAImg.xml"/>
+  <catalog name="IRAS Galaxy Atlas Image Service" type="imagesvr" path="IRASImg.xml"/>
+  <catalog name="MSX Image Service" type="imagesvr" path="MSXImg.xml"/>
+-->
+
+<!-- Aladin Image Servers -->
+<!-- (Still needs testing)
+  <catalog name="2MASS via Aladin Image Server (CDS/Vizier)" type="imagesvr" path="Aladin2MASSImg.xml"/>
+  <catalog name="POSSI/DSS1 via Aladin Image Server (CDS/Vizier)" type="imagesvr" path="AladinDSS1Img.xml"/>
+  <catalog name="POSSII/DSS2 via Aladin Image Server (CDS/Vizier)" type="imagesvr" path="AladinDSS2Img.xml"/>
+-->
+
+</catalogs>

@@ -1,0 +1,33 @@
+#!/bin/sh
+# 
+# $Id$ 
+#
+# This script starts the jskycat application.
+#
+# Usage: 
+#    setenv SKYCAT_CONFIG <pathToCatalogConfigFile>  # optional
+#    jskycat [-internalframes] [-shownavigator] [imageFileOrUrl]
+#
+# If the SKYCAT_CONFIG environment variable is set, it is used to get the
+# list of catalogs. The default is to use ~/.skycat/skycat.cfg, if found, 
+# or else http://archive.eso.org/skycat/skycat2.0.cfg.
+#
+# If -internalframes is specified, internal frames are used. 
+#
+# If -shownavigator is specified, the catalog navigator window is displayed on startup. 
+#
+# The imageFileOrUrl argument may be an image file or URL to load.
+# ------------------------------------------------------------------------------------
+
+if [ -f "$0" ]; then
+    # Script was called from the current dir or with a path name
+    dir=`dirname $0`
+    CLASSPATH=`$dir/jsky_classpath`
+else
+    # The jsky_classpath script must be in the PATH
+    CLASSPATH=`jsky_classpath`
+fi
+export CLASSPATH
+
+test "$SKYCAT_CONFIG" != "" && config="-Djsky.catalog.skycat.config=$SKYCAT_CONFIG"
+exec java -Xmx128m $config jsky.app.jskycat.JSkyCat $*

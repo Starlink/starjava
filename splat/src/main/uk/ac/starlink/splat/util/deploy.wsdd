@@ -1,0 +1,9 @@
+<deployment xmlns="http://xml.apache.org/axis/wsdd/"
+            xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+   <service name="SplatSOAPServices" provider="java:RPC">
+      <parameter name="className" 
+                 value="uk.ac.starlink.splat.util.SplatSOAPServices"/>
+      <parameter name="allowedMethods" value="displaySpectrum displayNDX"/>
+   </service>
+</deployment>

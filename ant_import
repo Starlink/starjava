@@ -1,0 +1,8 @@
+#!/bin/sh -xv
+
+# Import the ANT sources. May want to track these as third party changes.
+CVS_RSH=ssh
+export CVS_RSH
+cd ant
+cvs  -d :ext:pwd@rlsaxps.bnsc.rl.ac.uk:/home/soft3/cvs \
+   import -ko -I! -m "ANT version 1.5 source" java/source/ant ANT ANT_V_1_5

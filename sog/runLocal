@@ -1,0 +1,23 @@
+#!/bin/csh
+
+# Run SOG from the local distribution. Just needs to find the jars 
+# that it depends on. Note we use the SOG class to start, not the jar
+# file, this gets us started outside the extension classloading system
+# so we can use non-relative names for the jars that we directly
+# depend on.
+
+setenv STAR_JAR_DIR /loc/pwda/pdraper/scratch/stardev/lib
+
+setenv CLASSPATH "lib/sog/hdx.jar"
+setenv CLASSPATH "${CLASSPATH}:build/classes"
+setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/jsky/jsky.jar"
+setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/oldarray/oldarray.jar"
+setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/jniast/jniast.jar"
+setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/jaiutil/jaiutil.jar"
+setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/soapserver/soapserver.jar"
+
+set sog_port=8082
+
+java -Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory \
+     -Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory \
+     uk.ac.starlink.sog.SOG -port $sog_port $*

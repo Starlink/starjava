@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdx>
+  <ndx>
+    <data>
+    file:/loc/pwda/pdraper/gaiadev/top/data/ngc1275.fits
+    </data>
+    <wcs>
+<FrameSet>
+  <_attribute name="Nframe" value="4"/>
+  <_attribute name="Currnt" value="4"/>
+  <_attribute name="Nnode" value="5"/>
+  <_attribute name="Nod1" value="3"/>
+  <_attribute name="Nod2" value="4"/>
+  <_attribute name="Nod3" value="5"/>
+  <_attribute name="Nod4" value="2"/>
+  <_attribute name="Lnk2" value="1"/>
+  <_attribute name="Lnk3" value="1"/>
+  <_attribute name="Lnk4" value="1"/>
+  <_attribute name="Lnk5" value="1"/>
+  <Frame label="Frm1">
+    <_attribute name="Title" value="&quot;Data grid indices; first pixel at (1,1)&quot;"/>
+    <_attribute name="Naxes" value="2"/>
+    <_attribute name="Domain" value="&quot;GRID&quot;"/>
+    <Axis label="Ax1">
+      <_attribute name="Label" value="&quot;Data grid index 1&quot;"/>
+      <_attribute name="Symbol" value="&quot;g1&quot;"/>
+      <_attribute name="Unit" value="&quot;pixel&quot;"/>
+      <_attribute name="Format" value="&quot;%3.1f&quot;"/>
+    </Axis>
+    <Axis label="Ax2">
+      <_attribute name="Label" value="&quot;Data grid index 2&quot;"/>
+      <_attribute name="Symbol" value="&quot;g2&quot;"/>
+      <_attribute name="Unit" value="&quot;pixel&quot;"/>
+      <_attribute name="Format" value="&quot;%3.1f&quot;"/>
+    </Axis>
+  </Frame>
+  <Frame label="Frm2">
+    <_attribute name="Title" value="&quot;Pixel coordinates; first pixel at (0.5,0.5)&quot;"/>
+    <_attribute name="Naxes" value="2"/>
+    <_attribute name="Domain" value="&quot;PIXEL&quot;"/>
+    <Axis label="Ax1">
+      <_attribute name="Label" value="&quot;Pixel coordinate 1&quot;"/>
+      <_attribute name="Symbol" value="&quot;p1&quot;"/>
+      <_attribute name="Unit" value="&quot;pixel&quot;"/>
+      <_attribute name="Format" value="&quot;%3.1f&quot;"/>
+    </Axis>
+    <Axis label="Ax2">
+      <_attribute name="Label" value="&quot;Pixel coordinate 2&quot;"/>
+      <_attribute name="Symbol" value="&quot;p2&quot;"/>
+      <_attribute name="Unit" value="&quot;pixel&quot;"/>
+      <_attribute name="Format" value="&quot;%3.1f&quot;"/>
+    </Axis>
+  </Frame>
+  <Frame label="Frm3">
+    <_attribute name="Title" value="&quot;Axis coordinates; first pixel at (50.03363,41.4285)&quot;"/>
+    <_attribute name="Naxes" value="2"/>
+    <_attribute name="Domain" value="&quot;AXIS&quot;"/>
+    <Axis label="Ax1">
+      <_attribute name="Label" value="&quot;RA---TAN&quot;"/>
+      <_attribute name="Symbol" value="&quot;a1&quot;"/>
+    </Axis>
+    <Axis label="Ax2">
+      <_attribute name="Label" value="&quot;DEC--TAN&quot;"/>
+      <_attribute name="Symbol" value="&quot;a2&quot;"/>
+    </Axis>
+  </Frame>
+  <SkyFrame label="Frm4">
+    <_attribute name="Naxes" value="2"/>
+    <SkyAxis label="Ax1"/>
+    <SkyAxis label="Ax2"/>
+    <_isa class="Frame"/>
+    <_attribute name="System" value="&quot;FK5&quot;"/>
+    <_attribute name="Proj" value="&quot;gnomonic&quot;"/>
+    <_attribute name="Epoch" value="1957.96752552323"/>
+    <_attribute name="Eqnox" value="2000"/>
+  </SkyFrame>
+  <CmpMap label="Map2">
+    <_attribute name="Nin" value="2"/>
+    <_isa class="Mapping"/>
+    <WinMap label="MapA">
+      <_attribute name="Nin" value="2"/>
+      <_attribute name="Invert" value="0"/>
+      <_isa class="Mapping"/>
+      <_attribute name="Sft1" value="-176.5"/>
+      <_attribute name="Sft2" value="-176.5"/>
+    </WinMap>
+    <CmpMap label="MapB">
+      <_attribute name="Nin" value="2"/>
+      <_isa class="Mapping"/>
+      <MatrixMap label="MapA">
+        <_attribute name="Nin" value="2"/>
+        <_attribute name="Invert" value="0"/>
+        <_isa class="Mapping"/>
+        <_attribute name="M0" value="-8.24070979215536e-06"/>
+        <_attribute name="M1" value="2.85131477917885e-07"/>
+        <_attribute name="M2" value="2.98521704554072e-07"/>
+        <_attribute name="M3" value="8.24305948630941e-06"/>
+        <_attribute name="Form" value="&quot;Full&quot;"/>
+      </MatrixMap>
+      <CmpMap label="MapB">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+        <_attribute name="InvA" value="1"/>
+        <WcsMap label="MapA">
+          <_attribute name="Nin" value="2"/>
+          <_attribute name="Invert" value="1"/>
+          <_isa class="Mapping"/>
+          <_attribute name="Type" value="&quot;TAN&quot;"/>
+        </WcsMap>
+        <CmpMap label="MapB">
+          <_attribute name="Nin" value="2"/>
+          <_isa class="Mapping"/>
+          <_attribute name="InvA" value="1"/>
+          <SphMap label="MapA">
+            <_attribute name="Nin" value="3"/>
+            <_attribute name="Nout" value="2"/>
+            <_attribute name="Invert" value="0"/>
+            <_isa class="Mapping"/>
+            <_attribute name="UntRd" value="1"/>
+          </SphMap>
+          <CmpMap label="MapB">
+            <_attribute name="Nin" value="3"/>
+            <_attribute name="Nout" value="2"/>
+            <_isa class="Mapping"/>
+            <MatrixMap label="MapA">
+              <_attribute name="Nin" value="3"/>
+              <_attribute name="Invert" value="0"/>
+              <_isa class="Mapping"/>
+              <_attribute name="M0" value="0.42645671774505"/>
+              <_attribute name="M1" value="-0.765491159856839"/>
+              <_attribute name="M2" value="0.481827720322472"/>
+              <_attribute name="M3" value="0.507344266400031"/>
+              <_attribute name="M4" value="0.643446411273722"/>
+              <_attribute name="M5" value="0.573217682185383"/>
+              <_attribute name="M6" value="-0.748823385880231"/>
+              <_attribute name="M7" value="0"/>
+              <_attribute name="M8" value="0.662769595529899"/>
+              <_attribute name="Form" value="&quot;Full&quot;"/>
+            </MatrixMap>
+            <SphMap label="MapB">
+              <_attribute name="Nin" value="3"/>
+              <_attribute name="Nout" value="2"/>
+              <_attribute name="Invert" value="0"/>
+              <_isa class="Mapping"/>
+              <_attribute name="UntRd" value="1"/>
+            </SphMap>
+          </CmpMap>
+        </CmpMap>
+      </CmpMap>
+    </CmpMap>
+  </CmpMap>
+  <UnitMap label="Map3">
+    <_attribute name="Nin" value="2"/>
+    <_isa class="Mapping"/>
+  </UnitMap>
+  <WinMap label="Map4">
+    <_attribute name="Nin" value="2"/>
+    <_isa class="Mapping"/>
+    <_attribute name="Sft1" value="-0.5"/>
+    <_attribute name="Sft2" value="-0.5"/>
+  </WinMap>
+  <WinMap label="Map5">
+    <_attribute name="Nin" value="2"/>
+    <_isa class="Mapping"/>
+    <_attribute name="Sft1" value="50.0340981093078"/>
+    <_attribute name="Scl1" value="-0.00047246758859361"/>
+    <_attribute name="Sft2" value="41.4280320288155"/>
+    <_attribute name="Scl2" value="0.000472574983867052"/>
+  </WinMap>
+</FrameSet>
+    </wcs>
+  </ndx>
+</hdx>

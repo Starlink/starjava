@@ -1,0 +1,149 @@
+Begin FrameSet
+Nframe = 4
+Currnt = 4
+Lnk2 = 1
+Lnk3 = 1
+Lnk4 = 1
+Frm1 =
+Begin Frame
+Naxes = 2
+Domain = "GRID"
+Ax1 =
+Begin Axis
+End Axis
+Ax2 =
+Begin Axis
+End Axis
+End Frame
+Frm2 =
+Begin Frame
+Naxes = 2
+Domain = "PIXEL"
+Ax1 =
+Begin Axis
+End Axis
+Ax2 =
+Begin Axis
+End Axis
+End Frame
+Frm3 =
+Begin Frame
+Naxes = 2
+Domain = "AXIS"
+Ax1 =
+Begin Axis
+End Axis
+Ax2 =
+Begin Axis
+End Axis
+End Frame
+Frm4 =
+Begin SkyFrame
+Naxes = 2
+Ax1 =
+Begin SkyAxis
+End SkyAxis
+Ax2 =
+Begin SkyAxis
+End SkyAxis
+IsA Frame
+System = "FK5"
+Proj = "gnomonic"
+Epoch = 2000
+Eqnox = 2000
+End SkyFrame
+Map2 =
+Begin UnitMap
+Nin = 2
+IsA Mapping
+End UnitMap
+Map3 =
+Begin UnitMap
+Nin = 2
+IsA Mapping
+End UnitMap
+Map4 =
+Begin CmpMap
+Nin = 2
+IsA Mapping
+MapA =
+Begin WinMap
+Nin = 2
+Invert = 0
+IsA Mapping
+Sft1 = -176.5
+Sft2 = -176.5
+End WinMap
+MapB =
+Begin CmpMap
+Nin = 2
+IsA Mapping
+MapA =
+Begin MatrixMap
+Nin = 2
+Invert = 0
+IsA Mapping
+M0 = -8.24183281003931e-06
+M1 = 8.24183281003931e-06
+Form = "Diagonal"
+End MatrixMap
+MapB =
+Begin CmpMap
+Nin = 2
+IsA Mapping
+InvA = 1
+MapA =
+Begin WcsMap
+Nin = 2
+Invert = 1
+IsA Mapping
+Type = "TAN"
+End WcsMap
+MapB =
+Begin CmpMap
+Nin = 2
+IsA Mapping
+InvA = 1
+MapA =
+Begin SphMap
+Nin = 3
+Nout = 2
+Invert = 0
+IsA Mapping
+UntRd = 1
+End SphMap
+MapB =
+Begin CmpMap
+Nin = 3
+Nout = 2
+IsA Mapping
+MapA =
+Begin MatrixMap
+Nin = 3
+Invert = 0
+IsA Mapping
+M0 = 0.223207146008448
+M1 = -0.837443394619178
+M2 = 0.498865844470707
+M3 = 0.342022172085813
+M4 = 0.54652407157298
+M5 = 0.764416295609267
+M6 = -0.912797569986065
+M7 = 0
+M8 = 0.40841228706729
+Form = "Full"
+End MatrixMap
+MapB =
+Begin SphMap
+Nin = 3
+Nout = 2
+Invert = 0
+IsA Mapping
+UntRd = 1
+End SphMap
+End CmpMap
+End CmpMap
+End CmpMap
+End CmpMap
+End CmpMap
+End FrameSet

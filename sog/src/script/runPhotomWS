@@ -1,0 +1,43 @@
+#!/bin/sh 
+
+#  Script to start the PhotomWS application. If not set the position of
+#  this script is taken to be in the SOG part of the standard Starlink
+#  Java "bin" directory and will be used to locate the application
+#  jar file.
+
+echo "Starting PhotomWS"
+
+#  Find where this script is located, this is SOG_DIR, unless SOG_DIR
+#  is already set (SOG_DIR used to locate the "starjava" script)
+if test -z "$SOG_DIR"; then
+   SOG_DIR=`dirname $0`
+fi
+
+#  Locate the application jar file. This is relative to this script or
+#  SOG_DIR.
+appjar="$SOG_DIR/../../lib/sog/sog.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate the SOG application. Please define SOG_DIR"
+   exit
+fi
+
+#  Setup any defines that are required. User defines are set in
+#  PHOTOMWS_DEFINES. The most likely is the port number to use 
+#  "-Dport.number=xxxx".
+defines="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"
+defines="$defines -Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"
+if test ! -z "$PHOTOMWS_DEFINES"; then
+   defines="$PHOTOMWS_DEFINES $defines"
+fi
+
+#  Locate the "starjava" command. This should be in ".." or on the 
+#  PATH.
+if test -f "$SOG_DIR/../starjava"; then
+   starjava="$SOG_DIR/../starjava"
+else
+   starjava="starjava"
+fi
+
+#  Run up PHOTOMWS.
+echo "$starjava $defines -cp $appjar uk.ac.starlink.sog.photom.PhotomWS"
+$starjava $defines -cp $appjar uk.ac.starlink.sog.photom.PhotomWS
