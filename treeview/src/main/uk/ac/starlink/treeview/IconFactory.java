@@ -18,6 +18,8 @@ public class IconFactory {
     public static final short STOP = 1;
     public static final short EXIT = 2;
     public static final short HELP = 3;
+    public static final short DEMO = 4;
+    public static final short LOAD = 5;
     public static final short SPLIT_NONE = 11;
     public static final short SPLIT_BELOW = 12;
     public static final short SPLIT_BESIDE = 13;
@@ -46,6 +48,8 @@ public class IconFactory {
     public static final short HISTORY = 115;
     public static final short HISTORY_RECORD = 116;
     public static final short TABLE = 117;
+    public static final short TREE = 118;
+    public static final short ERROR = 119;
     public static final short XML_DOCUMENT = 120;
     public static final short XML_ELEMENT = 121;
     public static final short XML_COMMENT = 122;
@@ -60,6 +64,12 @@ public class IconFactory {
     public static final short VOCOMPONENT = 141;
     public static final short SPLAT = 200;
     public static final short SOG = 201;
+    public static final short HANDLE_EXPAND = 301;
+    public static final short HANDLE_COLLAPSE = 302;
+    public static final short TREE_LOGO = 401;
+    public static final short STARLINK_LOGO = 402;
+    public static final short HANDLE1 = 403;
+    public static final short HANDLE2 = 404;
    
     private Map iconMap;
     private static IconFactory soleInstance = new IconFactory();
@@ -73,6 +83,10 @@ public class IconFactory {
     }
 
     public Icon getIcon( short id ) {
+        return getIconByName( getGifName( id ) );
+    }
+
+    String getGifName( short id ) {
         String iname;
         switch ( id ) {
             case SPLIT_BELOW:    iname = "SplitHorizontal.gif";      break;
@@ -83,29 +97,33 @@ public class IconFactory {
             case OPEN:           iname = "Plus.gif";                 break;
             case CLOSE:          iname = "Minus.gif";                break;
             case STOP:           iname = "Stop.gif";                 break;
-            case EXIT:           iname = "exit1.gif";                break;
+            case EXIT:           iname = "multiply3.gif";            break;
             case HELP:           iname = "Help2.gif";                break;
+            case DEMO:           iname = "multi8.gif";               break;
+            case LOAD:           iname = "open3.gif";                break;
             case ARY0:           iname = "cell.gif";                 break;
             case ARY1:           iname = "row.gif";                  break;
             case ARY2:           iname = "Sheet.gif";                break;
             case ARY3:           iname = "Sheets.gif";               break;
-            case LEAF:           iname = "defaultLeafIcon";          break;
-            case PARENT:         iname = "defaultClosedIcon";        break;
+            case LEAF:           iname = "Tree.leafIcon";            break;
+            case PARENT:         iname = "Tree.closedIcon";          break;
             case SCALAR:         iname = "ball.black.gif";           break;
             case STRUCTURE:      iname = "closed.gif";               break;
-            case FILE:           iname = "defaultLeafIcon";          break;
-            case DIRECTORY:      iname = "defaultClosedIcon";        break;
+            case FILE:           iname = "Tree.leafIcon";            break;
+            case DIRECTORY:      iname = "Tree.closedIcon";          break;
             case NDF:            iname = "star_gold.gif";            break;
             case ZIPFILE:        iname = "squishdir2.gif";           break;
             case ZIPENTRY:       iname = "squishfile2.gif";          break;
             case WCS:            iname = "world1.gif";               break;
-            case FITS:           iname = "star_bul.gif";             break;
+            case FITS:           iname = "dstar3.gif";               break;
             case HDU:            iname = "TileCascade.gif";          break;
             case FRAME:          iname = "axes42.gif";               break;
             case SKYFRAME:       iname = "axes62.gif";               break;
             case HISTORY:        iname = "book2.gif";                break;
             case HISTORY_RECORD: iname = "mini-doc.gif";             break;
             case TABLE:          iname = "table10.gif";              break;
+            case TREE:           iname = "TREE26.gif";               break;
+            case ERROR:          iname = "madsmiley.gif";            break;
             case XML_DOCUMENT:   iname = "xml_doc.gif";              break;
             case XML_ELEMENT:    iname = "xml_el.gif";               break;
             case XML_COMMENT:    iname = "xml_comm.gif";             break;
@@ -114,17 +132,23 @@ public class IconFactory {
             case XML_EREF:       iname = "xml_eref.gif";             break;
             case XML_STRING:     iname = "xml_txt.gif";              break;
             case XML_DTD:        iname = "xml_dtd.gif";              break;
-            case NDX:            iname = "jsky2.gif";                break;
+            case NDX:            iname = "fuzz2.gif";                break;
             case HDX_CONTAINER:  iname = "box7.gif";                 break;
             case VOTABLE:        iname = "telescope2.gif";           break;
             case VOCOMPONENT:    iname = "smallbox1.gif";            break;
             case SPLAT:          iname = "multidisplay.gif";         break;
             case SOG:            iname = "sogimage.gif";             break;
+            case HANDLE_EXPAND:  iname = "Tree.expandedIcon";        break;
+            case HANDLE_COLLAPSE:iname = "Tree.collapsedIcon";       break;
+            case TREE_LOGO:      iname = "TREE25.gif";               break;
+            case STARLINK_LOGO:  iname = "starlinklogo3.gif";        break;
+            case HANDLE1:        iname = "handle1.gif";              break;
+            case HANDLE2:        iname = "handle2.gif";              break;
             default:
                 throw new Error( 
                     "Unknown icon identifier (programming error)" );
         }
-        return getIconByName( iname );
+        return iname;
     }
 
     public Icon getArrayIcon( int ndim ) {
@@ -147,19 +171,15 @@ public class IconFactory {
         return getIcon( id );
     }
 
+    /**
+     * Returns an icon given a name which can be either the name of a gif
+     * in the icons directory or an attribute name known to the UIManager
+     * (see javax.swing.plaf.basic.BasicLookAndFeel source code).
+     */
     private Icon getIconByName( String name ) {
         if ( ! iconMap.containsKey( name ) ) {
             Icon icon = null;
-            if ( name.equals( "defaultLeafIcon" ) ) {
-                icon = new DefaultTreeCellRenderer().getDefaultLeafIcon();
-            }
-            else if ( name.equals( "defaultClosedIcon" ) ) {
-                icon = new DefaultTreeCellRenderer().getDefaultClosedIcon();
-            }
-            else if ( name.equals( "defaultOpenIcon" ) ) {
-                icon = new DefaultTreeCellRenderer().getDefaultOpenIcon();
-            }
-            else {
+            if ( name.endsWith( ".gif" ) ) {
                 String iname = IMAGE_PATH + name;
                 InputStream istrm = this.getClass().getClassLoader()
                                    .getResourceAsStream( iname );
@@ -177,10 +197,13 @@ public class IconFactory {
                     catch ( IOException e ) {}
                 }
             }
+            else {
+                icon = UIManager.getIcon( name );
+            }
 
             /* If we haven't succeeded so far, use a default icon. */
             if ( icon == null ) {
-                icon = getIconByName( "defaultLeafIcon" );
+                icon = getIconByName( "Tree.leafIcon" );
             }
             iconMap.put( name, icon );
         }
