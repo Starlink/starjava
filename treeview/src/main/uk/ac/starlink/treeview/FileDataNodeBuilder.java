@@ -6,15 +6,16 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
-import org.w3c.dom.Node;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSReference;
@@ -135,7 +136,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             if ( XMLDataNode.isMagic( magic ) ) {
 
                 /* NDX? */
-                DOMSource xsrc = makeDomSource( file );
+                DOMSource xsrc = makeDOMSource( file );
                 try {
                     DataNode dn = new NdxDataNode( xsrc );
                     dn.setLabel( file.getName() );
@@ -196,20 +197,48 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
         return "special DataNodeBuilder (java.io.File)";
     }
 
-    public static DOMSource makeDomSource( File file )
+    public static DOMSource makeDOMSource( File file )
             throws NoSuchDataException {
-        SourceReader sr = new SourceReader();
-        Source xsrc = new StreamSource( file );
+
+        /* Get a DocumentBuilder. */
+        DocumentBuilderFactory dbfact = DocumentBuilderFactory.newInstance();
+        dbfact.setValidating( false );
+        DocumentBuilder parser;
         try {
-            Node domnode = sr.getDOM( xsrc );
-            DOMSource dsrc = new DOMSource( domnode );
-            dsrc.setSystemId( file.toString() );
-            return dsrc;
+            parser = dbfact.newDocumentBuilder();
         }
-        catch ( TransformerException e ) {
-            throw new NoSuchDataException( "Couldn't get Node from file "
-                                         + file, e );
+        catch ( ParserConfigurationException e ) {
+            System.err.println( e.getMessage() );
+
+            /* Failed for some reason - try it with nothing fancy then. */
+            try {
+                parser = DocumentBuilderFactory.newInstance()
+                          .newDocumentBuilder();
+            }
+            catch ( ParserConfigurationException e2 ) {
+                throw new NoSuchDataException( e2 );  // give up then
+            }
         }
+        parser.setEntityResolver( TreeviewEntityResolver.getInstance() );
+
+        /* Parse the XML file. */
+        Document doc;
+        try {
+            doc = parser.parse( file );
+        }
+        catch ( SAXException e ) {
+            throw new NoSuchDataException( "XML parse error on file " + file,
+                                           e );
+        }
+        catch ( IOException e ) {
+            throw new NoSuchDataException( "I/O trouble during XML parse of " +
+                                           "file " + file, e );
+        }
+
+        /* Turn it into a DOMSource. */
+        DOMSource dsrc = new DOMSource( doc );
+        dsrc.setSystemId( file.toString() );
+        return dsrc;
     }
 
 }
