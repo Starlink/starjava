@@ -40,7 +40,8 @@ public class Points {
     }
 
     /**
-     * Returns the array of X coordinates
+     * Returns the array of X coordinates.
+     * The array itself is returned, not a clone.
      *
      * @return  x values
      */
@@ -50,6 +51,7 @@ public class Points {
 
     /**
      * Returns the array of Y coordinates.
+     * The array itself is returned, not a clone.
      *
      * @return  y values
      */
