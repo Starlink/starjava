@@ -634,7 +634,13 @@ public class AstTest extends TestCase {
         plot2.curve( new double[] { 0, 0 }, new double[] { 5e1, 5e3 } );
         plot2.setLogPlot( true );
         plot2.setNumLab( true );
-        plot2.setTextLab( false );
+        plot2.setDrawTitle( true );
+        plot2.setTitle("Log Coords (10%^50+%s70+%c1000+n%c+%s+%^+ notation)");
+
+        plot2.setTextLab( true );
+        plot2.set("label(1)=Axis %^50+ %s50+ one %s+ %^+" );
+        plot2.setLabel( 2, "Axis %^50+ %s50+ two %s+ %^+");
+
         plot2.grid();
         plot2.border();
 
