@@ -999,7 +999,6 @@ public class ASTJ
                 Frame part2 = astRef.pickAxes( i - 2, iaxes, null );
                 newFrame = new CmpFrame( result, part2 );
             }
-            newFrame.show();
             astRef.addFrame( FrameSet.AST__CURRENT, new UnitMap( nax ), 
                              newFrame );
         }
