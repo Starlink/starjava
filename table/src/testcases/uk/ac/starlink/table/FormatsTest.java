@@ -13,6 +13,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.FitsTableWriter;
+import uk.ac.starlink.table.storage.DiskRowStore;
+import uk.ac.starlink.table.storage.ListRowStore;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TestCase;
@@ -113,6 +115,31 @@ public class FormatsTest extends TestCase {
         assertTableEquals( table, new WrapperStarTable( table ) );
     }
 
+    public void testStorage() throws IOException {
+        exerciseRowStore( new ListRowStore() );
+        exerciseRowStore( new DiskRowStore() );
+    }
+
+    private void exerciseRowStore( RowStore store ) throws IOException {
+        try {
+            store.getStarTable();
+            fail();
+        }
+        catch ( IllegalStateException e ) {
+        }
+        Tables.streamStarTable( table, store );
+        StarTable t2 = store.getStarTable();
+        try {
+            store.acceptRow( new Object[ 1 ] );
+            fail();
+        }
+        catch ( IllegalStateException e ) {
+        }
+        assertTrue( t2.isRandom() );
+        checkStarTable( t2 );
+        assertTableEquals( table, t2 );
+    }
+
     public void testOutput() throws IOException {
         int i = 0;
         StarTableFactory sfact = new StarTableFactory();
@@ -199,6 +226,10 @@ public class FormatsTest extends TestCase {
         String docDecl = writer.getDoctypeDeclaration();
         File tmpFile = File.createTempFile( "decltest", ".xml" );
         tmpFile.deleteOnExit();
+        String tmpBase = tmpFile.toString();
+        tmpBase = tmpBase.substring( 0, tmpBase.lastIndexOf( ".xml" ) );
+        new File( tmpBase + "-data.fits" ).deleteOnExit();
+        new File( tmpBase + "-data.bin" ).deleteOnExit();
         writer.setDoctypeDeclaration( 
             "<!DOCTYPE VOTABLE SYSTEM 'http://nowhere/VOTable.dtd'>" );
         writer.writeStarTable( t1, tmpFile.toString() );
@@ -372,7 +403,8 @@ public class FormatsTest extends TestCase {
         }
     }
 
-    void assertTableEquals( StarTable t1, StarTable t2 ) throws IOException {
+    public void assertTableEquals( StarTable t1, StarTable t2 )
+            throws IOException {
         int ncol = t1.getColumnCount();
         assertEquals( ncol, t2.getColumnCount() );
         assertValueSetEquals( t1.getParameters(), t2.getParameters() );
@@ -391,7 +423,7 @@ public class FormatsTest extends TestCase {
         assertEquals( ncol, t2.getColumnCount() );
         RowSequence rseq1 = t1.getRowSequence();
         RowSequence rseq2 = t2.getRowSequence();
-        
+        int irow = 0;
         while ( rseq1.hasNext() ) {
             assertTrue( rseq1.hasNext() );
             assertTrue( rseq2.hasNext() );
@@ -406,17 +438,20 @@ public class FormatsTest extends TestCase {
                 assertScalarOrArrayEquals( row1[ i ], rseq1.getCell( i ) );
                 assertScalarOrArrayEquals( row1[ i ], rseq2.getCell( i ) );
             }
+            irow++;
         }
         assertTrue( ! rseq1.hasNext() );
         assertTrue( ! rseq2.hasNext() );
     }
 
     void assertScalarOrArrayEquals( Object o1, Object o2 ) {
+        o1 = blankToNull( o1 );
+        o2 = blankToNull( o2 );
         if ( o1 != null && o1.getClass().isArray() ) {
             assertArrayEquals( o1, o2 );
         }
         else {
-            assertEquals( nanToNull( o1 ), nanToNull( o2 ) );
+            assertEquals( o1, o2 );
         }
     }
 
@@ -485,7 +520,7 @@ public class FormatsTest extends TestCase {
      * Checks table invariants.  Any StarTable should be able to run
      * through these tests without errors.
      */
-    void checkStarTable( StarTable st ) throws IOException {
+    public void checkStarTable( StarTable st ) throws IOException {
         Tables.checkTable( st );
         int ncol = st.getColumnCount();
         boolean isRandom = st.isRandom();
@@ -537,16 +572,19 @@ public class FormatsTest extends TestCase {
         }
     }
 
-    static Object nanToNull( Object o ) {
-        if ( ( o instanceof Float || o instanceof Double ) &&
-             Double.isNaN( ((Number) o).doubleValue() ) ) {
+    static Object blankToNull( Object o ) {
+        if ( o == null ||
+             o instanceof String && ((String) o).length() == 0 ||
+             o instanceof Float && Float.isNaN( ((Float) o).floatValue() ) ||
+             o instanceof Double && Double.isNaN( ((Double) o).doubleValue() ) ||
+             o.getClass().isArray() && Array.getLength( o ) == 0 ) {
             return null;
         }
         else {
             return o;
         }
     }
-
+             
     static class ValueInfoComparator implements Comparator {
         public int compare( Object o1, Object o2 ) {
             return ((ValueInfo) o1).getName()
