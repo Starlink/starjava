@@ -37,7 +37,7 @@
 #.
 
 #  Development Java
-if test "$STAR_JAVA != ""; then
+if test "$STAR_JAVA" != ""; then
    java="$STAR_JAVA"
 else
 

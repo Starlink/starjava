@@ -712,12 +712,22 @@
    !  that were copied into place by the install target. If this fails
    !  then hopefully the log file will not be deleted!
    !-->
-  <target name="deinstall"
+ <target name="deinstall"
           description="-> undo the install target">
 
-    <loadfile property="files" srcFile="${install.log}"/>
+    <available file="${install.log}" property="install.log.present"/>
 
-    <listdelete quiet="false" failonerror="true">
+    <antcall target="real_deinstall"/>
+
+  </target>
+
+  <!-- Real deinstall target. Only activated if "install.log.present"
+   !   is defined -->
+  <target name="real_deinstall" 
+          if="install.log.present">
+
+    <loadfile property="files" srcFile="${install.log}"/>
+    <listdelete>
       <filelist dir="/" files="${files}"/>
     </listdelete>
 
