@@ -509,7 +509,10 @@ public class TopcatModel {
      *          he bailed out
      */
     public String enquireSubsetName( Component parent ) {
-        String name = JOptionPane.showInputDialog( parent, "New subset name" );
+        String name = JOptionPane
+                     .showInputDialog( parent, "New subset name",
+                                      "Subset Name Input",
+                                      JOptionPane.QUESTION_MESSAGE );
         if ( name == null || name.trim().length() == 0 ) {
             return null;
         }
