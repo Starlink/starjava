@@ -5,7 +5,7 @@
  *     14-FEB-2001 (Peter W. Draper):
  *       Original version.
  */
-package uk.ac.starlink.ast.gui;
+package uk.ac.starlink.util.gui;
 
 import java.io.BufferedWriter;
 import java.io.File;

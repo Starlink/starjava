@@ -5,7 +5,7 @@
  *     21-JAN-2004 (Peter W. Draper):
  *       Original version.
  */
-package uk.ac.starlink.ast.gui;
+package uk.ac.starlink.util.gui;
 
 import org.w3c.dom.Element;
 

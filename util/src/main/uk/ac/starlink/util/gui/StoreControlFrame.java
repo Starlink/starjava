@@ -7,7 +7,7 @@
  *     21-JAN-2004 (Peter W. Draper):
  *       Refactored to offer general, non-AST storage.
  */
-package uk.ac.starlink.ast.gui;
+package uk.ac.starlink.util.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -32,7 +32,7 @@ import javax.swing.JTable;
 
 import org.w3c.dom.Element;
 
-import uk.ac.starlink.ast.gui.images.ImageHolder;
+import uk.ac.starlink.util.images.ImageHolder;
 
 /**
  * A top-level window that offers controls for saving, restoring and
