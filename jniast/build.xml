@@ -346,7 +346,7 @@
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
     <copy todir="${build.classes}">
-      <fileset dir="${java.dir}" includes=""/>
+      <fileset dir="${java.dir}" includes="[none]"/>
     </copy>
 
     <!-- Local third party jars, if any. Copy straight into
@@ -931,13 +931,6 @@
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.lib.pkg}"/>
     <mkdir dir="${star.docs.pkg}"/>
-
-    <loggedcopy todir="${star.bin}"
-                logfile="${install.log}"
-                overwrite="${install.overwrite}"
-                logfileAppend="false">
-      <fileset dir="${dist.bin}"/>
-    </loggedcopy>
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
