@@ -13,7 +13,9 @@ import uk.ac.starlink.votable.dom.DelegatingNode;
 /**
  * Document implementation which holds a VOTable-specific DOM.
  * The elements in it are all instances of {@link VOElement},
- * or of <tt>VOElement</tt> subclasses according to their element names.
+ * or of <tt>VOElement</tt> subclasses according to their element names,
+ * that is any element with a tagname of "TABLE" in this DOM will be
+ * an instance of the class {@link TableElement} and so on.
  *
  * @author   Mark Taylor (Starlink)
  * @since    13 Sep 2004
@@ -35,6 +37,26 @@ public class VODocument extends DelegatingDocument {
     VODocument( Document base, String systemId ) {
         super( base );
         systemId_ = systemId;
+    }
+
+    /**
+     * Constructs a new VODocument with a specified System ID.
+     *
+     * @param  systemId  system ID for the VOTable document represented by
+     *         this DOM (sometimes used for resolving URLs) - may be null
+     */
+    public VODocument( String systemId ) {
+        super();
+        systemId_ = systemId;
+    }
+
+    /**
+     * Constructs a new VODocument.
+     * No system ID is registered, so that all URLs in the document will
+     * be considered as absolute ones.
+     */
+    public VODocument() {
+        this( null );
     }
 
     /**
@@ -102,9 +124,17 @@ public class VODocument extends DelegatingDocument {
         else if ( "VALUES".equals( tagName ) ) {
             return new ValuesElement( node, this );
         }
+        else if ( "GROUP".equals( tagName ) ) {
+            return new GroupElement( node, this );
+        }
+        else if ( "FIELDref".equals( tagName ) ) {
+            return new FieldRefElement( node, this );
+        }
+        else if ( "PARAMref".equals( tagName ) ) {
+            return new ParamRefElement( node, this );
+        }
         else {
             return new VOElement( node, this );
         }
     }
-
 }
