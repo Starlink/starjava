@@ -18,7 +18,6 @@ import nom.tam.fits.TableHDU;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.RandomAccess;
-import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
@@ -78,7 +77,7 @@ public class FitsTableBuilder implements TableBuilder {
         }
 
         ArrayDataInput strm = null;
-        AbstractStarTable table = null;
+        StarTable table = null;
         try {
 
             /* Get a FITS data stream. */
@@ -93,8 +92,7 @@ public class FitsTableBuilder implements TableBuilder {
                 pos[ 0 ] += FitsConstants
                            .positionStream( strm, datsrc.getPosition() );
                 try {
-                    table = (AbstractStarTable)
-                            attemptReadTable( strm, wantRandom, datsrc, pos );
+                    table = attemptReadTable( strm, wantRandom, datsrc, pos );
                 }
                 catch ( EOFException e ) {
                     throw new IOException( "Fell off end of file looking for "
@@ -115,8 +113,7 @@ public class FitsTableBuilder implements TableBuilder {
             else {
                 try {
                     while ( true ) {
-                        table = (AbstractStarTable)
-                                attemptReadTable( strm, wantRandom,
+                        table = attemptReadTable( strm, wantRandom,
                                                   datsrc, pos );
                         if ( table != null ) {
                             table.setName( datsrc.getName() );

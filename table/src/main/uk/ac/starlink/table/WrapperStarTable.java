@@ -21,6 +21,9 @@ import java.util.List;
 public class WrapperStarTable implements StarTable {
 
     protected StarTable baseTable;
+    private String name;
+    private boolean nameSet;
+    private URL url;
 
     /**
      * Constructs a new <tt>WrapperStarTable</tt> from a given base table.
@@ -51,15 +54,25 @@ public class WrapperStarTable implements StarTable {
     }
 
     /**
-     * Returns <tt>null</tt> to indicate that this table itself is not
-     * persistent.
+     * Initially returns <tt>null</tt> to indicate that this table 
+     * itself is not persistent.
      */
     public URL getURL() {
-        return null;
+        return url;
+    }
+
+    public void setURL( URL url ) {
+        this.url = url;
     }
 
     public String getName() {
-        return baseTable.getName();
+        return nameSet ? name 
+                       : baseTable.getName();
+    }
+
+    public void setName( String name ) {
+        this.name = name;
+        this.nameSet = true;
     }
 
     public List getParameters() {

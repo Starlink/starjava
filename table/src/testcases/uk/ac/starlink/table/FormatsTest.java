@@ -189,6 +189,7 @@ public class FormatsTest extends TestCase {
         }
         String[] knownFormats = new String[] {
             "fits",
+            "fits-plus",
             "fits-basic",
             "votable-tabledata",
             "votable-binary-inline",
@@ -361,8 +362,10 @@ public class FormatsTest extends TestCase {
         // assertTableEquals( t3, t4 );
 
         String name = "Dobbin";
-        ((BintableStarTable) t2).setName( name );
-        ((BintableStarTable) t3).setName( name );
+        t2.setName( name );
+        t3.setName( name );
+        assertEquals( "Dobbin", t2.getName() );
+        assertEquals( "Dobbin", t3.getName() );
         assertTableEquals( t2, t3 );
     }
 

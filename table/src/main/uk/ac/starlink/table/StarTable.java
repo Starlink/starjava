@@ -55,14 +55,33 @@ public interface StarTable {
     URL getURL();
 
     /**
+     * Sets the URL of this table.  It ought to be possible in principle
+     * to reconstruct this table by reading the resource at <tt>url</tt>.
+     * If called, the supplied <tt>url</tt> should provide the return
+     * value for subsequent calls of {@link #getURL}.
+     *
+     * @param  url  table URL
+     */
+    void setURL( URL url );
+
+    /**
      * Returns the name of this table, if it has one.  The meaning of
-     * this is not defined, but it will typically be a short string of
+     * the name is not defined, but it will typically be a short string of
      * text indicating the identity of this table.
      *
      * @return  a name for this table, or <tt>null</tt> if no suitable one
      *          exists
      */
     String getName();
+
+    /**
+     * Sets the name of this table.  If called, the supplied <tt>name</tt>
+     * should provide the return value for subsequent calls of 
+     * {@link #getName}.
+     *
+     * @param  name  table name
+     */
+    void setName( String name );
 
     /**
      * Returns a list of table parameters, that is items which pertain to
