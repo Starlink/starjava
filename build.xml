@@ -89,6 +89,9 @@
      <echo message="Executing JUnit target: ${what}"/>
      <ant dir="./junit" target="${what}"/>
 
+     <echo message="Executing tamfits target: ${what}"/>
+     <ant dir="./tamfits" target="${what}"/>
+
      <echo message="Executing axis target: ${what}"/>
      <ant dir="./axis" target="${what}"/>
 
