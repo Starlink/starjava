@@ -172,6 +172,8 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     public void setValueAt( Object val, int irow, int icol ) {
+        long lrow = ( rowMap == null ) ? (long) irow
+                                       : (long) rowMap[ irow ];
 
         /* Check if this column is writable or not.  If it is not, then
          * we will have to replace it with a column which is writable,
@@ -188,7 +190,7 @@ public class ViewerTableModel extends AbstractTableModel {
          * cell. */
         assert startable.getColumnData( icol ).isWritable();
         try {
-            startable.getColumnData( icol ).storeValue( (long) irow, val );
+            startable.getColumnData( icol ).storeValue( lrow, val );
         }
         catch ( IOException e ) {
             e.printStackTrace();
