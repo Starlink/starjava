@@ -69,6 +69,16 @@ public interface FunctionFitter
     public double calcRms( double[] x, double[] y, double[] fity );
 
     /**
+     * Calculate the individual residuals between the given data and the
+     * pre-calculated fit.
+     *
+     * @param x array of X coordinates.
+     * @param y array of data values for each X coordinate.
+     * @return the residuals. 
+     */
+    public double[] calcResiduals( double[] x, double[] y );
+
+    /**
      * Return the number of parameters used to describe this
      * function. This is the size of the {@link LevMarqFunc#eval}
      * a parameter.
