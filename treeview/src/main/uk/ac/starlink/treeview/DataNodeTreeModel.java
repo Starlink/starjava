@@ -537,7 +537,7 @@ public class DataNodeTreeModel implements TreeModel {
      * Used to free resources from a model node which no longer appears
      * in the tree.
      * Removes entries in the node map for a given model node and all
-     * its descendents.  This is important both prevent memory leaks
+     * its descendents.  This is important both to prevent memory leaks
      * and to keep track of the total number of nodes in this model.
      *
      * @param  node the node which will no longer be required
