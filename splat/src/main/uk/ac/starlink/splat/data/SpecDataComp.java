@@ -17,10 +17,13 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.CmpFrame;
+import uk.ac.starlink.ast.FluxFrame;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.Plot;
+import uk.ac.starlink.ast.SpecFluxFrame;
 import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
@@ -855,42 +858,78 @@ public class SpecDataComp
         if ( coordinateMatching && ( ! spectrum.equals( currentSpec ) ) ) {
 
             //  Get the current frames of the current spectrum and the target
-            //  one. Could probably use the FrameSets, but we need to check if
-            //  the current spectrum has a SpecFrame anyway.
-            Frame to = currentSpec.getAst().getRef()
-                           .getFrame( FrameSet.AST__CURRENT );
-            Frame from = spectrum.getAst().getRef()
-                            .getFrame( FrameSet.AST__CURRENT );
+            //  one.
+            Frame to = 
+                currentSpec.getAst().getRef().getFrame(FrameSet.AST__CURRENT);
+            Frame from = 
+                spectrum.getAst().getRef().getFrame(FrameSet.AST__CURRENT);
 
-            //  Determine if the current spectrum has a SpecFrame (could do
-            //  this once?). This will be the first axis for any DATAPLOT.
-            int iaxes[] = { 1 };
+            //  Determine if the current spectrum has a SpecFrame. This will
+            //  be the first axis for any DATAPLOT.
+            int iaxes[] = new int[1];
+            iaxes[0] = 1;
             Frame picked = to.pickAxes( 1, iaxes, null );
             boolean haveSpecFrame = ( picked instanceof SpecFrame );
 
-            // If spectrum is a LineID then we should attempt to transform it
+            // If spectrum is a line id then we should attempt to transform it
             // into the system of main spectrum (this aligns if a source
             // velocity is set).
             FrameSet mapping = null;
+            boolean sourceTransform = false;
             if ( spectrum instanceof LineIDSpecData && haveSpecFrame ) {
+                sourceTransform = true;
 
-                // Cannot match data units as line identifiers do not have
-                // these (unless the data axis is a FluxFrame, in which case
-                // this should still work).
-                String stdofrest = to.getC( "StdOfRest" );
-                to.set( "StdOfRest=Source" );
+                // Cannot be sure to match data units as line identifiers do
+                // not generally have these. When they are unset the data
+                // units will have value "unknown" or have no data positions,
+                // in those cases set the data units to those of the current
+                // spectrum.
+                boolean haveDataPositions = 
+                    ((LineIDSpecData) spectrum).haveDataPositions();
+                String dataUnits = from.getC( "unit(2)" );
+                if ( dataUnits == null || dataUnits.equals( "unknown" ) ) {
+                    haveDataPositions = false;
+                }
+                if ( ! haveDataPositions ) {
+                    //  Use units Frame of the current spectrum along with the
+                    //  SpecFrame of the line identifiers.
+                    Frame fromSpecFrame  = from.pickAxes( 1, iaxes, null );
+                    iaxes[0] = 2;
+                    Frame toUnitFrame = to.pickAxes( 1, iaxes, null );
+
+                    //  Make the right kind of Frame. SpecFluxFrames will not
+                    //  match any other type of Frame.
+                    if ( to instanceof SpecFluxFrame ) {
+                        from = new SpecFluxFrame( (SpecFrame) fromSpecFrame, 
+                                                  (FluxFrame) toUnitFrame );
+                    }
+                    else {
+                        from = new CmpFrame( fromSpecFrame, toUnitFrame );
+                    }
+                }
+            }
+
+            //  If not using a FluxFrame in a SpecFluxFrame we can still match
+            //  units that are dimensionally the same.
+            if ( dataUnitsMatching ) {
+                from.setActiveUnit( true );
+            }
+
+            //  Transform to source rest frame for matching against line ids.
+            if ( sourceTransform ) {
+                String stdofrest = to.getC( "StdOfRest(1)" );
+                to.set( "StdOfRest(1)=Source" );
                 mapping = from.convert( to, "DATAPLOT" );
-                to.set( "StdOfRest=" + stdofrest );
+                to.set( "StdOfRest(1)=" + stdofrest );
             }
             else {
-                if ( dataUnitsMatching ) {
-                    from.setActiveUnit( true );
-                }
                 mapping = to.convert( from, "DATAPLOT" );
-                if ( dataUnitsMatching ) {
-                    from.setActiveUnit( false );
-                }
             }
+
+            if ( dataUnitsMatching ) {
+                from.setActiveUnit( false );
+            }
+
             if ( mapping == null ) {
                 throw new SplatException( "Failed to align coordinates of " +
                                           currentSpec.getShortName() +
@@ -905,10 +944,10 @@ public class SpecDataComp
 
 
     /**
-     * Modify a plot so that it uses a different set of current
-     * coordinates as current. The coordinate systems are aligned using the
-     * given mapping which should map from the coordinates of one spectrum to
-     * those of another.
+     * Modify a plot so that it uses a different set of current coordinates as
+     * current. The coordinate systems are aligned using the given mapping
+     * which should map from the coordinates of one spectrum to those of
+     * another.
      */
     public Plot alignPlots( Plot plot, FrameSet mapping )
     {
