@@ -286,7 +286,7 @@ public class LoadQueryWindow extends QueryWindow {
      *
      * @param  choooser  the StarTableNodeChooser to use
      */
-    private void nodeDialog( StarTableNodeChooser chooser ) {
+    void nodeDialog( StarTableNodeChooser chooser ) {
         assert StarTableNodeChooser.isAvailable();
         StarTable st = chooser.chooseStarTable( this );
         if ( st != null ) {

@@ -68,6 +68,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.table.gui.StarTableNodeChooser;
 import uk.ac.starlink.table.gui.StarTableSaver;
 import uk.ac.starlink.table.gui.TableRowHeader;
 import uk.ac.starlink.table.gui.StarJTable;
@@ -1286,7 +1287,8 @@ public class TableViewer extends AuxWindow
               .toString();
         setStandalone( true );
         if ( args.length > 0 ) {
-            int nok = 0;
+            int nTable = 0;
+            List dirList = new ArrayList();
             boolean help = false;
             TableViewer lastViewer = null;
             for ( int i = 0; i < args.length; i++ ) {
@@ -1318,12 +1320,23 @@ public class TableViewer extends AuxWindow
                     }
                 }
                 catch ( Exception e ) {
-                    System.err.println( "Can't view table \""
-                                      + args[ i ] + "\"" );
-                    e.printStackTrace( System.err );
+
+                    /* If it's a directory, remember its name for later. */
+                    File file = new File( args[ i ] );
+                    if ( file.isDirectory() && file.canRead() ) {
+                        dirList.add( file );
+                        ok = true;
+                    }
+
+                    /* Otherwise, log the error. */
+                    else {
+                        System.err.println( "Can't view table \""
+                                          + args[ i ] + "\"" );
+                        e.printStackTrace( System.err );
+                    }
                 }
                 if ( ok ) {
-                    nok++;
+                    nTable++;
                 }
 
                 /* Bail out if there was an error reading the table. 
@@ -1335,8 +1348,24 @@ public class TableViewer extends AuxWindow
                 }
             }
 
+            /* If we have one or more directories to display, pop up a 
+             * browser window. */
+            if ( dirList.size() == 1 && StarTableNodeChooser.isAvailable() ) {
+                File dir = (File) dirList.get( 0 );
+                LoadQueryWindow loader = getLoader();
+                StarTableNodeChooser noder = loader.getStarTableNodeChooser();
+                try {
+                    noder.setRootObject( dir );
+                    loader.nodeDialog( noder );
+                }
+                catch ( IOException e ) {
+                    System.err.println( "No such directory " + dir );
+                    System.exit( 1 );
+                }
+            }
+
             /* Bail out in any case if we have no working tables. */
-            if ( nok == 0 && ! help ) {
+            if ( nTable == 0 && dirList.size() == 0 && ! help ) {
                 System.exit( 1 );
             }
         }
