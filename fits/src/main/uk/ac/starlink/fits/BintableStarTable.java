@@ -530,6 +530,9 @@ public abstract class BintableStarTable extends AbstractStarTable {
                                                   int[] dims ) {
         boolean single = ( count == 1 );
         final boolean isScaled = ( scale != 1.0 || zero != 0.0 );
+        final boolean isOffset = ( scale == 1.0 && zero != 0.0 );
+        final boolean intOffset = isOffset &&
+                                  (double) Math.round( zero ) == zero;
         ColumnReader reader;
         switch ( type ) {
 
@@ -589,28 +592,44 @@ public abstract class BintableStarTable extends AbstractStarTable {
              * can transform a FITS byte directly into a java one. */
             case 'B':
                 final short mask = (short) 0x00ff;
+                boolean shortable = intOffset && zero >= Short.MIN_VALUE
+                                              && zero < Short.MAX_VALUE - 256;
+                final short sZero = (short) zero;
                 if ( single ) {
-                    if ( zero == -128.0 && scale == 1.0 ) {
-                        reader = new ColumnReader( Byte.class, 1 ) {
+                //  if ( zero == -128.0 && scale == 1.0 ) {
+                //      reader = new ColumnReader( Byte.class, 1 ) {
+                //          Object readValue( DataInput stream )
+                //                  throws IOException {
+                //              byte val = stream.readByte();
+                //              return ( hasBlank && val == (byte) blank )
+                //                          ? null
+                //                          : new Byte( (byte) 
+                //                                      ( val ^ (byte) 0x80 ) );
+                //          }
+                //      };
+                //  }
+                    if ( shortable ) {
+                        reader = new ColumnReader( Short.class, 1 ) {
                             Object readValue( DataInput stream )
                                     throws IOException {
                                 byte val = stream.readByte();
                                 return ( hasBlank && val == (byte) blank )
                                             ? null
-                                            : new Byte( (byte) 
-                                                        ( val ^ (byte) 0x80 ) );
+                                            : new Short( (short) 
+                                                         ( ( val & mask ) +
+                                                             sZero ) );
                             }
                         };
                     }
                     else if ( isScaled ) {
-                        reader = new ColumnReader( Double.class, 1 ) {
+                        reader = new ColumnReader( Float.class, 1 ) {
                             Object readValue( DataInput stream ) 
                                     throws IOException {
                                 byte val = stream.readByte();
                                 return ( hasBlank && val == (byte) blank ) 
                                             ? null
-                                            : new Double( ( val & mask )
-                                                          * scale + zero );
+                                            : new Float( ( val & mask )
+                                                         * scale + zero );
                             }
                         };
                     }
@@ -628,22 +647,37 @@ public abstract class BintableStarTable extends AbstractStarTable {
                     }
                 }
                 else {
-                    if ( zero == -128.0 && scale == 1.0 ) {
-                        reader = new ColumnReader( byte[].class, dims,
+                //  if ( zero == -128.0 && scale == 1.0 ) {
+                //      reader = new ColumnReader( byte[].class, dims,
+                //                                 1 * count ) {
+                //          Object readValue( DataInput stream )
+                //                  throws IOException {
+                //              byte[] value = new byte[ count ];
+                //              for ( int i = 0; i < count; i++ ) {
+                //                  byte val = stream.readByte();
+                //                  value[ i ] = (byte) ( val ^ (byte) 0x80 );
+                //              }
+                //              return value;
+                //          }
+                //      };
+                //  }
+                    if ( shortable ) {
+                        reader = new ColumnReader( short[].class, dims,
                                                    1 * count ) {
                             Object readValue( DataInput stream )
                                     throws IOException {
-                                byte[] value = new byte[ count ];
+                                short[] value = new short[ count ];
                                 for ( int i = 0; i < count; i++ ) {
                                     byte val = stream.readByte();
-                                    value[ i ] = (byte) ( val ^ (byte) 0x80 );
+                                    value[ i ] = (short) ( ( val & mask ) +
+                                                           sZero );
                                 }
                                 return value;
                             }
                         };
                     }
                     else if ( isScaled ) {
-                        reader = new ColumnReader( double[].class, dims,
+                        reader = new ColumnReader( float[].class, dims,
                                                    1 * count ) {
                             Object readValue( DataInput stream ) 
                                     throws IOException {
@@ -652,8 +686,9 @@ public abstract class BintableStarTable extends AbstractStarTable {
                                     byte val = stream.readByte(); 
                                     value[ i ] = 
                                         ( hasBlank && val == (byte) blank )
-                                             ? Double.NaN
-                                             : ( val & mask ) * scale + zero;
+                                             ? Float.NaN
+                                             : (float) ( ( val & mask ) 
+                                                         * scale + zero );
                                 }
                                 return value;
                             }
@@ -680,13 +715,14 @@ public abstract class BintableStarTable extends AbstractStarTable {
             case 'I':
                 if ( single ) {
                     if ( isScaled ) {
-                        reader = new ColumnReader( Double.class, 2 ) {
+                        reader = new ColumnReader( Float.class, 2 ) {
                             Object readValue( DataInput stream ) 
                                     throws IOException {
                                 short val = stream.readShort();
                                 return ( hasBlank && val == (short) blank ) 
                                             ? null
-                                            : new Double( val * scale + zero );
+                                            : new Float( (float) 
+                                                       ( val * scale + zero ) );
                             }
                         };
                     }
@@ -704,7 +740,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
                 }
                 else {
                     if ( isScaled ) {
-                        reader = new ColumnReader( double[].class, dims, 
+                        reader = new ColumnReader( float[].class, dims, 
                                                    2 * count ) {
                             Object readValue( DataInput stream ) 
                                     throws IOException {
@@ -713,8 +749,8 @@ public abstract class BintableStarTable extends AbstractStarTable {
                                     short val = stream.readShort();
                                     value[ i ] =
                                         ( hasBlank && val == (short) blank )
-                                             ? Double.NaN
-                                             : val * scale + zero;
+                                             ? Float.NaN
+                                             : (float) ( val * scale + zero );
                                 }
                                 return value;
                             }
