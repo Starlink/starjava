@@ -95,7 +95,7 @@ import org.apache.tools.ant.taskdefs.condition.Os;
  * @author Magesh Umasankar
  * @author <a href="mailto:jtulley@novell.com">Jeff Tulley</a> 
  *
- * @version $Revision: 1.25.2.7 $
+ * @version $Revision: 1.25.2.8 $
  */
 
 public class FileUtils {
@@ -878,5 +878,20 @@ public class FileUtils {
             return p;
         }
     }
+
+    /**
+     * Compares two filenames.
+     *
+     * <p>Unlike java.io.File#equals this method will try to compare
+     * the absolute paths and &quot;normalize&quot; the filenames
+     * before comparing them.</p>
+     *
+     * @since Ant 1.5.3
+     */
+    public boolean fileNameEquals(File f1, File f2) {
+        return normalize(f1.getAbsolutePath())
+            .equals(normalize(f2.getAbsolutePath()));
+    }
+
 }
 
