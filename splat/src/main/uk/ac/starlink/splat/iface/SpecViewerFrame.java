@@ -718,8 +718,9 @@ public class SpecViewerFrame
 
                 try {
                     EditableSpecData editSpec = (EditableSpecData) specData;
-                    editSpec.setSimpleUnitData( editSpec.getAst().getRef(),
-                                                newCoords, newValues, newErrors );
+                    editSpec.setSimpleUnitData( editSpec.getFrameSet(),
+                                                newCoords, newValues, 
+                                                newErrors );
                     specDataChanged();
                 }
                 catch (SplatException e) {
