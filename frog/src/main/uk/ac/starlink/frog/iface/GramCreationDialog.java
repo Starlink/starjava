@@ -275,11 +275,18 @@ public class GramCreationDialog extends JInternalFrame
           " ymin = " + range[2] + " ymax = " + range[3] );
        debugManager.print( "  nyquist = " + currentSeries.getNyquist() );
        
+       // maximum frquency to search
        maxFreq = currentSeries.getNyquist(); 
        if( maxFreq < 0 ) maxFreq = - maxFreq;
         
+       // minimum frequency 
        minFreq = 0.0;
+       
+       // find the number of points, try not to go above 1000
        freqInterval = 1.0 / ( 4.0 * totalTime );
+       if( maxFreq/freqInterval > 1000.0 ) {
+          freqInterval = (maxFreq - minFreq)/1000.0;
+       }  
          
        // drop them into the JText, type to float so we don't put
        // hude numbers of useless decimal places in the dialogs
