@@ -4,7 +4,7 @@
 //    21-SEP-1999 (Peter W. Draper):
 //       Original version.
 //    29-MAY-2002 (Peter W. Draper):
-//       Converted to use thr JNIAST package, rather than my JNI
+//       Converted to use the JNIAST package, rather than my JNI
 //       wrappers. Removed all native functions.
 
 package uk.ac.starlink.splat.ast;
@@ -824,7 +824,7 @@ public class ASTJ implements Serializable
             iaxes[0] = 1;
             iaxes[1] = 0;
             Frame frame1 = astRef.getFrame( FrameSet.AST__BASE );
-            frame1 = frame1.pickAxes( iaxes, null );
+            frame1 = frame1.pickAxes( iaxes.length, iaxes, null );
 
             // Set up label, symbol and units for axis 2
             frame1.setC( "Symbol(2)", "Data" );
@@ -848,7 +848,7 @@ public class ASTJ implements Serializable
             // the current frame and a default axis */
             iaxes[0] = axis;
             iaxes[1] = 0;
-            Frame frame2 = cfrm.pickAxes( iaxes, null );
+            Frame frame2 = cfrm.pickAxes( iaxes.length, iaxes, null );
 
             // Clear digits and format, unless set in the input
             // frameset. These can make a mess of SkyFrame formatting
@@ -924,7 +924,7 @@ public class ASTJ implements Serializable
         if ( nin != 1 ) {
             framecopy.invert();
             Mapping[] joined = new Mapping[1];
-            Frame tmpframe = framecopy.pickAxes( iaxis, joined );
+            Frame tmpframe = framecopy.pickAxes( iaxis.length, iaxis, joined );
             framecopy.addFrame( FrameSet.AST__CURRENT, joined[0], tmpframe );
             framecopy.invert();
             tmpframe.annul();
@@ -937,7 +937,7 @@ public class ASTJ implements Serializable
         // was actually broken and isn't repeated here.
         if ( nout != 1 ) {
             Mapping[] joined = new Mapping[1];
-            Frame tmpframe = framecopy.pickAxes( iaxis, joined );
+            Frame tmpframe = framecopy.pickAxes( iaxis.length, iaxis, joined );
             framecopy.addFrame( FrameSet.AST__CURRENT, joined[0], tmpframe );
             tmpframe.annul();
             joined[0].annul();
