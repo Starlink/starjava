@@ -134,6 +134,9 @@
     <echo message="Executing UTIL target: ${what}"/>
     <ant dir="./util" target="${what}"/>
 
+    <echo message="Executing SOAPSERVER target: ${what}"/>
+    <ant dir="./soapserver" target="${what}"/>
+
     <echo message="Executing Task target: ${what}"/>
     <ant dir="./task" target="${what}"/>
 
@@ -205,9 +208,6 @@
 
     <echo message="Executing JAIUtil target: ${what}"/>
     <ant dir="./jaiutil" target="${what}"/>
-
-    <echo message="Executing SOAPSERVER target: ${what}"/>
-    <ant dir="./soapserver" target="${what}"/>
 
  <!--   <echo message="Executing JPCS target: ${what}"/> -->
  <!--   <ant dir="./jpcs" target="${what}"/> -->
@@ -389,6 +389,10 @@
          <include name="**"/>
       </packageset>
 
+      <packageset dir="soapserver/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
       <packageset dir="task/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
@@ -462,10 +466,6 @@
       </packageset>
 
       <packageset dir="mirage/build/java" defaultexcludes="yes">
-         <include name="**"/>
-      </packageset>
-
-      <packageset dir="soapserver/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
