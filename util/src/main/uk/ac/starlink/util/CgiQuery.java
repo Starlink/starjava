@@ -37,10 +37,6 @@ public class CgiQuery {
                   new IllegalArgumentException( "Not a url: " + base )
                  .initCause( e );
         }
-        if ( base.indexOf( '?' ) >= 0 ) {
-            throw new IllegalArgumentException( "\"" + base + 
-                                                "\" already contains a '?'" );
-        }
         sbuf_ = new StringBuffer( base );
     }
 
@@ -77,8 +73,16 @@ public class CgiQuery {
      * @return  this query
      */
     public CgiQuery addArgument( String name, String value ) {
-        sbuf_.append( narg++ == 0 ? '?' : '&' )
-             .append( name )
+        if ( narg++ == 0 ) {
+            char lastChar = sbuf_.charAt( sbuf_.length() - 1 );
+            if ( lastChar != '?' && lastChar != '&' ) {
+                sbuf_.append( sbuf_.indexOf( "?" ) >= 0 ? '&' : '?' );
+            }
+        }
+        else {
+            sbuf_.append( '&' );
+        }
+        sbuf_.append( name )
              .append( '=' );
         for ( int i = 0; i < value.length(); i++ ) {
             char c = value.charAt( i );
