@@ -22,16 +22,33 @@ import uk.ac.starlink.table.WrapperStarTable;
  * row sequences simultaneously or the progress bar will be getting two
  * sets of updates at once.
  *
+ * <p>You might think this should be based on a 
+ * {@link javax.swing.BoundedRangeModel} (JProgressBar's model) instead,
+ * but unfortunately that doesn't allow you use of 
+ * indeterminate progress states.
+ *
  * @author   Mark Taylor (Starlink)
  */
 public class ProgressBarStarTable extends WrapperStarTable {
 
-    private JProgressBar progBar;
+    private JProgressBar progBar_;
+
+    public ProgressBarStarTable( StarTable baseTable ) {
+        this( baseTable, new JProgressBar() );
+    }
 
     public ProgressBarStarTable( StarTable baseTable, JProgressBar progBar ) {
         super( baseTable );
-        this.progBar = progBar;
+        setProgressBar( progBar );
         setZero();
+    }
+
+    public void setProgressBar( JProgressBar progBar ) {
+        progBar_ = progBar;
+    }
+
+    public JProgressBar getProgressBar() {
+        return progBar_;
     }
 
     public RowSequence getRowSequence() throws IOException {
@@ -42,7 +59,7 @@ public class ProgressBarStarTable extends WrapperStarTable {
             int irow;
             Runnable updater = new Runnable() {
                 public void run() {
-                    progBar.setValue( irow );
+                    progBar_.setValue( irow );
                 }
             };
             public boolean next() throws IOException {
@@ -66,13 +83,13 @@ public class ProgressBarStarTable extends WrapperStarTable {
     private void setZero() {
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                progBar.setMinimum( 0 );
-                progBar.setValue( 0 );
+                progBar_.setMinimum( 0 );
+                progBar_.setValue( 0 );
                 long nrow = getRowCount();
                 boolean determinate = nrow > 0 && nrow < Integer.MAX_VALUE;
-                progBar.setIndeterminate( ! determinate );
+                progBar_.setIndeterminate( ! determinate );
                 if ( determinate ) {
-                    progBar.setMaximum( (int) nrow );
+                    progBar_.setMaximum( (int) nrow );
                 }
             }
         } );
