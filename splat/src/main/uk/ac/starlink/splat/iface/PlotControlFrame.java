@@ -87,11 +87,10 @@ public class PlotControlFrame
     protected PolyFitFrame polyFitFrame = null;
 
     /**
-     * InterpolateFrame window for using a hand guided spline or
-     * linear interpolation to a spectrum background (created when
-     * required).
+     * Window used to generate spectra from hand drawn interpolated
+     * lines.
      */
-    protected InterpolateFrame interpFrame = null;
+    protected GenerateFromInterpFrame interpFrame = null;
 
     /**
      * LineFitFrame window for measuring to the spectral line properties.
@@ -389,13 +388,14 @@ public class PlotControlFrame
         polyFitButton.setToolTipText(
                       "Fit parts of spectrum using a polynomial" );
 
-        //  Add the interpolate background item.
-        InterpAction interpAction = new InterpAction( "Draw spline",
-                                                      interpImage );
+        //  Add the generate from interpolated line item.
+        GenFromInterpAction interpAction =
+            new GenFromInterpAction( "Spectrum from interpolation",
+                                     interpImage );
         analysisMenu.add( interpAction );
         interpButton = toolBar.add( interpAction );
         interpButton.setToolTipText(
-                     "Create a background using spline/linear interpolation" );
+                     "Generate a spectrum from an interpolated line" );
 
         //  Add the measure and fit spectral lines action.
         LineFitAction lineFitAction = new LineFitAction( "Fit lines",
@@ -434,7 +434,7 @@ public class PlotControlFrame
     protected void setupGraphicsMenu()
     {
         DrawActions drawActions = plot.getPlot().getDrawActions();
-        AstFigureStore store = 
+        AstFigureStore store =
             new AstFigureStore( (AstPlotSource) plot.getPlot(),
                                 Utilities.getApplicationName(),
                                 "FigureStore.xml",
@@ -553,7 +553,7 @@ public class PlotControlFrame
             }
 
             try {
-                GraphicsHintsControls ghc = 
+                GraphicsHintsControls ghc =
                     new GraphicsHintsControls( divaPlot.getGraphicsHints() );
                 configFrame.addExtraControls( ghc, true);
             }
@@ -562,7 +562,7 @@ public class PlotControlFrame
             }
 
             try {
-                GraphicsEdgesControls gec = 
+                GraphicsEdgesControls gec =
                     new GraphicsEdgesControls( divaPlot.getGraphicsEdges() );
                 configFrame.addExtraControls( gec, true );
             }
@@ -571,8 +571,8 @@ public class PlotControlFrame
             }
 
             try {
-                ComponentColourControls ccc = 
-                    new ComponentColourControls( plot, 
+                ComponentColourControls ccc =
+                    new ComponentColourControls( plot,
                         divaPlot.getBackgroundColourStore(),
                         "Plot Background", "Background", "Colour:" );
                 configFrame.addExtraControls( ccc, true );
@@ -654,13 +654,13 @@ public class PlotControlFrame
     }
 
     /**
-     *  Activate the pop-up window for creating an interpolation
+     *  Activate the pop-up window for generating an interpolated
      *  spectrum.
      */
     public void interpolate()
     {
         if ( interpFrame == null ) {
-            interpFrame = new InterpolateFrame( this );
+            interpFrame = new GenerateFromInterpFrame( this );
             //  We'd like to know if the window is closed.
             interpFrame.addWindowListener( new WindowAdapter() {
                     public void windowClosed( WindowEvent evt ) {
@@ -1084,9 +1084,9 @@ public class PlotControlFrame
     /**
      *  Inner class defining Action for creating an interpolated background.
      */
-    protected class InterpAction extends AbstractAction
+    protected class GenFromInterpAction extends AbstractAction
     {
-        public InterpAction( String name, Icon icon ) {
+        public GenFromInterpAction( String name, Icon icon ) {
             super( name, icon );
         }
         public void actionPerformed( ActionEvent ae ) {
