@@ -153,7 +153,7 @@ public class FileDataNode extends DefaultDataNode {
             DetailViewer dv = new DetailViewer( this );
             fullView = dv.getComponent();
             dv.addSeparator();
-            dv.addKeyedItem( "Size", Long.toString( file.length() ) );
+            dv.addKeyedItem( "Size", file.length() );
             dv.addKeyedItem( "Last modified", 
                               new Date( file.lastModified() ).toString() );
 

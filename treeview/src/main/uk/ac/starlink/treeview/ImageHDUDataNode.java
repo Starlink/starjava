@@ -198,7 +198,7 @@ public class ImageHDUDataNode extends HDUDataNode {
             dv.addSeparator();
             dv.addKeyedItem( "HDU type", hduType );
             if ( shape != null ) {
-                dv.addKeyedItem( "Shape", shape.toString() );
+                dv.addKeyedItem( "Shape", shape );
             }
             if ( dataType != null ) {
                 dv.addKeyedItem( "Pixel type", dataType ); 
@@ -207,19 +207,19 @@ public class ImageHDUDataNode extends HDUDataNode {
                 dv.addKeyedItem( "Blank value", blank );
             }
             dv.addKeyedItem( "Number of header cards", 
-                             Integer.toString( header.getNumberOfCards() ) );
+                             header.getNumberOfCards() );
             if ( wcs != null ) {
                 dv.addSubHead( "World coordinate system" );
                 dv.addKeyedItem( "Encoding", wcsEncoding );
                 uk.ac.starlink.ast.Frame frm = 
                     wcs.getFrame( FrameSet.AST__CURRENT );
-                dv.addKeyedItem( "Naxes", "" + frm.getNaxes() );
+                dv.addKeyedItem( "Naxes", frm.getNaxes() );
                 if ( frm instanceof SkyFrame ) {
                     SkyFrame sfrm = (SkyFrame) frm;
-                    dv.addKeyedItem( "Epoch", "" + sfrm.getEpoch() );
-                    dv.addKeyedItem( "Equinox", "" + sfrm.getEquinox() );
-                    dv.addKeyedItem( "Projection", "" + sfrm.getProjection() );
-                    dv.addKeyedItem( "System", "" + sfrm.getSystem() );
+                    dv.addKeyedItem( "Epoch", sfrm.getEpoch() );
+                    dv.addKeyedItem( "Equinox", sfrm.getEquinox() );
+                    dv.addKeyedItem( "Projection", sfrm.getProjection() );
+                    dv.addKeyedItem( "System", sfrm.getSystem() );
                 }
             }
             dv.addPane( "Header cards", new ComponentMaker() {

@@ -70,15 +70,15 @@ public class ZipLeafDataNode extends DefaultDataNode {
             dv.addSeparator();
             long size = zentry.getSize();
             if ( size > -1 ) {
-                dv.addKeyedItem( "Size", Long.toString( size ) );
+                dv.addKeyedItem( "Size", size );
             }
             long csize = zentry.getCompressedSize();
             if ( csize > -1 ) {
-                dv.addKeyedItem( "Compressed size", Long.toString( csize ) );
+                dv.addKeyedItem( "Compressed size", csize );
             }
             long time = zentry.getTime();
             if ( time != -1 ) {
-                dv.addKeyedItem( "Last modified", new Date( time ).toString() );
+                dv.addKeyedItem( "Last modified", new Date( time ) );
             }
             String comm = zentry.getComment();
             if ( comm != null ) {

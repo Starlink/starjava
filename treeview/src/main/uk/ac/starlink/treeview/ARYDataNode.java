@@ -114,14 +114,14 @@ public class ARYDataNode extends HDSDataNode {
             DetailViewer dv = new DetailViewer( this );
             fullView = dv.getComponent();
             dv.addSeparator();
-            dv.addKeyedItem( "Dimensionality", "" + shape.getNumDims() );
+            dv.addKeyedItem( "Dimensionality", shape.getNumDims() );
             dv.addKeyedItem( "Origin", NDShape.toString( shape.getOrigin() ) );
             dv.addKeyedItem( "Dimensions", 
                              NDShape.toString( shape.getDims() ) );
             dv.addKeyedItem( "Pixel bounds", 
                              NDArrayDataNode.boundsString( shape ) );
             dv.addSeparator();
-            dv.addKeyedItem( "Type", aryobj.getType().toString() );
+            dv.addKeyedItem( "Type", aryobj.getType() );
             dv.addSeparator();
             dv.addKeyedItem( "Storage variant", aryobj.getStorage() );
 

@@ -117,7 +117,7 @@ public class WCSDataNode extends DefaultDataNode {
             DetailViewer dv = new DetailViewer( this );
             fullView = dv.getComponent();
             dv.addSeparator();
-            dv.addKeyedItem( "Number of frames", Integer.toString( nframe ) );
+            dv.addKeyedItem( "Number of frames", nframe );
             dv.addKeyedItem( "Base frame", 
                              Integer.toString( base )
                              + " (\"" + wcs.getFrame( base ).getDomain()

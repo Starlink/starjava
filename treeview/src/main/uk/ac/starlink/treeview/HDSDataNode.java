@@ -292,7 +292,7 @@ public class HDSDataNode extends DefaultDataNode {
             /* It's an array of some kind. */
             if ( shape != null ) {
                 long[] dims = shape.getDims();
-                dv.addKeyedItem( "Dimensions", "" + dims.length );
+                dv.addKeyedItem( "Dimensions", dims.length );
                 StringBuffer sdims = new StringBuffer();
                 for ( int i = 0; i < dims.length; i++ ) {
                     if ( i > 0 ) {
@@ -300,7 +300,7 @@ public class HDSDataNode extends DefaultDataNode {
                     }
                     sdims.append( dims[ i ] );
                 }
-                dv.addKeyedItem( "Shape", sdims.toString() );
+                dv.addKeyedItem( "Shape", sdims );
             }
 
             /* It's a scalar. */

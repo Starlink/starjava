@@ -98,7 +98,7 @@ public class HDUDataNode extends DefaultDataNode {
             dv.addSeparator();
             dv.addKeyedItem( "HDU type", hduType );
             dv.addKeyedItem( "Number of header cards",
-                             Integer.toString( header.getNumberOfCards() ) );
+                             header.getNumberOfCards() );
             dv.addPane( "Header cards", new ComponentMaker() {
                 public JComponent getComponent() {
                     return new TextViewer( header.iterator() );

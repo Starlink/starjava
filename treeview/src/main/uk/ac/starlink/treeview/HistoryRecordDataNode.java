@@ -114,7 +114,7 @@ public class HistoryRecordDataNode extends DefaultDataNode {
             fullView = dv.getComponent();
             dv.addSeparator();
             if ( date != null ) {
-                dv.addKeyedItem( "Date", date.toString() );
+                dv.addKeyedItem( "Date", date );
             }
             if ( command != null ) {
                 dv.addKeyedItem( "Command", command );

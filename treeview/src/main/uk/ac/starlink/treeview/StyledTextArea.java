@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.io.Writer;
 import javax.swing.Action;
@@ -55,7 +56,7 @@ public class StyledTextArea extends JTextPane {
         StyleConstants.setBold( errorHeadStyle, true );
 
         Style iconStyle = addStyle( "icon", getStyle( "title" ) );
-        Style buttStyle = addStyle( "button", getStyle( "title" ) );
+        Style buttStyle = addStyle( "component", getStyle( "title" ) );
     }
 
     private void append( String sname, String text ) {
@@ -82,6 +83,26 @@ public class StyledTextArea extends JTextPane {
         append( "itemvalue", value + "\n" );
     }
 
+    public void addKeyedItem( String name, Object value ) {
+        addKeyedItem( name, value.toString() );
+    }
+
+    public void addKeyedItem( String name, int value ) {
+        addKeyedItem( name, Integer.toString( value ) );
+    }
+
+    public void addKeyedItem( String name, long value ) {
+        addKeyedItem( name, Long.toString( value ) );
+    }
+
+    public void addKeyedItem( String name, double value ) {
+        addKeyedItem( name, Double.toString( value ) );
+    }
+
+    public void addKeyedItem( String name, float value ) {
+        addKeyedItem( name, Float.toString( value ) );
+    }
+
     public void logError( Throwable th ) {
         append( "normal", "\n" );
         append( "errorhead", "Error:  " );
@@ -104,11 +125,14 @@ public class StyledTextArea extends JTextPane {
         append( "icon", " " );
     }
 
-    public void addButton( Action act ) {
-        JButton butt = new JButton( act );
-        Style buttStyle = doc.getStyle( "button" );
-        StyleConstants.setComponent( buttStyle, butt );
-        append( "button", " " );
+    public void addAction( Action act ) {
+        addComponent( new JButton( act ) );
+    }
+
+    public void addComponent( Component comp ) {
+        Style compStyle = doc.getStyle( "component" );
+        StyleConstants.setComponent( compStyle, comp );
+        append( "component", " " );
     }
 
     public void addSpace() {

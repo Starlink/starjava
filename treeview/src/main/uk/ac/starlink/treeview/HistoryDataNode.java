@@ -104,7 +104,7 @@ public class HistoryDataNode extends DefaultDataNode {
             DetailViewer dv = new DetailViewer( this );
             fullView = dv.getComponent();
             dv.addSeparator();
-            dv.addKeyedItem( "Records", Integer.toString( nrec ) );
+            dv.addKeyedItem( "Records", nrec );
         }
         return fullView;
     }

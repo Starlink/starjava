@@ -153,7 +153,7 @@ public class DetailViewer {
             for ( int i = 0; i < acts.length; i++ ) {
                 if ( acts[ i ] != null ) {
                     Action act = acts[ i ];
-                    over.addButton( act );
+                    over.addAction( act );
                     if ( i < acts.length - 1 ) {
                         over.addSpace();
                     }
@@ -171,6 +171,26 @@ public class DetailViewer {
     }
 
     public void addKeyedItem( String name, String value ) {
+        over.addKeyedItem( name, value );
+    }
+
+    public void addKeyedItem( String name, Object value ) {
+        addKeyedItem( name, value.toString() );
+    }
+
+    public void addKeyedItem( String name, double value ) {
+        over.addKeyedItem( name, value );
+    }
+
+    public void addKeyedItem( String name, float value ) {
+        over.addKeyedItem( name, value );
+    }
+
+    public void addKeyedItem( String name, long value ) {
+        over.addKeyedItem( name, value );
+    }
+
+    public void addKeyedItem( String name, int value ) {
         over.addKeyedItem( name, value );
     }
 

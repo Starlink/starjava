@@ -361,7 +361,7 @@ public class NDFDataNode extends HDSDataNode {
             }
 
             dv.addSeparator();
-            dv.addKeyedItem( "Dimensionality", "" + ndim );
+            dv.addKeyedItem( "Dimensionality", ndim );
             dv.addKeyedItem( "Origin", NDShape.toString( shape.getOrigin() ) );
             dv.addKeyedItem( "Dimensions",
                              NDShape.toString( shape.getDims() ) );
@@ -384,8 +384,7 @@ public class NDFDataNode extends HDSDataNode {
             if ( wcsComponent != null ) {
                 int cur = wcs.getCurrent();
                 dv.addSubHead( "World Coordinate Systems" );
-                dv.addKeyedItem( "Number of frames", 
-                                 Integer.toString( wcs.getNframe() ) );
+                dv.addKeyedItem( "Number of frames", wcs.getNframe() );
                 dv.addKeyedItem( "Current frame",
                                  Integer.toString( cur ) + " (" + 
                                  wcs.getFrame( cur ).getDomain() + ")" );
@@ -458,7 +457,7 @@ public class NDFDataNode extends HDSDataNode {
                                               ArrayStructure ary ) {
         if ( ary != null ) {
             dv.addSubHead( name );
-            dv.addKeyedItem( "Type", ary.getType().toString() );
+            dv.addKeyedItem( "Type", ary.getType() );
             dv.addKeyedItem( "Variant", ary.getStorage() );
         }
     }
