@@ -31,6 +31,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
+import uk.ac.starlink.util.gui.SelectTextField;
+
 /**
  * TitleControls creates a "page" of widgets that are a view of an
  * AstTitle object. They provide the ability to configure all the
