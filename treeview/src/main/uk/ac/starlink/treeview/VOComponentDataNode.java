@@ -178,6 +178,10 @@ public class VOComponentDataNode extends DefaultDataNode
         addVOComponentViews( dv, vocel, systemId );
     }
 
+    Element getElement() {
+        return vocel;
+    }
+
     private NodeList getTables() {
         if ( tables == null ) {
             tables = vocel.getElementsByTagName( "TABLE" );

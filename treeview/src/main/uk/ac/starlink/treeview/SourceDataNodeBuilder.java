@@ -3,11 +3,7 @@ package uk.ac.starlink.treeview;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import javax.xml.transform.dom.DOMSource;
@@ -27,22 +23,8 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
     /** Singleton instance. */
     private static SourceDataNodeBuilder instance = new SourceDataNodeBuilder();
 
-    /** Error handler used for parsing XML. */
-    private static ErrorHandler xhandler = new ErrorHandler() {
-        public void warning( SAXParseException e ) {
-            // ignore it
-        }
-        public void error( SAXParseException e ) {
-            // ignore it
-        }
-        public void fatalError( SAXParseException e ) throws SAXParseException {
-            // bail out
-            throw e;
-        }
-    };
-
-    private static XMLDataNodeBuilder xmlBuilder = 
-        XMLDataNodeBuilder.getInstance();
+    private static DocumentDataNodeBuilder docBuilder = 
+        DocumentDataNodeBuilder.getInstance();
 
     /**
      * Obtains the singleton instance of this class.
@@ -93,9 +75,9 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
         }
 
         /* If it's an XML stream delegate to the XMLbuilder. */
-        if ( XMLDataNode.isMagic( magic ) ) {
-            DOMSource xsrc = makeDOMSource( datsrc );
-            return xmlBuilder.buildNode( xsrc );
+        if ( XMLDocument.isMagic( magic ) ) {
+            XMLDocument xdoc = new XMLDocument( datsrc );
+            return docBuilder.buildNode( xdoc );
         }
 
         /* Don't know what it is. */
@@ -104,75 +86,6 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
 
     public String toString() {
         return "SourceDataNodeBuilder(uk.ac.starlink.util.DataSource)";
-    }
-
-    public static DOMSource makeDOMSource( DataSource datsrc ) 
-            throws NoSuchDataException {
-
-        /* See whether it is worth the effort. */
-        try {
-            if ( ! XMLDataNode.isMagic( datsrc.getIntro() ) ) {
-                throw new NoSuchDataException( "Doesn't look like XML" );
-            }
-        }
-        catch ( IOException e ) {
-            throw new NoSuchDataException( e );
-        }
-
-        /* Get a DocumentBuilder. */
-        DocumentBuilderFactory dbfact = DocumentBuilderFactory.newInstance();
-        dbfact.setValidating( false );
-        DocumentBuilder parser;
-        try {
-            parser = dbfact.newDocumentBuilder();
-        }
-        catch ( ParserConfigurationException e ) {
-
-            /* Failed for some reason - try it with nothing fancy then. */
-            try {
-                parser = DocumentBuilderFactory.newInstance()
-                          .newDocumentBuilder();
-            }
-            catch ( ParserConfigurationException e2 ) {
-                throw new NoSuchDataException( e2 );  // give up then
-            }
-        }
-        parser.setEntityResolver( TreeviewEntityResolver.getInstance() );
-        parser.setErrorHandler( xhandler );
-
-        /* Parse the XML file. */
-        Document doc;
-        try {
-            InputStream strm = datsrc.getHybridInputStream();
-            doc = parser.parse( strm );
-            strm.close();
-        }
-        catch ( SAXException e ) {
-            throw new NoSuchDataException( "XML parse error on source " +
-                                           datsrc, e );
-        }
-        catch ( IOException e ) {
-            throw new NoSuchDataException( "I/O trouble during XML parse of " +
-                                           " source " + datsrc, e );
-        }
-
-        /* Turn it into a DOMSource. */
-        DOMSource domsrc = new DOMSource( doc );
-        String sysid;
-        URL url = datsrc.getURL();
-        if ( url != null ) {
-            if ( url.getProtocol().equals( "file" ) ) {
-                sysid = url.getPath();
-            }
-            else {
-                sysid = url.toString();
-            }
-        }
-        else {
-            sysid = datsrc.getName();
-        }
-        domsrc.setSystemId( sysid );
-        return domsrc;
     }
 
 }

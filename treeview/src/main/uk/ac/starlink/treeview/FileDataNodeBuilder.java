@@ -6,16 +6,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.dom.DOMSource;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSReference;
@@ -40,7 +34,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
     private static FileDataNodeBuilder instance = new FileDataNodeBuilder();
 
     private DataNodeBuilder sourceBuilder = SourceDataNodeBuilder.getInstance();
-    private DataNodeBuilder xmlBuilder = XMLDataNodeBuilder.getInstance();
+    private DataNodeBuilder docBuilder = DocumentDataNodeBuilder.getInstance();
 
     /**
      * Obtains the singleton instance of this class.
@@ -145,9 +139,9 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             }
 
             /* If it's an XML file delegate it to the XML builder. */
-            if ( XMLDataNode.isMagic( magic ) ) {
-                DOMSource xsrc = makeDOMSource( file );
-                return xmlBuilder.buildNode( xsrc );
+            if ( XMLDocument.isMagic( magic ) ) {
+                XMLDocument xdoc = new XMLDocument( datsrc );
+                return docBuilder.buildNode( xdoc );
             }
 
             /* We don't know what it is. */
@@ -171,15 +165,4 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
         return "FileDataNodeBuilder(java.io.File)";
     }
 
-    public static DOMSource makeDOMSource( File file )
-            throws NoSuchDataException {
-        try {
-            FileDataSource datsrc = new FileDataSource( file );
-            datsrc.setName( file.getName() );
-            return SourceDataNodeBuilder.makeDOMSource( datsrc );
-        }
-        catch ( IOException e ) {
-            throw new NoSuchDataException( e );
-        }
-    }
 }

@@ -34,10 +34,7 @@ public class VODataNodeBuilder extends DataNodeBuilder {
             }
             if ( domNode instanceof Element ) {
                 String elname = ((Element) domNode).getTagName();
-                if ( elname.equals( "VOTABLE" ) ) {
-                    return new VOTableDataNode( xsrc );
-                }
-                else if ( elname.equals( "TABLE" ) ) {
+                if ( elname.equals( "TABLE" ) ) {
                     return new VOTableTableDataNode( xsrc );
                 }
                 else {

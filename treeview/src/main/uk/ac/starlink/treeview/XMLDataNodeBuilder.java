@@ -59,7 +59,7 @@ public class XMLDataNodeBuilder extends DataNodeBuilder {
             return new NdxDataNode( xsrc );
         }
         else if ( elName.equals( "VOTABLE" ) ) {
-            return new VOTableDataNode( xsrc );
+            return new VOComponentDataNode( xsrc );
         }
 
         /* Otherwise, just make plain XML out of it. */

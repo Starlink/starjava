@@ -150,6 +150,16 @@ public class NdxDataNode extends DefaultDataNode
         setLabel( name );
     }
 
+    /**
+     * Constructs a new NdxDataNode from an XML document.
+     * For efficiency, this really ought to defer the DOM construction 
+     * parse until the contents are actually needed.  However, there
+     * probably aren't any large NDX XML documents out there, so it 
+     * probably doesn't matter.
+     */
+    public NdxDataNode( XMLDocument xdoc ) throws NoSuchDataException {
+        this( xdoc.constructDOM( false ) );
+    }
 
     public String getDescription() {
         if ( desc == null ) {

@@ -131,11 +131,11 @@ public abstract class DataNodeBuilder {
         /* We may be able to add some using standard techniques for getting
          * one kind of base object from another. */
 
-        /* Use an XML Source builder on a DataSource. */
-        if ( builderMap.containsKey( Source.class ) &&
+        /* Use an XML Document builder on a DataSource. */
+        if ( builderMap.containsKey( XMLDocument.class ) &&
              ! builderMap.containsKey( DataSource.class ) ) {
-            final DataNodeBuilder xmlBuilder = 
-                (DataNodeBuilder) builderMap.get( Source.class );
+            final DataNodeBuilder docBuilder = 
+                (DataNodeBuilder) builderMap.get( XMLDocument.class );
             DataNodeBuilder dataBuilder = 
                     new SimpleDataNodeBuilder( clazz, DataSource.class ) {
 
@@ -143,9 +143,8 @@ public abstract class DataNodeBuilder {
                         throws NoSuchDataException {
                     DataSource datsrc = (DataSource) obj;
                     try {
-                        Source xmlsrc = SourceDataNodeBuilder
-                                       .makeDOMSource( datsrc );
-                        return xmlBuilder.buildNode( xmlsrc );
+                        XMLDocument xdoc = new XMLDocument( datsrc );
+                        return docBuilder.buildNode( xdoc );
                     }
                     catch ( NoSuchDataException e ) {
                         datsrc.close();

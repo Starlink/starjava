@@ -148,6 +148,16 @@ public class HDXDataNode extends DefaultDataNode {
         this( file.toString() );
     }
 
+    /**
+     * Constructs a new HDXDataNode from an XML document.
+     * For efficiency, this really ought to defer the DOM construction
+     * parse until the contents are actually needed.  However, there
+     * probably aren't any large HDX XML documents out there, so it 
+     * probably doesn't matter.
+     */
+    public HDXDataNode( XMLDocument xdoc ) throws NoSuchDataException {
+        this( xdoc.constructDOM( false ) );
+    }
 
     public String getName() {
         return name;
