@@ -75,7 +75,3 @@ if test -f $dependsfile; then
    done
 fi
 exit
-
-
-
-exit
