@@ -197,14 +197,19 @@ public class Driver {
     /*
      * Create and display the viewer object.
      */
-    private static void viewAsGUI( DataNode root, short orient ) {
-        JFrame tv = new StaticTreeViewer( root, "Starlink Treeview", orient );
-        tv.addWindowListener( new WindowAdapter() {
-            public void windowClosing( WindowEvent e ) {
-                System.exit( 0 );
+    private static void viewAsGUI( final DataNode root, final short orient ) {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                JFrame tv = new StaticTreeViewer( root, "Starlink Treeview",
+                                                  orient );
+                tv.addWindowListener( new WindowAdapter() {
+                    public void windowClosing( WindowEvent e ) {
+                        System.exit( 0 );
+                    }
+                } );
+                tv.setVisible( true );
             }
         } );
-        tv.setVisible( true );
     }
 
     public static void viewAsText( DataNode root, boolean showPath ) {
