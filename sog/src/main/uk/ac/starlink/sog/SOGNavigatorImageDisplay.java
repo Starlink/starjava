@@ -456,7 +456,7 @@ public class SOGNavigatorImageDisplay
                 getClass().getResourceAsStream( "defaultgrid.xml" );
             ConfigurationStore store = new ConfigurationStore( defaultConfig );
             Element defaultElement = store.getState( 0 );
-            plotConfigurator.setDefaultState( defaultElement );
+            plotConfigurator.restoreState( defaultElement );
             plotConfigurator.reset();
             try {
                 defaultConfig.close();
