@@ -424,12 +424,14 @@
       </manifest>
     </jar>
 
-    <!-- Sign all jar files -->
-    <signjar jar="${dist.lib.pkg}/${name}.jar"
-             alias="${webstart.alias}"
+    <!-- Sign all jar files, except those signed by a third party -->
+    <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}"/>
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip" 
+               excludes="**/jhall.jar"/>
+    </signjar>
 
   </target>
 
@@ -462,7 +464,35 @@
 
        <resources>
          <j2se version="1.4+"/>
-         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip" 
+                  excludes="**/jhall.jar"/>
+         <extension name="JAVAHELP" href="javahelp.jnlp"/>
+       </resources>
+
+       <!-- This is a component -->
+       <component_desc/>
+
+    </jnlp>
+
+    <!-- Javahelp is signed by SUN so needs its own JNLP file -->
+    <jnlp toFile="${dist.lib}/javahelp.jnlp" href="javahelp.jnlp"
+          codebase="${webstart.codebase}">
+
+      <information>
+         <title>Javahelp</title>
+         <vendor>SUN</vendor>
+         <homepage href="http://java.sun.com/products/javahelp"/>
+         <description>"Javahelp - Webstart edition"</description>
+         <offline_allowed/>
+       </information>
+
+       <security>
+          <all_permissions/>
+       </security>
+
+       <resources>
+         <j2se version="1.4+"/>
+         <fileset dir="${dist.lib}" includes="**/jhall.jar"/>
        </resources>
 
        <!-- This is a component -->
