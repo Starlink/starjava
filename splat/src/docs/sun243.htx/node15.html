@@ -20,26 +20,26 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html242"
+<A NAME="tex2html243"
  HREF="node16.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html240"
+<A NAME="tex2html241"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html234"
+<A NAME="tex2html235"
  HREF="node14.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html243"
+<B> Next:</B> <A NAME="tex2html244"
  HREF="node16.html">The simple binary maths window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html241"
+<B>Up:</B> <A NAME="tex2html242"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html235"
+<B> Previous:</B> <A NAME="tex2html236"
  HREF="node14.html">The spectral coordinate system attributes window</A>
 <BR> <HR> <P>
 
@@ -57,32 +57,56 @@ request that the data values of all the spectra are transformed into the same
 system, so you can compare values in Janskys with those in other flux per unit
 frequency and per unit wavelength systems. For instance all the following
 systems are understood as fluxes and can be intercompared:
-
-<UL><LI><I>Jansky</I>
-
-<LI><I>W</I>/m<SUP>2</SUP>/<I>Hz</I>
-
-<LI>
+<BLOCKQUOTE>
+<TABLE CELLPADDING=3>
+<TR><TD ALIGN="LEFT"><code>Jy</code></TD>
+<TD ALIGN="LEFT">(<I>Jansky</I>)</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>W/m^2/Hz</code></TD>
+<TD ALIGN="LEFT">(
 <!-- MATH
- $W/m^{2}/Angstrom$
+ $W*m^{-2}*Hz^{-1}$
  -->
-<I>W</I>/m<SUP>2</SUP>/<I>Angstrom</I>
-
-<LI><I>W</I>/cm<SUP>2</SUP>/<I>um</I>
-
-<LI>
+<I>W</I>*m<SUP>-2</SUP>*Hz<SUP>-1</SUP>)</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>W/m^2/Angstrom</code></TD>
+<TD ALIGN="LEFT">(
 <!-- MATH
- $erg/cm^{2}/s/Hz$
+ $W*m^{-2}*Angstrom^{-1}$
  -->
-<I>erg</I>/cm<SUP>2</SUP>/<I>s</I>/Hz
-
-<LI>
+<I>W</I>*m<SUP>-2</SUP>*Angstrom<SUP>-1</SUP>)</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>W/cm^2/um</code></TD>
+<TD ALIGN="LEFT">(
 <!-- MATH
- $erg/cm^{2}/s/Angstrom$
+ $W*cm^{-2}*um^{-1}$
  -->
-<I>erg</I>/cm<SUP>2</SUP>/<I>s</I>/Angstrom
-</UL>
-Plus variations like <I>Joules</I> instead of <I>ergs</I> or maybe <I>N m</I>, <I>etc.</I>
+<I>W</I>*cm<SUP>-2</SUP>*um<SUP>-1</SUP>)</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>erg/cm^2/s/Hz</code></TD>
+<TD ALIGN="LEFT">(
+<!-- MATH
+ $erg*cm^{-2}*s^{-1}*Hz^{-1}$
+ -->
+<I>erg</I>*cm<SUP>-2</SUP>*s<SUP>-1</SUP>*Hz<SUP>-1</SUP>)</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>erg/cm^2/s/Angstrom</code></TD>
+<TD ALIGN="LEFT">(
+<!-- MATH
+ $erg*cm^{-2}*s^{-1}*Angstrom^{-1}$
+ -->
+<I>erg</I>*cm<SUP>-2</SUP>*s<SUP>-1</SUP>*Angstrom<SUP>-1</SUP>)</TD>
+</TR>
+</TABLE>
+</BLOCKQUOTE>
+Plus variations like <I>Joules</I> instead of <I>ergs</I> or maybe <I>N m</I>, <I>etc.</I> When reading unit strings like <code>W/m^2/Hz</code> you should say Watts per metre
+squared per Hertz, which is actually mathematically the same as the
+expressions shown in to the right in parentheses
+(<TT>
+<!-- MATH
+ $W*m^{-2}*Hz^{-1}$
+ -->
+<I>W</I>*m<SUP>-2</SUP>*Hz<SUP>-1</SUP></TT> in this case).
 
 <P>
 In addition to flux systems dimensionally similar ones can also be used and
@@ -94,7 +118,7 @@ like <I>eV</I> and <I>keV</I>.
 The units are described using strings that follow the conventions in FITS-WCS
 paper I <I>Representation of World Coordinate in FITS</I> by Greisen &amp;
 Calabretta, and processed by the Starlink AST library
-(<A HREF="http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/sun211.html?xref_ss:unitsyntax">SUN/211</A>). 
+(<A HREF="/star/docs/sun211.htx/sun211.html#xref_ss:unitsyntax">SUN/211</A>).
 The following section is copied from SUN/211 for convenience. Not all units
 are relevant to data values (AST also provides the underlying coordinate
 transformations used in <I>SPLAT-VO</I>) and as noted above not all possible unit
@@ -102,15 +126,15 @@ strings can be understood as fluxes (although support for more types is
 expected, for instance temperatures and magnitudes).
 
 <P>
-The adopted syntax is that described in FITS-WCS paper I "Representation
-of World Coordinate in FITS" by Greisen &amp; Calabretta. We distinguish
+The adopted syntax is that described in FITS-WCS paper I <I>Representation
+of World Coordinate in FITS</I> by Greisen &amp; Calabretta. We distinguish
 here between ``basic'' units and ``derived'' units: derived units are
 defined in terms of other units (either derived or basic), whereas basic
 units have no such definitions. Derived units may be represented by their
 own <I>symbol</I> (<I>e.g.</I> ``Jy''--the Jansky) or by a
 <I>mathematical expression</I> which combines other symbols and constants
 to form a definition of the unit (<I>e.g.</I> ``km/s''--kilometres per
-second). Unit symbols may be prefixed by a string representing a standard 
+second). Unit symbols may be prefixed by a string representing a standard
 multiple or sub-multiple.
 
 <P>
@@ -118,7 +142,7 @@ In addition to the unit symbols listed in FITS-WCS Paper I, any other
 arbitrary unit symbol may be used, with the proviso that it will not be
 possible to convert between spectra using such units. The exception to
 this is if both spectra refer to the same unknown unit string. For instance,
-an axis with unknown unit symbol "flop" <I>could</I> be converted to an axis 
+an axis with unknown unit symbol "flop" <I>could</I> be converted to an axis
 with unit "Mflop" (Mega-flop).
 
 <P>
@@ -130,7 +154,7 @@ parentheses and numerical constants (these may optionally use
 power of 10).
 
 <P>
-The following tables list the symbols for the basic and derived units which 
+The following tables list the symbols for the basic and derived units which
 may be included in a units string, the standard prefixes for multiples
 and sub-multiples, and the strings which may be used to represent
 mathematical operators and functions.
@@ -186,7 +210,7 @@ mathematical operators and functions.
 <P>
 <DIV ALIGN="CENTER">
 <TABLE CELLPADDING=3 BORDER="1">
-<TR><TD ALIGN="CENTER" COLSPAN=6><FONT SIZE="+1"> Prefixes for multiples &amp; 
+<TR><TD ALIGN="CENTER" COLSPAN=6><FONT SIZE="+1"> Prefixes for multiples &amp;
 sub-multiples</FONT></TD>
 </TR>
 <TR><TD ALIGN="CENTER" COLSPAN=1>Sub-multiple</TD>
@@ -561,26 +585,26 @@ sub-multiples</FONT></TD>
 <P>
 
 <BR> <HR>
-<A NAME="tex2html242"
+<A NAME="tex2html243"
  HREF="node16.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html240"
+<A NAME="tex2html241"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html234"
+<A NAME="tex2html235"
  HREF="node14.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html243"
+<B> Next:</B> <A NAME="tex2html244"
  HREF="node16.html">The simple binary maths window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html241"
+<B>Up:</B> <A NAME="tex2html242"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html235"
+<B> Previous:</B> <A NAME="tex2html236"
  HREF="node14.html">The spectral coordinate system attributes window</A>
 <BR> <HR> <P>
 

@@ -20,26 +20,26 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html202"
+<A NAME="tex2html203"
  HREF="node12.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html200"
+<A NAME="tex2html201"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html194"
+<A NAME="tex2html195"
  HREF="node10.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html203"
+<B> Next:</B> <A NAME="tex2html204"
  HREF="node12.html">The animation window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html201"
+<B>Up:</B> <A NAME="tex2html202"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html195"
+<B> Previous:</B> <A NAME="tex2html196"
  HREF="node10.html">The Graphics menu</A>
 <BR> <HR> <P>
 
@@ -62,30 +62,31 @@ can then select which of these you are interested in and download these into
  <IMG
  WIDTH="358" HEIGHT="328" ALIGN="BOTTOM" BORDER="0"
  SRC="ssapwindow.gif"
- ALT="1059">
+ ALT="1064">
  
 </DIV>
 
 <P>
 The figure above shows the window after a query to all the currently known
-servers has been made. 
+servers has been made.
 
 <P>
-To lookup the coordinates of an object just type in an identifier and either
-press <TT>&lt;Return&gt;</TT> or the <B>Lookup</B> button. Alternatively if you
-known the coordinates (FK5/J2000) of the region of sky you can just enter the
-coordinates in the <B>RA</B> and <B>Dec</B> fields. The 
-<B>Radius</B> value is a number of arcminutes to search about the
-position. Once you have identified the region to search press the 
-<B>Go</B> button to contact the current list of SSAP servers. To make a
-query it may be necessary for you to tell <I>SPLAT-VO</I> about your local web-proxy
-server (this is the same as that you use in your Internet browser), select the
-<B>Options=&gt;Configure proxy...</B> item to do this.
+To lookup the coordinates of an object just type in an identifier in the
+<B>Object</B> field and either press <TT>&lt;Return&gt;</TT> or the
+<B>Lookup</B> button. Alternatively if you know the coordinates
+(FK5/J2000) of the region of sky you can just enter the coordinates in the
+<B>RA</B> and <B>Dec</B> fields. The <B>Radius</B> value is a
+number of arcminutes to search about the position. Once you have identified
+the region to search press the <B>Go</B> button to contact the current
+list of SSAP servers. To make these queries it may be necessary for you to
+tell <I>SPLAT-VO</I> about your local web-proxy server (this is the same as that you
+use in your Internet browser), select the 
+<B>Options-&gt;Configure proxy...</B> item to do this. 
 
 <P>
-The list of servers available is shown in the <B>Servers</B> menu. To 
-not query a server de-select it from this list (note that in the future the
-list of servers itself will be determined by a query to a VO registry).
+The list of servers available is shown in the <B>Servers</B> menu. To not
+query a server de-select it from this list (note that in the future the list
+of servers itself will be determined by a query to a VO registry).
 
 <P>
 Once the SSAP query is complete lists of spectra that the servers hold will be
@@ -106,59 +107,78 @@ time) and then press the <B>Display selected</B> button.
 <P>
 Once the spectra have been downloaded they should appear together in a single
 plot. If this isn't the case then some of the spectra are probably invalid and
-you will need to add them to a plot yourself (see the section on 
-<A HREF="http://star-www.rl.ac.uk/cgi-bin/htxserver/displaying_more_than_one_spectrum.htx/displaying_more_than_one_spectrum.html?xref_">displaying more than one spectrum</A>).
-If you want <I>SPLAT-VO</I> to match the coordinate systems and fluxes of the spectra 
-then remember to select the 
-<B>Options=&gt;Match coordinates and/or fluxes</B> item in the plot window.
+you will need to add them to a plot yourself (see the section on
+<A HREF="#displaying_more_than_one_spectrum">displaying more than one spectrum</A>).
+If you want <I>SPLAT-VO</I> to match the coordinate systems and fluxes of the spectra
+then remember to select the
+<B>Options-&gt;Match coordinates and/or fluxes</B> item in the plot window.
 
 <P>
-<B><FONT SIZE="+1">Status of implementation</FONT></B>
+<B><FONT SIZE="+1">Implementation status</FONT></B>
 
 <P>
-SSAP is a protocol being developed by the IVOA (<A HREF="#http:__www.ivoa.net_">International Virtual
-Observatory Alliance</A>) and is not yet a full
-recomendation so the services offered here are just a flavour of what might
-become available. 
+SSAP is a protocol being developed by the IVOA
+(<A NAME="tex2html5"
+ HREF="http://www.ivoa.net/">International Virtual Observatory Alliance</A>) and is not yet a full recommendation so the services
+offered here should be considered a simple example of what will eventually
+become available.
 
 <P>
-Currently responses from SSAP servers may only return spectra in the simple
-formats understood by <I>SPLAT-VO</I> (these are generally FITS of various flavours)
-and the SSAP query is limited to just a cone region on the sky (additional
-meta-data like XXXpassbandXXX are not allowed). The servers themselves are
-currently hardcoded into <I>SPLAT-VO</I>, but this situation will be resolved in the
-next release which will feature a system for query VO registries for SSAP
-services.
+Currently spectra returned from SSAP servers may only be in basic formats,
+that is simple FITS and VOTables (not the full SED data model serialisation).
+However, the <I>SPLAT-VO</I> data model includes errors as well as coordinates and
+data values.
 
 <P>
-The matching of spectral coordinates and fluxes is performed by the Starlink
-AST library (<A HREF="http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/sun211.html?xref_">SUN/211</A>). This works using a full implementation
-of spectral coordinates from FITS paper III and by interpreting the units
-strings (this does not use the dimensional analysis approach).
+Support for spectral coordinates is provided by the Starlink AST library
+(<A HREF="/star/docs/sun211.htx/sun211.html#xref_">SUN/211</A>) using an implementation of the FITS-WCS paper III
+<I>Representations of spectral coordinates in FITS</I>
+(Greisen,
+Valdes, Calabretta &amp; Allen).
+AST also provides the flux conversion utilities used by <I>SPLAT-VO</I> which is based
+on interpreting the units strings system described in FITS-WCS paper I
+<I>Representation of World Coordinate in FITS</I>
+by Greisen &amp; Calabretta. This does not use the dimensional analysis-only
+approach which cannot deal with dimensionless systems like magnitudes and
+conversions from Jy to Jy/sr and Jy to temperature, however, at present
+flux systems are restricted to flux per unit frequency and per unit wavelength.
+
+<P>
+The SSAP query is limited to just a cone region on the sky and optional query
+parameters are not supported.
+
+<P>
+SSAP server details are currently hard-coded into <I>SPLAT-VO</I>, but this situation
+will be resolved in the next release which will feature a system for querying
+VO registries for SSAP services. Meanwhile if you have any new SSAP servers
+that you'd like to test you can add these by hand. Look at the file
+<TT>$HOME/.splat/SSAServerList.xml</TT>, after running <I>SPLAT-VO</I> and performing
+a VO search and edit it to include a new <TT>&lt;server&gt;</TT> element. The
+required format should be obvious from the file content.
 
 <P>
 
 <BR> <HR>
-<A NAME="tex2html202"
+<A NAME="tex2html203"
  HREF="node12.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html200"
+<A NAME="tex2html201"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html194"
+<A NAME="tex2html195"
  HREF="node10.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html203"
+<B> Next:</B> <A NAME="tex2html204"
  HREF="node12.html">The animation window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html201"
+<B>Up:</B> <A NAME="tex2html202"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html195"
+<B> Previous:</B> <A NAME="tex2html196"
  HREF="node10.html">The Graphics menu</A>
 <BR> <HR> <P>
 

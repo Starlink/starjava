@@ -202,7 +202,7 @@ spectra that can also interact with the Virtual Observatory.
 
 % UI elements.
 \newcommand{\menuitem}[1]{\textbf{#1}}
-\newcommand{\submenuitem}[2]{\latexhtml{\textbf{#1$\rightarrow$#2}}{\textbf{#1=>#2}}}
+\newcommand{\submenuitem}[2]{\latexhtml{\textbf{#1$\rightarrow$#2}}{\textbf{#1->#2}}}
 \newcommand{\labelitem}[1]{\textbf{#1}}
 
 % typed text.
@@ -378,10 +378,10 @@ This allows coordinates to be \textit{displayed} and \textit{aligned}
 in many different coordinate systems (wavelength, frequency, energy,
 velocity) and \textit{transformed} between these and different
 standards of rest (topocentric, heliocentric, dynamic and kinematic
-local standards of rest \etc). 
+local standards of rest \etc).
 It also uses AST to transform spectra between various flux systems, so that
 spectra from a wide variety of sources can be easily compared and used to
-produce a spectral energy distribution. 
+produce a spectral energy distribution.
 This is an important feature for supporting the heterogeneous data supplied
 in the Virtual Observatory.
 
@@ -1053,7 +1053,7 @@ the display area.\\
 
  \begin{itemize}
 
-  \item \submenuitem{Options}{Match coordinates and/or fluxes}. 
+  \item \submenuitem{Options}{Match coordinates and/or fluxes}.
   When this is selected the plot will attempt to convert the spectral
   coordinates and fluxes of all displayed spectra into the systems of the
   current spectrum, so that they will be aligned when displayed.
@@ -1069,10 +1069,10 @@ the display area.\\
   In the case of line identifier catalogues, these will also be transformed to
   the rest frame of the observed source (\ie\ they will be red or blue shifted
   if you have defined the source velocity as part of its coordinate system
-  definition). 
+  definition).
 
   Many spectra will not have appropriate coordinates or data units defined, so
-  by default this option is switched off. 
+  by default this option is switched off.
 
   \item \submenuitem{Options}{Match non-flux data units}.
   If your data units are not understood as fluxes it may still be possible to
@@ -1206,22 +1206,23 @@ can then select which of these you are interested in and download these into
 \mainfigure{ssapwindow}
 
 The figure above shows the window after a query to all the currently known
-servers has been made. 
+servers has been made.
 
-To lookup the coordinates of an object just type in an identifier and either
-press \hitext{<Return>} or the \labelitem{Lookup} button. Alternatively if you
-known the coordinates (FK5/J2000) of the region of sky you can just enter the
-coordinates in the \labelitem{RA} and \labelitem{Dec} fields. The 
-\labelitem{Radius} value is a number of arcminutes to search about the
-position. Once you have identified the region to search press the 
-\labelitem{Go} button to contact the current list of SSAP servers. To make a
-query it may be necessary for you to tell \SPLAT\ about your local web-proxy
-server (this is the same as that you use in your Internet browser), select the
-\submenuitem{Options}{Configure proxy...} item to do this.
+To lookup the coordinates of an object just type in an identifier in the
+\labelitem{Object} field and either press \hitext{<Return>} or the
+\labelitem{Lookup} button. Alternatively if you know the coordinates
+(FK5/J2000) of the region of sky you can just enter the coordinates in the
+\labelitem{RA} and \labelitem{Dec} fields. The \labelitem{Radius} value is a
+number of arcminutes to search about the position. Once you have identified
+the region to search press the \labelitem{Go} button to contact the current
+list of SSAP servers. To make these queries it may be necessary for you to
+tell \SPLAT\ about your local web-proxy server (this is the same as that you
+use in your Internet browser), select the 
+\submenuitem{Options}{Configure proxy...} item to do this. 
 
-The list of servers available is shown in the \labelitem{Servers} menu. To 
-not query a server de-select it from this list (note that in the future the
-list of servers itself will be determined by a query to a VO registry).
+The list of servers available is shown in the \labelitem{Servers} menu. To not
+query a server de-select it from this list (note that in the future the list
+of servers itself will be determined by a query to a VO registry).
 
 Once the SSAP query is complete lists of spectra that the servers hold will be
 shown in the \labelitem{Query results:} region. There is a tab of results for
@@ -1239,31 +1240,49 @@ time) and then press the \labelitem{Display selected} button.
 
 Once the spectra have been downloaded they should appear together in a single
 plot. If this isn't the case then some of the spectra are probably invalid and
-you will need to add them to a plot yourself (see the section on 
+you will need to add them to a plot yourself (see the section on
 \htmlref{displaying more than one spectrum}{displaying_more_than_one_spectrum}).
-If you want \SPLAT\ to match the coordinate systems and fluxes of the spectra 
-then remember to select the 
+If you want \SPLAT\ to match the coordinate systems and fluxes of the spectra
+then remember to select the
 \submenuitem{Options}{Match coordinates and/or fluxes} item in the plot window.
 
-\subheading{Status of implementation}
+\subheading{Implementation status}
 
-SSAP is a protocol being developed by the IVOA 
+SSAP is a protocol being developed by the IVOA
 (\htmladdnormallinkfoot{International Virtual Observatory Alliance}
-{http://www.ivoa.net/}) and is not yet a full recommendation so the 
-services offered here are just a flavour of what might become available. 
+{http://www.ivoa.net/}) and is not yet a full recommendation so the services
+offered here should be considered a simple example of what will eventually
+become available.
 
-Currently responses from SSAP servers may only return spectra in the simple
-formats understood by \SPLAT\ (these are generally FITS of various flavours)
-and the SSAP query is limited to just a cone region on the sky (additional
-meta-data like XXXpassbandXXX are not allowed). The servers themselves are
-currently hard-coded into \SPLAT, but this situation will be resolved in the
-next release which will feature a system for query VO registries for SSAP
-services.
+Currently spectra returned from SSAP servers may only be in basic formats,
+that is simple FITS and VOTables (not the full SED data model serialisation).
+However, the \SPLAT\ data model includes errors as well as coordinates and
+data values.
 
-The matching of spectral coordinates and fluxes is performed by the Starlink
-AST library (\xref{SUN/211}{sun211}). This works using a full implementation
-of spectral coordinates from FITS paper III and by interpreting the units
-strings (this does not use the dimensional analysis-only approach).
+Support for spectral coordinates is provided by the Starlink AST library
+(\xref{SUN/211}{sun211}{}) using an implementation of the FITS-WCS paper III
+\textit{Representations of spectral coordinates in FITS}
+(Greisen,
+Valdes, Calabretta \& Allen).
+AST also provides the flux conversion utilities used by \SPLAT\ which is based
+on interpreting the units strings system described in FITS-WCS paper I
+\textit{Representation of World Coordinate in FITS}
+by Greisen \& Calabretta. This does not use the dimensional analysis-only
+approach which cannot deal with dimensionless systems like magnitudes and
+conversions from Jy to Jy/sr and Jy to temperature, however, at present
+flux systems are restricted to flux per unit frequency and per unit wavelength.
+
+The SSAP query is limited to just a cone region on the sky and optional query
+parameters are not supported.
+
+SSAP server details are currently hard-coded into \SPLAT, but this situation
+will be resolved in the next release which will feature a system for querying
+VO registries for SSAP services. Meanwhile if you have any new SSAP servers
+that you'd like to test you can add these by hand. Look at the file
+\hitext{\$HOME/.splat/SSAServerList.xml}, after running \SPLAT\ and performing
+a VO search and edit it to include a new \hitext{<server>} element. The
+required format should be obvious from the file content.
+
 
 \newpage
 \subsection{The animation window\xlabel{animation_window}}
@@ -1528,7 +1547,7 @@ before matching are shown in blue and red after matching.
 
 \mainfigure{coordinatesystemplot}
 
-The alternative to this method is switch 
+The alternative to this method is switch
 \submenuitem{Options}{Match coordinates and/or fluxes} off and transform the
 galaxy spectrum to what it would have looked like in the source standard of
 rest (\ie\ if you had taken the measurements travelling with the galaxy). To
@@ -1549,7 +1568,7 @@ that the centre of a line with locally zero velocity has. The rest frequency
 can actually be specified in various units, for instance angstroms.
 
 To find out more about spectral coordinate systems you'll need to refer to
-`FITS-WCS paper III 
+`FITS-WCS paper III
 \textit{Representations of spectral coordinates in FITS}
 (Greisen, Valdes, Calabretta \& Allen)' and the Starlink AST library
 documentation (\xref{SUN/211}{sun211}{ss:specframes}).
@@ -1565,15 +1584,22 @@ request that the data values of all the spectra are transformed into the same
 system, so you can compare values in Janskys with those in other flux per unit
 frequency and per unit wavelength systems. For instance all the following
 systems are understood as fluxes and can be intercompared:
-\begin{itemize}
-\item $Jansky$
-\item $W/m^{2}/Hz$
-\item $W/m^{2}/Angstrom$
-\item $W/cm^{2}/um$
-\item $erg/cm^{2}/s/Hz$
-\item $erg/cm^{2}/s/Angstrom$
-\end{itemize}
-Plus variations like $Joules$ instead of $ergs$ or maybe $N m$, \etc
+\begin{quote}
+\begin{tabular}{ll}
+\verb+Jy+                  & ($Jansky$)                                \\
+\verb+W/m^2/Hz+            & ($W*m^{-2}*Hz^{-1}$)                      \\
+\verb+W/m^2/Angstrom+      & ($W*m^{-2}*Angstrom^{-1}$)                \\
+\verb+W/cm^2/um+           & ($W*cm^{-2}*um^{-1}$)                     \\
+\verb+erg/cm^2/s/Hz+       & ($erg*cm^{-2}*s^{-1}*Hz^{-1}$)            \\
+\verb+erg/cm^2/s/Angstrom+ & ($erg*cm^{-2}*s^{-1}*Angstrom^{-1}$)
+\end{tabular}
+\end{quote}
+Plus variations like $Joules$ instead of $ergs$ or maybe $N m$, \etc\
+When reading unit strings like \verb+W/m^2/Hz+ you should say Watts per metre
+squared per Hertz, which is actually mathematically the same as the
+expressions shown in to the right in parentheses
+(\hitext{$W*m^{-2}*Hz^{-1}$} in this case).
+
 
 In addition to flux systems dimensionally similar ones can also be used and
 transformed between in a plot, things like temperature. \SPLAT\ understands
@@ -1583,29 +1609,29 @@ like $eV$ and $keV$.
 The units are described using strings that follow the conventions in FITS-WCS
 paper I \textit{Representation of World Coordinate in FITS} by Greisen \&
 Calabretta, and processed by the Starlink AST library
-(\xref{SUN/211}{sun211}{ss:unitsyntax}). 
+(\xref{SUN/211}{sun211}{ss:unitsyntax}).
 The following section is copied from SUN/211 for convenience. Not all units
 are relevant to data values (AST also provides the underlying coordinate
 transformations used in \SPLAT) and as noted above not all possible unit
 strings can be understood as fluxes (although support for more types is
 expected, for instance temperatures and magnitudes).
 
-The adopted syntax is that described in FITS-WCS paper I "Representation
-of World Coordinate in FITS" by Greisen \& Calabretta. We distinguish
+The adopted syntax is that described in FITS-WCS paper I \textit{Representation
+of World Coordinate in FITS} by Greisen \& Calabretta. We distinguish
 here between ``basic'' units and ``derived'' units: derived units are
 defined in terms of other units (either derived or basic), whereas basic
 units have no such definitions. Derived units may be represented by their
 own \emph{symbol} (\emph{e.g.} ``Jy''---the Jansky) or by a
 \emph{mathematical expression} which combines other symbols and constants
 to form a definition of the unit (\emph{e.g.} ``km/s''---kilometres per
-second). Unit symbols may be prefixed by a string representing a standard 
+second). Unit symbols may be prefixed by a string representing a standard
 multiple or sub-multiple.
 
 In addition to the unit symbols listed in FITS-WCS Paper I, any other
 arbitrary unit symbol may be used, with the proviso that it will not be
 possible to convert between spectra using such units. The exception to
 this is if both spectra refer to the same unknown unit string. For instance,
-an axis with unknown unit symbol "flop" \emph{could} be converted to an axis 
+an axis with unknown unit symbol "flop" \emph{could} be converted to an axis
 with unit "Mflop" (Mega-flop).
 
 Unit symbols (optionally prefixed with a multiple or sub-multiple) can be
@@ -1615,7 +1641,7 @@ parentheses and numerical constants (these may optionally use
 ``scientific'' notation including an ``E'' character to represent the
 power of 10).
 
-The following tables list the symbols for the basic and derived units which 
+The following tables list the symbols for the basic and derived units which
 may be included in a units string, the standard prefixes for multiples
 and sub-multiples, and the strings which may be used to represent
 mathematical operators and functions.
@@ -1626,7 +1652,7 @@ mathematical operators and functions.
 \multicolumn{3}{|c|}{{\large Basic units}} \\ \hline
 \multicolumn{1}{|c|}{Quantity} & \multicolumn{1}{|c|}{Symbol} &
 \multicolumn{1}{c|}{Full Name} \\ \hline
-length              & m   & metre \\ 
+length              & m   & metre \\
 mass                & g   & gram \\
 time                & s   & second \\
 plane angle         & rad & radian \\
@@ -1642,11 +1668,11 @@ luminous intensity  & cd  & candela \\
 \begin{center}
 \begin{tabular}{|lll|lll|}
 \hline
-\multicolumn{6}{|c|}{{\large Prefixes for multiples \& 
+\multicolumn{6}{|c|}{{\large Prefixes for multiples \&
 sub-multiples}} \\ \hline
-\multicolumn{1}{|c}{Sub-multiple} & \multicolumn{1}{c}{Name} & 
+\multicolumn{1}{|c}{Sub-multiple} & \multicolumn{1}{c}{Name} &
 \multicolumn{1}{c|}{Prefix} &
-\multicolumn{1}{|c}{Sub-multiple} & \multicolumn{1}{c}{Name} & 
+\multicolumn{1}{|c}{Sub-multiple} & \multicolumn{1}{c}{Name} &
 \multicolumn{1}{c|}{Prefix} \\ \hline
 $10^{-1}$ & deci & d & $10$ & deca & da \\
 $10^{-2}$ & centi & c & $10^{2}$ & hecto & h \\
@@ -1668,7 +1694,7 @@ $10^{-24}$ & yocto & y & $10^{24}$ & yotta & Y \\
 \multicolumn{2}{|c|}{{\large Mathematical operators \& functions}} \\
 \hline
 \multicolumn{1}{|c|}{String} & \multicolumn{1}{|c|}{Meaning} \\ \hline
-sym1 sym2           & multiplication (a space) \\ 
+sym1 sym2           & multiplication (a space) \\
 sym1*sym2           & multiplication (an asterisk) \\
 sym1.sym2           & multiplication (a dot) \\
 sym1/sym2           & division \\
@@ -2750,7 +2776,7 @@ Niemeyer (\htmladdnormallink{http://www.beanshell.org}
 
 \subsection{This release (3.0)}
 
-Starlink SPLAT now a tool for the Virtual Observatory and has been 
+Starlink SPLAT now a tool for the Virtual Observatory and has been
 renamed to \SPLAT.
 
 In this release Starlink \SPLAT\ has been enhanced to access prototype
