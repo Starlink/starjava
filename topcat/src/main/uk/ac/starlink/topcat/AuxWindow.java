@@ -485,7 +485,9 @@ public class AuxWindow extends JFrame {
          */
         public HelpAction( String helpID ) {
             this.helpID = helpID;
-            putValue( SMALL_ICON, ResourceIcon.HELP );
+            if ( helpID != null ) {
+                putValue( SMALL_ICON, ResourceIcon.HELP );
+            }
             putValue( NAME, helpID == null ? "Help" : "Help for window" );
             putValue( SHORT_DESCRIPTION, 
                       helpID == null 
