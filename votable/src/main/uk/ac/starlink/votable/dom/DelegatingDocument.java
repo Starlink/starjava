@@ -45,13 +45,17 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * <tt>Document</tt> from another DOM.
      *
      * @param   base  delegate document node
+     * @param   documentURI   location of the document, or <tt>null</tt>
      */
-    public DelegatingDocument( Document base ) {
+    public DelegatingDocument( Document base, String documentURI ) {
         super( base );
         setDocument( this );
         if ( base == null ) {
             throw new NullPointerException();
         }
+//DOM3         if ( documentURI != null ) {
+//DOM3             setDocumentURI( documentURI );
+//DOM3         }
         base_ = base;
     }
 
@@ -61,9 +65,11 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * This can theoretically result in a ParserConfigurationException, 
      * but shouldn't do for any sensibly set up JVM -
      * any such condition is rethrown as a RuntimeException.
+     *
+     * @param   documentURI   location of the document, or <tt>null</tt>
      */
-    public DelegatingDocument() {
-        this( makeEmptyDocument() );
+    public DelegatingDocument( String documentURI ) {
+        this( makeEmptyDocument(), documentURI );
     }
 
     /**

@@ -37,7 +37,7 @@ public class VODocument extends DelegatingDocument {
      *         by this DOM (sometimes used for resolving URLs)
      */
     VODocument( Document base, String systemId ) {
-        super( base );
+        super( base, systemId );
         systemId_ = systemId;
     }
 
@@ -48,7 +48,7 @@ public class VODocument extends DelegatingDocument {
      *         this DOM (sometimes used for resolving URLs) - may be null
      */
     public VODocument( String systemId ) {
-        super();
+        super( systemId );
         systemId_ = systemId;
     }
 
