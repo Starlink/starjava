@@ -10,7 +10,11 @@ package uk.ac.starlink.splat.util;
 import uk.ac.starlink.splat.data.AnalyticSpectrum;
 
 /**
- *  Abstract superclass for all interpolators.
+ *  Abstract superclass for all interpolators. Interpolation assumes a
+ *  monotonic set of X coordinates (the ordinates) and an arbitrary
+ *  set of Y coordinates (the data values). Interpolation of the Y
+ *  coordinates is provided by the specification of any possible X
+ *  coordinate or array of X coordinates.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -19,83 +23,176 @@ public abstract class Interpolator
     implements AnalyticSpectrum
 {
     /**
-     * Create an instance with the given coordinates and values.
-     * Interpolation is by coordinate producing a new value using the
-     * {@link interpolate} method. The coordinates should be
-     * monotonic, either increasing or decreasing. Same value
-     * coordinates are not allowed.
-     *
-     * @param x the coordinates to be interpolated.
-     * @param y the values of the coordinates.
+     * Create an instance with no coordinates. A call to 
+     * {@link setCoords} must be made before any other methods.
      */
-    public Interpolator( double[] x, double[] y )
+    public Interpolator()
     {
-        // Only constructor so sub-classes must implement this.
-        setValues( x, y );
+        //  Do nothing.
     }
 
     /**
-     * The ordinates. These are usually coordinates and must be
-     * monotonic.
+     * Create an instance with the given coordinates.  Interpolation
+     * is by X coordinate see the {@link interpolate} method. The X
+     * coordinates should be monotonic, either increasing or
+     * decreasing. Same value X coordinates are not allowed.
+     *
+     * @param x the X coordinates.
+     * @param y the Y coordinates.
+     */
+    public Interpolator( double[] x, double[] y )
+    {
+        setCoords( x, y );
+    }
+
+    /**
+     * The X coordinates. Must be monotonic. These form the basis for
+     * interpolation of the Y coordinates.
      */
     protected double[] x;
 
     /**
-     * The data values to be interpolated between the ordinates. There
-     * should be at least as many of these values as ordinates.
+     * The Y coordinates. There should be at least as many of these
+     * values as X coordinates. 
      */
     protected double[] y;
 
     /**
-     * Whether the ordinates are monotonically decreasing.
+     * Whether the X coordinates are monotonically decreasing.
      */
     protected boolean decr = false;
 
     /**
-     * Set the ordinates and values used by this interpolator.
-     *
-     * @param x the coordinates to be interpolated.
-     * @param y the values of the coordinates.
+     * A guess at the number of steps needed between the actual X
+     * coordinates that may be used to draw a reasonable representation
+     * of the curve being interpolated. 
      */
-    public abstract void setValues( double[] x, double[] y );
+    public int stepGuess()
+    {
+        return 11;
+    }
 
     /**
-     * Get the ordinates.
-     * 
-     * @return the ordinates.
+     * Set the coordinates used by this interpolator.
+     *
+     * @param x the X coordinates.
+     * @param y the Y coordinates.
      */
-    public double[] getOrdinates()
+    public abstract void setCoords( double[] x, double[] y );
+
+    /**
+     * Append a new position to the existing coordinates.
+     * 
+     * @param x the X coordinate.
+     * @param y the Y coordinate.
+     */
+    public void appendValue( double newx, double newy )
+    {
+        // Default implementation just appends new position and
+        // re-evaluates the whole system.
+        int newlength = 0;
+        if ( x == null ) {
+            newlength = 1;
+        }
+        else {
+            newlength = x.length + 1;
+        }
+        double tempx[] = new double[newlength];
+        double tempy[] = new double[newlength];
+        if ( x != null ) {
+            System.arraycopy( x, 0, tempx, 0, newlength - 1 );
+            System.arraycopy( y, 0, tempy, 0, newlength - 1 );
+        }
+        tempx[newlength-1] = newx;
+        tempy[newlength-1] = newy;
+        x = tempx;
+        y = tempy;
+        setCoords( x, y );
+    }
+
+    /**
+     * Get the number of coordinate positions that are being used by
+     * this interpolator.
+     *
+     * @return the number of positions that will be used.
+     */
+    public int getCount()
+    {
+        if ( x != null ) {
+            return x.length;
+        }
+        return 0;
+    }
+
+    /**
+     * Get the X coordinates.
+     *
+     * @return the X coordinate array. Note this is not a copy, if you
+     *         modify it you need to re-apply {@link setCoords}.
+     */
+    public double[] getXCoords()
     {
         return x;
     }
 
     /**
-     * Get the data values.
+     * Get an X coordinate by index. If the index is invalid an 
+     * out of bound exception will be thrown.
      *
-     * @return the data values
+     * @return the X coordinate.
      */
-    public double[] getDataValues()
+    public double getXCoord( int index )
+    {
+        if ( x != null ) {
+            return x[index];
+        }
+        return 0;
+    }
+
+    /**
+     * Get the Y coordinates.
+     *
+     * @return the Y coordinate array. Note this is not a copy, if you
+     *         modify it you need to re-apply {@link setCoords}.
+     */
+    public double[] getYCoords()
     {
         return y;
     }
 
     /**
+     * Get a Y coordinate by index. If the index is invalid an 
+     * out of bound exception will be thrown.
+     *
+     * @return the Y coordinate.
+     */
+    public double getYCoord( int index )
+    {
+        if ( y != null ) {
+            return y[index];
+        }
+        return 0;
+    }
+
+    /**
      * Return the interpolated value corresponding to some arbitrary
-     * ordinate.
+     * X coordinate.
      *
-     * @param xp the ordinate whose interpolated value is required.
+     * @param xp the X coordinate at which an interpolated Y
+     *           coordinate is required.
      *
-     * @return the interpolated value
+     * @return the interpolated value.
      */
     public abstract double interpolate( double xp );
 
     /**
      * Return the interpolated value corresponding to some arbitrary
-     * ordinate.
+     * X coordinate.
      *
-     * @param xp the ordinate whose interpolated value is required.
+     * @param xp the X coordinate at which an interpolated Y
+     *           coordinate is required.
      *
-     * @return the interpolated value
+     * @return the interpolated value.
      */
     public double evalYData( double xp )
     {
@@ -103,12 +200,13 @@ public abstract class Interpolator
     }
 
     /**
-     * Return an array of interpolated values corresponding to some
-     * array of ordinates.
+     * Return an array of interpolated value corresponding to some
+     * array of arbitrary X coordinates.
      *
-     * @param xp the ordinate whose interpolated value is required.
+     * @param xps the X coordinates at which interpolated Y
+     *            coordinates are required.
      *
-     * @return the interpolated value
+     * @return the interpolated values.
      */
     public double[] evalYDataArray( double[] xps )
     {

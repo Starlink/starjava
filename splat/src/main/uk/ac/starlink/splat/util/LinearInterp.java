@@ -18,23 +18,31 @@ public class LinearInterp
     extends Interpolator
 {
     /**
-     * Create an instance with the given coordinates and values.
-     * Interpolation is by coordinate producing a new value using the
-     * {@link interpolate} method. The coordinates should be
-     * monotonic, either increasing or decreasing. Same value
-     * coordinates are not allowed.
+     * Create an instance with no coordinates. A call to 
+     * {@link setValues} must be made before any other methods.
+     */
+    public LinearInterp()
+    {
+        //  Do nothing.
+    }
+
+    /**
+     * Create an instance with the given coordinates.  Interpolation
+     * is by X coordinate see the {@link interpolate} method. The X
+     * coordinates should be monotonic, either increasing or
+     * decreasing. Same value X coordinates are not allowed.
      *
-     * @param x the coordinates to be interpolated.
-     * @param y the values of the coordinates.
+     * @param x the X coordinates.
+     * @param y the Y coordinates.
      */
     public LinearInterp( double[] x, double[] y )
     {
         super( x, y );
     }
 
-    public void setValues( double[] x, double[] y )
+    public void setCoords( double[] x, double[] y )
     {
-        // See which way the coordinates increase.
+        // See which way the X coordinates increase.
         if ( x[1] < x[0] ) {
             decr = true;
         }
@@ -65,6 +73,11 @@ public class LinearInterp
             value = ( y[khi] - y[klo]) * dx / ( x[khi] - x[klo] ) + y[klo];
         }
         return value;
+    }
+
+    public int guessStep()
+    {
+        return 1;
     }
 
     /** Simple test entry point */
