@@ -7,8 +7,8 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferShort;
 import java.awt.image.DataBufferInt;
-import javax.media.jai.DataBufferFloat;     //   !
-import javax.media.jai.DataBufferDouble;    //   !
+import java.awt.image.DataBufferFloat;
+import java.awt.image.DataBufferDouble;
 import javax.media.jai.JAI;
 import javax.media.jai.TileCache;
 import java.awt.Point;
@@ -128,10 +128,26 @@ public class NDArrayImage extends SimpleRenderedImage {
             return ((DataBufferInt) dbuf).getData();
         }
         else if ( type == Type.FLOAT ) {
-            return ((DataBufferFloat) dbuf).getData();
+            if ( dbuf instanceof DataBufferFloat ) {
+                return ((DataBufferFloat) dbuf).getData();
+            }
+
+            /* In early versions of JAI, a custom class was used
+             * (since the corresponding one didn't exist in the J2SE). */
+            else {
+                return ((javax.media.jai.DataBufferFloat) dbuf).getData();
+            }
         }
         else if ( type == Type.DOUBLE ) {
-            return ((DataBufferDouble) dbuf).getData();
+            if ( dbuf instanceof DataBufferDouble ) {
+                return ((DataBufferDouble) dbuf).getData();
+            }
+
+            /* In early versions of JAI, a custom class was used
+             * (since the corresponding one didn't exist in the J2SE). */
+            else {
+                return ((javax.media.jai.DataBufferDouble) dbuf).getData();
+            }
         }
         else {
             // assert false;

@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 
-import javax.media.jai.DataBufferFloat;
-
 // -------------------------------------------------------------------
 // Note: The FITSData<type> classes can be generated from FITSDataFloat
 // by typing "make generate" (on UNIX or cygwin systems).
@@ -59,8 +57,7 @@ public class FITSDataFloat extends FITSData {
      * @return the tile argument
      */
     public Raster getTile(Raster tile, int subsample, int scaledWidth, int scaledHeight) throws IOException {
-        DataBufferFloat dataBuffer = (DataBufferFloat)tile.getDataBuffer();
-        float[] destArray = dataBuffer.getData();
+        float[] destArray = getRasterArray(tile);
 	int tw = tile.getWidth(), 
 	    th = tile.getHeight(),
 	    x0 = tile.getMinX(), 
@@ -115,8 +112,7 @@ public class FITSDataFloat extends FITSData {
 	}
 
 	// use the image tiler (slower)
-	DataBufferFloat dataBuffer = (DataBufferFloat)tile.getDataBuffer();
-	float[] destArray = dataBuffer.getData();
+	float[] destArray = getRasterArray(tile);
 	int tw = tile.getWidth(),
 	    th = tile.getHeight(),
 	    w = tw * factor,
@@ -134,6 +130,21 @@ public class FITSDataFloat extends FITSData {
 	}
 
         return tile;
+    }
+
+    /**
+     * Retrieves the data array from a Raster as a <code>float[]</code>.
+     */
+    private static float[] getRasterArray( Raster tile ) {
+        Object dataBuffer = tile.getDataBuffer();
+        if ( dataBuffer instanceof javax.media.jai.DataBufferFloat ) {
+            // JAI 1.1.1
+            return ((javax.media.jai.DataBufferFloat) dataBuffer).getData();
+        }
+        else {
+            // JAI 1.1.2
+            return ((java.awt.image.DataBufferFloat) dataBuffer).getData();
+        }
     }
 }
 

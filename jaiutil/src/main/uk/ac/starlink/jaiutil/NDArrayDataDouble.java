@@ -9,7 +9,6 @@ package uk.ac.starlink.jaiutil;
 
 import java.awt.image.Raster;
 import java.io.IOException;
-import javax.media.jai.DataBufferDouble;
 import uk.ac.starlink.array.NDArray;
 
 /**
@@ -46,8 +45,7 @@ public class NDArrayDataDouble extends NDArrayData
                            int scaledWidth, int scaledHeight ) 
         throws IOException
     {
-	DataBufferDouble dataBuffer = (DataBufferDouble) tile.getDataBuffer();
-	double[] destArray = dataBuffer.getData();
+	double[] destArray = getRasterArray( tile );
 
 	int tw = tile.getWidth(), 
 	    th = tile.getHeight(),
@@ -82,8 +80,7 @@ public class NDArrayDataDouble extends NDArrayData
     public Raster getPreviewImage( Raster tile, int factor ) 
         throws IOException
     {
-        DataBufferDouble dataBuffer = (DataBufferDouble) tile.getDataBuffer();
-        double[] destArray = dataBuffer.getData();
+        double[] destArray = getRasterArray( tile );
         double[] line = new double[width];
 
         int tw = tile.getWidth(),
@@ -104,6 +101,21 @@ public class NDArrayDataDouble extends NDArrayData
         }
         catch (Exception e) {
             throw new RuntimeException( e.getMessage() );
+        }
+    }
+
+    /**
+     * Retrieves the data array from a Raster as a <code>double[]</code>.
+     */
+    private static double[] getRasterArray( Raster tile ) {
+        Object dataBuffer = tile.getDataBuffer();
+        if ( dataBuffer instanceof javax.media.jai.DataBufferDouble ) {
+            // JAI 1.1.1
+            return ((javax.media.jai.DataBufferDouble) dataBuffer).getData();
+        }
+        else {
+            // JAI 1.1.2
+            return ((java.awt.image.DataBufferDouble) dataBuffer).getData();
         }
     }
 }

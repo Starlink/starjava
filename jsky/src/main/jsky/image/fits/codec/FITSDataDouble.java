@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.nio.MappedByteBuffer;
 
-import javax.media.jai.DataBufferDouble;
-
 // -------------------------------------------------------------------
 // Note: The FITSData<type> classes can be generated from FITSDataDouble
 // by typing "make generate" (on UNIX or cygwin systems).
@@ -59,8 +57,7 @@ public class FITSDataDouble extends FITSData {
      * @return the tile argument
      */
     public Raster getTile(Raster tile, int subsample, int scaledWidth, int scaledHeight) throws IOException {
-        DataBufferDouble dataBuffer = (DataBufferDouble)tile.getDataBuffer();
-        double[] destArray = dataBuffer.getData();
+        double[] destArray = getRasterArray(tile);
 	int tw = tile.getWidth(), 
 	    th = tile.getHeight(),
 	    x0 = tile.getMinX(), 
@@ -115,8 +112,7 @@ public class FITSDataDouble extends FITSData {
 	}
 
 	// use the image tiler (slower)
-	DataBufferDouble dataBuffer = (DataBufferDouble)tile.getDataBuffer();
-	double[] destArray = dataBuffer.getData();
+	double[] destArray = getRasterArray(tile);
 	int tw = tile.getWidth(),
 	    th = tile.getHeight(),
 	    w = tw * factor,
@@ -134,6 +130,21 @@ public class FITSDataDouble extends FITSData {
 	}
 
         return tile;
+    }
+
+    /**
+     * Retrieves the data array from a Raster as a <code>double[]</code>.
+     */
+    private static double[] getRasterArray( Raster tile ) {
+        Object dataBuffer = tile.getDataBuffer();
+        if ( dataBuffer instanceof javax.media.jai.DataBufferDouble ) {
+            // JAI 1.1.1
+            return ((javax.media.jai.DataBufferDouble) dataBuffer).getData();
+        }
+        else {
+            // JAI 1.1.2
+            return ((java.awt.image.DataBufferDouble) dataBuffer).getData();
+        }
     }
 }
 

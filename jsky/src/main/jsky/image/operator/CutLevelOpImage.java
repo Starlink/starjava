@@ -7,6 +7,7 @@
  * --------------  ----------  ----------------------------------------
  * Allan Brighton  1999/05/03  Created
  * Peter W. Draper 2002/05/13  Added double precision support
+ * Mark Taylor     2003/06/11  Modified for JAI 1.1.2 compatibility
  */
 
 package jsky.image.operator;
@@ -20,8 +21,6 @@ import java.awt.image.DataBufferUShort;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 
-import javax.media.jai.DataBufferFloat;
-import javax.media.jai.DataBufferDouble;
 import javax.media.jai.ImageLayout;
 import javax.media.jai.ROI;
 import javax.media.jai.StatisticsOpImage;
@@ -148,8 +147,16 @@ class CutLevelOpImage extends StatisticsOpImage {
 
         case DataBuffer.TYPE_FLOAT:
             {
-                DataBufferFloat dataBuffer = (DataBufferFloat) source.getDataBuffer();
-                float[] data = dataBuffer.getData();
+                Object dataBuffer = source.getDataBuffer();
+                float[] data;
+                if ( dataBuffer instanceof javax.media.jai.DataBufferFloat ) {
+                    // JAI 1.1.1
+                    data = ((javax.media.jai.DataBufferFloat) dataBuffer).getData();
+                }
+                else {
+                    // JAI 1.1.2
+                    data = ((java.awt.image.DataBufferFloat) dataBuffer).getData();
+                }
                 float ignore = (float) this.ignore;
                 float median = (float) this.median;
                 getCutLevelsFloat(data, ignore, median, x0, y0, x1, y1, w, stats);
@@ -158,8 +165,16 @@ class CutLevelOpImage extends StatisticsOpImage {
 
 	case DataBuffer.TYPE_DOUBLE: 
             {
-                DataBufferDouble dataBuffer = (DataBufferDouble)source.getDataBuffer();
-                double[] data = dataBuffer.getData();
+                Object dataBuffer = source.getDataBuffer();
+                double[] data;
+                if ( dataBuffer instanceof javax.media.jai.DataBufferDouble ) {
+                    // JAI 1.1.1
+                    data = ((javax.media.jai.DataBufferDouble) dataBuffer).getData();
+                }
+                else {
+                    // JAI 1.1.2
+                    data = ((java.awt.image.DataBufferDouble) dataBuffer).getData();
+                }
                 getCutLevelsDouble(data, ignore, median, x0, y0, x1, y1, w, stats);
             }
             break;
