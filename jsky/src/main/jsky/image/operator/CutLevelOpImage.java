@@ -6,6 +6,7 @@
  * who             when        what
  * --------------  ----------  ----------------------------------------
  * Allan Brighton  1999/05/03  Created
+ * Peter W. Draper 2002/05/13  Added double precision support
  */
 
 package jsky.image.operator;
@@ -20,6 +21,7 @@ import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 
 import javax.media.jai.DataBufferFloat;
+import javax.media.jai.DataBufferDouble;
 import javax.media.jai.ImageLayout;
 import javax.media.jai.ROI;
 import javax.media.jai.StatisticsOpImage;
@@ -151,6 +153,14 @@ class CutLevelOpImage extends StatisticsOpImage {
                 float ignore = (float) this.ignore;
                 float median = (float) this.median;
                 getCutLevelsFloat(data, ignore, median, x0, y0, x1, y1, w, stats);
+            }
+            break;
+
+	case DataBuffer.TYPE_DOUBLE: 
+            {
+                DataBufferDouble dataBuffer = (DataBufferDouble)source.getDataBuffer();
+                double[] data = dataBuffer.getData();
+                getCutLevelsDouble(data, ignore, median, x0, y0, x1, y1, w, stats);
             }
             break;
 
@@ -513,6 +523,77 @@ class CutLevelOpImage extends StatisticsOpImage {
         }
         stats[0] = lcut;
         stats[1] = hcut;
+    }
+
+    /**
+     * Get the median low and high pixel values in the given region and write
+     * them to the given array (Double version).
+     * 
+     * A median filter algorithm is used here to calculate suitable cut
+     * levels for displaying the image.
+     *
+     * @param data The image data.
+     * @param ignore The value of the ignore pixel, if known.
+     * @param median The value to use for bad pixels (normally: (max+min)/2.)
+     * @param x0, y0, x1, y1 The coordinates of the area to examine.
+     * @param w The width of the source image.
+     * @param stats array to hold the results.
+     */
+    void getCutLevelsDouble( double[] data, double ignore, double median, 
+                             int x0, int y0, int x1, int y1, int w, 
+                             double[] stats ) {
+	int nmed = 7;		       // length of median filter
+	int xskip = nmed*3, yskip = 3; // skip pixels for speed 
+	int i, j, k, l, p=0;
+	double tmp, val, lcut = 0.0f, hcut = 0.0f; 
+	double [] medary = new double[nmed];
+
+	if (! Double.isNaN(stats[0])) {
+	    lcut = (float)stats[0];
+	    hcut = (float)stats[1];
+	}
+	else {
+	    lcut = median;
+	    hcut = median;
+	}
+        
+	if (x1-x0 <= nmed || y1-y0 <= nmed)
+	    return;	
+
+	for (i=y0; i<=y1; i+=yskip) {
+	    for (j=x0; j<=x1; j+=xskip) {
+		p = i*w + j;
+
+		// get array for finding meadian
+		for (k=0; k < nmed; k++) {
+		    medary[k] = data[p++];
+		    // ignore ignore pixels
+		    if (Double.isNaN(medary[k]) || (medary[k] == ignore)) {
+			medary[k] = median;  
+		    }
+		}
+
+		// get meadian value 
+		for (k=0; k < nmed; k++) {
+		    for (l=k; l < nmed; l++) {
+			if (medary[k] < medary[l]) {
+			    tmp = medary[l];
+			    medary[l] = medary[k];
+			    medary[k] = tmp;
+			}
+		    }
+		}
+		val = medary[nmed/2];
+
+		// compare meadian with lcut, hcut
+		if (val < lcut) 
+		    lcut = val;
+		if (val > hcut)
+		    hcut = val;
+	    }
+	}
+	stats[0] = lcut;
+	stats[1] = hcut;
     }
 
 
