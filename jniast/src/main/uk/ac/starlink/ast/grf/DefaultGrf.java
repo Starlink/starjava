@@ -774,12 +774,16 @@ public class DefaultGrf
         //  rendered lines a lot (these are drawn completely to see if
         //  they intersect the graphics clip, which can be very slow,
         //  when thick, stroked and anti-aliased). Note some very
-        //  zoomed plots could have missing lines at the edgess with
+        //  zoomed plots could have missing lines at the edges with
         //  this strategy because the axis border-lines can extend
         //  from one side of the component to the other they can be
         //  completely rejected, so lines with a few points are always drawn.
-        int xlower = globalClip.x - globalClip.width;
-        int xupper = globalClip.x + globalClip.width * 2;
+        int xlower = Integer.MIN_VALUE;
+        int xupper = Integer.MAX_VALUE;
+        if ( globalClip != null ) {
+            xlower = globalClip.x - globalClip.width;
+            xupper = globalClip.x + globalClip.width * 2;
+        }
 
         //  Draw the line. If we encounter any breaks (that is
         //  occurences of BAD), then need to do this in segments.
@@ -937,9 +941,9 @@ public class DefaultGrf
         //  image text too, which can be quite slow as it checks for
         //  the effects of any strokes etc., which have a width). Note
         //  this isn't accurate, we should work with the intersection
-        //  of the rotated and scaled Shape. 200 pixels is just a
-        //  longish string.
-        if ( ! g2.hitClip( (int) x, (int) y, 200, 200 ) ) {
+        //  of the rotated and scaled Shape. -100, +200 pixels is just a
+        //  longish string (vertical or horizontal).
+        if ( ! g2.hitClip( (int) x - 100, (int) y - 100, 200, 200 ) ) {
             return;
         }
 
