@@ -212,6 +212,9 @@
     <!-- SOAPSERVER -->
     <pathelement location="${star.jar.dir}/soapserver/soapserver.jar"/>
 
+    <!-- ASTGUI -->
+    <pathelement location="${star.jar.dir}/astgui/astgui.jar"/>
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -237,6 +240,7 @@
     <pathelement location="${star.build.dir}/hds/lib/hds/hds.jar"/>
     <pathelement location="${star.build.dir}/diva/lib/diva/diva.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
+    <pathelement location="${star.build.dir}/astgui/lib/astgui/astgui.jar"/>
   </extclasspath>
 
   <!-- Local third party jars. Normally these will be kept in their
