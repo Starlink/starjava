@@ -156,6 +156,8 @@ public class VOTableWriter implements StarTableWriter {
                                                       votableVersion ) );
             if ( doctypeDeclaration == null || 
                  doctypeDeclaration.length() == 0 ) {
+                String votableNamespace = "http://www.ivoa.net/xml/VOTable/v"
+                                        + votableVersion;
                 writer.newLine();
                 writer.write( serializer.formatAttribute( 
                                   "xmlns:xsi",
@@ -164,8 +166,11 @@ public class VOTableWriter implements StarTableWriter {
                 writer.newLine();
                 writer.write( serializer.formatAttribute( 
                                   "xsi:noNamespaceSchemaLocation",
-                                  "http://www.ivoa.net/xml/VOTable/v"
-                                  + votableVersion ) );
+                                  votableNamespace ) );
+                writer.newLine();
+                writer.write( serializer.formatAttribute(
+                                  "xmlns",
+                                  votableNamespace ) );
             }
         }
         writer.write( ">" );
