@@ -91,6 +91,10 @@ public class HelpWindow extends AuxWindow {
                 }
              } );
 
+            /* Vague hope this might load images synchronously (to make 
+             * display less jerky) but don't think it does. */
+            cview.setSynch( true );
+
             /* Muck about with toolbars. */
             pinchHelpToolBarTools( jhelp );
         }
