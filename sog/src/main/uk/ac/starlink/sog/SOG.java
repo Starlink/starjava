@@ -36,10 +36,9 @@ import jsky.app.jskycat.JSkyCat;
 import jsky.app.jskycat.JSkyCatVersion;
 
 import jsky.image.gui.MainImageDisplay;
+import jsky.image.gui.DivaMainImageDisplay;
 
 import jsky.navigator.NavigatorFrame;
-//import jsky.navigator.NavigatorImageDisplayFrame;
-//import jsky.navigator.NavigatorImageDisplayInternalFrame;
 import jsky.navigator.NavigatorInternalFrame;
 
 import jsky.util.I18N;
@@ -90,6 +89,20 @@ public class SOG extends JFrame
     private static SOG instance = null;
 
     /**
+     * Whether closing final window causes System.exit(). Switch off
+     * for testing.
+     */
+    private boolean doExit = true;
+
+    /**
+     * Default constructor for internal tests. Do not use.
+     */
+    public SOG()
+    {
+        this( null, false, false, 0, false );
+    }
+
+    /**
      * Create the SOG application class and display the contents of the
      * given image file or URL, if not null.
      *
@@ -97,15 +110,17 @@ public class SOG extends JFrame
      * @param internalFrames if true, use internal frames
      * @param showNavigator if true, display the catalog navigator on startup
      * @param portNum if not zero, listen on this port for remote control commnds
+     * @param doExit whether application should exit on close
      * @see SOGRemoteControl
      */
     public SOG( String imageFileOrUrl, boolean internalFrames,
-                boolean showNavigator, final int portNum )
+                boolean showNavigator, final int portNum, boolean doExit )
     {
         super( "SOG::JSky" );
 
         //  This is the last instance created.
         instance = this;
+        this.doExit = doExit;
 
         if ( internalFrames || desktop != null ) {
             makeInternalFrameLayout( showNavigator, imageFileOrUrl );
@@ -117,9 +132,8 @@ public class SOG extends JFrame
         // Clean up on exit
         addWindowListener( new BasicWindowMonitor() );
 
-        SOGRemoteControl control = null;
         if ( portNum > 0 ) {
-            control = SOGRemoteControl.getInstance();
+            SOGRemoteControl control = SOGRemoteControl.getInstance();
             control.setPortNumber( portNum );
             control.start();
         }
@@ -136,7 +150,7 @@ public class SOG extends JFrame
     public SOG( String imageFileOrUrl, boolean internalFrames,
                 boolean showNavigator )
     {
-        this( imageFileOrUrl, internalFrames, showNavigator, 0 );
+        this( imageFileOrUrl, internalFrames, showNavigator, 0, true );
     }
 
 
@@ -148,7 +162,7 @@ public class SOG extends JFrame
      */
     public SOG( String imageFileOrUrl )
     {
-        this( imageFileOrUrl, false, false, 0 );
+        this( imageFileOrUrl, false, false, 0, true );
     }
 
     /**
@@ -330,7 +344,11 @@ public class SOG extends JFrame
         SOGNavigatorImageDisplayInternalFrame f =
             new SOGNavigatorImageDisplayInternalFrame( desktop, 
                                                        imageFileOrUrl );
-        f.getImageDisplayControl().getImageDisplay().setTitle( getAppName() );
+        DivaMainImageDisplay d = f.getImageDisplayControl().getImageDisplay();
+        if ( d instanceof SOGNavigatorImageDisplay ) {
+            ( (SOGNavigatorImageDisplay) d ).setDoExit( doExit );
+        }
+        d.setTitle( getAppName() );
         return f;
     }
 
@@ -365,8 +383,11 @@ public class SOG extends JFrame
     {
         SOGNavigatorImageDisplayFrame f =
             new SOGNavigatorImageDisplayFrame( imageFileOrUrl );
-        f.getImageDisplayControl().getImageDisplay().
-            setTitle( getAppName() + " - version " + getAppVersion() );
+        DivaMainImageDisplay d = f.getImageDisplayControl().getImageDisplay();
+        if ( d instanceof SOGNavigatorImageDisplay ) {
+            ( (SOGNavigatorImageDisplay) d ).setDoExit( doExit );
+        }
+        d.setTitle( getAppName() + " - version " + getAppVersion() );
         f.setVisible( true );
         return f;
     }
@@ -489,7 +510,9 @@ public class SOG extends JFrame
     /** Exit the application */
     public void exit()
     {
-        System.exit( 0 );
+        if ( doExit ) {
+            System.exit( 0 );
+        }
     }
 
 
@@ -628,6 +651,7 @@ public class SOG extends JFrame
             System.exit( 1 );
         }
 
-        new SOG( imageFileOrUrl, internalFrames, showNavigator, portNum );
+        new SOG( imageFileOrUrl, internalFrames, showNavigator,
+                 portNum, true );
     }
 }

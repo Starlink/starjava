@@ -65,6 +65,10 @@
    !   /star/java/source for full distribution) -->
   <property name="star.build.dir" value="${basedir}/../"/>
 
+  <!-- Directory that any archives should be placed into. The local
+   !   directort by default -->
+  <property name="star.archive.dir" value="${basedir}"/>
+
   <!--
    !  ================
    !  Local Properties
@@ -207,12 +211,15 @@
   <!--
    ! Create release archives of the various types required.
    ! For this package these are all the same just set the property
-   ! "archive.name" to define what name to use for the outfile files.
+   ! "archive.name" to define what name to use for the outfile
+   ! files. The archives are also written into the directory
+   ! ${star.archive.dir} (the local directory by default).
    !-->
   <target name="create_archives"
           depends="dist">
 
-    <zip destfile="${archive.name}.zip">
+    <mkdir dir="${star.archive.dir}"/>
+    <zip destfile="${star.archive.dir}/${archive.name}.zip">
 
       <zipfileset dir="${dist.docs}" prefix="${name}/docs"/>
       <zipfileset dir="${dist.dir}" includes="build.xml" prefix="${name}"/>
@@ -230,8 +237,10 @@
 
     </tar>
 
-    <gzip zipfile="${archive.name}.tar.gz" src="${archive.name}.tar"/>
-    <bzip2 zipfile="${archive.name}.tar.bz2" src="${archive.name}.tar"/>
+    <gzip zipfile="${star.archive.dir}/${archive.name}.tar.gz" 
+          src="${archive.name}.tar"/>
+    <bzip2 zipfile="${star.archive.dir}/${archive.name}.tar.bz2" 
+           src="${archive.name}.tar"/>
     <delete file="${archive.name}.tar"/>
   </target>
 

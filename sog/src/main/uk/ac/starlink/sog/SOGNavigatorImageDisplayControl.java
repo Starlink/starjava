@@ -14,9 +14,8 @@ import java.awt.Component;
 import java.net.URL;
 
 /**
- * Extents NavigatorImageDisplayControl to override the
- * makeImageDisplay method. This allows us to use a
- * SOGNavigatorImageDisplay
+ * Extends NavigatorImageDisplayControl to override any methods that
+ * are required for SOG.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -44,7 +43,10 @@ public class SOGNavigatorImageDisplayControl
     }
 
     /**
-     * Make and return the image display window
+     * Make and return the image display window.
+     * <p> 
+     * Overridden so that we use a SOGNavigatorImageDisplay.
+     *
      */
     protected DivaMainImageDisplay makeImageDisplay()
     {

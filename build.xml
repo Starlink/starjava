@@ -1,29 +1,26 @@
 <?xml version="1.0"?>
 
 <!--
- !  HDX build file
+ !  Main source build file
  !
- !   This file describes how to build Starlink java from a source
- !   release. It requires Apache ANT and a Java Development Kit.
- !
- !   In addition HDX may have requirements for other "core" and
- !   "third-party" packages to complete the compilation and any
- !   testing.
+ !   This file describes how to build the Starlink java system from a
+ !   source release. It requires Apache ANT and a Java Development Kit.
  ! 
  !   The main targets are:
  !
- !      build          => compiles the system
- !      javadocs       => creates the API documentation
- !      install        => installs the system and documentation
- !      install        => deinstalls the system
- !      clean          => cleans up the build
+ !      build          -> compiles the system
+ !      javadocs       -> creates the API documentation
+ !      install        -> installs the system and documentation
+ !      install        -> deinstalls the system
+ !      clean          -> cleans up the build
+ !      export         -> create full export distributions of packages
  !
  !   Authors:
  !      Peter W. Draper (2-JUL-2002)
  !
  !-->
 
-<project name="Build file for HDX" default="build" basedir=".">
+<project name="Build file for Starlink" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -51,6 +48,10 @@
 
   <!-- Whether to generate Java documentation -->
   <property name="javadocs.required" value="false"/>
+
+  <!-- Directory that any archives should be placed into. The local
+   !   directort by default -->
+  <property name="star.archive.dir" value="${basedir}"/>
 
   <!--
    !  ================
@@ -85,15 +86,34 @@
     !-->
   <target name="call_package_ant">
 
+     <echo message="Executing axis target: ${what}"/>
      <ant dir="./axis" target="${what}"/>
+
+     <echo message="Executing dom4j target: ${what}"/>
      <ant dir="./dom4j" target="${what}"/>
+
+     <echo message="Executing Jetty target: ${what}"/>
      <ant dir="./jetty" target="${what}"/>
+
+     <echo message="Executing JSky target: ${what}"/>
      <ant dir="./jsky" target="${what}"/>
+
+     <echo message="Executing JNIAST target: ${what}"/>
      <ant dir="./jniast" target="${what}"/>
+
+     <echo message="Executing JNIHDS target: ${what}"/>
      <ant dir="./jnihds" target="${what}"/>
+
+     <echo message="Executing NDArray target: ${what}"/>
      <ant dir="./array" target="${what}"/>
+
+     <echo message="Executing HDX target: ${what}"/>
      <ant dir="./hdx" target="${what}"/>
+
+     <echo message="Executing SOAPSERVER target: ${what}"/>
      <ant dir="./soapserver" target="${what}"/>
+
+     <echo message="Executing SOG target: ${what}"/>
      <ant dir="./sog" target="${what}"/>
 
   </target>
@@ -188,6 +208,20 @@
 
      <antcall target="call_package_ant">
         <param name="what" value="javadocs"/>
+     </antcall>
+
+  </target>
+
+  <!--
+   !   ===============================
+   !   Create the export distributions
+   !   ===============================
+   !-->
+  <target name="export" depends="prepare" 
+          description="--> create all export archives">
+
+     <antcall target="call_package_ant">
+        <param name="what" value="export"/>
      </antcall>
 
   </target>

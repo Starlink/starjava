@@ -10,6 +10,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -18,6 +19,7 @@ import java.rmi.RemoteException;
 import javax.media.jai.PlanarImage;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
+import javax.swing.SwingUtilities;
 
 import jsky.coords.CoordinateConverter;
 import jsky.navigator.NavigatorImageDisplay;
@@ -316,4 +318,34 @@ public class SOGNavigatorImageDisplay
             astPlot.paint( g2D );
         }
     }
+
+    //  The exit method needs finer control. Do not close the whole
+    //  application when being tested.
+    public void exit()
+    {
+        boolean doExit = false;
+        if ( doExit ) {
+            super.exit();
+        }
+        else {
+            Window w = SwingUtilities.getWindowAncestor( this );
+            if ( w != null ) {
+                w.setVisible( false );
+            }
+            else {
+                setVisible( false );
+            }
+        }
+    }
+
+    private boolean doExit = true;
+    public void setDoExit( boolean doExit )
+    {
+        this.doExit = doExit;
+    }
+    public boolean isDoExit()
+    {
+        return doExit;
+    }
+
 }
