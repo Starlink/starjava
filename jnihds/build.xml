@@ -631,6 +631,11 @@
          <nativelib href="sparc/${name}_libs.jar"/>
        </resources>
 
+       <!-- Mac OS X -->
+       <resources os="Mac OS X" arch="ppc">
+         <nativelib href="ppc/${name}_libs.jar"/>
+       </resources>
+
        <component_desc/>
     </jnlp>
   </target>
