@@ -1732,9 +1732,9 @@ public class SplatBrowser
             plotIndex = globalList.getPlotIndex( plot.getPlot() );
 
             //  Add all spectra in a single list for efficiency.
-            SpecData spectra[] = new SpecData[specIndices.length];
-            for ( int i = 0; i < specIndices.length; i++ ) {
-                spectra[i] = globalList.getSpectrum( specIndices[i] );
+            SpecData spectra[] = new SpecData[specIndices.length - 1];
+            for ( int i = 0; i < specIndices.length - 1; i++ ) {
+                spectra[i] = globalList.getSpectrum( specIndices[i+1] );
             }
 
             try {
