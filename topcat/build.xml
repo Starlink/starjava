@@ -293,6 +293,13 @@
     <path refid="classpath"/>
   </path>
 
+  <!-- Need installed JNIAST for javadoc fun and games - this seems to do it
+   !   (though maybe means the main classpath is broken??) -->
+  <path id="docs-classpath">
+    <path refid="installed.classpath"/>
+    <path refid="classpath"/>
+  </path>
+
   <!-- Turn this path into a string which is passed to the tests -->
   <property name="tests-classpath.value" refid="tests-classpath"/>
 
@@ -1057,7 +1064,7 @@
              classpathref="classpath"
              source="${source.version}"/>
     <javadoc doclet="uk.ac.starlink.topcat.doc.XmlDoclet"
-             docletpathref="classpath"
+             docletpathref="docs-classpath"
              public="true"
              additionalparam="-act -o ${build.docs}/activation-javadocs.xml" 
              sourcepath="${java.dir}"
