@@ -24,6 +24,10 @@ public class TopcatUtils {
     private static Boolean canExec_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
+    public static String DEMO_LOCATION = "uk/ac/starlink/topcat/demo";
+    public static String DEMO_TABLE = "6dfgs_mini.xml.bz2";
+    public static String DEMO_NODES = "demo_list";
+
     /**
      * Column auxiliary metadata key identifying the uniqe column identifier
      * for use in algebraic expressions.

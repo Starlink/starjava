@@ -9,10 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.ComboBoxModel;
+import uk.ac.starlink.datanode.nodes.DataNode;
+import uk.ac.starlink.datanode.nodes.DefaultDataNode;
+import uk.ac.starlink.datanode.nodes.ErrorDataNode;
+import uk.ac.starlink.datanode.nodes.NoSuchDataException;
+import uk.ac.starlink.datanode.nodes.ResourceListDataNode;
+import uk.ac.starlink.datanode.tree.TreeTableLoadDialog;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.NodeLoader;
-import uk.ac.starlink.table.gui.StarTableNodeChooser;
 import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 
@@ -22,35 +26,18 @@ import uk.ac.starlink.table.gui.TableLoadDialog;
  * @author   Mark Taylor (Starlink)
  * @since    1 Dec 2004
  */
-public class DemoLoadDialog extends NodeLoader {
+public class DemoLoadDialog extends TreeTableLoadDialog {
 
-    private final StarTableNodeChooser nodeChooser_;
-    private Object rootNode_;
+    private DataNode rootNode_;
     private boolean initialized_;
     private final static Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.topcat" );
-
-    public static String DEMO_LOCATION = "uk/ac/starlink/topcat/demo";
-    public static String DEMO_TABLE = "863sub.fits";
-    public static String DEMO_NODES = "demo_list";
 
     /**
      * Constructor. 
      */
     public DemoLoadDialog() {
-        StarTableNodeChooser chooser = getNodeChooser();
-        if ( chooser != null ) {
-            rootNode_ = getDemoNode();
-            if ( rootNode_ != null ) {
-                nodeChooser_ = chooser;
-            }
-            else {
-                nodeChooser_ = null;
-            }
-        }
-        else {
-            nodeChooser_ = null;
-        }
+        rootNode_ = getDemoNode();
     }
 
     public String getName() {
@@ -62,59 +49,47 @@ public class DemoLoadDialog extends NodeLoader {
     }
 
     public boolean isEnabled() {
-        return nodeChooser_ != null;
+        return true;
     }
 
     public boolean showLoadDialog( Component parent, StarTableFactory factory,
                                    ComboBoxModel formatModel,
                                    TableConsumer eater ) {
         if ( ! initialized_ ) {
-            nodeChooser_.setRootNode( rootNode_ );
+            setRootNode( rootNode_ );
         }
         return super.showLoadDialog( parent, factory, formatModel, eater );
     }
 
     /**
-     * Constructs and returns a <tt>uk.ac.starlink.table.DataNode</tt>
+     * Constructs and returns a DataNode
      * corresponding to the root of the demo data tree.
      *
      * @return  demo DataNode
      */
-    private static Object getDemoNode() {
+    private static DataNode getDemoNode() {
 
         /* Get the list of resources which constitute the demo set. */
         List demoList = new ArrayList();
         InputStream
             strm = DemoLoadDialog.class.getClassLoader()
-                  .getResourceAsStream( DEMO_LOCATION + "/" + DEMO_NODES );
+                  .getResourceAsStream( TopcatUtils.DEMO_LOCATION + "/" +
+                                        TopcatUtils.DEMO_NODES );
         BufferedReader rdr =
             new BufferedReader( new InputStreamReader( strm ) );
         try {
             for ( String line; ( line = rdr.readLine() ) != null; ) {
-                demoList.add( DEMO_LOCATION + "/" + line );
+                demoList.add( TopcatUtils.DEMO_LOCATION + "/" + line );
             }
             rdr.close();
         }
         catch ( IOException e ) {
-            logger_.warning( "Couldn't find demo data" );
-            return null;
+            return new ErrorDataNode( e );
         }
 
         /* Try to make a new root node based on these. */
-        if ( demoList != null ) {
-            try {
-                return DemoLoadDialog.class.forName(
-                           "uk.ac.starlink.treeview.ResourceListDataNode" )
-                      .getConstructor( new Class[] { List.class } )
-                      .newInstance( new Object[] { demoList } );
-            }
-            catch ( Exception e ) {
-                logger_.warning( "Couldn't find demo data" );
-                return null;
-            }
-        }
-        else {
-            return null;
-        }
+        return demoList.size() > 0 
+             ? new ResourceListDataNode( demoList )
+             : new DefaultDataNode( "No demo resources found" );
     }
 }

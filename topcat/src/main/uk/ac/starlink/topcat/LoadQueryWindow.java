@@ -8,6 +8,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JFileChooser;
@@ -19,7 +20,6 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.BasicTableConsumer;
 import uk.ac.starlink.table.gui.LoadWorker;
 import uk.ac.starlink.table.gui.StarTableChooser;
-import uk.ac.starlink.table.gui.StarTableNodeChooser;
 import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
@@ -42,6 +42,9 @@ public abstract class LoadQueryWindow extends QueryWindow {
     private final StarTableFactory tableFactory_;
     private final JProgressBar progBar_;
     private TopcatTableConsumer tableConsumer_;
+
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Constructs a new load window.
@@ -72,8 +75,8 @@ public abstract class LoadQueryWindow extends QueryWindow {
         demoMenu.setMnemonic( KeyEvent.VK_X );
         demoMenu.add( new AbstractAction( "Load Example Table" ) {
             public void actionPerformed( ActionEvent evt ) {
-                String demoPath = DemoLoadDialog.DEMO_LOCATION + "/" + 
-                                  DemoLoadDialog.DEMO_TABLE;
+                String demoPath = TopcatUtils.DEMO_LOCATION + "/" + 
+                                  TopcatUtils.DEMO_TABLE;
                 final String loc = getClass().getClassLoader()
                                   .getResource( demoPath ).toString();
                 new LoadWorker( tableConsumer_, loc ) {
@@ -83,10 +86,6 @@ public abstract class LoadQueryWindow extends QueryWindow {
                 }.invoke();
             }
         } );
-        TableLoadDialog demoLoader = new DemoLoadDialog();
-        Action demoAction = chooser_.makeAction( demoLoader );
-        demoAction.putValue( Action.SMALL_ICON, ResourceIcon.DEMO );
-        demoMenu.add( demoAction );
         getJMenuBar().add( demoMenu );
 
         /* Help button. */

@@ -21,6 +21,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.gui.StarTableChooser;
 import uk.ac.starlink.table.gui.TableLoadDialog;
+import uk.ac.starlink.table.gui.SQLReadDialog;
 import uk.ac.starlink.util.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
@@ -46,11 +47,13 @@ public class Driver {
     private static ControlWindow control;
     private static String[] extraLoaders;
     private static String[] KNOWN_DIALOGS = new String[] {
-        "uk.ac.starlink.table.gui.SQLReadDialog",
+        "uk.ac.starlink.datanode.tree.TreeTableLoadDialog",
+        SQLReadDialog.class.getName(),
+        "uk.ac.starlink.astrogrid.MyspaceTableLoadDialog",
         "uk.ac.starlink.vo.ConeSearchDialog",
         "uk.ac.starlink.vo.SiapTableLoadDialog",
         "uk.ac.starlink.vo.RegistryTableLoadDialog",
-        "uk.ac.starlink.astrogrid.MyspaceTableLoadDialog",
+        "uk.ac.starlink.topcat.DemoLoadDialog",
     };
 
     /**
@@ -169,9 +172,10 @@ public class Driver {
         }
         String pre = "Usage: " + cmdname;
         String pad = pre.replaceAll( ".", " " );
-        String usage = pre + " [-help] [-demo] [-disk]\n"
-                     + pad + " [-myspace] [-cone] [-siap] [-registry]\n"
-                     + pad + " [[-f <format>] table ...]";
+        String usage = 
+              pre + " [-help] [-demo] [-disk]\n" 
+            + pad + " [-tree] [-sql] [-myspace] [-cone] [-siap] [-registry]\n"
+            + pad + " [[-f <format>] table ...]";
 
         /* Prepare usage message which also describes known formats. */ 
         StringBuffer ufbuf = new StringBuffer( usage );
@@ -217,6 +221,15 @@ public class Driver {
             }
             else if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
                 // leave this for this later
+            }
+            else if ( arg.equals( "-tree" ) ) {
+                it.remove();
+                loaderList.add( "uk.ac.starlink.datanode.tree." +
+                                "TreeTableLoadDialog" );
+            }
+            else if ( arg.equals( "-sql" ) ) {
+                it.remove();
+                loaderList.add( SQLReadDialog.class.getName() );
             }
             else if ( arg.equals( "-myspace" ) ) {
                 it.remove();
@@ -420,7 +433,7 @@ public class Driver {
      * @return  array of demo tables
      */
     static StarTable[] getDemoTables() {
-        String base = DemoLoadDialog.DEMO_LOCATION + '/';
+        String base = TopcatUtils.DEMO_LOCATION + '/';
         String[] demoNames = new String[] {
             "863sub.fits",
             "vizier.xml.gz#6",
