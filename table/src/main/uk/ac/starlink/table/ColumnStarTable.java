@@ -24,6 +24,25 @@ public abstract class ColumnStarTable extends RandomStarTable {
     public List columns = new ArrayList();
 
     /**
+     * Default constructor.
+     */
+    public ColumnStarTable() {
+    }
+
+    /**
+     * Initialises a <tt>ColumnStarTable</tt> using a template 
+     * <tt>StarTable</tt> to provide per-table metadata.
+     * The newly constructed object will have copies of the <tt>template</tt>'s
+     * name, parameters etc.
+     *
+     * @param   template  the template StarTable
+     */
+    public ColumnStarTable( StarTable template ) {
+        setName( template.getName() );
+        setParameters( new ArrayList( template.getParameters() ) );
+    }
+
+    /**
      * Gets the number of rows in the table (which must be applicable to
      * all the columns).  Since this is a <tt>RandomStarTable</tt> the
      * return value must be non-negative.
