@@ -2,6 +2,7 @@ package uk.ac.starlink.treeview;
 
 import java.util.*;
 import java.io.*;
+import java.net.URL;
 import javax.swing.*;
 import javax.swing.tree.*;
 
@@ -78,15 +79,49 @@ public class IconFactory {
         iconMap = new HashMap();
     }
 
+    /**
+     * Returns the sole instance of this class.
+     */
     public static IconFactory getInstance() {
         return soleInstance;
     }
 
+    /**
+     * Gets the icon with the given ID.
+     *
+     * @throws  IllegalArgumentException  if <tt>id</tt> is not one of the
+     *          known icon identifiers
+     */
     public Icon getIcon( short id ) {
-        return getIconByName( getGifName( id ) );
+        return getIconByName( getIconName( id ) );
     }
 
-    String getGifName( short id ) {
+    /**
+     * Gets a URL for the icon with the given ID.  Note that the return
+     * may be null if the icon does not have a gif (because it is acquired
+     * directly from the UIManager for instance).
+     *
+     * @param  id
+     * @return  the URL of the icon, or null
+     * @throws  IllegalArgumentException  if <tt>id</tt> is not one of the
+     *          known icon identifiers
+     */
+    public URL getIconURL( short id ) {
+        String ipath = IMAGE_PATH + getIconName( id );
+        return getClass().getClassLoader().getResource( ipath );
+    }
+
+    /**
+     * Returns the name by which the icon with a given id is known internally.
+     * This may refer to a resource in the IMAGE_PATH directory, or may not.
+     * It is used as the key to the <tt>iconMap</tt> map.
+     *
+     * @param   id  the icon identifier
+     * @return  the internal name of the icon
+     * @throws  IllegalArgumentException  if <tt>id</tt> is not one of the
+     *          known icon identifiers
+     */
+    private String getIconName( short id ) {
         String iname;
         switch ( id ) {
             case SPLIT_BELOW:    iname = "SplitHorizontal.gif";      break;
@@ -132,7 +167,7 @@ public class IconFactory {
             case XML_EREF:       iname = "xml_eref.gif";             break;
             case XML_STRING:     iname = "xml_txt.gif";              break;
             case XML_DTD:        iname = "xml_dtd.gif";              break;
-            case NDX:            iname = "fuzz2.gif";                break;
+            case NDX:            iname = "fuzz3.gif";                break;
             case HDX_CONTAINER:  iname = "box7.gif";                 break;
             case VOTABLE:        iname = "telescope2.gif";           break;
             case VOCOMPONENT:    iname = "smallbox1.gif";            break;
@@ -145,11 +180,12 @@ public class IconFactory {
             case HANDLE1:        iname = "handle1.gif";              break;
             case HANDLE2:        iname = "handle2.gif";              break;
             default:
-                throw new Error( 
+                throw new IllegalArgumentException( 
                     "Unknown icon identifier (programming error)" );
         }
         return iname;
     }
+
 
     public Icon getArrayIcon( int ndim ) {
         String iname;
