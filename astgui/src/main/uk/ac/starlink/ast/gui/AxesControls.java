@@ -22,6 +22,8 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import uk.ac.starlink.ast.Frame; // for javadocs
+
 /**
  * AxesControls creates a "page" of widgets that are a view of an
  * AstAxes object. They provide the ability to configure all the
@@ -42,6 +44,12 @@ public class AxesControls extends JPanel
     private AstAxes astAxes = null;
 
     /**
+     * The PlotController, used to access a {@link Frame} for
+     * formatting/unformatting axes correctly.
+     */
+    protected PlotController controller = null;
+
+    /**
      * Whether the X axis is to be shown.
      */
     private JCheckBox showX = new JCheckBox();
@@ -55,6 +63,16 @@ public class AxesControls extends JPanel
      * Whether the axes are drawn on the interior.
      */
     private JCheckBox interior = new JCheckBox();
+
+    /**
+     * Preferred coordinate for drawing the X axis, i.e. Y origin.
+     */
+    private AstDoubleField xLabelAt = null;
+
+    /**
+     * Preferred coordinate for drawing the Y axis, i.e X origin.
+     */
+    private AstDoubleField yLabelAt = null;
 
     /**
      * GridBagConstraints object.
@@ -94,8 +112,10 @@ public class AxesControls extends JPanel
     /**
      * Create an instance.
      */
-    public AxesControls( AbstractPlotControlsModel astAxes )
+    public AxesControls( AbstractPlotControlsModel astAxes,
+                         PlotController controller )
     {
+        this.controller = controller;
         initUI();
         setAstAxes( (AstAxes) astAxes );
     }
@@ -128,16 +148,35 @@ public class AxesControls extends JPanel
                 }
             });
 
+        //  X and Y origins.
+        yLabelAt = new AstDoubleField( 0.0, controller, 2 );
+        yLabelAt.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    matchYLabelAt();
+                }
+            });
+
+        xLabelAt = new AstDoubleField( 0.0, controller, 1 );
+        xLabelAt.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    matchXLabelAt();
+                }
+            });
+
+
+
         //  Add labels for all fields.
         addLabel( "Show X:", 0 );
         addLabel( "Show Y:", 1 );
         addLabel( "Interior:", 2 );
-        addLabel( "Thickness X:", 3 );
-        addLabel( "Style X:", 4 );
-        addLabel( "Colour X:", 5 );
-        addLabel( "Thickness Y:", 6 );
-        addLabel( "Style Y:", 7 );
-        addLabel( "Colour Y:", 8 );
+        addLabel( "X origin:", 3 );
+        addLabel( "Y origin:", 4 );
+        addLabel( "Thickness X:", 5 );
+        addLabel( "Style X:", 6 );
+        addLabel( "Colour X:", 7 );
+        addLabel( "Thickness Y:", 8 );
+        addLabel( "Style Y:", 9 );
+        addLabel( "Colour Y:", 10 );
 
         gbc.insets = new Insets( 0, 0, 0, 0 );
         gbc.anchor = GridBagConstraints.WEST;
@@ -163,6 +202,15 @@ public class AxesControls extends JPanel
         gbc.fill = GridBagConstraints.BOTH;
         add( interior, gbc );
 
+        //  X and Y origins.
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridy = row++;
+        add( yLabelAt, gbc );
+
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridy = row++;
+        add( xLabelAt, gbc );
+
         //  X axis line controls.
         row = addXLineControls( row );
 
@@ -180,6 +228,10 @@ public class AxesControls extends JPanel
         showX.setToolTipText( "Display an X axis" );
         showY.setToolTipText( "Display a Y axis" );
         interior.setToolTipText( "Display axes in interior, if needed" );
+        xLabelAt.setToolTipText(
+            "Origin coordinate for Y axis (units of Y), <Return> to accept" );
+        yLabelAt.setToolTipText(
+            "Origin coordinate for X axis (units of X), <Return> to accept" );
     }
 
     /**
@@ -203,6 +255,9 @@ public class AxesControls extends JPanel
         showY.setSelected( astAxes.getYShown() );
 
         interior.setSelected( astAxes.getInterior() );
+
+        xLabelAt.setDoubleValue( astAxes.getXLabelAt() );
+        yLabelAt.setDoubleValue( astAxes.getYLabelAt() );
 
         inhibitLineChangeListener = true;
 
@@ -270,6 +325,22 @@ public class AxesControls extends JPanel
     private void matchInterior()
     {
         astAxes.setInterior( interior.isSelected() );
+    }
+
+    /**
+     * Match X axis origin coordinate.
+     */
+    protected void matchXLabelAt() 
+    {
+        astAxes.setXLabelAt( xLabelAt.getDoubleValue() );
+    }
+
+    /**
+     * Match Y axis origin coordinate.
+     */
+    protected void matchYLabelAt() 
+    {
+        astAxes.setYLabelAt( yLabelAt.getDoubleValue() );
     }
 
     /**

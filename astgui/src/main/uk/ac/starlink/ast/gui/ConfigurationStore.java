@@ -1,8 +1,16 @@
+/*
+ * Copyright (C) 2002 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     14-FEB-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.ast.gui;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.List;
@@ -16,10 +24,10 @@ import org.jdom.output.XMLOutputter;
 
 /**
  * This class interacts with a permanent set of configuration states
- * stored in an XML-format disk file (PlotConfigs.xml). Each state is
- * identified by a description and date stamp, which are added when a
- * state is stored. The content of the state isn't actually understood
- * at this level that is left to more specific classes.
+ * stored in an XML-format disk file. Each state is identified by a
+ * description and date stamp, which are added when a state is
+ * stored. The content of the state isn't actually understood at this
+ * level that is left to more specific classes. 
  * <p>
  * An instance of this class presents itself as two services. One is
  * as a JTable model, this provides a model of two columns, the first
@@ -31,18 +39,16 @@ import org.jdom.output.XMLOutputter;
  * <p>
  * The format of the XML file is just determined by the practices
  * adopted in this file, rather than by a DTD or Schema. The root
- * element is <splat-plot-configs> each child of this element is
+ * element is <plot-configs> each child of this element is
  * called <config> with the attributes "description" and "date-stamp",
  * what goes after this is determined by the writers of the
  * configurations, but the general idea is for each object in the
  * configuration to write its state to a new Element.
  *
- * @since $Date$
- * @since 14-FEB-2001
  * @author Peter W. Draper
- * @version $Id$
  * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see #Element.
+ * @see Element
+ * @see StoreConfigurator
  */
 public class ConfigurationStore extends AbstractTableModel
 {
@@ -60,12 +66,74 @@ public class ConfigurationStore extends AbstractTableModel
     protected Element rootElement = null;
 
     /**
+     * Name of the application (used for name of config directory).
+     */
+    protected String applicationName = null;
+
+    /**
+     * Name of the file used for storage.
+     */
+    protected String storeName = null;
+
+    /**
      * Create an instance. This synchronises the current total state
      * with that of the backing store.
+     *
+     * @param applicationName name of the application controlling this
+     *                        store. Used to create a top-element,
+     *                        also defines the configuration directory.
+     *                        XXX use Properties for this?
+     * @param storeName name of the file that contains the
+     *                  configuration 
      */
-    public ConfigurationStore()
+    public ConfigurationStore( String applicationName, String storeName )
     {
+        this.applicationName = applicationName;
+        this.storeName = storeName;
         initFromBackingStore();
+    }
+
+    /**
+     * Create an instance. This synchronises the current total state
+     * with that read from a given InputStream (useful when want to
+     * get a default configuration using a getResource()). If you use
+     * this method it is not possible to save to backing store.
+     *
+     * @param stream InputStream that contains an XML description of a
+     *               series of configurations (i.e. a wrapped backing
+     *               store file). 
+     * 
+     */
+    public ConfigurationStore( InputStream inputStream )
+    {
+        initFromBackingStore( inputStream );
+    }
+
+    /**
+     * Initialise the local DOM froan InputSteam.
+     */
+    public void initFromBackingStore( InputStream inputStream )
+    {
+        //  And parse it into a Document.
+        SAXBuilder builder = new SAXBuilder( false );
+        try {
+            document  = builder.build( inputStream );
+        }
+        catch (Exception e) {
+            document = null;
+            e.printStackTrace();
+        }
+
+        //  If the document is still null create a default one.
+        if ( document == null ) {
+            rootElement = new Element( "plot-configs" );
+            document = new Document( rootElement );
+        }
+        else {
+            //  Locate the root Element.
+            rootElement = document.getRootElement();
+        }
+        fireTableDataChanged();
     }
 
     /**
@@ -76,7 +144,8 @@ public class ConfigurationStore extends AbstractTableModel
     public void initFromBackingStore()
     {
         //  Locate the backing store file.
-        File backingStore = Utilities.getConfigFile("PlotConfigs.xml");
+        File backingStore = Utilities.getConfigFile( applicationName,
+                                                     storeName );
         if ( backingStore.canRead() ) {
 
             //  And parse it into a Document.
@@ -92,7 +161,7 @@ public class ConfigurationStore extends AbstractTableModel
 
         //  If the document is still null create a default one.
         if ( document == null ) {
-            rootElement = new Element( "splat-plot-configs" );
+            rootElement = new Element( "plot-configs" );
             document = new Document( rootElement );
         }
         else {
@@ -200,7 +269,11 @@ public class ConfigurationStore extends AbstractTableModel
      */
     public void writeToBackingStore()
     {
-        File backingStore = Utilities.getConfigFile("PlotConfigs.xml");
+        if ( applicationName == null || storeName == null ) {
+            return;
+        }
+        File backingStore = Utilities.getConfigFile( applicationName,
+                                                     storeName );
         FileOutputStream f = null;
         BufferedWriter r = null;
         try {

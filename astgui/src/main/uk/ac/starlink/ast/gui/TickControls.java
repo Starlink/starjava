@@ -29,6 +29,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
+import uk.ac.starlink.ast.Frame;  // for javadocs
+
 /**
  * TickControls.Java creates a "page" of widgets that are a view of an
  * AstTicks object. They provide the ability to configure all the
@@ -49,6 +51,12 @@ public class TickControls extends JPanel
     protected AstTicks astTicks = null;
 
     /**
+     * The PlotController, used to access a {@link Frame} for
+     * formatting/unformatting axes correctly.
+     */
+    protected PlotController controller = null;
+
+    /**
      * GridBagConstraints object.
      */
     protected GridBagConstraints gbc = new GridBagConstraints();
@@ -66,12 +74,12 @@ public class TickControls extends JPanel
     /**
      * Entry for gap between major ticks on the X axis.
      */
-    protected DecimalField xMajorGap = null;
+    protected AstDoubleField xMajorGap = null;
 
     /**
      * Entry for the gap between major ticks on the Y axis.
      */
-    protected DecimalField yMajorGap = null;
+    protected AstDoubleField yMajorGap = null;
 
     /**
      * Spinner for controlling the length of X axis major tick marks.
@@ -168,9 +176,15 @@ public class TickControls extends JPanel
 
     /**
      * Create an instance.
+     *
+     * @param astTicks the model that we're a view of
+     * @param controller used to gain access to the Plot, this is
+     *                   needed for the configuration of any AstDouble
      */
-    public TickControls( AbstractPlotControlsModel astTicks )
+    public TickControls( AbstractPlotControlsModel astTicks,
+                         PlotController controller )
     {
+        this.controller = controller;
         initUI();
         setAstTicks( (AstTicks) astTicks );
     }
@@ -189,32 +203,18 @@ public class TickControls extends JPanel
                 }
             });
 
-        //  Separation between major ticks (axis units). No idea of
-        //  limits really so just use a Decimal entry field.
-        xMajorGap = new DecimalField( 0.0, 10, new DecimalFormat() );
-        Document doc = xMajorGap.getDocument();
-        doc.addDocumentListener ( new DocumentListener() {
-                public void changedUpdate( DocumentEvent e ) {
-                    matchXMajorGap();
-                }
-                public void insertUpdate( DocumentEvent e ) {
-                    matchXMajorGap();
-                }
-                public void removeUpdate( DocumentEvent e ) {
+        //  Separation between major ticks. Use an AstDouble related
+        //  control to get values in the units of the X axis.
+        xMajorGap = new AstDoubleField( 0.0, controller, 1 );
+        xMajorGap.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
                     matchXMajorGap();
                 }
             });
 
-        yMajorGap = new DecimalField( 0.0, 10, new DecimalFormat() );
-        doc = yMajorGap.getDocument();
-        doc.addDocumentListener ( new DocumentListener() {
-                public void changedUpdate( DocumentEvent e ) {
-                    matchYMajorGap();
-                }
-                public void insertUpdate( DocumentEvent e ) {
-                    matchYMajorGap();
-                }
-                public void removeUpdate( DocumentEvent e ) {
+        yMajorGap = new AstDoubleField( 0.0, controller, 2 );
+        yMajorGap.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
                     matchYMajorGap();
                 }
             });
@@ -358,9 +358,9 @@ public class TickControls extends JPanel
         //  Set tooltips.
         show.setToolTipText( "Show tick marks in plot" );
         xMajorGap.setToolTipText(
-            "Gap between major ticks (units of X axis)" );
+            "Gap between major ticks (units of X axis), <Return> to accept" );
         yMajorGap.setToolTipText(
-            "Gap between major ticks (units of Y axis)" );
+            "Gap between major ticks (units of Y axis), <Return> to accept" );
         xMajorLength.setToolTipText(
             "Length of X major tick marks" );
         yMajorLength.setToolTipText(

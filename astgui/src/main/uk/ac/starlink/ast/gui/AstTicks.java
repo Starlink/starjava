@@ -52,18 +52,6 @@ public class AstTicks extends AbstractPlotControlsModel
     protected double yGap;
 
     /**
-     * A position to start the X labelling at, not used when axes are
-     * drawn externally.
-     */
-    protected double xLabelAt;
-
-    /**
-     * A position to start the Y labelling at, not used when axes are
-     * drawn externally.
-     */
-    protected double yLabelAt;
-
-    /**
      * Length of the major tick marks of the X axis. Set as a fraction of the
      * displayed plot size.
      */
@@ -150,8 +138,6 @@ public class AstTicks extends AbstractPlotControlsModel
         colour = Color.black;
         xGap = 0.0;
         yGap = 0.0;
-        xLabelAt = DefaultGrf.BAD;
-        yLabelAt = DefaultGrf.BAD;
         majorXTicklen = 0.015;
         majorYTicklen = 0.015;
         minorXTicklen = 0.007;
@@ -290,70 +276,6 @@ public class AstTicks extends AbstractPlotControlsModel
     {
         return yGap;
     }
-
-
-    /**
-     * Set position along the X axis at which to start labelling
-     * (i.e. the Y axis intersection with the X axis). Ignore if
-     * labelling is drawn externally.  DefaultGrf.BAD indicates that
-     * the default value should be used. The units are those of the X
-     * axis.
-     *
-     * @param xLabelAt The new position to start labelling.
-     */
-    public void setXLabelAt( double xLabelAt )
-    {
-        this.xLabelAt = xLabelAt;
-        if ( xLabelAt != DefaultGrf.BAD ) {
-            setState( true );
-        }
-        fireChanged();
-    }
-
-
-    /**
-     * Get the position along the X axis at which labelling is to
-     * start. DefaultGrf.BAD indicates that the default value should
-     * be used.
-     *
-     * @return The xLabelAt value
-     */
-    public double getXLabelAt()
-    {
-        return xLabelAt;
-    }
-
-    /**
-     * Set position along the Y axis at which to start labelling
-     * (i.e. the X axis intersection with the Y axis). Ignore if
-     * labelling is drawn externally.  DefaultGrf.BAD indicates that
-     * the default value should be used. The units are those of the Y
-     * axis.
-     *
-     * @param yLabelAt The new position to start labelling.
-     */
-    public void setYLabelAt( double yLabelAt )
-    {
-        this.yLabelAt = yLabelAt;
-        if ( yLabelAt != DefaultGrf.BAD ) {
-            setState( true );
-        }
-        fireChanged();
-    }
-
-
-    /**
-     * Get the position along the Y axis at which labelling is to
-     * start. DefaultGrf.BAD indicates that the default value should
-     * be used.
-     *
-     * @return The yLabelAt value
-     */
-    public double getYLabelAt()
-    {
-        return yLabelAt;
-    }
-
 
     /**
      * Set the line width. The value DefaultGrf.BAD means no value.
@@ -648,15 +570,6 @@ public class AstTicks extends AbstractPlotControlsModel
             buffer.append( yGap );
         }
 
-        if ( xLabelAt != DefaultGrf.BAD ) {
-            buffer.append( ",LabelAt(1)=" );
-            buffer.append( xLabelAt );
-        }
-        if ( yLabelAt != DefaultGrf.BAD ) {
-            buffer.append( ",LabelAt(2)=" );
-            buffer.append( yLabelAt );
-        }
-
         if ( majorXTicklen != DefaultGrf.BAD ) {
             buffer.append( ",MajTicklen(1)=" );
             buffer.append( majorXTicklen );
@@ -727,9 +640,6 @@ public class AstTicks extends AbstractPlotControlsModel
         addChildElement( rootElement, "xGap", xGap );
         addChildElement( rootElement, "yGap", yGap );
 
-        addChildElement( rootElement, "xLabelAt", xLabelAt );
-        addChildElement( rootElement, "yLabelAt", yLabelAt );
-
         addChildElement( rootElement, "majorXTicklen", majorXTicklen );
         addChildElement( rootElement, "majorYTicklen", majorYTicklen );
 
@@ -778,16 +688,6 @@ public class AstTicks extends AbstractPlotControlsModel
 
         if ( name.equals( "yGap" ) ) {
             setYGap( doubleFromString( value ) );
-            return;
-        }
-
-        if ( name.equals( "xLabelAt" ) ) {
-            setXLabelAt( doubleFromString( value ) );
-            return;
-        }
-
-        if ( name.equals( "yLabelAt" ) ) {
-            setYLabelAt( doubleFromString( value ) );
             return;
         }
 

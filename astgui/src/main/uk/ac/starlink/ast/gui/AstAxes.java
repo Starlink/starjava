@@ -46,6 +46,18 @@ public class AstAxes extends AbstractPlotControlsModel
     protected boolean interior;
 
     /**
+     * A position to start the X labelling at, not used when axes are
+     * drawn externally.
+     */
+    protected double xLabelAt;
+
+    /**
+     * A position to start the Y labelling at, not used when axes are
+     * drawn externally.
+     */
+    protected double yLabelAt;
+
+    /**
      * The colour of the X axis.
      */
     protected Color xColour;
@@ -105,6 +117,8 @@ public class AstAxes extends AbstractPlotControlsModel
         isYSet = true;
         showX = true;
         showY = true;
+        xLabelAt = DefaultGrf.BAD;
+        yLabelAt = DefaultGrf.BAD;
         xColour = Color.black;
         yColour = xColour;
         xStyle = DefaultGrf.PLAIN;
@@ -208,6 +222,67 @@ public class AstAxes extends AbstractPlotControlsModel
         return showY;
     }
 
+
+    /**
+     * Set position along the X axis at which to start labelling
+     * (i.e. the Y axis intersection with the X axis). Ignore if
+     * labelling is drawn externally.  DefaultGrf.BAD indicates that
+     * the default value should be used. The units are those of the X
+     * axis.
+     *
+     * @param xLabelAt The new position to start labelling.
+     */
+    public void setXLabelAt( double xLabelAt )
+    {
+        this.xLabelAt = xLabelAt;
+        if ( xLabelAt != DefaultGrf.BAD ) {
+            setXState( true );
+        }
+        fireChanged();
+    }
+
+
+    /**
+     * Get the position along the X axis at which labelling is to
+     * start. DefaultGrf.BAD indicates that the default value should
+     * be used.
+     *
+     * @return The xLabelAt value
+     */
+    public double getXLabelAt()
+    {
+        return xLabelAt;
+    }
+
+    /**
+     * Set position along the Y axis at which to start labelling
+     * (i.e. the X axis intersection with the Y axis). Ignore if
+     * labelling is drawn externally.  DefaultGrf.BAD indicates that
+     * the default value should be used. The units are those of the Y
+     * axis.
+     *
+     * @param yLabelAt The new position to start labelling.
+     */
+    public void setYLabelAt( double yLabelAt )
+    {
+        this.yLabelAt = yLabelAt;
+        if ( yLabelAt != DefaultGrf.BAD ) {
+            setYState( true );
+        }
+        fireChanged();
+    }
+
+    /**
+     * Get the position along the Y axis at which labelling is to
+     * start. DefaultGrf.BAD indicates that the default value should
+     * be used.
+     *
+     * @return The yLabelAt value
+     */
+    public double getYLabelAt()
+    {
+        return yLabelAt;
+    }
 
     /**
      * Set the colour of the X axis.
@@ -417,6 +492,10 @@ public class AstAxes extends AbstractPlotControlsModel
                 }
                 buffer.append( ",Style(axis1)=" );
                 buffer.append( xStyle );
+                if ( xLabelAt != DefaultGrf.BAD ) {
+                    buffer.append( ",LabelAt(1)=" );
+                    buffer.append( xLabelAt );
+                }
             }
             else {
                 buffer.append( ",DrawAxes(1)=0" );
@@ -437,6 +516,10 @@ public class AstAxes extends AbstractPlotControlsModel
                 }
                 buffer.append( ",Style(axis2)=" );
                 buffer.append( yStyle );
+                if ( yLabelAt != DefaultGrf.BAD ) {
+                    buffer.append( ",LabelAt(2)=" );
+                    buffer.append( yLabelAt );
+                }
             }
             else {
                 buffer.append( ",DrawAxes(2)=0" );
@@ -479,6 +562,7 @@ public class AstAxes extends AbstractPlotControlsModel
 
         addChildElement( rootElement, "isXSet", isXSet );
         addChildElement( rootElement, "showX", showX );
+        addChildElement( rootElement, "xLabelAt", xLabelAt );
         if ( xColour != null ) {
             addChildElement( rootElement, "xColour", xColour );
         }
@@ -487,6 +571,7 @@ public class AstAxes extends AbstractPlotControlsModel
 
         addChildElement( rootElement, "isYSet", isYSet );
         addChildElement( rootElement, "showY", showY );
+        addChildElement( rootElement, "yLabelAt", yLabelAt );
         if ( yColour != null ) {
             addChildElement( rootElement, "yColour", yColour );
         }
@@ -517,6 +602,10 @@ public class AstAxes extends AbstractPlotControlsModel
             setXShown( booleanFromString( value ) );
             return;
         }
+        if ( name.equals( "xLabelAt" ) ) {
+            setXLabelAt( doubleFromString( value ) );
+            return;
+        }
         if ( name.equals( "xColour" ) ) {
             setXColour( colorFromString( value ) );
             return;
@@ -536,6 +625,10 @@ public class AstAxes extends AbstractPlotControlsModel
         }
         if ( name.equals( "showY" ) ) {
             setYShown( booleanFromString( value ) );
+            return;
+        }
+        if ( name.equals( "yLabelAt" ) ) {
+            setYLabelAt( doubleFromString( value ) );
             return;
         }
         if ( name.equals( "yColour" ) ) {

@@ -1,17 +1,20 @@
+/*
+ * Copyright (C) 2001-2002 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     27-JUL-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.ast.gui;
 
 import java.io.File;
 
 /**
- * Class of static members that provide utility functions. The major
- * set of these are to do with the name of this program and the
- * location of any configuration files.
+ * Class of static members that provide utility functions. 
+ * Just provides standard methods for locating configuration files.
  *
- * @since $Date$
- * @since 27-JUL-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  */
 public class Utilities 
 {
@@ -27,10 +30,14 @@ public class Utilities
      * The name of the directory used for storing configuration
      * information. This directory is created if it doesn't exist
      * already.
+     *
+     * @param applicationName name of the application, used to
+     *                        generate the top-directory name
      */
-    public static File getConfigDirectory()
+    public static File getConfigDirectory( String applicationName )
     {
-        File dir = new File( System.getProperty( "user.home" ), ".splat" );
+        File dir = new File( System.getProperty( "user.home" ), 
+                             "." + applicationName );
         if ( ! dir.exists() ) {
             try {
                 dir.mkdir();
@@ -51,12 +58,13 @@ public class Utilities
      * Construct the proper name of a file stored in the configuration
      * directory. 
      *
+     * @param applicationName name of the application (same as for
+     *                        {@link getConfigDirectory}) 
      * @param name the name of the file to be stored/located in the
      *             the configuration directory.
      */
-    public static File getConfigFile( String name )
+    public static File getConfigFile( String applicationName, String name )
     {
-        return new File( getConfigDirectory(), name );
+        return new File( getConfigDirectory( applicationName ), name );
     }
-
 }

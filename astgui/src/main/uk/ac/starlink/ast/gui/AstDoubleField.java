@@ -23,10 +23,10 @@ public class AstDoubleField
     extends JTextField
 {
     /**
-     * Reference to the Plot whose current coordinate system is being
-     * used for formatting.
+     * Reference to the {@link PlotController} that supplies a reference to
+     * the current {@link Frame} of an associated {@link Plot}.
      */
-    protected Plot plot = null;
+    protected PlotController controller = null;
 
     /**
      * The axis of the Plot that the coordinates relate to.
@@ -34,14 +34,14 @@ public class AstDoubleField
     protected int axis = 0;
 
     /**
-     * Create an instance. Requires the initial value (as a double), the Plot
-     * and related axis.
+     * Create an instance. Requires the initial value (as a double),
+     * the PlotController and related axis.
      */
-    public AstDoubleField( double value, Plot plot, int axis )
+    public AstDoubleField( double value, PlotController controller, int axis )
     {
         super();
-        setDocument( new AstDoubleDocument( plot, axis ) );
-        this.plot = plot;
+        setDocument( new AstDoubleDocument( controller, axis ) );
+        this.controller = controller;
         this.axis = axis;
         setDoubleValue( value );
     }
@@ -52,14 +52,15 @@ public class AstDoubleField
      */
     public double getDoubleValue()
     {
-        return plot.unformat( axis, getText() );
+        return controller.getPlotCurrentFrame().unformat( axis, getText() );
     }
 
     /**
-     * Set the current value.
+     * Set the current value. If Ast fails then a simple double value
+     * is shown.
      */
     public void setDoubleValue( double value )
     {
-        setText( plot.format( axis, value ) );
+        setText( controller.getPlotCurrentFrame().format( axis, value ) );
     }
 }

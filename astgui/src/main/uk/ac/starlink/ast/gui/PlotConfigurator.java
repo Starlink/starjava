@@ -35,6 +35,8 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.jdom.Element;
+
 import uk.ac.starlink.ast.gui.images.ImageHolder;
 import uk.ac.starlink.ast.Plot;                   // For documentation
 
@@ -110,6 +112,11 @@ public class PlotConfigurator
      * Graphics configuration store window.
      */
     protected StoreConfigurator storeConfig = null;
+
+    /**
+     * The default configuration of all known elements.
+     */
+    protected Element defaultConfig = null;
 
     /**
      * Default title for window: "Configure Ast Graphics Options".
@@ -352,7 +359,8 @@ public class PlotConfigurator
     protected void addAxes()
     {
         AxesControls axesPanel = new AxesControls
-            ( config.getControlsModel(AxesControls.getControlsModelClass()));
+            ( config.getControlsModel
+              ( AxesControls.getControlsModelClass()), controller );
         addControls( axesPanel, true );
     }
     protected void addBorder()
@@ -366,7 +374,7 @@ public class PlotConfigurator
     {
         TickControls ticksPanel = new TickControls
             ( config.getControlsModel
-              ( TickControls.getControlsModelClass() ) );
+              ( TickControls.getControlsModelClass() ), controller );
         addControls( ticksPanel, true );
     }
 
@@ -425,11 +433,25 @@ public class PlotConfigurator
     /**
      * Reset everything to the default values.
      */
-    protected void resetActionEvent()
+    public void reset()
     {
         for( int i = 0; i < controlsList.size(); i++ ) {
             ((PlotControls) controlsList.get( i )).reset();
         }
+        if ( defaultConfig != null ) {
+            config.decode( defaultConfig );
+        }
+    }
+
+    /**
+     * Set the default configuration. This an Element that contains a
+     * complete description of the state of all models stored by the
+     * controls and the PlotConfiguration object. It is normally
+     * created by {@link ConfigurationStore}.
+     */
+    public void setDefaultState( Element defaultConfig )
+    {
+        this.defaultConfig = defaultConfig;
     }
 
     /**
@@ -468,7 +490,7 @@ public class PlotConfigurator
             super( name, icon );
         }
         public void actionPerformed( ActionEvent ae ) {
-            resetActionEvent();
+            reset();
         }
     }
 

@@ -13,13 +13,13 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
 
-import uk.ac.starlink.ast.Plot;
+import uk.ac.starlink.ast.Frame;
 
 /**
  * AstDoubleDocument extends PlainDocument to so that any associated
  * components will only accept valid AstDouble formatted strings. This
- * requires a {@link Plot} and a valid axis. <p>
- *
+ * requires a {@link PlotController} and a valid axis.
+ * <p>
  * Use this with AstDoubleFields (a JTextField) that should only take
  * appropriately formatted AST coordinates (like RA and Dec).
  *
@@ -28,15 +28,17 @@ import uk.ac.starlink.ast.Plot;
  */
 public class AstDoubleDocument extends PlainDocument
 {
-    private Plot plot;
+    /** Used to access the {@link Plot}, needed as Plots are generally
+     *  re-created and a direct reference would go stale. */
+    private PlotController controller;
     private int axis;
 
     /**
      * Constructor for the AstDoubleDocument object
      */
-    public AstDoubleDocument( Plot plot, int axis )
+    public AstDoubleDocument( PlotController controller, int axis )
     {
-        this.plot = plot;
+        this.controller = controller;
         this.axis = axis;
     }
 
@@ -54,7 +56,8 @@ public class AstDoubleDocument extends PlainDocument
         String proposedResult = beforeOffset + str + afterOffset;
 
         //  Try to unformat this value into a double.
-        double value = plot.unformat( axis, proposedResult );
+        double value = 
+            controller.getPlotCurrentFrame().unformat( axis,proposedResult );
         if ( ! AstDouble.isBad( value ) ) {
 
             //  Conversion succeeded so insert new string.
@@ -82,7 +85,8 @@ public class AstDoubleDocument extends PlainDocument
         }
         else {
             //  Try to unformat this value into a double.
-            double value = plot.unformat( axis, proposedResult );
+            double value = 
+                controller.getPlotCurrentFrame().unformat(axis,proposedResult);
             if ( ! AstDouble.isBad( value ) ) {
 
                 //  Conversion succeeded so remove characters.

@@ -9,8 +9,14 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowEvent;
+
 import uk.ac.starlink.ast.FitsChan;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.gui.PlotConfiguration;
 import uk.ac.starlink.ast.gui.PlotConfigurator;
@@ -39,6 +45,15 @@ public class TestPlotConfigFrame extends JPanel implements PlotController
         frame.setTitle( "AST Plot" );
         frame.setSize( new Dimension( 350, 350 ) );
         frame.setVisible( true );
+        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        
+        // Exit when window is closed.
+        WindowListener closer = new WindowAdapter() {	
+                public void windowClosing( WindowEvent e ) {
+                    System.exit( 1 );
+                }
+            };
+        frame.addWindowListener( closer );
     }
 
     //  Create an instance.
@@ -165,5 +180,10 @@ public class TestPlotConfigFrame extends JPanel implements PlotController
     public void setPlotColour( Color colour )
     {
         setBackground( colour );
+    }
+
+    public Frame getPlotCurrentFrame()
+    {
+        return (Frame) frameSet;
     }
 }

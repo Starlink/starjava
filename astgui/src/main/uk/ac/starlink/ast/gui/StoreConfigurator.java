@@ -187,7 +187,7 @@ public class StoreConfigurator extends JFrame
 
         //  Create the store. This updates itself from the backing
         //  file.
-        store = new ConfigurationStore();
+        store = new ConfigurationStore( "astgui", "plot-configs.xml" );
 
         //  The status view is a JTable with a model of the content of
         //  the XML file (this also provides the interaction with the
