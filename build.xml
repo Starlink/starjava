@@ -110,8 +110,14 @@
      <echo message="Executing JNIHDS target: ${what}"/>
      <ant dir="./jnihds" target="${what}"/>
 
-     <echo message="Executing NDArray target: ${what}"/>
-     <ant dir="./array" target="${what}"/>
+     <echo message="Executing HDS target: ${what}"/>
+     <ant dir="./hds" target="${what}"/>
+
+     <echo message="Executing compatibility NDArray target: ${what}"/>
+     <ant dir="./oldarray" target="${what}"/>
+
+     <!-- <echo message="Executing NDArray target: ${what}"/>
+     <ant dir="./array" target="${what}"/>-->
 
      <echo message="Executing HDX target: ${what}"/>
      <ant dir="./hdx" target="${what}"/>
