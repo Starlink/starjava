@@ -303,34 +303,6 @@
   <target name="check_packages" 
           unless="runonly.install">
 
-    <!--  Need Array -->
-    <available property="array.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.hdx.array.NDArray"/>
-
-    <fail message="No Array available" unless="array.present"/>
-
-    <!--  Need JNIAST -->
-    <available property="jniast.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.ast.AstObject"/>
-
-    <fail message="No JNIAST available" unless="jniast.present"/>
-
-    <!--  Need HDS -->
-    <available property="hds.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.hds.HDSReference"/>
-
-    <fail message="No HDS available" unless="hds.present"/>
-
-    <!--  Need dom4j -->
-    <available property="dom4j.present"
-               classpathref="classpath"
-               classname="org.dom4j.Element"/>
-
-    <fail message="No dom4j classes available" unless="dom4j.present"/>
-
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
                classpathref="classpath"
