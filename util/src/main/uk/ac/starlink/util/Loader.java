@@ -27,7 +27,7 @@ public class Loader {
      * Name of the file in the user's home directory from which properties
      * are loaded.
      */
-    public static final String PROPERTIES_FILE = "starjava.properties";
+    public static final String PROPERTIES_FILE = ".starjava.properties";
 
     /**
      * Returns the location of the main Starlink java directory which 

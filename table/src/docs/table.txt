@@ -7,7 +7,7 @@ which will work on unix installations.  To get it to work on MS
 operating systems you could try invoking (e.g. click on) the 
 lib/table/table.jar jarfile (but see below).
 
-This will work as it stands for FITS tables and VOTables.
+This will work as it stands for FITS tables, VOTables and some others.
 For JDBC tables, some JDBC setup must be done outside of the application.
 Obviously, you need a database to connect to and a JDBC driver for starters.
 You also need to register the drivers with the DriverManager and
@@ -15,7 +15,7 @@ ensure that java knows where to load the relevant classes.
 
 I do this by:
  
-  (a)  adding the following line to my "~/starjava.properties" file:
+  (a)  adding the following line to my "~/.starjava.properties" file:
 
           jdbc.drivers=com.mysql.jdbc.Driver
 
