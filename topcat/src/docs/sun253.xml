@@ -2629,7 +2629,7 @@ system.
 with the following RDBMSs and corresponding JDBC drivers:
 <dl>
 
-<dt><webref url="http://www.mysql.org/">MySQL</webref></dt>
+<dt><webref url="http://www.mysql.com/">MySQL</webref></dt>
 <dd><p>MySQL 3.23.55 on Linux has been tested with the
     <webref url="http://www.mysql.com/products/connector/j/"
             >Connector/J</webref>
