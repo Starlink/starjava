@@ -130,7 +130,7 @@ public class DetailViewer {
      * something like this:
      * <pre>
      *     protected void paintComponent( Graphics g ) {
-     *         super.paintComponent();
+     *         super.paintComponent( g );
      *         doScaledPainting( getSize() );
      *     }
      * </pre>
@@ -138,7 +138,7 @@ public class DetailViewer {
      * <pre>
      *     private Dimension lastSize;
      *     protected void paintComponent( Graphics g ) {
-     *         super.paintComponent();
+     *         super.paintComponent( g );
      *         Dimension size = getSize();
      *         if ( ! size.equals( lastSize ) ) {
      *             setPreferredSize( size );
