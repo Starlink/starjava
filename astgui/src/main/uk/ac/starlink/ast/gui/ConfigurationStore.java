@@ -42,7 +42,7 @@ import uk.ac.starlink.util.SourceReader;
  * stored in an XML-format disk file. Each state is identified by a
  * description and date stamp, which are added when a state is
  * stored. The content of the state isn't actually understood at this
- * level that is left to more specific classes. 
+ * level that is left to more specific classes.
  * <p>
  * An instance of this class presents itself as two services. One is
  * as a JTable model, this provides a model of two columns, the first
@@ -53,23 +53,23 @@ import uk.ac.starlink.util.SourceReader;
  * state.
  * <p>
  * The format of the XML file is just determined by the practices
- * adopted in this file, rather than by a DTD or Schema. The root
- * element is <plot-configs> each child of this element is
- * called <config> with the attributes "description" and "date-stamp",
- * what goes after this is determined by the writers of the
- * configurations, but the general idea is for each object in the
- * configuration to write its state to a new Element.
+ * adopted in this file and by the {@link Configurator}
+ * implementation, rather than by a DTD or Schema. The root element is
+ * <configs> each child of this element is called whatever
+ * {@link Configurator#getTagName} returns, with the attributes "description"
+ * and "date-stamp", what goes after this is determined by the writer
+ * of the configurations, but the general idea is for each object in
+ * the configuration to write its state to a new Element.
  *
  * @author Peter W. Draper
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
+ * @copyright Copyright (C) 2001-2004 Central Laboratory of the Research Councils
  * @see Element
  * @see StoreConfigurator
+ * @see Configurator
  */
-public class ConfigurationStore extends AbstractTableModel
+public class ConfigurationStore
+    extends AbstractTableModel
 {
-    // TODO: should there be just one instance of this class? There
-    // may be contention with the backing store if not.
-
     /**
      * The Document.
      */
@@ -99,7 +99,7 @@ public class ConfigurationStore extends AbstractTableModel
      *                        also defines the configuration directory.
      *                        XXX use Properties for this?
      * @param storeName name of the file that contains the
-     *                  configuration 
+     *                  configuration
      */
     public ConfigurationStore( String applicationName, String storeName )
     {
@@ -116,8 +116,8 @@ public class ConfigurationStore extends AbstractTableModel
      *
      * @param stream InputStream that contains an XML description of a
      *               series of configurations (i.e. a wrapped backing
-     *               store file). 
-     * 
+     *               store file).
+     *
      */
     public ConfigurationStore( InputStream inputStream )
     {
@@ -162,7 +162,7 @@ public class ConfigurationStore extends AbstractTableModel
                                                      storeName );
         if ( backingStore.canRead() ) {
             try {
-                FileInputStream inputStream = 
+                FileInputStream inputStream =
                     new FileInputStream( backingStore );
                 initFromBackingStore( inputStream );
             }
@@ -178,12 +178,12 @@ public class ConfigurationStore extends AbstractTableModel
 
     /** Create an empty document */
     protected void createEmptyDoc()
-    {   
+    {
         try {
-            DocumentBuilder builder = 
+            DocumentBuilder builder =
                 DocumentBuilderFactory.newInstance().newDocumentBuilder();
             document = builder.newDocument();
-            rootElement = document.createElement( "plot-configs" );
+            rootElement = document.createElement( "configs" );
             document.appendChild( rootElement );
         }
         catch (Exception e) {
@@ -222,6 +222,21 @@ public class ConfigurationStore extends AbstractTableModel
     public Element getState( int index )
     {
        return (Element) getChildElements( rootElement ).get( index );
+    }
+
+    /**
+     * Re-get a state from the store. Re-getting implies that this
+     * will be overwritten so all children are removed.
+     */
+    public Element reGetState( int index )
+    {
+        Element parent = (Element)getChildElements( rootElement ).get( index );
+        List children = getChildElements( parent );
+        int size = children.size();
+        for ( int i = 0; i < size; i++ ) {
+            parent.removeChild( (Element) children.get( i ) );
+        }
+        return parent;
     }
 
     /**
@@ -308,7 +323,7 @@ public class ConfigurationStore extends AbstractTableModel
         FileOutputStream f = null;
         try {
             f = new FileOutputStream( backingStore );
-        } 
+        }
         catch ( Exception e ) {
             e.printStackTrace();
             return;
