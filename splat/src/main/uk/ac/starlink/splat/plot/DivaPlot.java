@@ -29,6 +29,7 @@ import java.awt.print.Printable;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
+import javax.swing.JViewport;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.EventListenerList;
 
@@ -617,10 +618,10 @@ public class DivaPlot
      */
     protected void resetPreferredSize()
     {
-        //  Set the requested size of the plotting component. This
-        //  needs to be honoured by the user of this class somehow
-        //  (use center of a BorderLayout, probably with a
-        //  JScrollPane, if expecting to resize after creation).
+        //  Set the requested size of the plotting component. This needs to be
+        //  honoured by the user of this class somehow (use center of a
+        //  BorderLayout, probably with a JScrollPane, if expecting to resize
+        //  after creation).
         setPreferredSize
             (new Dimension( (int)( baseXScale * xScale * ( xMax - xMin ) ),
                             (int)( baseYScale * yScale * ( yMax - yMin ) ) ) );
@@ -628,7 +629,7 @@ public class DivaPlot
 
     /**
      * Update the plot to reflect any changes in the spectra being plotted
-     * (i.e.<!-- --> when a new spectrum is added).
+     * (when a new spectrum is added).
      *
      * @exception SplatException thrown if problems reading spectra.
      */
@@ -870,6 +871,11 @@ public class DivaPlot
             // when we try to repaint.
             System.out.println( e.getMessage() );
         }
+        catch (Throwable t) {
+            // Trap all errors too (like OutOfMemory).
+            t.printStackTrace();
+        }
+
     }
 
     /**
