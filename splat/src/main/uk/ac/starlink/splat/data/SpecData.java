@@ -1912,11 +1912,26 @@ public class SpecData
     public void setXDataColumnName( String name )
         throws SplatException
     {
+        setXDataColumnName( name, false );
+    }
+
+    /**
+     * Set the name of the column associated with the coordinates. If
+     * the underlying implementation supports it this will result in a
+     * modification of the coordinate system and coordinate values.
+     * The update to the AST coordinate systems can be suppressed using this
+     * method, only do this if you know an update will happen anyway.
+     */
+    public void setXDataColumnName( String name, boolean updateAST )
+        throws SplatException
+    {
         if ( isColumnMutable() ) {
             String currentName = getXDataColumnName();
             if ( ! currentName.equals( name ) ) {
                 impl.setCoordinateColumnName( name );
-                initialiseAst();
+                if ( updateAST ) {
+                    initialiseAst();
+                }
             }
         }
     }
@@ -1933,9 +1948,11 @@ public class SpecData
     /**
      * Set the name of the column associated with the data values. If
      * the underlying implementation supports it this will result in a
-     * modification of values.
+     * modification of values. Returns true if the name didn't match the
+     * previous value, and names are mutable (in this instance a re-read of
+     * the data has occurred and the coordinate systems have been updated).
      */
-    public void setYDataColumnName( String name )
+    public boolean setYDataColumnName( String name )
         throws SplatException
     {
         if ( isColumnMutable() ) {
@@ -1943,8 +1960,10 @@ public class SpecData
             if ( ! currentName.equals( name ) ) {
                 impl.setDataColumnName( name );
                 readData();
+                return true;
             }
         }
+        return false;
     }
 
     /**

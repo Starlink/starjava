@@ -581,6 +581,9 @@ public class SpecDataComp
             }
             String stdofrest = null;
             FrameSet aligned = fr.convert( to, "DATAPLOT" );
+            if ( matchDataUnits ) {
+                to.setActiveUnit( false );
+            }
             if ( aligned == null ) {
                 if ( matchDataUnits ) {
                     throw new SplatException( "Failed to align spectral " +
@@ -621,14 +624,20 @@ public class SpecDataComp
      * The input and output coordinates are [x1,y1,x2,y2,...].
      */
     public double[] transformLimits( Plot plot, SpecData target,
-                                     double[] limits )
+                                     double[] limits, boolean matchDataUnits )
         throws SplatException
     {
         double[] result = limits;
         Frame to = plot.getFrame( FrameSet.AST__CURRENT );
         Frame fr =
             target.getAst().getRef().getFrame( FrameSet.AST__CURRENT );
+        if ( matchDataUnits ) {
+            fr.setActiveUnit( true );
+        }
         FrameSet aligned = to.convert( fr, "DATAPLOT" );
+        if ( matchDataUnits ) {
+            fr.setActiveUnit( false );
+        }
         if ( aligned == null ) {
             throw new SplatException( "Failed to aligned coordinates" +
                                       " while transforming limits");
@@ -668,9 +677,12 @@ public class SpecDataComp
             spectrum = (SpecData)spectra.get( i );
             if ( coordinateMatching ) {
                 if ( ! spectrum.equals( currentSpec ) ) {
-                    // Need to align these plot coordinates.
-                    localPlot = alignPlots( plot, spectrum );
-                    localLimits = transformLimits( plot, spectrum, limits );
+                    //  The coordinates systems and, optionally, data units of
+                    //  the spectra need to be matched.
+                    localPlot = alignPlots( plot, spectrum, 
+                                            dataUnitsMatching );
+                    localLimits = transformLimits( plot, spectrum, limits,
+                                                   dataUnitsMatching );
                 }
                 else {
                     localPlot = plot;
@@ -686,7 +698,8 @@ public class SpecDataComp
      * coordinates. The coordinate systems are aligned using astConvert if
      * possible, otherwise the original plot is returned.
      */
-    public Plot alignPlots( Plot plot, SpecData source )
+    public Plot alignPlots( Plot plot, SpecData source, 
+                            boolean matchDataUnits )
         throws SplatException
     {
         Plot result = (Plot) plot.copy();
@@ -703,13 +716,20 @@ public class SpecDataComp
         Frame picked = to.pickAxes( 1, iaxes, null );
         FrameSet aligned = null;
         if (source instanceof LineIDSpecData && picked instanceof SpecFrame) {
+            //  How to match data units?
             String stdofrest = to.getC( "StdOfRest" );
             to.set( "StdOfRest=Source" );
             aligned = from.convert( to, "DATAPLOT" );
             to.set( "StdOfRest=" + stdofrest );
         }
         else {
+            if ( matchDataUnits ) {
+                from.setActiveUnit( true );
+            }
             aligned = to.convert( from, "DATAPLOT" );
+            if ( matchDataUnits ) {
+                from.setActiveUnit( false );
+            }
         }
         if ( aligned == null ) {
             throw new SplatException( "Failed to align coordinates" +
