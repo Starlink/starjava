@@ -37,7 +37,7 @@ public class StatsWindow extends AuxWindow {
     private TableViewer tv;
     private PlasticStarTable dataModel;
     private OptionsListModel subsets;
-    private RowSubset rset = null;
+    private RowSubset rset = RowSubset.ALL;
     private StatsCalculator activeCalculator;
     private Map calcMap;
     private JTable jtab;
@@ -135,7 +135,7 @@ public class StatsWindow extends AuxWindow {
         }
 
         /* Ensure consistency with the subset selector. */
-        if ( ! rset.equals( subSelector.getSelectedItem() ) ) {
+        if ( rset !=  subSelector.getSelectedItem() ) {
             subSelector.setSelectedItem( rset );
             return;
         }
@@ -165,7 +165,7 @@ public class StatsWindow extends AuxWindow {
         jtab.setModel( model );
         model.configureJTable( jtab );
         RowSubset rset = stats.rset;
-        if ( rset == null || rset.equals( RowSubset.ALL ) ) {
+        if ( rset == RowSubset.ALL ) {
             setMainHeading( "Statistics for all rows" );
         }
         else {
@@ -318,28 +318,37 @@ public class StatsWindow extends AuxWindow {
                     /* Accumulate statistics as appropriate. */
                     for ( int icol = 0; icol < ncol; icol++ ) {
                         Object val = row[ icol ];
-                        if ( val != null ) {
+                        boolean good;
+                        if ( val == null ) {
+                            good = false;
+                        }
+                        else {
                             if ( isNumber[ icol ] ) {
                                 if ( ! ( val instanceof Number ) ) {
                                     System.err.println( 
                                         "Error in table data: not numeric at " +
                                         lrow + "," + icol + "(" + val + ")" );
-                                    break;
+                                    good = false;
                                 }
                                 double dval = ((Number) val).doubleValue();
                                 if ( Double.isNaN( dval ) ) {
-                                    break;
+                                    good = false;
                                 }
-                                if ( dval < dmins[ icol ] ) {
-                                    dmins[ icol ] = dval;
-                                    mins[ icol ] = val;
+                                else {
+                                    good = true;
                                 }
-                                if ( dval > dmaxs[ icol ] ) {
-                                    dmaxs[ icol ] = dval;
-                                    maxs[ icol ] = val;
+                                if ( good ) {
+                                    if ( dval < dmins[ icol ] ) {
+                                        dmins[ icol ] = dval;
+                                        mins[ icol ] = val;
+                                    }
+                                    if ( dval > dmaxs[ icol ] ) {
+                                        dmaxs[ icol ] = dval;
+                                        maxs[ icol ] = val;
+                                    }
+                                    sums[ icol ] += dval;
+                                    sum2s[ icol ] += dval * dval;
                                 }
-                                sums[ icol ] += dval;
-                                sum2s[ icol ] += dval * dval;
                             }
                             else if ( isComparable[ icol ] ) {
                                 if ( ! ( val instanceof Comparable ) ) {
@@ -347,37 +356,48 @@ public class StatsWindow extends AuxWindow {
                                         "Error in table data: not Comparable " +
                                         " at " + lrow + "," + icol + "(" +
                                         val + ")" );
-                                    break;
-                                }
-                                Comparable cval = (Comparable) val;
-                                if ( mins[ icol ] == null ) {
-                                    assert maxs[ icol ] == null;
-                                    mins[ icol ] = val;
-                                    maxs[ icol ] = val;
+                                    good = false;
                                 }
                                 else {
-                                    try {
-                                        if ( cval.compareTo( mins[ icol ] ) 
-                                             < 0 ) {
-                                            mins[ icol ] = val;
-                                        }
-                                        else if ( cval.compareTo( maxs[ icol ] )
-                                                  > 0 ) {
-                                            maxs[ icol ] = val;
-                                        }
+                                    good = true;
+                                }
+                                if ( good ) {
+                                    Comparable cval = (Comparable) val;
+                                    if ( mins[ icol ] == null ) {
+                                        assert maxs[ icol ] == null;
+                                        mins[ icol ] = val;
+                                        maxs[ icol ] = val;
                                     }
+                                    else {
+                                        try {
+                                            if ( cval.compareTo( mins[ icol ] ) 
+                                                 < 0 ) {
+                                                mins[ icol ] = val;
+                                            }
+                                            else if ( cval
+                                                     .compareTo( maxs[ icol ] )
+                                                      > 0 ) {
+                                                maxs[ icol ] = val;
+                                            }
+                                        }
 
-                                    /* It is possible for two objects in the
-                                     * same column both to be Comparable,
-                                     * but not to each other.  In this case,
-                                     * there does not exist a well-defined
-                                     * min/max for that column. */
-                                    catch ( ClassCastException e ) {
-                                        badcompars[ icol ] = true;
+                                        /* It is possible for two objects in the
+                                         * same column both to be Comparable,
+                                         * but not to each other.  In this case,
+                                         * there does not exist a well-defined
+                                         * min/max for that column. */
+                                        catch ( ClassCastException e ) {
+                                            badcompars[ icol ] = true;
+                                        }
                                     }
                                 }
                             }
-                            ngoods[ icol ]++;
+                            else {
+                                good = true;
+                            }
+                            if ( good ) {
+                                ngoods[ icol ]++;
+                            }
                         }
                     }
                 }
