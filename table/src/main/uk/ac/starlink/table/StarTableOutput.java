@@ -1,5 +1,6 @@
 package uk.ac.starlink.table;
 
+import java.awt.datatransfer.Transferable;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -196,6 +197,17 @@ public class StarTableOutput {
                 }
             }
         }
+    }
+
+    /**
+     * Returns a <tt>Transferable</tt> object associated with a given
+     * StarTable, for use at the drag end of a drag and drop operation.
+     *
+     * @param  startab  the table which is to be dragged
+     * @see  StarTableFactory#makeStarTable(java.awt.datatransfer.Transferable)
+     */
+    public Transferable transferStarTable( final StarTable startab ) {
+        return new StarTableTransferable( startab );
     }
  
     /**
