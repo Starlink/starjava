@@ -111,4 +111,15 @@ public class TypeTest extends TestCase {
         }
     }
 
+    public void testGetType() {
+        assertEquals( Type.getType( byte.class ), Type.BYTE );
+        assertEquals( Type.getType( short.class ), Type.SHORT );
+        assertEquals( Type.getType( int.class ), Type.INT );
+        assertEquals( Type.getType( float.class ), Type.FLOAT );
+        assertEquals( Type.getType( double.class ), Type.DOUBLE );
+        assertNull( Type.getType( long.class ) );
+        assertNull( Type.getType( HashSet.class ) );
+        assertNull( Type.getType( null ) );
+    }
+
 }

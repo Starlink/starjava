@@ -225,4 +225,34 @@ public class Type {
         return Collections.unmodifiableList( allTypes );
     }
 
+    /**
+     * Returns the Type object corresponding to a given java class.
+     * If no corresponding type exists (<tt>cls</tt> is not one of the
+     * supported primitive numeric types) then <tt>null</tt> is returned.
+     *
+     * @param   cls  a (presumably numeric primitive) class.  
+     *               May be <tt>null</tt>
+     * @return  the Type object corresponding to <tt>cls</tt>, or <tt>null</tt>
+     */
+    public static Type getType( Class cls ) {
+        if ( byte.class.equals( cls ) ) {
+            return BYTE;
+        }
+        else if ( short.class.equals( cls ) ) {
+            return SHORT;
+        }
+        else if ( int.class.equals( cls ) ) {
+            return INT;
+        }
+        else if ( float.class.equals( cls ) ) {
+            return FLOAT;
+        }
+        else if ( double.class.equals( cls ) ) {
+            return DOUBLE;
+        }
+        else {
+            return null;
+        }
+    }
+
 }
