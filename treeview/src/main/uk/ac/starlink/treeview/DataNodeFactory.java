@@ -46,6 +46,7 @@ import uk.ac.starlink.util.URLDataSource;
  * <li> {@link CompressedDataNode}
  * <li> {@link FileDataNode}
  * <li> {@link PlainDataNode}
+ * <li> {@link HTMLDataNode}
  * </ul>
  * The factory will churn out a <code>DataNode</code> object based on
  * the object it is given for construction, the constructors available
@@ -80,6 +81,9 @@ import uk.ac.starlink.util.URLDataSource;
  * This means that a file or string will get tackled first by
  * the clever classes, but if that fails it will trawl through all the
  * other possibilities.
+ *
+ * @author Mark Taylor (Starlink)
+ * @version $Id$
  */
 public class DataNodeFactory {
 
@@ -600,6 +604,7 @@ public class DataNodeFactory {
                 VOComponentDataNode.class,
                 FtpDirectoryDataNode.class,
                 CompressedDataNode.class,
+                HTMLDataNode.class,
                 FileDataNode.class,
                 PlainDataNode.class,
             };
