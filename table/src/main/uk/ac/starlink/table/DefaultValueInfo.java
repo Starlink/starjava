@@ -335,13 +335,16 @@ public class DefaultValueInfo implements ValueInfo {
      */
     private static int appendElements( StringBuffer sb, Object array,
                                        int pos, int[] dims, int maxChars ) {
+        int leng = Array.getLength( array );
         int ndim = dims.length;
         int limit = dims[ ndim - 1 ];
         if ( sb.length() < maxChars ) {
             sb.append( '(' );
             if ( ndim == 1 ) {
-                for ( int i = 0; i < limit  && sb.length() < maxChars; i++ ) {
-                    sb.append( Array.get( array, pos++ ) );
+                for ( int i = 0; i < limit && sb.length() < maxChars; i++ ) {
+                    if ( pos < leng ) {
+                        sb.append( Array.get( array, pos++ ) );
+                    }
                     if ( i < limit - 1 ) {
                         sb.append( ", " );
                     }
