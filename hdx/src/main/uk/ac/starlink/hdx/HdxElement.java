@@ -2,19 +2,39 @@
 
 package uk.ac.starlink.hdx;
 
+import uk.ac.starlink.util.NodeDescendants;
+
 import org.w3c.dom.*;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.logging.Level;
 
 /**
- * Provides a normalized view of another DOM.  In this view, all of
- * the elements in the DOM are element types recognised by HDX (or
- * rather, by {@link HdxResourceType}), and no elements have a
- * namespace declaration.  Any changes to the attributes on the
- * elements in this DOM, either adding or altering them, are echoed in
- * the backing DOM.
+ * Provides a normalized/canonicalized view of another DOM.  In this view, 
+ * <ul>
+ * <li>the HDX is valid (according to {@link HdxResourceType#isValidHdx}
+ * (which means amongst other things that each of the elements
+ * immediately contained within the HDX element are element types
+ * recognised by HDX, or rather, by {@link HdxResourceType});
+ *
+ * <li>if any element has a <code>hoistAttribute</code> defined (see
+ * {@link HdxResourceType#setHoistAttribute}), then: if the hoist
+ * attribute does not have a value and the element has text content,
+ * the hoist attribute is set to the text content and that content
+ * deleted;
+ *
+ * <li>no elements have a namespace declaration.
+ * </ul>
+ *
+ * <p>If an Hdx DOM is constructed from a `foreign' tree using {@link
+ * HdxFactory#newHdxContainer(Element)}, then the elements in the new
+ * DOM will be `shadowed' by the elements in the old one, in the sense
+ * that any changes or additions to the attributes on the new DOM
+ * will, by default, also appear in the original DOM.  This behaviour
+ * can be controlled using the method {@link #setShadowAttributes}.
  *
  * <p>Objects of this class are manipulated purely through the {@link
  * org.w3c.dom.Element} interface (the sole exception is the
@@ -22,10 +42,35 @@ import java.util.Iterator;
  * there are no non-private methods which return objects of type
  * <code>HdxElement</code>.
  *
- * <p>This implements a slightly cut-down version of the Element
- * interface, with the attribute-removal methods throwing {@link
- * DOMException}s, as unsupported operations; this latter behaviour
- * might change.
+ * <p>All of the elements and attributes which are significant to the
+ * Hdx system should be in no namespace, and the namespace-aware
+ * methods in this class, <code>...NS</code>, throw a
+ * <code>NAMESPACE_ERR</code> DOMException if they are asked to
+ * operate on the Hdx namespace or a namespace consisting of an empty
+ * string, though a null namespace argument to these methods is fine,
+ * and equivalent to the corresponding no-namespace method.  The
+ * namespace-aware methods may be passed other namespaces <em>if</em>
+ * there is a shadowing element; they throw a
+ * <code>NAMESPACE_ERR</code> if there is no such element.
+ *
+ * <p>Any <code>xml:base</code> attributes on elements which
+ * <em>are</em> incorporated into the HDX view of the DOM are
+ * respected; such attributes on elements which are not incorporated
+ * are <em>ignored</em>.  This means that in the case
+ * <pre>
+ * &lt;rubbish xml:base="http://x.org"&gt;
+ *   &lt;h:ndx xmlns:h="http://www.starlink.ac.uk/HDX"&gt;
+ *     &lt;h:image uri="file.fits" /&gt;
+ *   &lt;/h:ndx&gt;
+ * &lt;/rubbish&gt;
+ * </pre>
+ * the <code>xml:base</code> attribute has no effect, since it does
+ * not appear in the HDX DOM which this is normalised into.  Whether this is
+ * counterintuitive or not probably depends on your intuitions.
+ * This is consistent with the view that such
+ * elements must be invisible to the HDX DOM.  If you have an argument
+ * that this is inconsistent with the XML Base specification, or
+ * otherwise undesirable, Norman would like to hear it.
  *
  * @author Norman Gray (norman@astro.gla.ac.uk)
  * @version $Id$
@@ -36,57 +81,16 @@ class HdxElement
 
     /*
      * As explained above, various of the attribute-removal methods
-     * here throw NOT_SUPPORTED_ERR DOMExceptions.  This is (a)
-     * because I'm not sure I've implemented them correctly, but
-     * mostly (b) because I'm not sure just what the semantics should
-     * be in respect of the backing DOM.  Should the methods delete
-     * the attribute from the backing DOM, or just from the current
-     * element?  And so on.
+     * here throw <code>NOT_SUPPORTED_ERR</code> DOMExceptions.  This
+     * is (a) because I'm not sure I've implemented them correctly,
+     * but mostly (b) because I'm not sure just what the semantics
+     * should be in respect of the backing DOM.  Should the methods
+     * delete the attribute from the backing DOM, or just from the
+     * current element?  And so on.
      *
      * Various other operations need further thought, in those places
      * marked `XXX SEMANTICS'.
      */
-
-//     /** 
-//      * The HdxResourceType which this element corresponds to.
-//      */
-//     private HdxResourceType type;
-
-    /**
-     * An element in the backing DOM which holds the attributes used
-     * to back the attributes in this element (got that?).  We don't
-     * change this element other than to possibly alter the set of
-     * attributes on it.
-     *
-     * <p><strong>REDUNDANT NOTE</strong>: this field is used <em>only</em> by
-     * the class {@link HdxElement}, which extends this class.
-     * However, it is declared here so that we can have the
-     * Node-insertion methods (which are not overridden by
-     * <code>HdxElement</code>) check its value, and refuse to proceed
-     * if it is non-null.  This means that <code>HdxElement</code>
-     * instances which do have backing elements are not
-     * tree-modifiable (though they are attribute-modifiable).  If
-     * this does in fact turn out to become a problem, then the
-     * solution is <em>either</em> to rewrite <code>HdxElement</code>
-     * to override the appropriate methods (unsightly), <em>or</em> to
-     * rewrite <code>HdxNode</code> and <code>HdxElement</code> to
-     * move the backing-node functionality into <code>HdxNode</code>
-     * (heavy lifting).  If it isn't a problem in fact, then that
-     * functionality should remain in <code>HdxElement</code>.
-     */
-    protected Element backingNode;
-
-    /**
-     * A prefix in the backingElement which has been declared as the
-     * prefix for the HDX namespace.  Method {@link #setAttributeNS}
-     * needs this.  It isn't necessarily the only prefix so declared.
-     * 
-     * <p>If this is null, then it indicates that the current object
-     * was constructed from a tag name and/or attributes which were
-     * not in any namespace.  
-     * XXX is this still true?
-     */
-    protected String backingNodeNSPrefix;
 
     /**
      * The name of this element.  Since this class supports element
@@ -96,26 +100,12 @@ class HdxElement
     private String giName;
 
     /** 
-     * Mapping of attribute names to Attr objects.  The keys are
-     * attribute names in the HDX namespace <em>without</em> any
-     * prefix; the values are Attr elements, the names of which
-     * <em>may</em> have a namespace prefix, which should therefore
-     * be ignored.
+     * Mapping of attribute names to Attr objects.
      */
-    private java.util.Map attMap;
+    private AttributeMap attributeMap;
 
     private static java.util.logging.Logger logger
-            = java.util.logging.Logger.getLogger( "uk.ac.starlink.hdx" );
-    // How the hell do I enable fine logging?
-//     static {
-//         logger.setLevel(java.util.logging.Level.FINE);
-//         java.util.logging.Handler[] h = logger.getHandlers();
-//         for (int i=0; i<h.length; i++) {
-//             System.err.println("Changing handler level from "
-//                                + h[i].getLevel() + " to FINE");
-//             h[i].setLevel(java.util.logging.Level.FINE);
-//         }
-//     }
+            = java.util.logging.Logger.getLogger("uk.ac.starlink.hdx");
 
     /**
      * Constructs an HdxElement with the given GI name.
@@ -135,13 +125,15 @@ class HdxElement
              false,
              owner);
         this.giName = giName;
+        assert this.giName != null;
     }
     
         
 
     /**
      * Constructs an HdxElement from a plain Element, where the {@link
-     * HdxResourceType} has already been determined.
+     * HdxResourceType} has already been determined.  This is ap
+     * <em>private</em> constructor.
      *
      * <p>If the <code>setType</code> parameter is null, then the
      * element type is to be determined.  The element is an HDX
@@ -168,8 +160,8 @@ class HdxElement
      * without necessarily claiming it as best practice.
      *
      * @param el element to extract information from.  It's OK for
-     * this to be null -- this is so that this class can construct
-     * dummy HdxElement instances for its own use.  
+     * this to be null -- this is purely so that this class can also service
+     * the {@link #HdxElement(String,Document)} constructer.
      *
      * @param setType the HdxResourceType type which the new
      * HdxElement is representative of.  If this is null, then the
@@ -188,6 +180,9 @@ class HdxElement
         super(Node.ELEMENT_NODE, owner);
         assert owner != null;
         
+        String backingNodeNSPrefix;
+        Element backingNode;
+        
         if (setType == null) {
             if (el == null)
                 throw new IllegalArgumentException
@@ -196,78 +191,42 @@ class HdxElement
             ElementTypeInfo inf = getElementTypeInfo(el,
                                                      (inNamespace ? 1 : -1));
             giName = inf.getName();
-            //type = inf.getType();
             backingNodeNSPrefix = inf.getPrefix();
         } else {
-            //type = setType.getType();
             giName = setType.getName();
             backingNodeNSPrefix = setType.getPrefix();
         }
         assert giName != null;
-        logger.info("HdxElement: giName=" + this.giName
-                    + " => type=" + getHdxType());
-
         backingNode = el;        
+
+        logger.fine("HdxElement: giName=" + this.giName
+                    + " => type=" + getHdxType()
+                    + ", backing node?=" + (backingNode!=null)
+                    + ", prefix=" + backingNodeNSPrefix);
+
+        attributeMap = new AttributeMap((HdxDocument)owner,
+                                        backingNode,
+                                        backingNodeNSPrefix);
+
         if (backingNode == null) {
             assert backingNodeNSPrefix == null;
-            //logger.fine
-                System.err.println("HdxElement: no backing node");
             return;
         }
         assert el != null;
 
-        boolean noNSAttsAreHdx;
-        if (el.getNamespaceURI() != null
-            && el.getNamespaceURI().equals(HdxResourceType.HDX_NAMESPACE))
-            noNSAttsAreHdx = true;
-        else
-            noNSAttsAreHdx = false;
-        
-         // Work through the attributes on the backing object, adding
-         // `our' attributes to the attMap on this object.  Depending
-         // on the value of inNamespace, `our attributes' means either
-         // attributes in the HDX namespace or attributes in no
-         // namespace.
-         // 
-         // Don't reexamine "name", since it was already processed by
-         // getElementTypeInfo().
-        NamedNodeMap nodemap = el.getAttributes();
-        for (int i=0; i<nodemap.getLength(); i++) {
-            Attr att = (Attr) nodemap.item(i);
-            assert att != null;
-            String ns = att.getNamespaceURI();
-            String hdxName = null;
-            if (inNamespace) {
-                if (ns == null && noNSAttsAreHdx)
-                    hdxName = att.getName();
-                else if (ns != null
-                         && ns.equals(HdxResourceType.HDX_NAMESPACE)) {
-                    hdxName = att.getLocalName();
-                }
-            } else {
-                if (ns == null) {
-                    hdxName = att.getName();
-                }
-            }
-            logger.info("Attr: " + att.getName() + "=" + att.getValue()
-                        + " (ns=" + inNamespace +
-                        ") -> hdxname=" + hdxName);
-            if (hdxName != null && !hdxName.equals("name"))
-                addAtt(hdxName, att);
-        }
-
         // If this type has a `hoist' attribute, and this attribute
         // does not already have a value, then concatenate the
         // immediate children text nodes to find a value for this
-        // attribute.
+        // attribute.  These text nodes will disappear from the
+        // newly-constructed HdxElement when the DOM is constructed in
+        // addHdxChildren below.  This code might better belong in addHdxChildren
         String hoist = getHdxType().getHoistAttribute();
-        System.err.println("HdxElement logger at: " + logger.getLevel());
-        //logger.fine
-        System.err.println("Hoist attribute for " + getHdxType() + ": " + hoist
-                    + ", test="
-                    + (hoist != null)
-                    + "&" + !hasAttribute(hoist)
-                    + "&" + el.hasChildNodes());
+        if (logger.isLoggable(Level.FINE))
+            logger.fine("    hoist for " + getHdxType() + " is " + hoist
+                        + ", test="
+                        + (hoist != null)
+                        + "&" + !hasAttribute(hoist)
+                        + "&" + el.hasChildNodes());
         if (hoist != null
             && !hasAttribute(hoist)
             && el.hasChildNodes()) {
@@ -280,7 +239,7 @@ class HdxElement
             }
             String textval = sb.toString().trim();
             if (textval.length() != 0)
-                setAttribute(hoist, textval);
+                setAttribute(hoist, textval, false);
         }
     }
 
@@ -306,7 +265,6 @@ class HdxElement
                                                       int nsswitch) {
         if (el == null)
             return new ElementTypeInfo(null, null);
-        //return new ElementTypeInfo(HdxResourceType.NONE, null);
 
         String gins = el.getNamespaceURI();
         if (nsswitch >= 0) {
@@ -324,10 +282,9 @@ class HdxElement
             return new ElementTypeInfo(el.getTagName(), null);
 
         return new ElementTypeInfo(null, null);
-        //return new ElementTypeInfo(HdxResourceType.NONE, null);
     }
 
-    /** Handles a (<code>HdxResourceType, namespace-prefix</code>) pair. */
+    /** Handles a <code>(HdxResourceType, namespace-prefix)</code> pair. */
     private static class ElementTypeInfo {
         private HdxResourceType t;
         private String hdxname;
@@ -338,7 +295,6 @@ class HdxElement
             this.prefix = prefix;
         }
         /** Get the registered resource type that this element corresponds to.
-         * 
          * @return HdxResourceType.NONE if the element has no registered type.
          */
         public HdxResourceType getType() { return t; }
@@ -361,16 +317,17 @@ class HdxElement
      * which are defined in the HDX namespace, but these elements are
      * not declared to be in any namespace within the normalised DOM
      * (that is, there are no prefixes).  The new DOM is backed by the
-     * old one, so that changes in the new one also appear in the old
+     * old one, so that attribute changes in the new one also appear in the old
      * one.
      *
-     * <p>The Element argument should contain one or more HDX objects
+     * <p>The Element argument should contain one or more Hdx objects
      * (that is, elements representing an <code>&lt;hdx&gt;</code>
      * element in the HDX namespace).  However, as a special case, if
-     * it contains only elements which are the <em>content</em> of HDX
-     * objects, then they are put inside a new HDX object if that can
-     * be done unambiguously.  This is a heuristic fix, and its
-     * behaviour may change in future.
+     * it contains only elements which are the <em>content</em> of Hdx
+     * objects (that is, if they are Hdx-registered types, since Hdx
+     * elements can contain all such types), then they are put inside
+     * a new Hdx object.  This is a slightly heuristic fix, and its
+     * behaviour may possibly change in future.
      *
      * <p>If the element argument is both an HDX-type element (that
      * is, <code>&lt;hdx&gt;</code> or <code>&lt;ndx&gt;</code> or the
@@ -386,75 +343,106 @@ class HdxElement
      * changed, then that method's documentation <em>must</em> be
      * changed also.
      *
-     * @return a new DocumentFragment representing an HDX, or null if none
-     * could be found.
+     * @return a new DocumentFragment representing one or more HDXes,
+     * or null if none could be found
      */
     static DocumentFragment constructHdxElementTree(Element el) {
         ElementTypeInfo inf = getElementTypeInfo(el, 0);
         boolean useNS = (inf.getType() == HdxResourceType.NONE
                          || inf.fromNamespace());
-        logger.info("constructHdxElementTree:" + el.toString()
-                           + ", useNS=" + useNS);
+        if (logger.isLoggable(Level.FINE))
+            logger.fine("constructHdxElementTree:" + el.toString()
+                        + ", useNS=" + useNS);
         Document tdoc = HdxDOMImplementation
             .getInstance()
             .createDocument(null, "dummy", null);
         DocumentFragment df = tdoc.createDocumentFragment();
 
-        addHdxChildren(df, el, useNS); // add all the children of this node
+        // Add this element and its children to the DocumentFragment.
+        // If el is itself an Hdx element, this will result in only a
+        // single child in the document fragment; otherwise, this can
+        // result in more than one Hdx element child.
+        addHdxChildren(df, el, useNS);
 
         if (!df.hasChildNodes())
             // Found nothing!
             return null;
+
         else if (((HdxElement)df.getFirstChild()).getHdxType()
                  == HdxResourceType.HDX) {
+            // The first child of this document fragment is an Hdx --
+            // nothing more to do
             for (HdxElement kid = (HdxElement)df.getFirstChild();
                  kid != null;
                  kid = (HdxElement)kid.getNextSibling()) {
                 if (kid.getHdxType() != HdxResourceType.HDX) {
-                    logger.info
-                        ("constructHdxElementTree: not all children are HDX");
+                    if (logger.isLoggable(Level.FINE))
+                        logger.fine
+                        ("constructHdxElementTree: not all children are HDX!");
                     return null;
                 }
             } 
             return df;
+
         } else {
-            logger.info("df=" + df);
+            // The first child of this document fragment is _not_ an
+            // Hdx -- make a new Hdx document and return a fragment
+            // containing that.  First, we check that _all_ the
+            // children are valid Hdx children: if any is an Hdx, then
+            // we can say that the input DOM was invalid;
+            // addHdxChildren should guarantee that none is an
+            // unregistered type.
+            for (HdxElement kid = (HdxElement)df.getFirstChild();
+                 kid != null;
+                 kid = (HdxElement)kid.getNextSibling()) {
+                if (kid.getHdxType() == HdxResourceType.HDX) {
+                    if (logger.isLoggable(Level.FINE))
+                        logger.fine
+                                ("constructHdxElementTree: unexpected Hdx");
+                    return null;
+                }
+                if (kid.getHdxType() == HdxResourceType.NONE) {
+                    if (logger.isLoggable(Level.FINE))
+                        logger.fine
+                                ("constructHdxElementTree: unregistered type");
+                    return null;
+                }
+            }
             DocumentFragment newfrag = tdoc.createDocumentFragment();
             Element newhdx
-                = tdoc.createElement(HdxResourceType.HDX.xmlName());
-            // XXX We should check here that all of the elements in
-            // the DocumentFragment are indeed legal children of HDX.
-            // How best?
-            newhdx.appendChild(df);
+                    = tdoc.createElement(HdxResourceType.HDX.xmlName());
             newfrag.appendChild(newhdx);
-            logger.info("newfrag=" + newfrag);
+            newhdx.appendChild(df);
             return newfrag;
         }
     }
-    
-    private static void addHdxChildren(Node n, Element el, boolean useNS) {
-        assert el.getNodeType() == Node.ELEMENT_NODE;
-        
+
+    /** 
+     * Extracts all of the Hdx elements in the given tree, and adds
+     * them as children of the node <code>parent</code>.  The search
+     * for Hdx nodes starts with the element <code>el</code>.
+     * Elements are Hdx elements if {@link #getElementType} says they
+     * are.
+     */    
+    private static void addHdxChildren
+            (Node parent, Element el, boolean useNS) {
+        assert parent instanceof HdxNode; // we always add to one of `our' Nodes
         ElementTypeInfo elType = getElementTypeInfo(el, (useNS ? 1 : -1));
-        logger.info("addHdxChildren("
-                    + ((HdxNode)n).toString() + ",\n\t"
-                    + el.getTagName() + '(' + elType + "),\n\t"
-                    + useNS + ')');
-        Node fosterParent;
+        if (logger.isLoggable(Level.FINE))
+            logger.fine("addHdxChildren("
+                        + ((HdxNode)parent).toString() + ", "
+                        + el.getTagName() + '(' + elType + "), "
+                        + useNS + ')');
+        Node fosterParent;      // the node any children will be added to
         if (elType.getName() == null)
-            fosterParent = n;
+            fosterParent = parent;
         else {
             fosterParent
-                = new HdxElement(el, elType, useNS, n.getOwnerDocument());
-            n.appendChild(fosterParent);
+                = new HdxElement(el, elType, useNS, parent.getOwnerDocument());
+            parent.appendChild(fosterParent);
         }
-//         if (elType.getType() == HdxResourceType.NONE)
-//             fosterParent = n;
-//         else {
-//             fosterParent
-//                 = new HdxElement(el, elType, useNS, n.getOwnerDocument());
-//             n.appendChild(fosterParent);
-//         }
+        // Now call addHdxChildren on each of the Element children of
+        // this current node.  Note that Text nodes are not included here.
         for (Node kid=el.getFirstChild();
              kid!=null;
              kid=kid.getNextSibling())
@@ -462,36 +450,30 @@ class HdxElement
                 addHdxChildren(fosterParent, (Element)kid, useNS);
     }
 
-//     public String toXML() {
-//         StringBuffer sb = new StringBuffer();
-//         sb.append('<').append(getTagName());
-//         NamedNodeMap nodemap = getAttributes();
-//         assert nodemap != null; // getAttributes on elements always non-null
-//         for (int i=0; i<nodemap.getLength(); i++) {
-//             Attr att = (Attr)nodemap.item(i);
-//             sb.append(' ')
-//                 .append(att.getName())
-//                 .append("=\"")
-//                 .append(att.getValue())
-//                 .append('"');
-//         }
-//         NodeList nl = getChildNodes();
-//         assert nl != null;      // getChildNodes always non-null
-//         if (nl.getLength() == 0)
-//             // empty element
-//             sb.append("/>");
-//         else {
-//             sb.append('>');
-//             for (int i=0; i<nl.getLength(); i++)
-//                 sb.append(((HdxNode)nl.item(i)).toXML());
-//             sb.append("</").append(getTagName()).append('>');
-//         }
-        
-//         return sb.toString();
-//     }            
-
+    /**
+     * Returns the Hdx type of the current element.  Note that we do
+     * not assert that the current element is a registered type --
+     * <code>getHdxType()</code> may return
+     * <code>HdxResourceType.NONE</code>.
+     */
     private HdxResourceType getHdxType() {
         return HdxResourceType.match(giName);
+    }
+
+    /**
+     * Determines whether attribute values in this DOM are shadowed by
+     * attributes in the elements of the DOM from which it was
+     * constructed.  This affects only new attributes -- if you change
+     * a preexisting attribute, it will always affect the shadowing element.
+     *
+     * <p>You are unlikely to need to be aware this behaviour often, and this
+     * functionality may change or disappear in a future release.
+     *
+     * @param shadow if true, then any <em>new</em> attributes will be
+     * added to the backing element as well as the Hdx one.
+     */
+    public void setShadowAttributes(boolean shadow) {
+        attributeMap.shadowNewAttributes = shadow;
     }
 
     /*
@@ -504,64 +486,59 @@ class HdxElement
     }
 
     /*
-     * GET attributes...
-     */
-
-    public String getAttribute(String name) {
-        Attr att = getAttributeNode(name);
-        if (att != null)
-            return att.getValue();
-        else
-            return "";
-    }
-
-    /**
-     * Retrieves an attribute node by name.  The Node is `live' -- any
-     * changes to the Node are reflected in any backing DOM.
-     */
-    public Attr getAttributeNode(String name) {
-        if (hasAttribute(name)) {
-            assert attMap != null;
-            return (Attr)attMap.get(name);
-        } else {
-            return null;
-        }
-    }
-
-    public String getAttributeNS(String namespaceURI, 
-                                 String localName) {
-        if (namespaceURI == null || namespaceURI.length() == 0)
-            return getAttribute(localName);
-        else
-            return "";
-    }
-
-    public Attr getAttributeNodeNS(String namespaceURI, 
-                                   String localName) {
-        if (namespaceURI == null || namespaceURI.length() == 0)
-            return getAttributeNode(localName);
-        else
-            return null;
-    }
-
-    /*
      * HAS attributes...
      */
 
     public boolean hasAttribute(String name) {
-        if (attMap == null)
-            return false;
-        else
-            return attMap.containsKey(name);
+        return attributeMap.containsKey(name);
     }
     
 
     public boolean hasAttributeNS(String namespaceURI, 
-                                  String localName) {
-        if (namespaceURI == null || namespaceURI.length() == 0)
-            return hasAttribute(localName);
-        else
-            return false;
+                                        String localName) {
+        try {
+            trapHdxNamespace(namespaceURI);
+            if (namespaceURI == null)
+                return hasAttribute(localName);
+            else
+                return attributeMap.containsKey(namespaceURI, localName);
+        } catch (DOMException ex) {
+            // do nothing
+        }
+        return false;
+    }
+
+    /*
+     * GET attributes...
+     */
+
+    public String getAttribute(String name) {
+        Attr a = attributeMap.get(name);
+        return (a == null ? "" : a.getValue());
+    }
+
+    public Attr getAttributeNode(String name) {
+        return attributeMap.get(name);
+    }
+
+    public String getAttributeNS(String namespaceURI, 
+                                       String localName) {
+        try {
+            trapHdxNamespace(namespaceURI);
+        } catch (DOMException ex) {
+            return "";
+        }
+        return attributeMap.getString(namespaceURI, localName);
+    }
+
+    public Attr getAttributeNodeNS(String namespaceURI, 
+                                         String localName) {
+        try {
+            trapHdxNamespace(namespaceURI);
+        } catch (DOMException ex) {
+            return null;
+        }
+        return attributeMap.get(namespaceURI, localName);
     }
 
     /*
@@ -582,99 +559,22 @@ class HdxElement
      */
     public void setAttribute(String name, String value)
             throws DOMException {
-        setAttribute(name, value, true);
+        attributeMap.set(name, value);
+    }
+
+    void setAttribute(String name, String value, boolean useBacking) 
+            throws DOMException {
+        boolean tshadow = attributeMap.shadowNewAttributes;
+        attributeMap.shadowNewAttributes = false;
+        setAttribute(name, value);
+        attributeMap.shadowNewAttributes = tshadow;
     }
     
-    /**
-     * Sets the given attribute, optionally using the backing element.
-     *
-     * <p>This has package-access only, so that clients of this class
-     * cannot know about the backing DOM.
-     *
-     * @param name the name of an attribute, which is added to the
-     * element if it did not already exist.
-     *
-     * @param value the value of the attribute
-     *
-     * @param useBackingNode if true, and if this is a new attribute,
-     * and if there is a backing element, then the attribute is added
-     * to the backing element; if false, it is local.  If this is not
-     * a new attribute, this parameter does not change whether or not
-     * the attribute is backed.
-     *
-     * @throws DOMException - NO_MODIFICATION_ALLOWED_ERR: if this
-     * element is read-only.
-     */
-    void setAttribute(String name, String value, boolean useBackingNode)
-            throws DOMException {
-        // Following no longer true: we _are_ allowing NONE elements in a DOM:
-//         // Assert that we are not trying to add attributes to an
-//         // element of type NONE.  It should never be possible to have
-//         // an HdxElement of type NONE in a DOM, so if we find
-//         // one such here, then either there _is_ such an element
-//         // wandering around, or else the code in this class/package
-//         // has got itself in a twist.
-//         assert getHdxType() != HdxResourceType.NONE;
-
-        Attr att = getAttributeNode(name);
-        if (att == null) {
-             // Attribute didn't already exist -- add a new one.  If
-             // backingNode is non-null, this may be added to the
-             // backing DOM depending on the value of
-             // useBackingNode. We still need to use the backing
-             // document to create the Attr object, so the created
-             // Attr will have that as its getOwnerDocument.
-             //
-             // If backingNode is null, then use the HdxElement's
-             // owner document to create the Attr.
-            if (backingNode == null)
-                useBackingNode = false;
-
-            Attr newAtt;
-            if (useBackingNode && backingNodeNSPrefix != null) {
-                assert backingNode != null;
-                Document doc = backingNode.getOwnerDocument();
-                newAtt = backingNode
-                    .getOwnerDocument()
-                    .createAttributeNS(HdxResourceType.HDX_NAMESPACE,
-                                       backingNodeNSPrefix + ":" + name);
-                newAtt.setValue(value);
-                backingNode.setAttributeNodeNS(newAtt);
-            } else {
-                Document doc;
-                if (useBackingNode)
-                    doc = backingNode.getOwnerDocument();
-                else {
-                    doc = getOwnerDocument();
-                    if (doc == null) {
-                        // This element wasn't created by
-                        // HdxDocument.createElement(), so it must
-                        // have been created along with a backing
-                        // element.
-                        assert backingNode != null;
-                        doc = backingNode.getOwnerDocument();
-                    }
-                }
-                newAtt = doc.createAttribute(name);
-                newAtt.setValue(value);
-                if (useBackingNode)
-                    backingNode.setAttributeNode(newAtt);
-            }            
-            addAtt(name, newAtt);
-        } else
-            att.setValue(value);
-            
-        return;
-    }
-
     public Attr setAttributeNode(Attr newAttr)
             throws DOMException {
-        Attr att = getAttributeNode(newAttr.getName());
-        if (att == null)
-            setAttribute(newAttr.getName(), newAttr.getValue(), true);
-        else
-            att.setValue(newAttr.getValue());
-        return att;
+        Attr oldAtt = getAttributeNode(newAttr.getName());
+        attributeMap.set(newAttr);
+        return oldAtt;
     }
 
     /**
@@ -688,22 +588,26 @@ class HdxElement
      * modifications should be done only using the {@link
      * #setAttribute} method.
      *
-     * XXX SEMANTICS This currently throws an exception if
-     * namespaceURI is null, blank, or in the HDX namespace.  Should it?
+     * <p>If the Element is shadowed by an Element in a `foreign'
+     * tree, then this call will be passed on to that element; if
+     * there is no such shadowing Element, then we throw a
+     * <code>NAMESPACE_ERR</code> DOM Exception.
+     *
+     * <p>XXX SEMANTICS This currently throws an exception if
+     * namespaceURI is blank, or in the HDX namespace.  Should it?
      */
     public void setAttributeNS(String namespaceURI, 
-                               String qualifiedName, 
-                               String value)
+                                     String qualifiedName, 
+                                     String value)
             throws DOMException {
-        if (namespaceURI == null
-            || namespaceURI.length() == 0
-            || namespaceURI.equals(HdxResourceType.HDX_NAMESPACE))
+        trapHdxNamespace(namespaceURI);
+
+        if (namespaceURI == null)
+            setAttribute(qualifiedName, value);
+        else
             throw new DOMException
-                (DOMException.NAMESPACE_ERR,
-                 "HdxElement attributes are in the empty namespace");
-        
-        assert backingNode != null;
-        backingNode.setAttributeNS(namespaceURI, qualifiedName, value);
+                    (DOMException.NAMESPACE_ERR,
+                     "HdxElement elements can't take namespaced attributes");
         return;
     }
 
@@ -718,21 +622,26 @@ class HdxElement
      * modifications should be done only using the {@link
      * #setAttributeNode} method.
      *
-     * XXX SEMANTICS This currently throws an exception if
-     * namespaceURI is null, blank, or in the HDX namespace.  Should it?
+     * <p>If the Element is shadowed by an Element in a `foreign'
+     * tree, then this call will be passed on to that element; if
+     * there is no such shadowing Element, then we throw a
+     * <code>NAMESPACE_ERR</code> DOM Exception.
+     *
+     * <p>XXX SEMANTICS This currently throws an exception if
+     * namespaceURI is blank, or in the HDX namespace.  Should it?
      */
     public Attr setAttributeNodeNS(Attr newAttr)
             throws DOMException {
         String namespaceURI = newAttr.getNamespaceURI();
-        if (namespaceURI == null
-            || namespaceURI.length() == 0
-            || namespaceURI.equals(HdxResourceType.HDX_NAMESPACE))
-            throw new DOMException
-                (DOMException.NAMESPACE_ERR,
-                 "HdxElement attributes are in the empty namespace");
+        trapHdxNamespace(namespaceURI);
 
-        assert backingNode != null;
-        return backingNode.setAttributeNodeNS(newAttr);
+        if (namespaceURI == null)
+            return setAttributeNode(newAttr);
+
+        else
+            throw new DOMException
+                    (DOMException.NAMESPACE_ERR,
+                     "HdxElement elements can't take namespaced attributes");
     }
 
     /*
@@ -741,7 +650,10 @@ class HdxElement
 
     /**
      * Removes an attribute from this HdxElement.  The attribute is also
-     * removed from the backing DOM.
+     * removed from the backing DOM.  It is not an error to attempt to
+     * remove an attribute which does not exist on the element (the
+     * {@link org.w3c.dom.Element} documentation makes no
+     * statement about this).
      *
      * @param name the name of the attribute to be removed.
      *
@@ -750,13 +662,13 @@ class HdxElement
      */
     public void removeAttribute(String name)
             throws DOMException {
-        removeAttribute(name, true);
+        attributeMap.remove(name);
         return;
     }
 
     /** 
      * Removes an attribute from this HdxElement.  The attribute is
-     * also removed from the backing DOM.
+     * also removed from the backing DOM. 
      *
      * @param oldAtt the attribute node to be removed
      *
@@ -775,59 +687,53 @@ class HdxElement
                 (DOMException.NOT_FOUND_ERR,
                  "the attribute " + oldAtt.getName()
                  + " is not present on that element");
-        removeAttribute(oldAtt.getName(), true);
+        removeAttribute(oldAtt.getName());
         return oldAtt;
     }
 
     /**
-     * Removes the given attribute, optionally using the backing element.
+     * Removes an attribute by local name and namespace URI.
      *
-     * <p>This has package-access only, so that clients of this class
-     * cannot know about the backing DOM.
+     * <p>If namespace specified by the new attribute is blank, 
+     * <em>or the HDX namespace</em> then the method throws a
+     * <code>NAMESPACE_ERR</code> DOM Exception.  The HDX elements and
+     * attributes are in the empty namespace, and so such
+     * modifications should be done only using the {@link
+     * #setAttributeNode} method.
      *
-     * @param name the name of an attribute, which is removed from the
-     * element if it is present.
-     *
-     * @param useBackingNode if true, and if there is a backing
-     * element, then the attribute is removed from the backing element
-     * as well.
-     *
-     * @throws DOMException - NO_MODIFICATION_ALLOWED_ERR: if this
-     * element is read-only.
+     * <p>If the Element is shadowed by an Element in a `foreign'
+     * tree, then this call will be passed on to that element; if
+     * there is no such shadowing Element, then we throw a
+     * <code>NAMESPACE_ERR</code> DOM Exception.
      */
-    void removeAttribute(String name, boolean useBackingNode)
-            throws DOMException {
-        Attr att = getAttributeNode(name);
-        if (att == null)
-            return;             // nothing to do
-        
-        else if (useBackingNode && backingNode != null)
-            backingNode.removeAttribute(name);
-
-        assert attMap != null;
-        attMap.remove(att.getName());
-        return;
-    }
-
     public void removeAttributeNS(String namespaceURI, 
-                                  String localName)
+                                        String localName)
             throws DOMException {
-        notSupportedException("removeAttributeNS");
-//         if (namespaceURI.equals(HdxResourceType.HDX_NAMESPACE))
-//             removeAttribute(localName);
-        return;
+        trapHdxNamespace(namespaceURI);
+
+        if (namespaceURI == null) {
+            removeAttribute(localName);
+            return;
+        }
+        
+        else
+            throw new DOMException
+                    (DOMException.NAMESPACE_ERR,
+                     "HdxElement elements can't take namespaced attributes");
     }
-    
 
-    public NodeList getElementsByTagName(String name) {
-        final ArrayList elementList = new ArrayList();
-        String spec = name.trim();
-        if (spec.equals("*"))   // special case
-            spec = null;
-        addElementToList(spec, elementList);
+    public NodeList getElementsByTagName(final String name) {
 
-        return new NodeList() {
-            private ArrayList l = elementList;
+        class TagnameNodeList implements NodeList, NodeDescendants.Visitor {
+            private final String selector;
+            private ArrayList l;
+            TagnameNodeList() {
+                l = new ArrayList();
+                if (name.equals("*")) // special case
+                    selector = null;
+                else
+                    selector = name;
+            }
             public int getLength() { return l.size(); }
             public Node item(int index) {
                 if (index < 0 || index >= l.size())
@@ -835,60 +741,20 @@ class HdxElement
                 else
                     return (Node)l.get(index);
             }
-        };
+            public Object visitNode(Node n) {
+                if (selector == null || n.getNodeName().equals(selector))
+                    l.add(n);
+                return null;
+            }
+        }
+
+        TagnameNodeList tnl = new TagnameNodeList();
+        NodeDescendants nd
+                = new NodeDescendants(this, NodeDescendants.SHOW_ELEMENT);
+        nd.visitTree(tnl);
+        return tnl;
     }
-
-    /**
-     * Conditionally adds the current element and its HdxElement
-     * children to the given list.  The element is added if either
-     * parameter <code>spec</code> is null or else
-     * <code>spec</code> matches the element name.
-     */
-    private void addElementToList(String spec, ArrayList list) {
-        if (spec == null || spec.equals(getTagName()))
-            list.add(this);
-        for (Node n = getFirstChild(); n != null; n = n.getNextSibling())
-            ((HdxElement)n).addElementToList(spec, list);
-        return;
-    }
-
-//     public NodeList getElementsByTagName(String name) {
-//         final ArrayList elementList = new ArrayList();
-//         HdxResourceType type;
-//         if (name.trim().equals("*"))   // special case
-//             type = null;
-//         else
-//             type = HdxResourceType.match(name);
-//         if (type != HdxResourceType.NONE)
-//             addElementToList(type, elementList);
-
-//         return new NodeList() {
-//             private ArrayList l = elementList;
-//             public int getLength() { return l.size(); }
-//             public Node item(int index) {
-//                 if (index < 0 || index >= l.size())
-//                     return null;
-//                 else
-//                     return (Node)l.get(index);
-//             }
-//         };
-//     }
-
-//     /**
-//      * Conditionally adds the current element and its HdxElement
-//      * children to the given list.  The element is added if either
-//      * parameter <code>matchType</code> is null or else
-//      * <code>matchType</code> matches <code>getHdxType</code>.
-//      */
-//     private void addElementToList(HdxResourceType matchType, ArrayList list) {
-//         if (matchType == null || matchType == getHdxType())
-//             list.add(this);
-//         for (Node n = getFirstChild(); n != null; n = n.getNextSibling())
-//             if (n instanceof HdxElement)
-//                 ((HdxElement)n).addElementToList(matchType, list);
-//         return;
-//     }
-
+            
     /** 
      * Returns a NodeList of all the descendant Elements with a given
      * local name and namespace URI in the order in which they are
@@ -913,12 +779,8 @@ class HdxElement
         return giName;
     }
 
-    public String getLocalName() {
-        return giName;
-    }
-    
     public boolean hasAttributes() {
-        return attMap != null && attMap.size() != 0;
+        return attributeMap.size() != 0;
     }
     
     /**
@@ -931,26 +793,9 @@ class HdxElement
         return new NamedNodeMap() {
             private List list = new ArrayList();
             {
-                /*
-                 * We can't just produce a list of the Attr nodes in
-                 * attMap, since their `name' fields may have
-                 * namespace prefixes (correctly, since they're
-                 * probably in a backing DOM), and the elements and
-                 * attributes in this Hdx DOM are required to be in no
-                 * namespace.  So make new Attr nodes on the fly.
-                 */
-                if (attMap != null) {
-                    Document doc = getOwnerDocument();
-                    assert doc != null;
-                    for (Iterator mi = attMap.keySet().iterator();
-                         mi.hasNext();
-                         ) {
-                        String key = (String)mi.next();
-                        Attr att = doc.createAttribute(key);
-                        att.setValue(((Attr)attMap.get(key)).getValue());
-                        list.add(att);
-                    }
-                }
+                for (Iterator mi = attributeMap.iterator();
+                     mi.hasNext(); )
+                    list.add(attributeMap.get((String)mi.next()));
             }
             public int getLength() {
                 return list.size();
@@ -1019,31 +864,112 @@ class HdxElement
         sb.append('>');
         return sb.toString();
     }
-
+    
     /**
-     * Does a deep copy of this Object
+     * Returns a duplicate of this Node.
+     * 
+     * <p>This is just like <code>clone(deep)</code>, except that we call
+     * <code>super.clone()</code> first.
+     *
+     * @param deep if true, recursively clone the subtree under the
+     * specified node; if false, clone only the node itself (and its
+     * attributes, if it is an Element)
+     * @return the duplicate node
+     * @see HdxNode#cloneNode(boolean)
      */
-    public Object clone() {
-        HdxElement n = (HdxElement)super.clone();
-        if (attMap != null)
-            for (java.util.Iterator ai = attMap.keySet().iterator();
-                 ai.hasNext(); ) {
-                String key = (String)ai.next();
-                Attr att = (Attr)attMap.get(key);
-                n.addAtt(key, (Attr)att.cloneNode(false));
-            }
-        return n;
+    public Node cloneNode(boolean deep) {
+        HdxElement el = (HdxElement)super.clone(deep);
+        // ....clones the children, too
+
+        // We don't need to clone giName, since that can't be changed.
+        // Note that we copy attributes irrespective of the value of deep.
+        el.attributeMap = (AttributeMap)attributeMap.clone();
+        for (Iterator ai = el.attributeMap.iterator(); ai.hasNext(); ) {
+            String n = (String)ai.next();
+            HdxAttr attr = (HdxAttr)el.attributeMap.get(n);
+            attr.setOwnerElement(el);
+        }
+        return el;
     }
 
     /**
-     * Add a mapping to the attMap, first making sure that it's non-null.
+     * Creates and returns a copy of this Element and its attributes.
+     * The difference between this method and a deep clone using
+     * {@link #cloneNode} is that the clone and the original
+     * <em>share</em> a reference to their parent.
+     *
+     * @param deep if true, recursively clone the subtree under this
+     * node; if false, clone only the node itself.  In either case, we
+     * do clone the attributes on this element.
+     * @returns a clone of this instance
      */
-    private void addAtt(String name, Attr value) {
-        if (attMap == null)
-            attMap = new java.util.HashMap();
-        attMap.put(name, value);
+    protected Object clone(boolean deep) {
+        HdxElement el = (HdxElement)super.clone(deep);
+        // ...clones the children, too
+
+        // We don't need to clone giName, since that can't be changed.
+        // Note that we copy attributes irrespective of the value of deep.
+        el.attributeMap = (AttributeMap)attributeMap.clone();
+        for (Iterator ai = el.attributeMap.iterator(); ai.hasNext(); ) {
+            String n = (String)ai.next();
+            HdxAttr attr = (HdxAttr)el.attributeMap.get(n);
+            attr.setOwnerElement(el);
+        }
+        return el;
     }
-        
+
+    /**
+     * Indicates whether some other object is `equal to' this one.
+     * Two elements are equal if they have the same tag name and
+     * exactly the same attribute set, and if each of their children
+     * is equal according to this method or {@link HdxNode#equals}.
+     *
+     * @param t an object to be tested for equality with this one
+     * @return true if the Nodes should be regarded as equivalent
+     */
+    public boolean equals(Object t) {
+        if (t == null)
+            return false;
+        if (! (t instanceof HdxElement))
+            return false;
+        HdxElement te = (HdxElement)t;
+        if (! giName.equals(te.giName))
+            return false;
+        if (! attributeMap.equals(te.attributeMap))
+            return false;
+
+        // Check children -- copy of code in HdxNode#equals
+        Node mykid = getFirstChild();
+        Node tkid  = te.getFirstChild();
+        while (mykid != null) {
+            if (tkid == null)
+                return false;
+            if (! mykid.equals(tkid))
+                return false;
+            mykid = mykid.getNextSibling();
+            tkid  = tkid.getNextSibling();
+        }
+        if (tkid != null)
+            return false;
+
+        return true;            // whew!
+    }
+
+    public int hashCode() {
+        // We rely on the attributes being presented in a predictable
+        // order.  This will be more than satisfied if the attMap is
+        // a Map implementation which additionally implements
+        // SortedMap.
+        HdxNode.HashCode hc = new HdxNode.HashCode(giName.hashCode());
+        hc.add(attributeMap.hashCode());
+        for (Node kid=getFirstChild(); kid!=null; kid=kid.getNextSibling())
+            hc.add(kid.hashCode());
+        return hc.value();
+    }
+    
+
+    /* ******************** PRIVATE HELPER METHODS ******************** */
+
     /**
      * Throws a DOMException, explaining that HdxElement is read-only.
      * HdxElement isn't really read-only, but can't be modified using
@@ -1061,5 +987,453 @@ class HdxElement
         throw new DOMException
             (DOMException.NOT_SUPPORTED_ERR,
              "HdxElement doesn't support method " + methodName);
+    }
+
+    /**
+     * Enforces the namespace constraint for Hdx DOMs.  Throws a
+     * DOMException if the namespace is given, but is either the empty
+     * string or the Hdx namespace.
+     */
+    private void trapHdxNamespace(String namespaceURI)
+            throws DOMException {
+        if (namespaceURI != null
+            && (namespaceURI.length() == 0
+                || namespaceURI.equals(HdxResourceType.HDX_NAMESPACE)))
+            throw new DOMException
+                (DOMException.NAMESPACE_ERR,
+                 "HdxElement attributes must be in the empty namespace");
+        return;
+    }
+
+    static Attr newHdxAttr(String name, HdxDocument ownerDocument) {
+        return newHdxAttr(name, "", null, ownerDocument, null);
+    }
+    
+    private static Attr newHdxAttr(String name, String value,
+                                   Attr shadow,
+                                   HdxDocument ownerDocument,
+                                   HdxElement ownerElement) {
+        HdxAttr a = new HdxAttr(name, value, shadow, ownerDocument);
+        a.setOwnerElement(ownerElement);
+        return a;
+    }
+
+    /**
+     * Represents an attribute in a <code>HdxElement</code> object.
+     * This implements the {@link org.w3c.dom.Attr} interface.  Package-only class.
+     *
+     * <p>Although this class will preserve a link to a parent
+     * element, it is a static class rather than an inner class,
+     * because that relationship to the parent is not permanent, but
+     * might change over the life of the object.
+     *
+     * <p>According to the DOM2 standard, Attr nodes <em>may</em> have
+     * <code>Text</code> or <code>EntityReference</code> children.
+     * This Hdx implementation, however, does not support
+     * <code>EntityReference</code> nodes, so the only child of a
+     * <code>HdxAttr</code> will be a single <code>Text</code> node.
+     */
+    private static final class HdxAttr
+            extends HdxNode implements Attr {
+        /** The name of this attribute */
+        private final String name;
+        /** The value of this attribute */
+        private String value;
+        /**
+         * Reference to the Attr which this shadows.  This `ought' to
+         * be final, but if it were, it couldn't be cloned as below.
+         */
+        private Attr shadowAttr;
+        /** The owner element of this attribute */
+        private HdxElement ownerElement; // initially null
+        /** The attribute value as a Text node. */
+        private Node textNode;
+
+        public HdxAttr(String name,
+                       String value,
+                       Attr shadowAttr,
+                       Document ownerDocument) {
+            super(Node.ATTRIBUTE_NODE, ownerDocument);
+            this.name = name;
+            this.value = value;
+            this.shadowAttr = shadowAttr;
+            assert this.value!=null ^ this.shadowAttr!=null;
+            // Check name!=null.  We could thrown an
+            // IllegalArgumentException, but since this is a private
+            // class, this can only be our fault.
+            assert this.name != null;
+        }
+        void setOwnerElement(HdxElement ownerElement) {
+            this.ownerElement = ownerElement;
+        }
+        public String getName() { return name; }
+        public String getNodeName() { return getName(); } // override HdxNode
+        public Element getOwnerElement() {
+            return ownerElement;
+        }
+        public boolean getSpecified() { return true; }
+        public String getValue() { // override HdxNode
+            if (value == null)
+                return shadowAttr.getValue();
+            else
+                return value;
+        }
+        public String getNodeValue() { return getValue(); } // override HdxNode
+        public void setValue(String newValue) {
+            if (value == null)
+                shadowAttr.setValue(newValue);
+            else
+                value = newValue;
+            if (logger.isLoggable(Level.FINE))
+                logger.fine("HdxAttr.setValue: " + name + '=' + getValue());
+            textNode = null;
+        }
+        public void setNodeValue(String newValue) {
+            setValue(newValue);
+        }
+        public Node getFirstChild() {
+            // Return the value as a Text node
+            if (textNode == null)
+                // create and cache it
+                textNode = getOwnerDocument().createTextNode(getValue());
+            return textNode;
+        }
+        public Node getLastChild() {
+            return getFirstChild();
+        }
+        public Node cloneNode(boolean deep) { return (Node)clone(); }
+        /**
+         * Return a copy of this object.  If this Attr is backed by an
+         * Attr in another Document, then we set the value of the new
+         * Attr to the <em>getValue()</em> of this Attr.  This seems
+         * to be the Right Thing: I'm sure it's possible to construct
+         * an argument which says that if this <code>HdxAttr</code> is
+         * backed by another one, then so should the clone, but that
+         * feels like unexpected behaviour to me, and the principle of
+         * least surprise tells us that the two should be entirely distinct.
+         */
+        public Object clone() {
+            HdxAttr a = (HdxAttr)super.clone();
+            a.value = new String(getValue());
+            a.shadowAttr = null;
+            return a;
+        }
+        public boolean equals(Object a) {
+            // Note that we compare attribute values irrespective of
+            // whether the values are Strings or Attrs.
+            if (a == null || !(a instanceof HdxAttr))
+                return false;
+            if (a == this)
+                return true;
+            HdxAttr hdxa = (HdxAttr)a;
+            return name.equals(hdxa.name)
+                    && getValue().equals(hdxa.getValue());
+        }
+        public int hashCode() {
+            return new HdxNode.HashCode()
+                    .add(name.hashCode())
+                    .add(getValue().hashCode())
+                    .value();
+        }
+        public String toString() {
+            return "["+name+'='+getValue()+']';
+        }
+    }
+
+    private class AttributeMap 
+            implements Cloneable {
+        private java.util.Map myMap;
+        final private HdxDocument doc;
+        /**
+         * An Element in another DOM which backs the attributes in this map.  Non-null
+         * indicates that there is such an element.  We don't
+         * change this element other than to possibly alter the set of
+         * attributes on it.
+         *
+         * <p>The support for backing nodes is <em>only</em> for
+         * attributes -- there is no support for any corresponding shadowing of
+         * operations which modify the tree, and no need for that either
+         * (at present).  Adding that sort of thing would really require
+         * non-trivial redesign of the {@link HdxNode} class. 
+         */
+        final private Element shadowElement;
+        /**
+         * Prefix used for this namespace when setting attributes on
+         * the shadow element.  Non-null also indicates that these
+         * attributes are in a namespace.  This prefix has been
+         * declared in the backingElement as the prefix for the HDX
+         * namespace.  We need this when creating new backed
+         * attributes since they must be given this prefix in the
+         * backing DOM.  This isn't necessarily the only prefix so
+         * declared.
+         */
+        final private String shadowElementPrefix;
+        /** If true, new attributes are added to the shadow node, too */
+        public boolean shadowNewAttributes;
+        
+        public AttributeMap(HdxDocument doc,
+                            Element shadowElement,
+                            String shadowElementPrefix) {
+            this.doc = doc;
+            this.shadowElement = shadowElement;
+            this.shadowElementPrefix = shadowElementPrefix;
+            shadowNewAttributes = true; // default
+
+            // Create the map.
+            // Could do this lazily, but that's more work.
+            // If we change this Map implementation, we also need to change
+            // the clone() method below.
+            myMap = new java.util.TreeMap();
+            assert myMap instanceof java.util.SortedMap;
+
+            // If there is a shadowElement, then import each of that
+            // element's attributes at this point.
+            if (shadowElement != null) {
+                NamedNodeMap shAtts = shadowElement.getAttributes();
+                for (int i=0; i<shAtts.getLength(); i++) {
+                    Attr a = (Attr)shAtts.item(i);
+                    String ns = a.getNamespaceURI();
+                    boolean oneOfOurs
+                            = (shadowElementPrefix == null
+                               ? ns == null
+                               : (ns !=null
+                                  && ns.equals(HdxResourceType.HDX_NAMESPACE)));
+                    if (oneOfOurs) {
+                        String myname = (ns==null
+                                         ? a.getName()
+                                         : a.getLocalName());
+                        if (! myname.equals("name")) {
+                            // Carefully avoid including the Hdx name
+                            // attribute, since this is only to
+                            // indicate the Hdx type which this shadow
+                            // Element corresponds do.
+
+                            // Because shadowNewAttributes is defaulted to
+                            // true, it's correct to shadow all these attributes
+                            Attr newAttr = newHdxAttr
+                                    (myname, null, a, doc, HdxElement.this);
+                            
+                            myMap.put(myname, newAttr);
+                        }
+                    } else if (a.getName().equals("xml:base")) {
+                        // special-case this.  Note that we _ignore_
+                        // any xml:base attributes which are on
+                        // elements which this method does not see.
+                        myMap.put("xml:base", a);
+                    }
+                }
+            }
+        }
+
+        public Attr get(String name) {
+            return (Attr)myMap.get(name);
+        }
+        public Attr get(String namespaceURI, String localName) {
+            if (namespaceURI == null)
+                return get(localName);
+            
+            if (shadowElement != null)
+                return shadowElement
+                        .getAttributeNodeNS(namespaceURI, localName);
+            return null;
+        }
+        public String getString(String name) {
+            Attr a = get(name);
+            return (a == null ? "" : a.getValue());
+        }
+        public String getString(String namespaceURI, String name) {
+            Attr a = get(namespaceURI, name);
+            return (a == null ? "" : a.getValue());
+        }
+        public void set(String name, String value)
+                throws DOMException {
+            Attr attr = (Attr)myMap.get(name);
+            if (attr == null) {
+                // Make a new Attr.  
+                boolean shadowIt
+                        = shadowNewAttributes && shadowElement != null;
+                Attr newAttr;
+                if (shadowIt)
+                    newAttr = newHdxAttr(name,
+                                         null,
+                                         newShadowAttr(name, value),
+                                         doc,
+                                         HdxElement.this);
+                else
+                    newAttr = newHdxAttr(name,
+                                         value,
+                                         null,
+                                         doc,
+                                         HdxElement.this);
+                myMap.put(name, newAttr);
+            } else {
+                assert attr instanceof HdxAttr;
+                attr.setValue(value);
+            }
+        }
+        public void set(Attr att)
+                throws DOMException {
+            if (!(att instanceof HdxAttr)) {
+                // Not one of ours -- why have we been given this!?
+                StringBuffer sb = new StringBuffer();
+                sb.append("Attribute ")
+                        .append(att.getName())
+                        .append('=')
+                        .append(att.getValue())
+                        .append(" is class ")
+                        .append(att.getClass().getName())
+                        .append(", not Hdx");
+                throw new DOMException
+                        (DOMException.WRONG_DOCUMENT_ERR,
+                         sb.toString());
+            }
+            
+            assert att.getNamespaceURI() == null;
+            // We can assert this because
+            // HdxDocument.createAttributeNS is not supported.  Ie,
+            // this will become false if we do decide to add that in future
+
+
+            // Since this is in no namespace, it's definitely this
+            // class which should handle it, so we oughtn't to go via
+            // get(), but instead look up myMap directly.
+            boolean shadowIt;
+            Attr curr = (Attr)myMap.get(att.getName());
+            if (curr == null) {
+                // Easy -- just create a new one
+                set(att.getName(), att.getValue());
+            } else {
+                ((HdxAttr)att).setOwnerElement(HdxElement.this);
+                myMap.put(att.getName(), att);
+            }
+        }
+
+        private Attr newShadowAttr(String name, String value)
+                throws DOMException {
+            assert shadowElement != null;
+            Attr shAttr;
+            
+            if (shadowElementPrefix == null) {
+                assert !shadowElement.hasAttribute(name);
+                shadowElement.setAttribute(name, value);
+                shAttr = shadowElement.getAttributeNode(name);
+            } else {
+                assert !shadowElement.hasAttributeNS
+                        (HdxResourceType.HDX_NAMESPACE, name);
+                shadowElement.setAttributeNS
+                        (HdxResourceType.HDX_NAMESPACE,
+                         shadowElementPrefix+':'+name,
+                         value);
+                shAttr = shadowElement.getAttributeNodeNS
+                        (HdxResourceType.HDX_NAMESPACE,
+                         name);
+            }
+            return shAttr;
+        }
+
+        public void remove(String name) {
+            // Don't remove shadow attributes (for now)
+            myMap.remove(name);
+        }
+
+        /** The number of attributes in the map */
+        public int size() {
+            return myMap.size();
+        }
+
+        /** Returns true if the given attribute is present in the map */
+        public boolean containsKey(String name) {
+            return get(name) != null;
+        }
+
+        /** Returns true if the given attribute is present in the map */
+        public boolean containsKey(String namespaceURI, String localName) {
+            return get(namespaceURI, localName) != null;
+        }
+
+        /** Clears all the attributes from the map */
+        public void clear() {
+            myMap.clear();
+        }
+
+        /** Returns an iterator containing all the attribute names */
+        public Iterator iterator() {
+            return myMap.keySet().iterator();
+        }
+
+        public String toString() { // debugging only!!!!
+            StringBuffer sb = new StringBuffer();
+            String nl = System.getProperty("line.separator");
+            sb.append("AttributeMap:").append(nl);
+            if (myMap == null)
+                sb.append("    <null>").append(nl);
+            else
+                for (Iterator i = myMap.entrySet().iterator(); i.hasNext(); ) {
+                    java.util.Map.Entry e = (java.util.Map.Entry)i.next();
+                    sb.append("    ")
+                            .append(e.getKey())
+                            .append('=')
+                            .append(e.getValue())
+                            .append(nl);
+                }
+            return sb.toString();
+        }
+
+        public Object clone() {
+            try {
+                AttributeMap a = (AttributeMap)super.clone();
+                // We cannot simply clone the map, since that does a
+                // shallow copy.  The Map(Map) constructor does not
+                // specify whether it clones the entries, so we must
+                // assume it does not.  This Map implementation must match
+                // that in the AttributeMap constructor above.
+                a.myMap = new java.util.TreeMap();
+                for (Iterator i = myMap.entrySet().iterator(); i.hasNext(); ) {
+                    Map.Entry e = (Map.Entry)i.next();
+                    a.myMap.put(e.getKey(),
+                                ((HdxAttr)e.getValue()).clone());
+                }
+                return a;
+            } catch (CloneNotSupportedException e) {
+                // Can't happen -- Object.clone() does not in fact
+                // throw this
+                throw new AssertionError("Can't happen: Object.clone() seemed to throw CloneNotSupportedException");
+            }
+        }
+
+        public int hashCode() {
+            assert myMap instanceof java.util.SortedMap;
+            HdxNode.HashCode hc = new HdxNode.HashCode();
+            for (Iterator i=iterator(); i.hasNext(); ) {
+                Object val = get((String)i.next());
+                assert val instanceof HdxAttr;
+                hc.add(val.hashCode());
+            }
+            return hc.value();
+        }
+
+        public boolean equals(Object t) {
+            if (t == null || !(t instanceof AttributeMap))
+                return false;
+            if (t == this)
+                return true;
+            AttributeMap ta = (AttributeMap)t;
+            if (myMap == null && ta.myMap != null)
+                    return false;
+            if (ta.myMap == null)
+                return false;
+            if (myMap.size() != ta.myMap.size())
+                return false;
+            for (Iterator i=iterator(); i.hasNext(); ) {
+                String key = (String)i.next();
+                // just testing equality of getAttribute(key) wouldn't
+                // work, since that can't distinguish unset attributes
+                // from attributes with an empty value
+                if (!(ta.containsKey(key) 
+                      && getString(key).equals(ta.getString(key))))
+                    return false;
+            }
+            return true;
+        }
     }
 }

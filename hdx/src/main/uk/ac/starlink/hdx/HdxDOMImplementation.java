@@ -22,6 +22,18 @@ public class HdxDOMImplementation
         return instance;
     }
 
+    /** Test if the DOM implementation implements a specific feature.
+     * 
+     * <p>At present, this implementation does not claim conformance
+     * with <em>any</em> modules in the DOM specification (see section <a
+     * href="http://www.w3.org/TR/DOM-Level-2-Core/introduction.html#ID-Conformance" >Conformance</a>
+     *  in the DOM2 specification).  It is likely largely conformant
+     *  with the Core module at least, but this has not been checked.
+     *
+     * @param feature the name of the feature to test
+     * @param version this is the version number of the feature to test
+     * @return false in all cases
+     */
     public boolean hasFeature(String feature, 
                               String version) {
         return false;

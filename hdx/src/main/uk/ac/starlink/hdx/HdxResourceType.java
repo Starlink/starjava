@@ -1,7 +1,7 @@
 package uk.ac.starlink.hdx;
 
 import java.util.*;
-import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.net.URL;
 import org.w3c.dom.*;
 
@@ -50,7 +50,8 @@ import org.w3c.dom.*;
  */
 public class HdxResourceType {
 
-    private static Logger logger = Logger.getLogger("uk.ac.starlink.hdx");
+    private static java.util.logging.Logger logger
+            = java.util.logging.Logger.getLogger("uk.ac.starlink.hdx");
 
     /** The namespace for HDX */
     public static final String HDX_NAMESPACE = "http://www.starlink.ac.uk/HDX";
@@ -71,14 +72,6 @@ public class HdxResourceType {
      */
     private static Map resourceTypeMap;
 
-    /** 
-     * Set of all possible type Strings which have been presented to
-     * match(), and which are not in fact registered types.  This is a
-     * cache, to prevent match needlessly re-searching for
-     * definitions.
-     */
-    private static Set unmatchedTypes;
-
     /**
      * The Java class which constructed objects must be assignable to.
      * Null if unknown.
@@ -91,7 +84,6 @@ public class HdxResourceType {
         // Add HDX, TITLE and NONE, but don't put the latter into
         // resourceTypeMap.
         resourceTypeMap = new HashMap();
-        unmatchedTypes = new HashSet();
 
         try {
             NONE = newHdxResourceType("none");
@@ -114,9 +106,13 @@ public class HdxResourceType {
                     // nodes; each one is recognised by
                     // HdxResourceType.match (ie, all are registered); and
                     // each is valid.
-                    logger.fine("validateElement("
-                                + HdxFactory.serializeDOM(el)
-                                + "):");
+                    if (el == null)
+                        throw new IllegalArgumentException
+                                ("HDX.validateElement received null argument");
+                    if (logger.isLoggable(Level.FINE))
+                        logger.fine("validateElement("
+                                    + HdxDocument.NodeUtil.serializeNode(el)
+                                    + "):");
                     if (HdxResourceType.match(el) != HDX)
                         return false;
                     for (Node n = el.getFirstChild();
@@ -219,9 +215,6 @@ public class HdxResourceType {
         }
     }
 
-    private static ClassLoader resourceDefinitionClassLoader = null;
-    private static boolean matchCurrentlyBeingCalled = false;
-    
     /**
      * The name of the resource type.  This (currently) serves for its
      * printable name as well as its XML element GI.
@@ -356,26 +349,36 @@ public class HdxResourceType {
     /**
      * Obtains the expected Java type corresponding to this Hdx type.
      *
+     * <p>If no such type has been registered, this returns the class
+     * object for the <code>Object</code> class,
+     * <code>Object.class</code>.  You may compare the result of this
+     * method for equality with <code>Object.class</code> to determine
+     * if a type was registered, or use it directly, since
+     * <code>Object.class.isInstance(obj)</code> is true for any Java object.
+     *
      * @return the Class object registered with {@link
-     * #setConstructedClass}, or null if no type was so registered
+     * #setConstructedClass}, or <code>Object.class</code> if no type
+     * was so registered
      */
     public Class getConstructedClass() {
-        return requiredClass;
+        if (requiredClass == null)
+            return Object.class;
+        else
+            return requiredClass;
     }
 
     /**
      * Checks that the Document is valid HDX.
      *
      * <p>This allows the following assertions for the Document
-     * <code>doc</code>, any Element <code>el</code> immediately within it,
-     * and each node <code>n</code> which is a child of <code>el</code>:
+     * <code>doc</code>, and any node <code>n</code> immediately
+     * contained within it
      * <pre>
      * assert doc.getDocumentElement().getTagName
      *    .equals(HdxResourceType.HDX.xmlName());
-     * assert HdxResourceType.match(el) != HdxResourceType.NONE;
-     * assert n.getNodeType() == Node.ELEMENT_NODE;
+     * assert n.getNodeType() == Node.ELEMENT_NODE; // only text nodes
+     * assert HdxResourceType.match(n) != HdxResourceType.NONE; // all registered
      * </pre>
-     * XXX check this list of assertions -- does doc match code?
      *
      * There are other constraints which you might want to check: if
      * they are violated, you might want to throw an exception, but
@@ -384,7 +387,8 @@ public class HdxResourceType {
      * <code>assert</code> statements.
      *
      * @return true if the document does represent a valid HDX DOM
-     * @see #isValid(Element) */
+     * @see #isValid(Element)
+     */
     public static boolean isValidHdx(Document doc) {
         return HDX.isValid(doc.getDocumentElement());
     }
@@ -427,9 +431,10 @@ public class HdxResourceType {
          */
         if (handlers == null)
             handlers = new LinkedList();
-        logger.info("HdxResourceType.registerHdxResourceFactory for "
-                    + toString()
-                    + " type=" + factory.getClass().getName());
+        if (logger.isLoggable(Level.INFO))
+            logger.info("HdxResourceType.registerHdxResourceFactory for "
+                        + toString()
+                        + " type=" + factory.getClass().getName());
         handlers.add(0, factory);
     }
 
@@ -458,8 +463,8 @@ public class HdxResourceType {
      */
     Object getObject (Element el)
             throws HdxException {
-        logger.fine("HdxResourceType.callHandler for " + toString()
-                    + ": element=" + el.getTagName());
+//         logger.fine("HdxResourceType.callHandler for " + toString()
+//                     + ": element=" + el.getTagName());
         if (handlers != null)
             for (ListIterator li = handlers.listIterator();
                  li.hasNext();
@@ -482,8 +487,9 @@ public class HdxResourceType {
                     }   
                 }
             }
-        logger.fine("  callHandler for " + toString()
-                    + ": nothing matched!");
+//         if (logger.isLoggable(Level.FINE))
+//             logger.fine("  callHandler for " + toString()
+//                         + ": nothing matched!");
         return null;            // nothing matched
     }
 
@@ -516,34 +522,13 @@ public class HdxResourceType {
      */
     public static HdxResourceType match(String gi) {
 	HdxResourceType result;
-        logger.fine("HdxResourceType.match(" + gi + ")");
-        if (gi == null || unmatchedTypes.contains(gi))
+        if (gi == null)
             result = NONE;
         else {
             result = (HdxResourceType)resourceTypeMap.get(gi);
-            if (result == null) {
-                // Rewrite resource loading code
-                unmatchedTypes.add(gi);// don't come here again
+            if (result == null)
                 result = NONE;
-            }
-//                 if (matchCurrentlyBeingCalled)
-//                     // Ooops!
-//                     throw new PluginException
-//                 ("A ResourceDefinition initialiser recursively called match!");
-//                 matchCurrentlyBeingCalled = true;
-//                 result = findResourceDefinition(gi);
-//                 matchCurrentlyBeingCalled = false;
-//                 if (result == null) {                    
-//                     System.err.println("Failed to find a class defining <"
-//                                        + gi + ">");
-//                     unmatchedTypes.add(gi); // don't come here again
-//                     result = NONE;
-//                 } else {
-//                     assert resourceTypeMap.containsKey(gi);
-//                 }
-//            }
         }
-        logger.fine("match(" + gi + ") produces " + result);
 	return result;
     }
 
@@ -555,81 +540,4 @@ public class HdxResourceType {
     public static Iterator getAllTypes() {
         return resourceTypeMap.values().iterator();
     }
-
-//     /**
-//      * Finds and initialises the class which defines the given type.
-//      * This looks for a class called
-//      * <code>&lt;gi&gt;ResourceDefinition</code>, which extends class
-//      * {@link ResourceDefinition}, and calls its {@link
-//      * ResourceDefinition#initializeResourceType} method.
-//      *
-//      * @return the new HdxResourceType, or null if the class is not found
-//      *
-//      * @throws PluginException (unchecked exception) if the
-//      * ResourceDefinition initialiser is malformed or does not obey its
-//      * contract.
-//      */
-//     private static HdxResourceType findResourceDefinition(String gi) {
-//         // NB: don't call match() within here, or else we loop
-//         assert !resourceTypeMap.containsKey(gi);
-
-//         HdxResourceType returnValue = null;
-//         try {
-//             if (resourceDefinitionClassLoader == null) {
-//                 URL[] urlList = new URL[1];
-//                 urlList[0]
-//                     = new URL("file:/home/norman/s/src/ndx/w/java/uk/ac/starlink/hdx/");
-//                 // XXX ResourceDefinition path hardwired -- abstract it
-//                 resourceDefinitionClassLoader
-//                     = new java.net.URLClassLoader(urlList);
-//             }
-//             Class initialiser = Class.forName(gi + "ResourceDefinition",
-//                                               true,
-//                                               resourceDefinitionClassLoader);
-//             Class baseClass
-//                 = Class.forName("uk.ac.starlink.hdx.ResourceDefinition");
-//             if (baseClass.isAssignableFrom(initialiser)) {
-//                 ResourceDefinition def
-//                     = (ResourceDefinition)initialiser.newInstance();
-//                 if (def.initializeResourceType()) {
-//                     // The initialiser _claims_ to have worked...
-//                     if (resourceTypeMap.containsKey(gi)) {
-//                         // ...good!
-//                         returnValue = (HdxResourceType)resourceTypeMap.get(gi);
-//                         assert returnValue != NONE;
-//                         System.err.println
-//                             ("initialised " + gi + "ResourceDefinition");
-//                     } else {
-//                         // ...but it didn't
-//                         throw new PluginException
-//                             ("ResourceDefinition for " + gi
-//                              + " did not install a new type");   
-//                     }
-//                 } else {
-//                     System.err.println("class " + gi + "ResourceDefinition"
-//                                        + " failed to initialise");
-//                 }
-//             } else {
-//                 throw new PluginException
-//                     ("Class " + gi + "ResourceDefinition"
-//                      + " is not an instance of ResourceDefinition");
-//             }
-//         } catch (ClassNotFoundException e) {
-//             System.err.println("No class found to initialise " + gi
-//                                + ": " + e);
-//             Throwable cause = e.getCause();
-//             System.err.println("...cause:" + (cause == null
-//                                               ? "-null-"
-//                                               : cause.toString()));
-//         } catch (IllegalAccessException e) {
-//             System.err.println("Illegal access initialising " + gi 
-//                                + ": " + e);
-//         } catch (InstantiationException e) {
-//             System.err.println("Can't instantiate ResourceDefinition: " + e);
-//         } catch (java.net.MalformedURLException e) {
-//             System.err.println("Malformed URL in resource definition path: "
-//                                + e);
-//         }
-//         return returnValue;
-//     }
 }

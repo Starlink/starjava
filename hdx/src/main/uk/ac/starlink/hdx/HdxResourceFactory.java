@@ -33,7 +33,7 @@ public interface HdxResourceFactory {
      * aggressively cached.  The association between a DOM element and
      * a Java object is not, in general, volatile.  However, do note
      * that in the implementations of some types, the DOM is
-     * modifiable (see {@link DOMFacade}), and any changes of state by
+     * modifiable (see {@link HdxFacade}), and any changes of state by
      * this route should be respected.
      *
      * <p><strong>Usage note:</strong> This interface is a helper interface,

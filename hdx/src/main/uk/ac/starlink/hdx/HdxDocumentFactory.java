@@ -37,10 +37,50 @@ package uk.ac.starlink.hdx;
  * construct the whole DOM at once, and in this case some parts of
  * the DOM might be better handled by a separate object.  An
  * element created by the (extension) method {@link
- * HdxDocument#createElement(HdxResourceType,DOMFacade)} acts
+ * HdxDocument#createElement(HdxFacade)} acts
  * fully as an element in the DOM, but hands off the actual
  * processing to an object which understands the underlying data
- * format, and implements the {@link DOMFacade} interface.
+ * format, and implements the {@link HdxFacade} interface.
+ *
+ * <p>For example, the complete implementation of
+ * <code>makeHdxDocument</code> in the class which handles FITS files
+ * is:
+ * <pre>
+ * public org.w3c.dom.Document makeHdxDocument(java.net.URL url)
+ *         throws HdxException {
+ *     try {
+ *         Ndx fitsNdx = makeNdx(url, AccessMode.READ);
+ *         if (fitsNdx == null)
+ *             // clearly not a FITS file -- nothing to do with us
+ *             return null;
+ *     
+ *         HdxDocument doc = (HdxDocument)HdxDOMImplementation
+ *                 .getInstance()
+ *                 .createDocument(null, "hdx", null);
+ *         Element el = doc.createElement("hdx");
+ *         doc.appendChild(el);
+ *         Element ndxEl = doc.createElement(fitsNdx.getHdxFacade());
+ *         el.appendChild(ndxEl);
+ *         return doc;
+ *     } catch (IOException ex) {
+ *         // Method makeNdx thought it should have been able to
+ *         // handle this, but processing failed.  We reprocess this
+ *         // into an HdxException.
+ *         throw new HdxException("Failed to handle URL " + url
+ *                                + " (" + ex + ")");
+ *     }
+ * }
+ * </pre>
+ * Here, the method does the bulk of the work using the appropriate
+ * <code>makeNdx</code> which was defined in the same class (as part
+ * of that class's implementation of the {@link
+ * uk.ac.starlink.ndx.NdxHandler} interface).  After that, it creates
+ * a DOM consisting of only two elements, one of which is created
+ * using the <code>HdxDocument</code> extension method creating an
+ * element using a {@link HdxFacade}.  There was no need in this case
+ * to implement the <code>HdxFacade</code> interface, since this is
+ * handled by the {@link uk.ac.starlink.ndx.BridgeNdx} object which
+ * <code>makeNdx</code> returns.
  *
  * <p>Of the two methods in this interface, one is a convenience
  * interface for the other, but which one is which depends on the
