@@ -78,7 +78,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="Jetty"/>
   <property name="name" value="jetty"/>
-  <property name="version" value="4.0.4"/>
+  <property name="version" value="5.1.1"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
