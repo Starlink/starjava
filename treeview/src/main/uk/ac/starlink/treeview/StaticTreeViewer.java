@@ -172,8 +172,8 @@ public class StaticTreeViewer extends JFrame {
         } );
 
         /* Set up default sizes for the two panels in the splitter. */
-        Dimension treesize = new Dimension( 500, 400 );
-        Dimension detailsize = new Dimension( 500, 400 );
+        Dimension treesize = new Dimension( 500, 430 );
+        Dimension detailsize = new Dimension( 500, 430 );
 
         /* Construct the container for the tree. */
         final JScrollPane treePanel = new JScrollPane( tree );
