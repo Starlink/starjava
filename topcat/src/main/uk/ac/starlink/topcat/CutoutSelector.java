@@ -14,6 +14,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.func.Sdss;
 import uk.ac.starlink.topcat.func.SuperCosmos;
+import uk.ac.starlink.topcat.func.TwoMass;
 
 /**
  * Component for selecting how image cutout requests will be submitted
@@ -47,6 +48,9 @@ public class CutoutSelector extends JPanel implements ItemListener {
                 return SuperCosmos.sssCutoutRed( ra, dec, npix );
             }
         },
+        new TwoMassCutoutService( 'J' ),
+        new TwoMassCutoutService( 'H' ),
+        new TwoMassCutoutService( 'K' ),
         new CutoutService( "SDSS Colour Images", 0.4 ) {
             String displayCutout( int tableID, double ra, double dec,
                                   int npix ) {
@@ -262,6 +266,30 @@ public class CutoutSelector extends JPanel implements ItemListener {
 
         public String toString() {
             return name_;
+        }
+    }
+
+    /**
+     * Helper class for accessing the 2MASS cutout server.
+     */
+    private static class TwoMassCutoutService extends CutoutService {
+        private final char band_;
+
+        /**
+         * Constructor.
+         * 
+         * @param   band   band identifier - one of 'J', 'H' or 'K'
+         */
+        TwoMassCutoutService( char band ) {
+            super( "2MASS Quick-Look " + band + "-band", 2.25 );
+            band_ = band;
+        }
+
+        String displayCutout( int tableID, double ra, double dec, int npix ) {
+            return TwoMass.image2Mass( "2MASS " + Character.toUpperCase( band_ )
+                                     + " (" + tableID + ")",
+                                       ra, dec, npix, 
+                                       Character.toLowerCase( band_ ) );
         }
     }
 }
