@@ -1,0 +1,6 @@
+The JEL version supplied with JSky was 0.9.5.  This clashes with the
+version used in TTOOLS (previously TOPCAT).  So I have replaced
+the one here with the later version 0.9.11.  From the JEL homepage
+it looks like this is unlikely to result in problems.
+
+Mark Taylor (14 Feb 2005)
