@@ -20,6 +20,7 @@
  !      export-full-built  -> exports monolithic runtime distributions
  !      export-full-docs   -> exports monolithic javadocs archive
  !      test           -> run any JUnit tests in the system
+ !      keystore       -> generate a keystore for signing jar files
  !
  !   Authors:
  !      Peter W. Draper (2-JUL-2002)
@@ -63,6 +64,16 @@
   <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
+  <!-- Webstart and jar signing properties. -->
+  <property name="webstart.codebase"
+            value="http://www.starlink.ac.uk/starjava/lib"/>
+  <property name="webstart.alias" value="Starlink-UK"/>
+  <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
+  <property name="webstart.keypass" value="Vroomfondel"/>
+  <property name="webstart.storepass" value="Majikthise"/>
+  <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
+  <property name="webstart.signer" value="${user.name}"/>
+
   <!--
    !  ================
    !  Local Properties
@@ -72,7 +83,7 @@
   <!-- Define the package name and current versions. Use "full" names
    !   to avoid passing these down the packages. All parameters are
    !   passed by default. -->
-  <property name="FullName" value="Starlink"/>
+  <property name="FullName" value="Starlink-UK"/>
   <property name="fullname" value="starlink"/>
   <property name="fullversion" value="0.1"/>
 
@@ -571,6 +582,52 @@
                   group="${tar.group}"
                   prefix="${archive.top}lib/${os.arch}"/>
     </tar>
+
+  </target>
+
+  <!--
+   !   =======================================
+   !   Create a keystore for signing jar files
+   !   =======================================
+   !
+   !   Note this only works if a keystore doesn't already exist.
+   !   Should only be necessary to do this from time to time (when
+   !   validity peroid expires?).
+   !-->
+  <target name="keystore">
+    <genkey alias="${webstart.alias}"
+           keystore="${webstart.keystore}"
+           storepass="${webstart.storepass}"
+           keypass="${webstart.keypass}"
+           dname="CN=${webstart.signer}, O=${FullName}, L=RAL, C=UK"/>
+
+     <!-- dname format: 
+      !      CN=cName, OU=orgUnit, O=org, L=city, S=state, C=countryCode-->
+
+     <!-- Probably a good time to sign ANT -->
+     <antcall target="sign_ant"/>
+
+  </target>
+
+  <!-- 
+   !   ===================
+   !   Sign ANTs jar files 
+   !   ===================
+   !   Can only do this once a keystore has been created..., so must
+   !   be done after ANT has been built
+   !-->
+  <target name="sign_ant">
+
+    <!-- Sign all jar files in source directory and the installed ant
+     !   jar file --> 
+    <signjar alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}">
+      <fileset dir="ant/lib" includes="**/*.jar **/*.zip"/>
+      <fileset dir="${star.jar.dir}" includes="ant.jar"/>
+    </signjar>
+
   </target>
 
   <!--
