@@ -62,9 +62,11 @@ for f in `ast_link -myerr -mygrf` ""; do
       -l*) 
          libname="`echo $f | sed 's:-l:lib:'`.a"
          if test "$libname" != ""; then
+            got=""
             for d in $library_path; do
-               if test -r $d/$libname; then
+               if test -r $d/$libname -a -z "$got"; then
                   list="${list}$d/$libname "
+                  got="true"
                fi
             done
          fi
