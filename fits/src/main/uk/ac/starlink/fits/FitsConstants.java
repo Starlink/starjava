@@ -114,7 +114,7 @@ public class FitsConstants {
      * of an HDU.  As far as I can see, Header.getDataSize() ought to
      * do this, but it doesn't seem to.
      */
-    static long getDataSize( Header hdr ) {
+    public static long getDataSize( Header hdr ) {
         long nel = getRawSize( hdr );
         if ( nel % FITS_BLOCK == 0 ) {
             return nel;
