@@ -17,26 +17,15 @@ import uk.ac.starlink.diva.interp.LinearInterp;
  * @version $Id$
  */
 public class GaussianInterp
-    extends LinearInterp
+    extends LineInterpolator
 {
-    /**
-     * The GaussianGenerator. Does the real work.
-     */
-    protected GaussianGenerator generator = null;
-    protected double base = 0.0;
-
     /**
      * Create an instance with no coordinates. A call to
      * {@link #setValues} must be made before any other methods.
      */
     public GaussianInterp()
     {
-        //  Do nothing.
-    }
-
-    public int stepGuess()
-    {
-        return 101;
+        super( 4 );
     }
 
     /**
@@ -50,89 +39,54 @@ public class GaussianInterp
      */
     public GaussianInterp( double[] x, double[] y )
     {
+        super( 4 );
         setValues( x, y );
-    }
-
-    public void appendValue( double newx, double newy )
-    {
-        //  Once we have enough stop appending.
-        if ( x.length < 4 ) {
-            super.appendValue( newx, newy );
-        }
-    }
-
-    public boolean isFull()
-    {
-        if ( x.length < 4 ) {
-            return false;
-        }
-        return true;
     }
 
     /**
-     * Set the coordinates that define the Gaussian
+     * Given a set of reference X and Y coordinates return an array of
+     * properties that describe a related spectral line. Usually these
+     * are the line position, scale and width, but Voigt will also
+     * require another width (Lorentz). The scale will be negative for
+     * an absorption line, if the Y coordinate system run from top to
+     * bottom (i.e. graphics coordinates).
+     * <p>
+     * The reference positions are:
+     * <li>
+     *    <ul> 0: (not used here) the X coordinate is used to define
+     *    the extent that the line is drawn out to.</ul>
+     *    <ul> 1: the X and Y coordinates define (with respect to the 2
+     *    position), the FWHM of the line. The width is therefore x[2]-x[1]
+     *    and the scale 2*(y[2]-y[1]). Note the width returned is the
+     *    Lorentzian width, not the FWHM.</ul>
+     *    <ul> 2: the X coordinate defines the centre of the line and
+     *    the Y coordinate the peak.
+     *    <ul> 3: (usually present, but not used here) the X
+     *    coordinate is used to define the extent that the line is
+     *    drawn out to.
+     * </li>
      *
-     * @param x the X coordinates.
-     * @param y the Y coordinates.
+     * @param x the x coordinates, must be at least 3.
+     * @param y the y coordinates, must be at least 3.
+     * @return the scale, centre and width, indexed by SCALE, CENTRE and
+     *         GWIDTH.
      */
-    public void setValues( double[] x, double[] y )
+    public double[] getProps( double[] x, double[] y )
     {
-        //  Keep old positions, if given too many or they don't match.
-        if ( x.length > 4 || ( x.length != y.length ) ) {
-            x = null;
-            y = null;
-            return;
+        double[] props = new double[4];
+        if ( x.length > 2 ) {
+            props[SCALE] = 2.0 * ( y[2] - y[1] );
+            props[CENTRE] = x[2];
+            props[GWIDTH] = Math.abs( 2.0 * ( x[1] - x[2] ) /
+                                      GaussianGenerator.FWHMFAC );
         }
-
-        //  When given 2 positions, use these to bootstrap a complete
-        //  curve. The first position is taken as at the FWHM and second at
-        //  the peak.
-        if ( x.length == 2 ) {
-
-            this.x = new double[4];
-            this.y = new double[4];
-            this.x[0] = x[1] - 2.0 * ( x[1] - x[0] );
-            this.x[1] = x[0];
-            this.x[2] = x[1];
-            this.x[3] = x[1] + 2.0 * ( x[1] - x[0] );
-
-            this.y[0] = y[1] - 2.0 * ( y[1] - y[0] );
-            this.y[1] = y[0];
-            this.y[2] = y[1];
-            this.y[3] = this.y[0];
-
-            x = this.x;
-            y = this.y;
-        }
-
-        this.x = x;
-        this.y = y;
-        decr = false;
-
-        //  Complete set of positions, derive the Gaussian.
-        if ( x.length > 3 ) {
-
-            //  Width is FWHM. Scale goes +/- according to absorption/emission.
-            double scale = 2.0 * ( y[2] - y[1] );
-            double width = Math.abs( 2.0 * ( x[1] - x[2] ) /
-                                     GaussianGenerator.FWHMFAC );
-            double centre = x[2];
-
-            base = y[2] - scale;
-            generator = new GaussianGenerator( scale, centre, width );
-        }
+        return props;
     }
 
-    public void setCoords( double[] x, double[] y, boolean check )
+    // Set the properties of the generator directly.
+    public void setProps( double[] props )
     {
-        setValues( x, y );
-    }
-
-    public double interpolate( double xp )
-    {
-        if ( x.length > 3 ) {
-            return generator.evalYData( xp ) + base;
-        }
-        return super.interpolate( xp );
+        generator = new GaussianGenerator( props[SCALE], props[CENTRE],
+                                           props[GWIDTH] );
     }
 }
