@@ -105,7 +105,7 @@ public class MetaDataPopup extends JInternalFrame
        JScrollPane scrollPane = new JScrollPane( textPane,
                     JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                     JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-       scrollPane.setPreferredSize( new Dimension(500, 300) );
+       scrollPane.setPreferredSize( new Dimension(500, 450) );
        scrollPane.setMinimumSize( new Dimension(500, 300) );
        
        textPane.setEditable(false);
