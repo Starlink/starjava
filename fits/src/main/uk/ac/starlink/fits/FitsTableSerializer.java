@@ -99,44 +99,50 @@ public class FitsTableSerializer {
             nrow = 0L;
 
             /* Get the maximum dimensions. */
-            for ( RowSequence rseq = table.getRowSequence();
-                  rseq.hasNext(); ) {
-                rseq.next();
-                nrow++;
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    if ( useCols[ icol ] &&
-                         ( varShapes[ icol ] || 
-                           varChars[ icol ] ||
-                           varElementChars[ icol ] || 
-                           ( nullableInts[ icol ] && ! hasNulls[ icol ] ) ) ) {
-                        Object cell = rseq.getCell( icol );
-                        if ( cell == null ) {
-                            if ( nullableInts[ icol ] ) {
-                                hasNulls[ icol ] = true;
-                            }
-                        }
-                        else {
-                            if ( varChars[ icol ] ) {
-                                int leng = ((String) cell).length();
-                                maxChars[ icol ] =
-                                    Math.max( maxChars[ icol ], leng );
-                            }
-                            else if ( varElementChars[ icol ] ) {
-                                String[] svals = (String[]) cell;
-                                for ( int i = 0; i < svals.length; i++ ) {
-                                    maxChars[ icol ] =
-                                        Math.max( maxChars[ icol ],
-                                                  svals[ i ].length() );
+            RowSequence rseq = table.getRowSequence();
+            try {
+                while ( rseq.hasNext() ) {
+                    rseq.next();
+                    nrow++;
+                    for ( int icol = 0; icol < ncol; icol++ ) {
+                        if ( useCols[ icol ] &&
+                             ( varShapes[ icol ] || 
+                               varChars[ icol ] ||
+                               varElementChars[ icol ] || 
+                               ( nullableInts[ icol ] && 
+                                 ! hasNulls[ icol ] ) ) ) {
+                            Object cell = rseq.getCell( icol );
+                            if ( cell == null ) {
+                                if ( nullableInts[ icol ] ) {
+                                    hasNulls[ icol ] = true;
                                 }
                             }
-                            if ( varShapes[ icol ] ) {
-                                maxElements[ icol ] =
-                                    Math.max( maxElements[ icol ],
-                                              Array.getLength( cell ) );
+                            else {
+                                if ( varChars[ icol ] ) {
+                                    int leng = ((String) cell).length();
+                                    maxChars[ icol ] =
+                                        Math.max( maxChars[ icol ], leng );
+                                }
+                                else if ( varElementChars[ icol ] ) {
+                                    String[] svals = (String[]) cell;
+                                    for ( int i = 0; i < svals.length; i++ ) {
+                                        maxChars[ icol ] =
+                                            Math.max( maxChars[ icol ],
+                                                      svals[ i ].length() );
+                                    }
+                                }
+                                if ( varShapes[ icol ] ) {
+                                    maxElements[ icol ] =
+                                        Math.max( maxElements[ icol ],
+                                                  Array.getLength( cell ) );
+                                }
                             }
                         }
                     }
                 }
+            }
+            finally {
+                rseq.close();
             }
 
             /* Work out the actual shapes for columns which have variable ones,
@@ -326,16 +332,22 @@ public class FitsTableSerializer {
         /* Write the data cells, delegating the item in each column to
          * the writer that knows how to handle it. */
         long nWritten = 0L;
-        for ( RowSequence rseq = table.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
-            Object[] row = rseq.getRow();
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                ColumnWriter writer = colWriters[ icol ];
-                if ( writer != null ) {
-                    writer.writeValue( strm, row[ icol ] );
+        RowSequence rseq = table.getRowSequence();
+        try {
+            while ( rseq.hasNext() ) {
+                rseq.next();
+                Object[] row = rseq.getRow();
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    ColumnWriter writer = colWriters[ icol ];
+                    if ( writer != null ) {
+                        writer.writeValue( strm, row[ icol ] );
+                    }
                 }
+                nWritten += rowBytes;
             }
-            nWritten += rowBytes;
+        }
+        finally {
+            rseq.close();
         }
 
         /* Write padding. */

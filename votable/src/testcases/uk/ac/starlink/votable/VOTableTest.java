@@ -82,6 +82,7 @@ public class VOTableTest extends TestCase {
             }
             assertNull( rstep.nextRow() );
             assertTrue( ! rseq.hasNext() );
+            rseq.close();
 
             assertEquals( "Procyon",
                           ((String) ((Object[]) rows.get( 0 ))[ 0 ]).trim() );

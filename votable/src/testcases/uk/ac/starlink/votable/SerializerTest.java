@@ -222,6 +222,7 @@ public class SerializerTest extends TestCase {
                     rseq.next();
                     assertArrayEquals( rseq.getRow(), rstep.nextRow() );
                 }
+                rseq.close();
                 assertTrue( ! rseq.hasNext() );
                 assertNull( rstep.nextRow() );
             }
@@ -310,6 +311,7 @@ public class SerializerTest extends TestCase {
         assertEquals( table0.getRowCount(), irow );
         assertTrue( ! rseq.hasNext() );
         assertNull( rstep.nextRow() );
+        rseq.close();
     }
 
     private void writeTableInline( VOSerializer ser, BufferedWriter writer ) 

@@ -774,6 +774,7 @@ public class StatsWindow extends TopcatViewWindow {
                     }
                 }
             }
+            rseq.close();
             long nrow = lrow;
 
             /* Calculate the actual statistics based on the accumulated

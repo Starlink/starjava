@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.FitsTableWriter;
-import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
 

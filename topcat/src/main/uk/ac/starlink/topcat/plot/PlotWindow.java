@@ -816,6 +816,7 @@ public class PlotWindow extends TopcatViewWindow
             x[ irow ] = doubleValue( rseq.getCell( xcol ) );
             y[ irow ] = doubleValue( rseq.getCell( ycol ) );
         } 
+        rseq.close();
         return new Points( x, y );
     }
 

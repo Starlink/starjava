@@ -88,37 +88,42 @@ public class MirageFormatter {
         /* Print out the table contents. */
         strm.println( "#\n# Table data" );
         RowSequence rseq = table.getRowSequence();
-        while ( rseq.hasNext() ) {
-            rseq.next();
-            Object[] row = rseq.getRow();
-            for ( int i = 0; i < ncol; i++ ) {
-                if ( isUsed[ i ] ) {
-                    Object datum = row[ i ];
-                    String cell;
-                    if ( datum == null ) {
-                        cell = "<blank>";
-                    }
-                    else {
-                        cell = row[ i ].toString().trim();
+        try {
+            while ( rseq.hasNext() ) {
+                rseq.next();
+                Object[] row = rseq.getRow();
+                for ( int i = 0; i < ncol; i++ ) {
+                    if ( isUsed[ i ] ) {
+                        Object datum = row[ i ];
+                        String cell;
+                        if ( datum == null ) {
+                            cell = "<blank>";
+                        }
+                        else {
+                            cell = row[ i ].toString().trim();
 
-                        /* For text data, replace any whitespace sequence 
-                         * with a single non-breaking space so as not to
-                         * confuse Mirage into thinking there is more than
-                         * one field. */
-                        if ( isText[ i ] ) {
-                            if ( cell.length() == 0 ) {
-                                cell = "<blank>";
-                            }
-                            else {
-                                cell = cell.replaceAll( "\\s+", "_" );
+                            /* For text data, replace any whitespace sequence 
+                             * with a single non-breaking space so as not to
+                             * confuse Mirage into thinking there is more than
+                             * one field. */
+                            if ( isText[ i ] ) {
+                                if ( cell.length() == 0 ) {
+                                    cell = "<blank>";
+                                }
+                                else {
+                                    cell = cell.replaceAll( "\\s+", "_" );
+                                }
                             }
                         }
+                        strm.print( cell );
+                        strm.print( ' ' );
                     }
-                    strm.print( cell );
-                    strm.print( ' ' );
                 }
+                strm.println();
             }
-            strm.println();
+        }
+        finally {
+            rseq.close();
         }
     }
 

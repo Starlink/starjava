@@ -134,7 +134,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
                 if ( ! ( istrm instanceof BufferedInputStream ) ) {
                     istrm = new BufferedInputStream( istrm );
                 }
-                final DataInput stream = new DataInputStream( istrm );
+                final DataInputStream stream = new DataInputStream( istrm );
                 IOUtils.skipBytes( stream, offset );
                 return new RowSequence() {
                     final long nrow = getRowCount();
@@ -197,6 +197,9 @@ public abstract class BintableStarTable extends AbstractStarTable {
                     }
                     public long getRowIndex() {
                         return lrow;
+                    }
+                    public void close() throws IOException {
+                        stream.close();
                     }
                 };
             }

@@ -445,23 +445,30 @@ public abstract class VOSerializer {
             writer.write( "<TABLEDATA>" );
             writer.newLine();
             int ncol = encoders.length;
-            for ( RowSequence rseq = table.getRowSequence(); rseq.hasNext(); ) {
-                rseq.next();
-                writer.write( "  <TR>" );
-                writer.newLine();
-                Object[] rowdata = rseq.getRow();
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    Encoder encoder = encoders[ icol ];
-                    if ( encoder != null ) {
-                        String text = encoder.encodeAsText( rowdata[ icol ] );
-                        writer.write( "    <TD>" );
-                        writer.write( formatText( text ) );
-                        writer.write( "</TD>" );
-                        writer.newLine();
+            RowSequence rseq = table.getRowSequence();
+            try {
+                while ( rseq.hasNext() ) {
+                    rseq.next();
+                    writer.write( "  <TR>" );
+                    writer.newLine();
+                    Object[] rowdata = rseq.getRow();
+                    for ( int icol = 0; icol < ncol; icol++ ) {
+                        Encoder encoder = encoders[ icol ];
+                        if ( encoder != null ) {
+                            String text =
+                                encoder.encodeAsText( rowdata[ icol ] );
+                            writer.write( "    <TD>" );
+                            writer.write( formatText( text ) );
+                            writer.write( "</TD>" );
+                            writer.newLine();
+                        }
                     }
+                    writer.write( "  </TR>" );
+                    writer.newLine();
                 }
-                writer.write( "  </TR>" );
-                writer.newLine();
+            }
+            finally {
+                rseq.close();
             }
             writer.write( "</TABLEDATA>" );
             writer.newLine();
@@ -580,15 +587,21 @@ public abstract class VOSerializer {
 
         public void streamData( DataOutput out ) throws IOException {
             int ncol = encoders.length;
-            for ( RowSequence rseq = table.getRowSequence(); rseq.hasNext(); ) {
-                rseq.next();
-                Object[] row = rseq.getRow();
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    Encoder encoder = encoders[ icol ];
-                    if ( encoder != null ) {
-                        encoder.encodeToStream( row[ icol ], (DataOutput) out );
+            RowSequence rseq = table.getRowSequence();
+            try {
+                while ( rseq.hasNext() ) {
+                    rseq.next();
+                    Object[] row = rseq.getRow();
+                    for ( int icol = 0; icol < ncol; icol++ ) {
+                        Encoder encoder = encoders[ icol ];
+                        if ( encoder != null ) {
+                            encoder.encodeToStream( row[ icol ], out );
+                        }
                     }
                 }
+            }
+            finally {
+                rseq.close();
             }
         }
     }

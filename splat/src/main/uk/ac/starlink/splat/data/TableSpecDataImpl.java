@@ -496,6 +496,7 @@ public class TableSpecDataImpl
                 Number value = (Number) rseq.getCell( index );
                 data[i++] = value.doubleValue();
             }
+            rseq.close();
         }
         catch (Exception e) {
             throw new SplatException( "Failed reading table column" , e );
@@ -528,6 +529,7 @@ public class TableSpecDataImpl
                 }
                 i++;
             }
+            rseq.close();
         }
         catch (Exception e) {
             throw new SplatException( "Failed reading table", e );
