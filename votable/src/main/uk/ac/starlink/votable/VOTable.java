@@ -145,6 +145,13 @@ public class VOTable extends VOElement {
     }
 
     /**
+     * Constructs a VOTable from a DataSource.
+     *
+     * @param  the datasource pointing to the XML document
+     * @param  validate  whether to do a validating parse
+     * @throws IOException if there is an I/O error
+     * @throws SAXException if there is an error in XML parsing, including
+     *         a validation error in the case that <tt>validate</tt> is true
      */
     public VOTable( DataSource datsrc, boolean validate )
             throws IOException, SAXException {

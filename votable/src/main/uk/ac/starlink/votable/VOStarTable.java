@@ -191,8 +191,12 @@ public class VOStarTable extends AbstractStarTable {
 
     public Object[] getRow( long lrow ) throws IOException {
         if ( isRandom() ) {
-            return ((RandomTable) votable)
-                  .getRow( checkedLongToInt( lrow ) );
+            Object[] row = ((RandomTable) votable)
+                          .getRow( checkedLongToInt( lrow ) );
+            for ( int i = 0; i < row.length; i++ ) {
+                row[ i ] = adapters[ i ].adapt( row[ i ] );
+            }
+            return row;
         }
         else {
             throw new UnsupportedOperationException();
@@ -201,8 +205,9 @@ public class VOStarTable extends AbstractStarTable {
 
     public Object getCell( long lrow, int icol ) throws IOException {
         if ( isRandom() ) {
-            return ((RandomTable) votable)
-                  .getCell( checkedLongToInt( lrow ), icol );
+            Object val = ((RandomTable) votable)
+                        .getCell( checkedLongToInt( lrow ), icol );
+            return adapters[ icol ].adapt( val );
         }
         else {
             throw new UnsupportedOperationException();

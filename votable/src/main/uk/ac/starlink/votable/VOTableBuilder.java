@@ -20,6 +20,19 @@ import uk.ac.starlink.util.SourceReader;
  */
 public class VOTableBuilder implements TableBuilder {
 
+    /**
+     * Makes a StarTable out of a DataSource which points to a VOTable.
+     * If the source has a position attribute, it is currently 
+     * interpreted as an index into a breadth-first list of the TABLE
+     * elements in the document pointed to by <tt>datsrc</tt>,
+     * thus it must be a non-negative integer less than the number of
+     * TABLE elements.  If it has no position attribute, the first
+     * TABLE element is used.  The interpretation of the position
+     * should probably change or be extended in the future to 
+     * allow XPath expressions.
+     *
+     * @param  datsrc  the location of the VOTable document to use
+     */
     public StarTable makeStarTable( DataSource datsrc ) throws IOException {
 
         /* Try to get a VOTable object from this source. */
@@ -40,16 +53,46 @@ public class VOTableBuilder implements TableBuilder {
             return null;
         }
 
+        /* If the datasource has a position, try to use this to identify
+         * the actual table we're after in the document. 
+         * For now, this is just an integer indicating which table in 
+         * breadth-order we want.  In due course it ought to be an XPath
+         * probably. */
+        int itab = 0;
+        String pos = datsrc.getPosition();
+        if ( pos != null ) {
+            try {
+                itab = Integer.parseInt( pos );
+            }
+            catch ( NumberFormatException e ) {
+                throw new IllegalArgumentException( 
+                    "Expecting integer for position in " +
+                    datsrc + "(" +  e + ")" );
+            }
+            if ( itab < 0 ) {
+                throw new IllegalArgumentException(
+                    "Expecting integer >= 0 for position in " + 
+                    datsrc + "(got " + itab + ")" );
+            }
+        }
+
         /* Find the first TABLE element within the VOTable.  This is a
          * short-term measure - in due course there should be some way
          * (XPath) of indicating which TABLE we want to look at. */
         DOMSource tableSrc = 
-            findTableElement( (DOMSource) votable.getSource() );
+            findTableElement( (DOMSource) votable.getSource(), itab );
 
-        /* If it's null, then we have a pathological VOTable. */
+        /* If it's null, then we haven't found one. */
         if ( tableSrc == null ) {
-            throw new IOException( 
-                "VOTable document contained no TABLE elements" );
+            if ( itab == 0 ) {
+                throw new IOException( 
+                    "VOTable document contained no TABLE elements" );
+            }
+            else {
+                throw new IOException(
+                    "VOTable document contained less than " + ( itab + 1 ) +
+                    " tables" );
+            }
         }
 
         /* Adapt the TABLE element to a StarTable. */
@@ -62,11 +105,12 @@ public class VOTableBuilder implements TableBuilder {
      * given VOElement which are Table elements.
      *
      * @param  vosrc  a starting element
+     * @param  index  the index of the required table (0 is first)
      * @return  a source representing a Table element which is a 
      *          descendent of <tt>vosrc</tt>,
      *          or <tt>null</tt> if there isn't one
      */
-    private static DOMSource findTableElement( DOMSource vosrc ) {
+    private static DOMSource findTableElement( DOMSource vosrc, int index ) {
         Node vonode = vosrc.getNode();
         Element voel;
         if ( vonode instanceof Element ) {
@@ -79,8 +123,8 @@ public class VOTableBuilder implements TableBuilder {
             throw new IllegalArgumentException( "Not an Element or Document" );
         }
         NodeList tables = voel.getElementsByTagName( "TABLE" );
-        if ( tables.getLength() > 0 ) {
-            return new DOMSource( tables.item( 0 ), vosrc.getSystemId() );
+        if ( tables.getLength() > index ) {
+            return new DOMSource( tables.item( index ), vosrc.getSystemId() );
         }
         else {
             return null;
