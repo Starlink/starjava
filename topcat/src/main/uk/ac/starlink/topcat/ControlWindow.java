@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -61,6 +62,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.StarTableSaver;
 import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.util.gui.DragListener;
@@ -232,6 +234,21 @@ public class ControlWindow extends AuxWindow
                                    "four existing tables", 4 ),
         };
 
+        /* Configure the list to try to load a table when you paste 
+         * text location into it. */
+        MouseListener pasteLoader = new PasteLoader( this, tabfact ) {
+            protected void tableLoaded( StarTable table, String loc ) {
+                addTable( table, loc, true );
+            }
+        };
+        tablesList.addMouseListener( pasteLoader );
+
+        /* Configure load button for mouse actions. */
+        JButton readButton = new JButton( readAct );
+        readButton.setText( null );
+        readButton.setTransferHandler( importTransferHandler );
+        readButton.addMouseListener( pasteLoader );
+
         /* Bind an action for double-click or Enter key on the list. */
         tablesList.addMouseListener( new MouseAdapter() {
             public void mouseClicked( MouseEvent evt ) {
@@ -252,7 +269,7 @@ public class ControlWindow extends AuxWindow
         /* Add load/save control buttons to the toolbar. */
         JToolBar toolBar = getToolBar();
         toolBar.setFloatable( true );
-        toolBar.add( readAct ).setTransferHandler( importTransferHandler );
+        toolBar.add( readButton );
         configureExportSource( toolBar.add( writeAct ) );
         configureExportSource( toolBar.add( dupAct ) );
         toolBar.addSeparator();
