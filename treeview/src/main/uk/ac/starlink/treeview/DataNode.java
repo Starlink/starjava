@@ -24,6 +24,28 @@ import javax.swing.Icon;
  * a given type does not need to know all about the kinds of child
  * nodes it can have.
  * <p>
+ * For smooth working of Treeview, DataNode implementations should make
+ * every effort to observe the following rules about resource usage:
+ * As far as possible, 
+ * internal state of a DataNode should be constructed just-in-time 
+ * as it is required rather than up front in the constructor.
+ * This is because in many cases a large number of nodes will be 
+ * constructed, most of which will only be called upon to supply their
+ * name, icon, description etc; if many allocate large amounts of 
+ * memory, memory is liable to be exhausted.
+ * The only actions which should be permitted to cause a (potentially) 
+ * large memory allocation are:
+ * <ul>
+ * <li>Invocation of {@link #getChildren}
+ * <li>The user selecting one of the non-default panels in the DetailViewer
+ * </ul>
+ * In particular the following actions should <em>not</em> cause large resource
+ * allocation:
+ * <ul>
+ * <li>DataNode construction
+ * <li>Invocation of {@link configureDetail}
+ * </ul>
+ * <p>
  * Although you can implement this interface directly and everything 
  * should work fine, it is probably a good idea to inherit from 
  * {@link DefaultDataNode}.  The separation of interface and implementation
