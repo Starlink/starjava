@@ -10,8 +10,6 @@ import java.io.File;
  */
 public class FileBranch extends FileNode implements Branch {
 
-    private final File dir_;
-
     /**
      * Constructs a branch from a File object representing an existing
      * directory.
@@ -24,11 +22,10 @@ public class FileBranch extends FileNode implements Branch {
         if ( ! dir.isDirectory() ) {
             throw new IllegalArgumentException( dir + " is not directory" );
         }
-        dir_ = dir;
     }
 
     public Node[] getChildren() {
-        File[] files = dir_.listFiles();
+        File[] files = file_.listFiles();
         Node[] children = new Node[ files.length ];
         for ( int i = 0; i < files.length; i++ ) {
             children[ i ] = createNode( files[ i ] );
@@ -39,7 +36,7 @@ public class FileBranch extends FileNode implements Branch {
     public Node createNode( String location ) {
         File file = new File( location );
         if ( ! file.isAbsolute() ) {
-            file = new File( dir_, location );
+            file = new File( file_, location );
         }
         return createNode( file );
     }
