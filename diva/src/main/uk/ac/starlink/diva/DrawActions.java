@@ -1190,11 +1190,10 @@ public class DrawActions
      */
     public synchronized void clear()
     {
-        ListIterator it = getListIterator( true );
-        while ( it.hasNext() ) {
-            DrawFigure fig = (DrawFigure) it.next();
+        int size = figureList.size();
+        for ( int i = size - 1; i >= 0; i-- ) {
+            DrawFigure fig = (DrawFigure) figureList.get( i );
             deleteFigure( fig );
-            it.remove();
         }
     }
 
@@ -1205,12 +1204,15 @@ public class DrawActions
     {
         SelectionModel sm =
             graphics.getSelectionInteractor().getSelectionModel();
-        ListIterator it = getListIterator( true );
-        while ( it.hasNext() ) {
-            DrawFigure fig = (DrawFigure) it.next();
+
+        //  Don't use ListIterator when deleting as this causes a
+        //  concurrent modification of figureList (.remove is called
+        //  when this should only be performed on the ListIterator).
+        int size = figureList.size();
+        for ( int i = size - 1; i >= 0; i-- ) {
+            DrawFigure fig = (DrawFigure) figureList.get( i );
             if ( sm.containsSelection( fig ) ) {
                 deleteFigure( fig );
-                it.remove();
             }
         }
     }
