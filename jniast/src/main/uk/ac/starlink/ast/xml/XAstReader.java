@@ -38,6 +38,27 @@ public class XAstReader {
      *            structure to be an <tt>AstObject</tt>
      */
     public AstObject makeAst( Source xsrc ) throws IOException {
+
+        // The following is a temporary measure to remove namespacing,
+        // to work round a bug in HDX.
+        // It must be got rid of when the HDX bug is fixed.
+        if ( true ) {
+            try {
+                Element el = new SourceReader().getElement( xsrc );
+                el = (Element) el.cloneNode( true );
+                el.setAttribute( "xmlns",
+                                 "http://www.starlink.ac.uk/ast/xml/" );
+                xsrc = new DOMSource( el );
+            }
+            catch ( javax.xml.transform.TransformerException e ) {
+                throw (AssertionError) 
+                      new AssertionError( 
+                          "Error in HDX bug workaround code that shouldn't " +
+                          "be here anyway" )
+                     .initCause( e );
+            }
+        }
+
         final InputStream istrm = new SourceReader().getXMLStream( xsrc );
         XmlChan xc = new XmlChan() {
             byte[] buf = new byte[ 64 ];

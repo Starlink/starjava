@@ -63,9 +63,18 @@ public class XAstWriter {
         catch ( IOException e ) {
             throw new AssertionError( "That shouldn't happen." );
         }
-        InputStream istrm = 
-            new ByteArrayInputStream( xmlChan.getContentString().getBytes() );
+        String content = xmlChan.getContentString();
+
+        // The following is a temporary measure to remove namespacing,
+        // to work round a bug in HDX.
+        // It must be got rid of when the HDX bug is fixed.
+        if ( true ) {
+            content = content.replaceFirst( 
+                " xmlns=.http://www.starlink.ac.uk/ast/xml/.", "" );
+        }
+
         xmlChan.clear();
+        InputStream istrm = new ByteArrayInputStream( content.getBytes() );
         return new StreamSource( istrm );
     }
 }
