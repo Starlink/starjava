@@ -170,6 +170,7 @@ public class FormatsTest extends TestCase {
             "votable-fits-inline",
             "text",
             "ascii",
+            "csv",
             "html",
             "html-element",
             "latex",
