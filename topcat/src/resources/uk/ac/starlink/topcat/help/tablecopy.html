@@ -41,7 +41,22 @@ or equivalently
 </pre>
 produces the following usage message:
 <pre>
-   Usage: tablecopy [-ofmt jdbc|fits|votable|text|latex|mirage] in-table out-table
+   Usage: tablecopy [-ofmt <out-format>] <in-table> <out-table>
+
+   Known formats:
+      jdbc
+      fits
+      votable-tabledata
+      votable-binary-inline
+      votable-binary-href
+      votable-fits-inline
+      votable-fits-href
+      text
+      html
+      html-element
+      latex
+      latex-document
+      mirage
 </pre>
 The input format is sensed by examining the in-table argument, and the
 output format can be supplied using the '-ofmt' flag.  If the -ofmt
