@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.net.URL;
 import java.util.ArrayList;
@@ -26,9 +27,9 @@ import uk.ac.starlink.table.gui.StarJTable;
  * Top-level window which displays the parameters of a table.
  * Other per-table metadata may be displayed as well.
  */
-public class ParameterWindow extends AuxWindow {
+public class ParameterWindow extends TopcatViewWindow {
 
-    private TableViewer tv;
+    private TopcatModel tcModel;
     private PlasticStarTable dataModel;
     private TableModel viewModel;
     private TableColumnModel columnModel;
@@ -51,16 +52,17 @@ public class ParameterWindow extends AuxWindow {
         new DefaultValueInfo( "Rows", Long.class, "Number of rows" );
 
     /**
-     * Constructs a parameter window for the given table viewer.
+     * Constructs a parameter window.
      *
-     * @param  tv  the viewer
+     * @param  tcModel  model representing the table concerned
+     * @param  parent   parent component used for window positioning
      */
-    public ParameterWindow( TableViewer tv ) {
-        super( "Table Parameters", tv );
-        this.tv = tv;
-        this.dataModel = tv.getDataModel();
-        this.viewModel = tv.getViewModel();
-        this.columnModel = tv.getColumnModel();
+    public ParameterWindow( TopcatModel tcModel, Component parent ) {
+        super( tcModel, "Table Parameters", parent );
+        this.tcModel = tcModel;
+        this.dataModel = tcModel.getDataModel();
+        this.viewModel = tcModel.getViewModel();
+        this.columnModel = tcModel.getColumnModel();
 
         /* Assemble a list of DescribedValue objects representing the 
          * parameters and other metadata items which describe this table.
@@ -293,7 +295,6 @@ public class ParameterWindow extends AuxWindow {
 
         /* Place the JTable into a scrollpane in this frame. */
         getMainArea().add( new SizingScrollPane( jtab ) );
-        setMainHeading( "Table Metadata" );
 
         /* Make a menu for controlling metadata display. */
         JMenu displayMenu = metaColumnModel.makeCheckBoxMenu( "Display" );

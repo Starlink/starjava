@@ -27,9 +27,9 @@ import uk.ac.starlink.util.ErrorDialog;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class SubsetWindow extends AuxWindow implements ListDataListener {
+public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
 
-    private final TableViewer tv;
+    private final TopcatModel tcModel;
     private final OptionsListModel subsets;
     private final Map subsetCounts;
     private final PlasticStarTable dataModel;
@@ -41,14 +41,15 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     /**
      * Constructs a new SubsetWindow from a TableViewer;
      *
-     * @param   tableviewer the viewer whose table is to be reflected here
+     * @param  tcModel  model containing the data for the table concerned
+     * @param  parent   component used for window positioning
      */
-    public SubsetWindow( TableViewer tableviewer ) {
-        super( "Row Subsets", tableviewer );
-        this.tv = tableviewer;
-        this.subsets = tv.getSubsets();
-        this.subsetCounts = tv.getSubsetCounts();
-        this.dataModel = tv.getDataModel();
+    public SubsetWindow( final TopcatModel tcModel, Component parent ) {
+        super( tcModel, "Row Subsets", parent );
+        this.tcModel = tcModel;
+        this.subsets = tcModel.getSubsets();
+        this.subsetCounts = tcModel.getSubsetCounts();
+        this.dataModel = tcModel.getDataModel();
 
         /* Get a model for the table containing the bulk of the data. */
         subsetsTableModel = makeTableModel();
@@ -83,7 +84,6 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
         /* Place the table into a scrollpane in this frame. */
         getMainArea().add( new SizingScrollPane( jtab ) );
-        setMainHeading( "Row Subsets" );
 
         /* Action for adding a new subset. */
         Action addAction = new BasicAction( "New subset", ResourceIcon.ADD,
@@ -91,7 +91,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                             "algebraic expression" ) {
             public void actionPerformed( ActionEvent evt ) {
                 Component parent = SubsetWindow.this;
-                new SyntheticSubsetQueryWindow( tv, parent );
+                new SyntheticSubsetQueryWindow( tcModel, parent );
             }
         };
 
@@ -103,7 +103,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 public void actionPerformed( ActionEvent evt ) {
                     Component parent = SubsetWindow.this;
                     SyntheticColumnQueryWindow colwin = 
-                        new SyntheticColumnQueryWindow( tv, -1, parent );
+                        new SyntheticColumnQueryWindow( tcModel, -1, parent );
                     int irow = jtab.getSelectedRow();
                     colwin.setExpression( getSubsetID( irow ) );
                     colwin.setName( getSubsetName( irow ) );
@@ -230,7 +230,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 if ( rset instanceof BooleanColumnRowSubset ) {
                     ColumnInfo cinfo = ((BooleanColumnRowSubset) rset)
                                       .getColumnInfo();
-                    return " " + tv.getColumnID( cinfo );
+                    return " " + tcModel.getColumnID( cinfo );
                 }
                 else {
                     return null;

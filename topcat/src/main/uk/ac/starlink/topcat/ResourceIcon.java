@@ -56,6 +56,7 @@ public class ResourceIcon implements Icon {
         TOPCAT = makeIcon( "TopCat2.gif" ),
         TOPCAT_LOGO = makeIcon( "tc3.gif" ),
         STARLINK = makeIcon( "starlinklogo3.gif" ),
+        TABLE = makeIcon( "browser1.gif" ),
 
         /* Generic actions. */
         CLOSE = makeIcon( "multiply4.gif"),
@@ -68,6 +69,7 @@ public class ResourceIcon implements Icon {
         REMOVE = makeIcon( "Minus1.gif" ),
         HELP = makeIcon( "Help3.gif" ),
         DEMO = makeIcon( "demo.gif" ),
+        HIDE = makeIcon( "hide1.gif" ),
 
         /* Windows. */
         COLUMNS = makeIcon( "colmeta0.gif" ),
@@ -87,10 +89,19 @@ public class ResourceIcon implements Icon {
         GRID_OFF = makeIcon( "gridoff.gif" ),
         TO_COLUMN = makeIcon( "Column.gif" ),
         COUNT = makeIcon( "ab3.gif" ),
+        UP = makeIcon( "arrow_n.gif" ),
+        DOWN = makeIcon( "arrow_s.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),
         PAGE_SETUP = makeIcon( "PageSetup24.gif" ),
+
+        /* Treeview (hierarchy browser) icons. */
+        COLLAPSED = makeIcon( "handle1.gif" ),
+        EXPANDED = makeIcon( "handle2.gif" ),
+        HOME = makeIcon( "Home24.gif" ),
+        TV_UP = makeIcon( "Up.gif" ),
+        TV_DOWN = makeIcon( "Down.gif" ),
 
         /* Metal. */
         QUERY = makeIcon( "query_message.gif" ),
@@ -365,18 +376,31 @@ public class ResourceIcon implements Icon {
      */
     public static void main( String[] args ) {
         String mode = args.length == 1 ? args[ 0 ] : null;
-        if ( mode == null ) {
-            System.err.println( "Usage: ResourceIcon [-map|-files]" );
-        }
-        else if ( mode.equals( "-map" ) ) {
+        if ( "-map".equals( mode ) ) {
             writeHelpMapXML( System.out, "../" );
         }
-        else if ( mode.equals( "-files" ) ) {
+        else if ( "-files".equals( mode ) ) {
             Map iconMap = getMemberNameMap();
             for ( Iterator it = iconMap.keySet().iterator(); it.hasNext(); ) {
                 ResourceIcon icon = (ResourceIcon) iconMap.get( it.next() );
                 System.out.println( icon.location );
             }
+        }
+        else if ( "-entities".equals( mode ) ) {
+            Map iconMap = getMemberNameMap();
+            String t1 = "  <!ENTITY IMG.";
+            String t2 = " '<img src=\"../" + PREFIX;
+            String t3 = "\"/>'>";
+            for ( Iterator it = iconMap.keySet().iterator(); it.hasNext(); ) {
+                String name = (String) it.next();
+                ResourceIcon icon = (ResourceIcon) iconMap.get( name );
+                System.out.println( t1 + name + t2 + icon.location + t3 );
+            }
+        }
+        else {
+            String usage = "Usage: ResourceIcon [-map|-files|-entities]";
+            System.err.println( usage );
+            System.exit( 1 );
         }
     }
 

@@ -22,7 +22,6 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -45,7 +44,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableColumnModelEvent;
@@ -70,9 +68,9 @@ import uk.ac.starlink.util.ErrorDialog;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class PlotWindow extends AuxWindow implements ActionListener {
+public class PlotWindow extends TopcatViewWindow implements ActionListener {
 
-    private TableViewer tv;
+    private TopcatModel tcModel;
     private StarTable dataModel;
     private TableColumnModel columnModel;
     private OptionsListModel subsets;
@@ -99,30 +97,27 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         new ActionEvent( new Object(), 0, null );
 
     /**
-     * Constructs a PlotWindow for a given <tt>TableModel</tt> and 
-     * <tt>TableColumnModel</tt>.
+     * Constructs a new PlotWindow.
      *
-     * @param   tableviewer  the viewer whose data are to be plotted
+     * @param  tcModel  model containing the data for the table concerned
+     * @param  parent   component used for window positioning
      */
-    public PlotWindow( TableViewer tableviewer ) {
-        super( "Table Plotter", tableviewer );
-        this.tv = tableviewer;
-        this.dataModel = tv.getDataModel();
-        this.columnModel = tv.getColumnModel();
-        this.subsets = tv.getSubsets();
-        this.subsetCounts = tv.getSubsetCounts();
+    public PlotWindow( final TopcatModel tcModel, Component parent ) {
+        super( tcModel, "Table Plotter", parent );
+        this.tcModel = tcModel;
+        this.dataModel = tcModel.getDataModel();
+        this.columnModel = tcModel.getColumnModel();
+        this.subsets = tcModel.getSubsets();
+        this.subsetCounts = tcModel.getSubsetCounts();
 
         /* Do some window setup. */
         setSize( 400, 400 );
 
         /* Construct a panel for configuration of X and Y axes. */
-        Border lineBorder = BorderFactory.createLineBorder( Color.BLACK );
         JPanel xConfig = new JPanel();
         JPanel yConfig = new JPanel();
-        xConfig.setBorder( BorderFactory
-                          .createTitledBorder( lineBorder, "X axis" ) );
-        yConfig.setBorder( BorderFactory
-                          .createTitledBorder( lineBorder, "Y axis" ) );
+        xConfig.setBorder( makeTitledBorder( "X axis" ) );
+        yConfig.setBorder( makeTitledBorder( "Y axis" ) );
         Box axisBox = new Box( BoxLayout.Y_AXIS );
         axisBox.add( xConfig );
         axisBox.add( Box.createGlue() );
@@ -204,8 +199,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         /* Do the same thing as a scrollable box in the control panel. */
         CheckBoxStack stack = new CheckBoxStack( subsets );
         JComponent stackPanel = new JScrollPane( stack );
-        stackPanel.setBorder( BorderFactory
-                             .createTitledBorder( lineBorder, "Row subsets" ) );
+        stackPanel.setBorder( makeTitledBorder( "Row subsets" ) );
         getControlPanel().add( stackPanel );
         stack.setSelectionModel( subSelModel );
 
@@ -213,7 +207,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
          * of the viewer, if any, are plotted. */
         subSelModel.addSelectionInterval( 0, 0 );  // ALL
         int nrsets = subsets.size();
-        RowSubset currentSet = tv.getViewModel().getSubset();
+        RowSubset currentSet = tcModel.getViewModel().getSubset();
         if ( currentSet != RowSubset.ALL ) {
             for ( int i = 1; i < nrsets; i++ ) {
                 if ( subsets.get( i ) == currentSet ) {
@@ -352,7 +346,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                                              "containing only currently " +
                                              "visible points" ) {
             public void actionPerformed( ActionEvent evt ) {
-                String name = TableViewer.enquireSubsetName( PlotWindow.this );
+                String name = tcModel.enquireSubsetName( PlotWindow.this );
                 if ( name != null ) {
                     int inew = subsets.size();
                     subsets.add( new BitsRowSubset( name, calcVisibleRows() ) );
@@ -574,7 +568,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         /* Construct a model which contains an entry for each column 
          * which contains Numbers or Dates. */
         ComboBoxModel boxModel = 
-            new RestrictedColumnComboBoxModel( tv.getColumnModel(), false ) {
+            new RestrictedColumnComboBoxModel( columnModel, false ) {
                 protected boolean acceptColumn( TableColumn tcol ) {
                     StarTableColumn stcol = (StarTableColumn) tcol;
                     Class clazz = stcol.getColumnInfo().getContentClass();
@@ -587,7 +581,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         JComboBox box = new JComboBox( boxModel );
 
         /* Give it a suitable renderer. */
-        box.setRenderer( tv.getColumnRenderer() );
+        box.setRenderer( new ColumnCellRenderer() );
         return box;
     }
 

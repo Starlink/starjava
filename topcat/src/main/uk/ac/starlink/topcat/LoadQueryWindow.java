@@ -40,6 +40,9 @@ import uk.ac.starlink.util.ErrorDialog;
  * This dialogue is not modal; if and when the user specifies a valid
  * table location, that table will be instantiated and the 
  * {@link #performLoading} method will be called on it at that time.
+ * <tt>performLoading</tt> is abstract, and must be implemented by
+ * concrete subclasses to decide what happens to a table which is 
+ * successfully loaded.
  * <p>
  * If one of the <tt>get*StarTable</tt> methods is called, before another
  * one is completed (before the user has specified a table), the other
@@ -49,7 +52,7 @@ import uk.ac.starlink.util.ErrorDialog;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class LoadQueryWindow extends QueryWindow {
+public abstract class LoadQueryWindow extends QueryWindow {
 
     private boolean requireRandom;
     private JTextField locField;
@@ -67,9 +70,10 @@ public class LoadQueryWindow extends QueryWindow {
      * construction time.
      *
      * @param  tableFactory  the factory to be used for constructing tables
+     * @param  parent     parent window used for positioning
      */
-    public LoadQueryWindow( StarTableFactory tableFactory ) {
-        super( "Load new table", null );
+    public LoadQueryWindow( StarTableFactory tableFactory, Component parent ) {
+        super( "Load new table", parent );
         this.tableFactory = tableFactory;
 
         /* Place the field for entering the location. */
@@ -164,16 +168,14 @@ public class LoadQueryWindow extends QueryWindow {
 
     /**
      * This method is called on a successfully loaded table when it has
-     * been obtained.  The default behaviour is to instantiate a new 
-     * TableViewer instance to view it.  The method may be overridden
-     * by subclasses to change the behaviour.
+     * been obtained.
      *
      * @param  startab  a newly-instanticated StarTable as specified by
      *         the user
+     * @param  location some indication of where the table has come from
      */
-    protected void performLoading( StarTable startab ) {
-        new TableViewer( startab, this );
-    }
+    protected abstract void performLoading( StarTable startab, 
+                                            String location );
 
     /**
      * Loads a StarTable as directed by the user, optionally a random-access
@@ -233,7 +235,7 @@ public class LoadQueryWindow extends QueryWindow {
         }
         
         /* Do whatever needs doing with the successfully created StarTable. */
-        performLoading( st );
+        performLoading( st, loc );
 
         /* We're finished. */
         dispose();
@@ -292,12 +294,11 @@ public class LoadQueryWindow extends QueryWindow {
         if ( st != null ) {
             st = doctorTable( st );
             if ( st != null ) {
-                performLoading( st );
+                performLoading( st, chooser.getChosenPath() );
                 dispose();
             }
         }
     }
-
 
     /**
      * This method is invoked when the user hits the 'SQL' button on the
@@ -311,7 +312,7 @@ public class LoadQueryWindow extends QueryWindow {
             startab = doctorTable( startab );
         }
         if ( startab != null ) {
-            performLoading( startab );
+            performLoading( startab, sqld.getRef() );
             dispose();
         }
     }
@@ -475,7 +476,7 @@ public class LoadQueryWindow extends QueryWindow {
 
              /* Do whatever needs doing with the successfully created
               * StarTable. */
-             performLoading( table );
+             performLoading( table, "Dropped" );
 
              /* We're finished. */
              dispose();

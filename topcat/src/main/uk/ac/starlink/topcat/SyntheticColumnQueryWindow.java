@@ -17,7 +17,7 @@ import uk.ac.starlink.util.ErrorDialog;
  */
 public class SyntheticColumnQueryWindow extends QueryWindow {
 
-    private final TableViewer tv;
+    private final TopcatModel tcModel;
     private final PlasticStarTable dataModel;
     private final OptionsListModel subsets;
     private final TableColumnModel columnModel;
@@ -33,18 +33,18 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * append a new column to the viewer <tt>tableviewer<tt> at the
      * column index <tt>insertIndex</tt>.
      *
-     * @param   tableviewer  the tableviewer
+     * @param   tcModel      model containing the table data
      * @param   insertIndex  the postion for the new column
      * @param   parent       the parent window for this dialogue (used for
      *                       window positioning)
      */
-    public SyntheticColumnQueryWindow( TableViewer tableviewer,
+    public SyntheticColumnQueryWindow( TopcatModel tcModel,
                                        int insertIndex, Component parent ) {
         super( "Define Synthetic Column", parent );
-        this.tv = tableviewer;
-        this.columnModel = tv.getColumnModel();
-        this.dataModel = tv.getDataModel();
-        this.subsets = tv.getSubsets();
+        this.tcModel = tcModel;
+        this.columnModel = tcModel.getColumnModel();
+        this.dataModel = tcModel.getDataModel();
+        this.subsets = tcModel.getSubsets();
         LabelledComponentStack stack = getStack();
 
         /* Name field. */
@@ -176,7 +176,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         try {
             ColumnData col = new SyntheticColumn( info, dataModel, subsets,
                                                   expr, null );
-            tv.appendColumn( col, index );
+            tcModel.appendColumn( col, index );
             return true;
         }
         catch ( Exception e ) {

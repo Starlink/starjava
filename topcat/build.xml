@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TOPCAT"/>
   <property name="name" value="topcat"/>
-  <property name="version" value="0.5-1"/>
+  <property name="version" value="1.0"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.topcat"/>
@@ -108,6 +108,7 @@
 
   <!-- Directory containing miscellaneous docs -->
   <property name="src.docs" value="${src.dir}/docs"/>
+  <property name="user.doc" value="sun178"/>
 
   <!-- Directory containing any script required to execute or setup package-->
   <property name="script.dir" value="${src.dir}/script"/>
@@ -133,6 +134,7 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.docs" value="${build.dir}/docs"/>
   <property name="build.etc" value="${build.dir}/etc"/>
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
@@ -419,16 +421,6 @@
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
-
-    <!-- Additional help file transformations. -->
-    <java classname="uk.ac.starlink.topcat.HelpTransformer"
-          output="${build.classes}/uk/ac/starlink/topcat/help/toc.html">
-      <classpath refid="classpath"/>
-      <arg value="-target"/>
-      <arg value="topcatMain"/>
-      <arg value="${src.dir}/resources/uk/ac/starlink/topcat/help/Topcat.hs"/>
-    </java>
-
   </target>
 
   <!--
@@ -519,7 +511,7 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class"
-                   value="uk.ac.starlink.topcat.TableViewer"/>
+                   value="uk.ac.starlink.topcat.Driver"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
@@ -566,7 +558,7 @@
          <!-- Decouple potential circular dependencies -->
          <extension name="TREEVIEW-PARTS" href="treeview-parts.jnlp"/>
        </resources>
-       <application_desc main_class="uk.ac.starlink.topcat.TableViewer"/>
+       <application_desc main_class="uk.ac.starlink.topcat.Driver"/>
      </jnlp>
 
      <!-- May be needed as a component so provide that too -->
@@ -589,7 +581,6 @@
          <extension name="UTIL" href="util.jnlp"/>
          <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
          <extension name="MIRAGE" href="mirage.jnlp"/>
-         <extension name="JAVAHELP" href="javahelp.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>
@@ -612,7 +603,7 @@
    !  targets.
    !-->
   <target name="dist"
-          depends="build,jars,javadocs,webstart"
+          depends="build,docs,jars,javadocs,webstart"
           unless="runonly.install"
           description="-> configures the local binary distribution">
 
@@ -630,11 +621,9 @@
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
-    <!--
-      <copy todir="${dist.docs.pkg}">
-        <fileset dir="${src.docs}"/>
-      </copy>
-    -->
+    <copy todir="${dist.docs.pkg}">
+      <fileset dir="${build.docs}" includes="images/* ${user.doc}/*"/>
+    </copy>
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
@@ -1000,6 +989,67 @@
         <srcfiles dir= "${java.dir}" includes="**/*.java"/>
     </uptodate>
 
+  </target>
+
+  <!--
+   !   =================================================
+   !   Creates additional documentation from XML sources
+   !   =================================================
+   !
+   !   The XML user document is downconverted to single- and multiple-
+   !   file HTML versions in the docs directory, and a JavaHelp version
+   !   on the classpath of the application.
+   !-->
+  <target name="docs"
+          depends="build, docs_check"
+          unless="docs.notrequired"
+          description="-> creates the user documentation">
+    <mkdir dir="${build.docs}"/>
+
+    <copy todir="${build.docs}">
+      <fileset dir="${src.docs}" includes="${user.doc}.xml docs.dtd"/>
+      <fileset dir="${src.dir}/resources/uk/ac/starlink/topcat/"
+               includes="images/*"/>
+    </copy>
+    <java classname="uk.ac.starlink.topcat.ResourceIcon" 
+          output="${build.docs}/image.defs">
+      <classpath refid="classpath"/>
+      <arg value="-entities"/>
+    </java>
+
+    <mkdir dir="${build.docs}/${user.doc}"/>
+    <xslt in="${build.docs}/${user.doc}.xml" 
+          out="${build.docs}/${user.doc}/${user.doc}.html"
+          style="${src.docs}/toHTML1.xslt">
+      <param name="VERSION" expression="${version}"/>
+    </xslt>
+
+    <java classpathref="classpath"
+          dir="${src.docs}"
+          classname="uk.ac.starlink.util.MultiXML"
+          fork="yes">
+      <arg value="-style"/> <arg value="${src.docs}/toHTML.xslt"/>
+      <arg value="-param"/> <arg value="VERSION=${version}"/>
+      <arg value="${build.docs}/${user.doc}.xml"/>
+      <arg value="${build.docs}/${user.doc}"/>
+    </java>
+
+    <java classpathref="classpath"
+          dir="${src.docs}" 
+          classname="uk.ac.starlink.util.MultiXML" 
+          fork="yes">
+      <arg value="-style"/> <arg value="${src.docs}/toHelp.xslt"/>
+      <arg value="-param"/> <arg value="VERSION=${version}"/>
+      <arg value="${build.docs}/${user.doc}.xml"/>
+      <arg value="${build.classes}/uk/ac/starlink/topcat/help"/>
+    </java>
+  </target>
+
+  <!-- Checks whether the docs build is up to date. -->
+  <target name="docs_check" unless="docs.notrequired">
+    <uptodate property="docs.notrequired"
+              srcfile="${src.docs}/${user.doc}.xml" 
+              targetfile="${build.docs}/${user.doc}.html"/>
   </target>
 
   <!--

@@ -11,7 +11,7 @@ import uk.ac.starlink.util.ErrorDialog;
  */
 public class SyntheticSubsetQueryWindow extends QueryWindow {
 
-    private final TableViewer tv;
+    private final TopcatModel tcModel;
     private final OptionsListModel subsets;
     private final PlasticStarTable dataModel;
     private JTextField nameField;
@@ -21,15 +21,15 @@ public class SyntheticSubsetQueryWindow extends QueryWindow {
      * Constructs a new query window, which on user completion will
      * try to construct a new synthetic RowSubset and add it to the list.
      *
-     * @param   tv           the tableviewer
+     * @param   tcModel      model containing the table data
      * @param   parent       the parent window for this dialogue (used for
      *                       window positioning)
      */
-    public SyntheticSubsetQueryWindow( TableViewer tv, Component parent ) {
+    public SyntheticSubsetQueryWindow( TopcatModel tcModel, Component parent ) {
         super( "Define Row Subset", parent );
-        this.tv = tv;
-        this.subsets = tv.getSubsets();
-        this.dataModel = tv.getDataModel();
+        this.tcModel = tcModel;
+        this.subsets = tcModel.getSubsets();
+        this.dataModel = tcModel.getDataModel();
         LabelledComponentStack stack = getStack();
 
         /* Name field. */

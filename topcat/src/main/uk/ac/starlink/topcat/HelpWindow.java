@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -27,6 +28,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 
 /**
  * Window for displaying the help browser.  Get the instance of this
@@ -39,12 +41,13 @@ import javax.swing.JToolBar;
 public class HelpWindow extends AuxWindow {
 
     /** Location of the HelpSet file relative to this class. */
-    public static final String HELPSET_LOCATION = "help/Topcat.hs";
+    public static final String HELPSET_LOCATION = "help/sun178.hs";
 
     private JLabel urlHead;
     private JTextField urlInfo;
     private JHelp jhelp;
     private HelpSet hset;
+    private boolean fontSet;
 
     private static HelpWindow instance;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -162,6 +165,14 @@ public class HelpWindow extends AuxWindow {
             if ( mapID != null ) {
                 try {
                     jhelp.setCurrentID( mapID );
+
+                    /* Tweak terminally ugly default font. */
+                    if ( ! fontSet ) {
+                        Font font = UIManager.getFont( "TextField.font" );
+                        if ( font != null ) {
+                            jhelp.setFont( font );
+                        }
+                    }
                 }
                 catch ( InvalidHelpSetContextException e ) {
                     logger.info( "Bad help ID: " + helpID );

@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -40,9 +41,9 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class StatsWindow extends AuxWindow {
+public class StatsWindow extends TopcatViewWindow {
 
-    private TableViewer tv;
+    private TopcatModel tcModel;
     private StarTable dataModel;
     private TableColumnModel columnModel;
     private OptionsListModel subsets;
@@ -61,14 +62,15 @@ public class StatsWindow extends AuxWindow {
      * given TableViewer.  Initially, no results are displayed; call
      * the {@link #setSubset} method to show some statistics.
      *
-     * @param  tableviewer  the viewer whose data are to be analysed
+     * @param  tcModel  model containing the data for the table concerned
+     * @param  parent   component used for window positioning
      */
-    public StatsWindow( TableViewer tableviewer ) {
-        super( "Row statistics", tableviewer );
-        this.tv = tableviewer;
-        this.dataModel = tv.getDataModel();
-        this.columnModel = tv.getColumnModel();
-        this.subsets = tv.getSubsets();
+    public StatsWindow( TopcatModel tcModel, Component parent ) {
+        super( tcModel, "Row statistics", parent );
+        this.tcModel = tcModel;
+        this.dataModel = tcModel.getDataModel();
+        this.columnModel = tcModel.getColumnModel();
+        this.subsets = tcModel.getSubsets();
 
         /* Set up a map to contain statistic sets that have been calculated. */
         calcMap = new HashMap();
@@ -142,7 +144,6 @@ public class StatsWindow extends AuxWindow {
         addHelp( "StatsWindow" );
 
         /* Make the component visible. */
-        setMainHeading( "Statistics" );
         pack();
         setVisible( true );
     }
@@ -213,26 +214,15 @@ public class StatsWindow extends AuxWindow {
             StarJTable.configureColumnWidths( jtab, 200, Integer.MAX_VALUE );
         }
         
-
         /* Write a heading appropriate to the subset we have the results for. */
-        RowSubset rset = stats.rset;
-        long nrow = stats.ngoodrow;
-        String head = new StringBuffer()
-            .append( "Statistics for " )
-            .append( rset == RowSubset.ALL
-                          ? "all rows" : ( "row subset: " + rset.getName() ) )
-            .append( " (" )
-            .append( nrow )
-            .append( ' ' )
-            .append( nrow == 1L ? "row" : "rows" )
-            .append( ')' )
-            .toString();
-        setMainHeading( head );
+        // configureTitle();
 
         /* Since we've worked out the subset count, update the count model. */
+        RowSubset rset = stats.rset;
+        long nrow = stats.ngoodrow;
         int irset = subsets.indexOf( rset );
         if ( irset >= 0 ) {
-            tv.getSubsetCounts().put( rset, new Long( nrow ) );
+            tcModel.getSubsetCounts().put( rset, new Long( nrow ) );
             subsets.fireContentsChanged( irset, irset );
         }
     }

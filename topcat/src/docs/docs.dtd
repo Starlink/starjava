@@ -1,0 +1,81 @@
+
+  <!ENTITY % paracontent "( #PCDATA
+                            | em | strong | code
+                            | webref | javadoc | ref
+                            | blockquote | blockcode | verbatim
+                            | dl | ul | ol
+                            | var | label | img
+                           )*">
+
+  <!ELEMENT sun ( docinfo?, docbody )>
+  <!ELEMENT docinfo ( title?, 
+                      authorlist?,
+                      softwareversion?,
+                      docnumber?,
+                      docdate?,
+                      contactlist? )>
+  <!ELEMENT title ( #PCDATA )>
+  <!ELEMENT authorlist ( author* )>
+  <!ELEMENT author ( #PCDATA )>
+  <!ELEMENT softwareversion ( #PCDATA )>
+  <!ELEMENT docnumber ( #PCDATA )>
+  <!ELEMENT docdate ( #PCDATA )>
+  <!ELEMENT contactlist ( contact* )>
+  <!ELEMENT contact %paracontent;>
+  <!ELEMENT docbody ( blockcode?, abstract?, sect* )>
+  <!ELEMENT abstract ( px* )>
+  <!ELEMENT subhead ( title )>
+  <!ELEMENT p %paracontent;>
+  <!ELEMENT px %paracontent;>
+  <!ELEMENT ul ( li* )>
+  <!ELEMENT ol ( li* )>
+  <!ELEMENT li %paracontent;>
+  <!ELEMENT dl ( ( dt, dd? )* )>
+  <!ELEMENT dt %paracontent;>
+  <!ELEMENT dd ( p* )>
+  <!ELEMENT em %paracontent;>
+  <!ELEMENT strong %paracontent;>
+  <!ELEMENT code %paracontent;>
+  <!ELEMENT verbatim %paracontent;>
+  <!ELEMENT hidden ( #PCDATA )>
+  <!ELEMENT imports ( #PCDATA )>
+  <!ELEMENT blockquote %paracontent;>
+  <!ELEMENT var %paracontent;>
+  <!ELEMENT label %paracontent;>
+
+  <!ELEMENT blockcode ( #PCDATA | imports | hidden )*>
+  <!ATTLIST blockcode group NMTOKEN #IMPLIED>
+
+  <!ELEMENT img EMPTY>
+  <!ATTLIST img src CDATA #REQUIRED
+                alt CDATA #IMPLIED>
+
+  <!ELEMENT ref ( #PCDATA )>
+  <!ATTLIST ref id IDREF #REQUIRED
+                hypertext CDATA #IMPLIED
+                plaintext CDATA #IMPLIED>
+
+  <!ELEMENT webref ( #PCDATA )>
+  <!ATTLIST webref url CDATA #REQUIRED
+                   hypertext CDATA #IMPLIED
+                   plaintext CDATA #IMPLIED>
+
+  <!ELEMENT javadoc ( #PCDATA )>
+  <!ATTLIST javadoc class CDATA #REQUIRED
+                    member CDATA #IMPLIED
+                    docset CDATA #IMPLIED
+                    hypertext CDATA #IMPLIED 
+                    plaintext CDATA #IMPLIED>
+
+  <!ELEMENT sect ( subhead?, ( p | subsect )* )>
+  <!ATTLIST sect id ID #IMPLIED>
+
+  <!ELEMENT subsect ( subhead?, ( p | subsubsect )* )>
+  <!ATTLIST subsect id ID #IMPLIED>
+
+  <!ELEMENT subsubsect ( subhead?, ( p | subsubsubsect )* )>
+  <!ATTLIST subsubsect id ID #IMPLIED>
+
+  <!ELEMENT subsubsubsect ( subhead?, p* )>
+  <!ATTLIST subsubsubsect id ID #IMPLIED>
+

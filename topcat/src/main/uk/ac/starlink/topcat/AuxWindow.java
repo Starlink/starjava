@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Frame;
@@ -30,12 +31,11 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
-import uk.ac.starlink.table.StarTable;
+import javax.swing.border.Border;
 
 /**
- * Provides a common superclass for windows popped up by the TableViewer
- * application.  This class doesn't do very much, but provides common
- * look and feel behaviour such as window titling and close buttons.
+ * Provides a common superclass for windows popped up by TOPCAT.
+ * This implements some common look and feel elements.
  * <p>
  * Some window-type utility methods are also provided.
  *
@@ -60,16 +60,14 @@ public class AuxWindow extends JFrame {
     public static final String VERSION_RESOURCE = "version-string";
 
     /**
-     * Constructs an AuxWindow based on a <tt>StarTable</tt>.
+     * Constructs an AuxWindow.
      * 
-     * @param  baseTitle  the window basic title (the name of <tt>startab</tt>
-     *         will be incorporated into the title if it has one
-     * @param  startab   the StarTable which this window describes
+     * @param  title  the window basic title
      * @param  parent   the parent component of the new window - may be
      *         used for positioning
      */
-    public AuxWindow( String baseTitle, StarTable startab, Component parent ) {
-        setTitle( makeTitle( baseTitle, startab ) );
+    public AuxWindow( String title, Component parent ) {
+        setTitle( title );
         setDefaultCloseOperation( DISPOSE_ON_CLOSE );
         if ( parent != null ) {
             positionAfter( parent, this );
@@ -95,7 +93,7 @@ public class AuxWindow extends JFrame {
         JMenuItem closeItem = fileMenu.add( closeAct );
         closeItem.setIcon( null );
         closeItem.setMnemonic( KeyEvent.VK_C );
-        if ( TableViewer.isStandalone() ) {
+        if ( Driver.isStandalone() ) {
             JMenuItem exitItem = fileMenu.add( exitAct );
             exitItem.setIcon( null );
             exitItem.setMnemonic( KeyEvent.VK_X );
@@ -123,15 +121,6 @@ public class AuxWindow extends JFrame {
         overPanel.setBorder( BorderFactory
                             .createEmptyBorder( 10, 10, 10, 10 ) );
         getContentPane().add( overPanel, BorderLayout.CENTER );
-    }
-
-    /**
-     * Constructs an AuxWindow.
-     *
-     * @param  title window title
-     */
-    public AuxWindow( String title, Component parent ) {
-        this( title, (StarTable) null, parent );
     }
 
     /**
@@ -278,6 +267,7 @@ public class AuxWindow extends JFrame {
                 "Copyright " + '\u00a9' + 
                 " Central Laboratory of the Research Councils",
                 "Authors: Mark Taylor (Starlink)",
+                "WWW: http://www.starlink.ac.uk/topcat/",
             };
         }
         return about;
@@ -329,17 +319,16 @@ public class AuxWindow extends JFrame {
     }
 
     /**
-     * Returns a string suitable for use as a window title given a
-     * base title and a StarTable object.
+     * Returns a new border which features a given title.
      *
-     * @param  baseTitle  the basic part of the title, describing the window
-     * @param  the StarTable, if there is one, or <tt>null</tt>
+     * @param  title  window title
+     * @return  border
      */
-    public static String makeTitle( String baseTitle, StarTable startab ) {
-        String name = ( startab == null ) ? null
-                                          : startab.getName();
-        return name == null ? baseTitle 
-                            : ( baseTitle + ": " + name );
+    public static Border makeTitledBorder( String title ) {
+        return BorderFactory
+              .createTitledBorder( BorderFactory
+                                  .createLineBorder( Color.BLACK ),
+                                   title );
     }
 
     /**

@@ -37,28 +37,31 @@ import uk.ac.starlink.util.ErrorDialog;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class ColumnInfoWindow extends AuxWindow {
+public class ColumnInfoWindow extends TopcatViewWindow {
 
-    private final TableViewer tv;
+    private final TopcatModel tcModel;
     private final PlasticStarTable dataModel;
     private final TableColumnModel columnModel;
     private final ViewerTableModel viewModel;
+    private final ColumnList columnList;
     private ColumnInfo indexColumnInfo;
     private JTable jtab;
     private AbstractTableModel metaTableModel;
 
     /**
-     * Constructs a new ColumnInfoWindow from a TableViewer.
+     * Constructs a new ColumnInfoWindow.
      *
-     * @param  tableviewer  the viewer whose table is to be reflected here
+     * @param  tcModel  model containing the data for the table concerned
+     * @param  parent   component used for window positioning
      */
-    public ColumnInfoWindow( TableViewer tableviewer ) {
-        super( "Table columns", tableviewer );
-        this.tv = tableviewer;
-        this.dataModel = tv.getDataModel();
-        this.columnModel = tv.getColumnModel();
-        this.viewModel = tv.getViewModel();
- 
+    public ColumnInfoWindow( final TopcatModel tcModel, Component parent ) {
+        super( tcModel, "Table columns", parent );
+        this.tcModel = tcModel;
+        this.dataModel = tcModel.getDataModel();
+        this.columnModel = tcModel.getColumnModel();
+        this.columnList = tcModel.getColumnList();
+        this.viewModel = tcModel.getViewModel();
+
         /* Make a dummy column to hold index values. */
         indexColumnInfo = dummyIndexColumn();
 
@@ -66,6 +69,26 @@ public class ColumnInfoWindow extends AuxWindow {
          * the columns in the JTable this component will display.
          * Each column represents an item of metadata in the data table. */
         List metas = new ArrayList();
+
+        /* Add active column. */
+        metas.add( new MetaColumn( "Visible", Boolean.class ) {
+            public Object getValue( int irow ) {
+                if ( irow == 0 ) {
+                    return null;
+                }
+                else {
+                    int jrow = getColumnListIndexFromRow( irow );
+                    return Boolean.valueOf( columnList.isActive( jrow ) );
+                }
+            }
+            public boolean isEditable( int irow ) {
+                return irow > 0;
+            }
+            public void setValue( int irow, Object value ) {
+                int jrow = getColumnListIndexFromRow( irow );
+                columnList.setActive( jrow, Boolean.TRUE.equals( value ) );
+            }
+        } );
 
         /* Add name column. */
         metas.add( new MetaColumn( "Name", String.class ) {
@@ -78,15 +101,18 @@ public class ColumnInfoWindow extends AuxWindow {
             public void setValue( int irow, Object value ) {
                 String name = (String) value;
                 getColumnInfo( irow ).setName( name );
-                int jcol = irow - 1;
-                TableColumn tcol = columnModel.getColumn( jcol );
+                TableColumn tcol = getColumnFromRow( irow );
                 tcol.setHeaderValue( name );
 
                 /* This apparent NOP is required to force the TableColumnModel
                  * to notify its listeners (importantly the main data JTable)
                  * that the column name (headerValue) has changed; there 
                  * doesn't appear to be an event specifically for this. */
-                columnModel.moveColumn( jcol, jcol );
+                for ( int i = 0; i < columnModel.getColumnCount(); i++ ) {
+                    if ( columnModel.getColumn( i ) == tcol ) {
+                        columnModel.moveColumn( i, i );
+                    }
+                }
             }
         } );
 
@@ -242,7 +268,7 @@ public class ColumnInfoWindow extends AuxWindow {
          * an extra row 0 to represent the row index. */
         metaTableModel = new MetaColumnTableModel( metas ) {
             public int getRowCount() {
-                return columnModel.getColumnCount() + 1;
+                return columnList.size() + 1;
             }
             public boolean isCellEditable( int irow, int icol ) {
                 return irow > 0 && super.isCellEditable( irow, icol );
@@ -269,7 +295,6 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Place the table into a scrollpane in this frame. */
         JScrollPane scroller = new SizingScrollPane( jtab );
         getMainArea().add( scroller );
-        setMainHeading( "Column Metadata" );
 
         /* Set up a row header. */
         JTable rowHead = new TableRowHeader( jtab ) {
@@ -307,23 +332,21 @@ public class ColumnInfoWindow extends AuxWindow {
                 int insertPos = selrows.length > 0 
                               ? selrows[ selrows.length - 1 ]
                               : -1;
-                new SyntheticColumnQueryWindow( tv, insertPos, parent );
+                new SyntheticColumnQueryWindow( tcModel, insertPos, parent );
             }
         };
         colMenu.add( addcolAct ).setIcon( null );
         final Action delcolAct = 
-                new BasicAction( "Delete selected column(s)",
+                new BasicAction( "Hide selected column(s)",
                                  ResourceIcon.REMOVE,
-                                 "Delete all selected columns " +
-                                 "from the table" ) {
+                                 "Hide all selected columns" ) {
             public void actionPerformed( ActionEvent evt ) {
                 int[] selected = jtab.getSelectedRows();
                 Arrays.sort( selected );
                 for ( int i = selected.length - 1; i >= 0; i-- ) {
-                    int icol = selected[ i ] - 1;
-                    if ( icol >= 0 ) {
-                        columnModel
-                       .removeColumn( columnModel.getColumn( icol ) );
+                    int irow = selected[ i ];
+                    if ( irow > 0 ) {
+                        columnModel.removeColumn( getColumnFromRow( irow ) );
                     }
                 }
             }
@@ -373,9 +396,13 @@ public class ColumnInfoWindow extends AuxWindow {
         return getColumnFromRow( irow ).getModelIndex();
     }
 
+    private int getColumnListIndexFromRow( int irow ) {
+        assert irow > 0;
+        return irow - 1;
+    }
+
     private TableColumn getColumnFromRow( int irow ) {
-        assert irow != 0;
-        return columnModel.getColumn( irow - 1 );
+        return columnList.getColumn( getColumnListIndexFromRow( irow ) );
     }
 
     private ColumnInfo getColumnInfo( int irow ) {
@@ -476,12 +503,10 @@ public class ColumnInfoWindow extends AuxWindow {
 
         public void actionPerformed( ActionEvent evt ) {
             int irow = jtab.getSelectedRow();
-            if ( irow > 0 ) {
-                tv.sortBy( getColumnFromRow( irow ), ascending );
-            }
-            else {
-                tv.sortBy( null, ascending );
-            }
+            SortOrder order = ( irow > 0 )
+                      ? new SortOrder( getColumnFromRow( irow ) )
+                      : SortOrder.NONE;
+            tcModel.sortBy( order, ascending );
         }
     }
 }
