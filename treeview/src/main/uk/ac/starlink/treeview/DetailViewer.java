@@ -252,7 +252,7 @@ public class DetailViewer {
     }
 
     public void addKeyedItem( String name, Object value ) {
-        addKeyedItem( name, value.toString() );
+        addKeyedItem( name, value == null ? "null" : value.toString() );
     }
 
     public void addKeyedItem( String name, double value ) {
