@@ -105,11 +105,11 @@ public class TableElement extends VOElement {
                 return -1L;
             }
         }
-        else if ( getChildByName( "DATA" ) == null ) {
-            return 0L;
-        }
         else if ( tdata_ != null ) {
             return tdata_.getRowCount();
+        }
+        else if ( getChildByName( "DATA" ) == null ) {
+            return 0L;
         }
         else {
             return -1L;
