@@ -2055,7 +2055,7 @@ in the <ref id="TableViewerWindow">Data window</ref> or appear in
 exported versions of the table.
 You can tick/untick multiple columns at once by highlighting a set of
 rows by dragging the mouse over them and then using the
-Hide Selected (&IMG.FALSE;) or Reveal Selected (&IMG.TRUE;) toolbar buttons
+Hide Selected (&IMG.HIDE;) or Reveal Selected (&IMG.REVEAL;) toolbar buttons
 or menu items.
 </p>
 
@@ -2159,7 +2159,7 @@ window, the corresponding rows will move around in this window.
     <label>Columns</label> menu.
     </p></dd>
 
-<dt>&IMG.FALSE; Hide Selected Column(s)</dt>
+<dt>&IMG.HIDE; Hide Selected Column(s)</dt>
 <dd><p>If any of the JTable rows are selected, then clicking this button
     will hide them, that is, remove them from the
     <ref id="apparent">Apparent Table</ref>.
@@ -2169,7 +2169,7 @@ window, the corresponding rows will move around in this window.
     in the <label>Columns</label> menu.
     </p></dd>
 
-<dt>&IMG.TRUE; Reveal Selected Column(s)</dt>
+<dt>&IMG.REVEAL; Reveal Selected Column(s)</dt>
 <dd><p>If any of the JTable rows are selected, then clicking this button
     will make sure they are visible, that is, that they appear in 
     the <ref id="apparent">Apparent Table</ref>.
