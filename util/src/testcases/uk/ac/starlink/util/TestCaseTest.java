@@ -30,9 +30,9 @@ public class TestCaseTest extends TestCase {
     public void testFlags()
             throws Exception {
         
-        String inputPlain =
+        String plainString =
                 "<top><n1/><n2></n2></top>";
-        Element plain = StringToDom(inputPlain);
+        Element plain = StringToDom(plainString);
 
         assertDOMEquals(plain, StringToDom("<top><n1/><n2></n2></top>"));
         assertDOMEquals(plain,
@@ -47,6 +47,22 @@ public class TestCaseTest extends TestCase {
                         StringToDom("<top>   <n1/><!-- zip! --><n2>  <!-- nothing -->\t</n2></top>"),
                         null,
                         TestCase.IGNORE_COMMENTS|TestCase.IGNORE_WHITESPACE);
+        // Again, but spaces/comments in the expected one
+        String spacesString = "<top>   <n1/><!-- zip! --><n2>  <!-- nothing -->\t</n2></top>";
+        assertDOMEquals(spacesString,
+                        plain,
+                        null,
+                        TestCase.IGNORE_COMMENTS|TestCase.IGNORE_WHITESPACE);
+        // Again, this time with input coming from a stream (in fact,
+        // this is equivalent to the previous one, since strings are
+        // turned into streams, but it's good to be explicit)
+        assertDOMEquals(new java.io.ByteArrayInputStream
+                        (spacesString.getBytes()) ,
+                        plain,
+                        null,
+                        TestCase.IGNORE_COMMENTS|TestCase.IGNORE_WHITESPACE);
+
+        // Tests which should fail:
         try {
             assertDOMEquals(plain, 
                             StringToDom("<top><n1/><n2>   </n2></top>"),
