@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -17,6 +18,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import uk.ac.starlink.table.AbstractStarTable;
+import uk.ac.starlink.table.JoinStarTable;
+import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
@@ -41,8 +44,7 @@ public class IntraMatchSpec extends MatchSpec {
     private final TupleSelector tupleSelector;
     private final JSpinner widthSelector;
     private final MatchEngine engine;
-    private Collection matches;
-    private TopcatModel tcModel;
+    private StarTable result;
 
     private final static String IDENTIFY = 
         "Mark Groups of Objects";
@@ -133,58 +135,50 @@ public class IntraMatchSpec extends MatchSpec {
 
     public void calculate( ProgressIndicator indicator )
             throws IOException, InterruptedException {
+        result = null;
 
         /* Interrogate components for tables to operate on. */
-        tcModel = tupleSelector.getTable();
         StarTable effTable = tupleSelector.getEffectiveTable();
+        StarTable appTable = tupleSelector.getTable().getApparentStarTable();
 
         /* Do the matching. */
         RowMatcher matcher = 
             new RowMatcher( engine, new StarTable[] { effTable } );
         matcher.setIndicator( indicator );
-        matches = matcher.findInternalMatches( false );
+        List matches = matcher.findInternalMatches( false );
+
+        /* Construct a result table. */
+        if ( matches.size() == 0 ) {
+            result = null;
+        }
+        else {
+            result = makeResultTable( appTable, matches, option );
+        }
     }
 
-    public void matchSuccess( Component parent ) {
-        Object msg;
-        String title = "Match Successful";
-        int msgType = JOptionPane.INFORMATION_MESSAGE;
-        if ( matches.size() == 0 ) {
-            msg = "No internal matches were found";
-            title = "Match Failed";
-            msgType = JOptionPane.ERROR_MESSAGE;
-        }
-
-        /* Mark each row with the group it is in. */
-        else if ( option.equals( IDENTIFY ) ) {
-            long nrow = tcModel.getDataModel().getRowCount();
+    /**
+     * Constructs a new StarTable from the results of a match operation
+     * which has been performed.
+     *
+     * @param  inTable  the input (apparent) table
+     * @param  matches  set of RowLinks describing matches found
+     * @param  option   one of the matching options (IDENTIFY, ELIMINATE_0,
+     *                  ELIMINATE_1, WIDE)
+     * @return  new StarTable formed as a result of this match operation
+     */
+    private StarTable makeResultTable( StarTable inTable, Collection matches,
+                                       String option ) {
+        if ( option.equals( IDENTIFY ) ) {
+            long nrow = inTable.getRowCount();
             StarTable grpTable = MatchStarTables
                                 .makeInternalMatchTable( 0, matches, nrow );
-            tcModel.appendColumns( grpTable );
-            msg = "Grouping columns added to " + tcModel;
+            return new JoinStarTable( new StarTable[] { inTable, grpTable } );
         }
-
-        /* Create a new subset based on rows that are in groups. */
         else if ( option.equals( ELIMINATE_0 ) ||
                   option.equals( ELIMINATE_1 ) ) {
-            int startFrom;
-            String rsetName;
-            String msg2;
-            if ( option.equals( ELIMINATE_0 ) ) {
-                startFrom = 0;
-                rsetName = "matchUnique";
-                msg2 = "All matched rows hidden";
-            }
-            else if ( option.equals( ELIMINATE_1 ) ) {
-                startFrom = 1;
-                rsetName = "matchUnique1";
-                msg2 = "All matched rows but first in group hidden";
-            }
-            else {
-                throw new AssertionError();
-            }
-
+            int startFrom = option.equals( ELIMINATE_0 ) ? 0 : 1;
             BitSet bits = new BitSet();
+            bits.set( 0, checkedLongToInt( inTable.getRowCount() ) );
             for ( Iterator it = matches.iterator(); it.hasNext(); ) {
                 RowLink link = (RowLink) it.next();
                 int nref = link.size();
@@ -192,33 +186,45 @@ public class IntraMatchSpec extends MatchSpec {
                 for ( int i = startFrom; i < nref; i++ ) {
                     RowRef ref = link.getRef( i );
                     assert ref.getTableIndex() == 0;
-                    bits.set( checkedLongToInt( ref.getRowIndex() ) );
+                    bits.clear( checkedLongToInt( ref.getRowIndex() ) );
                 }
             }
-            RowSubset rset = new BitsRowSubset( rsetName, bits, true );
-            tcModel.addSubset( rset );
-            tcModel.applySubset( rset );
-            msg = new String[] {
-                "New subset applied to table " + tcModel,
-                msg2,
-            };
+            int nbit = bits.cardinality();
+            long[] rowMap = new long[ nbit ];
+            int i = 0;
+            for ( int ipos = bits.nextSetBit( 0 ); ipos >= 0;
+                  ipos = bits.nextSetBit( ipos + 1 ) ) {
+                rowMap[ i++ ] = (long) ipos;
+            }
+            assert i == nbit;
+            return new RowPermutedStarTable( inTable, rowMap );
         }
-
-        /* Create a new table with elements of groups side-by-side. */
         else if ( option.equals( WIDE ) ) {
             int width = getTableWideness();
-            StarTable wideTable =
-                MatchStarTables
-               .makeParallelMatchTable( tcModel.getApparentStarTable(), 0,
-                                        matches, width, width, width );
-            TopcatModel tcModel = ControlWindow.getInstance()
-                                 .addTable( wideTable, "matched", true );
-            msg = "New table created by match: " + tcModel;
+            return MatchStarTables
+                  .makeParallelMatchTable( inTable, 0, matches,
+                                           width, width, width );
         }
-
-        /* Unknown option shouldn't be possible. */
         else {
             throw new AssertionError();
+        }
+    }
+
+    public void matchSuccess( Component parent ) {
+        Object msg;
+        String title = "Match Successful";
+        int msgType = JOptionPane.INFORMATION_MESSAGE;
+        if ( result == null || result.getRowCount() == 0L ) {
+            msg = "No internal matches were found";
+            title = "Match Failed";
+            msgType = JOptionPane.WARNING_MESSAGE;
+        }
+        else {
+            TopcatModel tcModel = ControlWindow.getInstance()
+                                 .addTable( result, "matched", true );
+            msg = "New table created by match: " + tcModel;
+            title = "Match Successful";
+            msgType = JOptionPane.INFORMATION_MESSAGE;
         }
 
         /* Alert the user that the matching is done. */
