@@ -209,11 +209,12 @@ public class SerializerTest extends TestCase {
             }
 
             /* Test the streamStarTable method; get each table in turn. */
+            boolean strict = true;
             for ( int itable = 0; itable < 5; itable++ ) {
                 RowStore rstore = new RowStore();
                 InputSource saxsrc = 
                     new InputSource( new ByteArrayInputStream( xmltext ) );
-                TableStreamer.streamStarTable( saxsrc, rstore, itable );
+                TableStreamer.streamStarTable( saxsrc, rstore, itable, strict );
 
                 RowStepper rstep = rstore.getRowStepper();
                 RowSequence rseq = table0.getRowSequence();
@@ -229,7 +230,7 @@ public class SerializerTest extends TestCase {
             try {
                 TableStreamer.streamStarTable(
                        new InputSource( new ByteArrayInputStream( xmltext ) ),
-                       new RowStore(), 5 );
+                       new RowStore(), 5, strict );
                 fail();
             }
             catch ( SAXException e ) {
