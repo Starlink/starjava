@@ -17,6 +17,12 @@ public abstract class ColumnData {
     private ColumnInfo colinfo;
 
     /**
+     * Constructs a new ColumnData with no metadata.
+     */
+    public ColumnData() {
+    }
+
+    /**
      * Constructs a new <tt>ColumnData</tt> with metadata supplied by a 
      * given <tt>ColumnInfo</tt> object.
      *
