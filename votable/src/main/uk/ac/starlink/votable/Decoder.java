@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 abstract class Decoder {
 
     static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
+    static final long[] SCALAR_SIZE = new long[ 0 ];
 
     private Object blank;
     protected String blankString;
@@ -282,23 +283,30 @@ abstract class Decoder {
     public static Decoder makeDecoder( String datatype, long[] arraysize,
                                        String blank ) {
         Decoder dec;
+        boolean isScalar = arraysize.length == 0;
         if ( datatype.equals( "boolean" ) ) {
-            dec = new BooleanDecoder( arraysize );
+            dec = isScalar ? new ScalarBooleanDecoder()
+                           : new BooleanDecoder( arraysize );
         }
         else if ( datatype.equals( "bit" ) ) {
-            dec = new BitDecoder( arraysize );
+            dec = isScalar ? new ScalarBitDecoder()
+                           : new BitDecoder( arraysize );
         }
         else if ( datatype.equals( "unsignedByte" ) ) {
-            dec = new UnsignedByteDecoder( arraysize );
+            dec = isScalar ? new ScalarUnsignedByteDecoder()
+                           : new UnsignedByteDecoder( arraysize );
         }
         else if ( datatype.equals( "short" ) ) {
-            dec = new ShortDecoder( arraysize );
+            dec = isScalar ? new ScalarShortDecoder() 
+                           : new ShortDecoder( arraysize );
         }
         else if ( datatype.equals( "int" ) ) {
-            dec = new IntDecoder( arraysize );
+            dec = isScalar ? new ScalarIntDecoder() 
+                           : new IntDecoder( arraysize );
         }
         else if ( datatype.equals( "long" ) ) {
-            dec = new LongDecoder( arraysize );
+            dec = isScalar ? new ScalarLongDecoder() 
+                           : new LongDecoder( arraysize );
         }
         else if ( datatype.equals( "char" ) ) {
             dec = new CharDecoder( arraysize );
@@ -307,10 +315,12 @@ abstract class Decoder {
             dec = new UnicodeCharDecoder( arraysize );
         }
         else if ( datatype.equals( "float" ) ) {
-            dec = new FloatDecoder( arraysize );
+            dec = isScalar ? new ScalarFloatDecoder()
+                           : new FloatDecoder( arraysize );
         }
         else if ( datatype.equals( "double" ) ) {
-            dec = new DoubleDecoder( arraysize );
+            dec = isScalar ? new ScalarDoubleDecoder()
+                           : new DoubleDecoder( arraysize );
         }
         else if ( datatype.equals( "floatComplex" ) ) {
             long[] arraysize2 = new long[ arraysize.length + 1 ];

@@ -75,15 +75,13 @@ abstract class VOStarValueAdapter {
             if ( isCharBoolean ) {
                 return new VOStarValueAdapter() {
                     public Class getContentClass() {
-                       return Boolean.class;
+                        return Boolean.class;
                     }
                     public Object adapt( Object value ) {
-                        switch ( ((char[]) value)[ 0 ] ) {
+                        switch ( ((Character) value).charValue() ) {
                             case 'T':
-                            case 't':
                                 return Boolean.TRUE;
                             case 'F':
-                            case 'f':
                                 return Boolean.FALSE;
                             default:
                                 return null;
@@ -109,9 +107,7 @@ abstract class VOStarValueAdapter {
                         return Byte.class;
                     }
                     public Object adapt( Object value ) {
-                        byte[] vals = (byte[]) value;
-                        return decoder.isNull( vals, 0 ) 
-                                  ? null : new Byte( vals[ 0 ] );
+                        return value;
                     }
                 };
             }
@@ -121,9 +117,7 @@ abstract class VOStarValueAdapter {
                         return Short.class;
                     }
                     public Object adapt( Object value ) {
-                        short[] vals = (short[]) value;
-                        return decoder.isNull( vals, 0 ) 
-                                  ? null : new Short( vals[ 0 ] );
+                        return value;
                     }
                 };
             }
@@ -133,9 +127,7 @@ abstract class VOStarValueAdapter {
                         return Integer.class;
                     }
                     public Object adapt( Object value ) {
-                        int[] vals = (int[]) value;
-                        return decoder.isNull( vals, 0 ) 
-                                  ? null : new Integer( vals[ 0 ] );
+                        return value;
                     }
                 };
             }
@@ -145,9 +137,7 @@ abstract class VOStarValueAdapter {
                         return Long.class;
                     }
                     public Object adapt( Object value ) {
-                        long[] vals = (long[]) value;
-                        return decoder.isNull( vals, 0 ) 
-                                  ? null : new Long( vals[ 0 ] );
+                        return value;
                     }
                 };
             }
@@ -157,9 +147,7 @@ abstract class VOStarValueAdapter {
                         return Float.class;
                     }
                     public Object adapt( Object value ) {
-                        float[] vals = (float[]) value;
-                        return decoder.isNull( vals, 0 )
-                                  ? null : new Float( vals[ 0 ] );
+                        return value;
                     }
                 };
             }
@@ -169,9 +157,7 @@ abstract class VOStarValueAdapter {
                         return Double.class;
                     }
                     public Object adapt( Object value ) {
-                        double[] vals = (double[]) value;
-                        return decoder.isNull( vals, 0 )
-                                  ? null : new Double( vals[ 0 ] );
+                        return value;
                     }
                 };
             }
@@ -199,5 +185,4 @@ abstract class VOStarValueAdapter {
             }
         };
     }
-
 }

@@ -56,3 +56,13 @@ class BitDecoder extends NumericDecoder {
         ((char[]) array)[ index ] = ( txt.charAt( 0 ) == '1' ) ? '1' : '0';
     }
 }
+
+class ScalarBitDecoder extends BitDecoder {
+    ScalarBitDecoder() {
+        super( SCALAR_SIZE );
+    }
+    Object packageArray( Object array ) {
+        char[] arr = (char[]) array;
+        return isNull( arr, 0 ) ? null : new Character( arr[ 0 ] );
+    }
+}

@@ -65,3 +65,13 @@ class BooleanDecoder extends NumericDecoder {
         }
     }
 }
+
+class ScalarBooleanDecoder extends BooleanDecoder {
+    ScalarBooleanDecoder() {
+        super( SCALAR_SIZE );
+    }
+    Object packageArray( Object array ) {
+        char[] arr = (char[]) array;
+        return isNull( arr, 0 ) ? null : new Character( arr[ 0 ] );
+    }
+}

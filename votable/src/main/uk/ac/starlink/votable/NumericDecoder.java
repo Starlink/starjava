@@ -125,6 +125,16 @@ class ShortDecoder extends NumericDecoder {
     }
 }
 
+class ScalarShortDecoder extends ShortDecoder {
+    ScalarShortDecoder() {
+        super( SCALAR_SIZE );
+    }
+    Object packageArray( Object array ) {
+        short[] arr = (short[]) array;
+        return isNull( arr, 0 ) ? null : new Short( arr[ 0 ] );
+    }
+}
+
 class UnsignedByteDecoder extends ShortDecoder {
     UnsignedByteDecoder( long[] arraysize ) {
         super( arraysize );
@@ -133,6 +143,16 @@ class UnsignedByteDecoder extends ShortDecoder {
             throws IOException {
         ((short[]) array)[ index ] = 
             (short) ( (short) 0x00ff & (short) strm.readByte() );
+    }
+}
+
+class ScalarUnsignedByteDecoder extends UnsignedByteDecoder {
+    ScalarUnsignedByteDecoder() {
+        super( SCALAR_SIZE );
+    }
+    Object packageArray( Object array ) {
+        short[] arr = (short[]) array;
+        return isNull( arr, 0 ) ? null : new Short( arr[ 0 ] );
     }
 }
 
@@ -167,6 +187,16 @@ class IntDecoder extends NumericDecoder {
     }
 }
 
+class ScalarIntDecoder extends IntDecoder {
+    ScalarIntDecoder() {
+        super( SCALAR_SIZE );
+    }
+    Object packageArray( Object array ) {
+        int[] arr = (int[]) array;
+        return isNull( arr, 0 ) ? null : new Integer( arr[ 0 ] );
+    }
+}
+
 class LongDecoder extends NumericDecoder {
     private long bad;
     private boolean hasBad = false;
@@ -198,6 +228,16 @@ class LongDecoder extends NumericDecoder {
     }
 }
 
+class ScalarLongDecoder extends LongDecoder {
+    ScalarLongDecoder() {
+        super( SCALAR_SIZE );
+    }
+    Object packageArray( Object array ) {
+        long[] arr = (long[]) array;
+        return isNull( arr, 0 ) ? null : new Long( arr[ 0 ] );
+    }
+}
+
 class FloatDecoder extends NumericDecoder {
     FloatDecoder( long[] arraysize ) {
         super( arraysize );
@@ -226,6 +266,16 @@ class FloatDecoder extends NumericDecoder {
     }
 }
 
+class ScalarFloatDecoder extends FloatDecoder {
+    ScalarFloatDecoder() {
+        super( SCALAR_SIZE );
+    }
+    Object packageArray( Object array ) {
+        float[] arr = (float[]) array;
+        return isNull( arr, 0 ) ? null : new Float( arr[ 0 ] );
+    }
+}
+
 class DoubleDecoder extends NumericDecoder {
     DoubleDecoder( long[] arraysize ) {
         super( arraysize );
@@ -251,5 +301,15 @@ class DoubleDecoder extends NumericDecoder {
     }
     public boolean isNull( Object array, int index ) {
         return Double.isNaN( ((double[]) array)[ index ] );
+    }
+}
+
+class ScalarDoubleDecoder extends DoubleDecoder {
+    ScalarDoubleDecoder() {
+        super( SCALAR_SIZE );
+    }
+    Object packageArray( Object array ) {
+        double[] arr = (double[]) array;
+        return isNull( arr, 0 ) ? null : new Double( arr[ 0 ] );
     }
 }

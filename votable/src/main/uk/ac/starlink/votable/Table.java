@@ -99,7 +99,7 @@ public class Table extends VOElement {
         }
         Element fitsEl = DOMUtils.getChildElementByName( dataEl, "FITS" );
         if ( dataEl != null ) {
-            return new FitsTable( tableEl, fitsEl, systemId );
+            return FitsTable.makeFitsTable( tableEl, fitsEl, systemId );
         }
         Element binEl = DOMUtils.getChildElementByName( dataEl, "BINARY" );
         if ( binEl != null ) {

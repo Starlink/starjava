@@ -1,6 +1,7 @@
 package uk.ac.starlink.votable;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -9,7 +10,10 @@ import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.URLUtils;
 
@@ -25,6 +29,7 @@ public class Stream extends VOElement {
     private String href;
     private String encoding;
     private String systemId;
+    private URL url;
 
     /**
      * Construct a Stream object from an XML Source representing the STREAM
@@ -42,6 +47,9 @@ public class Stream extends VOElement {
         actuate = getAttribute( "actuate", "onRequest" );
         encoding = getAttribute( "encoding", "none" );
         href = getAttribute( "href" );
+        if ( href != null ) {
+            url = URLUtils.makeURL( systemId, href );
+        }
     }
 
     /**
@@ -55,6 +63,37 @@ public class Stream extends VOElement {
     }
 
     /**
+     * Returns a <tt>DataSource</tt> corresponding to this stream.
+     *
+     * @return  a data source which can supply the data from this stream
+     */
+    public DataSource getDataSource() throws IOException {
+
+        /* Return a FileDataSource if we can, since this is the only sort
+         * which can be used without loading it all into memory. */
+        if ( url != null && url.getProtocol().equals( "file" ) &&
+             encoding.equals( "none" ) ) {
+            DataSource datsrc = new FileDataSource( new File( url.getFile() ) );
+            datsrc.setCompression( Compression.NONE );
+            return datsrc;
+        }
+
+        /* Otherwise just supply the stream from here. */
+        else {
+            DataSource datsrc = new DataSource() {
+                protected InputStream getRawInputStream() throws IOException {
+                    return obtainInputStream();
+                }
+                public URL getURL() {
+                    return url;
+                }
+            };
+            datsrc.setCompression( Compression.NONE );
+            return datsrc;
+        }
+    }
+
+    /**
      * Does the work of obtaining input stream which returns the bytes 
      * contained by this object.  Any required decoding is done here.
      */
@@ -64,8 +103,7 @@ public class Stream extends VOElement {
         InputStream baseStrm;
 
         /* If there is an href attribute, stream data from the URL. */
-        if ( href != null ) {
-            URL url = URLUtils.makeURL( systemId, href );
+        if ( url != null ) {
             baseStrm = url.openStream();
         }
 
