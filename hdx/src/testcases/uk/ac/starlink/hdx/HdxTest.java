@@ -413,6 +413,18 @@ public class HdxTest
 
     public void testBackingElements()
             throws Exception {
+        org.apache.xalan.Version v = new org.apache.xalan.Version();
+        // Avoid failing because of a known bug in Xalan <2.5.2
+        // http://www.jiscmail.ac.uk/cgi-bin/webadmin?A2=ind03&L=stardev&D=0&T=0&P=82480
+        // Thread "Re: BUILD FAILED Executing HDX target: test"
+        if (v.getMajorVersionNum() == 2
+            && v.getReleaseVersionNum() < 5) {
+            System.err.println("testBackingElements: "
+                               + "Xalan version is " + v.getVersion()
+                               + ": omitting test known to fail before v2.5");
+            return;
+        }
+
         String xmlstring = "<ndx><title>Title</title><image uri='file:test1.fits' url='file:nothing.fits'/></ndx>";
 
         HdxFactory docfact = HdxFactory.getInstance();
@@ -423,6 +435,7 @@ public class HdxTest
         assertNotNull(hdxContainer);
         Element hdx = hdxContainer.getDOM(null);
         assertNotNull(hdx);
+
         assertTrue(HdxResourceType.HDX.isValid(hdx));
 
         // Modify image attributes and check
