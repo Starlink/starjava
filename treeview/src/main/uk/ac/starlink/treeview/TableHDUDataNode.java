@@ -85,7 +85,8 @@ public class TableHDUDataNode extends HDUDataNode
         if ( starTable == null ) {
             try {
                 ArrayDataInput istrm = hdudata.getArrayData();
-                starTable = FitsTableBuilder.attemptReadTable( istrm );
+                starTable = FitsTableBuilder
+                           .attemptReadTable( istrm, new long[ 1 ] );
             }
             catch ( FitsException e ) {
                 throw (IOException) new IOException( e.getMessage() ) 
