@@ -26,6 +26,8 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.stream.StreamResult;
 import org.xml.sax.InputSource;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 
@@ -112,6 +114,34 @@ public class SourceReader {
             DOMResult res = new DOMResult();
             transform( src, res );
             return res.getNode();
+        }
+    }
+
+    /**
+     * Returns a DOM Element representing the given source.
+     * This convenience method invokes {@link #getDOM} and then finds 
+     * an element in the result - if the result is an element that is
+     * returned, but if it is a Document then the top-level document 
+     * element is returned.  Anything else throws an IllegalArgumentException.
+     *
+     * @param   src  the Source for which the DOM is required
+     * @return  an Element representing the XML data in <tt>src</tt>
+     * @throws  TransformerException  if some error occurs in transformation
+     *                                or I/O
+     * @throws  IllegalArgumentException if src does not represent a 
+     *          Document or Element
+     */
+    public Element getElement( Source src ) throws TransformerException {
+        Node node = getDOM( src );
+        if ( node instanceof Element ) {
+            return (Element) node;
+        }
+        else if ( node instanceof Document ) {
+            return ((Document) node).getDocumentElement();
+        }
+        else {
+            throw new IllegalArgumentException(
+                "Source " + src + " is not an Element or Document" );
         }
     }
 
