@@ -4,8 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PipedOutputStream;
 import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import org.xml.sax.XMLReader;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
-import uk.ac.starlink.util.ReaderThread;
+import uk.ac.starlink.util.PipeReaderThread;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.util.URLUtils;
 
@@ -318,12 +318,9 @@ class TableStreamer extends CustomDOMBuilder {
                  * the sink. */
                 else {
                     try {
-                        PipedOutputStream b64out = new PipedOutputStream();
-                        Writer out = new OutputStreamWriter( 
-                                         new BufferedOutputStream( b64out ) );
-                        ReaderThread reader;
+                        PipeReaderThread reader;
                         if ( parentName.equals( "BINARY" ) ) {
-                            reader = new ReaderThread( b64out ) {
+                            reader = new PipeReaderThread() {
                                 protected void doReading( InputStream datain )
                                         throws IOException {
                                     InputStream in = 
@@ -340,7 +337,7 @@ class TableStreamer extends CustomDOMBuilder {
                         }
                         else {
                             assert parentName.equals( "FITS" );
-                            reader = new ReaderThread( b64out ) {
+                            reader = new PipeReaderThread() {
                                 protected void doReading( InputStream datain )
                                         throws IOException {
                                     InputStream in = 
@@ -351,6 +348,9 @@ class TableStreamer extends CustomDOMBuilder {
                                 }
                             };
                         }
+                        OutputStream b64out = reader.getOutputStream();
+                        Writer out = new OutputStreamWriter( 
+                                         new BufferedOutputStream( b64out ) );
                         setCustomHandler( new CDATASinkHandler( out, reader ) );
                     }
                     catch ( IOException e ) {
@@ -449,9 +449,9 @@ class TableStreamer extends CustomDOMBuilder {
     class CDATASinkHandler extends NullContentHandler {
 
         final Writer out;
-        final ReaderThread reader;
+        final PipeReaderThread reader;
 
-        CDATASinkHandler( Writer out, ReaderThread reader ) {
+        CDATASinkHandler( Writer out, PipeReaderThread reader ) {
             this.out = out;
             this.reader = reader;
             reader.start();

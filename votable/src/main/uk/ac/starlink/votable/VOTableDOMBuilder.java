@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PipedOutputStream;
 import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.ReaderThread;
+import uk.ac.starlink.util.PipeReaderThread;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 
@@ -311,21 +310,17 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
      */
     class InlineBinaryStreamHandler extends NullContentHandler {
 
-        final ReaderThread reader;
+        final PipeReaderThread reader;
         final Writer out;
         final List rows;
 
         public InlineBinaryStreamHandler() throws IOException {
 
-            /* Set up a pipe we can write encountered characters into. */
-            PipedOutputStream b64out = new PipedOutputStream();
-            out = new OutputStreamWriter( new BufferedOutputStream( b64out ) );
-
             /* Set up a thread which will read from the other end of the pipe
              * and write it into a row list. */
             rows = new ArrayList();
             final Decoder[] decoders = getDecoders();
-            reader = new ReaderThread( b64out ) {
+            reader = new PipeReaderThread() {
                 protected void doReading( InputStream datain )
                         throws IOException {
                     InputStream in = new BufferedInputStream( datain );
@@ -337,6 +332,12 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                     }
                 }
             };
+
+            /* Set up a pipe we can write encountered characters into. */
+            OutputStream b64out = reader.getOutputStream();;
+            out = new OutputStreamWriter( new BufferedOutputStream( b64out ) );
+
+            /* Begin the read. */
             reader.start();
         }
 
@@ -401,7 +402,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
     class InlineFITSStreamHandler extends NullContentHandler 
                                   implements TableSink {
 
-        final ReaderThread reader;
+        final PipeReaderThread reader;
         final Writer out;
         List rows;
         Class[] classes;
@@ -411,14 +412,10 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 extnum = null;
             }
 
-            /* Set up a stream we can write encountered characters to. */
-            PipedOutputStream b64out = new PipedOutputStream();
-            out = new OutputStreamWriter( new BufferedOutputStream( b64out ) );
-
             /* Set up a thread which will read from the other end of the pipe
              * and write it into a row list. */
             final String ihdu = extnum;
-            reader = new ReaderThread( b64out ) {
+            reader = new PipeReaderThread() {
                 protected void doReading( InputStream datain )
                         throws IOException {
                     InputStream in = new Base64InputStream(
@@ -427,6 +424,12 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                     new FitsTableBuilder().streamStarTable( in, sink, ihdu );
                 }
             };
+
+            /* Set up a stream we can write encountered characters to. */
+            OutputStream b64out = reader.getOutputStream();
+            out = new OutputStreamWriter( new BufferedOutputStream( b64out ) );
+
+            /* Begin the read. */
             reader.start();
         }
 
