@@ -16,7 +16,8 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
-import uk.ac.starlink.table.view.TableViewer;
+
+import uk.ac.starlink.topcat.TableViewer;
 
 import uk.ac.starlink.frog.data.Gram;
 import uk.ac.starlink.frog.data.GramComp;
