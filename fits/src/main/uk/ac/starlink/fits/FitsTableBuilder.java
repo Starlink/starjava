@@ -1,6 +1,7 @@
 package uk.ac.starlink.fits;
 
 import java.awt.datatransfer.DataFlavor;
+import java.io.DataInput;
 import java.io.EOFException;
 import java.io.IOException;
 import nom.tam.fits.AsciiTable;
@@ -14,6 +15,7 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.fits.TableHDU;
 import nom.tam.util.ArrayDataInput;
+import nom.tam.util.RandomAccess;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.util.Compression;
@@ -24,9 +26,6 @@ import uk.ac.starlink.util.IOUtils;
 /**
  * Implementation of the <tt>TableBuilder</tt> interface which 
  * gets <tt>StarTable</tt>s from FITS files.
- * The position attribute of the <tt>DataSource</tt> can be used to indicate
- * the HDU at which the table is located in the FITS file described
- * by 
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -57,11 +56,14 @@ public class FitsTableBuilder implements TableBuilder {
             /* Get a FITS data stream. */
             strm = FitsConstants.getInputStream( datsrc );
 
+            /* Keep track of the position in the stream. */
+            long[] pos = new long[] { 0L };
+
             /* If an HDU was specified explicitly, try to pick up that one
              * as a table. */
             if ( datsrc.getPosition() != null ) {
                 try {
-                    table = attemptReadTable( strm );
+                    table = attemptReadTable( strm, pos );
                 }
                 catch ( EOFException e ) {
                     throw new IOException( "Fell off end of file looking for "
@@ -80,7 +82,7 @@ public class FitsTableBuilder implements TableBuilder {
             else {
                 try {
                     while ( true ) {
-                        table = attemptReadTable( strm );
+                        table = attemptReadTable( strm, pos );
                         if ( table != null ) {
                             return table;
                         }
@@ -120,20 +122,34 @@ public class FitsTableBuilder implements TableBuilder {
      * 
      * @param  strm  stream to read from, positioned at the start of an HDU
      *         (before the header)
+     * @param  pos  a 1-element array holding the current position in 
+     *         the stream - it's an array so it can be updated by 
+     *         this routine (sorry)
      * @return   a StarTable made from the HDU at the start of <tt>strm</tt>
      *           or null
      */
-    public static StarTable attemptReadTable( ArrayDataInput strm )
+    public static StarTable attemptReadTable( ArrayDataInput strm, long[] pos )
             throws FitsException, IOException {
 
         /* Read the header. */
         Header hdr = new Header();
-        FitsConstants.readHeader( hdr, strm );
+        int headsize = FitsConstants.readHeader( hdr, strm );
+        pos[ 0 ] += headsize;
         String xtension = hdr.getStringValue( "XTENSION" );
           
         /* If it's a BINTABLE HDU, make a BintableStarTable out of it. */ 
         if ( "BINTABLE".equals( xtension ) ) {
-            return BintableStarTable.makeStarTable( hdr, strm );
+            if ( strm instanceof RandomAccess ) {
+                return BintableStarTable
+                      .makeRandomStarTable( hdr, (RandomAccess) strm );
+            }
+            else {
+                return BintableStarTable
+                      .makeRandomStarTable( hdr, (DataInput) strm );
+            }
+
+            // return BintableStarTable
+            //       .makeSequentialStarTable( hdr, datsrc, pos[ 0 ] );
 
             // BinaryTable tdata = new BinaryTable( hdr );
             // tdata.read( strm );
@@ -152,7 +168,9 @@ public class FitsTableBuilder implements TableBuilder {
 
         /* It's not a table HDU - just skip over it and return null. */
         else {
-            IOUtils.skipBytes( strm, FitsConstants.getDataSize( hdr ) );
+            long datasize = FitsConstants.getDataSize( hdr );
+            IOUtils.skipBytes( strm, datasize );
+            pos[ 0 ] += datasize;
             return null;
         }
     }

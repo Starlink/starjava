@@ -1,7 +1,10 @@
 package uk.ac.starlink.fits;
 
+import java.io.BufferedInputStream;
 import java.io.DataInput;
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -10,12 +13,15 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.util.RandomAccess;
 import uk.ac.starlink.table.AbstractStarTable;
+import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RandomRowSequence;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
 
 /**
@@ -65,124 +71,184 @@ public abstract class BintableStarTable extends AbstractStarTable {
         tnullInfo, tscalInfo, tzeroInfo, tdispInfo, tbcolInfo, tformInfo,
     } );
 
+
+
     /**
-     * Constructs a StarTable from a given stream.  If the stream implements
-     * the RandomAccess interface then a random table will be returned
-     * otherwise it will only provide sequential access. 
+     * Constructs a StarTable from a given random access stream.
      *
      * @param  hdr  FITS header descrbing the HDU
-     * @param  stream   data stream positioned at the start of the data 
-     *                  section of the HDU
+     * @param  rstream   data stream positioned at the start of the data 
+     *                   section of the HDU
      */
-    public static BintableStarTable makeStarTable( Header hdr, 
-                                                   final DataInput stream )
+    public static StarTable makeRandomStarTable( Header hdr, 
+                                                 final RandomAccess rstream )
             throws FitsException {
-
-        /* If we have a random access stream we can make a random access 
-         * table. */
-        if ( stream instanceof RandomAccess ) {
-            final RandomAccess rstream = (RandomAccess) stream;
-            final long dataStart = rstream.getFilePointer();
-            return new BintableStarTable( hdr ) {
-                final long rowLength = getRowLength();
-                final int[] colOffsets = getColumnOffsets();
-                final int ncol = getColumnCount();
-                public boolean isRandom() {
-                    return true;
+        final long dataStart = rstream.getFilePointer();
+        return new BintableStarTable( hdr ) {
+            final long rowLength = getRowLength();
+            final int[] colOffsets = getColumnOffsets();
+            final int ncol = getColumnCount();
+            public boolean isRandom() {
+                return true;
+            }
+            public Object getCell( long lrow, int icol )
+                    throws IOException {
+                synchronized ( rstream ) {
+                    long offset = dataStart + lrow * rowLength
+                                            + colOffsets[ icol ];
+                    rstream.seek( offset );
+                    return readCell( rstream, icol );
                 }
-                public Object getCell( long lrow, int icol )
-                        throws IOException {
-                    synchronized ( rstream ) {
-                        long offset = dataStart + lrow * rowLength
-                                                + colOffsets[ icol ];
-                        rstream.seek( offset );
-                        return readCell( rstream, icol );
+            }
+            public Object[] getRow( long lrow ) throws IOException {
+                Object[] row = new Object[ ncol ];
+                synchronized ( rstream ) {
+                    rstream.seek( dataStart + lrow * rowLength );
+                    return readRow( rstream );
+                }
+            }
+            public RowSequence getRowSequence() {
+                return new RandomRowSequence( this );
+            }
+        };
+    }
+
+    /**
+     * Constructs a random-access StarTable from a sequential stream.
+     * This is done by reading all the data into memory straight away.
+     *
+     * @param  hdr  FITS header descrbing the HDU
+     * @param  stream   sequential stream positioned at the start of the
+     *         table data
+     */
+    public static StarTable makeRandomStarTable( Header hdr,
+                                                 final DataInput stream )
+            throws IOException, FitsException {
+        return new BintableStarTable( hdr ) {
+            long nrow = getRowCount();
+            int ncol = getColumnCount();
+            ArrayColumn[] columns = new ArrayColumn[ ncol ];
+            {
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    columns[ icol ] =
+                        ArrayColumn.makeColumn( getColumnInfo( icol ), nrow );
+                }
+                Object[] row = new Object[ ncol ];
+                for ( long lrow = 0; lrow < nrow; lrow++ ) {
+                    readRow( stream, row );
+                    for ( int icol = 0; icol < ncol; icol++ ) {
+                        columns[ icol ].storeValue( lrow, row[ icol ] );
                     }
                 }
-                public Object[] getRow( long lrow ) throws IOException {
-                    Object[] row = new Object[ ncol ];
-                    synchronized ( rstream ) {
-                        rstream.seek( dataStart + lrow * rowLength );
-                        return readRow( rstream );
-                    }
-                }
-                public RowSequence getRowSequence() {
-                    return new RandomRowSequence( this );
-                }
-            };
-        }
+             }
+             public boolean isRandom() {
+                 return true;  
+             }
+             public Object[] getRow( long lrow ) {
+                 Object[] row = new Object[ ncol ];
+                 for ( int icol = 0; icol < ncol; icol++ ) {
+                     row[ icol ] = getCell( lrow, icol );
+                 }
+                 return row;
+             }
+             public Object getCell( long lrow, int icol ) {
+                 return columns[ icol ].readValue( lrow );
+             }
+             public RowSequence getRowSequence() {
+                 return new RandomRowSequence( this );
+             }
+        };
+    }
 
-        /* Otherwise make a sequential access table. */
-        else {
-            final Object[] BEFORE_START = new Object[ 0 ];
-            return new BintableStarTable( hdr ) {
-                public RowSequence getRowSequence() {
-                    return new RowSequence() {
-                        final long nrow = getRowCount();
-                        final int ncol = getColumnCount();
-                        final int rowLength = getRowLength();
-                        long lrow = -1L;
-                        Object[] row = BEFORE_START;
-                        public boolean hasNext() {
-                            return lrow < nrow;
-                        }
-                        public void next() throws IOException {
-                            if ( hasNext() ) {
-                                if ( row == null ) {
-                                    IOUtils.skipBytes( stream, 
-                                                       (long) rowLength );
-                                }
-                                else {
-                                    row = null;
-                                }
-                                lrow++;
-                            }
-                            else {
-                                throw new IllegalStateException( 
-                                              "No more rows" );
-                            }
-                        }
-                        public void advance( long inc ) throws IOException {
-                            if ( inc < 0 ) {
-                                throw new IllegalArgumentException(
-                                              "Negative advance not allowed" );
-                            }
-                            else if ( inc + lrow >= nrow ) {
-                                throw new IOException( "Attempt to advance " +
-                                                       "off end of table" );
-                            }
+    /**
+     * Constructs a sequential-only StarTable from a DataSource.
+     * Reading is deferred.
+     *
+     * @param  hdr  FITS header descrbing the HDU
+     * @param  datsrc  a data source which supplies the data stream 
+     *          containing the table data
+     * @param  offset  offset into the stream returned by <tt>datsrc</tt>
+     *         at which the table data (not the corresponding HDU header)
+     *         starts
+     */
+    public static StarTable makeSequentialStarTable( Header hdr, 
+                                                     final DataSource datsrc,
+                                                     final long offset ) 
+            throws FitsException {
+        final Object[] BEFORE_START = new Object[ 0 ];
+        return new BintableStarTable( hdr ) {
+            public RowSequence getRowSequence() throws IOException {
+                InputStream istrm = datsrc.getInputStream();
+                if ( ! ( istrm instanceof BufferedInputStream ) ) {
+                    istrm = new BufferedInputStream( istrm );
+                }
+                final DataInput stream = new DataInputStream( istrm );
+                IOUtils.skipBytes( stream, offset );
+                return new RowSequence() {
+                    final long nrow = getRowCount();
+                    final int ncol = getColumnCount();
+                    final int rowLength = getRowLength();
+                    long lrow = -1L;
+                    Object[] row = BEFORE_START;
+                    public boolean hasNext() {
+                        return lrow < nrow;
+                    }
+                    public void next() throws IOException {
+                        if ( hasNext() ) {
                             if ( row == null ) {
-                                IOUtils.skipBytes( stream, (long) rowLength );
+                                IOUtils.skipBytes( stream, 
+                                                   (long) rowLength );
                             }
                             else {
                                 row = null;
                             }
-                            if ( inc > 1 ) {
-                                IOUtils.skipBytes( stream, 
-                                                   ( inc - 1 ) * rowLength );
-                            }
-                            lrow += inc;
+                            lrow++;
                         }
-                        public Object getCell( int icol ) throws IOException {
-                            return getRow()[ icol ];
+                        else {
+                            throw new IllegalStateException( 
+                                          "No more rows" );
                         }
-                        public Object[] getRow() throws IOException {
-                            if ( row == BEFORE_START ) {
-                                throw new IllegalStateException(
-                                    "Attempted read before start of table" );
-                            }
-                            if ( row == null ) {
-                                row = readRow( stream );
-                            }
-                            return row;
+                    }
+                    public void advance( long inc ) throws IOException {
+                        if ( inc < 0 ) {
+                            throw new IllegalArgumentException(
+                                          "Negative advance not allowed" );
                         }
-                        public long getRowIndex() {
-                            return lrow;
+                        else if ( inc + lrow >= nrow ) {
+                            throw new IOException( "Attempt to advance " +
+                                                   "off end of table" );
                         }
-                    };
-                }
-            };
-        }
+                        if ( row == null ) {
+                            IOUtils.skipBytes( stream, (long) rowLength );
+                        }
+                        else {
+                            row = null;
+                        }
+                        if ( inc > 1 ) {
+                            IOUtils.skipBytes( stream, 
+                                               ( inc - 1 ) * rowLength );
+                        }
+                        lrow += inc;
+                    }
+                    public Object getCell( int icol ) throws IOException {
+                        return getRow()[ icol ];
+                    }
+                    public Object[] getRow() throws IOException {
+                        if ( row == BEFORE_START ) {
+                            throw new IllegalStateException(
+                                "Attempted read before start of table" );
+                        }
+                        if ( row == null ) {
+                            row = readRow( stream );
+                        }
+                        return row;
+                    }
+                    public long getRowIndex() {
+                        return lrow;
+                    }
+                };
+            }
+        };
     }
 
     /**
@@ -391,17 +457,31 @@ public abstract class BintableStarTable extends AbstractStarTable {
     }
 
     /**
-     * Reads a whole row of the table from the current position in a stream.
+     * Reads a whole row of the table from the current position in a stream,
+     * returning a new Object[] array.
      *
      * @param  stream a stream containing the byte data, positioned to
      *                the right place
+     * @return  <tt>ncol</tt>-element array of cells for this row
      */
     public Object[] readRow( DataInput stream ) throws IOException {
         Object[] row = new Object[ ncol ];
+        readRow( stream, row );
+        return row;
+    }
+
+    /**
+     * Reads a whole row of the table into an existing array.
+     *
+     * @param  stream a stream containing the byte data, positioned to
+     *                the right place
+     * @param  row  <tt>ncol</tt>-element array, filled with row data
+     *              on completion
+     */
+    public void readRow( DataInput stream, Object[] row ) throws IOException {
         for ( int icol = 0; icol < ncol; icol++ ) {
             row[ icol ] = colReaders[ icol ].readValue( stream );
         }
-        return row;
     }
 
     /**
