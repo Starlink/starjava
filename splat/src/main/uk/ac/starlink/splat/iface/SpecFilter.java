@@ -7,14 +7,15 @@
  */
 package uk.ac.starlink.splat.iface;
 
+import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
-import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.util.AverageFilter;
-import uk.ac.starlink.splat.util.MedianFilter;
-import uk.ac.starlink.splat.util.KernelFilter;
 import uk.ac.starlink.splat.util.KernelFactory;
+import uk.ac.starlink.splat.util.KernelFilter;
+import uk.ac.starlink.splat.util.MedianFilter;
 import uk.ac.starlink.splat.util.Sort;
+import uk.ac.starlink.splat.util.WaveletFilter;
 
 /**
  * Filter of sections of a spectrum. It creates a new spectrum that is
@@ -190,6 +191,32 @@ public class SpecFilter
     }
 
     /**
+     * Filter a spectrum or parts of a spectrum using a wavelet
+     * to "denoise" it. The new spectrum created is added to the
+     * global list and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param wavelet the name of the wavelet filter 
+     *                (from WaveletFilter.WAVELETS)
+     * @param percent the percentage of wavelet coefficients to remove.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData waveletFilter( SpecData spectrum, String wavelet,
+                                   double percent, double[] ranges,
+                                   boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        WaveletFilter filter = new WaveletFilter( localSpec.getYData(),
+                                                  wavelet, percent );
+        return updateSpectrum( localSpec, filter.eval(),
+                               makeName( wavelet, spectrum ) );
+    }
+
+    /**
      * Filter a spectrum or parts of a spectrum using a weighted
      * kernel. The modified spectrum is added to the global list
      * and a reference to it is returned (null for failure).
@@ -276,4 +303,5 @@ public class SpecFilter
         }
         return null;
     }
+
 }

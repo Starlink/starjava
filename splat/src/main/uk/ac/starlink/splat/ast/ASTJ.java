@@ -1019,12 +1019,8 @@ public class ASTJ
                 Frame part2 = astRef.pickAxes( i-1, iaxes, null );
                 newFrame = new CmpFrame( result, part2 );
             }
-            System.out.println( "Adding SpecFrame to data node" );
-            astRef.show();
             astRef.addFrame( FrameSet.AST__CURRENT, new UnitMap( nax ), 
                              newFrame );
-            System.out.println( "Added SpecFrame to data node" );
-            astRef.show();
         }
         return result;
     }

@@ -17,7 +17,6 @@ public class SplatSOAPServices
      */
     public static boolean displaySpectrum( String specspec )
     {
-        System.out.println( "displaySpectrum" );
         return SplatSOAPServer.getInstance().displaySpectrum( specspec );
     }
 
@@ -26,7 +25,6 @@ public class SplatSOAPServices
      */
     public static void displayNDX( Element ndxElement )
     {
-        System.out.println( "displayNDX" );
         SplatSOAPServer.getInstance().displayNDX( ndxElement );
     }
 }

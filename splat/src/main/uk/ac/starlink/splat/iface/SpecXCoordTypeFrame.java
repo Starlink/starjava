@@ -748,7 +748,6 @@ public class SpecXCoordTypeFrame
         if ( isValid( value ) ) {
             buffer.append( ",Epoch=" + value );
         }
-        System.out.println( "Gather results = " + buffer.toString() );
         return buffer.toString();
     }
 

@@ -153,7 +153,6 @@ public class FitVoigt extends JPanel
         }
 
         //  Create memory needed to store these coordinates.
-        System.out.println( "Number of lines = " + nlines );
         xPos = new double[nlines];
         yPos = new double[nlines];
         weights = new double[nlines];
@@ -184,10 +183,7 @@ public class FitVoigt extends JPanel
 
         VoigtFitter fitter = new VoigtFitter( xPos, yPos, weights,
                                               0.5, 4100.0, 4.0, 4.0 );
-        //double[] chi = fitter.getChi();
-        //System.out.println( "Chi square = " + chi[0] + "," + chi[1] );
         double chi = fitter.getChi();
-        System.out.println( "Chi square = " + chi );
         yFit = fitter.evalArray( xFit );
     }
 

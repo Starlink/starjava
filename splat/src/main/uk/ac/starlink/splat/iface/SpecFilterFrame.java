@@ -25,6 +25,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -35,9 +36,11 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -49,6 +52,7 @@ import uk.ac.starlink.splat.util.AsciiFileParser;
 import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.util.WaveletFilter;
 import uk.ac.starlink.ast.gui.DecimalField;
 
 /**
@@ -127,6 +131,22 @@ public class SpecFilterFrame
      * File chooser used for reading ranges from text files.
      */
     protected JFileChooser fileChooser = null;
+
+    /**
+     * Global list of spectral view (used for selecting a spectrum as
+     * a kernel).
+     */
+    protected JList globalView = null;
+
+    /**
+     * Wavelet chioce.
+     */
+    protected JComboBox waveletBox = null;
+
+    /**
+     * Wavelet percent
+     */
+    protected JSpinner waveletPercent = null;
 
     /**
      * Create an instance.
@@ -260,6 +280,7 @@ public class SpecFilterFrame
         initAverageUI();
         initMedianUI();
         initProfilesUI();
+        initWaveletUI();
         initSpectrumUI();
 
         contentPane.add( splitPane, BorderLayout.CENTER );
@@ -322,7 +343,7 @@ public class SpecFilterFrame
     protected void initProfilesUI()
     {
         JPanel panel = new JPanel();
-        GridBagLayouter layouter = new GridBagLayouter( panel );
+        GridBagLayouter gbl = new GridBagLayouter( panel );
 
         //  Need a profile type and some parameters. Gaussian needs a
         //  width as does Lorentz. Voigt needs two widths.
@@ -335,10 +356,10 @@ public class SpecFilterFrame
         voigtProfile = new JCheckBox( "Voigt" );
         voigtProfile.setToolTipText( "Smooth using a Voigt profile" );
 
-        layouter.add( typeLabel, false );
-        layouter.add( gaussProfile, false );
-        layouter.add( lorentzProfile, false );
-        layouter.add( voigtProfile, true );
+        gbl.add( typeLabel, false );
+        gbl.add( gaussProfile, false );
+        gbl.add( lorentzProfile, false );
+        gbl.add( voigtProfile, true );
 
         ButtonGroup useGroup = new ButtonGroup();
         useGroup.add( gaussProfile );
@@ -369,32 +390,59 @@ public class SpecFilterFrame
         profileWidth.setToolTipText( "Width used to evaluate profile " +
                                      "(should be at least several widths)" );
 
-        layouter.add( widthLabel, false );
-        layouter.add( profileWidth, true );
+        gbl.add( widthLabel, false );
+        gbl.add( profileWidth, true );
 
         gWidthLabel = new JLabel( "Gaussian FWHM/width:   " );
         decimalFormat = new DecimalFormat();
         gWidth = new DecimalField( 5, 5, decimalFormat );
         gWidth.setToolTipText( "FWHM of gaussian or gaussian width" );
 
-        layouter.add( gWidthLabel, false );
-        layouter.add( gWidth, true );
+        gbl.add( gWidthLabel, false );
+        gbl.add( gWidth, true );
 
         lWidthLabel = new JLabel( "Lorentzian width:   " );
         decimalFormat = new DecimalFormat();
         lWidth = new DecimalField( 5, 5, decimalFormat );
         lWidth.setToolTipText( "The Lorentzian width" );
 
-        layouter.add( lWidthLabel, false );
-        layouter.add( lWidth, true );
-        layouter.eatSpare();
+        gbl.add( lWidthLabel, false );
+        gbl.add( lWidth, true );
+        gbl.eatSpare();
         toggleProfileWidths();
 
         tabbedPane.addTab( "Profile", panel );
     }
 
-    // Controls needed for selecting a spectrum.
-    protected JList globalView = null;
+    /**
+     * Add controls for the wavelet smoothing option.
+     */
+    protected void initWaveletUI()
+    {
+        JPanel panel = new JPanel();
+        GridBagLayouter gbl = new GridBagLayouter( panel );
+
+        //  Need two parameters, the wavelet to use and the fraction
+        //  of coefficients to zero.
+        JLabel waveletLabel = new JLabel( "Wavelet:   " );
+        waveletBox = new JComboBox( WaveletFilter.WAVELETS );
+        waveletBox.setToolTipText( "Wavelet to use when generating" +
+                                   " coefficients");
+
+        JLabel percentLabel = new JLabel( "Threshold (percent):   " );
+        DecimalFormat decimalFormat = new DecimalFormat();
+        waveletPercent =
+            new JSpinner( new SpinnerNumberModel( 50, 0.0, 100.0, 1.0 ) );
+        waveletPercent.setToolTipText( "Percentage of signal to remove" );
+
+        gbl.add( waveletLabel, false );
+        gbl.add( waveletBox, true );
+        gbl.add( percentLabel, false );
+        gbl.add( waveletPercent, true );
+        gbl.eatSpare();
+
+        tabbedPane.addTab( "Wavelet", panel );
+    }
 
     /**
      * Add controls for filtering using another spectrum.
@@ -486,8 +534,18 @@ public class SpecFilterFrame
             }
             break;
             case 3: {
+                // Wavelet.
+                double percent = 
+                    ((Double)waveletPercent.getValue()).doubleValue();
+                newSpec =
+                    filter.waveletFilter( currentSpectrum, 
+                                          (String)waveletBox.getSelectedItem(),
+                                          percent, ranges, include );
+            }
+            break;
+            case 4: {
                 // Another spectrum.
-                newSpec = applySpectrumProfile( currentSpectrum, filter, 
+                newSpec = applySpectrumProfile( currentSpectrum, filter,
                                                 ranges, include );
             }
             break;
@@ -518,7 +576,7 @@ public class SpecFilterFrame
      */
     protected SpecData applyCurrentProfile( SpecData currentSpectrum,
                                             SpecFilter filter,
-                                            double[] ranges, 
+                                            double[] ranges,
                                             boolean include  )
     {
         if ( gaussProfile.isSelected() ) {
@@ -550,7 +608,7 @@ public class SpecFilterFrame
     {
         int index = globalView.getSelectedIndex();
         if ( index > -1 ) {
-            return filter.specKernelFilter( currentSpectrum,  
+            return filter.specKernelFilter( currentSpectrum,
                                             globalList.getSpectrum(index ),
                                             ranges, include );
         }
