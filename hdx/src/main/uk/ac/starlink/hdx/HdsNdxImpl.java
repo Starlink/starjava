@@ -51,14 +51,6 @@ class HdsNdxImpl implements NdxImpl {
     HdsNdxImpl( URL url, String mode ) throws HdxException {
         try {
             ndfref = new HDSReference( url );
-        }
-        catch ( IOException e ) {
-            throw (HdxException) 
-                  new HdxException( "Failed to create HDSReference from " 
-                                  + url )
-                 .initCause( e );
-        }
-        try {
             HDSObject hobj = ndfref.getObject( mode );
             initialiseFromHDS( hobj, url.toString() );
         }
@@ -98,7 +90,7 @@ class HdsNdxImpl implements NdxImpl {
         try {
             this.ndfref = new HDSReference( hobj );
         }
-        catch ( IOException e ) {
+        catch ( HDSException e ) {
             throw (HdxException) new HdxException( "Can't get HDSReference" )
                                 .initCause( e );
         }
