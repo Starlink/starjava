@@ -10,6 +10,7 @@ public class Field extends GenericElement {
     private final Datatype datatype;
     private String blank;
     private String unit;
+    private String ucd;
     private boolean isVariable;
     private long sliceSize;
     private Element el;
@@ -27,7 +28,7 @@ public class Field extends GenericElement {
             int ndim = dimtxt.length;
             arraysize = new long[ ndim ];
             for ( int i = 0; i < ndim; i++ ) {
-                if ( i == ndim - 1 && dimtxt[ i ].trim().equals( "*" ) ) {
+                if ( i == ndim - 1 && dimtxt[ i ].trim().endsWith( "*" ) ) {
                     arraysize[ i ] = -1;
                     isVariable = true;
                 }
@@ -68,6 +69,9 @@ public class Field extends GenericElement {
         if ( el.hasAttribute( "unit" ) ) {
             this.unit = el.getAttribute( "unit" );
         }
+        if ( el.hasAttribute( "ucd" ) ) {
+            this.ucd = el.getAttribute( "ucd" );
+        }
     }
 
     /**
@@ -92,6 +96,10 @@ public class Field extends GenericElement {
 
     public String getUnit() {
         return unit;
+    }
+
+    public String getUcd() {
+        return ucd;
     }
 
     public String toString() {

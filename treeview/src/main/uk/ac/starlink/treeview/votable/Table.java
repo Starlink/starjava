@@ -73,15 +73,13 @@ public class Table extends GenericElement {
         if ( tdEl != null ) {
             return new TabledataTable( tableEl, tdEl );
         }
-        Element binEl = DOMUtils.getChildElementByName( dataEl, "BINARY" );
-        if ( binEl != null ) {
-            // return new BinaryTable( tableEl, binEl );
-            throw new UnsupportedOperationException( "No BINARY support" );
-        }
         Element fitsEl = DOMUtils.getChildElementByName( dataEl, "FITS" );
         if ( dataEl != null ) {
-            // return new FitsTable( tableEl, fitsEl );
-            throw new UnsupportedOperationException( "No FITS support" );
+            return new FitsTable( tableEl, fitsEl );
+        }
+        Element binEl = DOMUtils.getChildElementByName( dataEl, "BINARY" );
+        if ( binEl != null ) {
+            return new BinaryTable( tableEl, binEl );
         }
         return new Table( tableEl );
     }

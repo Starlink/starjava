@@ -7,6 +7,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import uk.ac.starlink.util.DOMUtils;
 
+/**
+ * Implements the VOTable TABLE element whose child is a TABLEDATA element.
+ * This represents inline XML-encoded table data.
+ */
 class TabledataTable extends Table {
 
     private Element tabledataEl;
