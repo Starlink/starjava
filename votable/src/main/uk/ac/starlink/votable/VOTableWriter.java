@@ -449,7 +449,7 @@ public class VOTableWriter implements StarTableWriter {
         /** TABLEDATA format (pure XML). */
         public static final Format TABLEDATA = 
             new Format( "TABLEDATA", null ) {
-                VOSerializer getSerializer( StarTable table ) {
+                public VOSerializer getSerializer( StarTable table ) {
                     return new TabledataVOSerializer( table );
                 }
             };
@@ -457,7 +457,7 @@ public class VOTableWriter implements StarTableWriter {
         /** FITS format. */
         public static final Format FITS = 
             new Format( "FITS", ".fits" ) {
-                VOSerializer getSerializer( StarTable table )
+                public VOSerializer getSerializer( StarTable table )
                         throws IOException{
                     return new FITSVOSerializer( table );
                 }
@@ -466,7 +466,7 @@ public class VOTableWriter implements StarTableWriter {
         /** Raw binary format. */
         public static final Format BINARY =
             new Format( "BINARY", ".bin" ) {
-                VOSerializer getSerializer( StarTable table ) {
+                public VOSerializer getSerializer( StarTable table ) {
                     return new BinaryVOSerializer( table );
                 }
             };
