@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
@@ -166,6 +167,11 @@ public class Driver {
                 System.exit( 1 );
             }
         }
+
+        /* Fine tune the logging - we don't need HDS or AST here, so 
+         * stop them complaining when they can't be loaded. */
+        Logger.getLogger( "uk.ac.starlink.hds" ).setLevel( Level.OFF );
+        Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
 
         /* Start up the GUI now. */
         getControlWindow();
