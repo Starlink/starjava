@@ -46,7 +46,8 @@ public class Field extends VOElement {
         sliceSize = 1;
         isVariable = false;
         String as = assumedType ? "*" : getAttribute( "arraysize" );
-        if ( as != null ) {
+        as = as == null ? as : as.trim();
+        if ( as != null && as.length() > 0 ) {
             String[] dimtxt = as.split( "x" );
             int ndim = dimtxt.length;
             arraysize = new long[ ndim ];
