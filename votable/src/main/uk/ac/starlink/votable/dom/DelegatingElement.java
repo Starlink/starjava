@@ -3,6 +3,7 @@ package uk.ac.starlink.votable.dom;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+//DOM3 import org.w3c.dom.TypeInfo;
 
 public class DelegatingElement extends DelegatingNode implements Element {
 
@@ -14,6 +15,10 @@ public class DelegatingElement extends DelegatingNode implements Element {
         base_ = base;
         doc_ = doc;
     }
+
+    //
+    // Level 2 implementation.
+    //
 
     public String getTagName() {
         return base_.getTagName();
@@ -90,4 +95,25 @@ public class DelegatingElement extends DelegatingNode implements Element {
     public boolean hasAttributeNS( String namespaceURI, String localName ) {
         return base_.hasAttributeNS( namespaceURI, localName );
     }
+
+//DOM3     //
+//DOM3     // Level 3 implementation.
+//DOM3     //
+//DOM3 
+//DOM3     public TypeInfo getSchemaTypeInfo() {
+//DOM3         return base_.getSchemaTypeInfo();
+//DOM3     }
+//DOM3 
+//DOM3     public void setIdAttribute( String name, boolean isId ) {
+//DOM3         base_.setIdAttribute( name, isId );
+//DOM3     }
+//DOM3 
+//DOM3     public void setIdAttributeNS( String namespaceURI,
+//DOM3                                   String localName, boolean isId ) {
+//DOM3         base_.setIdAttributeNS( namespaceURI, localName, isId );
+//DOM3     }
+//DOM3 
+//DOM3     public void setIdAttributeNode( Attr idAttr, boolean isId ) {
+//DOM3         base_.setIdAttributeNode( idAttr, isId );
+//DOM3     }
 }

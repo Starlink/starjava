@@ -11,6 +11,10 @@ public class DelegatingEntity extends DelegatingNode implements Entity {
         base_ = base;
     }
 
+    //
+    // Level 2 implementation.
+    //
+
     public String getNotationName() {
         return base_.getNotationName();
     }
@@ -22,4 +26,20 @@ public class DelegatingEntity extends DelegatingNode implements Entity {
     public String getSystemId() {
         return base_.getSystemId();
     }
+
+//DOM3     //
+//DOM3     // Level 3 implementation.
+//DOM3     //
+//DOM3 
+//DOM3     public String getInputEncoding() {
+//DOM3         return base_.getInputEncoding();
+//DOM3     }
+//DOM3 
+//DOM3     public String getXmlEncoding() {
+//DOM3         return base_.getXmlEncoding();
+//DOM3     }
+//DOM3 
+//DOM3     public String getXmlVersion() {
+//DOM3         return base_.getXmlVersion();
+//DOM3     }
 }

@@ -18,6 +18,10 @@ public class DelegatingNode implements Node {
     private final Node base_;
     private DelegatingDocument doc_;
 
+    //
+    // Constructors.
+    //
+
     protected DelegatingNode( Node base, DelegatingDocument doc ) {
         base_ = base;
         setDocument( doc );
@@ -26,6 +30,11 @@ public class DelegatingNode implements Node {
     DelegatingNode( Node base ) {
         base_ = base;
     }
+
+    //
+    // Package-private methods for manipulating DelegatingNode and its
+    // subclasses.
+    //
 
     void setDocument( DelegatingDocument doc ) {
 
@@ -82,6 +91,10 @@ public class DelegatingNode implements Node {
                                     node.getClass().getName() + ")" );
         }
     }
+
+    //
+    // DOM Level 2 implementation.
+    //
 
     public String getNodeName() {
         return base_.getNodeName();
@@ -190,4 +203,72 @@ public class DelegatingNode implements Node {
     public boolean hasAttributes() {
         return base_.hasAttributes();
     }
+
+//DOM3     //
+//DOM3     // DOM Level 3 implementation.
+//DOM3     //
+//DOM3 
+//DOM3     public String getBaseURI() {
+//DOM3         return base_.getBaseURI();
+//DOM3     }
+//DOM3 
+//DOM3     public short compareDocumentPosition( Node other ) {
+//DOM3         if ( other instanceof DelegatingNode ) {
+//DOM3             return base_
+//DOM3                   .compareDocumentPosition( DelegatingNode
+//DOM3                                            .getBaseNode( other,
+//DOM3                                                          null ) );
+//DOM3         }
+//DOM3         else {
+//DOM3             throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                     "Wrong type of node" );
+//DOM3         }
+//DOM3     }
+//DOM3 
+//DOM3     public String getTextContent() {
+//DOM3         return base_.getTextContent();
+//DOM3     }
+//DOM3 
+//DOM3     public void setTextContent( String textContent ) {
+//DOM3         base_.setTextContent( textContent );
+//DOM3     }
+//DOM3 
+//DOM3     public String lookupPrefix( String namespaceURI ) {
+//DOM3         return base_.lookupPrefix( namespaceURI );
+//DOM3     }
+//DOM3 
+//DOM3     public boolean isDefaultNamespace( String namespaceURI ) {
+//DOM3         return base_.isDefaultNamespace( namespaceURI );
+//DOM3     }
+//DOM3 
+//DOM3     public String lookupNamespaceURI( String prefix ) {
+//DOM3         return base_.lookupNamespaceURI( prefix );
+//DOM3     }
+//DOM3 
+//DOM3     public boolean isSameNode( Node other ) {
+//DOM3         if ( other instanceof DelegatingNode ) {
+//DOM3             return base_.isSameNode( DelegatingNode
+//DOM3                                     .getBaseNode( other, doc_ ) );
+//DOM3         }
+//DOM3         else {
+//DOM3             return false;
+//DOM3         }
+//DOM3     }
+//DOM3 
+//DOM3     public boolean isEqualNode( Node other ) {
+//DOM3         return base_.isEqualNode( other );
+//DOM3     }
+//DOM3 
+//DOM3     public Object getFeature( String feature, String version ) {
+//DOM3         return base_.getFeature( feature, version );
+//DOM3     }
+//DOM3 
+//DOM3     public Object setUserData( String key, Object data, 
+//DOM3                                org.w3c.dom.UserDataHandler handler ) {
+//DOM3         return base_.setUserData( key, data, handler );
+//DOM3     }
+//DOM3 
+//DOM3     public Object getUserData( String key ) {
+//DOM3         return base_.getUserData( key );
+//DOM3     }
 }

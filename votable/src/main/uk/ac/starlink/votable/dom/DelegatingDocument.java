@@ -12,6 +12,7 @@ import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.DocumentType;
+//DOM3 import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.Element;
 import org.w3c.dom.Entity;
 import org.w3c.dom.EntityReference;
@@ -350,6 +351,29 @@ public class DelegatingDocument extends DelegatingNode implements Document {
     }
 
     /**
+     * Constructs a new empty document from JAXP's default DOM implementation.
+     *
+     * @return  new Document
+     */
+    private static Document makeEmptyDocument() {
+        try {
+            return DocumentBuilderFactory
+                  .newInstance()
+                  .newDocumentBuilder()
+                  .newDocument();
+        }
+        catch ( ParserConfigurationException e ) {
+            throw (RuntimeException) 
+                  new IllegalStateException( "Can't create a new Document" )
+                 .initCause( e );
+        }
+    }
+
+    //
+    // Level 2 implementation.
+    //
+
+    /**
      * Returns the implementation of the base document.
      */
     public DOMImplementation getImplementation() {
@@ -430,22 +454,69 @@ public class DelegatingDocument extends DelegatingNode implements Document {
         return (Element) getDelegator( base_.getElementById( elementId ) );
     }
 
-    /**
-     * Constructs a new empty document from JAXP's default DOM implementation.
-     *
-     * @return  new Document
-     */
-    private static Document makeEmptyDocument() {
-        try {
-            return DocumentBuilderFactory
-                  .newInstance()
-                  .newDocumentBuilder()
-                  .newDocument();
-        }
-        catch ( ParserConfigurationException e ) {
-            throw (RuntimeException) 
-                  new IllegalStateException( "Can't create a new Document" )
-                 .initCause( e );
-        }
-    }
+//DOM3     //
+//DOM3     // Level 3 implementation.
+//DOM3     //
+//DOM3 
+//DOM3     public String getInputEncoding() {
+//DOM3         return base_.getInputEncoding();
+//DOM3     }
+//DOM3 
+//DOM3     public String getXmlEncoding() {
+//DOM3         return base_.getXmlEncoding();
+//DOM3     }
+//DOM3 
+//DOM3     public boolean getXmlStandalone() {
+//DOM3         return base_.getXmlStandalone();
+//DOM3     }
+//DOM3 
+//DOM3     public void setXmlStandalone( boolean xmlStandalone ) {
+//DOM3         base_.setXmlStandalone( xmlStandalone );
+//DOM3     }
+//DOM3 
+//DOM3     public String getXmlVersion() {
+//DOM3         return base_.getXmlVersion();
+//DOM3     }
+//DOM3 
+//DOM3     public void setXmlVersion( String xmlVersion ) {
+//DOM3         base_.setXmlVersion( xmlVersion );
+//DOM3     }
+//DOM3 
+//DOM3     public boolean getStrictErrorChecking() {
+//DOM3         return base_.getStrictErrorChecking();
+//DOM3     }
+//DOM3 
+//DOM3     public void setStrictErrorChecking( boolean strictErrorChecking ) {
+//DOM3         base_.setStrictErrorChecking( strictErrorChecking );
+//DOM3     }
+//DOM3 
+//DOM3     public String getDocumentURI() {
+//DOM3         return base_.getDocumentURI();
+//DOM3     }
+//DOM3 
+//DOM3     public void setDocumentURI( String documentURI ) {
+//DOM3         base_.setDocumentURI( documentURI );
+//DOM3     }
+//DOM3 
+//DOM3     public Node adoptNode( Node source ) {
+//DOM3 
+//DOM3         /* We are permitted to refuse to do this, so do that.
+//DOM3          * Doing it properly would raise some minor problems. */
+//DOM3         return null;
+//DOM3     }
+//DOM3 
+//DOM3     public DOMConfiguration getDomConfig() {
+//DOM3         return base_.getDomConfig();
+//DOM3     }
+//DOM3 
+//DOM3     public void normalizeDocument() {
+//DOM3         base_.normalizeDocument();
+//DOM3     }
+//DOM3 
+//DOM3     public Node renameNode( Node node, String namespaceURI, 
+//DOM3                             String qualifiedName ) {
+//DOM3         return getDelegator(
+//DOM3             base_.renameNode( DelegatingNode.getBaseNode( node, this ),
+//DOM3                               namespaceURI, qualifiedName ) );
+//DOM3     }
 }
