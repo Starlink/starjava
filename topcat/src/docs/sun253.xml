@@ -27,13 +27,12 @@
   <!ENTITY FIG.PlotWindow '&figs;PlotWindow.gif'>
   <!ENTITY FIG.PlotWindow_blob '&figs;PlotWindow_blob.gif'>
   <!ENTITY FIG.LoadQueryWindow '&figs;LoadQueryWindow.gif'>
-  <!ENTITY FIG.JFileChooserLoad '&figs;JFileChooserLoad.gif'>
+  <!ENTITY FIG.FilestoreTableLoadDialog '&figs;FilestoreTableLoadDialog.gif'>
   <!ENTITY FIG.TreeTableLoadDialog '&figs;TreeTableLoadDialog.gif'>
   <!ENTITY FIG.SQLReadDialog '&figs;SQLReadDialog.gif'>
   <!ENTITY FIG.ConeSearchDialog '&figs;ConeSearchDialog.gif'>
-  <!ENTITY FIG.MyspaceTableLoadDialog '&figs;MyspaceTableLoadDialog.gif'>
-  <!ENTITY FIG.StarTableSaver '&figs;StarTableSaver.gif'>
-  <!ENTITY FIG.JFileChooserSave '&figs;JFileChooserSave.gif'>
+  <!ENTITY FIG.SaveQueryWindow '&figs;SaveQueryWindow.gif'>
+  <!ENTITY FIG.FilestoreTableSaveDialog '&figs;FilestoreTableSaveDialog.gif'>
   <!ENTITY FIG.SQLWriteDialog '&figs;SQLWriteDialog.gif'>
   <!ENTITY FIG.ConcatWindow '&figs;ConcatWindow.gif'>
   <!ENTITY FIG.MatchWindow '&figs;MatchWindow.gif'>
@@ -183,7 +182,7 @@ of the table used for things such as saving it and performing row matches.
 Changes that you make do not directly modify the tables on disk 
 (or wherever they came from), 
 but if you want to save the changes you have made,
-you can <ref id="StarTableSaver">write</ref> 
+you can <ref id="SaveQueryWindow">write</ref> 
 the modified table(s) to a new location.
 </p>
 
@@ -940,7 +939,7 @@ you wish to load a table in <code>csv</code> format.
 <subhead><title>Supported Output Formats</title></subhead>
 
 <p>Writing out tables from TOPCAT is done 
-using the <ref id="StarTableSaver">Save Table Window</ref>.
+using the <ref id="SaveQueryWindow">Save Table Window</ref>.
 In general you have to specify the format in which you want the table
 to be output by selecting from the Save Window's
 <label>Table Output Format</label> selector; 
@@ -2351,6 +2350,13 @@ The load dialogue flags are:
     used for content-sensitive browsing of the filespace
     (not available with topcat-lite).</p></dd>
 
+<dt>-file</dt>
+<dd><p>Basic file browser.  This doesn't do much that the 
+    <ref id="FilestoreTableLoadDialog">Filestore Browser</ref>
+    (which is present by default, and can also access remote filespaces)
+    can't do, but is provided as a fallback.
+    </p></dd>
+
 <dt>-sql</dt>
 <dd><p>SQL query (<ref id="SQLReadDialog"/>),
     used for obtaining tables
@@ -2362,11 +2368,6 @@ The load dialogue flags are:
 <dd><p>Cone search dialogue (<ref id="ConeSearchDialog"/>),
     used for obtaining catalogues of sources in a region of the sky
     from remote data servers (not available with topcat-lite).</p></dd>
-
-<dt>-myspace</dt>
-<dd><p>MySpace browser (<ref id="MyspaceTableLoadDialog"/>), 
-    used for loading tables from AstroGrid's 
-    MySpace remote file store (not available with topcat-lite).</p></dd>
 
 <dt>-registry</dt>
 <dd><p>Registry query dialogue <em>(experimental)</em>,
@@ -2535,6 +2536,15 @@ The following ones have special significance within TOPCAT:
     static methods which define user-provided
     functions for use in custom activation expressions.
     (see <ref id="jelExtend"/>).
+    </p></dd>
+
+<dt><code>star.connectors</code></dt>
+<dd><p>Can be set to a (colon-separated) list of classes which provide
+    access to remote filespace implementations.
+    Thus-named classes should implement the
+    <code>uk.ac.starlink.connect.Connector</code> interface which 
+    specifies how you can log on to such a service and provides a
+    hierarchical view of the filespace it contains.
     </p></dd>
 
 <dt><code>startable.load.dialogs</code></dt>
@@ -3118,7 +3128,7 @@ introduced since the last version:
         and a number of new dialogues provided.  The new ones are:
         <ul>
         <li><ref id="ConeSearchDialog">Cone Search</ref></li>
-        <li><ref id="MyspaceTableLoadDialog">MySpace Browser</ref></li>
+        <li>MySpace Browser</li>
         <li>Registry Query</li>
         <li>SIAP Query</li>
         </ul>
@@ -3176,6 +3186,44 @@ introduced since the last version:
     <li>Added Search Column item to Data Window column popup menu</li>
     </ul>
     </p></dd>
+
+<dt>Version 1.5 (Mar 2005)</dt>
+<dd>
+<p><dl>
+  <dt>File Access</dt>
+  <dd><p>Load dialogues have changed again somewhat, and save 
+      dialogues as well.
+      The default file browser in both cases is now a
+      <em>Filestore Browser</em>,
+      which is very much like the standard file browser, but can browse files
+      in remote filesystems as well; currently supported are files in 
+      AstroGrid's 
+      <webref url="http://www.astrogrid.org/maven/docs/HEAD/mySpace/"
+              >MySpace</webref>
+      or on an 
+      <webref url="http://www.sdsc.edu/srb/">SRB</webref>
+      (Storage Resource Broker) server.
+      You can now save files to these remote locations as well as
+      load from them.
+      </p>
+
+      <p>In addition, the save dialogue now displays the current row
+      subset and sort order - this makes it easier to see and/or
+      change the details of the table you're about to save.
+      </p>
+  </dd>
+
+  <dt>BugFixes</dt>
+  <dd><p>A few more minor changes have been made.
+    <ul>
+      <li>Error display dialogue boxes have been improved in some places</li>
+      <li>Various bugs relating to JDBC database access have been fixed</li>
+      <li>Some minor issues relating to VOTables with single-character
+          columns have been addressed</li>
+    </ul>
+  </p></dd>
+</dl></p>
+</dd>
 
 </dl>
 </p>
@@ -3576,7 +3624,7 @@ Here is what the individual items mean:
     </p></dd>
 
 <dt>&IMG.SAVE; Save Table</dt>
-<dd><p>Pops up the <ref id="StarTableSaver">Save Table</ref> dialogue
+<dd><p>Pops up the <ref id="SaveQueryWindow">Save Table</ref> dialogue
     which allows you to write out the current 
     <ref id="apparent">Apparent Table</ref>.
     </p></dd>
@@ -4712,7 +4760,7 @@ explicitly (again, see <ref id="inFormats"/> for details).
 
 <p>There are many other ways of loading tables however,
 described in the following subsections.
-The <label>File Browser</label> button is always visible below
+The <label>Filestore Browser</label> button is always visible below
 the location field.  Depending on startup options, there may be
 other buttons here.  In any case, you can look in the 
 <label>DataSources</label> menu to see other table load dialogues.
@@ -4722,18 +4770,40 @@ available).  The following subsections describe some of the
 options which may be available.
 </p>
 
-<subsubsect id="JFileChooserLoad">
-<subhead><title>File Browser</title></subhead>
+<subsubsect id="FilestoreTableLoadDialog">
+<subhead><title>Filestore Browser</title></subhead>
 
 <figure>
-<caption><px>File Browser window</px></caption>
-<figureimage src="&FIG.JFileChooserLoad;"/>
+<caption><px>Filestore Browser window</px></caption>
+<figureimage src="&FIG.FilestoreTableLoadDialog;"/>
 </figure>
 
-<p>By clicking the <label>File Browser</label> button in the
+<p>By clicking the <label>Filestore Browser</label> button in the
 Load Window,
-you can obtain a normal file browser which will
+you can obtain a file browser which will
 display the files in a given directory.
+The way this window works is almost certainly familiar to you 
+from other applications.
+</p>
+
+<p>Unlike a standard file browser however, it can also 
+browse files in remote filestores: currently supported are 
+MySpace and SRB.  MySpace is a distributed storage system 
+developed for use with the Virtual Observatory by the 
+<webref url="http://www.astrogrid.org">AstroGrid</webref> project,
+and SRB 
+(<webref url="http://www.sdsc.edu/srb/">Storage Resource Broker</webref>) 
+is a similar general purpose system developed at SDSC.
+To make use of these facilities, select the relevant entry from
+the selector box at the top of the window as illustrated above;
+this will show you a <label>Log In</label> button which prompts you
+for username, password etc, and you will then be able to browse
+the remote filestore as if it were local.  The same button can be
+used to log out when you are finished, but the session will be 
+logged out automatically when TOPCAT ends in any case.
+Access to remote filesystems is dependent on certain optional
+components of TOPCAT, and it may not be available if you
+have the topcat-lite configuration.
 </p>
 
 <p>The browser initially displays the current directory, but this can be
@@ -4785,7 +4855,8 @@ functionality is available in the separate
 application).
 </p>
 
-<p>This browser resembles the <ref id="JFileChooserLoad">File Browser</ref>
+<p>This browser resembles the 
+<ref id="FilestoreTableLoadDialog">Filestore Browser</ref>
 in some ways, but with important differences:
 <ul>
 <li>It shows the file system in a 'tree-like' fashion, so that multiple
@@ -4813,6 +4884,9 @@ Nodes which represent tables are indicated by the
 For nodes which have some internal structure there is also a
 "handle" which indicates whether they are
 collapsed (&IMG.COLLAPSED;) or expanded (&IMG.EXPANDED;).
+You can examine remote filespaces (MySpace, SRB) 
+as well as local ones in the same way as with the 
+<ref id="FilestoreTableLoadDialog">Filestore Browser</ref>.
 </p>
 
 <p>If you select a node by clicking on it, it will be highlighted
@@ -5022,48 +5096,6 @@ and will not be available if you have the topcat-lite configuration.
 
 </subsubsect>
 
-<subsubsect id="MyspaceTableLoadDialog">
-<subhead><title>MySpace Browser</title></subhead>
-
-<figure>
-<caption><px>MySpace browser table load dialogue</px></caption>
-<figureimage src="&FIG.MyspaceTableLoadDialog;"/>
-</figure>
-
-<p>By selecting the <label>MySpace Browser</label> option from the
-Load Window's <label>DataSources</label> menu,
-you can obtain a browser which allows you to load tables from a
-MySpace filestore.  MySpace is a distributed storage technology 
-developed by the <webref url="http://www.astrogrid.org">AstroGrid</webref>
-project.
-</p>
-
-<p>When you initially open this dialogue you will see a panel
-with a button at the top marked <label>Log In</label>.
-Hit this, fill in your AstroGrid accont details and hit the
-<label>OK</label> button.  If your log in is successful, 
-you will see a tree-like representation of the files in your
-MySpace area in the window, which you can navigate in the usual
-way by clicking on the handles of directory nodes to open or close them.
-Select the file you want to load, ensure that the <label>Format</label>
-selector is set correctly, and hit <label>OK</label> to load the table.
-</p>
-
-<p>If you want to log out of MySpace, you can hit the <label>Log Out</label>
-button at the top of the window.
-</p>
-
-<p>The current implementation of MySpace spews a lot of text to
-standard output when any of this is going on.
-</p>
-
-<p>Note that this window requires certain optional 
-components of the TOPCAT installation,
-and will not be available if you have the topcat-lite configuration.
-</p>
-
-</subsubsect>
-
 
 <subsubsect id="demoData">
 <subhead><title>Example Tables</title></subhead>
@@ -5104,12 +5136,12 @@ real data to hand.
 
 </subsect>
 
-<subsect id="StarTableSaver">
+<subsect id="SaveQueryWindow">
 <subhead><title>Save Window</title></subhead>
 
 <figure>
 <caption><px>Save Window</px></caption>
-<figureimage src="&FIG.StarTableSaver;"/>
+<figureimage src="&FIG.SaveQueryWindow;"/>
 </figure>
 
 <p>The Save Window is used to write tables out,
@@ -5120,16 +5152,18 @@ written at any time; what is written is the
 <ref id="apparent">Apparent Table</ref> corresponding to the currently
 selected table, which takes into account any modifications you have
 made to its data or appearance this session.
-<ref id="subsets">Row Subsets</ref> 
+The current <label>Row Subset</label> and <label>Row Order</label>
+are displayed in this window as a reminder of what you're about to
+save; if you modify the values in these selectors you will be
+modifying the Apparent Table in the usual way.
+</p>
+
+<p>Any <ref id="subsets">Row Subsets</ref> 
 which have been defined on the table in the current session
 will not be saved themselves, but you can save information about
 subset membership by creating new boolean columns based on subsets
 using the "To Column" button (&IMG.TO_COLUMN;) from the
 <ref id="SubsetWindow">Subsets Window</ref>.
-</p>
-
-<p>The Save Table window invites you to specify a format and
-a location for the table to be written.
 </p>
 
 <p>You can use the <label>Table Output Format</label>
@@ -5148,8 +5182,9 @@ which are described in the following sections:
 <ul>
 <li>Type in the location directly in the 
     <ref id="saveString" plaintextref="yes">Output Location field</ref></li>
-<li>Use the <label>Browse files</label> button to get a
-    <ref id="JFileChooserSave" plaintextref="yes">file browser</ref></li>
+<li>Use the <label>Filestore Browser</label> button to get a
+    <ref id="FilestoreTableSaveDialog" plaintextref="yes">browser</ref>
+    that shows you local and remote files</li>
 <li>Use the <label>SQL table</label> button to get the 
     <ref id="SQLWriteDialog" plaintextref="yes">SQL Output Dialogue</ref></li>
 </ul>
@@ -5168,7 +5203,7 @@ yourself once they have been written).
 </p>
 
 <p>If the table is large, a progress bar indicating how near the
-save is to completion will appear in a popup window.
+save is to completion will appear.
 It is not advisable to edit the table during a save operation.
 </p>
 
@@ -5195,17 +5230,17 @@ write to, but could in principle be a URL or a SQL specifier.
 
 </subsubsect>
 
-<subsubsect id="JFileChooserSave">
-<subhead><title>File Browser</title></subhead>
+<subsubsect id="FilestoreTableSaveDialog">
+<subhead><title>Filestore Browser</title></subhead>
 
 <figure>
-<caption><px>File Browser for table saving</px></caption>
-<figureimage src="&FIG.JFileChooserSave;"/>
+<caption><px>Filestore Browser for table saving</px></caption>
+<figureimage src="&FIG.FilestoreTableSaveDialog;"/>
 </figure>
 
-<p>By clicking the <label>Browse Files</label> button in the
+<p>By clicking the <label>Browse Filestore</label> button in the
 <label>Save Table</label> window,
-you can obtain a file browser which will display the
+you can obtain a browser which will display the
 files in a given directory.
 </p>
 
@@ -5216,8 +5251,13 @@ or navigating the file system by clicking the up-directory button
 or double-clicking on displayed directories.
 </p>
 
+<p>The browser can display files in remote filestores such as on
+MySpace or SRB servers; see the section on the load filestore
+browser (<ref id="FilestoreTableLoadDialog"/>) for details.
+</p>
+
 <p>To save to an existing file, select the file name and click the
-<label>Save</label> button at the bottom; this will overwrite that file.
+<label>OK</label> button at the bottom; this will overwrite that file.
 To save to a new file, type it into the <label>File Name</label> field;
 this will save the table under that name into the directory which is displayed.
 You can (re)set the format in which the file will be written using
