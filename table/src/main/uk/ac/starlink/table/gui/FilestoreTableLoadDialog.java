@@ -14,6 +14,7 @@ import uk.ac.starlink.connect.Node;
 import uk.ac.starlink.connect.FilestoreChooser;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Table load dialogue based on a FilestoreChooser.
@@ -41,7 +42,7 @@ public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
         formatSelector_ = new JComboBox();
         JComponent formatBox = Box.createHorizontalBox();
         formatBox.add( new JLabel( "Table Format: " ) );
-        formatBox.add( formatSelector_ );
+        formatBox.add( new ShrinkWrapper( formatSelector_ ) );
         formatBox.add( Box.createHorizontalGlue() );
         formatBox.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         add( formatBox, BorderLayout.SOUTH );

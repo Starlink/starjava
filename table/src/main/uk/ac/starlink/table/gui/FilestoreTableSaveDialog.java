@@ -27,6 +27,7 @@ import uk.ac.starlink.connect.Node;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Save dialogue which uses a {@link uk.ac.starlink.connect.FilestoreChooser}.
@@ -152,7 +153,7 @@ class FilestoreTableSaveDialog implements TableSaveDialog {
 
             JComponent formatBox = Box.createHorizontalBox();
             formatBox.add( new JLabel( "Output Format: " ) );
-            formatBox.add( new JComboBox( formatModel ) );
+            formatBox.add( new ShrinkWrapper( new JComboBox( formatModel ) ) );
             formatBox.add( Box.createHorizontalGlue() );
 
             JComponent controlBox = Box.createHorizontalBox();
