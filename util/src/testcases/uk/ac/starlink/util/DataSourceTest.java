@@ -50,12 +50,6 @@ public class DataSourceTest extends TestCase {
             new Bzip2DataSource( lo ),
             new Bzip2DataSource( hi ),
         };
-        // try {
-        //  outputTestStreams( new File( "/mbt/data/treeview/compress" ) );
-        // }
-        // catch ( IOException e ) {
-        //     // just diagnostic - doesn't matter
-        // }
     }
 
     public void testData() throws IOException {
