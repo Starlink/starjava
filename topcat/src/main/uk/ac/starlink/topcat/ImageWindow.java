@@ -1,15 +1,19 @@
 package uk.ac.starlink.topcat;
 
+import edu.jhu.pha.sdss.fits.imageio.FITSReaderSpi;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import javax.imageio.ImageIO;
+import javax.imageio.spi.IIORegistry;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -29,6 +33,11 @@ import uk.ac.starlink.util.DataSource;
 public class ImageWindow extends AuxWindow {
 
     JLabel label_;
+
+    static {
+        IIORegistry.getDefaultInstance()
+                   .registerServiceProvider( new FITSReaderSpi() );
+    }
 
     /**
      * Constructs a new image window.
@@ -72,32 +81,20 @@ public class ImageWindow extends AuxWindow {
          * up running out of memory if you view a lot of images.
          * We get more control doing it like this. */
         new Thread( "Image Loader(" + location + ")" ) {
+            Image im;
             public void run() {
                 byte[] buf;
                 String txt;
                 try {
                     DataSource datsrc = DataSource.makeDataSource( location );
-                    InputStream istrm = 
-                        new BufferedInputStream( datsrc.getInputStream() );
-                    ByteArrayOutputStream bufstrm = new ByteArrayOutputStream();
-                    OutputStream ostrm = new BufferedOutputStream( bufstrm );
-                    try {
-                        for ( int b; ( b = istrm.read() ) >= 0; ) {
-                            ostrm.write( b );
-                        }
-                    }
-                    finally {
-                        istrm.close();
-                        ostrm.close();
-                    }
-                    buf = bufstrm.toByteArray(); 
+                    im = ImageIO.read( datsrc.getInputStream() );
                     txt = null;
                 }
                 catch ( IOException e ) {
-                    buf = null;
+                    im = null;
                     txt = "Can't load image: " + e.getMessage();
                 }
-                final Icon icon = buf == null ? null : new ImageIcon( buf );
+                final Icon icon = im == null ? null : new ImageIcon( im );
                 final String text = txt;
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {

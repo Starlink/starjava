@@ -10,7 +10,7 @@ V1.2.
 V1.3.
  - Rewrote plotting, now much faster, more flexible, more scaleable.  
  - Added blob-selection of subsets.
- - You can highlight a row using the data window the plot window.
+ - You can highlight a row using the data window or the plot window.
  - Linear regression lines plotted on linear or log graphs 
  - Linear regression coefficients available in popup window
  - New functions ln() and log10() available for algebraic expressions.
@@ -51,3 +51,5 @@ V1.3.
  - Can now optionally specify input format (command line or load window).
  - Improved rendering of numbers in data window (esp. Floats)
  - Improved column width detection in data window.
+ - RA/Dec columns once specified are used elsewhere.
+ - Simple (non-JAI,SoG) image display for GIF, JPEG, PNG, FITS files.
