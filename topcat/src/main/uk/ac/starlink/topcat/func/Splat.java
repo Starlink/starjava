@@ -117,7 +117,13 @@ public class Splat {
                         SpecData spec = (SpecData) splatSpectra_.get( loc );
                         if ( spec != null ) {
                             msgs[ i ] =  loc;
-                            specGroup.add( spec );
+                            try {
+                                specGroup.add( spec );
+                            }
+                            catch ( SplatException e ) {
+                                splatSpectra_.put( loc, null );
+                                msgs[ i ] = "<Error: " + e.getMessage() + ">";
+                            }
                         }
                         else {
                             msgs[ i ] = "<No data>";
