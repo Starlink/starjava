@@ -17,6 +17,7 @@ import uk.ac.starlink.table.ValueInfo;
 public class PlasticStarTable extends ColumnStarTable {
 
     private long nrow;
+    private final StarTable baseTable;
 
     public static final ValueInfo COLID_INFO = 
         new DefaultValueInfo( "$ID", String.class, "Unique column ID" );
@@ -30,6 +31,7 @@ public class PlasticStarTable extends ColumnStarTable {
      * @param  baseTable  the table to initialise this one from
      */
     public PlasticStarTable( final StarTable baseTable ) {
+        this.baseTable = baseTable;
 
         /* Ensure that we have a random access table to use. */
         if ( ! baseTable.isRandom() ) {
@@ -77,6 +79,15 @@ public class PlasticStarTable extends ColumnStarTable {
         coldata.getColumnInfo()
                .setAuxDatum( new DescribedValue( COLID_INFO, colid ) );
         super.setColumn( icol, coldata );
+    }
+
+    /**
+     * Returns the StarTable table on which this PlasticStarTable is based.
+     *
+     * @return  base table
+     */
+    public StarTable getBaseTable() {
+        return baseTable;
     }
 }
 
