@@ -1,0 +1,128 @@
+#!/bin/sh
+
+#+
+# Name:
+#    deblend
+
+# Purpose:
+#    Measure spectral lines by fitting a composite model
+
+#  Type of Module:
+#     Shell script.
+
+# Usage:
+#    deblend spectrum configuration_file [initial_model_spectrum]
+#            [final_model_spectrum] [prefix_component_spectra]
+
+# Description:
+#    Deblend a number of overlapping spectral lines by fitting
+#    a composite model made of known line profiles to data using
+#    a non-linear minimisation.
+#
+#    The spectrum can be in any format supported by SPLAT (NDF, TEXT
+#    of FITS image) and the configuration file describes the composite model
+#    that will be fitted. Note that the spectrum should be background
+#    subtracted.
+#
+#    The format of the configuration file is line-based with each line
+#    representing a component and having the following format:
+#
+#       l|g|v scale t|f centre t|f sigma|width|gwidth t|f [lwidth] t|f
+#
+#    where "l" means a Lorentzian, "g" a Gaussian and "v" a Voigt profile.
+#    You are free to use any combination of profiles.
+#
+#    The "scale" is the height of the line, "centre" the central position
+#    (as a wavelength) and "sigma|width|gwidth" the width according to the
+#    line type. The "lwidth" value is needed for Voigt profiles. The "t|f"
+#    strings indicate if the preceeding value is to be fixed or allowed to
+#    float during the minimisation.
+#
+#    Example:
+#
+#       l 10000 f 6500 f 5 f
+#       l  5000 f 6510 f 3 f
+#       l  1000 f 6520 f 2 f
+#
+#    Indicates a blend of three Lorentzian profiles should be fitted.
+#    All parameters are floating and will be optmised during the minimisation.
+
+# Arguments:
+#    spectrum
+#       The spectrum containing the blend to be fitted. Note that
+#       the fit will be made over the whole spectrum so you should probably
+#       extract a region around the blend.
+#    configuration_file
+#       The file that describes the initial composite model that will be
+#       fitted to the spectrum.
+#    initial_model_spectrum
+#       Optional name for the initial composite model stored as a spectrum.
+#    final_model_spectrum
+#       Optional name for the composite model that has been fitted to the
+#       spectrum stored as a spectrum.
+#    prefix_component_spectra
+#       Optional prefix for spectra created to contain each of the
+#       components. The output format will be a text file.
+
+# Output files:
+#    Other than the files described above you will also get a file 
+#    "result.config" that describes the fitted model as a configuration file
+#    suitable for passing back to this script. A human readable file 
+#    "result.log" will also be produced by describes the measurables of the
+#    fit.
+
+# Copyright:
+#    Copyright (C) 2002 Central Laboratory of the Research Councils
+
+# Authors:
+#    PWD: P.W. Draper (Starlink, Durham University)
+#    {enter_new_authors_here}
+
+# History:
+#    05-FEB-2004 (PWD):
+#       Original version.
+#    {enter_further_changes_here}
+
+#-
+
+#  Locate this script or SPLAT_DIR to find our jar files etc.
+if test -z "$SPLAT_DIR"; then
+   SPLAT_DIR=`dirname $0`
+fi
+
+# Set the amount of memory that we use for the heap. Increase this
+# if you start getting out of memory errors. Decrease it for smaller 
+# footprint machines.
+if test -z "$SPLAT_MAXMEM"; then
+   SPLAT_MAXMEM=128m
+fi
+
+# If NDF format conversion if switched on them pass this information into 
+# SPLAT.
+defines=""
+if test ! -z "$NDF_FORMATS_IN"; then
+   defines="-Dndf.formats.in=$NDF_FORMATS_IN"
+fi
+
+#  Locate the application jar file. This is relative to this script or
+#  SPLAT_DIR.
+appjar="$SPLAT_DIR/../../lib/splat/splat.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate the SPLAT application. Please define SPLAT_DIR"
+   exit
+fi
+
+#  Locate the "starjava" command. This should be in ".." or on the 
+#  PATH. "starjava" also defines the LD_LIBRARY_PATH to locate the
+#  SPLAT shareable library, so it's absence is critical.
+if test -f "$SPLAT_DIR/../starjava"; then
+   starjava="$SPLAT_DIR/../starjava"
+else
+   starjava="starjava"
+fi
+
+# Run up the application. Uses the JVM located by the starjava
+# script
+$starjava -mx$SPLAT_MAXMEM $defines -classpath $appjar \
+    uk.ac.starlink.splat.util.CmpFitter ${1+"$@"} 
+exit
