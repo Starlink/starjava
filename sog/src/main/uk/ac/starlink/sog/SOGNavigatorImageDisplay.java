@@ -663,10 +663,8 @@ public class SOGNavigatorImageDisplay
                                      int w, int h, int band )
     {
         if ( hdxImage == null ) {
-            System.out.println( "not HDX image" );
             return super._getPixelValue( im, ix, iy, w, h, band );
         }
-        System.out.println( "HDX image" );
 
         // Handle HDX I/O optimizations
         int subsample = hdxImage.getSubsample();
