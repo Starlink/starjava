@@ -266,4 +266,8 @@ public class DefaultArrayAccess extends DefaultArrayDescription
         }
     }
 
+    public String toString() {
+        return super.toString() + " impl={ " + impl.toString() + " }";
+    }
+
 }
