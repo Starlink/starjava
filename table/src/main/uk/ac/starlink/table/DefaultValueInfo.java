@@ -25,7 +25,7 @@ public class DefaultValueInfo implements ValueInfo {
     private String ucd = null;
     private String description = "";
     private Class contentClass = Object.class;
-    private boolean isNullable;
+    private boolean isNullable = true;
     private int[] shape = new int[] { -1 };
     private int elementSize = -1;
     private TableCellRenderer cellRenderer;

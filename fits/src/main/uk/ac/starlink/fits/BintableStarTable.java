@@ -71,8 +71,6 @@ public abstract class BintableStarTable extends AbstractStarTable {
         tnullInfo, tscalInfo, tzeroInfo, tdispInfo, tbcolInfo, tformInfo,
     } );
 
-
-
     /**
      * Constructs a StarTable from a given random access stream.
      *
@@ -191,7 +189,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
                     long lrow = -1L;
                     Object[] row = BEFORE_START;
                     public boolean hasNext() {
-                        return lrow < nrow;
+                        return lrow < nrow - 1;
                     }
                     public void next() throws IOException {
                         if ( hasNext() ) {
@@ -400,6 +398,13 @@ public abstract class BintableStarTable extends AbstractStarTable {
                     makeColumnReader( type, count, scale, zero,
                                       hasBlank, blank, dims );
                 colReaders[ icol ] = reader;
+
+                /* Adjust nullability of strings - they can always be 
+                 * null, since an empty string (all spaces) is interpreted
+                 * as null. */
+                if ( reader.getContentClass().equals( String.class ) ) {
+                    cinfo.setNullable( true );
+                }
 
                 /* Do additional column info configuration as directed 
                  * by the reader. */
