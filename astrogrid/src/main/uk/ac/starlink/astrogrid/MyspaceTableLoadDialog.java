@@ -14,7 +14,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.astrogrid.store.tree.Node;
-import org.astrogrid.store.tree.TreeClientFactory;
+import org.astrogrid.store.tree.TreeClient;
+import org.apache.axis.client.Service;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableFormatException;
@@ -38,7 +39,7 @@ public class MyspaceTableLoadDialog extends MyspaceSelector
     private TableConsumer eater_;
     private ComboBoxModel dummyModel_;
     private Boolean success_;
-    private Boolean isEnabled_;
+    private static Boolean isEnabled_;
 
     private static Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.astrogrid" );
@@ -68,21 +69,7 @@ public class MyspaceTableLoadDialog extends MyspaceSelector
 
     public boolean isEnabled() {
         if ( isEnabled_ == null ) {
-            String msg;
-            String endpointProperty = "org.astrogrid.registry.query.endpoint";
-            try {
-                String endpoint = System.getProperty( endpointProperty );
-                if ( endpoint == null ) {
-                    msg = "Property " + endpointProperty + " undefined";
-                }
-                else {
-                    new TreeClientFactory().createClient();
-                    msg = null;
-                }
-            }
-            catch ( Throwable th ) {
-                msg = th.toString();
-            }
+            String msg = getFailureMessage();
             if ( msg != null ) {
                 logger_.info( msg + " - no MySpace" );
             }
@@ -170,5 +157,37 @@ public class MyspaceTableLoadDialog extends MyspaceSelector
      */
     private String getHandler() {
         return (String) formatComboBox_.getSelectedItem();
+    }
+
+    /**
+     * Returns a string indicating why MySpace access isn't going to work.
+     * If the return is null, we're ready to go!
+     *
+     * @return  failure message or null
+     */
+    private static String getFailureMessage() {
+        String endpointProperty = "org.astrogrid.registry.query.endpoint";
+        try {
+            String endPoint = System.getProperty( endpointProperty );
+            if ( endPoint == null ) {
+                return "Property " + endpointProperty + " undefined";
+            }
+            try {
+                Service.class.getName();
+            }
+            catch ( Throwable th ) {
+                return "AXIS not on path";
+            }
+            try {
+                TreeClient.class.getName();
+            }
+            catch ( Throwable th ) {
+                return "Astrogrid CDK not on path";
+            }
+        }
+        catch ( Throwable th2 ) {
+            return th2.toString();
+        }
+        return null;
     }
 }
