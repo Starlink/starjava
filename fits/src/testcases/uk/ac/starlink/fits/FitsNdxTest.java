@@ -46,7 +46,6 @@ public class FitsNdxTest extends TestCase {
 
     public void setUp() {
         tmpdir = System.getProperty( "java.io.tmpdir" );
-	System.out.println( "tmpdir = " + tmpdir );
     }
 
     public void testHandler() throws TransformerException, IOException,
