@@ -133,8 +133,8 @@ public class XAstReader {
                     if ( name.equals( attributeName ) ) {
                         String attName = subel.getAttribute( nameName );
                         String attVal = subel.getAttribute( valueName );
-                        if ( Boolean
-                            .getBoolean( subel.getAttribute( quotedName ) ) ) {
+                        String quoteVal = subel.getAttribute( quotedName );
+                        if ( Boolean.valueOf( quoteVal ).booleanValue() ) {
                             attVal = '"' + attVal + '"';
                         }
                         appendLine( attName + " = " + attVal );
