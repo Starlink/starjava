@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -266,27 +267,34 @@ public class Driver {
 
         /* Load the requested tables. */
         for ( int i = 0; i < nload; i++ ) {
-            String name = (String) names.get( i );
+            final String name = (String) names.get( i );
             String hand = (String) handlers.get( i );
             try {
                 StarTable startab = tabfact.makeStarTable( name, hand );
                 addTableLater( tabfact.randomTable( startab ), name );
             }
             catch ( final Throwable e ) {
-                final String msg = "Can't open table \"" + name + "\"";
-                System.err.println( msg );
+                System.err.println( e.getMessage() );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         if ( e instanceof TableFormatException ) {
-                            String[] lines = { msg, e.getMessage() };
                             JOptionPane
-                           .showMessageDialog( getControlWindow(), lines, 
+                           .showMessageDialog( getControlWindow(),
+                                               e.getMessage(),
                                                "Open Error",
                                                JOptionPane.ERROR_MESSAGE );
- 
+                        }
+                        else if ( e instanceof FileNotFoundException ) {
+                            JOptionPane
+                           .showMessageDialog( getControlWindow(),
+                                               "No such file: " + name, 
+                                               "Open Error",
+                                               JOptionPane.ERROR_MESSAGE );
                         }
                         else {
-                            ErrorDialog.showError( e, msg, getControlWindow() );
+                            ErrorDialog.showError( e,
+                                                   "Can't open table " + name,
+                                                   getControlWindow() );
                         }
                     }
                 } );
