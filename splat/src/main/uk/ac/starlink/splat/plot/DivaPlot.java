@@ -780,13 +780,12 @@ public class DivaPlot
                     oldAstPlot = (Plot) oldAstPlot.clone();
                 }
                 
-                //  Create an astPlot for the graphics, this is
-                //  matched to the component size and is how we get an
-                //  apparent rescale of drawing. So that we get linear
-                //  axis 1 coordinates we must choose the current
-                //  frame as the base frame (so that the mapping from
-                //  graphics to physical is linear). We also add any
-                //  AST plotting configuration options.
+                //  Create an astPlot for the graphics, this is matched to the
+                //  component size and is how we get an apparent rescale of
+                //  drawing. So that we get linear axis 1 coordinates we must
+                //  choose the current frame as the base frame (so that the
+                //  mapping from graphics to physical is linear). We also add
+                //  any AST plotting configuration options.
 
                 //  TODO: stop using ASTJ class.
                 FrameSet astref = astJ.getRef();
@@ -802,12 +801,12 @@ public class DivaPlot
                                       config.getAst() );
                     }
                     else {
-                        astJ.astPlot( this, baseBox, 0.05, 0.00, 
+                        astJ.astPlot( this, baseBox, 0.05, 0.03, 
                                       config.getAst() );
                     }
                 }
                 else {
-                    astJ.astPlot( this, baseBox, 0.05, 0.0, "" );
+                    astJ.astPlot( this, baseBox, 0.05, 0.03, "" );
                 }
 
                 // The plot must use our Grf implementation.
