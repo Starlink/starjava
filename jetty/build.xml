@@ -91,9 +91,9 @@
   <property name="dist.lib" value="${dist.dir}/lib"/>
   <property name="dist.docs" value="${dist.dir}/docs"/>
 
-  <property name="dist.bin.pkg" value="${dist.dir}/bin/${name}"/>
-  <property name="dist.lib.pkg" value="${dist.dir}/lib/${name}"/>
-  <property name="dist.docs.pkg" value="${dist.dir}/docs/${name}"/>
+  <property name="dist.bin.pkg" value="${dist.bin}/${name}"/>
+  <property name="dist.lib.pkg" value="${dist.lib}/${name}"/>
+  <property name="dist.docs.pkg" value="${dist.docs}/${name}"/>
 
   <!-- Version for zipped/tarred export files. -->
   <property name="dist.version" value="${name}-${version}"/>
