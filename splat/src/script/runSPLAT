@@ -89,8 +89,8 @@ defines="$defines \
 #  Locate the "starjava" command. This should be in ".." or on the 
 #  PATH. "starjava" also defines the LD_LIBRARY_PATH to locate the
 #  SPLAT shareable library, so it's absence is critical.
-if test -f "$SOG_DIR/../starjava"; then
-   starjava="$SOG_DIR/../starjava"
+if test -f "$SPLAT_DIR/../starjava"; then
+   starjava="$SPLAT_DIR/../starjava"
 else
    starjava="starjava"
 fi
