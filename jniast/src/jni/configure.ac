@@ -27,14 +27,14 @@ AC_PROG_CC
 
 dnl    Other options here, such as
 STAR_CNF_COMPATIBLE_SYMBOLS
-STAR_FC_LIBRARY_LDFLAGS
+AC_FC_LIBRARY_LDFLAGS
 
 dnl    Declare the build and use dependencies for this package
 STAR_DECLARE_DEPENDENCIES(build, [ast sla])
 
 dnl    If you wish to configure extra files, you can add them to this
 dnl    declaration.
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile component.xml])
 
 dnl    This is the bit that does the actual work
 AC_OUTPUT

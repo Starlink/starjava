@@ -9,6 +9,13 @@
 #     build system. Really depends on local directory containing a starconf'd
 #     system  in the "dist" state (this has at least a configure script and
 #     Makefile.in). If this isn't true will attempt to run "bootstrap" first.
+#
+#     The location of the AST & SLA libraries is determined by the STARLINK
+#     environment variable (defaults to what was baked into the configure
+#     script when bootstrap was last run, should really make that /star) and
+#     and where to install the library is determined by TARGET_LIB (again this
+#     defaults to the standard place for installing libraries baked into the
+#     configure script).
 
 #  Authors:
 #     PWD: Peter W. Draper (Starlink, Durham University)
@@ -20,6 +27,12 @@
 #     {enter_further_changes_here}
 #-
 
+#  Never want INSTALL preset.
+export INSTALL
+unset INSTALL
+
+#  Look for configure script, if not found try to create it by running
+#  bootstrap.
 if ! test -f "configure"; then
     echo "Failed to locate dist build system - attempting bootstrap"
     if  test -f "bootstrap"; then
@@ -31,11 +44,28 @@ if ! test -f "configure"; then
     fi
 fi
 
-echo "./configure --prefix=${TARGET_LIB}"
-./configure --prefix=${TARGET_LIB}
+#  Run configure, looking for standard libraries in $STARLINK, or the
+#  configure script default position.
+if test -z "$STARLINK"; then
+   echo "./configure"
+   ./configure
+else
+   echo "./configure --prefix=${STARLINK}"
+   ./configure --prefix=${STARLINK}
+fi
+
+#  Create the shareable dl-loadable library.
 echo "make"
 make
-echo "make install"
-make install
+
+#  Install the library in TARGET_LIB (use libdir to avoid getting an extra
+#  /lib on prefix) or the standard place.
+if test -z "$TARGET_LIB"; then
+   echo "make install"
+   make install
+else
+   echo "make libdir=${TARGET_LIB} install"
+   make prefix=${TARGET_LIB} libdir=${TARGET_LIB} install
+fi
 
 exit

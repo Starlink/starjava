@@ -5920,7 +5920,7 @@ AC_MSG_RESULT([$SED])
 ])
 
 # Starlink M4 macros for autoconf
-# original starconf.m4, installed by starconf 1.1, rnum=1001000
+# original starconf.m4, installed by starconf 1.2, rnum=1002000
 # DO NOT EDIT: it may be overwritten when starconf is next run
 
 
@@ -5928,9 +5928,10 @@ AC_MSG_RESULT([$SED])
 # -------------------------
 # Defaults for Starlink configure.ac files.  The optional OPTIONS
 # argument holds a space-separated list of option keywords, of which
-# the only one at present is `per-package-dirs', which causes
+# the only ones at present are `per-package-dirs', which causes
 # applications and help to be installed in a package-specific
-# directory.
+# directory, and 'docs-only', which indicates that the component contains
+# only documentation.
 #
 # Certain features of this macro are documented in SSN/78, in particular
 #   - Sets STARLINK
@@ -5941,24 +5942,27 @@ AC_MSG_RESULT([$SED])
 # the earlier behaviour.  Everything else is, in principle, private
 # (not that that's going to stop folk).
 AC_DEFUN([STAR_DEFAULTS],
-[#
-_star_per_package_dirs=false
-for opt in $1 NONE
-do
-    case $opt in
-        per-package-dirs)
-            _star_per_package_dirs=:
-            ;;
-        NONE)
-            ;;
-        *)
-            echo "Unrecognised [STAR_DEFAULTS] option $1 ignored"
-            ;;
-    esac
-done
+[##
+m4_ifval([$1],
+         [AC_FOREACH([Option], [$1],
+                     [m4_case(Option,
+                              [per-package-dirs], [_star_per_package_dirs=:],
+                              [docs-only], [m4_define([_poss_STAR_RESTFP_FIX],
+                                                      [])dnl
+                                           _star_docs_only=:],
+                              [AC_FATAL([$0: unrecognised option $1])])
+                      ])],
+         [])
+m4_ifdef([_poss_STAR_RESTFP_FIX],
+         [],
+         [m4_define([_poss_STAR_RESTFP_FIX], [_STAR_RESTFP_FIX])])
+
+test -n "$_star_per_package_dirs" || _star_per_package_dirs=false
+test -n "$_star_docs_only"        || _star_docs_only=false
+
 
 # Ensure that STARLINK has a value, defaulting to
-# /loc/pwdc/pdraper/starlink_cvs/build.  Note that this directory may be
+# /home/pdraper/starlink_cvs/build.  Note that this directory may be
 # different from /star, and reflects the value of
 # STARCONF_DEFAULT_STARLINK that the `starconf' package was configured
 # with before its installation. 
@@ -5972,7 +5976,7 @@ done
 # is possible to make a test version of a new package, using tools
 # from an old installation, but installing in a new place.
 #
-# However, we install software in /loc/pwdc/pdraper/starlink_cvs/build by
+# However, we install software in /home/pdraper/starlink_cvs/build by
 # default.  This is so even if $STARLINK and STARCONF_DEFAULT_STARLINK
 # are different, because in this case we are planning to use a
 # previous installation in $STARLINK or $STARCONF_DEFAULT_STARLINK,
@@ -5987,9 +5991,9 @@ done
 # tools in one component before that component has been build and
 # installed. 
 
-AC_PREFIX_DEFAULT(/loc/pwdc/pdraper/starlink_cvs/build)dnl
+AC_PREFIX_DEFAULT(/home/pdraper/starlink_cvs/build)dnl
 
-test -n "$STARLINK" || STARLINK=/loc/pwdc/pdraper/starlink_cvs/build
+test -n "$STARLINK" || STARLINK=/home/pdraper/starlink_cvs/build
 
 # Handle the --with-starlink option.  If --with-starlink is present
 # with no argument (the default), we do nothing as this simply
@@ -6001,7 +6005,7 @@ test -n "$STARLINK" || STARLINK=/loc/pwdc/pdraper/starlink_cvs/build
 # this case, the variable STARLINK is unset.
 AC_ARG_WITH(starlink,
             AS_HELP_STRING([--with-starlink],
-                           [Starlink tree to use (default ${STARLINK:=/loc/pwdc/pdraper/starlink_cvs/build})]),
+                           [Starlink tree to use (default ${STARLINK:=/home/pdraper/starlink_cvs/build})]),
             [if test -z "$withval" -o "$withval" = yes; then
                  : nothing needs to be done
              elif test "X$withval" = Xno; then
@@ -6023,8 +6027,7 @@ _star_build_docs=:
 AC_ARG_WITH(stardocs,
             AS_HELP_STRING([--without-stardocs],
                            [Do not install built documentation (default --with)]),
-            [echo "with-stardocs: <$withval>"
-             if test -z "$withval"; then
+            [if test -z "$withval"; then
                  _star_build_docs=: # default
              elif test "X$withval" = Xno; then
                  _star_build_docs=false
@@ -6034,6 +6037,14 @@ AC_ARG_WITH(stardocs,
                  AC_MSG_WARN([bad arg to --with-stardocs: using yes])
                  _star_build_docs=:
              fi])
+
+if $_star_docs_only; then
+    if $_star_build_docs; then
+        : OK
+    else
+        AC_MSG_WARN([Building without documentation in a docs-only directory])
+    fi
+fi
 
 # Everything depends on where /star is.  Declare STARLINK as a
 # `precious variable'.  Amongst other things, this will make
@@ -6053,17 +6064,19 @@ AC_SUBST(STARLINK)
 # to generate these.  However, we maintain FFLAGS also, so that we
 # allow both.  Avoid doing anything if $STARLINK was unset above.
 if test -n "$STARLINK"; then
-    if test "$STARLINK" != "/loc/pwdc/pdraper/starlink_cvs/build"; then
-        FCFLAGS="$FCFLAGS -I/loc/pwdc/pdraper/starlink_cvs/build/include"
-        FFLAGS="$FFLAGS -I/loc/pwdc/pdraper/starlink_cvs/build/include"
-        CFLAGS="$CFLAGS -I/loc/pwdc/pdraper/starlink_cvs/build/include"
-        LDFLAGS="$LDFLAGS -L/loc/pwdc/pdraper/starlink_cvs/build/lib"
+    if test "$STARLINK" != "/home/pdraper/starlink_cvs/build"; then
+        FCFLAGS="$FCFLAGS -I/home/pdraper/starlink_cvs/build/include"
+        FFLAGS="$FFLAGS -I/home/pdraper/starlink_cvs/build/include"
+        CFLAGS="$CFLAGS -I/home/pdraper/starlink_cvs/build/include"
+        LDFLAGS="$LDFLAGS -L/home/pdraper/starlink_cvs/build/lib"
     fi
     FCFLAGS="$FCFLAGS -I$STARLINK/include"
     FFLAGS="$FFLAGS -I$STARLINK/include"
     CFLAGS="$CFLAGS -I$STARLINK/include"
     LDFLAGS="$LDFLAGS -L$STARLINK/lib"
 fi
+
+_poss_STAR_RESTFP_FIX
 
 # Installation directory options.  This must match the variables handled
 # by _STAR_EXTRADIR_COMMON
@@ -6216,6 +6229,8 @@ test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
 AC_DEFUN([STAR_MESSGEN],
          [#
           m4_ifval([$1], [], [AC_FATAL([$0: called with no message file])])dnl
+          $_star_docs_only &&
+              AC_MSG_ERROR([STAR[]_MESSGEN in docs-only directory])
           AC_FOREACH([MsgFileName], [$1],
                      [m4_define([MsgFacCode],
                                 m4_normalize(esyscmd([sed -n '/\.FACILITY/{s/.*, *\([0-9]*\).*/\1/p;q;}' ]MsgFileName)))dnl
@@ -6288,16 +6303,6 @@ done
 ])# STAR_PREDIST_SOURCES
 
 
-# STAR_HAVE_FC_OPEN_READONLY
-# ---------------------------
-#
-# Tests if the Fortran compiler supports the READONLY option on the
-# OPEN command.  If it does, it defines HAVE_FC_OPEN_READONLY to 1.
-AU_DEFUN([STAR_HAVE_FC_OPEN_READONLY],
-         [AC_FC_OPEN_SPECIFIERS(READONLY)],
-         [STAR_HAVE_FC_OPEN_READONLY obsolete -- use AC_FC_OPEN_SPECIFIERS instead])
-
-
 # STAR_CNF_COMPATIBLE_SYMBOLS
 # ---------------------------
 #
@@ -6327,7 +6332,9 @@ AU_DEFUN([STAR_HAVE_FC_OPEN_READONLY],
 # to the end of C symbols.
 #
 AC_DEFUN([STAR_CNF_COMPATIBLE_SYMBOLS],
-         [AC_CACHE_CHECK([how to make Fortran and C play nicely],
+         [$_star_docs_only &&
+              AC_MSG_ERROR([STAR[]_CNF_COMPATIBLE_SYMBOLS in docs-only dir])
+          AC_CACHE_CHECK([how to make Fortran and C play nicely],
                          [star_cv_cnf_compatible_symbols],
                          [AC_REQUIRE([AC_PROG_FC])dnl
                           AC_REQUIRE([AC_PROG_CC])dnl
@@ -6371,35 +6378,6 @@ func_two_();
               FFLAGS="$FFLAGS $star_cv_cnf_compatible_symbols"
           fi
 ])# STAR_CNF_COMPATIBLE_SYMBOLS
-
-
-# STAR_FC_LIBRARY_LDFLAGS
-# -----------------------
-#
-# Wrapper for AC_FC_LIBRARY_LDFLAGS.
-#
-# There's a library problem using gcc under OSX 10.3 (10.3.4 Panther =
-# Darwin 7.4.0), which results in the symbols restFP and saveFP being
-# undefined at link time.  There's a shortage of authoritative
-# explanations, but <http://www.ccp4.ac.uk/problems/mac_4_2.html#29>
-# gives at least one resolution.  It's not clear (to Norman) what the
-# real cause of this is, but it apparently doesn't affect OSX versions
-# before 10.3, and will presumably be fixed in versions soon after
-# this.  The following isn't terribly pretty, and will need maintainance.
-AC_DEFUN([STAR_FC_LIBRARY_LDFLAGS],
-         [AC_FC_LIBRARY_LDFLAGS
-          case $build_os in
-              darwin7*)
-                  if test "$GCC" = yes; then
-                      AC_MSG_NOTICE([Fixing the OSX 10.3 restFP problem with -lcc_dynamic])
-                      FCLIBS="$FCLIBS -lcc_dynamic"
-                  fi
-                  ;;
-              *)
-                  # No library issues
-                  ;;
-          esac
-])# STAR_FC_LIBRARY_LDFLAGS
 
 
 # STAR_PATH_TCLTK([minversion=0], [options=''])
@@ -6525,6 +6503,9 @@ dnl  and Fink on OSX
 
         res="_star_tcldir=$tcldir;"
 
+        # Make the TCL version number available.
+        res="$res TCL_VERSION=\"$TCL_VERSION\";"
+
         # These envs include $TCL_DBGX -- expand this out.
         eval "I=\"$TCL_INCLUDE_SPEC\"; L=\"$TCL_LIB_SPEC\""
         res="$res TCL_CFLAGS=\"$I\"; TCL_LIBS=\"$L\"; TCLSH=\"$tclsh_loc\";"
@@ -6586,6 +6567,8 @@ dnl  and Fink on OSX
         AC_DEFINE(TCL_MISSING, 1,
                   [Define to 1 if no Tcl/Tk libraries can be found])
     fi
+
+    AC_SUBST(TCL_VERSION)
 
     AC_SUBST(TCL_CFLAGS)
     AC_SUBST(TCL_LIBS)
@@ -6788,7 +6771,9 @@ dnl    AC_PATH_PROG(PAX, pax)dnl
 # possibility that the tasks and .ifl files longer have the
 # one-task-per-file relationship they have now.
 AC_DEFUN([STAR_MONOLITHS],
-         [dnl Installation in monoliths.am uses $(LN_S)
+         [$_star_docs_only &&
+             AC_MSG_ERROR([STAR[]_MONOLITHS in docs-only directory])
+          dnl Installation in monoliths.am uses $(LN_S)
           AC_REQUIRE([AC_PROG_LN_S])dnl
 
           # To build monoliths, we need both compifl to build the .ifc
@@ -6970,6 +6955,7 @@ AC_DEFUN([STAR_DECLARE_DEPENDENCIES],
 #
 AC_DEFUN([STAR_PLATFORM_SOURCES],
          [
+$_star_docs_only && AC_MSG_ERROR([STAR_[]PLATFORM_SOURCES in docs-only dir])
 AC_REQUIRE([AC_CANONICAL_BUILD])dnl
 AC_REQUIRE([AC_PROG_LN_S])dnl
 m4_ifval([$1], [], [AC_FATAL([$0: no target-file-list given])])dnl
@@ -7064,6 +7050,129 @@ AC_DEFUN([_STAR_EXTRA_DIST],
     [m4_ifval([$1], [], [AC_FATAL([$0: no argument])])dnl
      STAR_EXTRA_DIST="$STAR_EXTRA_DIST $1"
 ])# _STAR_EXTRA_DIST
+
+
+# _STAR_RESTFP_FIX
+# ----------------
+# Determines if we need to make any library fixes to get things to link 
+# properly.  In fact, there's only a problem on OSX/Darwin, since the
+# GCC installation which provides g77 and the (system) GCC which provides
+# gcc can generate slightly incompatible object code.  The following test
+# is therefore pretty specific to OSX/Darwin.
+#
+# If there are any libraries that need to be added to the path, this adds
+# them to LIBS.  Compare AC_FC_LIBRARY_LDFLAGS.
+#
+# See the thread: http://lists.apple.com/mhonarc/fortran-dev/msg00768.html
+AC_DEFUN([_STAR_RESTFP_FIX],
+   [AC_CACHE_CHECK([whether we need any library fixups],
+       [star_cv_restfp_fixup],
+       [AC_REQUIRE([AC_CANONICAL_BUILD])
+        AC_REQUIRE([AC_PROG_CC])
+        AC_REQUIRE([AC_PROG_FC])
+        if expr $build_os : 'darwin7' >/dev/null; then
+dnl Only affects OSX/Darwin
+            # Following uses undocumented (but probably fairly stable)
+            # autoconf internal variable.
+            if test "$ac_cv_fc_compiler_gnu" = yes; then
+dnl The problem only affects g77/gcc, so we know we're dealing with these below
+                AC_LANG_PUSH(C)
+                rm -f conftest*
+                star_cv_restfp_fixup=unknown
+                AC_LANG_CONFTEST(AC_LANG_PROGRAM([], restFP()))
+                { AC_TRY_COMMAND($CC -o conftest.x -S conftest.c)
+                  test $ac_status = 0
+                } &&
+                sed 's/_restFP/restFP/g' conftest.x>conftest.s &&
+                { AC_TRY_COMMAND($CC -c -o conftest.$ac_objext conftest.s)
+                  test $ac_status = 0
+                } || star_cv_restfp_fixup=broken
+                AC_LANG_POP(C)
+                if test $star_cv_restfp_fixup = broken; then
+                    AC_MSG_WARN([unable to assemble restFP test])
+                else
+                    # Link this with the C compiler
+                    AC_TRY_COMMAND($CC -o conftest conftest.$ac_objext)
+                    _s_cstatus=$ac_status
+                    # Link this with the Fortran compiler
+                    AC_TRY_COMMAND($FC -o conftest conftest.$ac_objext)
+                    if test $_s_cstatus = 0 -a $ac_status = 0; then
+                        # both compilers can compile it
+                        star_cv_restfp_fixup=no
+                    elif test $_s_cstatus != 0 -a $ac_status != 0; then
+                        # neither compiler can compile it
+                        star_cv_restfp_fixup=no
+                    elif test $_s_cstatus = 0; then
+                        # The C compiler can, but the Fortran cannot
+                        star_cv_restfp_fixup=yes
+                    else
+                        # The C compiler can't compile, but the Fortran can.
+                        # Haven't heard of this case!  Don't know what to do.
+                        star_cv_restfp_fixup=broken
+                    fi
+                fi
+                # Don't even try linking with -lcc_dynamic.  It may work, but
+                # will be unpredictable: 
+                # http://lists.apple.com/mhonarc/fortran-dev/msg00769.html
+                if test $star_cv_restfp_fixup = yes; then
+                    AC_TRY_COMMAND($FC -o conftest conftest.$ac_objext -L/usr/lib -lgcc)
+                    if test $ac_status = 0; then
+                        star_cv_restfp_fixup=lgcc
+                    fi
+                fi
+                if test $star_cv_restfp_fixup = yes; then
+                    # ooops
+                    AC_MSG_WARN([unable to solve restFP problem])
+                    star_cv_restfp_fixup=broken
+                fi
+                rm -f conftest*
+            elif test -z "$FC"; then
+                # not g77, and indeed no Fortran at all
+                star_cv_restfp_fixup=nofortran
+            else
+                # There is a Fortran, but it's not g77, so either there's no
+                # problem, or it's a mixed-compiler problem that's harder
+                # than we know how to deal with.  But presumably the user
+                # has worked this out.
+                star_cv_restfp_fixup=no
+            fi
+        else # !Darwin
+            star_cv_restfp_fixup=no
+        fi
+        ])
+   # Define FCLIBS, just as AC_FC_LIBRARY_LDFLAGS does
+   case $star_cv_restfp_fixup in
+     lgcc)
+       LIBS="$LIBS -L/usr/lib -lgcc"
+       ;;
+     nofortran)
+       AC_MSG_NOTICE([No Fortran in path, so presumably no g77/gcc library problems])
+       ;;
+     *) ;;
+   esac
+])# _STAR_RESTFP_FIX
+
+# Obsolete macros
+# ===============
+
+# STAR_HAVE_FC_OPEN_READONLY
+# ---------------------------
+#
+# Tests if the Fortran compiler supports the READONLY option on the
+# OPEN command.  If it does, it defines HAVE_FC_OPEN_READONLY to 1.
+AC_DEFUN([STAR_HAVE_FC_OPEN_READONLY],
+   [AC_FATAL([Macro STAR_HAVE_FC_OPEN_READONLY is obsolete; use AC_FC_OPEN_SPECIFIERS(readonly) instead])])
+
+
+# STAR_FC_LIBRARY_LDFLAGS
+# -----------------------
+#
+# This was once a wrapper for AC_[]FC_LIBRARY_LDFLAGS which added
+# functionality.  That functionality is now incorporated into STAR_[]DEFAULTS,
+# using the helper macro _STAR_[]RESTFP_FIXUP.  Configure.ac files should use
+# use AC_[]FC_LIBRARY_LDFLAGS instead.
+AC_DEFUN([STAR_FC_LIBRARY_LDFLAGS],
+   [AC_FATAL([Macro STAR_FC_LIBRARY_LDFLAGS is obsolete: if necessary, use standard AC_FC_LIBRARY_LDFLAGS instead])])
 
 
 # end of starconf macros

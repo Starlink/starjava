@@ -9,7 +9,9 @@ libjniast_la_SOURCES = \
  $(PRIVATE_INCLUDES) \
  $(C_ROUTINES)
 
-libjniast_la_LIBADD = $(LIBADD) `$(srcdir)/jniast_libraries`
+## If using Fortran version of SLALIB we need @FCLIBS@
+
+libjniast_la_LIBADD = $(LIBADD) `$(srcdir)/jniast_libraries` @FCLIBS@
 
 `$(srcdir)/jniast_libraries`:
 	:

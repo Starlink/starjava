@@ -39,8 +39,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/configure config.guess \
-	config.sub depcomp install-sh ltmain.sh missing
+	$(srcdir)/Makefile.in $(srcdir)/component.xml.in \
+	$(top_srcdir)/configure config.guess config.sub depcomp \
+	install-sh ltmain.sh missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -49,7 +50,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(mkdir_p)
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = component.xml
 am__installdirs = $(DESTDIR)$(libdir)
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
@@ -230,7 +231,7 @@ libjniast_la_SOURCES = \
  $(PRIVATE_INCLUDES) \
  $(C_ROUTINES)
 
-libjniast_la_LIBADD = $(LIBADD) `$(srcdir)/jniast_libraries`
+libjniast_la_LIBADD = $(LIBADD) `$(srcdir)/jniast_libraries` @FCLIBS@
 INCLUDES = $(INCADD)
 libjniast_la_LDFLAGS = -module -avoid-version
 PRIVATE_INCLUDES = err_jniast.h  jniast.h
@@ -309,6 +310,8 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(srcdir) && $(AUTOCONF)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
+component.xml: $(top_builddir)/config.status $(srcdir)/component.xml.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	$(mkdir_p) $(DESTDIR)$(libdir)
@@ -476,6 +479,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
+	$(mkdir_p) $(distdir)/.
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -608,7 +612,33 @@ install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
 
-install: $(REAL_INSTALL)
+# If STAR_MANIFEST_DIR is defined and MANIFEST_FD is _not_, then
+# invoke the install-manifest target, otherwise, do the real install
+# rule.  This means that if this is being invoked from within an
+# install-manifest rule further up the process tree, we don't create
+# another manifest.
+install:  all-am
+	if test -n "$(STAR_MANIFEST_DIR)" -a -z "$$MANIFEST_FD"; then \
+	    $(MAKE) $(AM_MAKEFLAGS) install-manifest; \
+	else \
+	    $(MAKE) $(AM_MAKEFLAGS) $(REAL_INSTALL); \
+	fi
+
+install-manifest:
+	$(mkdir_p) $(DESTDIR)$(STAR_MANIFEST_DIR)
+	MF=$${TMPDIR-/tmp}/manifest-$$$$; rm -f $$MF && exec 5>$$MF && \
+	  echo "<?xml version='1.0'?>" >&5 ; \
+	  echo "<!DOCTYPE manifest SYSTEM 'componentinfo.dtd'>" >&5 ; \
+	  echo "<manifest component='$(PACKAGE)'>" >&5 ; \
+	  echo "<version>$(PACKAGE_VERSION)</version>" >&5 ; \
+	  echo "<files>" >&5 ; \
+	  MANIFEST_FD=5; export MANIFEST_FD; \
+	  $(MAKE) $(AM_MAKEFLAGS) $(REAL_INSTALL) ; \
+	  echo "</files>"                                       >&5; \
+	  echo "</manifest>"                                    >&5; \
+	  exec 5>&-; \
+	  $(INSTALL_DATA) $$MF $(DESTDIR)$(STAR_MANIFEST_DIR)/$(PACKAGE); \
+	  rm -f $$MF
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
@@ -694,12 +724,12 @@ uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 	distuninstallcheck dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-exec \
 	install-exec-am install-info install-info-am \
-	install-libLTLIBRARIES install-man install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-info-am \
-	uninstall-libLTLIBRARIES
+	install-libLTLIBRARIES install-man install-manifest \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags uninstall uninstall-am \
+	uninstall-info-am uninstall-libLTLIBRARIES
 
 
 `$(srcdir)/jniast_libraries`:
