@@ -37,26 +37,26 @@
 #.
 
 #  Development Java
-if test "$STAR_JDK" != ""; then
-   java="$STAR_JDK"
+if test "$STAR_JAVA != ""; then
+   java="$STAR_JAVA"
 else
 
    #  Fall-back Java is on current PATH.
    java="java"
-fi
 
-#  If $STARLINK is defined then try that. Only look for the JRE
-#  version (only need JDK for development).
-if test "$STARLINK" != ""; then
-   if test -r "$STARLINK/java/jrehome"; then
-      java="`cat $STARLINK/java/jrehome`/bin/java"
+   #  If $STARLINK is defined then try that. Only look for the JRE
+   #  version (only need JDK for development).
+   if test "$STARLINK" != ""; then
+      if test -r "$STARLINK/java/jrehome"; then
+         java="`cat $STARLINK/java/jrehome`/bin/java"
+      fi
    fi
-fi
 
-#  If still not changed, look for Java in the standard installation.
-if test "$java" = "java"; then
-   if test -r "/star/java/jrehome"; then
-      java="`cat /star/java/jrehome`/bin/java"
+   #  If still not changed, look for Java in the standard installation.
+   if test "$java" = "java"; then
+      if test -r "/star/java/jrehome"; then
+         java="`cat /star/java/jrehome`/bin/java"
+      fi
    fi
 fi
 
