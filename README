@@ -5,50 +5,47 @@
    Prerequisites
    -------------
 
-First make sure you have a J2SE SDK available. Downloads are available
-from:
+First make sure you have a J2SE SDK available. Downloads are available from:
 
    http://java.sun.com/
 
-This should probably match the version of the JRE distributed by
-Starlink (see the /star/java directory or equivalent). We cannot
-distribute the SDK for licensing reasons.
+Currently all development is performed using version 1.4.x. The current plans
+are to look at moving to 1.5 sometime during 2005. Note we cannot distribute
+the SDK for licensing reasons.
 
-You will also need to have JAI installed as part of the SDK. JAI is
-the "Java Advanced Imaging API" which is currently part of SUNs
-"Desktop Java". The version of JAI being used can be determined from
-the README-jai.txt file in the Starlink JRE package (see the
-/star/java/jre directory).
+You will also need to have JAI installed as part of the SDK. JAI is the "Java
+Advanced Imaging API" which is currently part of SUNs "Desktop Java". The
+version of JAI being used can be determined from the README-jai.txt file in
+the Starlink JRE package (see the /star/java/jre directory).
 
 Now define STAR_JAVA to point at the "java" command of this:
 
    setenv STAR_JAVA /some/where/j2sdk1.x.x/bin/java
 
-Alternatively install the SDK into /star/java and create a file
-"jdkhome" in this directory that contains the full name of the host
-directory (in the same fashion as the jrehome file found there).
+Alternatively install the SDK into /star/java and create a file "jdkhome" in
+this directory that contains the full name of the host directory (this is the
+method used in JRE releases made by Starlink).
 
    Build ANT
    ---------
 
-Since it's been necessary to add some extension tasks to ANT you need
-to use the local release. To do this look in the "ant" directory and
-follow the instructions in the "README.Starlink" file.
+Since it's been necessary to add some extension tasks to ANT you need to use
+the local release. To do this look in the "ant" directory and follow the
+instructions in the "README.Starlink" file.
 
-If you already have a STARJAVA installation you may be able to use the
-ANT script found in the /star/starjava/bin directory, but if ANT
-reports that it is finding unexpected elements in the build files you
-will need to rebuild ANT.
+If you already have a STARJAVA installation you may be able to use the ANT
+script found in the /star/starjava/bin directory, but if ANT reports that it
+is finding unexpected elements in the build files you will need to rebuild
+ANT.
 
    Start using the new ANT
    -----------------------
 
 If you have built and installed ANT you now need to add the "java/bin"
-directory that you should have created to your PATH (this the
-directory that is now equivalent to "/star/bin" and would eventually
-be "/star/starjava/bin" if released as part of the current
-system). You need the new "ant" command to get our extensions and to
-use JUnit.
+directory that you should have created to your PATH (this the directory that
+is now equivalent to "/star/bin" and would eventually be "/star/starjava/bin"
+if released as part of the current system). You need the new "ant" command to
+get our extensions and to use JUnit.
 
    Perform the build
    -----------------
@@ -75,10 +72,10 @@ If this all worked you should now be able to type:
 
    % ../bin/treeview
 
-To use applications just SPLAT, FROG and SoG you need to run the
-various scripts found in the sub-directories of ../bin (if you have
-STARJAVA already installed check the environment variables and aliases
-and re-define these as appropriate).
+To use the applications FROG, SPLAT, SoG, TOPCAT and TREEVIEW you need to run
+the various scripts found in the sub-directories of ../bin (if you have
+STARJAVA already installed check the environment variables and aliases and
+re-define these as appropriate).
 
 
-Peter W. Draper 17-MAR-2004
+Peter W. Draper 03-DEC-2004 (p.w.draper@durham.ac.uk)
