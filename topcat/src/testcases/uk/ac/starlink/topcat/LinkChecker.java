@@ -372,6 +372,11 @@ public class LinkChecker {
         public void run() {
             try {
                 connection.connect();
+
+                if ( connection instanceof HttpURLConnection ) {
+                    HttpURLConnection hconn = (HttpURLConnection) connection;
+                    hconn.getResponseCode(); // can also be time-consuming
+                }
                 synchronized ( this ) {
                     connected = true;
                     notifyAll();
