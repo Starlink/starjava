@@ -135,6 +135,15 @@ public abstract class RemoteTreeBrowser extends JPanel {
     }
 
     /**
+     * Returns the JTree component used for display.
+     *
+     * @return  jtree
+     */
+    public JTree getJTree() {
+        return jtree_;
+    }
+
+    /**
      * Determines whether there is a usable connection to the remote resource
      * in effect.
      * 
