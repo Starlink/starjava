@@ -1,5 +1,6 @@
 package uk.ac.starlink.hds;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -33,17 +34,10 @@ public class HDSPackage {
                 int i = HDSObject.DAT__SZNAM;
                 loaded = Boolean.TRUE;
             }
-            catch ( UnsatisfiedLinkError e ) {
-                loaded = Boolean.FALSE;
-            }
             catch ( LinkageError e ) {
+                logger.log( Level.INFO, e.getMessage(), e );
+                logger.warning( "JNIHDS load failed - no HDF/HDS access" );
                 loaded = Boolean.FALSE;
-                e.printStackTrace();
-            }
-            if ( ! loaded.booleanValue() ) {
-                logger.warning( 
-                    "JNIHDS native library not on java.library.path " +
-                    "- no NDF/HDS access" );
             }
         }
         return loaded.booleanValue();
