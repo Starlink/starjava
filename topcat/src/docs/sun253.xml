@@ -36,6 +36,10 @@
   <!ENTITY FIG.ConcatWindow '&figs;ConcatWindow.gif'>
   <!ENTITY FIG.MatchWindow '&figs;MatchWindow.gif'>
   <!ENTITY FIG.MatchWindow1 '&figs;MatchWindow1.gif'>
+  <!ENTITY FIG.ActivationQueryWindow '&figs;ActivationQueryWindow.gif'>
+  <!ENTITY FIG.SoG '&figs;SoG.gif'>
+  <!ENTITY FIG.ImageWindow '&figs;ImageWindow.gif'>
+  <!ENTITY FIG.Splat '&figs;Splat.gif'>
   <!ENTITY FIG.HelpWindow '&figs;HelpWindow.gif'>
   <!ENTITY FIG.SyntheticColumnQueryWindow 
            '&figs;SyntheticColumnQueryWindow.gif'>
@@ -1499,6 +1503,69 @@ or contact the author.
 
 </sect>
 
+<sect id="activation">
+<subhead><title>Activation Actions</title></subhead>
+
+<p>As well as seeing the overview of table data provided by a plot
+or statistics summary, it is often necessary to focus on a particular row
+of the table, which according to the nature of the table may represent
+an astronomical object, an event or some other entity.  
+In the <ref id="TableViewerWindow">Data Window</ref> a table row is
+simply a row of the displayed JTable, and in a plot it corresponds to
+one plotted point.
+</p>
+
+<p>If you click on a point in a plot, or on a row in the 
+Data Window, the corresponding table row will be <em>activated</em>.
+When a row is activated, three things happen:
+<ol>
+<li>If the Plot Window is visible, a marker will be drawn centred on 
+    the point</li>
+<li>If the Data Window is visible, the table will be scrolled to show the
+    row and it will be highlighted</li>
+<li>If an <em>activation action</em> has been defined, it will be invoked</li>
+</ol>
+The first two of these mean that you can easily see which point in a
+plot corresponds to which row in the table and vice versa - just click
+on one and the other will be highlighted.
+</p>
+
+<p>The third one can be more complicated.  By default, no activation
+action is set, so nothing else happens, and this may very well be
+what you want.  
+However, by clicking on the <label>Activation Action</label> selector in the 
+<ref id="ControlWindow">Control Window</ref> 
+you can bring up the <ref id="ActivationQueryWindow">Activation Window</ref>
+which enables you to choose an additional action to take place.
+There are various options here and various ways to achieve them
+(see <ref id="ActivationQueryWindow"/> for more details)
+but the kinds of actions which are envisaged are to display one or
+more images or spectra relating to the row you have identified.
+One of the options available for instance retrieves a postage-stamp image
+of a few arcminutes around the sky position defined by the row
+from the SuperCOSMOS all-sky image survey and pops it up in a viewer
+window.  So for instance having spotted an interesting point in a 
+plot of a galaxy catalogue you can click on it, and immediately see 
+a picture to identify its morphological type.
+</p>
+
+<p>The exact actions you want to perform may be closely tailored to the 
+data you have, for instance you may have a set of spectra on disk
+named by object ID.  It's impossible to cater for such possibilities
+with a set of pre-packaged options, so you are able to define your own 
+custom actions here.  This is done by writing a expression
+using the syntax described in <ref id="jel"/>.
+A number of special functions (described in <ref id="activationJel"/>) 
+are provided to do things like display an image or a spectrum in a browser
+(given its filename or URL), or access data from certain data servers 
+on the web, but there is nothing to stop the adventurous plugging in their
+own external programs so in principle you can configure pretty much 
+anything to happen on the basis of the values in the row that you
+have activated.
+</p>
+
+</sect>
+
 <sect id="jel">
 <subhead><title>Algebraic Expression Syntax</title></subhead>
 
@@ -2587,6 +2654,9 @@ User comments, suggestions, requests and bug reports to the above address
 are welcomed.
 </p>
 
+<subsect>
+<subhead><title>Version History</title></subhead>
+
 <p>Releases to date have been as follows:
 <dl>
 
@@ -2602,36 +2672,36 @@ The main improvements are as follows:
 <dd><p>
     <ul>
     <li>Plotting is much faster and can handle many more points</li>
+    <li>Subsets can be selected from plot window by tracing out a 
+        non-rectangular region</li>
     <li>You have more choice over plotting symbols
         (including semi-transparent ones)</li>
     <li>Export to encapsulated PostScript is of improved quality
-        (though for many points file sizes can get very large)</li>
+        (though for many points file sizes can get large)</li>
     <li>Export to GIF format is available</li>
     <li>Regression lines can be plotted and coefficients displayed
         (experimental capability - could be improved)</li>
-    <li>Subsets can be selected from plot window by tracing out a 
-        non-rectangular region</li>
     </ul>
     </p></dd>
 
 <dt>Table Formats</dt>
 <dd><p>
     <ul>
-    <li>Null handling improved for FITS &amp; VOTable formats</li>
-    <li>ASCII input handler rewritten to cope with much larger tables</li>
-    <li>ASCII handler now understands d or D as exponent letter</li>
-    <li>ASCII handler now uses Short/Float not Integer/Double where 
-        appropriate to save memory</li>
-    <li>ASCII format fixed bug for -0 degrees/hours in sexagesimal
-        angles</li>
-    <li>FITS files store column descriptions in TCOMMx headers</li>
+    <li>"<code>-disk</code>" flag allows use of disk backing storage for
+        large tables</li>
     <li>New 'FITS-plus' format stores rich table/column metadata in a
         FITS file</li>
     <li>VOTable handler now fully VOTable 1.1 and 1.0 compatible</li>
     <li>VOTable parsing now works with Java 5.0 platform</li>
     <li>Comma-Separated Value format now supported for input and output</li>
-    <li>"<code>-disk</code>" flag allows use of disk backing storage for
-        large tables</li>
+    <li>ASCII input handler rewritten to cope with much larger tables</li>
+    <li>ASCII handler now understands d/D as exponent letter as well as e/E</li>
+    <li>ASCII handler now uses Short/Float not Integer/Double where 
+        appropriate to save memory</li>
+    <li>ASCII format fixed bug for -0 degrees/hours in sexagesimal
+        angles</li>
+    <li>Null handling improved for FITS &amp; VOTable formats</li>
+    <li>FITS files store column descriptions in TCOMMx headers</li>
     <li>Better error messages for unparsable tables</li>
     </ul>
     </p></dd>
@@ -2643,11 +2713,11 @@ The main improvements are as follows:
         requirements</li>
     <li>In cases of multiple possible matches, the closest is now chosen
         rather than picking one at random</li>
-    <li>Pair match now records score for each match
+    <li>Pair match now adds column containing score for each match
         (distance between points)</li>
-    <li>New match types (anistropic Cartesian, Sky+X, Sky+XY)</li>
     <li>Units can be selected RA/Dec columns and match errors 
-        (doesn't need to be all in radians)</li>
+        (so it doesn't need to be all in radians)</li>
+    <li>New match types (anistropic Cartesian, Sky+X, Sky+XY)</li>
     </ul>
     </p></dd>
 
@@ -2678,7 +2748,7 @@ The main improvements are as follows:
     <ul>
     <li>All available functions are now fully documented in help document
         and interactive Method Window</li>
-    <li>Many new trig, coordinate, conversion, string manipulation 
+    <li>Many new trig, coordinate, type conversion, string manipulation 
         functions</li>
     <li>Big performance improvements for null values</li>
     </ul>
@@ -2687,8 +2757,8 @@ The main improvements are as follows:
 <dt>Activation Actions</dt>
 <dd><p>
     <ul>
-    <li>Clicking a point in the plot highlights row in data window and
-        vice versa</li>
+    <li>Clicking a point in the plot highlights the corresponding row in the
+        data window and vice versa</li>
     </ul>
     </p></dd>
 
@@ -2820,6 +2890,8 @@ introduced since the last version:
 
 </dl>
 </p>
+
+</subsect>
 
 </sect>
 
@@ -5078,6 +5150,167 @@ are these:
 
 </dl>
 </p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="ActivationQueryWindow">
+<subhead><title>Activation Window</title></subhead>
+
+<figure>
+<caption><px>Activation Window</px></caption>
+<figureimage src="&FIG.ActivationQueryWindow;"/>
+</figure>
+
+<p>The Activation Window allows you to configure an action to perform
+when a table row is <ref plaintextref="yes" id="activation">activated</ref>
+by clicking on a row in the Data Window or a point in the Plot Window.
+It can be obtained by clicking the <label>Activation Action</label>
+selector at the bottom of the properties panel in the Control Window.
+</p>
+
+<p>You have various options for how to define the action.
+On the left of the window is a list of options; you have to choose
+one of these to determine what kind of action will take place.
+When you click on one of these options the corresponding 
+controls on the right hand side will become enabled:
+use these to select the details of the action and then 
+click the <label>OK</label> button so that subsequent 
+activation events will cause the action you have defined
+(or <label>Cancel</label> so that they won't).
+When you click OK the <label>Activation Action</label>
+in the control window will indicate the action you have configured.
+</p>
+
+<p>The available options are as follows:
+<dl>
+
+<dt>No Action</dt>
+<dd><p>If this is selected, no special action will take place when a 
+    row is activated.  This is the default.
+    </p></dd>
+
+<dt>Display Cutout Image</dt>
+<dd><p>This option presents an easy-to-use way of popping up a
+    cutout image from an image server displaying a region of sky
+    around an activated row.
+    You need to select the columns in your table which 
+    represent Right Ascension and Declination, including the units 
+    in which they are entered in the table (TOPCAT may be able to
+    guess some or all of this information based on column names, UCDs
+    and unit values, in which case it will enter its guesses in the
+    selectors for you to accept or change).
+    You also need to select the size in pixels of the image you want 
+    to see and the name of the survey which will supply the image 
+    from one of the listed ones:
+    <ul>
+    <li>SuperCOSMOS All-Sky Blue</li>
+    <li>SuperCOSMOS All-Sky Red</li>
+    <li>SDSS Colour Images (note does not provide all-sky coverage)</li>
+    </ul>
+    When you activate the row, the program will attempt to contact the
+    web server which provides these images, retrieve the image, and
+    display it in an image viewer window.
+    </p></dd>
+
+<dt>Display Named Image</dt>
+<dd><p>This option is suitable if one of the columns in your table 
+    gives the location (filename or URL) of an image file.
+    The image may be in FITS, GIF, JPEG or PNG format, optionally 
+    compressed using gzip, Unix compress, or bzip2 format.
+    Select the column which contains the location, and activating a 
+    row will pop up an image viewer to display it.
+    Note this may not be possible if some components are not installed
+    (see <ref id="viewers"/>).
+    </p></dd>
+
+<dt>Display Named Spectrum</dt>
+<dd><p>This option is suitable if one of the columns in your table
+    gives the location (filename or URL) of a spectrum file.
+    The spectrum may be in FITS or text format, optionally compressed.
+    Select the column which contains the location, an activating a
+    row will try to pop up a spectrum viewer to display it.
+    </p></dd>
+
+<dt>Execute Custom Code</dt>
+<dd><p>This option must be used if none of the others 
+    (which are fairly restrictive) do what you want.
+    It is highly flexible, but not so easy to use.
+    What you have to do is to write an expression following the rules
+    in <ref id="jel"/> involving some
+    of the column names which will be invoked when a row is activated.
+    This expression will typically have the effect of popping up
+    an image or a spectrum in a viewer,
+    but, especially if you link in your own functions 
+    (see <ref id="jelExtend"/>) it can do pretty much anything.
+    </p>
+    <p>Functions which are expected to be useful for activation actions
+    are described in <ref id="activationJel"/> and include some
+    general-purpose ones 
+    (<code>displayImage</code> and <code>displaySpectrum</code> to display
+    an image or spectrum in an external viewer) as well as a few 
+    which are relevant to particular survey data, for instance the
+    <code>spectra2QZ()</code> function, which will pop up a spectrum
+    viewer displaying all the spectra related to a given row of 2QZ
+    survey data based on the contents of its NAME column.
+    </p></dd>
+
+</dl>
+</p>
+
+<subsubsect id="viewers">
+<subhead><title>Viewer Applications</title></subhead>
+
+<p>As described above, most of the activation actions you can define
+result in a viewer window popping up to display an image or spectrum.
+Exactly what kind of viewer is shown depends on how TOPCAT is set up.
+</p>
+
+<p>The default image viewer is 
+<webref plaintextref="yes" url="http://www.starlink.ac.uk/sog/">SoG</webref>,
+an astronomical image viewer based on JSky, which offers 
+colourmap manipulation, image zooming, graphics overlays, and other features.
+For this to work JAI, otherwise known as
+<webref plaintextref="yes" url="http://java.sun.com/products/java-media/jai/"
+        >Java Advanced Imaging</webref> must be installed.
+JAI is a free component available from Sun, but not a part of the Java 2
+Standard Edition by default.
+If JAI or the SoG classes themselves are absent, a fallback viewer
+which just displays the given image in a basic graphics window 
+with no manipulation facilities is used.
+The two possibilities are displayed below:
+</p>
+
+<figure>
+<caption><px>SoG Image Viewer</px></caption>
+<figureimage src="&FIG.SoG;"/>
+</figure>
+
+<figure>
+<caption><px>Fallback Image Viewer</px></caption>
+<figureimage src="&FIG.ImageWindow;"/>
+</figure>
+
+<p>The default spectrum viewer is 
+<webref plaintextref="yes" url="http://www.starlink.ac.uk/splat/"
+        >SPLAT</webref>,
+a sophisticated multi-spectrum analysis program.
+This requires the presence of a component called JNIAST, which may
+or may not have been installed with TOPCAT (it depends on some
+non-Java, i.e. platform-specific code).  
+There is currently no fallback spectrum viewer, so if JNIAST is 
+not present, then spectra cannot be displayed. 
+In this case it will not be possible to select the
+<label>Display Named Spectrum</label> item in the 
+Activation Window.
+An example of SPLAT display of multiple spectra is shown below.
+</p>
+
+<figure>
+<caption><px>SPLAT Spectrum Viewer</px></caption>
+<figureimage src="&FIG.Splat;"/>
+</figure>
 
 </subsubsect>
 
