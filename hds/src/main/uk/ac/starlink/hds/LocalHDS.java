@@ -78,7 +78,12 @@ class LocalHDS {
          * proceed. */
         if ( lobj.container.getProtocol().equals( "file" ) ) {
             boolean isTemp = false;
-            File file = new File( lobj.container.getPath() );
+
+            //  Deal with embedded %20 space characters. These are
+            //  not understood by HDS.
+            String fileName = lobj.container.getPath();
+            fileName = fileName.replaceAll( "%20", " " );
+            File file = new File( fileName );
             if ( ! file.exists() ) {
                 throw new FileNotFoundException(
                     "No such file '" + file + "'" );

@@ -152,7 +152,11 @@ public class HDSReference implements Cloneable {
     private static File getFileFromURL( URL url ) {
         String protocol = url.getProtocol();
         if ( protocol.equals( "file" ) ) {
-            return new File( url.getFile() );
+            //  Deal with any embedded %20 space characters. These
+            //  are not understood by HDS.
+            String fileName = url.getFile();
+            fileName = fileName.replaceAll( "%20", " " );
+            return new File( fileName );
         }
         else {
             throw new UnsupportedOperationException(
