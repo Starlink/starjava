@@ -277,6 +277,7 @@ public class Driver {
         int ntab = demoNames.length;
         if ( demoTables == null ) {
             demoTables = new StarTable[ ntab ];
+            StarTableFactory demoFactory = new StarTableFactory( true );
             for ( int i = 0; i < ntab; i++ ) {
                 final String demoName = demoNames[ i ];
                 try {
@@ -299,7 +300,7 @@ public class Driver {
                         if ( frag != null ) {
                             datsrc.setPosition( frag );
                         }
-                        StarTable table = tabfact.makeStarTable( datsrc );
+                        StarTable table = demoFactory.makeStarTable( datsrc );
                         table = new WrapperStarTable( table ) {
                             public String getName() {
                                 return demoName;
