@@ -149,7 +149,6 @@ public class StarTableNodeChooser {
      */
     public static boolean isAvailable() {
         if ( isAvailable == null ) {
-            isAvailable = Boolean.FALSE;
             try {
                 reflect();
             }
@@ -163,19 +162,21 @@ public class StarTableNodeChooser {
                 isAvailable = Boolean.FALSE;
             }
 
-            int clMods = chooserClass.getModifiers();
-            int cMods = chooserConstructor.getModifiers();
-            int mMods = chooseMethod.getModifiers();
-            if ( chooseMethod.getReturnType() == StarTable.class && 
-                 Modifier.isPublic( mMods ) && 
-                 Modifier.isPublic( cMods ) && 
-                 ! Modifier.isAbstract( mMods ) && 
-                 ! chooserClass.isInterface() && 
-                 ! Modifier.isAbstract( clMods ) ) {
-                isAvailable = Boolean.TRUE;
-            }
-            else {
-                isAvailable = Boolean.FALSE;
+            if ( isAvailable == null ) {
+                int clMods = chooserClass.getModifiers();
+                int cMods = chooserConstructor.getModifiers();
+                int mMods = chooseMethod.getModifiers();
+                if ( chooseMethod.getReturnType() == StarTable.class && 
+                     Modifier.isPublic( mMods ) && 
+                     Modifier.isPublic( cMods ) && 
+                     ! Modifier.isAbstract( mMods ) && 
+                     ! chooserClass.isInterface() && 
+                     ! Modifier.isAbstract( clMods ) ) {
+                    isAvailable = Boolean.TRUE;
+                }
+                else {
+                    isAvailable = Boolean.FALSE;
+                }
             }
         }
         return isAvailable.booleanValue();
