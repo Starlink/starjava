@@ -153,6 +153,10 @@ public class VOStarTable extends AbstractStarTable {
         return params;
     }
 
+    public String getName() {
+        return votable.getName();
+    }
+
     public List getColumnAuxDataInfos() {
         return auxDataInfos;
     }

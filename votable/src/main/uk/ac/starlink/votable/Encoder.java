@@ -42,7 +42,10 @@ class Encoder {
          * knowledge about the objects it is supposed to encode.  
          * However, that would't really gain you much, so it just does it
          * based on the object value itself. */
-        if ( value.getClass().getComponentType() == null ) {
+        if ( value == null ) {
+            return "";
+        }
+        else if ( value.getClass().getComponentType() == null ) {
             return formatValue( value );
         }
         else {
