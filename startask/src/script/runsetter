@@ -1,0 +1,49 @@
+#!/bin/sh
+# Run a StarTaskSetter
+#
+#  % runsetter [-p policy] [-s space] args...
+#
+# where policy is the Java security policy file
+#             (defaults to policy.all - see starjava/etc/startask/policy.all)
+#
+#       space is the JavaSpace properties file
+#             (defaults to star_space running on rlspc12
+#             - see starjava/etc/startask/star_space.prop)
+#
+#       args... define the task(s) to be run
+#             A single arg is taken to be the name of a file containing a
+#             list of tasks.
+#             Multiple args will have the form: Class method [arguments...]
+#             where Class is a Starlink Dtask, method is the task method within
+#             Class and arguments are the command-line arguments required by the
+#             task. For example runsetter          
+#-
+
+# Set policy and space properties file to given or default
+   policy="@INSTALL_DIR@/etc/startask/policy.all"
+   space="@INSTALL_DIR@/etc/startask/star_space.prop"
+
+   while [ $# != 0 ]
+   do
+      case $1 in
+      -p) policy="$2"
+          shift
+          shift
+          ;;
+      
+      -s) space="$2"
+          shift
+          shift
+          ;;
+              
+      *)  break
+          ;;
+      esac
+   done
+      
+# Run the StarTaskSetter
+   java -Xmx100m \
+     -classpath @INSTALL_DIR@/lib/startask/startask.jar \
+     -Djava.security.policy=$policy \
+     -Duk.ac.starlink.startask.spacePropertyFile=$space \
+    uk.ac.starlink.startask.StarTaskSetter $*

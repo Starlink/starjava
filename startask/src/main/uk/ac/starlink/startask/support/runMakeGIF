@@ -1,0 +1,69 @@
+#!/bin/sh
+# runMakeGIF
+# A script to convert encapsulated Postscript images into a GIF format.
+# two input images may be presented, in which case they will be merged and
+# the resultant image converted
+#
+#  % runMakeGIF mode in1 [in2] out
+# where:
+#   mode     the orientation of the input images, portrait or landscape
+#   in1, in2 are the names of the input Postscript images. If in2 is present,
+#            the images will be merged and the combined image converted to GIF
+#            format
+#   out is the name of the final GIF file. If out is omitted file
+#            pgplot.gif is produced.
+#-
+
+# make a guess
+   if [ -z "$STARLINK" ]; then 
+      if [ -d /stardev ]; then
+         STARLINK="/stardev"
+      else
+         STARLINK="/star"
+      fi
+   fi
+   export STARLINK
+   
+# Sort out the parameters
+   if [ $# -lt 2 ]; then
+      echo "Usage: runMakeGIF mode in1 [in2] out"
+      exit 1
+   else
+      mode=$1
+      in=$2
+      if [ $# -eq 2 ]; then
+         out="`basename $in .ps`.gif"
+      else
+         if [ $# -eq 3 ]; then
+            out=$3
+         else
+            if [ $# -eq 4 ]; then
+            
+# Combine the two plots. We have to use the Starlink 
+# PSMERGE - not the one distributed with Linux
+echo "merge $2 $3"
+               rm -f temp.ps
+               $STARLINK/bin/psmerge $2 $3 > temp.ps
+               in="temp.ps"
+               out=$4
+            else
+               echo "Too many arguments given."
+               exit 1
+            fi
+         fi
+      fi
+   fi
+echo "in=$in out=$out"   
+# Now convert to GIF
+   if [ "$mode" = "portrait" ]; then
+      pstopnm -ppm -nocrop -stdout $in | ppmtogif - > $out
+   else
+      if [ "$mode" = "landscape" ]; then 
+         pstopnm -ppm -nocrop -landscape -stdout $in | \
+          pnmflip -tb -lr | \
+           ppmtogif - > $out
+      fi
+   fi
+
+# Clean up
+   rm -f temp.ps

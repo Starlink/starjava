@@ -1,0 +1,24 @@
+#!/bin/sh
+# rundisplay xaddress arguments
+#
+# To run KAPPA:display and return the display to the address given as the first
+# argument. The remaining arguments are passed to display.
+#
+# The script is expected to be invoked by the ShellRunner service.
+#.
+   DISPLAY="$1"
+   export DISPLAY
+   shift
+
+   if [ -z "$STARJAVA" ]; then 
+      if [ -d /stardev ]; then
+         STARJAVA="/stardev/starjava"
+      else
+         STARJAVA="/star/starjava"
+      fi
+   fi
+   export STARJAVA
+      
+   java -jar $STARJAVA/lib/kappa/kappa.jar display $@
+
+#end

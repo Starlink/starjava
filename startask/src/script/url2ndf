@@ -1,0 +1,106 @@
+#!/bin/sh
+# The preceding line must be left blank
+# Name:
+#    url2ndf
+#
+# Purpose:
+#    NDF on-the-fly conversion script for URLs.
+#    (This version handles ^type separately from ^name i.e. no dummy .url type)
+#
+# Invocation:
+#    url2ndf ^dir ^name ^type ^fxs ^ndf'
+#
+# Arguments:
+#    ^hostdir (Given) 
+#       The protocol, hostname and directory portion of the URL
+#       (ftp://ftp.starlink.rl.ac.uk/pub/ajc/ for example)
+#    ^name (Given)
+#       The name of the file. For foreign files, this will include the file
+#       extension 
+#    ^type (Given)
+#       The foreign file extension (".fits" for example)
+#    ^fxs (Given)
+#       The foreign extension specifier (e.g a FITS image extension 
+#       specifier such as "[2]")
+#    ^ndf (Given)
+#       The name of the NDF to be created
+#
+# Method:
+#    The file is obtained from the remote site using the Java class
+#    java.net.URL, and placed in the current working directory. If the file
+#    extension is not ".sdf" but is one of the allowed types (currently FITS
+#    or GIF) the file is then converted to an NDF with the supplied ^ndf name
+#    using the standard CONVERT conversion utilities.
+#
+#
+# Deficiencies:
+#    The process therefore only works for protocols handled by the Java URL
+#    class and certain file types handled by CONVERT (easily extended in the
+#    case statement below).
+#-
+ 
+#?echo "^hostdir " $1
+#?echo "^name " $2
+#?echo "^type " $3
+#?echo "^fxs " $4
+#?echo "^ndf " $5
+
+# If there is no extension, assume .sdf
+# Set name to the full filename
+   
+   if [ -z $3 ]; then
+      type=".sdf"
+   else
+      type="$3"
+   fi
+   name=$2$type
+#?echo 'name is ' $name
+#?echo 'type is ' $type
+
+# Construct the full URL
+   hostdir=$1
+
+# Get the format of files with the given extension
+# Also tells whether the file is to be got and/or converted
+   convert="yes"
+   get="yes"
+   case $type in
+   .fit | .fits | .FIT) fmt="FITS"
+         ;;
+   .gif) fmt="GIF"
+         ;;
+   .sdf) convert="no"
+         ;;
+   *)   echo \!\! Cannot convert $ext files
+        convert="no"
+        get="no"
+        ;; 
+   esac
+
+# Get the file to the current working directory
+   if [ "$get" = "yes" ]; then
+#?echo java URLFetcher $hostdir$name URL$name
+      java -classpath @INSTALL_DIR@/lib/startask/startask.jar \
+        uk.ac.starlink.startask.URLFetcher \
+        $hostdir$name URL$name &>Z_err_$name || \
+        ( echo ""
+          echo "!! ** Error converting NDF from $2 format using $appl"
+          sed 's/^/!  /' Z_err_$name
+          echo "!  ** Returning to main application"
+          echo ""
+          rm -f Z_err_$name URL$name
+          exit 1
+        )
+        rm -f Z_err_$name
+   fi
+
+# Now convert the file if necessary
+# End up with required NDF and remove the intermediate file
+   if [ "$convert" = "yes" ]; then 
+
+#?echo $CONVERT_DIR/convertndf from "$fmt" "./" "URL${name%.*}" "$type" "$4" $5
+      $CONVERT_DIR/convertndf from "$fmt" "./" "URL${name%.*}" "$type" "$4" $5
+      rm -f URL$name
+   fi
+
+# End of url2ndf

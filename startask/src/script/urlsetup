@@ -1,0 +1,4 @@
+setenv NDF_FORMATS_IN "${NDF_FORMATS_IN},URL(.url),URL(.URL)"
+setenv NDF_FROM_URL \
+ '@INSTALL_DIR@/bin/startask/url2ndf \
+ "^dir" "^name" "^type" "^fxs" "^ndf"'

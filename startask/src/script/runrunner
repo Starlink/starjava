@@ -1,0 +1,43 @@
+#!/bin/csh
+# Run a StarTaskRunner
+#
+#  % runrunner policy space
+#
+# where policy is the Java security policy file
+#       (defaults to policy.all - see starjava/etc/startask/policy.all)
+# and   space is the JavaSpace properties file
+#       (defaults to star_space running on rlspc12
+#        - see starjava/etc/startask/star_space.prop)
+#-
+
+#==========================
+#  Fix for RH9 problem
+   setenv LD_ASSUME_KERNEL 2.4.1
+#==========================
+
+# Set necessary environment variables
+   setenv STARJAVA "@INSTALL_DIR@"
+   setenv LD_LIBRARY_PATH "@INSTALL_DIR@/lib/i386:/stardev/share:/star/share"
+   
+# Set up on-the-fly NDF conversion, including the URL to NDF extension
+   source $CONVERT_DIR/convert.csh
+   source @INSTALL_DIR@/bin/startask/urlsetup
+   
+# Set policy file given or default
+   if ( "$1" != "" ) then
+     set args="-Djava.security.policy=$1"
+   else
+     set args="-Djava.security.policy=@INSTALL_DIR@/etc/startask/policy.all"
+   endif
+   
+# Set space property file given or default
+   if ( "$2" != "" ) then
+     set args="$args -Duk.ac.starlink.startask.spacePropertyFile=$2"
+   else
+     set args="$args -Duk.ac.starlink.startask.spacePropertyFile="
+     set args="${args}@INSTALL_DIR@/etc/startask/star_space.prop"
+   endif
+
+# Run StarTaskRunner
+   java -classpath @INSTALL_DIR@/lib/startask/startask.jar $args \
+    uk.ac.starlink.startask.StarTaskRunner
