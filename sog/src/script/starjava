@@ -36,8 +36,14 @@
 
 #.
 
-#  Fall-back Java is on current PATH.
-java="java"
+#  Development Java
+if test "$STAR_JDK" != ""; then
+   java="$STAR_JDK"
+else
+
+   #  Fall-back Java is on current PATH.
+   java="java"
+fi
 
 #  If $STARLINK is defined then try that. Only look for the JRE
 #  version (only need JDK for development).

@@ -17,12 +17,19 @@ echo "SOG_DIR = $SOG_DIR"
 
 #  Locate the application jar file. This is relative to this script or
 #  SOG_DIR.
-
 appjar="$SOG_DIR/../../lib/sog/sog.jar"
 if test ! -f "$appjar"; then
    echo "Failed to locate the SOG application. Please define SOG_DIR"
    exit
 fi
+
+# Make sure that we get the installed shareable libraries.
+if test -z "$LD_LIBRARY_PATH"; then
+   LD_LIBRARY_PATH=${SOG_DIR}/../../lib
+else
+   LD_LIBRARY_PATH=${SOG_DIR}/../../lib:${LD_LIBRARY_PATH}
+fi
+export LD_LIBRARY_PATH
 
 #  Run up SOG.
 sog_port=8082
