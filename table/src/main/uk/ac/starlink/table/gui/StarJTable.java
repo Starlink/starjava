@@ -104,6 +104,12 @@ public class StarJTable extends JTable {
      */
     public void configureColumnWidths( int maxpix, int nrows ) {
         configureColumnWidths( this, maxpix, nrows );
+        if ( rowHeader ) {
+            int hwidth = Math.max( getCellWidth( this, 0, 0 ),
+                                   getCellWidth( this, getRowCount() - 1, 0 ) )
+                       + 8;
+            getColumnModel().getColumn( 0 ).setPreferredWidth( hwidth );
+        }
     }
 
     /**
