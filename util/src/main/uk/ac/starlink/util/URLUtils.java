@@ -1,6 +1,8 @@
 package uk.ac.starlink.util;
 
+import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 /**
@@ -66,9 +68,9 @@ public class URLUtils {
         }
         catch ( MalformedURLException e ) {
             try {
-                return new URL( "file", null, location );
+                URI uri = new File( location ).toURI();
+                return new URL( uri.toString() );
             }
-     
             catch ( MalformedURLException e2 ) {
                 throw protestFileProtocolIsLegal( e2 );
             }
