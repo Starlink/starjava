@@ -21,6 +21,7 @@ import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.SkyFrame;
 import uk.ac.starlink.fits.FitsArrayBuilder;
+import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.MappedFile;
 import uk.ac.starlink.splat.util.SplatException;
 
@@ -69,7 +70,7 @@ public class ImageHDUDataNode extends HDUDataNode {
         long[] axes = getDimsFromHeader( hdr );
         int ndim = axes.length;
         if ( axes != null && ndim > 0 ) {
-            shape = new NDShape( new long[ ndim ], axes );
+            shape = new NDShape( axes );
         }
 
         boolean hasBlank = hdr.containsKey( "BLANK" );
@@ -212,8 +213,13 @@ public class ImageHDUDataNode extends HDUDataNode {
             if ( blank != null ) {
                 dv.addKeyedItem( "Blank value", blank );
             }
+            dv.addSeparator();
             dv.addKeyedItem( "Number of header cards", 
                              header.getNumberOfCards() );
+            dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
+            dv.addKeyedItem( "Blocks of data", 
+                             FitsConstants.getDataSize( header ) / 2880 );
+
             if ( wcs != null ) {
                 dv.addSubHead( "World coordinate system" );
                 dv.addKeyedItem( "Encoding", wcsEncoding );

@@ -12,6 +12,7 @@ import nom.tam.fits.TableData;
 import nom.tam.fits.TableHDU;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
+import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsStarTable;
 import uk.ac.starlink.table.ColumnHeader;
 import uk.ac.starlink.table.StarTable;
@@ -44,6 +45,7 @@ public class TableHDUDataNode extends HDUDataNode {
             throws NoSuchDataException {
         super( hdr );
         this.header = hdr;
+        hduType = getHduType();
         String type;
         try {
             if ( BinaryTableHDU.isHeader( hdr ) ) {
@@ -95,14 +97,19 @@ public class TableHDUDataNode extends HDUDataNode {
             fullview = dv.getComponent();
             dv.addSeparator();
             dv.addKeyedItem( "HDU type", hduType );
-            dv.addKeyedItem( "Number of header cards",
-                             header.getNumberOfCards() );
 
             final StarTable startable = new FitsStarTable( thdu );
             int nrows = startable.getNumRows();
             int ncols = startable.getNumColumns();
             dv.addKeyedItem( "Columns", ncols );
             dv.addKeyedItem( "Rows", nrows );
+            dv.addSeparator();
+            dv.addKeyedItem( "Number of header cards",
+                             header.getNumberOfCards() );
+            dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
+            dv.addKeyedItem( "Blocks of data", 
+                             FitsConstants.getDataSize( header ) / 2880 );
+
             dv.addSubHead( "Columns" );
             for ( int i = 0; i < ncols; i++ ) {
                 ColumnHeader head = startable.getHeader( i );

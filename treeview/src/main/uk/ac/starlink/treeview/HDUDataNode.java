@@ -8,6 +8,7 @@ import nom.tam.fits.BasicHDU;
 import nom.tam.fits.BinaryTableHDU;
 import nom.tam.fits.ImageHDU;
 import nom.tam.fits.RandomGroupsHDU;
+import uk.ac.starlink.fits.FitsConstants;
 
 /**
  * An implementation of the {@link DataNode} interface for 
@@ -97,8 +98,12 @@ public class HDUDataNode extends DefaultDataNode {
             fullview = dv.getComponent();
             dv.addSeparator();
             dv.addKeyedItem( "HDU type", hduType );
+            dv.addSeparator();
             dv.addKeyedItem( "Number of header cards",
                              header.getNumberOfCards() );
+            dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
+            dv.addKeyedItem( "Blocks of data", 
+                             FitsConstants.getDataSize( header ) / 2880 );
             dv.addPane( "Header cards", new ComponentMaker() {
                 public JComponent getComponent() {
                     return new TextViewer( header.iterator() );
