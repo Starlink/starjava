@@ -237,9 +237,8 @@ public class HDSReference implements Cloneable {
                 .append( (String) pathList.get( i ) );
         }
         try {
-            url = new URL( "file", "localhost", 
-                           containerFile.getAbsolutePath() );
-            url = new URL( url, "#" + frag.toString() );
+           url = containerFile.toURL();
+           url = new URL( url, "#" + frag.toString() );
         }
         catch ( MalformedURLException e ) {
             throw new AssertionError( "Unexpected malformed URL for " + this );
