@@ -111,10 +111,41 @@ public class FitsConstants {
         }
     }
 
-    /*
+    /**
+     * Indicates whether the supplied buffer is the start of a FITS file.
+     * Its contents is checked against the FITS 'magic number', which is
+     * the ASCII string "<tt>SIMPLE&nbsp&nbsp;=</tt>".
+     *
+     * @param   buffer  a byte buffer of at least 9 elements containing
+     *          the start of a file to test
+     * @return  <tt>true</tt> iff the bytes in <tt>buffer</tt> look like 
+     *          the start of a FITS file
+     * @throws  IllegalArgumentException  if <tt>buffer</tt> is too short
+     */
+    public static boolean isMagic( byte[] buffer ) {
+        if ( buffer.length < 9 ) {
+            throw new IllegalArgumentException(
+                "Supplied buffer must be at least 9 elements long" );
+        }
+        return (char) buffer[ 0 ] == 'S' &&
+               (char) buffer[ 1 ] == 'I' &&
+               (char) buffer[ 2 ] == 'M' &&
+               (char) buffer[ 3 ] == 'P' &&
+               (char) buffer[ 4 ] == 'L' &&
+               (char) buffer[ 5 ] == 'E' &&
+               (char) buffer[ 6 ] == ' ' &&
+               (char) buffer[ 7 ] == ' ' &&
+               (char) buffer[ 8 ] == '=';
+    }
+
+    /**
      * Utility function to find the number of bytes in the data segment
      * of an HDU.  As far as I can see, Header.getDataSize() ought to
      * do this, but it doesn't seem to.
+     *
+     * @param  hdr  the Header 
+     * @return  the number of bytes in the data segment 
+     *          associated with <tt>hdr</tt>
      */
     public static long getDataSize( Header hdr ) {
         long nel = getRawSize( hdr );
