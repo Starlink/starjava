@@ -137,6 +137,9 @@
     <echo message="Executing JNIAST target: ${what}"/>
     <ant dir="./jniast" target="${what}"/>
 
+    <echo message="Executing DIVA target: ${what}"/>
+    <ant dir="./diva" target="${what}"/>
+
     <echo message="Executing ASTGUI target: ${what}"/>
     <ant dir="./astgui" target="${what}"/>
 
@@ -163,9 +166,6 @@
 
     <echo message="Executing FITS target: ${what}"/>
     <ant dir="./fits" target="${what}"/>
-
-    <echo message="Executing DIVA target: ${what}"/>
-    <ant dir="./diva" target="${what}"/>
 
     <echo message="Executing JSky target: ${what}"/>
     <ant dir="./jsky" target="${what}"/>
