@@ -97,7 +97,7 @@ public class FITSDataInt extends FITSData {
 	}
 	else {
 	    // use image tiler (slower)
-	    fillTile(destArray, x0, y0, th, tw);
+	    fillTile(destArray, x0, y0, tw, th);
 	}
 
         return tile;
