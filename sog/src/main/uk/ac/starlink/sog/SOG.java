@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -50,6 +51,7 @@ import jsky.util.gui.ExampleFileFilter;
 import jsky.util.gui.LookAndFeelMenu;
 
 import uk.ac.starlink.jaiutil.HDXCodec;
+import uk.ac.starlink.jaiutil.HDXImage;
 
 /**
  * Main class for the SOG application.
@@ -57,7 +59,8 @@ import uk.ac.starlink.jaiutil.HDXCodec;
  * @author pdraper
  * @created June 11, 2002
  */
-public class SOG extends JFrame
+public class SOG 
+    extends JFrame
 {
     // Used to access internationalized strings (see i18n/gui*.proprties)
     private final static I18N _I18N = I18N.getInstance( JSkyCat.class );
@@ -142,6 +145,9 @@ public class SOG extends JFrame
                System.err.println( e.getMessage() );
             }
         }
+
+        // The main window will accept drop events.
+        getImageDisplay().getCanvas().setTransferHandler(new SOGTransferHandler());
     }
 
     /**

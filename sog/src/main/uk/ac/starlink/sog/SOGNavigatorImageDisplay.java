@@ -200,10 +200,9 @@ public class SOGNavigatorImageDisplay
     }
 
     /**
-     * Accept an DOM element that contains an NDX for display. NDX
-     * equivalent of setFilename.
+     * Accept an HDXImage ready for use.
      */
-    public void setNDX( Element element )
+    public void setHDXImage( HDXImage hdxImage )
     {
         //  Make sure currently displayed image is saved and added to
         //  history.
@@ -212,13 +211,11 @@ public class SOGNavigatorImageDisplay
         }
         addToHistory();
 
-        //  Create and load the PlanarImage that wraps the HDXImage,
-        //  that accepts the DOM NDX!
+        //  Create and load the PlanarImage that wraps the HDXImage.
         try {
-            PlanarImage im =
-                PlanarImage.wrapRenderedImage( new HDXImage( element, 0 ) );
+            PlanarImage im = PlanarImage.wrapRenderedImage( hdxImage );
             ndxLoading = true;
-            setImage(im);
+            setImage( im );
             ndxLoading = false;
         }
         catch( Exception e ) {
@@ -232,6 +229,22 @@ public class SOGNavigatorImageDisplay
         //ip.setCutLevels( ip.getMinValue(), ip.getMaxValue() );
         ip.autoSetCutLevels( getVisibleArea() );
         ip.update();
+    }
+
+    /**
+     * Accept an DOM element that contains an NDX for display. NDX
+     * equivalent of setFilename.
+     */
+    public void setNDX( Element element )
+    {
+        try {
+            HDXImage hdxImage = new HDXImage( element, 0 );
+            setHDXImage( hdxImage );
+        }
+        catch (IOException e) {
+            DialogUtil.error( e );
+            clear();
+        }
     }
 
     /**
