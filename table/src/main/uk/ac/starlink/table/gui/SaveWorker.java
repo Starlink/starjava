@@ -180,7 +180,9 @@ public abstract class SaveWorker {
             "to " + location_,
         };
         ErrorDialog.showError( progPopup_, "Save Error", error, msg );
-        progPopup_.dispose();
+        if ( progPopup_ != null ) {
+            progPopup_.dispose();
+        }
     }
 
     /**
