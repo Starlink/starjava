@@ -56,6 +56,8 @@
 #        Added manipulation of LD_LIBRARY_PATH.
 #     27-NOV-2002 (MBT):
 #        Added logging configuration
+#     21-APR-2004 (BC):
+#        Added support for Power Macintosh
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -105,6 +107,9 @@ case "`uname -m`" in
        ;;
    sun4*)
        arch=sparc
+       ;;
+   Power*)
+       arch=ppc
        ;;
    *)
        arch="`uname -m`"
