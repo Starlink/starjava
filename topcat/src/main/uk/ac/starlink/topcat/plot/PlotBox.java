@@ -117,6 +117,10 @@ This class provides a labeled box within which to place a data plot.
  *     some of these methods referenced other PtPlot classes
  * <li>Commented out the key listener, since these key bindings are not
  *     wanted in a TOPCAT context
+ * <li>_drawPlot will now do a dry run with the graphics parameter equal
+ *     to null.  This has the effect of resetting the member variables
+ *     according to the current state of the component before the 
+ *     repaint is actually performed.
  * </ol>
  * There are several features of PlotBox remaining which TOPCAT is unlikely
  * to use; it would be possible to tidy things up by writing a new class
@@ -1579,10 +1583,13 @@ class PlotBox extends JPanel implements Printable {
      */
     protected synchronized void _drawPlot(
             Graphics graphics, boolean clearfirst, Rectangle drawRect) {
-        // Ignore if there is no graphics object to draw on.
-        if (graphics == null) return;
+        if (drawRect.height == 0) {
+            return;
+        }
 
-        graphics.setPaintMode();
+        if (graphics != null ) {
+            graphics.setPaintMode();
+        }
 
         /* NOTE: The following seems to be unnecessary with Swing...
            if (clearfirst) {
@@ -1596,16 +1603,18 @@ class PlotBox extends JPanel implements Printable {
         */
 
         // If an error message has been set, display it and return.
-        if (_errorMsg != null) {
-            int fheight = _labelFontMetrics.getHeight() + 2;
-            int msgy = fheight;
-            graphics.setColor(Color.black);
-            for (int i = 0; i < _errorMsg.length; i++) {
-                graphics.drawString(_errorMsg[i], 10, msgy);
-                msgy += fheight;
-                System.err.println(_errorMsg[i]);
+        if (graphics != null) {
+            if (_errorMsg != null) {
+                int fheight = _labelFontMetrics.getHeight() + 2;
+                int msgy = fheight;
+                graphics.setColor(Color.black);
+                for (int i = 0; i < _errorMsg.length; i++) {
+                    graphics.drawString(_errorMsg[i], 10, msgy);
+                    msgy += fheight;
+                    System.err.println(_errorMsg[i]);
+                }
+                return;
             }
-            return;
         }
 
         // Make sure we have an x and y range
@@ -1646,9 +1655,11 @@ class PlotBox extends JPanel implements Printable {
 
         // Number of vertical tick marks depends on the height of the font
         // for labeling ticks and the height of the window.
-        Font previousFont = graphics.getFont();
-        graphics.setFont(_labelFont);
-        graphics.setColor(_foreground);	// foreground color not set here  --Rob.
+        Font previousFont = graphics != null ? graphics.getFont() : null;
+        if (graphics != null) {
+            graphics.setFont(_labelFont);
+            graphics.setColor(_foreground);// foreground color not set here
+        }
         int labelheight = _labelFontMetrics.getHeight();
         int halflabelheight = labelheight/2;
 
@@ -1661,13 +1672,19 @@ class PlotBox extends JPanel implements Printable {
         if (_xExp != 0 && _xticks == null) {
             String superscript = Integer.toString(_xExp);
             xSPos -= _superscriptFontMetrics.stringWidth(superscript);
-            graphics.setFont(_superscriptFont);
+            if (graphics != null) {
+                graphics.setFont(_superscriptFont);
+            }
             if (!_xlog) {
-                graphics.drawString(superscript, xSPos,
-                        ySPos - halflabelheight);
+                if (graphics != null) {
+                    graphics.drawString(superscript, xSPos,
+                            ySPos - halflabelheight);
+                }
                 xSPos -= _labelFontMetrics.stringWidth("x10");
-                graphics.setFont(_labelFont);
-                graphics.drawString("x10", xSPos, ySPos);
+                if (graphics != null) {
+                    graphics.setFont(_labelFont);
+                    graphics.drawString("x10", xSPos, ySPos);
+                }
             }
             // NOTE: 5 pixel padding on bottom
             _bottomPadding = (3 * labelheight)/2 + 5;
@@ -1793,11 +1810,13 @@ class PlotBox extends JPanel implements Printable {
         // Background for the plotting rectangle.
         // Always use a white background because the dataset colors
         // were designed for a white background.
-        graphics.setColor(Color.white);
-        graphics.fillRect(_ulx, _uly, width, height);
+        if (graphics != null) {
+            graphics.setColor(Color.white);
+            graphics.fillRect(_ulx, _uly, width, height);
 
-        graphics.setColor(_foreground);
-        graphics.drawRect(_ulx, _uly, width, height);
+            graphics.setColor(_foreground);
+            graphics.drawRect(_ulx, _uly, width, height);
+        }
 
         // NOTE: subjective tick length.
         int tickLength = 5;
@@ -1825,12 +1844,14 @@ class PlotBox extends JPanel implements Printable {
                 // colliding with x labels.
                 int offset = 0;
                 if (ind > 0 &&  ! _ylog) offset = halflabelheight;
-                graphics.drawLine(_ulx, yCoord1, xCoord1, yCoord1);
-                graphics.drawLine(_lrx, yCoord1, xCoord2, yCoord1);
-                if (_grid && yCoord1 != _uly && yCoord1 != _lry) {
-                    graphics.setColor(Color.lightGray);
-                    graphics.drawLine(xCoord1, yCoord1, xCoord2, yCoord1);
-                    graphics.setColor(_foreground);
+                if (graphics != null) {
+                    graphics.drawLine(_ulx, yCoord1, xCoord1, yCoord1);
+                    graphics.drawLine(_lrx, yCoord1, xCoord2, yCoord1);
+                    if (_grid && yCoord1 != _uly && yCoord1 != _lry) {
+                        graphics.setColor(Color.lightGray);
+                        graphics.drawLine(xCoord1, yCoord1, xCoord2, yCoord1);
+                        graphics.setColor(_foreground);
+                    }
                 }
                 // Check to see if any of the labels printed contain
                 // the exponent.  If we don't see an exponent, then print it.
@@ -1838,8 +1859,11 @@ class PlotBox extends JPanel implements Printable {
                     needExponent = false;
 
                 // NOTE: 4 pixel spacing between axis and labels.
-                graphics.drawString(ylabels[ind],
-                        _ulx-ylabwidth[ind++]-4, yCoord1+offset);
+                if (graphics != null) {
+                    graphics.drawString(ylabels[ind],
+                            _ulx-ylabwidth[ind]-4, yCoord1+offset);
+                }
+                ind++;
             }
 
             if (_ylog) {
@@ -1859,10 +1883,12 @@ class PlotBox extends JPanel implements Printable {
                         int yCoord1 = _lry -
                             (int)((ypos-_ytickMin)*_ytickscale);
                         if (_grid && yCoord1 != _uly && yCoord1 != _lry) {
-                            graphics.setColor(Color.lightGray);
-                            graphics.drawLine(_ulx+1, yCoord1,
-                                    _lrx-1, yCoord1);
-                            graphics.setColor(_foreground);
+                            if (graphics != null) {
+                                graphics.setColor(Color.lightGray);
+                                graphics.drawLine(_ulx+1, yCoord1,
+                                        _lrx-1, yCoord1);
+                                graphics.setColor(_foreground);
+                            }
                         }
                     }
                 }
@@ -1876,13 +1902,15 @@ class PlotBox extends JPanel implements Printable {
             }
 
             // Draw scaling annotation for y axis.
-            if (_yExp != 0) {
-                graphics.drawString("x10", 2, titley);
-                graphics.setFont(_superscriptFont);
-                graphics.drawString(Integer.toString(_yExp),
-                        _labelFontMetrics.stringWidth("x10") + 2,
-                        titley-halflabelheight);
-                graphics.setFont(_labelFont);
+            if (graphics != null) {
+                if (_yExp != 0) {
+                    graphics.drawString("x10", 2, titley);
+                    graphics.setFont(_superscriptFont);
+                    graphics.drawString(Integer.toString(_yExp),
+                            _labelFontMetrics.stringWidth("x10") + 2,
+                            titley-halflabelheight);
+                    graphics.setFont(_labelFont);
+                }
             }
         } else {
             // ticks have been explicitly specified
@@ -1896,17 +1924,19 @@ class PlotBox extends JPanel implements Printable {
                 int yCoord1 = _lry - (int)((ypos-_yMin)*_yscale);
                 int offset = 0;
                 if (ypos < _lry - labelheight) offset = halflabelheight;
-                graphics.drawLine(_ulx, yCoord1, xCoord1, yCoord1);
-                graphics.drawLine(_lrx, yCoord1, xCoord2, yCoord1);
-                if (_grid && yCoord1 != _uly && yCoord1 != _lry) {
-                    graphics.setColor(Color.lightGray);
-                    graphics.drawLine(xCoord1, yCoord1, xCoord2, yCoord1);
-                    graphics.setColor(_foreground);
+                if (graphics != null) {
+                    graphics.drawLine(_ulx, yCoord1, xCoord1, yCoord1);
+                    graphics.drawLine(_lrx, yCoord1, xCoord2, yCoord1);
+                    if (_grid && yCoord1 != _uly && yCoord1 != _lry) {
+                        graphics.setColor(Color.lightGray);
+                        graphics.drawLine(xCoord1, yCoord1, xCoord2, yCoord1);
+                        graphics.setColor(_foreground);
+                    }
+                    // NOTE: 3 pixel spacing between axis and labels.
+                    graphics.drawString(label,
+                            _ulx - _labelFontMetrics.stringWidth(label) - 3,
+                            yCoord1+offset);
                 }
-                // NOTE: 3 pixel spacing between axis and labels.
-                graphics.drawString(label,
-                        _ulx - _labelFontMetrics.stringWidth(label) - 3,
-                        yCoord1+offset);
             }
         }
 
@@ -1984,18 +2014,20 @@ class PlotBox extends JPanel implements Printable {
                     xticklabel = _formatNum(xpos, numfracdigits);
                 }
                 xCoord1 = _ulx + (int)((xpos-_xtickMin)*_xtickscale);
-                graphics.drawLine(xCoord1, _uly, xCoord1, yCoord1);
-                graphics.drawLine(xCoord1, _lry, xCoord1, yCoord2);
-                if (_grid && xCoord1 != _ulx && xCoord1 != _lrx) {
-                    graphics.setColor(Color.lightGray);
-                    graphics.drawLine(xCoord1, yCoord1, xCoord1, yCoord2);
-                    graphics.setColor(_foreground);
+                if (graphics != null) {
+                    graphics.drawLine(xCoord1, _uly, xCoord1, yCoord1);
+                    graphics.drawLine(xCoord1, _lry, xCoord1, yCoord2);
+                    if (_grid && xCoord1 != _ulx && xCoord1 != _lrx) {
+                        graphics.setColor(Color.lightGray);
+                        graphics.drawLine(xCoord1, yCoord1, xCoord1, yCoord2);
+                        graphics.setColor(_foreground);
+                    }
+                    int labxpos = xCoord1 -
+                        _labelFontMetrics.stringWidth(xticklabel)/2;
+                    // NOTE: 3 pixel spacing between axis and labels.
+                    graphics.drawString(xticklabel, labxpos,
+                            _lry + 3 + labelheight);
                 }
-                int labxpos = xCoord1 -
-                    _labelFontMetrics.stringWidth(xticklabel)/2;
-                // NOTE: 3 pixel spacing between axis and labels.
-                graphics.drawString(xticklabel, labxpos,
-                        _lry + 3 + labelheight);
             }
 
             if (_xlog) {
@@ -2018,23 +2050,29 @@ class PlotBox extends JPanel implements Printable {
                          xpos = _gridStep(unlabeledgrid, xpos,
                                  tmpStep, _xlog)) {
                         xCoord1 = _ulx + (int)((xpos-_xtickMin)*_xtickscale);
-                        if (_grid && xCoord1 != _ulx && xCoord1 != _lrx) {
-                            graphics.setColor(Color.lightGray);
-                            graphics.drawLine(xCoord1, _uly+1,
-                                    xCoord1, _lry-1);
-                            graphics.setColor(_foreground);
+                        if (graphics != null) {
+                            if (_grid && xCoord1 != _ulx && xCoord1 != _lrx) {
+                                graphics.setColor(Color.lightGray);
+                                graphics.drawLine(xCoord1, _uly+1,
+                                        xCoord1, _lry-1);
+                                graphics.setColor(_foreground);
+                            }
                         }
                     }
                 }
 
                 if (needExponent) {
                     _xExp = (int)Math.floor(xTmpStart);
-                    graphics.setFont(_superscriptFont);
-                    graphics.drawString(Integer.toString(_xExp), xSPos,
-                            ySPos - halflabelheight);
+                    if (graphics != null) {
+                        graphics.setFont(_superscriptFont);
+                        graphics.drawString(Integer.toString(_xExp), xSPos,
+                                ySPos - halflabelheight);
+                    }
                     xSPos -= _labelFontMetrics.stringWidth("x10");
-                    graphics.setFont(_labelFont);
-                    graphics.drawString("x10", xSPos, ySPos);
+                    if (graphics != null) {
+                        graphics.setFont(_labelFont);
+                        graphics.drawString("x10", xSPos, ySPos);
+                    }
                 } else {
                     _xExp = 0;
                 }
@@ -2067,18 +2105,21 @@ class PlotBox extends JPanel implements Printable {
 
                     // Draw the label.
                     // NOTE: 3 pixel spacing between axis and labels.
-                    graphics.drawString(label,
-                            labxpos, _lry + 3 + labelheight);
+                    if (graphics != null) {
+                        graphics.drawString(label,
+                                labxpos, _lry + 3 + labelheight);
 
-                    // Draw the label mark on the axis
-                    graphics.drawLine(xCoord1, _uly, xCoord1, yCoord1);
-                    graphics.drawLine(xCoord1, _lry, xCoord1, yCoord2);
+                        // Draw the label mark on the axis
+                        graphics.drawLine(xCoord1, _uly, xCoord1, yCoord1);
+                        graphics.drawLine(xCoord1, _lry, xCoord1, yCoord2);
                     
-                    // Draw the grid line
-                    if (_grid && xCoord1 != _ulx && xCoord1 != _lrx) {
-                        graphics.setColor(Color.lightGray);
-                        graphics.drawLine(xCoord1, yCoord1, xCoord1, yCoord2);
-                        graphics.setColor(_foreground);
+                        // Draw the grid line
+                        if (_grid && xCoord1 != _ulx && xCoord1 != _lrx) {
+                            graphics.setColor(Color.lightGray);
+                            graphics.drawLine(xCoord1, yCoord1,
+                                              xCoord1, yCoord2);
+                            graphics.setColor(_foreground);
+                        }
                     }
                 }
             }
@@ -2088,50 +2129,55 @@ class PlotBox extends JPanel implements Printable {
 
         // Center the title and X label over the plotting region, not
         // the window.
-        graphics.setColor(_foreground);
+        if (graphics != null) {
+            graphics.setColor(_foreground);
 
-        if (_title != null) {
-            graphics.setFont(_titleFont);
-            int titlex = _ulx +
-                (width - _titleFontMetrics.stringWidth(_title))/2;
-            graphics.drawString(_title, titlex, titley);
-        }
+            if (_title != null) {
+                graphics.setFont(_titleFont);
+                int titlex = _ulx +
+                    (width - _titleFontMetrics.stringWidth(_title))/2;
+                graphics.drawString(_title, titlex, titley);
+            }
 
-        graphics.setFont(_labelFont);
-        if (_xlabel != null) {
-            int labelx = _ulx +
-                (width - _labelFontMetrics.stringWidth(_xlabel))/2;
-            graphics.drawString(_xlabel, labelx, ySPos);
-        }
-
-        int charcenter = 2 + _labelFontMetrics.stringWidth("W")/2;
-        if (_ylabel != null) {
-            int yl = _ylabel.length();
-            if (graphics instanceof Graphics2D) {
-                int starty = _uly
-                        + (_lry-_uly)/2
-                        + _labelFontMetrics.stringWidth(_ylabel)/2
-                        - charwidth;
-                Graphics2D g2d = (Graphics2D)graphics;
-                // NOTE: Fudge factor so label doesn't touch axis labels.
-                int startx = charcenter + halflabelheight - 2;
-                g2d.rotate(Math.toRadians(-90), startx, starty);
-                g2d.drawString(_ylabel, startx, starty);
-                g2d.rotate(Math.toRadians(90), startx, starty);
-            } else {
-                // Not graphics 2D, no support for rotation.
-                // Vertical label is fairly complex to draw.
-                int starty = _uly
-                        + (_lry-_uly)/2 - yl*halflabelheight + labelheight;
-                for (int i = 0; i < yl; i++) {
-                    String nchar = _ylabel.substring(i, i+1);
-                    int cwidth = _labelFontMetrics.stringWidth(nchar);
-                    graphics.drawString(nchar, charcenter - cwidth/2, starty);
-                    starty += labelheight;
-                }
+            graphics.setFont(_labelFont);
+            if (_xlabel != null) {
+                int labelx = _ulx +
+                    (width - _labelFontMetrics.stringWidth(_xlabel))/2;
+                graphics.drawString(_xlabel, labelx, ySPos);
             }
         }
-        graphics.setFont(previousFont);
+
+        if (graphics != null) {
+            int charcenter = 2 + _labelFontMetrics.stringWidth("W")/2;
+            if (_ylabel != null) {
+                int yl = _ylabel.length();
+                if (graphics instanceof Graphics2D) {
+                    int starty = _uly
+                            + (_lry-_uly)/2
+                            + _labelFontMetrics.stringWidth(_ylabel)/2
+                            - charwidth;
+                    Graphics2D g2d = (Graphics2D)graphics;
+                    // NOTE: Fudge factor so label doesn't touch axis labels.
+                    int startx = charcenter + halflabelheight - 2;
+                    g2d.rotate(Math.toRadians(-90), startx, starty);
+                    g2d.drawString(_ylabel, startx, starty);
+                    g2d.rotate(Math.toRadians(90), startx, starty);
+                } else {
+                    // Not graphics 2D, no support for rotation.
+                    // Vertical label is fairly complex to draw.
+                    int starty = _uly
+                            + (_lry-_uly)/2 - yl*halflabelheight + labelheight;
+                    for (int i = 0; i < yl; i++) {
+                        String nchar = _ylabel.substring(i, i+1);
+                        int cwidth = _labelFontMetrics.stringWidth(nchar);
+                        graphics.drawString(nchar, charcenter - cwidth/2,
+                                            starty);
+                        starty += labelheight;
+                     }
+                }
+            }
+            graphics.setFont(previousFont);
+        }
     }
 
     /** Put a mark corresponding to the specified dataset at the
@@ -2510,12 +2556,12 @@ class PlotBox extends JPanel implements Printable {
      * of the region where the legend should be placed.
      */
     private int _drawLegend(Graphics graphics, int urx, int ury) {
-        // Ignore if there is no graphics object to draw on.
-        if (graphics == null) return 0;
 
         // FIXME: consolidate all these for efficiency
-        Font previousFont = graphics.getFont();
-        graphics.setFont(_labelFont);
+        Font previousFont = graphics == null ? null : graphics.getFont();
+        if (graphics != null) {
+            graphics.setFont(_labelFont);
+        }
         int spacing = _labelFontMetrics.getHeight();
 
         Enumeration v = _legendStrings.elements();
@@ -2530,19 +2576,30 @@ class PlotBox extends JPanel implements Printable {
                 if (_usecolor) {
                     // Points are only distinguished up to the number of colors
                     int color = dataset % _colors.length;
-                    graphics.setColor(_colors[color]);
+                    if (graphics != null) {
+                        graphics.setColor(_colors[color]);
+                    }
                 }
-                _drawPoint(graphics, dataset, urx-3, ypos-3, false);
+                if (graphics != null) {
+                    _drawPoint(graphics, dataset, urx-3, ypos-3, false);
+                }
 
-                graphics.setColor(_foreground);
+                if (graphics != null) {
+                    graphics.setColor(_foreground);
+                }
                 int width = _labelFontMetrics.stringWidth(legend);
                 if (width > maxwidth) maxwidth = width;
-                graphics.drawString(legend, urx - 15 - width, ypos);
+                if (graphics != null) {
+                    graphics.drawString(legend, urx - 15 - width, ypos);
+                }
                 ypos += spacing;
             }
         }
-        graphics.setFont(previousFont);
-        return 22 + maxwidth;  // NOTE: subjective spacing parameter.
+        if (graphics != null) {
+            graphics.setFont(previousFont);
+        }
+        return Math.max( 64, 22 + maxwidth );
+               // NOTE: subjective spacing parameter.
     }
 
     // Execute all actions pending on the deferred action list.

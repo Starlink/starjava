@@ -19,7 +19,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
     private PlotState state_;
     private SurfaceListener surfListener_;
 
-    private static int PAD_PIXELS = 6;
+    private static int PAD_PIXELS = 10;
 
     /**
      * Constructs a new surface, registering a listener which will be
@@ -70,6 +70,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         double ypad = ( yhi - ylo ) * PAD_PIXELS / height;
         setXRange( xlo - xpad, xhi + xpad );
         setYRange( ylo - ypad, yhi + ypad );
+        checkInvariants();
     }
 
     public Point dataToGraphics( double dx, double dy ) {
@@ -112,7 +113,22 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
 
     protected void _zoom( int x, int y ) {
         super._zoom( x, y );
+        checkInvariants();
         surfListener_.surfaceChanged();
+    }
+
+    /**
+     * Hack around the fact that PlotBox does a lot of its updating of
+     * protected variables (which we use for coordinate conversion) in
+     * its paintComponent method.  This is bad, because it means the
+     * results we get are dependent on whether the redraw has actually
+     * happened yet, which it might or might not have.
+     * So here we effectively do a dry call of paintComponent, which
+     * does the calculations and updates the state, without actually
+     * writing any graphics.
+     */
+    private void checkInvariants() {
+        _drawPlot( (Graphics) null, true );
     }
 
     /**
@@ -166,5 +182,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
 
         /* Grid flag. */
         setGrid( state.hasGrid() );
+
+        checkInvariants();
     }
 }
