@@ -168,9 +168,9 @@ public class Delete extends MatchingTask {
      *
      * @param failonerror true or false
      */
-    public void setFailOnError(boolean failonerror) {
-        this.failonerror = failonerror;
-    }
+     public void setFailOnError(boolean failonerror) {
+         this.failonerror = failonerror;
+     }
 
     /** Return failonerror setting */
     public boolean isFailOnError() {
