@@ -208,7 +208,7 @@ public class SplatPlotTable
                 Frame baseFrame = (Frame)
                     SwingUtilities.getWindowAncestor( currentPlot );
                 baseFrame.setState( Frame.NORMAL );
-                baseFrame.show();
+                baseFrame.setVisible( true );
             } 
             catch (Exception e) {
                 // Do nothing.
