@@ -901,12 +901,12 @@ public class JNLPTask extends Task implements JNLPTaskMember
 					sb.append( " name=\"").append( name).append('"');
 
 				if( extDownloads.size()==0)
-					sb.append( "\">").append( br());
+					sb.append( "/>").append( br());
 				else
 					sb.append( '>').append( br());
 				
 				
-				for( int i=0; i<resources.size(); i++)
+				for( int i=0; i<extDownloads.size(); i++)
 				{
 					ExtDownload extDownload = (ExtDownload)extDownloads.get( i);
 					extDownload.toString( sb, depth+1); 
@@ -1204,7 +1204,7 @@ public class JNLPTask extends Task implements JNLPTaskMember
 			throw new BuildException( "Attribute toFile undefined");
 			
 		String s = toString();
-		log( s, Project.MSG_INFO);
+		log( s, Project.MSG_VERBOSE);
 		try
 		{
 			PrintWriter pw = new PrintWriter( new FileWriter( toFile));
