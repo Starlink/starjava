@@ -102,7 +102,7 @@ public class HDSType {
      */
     public static HDSType fromJavaType( Type javaType ) {
         if ( javaType == Type.BYTE ) {
-            return _BYTE;
+            return _UBYTE;
         }
         else if ( javaType == Type.SHORT ) {
             return _WORD;

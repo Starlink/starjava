@@ -6,6 +6,7 @@ import java.net.URL;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayBuilder;
 import uk.ac.starlink.array.ArrayImpl;
+import uk.ac.starlink.array.BadHandler;
 import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
@@ -97,8 +98,22 @@ public class HDSArrayBuilder implements ArrayBuilder {
         }
     }
 
+    /**
+     * Constructs an NDArray based on an existing HDS array object.
+     *
+     * @param  ary  the ArrayStructure to be viewed as an NDArray
+     * @param  mode  the read/write/update mode for the NDArray
+     * @return  the new NDArray based on <tt>ary</tt>
+     * @throws  HDSException  if there is an error in HDS
+     */
+    public NDArray makeNDArray( ArrayStructure ary, AccessMode mode )
+            throws HDSException {
+        return new BridgeNDArray( new HDSArrayImpl( ary, mode ) );
+    }
 
-    public NDArray makeNewNDArray( URL url, NDShape shape, Type type )
+
+    public NDArray makeNewNDArray( URL url, NDShape shape, Type type,
+                                   BadHandler bh )
             throws IOException {
 
         try {

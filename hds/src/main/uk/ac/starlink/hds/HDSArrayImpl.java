@@ -15,6 +15,8 @@ import uk.ac.starlink.array.Type;
  */
 class HDSArrayImpl extends NioArrayImpl {
 
+    private Object ary;
+
     /**
      * Constructs an ArrayImpl based on an existing HDS ArrayStructure
      * using its natural data type. 
@@ -45,6 +47,11 @@ class HDSArrayImpl extends NioArrayImpl {
                           AccessMode mode ) {
         super( new BufGet( ary.getData(), hType, mode ),
                ary.getShape(), mapType, hType.getBadValue() );
+
+        /* Store a reference to this array.  This is not used by any methods
+         * of this class, but is required so that the HDS object is not
+         * finalised and unmapped by the garbage collector. */
+        this.ary = ary;
     }
 
     /**

@@ -124,6 +124,6 @@ public class NDFNdxTest extends TestCase {
                           sw2.toString().replaceAll( "\\s", "" ) );
         }
 
-        assertEquals( ndx1.getWCS(), ndx2.getWCS() );
+        assertEquals( ndx1.getAst(), ndx2.getAst() );
     }
 }

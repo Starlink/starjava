@@ -7,10 +7,11 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayAccess;
 import uk.ac.starlink.array.BadHandler;
-import uk.ac.starlink.array.ChunkIterator;
+import uk.ac.starlink.array.ChunkStepper;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.array.NDShape;
@@ -39,6 +40,7 @@ public class NdfMaker {
     private HDSType hdstype;
     private NDShape window;
 
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.hds" );
     private static final long[] SCALAR_DIMS = new long[ 0 ];
 
     /**
@@ -257,7 +259,13 @@ public class NdfMaker {
                 qobj.datNew( "BADBITS", "_UBYTE", SCALAR_DIMS );
                 qobj.datFind( "BADBITS" ).datPut0i( ibad );
             }
-            copyArray( ndx.getQuality(), qobj, "QUALITY", shape,
+            NDArray qnda = ndx.getQuality();
+            if ( qnda.getType() != Type.BYTE ) {
+                logger.warning( "Truncating Quality component from " +
+                                ( qnda.getType().getNumBytes() * 8 ) +
+                                " to 8 bits" );
+            }
+            copyArray( qnda, qobj, "QUALITY", shape,
                        HDSType._UBYTE, copyData );
             HDSObject qcomp = qobj.datFind( "QUALITY" );
             qcomp.datNew( "BAD_PIXEL", "_LOGICAL", SCALAR_DIMS );
@@ -272,50 +280,52 @@ public class NdfMaker {
         }
 
         /* WCS component. */
-        FrameSet wcs = doctorForNDF( ndx.getWCS(), shape );
+        if ( ndx.hasWCS() ) {
+            FrameSet wcs = doctorForNDF( ndx.getAst(), shape );
 
-        /* Construct a string filled with spaces. */
-        final int nchars = 32;
-        char[] blanks = new char[ nchars ];
-        Arrays.fill( blanks, ' ' );
-        final String blank = new String( blanks );
+            /* Construct a string filled with spaces. */
+            final int nchars = 32;
+            char[] blanks = new char[ nchars ];
+            Arrays.fill( blanks, ' ' );
+            final String blank = new String( blanks );
 
-        /* Get a list of strings containing the channel output.
-         * We use the same format as the NDF library - 32-character
-         * strings in which the first character is ' ' for the first
-         * string in a record, and '+' for continuation lines. */
-        final List lines = new ArrayList();
-        Channel lchan = new Channel() {
-            protected void sink( String line ) {
-                line = line.trim();
-                int pos = 0;
-                int leng = line.length();
-                while ( pos < leng ) {
-                    StringBuffer sbuf = new StringBuffer( blank );
-                    sbuf.setCharAt( 0, pos == 0 ? ' ' : '+' );
-                    for ( int i = 1;
-                          pos < leng && i < nchars;
-                          i++, pos++ ) {
-                        sbuf.setCharAt( i, line.charAt( pos ) );
+            /* Get a list of strings containing the channel output.
+             * We use the same format as the NDF library - 32-character
+             * strings in which the first character is ' ' for the first
+             * string in a record, and '+' for continuation lines. */
+            final List lines = new ArrayList();
+            Channel lchan = new Channel() {
+                protected void sink( String line ) {
+                    line = line.trim();
+                    int pos = 0;
+                    int leng = line.length();
+                    while ( pos < leng ) {
+                        StringBuffer sbuf = new StringBuffer( blank );
+                        sbuf.setCharAt( 0, pos == 0 ? ' ' : '+' );
+                        for ( int i = 1;
+                              pos < leng && i < nchars;
+                              i++, pos++ ) {
+                            sbuf.setCharAt( i, line.charAt( pos ) );
+                        }
+                        lines.add( sbuf.toString() );
                     }
-                    lines.add( sbuf.toString() );
                 }
-            }
-        };
-        lchan.setComment( false );
-        lchan.setFull( -1 );
-        lchan.write( wcs );
+            };
+            lchan.setComment( false );
+            lchan.setFull( -1 );
+            lchan.write( wcs );
 
-        /* Now write the strings as an HDS array. */
-        int nline = lines.size();
-        ndfob.datNew( "WCS", "WCS", SCALAR_DIMS );
-        HDSObject wcsholder = ndfob.datFind( "WCS" );
-        wcsholder.datNew( "DATA", "_CHAR*" + nchars, new long[] { nline } );
-        HDSObject wcsob = wcsholder.datFind( "DATA" );
-        long[] pos = new long[] { 1 };
-        for ( Iterator it = lines.iterator(); it.hasNext(); ) {
-            wcsob.datCell( pos ).datPut0c( (String) it.next() );
-            pos[ 0 ]++;
+            /* Now write the strings as an HDS array. */
+            int nline = lines.size();
+            ndfob.datNew( "WCS", "WCS", SCALAR_DIMS );
+            HDSObject wcsholder = ndfob.datFind( "WCS" );
+            wcsholder.datNew( "DATA", "_CHAR*" + nchars, new long[] { nline } );
+            HDSObject wcsob = wcsholder.datFind( "DATA" );
+            long[] pos = new long[] { 1 };
+            for ( Iterator it = lines.iterator(); it.hasNext(); ) {
+                wcsob.datCell( pos ).datPut0c( (String) it.next() );
+                pos[ 0 ]++;
+            }
         }
 
         /* Writing is done - annul the primary HDSObject to ensure that
@@ -371,7 +381,7 @@ public class NdfMaker {
             GenericNioBuffer genbuf = new GenericNioBuffer( mapped );
 
             /* Copy the data from the NDArray into the mapped HDS array. */
-            ChunkIterator cit = new ChunkIterator( shape.getNumPixels() );
+            ChunkStepper cit = new ChunkStepper( shape.getNumPixels() );
             Object buf = htype.getJavaType().newArray( cit.getSize() );
             ArrayAccess acc = nda.getAccess();
             try {

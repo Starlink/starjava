@@ -67,7 +67,7 @@ public class NDFNdxHandler implements NdxHandler {
 
         try {
             /* Construct an NdxImpl which will remove any temporary file
-             * when it is finalize with. */
+             * when it is finalized. */
             NdxImpl impl = new NDFNdxImpl( href, url, mode ) {
                 public void finalize() throws Throwable {
                     try {
@@ -91,6 +91,26 @@ public class NDFNdxHandler implements NdxHandler {
                 file.delete();
             }
             throw (IOException) new IOException().initCause( e );
+        }
+    }
+
+    /**
+     * Constructs an Ndx based on an existing HDS object.
+     *
+     * @param  hobj  the HDS object to be viewed as an Ndx
+     * @param  mode  the read/write/update mode for the Ndx array data
+     * @return  the new Ndx based on <tt>hobj</tt>, or <tt>null</tt> 
+     *          if it doesn't look like an NDF
+     * @throws  HDSException  if there is an error in HDS
+     * @throws  IllegalArgumentException  if <tt>hobj</tt> doesn't look like
+     *          and NDF structure
+     */
+    public Ndx makeNdx( HDSObject hobj, AccessMode mode ) throws HDSException {
+        try {
+            return new BridgeNdx( new NDFNdxImpl( hobj, null, mode ) );
+        }
+        catch ( IllegalArgumentException e ) {
+            return null;
         }
     }
 
@@ -128,4 +148,3 @@ public class NDFNdxHandler implements NdxHandler {
         }
     }
 }
-

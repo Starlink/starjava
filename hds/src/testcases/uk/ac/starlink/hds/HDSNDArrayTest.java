@@ -7,7 +7,7 @@ import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayAccess;
 import uk.ac.starlink.array.ArrayBuilder;
 import uk.ac.starlink.array.BadHandler;
-import uk.ac.starlink.array.ChunkIterator;
+import uk.ac.starlink.array.ChunkStepper;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Order;
@@ -36,7 +36,7 @@ public class HDSNDArrayTest extends TestCase {
         Number hbad = htype.getBadValue();
         assertNotNull( hbad );
 
-        NDArray nda1 = fact.makeNewNDArray( url, shape, type );
+        NDArray nda1 = fact.makeNewNDArray( url, shape, type, null );
 
         OrderedNDShape shape1 = nda1.getShape();
         Order order1 = shape1.getOrder();
@@ -54,7 +54,7 @@ public class HDSNDArrayTest extends TestCase {
         fillRandom( buf1, -100, 100 );
         
         ArrayAccess acc1 = nda1.getAccess();
-        for ( ChunkIterator cit = new ChunkIterator( npix, 10 ); 
+        for ( ChunkStepper cit = new ChunkStepper( npix, 10 ); 
               cit.hasNext(); cit.next() ) {
             acc1.write( buf1, (int) cit.getBase(), cit.getSize() );
         }
@@ -77,7 +77,7 @@ public class HDSNDArrayTest extends TestCase {
 
         Object buf2 = type.newArray( npix );
         ArrayAccess acc2 = nda2.getAccess();
-        for ( ChunkIterator cit = new ChunkIterator( npix, 14 );
+        for ( ChunkStepper cit = new ChunkStepper( npix, 14 );
               cit.hasNext(); cit.next() ) {
             acc2.read( buf2, (int) cit.getBase(), cit.getSize() );
         }
