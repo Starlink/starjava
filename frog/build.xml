@@ -302,7 +302,7 @@
     <!--  Need NDArray -->
     <available property="array.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.hdx.array.NDArray"/>
+               classname="uk.ac.starlink.array.NDArray"/>
 
     <fail message="No NDArray available" unless="array.present"/>
 
