@@ -54,6 +54,7 @@ public class Driver {
 
         /* Ensure that global preferences are installed. */
         Loader.loadProperties();
+        Loader.tweakGuiForMac();
 
         /* Ensure we have best guesses for various properties. */
         guessProperties();
