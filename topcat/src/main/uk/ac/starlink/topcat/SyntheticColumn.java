@@ -88,7 +88,7 @@ public class SyntheticColumn extends ColumnData {
         args = new Object[] { rowReader };
 
         /* Compile the expression. */
-        String exprsub = expression.replace( '#', '£' );
+        String exprsub = expression.replace( '#', JELRowReader.CURRENCY_SIGN );
         Library lib = JELUtils.getLibrary( rowReader );
         compEx = Evaluator.compile( exprsub, lib, resultType );
 

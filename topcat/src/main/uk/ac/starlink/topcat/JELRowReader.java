@@ -66,6 +66,9 @@ public class JELRowReader extends DVMap {
     private StarTable stable;
     private List subsets;
 
+    /** Pound sign. */
+    public static final char CURRENCY_SIGN = '\u00a3';
+
     /**
      * The string which, when prefixed to a column ideentifier, indicates
      * that the null-ness of the column should be queried.
@@ -360,7 +363,7 @@ public class JELRowReader extends DVMap {
     private short getSubsetIndex( String name ) {
 
         /* Try the '£' + number format. */
-        if ( name.charAt( 0 ) == '£' ) {
+        if ( name.charAt( 0 ) == CURRENCY_SIGN ) {
             try {
                 int isub = Integer.parseInt( name.substring( 1 ) ) - 1;
                 if ( isub >= 0 && isub < subsets.size() ) {
