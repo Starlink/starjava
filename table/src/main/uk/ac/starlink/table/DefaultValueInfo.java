@@ -171,6 +171,11 @@ public class DefaultValueInfo implements ValueInfo {
             cellRenderer = null;
             cellEditor = null;
         }
+
+        /* If the content class is not an array type, set the shape to null. */
+        if ( ! isArray() ) {
+            setShape( null );
+        }
         this.contentClass = contentClass;
     }
 
@@ -478,7 +483,7 @@ public class DefaultValueInfo implements ValueInfo {
      */
     public static String formatShape( int[] shape ) {
         if ( shape == null || shape.length == 0 ) {
-            return "*";
+            return "";
         }
         else {
             StringBuffer buf = new StringBuffer();

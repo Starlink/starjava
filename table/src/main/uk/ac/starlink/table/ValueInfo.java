@@ -112,7 +112,8 @@ public interface ValueInfo {
      * <p>
      * If <tt>getContentClass</tt> does not give an array type 
      * (hence <tt>isArray</tt> returns false)
-     * the return value for this method is undefined.
+     * the return value for this method is undefined (but should probably
+     * be <tt>null</tt>).
      *
      * @return  the shape of the array value
      */
