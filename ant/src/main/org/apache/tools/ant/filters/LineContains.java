@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2002-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -72,15 +72,15 @@ import org.apache.tools.ant.types.Parameter;
  *
  * Or:
  *
- * <pre>&lt;filterreader classname="org.apache.tools.ant.filters.LineContains"&gt;
- *    &lt;param type="contains" value="foo"/&gt;
- *    &lt;param type="contains" value="bar"/&gt;
+ * <pre>&lt;filterreader classname=&quot;org.apache.tools.ant.filters.LineContains&quot;&gt;
+ *    &lt;param type=&quot;contains&quot; value=&quot;foo&quot;/&gt;
+ *    &lt;param type=&quot;contains&quot; value=&quot;bar&quot;/&gt;
  * &lt;/filterreader&gt;</pre>
  *
  * This will include only those lines that contain <code>foo</code> and
  * <code>bar</code>.
  *
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  */
 public final class LineContains
     extends BaseParamFilterReader
@@ -143,12 +143,10 @@ public final class LineContains
                 line = line.substring(1);
             }
         } else {
-            String goodLine = null;
             line = readLine();
-            if (line == null) {
-                ch = -1;
-            } else {
-                int containsSize = contains.size();
+            final int containsSize = contains.size();
+
+            while (line != null) {
                 for (int i = 0; i < containsSize; i++) {
                     String containsStr = (String) contains.elementAt(i);
                     if (line.indexOf(containsStr) == -1) {
@@ -156,6 +154,16 @@ public final class LineContains
                         break;
                     }
                 }
+
+                if (line == null) {
+                    // line didn't match
+                    line = readLine();
+                } else {
+                    break;
+                }
+            }
+
+            if (line != null) {
                 return read();
             }
         }

@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -61,7 +61,7 @@ import java.util.Date;
  *
  * @author <a href="mailto:jeff.martin@synamic.co.uk">Jeff Martin</a>
  * @author <a href="mailto:peter@apache.org">Peter Donald</a>
- * @version $Revision: 1.5 $ $Date: 2002/04/15 23:49:10 $
+ * @version $Revision: 1.5.2.1 $ $Date: 2003/02/10 14:24:56 $
  */
 class CVSEntry {
     private Date m_date;

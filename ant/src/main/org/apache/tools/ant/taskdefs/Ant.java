@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -54,22 +54,22 @@
 
 package org.apache.tools.ant.taskdefs;
 
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.ProjectComponent;
-import org.apache.tools.ant.BuildListener;
-import org.apache.tools.ant.DefaultLogger;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.ProjectHelper;
-import org.apache.tools.ant.util.FileUtils;
 import java.io.File;
-import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Method;
-import java.util.Vector;
-import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.BuildListener;
+import org.apache.tools.ant.DefaultLogger;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectComponent;
+import org.apache.tools.ant.ProjectHelper;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Build a sub-project.
@@ -88,7 +88,7 @@ import java.util.Enumeration;
  * </pre>
  *
  *
- * @author costin@dnt.ro
+ * @author Costin Manolache
  *
  * @since Ant 1.1
  *
@@ -99,9 +99,9 @@ public class Ant extends Task {
     /** the basedir where is executed the build file */
     private File dir = null;
 
-    /** 
+    /**
      * the build.xml file (can be absolute) in this case dir will be
-     * ignored 
+     * ignored
      */
     private String antFile = null;
 
@@ -152,7 +152,7 @@ public class Ant extends Task {
         newProject = new Project();
         newProject.setJavaVersionProperty();
         newProject.addTaskDefinition("property",
-                                     (Class) project.getTaskDefinitions()
+                                     (Class) getProject().getTaskDefinitions()
                                              .get("property"));
     }
 
@@ -208,7 +208,7 @@ public class Ant extends Task {
     private void initializeProject() {
         newProject.setInputHandler(getProject().getInputHandler());
 
-        Vector listeners = project.getBuildListeners();
+        Vector listeners = getProject().getBuildListeners();
         final int count = listeners.size();
         for (int i = 0; i < count; i++) {
             newProject.addBuildListener((BuildListener) listeners.elementAt(i));
@@ -233,7 +233,7 @@ public class Ant extends Task {
             }
         }
 
-        Hashtable taskdefs = project.getTaskDefinitions();
+        Hashtable taskdefs = getProject().getTaskDefinitions();
         Enumeration et = taskdefs.keys();
         while (et.hasMoreElements()) {
             String taskName = (String) et.nextElement();
@@ -245,7 +245,7 @@ public class Ant extends Task {
             newProject.addTaskDefinition(taskName, taskClass);
         }
 
-        Hashtable typedefs = project.getDataTypeDefinitions();
+        Hashtable typedefs = getProject().getDataTypeDefinitions();
         Enumeration e = typedefs.keys();
         while (e.hasMoreElements()) {
             String typeName = (String) e.nextElement();
@@ -288,7 +288,7 @@ public class Ant extends Task {
      *
      * @since Ant 1.5
      */
-    protected void handleOutput(String line) {
+    public void handleOutput(String line) {
         if (newProject != null) {
             newProject.demuxOutput(line, false);
         } else {
@@ -297,15 +297,41 @@ public class Ant extends Task {
     }
 
     /**
+     * Pass output sent to System.out to the new project.
+     *
+     * @since Ant 1.5.2
+     */
+    public void handleFlush(String line) {
+        if (newProject != null) {
+            newProject.demuxFlush(line, false);
+        } else {
+            super.handleFlush(line);
+        }
+    }
+
+    /**
      * Pass output sent to System.err to the new project.
      *
      * @since Ant 1.5
      */
-    protected void handleErrorOutput(String line) {
+    public void handleErrorOutput(String line) {
         if (newProject != null) {
             newProject.demuxOutput(line, true);
         } else {
             super.handleErrorOutput(line);
+        }
+    }
+
+    /**
+     * Pass output sent to System.err to the new project.
+     *
+     * @since Ant 1.5.2
+     */
+    public void handleErrorFlush(String line) {
+        if (newProject != null) {
+            newProject.demuxFlush(line, true);
+        } else {
+            super.handleErrorFlush(line);
         }
     }
 
@@ -322,7 +348,7 @@ public class Ant extends Task {
             }
 
             if ((dir == null) && (inheritAll)) {
-                dir = project.getBaseDir();
+                dir = getProject().getBaseDir();
             }
 
             initializeProject();
@@ -330,11 +356,11 @@ public class Ant extends Task {
             if (dir != null) {
                 newProject.setBaseDir(dir);
                 if (savedDir != null) { // has been set explicitly
-                    newProject.setInheritedProperty("basedir" , 
+                    newProject.setInheritedProperty("basedir" ,
                                                     dir.getAbsolutePath());
                 }
             } else {
-                dir = project.getBaseDir();
+                dir = getProject().getBaseDir();
             }
 
             overrideProperties();
@@ -356,8 +382,6 @@ public class Ant extends Task {
                 target = newProject.getDefaultTarget();
             }
 
-            addReferences();
-
             // Are we trying to call the target in which we are defined?
             if (newProject.getBaseDir().equals(project.getBaseDir()) &&
                 newProject.getProperty("ant.file").equals(project.getProperty("ant.file")) &&
@@ -368,10 +392,18 @@ public class Ant extends Task {
                     + "target");
             }
 
+            addReferences();
+
             newProject.executeTarget(target);
         } finally {
             // help the gc
             newProject = null;
+            Enumeration enum = properties.elements();
+            while (enum.hasMoreElements()) {
+                Property p = (Property) enum.nextElement();
+                p.setProject(null);
+            }
+
             if (output != null && out != null) {
                 try {
                     out.close();
@@ -406,7 +438,7 @@ public class Ant extends Task {
      * requested.
      */
     private void addReferences() throws BuildException {
-        Hashtable thisReferences = (Hashtable) project.getReferences().clone();
+        Hashtable thisReferences = (Hashtable) getProject().getReferences().clone();
         Hashtable newReferences = newProject.getReferences();
         Enumeration e;
         if (references.size() > 0) {
@@ -455,7 +487,13 @@ public class Ant extends Task {
      * keep our fingers crossed.</p>
      */
     private void copyReference(String oldKey, String newKey) {
-        Object orig = project.getReference(oldKey);
+        Object orig = getProject().getReference(oldKey);
+        if (orig == null) {
+            log("No object referenced by " + oldKey + ". Can't copy to " 
+                + newKey, 
+                Project.MSG_WARN);
+            return;
+        }
         Class c = orig.getClass();
         Object copy = orig;
         try {
@@ -483,7 +521,7 @@ public class Ant extends Task {
             } catch (Exception e2) {
                 String msg = "Error setting new project instance for "
                     + "reference with id " + oldKey;
-                throw new BuildException(msg, e2, location);
+                throw new BuildException(msg, e2, getLocation());
             }
         }
         newProject.addReference(newKey, copy);
@@ -570,10 +608,10 @@ public class Ant extends Task {
          * Set the id that this reference to be stored under in the
          * new project.
          *
-         * @param targetid the id under which this reference will be passed to 
-         *        the new project */ 
+         * @param targetid the id under which this reference will be passed to
+         *        the new project */
         public void setToRefid(String targetid) {
-            this.targetid = targetid; 
+            this.targetid = targetid;
         }
 
         /**
@@ -582,8 +620,8 @@ public class Ant extends Task {
          *
          * @return the id of the reference in the new project.
          */
-        public String getToRefid() { 
-            return targetid; 
+        public String getToRefid() {
+            return targetid;
         }
     }
 }

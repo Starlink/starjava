@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -63,6 +63,7 @@ import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.CommandlineJava;
 import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.util.JavaEnvUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -161,7 +162,7 @@ public class MParse extends Task {
     }
 
     public MParse() {
-        cmdl.setVm("java");
+        cmdl.setVm(JavaEnvUtils.getJreExecutable("java"));
         cmdl.setClassname("com.metamata.jj.MParse");
     }
 

@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -64,11 +64,15 @@ import java.util.zip.ZipException;
  * access to the internal and external file attributes.
  *
  * @author <a href="stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.3.2.2 $
  */
 public class ZipEntry extends java.util.zip.ZipEntry {
 
+    private static final int PLATFORM_UNIX = 3;
+    private static final int PLATFORM_FAT  = 0;
+
     private int internalAttributes = 0;
+    private int platform = PLATFORM_FAT;
     private long externalAttributes = 0;
     private Vector extraFields = new Vector();
 
@@ -184,6 +188,34 @@ public class ZipEntry extends java.util.zip.ZipEntry {
      */
     public void setExternalAttributes(long value) {
         externalAttributes = value;
+    }
+
+    /**
+     * Sets Unix permissions in a way that is understood by Info-Zip's
+     * unzip command.
+     *
+     * @since Ant 1.5.2
+     */
+    public void setUnixMode(int mode) {
+        setExternalAttributes((mode << 16)
+                              // MS-DOS read-only attribute
+                              | ((mode & 0200) == 0 ? 1 : 0)
+                              // MS-DOS directory flag
+                              | (isDirectory() ? 0x10 : 0));
+        platform = PLATFORM_UNIX;
+    }
+
+    /**
+     * Platform specification to put into the &quot;version made
+     * by&quot; part of the central file header.
+     *
+     * @return 0 (MS-DOS FAT) unless {@link #setUnixMode setUnixMode}
+     * has been called, in which case 3 (Unix) will be returned.
+     *
+     * @since Ant 1.5.2
+     */
+    public int getPlatform() {
+        return platform;
     }
 
     /**

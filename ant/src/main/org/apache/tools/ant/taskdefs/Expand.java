@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -77,7 +77,7 @@ import java.util.zip.ZipEntry;
  *
  * @author costin@dnt.ro
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  *
  * @since Ant 1.1
  *
@@ -130,8 +130,8 @@ public class Expand extends Task {
         if (filesets.size() > 0) {
             for (int j = 0; j < filesets.size(); j++) {
                 FileSet fs = (FileSet) filesets.elementAt(j);
-                DirectoryScanner ds = fs.getDirectoryScanner(project);
-                File fromDir = fs.getDir(project);
+                DirectoryScanner ds = fs.getDirectoryScanner(getProject());
+                File fromDir = fs.getDir(getProject());
 
                 String[] files = ds.getIncludedFiles();
                 for (int i = 0; i < files.length; ++i) {
@@ -146,7 +146,7 @@ public class Expand extends Task {
      * This method is to be overridden by extending unarchival tasks.
      */
     protected void expandFile(FileUtils fileUtils, File srcF, File dir) {
-        log("Expanding: " + srcF + " into " + dir, Project.MSG_INFO);        
+        log("Expanding: " + srcF + " into " + dir, Project.MSG_INFO);
         ZipInputStream zis = null;
         try {
             // code from WarExpand
@@ -183,24 +183,29 @@ public class Expand extends Task {
             boolean included = false;
             for (int v = 0; v < patternsets.size(); v++) {
                 PatternSet p = (PatternSet) patternsets.elementAt(v);
-                String[] incls = p.getIncludePatterns(project);
-                if (incls != null) {
-                    for (int w = 0; w < incls.length; w++) {
-                        boolean isIncl = 
-                            DirectoryScanner.match(incls[w], name);
-                        if (isIncl) {
-                            included = true;
-                            break;
-                        }
+                String[] incls = p.getIncludePatterns(getProject());
+                if (incls == null || incls.length == 0) {
+                    // no include pattern implicitly means includes="**"
+                    incls = new String[] {"**"};
+                }
+                    
+                for (int w = 0; w < incls.length; w++) {
+                    included = DirectoryScanner.match(incls[w], name);
+                    if (included) {
+                        break;
                     }
                 }
-                String[] excls = p.getExcludePatterns(project);
+                
+                if (!included) {
+                    break;
+                }
+                
+
+                String[] excls = p.getExcludePatterns(getProject());
                 if (excls != null) {
                     for (int w = 0; w < excls.length; w++) {
-                        boolean isExcl = 
-                            DirectoryScanner.match(excls[w], name);
-                        if (isExcl) {
-                            included = false;
+                        included = !(DirectoryScanner.match(excls[w], name));
+                        if (!included) {
                             break;
                         }
                     }
@@ -225,7 +230,9 @@ public class Expand extends Task {
                 Project.MSG_VERBOSE);
             // create intermediary directories - sometimes zip don't add them
             File dirF = fileUtils.getParentFile(f);
-            dirF.mkdirs();
+            if ( dirF != null ) {
+                dirF.mkdirs();
+            }
 
             if (isDirectory) {
                 f.mkdirs();

@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -121,6 +121,7 @@ public class TStampTest extends TestCase {
         assertEquals(expected, today);
 
     }
+
     /**
      * verifies that custom props have priority over the
      * originals
@@ -130,6 +131,18 @@ public class TStampTest extends TestCase {
         tstamp.setPrefix("prefix");
         tstamp.execute();
         String prop= project.getProperty("prefix.DSTAMP");
+        assertNotNull(prop);
+    }
+
+    public void testFormatPrefix() throws Exception {
+	Tstamp.CustomFormat format = tstamp.createFormat();
+        format.setProperty("format");
+        format.setPattern("HH:mm:ss z");
+        format.setTimezone("GMT");
+
+        tstamp.setPrefix("prefix");
+        tstamp.execute();
+        String prop= project.getProperty("prefix.format");
         assertNotNull(prop);
     }
 

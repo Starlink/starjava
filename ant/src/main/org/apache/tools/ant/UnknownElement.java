@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -121,7 +121,7 @@ public class UnknownElement extends Task {
 
         handleChildren(realThing, wrapper);
 
-        wrapper.maybeConfigure(project);
+        wrapper.maybeConfigure(getProject());
     }
 
     /**
@@ -138,6 +138,19 @@ public class UnknownElement extends Task {
     }
 
     /**
+     * Handles output sent to System.out by this task or its real task.
+     *
+     * @param line The line of output to log. Should not be <code>null</code>.
+     */
+    protected void handleFlush(String line) {
+        if (realThing instanceof Task) {
+            ((Task) realThing).handleFlush(line);
+        } else {
+            super.handleFlush(line);
+        }
+    }
+
+    /**
      * Handles error output sent to System.err by this task or its real task.
      *
      * @param line The error line to log. Should not be <code>null</code>.
@@ -150,6 +163,20 @@ public class UnknownElement extends Task {
         }
     }
 
+
+    /**
+     * Handles error output sent to System.err by this task or its real task.
+     *
+     * @param line The error line to log. Should not be <code>null</code>.
+     */
+    protected void handleErrorFlush(String line) {
+        if (realThing instanceof Task) {
+            ((Task) realThing).handleErrorOutput(line);
+        } else {
+            super.handleErrorOutput(line);
+        }
+    }
+    
     /**
      * Executes the real object if it's a task. If it's not a task
      * (e.g. a data type) then this method does nothing.
@@ -159,7 +186,7 @@ public class UnknownElement extends Task {
             // plain impossible to get here, maybeConfigure should
             // have thrown an exception.
             throw new BuildException("Could not create task of type: "
-                                     + elementName, location);
+                                     + elementName, getLocation());
         }
 
         if (realThing instanceof Task) {
@@ -209,7 +236,7 @@ public class UnknownElement extends Task {
                 realChild = makeTask(child, childWrapper, false);
                 ((TaskContainer) parent).addTask((Task) realChild);
             } else {
-                realChild = ih.createElement(project, parent, child.getTag());
+                realChild = ih.createElement(getProject(), parent, child.getTag());
             }
 
             childWrapper.setProxy(realChild);
@@ -218,10 +245,6 @@ public class UnknownElement extends Task {
             }
 
             child.handleChildren(realChild, childWrapper);
-
-            if (parent instanceof TaskContainer) {
-                ((Task) realChild).maybeConfigure();
-            }
         }
     }
 
@@ -238,7 +261,7 @@ public class UnknownElement extends Task {
     protected Object makeObject(UnknownElement ue, RuntimeConfigurable w) {
         Object o = makeTask(ue, w, true);
         if (o == null) {
-            o = project.createDataType(ue.getTag());
+            o = getProject().createDataType(ue.getTag());
         }
         if (o == null) {
             throw getNotFoundException("task or type", ue.getTag());
@@ -263,7 +286,7 @@ public class UnknownElement extends Task {
      */
     protected Task makeTask(UnknownElement ue, RuntimeConfigurable w,
                             boolean onTopLevel) {
-        Task task = project.createTask(ue.getTag());
+        Task task = getProject().createTask(ue.getTag());
         if (task == null && !onTopLevel) {
             throw getNotFoundException("task", ue.getTag());
         }
@@ -271,7 +294,7 @@ public class UnknownElement extends Task {
         if (task != null) {
             task.setLocation(getLocation());
             // UnknownElement always has an associated target
-            task.setOwningTarget(target);
+            task.setOwningTarget(getOwningTarget());
             task.init();
         }
         return task;
@@ -325,7 +348,7 @@ public class UnknownElement extends Task {
             + "as this is not an Ant bug.";
 
 
-        return new BuildException(msg, location);
+        return new BuildException(msg, getLocation());
     }
 
     /**

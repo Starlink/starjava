@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -140,7 +140,7 @@ public class Main {
     private boolean projectHelp = false;
 
     /**
-     * Is a logfile being used?  This is used to
+     * Whether or not a logfile is being used. This is used to
      * check if the output streams must be closed.
      */
     private static boolean isLogFileUsed = false;
@@ -249,7 +249,6 @@ public class Main {
      *                           or is a directory.
      */
     protected Main(String[] args) throws BuildException {
-
         String searchForThis = null;
         PrintStream logTo = null;
 
@@ -296,7 +295,7 @@ public class Main {
             } else if (arg.equals("-buildfile") || arg.equals("-file")
                        || arg.equals("-f")) {
                 try {
-                    buildFile = new File(args[i + 1]);
+                    buildFile = new File(args[i + 1].replace('/', File.separatorChar));
                     i++;
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
                     String msg = "You must specify a buildfile when " +
@@ -922,7 +921,7 @@ public class Main {
         String lSep = System.getProperty("line.separator");
         // got a bit annoyed that I couldn't find a pad function
         String spaces = "    ";
-        while (spaces.length() < maxlen) {
+        while (spaces.length() <= maxlen) {
             spaces += spaces;
         }
         StringBuffer msg = new StringBuffer();

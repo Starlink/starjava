@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -62,9 +62,9 @@ import java.util.Locale;
  * Condition that tests the OS type.
  *
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  * @since Ant 1.4
- * @version $Revision: 1.15.2.1 $
+ * @version $Revision: 1.15.2.4 $
  */
 public class Os implements Condition {
     private static final String osName =
@@ -219,8 +219,19 @@ public class Os implements Condition {
                         && (!isFamily("mac") || osName.endsWith("x"));
                 } else if (family.equals("win9x")) {
                     isFamily = isFamily("windows") &&
+                        /*
+                         * FIXME
+                         *
+                         * Need a better way to know which one runs CMD.EXE
+                         * and wich COMMAND.COM.
+                         *
+                         * If we use a fixed list of names, we should rather
+                         * use one for all win9x flavors as it is supposed to
+                         * be a final list.
+                         */
                         !(osName.indexOf("nt") >= 0 ||
                           osName.indexOf("2000") >= 0 ||
+                          osName.indexOf("2003") >= 0 ||
                           osName.indexOf("xp") >= 0);
                 } else if (family.equals("z/os")) {
                     isFamily = osName.indexOf("z/os") > -1 

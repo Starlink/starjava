@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -72,7 +72,7 @@ import org.apache.tools.ant.util.Watchdog;
  * </pre>
  
  * @author thomas.haas@softwired-inc.com
- * @author <a href="mailto:sbailliez@imediation.com">Stephane Bailliez</a>
+ * @author <a href="mailto:sbailliez_at_apache.org">Stephane Bailliez</a>
  * @see Execute
  * @see org.apache.tools.ant.util.Watchdog
  * @since Ant 1.2
@@ -103,6 +103,15 @@ public class ExecuteWatchdog implements TimeoutObserver {
     public ExecuteWatchdog(long timeout) {
         watchdog = new Watchdog(timeout);
         watchdog.addTimeoutObserver(this);
+    }
+
+    /**
+     * @see #ExecuteWatchdog(long)
+     * @deprecated Use constructor with a long type instead.
+     * (1.4.x compatibility)
+     */
+    public ExecuteWatchdog(int timeout) {
+        this((long)timeout);
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  *  The Apache Software License, Version 1.1
  *
- *  Copyright (c) 2001 The Apache Software Foundation.  All rights
+ *  Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
  *  reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *  Alternately, this acknowlegement may appear in the software itself,
  *  if and wherever such third-party acknowlegements normally appear.
  *
- *  4. The names "The Jakarta Project", "Ant", and "Apache Software
+ *  4. The names "Ant" and "Apache Software
  *  Foundation" must not be used to endorse or promote products derived
  *  from this software without prior written permission. For written
  *  permission, please contact apache@apache.org.
@@ -54,8 +54,10 @@
 package org.apache.tools.ant.taskdefs.optional;
 
 import org.apache.tools.ant.BuildFileTest;
+import org.apache.tools.ant.util.FileUtils;
 
 import java.util.Properties;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -63,7 +65,7 @@ import java.io.IOException;
  * JUnit Testcase for the optional replaceregexp task.
  *
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a> 
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.2.2.2 $
  */
 public class ReplaceRegExpTest extends BuildFileTest {
 
@@ -109,6 +111,22 @@ public class ReplaceRegExpTest extends BuildFileTest {
 
         assertNull(after.get("OldAbc"));
         assertEquals("AbcDef", after.get("NewProp"));
+    }
+
+    public void testDontAddNewline1() throws IOException {
+        executeTarget("testDontAddNewline1");
+        assertTrue("Files match",
+                   FileUtils.newFileUtils()
+                   .contentEquals(new File("src/etc/testcases/taskdefs/optional/test.properties"),
+                                  new File("src/etc/testcases/taskdefs/optional/replaceregexp2.result.properties")));
+    }
+
+    public void testDontAddNewline2() throws IOException {
+        executeTarget("testDontAddNewline2");
+        assertTrue("Files match",
+                   FileUtils.newFileUtils()
+                   .contentEquals(new File("src/etc/testcases/taskdefs/optional/test.properties"),
+                                  new File("src/etc/testcases/taskdefs/optional/replaceregexp2.result.properties")));
     }
 
 }// ReplaceRegExpTest

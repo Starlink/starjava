@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -68,6 +68,7 @@ import org.apache.tools.ant.taskdefs.LogStreamHandler;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.CommandlineJava;
 import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
  *  Invokes the ANTLR Translator generator on a grammar file. 
@@ -117,7 +118,7 @@ public class ANTLR extends Task {
     private File workingdir = null;
 
     public ANTLR() {
-        commandline.setVm("java");
+        commandline.setVm(JavaEnvUtils.getJreExecutable("java"));
         commandline.setClassname("antlr.Tool");
     }
 
@@ -320,11 +321,6 @@ public class ANTLR extends Task {
     private void validateAttributes() throws BuildException {
         if (target == null || !target.isFile()) {
             throw new BuildException("Invalid target: " + target);
-        }
-
-        // validate the superGrammar file
-        if (superGrammar != null && !new File(superGrammar).isFile()) {
-            throw new BuildException("Invalid super grammar file: " + superGrammar);
         }
 
         // if no output directory is specified, used the target's directory

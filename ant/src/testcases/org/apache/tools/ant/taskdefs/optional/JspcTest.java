@@ -1,7 +1,7 @@
 /*
  *  The Apache Software License, Version 1.1
  *
- *  Copyright (c) 2002 The Apache Software Foundation.  All rights
+ *  Copyright (c) 2002-2003 The Apache Software Foundation.  All rights
  *  reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *  Alternately, this acknowlegement may appear in the software itself,
  *  if and wherever such third-party acknowlegements normally appear.
  *
- *  4. The names "The Jakarta Project", "Ant", and "Apache Software
+ *  4. The names "Ant" and "Apache Software
  *  Foundation" must not be used to endorse or promote products derived
  *  from this software without prior written permission. For written
  *  permission, please contact apache@apache.org.
@@ -57,6 +57,12 @@ import java.io.*;
 import java.util.Properties;
 
 import org.apache.tools.ant.BuildFileTest;
+import org.apache.tools.ant.taskdefs.optional.jsp.JspMangler;
+import org.apache.tools.ant.taskdefs.optional.jsp.Jasper41Mangler;
+import org.apache.tools.ant.taskdefs.optional.jsp.JspC;
+import org.apache.tools.ant.taskdefs.optional.jsp.JspNameMangler;
+import org.apache.tools.ant.taskdefs.optional.jsp.compilers.JspCompilerAdapterFactory;
+import org.apache.tools.ant.taskdefs.optional.jsp.compilers.JspCompilerAdapter;
 
 /**
  * Tests the Jspc task.
@@ -113,7 +119,7 @@ public class JspcTest extends BuildFileTest {
      * A unit test for JUnit
      */
     public void testSimple() throws Exception {
-        executeJspCompile("testSimple", "simple.java");
+        executeJspCompile("testSimple", "simple_jsp.java");
     }
 
 
@@ -121,7 +127,7 @@ public class JspcTest extends BuildFileTest {
      * A unit test for JUnit
      */
     public void testUriroot() throws Exception {
-        executeJspCompile("testUriroot", "uriroot.java");
+        executeJspCompile("testUriroot", "uriroot_jsp.java");
     }
 
 
@@ -129,7 +135,7 @@ public class JspcTest extends BuildFileTest {
      * A unit test for JUnit
      */
     public void testXml() throws Exception {
-        executeJspCompile("testXml", "xml.java");
+        executeJspCompile("testXml", "xml_jsp.java");
     }
 
 
@@ -137,7 +143,7 @@ public class JspcTest extends BuildFileTest {
      * try a keyword in a file
      */
     public void testKeyword() throws Exception {
-        executeJspCompile("testKeyword", "default_00025.java");
+        executeJspCompile("testKeyword", "default_jsp.java");
     }
 
 
@@ -146,7 +152,7 @@ public class JspcTest extends BuildFileTest {
      */
     public void testInvalidClassname() throws Exception {
         executeJspCompile("testInvalidClassname", 
-                "_00031nvalid_0002dclassname.java");
+                "_1nvalid_0002dclassname_jsp.java");
     }
 
     
@@ -154,13 +160,31 @@ public class JspcTest extends BuildFileTest {
      * A unit test for JUnit
      */
     public void testNoTld() throws Exception {
-        expectBuildExceptionContaining("testNoTld",
-                "Jasper found an error in a file",
-                "Java returned: 9");
+//         expectBuildExceptionContaining("testNoTld",
+//                 "Jasper found an error in a file",
+//                 "Java returned: 9");
+         expectBuildExceptionContaining("testNoTld",
+                 "not found",
+                 "Java returned: 9");
     }
 
 
+    /**
+     * A unit test for JUnit
+     */
+    public void testNotAJspFile()  throws Exception {
+        executeTarget("testNotAJspFile");
+    }
 
+    /**
+     * webapp test is currently broken, because it picks up
+     * on the missing_tld file, and bails. 
+     */
+/*
+    public void testWebapp()  throws Exception {
+        executeTarget("testWebapp");
+    }
+*/
     /**
      * run a target then verify the named file gets created
      *
@@ -188,7 +212,6 @@ public class JspcTest extends BuildFileTest {
         assertTrue("file " + filename + " is empty", file.length() > 0);
     }
 
-
     /**
      * Gets the OutputFile attribute of the JspcTest object
      *
@@ -198,5 +221,48 @@ public class JspcTest extends BuildFileTest {
     protected File getOutputFile(String subpath) {
         return new File(outDir, subpath);
     }
+
+    /**
+     * verify that we select the appropriate mangler
+     */
+    public void testJasperNameManglerSelection() {
+        JspCompilerAdapter adapter=
+                JspCompilerAdapterFactory.getCompiler("jasper", null,null);
+        JspMangler mangler=adapter.createMangler();
+        assertTrue(mangler instanceof JspNameMangler);
+        adapter= JspCompilerAdapterFactory.getCompiler("jasper41", null, null);
+        mangler = adapter.createMangler();
+        assertTrue(mangler instanceof Jasper41Mangler);
+    }
+
+    public void testJasper41() {
+        JspMangler mangler = new Jasper41Mangler();
+        //java keywords are not special
+        assertMapped(mangler, "for.jsp", "for_jsp");
+        //underscores go in front of invalid start chars
+        assertMapped(mangler, "0.jsp", "_0_jsp");
+        //underscores at the front get an underscore too
+        assertMapped(mangler, "_.jsp", "___jsp");
+        //non java char at start => underscore then the the _hex value
+        assertMapped(mangler, "-.jsp", "__0002d_jsp");
+        //and paths are stripped
+        char s = File.separatorChar;
+        assertMapped(mangler, "" + s + s + "somewhere" + s + "file" + s + "index.jsp", "index_jsp");
+    }
+
+    /**
+     * assert our mapping rules
+     * @param mangler
+     * @param filename
+     * @param classname
+     */
+    protected void assertMapped(JspMangler mangler, String filename, String classname) {
+        String mappedname = mangler.mapJspToJavaName(new File(filename));
+        assertTrue(filename+" should have mapped to "+classname
+                    +" but instead mapped to "+mappedname,
+                    classname.equals(mappedname));
+    }
+
+
 }
 

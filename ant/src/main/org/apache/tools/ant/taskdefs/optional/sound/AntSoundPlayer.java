@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -87,7 +87,7 @@ import java.io.IOException;
  * I have only tested this with .WAV and .AIFF sound file formats. Both seem to work fine.
  *
  * @author Nick Pellow
- * @version $Revision: 1.9 $, $Date: 2002/04/15 13:36:21 $
+ * @version $Revision: 1.9.2.1 $, $Date: 2003/02/10 14:25:19 $
  */
 
 public class AntSoundPlayer implements LineListener, BuildListener {

@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -237,12 +237,13 @@ public class JJTree extends Task {
             targetName.substring(0, targetName.indexOf(".jjt")) + ".jj");
         if (javaFile.exists() 
              && target.lastModified() < javaFile.lastModified()) {
-            project.log("Target is already built - skipping (" + target + ")");
+            log("Target is already built - skipping (" + target + ")",
+                Project.MSG_VERBOSE);
             return;
         }
         cmdl.createArgument().setValue(target.getAbsolutePath());
 
-        final Path classpath = cmdl.createClasspath(project);
+        final Path classpath = cmdl.createClasspath(getProject());
         final File javaccJar = JavaCC.getArchiveFile(javaccHome);
         classpath.createPathElement().setPath(javaccJar.getAbsolutePath());
         classpath.addJavaRuntime();

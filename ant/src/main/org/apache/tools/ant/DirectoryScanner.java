@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -57,10 +57,10 @@ package org.apache.tools.ant;
 import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
-import java.util.StringTokenizer;
-
-import org.apache.tools.ant.types.selectors.SelectorScanner;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.ResourceFactory;
 import org.apache.tools.ant.types.selectors.FileSelector;
+import org.apache.tools.ant.types.selectors.SelectorScanner;
 import org.apache.tools.ant.types.selectors.SelectorUtils;
 import org.apache.tools.ant.util.FileUtils;
 
@@ -148,10 +148,11 @@ import org.apache.tools.ant.util.FileUtils;
  *
  * @author Arnout J. Kuiper
  * <a href="mailto:ajkuiper@wxs.nl">ajkuiper@wxs.nl</a>
- * @author <a href="mailto:umagesh@rediffmail.com">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  * @author <a href="mailto:bruce@callenish.com">Bruce Atherton</a>
+ * @author <a href="mailto:levylambert@tiscali-dsl.de">Antoine Levy-Lambert</a>
  */
-public class DirectoryScanner implements FileScanner, SelectorScanner {
+public class DirectoryScanner implements FileScanner, SelectorScanner, ResourceFactory {
 
     /**
      * Patterns which should be excluded by default.
@@ -159,19 +160,31 @@ public class DirectoryScanner implements FileScanner, SelectorScanner {
      * @see #addDefaultExcludes()
      */
     protected static final String[] DEFAULTEXCLUDES = {
+        // Miscellaneous typical temporary files
         "**/*~",
         "**/#*#",
         "**/.#*",
         "**/%*%",
         "**/._*",
+
+        // CVS
         "**/CVS",
         "**/CVS/**",
         "**/.cvsignore",
+
+        // SCCS
         "**/SCCS",
         "**/SCCS/**",
+
+        // Visual SourceSafe
         "**/vssver.scc",
+
+        // Subversion
         "**/.svn",
-        "**/.svn/**"
+        "**/.svn/**",
+
+        // Mac
+        "**/.DS_Store"
     };
 
     /** The base directory to be scanned. */
@@ -365,18 +378,6 @@ public class DirectoryScanner implements FileScanner, SelectorScanner {
     protected static boolean match(String pattern, String str,
                                    boolean isCaseSensitive) {
         return SelectorUtils.match(pattern, str, isCaseSensitive);
-    }
-
-    /**
-     * Breaks a path up into a Vector of path elements, tokenizing on
-     * <code>File.separator</code>.
-     *
-     * @param path Path to tokenize. Must not be <code>null</code>.
-     *
-     * @return a Vector of path elements from the tokenized path
-     */
-    private static Vector tokenizePath (String path) {
-        return SelectorUtils.tokenizePath(path);
     }
 
     /**
@@ -805,11 +806,8 @@ public class DirectoryScanner implements FileScanner, SelectorScanner {
      *         include patterns and none of the exclude patterns.
      */
     public String[] getIncludedFiles() {
-        int count = filesIncluded.size();
-        String[] files = new String[count];
-        for (int i = 0; i < count; i++) {
-            files[i] = (String)filesIncluded.elementAt(i);
-        }
+        String[] files = new String[filesIncluded.size()];
+        filesIncluded.copyInto(files);
         return files;
     }
 
@@ -825,11 +823,8 @@ public class DirectoryScanner implements FileScanner, SelectorScanner {
      */
     public String[] getNotIncludedFiles() {
         slowScan();
-        int count = filesNotIncluded.size();
-        String[] files = new String[count];
-        for (int i = 0; i < count; i++) {
-            files[i] = (String)filesNotIncluded.elementAt(i);
-        }
+        String[] files = new String[filesNotIncluded.size()];
+        filesNotIncluded.copyInto(files);
         return files;
     }
 
@@ -846,30 +841,26 @@ public class DirectoryScanner implements FileScanner, SelectorScanner {
      */
     public String[] getExcludedFiles() {
         slowScan();
-        int count = filesExcluded.size();
-        String[] files = new String[count];
-        for (int i = 0; i < count; i++) {
-            files[i] = (String)filesExcluded.elementAt(i);
-        }
+        String[] files = new String[filesExcluded.size()];
+        filesExcluded.copyInto(files);
         return files;
     }
 
     /**
-     * Returns the names of the files which were selected. The names
-     * are relative to the base directory. This involves performing
-     * a slow scan if one has not already been completed.
+     * <p>Returns the names of the files which were selected out and
+     * therefore not ultimately included.</p>
      *
-     * @return the names of the files which were selected.
+     * <p>The names are relative to the base directory. This involves
+     * performing a slow scan if one has not already been completed.</p>
+     *
+     * @return the names of the files which were deselected.
      *
      * @see #slowScan
      */
     public String[] getDeselectedFiles() {
         slowScan();
-        int count = filesDeselected.size();
-        String[] files = new String[count];
-        for (int i = 0; i < count; i++) {
-            files[i] = (String)filesDeselected.elementAt(i);
-        }
+        String[] files = new String[filesDeselected.size()];
+        filesDeselected.copyInto(files);
         return files;
     }
 
@@ -882,11 +873,8 @@ public class DirectoryScanner implements FileScanner, SelectorScanner {
      * include patterns and none of the exclude patterns.
      */
     public String[] getIncludedDirectories() {
-        int count = dirsIncluded.size();
-        String[] directories = new String[count];
-        for (int i = 0; i < count; i++) {
-            directories[i] = (String)dirsIncluded.elementAt(i);
-        }
+        String[] directories = new String[dirsIncluded.size()];
+        dirsIncluded.copyInto(directories);
         return directories;
     }
 
@@ -902,11 +890,8 @@ public class DirectoryScanner implements FileScanner, SelectorScanner {
      */
     public String[] getNotIncludedDirectories() {
         slowScan();
-        int count = dirsNotIncluded.size();
-        String[] directories = new String[count];
-        for (int i = 0; i < count; i++) {
-            directories[i] = (String)dirsNotIncluded.elementAt(i);
-        }
+        String[] directories = new String[dirsNotIncluded.size()];
+        dirsNotIncluded.copyInto(directories);
         return directories;
     }
 
@@ -923,30 +908,26 @@ public class DirectoryScanner implements FileScanner, SelectorScanner {
      */
     public String[] getExcludedDirectories() {
         slowScan();
-        int count = dirsExcluded.size();
-        String[] directories = new String[count];
-        for (int i = 0; i < count; i++) {
-            directories[i] = (String)dirsExcluded.elementAt(i);
-        }
+        String[] directories = new String[dirsExcluded.size()];
+        dirsExcluded.copyInto(directories);
         return directories;
     }
 
     /**
-     * Returns the names of the directories which were selected. The names
-     * are relative to the base directory. This involves performing a
-     * slow scan if one has not already been completed.
+     * <p>Returns the names of the directories which were selected out and
+     * therefore not ultimately included.</p>
      *
-     * @return the names of the directories which were selected.
+     * <p>The names are relative to the base directory. This involves
+     * performing a slow scan if one has not already been completed.</p>
+     *
+     * @return the names of the directories which were deselected.
      *
      * @see #slowScan
      */
     public String[] getDeselectedDirectories() {
         slowScan();
-        int count = dirsDeselected.size();
-        String[] directories = new String[count];
-        for (int i = 0; i < count; i++) {
-            directories[i] = (String)dirsDeselected.elementAt(i);
-        }
+        String[] directories = new String[dirsDeselected.size()];
+        dirsDeselected.copyInto(directories);
         return directories;
     }
 
@@ -966,4 +947,16 @@ public class DirectoryScanner implements FileScanner, SelectorScanner {
         }
         excludes = newExcludes;
     }
+
+    /**
+     * @param name path name of the file relative to the dir attribute.
+     *
+     * @since Ant 1.5.2
+     */
+    public Resource getResource(String name) {
+        File f = fileUtils.resolveFile(basedir, name);
+        return new Resource(name, f.exists(), f.lastModified(), 
+                            f.isDirectory());
+    }
+
 }

@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -54,17 +54,15 @@
 
 package org.apache.tools.ant.taskdefs.optional.jsp.compilers;
 
+import java.io.File;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.types.CommandlineJava;
-import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.taskdefs.Java;
 import org.apache.tools.ant.taskdefs.optional.jsp.JspC;
 import org.apache.tools.ant.taskdefs.optional.jsp.JspMangler;
 import org.apache.tools.ant.taskdefs.optional.jsp.JspNameMangler;
-import org.apache.tools.ant.taskdefs.Java;
-import org.apache.tools.ant.taskdefs.ExecuteJava;
-
-import java.io.File;
+import org.apache.tools.ant.types.CommandlineJava;
+import org.apache.tools.ant.types.Path;
 
 /**
  * The implementation of the jasper compiler.
@@ -75,6 +73,17 @@ import java.io.File;
  * @since ant1.5
  */
 public class JasperC extends DefaultJspCompilerAdapter {
+
+
+    /**
+     * what produces java classes from .jsp files
+     */
+    JspMangler mangler;
+
+    public JasperC(JspMangler mangler) {
+        this.mangler = mangler;
+    }
+
     /**
      * our execute method
      */
@@ -82,34 +91,21 @@ public class JasperC extends DefaultJspCompilerAdapter {
         throws BuildException {
         getJspc().log("Using jasper compiler", Project.MSG_VERBOSE);
         CommandlineJava cmd = setupJasperCommand();
-        /*
-        Path classpath=cmd.createClasspath(getProject());
-        if (getJspc().getClasspath() != null) {
-            classpath=getJspc().getClasspath();
-        } else {
-            classpath.concatSystemClasspath();
-        }
-        ExecuteJava exec=new ExecuteJava();
-        exec.execute(getProject());
-        if ((err = executeJava()) != 0) {
-            if (failOnError) {
-                throw new BuildException("Java returned: " + err, location);
-            } else {
-                log("Java Result: " + err, Project.MSG_ERR);
-            }
-        */
 
 
         try {
             // Create an instance of the compiler, redirecting output to
             // the project log
-            // REVISIT. ugly. 
             Java java = (Java) (getProject().createTask("java"));
             if (getJspc().getClasspath() != null) {
-                java.setClasspath(getJspc().getClasspath());
+                getProject().log("using user supplied classpath: "+getJspc().getClasspath(),
+                    Project.MSG_DEBUG);
+                java.setClasspath(getJspc().getClasspath()
+                                  .concatSystemClasspath("ignore"));
             } else {
                 Path classpath=new Path(getProject());
-                classpath.concatSystemClasspath();
+                classpath=classpath.concatSystemClasspath("only");
+                getProject().log("using system classpath: "+classpath, Project.MSG_DEBUG);
                 java.setClasspath(classpath);
             }
             java.setDir(getProject().getBaseDir());
@@ -123,6 +119,7 @@ public class JasperC extends DefaultJspCompilerAdapter {
             //we are forking here to be sure that if JspC calls
             //System.exit() it doesn't halt the build
             java.setFork(true);
+            java.setTaskName("jasperc");
             java.execute();
             return true;
         } catch (Exception ex) {
@@ -152,6 +149,8 @@ public class JasperC extends DefaultJspCompilerAdapter {
         addArg(cmd, "-uriroot", jspc.getUriroot());
         addArg(cmd, "-uribase", jspc.getUribase());
         addArg(cmd, "-ieplugin", jspc.getIeplugin());
+        addArg(cmd, "-webinc", jspc.getWebinc());
+        addArg(cmd, "-webxml", jspc.getWebxml());        
         addArg(cmd, "-die9");
 
         if (jspc.isMapped()){
@@ -170,6 +169,6 @@ public class JasperC extends DefaultJspCompilerAdapter {
      */
 
     public JspMangler createMangler() {
-        return new JspNameMangler();
+        return mangler;
     }
 }

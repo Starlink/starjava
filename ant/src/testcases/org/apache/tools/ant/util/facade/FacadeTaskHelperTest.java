@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -83,5 +83,18 @@ public class FacadeTaskHelperTest extends TestCase {
         fth.setMagicValue("bar");
         fth.setImplementation("baz");
         assertEquals("baz", fth.getImplementation());
+    }
+
+    public void testHasBeenSet() {
+        FacadeTaskHelper fth = new FacadeTaskHelper("foo");
+        assertTrue("nothing set", !fth.hasBeenSet());
+        fth.setMagicValue(null);
+        assertTrue("magic has not been set", !fth.hasBeenSet());
+        fth.setMagicValue("foo");
+        assertTrue("magic has been set", fth.hasBeenSet());
+        fth.setMagicValue(null);
+        assertTrue(!fth.hasBeenSet());
+        fth.setImplementation("baz");
+        assertTrue("set explicitly", fth.hasBeenSet());
     }
 }

@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -56,6 +56,7 @@ package org.apache.tools.ant.listener;
 import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.util.DateUtils;
 import org.apache.tools.ant.util.StringUtils;
 import org.apache.tools.mail.MailMessage;
 
@@ -217,6 +218,7 @@ public class MailLogger extends DefaultLogger {
     private void sendMail(String mailhost, String from, String toList,
                           String subject, String message) throws IOException {
         MailMessage mailMessage = new MailMessage(mailhost);
+        mailMessage.setHeader("Date", DateUtils.getDateForHeader());
 
         mailMessage.from(from);
 

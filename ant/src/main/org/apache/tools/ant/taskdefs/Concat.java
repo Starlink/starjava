@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2002-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -74,8 +74,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.Writer;
 
 import java.util.Vector; // 1.1
 import java.util.Enumeration; // 1.1
@@ -109,7 +109,8 @@ public class Concat extends Task {
     private File destinationFile = null;
 
     /**
-     * If the destination file exists, should the stream be appended? 
+     * Whether or not the stream should be appended if the destination file 
+     * exists.
      * Defaults to <code>false</code>.
      */
     private boolean append = false;
@@ -246,10 +247,10 @@ public class Concat extends Task {
                     // determine the files from the set which need to be
                     // concatenated.
                     DirectoryScanner scanner = 
-                        fileSet.getDirectoryScanner(project);
+                        fileSet.getDirectoryScanner(getProject());
                     
                     // Determine the root path.
-                    fileSetBase = fileSet.getDir(project);
+                    fileSetBase = fileSet.getDir(getProject());
                     
                     // Get the list of files.
                     srcFiles = scanner.getIncludedFiles();
@@ -259,16 +260,19 @@ public class Concat extends Task {
                     FileList fileList = (FileList) next;
                     
                     // Determine the root path.
-                    fileSetBase = fileList.getDir(project);
+                    fileSetBase = fileList.getDir(getProject());
                     
                     // Get the list of files.
-                    srcFiles = fileList.getFiles(project);
+                    srcFiles = fileList.getFiles(getProject());
                     
                 }
 
                 // Concatenate the files.
                 if (srcFiles != null) {
                     catFiles(fileSetBase, srcFiles);
+                } else {
+                    log("Warning: Concat received empty fileset.", 
+                        Project.MSG_WARN);
                 }
             }
         } finally {
@@ -301,9 +305,8 @@ public class Concat extends Task {
     private void catFiles(File base, String[] files) {
 
         // First, create a list of absolute paths for the input files.
-        final int len = files.length;
-        String[] input = new String[len];
-        for (int i = 0; i < len; i++) {
+        Vector inputFileNames = new Vector();
+        for (int i = 0; i < files.length; i++) {
 
             File current = new File(base, files[i]);
 
@@ -317,8 +320,18 @@ public class Concat extends Task {
                 continue;
             }
 
-            input[i] = current.getAbsolutePath();
+            inputFileNames.addElement(current.getAbsolutePath());
         }
+
+        final int len = inputFileNames.size();
+        if (len == 0) {
+            log("Warning: Could not find any of the files specified " +
+                "in concat task.", Project.MSG_WARN);
+            return;
+        }
+
+        String[] input = new String[len];
+        inputFileNames.copyInto(input);
 
         // Next, perform the concatenation.
         if (encoding == null) {
@@ -346,12 +359,13 @@ public class Concat extends Task {
                     // Make sure input != output.
                     if (destinationFile != null &&
                         destinationFile.getAbsolutePath().equals(input[i])) {
-                        log(destinationFile.getName() + ": input file is " + 
-                            "output file.", Project.MSG_WARN);
+                        throw new BuildException("Input file \"" 
+                            + destinationFile.getName() 
+                            + "\" is the same as the output file.");
                     }
 
                     is = new FileInputStream(input[i]);
-                    byte[] buffer = new byte[8096];
+                    byte[] buffer = new byte[8192];
                     while (true) {
                         int bytesRead = is.read(buffer);
                         if (bytesRead == -1) { // EOF
@@ -381,24 +395,22 @@ public class Concat extends Task {
                 }
             }
 
-        } else { // user specified encoding, assume line oriented input
+        } else { // user specified encoding
 
-            PrintWriter out = null;
+            Writer out = null;
             BufferedReader in = null;
 
             try {
                 if (destinationFile == null) {
                     // Log using WARN so it displays in 'quiet' mode.
-                    out = new PrintWriter(
-                              new OutputStreamWriter(
-                                  new LogOutputStream(this, Project.MSG_WARN)));
+                    out = new OutputStreamWriter(
+                              new LogOutputStream(this, Project.MSG_WARN));
                 } else {
-                    out = new PrintWriter(
-                              new OutputStreamWriter(
-                                  new FileOutputStream(destinationFile
-                                                       .getAbsolutePath(),
-                                                       append),
-                                  encoding));
+                    out = new OutputStreamWriter(
+                              new FileOutputStream(destinationFile
+                                                   .getAbsolutePath(),
+                                                   append),
+                              encoding);
                     
                     // This flag should only be recognized for the first
                     // file. In the context of a single 'cat', we always
@@ -412,11 +424,17 @@ public class Concat extends Task {
                                 encoding));
 
                     String line;
-                    while ((line = in.readLine()) != null) {
-                        // Log the line, using WARN so it displays in
-                        // 'quiet' mode.
-                        out.println(line);
+                    char[] buffer = new char[4096];
+                    while (true) {
+                        int charsRead = in.read(buffer);
+                        if (charsRead == -1) { // EOF
+                            break;
+                        }
+                        
+                        // Write the read data.
+                        out.write(buffer, 0, charsRead);
                     }
+                    out.flush();
                     in.close();
                     in = null;
                 }
@@ -455,8 +473,8 @@ public class Concat extends Task {
         String text = textBuffer.toString();
 
         // Replace ${property} strings.
-        text = ProjectHelper.replaceProperties(project, text, 
-                                               project.getProperties());
+        text = ProjectHelper.replaceProperties(getProject(), text,
+                                               getProject().getProperties());
 
         // Set up a writer if necessary.
         FileWriter writer = null;

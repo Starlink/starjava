@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -628,6 +628,24 @@ public class Manifest {
         }
 
         /**
+         * Clone this section
+         *
+         * @since Ant 1.5.2
+         */
+        public Object clone() {
+            Section cloned = new Section();
+            cloned.setName(name);
+            Enumeration e = getAttributeKeys();
+            while (e.hasMoreElements()) {
+                String key = (String) e.nextElement();
+                Attribute attribute = getAttribute(key);
+                cloned.storeAttribute(new Attribute(attribute.getName(), 
+                                                    attribute.getValue()));
+            }
+            return cloned;
+        }
+
+        /**
          * Store an attribute and update the index.
          *
          * @param attribute the attribute to be stored
@@ -713,7 +731,13 @@ public class Manifest {
                     + defManifest);
             }
             try {
-                return new Manifest(new InputStreamReader(in, "ASCII"));
+                Manifest defaultManifest 
+                    = new Manifest(new InputStreamReader(in, "UTF-8"));
+                Attribute createdBy = new Attribute("Created-By", 
+                    System.getProperty("java.vm.version") + " ("
+                    + System.getProperty("java.vm.vendor") + ")" );
+                defaultManifest.getMainSection().storeAttribute(createdBy);
+                return defaultManifest;
             } catch (UnsupportedEncodingException e) {
                 return new Manifest(new InputStreamReader(in));
             }
@@ -843,7 +867,7 @@ public class Manifest {
          throws ManifestException {
         if (other != null) {
              if (overwriteMain) {
-                 mainSection = other.mainSection;
+                 mainSection = (Section) other.mainSection.clone();
              } else {
                  mainSection.merge(other.mainSection);
              }
@@ -860,7 +884,7 @@ public class Manifest {
                     = (Section) other.sections.get(sectionName);
                  if (ourSection == null) {
                      if (otherSection != null) {
-                         addConfiguredSection(otherSection);
+                         addConfiguredSection((Section) otherSection.clone());
                      }
                  } else {
                      ourSection.merge(otherSection);

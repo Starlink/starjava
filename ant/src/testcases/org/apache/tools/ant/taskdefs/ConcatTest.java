@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -159,6 +159,12 @@ public class ConcatTest
      */
     public void test5() {
         expectLog("test5", "Hello, World!");
+    }
+
+    public void test6() {
+        String filename = "src/etc/testcases/taskdefs/thisfiledoesnotexist"
+            .replace('/', File.separatorChar);
+        expectLogContaining("test6", filename +" does not exist.");
     }
 
 }

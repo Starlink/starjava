@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -66,7 +66,7 @@ import java.util.zip.GZIPOutputStream;
  *
  * @author James Davidson <a href="mailto:duncan@x180.com">duncan@x180.com</a>
  * @author Jon S. Stevens <a href="mailto:jon@clearink.com">jon@clearink.com</a>
- * @author <a href="mailto:umagesh@rediffmail.com">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  *
  * @since Ant 1.1
  *

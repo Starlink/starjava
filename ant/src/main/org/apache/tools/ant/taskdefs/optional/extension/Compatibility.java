@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -66,7 +66,7 @@ package org.apache.tools.ant.taskdefs.optional.extension;
  * WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
  *
  * @author <a href="mailto:peter@apache.org">Peter Donald</a>
- * @version $Revision: 1.1.2.1 $ $Date: 2002/05/27 11:38:53 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2003/02/10 14:25:08 $
  * @see Extension
  */
 public final class Compatibility

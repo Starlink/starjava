@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -53,12 +53,6 @@
  */
 package org.apache.tools.ant.taskdefs.cvslib;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.taskdefs.Cvs;
-import org.apache.tools.ant.util.FileUtils;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -68,6 +62,10 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Vector;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.AbstractCvsTask;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Examines the output of cvs rdiff between two tags.
@@ -98,12 +96,12 @@ import java.util.Vector;
  * </PRE>
  *
  * @author <a href="mailto:fred@castify.net">Frederic Lavigne</a>
- * @version $Revision: 1.6.2.2 $ $Date: 2002/06/24 02:28:08 $
+ * @author <a href="mailto:rvanoo@xs4all.nl">Rob van Oostrum</a>
+ * @version $Revision: 1.6.2.5 $ $Date: 2003/02/10 14:24:56 $
  * @since Ant 1.5
  * @ant.task name="cvstagdiff"
- * @todo Why doesn't this task extend from AbstractCvsTask?
  */
-public class CvsTagDiff extends Task {
+public class CvsTagDiff extends AbstractCvsTask {
 
     /**
      * Token to identify a new file in the rdiff log
@@ -119,11 +117,6 @@ public class CvsTagDiff extends Task {
      * Token to identify a removed file in the rdiff log
      */
     static final String FILE_WAS_REMOVED = " is removed";
-
-    /**
-     * The cvs task which will perform the rdiff.
-     */
-    private Cvs m_cvs;
 
     /**
      * The cvs package/module to analyse
@@ -161,82 +154,10 @@ public class CvsTagDiff extends Task {
     private FileUtils m_fileUtils = FileUtils.newFileUtils();
 
     /**
-     * Initialize this task.
-     * CvsTagDiff initializes a member cvs task in init() to perform the
-     * rdiff in execute().
-     *
-     * @exception BuildException if an error occurs
-     */
-    public void init() throws BuildException {
-        m_cvs = (Cvs) getProject().createTask("cvs");
-    }
-
-    /**
-     * If set to a value 1-9 it adds -zN to the cvs command line, else
-     * it disables compression.
-     *
-     * @see org.apache.tools.ant.taskdefs.AbstractCvsTask#setCompressionLevel(int)
-     */
-    public void setCompressionLevel(int level) {
-        m_cvs.setCompressionLevel(level);
-    }
-
-    /**
-     * If true, this is the same as compressionlevel="3".
-     */
-    public void setCompression(boolean usecomp) {
-        m_cvs.setCompression(usecomp);
-    }
-
-    /**
-     * The CVSROOT variable.
-     */
-    public void setCvsRoot(String cvsRoot) {
-        m_cvs.setCvsRoot(cvsRoot);
-    }
-
-    /**
-     * The CVS_RSH variable.
-     */
-    public void setCvsRsh(String rsh) {
-        m_cvs.setCvsRsh(rsh);
-    }
-
-    /**
      * The package/module to analyze.
      */
     public void setPackage(String p) {
         m_package = p;
-    }
-
-    /**
-     * If true, suppress informational messages.
-     */
-    public void setQuiet(boolean quiet) {
-        m_cvs.setQuiet(quiet);
-    }
-
-    /**
-     * Port used by CVS to communicate with the server.
-     */
-    public void setPort(int port) {
-        m_cvs.setPort(port);
-    }
-
-    /**
-     * Password file to read passwords from.
-     */
-    public void setPassfile(File f) {
-        m_cvs.setPassfile(f);
-    }
-
-    /**
-     * Stop the build process if the command exits with
-     * a return code other than 0.
-     * Defaults to false.
-     */
-    public void setFailOnError(boolean b) {
-        m_cvs.setFailOnError(b);
     }
 
     /**
@@ -300,15 +221,15 @@ public class CvsTagDiff extends Task {
             + (m_endTag != null ? ("-r " + m_endTag) : ("-D " + m_endDate))
             + " " + m_package;
         log("Cvs command is " + rdiff, Project.MSG_VERBOSE);
-        m_cvs.setCommand(rdiff);
+        setCommand(rdiff);
 
         File tmpFile = null;
         try {
             tmpFile = m_fileUtils.createTempFile("cvstagdiff", ".log", null);
-            m_cvs.setOutput(tmpFile);
+            setOutput(tmpFile);
 
             // run the cvs command
-            m_cvs.execute();
+            super.execute();
 
             // parse the rdiff
             CvsTagEntry[] entries = parseRDiff(tmpFile);

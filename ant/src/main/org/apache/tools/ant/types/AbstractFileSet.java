@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -53,17 +53,33 @@
  */
 package org.apache.tools.ant.types;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.FileScanner;
-import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.types.selectors.*;
-
 import java.io.File;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Stack;
 import java.util.Vector;
-import java.util.Hashtable;
-import java.util.Enumeration;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.FileScanner;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.util.FileUtils;
+import org.apache.tools.ant.types.selectors.AndSelector;
+import org.apache.tools.ant.types.selectors.ContainsSelector;
+import org.apache.tools.ant.types.selectors.DateSelector;
+import org.apache.tools.ant.types.selectors.DependSelector;
+import org.apache.tools.ant.types.selectors.DepthSelector;
+import org.apache.tools.ant.types.selectors.ExtendSelector;
+import org.apache.tools.ant.types.selectors.FileSelector;
+import org.apache.tools.ant.types.selectors.FilenameSelector;
+import org.apache.tools.ant.types.selectors.MajoritySelector;
+import org.apache.tools.ant.types.selectors.NoneSelector;
+import org.apache.tools.ant.types.selectors.NotSelector;
+import org.apache.tools.ant.types.selectors.OrSelector;
+import org.apache.tools.ant.types.selectors.PresentSelector;
+import org.apache.tools.ant.types.selectors.SelectSelector;
+import org.apache.tools.ant.types.selectors.SelectorContainer;
+import org.apache.tools.ant.types.selectors.SelectorScanner;
+import org.apache.tools.ant.types.selectors.SizeSelector;
 
 /**
  * Class that holds an implicit patternset and supports nested
@@ -76,7 +92,7 @@ import java.util.Enumeration;
  * @author <a href="mailto:rubys@us.ibm.com">Sam Ruby</a>
  * @author <a href="mailto:jon@clearink.com">Jon S. Stevens</a>
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <a href="mailto:umagesh@rediffmail.com">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  * @author <a href="mailto:bruce@callenish.com">Bruce Atherton</a>
  */
 public abstract class AbstractFileSet extends DataType implements Cloneable,
@@ -199,6 +215,20 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
     }
 
     /**
+     * Creates a single file fileset.
+     */
+    public void setFile(File file) {
+        if (isReference()) {
+            throw tooManyAttributes();
+        }
+        FileUtils fileUtils = FileUtils.newFileUtils();
+        setDir(fileUtils.getParentFile(file));
+
+        PatternSet.NameEntry include = createInclude();
+        include.setName(file.getName());
+    }
+
+    /**
      * Appends <code>includes</code> to the current list of include
      * patterns.
      *
@@ -278,6 +308,9 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
      *                           sensitive, "false"|"off"|"no" when not.
      */
     public void setCaseSensitive(boolean isCaseSensitive) {
+        if (isReference()) {
+            throw tooManyAttributes();
+        }
         this.isCaseSensitive = isCaseSensitive;
     }
 
@@ -287,6 +320,9 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
      * @param followSymlinks whether or not symbolic links should be followed
      */
     public void setFollowSymlinks(boolean followSymlinks) {
+        if (isReference()) {
+            throw tooManyAttributes();
+        }
         this.followSymlinks = followSymlinks;
     }
 
@@ -345,6 +381,11 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
     }
 
     public void setupDirectoryScanner(FileScanner ds, Project p) {
+        if (isReference()) {
+            getRef(p).setupDirectoryScanner(ds, p);
+            return;
+        }
+
         if (ds == null) {
             throw new IllegalArgumentException("ds cannot be null");
         }
@@ -402,6 +443,9 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
      * @return whether any selectors are in this container
      */
     public boolean hasSelectors() {
+        if (isReference() && getProject() != null) {
+            return getRef(getProject()).hasSelectors();
+        }
         return !(selectors.isEmpty());
     }
 
@@ -411,6 +455,10 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
      * @return whether any patterns are in this container
      */
     public boolean hasPatterns() {
+        if (isReference() && getProject() != null) {
+            return getRef(getProject()).hasPatterns();
+        }
+
         if (defaultPatterns.hasPatterns(getProject())) {
             return true;
         }
@@ -432,6 +480,9 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
      * @return the number of selectors in this container
      */
     public int selectorCount() {
+        if (isReference() && getProject() != null) {
+            return getRef(getProject()).selectorCount();
+        }
         return selectors.size();
     }
 
@@ -456,6 +507,9 @@ public abstract class AbstractFileSet extends DataType implements Cloneable,
      * @return an enumerator that goes through each of the selectors
      */
     public Enumeration selectorElements() {
+        if (isReference() && getProject() != null) {
+            return getRef(getProject()).selectorElements();
+        }
         return selectors.elements();
     }
 

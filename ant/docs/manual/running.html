@@ -81,19 +81,25 @@ Options:
   -help                  print this message
   -projecthelp           print project help information
   -version               print the version information and exit
-  -quiet                 be extra quiet
-  -verbose               be extra verbose
+  -diagnostics           print information that might be helpful to
+                         diagnose or report problems.
+  -quiet, -q             be extra quiet
+  -verbose, -v           be extra verbose
   -debug                 print debugging information
   -emacs                 produce logging information without adornments
-  -logfile &lt;file&gt;        write logging output to given file
-  -logger &lt;classname&gt;    the class that is to perform logging
-  -listener &lt;classname&gt;  add an instance of <i>classname</i> as a project listener
-  -buildfile &lt;file&gt;      use given build file
+  -logfile &lt;file&gt;        use given file for log
+    -l     &lt;file&gt;                ''
+  -logger &lt;classname&gt;    the class which is to perform logging
+  -listener &lt;classname&gt;  add an instance of class as a project listener
+  -buildfile &lt;file&gt;      use given buildfile
+    -file    &lt;file&gt;              ''
+    -f       &lt;file&gt;              ''
   -D&lt;property&gt;=&lt;value&gt;   use value for given property
-  -propertyfile &lt;file&gt;   load all properties from <i>file</i> (with -D taking precedence)
-  -inputhandler &lt;class&gt;  the class that will handle input requests
-  -find [&lt;file&gt;]         search for build.xml, or <i>file</i>, towards the root of the
-                         filesystem
+  -propertyfile &lt;name&gt;   load all properties from file with -D
+                         properties taking precedence
+  -inputhandler &lt;class&gt;  the class which will handle input requests
+  -find &lt;file&gt;           search for buildfile towards the root of the
+                         filesystem and use it
 </pre>
 <p>For more information about <code>-logger</code> and
 <code>-listener</code> see
@@ -154,6 +160,18 @@ set):</p>
   to find, even if the file is called <code>build.xml</code>.
 </ul>
 
+<h2><a name="cygwin">Cygwin Users</a></h2>
+<p>The Unix launch script that come with Ant works correctly with Cygwin. You 
+should not have any problems launching Ant form the Cygwin shell. It is important 
+to note however, that once Ant is runing it is part of the JDK which operates as
+a native Windows application. The JDK is not a Cygwin executable, and it therefore 
+has no knowledge of the Cygwin paths, etc. In particular when using the &lt;exec&gt;
+task, executable names such as &quot;/bin/sh&quot; will not work, even though these 
+work from the Cygwin shell from which Ant was launched. You can use an executable 
+name such as &quot;sh&quot; and rely on that command being available in the Windows
+path.
+</p>
+
 <h2><a name="viajava">Running Ant via Java</a></h2>
 <p>If you have installed Ant in the do-it-yourself way, Ant can be started
 with:</p>
@@ -171,7 +189,7 @@ command. This example assumes you have set your classpath to include:</p>
 </ul>
 <br>
 <hr>
-<p align="center">Copyright &copy; 2000-2002 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2003 Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>

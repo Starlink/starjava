@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -55,6 +55,9 @@
 package org.apache.tools.ant.taskdefs;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Date;
 import org.apache.tools.ant.BuildFileTest;
 
@@ -63,8 +66,8 @@ import org.apache.tools.ant.BuildFileTest;
  */
 public class JarTest extends BuildFileTest {
 
-    private static long jarModifiedDate;
     private static String tempJar = "tmp.jar";
+    private Reader r1, r2;
 
     public JarTest(String name) {
         super(name);
@@ -75,9 +78,22 @@ public class JarTest extends BuildFileTest {
     }
 
     public void tearDown() {
+        if (r1 != null) {
+            try {
+                r1.close();
+            } catch (IOException e) {
+            }
+        }
+        if (r2 != null) {
+            try {
+                r2.close();
+            } catch (IOException e) {
+            }
+        }
+        
         executeTarget("cleanup");
     }
-    
+
     public void test1() {
         expectBuildException("test1", "required argument not specified");
     }
@@ -94,12 +110,113 @@ public class JarTest extends BuildFileTest {
         executeTarget("test4");
         File jarFile = new File(getProjectDir(), tempJar);
         assertTrue(jarFile.exists());
-        jarModifiedDate = jarFile.lastModified();
     }
 
-    public void XXXtest5() {
-        executeTarget("test5");
+    public void testNoRecreateWithoutUpdate() {
+        testNoRecreate("test4");
+    }
+
+    public void testNoRecreateWithUpdate() {
+        testNoRecreate("testNoRecreateWithUpdate");
+    }
+
+    private void testNoRecreate(String secondTarget) {
+        executeTarget("test4");
         File jarFile = new File(getProjectDir(), tempJar);
-        assertEquals(jarModifiedDate, jarFile.lastModified());
+        long jarModifiedDate = jarFile.lastModified();
+        try {
+            Thread.currentThread().sleep(2500);
+        } catch (InterruptedException e) {
+        } // end of try-catch
+        executeTarget(secondTarget);
+        assertEquals("jar has not been recreated in " + secondTarget,
+                     jarModifiedDate, jarFile.lastModified());
+    }
+
+    public void testRecreateWithoutUpdateAdditionalFiles() {
+        testRecreate("test4", "testRecreateWithoutUpdateAdditionalFiles");
+    }
+
+    public void testRecreateWithUpdateAdditionalFiles() {
+        testRecreate("test4", "testRecreateWithUpdateAdditionalFiles");
+    }
+
+    public void testRecreateWithoutUpdateNewerFile() {
+        testRecreate("testRecreateNewerFileSetup",
+                     "testRecreateWithoutUpdateNewerFile");
+    }
+
+    public void testRecreateWithUpdateNewerFile() {
+        testRecreate("testRecreateNewerFileSetup",
+                     "testRecreateWithUpdateNewerFile");
+    }
+
+    private void testRecreate(String firstTarget, String secondTarget) {
+        executeTarget(firstTarget);
+        try {
+            Thread.currentThread().sleep(2500);
+        } catch (InterruptedException e) {
+        } // end of try-catch
+        File jarFile = new File(getProjectDir(), tempJar);
+        long jarModifiedDate = jarFile.lastModified();
+        executeTarget(secondTarget);
+        jarFile = new File(getProjectDir(), tempJar);
+        assertTrue("jar has been recreated in " + secondTarget,
+                   jarModifiedDate < jarFile.lastModified());
+    }
+
+    public void testManifestStaysIntact() 
+        throws IOException, ManifestException {
+        executeTarget("testManifestStaysIntact");
+
+        r1 = new FileReader(getProject()
+                            .resolveFile("jartmp/manifest"));
+        r2 = new FileReader(getProject()
+                            .resolveFile("jartmp/META-INF/MANIFEST.MF"));
+        Manifest mf1 = new Manifest(r1);
+        Manifest mf2 = new Manifest(r2);
+        assertEquals(mf1, mf2);
+    }
+
+    public void testNoRecreateBasedirExcludesWithUpdate() {
+        testNoRecreate("testNoRecreateBasedirExcludesWithUpdate");
+    }
+
+    public void testNoRecreateBasedirExcludesWithoutUpdate() {
+        testNoRecreate("testNoRecreateBasedirExcludesWithoutUpdate");
+    }
+
+    public void testNoRecreateZipfilesetExcludesWithUpdate() {
+        testNoRecreate("testNoRecreateZipfilesetExcludesWithUpdate");
+    }
+
+    public void testNoRecreateZipfilesetExcludesWithoutUpdate() {
+        testNoRecreate("testNoRecreateZipfilesetExcludesWithoutUpdate");
+    }
+
+    public void testRecreateZipfilesetWithoutUpdateAdditionalFiles() {
+        testRecreate("test4",
+                     "testRecreateZipfilesetWithoutUpdateAdditionalFiles");
+    }
+
+    public void testRecreateZipfilesetWithUpdateAdditionalFiles() {
+        testRecreate("test4",
+                     "testRecreateZipfilesetWithUpdateAdditionalFiles");
+    }
+
+    public void testRecreateZipfilesetWithoutUpdateNewerFile() {
+        testRecreate("testRecreateNewerFileSetup",
+                     "testRecreateZipfilesetWithoutUpdateNewerFile");
+    }
+
+    public void testRecreateZipfilesetWithUpdateNewerFile() {
+        testRecreate("testRecreateNewerFileSetup",
+                     "testRecreateZipfilesetWithUpdateNewerFile");
+    }
+
+    public void testCreateWithEmptyFileset() {
+        executeTarget("testCreateWithEmptyFilesetSetUp");
+        executeTarget("testCreateWithEmptyFileset");
+        executeTarget("testCreateWithEmptyFileset");
     }
 }

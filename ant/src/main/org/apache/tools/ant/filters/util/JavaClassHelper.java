@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -64,7 +64,7 @@ import org.apache.bcel.classfile.JavaClass;
 /**
  * Helper class that filters constants from a Java Class
  *
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  */
 public final class JavaClassHelper {
 

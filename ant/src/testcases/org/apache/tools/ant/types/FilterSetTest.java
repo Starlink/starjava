@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -62,6 +62,7 @@ import junit.framework.TestCase;
 import junit.framework.AssertionFailedError;
 
 import java.io.*;
+import java.util.Hashtable;
 
 /**
  * FilterSet testing
@@ -100,6 +101,31 @@ public class FilterSetTest extends BuildFileTest {
         executeTarget("test3");
         assertTrue("Filterset 3 failed", compareFiles("src/etc/testcases/types/gold/filterset3.txt",
                                                       "src/etc/testcases/types/dest3.txt"));
+    }
+
+    public void testNestedFilterSets() {
+        executeTarget("test-nested-filtersets");
+
+        FilterSet fs = (FilterSet) getProject().getReference("1");
+        Hashtable filters = fs.getFilterHash();
+        assertEquals(1, filters.size());
+        assertEquals("value1", filters.get("token1"));
+
+        fs = (FilterSet) getProject().getReference("2");
+        filters = fs.getFilterHash();
+        assertEquals(2, filters.size());
+        assertEquals("1111", filters.get("aaaa"));
+        assertEquals("2222", filters.get("bbbb"));
+
+        fs = (FilterSet) getProject().getReference("3");
+        filters = fs.getFilterHash();
+        assertEquals(1, filters.size());
+        assertEquals("value4", filters.get("token4"));
+
+        fs = (FilterSet) getProject().getReference("5");
+        filters = fs.getFilterHash();
+        assertEquals(1, filters.size());
+        assertEquals("value1", filters.get("token1"));
     }
 
     private boolean compareFiles(String name1, String name2) {

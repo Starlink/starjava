@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -83,7 +83,7 @@ import org.apache.tools.ant.input.InputHandler;
  *
  * @author duncan@x180.com
  *
- * @version $Revision: 1.108.2.7 $
+ * @version $Revision: 1.108.2.12 $
  */
 
 public class Project {
@@ -231,6 +231,11 @@ public class Project {
     /** Instance of a utility class to use for file operations. */
     private FileUtils fileUtils;
 
+    /** 
+     * Flag which catches Listeners which try to use System.out or System.err 
+     */
+    private boolean loggingMessage = false;
+    
     /**
      * Creates a new Ant project.
      */
@@ -1274,6 +1279,34 @@ public class Project {
     }
 
     /**
+     * Demultiplexes flush operation so that each task receives the appropriate
+     * messages. If the current thread is not currently executing a task,
+     * the message is logged directly.
+     *
+     * @since Ant 1.5.2
+     *
+     * @param line Message to handle. Should not be <code>null</code>.
+     * @param isError Whether the text represents an error (<code>true</code>)
+     *        or information (<code>false</code>).
+     * @param terminated true if this line should be terminated with an 
+     *        end-of-line marker
+     */
+    public void demuxFlush(String line, boolean isError) {
+        Task task = (Task) threadTasks.get(Thread.currentThread());
+        if (task == null) {
+            fireMessageLogged(this, line, isError ? MSG_ERR : MSG_INFO);
+        } else {
+            if (isError) {
+                task.handleErrorFlush(line);
+            } else {
+                task.handleFlush(line);
+            }
+        }
+    }
+
+    
+    
+    /**
      * Executes the specified target and any targets it depends on.
      *
      * @param targetName The name of the target to execute.
@@ -1773,11 +1806,20 @@ public class Project {
                 // no warning, this is not changing anything
                 return;
             }
-            if (old != null) {
+            if (old != null && !(old instanceof UnknownElement)) {
                 log("Overriding previous definition of reference to " + name,
                     MSG_WARN);
             }
-            log("Adding reference: " + name + " -> " + value, MSG_DEBUG);
+            String valueAsString = "";
+            try {
+                valueAsString = value.toString();
+            } catch (Throwable t) {
+                log("Caught exception (" + t.getClass().getName() +")"
+                    + " while expanding " + name + ": " + t.getMessage(),
+                    MSG_WARN);
+            }
+            log("Adding reference: " + name + " -> " + valueAsString,
+                MSG_DEBUG);
             references.put(name, value);
         }
     }
@@ -1962,9 +2004,18 @@ public class Project {
                                         int priority) {
         event.setMessage(message, priority);
         Vector listeners = getBuildListeners();
-        for (int i = 0; i < listeners.size(); i++) {
-            BuildListener listener = (BuildListener) listeners.elementAt(i);
-            listener.messageLogged(event);
+        synchronized(this) {
+            if (loggingMessage) {
+                throw new BuildException("Listener attempted to access " 
+                    + (priority == MSG_ERR ? "System.err" : "System.out") 
+                    + " - infinite loop terminated");
+            }
+            loggingMessage = true;                
+            for (int i = 0; i < listeners.size(); i++) {
+                BuildListener listener = (BuildListener) listeners.elementAt(i);
+                listener.messageLogged(event);
+            }
+            loggingMessage = false;
         }
     }
 

@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -61,8 +61,23 @@ package org.apache.tools.ant;
  * @since Ant 1.5
  */
 public interface DynamicConfigurator {
+    
+    /**
+     * Set a named attribute to the given value
+     * 
+     * @param name the name of the attribute
+     * @param value the new value of the attribute
+     * @throws BuildException when any error occurs
+     */    
     public void setDynamicAttribute(String name, String value)
             throws BuildException;
 
+    /**
+     * Create an element with the given name
+     *
+     * @param name the element nbame
+     * @throws BuildException when any error occurs
+     * @return the element created
+     */    
     public Object createDynamicElement(String name) throws BuildException;
 }

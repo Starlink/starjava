@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -115,7 +115,7 @@ public class JUnitTestRunner implements TestListener {
     public static final int FAILURES = 1;
 
     /**
-     * An error occured.
+     * An error occurred.
      */
     public static final int ERRORS = 2;
 
@@ -398,7 +398,7 @@ public class JUnitTestRunner implements TestListener {
     /**
      * Interface TestListener.
      *
-     * <p>An error occured while running the test.
+     * <p>An error occurred while running the test.
      */
     public void addError(Test test, Throwable t) {
         if (haltOnError) {
@@ -415,6 +415,18 @@ public class JUnitTestRunner implements TestListener {
     protected void handleErrorOutput(String line) {
         if (systemError != null) {
             systemError.println(line);
+        }
+    }
+    
+    protected void handleFlush(String line) {
+        if (systemOut != null) {
+            systemOut.print(line);
+        }
+    }
+    
+    protected void handleErrorFlush(String line) {
+        if (systemError != null) {
+            systemError.print(line);
         }
     }
     

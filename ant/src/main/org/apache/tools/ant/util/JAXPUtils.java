@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -63,6 +63,8 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.FactoryConfigurationError;
+import java.io.File;
+
 
 /**
  * Collection of helper methods that retrieve a ParserFactory or
@@ -75,6 +77,11 @@ import javax.xml.parsers.FactoryConfigurationError;
  * @since Ant 1.5
  */
 public class JAXPUtils {
+
+    /**
+     * The file protocol: 'file://'
+     */
+    private static final String FILE_PROTOCOL_PREFIX = "file://";
 
     /**
      * Parser factory to use to create parsers.
@@ -147,6 +154,27 @@ public class JAXPUtils {
         } catch (SAXException e) {
             throw convertToBuildException(e);
         }
+    }
+
+    /**
+     * This is a best attempt to provide a URL.toExternalForm() from
+     * a file URL. Some parsers like Crimson choke on uri that are made of
+     * backslashed paths (ie windows) as it is does not conform
+     * URI specifications.
+     * @param file the file to create the system id from.
+     * @return the systemid corresponding to the given file.
+     * @since Ant 1.5.2
+     */
+    public static String getSystemId(File file){
+        String path = file.getAbsolutePath();
+        path = path.replace('\\', '/');
+
+        // on Windows, use 'file:///'
+        if (File.separatorChar == '\\') {
+            return FILE_PROTOCOL_PREFIX + "/" + path;
+        }
+        // Unix, use 'file://'
+        return FILE_PROTOCOL_PREFIX + path;
     }
 
     /**

@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -82,7 +82,7 @@ import org.apache.tools.ant.util.JavaEnvUtils;
  *
  * @author Conor MacNeill
  * @author <a href="mailto:Jesse.Glick@netbeans.com">Jesse Glick</a>
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  */
 public class AntClassLoader extends ClassLoader implements BuildListener {
 
@@ -319,10 +319,7 @@ public class AntClassLoader extends ClassLoader implements BuildListener {
             this.parent = parent;
         }
         this.parentFirst = parentFirst;
-        //TODO: turn on
-        //addJavaLibraries();        
-        addSystemPackageRoot("java");
-        addSystemPackageRoot("javax");
+        addJavaLibraries();
     }
 
 
@@ -516,7 +513,8 @@ public class AntClassLoader extends ClassLoader implements BuildListener {
      *                    Should not be <code>null</code>.
      */
     public void addSystemPackageRoot(String packageRoot) {
-        systemPackages.addElement(packageRoot + ".");
+        systemPackages.addElement(packageRoot 
+                                  + (packageRoot.endsWith(".") ? "" : "."));
     }
 
     /**
@@ -529,7 +527,8 @@ public class AntClassLoader extends ClassLoader implements BuildListener {
      *                    Should not be <code>null</code>.
      */
     public void addLoaderPackageRoot(String packageRoot) {
-        loaderPackages.addElement(packageRoot + ".");
+        loaderPackages.addElement(packageRoot
+                                  + (packageRoot.endsWith(".") ? "" : "."));
     }
 
     /**
@@ -906,8 +905,11 @@ public class AntClassLoader extends ClassLoader implements BuildListener {
      * on the system classpath (when not in isolated mode) or this loader's
      * classpath.
      */
-    protected Class loadClass(String classname, boolean resolve)
+    protected synchronized Class loadClass(String classname, boolean resolve)
          throws ClassNotFoundException {
+        // 'sync' is needed - otherwise 2 threads can load the same class
+        // twice, resulting in LinkageError: duplicated class definition.
+        // findLoadedClass avoids that, but without sync it won't work.
 
         Class theClass = findLoadedClass(classname);
         if (theClass != null) {

@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -67,7 +67,7 @@ import junit.framework.AssertionFailedError;
  * @see org.apache.tools.ant.types.XMLCatalogTest
  *
  * @author <a href="mailto:cstrong@arielpartners.com">Craeg Strong</a> 
- * @version $Id: XMLCatalogBuildFileTest.java,v 1.1.2.1 2002/06/03 17:57:36 ehatcher Exp $
+ * @version $Id: XMLCatalogBuildFileTest.java,v 1.1.2.2 2003/02/10 14:25:34 bodewig Exp $
  */
 public class XMLCatalogBuildFileTest extends BuildFileTest {
 

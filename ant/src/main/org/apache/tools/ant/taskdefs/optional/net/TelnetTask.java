@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -70,7 +70,7 @@ import java.util.Vector;
  * Automates the telnet protocol.
  *
  * @author <a href="mailto:ScottCarlson@email.com">ScottCarlson@email.com</a>
- * @version $Revision: 1.12.2.3 $
+ * @version $Revision: 1.12.2.4 $
  */
 
 public class TelnetTask extends Task {

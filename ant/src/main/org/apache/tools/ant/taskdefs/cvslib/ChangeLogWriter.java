@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -56,12 +56,13 @@ package org.apache.tools.ant.taskdefs.cvslib;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Enumeration;
+import java.util.TimeZone;
 
 /**
  * Class used to generate an XML changelog.
  *
  * @author <a href="mailto:peter@apache.org">Peter Donald</a>
- * @version $Revision: 1.6 $ $Date: 2002/04/15 15:33:11 $
+ * @version $Revision: 1.6.2.2 $ $Date: 2003/02/10 14:24:56 $
  */
 class ChangeLogWriter {
     /** output format for dates writtn to xml file */
@@ -69,8 +70,13 @@ class ChangeLogWriter {
         = new SimpleDateFormat("yyyy-MM-dd");
     /** output format for times writtn to xml file */
     private static final SimpleDateFormat c_outputTime 
-        = new SimpleDateFormat("hh:mm");
+        = new SimpleDateFormat("HH:mm");
 
+    static {
+        TimeZone utc = TimeZone.getTimeZone("UTC");
+        c_outputDate.setTimeZone(utc);
+        c_outputTime.setTimeZone(utc);
+    }
 
     /**
      * Print out the specifed entrys.

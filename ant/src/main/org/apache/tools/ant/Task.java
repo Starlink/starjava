@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -53,6 +53,8 @@
  */
 
 package org.apache.tools.ant;
+
+import java.util.Enumeration;
 
 /**
  * Base class for all tasks.
@@ -269,8 +271,19 @@ public abstract class Task extends ProjectComponent {
     protected void handleOutput(String line) {
         log(line, Project.MSG_INFO);
     }
-    
-    /** 
+
+    /**
+     * Handles a line of output by logging it with the INFO priority.
+     *
+     * @param line The line of output to log. Should not be <code>null</code>.
+     *
+     * @since Ant 1.5.2
+     */
+    protected void handleFlush(String line) {
+        handleOutput(line);
+    }
+
+    /**
      * Handles an error line by logging it with the INFO priority.
      * 
      * @param line The error line to log. Should not be <code>null</code>.
@@ -278,10 +291,21 @@ public abstract class Task extends ProjectComponent {
     protected void handleErrorOutput(String line) {
         log(line, Project.MSG_ERR);
     }
-        
-    /**   
-     * Logs a message with the default (INFO) priority.   
-     *   
+
+    /**
+     * Handles an error line by logging it with the INFO priority.
+     *
+     * @param line The error line to log. Should not be <code>null</code>.
+     *
+     * @since Ant 1.5.2
+     */
+    protected void handleErrorFlush(String line) {
+        handleErrorOutput(line);
+    }
+
+    /**
+     * Logs a message with the default (INFO) priority.
+     *
      * @param msg The message to be logged. Should not be <code>null</code>.
      */   
     public void log(String msg) {   
@@ -372,9 +396,32 @@ public abstract class Task extends ProjectComponent {
             replacement.setOwningTarget(target);
             replacement.setRuntimeConfigurableWrapper(wrapper);
             wrapper.setProxy(replacement);
+            replaceChildren(wrapper, replacement);
             target.replaceChild(this, replacement);
             replacement.maybeConfigure();
         }
         return replacement;
+    }
+
+    /**
+     * Recursively adds an UnknownElement instance for each child
+     * element of replacement.
+     *
+     * @since Ant 1.5.1
+     */
+    private void replaceChildren(RuntimeConfigurable wrapper,
+                                 UnknownElement parentElement) {
+        Enumeration enum = wrapper.getChildren();
+        while (enum.hasMoreElements()) {
+            RuntimeConfigurable childWrapper =
+                (RuntimeConfigurable) enum.nextElement();
+            UnknownElement childElement = 
+                new UnknownElement(childWrapper.getElementTag());
+            parentElement.addChild(childElement);
+            childElement.setProject(getProject());
+            childElement.setRuntimeConfigurableWrapper(childWrapper);
+            childWrapper.setProxy(childElement);
+            replaceChildren(childWrapper, childElement);
+        }
     }
 }

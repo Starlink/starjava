@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -110,7 +110,7 @@ import org.apache.tools.ant.types.FileList;
  * 
  * @author <a href="mailto:cstrong@arielpartners.com">Craeg Strong</a>
  * @ant.task category="filesystem"
- * @version $Revision: 1.15.2.3 $ $Date: 2002/06/24 02:28:08 $
+ * @version $Revision: 1.15.2.4 $ $Date: 2003/02/10 14:24:43 $
  * @since Ant 1.4
  */
 public class DependSet extends MatchingTask {
