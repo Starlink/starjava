@@ -116,6 +116,7 @@ public class ControlWindow extends AuxWindow
     private final JComboBox subsetSelector = new JComboBox();
     private final JComboBox sortSelector = new JComboBox();
     private final JToggleButton sortSenseButton = new UpDownButton();
+    private final JButton activatorButton = new JButton();
 
     private final Action viewerAct;
     private final Action paramAct;
@@ -164,6 +165,8 @@ public class ControlWindow extends AuxWindow
         info.addLine( "Sort Order", new Component[] { sortSenseButton,
                                                       sortSelector } );
         info.addLine( "Row Subset", subsetSelector );
+        info.addLine( "Activation Action", activatorButton );
+        activatorButton.setText( "           " );
         info.fillIn();
 
         /* Set up a split pane in the main panel. */
@@ -523,6 +526,7 @@ public class ControlWindow extends AuxWindow
             int visRows = viewModel.getRowCount();
             String loc = tcModel.getLocation();
             String name = dataModel.getName();
+            Activator activator = tcModel.getActivator();
 
             idField.setText( tcModel.getLabel() );
             indexLabel.setText( tcModel.getID() + ": " );
@@ -540,6 +544,8 @@ public class ControlWindow extends AuxWindow
             sortSelector.setModel( tcModel.getSortSelectionModel() );
             subsetSelector.setModel( tcModel.getSubsetSelectionModel() );
             sortSenseButton.setModel( tcModel.getSortSenseModel() );
+            activatorButton.setAction( tcModel.getActivationAction() );
+            activatorButton.setText( activator.toString() );
         }
         else {
             idField.setText( null );
@@ -552,6 +558,7 @@ public class ControlWindow extends AuxWindow
             sortSelector.setModel( dummyComboBoxModel );
             subsetSelector.setModel( dummyComboBoxModel );
             sortSenseButton.setModel( dummyButtonModel );
+            activatorButton.setModel( dummyButtonModel );
         }
 
         /* Make sure that the actions which relate to a particular table model
@@ -645,6 +652,11 @@ public class ControlWindow extends AuxWindow
                         listWatchers[ i ].contentsChanged( event );
                     }
                 }
+                break;
+
+            /* Activator has changed. */
+            case TopcatListener.ACTIVATOR:
+                updateInfo();
                 break;
         }
     }
