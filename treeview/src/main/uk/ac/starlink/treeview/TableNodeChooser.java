@@ -67,7 +67,7 @@ public class TableNodeChooser extends TreeNodeChooser {
      * childMaker object as appropriate for a tree which is interested 
      * in tables.
      */
-    public void setRoot( DataNode root ) {
+    public void setRootNode( DataNode root ) {
         customiseFactory( root.getChildMaker() );
         super.setRoot( root );
     }

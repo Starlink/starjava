@@ -197,7 +197,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         gotoBox.add( gotoField );
         gotoField.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                setRootObject( gotoField.getText() );
+                attemptSetRootObject( gotoField.getText() );
             }
         } );
         bottomBox.add( Box.createVerticalStrut( 10 ) );
@@ -235,14 +235,24 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     /**
      * Sets the root of the displayed tree to one made from a given object.
      * This attempts to create a DataNode from <tt>obj</tt> by feeding it
-     * to the DataNodeFactory; if succesful it is installed  as the
+     * to the DataNodeFactory.
+     *
+     * @param obj  object from which to form new root node.
+     */
+    public void setRootObject( Object obj ) throws NoSuchDataException {
+        setRoot( getNodeMaker().makeDataNode( null, obj ) );
+    }
+
+    /**
+     * Attempts to call setRootObject; if succesful a new DataNode made
+     * from <tt>obj</tt> is installed  as the
      * tree's new root, otherwise, there's a beep.
      *
      * @param obj  object from which to form a new root node
      */
-    public void setRootObject( Object obj ) {
+    private void attemptSetRootObject( Object obj ) {
         try {
-            setRoot( getNodeMaker().makeDataNode( null, obj ) );
+            setRootObject( obj );
         }
         catch ( NoSuchDataException e ) {
             Toolkit.getDefaultToolkit().beep();
@@ -417,7 +427,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
                 public void actionPerformed( ActionEvent evt ) {
                     Object parentObj = getRoot().getParentObject();
                     if ( parentObj != null ) {
-                        setRootObject( parentObj );
+                        attemptSetRootObject( parentObj );
                     }
                 }
             };
@@ -440,7 +450,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
                              "User home directory" ) {
                 public void actionPerformed( ActionEvent evt ) {
                     String home = System.getProperty( "user.home" );
-                    setRootObject( new File( home ) );
+                    attemptSetRootObject( new File( home ) );
                 }
             };
 
