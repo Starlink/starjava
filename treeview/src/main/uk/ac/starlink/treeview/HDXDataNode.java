@@ -19,6 +19,7 @@ import uk.ac.starlink.hdx.HdxContainer;
 import uk.ac.starlink.hdx.HdxException;
 import uk.ac.starlink.hdx.HdxFactory;
 import uk.ac.starlink.hdx.HdxResourceType;
+import uk.ac.starlink.ndx.BridgeNdx;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.URLUtils;
 
@@ -33,6 +34,14 @@ public class HDXDataNode extends DefaultDataNode {
     private JComponent fullView;
     private String name;
     private Element hdxel;
+
+    /*
+     * Static initialiser registers all HDX-registerable elements that
+     * we know about.
+     */
+    static {
+        BridgeNdx.class.getName();
+    }
 
     /**
      * Constructs an HDXDataNode from an XML Source.
@@ -70,9 +79,6 @@ public class HDXDataNode extends DefaultDataNode {
             hdx = HdxFactory.getInstance().newHdxContainer( el, baseUri );
         }
         catch ( HdxException e ) {
-            throw new NoSuchDataException( e );
-        }
-        catch ( AssertionError e ) {  // temporary workaround for HDX bug
             throw new NoSuchDataException( e );
         }
         if ( hdx == null ) {
