@@ -210,7 +210,8 @@ The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
 which is documented more fully in &SUN.252;.
-It is written in pure Java (the current version requires J2SE1.4 or 1.5/5.0)
+It is written in pure Java (the current version requires J2SE1.4; 
+it will run under version 1.5/5.0, but certain features don't work correctly)
 which makes it highly portable, since it can run on any machine which has
 a suitable Java installation; however some of the external viewer 
 applications it talks to rely on non-Java code though so one or 
