@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -24,11 +22,12 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
  * for some input.  These are like non-modal dialogues, but share 
  * some of the TOPCAT (AuxWindow) look and feel.
  */
-public abstract class QueryWindow extends AuxWindow implements WindowListener {
+public abstract class QueryWindow extends AuxWindow {
 
     private JPanel auxControls;
     private LabelledComponentStack stack;
     private Action okAction;
+    private boolean configured = false;
     protected Border blankBorder = 
         BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
 
@@ -70,9 +69,6 @@ public abstract class QueryWindow extends AuxWindow implements WindowListener {
         /* Set up an auxiliary control panel, for custom buttons required by 
          * subclasses. */
         auxControls = new JPanel();
-
-        /* React to window events. */
-        addWindowListener( this );
 
         /* Place the components into the window. */
         Box iconBox = new Box( BoxLayout.Y_AXIS );
@@ -157,19 +153,20 @@ public abstract class QueryWindow extends AuxWindow implements WindowListener {
         }
     }
 
-    /*
-     * WindowListener implementation
+    /**
+     * Override the setVisible method to perform some extra actions 
+     * when the window is popped up on the first or subsequent occasions.
      */
-    public void windowOpened( WindowEvent evt ) {
-        initFocus();
-        configureKeys(); 
+    public void setVisible( boolean isVis ) {
+
+        /* Execute the superclass implementation. */
+        super.setVisible( isVis );
+
+        /* Take some extra actions if we are revealing the window for 
+         * the first time. */
+        if ( isVis && ! configured ) {
+            configureKeys();
+            initFocus();
+        }
     }
-    public void windowActivated( WindowEvent evt ) {
-        initFocus();
-    }
-    public void windowClosed( WindowEvent evt ) {}
-    public void windowClosing( WindowEvent evt ) {}
-    public void windowDeactivated( WindowEvent evt ) {}
-    public void windowDeiconified( WindowEvent evt ) {}
-    public void windowIconified( WindowEvent evt ) {}
 }
