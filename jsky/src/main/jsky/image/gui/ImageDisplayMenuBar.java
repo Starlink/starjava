@@ -18,6 +18,7 @@ import javax.media.jai.Interpolation;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -338,8 +339,8 @@ public class ImageDisplayMenuBar extends JMenuBar {
         //menu.add(createViewRotateMenu());
 
         // XXX Works okay for jskycat, but not supported by OT yet
-        //menu.add(createViewFlipXMenuItem());
-        //menu.add(createViewFlipYMenuItem());
+        menu.add(createViewFlipXMenuItem());
+        menu.add(createViewFlipYMenuItem());
 
         menu.add(createViewSmoothScrollingMenuItem());
 
