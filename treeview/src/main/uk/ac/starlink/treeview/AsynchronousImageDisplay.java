@@ -98,11 +98,11 @@ public class AsynchronousImageDisplay extends ImageDisplay {
                                       PlanarImage image, int tileX, int tileY,
                                       Raster tile) {
                 tileStore.cancelUnneededRequests();
-                tileStore.put( new Point( tileX, tileY), tile );
+                tileStore.put( new Point( tileX, tileY ), tile );
                 Insets insets = getInsets();
                 int x = displayImage.tileXToX( tileX ) + insets.left;
                 int y = displayImage.tileYToY( tileY ) + insets.top;
-                repaint( x, y, tileWidth, tileHeight);
+                repaint( x, y, tileWidth, tileHeight );
             }
         } );
 
@@ -183,7 +183,8 @@ public class AsynchronousImageDisplay extends ImageDisplay {
     /**
      * This class is used as a short-term cache for tiles which have
      * been queued and calculated.  For each call of put, exactly
-     * one subsequent call of remove should be made.
+     * one subsequent call of remove should be made.  It has to be
+     * thread-safe.
      */
     private class TileStore {
         private class Record { int refCount = 1; Raster raster; }
@@ -191,6 +192,11 @@ public class AsynchronousImageDisplay extends ImageDisplay {
         private Map tileRefs = new HashMap();
         private Map tileRequests = new HashMap();
 
+        /**
+         * Submit a request to make the tile at a given point available.
+         * The tile will be queued and the displayImage's 
+         * TileComputationListeners will be notified when it is ready.
+         */
         public synchronized void queue(Point pt) {
             if ( ! tileRequests.containsKey( pt ) ) {
                 TileRequest req = displayImage.queueTiles( new Point[] { pt } );
@@ -200,6 +206,12 @@ public class AsynchronousImageDisplay extends ImageDisplay {
             }
         }
 
+        /**
+         * Purges requests from the tile computation queue if they are
+         * for tiles which are no longer in the visible bounds of the
+         * image.  This can be called periodically when the position
+         * of the viewport on the image might have changed.
+         */
         public synchronized void cancelUnneededRequests() {
             boolean showing = isShowing();
             Rectangle visibleTiles = getTileSpace( getVisibleRect() );
@@ -231,6 +243,10 @@ public class AsynchronousImageDisplay extends ImageDisplay {
             }
         }
 
+        /**
+         * This method should be called when a tile has been calculated,
+         * to enter it into the list of tiles ready for collection.  
+         */
         public synchronized void put( Point pt, Raster raster ) {
             Record rec;
             if ( tileMap.containsKey( pt ) ) {
@@ -246,6 +262,21 @@ public class AsynchronousImageDisplay extends ImageDisplay {
             log( "Put:\t" + pt + " " + rec.refCount );
         }
 
+        /**
+         * Tries to retrieve a tile from the list of ready tiles.
+         * If one is ready for immediate collection the raster will be
+         * returned, but if some work would have to be done to get it,
+         * <tt>null</tt> will be returned.
+         * <p>
+         * This method should be used to collect a tile which has 
+         * previously been requested using the <tt>queue</tt> method,
+         * but may also be used to attempt to get a tile which has not
+         * recently been asked for.  In the former case, the tile will
+         * be available for sure, but in the latter case, it may be
+         * there if it has not been garbage collected (weak references
+         * are used to keep tabs on such formerly calculated tiles).
+         * If it's not there, <tt>null</tt> will be returned.
+         */
         public synchronized Raster get( Point pt ) {
             Raster raster;
             Record rec = (Record) tileMap.get( pt );
@@ -310,12 +341,20 @@ public class AsynchronousImageDisplay extends ImageDisplay {
                               txmax - txmin + 1, tymax - tymin + 1 );
     }
 
+    /**
+     * Sets the busy status of this component.  The cursor changes 
+     * accordingly.
+     */
     private void setBusy( boolean busy ) {
         this.busy = busy;
         setCursor( busy ? busyCursor : null );
         log( "busy: " + busy );
     }
 
+    /**
+     * Logging method used for debugging to see how the tile requests
+     * are going.
+     */
     private void log( String msg ) {
         if ( verbose ) {
             System.out.println( msg );
