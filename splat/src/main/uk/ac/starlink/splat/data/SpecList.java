@@ -218,7 +218,8 @@ public class SpecList implements Serializable
             ObjectOutputStream out = new ObjectOutputStream( buffer );
             out.writeObject( this );
             out.close();
-        } catch (Exception ex) {
+        } 
+        catch (Exception ex) {
             ex.printStackTrace();
         }
     }
@@ -231,7 +232,6 @@ public class SpecList implements Serializable
      * i.e. NDF, TEXT or FITS spectra).
      *
      * @param fileName name of the file containing the serialised data.
-     *
      * @return the number of spectra that are restored.
      */
     public int readStack( String fileName )
@@ -239,19 +239,42 @@ public class SpecList implements Serializable
         int restored = 0;
         try {
             InputStream file = new FileInputStream( fileName );
-            InputStream buffer = new GZIPInputStream( file );
-            ObjectInputStream in = new ObjectInputStream( buffer );
-            SpecList specList = (SpecList) in.readObject();
-            in.close();
+            restored = readStack( file );
+            file.close();
+        } 
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return restored;
+    }
+
+    /**
+     * Read a previous list of spectra stored as a serialised Gzipped
+     * stream (must originate from the writeStack method). All recovered
+     * spectra are append and converted in memory resident objects
+     * (rather than retaining their associated with a disk file,
+     * i.e. NDF, TEXT or FITS spectra).
+     *
+     * @param in the stream containing the serialised data.
+     * @return the number of spectra that are restored.
+     */
+    public int readStack( InputStream in )
+    {
+        int restored = 0;
+        try {
+            InputStream buffer = new GZIPInputStream( in );
+            ObjectInputStream oin = new ObjectInputStream( buffer );
+            SpecList specList = (SpecList) oin.readObject();
+            oin.close();
+            buffer.close();
             GlobalSpecPlotList gList = GlobalSpecPlotList.getInstance();
             for ( int i = 0; i < specList.specCount(); i++ ) {
                 SpecData specData = specList.get( i );
                 gList.add( specList.get( i ) ); 
-                //  TODO: need to add to globallist to get events issued. 
-                //  May need refactoring to another class.
                 restored++;
             }
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             e.printStackTrace();
         }
         return restored;
