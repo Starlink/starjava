@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
@@ -59,6 +60,7 @@ public class FilestoreChooser extends JPanel {
 
     private final BranchComboBox branchSelector_;
     private final JList nodeList_;
+    private final JScrollPane scroller_;
     private final JTextField nameField_;
     private final JButton logButton_;
     private final JComponent logBox_;
@@ -141,11 +143,11 @@ public class FilestoreChooser extends JPanel {
         /* Main JList containing nodes in the current branch. */
         nodeList_ = new JList();
         nodeList_.setCellRenderer( new NodeRenderer() );
-        JScrollPane scroller = new JScrollPane( nodeList_ );
-        scroller.setBorder( BorderFactory.createCompoundBorder( gapBorder,
-                                                                etchBorder ) );
-        scroller.setPreferredSize( new Dimension( 450, 300 ) );
-        main.add( scroller, BorderLayout.CENTER );
+        scroller_ = new JScrollPane( nodeList_ );
+        scroller_.setBorder( BorderFactory.createCompoundBorder( gapBorder,
+                                                                 etchBorder ) );
+        scroller_.setPreferredSize( new Dimension( 450, 300 ) );
+        main.add( scroller_, BorderLayout.CENTER );
 
         /* Text entry field for typing in the name of a file or directory. */
         nameField_ = new JTextField();
@@ -313,6 +315,9 @@ public class FilestoreChooser extends JPanel {
         }
         if ( branch != lastBranch_ ) {
             lastBranch_ = branch;
+            BoundedRangeModel scrollModel = 
+                scroller_.getVerticalScrollBar().getModel();
+            scrollModel.setValue( scrollModel.getMinimum() );
             refreshList();
 
             /* Add a login/logout button if it represents remote filespace. */
