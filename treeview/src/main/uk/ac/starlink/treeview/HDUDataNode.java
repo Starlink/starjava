@@ -123,6 +123,10 @@ public class HDUDataNode extends DefaultDataNode {
         this.hduIndex = hduIndex;
     }
 
+    public int getHDUIndex() {
+        return hduIndex;
+    }
+
     protected String getHduType() {
         return hduType;
     }
