@@ -37,8 +37,10 @@ import javax.swing.event.ChangeListener;
 
 import org.w3c.dom.Element;
 
-import uk.ac.starlink.ast.gui.images.ImageHolder;
 import uk.ac.starlink.ast.Plot;                   // For documentation
+import uk.ac.starlink.ast.gui.images.ImageHolder;
+import uk.ac.starlink.util.gui.StoreControlFrame;
+import uk.ac.starlink.util.gui.StoreSource;
 
 /**
  * PlotConfigurator creates a dialog window for controlling the
@@ -62,7 +64,7 @@ import uk.ac.starlink.ast.Plot;                   // For documentation
  */
 public class PlotConfigurator
     extends JFrame
-    implements Configurator, ChangeListener
+    implements StoreSource, ChangeListener
 {
     /**
      * Content pane of frame.
@@ -108,7 +110,7 @@ public class PlotConfigurator
     /**
      * Graphics configuration store window.
      */
-    protected StoreConfigurator storeConfig = null;
+    protected StoreControlFrame storeControl = null;
 
     /**
      * The default configuration of all known elements.
@@ -433,8 +435,8 @@ public class PlotConfigurator
         this.dispose();
 
         //  Also close the configuration store window.
-        if ( storeConfig != null ) {
-            storeConfig.dispose();
+        if ( storeControl != null ) {
+            storeControl.dispose();
         }
     }
 
@@ -461,7 +463,7 @@ public class PlotConfigurator
     }
 
     //
-    // Configurator interface.
+    // StoreSource interface.
     //
 
     public void saveState( Element rootElement )
@@ -549,28 +551,28 @@ public class PlotConfigurator
      */
     public void openStoreWindow()
     {
-        if ( storeConfig == null ) {
-            storeConfig = new StoreConfigurator( this );
+        if ( storeControl == null ) {
+            storeControl = new StoreControlFrame( this );
 
             //  We'd like to know if the window is closed.
-            storeConfig.addWindowListener( new WindowAdapter() {
+            storeControl.addWindowListener( new WindowAdapter() {
                     public void windowClosed( WindowEvent evt ) {
-                        storeConfigClosed();
+                        storeControlClosed();
                     }
                 });
         }
         else {
-            storeConfig.setVisible( true );
+            storeControl.setVisible( true );
         }
     }
 
     /**
      *  Configuration storage window is closed.
      */
-    protected void storeConfigClosed()
+    protected void storeControlClosed()
     {
         // Nullify if method for closing switches to dispose.
-        // storeConfig = null;
+        // storeControl = null;
     }
 
     /**
@@ -578,9 +580,9 @@ public class PlotConfigurator
      */
     protected void closeStoreConfigFrame()
     {
-        if ( storeConfig != null ) {
-            storeConfig.dispose();
-            storeConfig = null;
+        if ( storeControl != null ) {
+            storeControl.dispose();
+            storeControl = null;
         }
     }
 

@@ -23,6 +23,7 @@ import org.w3c.dom.NodeList;
 import uk.ac.starlink.util.XMLEncodeAndDecode;
 import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
 import uk.ac.starlink.util.gui.AWTXMLEncodeAndDecode;
+import uk.ac.starlink.util.gui.StoreConfiguration;
 
 /**
  * This abstract class provides a default implementation for a
@@ -99,7 +100,7 @@ public abstract class AbstractPlotControlsModel
     //  implementation in the specific class.
     public void decode( Element rootElement )
     {
-        List children = ConfigurationStore.getChildElements( rootElement );
+        List children = StoreConfiguration.getChildElements( rootElement );
         int size = children.size();
         Element element = null;
         String name = null;

@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 
 import uk.ac.starlink.ast.Plot; // for documentation links
 import uk.ac.starlink.util.XMLEncodeAndDecode;
+import uk.ac.starlink.util.gui.StoreConfiguration;
 
 /**
  * PlotConfiguration is a repository for all the configuration information
@@ -52,7 +53,8 @@ import uk.ac.starlink.util.XMLEncodeAndDecode;
  * @see AstBorder
  * @see AstTicks
  */
-public class PlotConfiguration implements XMLEncodeAndDecode
+public class PlotConfiguration 
+    implements XMLEncodeAndDecode
 {
     /**
      * AST model of the title.
@@ -227,7 +229,7 @@ public class PlotConfiguration implements XMLEncodeAndDecode
         // configuration object.
         Element child;
         AbstractPlotControlsModel model;
-        List children = ConfigurationStore.getChildElements(rootElement);
+        List children = StoreConfiguration.getChildElements(rootElement);
 
         for ( int i = 0; i < children.size(); i++ ) {
             child = (Element) children.get( i );
