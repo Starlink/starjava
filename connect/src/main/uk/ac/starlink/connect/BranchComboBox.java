@@ -14,11 +14,13 @@ import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.UIManager;
+import javax.swing.filechooser.FileView;
 
 /**
  * JComboBox which allows selection of {@link Branch} objects.
@@ -32,6 +34,7 @@ import javax.swing.UIManager;
 public class BranchComboBox extends JComboBox {
 
     private BranchComboBoxModel model_;
+    private static FileView fileView_;
 
     /**
      * Constructor.
@@ -109,6 +112,20 @@ public class BranchComboBox extends JComboBox {
     }
 
     /**
+     * Returns a FileView object which can be used to interpret files on
+     * this platform.
+     *
+     * @return   FileView
+     */
+    public static FileView getFileView() {
+        if ( fileView_ == null ) {
+            JFileChooser fc = new JFileChooser();
+            fileView_ = fc.getUI().getFileView( fc );
+        }
+        return fileView_;
+    }
+
+    /**
      * Returns the connector, if any, associated with a branch.
      * It will be null unless the branch is a ConnectorBranch.
      */
@@ -134,6 +151,7 @@ public class BranchComboBox extends JComboBox {
 
         private BranchHolder[] holders_ = new BranchHolder[ 0 ];
         private int selected_ = -1;
+        private static final FileView fView_ = getFileView();
 
         public int getSize() {
             int size = 0;
@@ -240,6 +258,9 @@ public class BranchComboBox extends JComboBox {
         }
 
         Icon getCustomIcon( Branch branch ) {
+            if ( branch instanceof FileBranch && fView_ != null ) {
+                return fView_.getIcon( ((FileBranch) branch).getFile() );
+            }
             Branch root = new BranchHolder( branch ).getRoot();
             for ( int i = 0; i < holders_.length; i++ ) {
                 BranchHolder holder = holders_[ i ];
