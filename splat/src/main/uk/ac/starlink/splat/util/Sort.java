@@ -7,8 +7,12 @@
  */
 package uk.ac.starlink.splat.util;
 
+import cern.colt.GenericSorting;
+import cern.colt.Swapper;
+import cern.colt.function.IntComparator;
+
 /**
- * Provides various sorting and searching facilities used in SPLAT.
+ * Provides various despoke sorting and searching facilities for SPLAT.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -52,7 +56,8 @@ public final class Sort
                 //  range, so copy end of next range to be end of this
                 //  range.
                 merged[n+1] = sorted[i+1];
-            } else {
+            } 
+            else {
 
                 //  No overlap so just copy range.
                 n+=2;
@@ -71,214 +76,6 @@ public final class Sort
         }
         return merged;
     }
-
-    /**
-     * Sort a double precision array, using an insertion sort.
-     * This sort is very fast for small numbers of values and gets a
-     * boost from pre-sorted arrays. Insertion sort is also stable
-     * (which can be important for maintaining the relationship to
-     * to other data).
-     */
-    public static void insertionSort( double[] a )
-    {
-        // XXX reimplement as merge sort if fast and stable is needed.
-        int i;
-        int j;
-        double v;
-
-        for ( i = 1; i < a.length; i++ ) {
-            v = a[i];
-            j = i;
-            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
-                a[j] = a[j-1];
-                j--;
-            }
-            a[j] = v;
-        }
-    }
-
-    /**
-     * Creates an index that sorts a double precision array. On exit a
-     * is sorted. A reordering of associated arrays without the need for
-     * additional memory can be performed using the 
-     * {@link #applySortIndex} methods.
-     */
-    public static int[] insertionSort2( double[] a )
-    {
-        int size = a.length;
-        int[] remap = new int[a.length];
-
-        int i;
-        int j;
-        double v;
-        
-        for ( i = 1; i < size; i++ ) {
-            v = a[i];
-            j = i;
-            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
-                remap[j] = j-1;
-                a[j] = a[j-1];
-                j--;
-            }
-            remap[j] = i;
-            a[j] = v;
-        }
-
-        return remap;
-    }
-    
-    //  XXX use PDA_RINP[x] algorithm sometime to re-order in place.
-    public static double[] applySortIndex( double[] a, int[] remap, 
-                                           boolean incr )
-    {
-        int size = a.length;
-        double[] newa = new double[size];
-        if ( incr ) {
-            for ( int j = 0; j < size; j++ ) {
-                newa[j] = a[remap[j]];
-            }
-        }
-        else {
-            int i = size - 1 ;
-            for ( int j = 0; j < size; j++ ) {
-                newa[j] = a[remap[i--]];
-            }
-        }
-        return newa;
-    }
-    
-
-    /**
-     * Insertion sort a double precision array into increasing order. Also
-     * sorts an associated array doubles. This sort is very fast for
-     * small numbers of values and gets a boost from pre-sorted
-     * arrays.
-     */
-    public static void insertionSort2a( double[] a, double[] ia )
-    {
-        int i;
-        int j;
-        double v;
-        double iv;
-
-        for ( i = 1; i < a.length; i++ ) {
-            v = a[i];
-            iv = ia[i];
-            j = i;
-            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
-                a[j] = a[j-1];
-                ia[j] = ia[j-1];
-                j--;
-            }
-            a[j] = v;
-            ia[j] = iv;
-        }
-    }
-
-    /**
-     * Insertion sort a double precision array into decreasing order. Also
-     * sorts an associated array doubles. This sort is very fast for
-     * small numbers of values and gets a boost from pre-sorted
-     * arrays.
-     */
-    public static void insertionSort2d( double[] a, double[] ia )
-    {
-        int i;
-        int j;
-        double v;
-        double iv;
-
-        for ( i = 1; i < a.length; i++ ) {
-            v = a[i];
-            iv = ia[i];
-
-            j = i;
-            while ( ( j > 0 ) && ( a[j-1] < v ) ) {
-                a[j] = a[j-1];
-                ia[j] = ia[j-1];
-                j--;
-            }
-            a[j] = v;
-            ia[j] = iv;
-        }
-    }
-
-    /**
-     * Sort a double precision array, plus array of associated
-     * integers using an insertion sort. This sort is very fast for
-     * small numbers of values and gets a boost from pre-sorted
-     * arrays.
-     */
-    public static void insertionSort2( double[] a, int[] ia )
-    {
-        int i;
-        int j;
-        double v;
-        int iv;
-
-        for ( i = 1; i < a.length; i++ ) {
-            v = a[i];
-            iv = ia[i];
-            j = i;
-            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
-                a[j] = a[j-1];
-                ia[j] = ia[j-1];
-                j--;
-            }
-            a[j] = v;
-            ia[j] = iv;
-        }
-    }
-
-    //  WARNING: these quicksorts are largely untested... Use the
-    //  Arrays versions for single array sorts.
-
-    /**
-     * Sort a double precision array, plus an array of associated
-     * integers using a quicksort. This has n*ln(n) sorting time.
-     */
-    public static void quicksort2( double a[], int[] ia )
-    {
-        if ( a.length < 10 ) {
-            insertionSort2( a, ia );
-            return;
-        }
-        quicksort2( a, ia, 0, a.length );
-    }
-    private static void quicksort2( double a[], int[] ia, int r, int l )
-    {
-        int j;
-        double v;
-        int i = ( r + l ) / 2;
-
-        if ( a[l] > a[i] ) swap( a, ia, l, i ); // Tri-Median Method!
-        if ( a[l] > a[r] ) swap( a, ia, l, r );
-        if ( a[i] > a[r] ) swap( a, ia, i, r );
-        j = r - 1;
-        swap( a, ia, i, j );
-        i = l;
-        v = a[j];
-        for( ;; ) {
-            while( a[++i] < v );
-            while( a[--j] > v );
-            if ( j < i ) break;
-            swap( a, ia, i, j );
-            swap( a, ia, i, r - 1 );
-            quicksort2( a, ia, l, j );
-            quicksort2( a, ia, i + 1, r );
-        }
-    }
-    private static void swap( double a[], int[] ia, int i, int j )
-    {
-        double d = a[i];
-        a[i] = a[j];
-        a[j] = d;
-
-        int t = ia[i];
-        ia[i] = ia[j];
-        ia[j] = t;
-    }
-
 
     /**
      * Return two indices of the values in an array that lie above and
@@ -346,5 +143,318 @@ public final class Sort
         bounds[0] = low;
         bounds[1] = high;
         return bounds;
+    }
+
+    /**
+     * Sort a double precision array, using an insertion sort.
+     * This sort is very fast for small numbers of values and gets a
+     * boost from pre-sorted arrays. Insertion sort is also stable
+     * (which can be important for maintaining the relationship to
+     * to other data).
+     */
+    public static void insertionSort( double[] a )
+    {
+        int i;
+        int j;
+        double v;
+
+        for ( i = 1; i < a.length; i++ ) {
+            v = a[i];
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
+                a[j] = a[j-1];
+                j--;
+            }
+            a[j] = v;
+        }
+    }
+
+    /**
+     * Creates an index that sorts a double precision array. On exit a
+     * is sorted. A reordering of associated arrays without the need for
+     * additional memory can be performed using the 
+     * {@link #applySortIndex} methods.
+     */
+    public static int[] insertionSort2( double[] a )
+    {
+        int size = a.length;
+        int[] remap = new int[a.length];
+
+        int i;
+        int j;
+        double v;
+        
+        for ( i = 1; i < size; i++ ) {
+            v = a[i];
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
+                remap[j] = j-1;
+                a[j] = a[j-1];
+                j--;
+            }
+            remap[j] = i;
+            a[j] = v;
+        }
+
+        return remap;
+    }
+    
+    //  XXX re-visit PDA_RINP[x] algorithm sometime to see if we can 
+    //  re-order in place.
+    public static double[] applySortIndex( double[] a, int[] remap, 
+                                           boolean incr )
+    {
+        int size = a.length;
+        double[] newa = new double[size];
+        if ( incr ) {
+            for ( int j = 0; j < size; j++ ) {
+                newa[j] = a[remap[j]];
+            }
+        }
+        else {
+            int i = size - 1 ;
+            for ( int j = 0; j < size; j++ ) {
+                newa[j] = a[remap[i--]];
+            }
+        }
+        return newa;
+    }
+    
+
+    /**
+     * Insertion sort a double precision array into increasing order. Also
+     * sorts an associated array doubles. This sort is very fast for
+     * small numbers of values and gets a boost from pre-sorted
+     * arrays.
+     */
+    public static void insertionSort2a( double[] a, double[] ia )
+    {
+        int i;
+        int j;
+        double v;
+        double iv;
+
+        for ( i = 1; i < a.length; i++ ) {
+            v = a[i];
+            iv = ia[i];
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
+                a[j] = a[j-1];
+                ia[j] = ia[j-1];
+                j--;
+            }
+            a[j] = v;
+            ia[j] = iv;
+        }
+    }
+
+    /**
+     * Insertion sort a double precision array into increasing order. Also
+     * sorts two associated arrays of doubles. This sort is very fast for
+     * small numbers of values and gets a boost from pre-sorted
+     * arrays.
+     */
+    public static void insertionSort2a( double[] a, double[] ia, double[] ib )
+    {
+        int i;
+        int j;
+        double v;
+        double iv;
+        double ivv;
+
+        for ( i = 1; i < a.length; i++ ) {
+            v = a[i];
+            iv = ia[i];
+            ivv = ib[i];
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
+                a[j] = a[j-1];
+                ia[j] = ia[j-1];
+                ib[j] = ib[j-1];
+                j--;
+            }
+            a[j] = v;
+            ia[j] = iv;
+            ib[j] = ivv;
+        }
+    }
+
+    /**
+     * Insertion sort a double precision array into decreasing order. Also
+     * sorts an associated array doubles. This sort is very fast for
+     * small numbers of values and gets a boost from pre-sorted
+     * arrays.
+     */
+    public static void insertionSort2d( double[] a, double[] ia )
+    {
+        int i;
+        int j;
+        double v;
+        double iv;
+
+        for ( i = 1; i < a.length; i++ ) {
+            v = a[i];
+            iv = ia[i];
+
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] < v ) ) {
+                a[j] = a[j-1];
+                ia[j] = ia[j-1];
+                j--;
+            }
+            a[j] = v;
+            ia[j] = iv;
+        }
+    }
+
+    /**
+     * Sort a double precision array, plus array of associated integers using
+     * an insertion sort. This sort is very fast for small numbers of values
+     * and gets a boost from pre-sorted arrays.
+     */
+    public static void insertionSort2( double[] a, int[] ia )
+    {
+        int i;
+        int j;
+        double v;
+        int iv;
+
+        for ( i = 1; i < a.length; i++ ) {
+            v = a[i];
+            iv = ia[i];
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
+                a[j] = a[j-1];
+                ia[j] = ia[j-1];
+                j--;
+            }
+            a[j] = v;
+            ia[j] = iv;
+        }
+    }
+
+    /**
+     * Sort a double precision array, plus an array of associated integers
+     * using a sort suitable for large numbers of values, into ascending
+     * order. This is stable and has guaranteed nlogn performance. Based on
+     * the {@link cern.colt.GenericSorting} class.
+     */
+    public static void sort( double a[], int[] ia )
+    {
+        //  Small numbers might as well get on with it.
+        if ( a.length < 10 ) {
+            insertionSort2( a, ia );
+            return;
+        }
+        
+        final double[] aa = a;
+        final int[] iaa = ia;
+        Swapper swapper = new Swapper() 
+            {
+                public void swap( int a, int b )
+                {
+                    double d = aa[a];
+                    aa[a] = aa[b];
+                    aa[b] = d;
+
+                    int t = iaa[a];
+                    iaa[a] = iaa[b];
+                    iaa[b] = t;
+                }
+            };
+
+        IntComparator comp = new IntComparator() 
+            {
+                public int compare( int a, int b ) {
+                    return aa[a] == aa[b] ? 0 : ( aa[a] < aa[b] ? -1 : 1 );
+                }
+            };
+
+        GenericSorting.mergeSort( 0, aa.length, comp, swapper );
+    }
+
+    /**
+     * Sort a double precision array, plus an array of associated doubles
+     * using a sort suitable for large numbers of values, into ascending
+     * order. This is stable and has guaranteed nlogn performance. Based on
+     * the {@link cern.colt.GenericSorting} class.
+     */
+    public static void sort( double a[], double[] ia )
+    {
+        //  Small numbers might as well get on with it.
+        if ( a.length < 10 ) {
+            insertionSort2a( a, ia );
+            return;
+        }
+        
+        final double[] aa = a;
+        final double[] iaa = ia;
+        Swapper swapper = new Swapper() 
+            {
+                public void swap( int a, int b )
+                {
+                    double d = aa[a];
+                    aa[a] = aa[b];
+                    aa[b] = d;
+                    
+                    d = iaa[a];
+                    iaa[a] = iaa[b];
+                    iaa[b] = d;
+                }
+            };
+
+        IntComparator comp = new IntComparator() 
+            {
+                public int compare( int a, int b ) {
+                    return aa[a] == aa[b] ? 0 : ( aa[a] < aa[b] ? -1 : 1 );
+                }
+            };
+
+        GenericSorting.mergeSort( 0, aa.length, comp, swapper );
+    }
+
+    /**
+     * Sort a double precision array, plus two arrays of associated doubles
+     * using a sort suitable for large numbers of values, into ascending
+     * order. This is stable and has guaranteed nlogn performance. Based on
+     * the {@link cern.colt.GenericSorting} class.
+     */
+    public static void sort( double a[], double[] ia, double[] ib )
+    {
+        //  Small numbers might as well get on with it.
+        if ( a.length < 10 ) {
+            insertionSort2a( a, ia, ib );
+            return;
+        }
+        
+        final double[] aa = a;
+        final double[] iaa = ia;
+        final double[] ibb = ib;
+        Swapper swapper = new Swapper() 
+            {
+                public void swap( int a, int b )
+                {
+                    double d = aa[a];
+                    aa[a] = aa[b];
+                    aa[b] = d;
+
+                    d = iaa[a];
+                    iaa[a] = iaa[b];
+                    iaa[b] = d;
+
+                    d = ibb[a];
+                    ibb[a] = ibb[b];
+                    ibb[b] = d;
+                }
+            };
+
+        IntComparator comp = new IntComparator() 
+            {
+                public int compare( int a, int b ) {
+                    return aa[a] == aa[b] ? 0 : ( aa[a] < aa[b] ? -1 : 1 );
+                }
+            };
+
+        GenericSorting.mergeSort( 0, aa.length, comp, swapper );
     }
 }
