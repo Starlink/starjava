@@ -17,7 +17,7 @@ import java.io.File;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class ListDelete extends Delete 
+public class ListDelete extends Delete
 {
     public ListDelete()
     {
@@ -32,7 +32,7 @@ public class ListDelete extends Delete
     /**
      * Adds a list of files to be deleted.
      */
-    public void addFilelist( FileList filelist ) 
+    public void addFilelist( FileList filelist )
     {
         this.filelist = filelist;
     }
@@ -40,39 +40,44 @@ public class ListDelete extends Delete
     /**
      * Delete the file(s). Override to add FileList logic.
      */
-    public void execute() throws BuildException 
+    public void execute() throws BuildException
     {
         if ( filelist != null ) {
             String[] files = filelist.getFiles( project );
-            for ( int i = 0; i < files.length; i++ ) { 
+            for ( int i = 0; i < files.length; i++ ) {
                 File file = new File( files[i] );
 
                 if ( file.exists() ) {
                     if ( file.isDirectory() ) {
-                        log( "Directory " + file.getAbsolutePath() 
+                        log( "Directory " + file.getAbsolutePath()
                              + " cannot be removed using the file attribute.  "
                              + "Use dir instead.");
-                    } 
+                    }
                     else {
                         log( "Deleting: " + file.getAbsolutePath(),
                              Project.MSG_VERBOSE );
-                        
+
                         if ( ! file.delete() ) {
-                            String message = "Unable to delete file " 
+                            String message = "Unable to delete file "
                                 + file.getAbsolutePath();
-                            //  Should use failonerror and quiet here but
-                            //  cannot access these.
-                            log( message, Project.MSG_VERBOSE );
+                            if ( isFailOnError() ) {
+                                throw new BuildException( message );
+                            }
+                            else {
+                                log( message, isQuiet() ? Project.MSG_VERBOSE
+                                                        : Project.MSG_WARN );
+                            }
                         }
                     }
-                } 
+                }
                 else {
-                    log( "Could not find file " + file.getAbsolutePath() 
-                         + " to delete.", 
-                         Project.MSG_VERBOSE);
+                    log( "Could not find file " + file.getAbsolutePath()
+                         + " to delete.",
+                         Project.MSG_VERBOSE );
                 }
             }
         }
+
         //  Avoid unpleasant error messages that are not appropriate
         //  when we have a list of files.
         if ( file == null && dir == null && filesets.size() == 0 &&
