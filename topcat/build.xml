@@ -1174,6 +1174,7 @@
       <classpath>
         <fileset dir="${src.docs}" includes="*.jar"/>
       </classpath>
+      <sysproperty key="java.awt.headless" value="true"/>
       <arg value="-q"/>
       <arg value="-fo"/> <arg value="${build.docs}/${user.doc}.fo"/>
       <arg value="-pdf"/> <arg value="${build.docs}/${user.doc}.pdf"/>
