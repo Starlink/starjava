@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -58,9 +59,16 @@ public class DataNodeTreeModel implements TreeModel {
         new TreeModelListenerHandler();
 
     /**
-     * Constructs a new DataNodeTreeModel.
+     * Constructs a new DataNodeTreeModel with a default root node.
+     */
+    public DataNodeTreeModel() {
+        this( new EmptyDataNode() );
+    }
+ 
+    /**
+     * Constructs a new DataNodeTreeModel with a given root node.
      *
-     * @param   root 
+     * @param   root  the root node
      */
     public DataNodeTreeModel( DataNode rootDataNode ) {
         root = makeModelNode( rootDataNode, null );
@@ -392,6 +400,26 @@ public class DataNodeTreeModel implements TreeModel {
     }
 
     /**
+     * Refreshes the representation of the node iteself.  It is redrawn,
+     * but nothing is done about its children.
+     *
+     * @param  dataNode  the node to repaint
+     */
+    public void repaintNode( DataNode dataNode ) {
+        TreeModelNode modelNode = getModelNode( dataNode );
+        if ( modelNode != root ) {
+            TreeModelNode parentModelNode = modelNode.getParent();
+            synchronized ( parentModelNode ) {
+                Object[] path = getPathToRoot( parentModelNode );
+                int index = parentModelNode.getChildren().indexOf( modelNode );
+                listenerHandler
+               .fireTreeNodesChanged( this, path, new int[] { index }, 
+                                      new Object[] { dataNode } );
+            }
+        }
+    }
+
+    /**
      * Returns the <tt>TreeModelNode</tt> which acts as the container
      * for a given data node.
      *
@@ -518,6 +546,28 @@ public class DataNodeTreeModel implements TreeModel {
                                               int[] indices, 
                                               Object[] children ) {
             super.fireTreeStructureChanged( source, path, indices, children );
+        }
+    }
+
+    /**
+     * Empty node implementation provides a default root node.
+     */
+    private static class EmptyDataNode extends DefaultDataNode {
+        public boolean allowsChildren() {
+            return true;
+        }
+        public Iterator getChildIterator() {
+            return new Iterator() {
+                public boolean hasNext() {
+                    return false;
+                }
+                public Object next() {
+                    throw new NoSuchElementException();
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 

@@ -21,6 +21,7 @@ public class NodeExpander {
     private boolean done;
     private DataNodeTreeModel treeModel;
     private TreeModelNode modelNode;
+    private DataNode dataNode;
 
     /**
      * Constructs a new expander.
@@ -32,6 +33,7 @@ public class NodeExpander {
                          TreeModelNode modelNode ) {
         this.treeModel = treeModel;
         this.modelNode = modelNode;
+        this.dataNode = modelNode.getDataNode();
     }
 
     /**
@@ -46,18 +48,19 @@ public class NodeExpander {
      * event dispatch thread.
      */
     public void expandNode() {
-        DataNode dataNode = modelNode.getDataNode();
 
-        /* Only proceed if this node can have children. */
-        if ( dataNode.allowsChildren() ) {
+        /* If this node can't have children, it's easy. */
+        if ( ! dataNode.allowsChildren() ) {
+            setDone();
+        }
+
+        /* Otherwise, we have to do the expansion. */
+        else {
+            repaintNode();
 
             /* Get each child in turn from the data node. */
-            for ( Iterator it = dataNode.getChildIterator(); it.hasNext(); ) {
-
-                /* If we are no longer doing useful work, bail out. */
-                if ( ! isActive() ) {
-                    return;
-                }
+            for ( Iterator it = dataNode.getChildIterator();
+                  isActive() && it.hasNext(); ) {
 
                 /* Get the next child. */
                 DataNode childDataNode = (DataNode) it.next();
@@ -68,10 +71,13 @@ public class NodeExpander {
                     treeModel.appendNode( childDataNode, dataNode );
                 }
             }
-        }
 
-        /* Record that we have finished. */
-        setDone();
+            /* Record that we have finished. */
+            if ( isActive() ) {
+                setDone();
+            }
+            repaintNode();
+        }
     }
 
     /**
@@ -100,5 +106,20 @@ public class NodeExpander {
      */
     public boolean isActive() {
         return modelNode.getExpander() == this;
+    }
+
+    /**
+     * Flags the node for repainting.  This should be invoked when the
+     * expansion status changes, since this may affect the node's visual
+     * representation in the tree.
+     */
+    private void repaintNode() {
+        if ( isActive() ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    treeModel.repaintNode( dataNode );
+                }
+            } );
+        }
     }
 }

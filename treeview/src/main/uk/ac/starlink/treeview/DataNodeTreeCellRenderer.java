@@ -1,6 +1,7 @@
 package uk.ac.starlink.treeview;
 
 import java.awt.Component;
+import java.awt.Font;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
@@ -8,6 +9,9 @@ import javax.swing.tree.DefaultTreeCellRenderer;
  * TreeCellRenderer designed for rendering {@link DataNode} values.
  */
 public class DataNodeTreeCellRenderer extends DefaultTreeCellRenderer {
+
+    private Font normalFont;
+    private Font specialFont;
 
     public Component getTreeCellRendererComponent( JTree jtree, Object value,
                                                    boolean selected,
@@ -26,6 +30,7 @@ public class DataNodeTreeCellRenderer extends DefaultTreeCellRenderer {
         }
 
         /* Customise it according to the data, if we have a DataNode. */
+        boolean isExpanding = false;
         if ( value instanceof DataNode ) {
             DataNode node = (DataNode) value;
             setIcon( node.getIcon() );
@@ -34,9 +39,24 @@ public class DataNodeTreeCellRenderer extends DefaultTreeCellRenderer {
                 text = "...";
             }
             setText( text );
+            TreeModelNode modelNode = ((DataNodeTreeModel) jtree.getModel())
+                                     .getModelNode( node );
+            NodeExpander expander = modelNode.getExpander();
+            isExpanding = expander != null && ! expander.isDone();
         }
+
+        /* Visual feedback for nodes that are in the process of expanding. */
+        configureFont( isExpanding );
 
         /* Return the configured label. */
         return this;
+    }
+
+    private void configureFont( boolean special ) {
+        if ( normalFont == null ) {
+            normalFont = getFont();
+            specialFont = normalFont.deriveFont( Font.ITALIC );
+        }
+        setFont( special ? specialFont : normalFont );
     }
 }
