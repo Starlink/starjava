@@ -12,6 +12,7 @@ import javax.swing.JComponent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import uk.ac.starlink.hdx.HdxContainer;
@@ -41,7 +42,16 @@ public class HDXDataNode extends DefaultDataNode {
     public HDXDataNode( Source xsrc ) throws NoSuchDataException {
         Element el;
         try {
-            el = new SourceReader().getElement( xsrc );
+            Node node = new SourceReader().getDOM( xsrc );
+            if ( node instanceof Element ) {
+                el = (Element) node;
+            }
+            else if ( node instanceof Document ) {
+                el = ((Document) node).getDocumentElement();
+            }
+            else {
+                throw new NoSuchDataException( "XML Source is not an element" );
+            }
         }
         catch ( TransformerException e ) {
             throw new NoSuchDataException( e );
