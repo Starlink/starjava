@@ -252,6 +252,31 @@ public abstract class DataNodeBuilder {
             builderMap.put( File.class, fileBuilder );
         }
 
+        /* Use a File builder on a DataSource. */
+        if ( builderMap.containsKey( File.class ) &&
+             ! builderMap.containsKey( DataSource.class ) ) {
+            final DataNodeBuilder fileBuilder =
+                (DataNodeBuilder) builderMap.get( File.class );
+            DataNodeBuilder sourceBuilder =
+                    new SimpleDataNodeBuilder( clazz, DataSource.class ) {
+                public DataNode buildNode( Object obj )
+                        throws NoSuchDataException {
+                    DataSource datsrc = (DataSource) obj;
+                    if ( datsrc instanceof FileDataSource ) {
+                        File file = ((FileDataSource) datsrc).getFile();
+                        return configureNode( fileBuilder.buildNode( file ),
+                                              file );
+                    }
+                    else {
+                        throw new NoSuchDataException( 
+                                      "Only file-type DataSources supported" );
+                    }
+                }
+            };
+            builders.add( sourceBuilder );
+            builderMap.put( DataSource.class, sourceBuilder );
+        }
+
         return (DataNodeBuilder[]) builders.toArray( new DataNodeBuilder[ 0 ] );
     }
 
@@ -308,9 +333,12 @@ public abstract class DataNodeBuilder {
          * path - try to pick the last element of it. */
         if ( label == null && obj instanceof DataSource ) {
             String name = ((DataSource) obj).getName();
-            Matcher match = Pattern.compile( "([^ /\\\\:]+)$" ).matcher( name );
-            if ( match.matches() ) {
-                label = match.group( 1 );
+            if ( name != null ) {
+                Matcher match = Pattern.compile( "([^ /\\\\:]+)$" )
+                                       .matcher( name );
+                if ( match.matches() ) {
+                    label = match.group( 1 );
+                }
             }
         }
 
