@@ -159,8 +159,7 @@ public class TarStreamDataNode extends DefaultDataNode {
                          * current entry. */
                         boolean found = false;
                         for ( TarEntry ent; 
-                              (ent = (TarEntry) tstream.getNextEntry()) != null;
-                            ) {
+                              ( ent = getNextEntry( tstream ) ) != null; ) {
                             if ( ent.getName().equals( tname ) ) {
                                 found = true;
                                 break;
@@ -323,8 +322,7 @@ public class TarStreamDataNode extends DefaultDataNode {
         if ( entries == null ) {
             entries = new ArrayList();
             TarInputStream ts = getTarInputStream();
-            for ( TarEntry tent;
-                  ( tent = (TarEntry) ts.getNextEntry() ) != null; ) {
+            for ( TarEntry tent; ( tent = getNextEntry( ts ) ) != null; ) {
                 entries.add( tent );
             }
             ts.close();
@@ -349,8 +347,7 @@ public class TarStreamDataNode extends DefaultDataNode {
             throws IOException {
         String reqName = reqEnt.getName();
         TarInputStream tstream = getTarInputStream();
-        for ( TarEntry ent;
-              ( ent = (TarEntry) tstream.getNextEntry() ) != null; ) {
+        for ( TarEntry ent; ( ent = getNextEntry( tstream ) ) != null; ) {
             if ( ent.getName().equals( reqName ) ) {
                 return tstream;
             }
@@ -366,6 +363,30 @@ public class TarStreamDataNode extends DefaultDataNode {
      */
     private TarInputStream getTarInputStream() throws IOException {
         return new TarInputStream( datsrc.getInputStream() );
+    }
+
+    /**
+     * Reads an entry from a TarInputStream.
+     * This does much the same as <tt>tstrm.getNextEntry()</tt>, but 
+     * does a bit of essential doctoring on the entry name.
+     *
+     * @param  tstrm  the tar input stream
+     * @return  the next tar entry, or <tt>null</tt> if there is none or if
+     *          any I/O error occurred
+     */
+    private static TarEntry getNextEntry( TarInputStream tstrm ) {
+        try {
+            TarEntry tent = tstrm.getNextEntry();
+            if ( tent != null && 
+                 tent.isDirectory() && 
+                 ! tent.getName().endsWith( "/" ) ) {
+                tent.setName( tent.getName() + '/' );
+            }
+            return tent;
+        }
+        catch ( IOException e ) {
+            return null;
+        }
     }
 
     /**

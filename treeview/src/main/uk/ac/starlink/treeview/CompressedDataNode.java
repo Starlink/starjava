@@ -85,8 +85,16 @@ public class CompressedDataNode extends DefaultDataNode {
             fullView = dv.getComponent();
             dv.addSeparator();
             dv.addKeyedItem( "Compression format", compress );
+            long rawLeng = datsrc.getRawLength();
+            long cookLeng = datsrc.getLength();
+            if ( rawLeng >= 0 ) {
+                dv.addKeyedItem( "Compressed size", rawLeng );
+            }
+            if ( cookLeng >= 0 ) {
+                dv.addKeyedItem( "Decompressed size", cookLeng );
+            }
             try {
-                if ( datsrc.isASCII() ) {
+                if ( ! datsrc.isASCII() ) {
                     dv.addPane( "Text view", new ComponentMaker() {
                         public JComponent getComponent() throws IOException {
                             return new TextViewer( datsrc.getInputStream() );

@@ -78,6 +78,10 @@ public class PlainDataNode extends DefaultDataNode {
     public static void addDataViews( DetailViewer dv, 
                                      final DataSource datsrc ) {
         try {
+            long size = datsrc.getLength();
+            if ( size >= 0 ) {
+                dv.addKeyedItem( "Size", size );
+            }
             if ( ! datsrc.isEmpty() ) {
                 if ( datsrc.isASCII() ) {
                     dv.addPane( "Text view", new ComponentMaker() {

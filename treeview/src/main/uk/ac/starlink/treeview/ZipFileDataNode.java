@@ -103,7 +103,7 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
                         public String getPath() {
                             return pathHead + subname;
                         }
-                        protected long getRawLength() {
+                        public long getRawLength() {
                             return zent.getSize();
                         }
                         protected InputStream getRawInputStream() 

@@ -36,8 +36,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
         if ( entries == null ) {
             entries = new ArrayList();
             ZipInputStream zs = getZipInputStream();
-            for ( ZipEntry zent; 
-                  ( zent = (ZipEntry) zs.getNextEntry() ) != null; ) {
+            for ( ZipEntry zent; ( zent = zs.getNextEntry() ) != null; ) {
                 entries.add( zent );
             }
             zs.close();
@@ -89,8 +88,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                         /* Advance the ZipInputStream to the current entry. */
                         boolean found = false;
                         for ( ZipEntry ent;
-                              (ent = (ZipEntry) zstream.getNextEntry()) != null;
-                            ) {
+                              (ent = zstream.getNextEntry()) != null;) {
                             if ( ent.getName().equals( zname ) ) {
                                 found = true;
                                 break;
@@ -178,8 +176,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
             throws IOException {
         String reqName = reqEnt.getName();
         ZipInputStream zstream = getZipInputStream();
-        for ( ZipEntry ent;
-              ( ent = (ZipEntry) zstream.getNextEntry() ) != null; ) {
+        for ( ZipEntry ent; ( ent = zstream.getNextEntry() ) != null; ) {
             if ( ent.getName().equals( reqName ) ) {
                 return zstream;
             }
