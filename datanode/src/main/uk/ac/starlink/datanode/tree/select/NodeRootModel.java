@@ -18,7 +18,7 @@ import uk.ac.starlink.datanode.nodes.DataNode;
  * Model for a NodeRootComboBox.
  *
  * @author   Mark Taylor (Starlink)
- * @sine     10 Mar 2005
+ * @since    10 Mar 2005
  */
 public class NodeRootModel extends AbstractListModel implements ComboBoxModel {
 
