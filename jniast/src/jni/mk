@@ -8,7 +8,7 @@
 #     Wrapper script for running JNI build system. Replaces mk script from old
 #     build system. Really depends on local directory containing a starconf'd
 #     system  in the "dist" state (this has at least a configure script and
-#     Makefile.in). If this isn't true will attempt to run "bootstrap" first.
+#     Makefile.in).
 #
 #     The location of the AST & SLA libraries is determined by the STARLINK
 #     environment variable (defaults to what was baked into the configure
@@ -31,17 +31,10 @@
 export INSTALL
 unset INSTALL
 
-#  Look for configure script, if not found try to create it by running
-#  bootstrap.
+#  Look for configure script, if not found give up.
 if ! test -f "configure"; then
-    echo "Failed to locate dist build system - attempting bootstrap"
-    if  test -f "bootstrap"; then
-        echo "./bootstrap"
-        ./bootstrap
-    else
-       echo "No bootstrap system either, failed."
-       exit 1
-    fi
+    echo "Failed to locate a configure script"
+    exit 1
 fi
 
 #  Run configure, looking for standard libraries in $STARLINK, or the
