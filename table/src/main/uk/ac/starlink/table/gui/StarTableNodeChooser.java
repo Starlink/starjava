@@ -1,4 +1,4 @@
-package uk.ac.starlink.table;
+package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import java.lang.reflect.Constructor;
@@ -152,7 +152,7 @@ public class StarTableNodeChooser {
         return isAvailable.booleanValue();
     }
 
-    private static void reflect()
+    static void reflect()
             throws ClassNotFoundException, LinkageError, NoSuchMethodException {
         chooserClass = Class.forName( CHOOSER_CLASS );
         chooserConstructor = chooserClass.getConstructor( new Class[ 0 ] );
