@@ -28,8 +28,10 @@
   <!ENTITY FIG.PlotWindow_blob '&figs;PlotWindow_blob.gif'>
   <!ENTITY FIG.LoadQueryWindow '&figs;LoadQueryWindow.gif'>
   <!ENTITY FIG.JFileChooserLoad '&figs;JFileChooserLoad.gif'>
-  <!ENTITY FIG.StarTableNodeChooser '&figs;StarTableNodeChooser.gif'>
+  <!ENTITY FIG.TreeTableLoadDialog '&figs;TreeTableLoadDialog.gif'>
   <!ENTITY FIG.SQLReadDialog '&figs;SQLReadDialog.gif'>
+  <!ENTITY FIG.ConeSearchDialog '&figs;ConeSearchDialog.gif'>
+  <!ENTITY FIG.MyspaceTableLoadDialog '&figs;MyspaceTableLoadDialog.gif'>
   <!ENTITY FIG.StarTableSaver '&figs;StarTableSaver.gif'>
   <!ENTITY FIG.JFileChooserSave '&figs;JFileChooserSave.gif'>
   <!ENTITY FIG.SQLWriteDialog '&figs;SQLWriteDialog.gif'>
@@ -639,7 +641,7 @@ FITS file, since the primary HDU cannot contain a table.
 
 <p>You can select which extension to use more conveniently than
 by specifying the HDU numbers if you use the
-<ref id="StarTableNodeChooser">Hierarchy Browser</ref> to load the table.
+<ref id="TreeTableLoadDialog">Hierarchy Browser</ref> to load the table.
 </p>
 
 <p>If the table has been written using TOPCAT's "<code>fits-plus</code>"
@@ -2196,7 +2198,8 @@ it has been installed on your system; some of these are described below.
 <p>There may be some sort of short-cut icon on your desktop which
 starts up the program - in this case just clicking on it will probably work.
 Failing that you may be able to locate the
-jar file (<code>topcat.jar</code> or <code>topcat-full.jar</code>)
+jar file (probably called <code>topcat.jar</code>, 
+<code>topcat-full.jar</code> or <code>topcat-lite.jar</code>)
 and click on that.  These files would be located in the
 <code>java/lib/topcat/</code> directory in a standard Starjava installation.
 Note that when you start by clicking on something
@@ -2225,7 +2228,7 @@ The most straightforward way of doing this will look like:
 <verbatim>
    java [java-args] -jar path/to/topcat.jar [topcat-args]
 </verbatim>
-(or the same for <code>topcat-full.jar</code>).
+(or the same for <code>topcat-full.jar</code> etc).
 However <strong>NOTE</strong>: using java's <code>-jar</code> flag ignores
 any other class path information, such as the CLASSPATH environment
 variable or java's <code>-classpath</code> flag - see <ref id="jvmClasspath"/>.
@@ -2261,6 +2264,24 @@ will see the following usage message:
 <verbatim>&topcat.usage;</verbatim>
 The meaning of the flags is as follows:
 <dl>
+
+<dt>-f &lt;format&gt;</dt>
+<dd><p>Signifies that the file(s) named after it on the command line
+    are in a particular file format.
+    Some file formats (VOTable, FITS) can be detected automatically by
+    TOPCAT, but others (including Comma-Separated Values) cannot -
+    see <ref id="inFormats"/>.  In this case you have to specify with 
+    the <code>-f</code> flag what format the named files are in.
+    Any table file on the command line following a 
+    <code>-f &lt;format&gt;</code>
+    sequence must be in the named format until the next <code>-f</code> flag.
+    The names of both the auto-detected formats (ones which don't need
+    a <code>-f</code>) and the non-auto-detected formats (ones which do)
+    are given in the usage message you can see by giving the 
+    <code>-help</code> flag (this message is shown above).
+    You may also use the classname of a class on the classpath which
+    implements the <code>TableBuilder</code> interface - see &SUN.252;.
+    </p></dd>
 
 <dt>-help</dt>
 <dd><p>If the <code>-help</code> flag is given, TOPCAT will write a short usage
@@ -2298,25 +2319,52 @@ The meaning of the flags is as follows:
     actions can result in disk thrashing and become very slow.
     </p></dd>
 
-<dt>-f &lt;format&gt;</dt>
-<dd><p>Signifies that the file(s) named after it on the command line
-    are in a particular file format.
-    Some file formats (VOTable, FITS) can be detected automatically by
-    TOPCAT, but others (including Comma-Separated Values) cannot -
-    see <ref id="inFormats"/>.  In this case you have to specify with 
-    the <code>-f</code> flag what format the named files are in.
-    Any table file on the command line following a 
-    <code>-f &lt;format&gt;</code>
-    sequence must be in the named format until the next <code>-f</code> flag.
-    The names of both the auto-detected formats (ones which don't need
-    a <code>-f</code>) and the non-auto-detected formats (ones which do)
-    are given in the usage message you can see by giving the 
-    <code>-help</code> flag (this message is shown above).
-    You may also use the classname of a class on the classpath which
-    implements the <code>TableBuilder</code> interface - see &SUN.252;.
-    </p></dd>
+</dl>
+</p>
+
+<p>Some of the flags control what load dialogues are visible in the
+<ref id="LoadQueryWindow">Load Window</ref>.  In fact all of these 
+load dialogues can be accessed from the Load Window's
+<label>DataSources</label> menu as long as the classes are available, 
+but if you specify these flags on the command line, 
+the corresponding button will appear in the main part
+of the window, making the option more obvious.
+The load dialogue flags are:
+<dl>
+
+<dt>-tree</dt>
+<dd><p>Hierarchy browser (<ref id="TreeTableLoadDialog"/>),
+    used for content-sensitive browsing of the filespace.</p></dd>
+
+<dt>-sql</dt>
+<dd><p>SQL query (<ref id="SQLReadDialog"/>),
+    used for obtaining tables
+    from an SQL query on a rleational database</p></dd>
+
+<dt>-cone</dt>
+<dd><p>Cone search dialogue (<ref id="ConeSearchDialog"/>),
+    used for obtaining catalogues of sources in a region of the sky
+    from remote data servers</p></dd>
+
+<dt>-myspace</dt>
+<dd><p>MySpace browser (<ref id="MyspaceTableLoadDialog"/>), 
+    used for loading tables from AstroGrid's 
+    MySpace remote file store</p></dd>
+
+<dt>-registry</dt>
+<dd><p>Registry query dialogue <em>(experimental)</em>,
+    used for obtaining the results of a query on a VO resource registry
+    as a table</p></dd>
+
+<dt>-siap</dt>
+<dd><p>Simple Image Access Protocol dialogue <em>(experimental)</em>,
+    used for obtaining the results of SIAP queries on remote data 
+    servers.</p></dd>
 
 </dl>
+These flags in most circumstances do just the same as adding the
+relevant dialogue class name to the <code>startable.load.dialogs</code>
+system property (see <ref id="jvmProperties"/>).
 </p>
 
 <p>Other arguments on the command line are taken to be the locations
@@ -2474,7 +2522,12 @@ The following ones have special significance within TOPCAT:
 
 <dt><code>startable.load.dialogs</code></dt>
 <dd><p>Can be set to a (colon-separated) list of custom table load dialogue
-    classes <!-- (see <ref id="customLoadDialogs"/>) -->.
+    classes.  Briefly, you can install your own table import dialogues at
+    runtime by providing classes which implement the 
+    <code>uk.ac.starlink.table.gui.TableLoadDialog</code> interface and
+    naming them in this property.  
+    See <webref url="http://www.starlink.ac.uk/stil/">STIL</webref> 
+    documentation for more detail.
     </p></dd>
 
 <dt><code>startable.readers</code></dt>
@@ -3028,17 +3081,27 @@ introduced since the last version:
         <p>Secondly, the provision of load dialogues has been modularised,
         and a number of new dialogues provided.  The new ones are:
         <ul>
-        <li>MySpace browser</li>
+        <li><ref id="ConeSearchDialog">Cone Search</ref></li>
+        <li><ref id="MyspaceTableLoadDialog">MySpace Browser</ref></li>
         <li>Registry Query</li>
-        <li>Cone Search</li>
         <li>SIAP Query</li>
         </ul>
         If the required classes are present, you can acquire tables from 
         these external sources as well as the traditional methods of loading
-        from disk etc.  Furthermore it is possible to plug in additional
-        load dialogues at runtime using the <code>startable.load.dialogs</code>
-        system property.
+        from disk etc.  New command line flags corresponding to each 
+        of these have been added to ensure that they are present and
+        make them prominent in the load dialogue. 
+        Furthermore it is possible to plug in additional load dialogues at
+        runtime using the <code>startable.load.dialogs</code> system property.
+        </p>
+
+        <p>The appearance of the <ref id="LoadQueryWindow">Load Window</ref>
+        has changed; now only the <label>File Browser</label> button
+        is visible along with the <label>Location</label> field in the
+        body of the window, but the <label>DataSources</label> menu
+        can be used to display other available table import dialogues.
         </p></dd>
+
 
     <dt>Packaging</dt>
     <dd><p>The program can now be obtained in two standalone forms:
@@ -3055,6 +3118,18 @@ introduced since the last version:
     <dd><p>There is now a new button &IMG.EXPLODE; in the 
         <ref id="ColumnInfoWindow">Columns Window</ref> which replaces an
         array-valued column with a scalar column for each of its elements.
+        </p></dd>
+
+    <dt>Paste'n'Load</dt>
+    <dd><p>You can now load a table by pasting its filename or URL as
+        text into the table list in the Control Window (using the X selection
+        on X-windows - not sure if or how this works on other platforms).
+        </p></dd>
+
+    <dt>Help message</dt>
+    <dd><p>The result of <code>topcat -help</code> is now more comprehensive,
+        describing briefly what each option does and listing system
+        properties as well as arguments/flags proper.
         </p></dd>
 
     </dl></p></dd>
@@ -3363,6 +3438,8 @@ table list is a good place to drag/drop tables.
 For instance you can drag a table node off of the main panel of 
 Treeview and drop it onto the table list of TOPCAT, and you will
 be able to use that table as if it had been loaded from disk.
+You can also paste the filename or URL of a table onto the table list,
+and it will be loaded.
 </p>
 
 </subsubsect>
@@ -4549,74 +4626,45 @@ using the <label>Row Subsets</label> box at the bottom of the Plot Window.
 <ref id="ControlWindow">Control Window</ref> toolbar or File menu.
 </p>
 
-<p>This dialogue allows you to specify a new table to open in the
-following ways, described in more detail in the following sections:
-<ul>
-<li>Type the location directly in the 
-    <ref id="loadString" plaintextref="yes">Location field</ref></li>
-<li>Use the <label>Browse Files</label> button to get a  
-    <ref id="JFileChooserLoad" plaintextref="yes">standard
-    file browser</ref></li>
-<li>Use the <label>Browse Hierarchy</label> button to get a
-    more sophisticated 
-    <ref id="StarTableNodeChooser" plaintextref="yes">hierarchical
-    table browser</ref></li>
-<li>Use the <label>SQL Database</label> button to get the 
-    <ref id="SQLReadDialog" plaintextref="yes">SQL Query Dialog</ref></li>
-</ul>
-</p>
-
-<p>As described in <ref id="inFormats"/>, TOPCAT can recognise some
-table formats (VOTable, FITS) automatically, while for others 
-(Comma-Separated Values, ASCII) you will have to tell it what 
-format the file is in by choosing from the <label>Format</label> 
-selector which appears in the Load Window and some of the dialogues 
-descending from it.
-Compression is always handled automatically.
-</p>
-
-<p>If you successfully specify the location of a table in any of these ways,
+<p>This dialogue allows you to specify a new table to open in several
+different ways, described below.
+If you successfully load a table using any of these options,
 a new entry will be added into the Table List in the Control Window,
 which you can then use in the usual ways.
 If you choose a location which can't be turned into a table
 (for instance because the file doesn't exist),
 a window will pop up telling you what went wrong.
-</p>
-
-<p>If you get an <code>OutOfMemoryError</code> while loading a table,
+If you get an <code>OutOfMemoryError</code> while loading a table,
 you will have to run TOPCAT with more memory, as described in
 <ref id="jvmMemory"/> or use the <code>-disk</code> flag described in
 <ref id="topcatArgs"/>.
 </p>
 
-<subsubsect id="loadString">
-<subhead><title>Enter Location</title></subhead>
-
-<p>You can load a table by typing its location into the <label>Location</label>
-field of the <label>Load Table</label> window.
+<p>In the simplest case, you can type a name into the 
+<label>Location</label> field and hit return or the <label>OK</label>
+button.  This location can be a filename or a URL,
+possibly followed by a '<code>#</code>' character and a 
+'fragment identifier' to indicate where in the file or URL the table is
+located; the details of what such fragment identifiers mean can be
+found in the relevant subsection within <ref id="inFormats"/>.
+You should select the relevant table format from the 
+<label>Format</label> selector box - you can leave it on 
+<label>(auto)</label> for loading FITS tables or VOTables,
+but for other formats such as ASCII or CSV you must select the right one
+explicitly (again, see <ref id="inFormats"/> for details).
 </p>
 
-<p>In the simplest case this is the name of a file holding the
-table in one of the formats TOPCAT understands.
-However it may be a URL for remote data, and in some cases
-may have an additional "fragment identifier" appended to the
-filename after a "#" character to indicate where in the URL or
-file the table is located;
-The details of what such fragment identifiers mean can be found
-in the relevant subsection within <ref id="inFormats"/>.
-It may also be a location which does not correspond to a file
-at all, such as the specification of an SQL query on a relational database.
-For these more complicated cases you may find it easier to use
-one of the other methods for specifying a table to load.
+<p>There are many other ways of loading tables however,
+described in the following subsections.
+The <label>File Browser</label> button is always visible below
+the location field.  Depending on startup options, there may be
+other buttons here.  In any case, you can look in the 
+<label>DataSources</label> menu to see other table load dialogues.
+Exactly which ones are available will depend on your setup 
+(some may be absent or greyed out, and additional ones may be
+available).  The following subsections describe some of the
+options which may be available.
 </p>
-
-<p>The <label>Format</label> selector must be set correctly:
-the "(auto)" setting will automatically pick up VOTable or FITS tables,
-otherwise you will need to select the option describing the format of
-the file you are attempting to load (see <ref id="inFormats"/>).
-</p>
-
-</subsubsect>
 
 <subsubsect id="JFileChooserLoad">
 <subhead><title>File Browser</title></subhead>
@@ -4626,8 +4674,8 @@ the file you are attempting to load (see <ref id="inFormats"/>).
 <figureimage src="&FIG.JFileChooserLoad;"/>
 </figure>
 
-<p>By clicking the <label>Browse Files</label> button in the
-<label>Load Table</label> window,
+<p>By clicking the <label>File Browser</label> button in the
+Load Window,
 you can obtain a normal file browser which will
 display the files in a given directory.
 </p>
@@ -4644,7 +4692,8 @@ tables and which do not.  To open one of the displayed files as a table,
 double-click on it or select it by clicking once and click the
 <label>Open Table</label> button.  
 The <label>Table Format</label> selector must be set correctly:
-the "(auto)" setting will automatically pick up VOTable or FITS tables,
+the "(auto)" setting will automatically detect the format of 
+VOTable or FITS tables,
 otherwise you will need to select the option describing the format of
 the file you are attempting to load (see <ref id="inFormats"/>).
 If you pick a file which cannot be converted
@@ -4656,22 +4705,22 @@ to what tables it can access.  For instance if you select a FITS file,
 the table opened will correspond to the first TABLE or BINTABLE
 HDU within it.
 For a more table-aware view of the file system, use the
-<ref id="StarTableNodeChooser" plaintextref="yes">Hierarchy Browser</ref> 
+<ref id="TreeTableLoadDialog" plaintextref="yes">Hierarchy Browser</ref> 
 instead.
 </p>
 
 </subsubsect>
 
-<subsubsect id="StarTableNodeChooser">
+<subsubsect id="TreeTableLoadDialog">
 <subhead><title>Hierarchy Browser</title></subhead>
 
 <figure>
 <caption><px>File load Hierarchy Browser window</px></caption>
-<figureimage src="&FIG.StarTableNodeChooser;"/>
+<figureimage src="&FIG.TreeTableLoadDialog;"/>
 </figure>
 
-<p>By clicking the <label>Browse Hierarchy</label> button in the
-<label>Load Table</label> window,
+<p>By selecting the <label>Hierarchy Browser</label> option from
+the Load Window's <label>DataSources</label> menu,
 you can obtain a browser which presents a table-aware
 hierarchical view of the file system.
 (Note that a freestanding version of this panel with additional
@@ -4796,7 +4845,7 @@ Changing the root of the tree will interrupt the search.
 </subsubsect>
 
 <subsubsect id="SQLReadDialog">
-<subhead><title>SQL Query Dialogue</title></subhead>
+<subhead><title>SQL Query</title></subhead>
 
 <figure>
 <caption><px>SQL Query Dialogue</px></caption>
@@ -4805,9 +4854,9 @@ Changing the root of the tree will interrupt the search.
 
 <p>If you want to 
 <ref id="inSql" plaintextref="yes">read a table from an SQL database</ref>,
-you can use a specialised dialogue to specify the SQL query by clicking
-the <label>SQL Database</label> button in the <label>Load Table</label>
-window.
+you can use a specialised dialogue to specify the SQL query by selecting
+<label>SQL Query</label> option from the Load Window's 
+<label>DataSources</label> menu.
 </p>
 
 <p>This provides you with a list of fields to fill in which make
@@ -4859,26 +4908,109 @@ these steps, this dialogue may be inaccessible.
 
 </subsubsect>
 
+<subsubsect id="ConeSearchDialog">
+<subhead><title>Cone Search</title></subhead>
+
+<figure>
+<caption><px>Cone search table import dialogue</px></caption>
+<figureimage src="&FIG.ConeSearchDialog;"/>
+</figure>
+
+<p>By selecting the <label>Cone Search</label> option from
+the Load Window's <label>DataSources</label> menu,
+you can obtain a dialogue which allows you to query one of a 
+number of external web services for a catalogue of objects 
+known in a given region of the sky.
+</p>
+
+<p>When first displayed, this dialogue window will ask an external
+services registry for all the cone search services on the net 
+which have advertised their existence.  When it has got the result,
+you will see a list of their names and titles in a table.
+For more information about each one, use the
+<label>Columns</label> menu to select what information, such as
+publisher, reference URL etc is displayed in the table.
+You can scroll up and down this table and select the one which you
+want to query by clicking on it.
+</p>
+
+<p>Having selected one of the cone search services from the table, enter the
+location on the sky and search radius in the boxes provided, and
+hit the <label>OK</label> button.  This will send the query to
+the service you selected and, if successful, load into TOPCAT a
+table containing all the objects in the region of the sky you 
+have specified.  The exact format of the returned table will depend
+on the service you have selected, but it will contain at least 
+columns representing Right Ascension and Declination.
+</p>
+
+</subsubsect>
+
+<subsubsect id="MyspaceTableLoadDialog">
+<subhead><title>MySpace Browser</title></subhead>
+
+<figure>
+<caption><px>MySpace browser table load dialogue</px></caption>
+<figureimage src="&FIG.MyspaceTableLoadDialog;"/>
+</figure>
+
+<p>By selecting the <label>MySpace Browser</label> option from the
+Load Window's <label>DataSources</label> menu,
+you can obtain a browser which allows you to load tables from a
+MySpace filestore.  MySpace is a distributed storage technology 
+developed by the <webref url="http://www.astrogrid.org">AstroGrid</webref>
+project.
+</p>
+
+<p>When you initially open this dialogue you will see a panel
+with a button at the top marked <label>Log In</label>.
+Hit this, fill in your AstroGrid accont details and hit the
+<label>OK</label> button.  If your log in is successful, 
+you will see a tree-like representation of the files in your
+MySpace area in the window, which you can navigate in the usual
+way by clicking on the handles of directory nodes to open or close them.
+Select the file you want to load, ensure that the <label>Format</label>
+selector is set correctly, and hit <label>OK</label> to load the table.
+</p>
+
+<p>If you want to log out of MySpace, you can hit the <label>Log Out</label>
+button at the top of the window.
+</p>
+
+<p>The current implementation of MySpace spews a lot of text to
+standard output when any of this is going on.
+</p>
+
+</subsubsect>
+
+
 <subsubsect id="demoData">
 <subhead><title>Example Tables</title></subhead>
 
 <p>Provided with TOPCAT are some example tables,
-which you can access in a number of ways:
-<ul>
-<li>The simplest thing is to supply the "<code>-demo</code>" flag on 
-    the command line, which will cause the program to start up with
-    a few demonstration tables already loaded in.</li>
-<li>The <label>Browse Example Hierarchy</label> (&IMG.DEMO;)
-    button in the <ref id="LoadQueryWindow">Load Window</ref>
-    will pop up a 
-    <ref id="StarTableNodeChooser" plaintextref="yes">Hierarchy Browser</ref>
+which you can access in a number of ways.
+The simplest thing is to start up TOPCAT with the 
+"<code>-demo</code>" flag on the command line, which will cause
+the program to start up with a few demonstration tables already loaded in.
+</p>
+
+<p>You can also load examples in from the <label>Examples</label> menu 
+in the Load Window however.  This contains the following options:
+<dl>
+
+<dt>Load Example Table</dt>
+<dd><p>Loads in a single example table.
+    </p></dd>
+
+<dt>Browse Demo Data</dt>
+<dd><p>Pops up a 
+    <ref id="TreeTableLoadDialog" plaintextref="yes">Hierarchy Browser</ref>
     looking at a hierarchy of tables in different formats.
     This option is designed to show some of the organisational
-    complexity which TOPCAT can handle when browsing tables.</li>
-<li>The <label>Load Example Table</label> button in the 
-    <label>Load Window</label>'s <label>Examples</label> menu will 
-    just load a single example table into the program.</li>
-</ul>
+    complexity which TOPCAT can handle when browsing tables.
+    </p></dd>
+
+</dl>
 </p>
 
 <p>Note these examples are a bit of a mixed bag, and are not all
@@ -6110,7 +6242,8 @@ Alternatively, it can be invoked from the jar file by doing
 <verbatim>
    java -classpath topcat.jar  uk.ac.starlink.table.TableCopy [args]
 </verbatim>
-(the <code>topcat-full.jar</code> or <code>table.jar</code> jarfiles
+(the <code>topcat-full.jar</code>, <code>topcat-lite.jar</code>
+or <code>tablecopy.jar</code> jarfiles
 can be used instead if those are what you have).
 All the commments about classpaths and arguments to Java itself
 described in the section on 

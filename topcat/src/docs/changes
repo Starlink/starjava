@@ -60,6 +60,16 @@ V1.3-1
 V1.3-2
  - Fixed VOTable bug in reading empty TD elements (float, double)
  - Doesn't complain too much about overwriting old tables now
+V1.4
+ - Load dialogue is now asynchronous - loading interruptible, GUI doesn't freeze
+ - Can install pluggable load dialogues using startable.load.dialogs property
+ - Cone Search load dialogue provided
+ - MySpace browser load dialogue provided
+ - Registry query load dialogue provided
+ - SIAP query load dialogue provided
+ - New command-line flags for optional load dialogue
+ - Can load tables by pasting system clipboard text onto tables list
+ - Alternative standalone distributions now provided: topcat-full/topcat-lite.
+ - Explode array column action added to Columns window
+ - Improved help message
 
-Loading changed - asynchronous, MySpace available, paste text into table list.
-Added -myspace, -cone, -siap flags.
