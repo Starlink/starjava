@@ -57,5 +57,5 @@ A LogSink for embedded applications. This throws all messages away.
 CLASSPATH
 
 Naturally you need all the classes/jars required for Jetty and Axis
-(this can be obtained from: xml.apache.org, I used axis beta2, and
+(this can be obtained from: xml.apache.org, I used Axis 1.1, and
 jetty.mortbay.org, I used Jetty 4).
