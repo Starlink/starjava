@@ -180,9 +180,6 @@ public class VOTableWriter implements StarTableWriter {
         writer.write( "<RESOURCE>" );
         writer.newLine();
 
-        /* Output table parameters as PARAM elements. */
-        serializer.writeParams( writer );
-
         /* Start the TABLE element itself. */
         writer.write( "<TABLE" );
 
@@ -192,14 +189,20 @@ public class VOTableWriter implements StarTableWriter {
             writer.write( serializer.formatAttribute( "name", tname.trim() ) );
         }
 
-        /* Write the number of rows if we know it. */
-        long nrow = startab.getRowCount();
-        if ( nrow > 0 ) {
-            writer.write( serializer.formatAttribute( "nrows", 
-                                                      Long.toString( nrow ) ) );
+        /* Write the number of rows if we know it (VOTable 1.1 only). */
+        if ( votableVersion.matches( "1.[1-9].*" ) ) {
+            long nrow = startab.getRowCount();
+            if ( nrow > 0 ) {
+                writer.write( serializer
+                             .formatAttribute( "nrows", 
+                                               Long.toString( nrow ) ) );
+            }
         }
         writer.write( ">" );
         writer.newLine();
+
+        /* Output table parameters as PARAM elements. */
+        serializer.writeParams( writer );
 
         /* Output a DESCRIPTION element if we have something suitable. */
         serializer.writeDescription( writer );
