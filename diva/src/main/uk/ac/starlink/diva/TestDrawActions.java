@@ -46,7 +46,7 @@ public class TestDrawActions
         TestDrawActions canvas = new TestDrawActions();
         DrawFigureStore store = new DrawFigureStore( "diva",
                                                      "figurestore.xml",
-                                                     "drawfigure" );
+                                                     "drawnfigures" );
         DrawActions drawActions = new DrawActions( canvas,  store );
 
         JFrame frame = new JFrame( "TestDrawActions" );
