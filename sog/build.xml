@@ -180,7 +180,7 @@
     <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
 
     <!-- NDArray-->
-    <pathelement location="${star.jar.dir}/array/array.jar"/>
+    <pathelement location="${star.jar.dir}/oldarray/array.jar"/>
 
     <!-- HDX -->
     <pathelement location="${star.jar.dir}/hdx/hdx.jar"/>
@@ -210,8 +210,7 @@
    !   the external classpath.
    !-->
   <extclasspath id="built.jarpath">
-    <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
-    <pathelement location="${star.build.dir}/jnihds/lib/jnihds/jnihds.jar"/>
+    <pathelement location="${star.build.dir}/oldarray/lib/oldarray/array.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/jsky/lib/jsky/jsky.jar"/>
   </extclasspath>
@@ -426,7 +425,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.sog.SOG"/>
         <attribute name="Class-Path" 
-                   value="../jsky/jsky.jar ../array/array.jar ../hdx/hdx.jar ../jniast/jniast.jar ../soapserver/soapserver.jar"/>
+                   value="../jsky/jsky.jar ../oldarray/array.jar ../hdx/hdx.jar ../jniast/jniast.jar ../soapserver/soapserver.jar"/>
       </manifest>
     </jar>
   </target>
