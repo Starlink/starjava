@@ -280,8 +280,7 @@ public class NdxDataNode extends DefaultDataNode {
                                 .getInstance()
                                 .newHdxContainer( ndx.getHdxFacade() )
                                 .getSource( null );
-                    return new TextViewer( ndx.getHdxFacade()
-                                              .getSource( uri ) );
+                    return new TextViewer( src );
                 }
             } );
 
