@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
 
@@ -317,6 +318,38 @@ public class Tables {
                 throw new AssertionError();
             }
         }
+    }
+
+    /**
+     * Returns an array of strings suitable as labels or label suffixes
+     * for elements of an array as returned by {@link ValueInfo#getShape}.
+     * If the given <tt>shape</tt> cannot be decomposed into a fixed
+     * size array, returns <tt>null</tt>.
+     *
+     * @param   shape  vector giving dimensions of an array value
+     * @return   array with one element for each element of the array values
+     *           (in their natural order), or null for non-array shapes
+     */
+    public static String[] getElementLabels( int[] shape ) {
+        if ( shape == null || shape.length == 0 ) {
+            return null;
+        }
+        for ( int i = 0; i < shape.length; i++ ) {
+            if ( shape[ i ] <= 0 ) {
+                return null;
+            }
+        }
+        List labels = new ArrayList();
+        for ( Iterator it = new ShapeIterator( shape ); it.hasNext(); ) {
+            int[] pos = (int[]) it.next();
+            StringBuffer sbuf = new StringBuffer();
+            for ( int i = 0; i < pos.length; i++ ) {
+                sbuf.append( '_' )
+                    .append( Integer.toString( pos[ i ] + 1 ) );
+            }
+            labels.add( sbuf.toString() );
+        }
+        return (String[]) labels.toArray( new String[ 0 ] );
     }
 
     /**
