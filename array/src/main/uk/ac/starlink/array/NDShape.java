@@ -19,6 +19,21 @@ import java.util.Arrays;
  */
 public class NDShape implements Cloneable {
 
+    /**
+     * The default value of the origin in each dimension; its value is 1.
+     * This value is used by the constructors which do not take origin arrays.
+     */
+    // Why isn't this zero?  It's unity because that is the default
+    // for HDS arrays; an HDS array with no explicit origin information
+    // is understood by the Starlink ARY system as being the same as one with
+    // an origin of (1,1,..).  In order for the NDArray system to behave
+    // the same way, this value has to be 1.  It looks a bit fortranny,
+    // but doesn't really change anything, since you should never assume
+    // the origin is anywhere in particular for an NDArray, and pixel
+    // iterators etc are provided for you.  Think of it as like pixel
+    // indices (in the NDF sense).
+    public final static long DEFAULT_ORIGIN = 1L;
+
     /* Basic attributes */
     private final long[] origin;
     private final long[] dims;
@@ -68,6 +83,31 @@ public class NDShape implements Cloneable {
      */
     public NDShape( long[] origin, int[] dims ) {
         this( origin, intsToLongs( dims ) );
+    }
+
+    /**
+     * Creates an NDShape object with a default origin from its dimensions.
+     * Each element of the origin is taken to be {@link #DEFAULT_ORIGIN}.
+     *
+     * @param   dims  an array representing the dimension extents
+     * @throws  IllegalArgumentExceptoin  if any of the dimensions are
+     *          not positive
+     */
+    public NDShape( long[] dims ) {
+        this( defaultOrigin( dims.length ), dims );
+    }
+
+    /**
+     * Creates an NDShape object with a default origin from an integer
+     * array of dimensions.
+     * Each element of the origin is taken to be {@link #DEFAULT_ORIGIN}.
+     *
+     * @param   dims  an array representing the dimension extents
+     * @throws  IllegalArgumentExceptoin  if any of the dimensions are
+     *          not positive
+     */
+    public NDShape( int[] dims ) {
+        this( defaultOrigin( dims.length ), dims );
     }
 
     /**
@@ -398,7 +438,19 @@ public class NDShape implements Cloneable {
         return iarray;
     }
 
-    /*
+    /**
+     * Returns a default origin array of a given dimensionality. 
+     * Each element has the value DEFAULT_ORIGIN.
+     *
+     * @param  ndim  the required dimensionality.
+     */
+    static long[] defaultOrigin( int ndim ) {
+        long[] origin = new long[ ndim ];
+        Arrays.fill( origin, DEFAULT_ORIGIN );
+        return origin;
+    }
+
+    /**
      * Invoked by constructors to sanity check the private members.
      */
     private static void validate( long[] origin, long[] dims ) {

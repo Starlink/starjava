@@ -57,6 +57,14 @@ public class ShapeTest extends TestCase {
         assertTrue( ! os1.equals( os2 ) );
         assertTrue( ! os1.sameSequence( os2 ) );
 
+        NDShape line = new NDShape( new long[] { 1 },
+                                    new long[] { Long.MAX_VALUE } );
+        OrderedNDShape line1 = new OrderedNDShape( line, Order.COLUMN_MAJOR );
+        OrderedNDShape line2 = new OrderedNDShape( line, Order.ROW_MAJOR );
+        assertTrue( ! line1.equals( line2 ) );
+        assertTrue( line1.sameSequence( line2 ) );
+        assertTrue( line2.sameSequence( line1 ) );
+
         OrderedNDShape oss0 = new OrderedNDShape( sh );
         OrderedNDShape oss1 = new OrderedNDShape( os1 );
         OrderedNDShape oss2 = new OrderedNDShape( os2 );
@@ -94,6 +102,34 @@ public class ShapeTest extends TestCase {
         dimsCopy[ 0 ]++;
         assertArrayEquals( origin, osh.getOrigin() );
         assertArrayEquals( dims, osh.getDims() );
+    }
+
+    public void testOrigins() {
+        assertEquals( NDShape.DEFAULT_ORIGIN, 1L );
+        int ndim = 4;
+        long[] defaultOrigin = new long[ ndim ];
+        long[] ldims = new long[ ndim ];
+        int[] idims = new int[ ndim ];
+        for ( int i = 0; i < ndim; i++ ) {
+            defaultOrigin[ i ] = NDShape.DEFAULT_ORIGIN;
+            idims[ i ] = i + 23;
+            ldims[ i ] = idims[ i ];
+        }
+        NDShape shape1 = new NDShape( defaultOrigin, idims );
+        NDShape shape2 = new NDShape( defaultOrigin, ldims );
+        NDShape shape3 = new NDShape( idims );
+        NDShape shape4 = new NDShape( ldims );
+        assertEquals( shape1, shape2 );
+        assertEquals( shape1, shape3 );
+        assertEquals( shape1, shape4 );
+
+        Order or = Order.COLUMN_MAJOR;
+        OrderedNDShape oshape1 = new OrderedNDShape( defaultOrigin, ldims, or );
+        OrderedNDShape oshape2 = new OrderedNDShape( ldims, or );
+        OrderedNDShape oshapeX = new OrderedNDShape( ldims, Order.ROW_MAJOR );
+        assertEquals( oshape1, oshape2 );
+        assertTrue( ! oshape1.equals( oshapeX ) );
+        assertTrue( ! oshape2.equals( oshapeX ) );
     }
 
 

@@ -62,6 +62,22 @@ public class OrderedNDShape extends NDShape implements Cloneable {
     }
 
     /**
+     * Creates an OrderedNDShape with a default origin from its dimensions
+     * and ordering.
+     * Each element of the origin array has the value {@link #DEFAULT_ORIGIN}.
+     *
+     * @param   dims    an array representing the dimension extents
+     * @param   order   an Order object specifying the pixel ordering scheme.
+     *                  If the null value is supplied, an arbitrary ordering
+     *                  scheme will be applied.
+     * @throws  IllegalArgumentException  if any of the dimensions are not
+     *          positive
+     */
+    public OrderedNDShape( long[] dims, Order order ) {
+        this( defaultOrigin( dims.length ), dims, order );
+    }
+
+    /**
      * Creates an OrderedNDShape from a NDShape and an ordering.
      *
      * @param   shape  a NDShape object
@@ -240,11 +256,14 @@ public class OrderedNDShape extends NDShape implements Cloneable {
      * method implies that pixel iterators returned from the two 
      * objects will behave in exactly the same way (present the same
      * pixel positions in the same order).
+     *
+     * @param  other  the shape to compare with this one
+     * @return  true  iff the pixel sequences are the same
      */
     public boolean sameSequence( OrderedNDShape other ) {
         return Arrays.equals( other.getOrigin(), this.getOrigin() )
-            && Arrays.equals( other.getDims(), this.getDims() ) 
-            && other.getOrder() == this.getOrder();
+            && Arrays.equals( other.getDims(), this.getDims() )
+            && ( other.getOrder() == this.getOrder() || ndim == 1 );
     }
 
     /**
