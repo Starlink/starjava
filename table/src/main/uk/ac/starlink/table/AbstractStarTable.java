@@ -12,9 +12,9 @@ import java.util.TreeMap;
 /**
  * Abstract base class providing an implementation of the generic and
  * straightforward parts of the <tt>StarTable</tt> interface.
- * Various abstract subclasses of this are provided, and it is these 
- * which are in general designed for subclassing by concrete StarTable
- * implementations.
+ * This implementation assumes that random access is not available;
+ * subclasses which provide random access should override 
+ * the <tt>isRandom</tt>, <tt>getCell</tt> and <tt>getRow</tt> methods.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -122,18 +122,21 @@ public abstract class AbstractStarTable implements StarTable {
         }
     }
 
+    public boolean isRandom() {
+        return false;
+    }
+
+    public Object getCell( long irow, int icol ) throws IOException {
+        throw new UnsupportedOperationException( "No random access available" );
+    }
+
+    public Object[] getRow( long irow ) throws IOException {
+        throw new UnsupportedOperationException( "No random access available" );
+    }
+
     abstract public ColumnInfo getColumnInfo( int icol );
     abstract public int getColumnCount();
     abstract public long getRowCount();
-    abstract public boolean isRandom();
-    abstract public boolean hasNext();
-    abstract public void setCurrent( long irow ) throws IOException;
-    abstract public long getCurrent();
-    abstract public void next() throws IOException;
-    abstract public void advanceCurrent( long offset ) throws IOException;
-    abstract public Object getCell( int icol ) throws IOException;
-    abstract public Object getCell( long irow, int icol ) throws IOException;
-    abstract public Object[] getRow() throws IOException;
-    abstract public Object[] getRow( long irow ) throws IOException;
+    abstract public RowSequence getRowSequence() throws IOException;
 
 }

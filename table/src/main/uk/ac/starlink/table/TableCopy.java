@@ -3,6 +3,7 @@ package uk.ac.starlink.table;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Class containing <tt>main</tt> method for copying tables.
@@ -16,6 +17,11 @@ public class TableCopy {
      */
     public static void main( String[] args ) throws IOException {
 
+        /* Ensure that the properties are loaded; this may contain JDBC
+         * configuration which should be got before DriverManager might be
+         * initialised. */
+        Loader.loadProperties();
+
         /* Get the factory objects. */
         StarTableOutput twriter = new StarTableOutput();
         StarTableFactory treader = new StarTableFactory();
@@ -23,7 +29,7 @@ public class TableCopy {
         /* Construct the usage message. */
         StringBuffer usage = new StringBuffer();
         usage.append( "\n   Usage: TableCopy " )
-             .append( "-ofmt [" );
+             .append( "[-ofmt " );
         boolean first = true;
         for ( Iterator it = twriter.getKnownFormats().iterator(); 
               it.hasNext(); ) {
@@ -44,7 +50,7 @@ public class TableCopy {
         String oloc = null;
         for ( Iterator it = Arrays.asList( args ).iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
-            if ( arg.startsWith( "-" ) ) {
+            if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 if ( arg.equals( "-ofmt" ) ) {
                     if ( it.hasNext() ) {
                         ofmt = (String) it.next();
@@ -69,6 +75,11 @@ public class TableCopy {
                 System.err.println( usage );
                 System.exit( 1 );
             }
+        }
+
+        if ( iloc == null || oloc == null ) {
+            System.err.println( usage );
+            System.exit( 1 );
         }
 
         /* Get the input table. */

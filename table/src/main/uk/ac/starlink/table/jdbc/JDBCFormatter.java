@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.Loader;
@@ -25,10 +26,12 @@ public class JDBCFormatter {
 
     public void createJDBCTable( StarTable table, String tableName )
             throws IOException, SQLException {
-        StringBuffer cmd = new StringBuffer();
-        Statement stmt = conn.createStatement();
 
+        /* Get an iterator over the table rows. */
+        RowSequence rseq = table.getRowSequence();
+ 
         /* Table deletion. */
+        Statement stmt = conn.createStatement();
         try {
             stmt.executeUpdate( "DELETE FROM " + tableName );
         }
@@ -37,6 +40,7 @@ public class JDBCFormatter {
         }
 
         /* Table creation. */
+        StringBuffer cmd = new StringBuffer();
         cmd.append( "CREATE TABLE " )
            .append( tableName )
            .append( " (" );
@@ -85,9 +89,9 @@ public class JDBCFormatter {
         PreparedStatement pstmt = conn.prepareStatement( cmd.toString() );
 
         /* Add the data. */
-        while ( table.hasNext() ) {
-            table.next();
-            Object[] row = table.getRow();
+        while ( rseq.hasNext() ) {
+            rseq.next();
+            Object[] row = rseq.getRow();
             int pix = 0;
             for ( int icol = 0; icol < ncol; icol++ ) {
                 if ( sqlTypes[ icol ] != Types.NULL ) {

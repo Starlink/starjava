@@ -51,15 +51,16 @@ public class ColumnScratchTable extends RandomStarTable {
         }
 
         /* Populate the columns with data from the base table. */
-        for ( int irow = 0; basetab.hasNext(); basetab.next(), irow++ ) {
+        RowSequence rseq = basetab.getRowSequence();
+        for ( int irow = 0; rseq.hasNext(); irow++ ) {
+            rseq.next();
             long lrow = (long) irow;
-            Object[] row = basetab.getRow();
+            Object[] row = rseq.getRow();
             for ( int icol = 0; icol < ncol; icol++ ) {
                 columns[ icol ].storeValue( lrow, row[ icol ] );
             }
         }
     }
-
 
     public long getRowCount() {
         return (long) nrow;
@@ -77,7 +78,7 @@ public class ColumnScratchTable extends RandomStarTable {
         return columns[ icol ];
     }
 
-    protected Object[] doGetRow( long lrow ) {
+    public Object[] getRow( long lrow ) {
         int irow = (int) lrow;
         int ncol = columns.length;
         Object[] row = new Object[ ncol ];
@@ -89,10 +90,6 @@ public class ColumnScratchTable extends RandomStarTable {
 
     public Object getCell( long lrow, int icol ) {
         return columns[ icol ].readValue( lrow );
-    }
-
-    public Object getCell( int icol ) {
-        return getCell( getCurrent(), icol );
     }
 
 }

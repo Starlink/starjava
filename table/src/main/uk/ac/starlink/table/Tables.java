@@ -1,8 +1,10 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import uk.ac.starlink.table.jdbc.JDBCStarTable;
 
 /**
  * Utility class for miscellaneous table-related functionality.
@@ -25,6 +27,18 @@ public class Tables {
         /* If it has random access already, we don't need to do any work. */
         if ( startab.isRandom() ) {
             return startab;
+        }
+
+        /* If it's JDBC we can turn it random. */
+        else if ( startab instanceof JDBCStarTable ) {
+            try {
+                ((JDBCStarTable) startab).setRandom();
+                return startab;
+            }
+            catch ( SQLException e ) {
+                throw (IOException) new IOException( e.getMessage() )
+                                   .initCause( e );
+            }
         }
 
         /* Otherwise, we need to construct a table based on the sequential

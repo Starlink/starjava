@@ -18,6 +18,7 @@ import uk.ac.starlink.table.jdbc.JDBCHandler;
  * By default, if the corresponding classes are present, the following
  * handlers are installed:
  * <ul>
+ * <li> {@link uk.ac.starlink.table.TextTableWriter}
  * <li> {@link uk.ac.starlink.fits.FitsTableWriter}
  * <li> {@link uk.ac.starlink.votable.VOTableWriter}
  * <li> {@link uk.ac.starlink.mirage.MirageTableWriter}
@@ -30,17 +31,19 @@ public class StarTableOutput {
     private List handlers;
     private JDBCHandler jdbcHandler;
     private static String[] defaultHandlerClasses = {
-        "uk.ac.starlink.table.fits.FitsTableWriter",
-        "uk.ac.starlink.table.votable.VOTableWriter",
+        "uk.ac.starlink.table.TextTableWriter",
+        "uk.ac.starlink.mirage.MirageTableWriter",
+        "uk.ac.starlink.fits.FitsTableWriter",
+        "uk.ac.starlink.votable.VOTableWriter",
     };
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
 
 
     /**
-     * Construcst a StarTableOutput with a default list of handlers.
+     * Constructs a StarTableOutput with a default list of handlers.
      */
     public StarTableOutput() {
-        handlers = new ArrayList( 2 );
+        handlers = new ArrayList( 4 );
 
         /* Attempt to add default handlers if they are available. */
         for ( int i = 0; i < defaultHandlerClasses.length; i++ ) {
@@ -119,17 +122,20 @@ public class StarTableOutput {
             if ( handler != null ) {
                 handler.writeStarTable( startab, location );
             }
-        }
+            else {
 
-        /* Failure. */
-        StringBuffer msg = new StringBuffer();
-        msg.append( "No suitable handler for writing table.\n" )
-           .append( "Known formats:" );
-        for ( Iterator it = getKnownFormats().iterator(); it.hasNext(); ) {
-            msg.append( ' ' )
-               .append( it.next() );
+                /* Failure. */
+                StringBuffer msg = new StringBuffer();
+                msg.append( "No suitable handler for writing table.\n" )
+                   .append( "Known formats:" );
+                for ( Iterator it = getKnownFormats().iterator();
+                      it.hasNext(); ) {
+                    msg.append( ' ' )
+                       .append( it.next() );
+                }
+                throw new IOException( msg.toString() );
+            }
         }
-        throw new IOException( msg.toString() );
     }
  
     /**
@@ -221,6 +227,5 @@ public class StarTableOutput {
         return jdbcHandler;
     }
 
-    
 
 }

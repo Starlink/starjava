@@ -14,7 +14,7 @@ import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Extends the <tt>JTable</tt> for use with <tt>StarTable</tt> objects.
- * This convenience class adapts a JTable and sets it components appropriately
+ * This convenience class adapts a JTable and sets its components appropriately
  * for viewing a StarTable.  The main jobs it does are to set its
  * model to a suitable StarTableModel and make sure the cell renderers
  * are set up suitably.

@@ -15,7 +15,7 @@ import uk.ac.starlink.table.ValueInfo;
 public class ValueInfoCellRenderer extends DefaultTableCellRenderer {
 
     private ValueInfo vinfo;
-    private int maxLength = 150;
+    private int maxLength = 10000;
 
     /**
      * Constructs a renderer from a <tt>ValueInfo</tt> object.

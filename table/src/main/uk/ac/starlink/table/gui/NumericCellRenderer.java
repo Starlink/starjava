@@ -10,7 +10,6 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
-import uk.ac.starlink.table.ShapedArray;
 
 /**
  * Provides better rendering of numeric table cells than the default 

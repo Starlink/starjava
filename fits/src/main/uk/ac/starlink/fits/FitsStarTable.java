@@ -175,7 +175,7 @@ public class FitsStarTable extends RandomStarTable {
                 cinfo.setContentClass( Double.class );
             }
             else if ( nrow > 0 ) {
-                Object test = doGetCell( 0, icol );
+                Object test = getCell( 0, icol );
                 if ( test != null ) {
                     cinfo.setContentClass( test.getClass() );
                 }
@@ -191,15 +191,16 @@ public class FitsStarTable extends RandomStarTable {
         return ncol;
     }
 
-    public Object getCell( long lrow, int icol ) throws IOException {
-        setCurrent( lrow );
-        return doGetCell( lrow, icol );
+    public ColumnInfo getColumnInfo( int icol ) {
+        return colinfos[ icol ];
     }
 
-    private Object doGetCell( long lrow, int icol ) throws IOException {
-        int irow = (int) lrow;
-        assert (long) irow == lrow;
+    public List getColumnAuxDataInfos() {
+        return auxDataInfos;
+    }
 
+    public Object getCell( long lrow, int icol ) throws IOException {
+        int irow = checkedLongToInt( lrow );
         try {
             return packageValue( thdu.getElement( irow, icol ), icol );
         }
@@ -208,9 +209,8 @@ public class FitsStarTable extends RandomStarTable {
         }
     }
 
-    public Object[] doGetRow( long lrow ) throws IOException {
-        int irow = (int) lrow;
-        assert (long) irow == lrow;
+    public Object[] getRow( long lrow ) throws IOException {
+        int irow = checkedLongToInt( lrow );
         Object[] row;
         try {
             row = thdu.getRow( irow );
@@ -298,13 +298,5 @@ public class FitsStarTable extends RandomStarTable {
         /* If it's not a 1-element array, just return the object as 
          * presented. */
         return base;
-    }
-
-    public ColumnInfo getColumnInfo( int icol ) {
-        return colinfos[ icol ];
-    }
-
-    public List getColumnAuxDataInfos() {
-        return auxDataInfos;
     }
 }

@@ -7,6 +7,11 @@ import uk.ac.starlink.table.StarTable;
 
 /**
  * Adapts a <tt>StarTable</tt> into a <tt>TableModel</tt>.
+ * The base StarTable must provide random access (its <tt>isRandom</tt>
+ * method must return <tt>true</tt>); to make a StarTableModel if your
+ * StarTable is not random you will have to make a random one using
+ * for instance {@link uk.ac.starlink.table.Tables#randomTable}.
+ * <p>
  * One extra bit of functionality is enabled, namely that an extra column
  * containing row indices may be provided.
  * 
@@ -24,8 +29,11 @@ public class StarTableModel extends AbstractTableModel {
     /**
      * Constructs a <tt>StarTableModel</tt> from a <tt>StarTable</tt>,
      * without row index column.
+     * The supplied <tt>StarTable</tt> must provide random access.
      *
      * @param   startable  the <tt>StarTable</tt> object
+     * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
+     *          returns <tt>false</tt>
      */
     public StarTableModel( StarTable startable ) {
         this( startable, false );
@@ -34,10 +42,13 @@ public class StarTableModel extends AbstractTableModel {
     /**
      * Constructs a <tt>StarTableModel</tt> from a <tt>StarTable</tt>,
      * optionally with a row index column.
+     * The supplied <tt>StarTable</tt> must provide random access.
      *
      * @param   startable  the <tt>StarTable</tt> object
      * @param   rowHeader  whether to add an extra column at the start
      *          containing the row index
+     * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
+     *          returns <tt>false</tt>
      */
     public StarTableModel( StarTable startable, boolean rowHeader ) {
         super();

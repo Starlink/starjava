@@ -15,12 +15,14 @@ import java.util.List;
 public class RowScratchTable extends RandomStarTable {
 
     private StarTable basetab;
+    private RowSequence baseseq;
     private int ncol;
     private long nrow;
     private List rows = new ArrayList();
 
     public RowScratchTable( StarTable basetab ) throws IOException {
         this.basetab = basetab;
+        this.baseseq = basetab.getRowSequence();
         ncol = basetab.getColumnCount();
 
         /* Check we don't have an unfeasible number of rows. */
@@ -35,9 +37,9 @@ public class RowScratchTable extends RandomStarTable {
          * data in now so we do. */
         else if ( nrow < 0 ) {
             long irow;
-            for ( irow = 0; basetab.hasNext(); irow++ ) {
-                basetab.next();
-                rows.add( basetab.getRow() );
+            for ( irow = 0; baseseq.hasNext(); irow++ ) {
+                baseseq.next();
+                rows.add( baseseq.getRow() );
                 if ( irow > Integer.MAX_VALUE ) {
                     throw new IllegalArgumentException( 
                         "Table " + basetab + " has too many rows (" + 
@@ -60,21 +62,25 @@ public class RowScratchTable extends RandomStarTable {
         return nrow;
     }
 
-    protected Object[] doGetRow( long lrow ) throws IOException {
+    public Object[] getRow( long lrow ) throws IOException {
         assert (int) nrow == nrow;
         int irow = (int) lrow;
 
         /* If we haven't got this far in the base table yet, read rows
          * from it until we have. */
         for ( long toRead = irow - rows.size(); toRead >= 0; toRead-- ) {
-            basetab.next();
-            rows.add( basetab.getRow() );
+            baseseq.next();
+            rows.add( baseseq.getRow() );
         }
 
         /* Return the row that we have now definitely read from our
-         * interal row store. */
+         * internal row store. */
         assert irow < rows.size();
         return (Object[]) rows.get( irow );
+    }
+
+    public Object getCell( long lrow, int icol ) throws IOException {
+        return getRow( lrow )[ icol ];
     }
 
     public List getColumnAuxDataInfos() {

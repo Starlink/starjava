@@ -140,7 +140,7 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( String location ) throws IOException {
         if ( location.startsWith( "jdbc:" ) ) {
-            return getJdbcHandler().makeStarTable( location );
+            return getJDBCHandler().makeStarTable( location );
         }
         else {
             return makeStarTable( DataSource.makeDataSource( location ) );
@@ -161,7 +161,12 @@ public class StarTableFactory {
         return makeStarTable( new URLDataSource( url ) );
     }
 
-    private JDBCHandler getJdbcHandler() {
+    /**
+     * Returns the JDBC handler object used by this factory.
+     *
+     * @return   the JDBC handler
+     */
+    public JDBCHandler getJDBCHandler() {
         if ( jdbcHandler == null ) {
             jdbcHandler = new JDBCHandler();
         }
