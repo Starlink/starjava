@@ -1406,7 +1406,7 @@ so it is can be seen).  The view buttons are as follows:
     whole table.
     </p></dd>
 
-<dt>&IMG.COLUMNS; <ref id="ColumnInfoWindow">Columns Window window</ref></dt>
+<dt>&IMG.COLUMNS; <ref id="ColumnInfoWindow">Columns window</ref></dt>
 <dd><p>Displays metadata about each column such as data type, units, UCDs etc.
     </p></dd>
 
@@ -2033,9 +2033,13 @@ column is no longer a part of
 the <ref id="apparent">apparent table</ref>, so will not be seen
 in the <ref id="TableViewerWindow">Data window</ref> or appear in
 exported versions of the table.
+You can tick/untick multiple columns at once by highlighting a set of
+rows by dragging the mouse over them and then using the
+Hide Selected (&IMG.FALSE;) or Reveal Selected (&IMG.TRUE;) toolbar buttons
+or menu items.
 </p>
 
-<p>Each column in the displayed JTable corresponds to one bit of 
+<p>Each column in the displayed JTable corresponds to one piece of 
 information for each of the columns in the data table -
 column name, description, UCD etc.
 Tables of different types (e.g. ones read from different input formats)
@@ -2048,6 +2052,13 @@ Categories can be made to appear and disappear however by using the
 <label>Display</label> menu. 
 The metadata items are as follows:
 <dl>
+
+<dt>Visible</dt>
+<dd><p>Indicates whether the column is part of the Apparent Table.
+    If this box is not filled in,
+    then for most purposes the column will be hidden from display.
+    You can toggle visibility by clicking on this column.
+    </p></dd>
 
 <dt>Name</dt>
 <dd><p>The name of the column.
@@ -2128,13 +2139,26 @@ window, the corresponding rows will move around in this window.
     <label>Columns</label> menu.
     </p></dd>
 
-<dt>&IMG.REMOVE; Hide Selected Column(s)</dt>
+<dt>&IMG.FALSE; Hide Selected Column(s)</dt>
 <dd><p>If any of the JTable rows are selected, then clicking this button
-    will delete them from the display here and elsewhere in TOPCAT
-    (e.g. the main browser window).  Deleted columns cannot be undeleted.
-    Also available as the <label>Delete selected column(s)</label> item
+    will hide them, that is, remove them from the
+    <ref id="apparent">Apparent Table</ref>.
+    This has the same effect as deselecting all the checkboxes corresponding
+    to these columns in the <label>Visible</label> column.
+    Also available as the <label>Hide selected column(s)</label> item
     in the <label>Columns</label> menu.
     </p></dd>
+
+<dt>&IMG.TRUE; Reveal Selected Column(s)</dt>
+<dd><p>If any of the JTable rows are selected, then clicking this button
+    will make sure they are visible, that is, that they appear in 
+    the <ref id="apparent">Apparent Table</ref>.
+    This has the same effect as selecting all the checkboxes corresponding
+    to these columns in the <label>Visible</label> column.
+    Also available as the <label>Reveal selected column(s)</label> item
+    in the <label>Columns</label> menu.
+    </p></dd>
+
 </dl>
 </p>
 
