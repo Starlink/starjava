@@ -1,0 +1,12 @@
+<!-- Sample Apache SOAP Server Configuration File -->
+
+<soapServer>
+  <!-- This section defines the same thing you get if you don't -->
+  <!-- specify anything at all - aka the default                -->
+  <serviceManager>
+    <option name="SOAPInterfaceEnabled" value="true" />
+  </serviceManager>
+  <configManager value="org.apache.soap.server.XMLConfigManager" >
+    <option name="filename" value="DeployedServices.xml" />
+  </configManager>
+</soapServer>
