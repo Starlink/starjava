@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -21,6 +22,8 @@ import java.util.TreeMap;
 public abstract class AbstractStarTable implements StarTable {
 
     private List parameters = new ArrayList();
+    private String name;
+    private URL url;
 
     /**
      * Goes through the table columns (<tt>ColumnInfo</tt> objects) 
@@ -77,6 +80,32 @@ public abstract class AbstractStarTable implements StarTable {
      */
     public void setParameters( List parameters ) {
         this.parameters = parameters;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name for this table. 
+     *
+     * @param  name  the table name - may be <tt>null</tt>
+     */
+    public void setName( String name ) {
+        this.name = name;
+    }
+
+    public URL getURL() {
+        return url;
+    }
+
+    /**
+     * Sets the URL for this table.
+     *
+     * @param  url  the URL where this table lives - may be <tt>null</tt>
+     */
+    public void setURL( URL url ) {
+        this.url = url;
     }
 
     public DescribedValue getParameterByName( String parname ) {

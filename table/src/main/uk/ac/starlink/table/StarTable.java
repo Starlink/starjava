@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import java.util.List;
 
@@ -39,6 +40,24 @@ public interface StarTable {
      * @return  the number of rows, or -1
      */
     long getRowCount();
+
+    /**
+     * Returns the URL of this table, if it has one.  A non-null return
+     * from this method indicates that this table is in some sense persistent.
+     *
+     * @return  the URL of this table, or <tt>null</tt> if none is known
+     */
+    URL getURL();
+
+    /**
+     * Returns the name of this table, if it has one.  The meaning of
+     * this is not defined, but it will typically be a short string of
+     * text indicating the identity of this table.
+     *
+     * @return  a name for this table, or <tt>null</tt> if no suitable one
+     *          exists
+     */
+    String getName();
 
     /**
      * Returns a list of table parameters, that is items which pertain to
