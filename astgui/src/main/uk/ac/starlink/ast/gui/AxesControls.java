@@ -138,6 +138,19 @@ public class AxesControls extends JPanel
                 }
             });
 
+        // Are axes logarithmic.
+        logX.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    matchXLog();
+                }
+            });
+
+        logY.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    matchYLog();
+                }
+            });
+
         //  Whether to display axes in interior.
         interior.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -170,6 +183,12 @@ public class AxesControls extends JPanel
         layouter.add( "Show Y:", false );
         layouter.add( showY, true );
 
+        layouter.add( "Log X:", false );
+        layouter.add( logX, true );
+
+        layouter.add( "Log Y:", false );
+        layouter.add( logY, true );
+
         layouter.add( "Interior:", false );
         layouter.add( interior, true );
 
@@ -192,6 +211,8 @@ public class AxesControls extends JPanel
         //  Set tooltips.
         showX.setToolTipText( "Display an X axis" );
         showY.setToolTipText( "Display a Y axis" );
+        logX.setToolTipText( "Use logarithmic spacing for X axis" );
+        logY.setToolTipText( "Use logarithmic spacing for Y axis" );
         interior.setToolTipText( "Display axes in interior, if needed" );
         xLabelAt.setToolTipText(
             "Origin coordinate for Y axis (units of Y), <Return> to accept" );
@@ -218,6 +239,9 @@ public class AxesControls extends JPanel
 
         showX.setSelected( astAxes.getXShown() );
         showY.setSelected( astAxes.getYShown() );
+
+        logX.setSelected( astAxes.getXLog() );
+        logY.setSelected( astAxes.getYLog() );
 
         interior.setSelected( astAxes.getInterior() );
 
@@ -264,6 +288,22 @@ public class AxesControls extends JPanel
     private void matchYShow()
     {
         astAxes.setYShown( showY.isSelected() );
+    }
+
+    /**
+     * Match whether to display X axis logarithmically.
+     */
+    private void matchXLog()
+    {
+        astAxes.setXLog( logX.isSelected() );
+    }
+
+    /**
+     * Match whether to display Y axis logarithmically.
+     */
+    private void matchYLog()
+    {
+        astAxes.setYLog( logY.isSelected() );
     }
 
     /**

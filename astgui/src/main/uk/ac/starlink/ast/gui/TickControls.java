@@ -5,7 +5,7 @@
  *     20-AUG-2000 (Peter W. Draper):
  *        Original version.
  *     18-FEB-2004 (Peter W. Draper):
- *        Added GridBagLayouter.
+ *        Added GridBagLayouter and log spacing.
  */
 package uk.ac.starlink.ast.gui;
 
@@ -39,10 +39,10 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see AstTicks 
+ * @see AstTicks
  * @see PlotConfigurator
  */
-public class TickControls extends JPanel 
+public class TickControls extends JPanel
     implements PlotControls, ChangeListener
 {
     /**
@@ -57,9 +57,24 @@ public class TickControls extends JPanel
     protected PlotController controller = null;
 
     /**
-     * Check box for  whether ticks should be shown or not.
+     * Check box for whether ticks should be shown or not.
      */
     protected JCheckBox show = new JCheckBox();
+
+    /**
+     * Check box for whether log ticks setting should be applied.
+     */
+    protected JCheckBox logSpacingSet = new JCheckBox();
+
+    /**
+     * Check box for whether to use log spacing for X axis.
+     */
+    protected JCheckBox xLogSpacing = new JCheckBox();
+
+    /**
+     * Check box for whether to use log spacing for Y axis.
+     */
+    protected JCheckBox yLogSpacing = new JCheckBox();
 
     /**
      * Entry for gap between major ticks on the X axis.
@@ -79,8 +94,8 @@ public class TickControls extends JPanel
     /**
      * Spinner model for length of X axis major tick marks.
      */
-    protected SpinnerNumberModel xMajorLengthModel = 
-        new SpinnerNumberModel( 0.0, 
+    protected SpinnerNumberModel xMajorLengthModel =
+        new SpinnerNumberModel( 0.0,
                                 AstTicks.MIN_LENGTH,
                                 AstTicks.MAX_LENGTH,
                                 AstTicks.STEP_LENGTH );
@@ -93,8 +108,8 @@ public class TickControls extends JPanel
     /**
      * Spinner model for length of Y axis major tick marks.
      */
-    protected SpinnerNumberModel yMajorLengthModel = 
-        new SpinnerNumberModel( 0.0, 
+    protected SpinnerNumberModel yMajorLengthModel =
+        new SpinnerNumberModel( 0.0,
                                 AstTicks.MIN_LENGTH,
                                 AstTicks.MAX_LENGTH,
                                 AstTicks.STEP_LENGTH );
@@ -108,7 +123,7 @@ public class TickControls extends JPanel
      * Spinner model for length of X axis minor tick marks.
      */
     protected SpinnerNumberModel xMinorLengthModel =
-        new SpinnerNumberModel( 0.0, 
+        new SpinnerNumberModel( 0.0,
                                 AstTicks.MIN_LENGTH,
                                 AstTicks.MAX_LENGTH,
                                 AstTicks.STEP_LENGTH );
@@ -122,7 +137,7 @@ public class TickControls extends JPanel
      * Spinner model for length of X axis minor tick marks.
      */
     protected SpinnerNumberModel yMinorLengthModel =
-        new SpinnerNumberModel( 0.0, 
+        new SpinnerNumberModel( 0.0,
                                 AstTicks.MIN_LENGTH,
                                 AstTicks.MAX_LENGTH,
                                 AstTicks.STEP_LENGTH );
@@ -182,12 +197,33 @@ public class TickControls extends JPanel
     /**
      * Create and initialise the user interface.
      */
-    protected void initUI() 
+    protected void initUI()
     {
         //  Whether ticks are shown or not.
         show.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
                     matchShow();
+                }
+            });
+
+        //  Whether log spacing preferences are used.
+        logSpacingSet.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    matchLogSpacingSet();
+                }
+            });
+
+        //  Whether log spacing is used on X axis.
+        xLogSpacing.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    matchXLogSpacing();
+                }
+            });
+
+        //  Whether log spacing is used on Y axis.
+        yLogSpacing.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    matchYLogSpacing();
                 }
             });
 
@@ -270,6 +306,15 @@ public class TickControls extends JPanel
         layouter.add( "Show ticks:", false );
         layouter.add( show, true );
 
+        layouter.add( "Set log spacing:", false );
+        layouter.add( logSpacingSet, true );
+
+        layouter.add( "X log spacing:", false );
+        layouter.add( xLogSpacing, true );
+
+        layouter.add( "Y log spacing:", false );
+        layouter.add( yLogSpacing, true );
+
         layouter.add( "X spacing:", false );
         layouter.add( xMajorGap, true );
 
@@ -309,29 +354,29 @@ public class TickControls extends JPanel
 
         //  Set tooltips.
         show.setToolTipText( "Show tick marks in plot" );
-        xMajorGap.setToolTipText(
-            "Gap between major ticks (units of X axis), <Return> to accept" );
-        yMajorGap.setToolTipText(
-            "Gap between major ticks (units of Y axis), <Return> to accept" );
-        xMajorLength.setToolTipText(
-            "Length of X major tick marks" );
-        yMajorLength.setToolTipText(
-            "Length of Y major tick marks" );
-        xMinorLength.setToolTipText(
-            "Length of X minor tick marks" );
-        yMinorLength.setToolTipText(
-            "Length of Y minor tick marks" );
-        xMinorDivisions.setToolTipText(
-            "Number of divisions between major ticks" );
-        yMinorDivisions.setToolTipText(
-            "Number of divisions between major ticks" );
+        logSpacingSet.setToolTipText
+            ( "Use log spacing settings to override defaults" );
+        xLogSpacing.setToolTipText( "Use log spacing for X axis ticks" );
+        yLogSpacing.setToolTipText( "Use log spacing for Y axis ticks" );
+        xMajorGap.setToolTipText
+            ("Gap between major ticks (units of X axis), <Return> to accept");
+        yMajorGap.setToolTipText
+            ("Gap between major ticks (units of Y axis), <Return> to accept");
+        xMajorLength.setToolTipText( "Length of X major tick marks" );
+        yMajorLength.setToolTipText( "Length of Y major tick marks" );
+        xMinorLength.setToolTipText( "Length of X minor tick marks" );
+        yMinorLength.setToolTipText( "Length of Y minor tick marks" );
+        xMinorDivisions.setToolTipText
+            ( "Number of divisions between major ticks" );
+        yMinorDivisions.setToolTipText
+            ( "Number of divisions between major ticks" );
         tickAll.setToolTipText( "Add ticks to all axes" );
     }
 
     /**
      * Set the AstTicks object.
      */
-    public void setAstTicks( AstTicks astTicks ) 
+    public void setAstTicks( AstTicks astTicks )
     {
         this.astTicks = astTicks;
         astTicks.addChangeListener( this );
@@ -341,11 +386,16 @@ public class TickControls extends JPanel
     /**
      * Update interface to reflect values of the current AstAxisLabel.
      */
-    protected void updateFromAstTicks() 
+    protected void updateFromAstTicks()
     {
         astTicks.removeChangeListener( this );
 
         show.setSelected( astTicks.getShown() );
+
+        logSpacingSet.setSelected( astTicks.getLogSpacingSet() );
+        xLogSpacing.setSelected( astTicks.getXLogSpacing() );
+        yLogSpacing.setSelected( astTicks.getYLogSpacing() );
+        matchLogSpacingSet();
 
         inhibitLineChangeListener = true;
         lineControls.setThick( (int) astTicks.getWidth() );
@@ -377,14 +427,14 @@ public class TickControls extends JPanel
         tickAll.setSelected( astTicks.getTickAll() );
 
         astTicks.setState( true );
-        
+
         astTicks.addChangeListener( this );
     }
 
     /**
      * Get copy of reference to current AstTicks.
      */
-    public AstTicks getAstTicks() 
+    public AstTicks getAstTicks()
     {
         return astTicks;
     }
@@ -392,7 +442,7 @@ public class TickControls extends JPanel
     /**
      * Add line property controls.
      */
-    private void addLineControls( GridBagLayouter layouter ) 
+    private void addLineControls( GridBagLayouter layouter )
     {
         lineControls = new LineControls( layouter, "" );
 
@@ -407,15 +457,42 @@ public class TickControls extends JPanel
     /**
      * Match whether to display the ticks.
      */
-    protected void matchShow() 
+    protected void matchShow()
     {
         astTicks.setShown( show.isSelected() );
     }
 
     /**
+     * Match whether to apply log spacing values.
+     */
+    protected void matchLogSpacingSet()
+    {
+        boolean set = logSpacingSet.isSelected();
+        astTicks.setLogSpacingSet( set );
+        xLogSpacing.setEnabled( set );
+        yLogSpacing.setEnabled( set );
+    }
+
+    /**
+     * Match whether to use log spacing along X axis.
+     */
+    protected void matchXLogSpacing()
+    {
+        astTicks.setXLogSpacing( xLogSpacing.isSelected() );
+    }
+
+    /**
+     * Match whether to use log spacing along Y axis.
+     */
+    protected void matchYLogSpacing()
+    {
+        astTicks.setYLogSpacing( yLogSpacing.isSelected() );
+    }
+
+    /**
      * Match line properties.
      */
-    protected void matchLine() 
+    protected void matchLine()
     {
         if ( ! inhibitLineChangeListener ) {
             //  Update AstTicks object to match properties. Take care
@@ -436,7 +513,7 @@ public class TickControls extends JPanel
     /**
      * Match X axis major gap.
      */
-    protected void matchXMajorGap() 
+    protected void matchXMajorGap()
     {
         astTicks.setXGap( xMajorGap.getDoubleValue() );
     }
@@ -444,7 +521,7 @@ public class TickControls extends JPanel
     /**
      * Match Y axis major gap.
      */
-    protected void matchYMajorGap() 
+    protected void matchYMajorGap()
     {
         astTicks.setYGap( yMajorGap.getDoubleValue() );
     }
@@ -452,7 +529,7 @@ public class TickControls extends JPanel
     /**
      * Match length of major ticks on X axis.
      */
-    protected void matchXMajorLength() 
+    protected void matchXMajorLength()
     {
         astTicks.setMajorXTicklength(xMajorLengthModel.getNumber().doubleValue());
     }
@@ -460,7 +537,7 @@ public class TickControls extends JPanel
     /**
      * Match length of major ticks on Y axis.
      */
-    protected void matchYMajorLength() 
+    protected void matchYMajorLength()
     {
         astTicks.setMajorYTicklength(yMajorLengthModel.getNumber().doubleValue());
     }
@@ -468,7 +545,7 @@ public class TickControls extends JPanel
     /**
      * Match length of minor ticks on X axis.
      */
-    protected void matchXMinorLength() 
+    protected void matchXMinorLength()
     {
         astTicks.setMinorXTicklength(xMinorLengthModel.getNumber().doubleValue());
     }
@@ -476,7 +553,7 @@ public class TickControls extends JPanel
     /**
      * Match length of minor ticks on Y axis.
      */
-    protected void matchYMinorLength() 
+    protected void matchYMinorLength()
     {
         astTicks.setMinorYTicklength(yMinorLengthModel.getNumber().doubleValue());
     }
@@ -484,7 +561,7 @@ public class TickControls extends JPanel
     /**
      * Match number of divisions between major ticks on X axis.
      */
-    protected void matchXMinorDivisions() 
+    protected void matchXMinorDivisions()
     {
         Object object = xMinorDivisions.getSelectedItem();
         int value = 0;
@@ -497,7 +574,7 @@ public class TickControls extends JPanel
     /**
      * Match number of divisions between major ticks on Y axis.
      */
-    protected void matchYMinorDivisions() 
+    protected void matchYMinorDivisions()
     {
         Object object = yMinorDivisions.getSelectedItem();
         int value = 0;
@@ -510,7 +587,7 @@ public class TickControls extends JPanel
     /**
      * Match whether to display ticks on all axes.
      */
-    protected void matchTickAll() 
+    protected void matchTickAll()
     {
         astTicks.setTickAll( tickAll.isSelected() );
     }

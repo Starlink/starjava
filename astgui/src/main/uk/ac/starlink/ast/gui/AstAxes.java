@@ -42,6 +42,16 @@ public class AstAxes
     protected boolean showY;
 
     /**
+     * Whether the X axis should be logarithmic.
+     */
+    protected boolean logX;
+
+    /**
+     * Whether the Y axis should be logarithmic.
+     */
+    protected boolean logY;
+
+    /**
      * Axes placement, interior or exterior. This is just a suggestion.
      */
     protected boolean interior;
@@ -118,6 +128,8 @@ public class AstAxes
         isYSet = true;
         showX = true;
         showY = true;
+        logX = false;
+        logY = false;
         xLabelAt = DefaultGrf.BAD;
         yLabelAt = DefaultGrf.BAD;
         xColour = Color.black;
@@ -175,7 +187,6 @@ public class AstAxes
         return isYSet;
     }
 
-
     /**
      * Set whether the X axis should be shown or not.
      *
@@ -223,6 +234,50 @@ public class AstAxes
         return showY;
     }
 
+    /**
+     * Set whether the X axis should be drawn with logarithmic spacing.
+     *
+     * @param logX The new logX value
+     */
+    public void setXLog( boolean logX )
+    {
+        this.logX = logX;
+        setXState( true );
+        fireChanged();
+    }
+
+
+    /**
+     * Get whether the X axis is to be drawn with logarithmic spacing.
+     *
+     * @return The logX value.
+     */
+    public boolean getXLog()
+    {
+        return logX;
+    }
+
+    /**
+     * Set whether the Y axis should be drawn with logarithmic spacing.
+     *
+     * @param logY The new logY value
+     */
+    public void setYLog( boolean logY )
+    {
+        this.logY = logY;
+        setYState( true );
+        fireChanged();
+    }
+
+    /**
+     * Get whether the Y axis is to be drawn with logarithmic spacing.
+     *
+     * @return The logY value.
+     */
+    public boolean getYLog()
+    {
+        return logY;
+    }
 
     /**
      * Set position along the X axis at which to start labelling
@@ -482,6 +537,9 @@ public class AstAxes
         if ( isXSet ) {
             if ( showX ) {
                 buffer.append( ",DrawAxes(1)=1" );
+                if ( logX ) { 
+                    buffer.append( ",LogPlot(1)=1" );
+                }
                 if ( xColour != null ) {
                     buffer.append( ",Colour(axis1)=" );
                     int value = DefaultGrf.encodeColor( xColour );
@@ -506,6 +564,9 @@ public class AstAxes
         if ( isYSet ) {
             if ( showY ) {
                 buffer.append( ",DrawAxes(2)=1" );
+                if ( logY ) { 
+                    buffer.append( ",LogPlot(2)=1" );
+                }
                 if ( yColour != null ) {
                     buffer.append( ",Colour(axis2)=" );
                     int value = DefaultGrf.encodeColor( yColour );
@@ -563,6 +624,7 @@ public class AstAxes
 
         addChildElement( rootElement, "isXSet", isXSet );
         addChildElement( rootElement, "showX", showX );
+        addChildElement( rootElement, "xLog", logX );
         addChildElement( rootElement, "xLabelAt", xLabelAt );
         if ( xColour != null ) {
             addChildElement( rootElement, "xColour", xColour );
@@ -572,6 +634,7 @@ public class AstAxes
 
         addChildElement( rootElement, "isYSet", isYSet );
         addChildElement( rootElement, "showY", showY );
+        addChildElement( rootElement, "yLog", logY );
         addChildElement( rootElement, "yLabelAt", yLabelAt );
         if ( yColour != null ) {
             addChildElement( rootElement, "yColour", yColour );
@@ -603,6 +666,10 @@ public class AstAxes
             setXShown( booleanFromString( value ) );
             return;
         }
+        if ( name.equals( "xLog" ) ) {
+            setXLog( booleanFromString( value ) );
+            return;
+        }
         if ( name.equals( "xLabelAt" ) ) {
             setXLabelAt( doubleFromString( value ) );
             return;
@@ -626,6 +693,10 @@ public class AstAxes
         }
         if ( name.equals( "showY" ) ) {
             setYShown( booleanFromString( value ) );
+            return;
+        }
+        if ( name.equals( "yLog" ) ) {
+            setYLog( booleanFromString( value ) );
             return;
         }
         if ( name.equals( "yLabelAt" ) ) {

@@ -48,6 +48,22 @@ public class AstNumberLabels extends AbstractPlotControlsModel
     protected boolean yShown;
 
     /**
+     * Whether log-style labelling control is set. Otherwise the default
+     * behaviour is used (set for log axis, false otherwise).
+     */
+    protected boolean logLabelSet;
+
+    /**
+     * Whether X numeric labels should use log-style labelling.
+     */
+    protected boolean xLogLabel;
+
+    /**
+     * Whether Y numeric labels should use log-style labelling.
+     */
+    protected boolean yLogLabel;
+
+    /**
      * The Font used to display the labels.
      */
     protected Font font;
@@ -125,6 +141,11 @@ public class AstNumberLabels extends AbstractPlotControlsModel
         isYSet = false;
         xShown = true;
         yShown = true;
+
+        logLabelSet = false;
+        xLogLabel = false;
+        yLogLabel = false;
+
         colour = Color.black;
         font = null;
         xGap = 0.01;
@@ -227,6 +248,69 @@ public class AstNumberLabels extends AbstractPlotControlsModel
     public boolean getYShown()
     {
         return yShown;
+    }
+
+    /**
+     * Set whether the X label log labelling is set or unset (unset implies
+     * that label properties should remain at their AST defaults).
+     *
+     * @param setLogLabelling The new value.
+     */
+    public void setLogLabelSet( boolean logLabelSet )
+    {
+        this.logLabelSet = logLabelSet;
+    }
+
+    /**
+     * Get whether the X label log labelling is set or unset.
+     */
+    public boolean getLogLabelSet()
+    {
+        return logLabelSet;
+    }
+
+    /**
+     * Set whether the X labels should use log-labelling.
+     *
+     * @param xLogLabel The new xLogLabel value
+     */
+    public void setXLogLabel( boolean xLogLabel )
+    {
+        this.xLogLabel = xLogLabel;
+        setXState( true );
+        fireChanged();
+    }
+
+    /**
+     * Return if the X labels are to be drawing using log-labelling.
+     *
+     * @return The xLogLabel value
+     */
+    public boolean getXLogLabel()
+    {
+        return xLogLabel;
+    }
+
+    /**
+     * Set whether the Y labels should use log-labelling.
+     *
+     * @param yLogLabel The new yLogLabel value
+     */
+    public void setYLogLabel( boolean yLogLabel )
+    {
+        this.yLogLabel = yLogLabel;
+        setYState( true );
+        fireChanged();
+    }
+
+    /**
+     * Return if the Y labels are to be drawing using log-labelling.
+     *
+     * @return The yLogLabel value
+     */
+    public boolean getYLogLabel()
+    {
+        return yLogLabel;
     }
 
 
@@ -383,7 +467,6 @@ public class AstNumberLabels extends AbstractPlotControlsModel
         this.xRotated = xRotated;
     }
 
-
     /**
      * Return if the X labels are drawn rotated if possible.
      *
@@ -455,6 +538,14 @@ public class AstNumberLabels extends AbstractPlotControlsModel
                     buffer.append( ",NumLabGap(1)=" );
                     buffer.append( xGap );
                 }
+                if ( logLabelSet ) {
+                    if ( xLogLabel ) {
+                        buffer.append( ",LogLabel(1)=1" );
+                    }
+                    else {
+                        buffer.append( ",LogLabel(1)=0" );
+                    }
+                }
             }
             else {
                 buffer.append( ",NumLab(1)=0" );
@@ -467,6 +558,14 @@ public class AstNumberLabels extends AbstractPlotControlsModel
                 if ( yGap != DefaultGrf.BAD ) {
                     buffer.append( ",NumLabGap(2)=" );
                     buffer.append( yGap );
+                }
+                if ( logLabelSet ) {
+                    if ( yLogLabel ) {
+                        buffer.append( ",LogLabel(2)=1" );
+                    }
+                    else {
+                        buffer.append( ",LogLabel(2)=0" );
+                    }
                 }
             }
             else {
@@ -488,6 +587,7 @@ public class AstNumberLabels extends AbstractPlotControlsModel
             buffer.append( ",LabelUp(2)=1" );
         }
 
+        //  Pesky first "," hard to determine who writes it.
         buffer.deleteCharAt( 0 );
         return buffer.toString();
     }
@@ -527,6 +627,10 @@ public class AstNumberLabels extends AbstractPlotControlsModel
 
         addChildElement( rootElement, "xShown", xShown );
         addChildElement( rootElement, "yShown", yShown );
+
+        addChildElement( rootElement, "logLabelSet", logLabelSet );
+        addChildElement( rootElement, "xLogLabel", xLogLabel );
+        addChildElement( rootElement, "yLogLabel", yLogLabel );
 
         addChildElement( rootElement, "xRotated", xRotated );
         addChildElement( rootElement, "yRotated", yRotated );
@@ -568,6 +672,21 @@ public class AstNumberLabels extends AbstractPlotControlsModel
 
         if ( name.equals( "yShown" ) ) {
             setYShown( booleanFromString( value ) );
+            return;
+        }
+
+        if ( name.equals( "xLogLabel" ) ) {
+            setXLogLabel( booleanFromString( value ) );
+            return;
+        }
+
+        if ( name.equals( "logLabelSet" ) ) {
+            setLogLabelSet( booleanFromString( value ) );
+            return;
+        }
+
+        if ( name.equals( "yLogLabel" ) ) {
+            setYLogLabel( booleanFromString( value ) );
             return;
         }
 

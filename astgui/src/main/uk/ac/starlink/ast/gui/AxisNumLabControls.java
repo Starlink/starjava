@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2001-2002 Central Laboratory of the Research Councils
+ * Copyright (C) 2001-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     10-NOV-2001 (Peter W. Draper):
- *       Original version.
+ *        Original version.
+ *     19-FEB-2004 (Peter W. Draper):
+ *        Added log label.
  */
 package uk.ac.starlink.ast.gui;
 
@@ -64,6 +66,22 @@ public class AxisNumLabControls extends JPanel
      * Control for toggling display of Y numbers.
      */
     protected JCheckBox yShowNumbers = new JCheckBox();
+
+    /**
+     * Control for whether log labelling values should be applied. If not
+     * defaults are used.
+     */
+    protected JCheckBox logLabelSet = new JCheckBox();
+
+    /**
+     * Control for toggling display of X log-like labels.
+     */
+    protected JCheckBox xLogLabel = new JCheckBox();
+
+    /**
+     * Control for toggling display of Y log-like labels.
+     */
+    protected JCheckBox yLogLabel = new JCheckBox();
 
     /**
      * Control for toggling rotation of X numbers.
@@ -159,6 +177,23 @@ public class AxisNumLabControls extends JPanel
                 }
             });
 
+        //  Log label actions.
+        logLabelSet.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    matchLogLabelSet();
+                }
+            });
+        xLogLabel.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    matchXLogLabel();
+                }
+            });
+        yLogLabel.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    matchYLogLabel();
+                }
+            });
+
         //  Act on request to show axis labels as rotated
         xRotateNumbers.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -218,6 +253,15 @@ public class AxisNumLabControls extends JPanel
         layouter.add( "Show Y:", false );
         layouter.add( yShowNumbers, true );
 
+        layouter.add( "Set log labelling:", false );
+        layouter.add( logLabelSet, true );
+
+        layouter.add( "X log labelling:", false );
+        layouter.add( xLogLabel, true );
+
+        layouter.add( "Y log labelling:", false );
+        layouter.add( yLogLabel, true );
+
         layouter.add( "Rotate X:", false );
         layouter.add( xRotateNumbers, true );
 
@@ -248,6 +292,12 @@ public class AxisNumLabControls extends JPanel
         colourButton.setToolTipText( "Select a colour" );
         xGapSpinner.setToolTipText( "Set the gap between numbers and axis" );
         yGapSpinner.setToolTipText( "Set the gap between numbers and axis" );
+
+        logLabelSet.setToolTipText
+            ( "Use log/exponential labelling values to override defaults" );
+        xLogLabel.setToolTipText( "Use log/exponential labelling for X axis ticks" );
+        yLogLabel.setToolTipText( "Use log/exponentail labelling for Y axis ticks" );
+
         digitsField.setToolTipText
             ( "Digits of precision used in formatted numbers" );
         xShowNumbers.setToolTipText( "Display X labels" );
@@ -277,6 +327,11 @@ public class AxisNumLabControls extends JPanel
 
         xShowNumbers.setSelected( astNumberLabels.getXShown() );
         yShowNumbers.setSelected( astNumberLabels.getYShown() );
+
+        logLabelSet.setSelected( astNumberLabels.getLogLabelSet() );
+        xLogLabel.setSelected( astNumberLabels.getXLogLabel() );
+        yLogLabel.setSelected( astNumberLabels.getYLogLabel() );
+        matchLogLabelSet();
 
         xRotateNumbers.setSelected( astNumberLabels.getXRotated() );
         yRotateNumbers.setSelected( astNumberLabels.getYRotated() );
@@ -359,6 +414,35 @@ public class AxisNumLabControls extends JPanel
     {
         astNumberLabels.setYShown( yShowNumbers.isSelected() );
     }
+
+    /*
+     * Match whether to apply log labelling values.
+     */
+    protected void matchLogLabelSet()
+    {
+        boolean set = logLabelSet.isSelected();
+        astNumberLabels.setLogLabelSet( set );
+        xLogLabel.setEnabled( set );
+        yLogLabel.setEnabled( set );
+    }
+
+    /**
+     * Match whether to use log labelling along X axis.
+     */
+    protected void matchXLogLabel()
+    {
+        astNumberLabels.setXLogLabel( xLogLabel.isSelected() );
+    }
+
+    /**
+     * Match whether to use log labelling along Y axis.
+     */
+    protected void matchYLogLabel()
+    {
+        astNumberLabels.setYLogLabel( yLogLabel.isSelected() );
+    }
+
+
 
     /**
      * Match rotated state of X numbers to that selected.

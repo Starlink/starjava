@@ -36,6 +36,22 @@ public class AstTicks extends AbstractPlotControlsModel
     protected boolean show;
 
     /**
+     * Whether to apply the log spacing values, or leave at the context
+     * default (on for logplot, off otherwise).
+     */
+    protected boolean logSpacingSet;
+
+    /**
+     * Whether X tick mark should be shown with log spacing.
+     */
+    protected boolean xLogSpacing;
+
+    /**
+     * Whether Y tick mark should be shown with log spacing.
+     */
+    protected boolean yLogSpacing;
+
+    /**
      * The colour of the ticks.
      */
     protected Color colour;
@@ -136,6 +152,9 @@ public class AstTicks extends AbstractPlotControlsModel
     {
         isSet = false;
         show = true;
+        logSpacingSet = false;
+        xLogSpacing = true;
+        yLogSpacing = true;
         colour = Color.black;
         xGap = DefaultGrf.BAD;
         yGap = DefaultGrf.BAD;
@@ -176,7 +195,7 @@ public class AstTicks extends AbstractPlotControlsModel
 
 
     /**
-     * Set whether thetick marks should be shown or not.
+     * Set whether the tick marks should be shown or not.
      *
      * @param show The new shown value
      */
@@ -198,8 +217,75 @@ public class AstTicks extends AbstractPlotControlsModel
         return show;
     }
 
+    /**
+     * Set whether to apply log spacing setting to axes.
+     *
+     * @param logSpacingSet new value.
+     */
+    public void setLogSpacingSet( boolean logSpacingSet )
+    {
+        this.logSpacingSet = logSpacingSet;
+        if ( logSpacingSet ) {
+            setState( true );
+        }
+        fireChanged();
+    }
 
     /**
+     * Get whether the log spacing values are being applied.
+     *
+     * @return The value
+     */
+    public boolean getLogSpacingSet()
+    {
+        return logSpacingSet;
+    }
+
+    /**
+     * Set whether to display ticks using log spacing along X axis.
+     *
+     * @param xLogSpacing new value.
+     */
+    public void setXLogSpacing( boolean xLogSpacing )
+    {
+        this.xLogSpacing = xLogSpacing;
+        setState( true );
+        fireChanged();
+    }
+
+    /**
+     * Get whether to use log spacing along X axis.
+     *
+     * @return The value
+     */
+    public boolean getXLogSpacing()
+    {
+        return xLogSpacing;
+    }
+
+    /**
+     * Set whether to display ticks using log spacing along Y axis.
+     *
+     * @param yLogSpacing new value.
+     */
+    public void setYLogSpacing( boolean yLogSpacing )
+    {
+        this.yLogSpacing = yLogSpacing;
+        setState( true );
+        fireChanged();
+    }
+
+    /**
+     * Get whether to use log spacing along Y axis.
+     *
+     * @return The value
+     */
+    public boolean getYLogSpacing()
+    {
+        return yLogSpacing;
+    }
+
+   /**
      * Set the colour of the tick marks.
      *
      * @param colour The new colour value
@@ -212,7 +298,6 @@ public class AstTicks extends AbstractPlotControlsModel
         }
         fireChanged();
     }
-
 
     /**
      * Get the colour of the tick marks.
@@ -573,6 +658,22 @@ public class AstTicks extends AbstractPlotControlsModel
             buffer.append( ",TickAll=0" );
         }
 
+        //  Log options.
+        if ( logSpacingSet ) {
+            if ( xLogSpacing ) {
+                buffer.append( ",LogTicks(1)=1" );
+            }
+            else {
+                buffer.append( ",LogTicks(1)=0" );
+            }
+            if ( yLogSpacing ) {
+                buffer.append( ",LogTicks(2)=1" );
+            }
+            else {
+                buffer.append( ",LogTicks(2)=0" );
+            }
+        }
+
         //  Axis options.
         if ( xGap != DefaultGrf.BAD ) {
             buffer.append( ",Gap(1)=" );
@@ -650,6 +751,10 @@ public class AstTicks extends AbstractPlotControlsModel
             addChildElement( rootElement, "colour", colour );
         }
 
+        addChildElement( rootElement, "logSpacingSet", logSpacingSet );
+        addChildElement( rootElement, "xLogSpacing", xLogSpacing );
+        addChildElement( rootElement, "yLogSpacing", yLogSpacing );
+
         addChildElement( rootElement, "xGap", xGap );
         addChildElement( rootElement, "yGap", yGap );
 
@@ -687,6 +792,16 @@ public class AstTicks extends AbstractPlotControlsModel
         if ( name.equals( "show" ) ) {
             setShown( booleanFromString( value ) );
             return;
+        }
+
+        if ( name.equals( "logSpacingSet" ) ) {
+            setLogSpacingSet( booleanFromString( value ) );
+        }
+        if ( name.equals( "xLogSpacing" ) ) {
+            setXLogSpacing( booleanFromString( value ) );
+        }
+        if ( name.equals( "yLogSpacing" ) ) {
+            setYLogSpacing( booleanFromString( value ) );
         }
 
         if ( name.equals( "colour" ) ) {
