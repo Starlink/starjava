@@ -553,20 +553,13 @@ public class PlotWindow extends TopcatViewWindow
     }
 
     /**
-     * Do something with the point of a given index.
-     * This is invoked, for instance, when a point has been clicked on.
+     * Marks a point corresponding to the given row on the plot.
+     * If the row isn't currently plotted, nothing happens.
      *
-     * @param   ip   row index for the point to be activated
+     * @param  lrow  index of row to highlight
      */
-    private void activatePoint( int ip ) {
-        WindowAction viewerAction = tcModel_.getViewerAction();
-        if ( viewerAction.hasWindow() ) {
-            TableViewerWindow viewer =
-                (TableViewerWindow) viewerAction.getWindow( this );
-            if ( viewer.isVisible() ) {
-                viewer.highlightRow( (long) ip );
-            }
-        }
+    public void highlightRow( long lrow ) {
+        plot_.setActivePoint( AbstractStarTable.checkedLongToInt( lrow ) );
     }
 
     /**
@@ -840,10 +833,11 @@ public class PlotWindow extends TopcatViewWindow
             int butt = evt.getButton();
             if ( butt == MouseEvent.BUTTON1 ) {
                 int ip = visiblePoints_.getClosestPoint( evt.getPoint(), 4 );
-                plot_.setActivePoint( ip );
-                plot_.repaint();
                 if ( ip >= 0 ) {
-                    activatePoint( ip );
+                    tcModel_.highlightRow( (long) ip );
+                }
+                else {
+                    plot_.setActivePoint( -1 );
                 }
             }
         }

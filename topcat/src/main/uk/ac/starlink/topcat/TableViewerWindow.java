@@ -58,6 +58,7 @@ public class TableViewerWindow extends TopcatViewWindow
     private JProgressBar progBar;
     private Action includeAct;
     private Action excludeAct;
+    private boolean selfHighlighting;
 
     private static int MAX_COLUMN_WIDTH = 300; 
     private static int MAX_SAMPLE_ROWS = 2000;
@@ -122,10 +123,28 @@ public class TableViewerWindow extends TopcatViewWindow
         /* Configure a listener for row selection events. */
         final ListSelectionModel selectionModel = jtab.getSelectionModel();
         ListSelectionListener selList = new ListSelectionListener() {
+            long lastActive = -1;
             public void valueChanged( ListSelectionEvent evt ) {
                 boolean hasSelection = ! selectionModel.isSelectionEmpty();
+
+                /* Configure event availability. */
                 includeAct.setEnabled( hasSelection );
                 excludeAct.setEnabled( hasSelection );
+
+                /* If the selection consists of a single row, construe this
+                 * as a row activation request. */
+                if ( hasSelection && ! evt.getValueIsAdjusting() ) {
+                    int first = selectionModel.getMinSelectionIndex();
+                    if ( selectionModel.getMaxSelectionIndex() == first ) {
+                        long active = viewModel.getBaseRow( first );
+                        if ( active != lastActive ) {
+                            lastActive = active;
+                            selfHighlighting = true;
+                            tcModel.highlightRow( active );
+                            selfHighlighting = false;
+                        }
+                    }
+                }
             }
         };
         selectionModel.addListSelectionListener( selList );
@@ -205,30 +224,36 @@ public class TableViewerWindow extends TopcatViewWindow
      */
     public void highlightRow( long lrow ) {
 
-        /* Check if the view currently on display contains the requested row. */
-        if ( ! viewModel.getSubset().isIncluded( lrow ) ) {
-            // uh oh - that row is not currently displayed in the table.
-            java.awt.Toolkit.getDefaultToolkit().beep();
+        /* If this highlighting request originally came from this window 
+         * (because a row has just been selected) don't do anything, since
+         * this would recurse infinitely. */
+        if ( selfHighlighting ) {
             return;
         }
 
-        /* Get the view row corresponding to the requested table row. */
-        int viewRow = viewModel.getViewRow( lrow );
-
-        /* It can't be -1 since we've just checked it's in the current 
-         * subset. */
-        assert viewRow >= 0;
-
-        /* Set the JTable's selection to contain just this row. */
+        /* Get ready. */
         jtab.clearSelection();
-        jtab.addRowSelectionInterval( viewRow, viewRow );
 
-        /* Arrange for the row to be visible in the middle of the 
-         * scrollpane's viewport. */
-        Rectangle viewRect = jtab.getCellRect( viewRow, 0, false );
-        int yMid = viewRect.y + viewRect.height / 2;
-        JScrollBar yBar = scrollpane.getVerticalScrollBar();
-        yBar.setValue( yMid - yBar.getVisibleAmount() / 2 );
+        /* Check if the view currently on display contains the requested row. */
+        if ( viewModel.getSubset().isIncluded( lrow ) ) {
+
+            /* Get the view row corresponding to the requested table row. */
+            int viewRow = viewModel.getViewRow( lrow );
+
+            /* It can't be -1 since we've just checked it's in the current 
+             * subset. */
+            assert viewRow >= 0;
+
+            /* Set the JTable's selection to contain just this row. */
+            jtab.addRowSelectionInterval( viewRow, viewRow );
+
+            /* Arrange for the row to be visible in the middle of the 
+             * scrollpane's viewport. */
+            Rectangle viewRect = jtab.getCellRect( viewRow, 0, false );
+            int yMid = viewRect.y + viewRect.height / 2;
+            JScrollBar yBar = scrollpane.getVerticalScrollBar();
+            yBar.setValue( yMid - yBar.getVisibleAmount() / 2 );
+        }
     }
 
     /**

@@ -389,6 +389,20 @@ public class TopcatModel {
     }
 
     /**
+     * Highlights a row in appropriate view windows.
+     *
+     * @param  lrow  index of the row to activate
+     */
+    public void highlightRow( long lrow ) {
+        if ( plotWindow != null ) {
+            plotWindow.highlightRow( lrow );
+        }
+        if ( viewerWindow != null ) {
+            viewerWindow.highlightRow( lrow );
+        }
+    }
+
+    /**
      * Gets an action which will pop up a TableViewerWindow associated with
      * this model.
      * 

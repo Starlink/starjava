@@ -89,7 +89,6 @@ public class ScatterPlot extends JComponent implements Printable {
      */
     public void setPoints( Points points ) {
         points_ = points;
-        annotations_ = new Annotations();
     }
 
     /**
@@ -131,7 +130,7 @@ public class ScatterPlot extends JComponent implements Printable {
      * @param  ip  active point index, or -1 to indicate no active point
      */
     public void setActivePoint( int ip ) {
-        annotations_.activePoint_ = ip;
+        annotations_.setActivePoint( ip );
     }
 
     /**
@@ -293,6 +292,27 @@ public class ScatterPlot extends JComponent implements Printable {
     }
 
     /**
+     * Determines whether a point with a given index is included in the
+     * current plot.  This doesn't necessarily mean it's visible, since
+     * it might fall outside the bounds of the current display area,
+     * but it means the point does conceptually form part of what is
+     * being plotted.
+     *
+     * @param  ip  index of point to check
+     * @return  true  iff point <tt>ip</tt> is included in this plot
+     */
+    public boolean isIncluded( int ip ) {
+        RowSubset[] sets = state_.getSubsets();
+        int nset = sets.length;
+        for ( int is = 0; is < nset; is++ ) {
+            if ( sets[ is ].isIncluded( (long) ip ) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * This class takes care of all the markings plotted over the top of
      * the plot proper.  It's coded as an extra class just to make it tidy,
      * these workings could equally be in the body of ScatterPlot.
@@ -300,6 +320,19 @@ public class ScatterPlot extends JComponent implements Printable {
     private class Annotations {
 
         int activePoint_ = -1;
+
+        /**
+         * Sets a single point to be marked out.
+         *
+         * @param  ip  index of the point to be marked
+         */
+        void setActivePoint( int ip ) {
+            int oldActivePoint = activePoint_;
+            activePoint_ = ( ip >= 0 && isIncluded( ip ) ) ? ip : -1;
+            if ( oldActivePoint != activePoint_ ) {
+                repaint();
+            }
+        }
 
         /**
          * Paints all the current annotations onto a given graphics context.
@@ -334,20 +367,10 @@ public class ScatterPlot extends JComponent implements Printable {
          */
         void validate() {
 
-            /* If there is an active point which no longer corresponds to
-             * a visible point, drop it. */
-            if ( activePoint_ >= 0 ) {
-                boolean in = false;
-                RowSubset[] sets = state_.getSubsets();
-                int nset = sets.length;
-                for ( int is = 0; is < nset && !in; is++ ) {
-                    if ( sets[ is ].isIncluded( (long) activePoint_ ) ) {
-                        in = true;
-                    }
-                }
-                if ( ! in ) {
-                    activePoint_ = -1;
-                }
+            /* If there is an active point which is no longer visible in
+             * this plot, drop it. */
+            if ( activePoint_ >= 0 && ! isIncluded( activePoint_ ) ) {
+                activePoint_ = -1;
             }
         }
     }
