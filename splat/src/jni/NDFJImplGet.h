@@ -9,9 +9,8 @@
  *                 <JAVATYPE>[])
  *        NDFTYPE:  equivalent one of "_DOUBLE", "_REAL", "_INTEGER", "_WORD"
  *                  and "_BYTE"
- *        CTYPE:    equivalent of NDFTYPE in C, i.e.: double, float,
- *                  long (or int for 64 bit machines), short, byte
- *                  (note byte should be used not char)
+ *        CTYPE:    Java equivalent of NDFTYPE in C, i.e.: jdouble, jfloat,
+ *                  jint, jshort or jbyte.
  */
 
  /*
@@ -32,7 +31,7 @@
 #define XSETARRAY(type) Set ## type ## ArrayRegion /* Set array region function */
 #define SETARRAY(type) XSETARRAY(type)
 
-#define XARRAYREF(type) j ## type ## Array        /* a type[] reference */
+#define XARRAYREF(type) type ## Array        /* a type[] reference */
 #define ARRAYREF(type) XARRAYREF(type)
 
 typedef char byte;                    /* used to map byte function name to C */
@@ -182,7 +181,7 @@ JNIEXPORT jobjectArray JNICALL GET2( JAVATYPE )
  *                 case all dimensions are vectorized.
  *
  *  Returns:
- *     j<CTYPE>Array = 1D array of <JAVATYPE> values.
+ *     <CTYPE>Array = 1D array of <JAVATYPE> values.
  * */
 JNIEXPORT ARRAYREF(CTYPE) JNICALL GET1( JAVATYPE )
     (JNIEnv *env, jclass class, jint jindf, jstring jcomp,

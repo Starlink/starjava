@@ -1396,7 +1396,7 @@ JNIEXPORT
 #define JAVATYPE Double
 #define JAVASIG "[D"
 #define NDFTYPE "_DOUBLE"
-#define CTYPE double
+#define CTYPE jdouble
 #include "NDFJImplGet.h"
 #undef JAVATYPE
 #undef JAVASIG
@@ -1406,7 +1406,7 @@ JNIEXPORT
 #define JAVATYPE Float
 #define JAVASIG "[F"
 #define NDFTYPE "_REAL"
-#define CTYPE float
+#define CTYPE jfloat
 #include "NDFJImplGet.h"
 #undef JAVATYPE
 #undef JAVASIG
@@ -1416,11 +1416,7 @@ JNIEXPORT
 #define JAVATYPE Int
 #define JAVASIG "[I"
 #define NDFTYPE "_INTEGER"
-#if defined(_LP64) || defined(__alpha)
-#define CTYPE int
-#else
-#define CTYPE long
-#endif
+#define CTYPE jint
 #include "NDFJImplGet.h"
 #undef JAVATYPE
 #undef JAVASIG
@@ -1430,7 +1426,7 @@ JNIEXPORT
 #define JAVATYPE Short
 #define JAVASIG "[S"
 #define NDFTYPE "_WORD"
-#define CTYPE short
+#define CTYPE jshort
 #include "NDFJImplGet.h"
 #undef JAVATYPE
 #undef JAVASIG
@@ -1440,7 +1436,7 @@ JNIEXPORT
 #define JAVATYPE Byte
 #define JAVASIG "[B"
 #define NDFTYPE "_BYTE"
-#define CTYPE byte
+#define CTYPE jbyte
 #include "NDFJImplGet.h"
 
  /*
