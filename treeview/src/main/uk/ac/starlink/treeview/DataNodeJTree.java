@@ -1,8 +1,18 @@
 package uk.ac.starlink.treeview;
 
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
+import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -17,6 +27,8 @@ import javax.swing.tree.TreeSelectionModel;
  */
 public class DataNodeJTree extends JTree { 
     private DataNodeTreeModel model;
+    private TreePath dragStarted;
+    private TreePath dragNow;
 
     /**
      * Constructs a new DataNodeJTree from a suitable model.
@@ -35,6 +47,47 @@ public class DataNodeJTree extends JTree {
         setToggleClickCount( 2 );
         getSelectionModel().setSelectionMode( TreeSelectionModel
                                              .SINGLE_TREE_SELECTION );
+
+        /* Set up drag'n'drop. */
+        setDropTarget( new BasicDropHandler( this ) {
+            protected boolean isDropLocation( Point loc ) {
+                return getPathForLocation( loc.x, loc.y ) == null;
+            }
+        } );
+        setTransferHandler( new DataNodeTransferHandler() );
+        setDragEnabled( true );
+        addMouseListener( new MouseAdapter() {
+            public void mousePressed( MouseEvent evt ) {
+                if ( ! SwingUtilities.isMiddleMouseButton( evt ) ) {
+                    dragStarted = getPathForLocation( evt.getX(), evt.getY() );
+                }
+            }
+
+            /* Note this paste is not the same as the
+             * TransferHandler.getPasteAction paste - this one goes from
+             * the system selection, not the platform clipboard.  
+             * I got this code from grubbing through the 
+             * javax.swing.text.DefaultCaret code. */
+            public void mouseClicked( MouseEvent evt ) {
+                if ( SwingUtilities.isMiddleMouseButton( evt ) &&
+                     evt.getClickCount() == 1 ) {
+                    TransferHandler th = getTransferHandler();
+                    if ( th instanceof DataNodeTransferHandler ) {
+                        ((DataNodeTransferHandler) th)
+                       .pasteSystemSelection( DataNodeJTree.this );
+                    }
+                }
+            }
+        } );
+        addMouseMotionListener( new MouseMotionListener() {
+            public void mouseDragged( MouseEvent evt ) {
+                if ( ! SwingUtilities.isMiddleMouseButton( evt ) ) {
+                    dragNow = getPathForLocation( evt.getX(), evt.getY() );
+                }
+            }
+            public void mouseMoved( MouseEvent evt ) {
+            }
+        } );
 
         /* Set up the cell renderer. */
         setCellRenderer( new DataNodeTreeCellRenderer() );
@@ -63,17 +116,23 @@ public class DataNodeJTree extends JTree {
 
     /**
      * Recursively expands a given data node.  As with normal expansion,
-     * this happens asynchronously.
+     * this happens asynchronously.  A new thread is created and started 
+     * in which the model expansion (though not the JTree notification) 
+     * is done synchronously.  This thread is available as the method's
+     * return value.
      *
      * @param  dataNode  the node to expand
+     * @return  the Thread in which the expansion is done
      */
-    public void recursiveExpand( DataNode dataNode ) {
+    public Thread recursiveExpand( DataNode dataNode ) {
         final TreeModelNode modelNode = model.getModelNode( dataNode );
-        new Thread( "Recursive expander: " + dataNode ) {
+        Thread expander = new Thread( "Recursive expander: " + dataNode ) {
             public void run() {
                 recursiveExpand( modelNode );
             }
-        }.start();
+        };
+        expander.start();
+        return expander;
     }
 
     /**
@@ -147,4 +206,31 @@ public class DataNodeJTree extends JTree {
              recursiveExpand( (TreeModelNode) it.next() );
         }
     }
+
+    /**
+     * Returns the last place the mouse button was pressed on this component.
+     * This is required by the DataNodeTransferHandler, since otherwise
+     * there seems to be no way of knowing which node the drag gesture
+     * referred to.  The way this is got hold of is not entirely reputable.
+     *
+     * @return  the node corresponding to the last node dragged
+     */
+    public DataNode getDraggedNode() {
+        return dragStarted == null 
+                   ?  null 
+                   : (DataNode) dragStarted.getLastPathComponent();
+    }
+
+    /**
+     * Returns the current position of the mouse if it's being dragged
+     * on this component.  This is required by the DataNodeTransferHandler.
+     *
+     * @return  the node corresponding to the current drop position
+     */
+    public DataNode getDropNode() {
+        return dragNow == null
+                   ? null
+                   : (DataNode) dragNow.getLastPathComponent();
+    }
+
 }

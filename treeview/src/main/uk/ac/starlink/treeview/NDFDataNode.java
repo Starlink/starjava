@@ -33,7 +33,7 @@ import uk.ac.starlink.ndx.Ndx;
  * @author   Mark Taylor (Starlink)
  * @version  $Id$
  */
-public class NDFDataNode extends HDSDataNode {
+public class NDFDataNode extends HDSDataNode implements Draggable {
     private static Icon icon;
     private static DataNodeFactory defaultChildMaker;
     private static DataNodeFactory axisChildMaker;
@@ -43,6 +43,7 @@ public class NDFDataNode extends HDSDataNode {
     private FrameSet wcs;
     private JComponent fullView;
     private DataNodeFactory childMaker;
+    private Ndx ndx;
 
     private static final int GRID_FRAME = 1;
     private static final int PIXEL_FRAME = 2;
@@ -416,19 +417,8 @@ public class NDFDataNode extends HDSDataNode {
                 }
             }
 
-            URL ndurl;
             try {
-                ndurl = new HDSReference( ndfobj ).getURL();
-            }
-            catch ( HDSException e ) {
-                ndurl = null;
-            }
-            try {
-                Ndx baseNdx = NDFNdxHandler.getInstance()
-                             .makeNdx( ndfobj, ndurl, AccessMode.READ );
-                MutableNdx ndx = new DefaultMutableNdx( baseNdx );
-                ndx.setWCS( wcs );
-                NdxDataNode.addDataViews( dv, ndx );
+                NdxDataNode.addDataViews( dv, getNdx() );
             }
             catch ( HDSException e ) {
                 dv.logError( e );
@@ -440,6 +430,18 @@ public class NDFDataNode extends HDSDataNode {
             fullView = dv.getComponent();
         }
         return fullView;
+    }
+
+    public void customiseTransferable( DataNodeTransferable trans ) {
+        try {
+            NdxDataNode.customiseTransferable( trans, getNdx() );
+        }
+        catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        catch ( HDSException e ) {
+            e.printStackTrace();
+        }
     }
 
     public void setChildMaker( DataNodeFactory fact ) {
@@ -458,6 +460,23 @@ public class NDFDataNode extends HDSDataNode {
 
     public byte getQualityBadbits() {
         return qualityBadbits;
+    }
+
+    private Ndx getNdx() throws IOException, HDSException {
+        if ( ndx == null ) {
+            URL ndurl;
+            try {
+                ndurl = new HDSReference( ndfobj ).getURL();
+            }
+            catch ( HDSException e ) {
+                ndurl = null;
+            }
+            Ndx baseNdx = NDFNdxHandler.getInstance()
+                         .makeNdx( ndfobj, ndurl, AccessMode.READ );
+            ndx = new DefaultMutableNdx( baseNdx );
+            ((MutableNdx) ndx).setWCS( wcs );
+        }
+        return ndx;
     }
 
     private DataNodeFactory getAxisChildMaker() {

@@ -1,7 +1,12 @@
 package uk.ac.starlink.treeview;
 
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -21,11 +26,12 @@ import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
 import uk.ac.starlink.topcat.TableViewer;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.votable.VOTableWriter;
 
 /**
  * DataNode representing a StarTable.
  */
-public class StarTableDataNode extends DefaultDataNode {
+public class StarTableDataNode extends DefaultDataNode implements Draggable {
 
     private StarTable startable;
     private String name;
@@ -180,6 +186,45 @@ public class StarTableDataNode extends DefaultDataNode {
         };
         actions.add( topcatAct );
         dv.addActions( (Action[]) actions.toArray( new Action[ 0 ] ) );
+    }
+
+    public static void customiseTransferable( DataNodeTransferable trans,
+                                              final StarTable startable ) {
+        DataSource datsrc = new DataSource() {
+            public URL getURL() {
+                return startable.getURL();
+            }
+            public String getName() {
+                String name = startable.getName();
+                return name == null ? "Table" : name;
+            }
+            public InputStream getRawInputStream() throws IOException {
+                PipedOutputStream ostrm = new PipedOutputStream();
+                PipedInputStream istrm = new PipedInputStream( ostrm );
+                final PrintStream pstrm = new PrintStream( ostrm );
+                new Thread() {
+                    public void run() {
+                        try {
+                            new VOTableWriter().writeStarTable( startable, 
+                                                                pstrm );
+                        }
+                        catch ( IOException e ) {
+                            // May well catch an IOException if the reader
+                            // stops reading
+                        }
+                        finally {
+                            pstrm.close();
+                        }
+                    }
+                }.start();
+                return istrm;
+            }
+        };
+        trans.addDataSource( datsrc, "application/xml" );
+    }
+
+    public void customiseTransferable( DataNodeTransferable trans ) {
+        customiseTransferable( trans, startable );
     }
 
     public StarTable getStarTable() {

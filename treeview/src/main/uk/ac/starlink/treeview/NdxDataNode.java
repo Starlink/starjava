@@ -3,6 +3,10 @@ package uk.ac.starlink.treeview;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -15,12 +19,15 @@ import javax.swing.JComponent;
 import javax.xml.rpc.ServiceException;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
+import nom.tam.util.ArrayDataOutput;
+import nom.tam.util.BufferedDataOutputStream;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Requirements;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.fits.FitsNdxHandler;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.NDFNdxHandler;
@@ -32,6 +39,8 @@ import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.ndx.NdxIO;
 import uk.ac.starlink.ndx.XMLNdxHandler;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.URLUtils;
 
 /**
@@ -40,7 +49,7 @@ import uk.ac.starlink.util.URLUtils;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class NdxDataNode extends DefaultDataNode {
+public class NdxDataNode extends DefaultDataNode implements Draggable {
 
     private Ndx ndx;
     private String name;
@@ -446,6 +455,80 @@ public class NdxDataNode extends DefaultDataNode {
             }
         }
         dv.addActions( (Action[]) actlist.toArray( new Action[ 0 ] ) );
+    }
+
+    public static void customiseTransferable( DataNodeTransferable trans,
+                                              final Ndx ndx ) {
+
+        /* If this is a persistent NDX, serialise it to XML. */
+        if ( ndx.isPersistent() ) {
+            DataSource xmlSrc = new DataSource() {
+                public InputStream getRawInputStream() throws IOException {
+                    try {
+                        Source xsrc = ndx.getHdxFacade().getSource( null );
+                        return new SourceReader().getXMLStream( xsrc );
+                    }
+                    catch ( HdxException e ) {
+                        throw (IOException) new IOException( e.getMessage() )
+                                           .initCause( e );
+                    }
+                }
+                public String getName() {
+                    return ndx.hasTitle() ? ndx.getTitle() : "NDX";
+                }
+                public URL getURL() {
+                    return null;
+                }
+            };
+            trans.addDataSource( xmlSrc, "application/xml" );
+        }
+
+        /* In any case, we can provide it serialised in its entirety to
+         * a FITS file. */
+        DataSource fitsSrc = new DataSource() {
+            public InputStream getRawInputStream() throws IOException {
+                final PipedOutputStream ostrm = new PipedOutputStream();
+                InputStream istrm = new PipedInputStream( ostrm );
+                new Thread() {
+                    public void run() {
+                        try {
+                            URL dummyUrl = new URL( "file://localhost/dummy" );
+                            ArrayDataOutput strm = 
+                                new BufferedDataOutputStream( ostrm );
+                            FitsNdxHandler.getInstance()
+                                          .outputNdx( strm, dummyUrl, ndx );
+                            strm.close();
+                        }
+                        catch ( MalformedURLException e ) {
+                            throw new AssertionError( e );
+                        }
+                        catch ( IOException e ) {
+                            // May well catch an exception here if not all
+                            // the output is consumed
+                        }
+                        finally {
+                            try {
+                                ostrm.close();
+                            }
+                            catch ( IOException e ) {
+                            }
+                        }
+                    }
+                }.start();
+                return istrm;
+            }
+            public String getName() {
+                return ndx.hasTitle() ? ndx.getTitle() : "NDX";
+            }
+            public URL getURL() {
+                return null;
+            }
+        };
+        trans.addDataSource( fitsSrc, "application/fits" );
+    }
+
+    public void customiseTransferable( DataNodeTransferable trans ) {
+        customiseTransferable( trans, ndx );
     }
 
 }

@@ -121,6 +121,10 @@ public class StaticTreeViewer extends JFrame {
         treeModel = new DataNodeTreeModel( root );
         jtree = new DataNodeJTree( treeModel );
 
+        /* Arrange for drag'n'drop drops to be permitted. */
+        ((DataNodeTransferHandler) jtree.getTransferHandler())
+       .setNodeMaker( nodeMaker );
+
         /* Configure some custom aspects of the tree. */
         jtree.setScrollsOnExpand( false );
 

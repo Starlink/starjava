@@ -19,7 +19,8 @@ import uk.ac.starlink.votable.Table;
 import uk.ac.starlink.votable.VOTableFormatException;
 import uk.ac.starlink.util.DOMUtils;
 
-public class VOTableTableDataNode extends VOComponentDataNode {
+public class VOTableTableDataNode extends VOComponentDataNode 
+                                  implements Draggable {
 
     private Table votable;
     private StarTable startable;
@@ -98,6 +99,11 @@ public class VOTableTableDataNode extends VOComponentDataNode {
             }
         }
         return fullView;
+    }
+
+    public void customiseTransferable( DataNodeTransferable trans )
+            throws IOException {
+        StarTableDataNode.customiseTransferable( trans, getStarTable() );
     }
 
     private StarTable getStarTable() throws IOException {

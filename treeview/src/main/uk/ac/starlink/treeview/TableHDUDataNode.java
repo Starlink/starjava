@@ -24,7 +24,7 @@ import uk.ac.starlink.table.StarTable;
  * @author   Mark Taylor (Starlink)
  * @version  $Id$
  */
-public class TableHDUDataNode extends HDUDataNode {
+public class TableHDUDataNode extends HDUDataNode implements Draggable {
 
     private String hduType;
     private TableData tdata;
@@ -32,6 +32,7 @@ public class TableHDUDataNode extends HDUDataNode {
     private JComponent fullview;
     private Header header;
     private FITSDataNode.ArrayDataMaker hdudata;
+    private StarTable starTable;
 
     /**
      * Initialises a <code>TableHDUDataNode</code> from an <code>Header</code>
@@ -72,6 +73,45 @@ public class TableHDUDataNode extends HDUDataNode {
         }
     }
 
+
+    /**
+     * Returns the StarTable containing the data.  Its construction,
+     * which involves reading from the stream, is deferred until 
+     * necessary. 
+     * 
+     * @return   the StarTable object containing the data for this HDU
+     */
+    private synchronized StarTable getStarTable()
+            throws FitsException, IOException {
+
+        /* If we haven't got it yet, read data and build a StarTable. */
+        if ( starTable == null ) {
+            ArrayDataInput istrm = hdudata.getArrayData();
+
+            /* Skip the header which we have already seen. */
+            Header hdr = new Header( istrm );
+
+            /* Read the table data. */
+            TableHDU thdu;
+            if ( tdata instanceof BinaryTable ) {
+                ((BinaryTable) tdata).read( istrm );
+                thdu = new BinaryTableHDU( header, (Data) tdata );
+            }
+            else if ( tdata instanceof AsciiTable ) {
+                ((AsciiTable) tdata).read( istrm );
+                ((AsciiTable) tdata).getData();
+                thdu = new AsciiTableHDU( header, (Data) tdata );
+            }
+            else {
+                throw new IOException( "Unknown FITS table type " + tdata );
+            }
+
+            /* Make a StarTable out of it. */
+            starTable = new FitsStarTable( thdu );
+        }
+        return starTable;
+    }
+
     public boolean allowsChildren() {
         return false;
     }
@@ -99,26 +139,6 @@ public class TableHDUDataNode extends HDUDataNode {
 
             /* Make the table. */
             try {
-                ArrayDataInput istrm = hdudata.getArrayData();
-
-                /* Skip the header. */
-                Header hdr = new Header( istrm );
-
-                /* Read the table data. */
-                TableHDU thdu;
-                if ( tdata instanceof BinaryTable ) {
-                    ((BinaryTable) tdata).read( istrm );
-                    thdu = new BinaryTableHDU( header, (Data) tdata );
-                }
-                else if ( tdata instanceof AsciiTable ) {
-                    ((AsciiTable) tdata).read( istrm );
-                    ((AsciiTable) tdata).getData();
-                    thdu = new AsciiTableHDU( header, (Data) tdata );
-                }
-                else {
-                    throw new AssertionError();
-                }
-
                 /* Show the header cards. */
                 dv.addPane( "Header cards", new ComponentMaker() {
                     public JComponent getComponent() {
@@ -126,9 +146,8 @@ public class TableHDUDataNode extends HDUDataNode {
                     }
                 } );
 
-                /* Make a StarTable out of it, and do table-specific display. */
-                final StarTable startable = new FitsStarTable( thdu );
-                StarTableDataNode.addDataViews( dv, startable );
+                /* Do table-specific display. */
+                StarTableDataNode.addDataViews( dv, getStarTable() );
             }
             catch ( final FitsException e ) {
                 dv.addPane( "Error reading table", new ComponentMaker() {
@@ -146,6 +165,17 @@ public class TableHDUDataNode extends HDUDataNode {
             }
         }
         return fullview;
+    }
+
+    public void customiseTransferable( DataNodeTransferable trans ) 
+            throws IOException {
+        try {
+            StarTableDataNode.customiseTransferable( trans, getStarTable() );
+        }
+        catch ( FitsException e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
+        }
     }
 
     public String getDescription() {
