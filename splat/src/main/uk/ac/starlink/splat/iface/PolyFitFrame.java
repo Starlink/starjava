@@ -42,6 +42,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.PolynomialFitter;
+import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
@@ -735,7 +736,7 @@ public class PolyFitFrame
         if ( worldRanges != null ) {
             int[] arrayRanges = new int[worldRanges.length];
             for ( int i = 0; i < worldRanges.length; i++ ) {
-                arrayRanges[i] = lookup( worldRanges[i], oldX );
+                arrayRanges[i] = Sort.lookup( oldX, worldRanges[i] );
             }
 
             //  Check ordering, these can be reversed.
@@ -750,66 +751,6 @@ public class PolyFitFrame
             return arrayRanges;
         }
         return null;
-    }
-
-    /**
-     * Lookup an array index that most closely presents a given
-     * value. The array of values should be sorted.
-     *
-     * @param value the value to lookup.
-     * @param array the available values to interpolate.
-     *
-     * @return index of the closest value.
-     */
-    protected int lookup( double value, double[] array )
-    {
-        //  Look for the two data values that are nearest in the
-        //  array. Use a binary search as values are sorted.
-        int low = 0;
-        int high = array.length - 1;
-        int mid = 0;
-        if ( array[0] < array[high] ) {
-            while ( low < high - 1 ) {
-                mid = ( low + high ) / 2;
-                if ( value < array[mid] ) {
-                    high = mid;
-                }
-                else if ( value > array[mid] ) {
-                    low = mid;
-                }
-                else {
-                    //  Exact match.
-                    low = high = mid;
-                    break;
-                }
-            }
-        }
-        else {
-            while ( low < high - 1 ) {
-                mid = ( low + high ) / 2;
-                if ( value > array[mid] ) {
-                    high = mid;
-                }
-                else if ( value < array[mid] ) {
-                    low = mid;
-                }
-                else {
-                    //  Exact match.
-                    low = high = mid;
-                    break;
-                }
-            }
-        }
-
-        //  Find which position is nearest in reality.
-        int index = 0;
-        if ( ( value - array[low] ) < ( array[high] - value ) ) {
-            index = low;
-        }
-        else {
-            index = high;
-        }
-        return index;
     }
 
     /**

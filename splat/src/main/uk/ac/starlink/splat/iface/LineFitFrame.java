@@ -49,6 +49,7 @@ import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.GaussianFitter;
 import uk.ac.starlink.splat.util.LorentzFitter;
 import uk.ac.starlink.splat.util.QuickLineFitter;
+import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.VoigtFitter;
 import uk.ac.starlink.util.gui.GridBagLayouter;
@@ -893,9 +894,9 @@ public class LineFitFrame
         fitX[1] = results[2];
         fitX[2] = results[2] + results[3];
         if ( background != null ) {
-            int left = lookup( fitX[0], coords );
-            int centre = lookup( fitX[1], coords );
-            int right = lookup( fitX[2], coords );
+            int left = Sort.lookup( coords, fitX[0] );
+            int centre = Sort.lookup( coords, fitX[1] );
+            int right = Sort.lookup( coords, fitX[2] );
             fitY[0] = results[1] * 0.5 + background[left];
             fitY[1] = results[1]       + background[centre];
             fitY[2] = results[1] * 0.5 + background[right];
@@ -1204,8 +1205,8 @@ public class LineFitFrame
         double[] worldLines = rangeList.getRanges( false );
         int[] arrayLines = new int[worldLines.length];
         for ( int i = 0, j = 0; i < arrayLines.length; i += 2 ) {
-            arrayLines[i] = lookup( worldLines[i], oldX );
-            arrayLines[i+1] = lookup( worldLines[i+1], oldX );
+            arrayLines[i] = Sort.lookup( oldX, worldLines[i] );
+            arrayLines[i+1] = Sort.lookup( oldX, worldLines[i+1] );
 
             //  Check ordering, these can be reversed (sky coordinates).
             int temp;
@@ -1216,59 +1217,6 @@ public class LineFitFrame
             }
         }
         return arrayLines;
-    }
-
-    /**
-     * Lookup an array index that most closely presents a given
-     * value. The array of values should be sorted.
-     */
-    protected int lookup( double value, double[] array )
-    {
-        //  Look for the two data values that are nearest in the
-        //  array. Use a binary search as values are sorted.
-        int low = 0;
-        int high = array.length - 1;
-        int mid = 0;
-        if ( array[0] < array[high] ) {
-            while ( low < high - 1 ) {
-                mid = ( low + high ) / 2;
-                if ( value < array[mid] ) {
-                    high = mid;
-                } 
-                else if ( value > array[mid] ) {
-                    low = mid;
-                } 
-                else {
-                    low = mid;
-                    break;
-                }
-            }
-        } 
-        else {
-            while ( low < high - 1 ) {
-                mid = ( low + high ) / 2;
-                if ( value > array[mid] ) {
-                    high = mid;
-                } 
-                else if ( value < array[mid] ) {
-                    low = mid;
-                } 
-                else {
-                    low = mid;
-                    break;
-                }
-            }
-        }
-
-        //  Find which position is nearest in reality.
-        int index = 0;
-        if ( ( value - array[low] ) < ( array[high] - value ) ) {
-            index = low;
-        } 
-        else {
-            index = high;
-        }
-        return index;
     }
 
     /**
