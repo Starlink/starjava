@@ -21,8 +21,11 @@ import java.util.LinkedHashMap;
 import java.util.Iterator;
 
 /**
- * Utility class for saving and restoring a PhotomList from a
- * AUTOPHOTOM input and output file.
+ * Utility class for AUTOPHOTOM specific encodings and decodings.
+ * <p>
+ * It saves and restores a PhotomList from a AUTOPHOTOM input and
+ * output file and returns a String representation of a
+ * PhotometryGlobals suitable for using as a configuration string.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -34,7 +37,6 @@ public class PhotomEncoderAndDecoder
 
     // Static classes, so no instance.
     private PhotomEncoderAndDecoder() {}
-
 
     /**
      * Store the configuration of a PhotomList instance in a file
@@ -140,12 +142,6 @@ public class PhotomEncoderAndDecoder
         // Now that all apertures are configured add them to the
         // PhotomList. 
         list.add( hashMap.values() );
-        //Iterator iterator = hashMap.entrySet().iterator();
-        //java.util.Map.Entry entry = null;
-        //while ( iterator.hasNext() ) {
-        //    entry = (java.util.Map.Entry) iterator.next();
-        //    list.add( (AnnulusPhotom) entry.getValue() );
-        //}
         in.close();
     }
 
@@ -163,5 +159,18 @@ public class PhotomEncoderAndDecoder
             map.put( ident, ap );
         }
         return ap;
+    }
+
+
+    /**
+     * Convert a PhotometryGlobals into a String that can be used
+     * when running the AUTOPHOTOM application.
+     */
+    public static String toApplicationString( PhotometryGlobals globals )
+    {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append( "skymag=" + globals.getZeroPoint() );
+        buffer.append( " centro=" + globals.getCentroid() );
+        return buffer.toString();
     }
 }

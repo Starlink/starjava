@@ -55,6 +55,7 @@ public class PhotometryWorker
      * Do the photometry calculations.
      */
     public void calculate( Ndx ndx, PhotomList photomList,
+                           PhotometryGlobals globals,
                            AperturePhotometry  aperturePhotometry )
         throws ServiceException
     {
@@ -104,9 +105,13 @@ public class PhotometryWorker
             document.createElement( photomList.getTagName() );
         photomList.encode( photomListElement );
 
-        //  TODO: encode PhotomList into an HDX document or the etc
-        //  component of the NDX. Add Element for object that
-        //  describes the details (application parameters)...
+        //  Transform the PhotometryGlobals into an Element.
+        Element globalsElement = 
+            document.createElement( globals.getTagName() );
+        globals.encode( globalsElement );
+
+        //  TODO: encode PhotomList and maybe globals into an HDX
+        //  document or the etc component of the NDX.
 
         //  Set up to call the web service.
         Service service = new Service();
@@ -116,17 +121,22 @@ public class PhotometryWorker
 
         call.setOperationName( "autophotom" );
 
-        //  We send the NDX and PhotomList as XML.
+        //  We send the NDX and PhotomList and global parameters as XML.
         call.addParameter( "ndx", XMLType.SOAP_ELEMENT, ParameterMode.IN );
         call.addParameter( "photomlist", XMLType.SOAP_ELEMENT,
+                           ParameterMode.IN );
+        call.addParameter( "globals", XMLType.SOAP_ELEMENT,
                            ParameterMode.IN );
 
         //  And get back a PhotomList.
         call.setReturnType( XMLType.SOAP_ELEMENT );
 
-        Object[] args = new Object[2];
+        //  Create the argument array and add the arguments in the
+        //  correct order.
+        Object[] args = new Object[3];
         args[0] = ndxElement;
         args[1] = photomListElement;
+        args[2] = globalsElement;
         try {
             Element result = (Element) call.invoke( args );
 

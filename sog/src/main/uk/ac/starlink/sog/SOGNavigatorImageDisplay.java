@@ -45,6 +45,9 @@ import uk.ac.starlink.jaiutil.HDXImageProcessor;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.Ndxs;
 
+import uk.ac.starlink.sog.photom.SOGCanvasDraw;
+import uk.ac.starlink.sog.photom.AperturePhotometryFrame;
+
 /**
  * Extends NavigatorImageDisplay (and DivaMainImageDisplay) to add
  * support for reading HDX files.
@@ -63,7 +66,7 @@ public class SOGNavigatorImageDisplay
     protected HDXImage hdxImage = null;
 
     /**
-     * Whether we're draw a grid or not.
+     * Whether we're drawing a grid or not.
      */
     protected boolean drawGrid = false;
 
@@ -71,6 +74,11 @@ public class SOGNavigatorImageDisplay
      * Simple counter for generating unique names.
      */
     private int counter= 0;
+
+    /**
+     * Specialized CanvasDraw.
+     */
+    protected SOGCanvasDraw sogCanvasDraw = null;
 
     /**
      * True when a NDX is loading. Used to enable certain events that
@@ -83,7 +91,10 @@ public class SOGNavigatorImageDisplay
     {
         //  Use an ImageProcessor with HDX support.
         super( parent, new HDXImageProcessor() );
-        //super( parent );
+
+        //  Add our CanvasDraw.
+        sogCanvasDraw = new SOGCanvasDraw( this );
+        setCanvasDraw( sogCanvasDraw );
     }
 
     /**
@@ -215,6 +226,14 @@ public class SOGNavigatorImageDisplay
     }
 
     /**
+     * Get the current NDX being displayed.
+     */
+    public Ndx getCurrentNdx()
+    {
+        return hdxImage.getCurrentNDX();
+    }
+
+    /**
      * Add an action to draw or remove a grid overlay.
      */
     private AbstractAction gridAction =
@@ -225,11 +244,9 @@ public class SOGNavigatorImageDisplay
                 AbstractButton b = (AbstractButton) evt.getSource();
                 if ( b.isSelected() ) {
                     showGridControls();
-                    //updatePlot();
                 }
                 else {
                     withdrawGridControls();
-                    //eraseGrid();
                 }
             }
         };
@@ -352,17 +369,7 @@ public class SOGNavigatorImageDisplay
         astPlot = new Plot( frameSet, graphRect, basebox );
 
         String options = plotConfiguration.getAst();
-        System.out.println( "Options = " + options );
         astPlot.set( options );
-
-        //astPlot.setGrid( true );
-        //astPlot.setDrawAxes( true );
-        //astPlot.setColour( "Grid", java.awt.Color.magenta.getRGB() );
-        //astPlot.setColour( "Border", java.awt.Color.magenta.getRGB() );
-        //astPlot.setColour( "NumLab", java.awt.Color.yellow.getRGB() );
-        //astPlot.setColour( "TextLab", java.awt.Color.yellow.getRGB() );
-        //astPlot.setColour( "Title", java.awt.Color.yellow.getRGB() );
-        //astPlot.setLabelling( "Interior" );
         astPlot.grid();
     }
 
@@ -423,7 +430,6 @@ public class SOGNavigatorImageDisplay
      */
     public boolean isJAIImageType( String filename ) 
     {
-        System.out.println( "isJAIImageType: " + filename );
         if ( filename.endsWith("xml") ) {
             return true;
         }
@@ -465,4 +471,51 @@ public class SOGNavigatorImageDisplay
         }
         return (Frame) ((AstTransform)transform).getFrameSet();
     }
+
+    //
+    // Aperture photometry toolbox
+    //
+    /**
+     * Add an action to draw or remove a grid overlay.
+     */
+    private AbstractAction photometryAction =
+        new AbstractAction( "Photometry" )
+        {
+            public void actionPerformed( ActionEvent evt )
+            {
+                AbstractButton b = (AbstractButton) evt.getSource();
+                if ( b.isSelected() ) {
+                    showPhotomControls();
+                }
+                else {
+                    withdrawPhotomControls();
+                }
+            }
+        };
+    public AbstractAction getPhotomAction()
+    {
+        return photometryAction;
+    }
+    
+    /**
+     * Erase the grid, if drawn.
+     */
+    public void withdrawPhotomControls()
+    {
+        if ( photometryWindow != null ) {
+            photometryWindow.setVisible( false );
+        }
+    }
+
+    /**
+     * Display a window for performing aperture photometry.
+     */
+    protected void showPhotomControls()
+    {
+        if ( photometryWindow == null ) {
+            photometryWindow = new AperturePhotometryFrame( this );
+        }
+        photometryWindow.setVisible( true );
+    }
+    private AperturePhotometryFrame photometryWindow = null;
 }

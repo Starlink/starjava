@@ -62,6 +62,9 @@ public class AperturePhotometry
     /** Create a list for storing references to the apertures */
     private PhotomList photomList = new PhotomList();
 
+    /** Create a model for storing global parameters */
+    private PhotometryGlobals globals = new PhotometryGlobals();
+
     /** The SOGCanvasDraw being used by the image */
     private SOGCanvasDraw sogCanvasDraw;
 
@@ -100,6 +103,11 @@ public class AperturePhotometry
         //  for displaying and changing the current aperture.
         ApertureController controller = new ApertureController( photomList  );
         pane.add( controller, "Aperture" );
+
+        //  Add a page for displaying and controlling the global parameters.
+        PhotometryGlobalsView globalsView = 
+            new PhotometryGlobalsView( globals );
+        pane.add( globalsView, "Parameters" );
 
         //  Add a page to show the details of all apertures.
         JTable table = new JTable(new PhotomListTableModel( photomList ));
@@ -171,6 +179,14 @@ public class AperturePhotometry
     public PhotomList getPhotomList()
     {
         return photomList;
+    }
+
+    /**
+     * Get a reference to the global parameters model.
+     */
+    public PhotometryGlobals getGlobals()
+    {
+        return globals;
     }
 
     /**
@@ -457,7 +473,7 @@ public class AperturePhotometry
             try {
                 PhotometryWorker worker = new PhotometryWorker();
                 worker.calculate( imageDisplay.getCurrentNdx(),
-                                  photomList, this );
+                                  photomList, globals, this );
             }
             catch (Exception e) {
                 System.out.println( "Aperture photometry calculations failed" );

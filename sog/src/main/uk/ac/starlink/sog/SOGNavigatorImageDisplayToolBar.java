@@ -33,6 +33,7 @@ public class SOGNavigatorImageDisplayToolBar
      * ToggleButton to control the drawing of the grid.
      */
     protected JToggleButton gridButton;
+    protected JToggleButton photomButton;
 
     /**
      * Add the items to the tool bar.
@@ -41,6 +42,7 @@ public class SOGNavigatorImageDisplayToolBar
         super.addToolBarItems();
         addSeparator();
         add( makeGridButton() );
+        //add( makePhotomButton() );
     }
 
     /**
@@ -63,6 +65,18 @@ public class SOGNavigatorImageDisplayToolBar
         return gridButton;
     }
 
+    protected JToggleButton makePhotomButton()
+    {
+        if ( photomButton == null ) {
+            photomButton =
+                makeToggleButton( "perform simple aperture photometry",
+                   ((SOGNavigatorImageDisplay)imageDisplay).getPhotomAction());
+        }
+        updateButton( photomButton, "Photometry",
+                      new ImageIcon( getClass().
+                          getResource( "images/aperture_photom.gif" ) ) );
+        return photomButton;
+    }
 
     /**
      * Update the toolbar display using the current text/pictures options.
@@ -71,5 +85,6 @@ public class SOGNavigatorImageDisplayToolBar
     public void update() {
         super.update();
         makeGridButton();
+        makePhotomButton();
     }
 }

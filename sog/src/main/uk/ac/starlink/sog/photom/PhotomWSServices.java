@@ -16,19 +16,21 @@ public class PhotomWSServices
      * Perform the calculations
      */
     public static Element autophotom( Element ndxElement, 
-                                      Element photomListElement )
+                                      Element photomListElement,
+                                      Element globalsElement )
         throws IOException
     {
         return PhotomWS.getInstance().autophotom( ndxElement, 
-                                                  photomListElement );
+                                                  photomListElement,
+                                                  globalsElement );
     }
 
     /**
      * Perform the calculations
      */
-    public static void autophotom( Element element, 
-                                   String positionsFile,
-                                   String resultsFile )
+    public static void simpleAutophotom( Element element, 
+                                         String positionsFile,
+                                         String resultsFile )
         throws IOException
     {
         PhotomWS.getInstance().autophotom( element, positionsFile, 

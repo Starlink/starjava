@@ -35,14 +35,17 @@ import uk.ac.starlink.soap.AppHttpSOAPServer;
  *
  * @author Peter W. Draper
  * @version $Id$
- */      
+ */
 public class PhotomWS
 {
     /** The application HTTP/SOAP server */
     private AppHttpSOAPServer server = null;
 
-    /** The port number for the HTTP server. Always re-define this. */
-    private int portNumber = 8083;
+    /** The default port number for the HTTP server.*/
+    private int defaultPortNumber = 8083;
+
+    /** The port number used for the HTTP server. Always re-define this. */
+    private int portNumber = defaultPortNumber;
 
     /** The instance */
     private static PhotomWS instance = null;
@@ -66,24 +69,48 @@ public class PhotomWS
     }
 
     /**
-     * Listen on the given port for remote RPC SOAP requests.
+     * Listen on either the default port or that defined by the
+     * "port.number" property for remote RPC SOAP requests.
      */
     private PhotomWS()
         throws IOException
     {
-        // Do nothing? Look for PHOTOM?
+        establishPortNumber();
+    }
+
+    /**
+     * Get an initial port number. This will be that defined by the
+     * "port.number" property, or the default value. Find out which
+     * using the getPortNumber() method.
+     */
+    protected void establishPortNumber()
+    {
+        String portString = System.getProperty( "port.number" );
+        if ( portString != null ) {
+            try {
+                portNumber = Integer.parseInt( portString );
+            }
+            catch ( NumberFormatException e ) {
+                // May be a bad number...
+                e.printStackTrace();
+                portNumber = defaultPortNumber;
+            }
+        }
+        else {
+            portNumber = defaultPortNumber;
+        }
     }
 
     /**
      * Set the port number of the HTTP server.
      */
-    public void setPortNumber( int portNum ) 
+    public void setPortNumber( int value )
     {
-        portNumber = portNum;
+        portNumber = value;
     }
 
     /**
-     * Return the port number being used by this application.
+     * Return the port number being used.
      */
     public int getPortNumber()
     {
@@ -97,7 +124,7 @@ public class PhotomWS
     public void start()
     {
         //  Create the HTTP/SOAP server. Need our local description to
-        //  define the SOAP services offered (by this class). 
+        //  define the SOAP services offered (by this class).
         URL deployURL = PhotomWS.class.getResource( "deploy.wsdd" );
         System.out.println( deployURL );
         try {
@@ -128,83 +155,107 @@ public class PhotomWS
     }
 
     /**
-     * Run autophotom on a NDX and PhotomList. The results are
-     * returned as a PhotomList. All program parameters are defaulted.
+     * Run autophotom on a NDX, PhotomList and PhotometryGlobals.
+     * The results are returned as a PhotomList. Any unspecified
+     * program parameters are defaulted.
      */
-    public Element autophotom( Element ndxElement, 
-                               Element photomListElement )
+    public Element autophotom( Element ndxElement,
+                               Element photomListElement,
+                               Element globalsElement )
         throws IOException
     {
-        System.out.println( "Autophotom:" + ndxElement.getTagName() + 
+        System.out.println( "Autophotom:" + ndxElement.getTagName() +
                             ", " + photomListElement.getTagName() );
-        
-        //  Convert the NDX into a temporary local NDF.
-        Ndx ndx = XMLNdxHandler.getInstance().makeNdx
-            ( new DOMSource( ndxElement ), AccessMode.READ );
-        NdfMaker maker = new NdfMaker();
-        HDSReference tmpNdf = maker.makeTempNDF( ndx );
-        
-        //  Create a local PhotomList and configure it from the given
-        //  Element.
-        PhotomList photomList = new PhotomList();
-        photomList.decode( photomListElement );
 
-        //  Convert the PhotomList into a local positions file.
-        File positionsFile = File.createTempFile( "photom_in", ".lis" );
-        photomList.write( positionsFile );
-        File resultsFile = File.createTempFile( "photom_out", ".lis" );
-
-        //System.out.println( "Exec: \n" + 
-        //                    "/stardev/bin/photom/autophotom in=" +
-        //                    tmpNdf.getContainerName() +
-        //                    " infile=" + positionsFile.getPath() + 
-        //                    " outfile=" + resultsFile.getPath() + 
-        //                    " centro=true accept" );
-
-        Process process = Runtime.getRuntime().exec
-            ( "/stardev/bin/photom/autophotom in=" +
-              tmpNdf.getContainerName() +
-              " infile=" + positionsFile.getPath() + 
-              " outfile=" + resultsFile.getPath() + 
-              " centro=true accept" );
-
-        System.out.println( "Starting wait..." );
-        int exitValue = 0;
+        if ( displayLabel != null ) {
+            displayLabel.setText( busyString );
+        }
         try {
-            exitValue = process.waitFor();
-        }
-        catch (InterruptedException e) {
-            throw new IOException( e.getMessage() );
-        }
 
-        // Remove temporary files that are no longer needed.
-        positionsFile.delete();
-        tmpNdf.getContainerFile().delete();
-
-        if ( exitValue != 0 ) {
+            //  Convert the NDX into a temporary local NDF.
+            Ndx ndx = XMLNdxHandler.getInstance().makeNdx
+                ( new DOMSource( ndxElement ), AccessMode.READ );
+            NdfMaker maker = new NdfMaker();
+            HDSReference tmpNdf = maker.makeTempNDF( ndx );
+            
+            //  Create a local PhotomList and configure it from the given
+            //  Element.
+            PhotomList photomList = new PhotomList();
+            photomList.decode( photomListElement );
+            
+            //  Convert the PhotomList into a local positions file.
+            File positionsFile = File.createTempFile( "photom_in", ".lis" );
+            photomList.write( positionsFile );
+            File resultsFile = File.createTempFile( "photom_out", ".lis" );
+            
+            //  Create a local PhotometryGlobals and configure it from the
+            //  given Element.
+            PhotometryGlobals globals = new PhotometryGlobals();
+            globals.decode( globalsElement );
+            
+            //  And convert this into a parameter-like string.
+            String extras = globals.toApplicationString();
+            
+            //  Create the command.
+            StringBuffer cmd = new StringBuffer();
+            cmd.append( "/stardev/bin/photom/autophotom" );
+            cmd.append( " in=" + tmpNdf.getContainerName() );
+            cmd.append( " infile=" + positionsFile.getPath() );
+            cmd.append( " outfile=" + resultsFile.getPath() );
+            cmd.append( " " + extras );
+            cmd.append( " accept" );
+            
+            //  And execute it.
+            Process process = Runtime.getRuntime().exec( cmd.toString() );
+            
+            System.out.println( "Starting wait..." );
+            int exitValue = 0;
+            try {
+                exitValue = process.waitFor();
+            }
+            catch (InterruptedException e) {
+                throw new IOException( e.getMessage() );
+            }
+            
+            // Remove temporary files that are no longer needed.
+            positionsFile.delete();
+            tmpNdf.getContainerFile().delete();
+            
+            if ( exitValue != 0 ) {
+                resultsFile.delete();
+                throw new IOException
+                    ( "Process exited with non-zero status: " + exitValue );
+            }
+            System.out.println( "Completed wait..." );
+            
+            //  Update the PhotomList and return it.
+            photomList.read( resultsFile );
             resultsFile.delete();
-            throw new IOException
-                ( "Process exited with non-zero status: " + exitValue );
-        }
-        System.out.println( "Completed wait..." );
+            
+            DocumentBuilderFactory factory = 
+                DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = null;
+            try {
+                builder = factory.newDocumentBuilder();
+            }
+            catch (Exception e) {
+                throw new IOException( "Error converting PhotomList to XML" );
+            }
+            Document document = builder.newDocument();
+            Element newPhotomListElement =
+                document.createElement( photomList.getTagName() );
+            photomList.encode( newPhotomListElement );
 
-        //  Update the PhotomList and return it.
-        photomList.read( resultsFile );
-        resultsFile.delete();
-
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = null;
-        try {
-            builder = factory.newDocumentBuilder();
+            if ( displayLabel != null ) {
+                displayLabel.setText( idleString );
+            }
+            return newPhotomListElement;
+        } 
+        finally { 
+            if ( displayLabel != null ) {
+                displayLabel.setText( idleString );
+            }
         }
-        catch (Exception e) {
-            throw new IOException( "Error converting PhotomList to XML" );
-        }
-        Document document = builder.newDocument();
-        Element newPhotomListElement = 
-            document.createElement( photomList.getTagName() );
-        photomList.encode( newPhotomListElement );
-        return newPhotomListElement;
     }
 
     /**
@@ -212,61 +263,75 @@ public class PhotomWS
      * The results are returned in a new local file resultsFile. All
      * program parameters are defaulted.
      */
-    public void autophotom( Element element, 
+    public void autophotom( Element element,
                             String positionsFile,
                             String resultsFile )
         throws IOException
     {
-        System.out.println( "Autophotom:" + element.getTagName() );
-        System.out.println( "positions file: " + positionsFile );
-        System.out.println( "results file: " + resultsFile );
-        
-        //  Convert the NDX into a local NDF.
-        Ndx ndx = XMLNdxHandler.getInstance().makeNdx
-            ( new DOMSource( element ), AccessMode.READ );
-        NdfMaker maker = new NdfMaker();
-        HDSReference tmpNdf = maker.makeTempNDF( ndx );
+        if ( displayLabel != null ) {
+            displayLabel.setText( busyString );
+        }
 
-        //System.out.println( "Exec: \n" + 
-        //                    "/stardev/bin/photom/autophotom in=" +
-        //                    tmpNdf.getContainerName() +
-        //                    " infile=" + positionsFile + 
-        //                    " outfile=" + resultsFile + 
-        //                    " centro=true accept" );
-
-        Process process = Runtime.getRuntime().exec
-            ( "/stardev/bin/photom/autophotom in=" +
-              tmpNdf.getContainerName() +
-              " infile=" + positionsFile + 
-              " outfile=" + resultsFile + 
-              " centro=true accept" );
-
-        System.out.println( "Starting wait..." );
-        int exitValue = 0;
         try {
-            exitValue = process.waitFor();
-        }
-        catch (InterruptedException e) {
-            throw new IOException( e.getMessage() );
-        }
+            System.out.println( "Autophotom:" + element.getTagName() );
+            System.out.println( "positions file: " + positionsFile );
+            System.out.println( "results file: " + resultsFile );
 
-        // Remove temporary file.
-        tmpNdf.getContainerFile().delete();
-        if ( exitValue != 0 ) {
-            throw new IOException
-                ( "Process exited with non-zero status: " + exitValue );
+            //  Convert the NDX into a local NDF.
+            Ndx ndx = XMLNdxHandler.getInstance().makeNdx
+                ( new DOMSource( element ), AccessMode.READ );
+            NdfMaker maker = new NdfMaker();
+            HDSReference tmpNdf = maker.makeTempNDF( ndx );
+            
+            //  Create the command.
+            StringBuffer cmd = new StringBuffer();
+            cmd.append( "/stardev/bin/photom/autophotom" );
+            cmd.append( " in=" + tmpNdf.getContainerName() );
+            cmd.append( " infile=" + positionsFile );
+            cmd.append( " outfile=" + resultsFile );
+            cmd.append( " accept" );
+            
+            //  And execute it.
+            Process process = Runtime.getRuntime().exec( cmd.toString() );
+            
+            System.out.println( "Starting wait..." );
+            int exitValue = 0;
+            try {
+                exitValue = process.waitFor();
+            }
+            catch (InterruptedException e) {
+                throw new IOException( e.getMessage() );
+            }
+            
+            // Remove temporary file.
+            tmpNdf.getContainerFile().delete();
+            if ( exitValue != 0 ) {
+                throw new IOException
+                    ( "Process exited with non-zero status: " + exitValue );
+            }
+            System.out.println( "Completed wait..." );
+        } 
+        finally {
+            if ( displayLabel != null ) {
+                displayLabel.setText( idleString );
+            }
         }
-        System.out.println( "Completed wait..." );
     }
 
+    private static JLabel displayLabel = null;
+    private static String idleString = 
+        ("<html><h2><font color=red><strike>PHOTOM Web Service</strike></font></h2>");
+    private static String busyString = 
+        ("<html><h2><font color=green><u>PHOTOM Web Service</u></font></h2>");
+
+    /** Run up the webservice as an application */
     public static void main( String[] args )
     {
         JFrame frame = new JFrame( "PHOTOM Web Service (Test)" );
         PhotomWS soapServer = PhotomWS.getInstance();
         soapServer.start();
-        JLabel label = new JLabel
-        ("<html><h1><font color=red>PHOTOM Web Service</font></h1>");
-        frame.getContentPane().add( label );
+        displayLabel = new JLabel( idleString );
+        frame.getContentPane().add( displayLabel );
         frame.pack();
         frame.setVisible( true );
     }
