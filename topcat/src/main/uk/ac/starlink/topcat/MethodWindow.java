@@ -164,18 +164,17 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
                                                 JOptionPane.QUESTION_MESSAGE,
                                                 null, null, cname );
                     cname = c == null ? null : c.toString();
-                    if ( c == null ) {
+                    if ( cname == null ) {
                         return;
                     }
                     else {
-                        cname = c.toString();
-                        try {
-                            Class clazz = this.getClass().forName( cname );
+                        Class clazz = JELUtils.classForName( cname );
+                        if ( clazz != null ) {
                             JELUtils.getGeneralStaticClasses().add( clazz );
                             addStaticClass( clazz, root );
                             return;
                         }
-                        catch ( ClassNotFoundException e ) {
+                        else {
                             JOptionPane
                            .showMessageDialog( subpar, "The class " + cname + 
                                                " is not on the class path",
@@ -199,13 +198,13 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
 
         /* Put the tree in a scrolling panel. */
         JScrollPane treeScroller = new JScrollPane( tree );
-        treeScroller.setPreferredSize( new Dimension( 400, 400 ) );
+        treeScroller.setPreferredSize( new Dimension( 350, 450 ) );
 
         /* Set up a documentation viewer. */
         docPane = new JEditorPane();
         docPane.setEditable( false );
         JScrollPane docScroller = new JScrollPane( docPane );
-        docScroller.setPreferredSize( new Dimension( 500, 400 ) );
+        docScroller.setPreferredSize( new Dimension( 500, 450 ) );
 
         /* Set up the main panel with a split pane. */
         JSplitPane splitter = 
