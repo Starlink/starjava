@@ -116,4 +116,27 @@ public abstract class RestrictedColumnComboBoxModel
         }
     }
 
+    /**
+     * Returns a column combo box model which checks for compatibility
+     * with a given class.  Class matching is not strict in the following
+     * sense: any numeric class ({@link java.lang.Number}) is considered 
+     * assignable to any other numeric class.
+     *
+     * @param  colModel   the column model
+     * @param  hasNone    true if you want a NO_COLUMN entry
+     * @param  clazz      the class that available columns have to have
+     *                    data assignable to
+     */
+    public static RestrictedColumnComboBoxModel makeClassColumnComboBoxModel(
+            TableColumnModel colModel, boolean hasNone, Class clazz ) {
+        if ( Number.class.isAssignableFrom( clazz ) ) {
+            clazz = Number.class;
+        }
+        final Class effClazz = clazz;
+        return new RestrictedColumnComboBoxModel( colModel, hasNone ) {
+            public boolean acceptColumn( ColumnInfo colInfo ) {
+                return effClazz.isAssignableFrom( colInfo.getContentClass() );
+            }
+        };
+    }
 }
