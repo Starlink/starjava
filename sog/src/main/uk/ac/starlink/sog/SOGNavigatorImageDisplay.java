@@ -456,6 +456,11 @@ public class SOGNavigatorImageDisplay
             setWCS( null );
             return;
         }
+        catch( NoClassDefFoundError e ) {
+            e.printStackTrace();
+            setWCS( null );
+            return;
+        }
         if ( ! getWCS().isWCS() ) {
             setWCS( null );
         }
@@ -492,7 +497,7 @@ public class SOGNavigatorImageDisplay
     }
 
     protected PlotConfigurator plotConfigurator = null;
-    protected PlotConfiguration plotConfiguration = new PlotConfiguration();
+    protected PlotConfiguration plotConfiguration = null;
     protected GraphicsHints graphicsHints = new GraphicsHints();
 
     /**
@@ -500,6 +505,25 @@ public class SOGNavigatorImageDisplay
      */
     protected void showGridControls()
     {
+        if ( plotConfiguration == null ) {
+            try {
+                plotConfiguration = new PlotConfiguration();
+            }
+            catch ( UnsatisfiedLinkError e ) {
+                //  Failed to load libraries for plotting overlaying.
+                plotConfiguration = null;
+                System.out.println( "Cannot display WCS grids, no AST support" );
+                return;
+            }
+            catch( NoClassDefFoundError e ) {
+                //  Failed to find an AST class, must have failed to load
+                //  JNIAST libraries already.
+                plotConfiguration = null;
+                System.out.println( "Cannot display WCS grids, no AST support" );
+                return;
+            }
+        }
+
         if ( plotConfigurator == null ) {
             plotConfigurator =
                 new PlotConfigurator( "Grid Overlay Configuration",
