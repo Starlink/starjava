@@ -141,6 +141,17 @@ public interface ValueInfo {
     String formatValue( Object value, int maxLength );
 
     /**
+     * Returns an object of the sort described by this <tt>ValueInfo</tt>
+     * represented by the given string <tt>rep</tt>.
+     *
+     * @param  rep  the string representation of a value described by 
+     *         this <tt>ValueInfo</tt>
+     * @return  the Object value represented by <tt>rep</tt>; must match
+     *          this info's content class (or be null)
+     */
+    Object unformatString( String rep );
+
+    /**
      * Returns a renderer suitable for rendering values described by 
      * this object in a <tt>JTable</tt> cell.
      * The renderer should ideally render objects in such a way that

@@ -155,12 +155,26 @@ public abstract class AbstractStarTable implements StarTable {
         return false;
     }
 
+    /**
+     * The <tt>AbstractStarTable</tt> implementation of this method throws an
+     * <tt>UnsupportedOperationException</tt>, since unless otherwise
+     * provided there is no random access.
+     */
     public Object getCell( long irow, int icol ) throws IOException {
         throw new UnsupportedOperationException( "No random access available" );
     }
 
+    /**
+     * The <tt>AbstractStarTable</tt> implementation of this method 
+     * constructs a row by repeated invocation of {@link #getCell}.
+     */
     public Object[] getRow( long irow ) throws IOException {
-        throw new UnsupportedOperationException( "No random access available" );
+        int ncol = getColumnCount();
+        Object[] row = new Object[ ncol ];
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            row[ icol ] = getCell( irow, icol );
+        }
+        return row;
     }
 
     abstract public ColumnInfo getColumnInfo( int icol );

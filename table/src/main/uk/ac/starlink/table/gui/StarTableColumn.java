@@ -1,7 +1,6 @@
 package uk.ac.starlink.table.gui;
 
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableCellRenderer;
 import uk.ac.starlink.table.ColumnInfo;
 
 /**
@@ -31,9 +30,8 @@ public class StarTableColumn extends TableColumn {
     public StarTableColumn( ColumnInfo colinfo, int modelIndex ) {
         super( modelIndex );
         this.colinfo = colinfo;
-        TableCellRenderer rend = colinfo.getCellRenderer();
-        setCellRenderer( rend != null ? rend
-                                      : new ValueInfoCellRenderer( colinfo ) );
+        setCellRenderer( colinfo.getCellRenderer() );
+        setCellEditor( colinfo.getCellEditor() );
         setHeaderValue( colinfo.getName() );
     }
 

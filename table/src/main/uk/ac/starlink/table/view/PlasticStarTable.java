@@ -70,5 +70,13 @@ public class PlasticStarTable extends ColumnStarTable {
                .setAuxDatum( new DescribedValue( COLID_INFO, colid ) );
         super.addColumn( coldata );
     }
+
+    
+    public void setColumn( int icol, ColumnData coldata ) {
+        String colid = "$" + ( icol + 1 );
+        coldata.getColumnInfo()
+               .setAuxDatum( new DescribedValue( COLID_INFO, colid ) );
+        super.setColumn( icol, coldata );
+    }
 }
 

@@ -4,8 +4,12 @@ import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableCellEditor;
 import uk.ac.starlink.table.gui.NumericCellRenderer;
+import uk.ac.starlink.table.gui.ValueInfoCellEditor;
+import uk.ac.starlink.table.gui.ValueInfoCellRenderer;
 
 /**
  * Default implementation of the <tt>ValueInfo</tt> interface.
@@ -23,6 +27,8 @@ public class DefaultValueInfo implements ValueInfo {
     private Class contentClass = Object.class;
     private boolean isNullable;
     private int[] shape = new int[] { -1 };
+    private TableCellRenderer cellRenderer;
+    private TableCellEditor cellEditor;
 
     /**
      * Constructs a new generic <tt>DefaultValueInfo</tt> object
@@ -158,6 +164,13 @@ public class DefaultValueInfo implements ValueInfo {
             throw new IllegalArgumentException( 
                 "Primitive content class " + contentClass + " not permitted" );
         }
+
+        /* If the content class has changed, reset any cached state which
+         * depends on it. */
+        if ( contentClass != this.contentClass ) {
+            cellRenderer = null;
+            cellEditor = null;
+        }
         this.contentClass = contentClass;
     }
 
@@ -286,22 +299,45 @@ public class DefaultValueInfo implements ValueInfo {
     }
 
     /**
-     * Returns a custom renderer for the numeric wrapper types, and 
-     * <tt>null</tt> for others.  Subclasses should override this method
+     * Returns a renderer suitable for rendering the data described by 
+     * this info.  Subclasses should override this method
      * if they can format their values in a component better than
      * allowing the <tt>formatValue</tt> text to be put into a cell.
      *
-     * @return  a custom renderer or <tt>null</tt>, depending on the value
-     *          of <tt>getContentClass</tt>
+     * @return  a custom renderer
      */
     public TableCellRenderer getCellRenderer() {
-        Class clazz = getContentClass();
-        if ( Number.class.isAssignableFrom( clazz ) ) {
-            return new NumericCellRenderer( clazz );
+        if ( cellRenderer == null ) {
+            Class clazz = getContentClass();
+            if ( Number.class.isAssignableFrom( clazz ) ) {
+                cellRenderer = new NumericCellRenderer( clazz );
+            }
+            else if ( clazz.equals( Boolean.class ) ) {
+                cellRenderer = new JTable().getDefaultRenderer( Boolean.class );
+            }
+            else {
+                cellRenderer = new ValueInfoCellRenderer( this );
+            }
         }
-        else {
-            return null;
+        return cellRenderer;
+    }
+
+    /**
+     * Returns a cell editor suitable for editing the data described by
+     * this info, or <tt>null</tt> if no user editing is possible.
+     * Subclasses should override this method if they can do better than
+     * calling the <tt>unformatValue</tt> method to turn user text 
+     * into a cell value (or if they don't even want to attempt that,
+     * in which case they should return null).
+     *
+     * @return  a custom editor, or <tt>null</tt>
+     */
+    public TableCellEditor getCellEditor() {
+        if ( cellEditor == null ) {
+            Class clazz = getContentClass();
+            cellEditor = ValueInfoCellEditor.makeEditor( this );
         }
+        return cellEditor;
     }
 
     public String formatValue( Object value, int maxLength ) {
@@ -458,6 +494,64 @@ public class DefaultValueInfo implements ValueInfo {
                 }
             }
             return buf.toString();
+        }
+    }
+
+    public Object unformatString( String rep ) {
+
+        /*
+         * This is a not-very-OO stopgap solution to this problem.
+         * the proper solution requires some significant rejigging of
+         * the class hierarchy in the tables package. 
+         * I am writing demos that need to be working in a few days
+         * and don't have time for it now.  mbt.
+         */
+        Class clazz = getContentClass();
+        if ( clazz == Boolean.class ) {
+            return Boolean.valueOf( rep );
+        }
+        else if ( clazz == Character.class ) {
+            if ( rep.length() == 1 ) {
+                return new Character( rep.charAt( 0 ) );
+            }
+            else if ( rep.trim().length() == 1 ) {
+                return new Character( rep.trim().charAt( 0 ) );
+            }
+            else {
+                throw new IllegalArgumentException();
+            }
+        }
+        else if ( clazz == Byte.class ) {
+            return Byte.valueOf( rep );
+        }
+        else if ( clazz == Short.class ) {
+            return Short.valueOf( rep );
+        }
+        else if ( clazz == Integer.class ) {
+            return Integer.valueOf( rep );
+        }
+        else if ( clazz == Float.class ) {
+            if ( rep.trim().length() == 0 ) {
+                return new Float( Float.NaN );
+            }
+            else {
+                return Float.valueOf( rep );
+            }
+        }
+        else if ( clazz == Double.class ) {
+            if ( rep.trim().length() == 0 ) {
+                return new Double( Double.NaN );
+            }
+            else {
+                return Double.valueOf( rep );
+            }
+        }
+        else if ( clazz == String.class ) {
+            return rep;
+        }
+        else {
+            throw new UnsupportedOperationException(
+                "No unformatter available" );
         }
     }
 

@@ -356,6 +356,53 @@ public class TableViewer extends JFrame {
             scrollpane.getViewport().setViewPosition( new Point( 0, 0 ) );
             StarJTable.configureColumnWidths( jtab, MAX_COLUMN_WIDTH,
                                               MAX_SAMPLE_ROWS );
+
+            /* Add subsets for any boolean type columns. */
+            int ncol = startab.getColumnCount();
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                final ColumnInfo cinfo = startab.getColumnInfo( icol );
+                if ( cinfo.getContentClass() == Boolean.class ) {
+                    final int jcol = icol;
+                    RowSubset yes = new RowSubset() {
+                        public String getName() {
+                            return cinfo.getName();
+                        }
+                        public boolean isIncluded( long lrow ) {
+                            try {
+                                return ((Boolean) dataModel
+                                                 .getCell( lrow, jcol ))
+                                      .booleanValue();
+                            }
+                            catch ( IOException e ) {
+                                return false;
+                            }
+                        }
+                        public String toString() {
+                            return getName();
+                        }
+                    };
+                    RowSubset no = new RowSubset() {
+                        public String getName() {
+                            return "not_" + cinfo.getName();
+                        }
+                        public boolean isIncluded( long lrow ) {
+                            try {
+                                return ! ((Boolean) dataModel
+                                                   .getCell( lrow, jcol ))
+                                        .booleanValue();
+                            }
+                            catch ( IOException e ) {
+                                return false;
+                            }
+                        }
+                        public String toString() {
+                            return getName();
+                        }
+                    };
+                    subsets.add( yes );
+                    subsets.add( no );
+                }
+            }
         }
         else {
             jtab.setColumnModel( null );

@@ -3,6 +3,8 @@ package uk.ac.starlink.table.view;
 import java.io.IOException;
 import javax.swing.table.AbstractTableModel;
 import uk.ac.starlink.table.AbstractStarTable;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.EditableColumn;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -15,7 +17,7 @@ import uk.ac.starlink.table.StarTable;
  */
 public class ViewerTableModel extends AbstractTableModel {
 
-    private StarTable startable;
+    private PlasticStarTable startable;
     private RowSubset rset;
     private int[] order;
     private int[] rowMap;
@@ -29,7 +31,7 @@ public class ViewerTableModel extends AbstractTableModel {
      *          returns <tt>false</tt>
      * @see     uk.ac.starlink.table.Tables#randomTable
      */
-    public ViewerTableModel( StarTable startable ) {
+    public ViewerTableModel( PlasticStarTable startable ) {
         this.startable = startable;
 
         /* Ensure that we have a random access table to use, and that it
@@ -150,6 +152,35 @@ public class ViewerTableModel extends AbstractTableModel {
         catch ( IOException e ) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public boolean isCellEditable( int irow, int icol ) {
+        // return startable.getColumnData( icol ).isWritable();
+        return true;
+    }
+
+    public void setValueAt( Object val, int irow, int icol ) {
+
+        /* Check if this column is writable or not.  If it is not, then
+         * we will have to replace it with a column which is writable,
+         * ensure that it contains the same data as the original, and
+         * slot it into the same place as the original column. */
+        ColumnData coldat = startable.getColumnData( icol );
+        if ( ! startable.getColumnData( icol ).isWritable() ) {
+            ColumnData oldcol = startable.getColumnData( icol );
+            ColumnData newcol = new EditableColumn( oldcol );
+            startable.setColumn( icol, newcol );
+        }
+
+        /* We have a writable column.  Write the value to the appropriate
+         * cell. */
+        assert startable.getColumnData( icol ).isWritable();
+        try {
+            startable.getColumnData( icol ).storeValue( (long) irow, val );
+        }
+        catch ( IOException e ) {
+            e.printStackTrace();
         }
     }
 
