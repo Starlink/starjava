@@ -20,10 +20,6 @@
 #     By default, it is assumed that you are building a stand-alone program
 #     which does not produce graphical output. However, switches are provided
 #     for linking other types of program.
-#
-#     Note, since AST uses the SLALIB library (Starlink User Note SUN/67) for 
-#     its low-level coordinate conversions, SLALIB must be installed prior to 
-#     using AST. 
 
 #  Invocation:
 #c     cc program.c -L/star/lib `ast_link [switches]` -o program
@@ -39,13 +35,7 @@
 #     that both implementations of SLALIB use the same name (``libsla.a'') for
 #     their library, so you must ensure that the directories searched to
 #     resolve library references will result in the correct version of this
-#     file (Fortran or C) being located. Note, the Fortran version of SLALIB
-#     includes a script called sla_link which should be available on the 
-#     current PATH if the Fortran version is to be used. If this script cannot
-#     be found, then no options to link with SLALIB will be included and 
-#     consequently errors will probably be reported by the compiler because 
-#     of unresolved references to the SLALIB routines used by AST. If the 
-#     ``-csla'' option is used, then the sla_link script is not needed.
+#     file (Fortran or C) being located.
 #
 #     - ``-ems'': Requests that the program be linked so that error messages
 #     produced by the AST library are delivered via the Starlink EMS (Error
@@ -146,7 +136,7 @@
 #f        reference.
 
 #  Copyright:
-#     Copyright (C) 2004 Central Laboratory of the Research Councils
+#     <COPYRIGHT_STATEMENT>
 
 #  Authors:
 #     RFWS: R.F. Warren-Smith (STARLINK)
@@ -170,6 +160,8 @@
 #        the "find" function, so that ast_link can be used on Debian Linux.
 #     23-JAN-2004 (DSB):
 #        Added switches to support older grf implementations.
+#     24-AUG-2004 (DSB):
+#        Removed f77='y' from -ems case.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -177,11 +169,13 @@
 
 #--
 
-#  This line is edited during installation of this script to define a list
+#  This line is edited during configuration of this script to define a list
 #  of the libraries that must be linked in order to resolve Fortran 77
 #  references made from within a C main program. Typically, these will arise
-#  from libraries written in Fortran which the C program calls.
-      flibs='FLIBS'
+#  from libraries written in Fortran which the AST library (or the C
+#  program) calls.  The value here is worked out by the autoconf macro
+#  AC_FC_LIBRARY_LDFLAGS.
+      flibs=' -L/mbt/starauto/lib -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.2 -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.2/../../.. -lfrtbegin -lg2c -lm -lgcc_s'
 
 #  This function searches the directory path specified in PATH, looking for
 #  an executable file which is not a directory. If found, it echos the full
@@ -329,8 +323,7 @@
 
 #  If using EMS, link with the AST EMS interface and the EMS library via the
 #  link script (if found).
-      ems) args="${args} -last_ems `\`find ems_link\``"
-           f77='y';;
+      ems) args="${args} -last_ems `\`find ems_link\``";;
 
 #  If using own error reporting, do not produce any arguments.
       my) :;;

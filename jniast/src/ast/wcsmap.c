@@ -71,7 +71,7 @@ f     The WcsMap class does not define any new routines beyond those
 *     which are applicable to all Mappings.
 
 *  Copyright:
-*     Copyright (C) 2004 Central Laboratory of the Research Councils
+*     <COPYRIGHT_STATEMENT>
 
 *  Authors:
 *     DSB: D.S. Berry (Starlink)
@@ -157,6 +157,10 @@ f     The WcsMap class does not define any new routines beyond those
 *        Transform.
 *     23-APR-2004 (DSB):
 *        Changes to simplification algorithm.
+*     1-SEP-2004 (DSB):
+*        CopyPV rewritten to avoid assumption that the input and output
+*        WcsMaps have the same number of axes and that the lon/lat axes have 
+*        the same indices.
 *class--
 */
 
@@ -326,8 +330,11 @@ void astClear##attr##_( AstWcsMap *this, int axis ) { \
 static type Get##attr( AstWcsMap *this, int axis ) { \
    type result;                  /* Result to be returned */ \
 \
+/* Initialise */ \
+   result = (bad_value); \
+\
 /* Check the global error status. */ \
-   if ( !astOK ) return (bad_value); \
+   if ( !astOK ) return result; \
 \
 /* Validate the axis index. */ \
    if( axis < 0 || axis >= nval ){ \
@@ -506,8 +513,11 @@ void astSet##attr##_( AstWcsMap *this, int axis, type value ) { \
 static int Test##attr( AstWcsMap *this, int axis ) { \
    int result;                   /* Value to return */ \
 \
+/* Initialise */ \
+   result = 0; \
+\
 /* Check the global error status. */ \
-   if ( !astOK ) return 0; \
+   if ( !astOK ) return result; \
 \
 \
 /* Validate the axis index. */ \
@@ -1155,7 +1165,12 @@ static void CopyPV( AstWcsMap *in, AstWcsMap *out ) {
 
 /* Local Variables: */
    int i;                        /* Axis index */
-   int naxis;                    /* No. of axis in the WcsMap */
+   int latax_in;                 /* Index of input latitude axis */
+   int latax_out;                /* Index of output latitude axis */
+   int lonax_in;                 /* Index of input longitude axis */
+   int lonax_out;                /* Index of output longitude axis */
+   int nax_in;                   /* No. of axis in the input WcsMap */
+   int nax_out;                  /* No. of axis in the output WcsMap */
 
 /* Check the global error status. */
    if ( !astOK ) return;
@@ -1171,27 +1186,43 @@ static void CopyPV( AstWcsMap *in, AstWcsMap *out ) {
    are no projection parameters. */
    if( in->np && in->p ){
 
-/* Store the number of axes in the WcsMap */
-      naxis = astGetNin( in );
+/* Store the number of axes in the input and output WcsMaps */
+      nax_in = astGetNin( in );
+      nax_out = astGetNin( out );
 
-/* Copy the array holding the number of projection parameters associated
-   with each axis. */
-      out->np = (int *) astStore( NULL, (void *) in->np, sizeof(int)*naxis );
+/* Allocate memory for the array holding the number of projection parameters 
+   associated with each axis. */
+      out->np = (int *) astMalloc( sizeof( int )*nax_out );
 
 /* Allocate memory for the array of pointers which identify the arrays
    holding the parameter values. */
-      out->p = (double **) astMalloc( sizeof( double *)*naxis );
+      out->p = (double **) astMalloc( sizeof( double *)*nax_out );
 
-/* Check this pointer can be used */
+/* Check pointers can be used */
       if( astOK ) {
 
-/* Loop round each axis. */
-         for( i = 0; i < naxis; i++ ){
-
-/* Copy the array holding the projection parameter values for this axis. */
-            out->p[ i ] = (double *) astStore( NULL, (void *) in->p[ i ], 
-                                               sizeof(double)*in->np[ i ] );
+/* Initialise the above arrays. */
+         for( i = 0; i < nax_out; i++ ) {
+            (out->np)[ i ] = 0;
+            (out->p)[ i ] = NULL;
          }
+
+/* Copy the longitude and latitude values from in to out (other axes do
+   not have projection parameters). */
+         lonax_in = astGetWcsAxis( in, 0 );
+         latax_in = astGetWcsAxis( in, 1 );
+         lonax_out = astGetWcsAxis( out, 0 );
+         latax_out = astGetWcsAxis( out, 1 );
+
+         (out->np)[ lonax_out ] = (in->np)[ lonax_in ];
+         (out->p)[ lonax_out ] = (double *) astStore( NULL, 
+                                          (void *) (in->p)[ lonax_in ], 
+                                          sizeof(double)*(in->np)[ lonax_in ] );
+
+         (out->np)[ latax_out ] = (in->np)[ latax_in ];
+         (out->p)[ latax_out ] = (double *) astStore( NULL, 
+                                          (void *) (in->p)[ latax_in ], 
+                                          sizeof(double)*(in->np)[ latax_in ] );
       }
 
 /* If an error has occurred, free the output arrays. */
@@ -2433,6 +2464,11 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* Check the global error status. */
    if ( !astOK ) return result;
 
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   i1 = 0;
+   i2 = 0;
+
 /* Get the number of axes for the WcsMap. */
    nin = astGetNin( ( *map_list )[ where ] );
 
@@ -2761,6 +2797,10 @@ static void PermGet( AstPermMap *map, int **outperm, int **inperm,
 
 /* Check the global error status and the supplied pointers. */
    if ( !astOK || !outperm || !inperm || !consts ) return;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   nc = 0;
 
 /* Get the number of input and output axes for the supplied PermMap. */
    nin = astGetNin( map );
@@ -3617,6 +3657,11 @@ static void WcsPerm( AstMapping **maps, int *inverts, int iwm  ){
 
 /* Check the global error status. */
    if ( !astOK ) return;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   newpm = NULL;
+   newwm = NULL;
 
 /* Store pointers to the supplied WcsMap and the PermMap. */
    wm = (AstWcsMap *) maps[ iwm ];

@@ -23,7 +23,7 @@
 *     The grf module is not a class and does not inherit.
 
 *  Copyright:
-*     Copyright (C) 2004 Central Laboratory of the Research Councils
+*     <COPYRIGHT_STATEMENT>
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)

@@ -190,7 +190,7 @@ c     - Title: The Plot title drawn using astGrid
 f     - Title: The Plot title drawn using AST_GRID
 
 *  Copyright:
-*     Copyright (C) 2004 Central Laboratory of the Research Councils
+*     <COPYRIGHT_STATEMENT>
 
 *  Authors:
 *     DSB: D.S. Berry (Starlink)
@@ -501,6 +501,28 @@ f     - Title: The Plot title drawn using AST_GRID
 *        which the position is undefined in grapics coords). Therfoer
 *        Norm1 has been modified to use 3 different reference values
 *        in an attempt to find one which gives good axis values.
+*     25-AUG-2004 (DSB):
+*        - Correct handling of "fmt" pointer in TickMarks function (identified 
+*        and reported by Bill Joye).
+*     14-SEP-2004 (DSB):
+*        - In EdgeLabels change definition of "distinct labels". Used to
+*        be that labels were distinct if they had different formatted
+*        labels. Now they are distinct if they have different floating
+*        point numerical values. Fixes a bug reported by Micah Johnson.
+*        - TickMarks re-structured to optimise the precision (no. of digits) 
+*        even if a value has been assigned for the Format attribute, but only 
+*        if the format specifier includes a wildcard precision specifier. For 
+*        instance, to get graphical separators a format must be specified 
+*        which included the "g" flag. As things were, this would prevent 
+*        the optimisation of the digits value. Can now use "dms.*g" to
+*        allow the number of digits to be optimised.
+*     29-SEP-2004 (DSB):
+*        - In FindMajTicks, begin the process of increasing "nfill" from
+*        a value of zero rather than one (in many cases no filling is
+*        needed).
+*        - In GetTicks (linear tick marks section) ensure that 10
+*        *different* gap sizes are used before giving up. Previously, the
+*        10 tests could include duplicated gap values.
 *class--
 */
 
@@ -707,8 +729,11 @@ void astClear##attr##_( AstPlot *this, int axis ) { \
 static type Get##attr( AstPlot *this, int axis ) { \
    type result;                  /* Result to be returned */ \
 \
+/* Initialise */ \
+   result = (bad_value); \
+\
 /* Check the global error status. */ \
-   if ( !astOK ) return (bad_value); \
+   if ( !astOK ) return result; \
 \
 /* Validate the axis index. */ \
    if( axis < 0 || axis >= nval ){ \
@@ -887,9 +912,11 @@ void astSet##attr##_( AstPlot *this, int axis, type value ) { \
 static int Test##attr( AstPlot *this, int axis ) { \
    int result;                   /* Value to return */ \
 \
-/* Check the global error status. */ \
-   if ( !astOK ) return 0; \
+/* Initialise */ \
+   result = 0; \
 \
+/* Check the global error status. */ \
+   if ( !astOK ) return result; \
 \
 /* Validate the axis index. */ \
    if( axis < 0 || axis >= nval ){ \
@@ -985,8 +1012,11 @@ static type GetUsed##attr( AstPlot *, int ); \
 static type GetUsed##attr( AstPlot *this, int axis ) { \
    type result;                  /* Result to be returned */ \
 \
+/* Initialise */ \
+   result = (bad_value); \
+\
 /* Check the global error status. */ \
-   if ( !astOK ) return (bad_value); \
+   if ( !astOK ) return result; \
 \
 /* Validate the axis index. */ \
    if( axis < 0 || axis >= nval ){ \
@@ -5328,7 +5358,9 @@ static int CheckLabels( AstFrame *frame, int axis, double *ticks, int nticks,
    int ok;                   /* The returned flag */
 
 /* Fill the supplied label list with NULL pointers. */
-   for( i = 0; i < nticks; i++ ) list[ i ] = NULL;
+   if( list ) {
+      for( i = 0; i < nticks; i++ ) list[ i ] = NULL;
+   }
 
 /* Check the global status. */
    if( !astOK ) return 0;
@@ -5421,6 +5453,9 @@ static char **CheckLabels2( AstFrame *frame, int axis, double *ticks, int nticks
 *     then memory is allocated to hold the new (shorter) labels, and a
 *     pointer to this memory is returned. If any new label is longer than 
 *     the corresponding old label, then a NULL pointer is returned.
+*
+*     No check is performed on whether or not there are any identical
+*     adjacent labels.
 
 *  Parameters:
 *     frame
@@ -6319,6 +6354,10 @@ f     (e.g. using AST_TRAN2), any clipped output points are assigned
 
 /* Check the global error status. */
    if ( !astOK ) return;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   ifrm = 0;
 
 /* Get a pointer to the FrameSet at the start of the Plot. */
    fset = (AstFrameSet *) this;
@@ -7501,6 +7540,14 @@ static void CrvLine( AstPlot *this, double xa, double ya, double xb, double yb,
 
 /* Check inherited global status. */
    if( !astOK ) return;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   dl = 0.0;
+   xam = 0.0;
+   xbm = 0.0;
+   yam = 0.0;
+   ybm = 0.0;
 
 /* Store the shifts in x and y. */
    dx = xb - xa;
@@ -9117,6 +9164,14 @@ static void DrawTicks( AstPlot *this, TickInfo **grid, int drawgrid,
 /* Check the global status. */
    if( !astOK ) return;
 
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   a = NULL;
+   delta1 = 0.0;
+   delta2 = 0.0;
+   lblat2 = 0.0;
+   uy = 0.0;
+
 /* Get the minimum dimension of the plotting ares. */
    mindim = MIN( this->xhi - this->xlo, this->yhi - this->ylo );
 
@@ -9711,11 +9766,16 @@ static int EdgeLabels( AstPlot *this, int ink, TickInfo **grid,
    int near;              /* Draw a label on the near edge? */
    int nedge[2];          /* No. of edge labels for each axis */
    int ok;                /* Can the current tick mark be labelled on the edge? */
-   int textfound;         /* Label text has already been used? */
+   int labfound;          /* Label value has already been used? */
    int tick;              /* Tick index */
 
 /* Check the global status. */
    if( !astOK ) return 0;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   xref = 0.0;
+   yref = 0.0;
 
 /* See if escape sequences in text strings are to be interpreted. */
    esc = astGetEscape( this );
@@ -9943,14 +10003,15 @@ static int EdgeLabels( AstPlot *this, int ink, TickInfo **grid,
 
 /* If this label has not already been included in the label list, indicate
    that we have found another usable label. */
-               textfound = 0;
+               labfound = 0;
                for( ii = 0; ii < naxlab-1; ii++ ) { 
-                  if( !strcmp( text, (labellist + ii)->text ) ) {
-                     textfound = 1;
+                  if( EQUAL( (info->ticks)[ tick ],
+                             (labellist + ii)->val ) ) {
+                     labfound = 1;
                      break;
                   }
                }
-               if( !textfound ) ok = 1;
+               if( !labfound ) ok = 1;
 
             }
 
@@ -10248,6 +10309,13 @@ static int EdgeCrossings( AstPlot *this, int edge, int axis, double axval,
 
 /* Check the global status. */
    if( !astOK ) return 0;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   pp2 = 0.0;
+   pv1 = 0.0;
+   pv2 = 0.0;
+   plarger = 0;
 
 /* See if the major ticks on the other axis are logarithmically or
    linearly spaced. */
@@ -10886,6 +10954,7 @@ int astFindEscape_( const char *text, int *type, int *value, int *nc ){
    *type = GRF__ESPER;
    *value = 0;
    *nc = 0;
+   perc = NULL;
 
 /* Check inherited status and supplied pointer. */
    if( !astOK || !text ) return result;
@@ -11111,6 +11180,11 @@ static int FindMajTicks( AstMapping *map, AstFrame *frame, int axis,
 /* Check the global error status. */
    if ( !astOK ) return 0;
 
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   nsame = 0;
+   use_nfill = 0;
+
 /* Decide where to put the first major tick. Use any value supplied by
    the caller. Otherwise put it an integral number of gaps away from the
    origin. This would result in the origin being at a major tick mark. */
@@ -11121,12 +11195,12 @@ static int FindMajTicks( AstMapping *map, AstFrame *frame, int axis,
       if( cen ) *cen = centre;
    }
 
-/* Find the number of candidate tick marks assuming an nfill value of 1. */
-   nfill = 1;
+/* Find the number of candidate tick marks assuming an nfill value of 0. */
+   nfill = 0;
    nticks = FindMajTicks2( nfill, gap, centre, ngood, data, &ticks );
 
 /* Loop round increasing the nfill value until an unreasonably large value 
-   of nfill is reached. The loop will exit early via a breal statement when 
+   of nfill is reached. The loop will exit early via a break statement when 
    all small holes in the axis coeerage are filled in. */
    lnfill = nfill;
    linc = -100000;
@@ -11323,6 +11397,10 @@ static int FindMajTicks2( int nfill, double gap, double centre, int ngood,
 /* Check the global error status. */
    if ( !astOK ) return 0;
 
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   nticks = 0;
+
 /* Reserve memory to hold a reasonable number of tick mark axis values.
    This memory is later extended as necessary. */
    ticks = (double *) astMalloc( sizeof(double)*( 6*nfill + 14 ) );
@@ -11469,9 +11547,10 @@ static int FindDPTZ( AstFrame *fr, int axis, const char *fmt,
 /* Initialise */
    *ndp = 0;
    *ntz = 0;
+   result = 0;
 
 /* Check inherited status */
-   if( !astOK ) return 0;
+   if( !astOK ) return result;
 
 /* Split the label up into fields. */
    nf = astFields( fr, axis, fmt, text, MAXFLD, fields, nc, &junk );
@@ -11756,6 +11835,10 @@ static AstFrameSet *Fset2D( AstFrameSet *fset, int ifrm ) {
 
 /* Check the inherited status. */
    if( !astOK ) return NULL;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   map = NULL;
 
 /* Get a pointer to the requested Frame in the supplied FrameSet. */
    frm = astGetFrame( fset, ifrm );
@@ -13789,6 +13872,15 @@ static double GetTicks( AstPlot *this, int axis, double *cen, double **ticks,
 /* Check the global error status. */
    if ( !astOK ) return 0.0;
 
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   maxv = 0.0;
+   minv = 0.0;
+   used_cen = 0.0;
+   used_gap = 0.0;
+   ihi = 0;
+   ilo = 0;
+
 /* If this is the first call to this function, do some initialisation. */
    if( !pset ){
 
@@ -14060,6 +14152,10 @@ static double GetTicks( AstPlot *this, int axis, double *cen, double **ticks,
                *nmajor = FindMajTicks( map, frame, axis, *refval, width[ 1-axis ], 
                                        used_gap, cen, ngood[ axis ], 
                                        ptr[ axis ], ticks );
+
+/* If the gap size has not changed do an extra pass through this loop. */
+            } else {
+               i--;
             }
 
 /* If the number of ticks is unacceptable, try a different gap size. If the
@@ -14213,6 +14309,15 @@ static double GoodGrid( AstPlot *this, int *dim, AstPointSet **pset1,
 
 /* Check the global error status. */
    if ( !astOK ) return 0.0;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   ptr1 = NULL;
+   frac = 0.0;
+   xmax = 0.0;
+   xmin = 0.0;
+   ymax = 0.0;
+   ymin = 0.0;
 
 /* Get the Mapping from base (graphics) to current (physical) Frame in the 
    supplied Plot. */
@@ -14971,6 +15076,10 @@ f     - YB( 4 ) = REAL (Returned) - Returned holding the y coordinate of
 
 /* Check the global error status. */
    if ( !astOK ) return;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   wrapper = NULL;
 
 /* Store the current method and class for inclusion in error messages
    generated by lower level functions. */
@@ -16272,6 +16381,13 @@ static int GVec( AstPlot *this, AstMapping *mapping, double *phy,
 /* Check the global status. */
    if( !astOK ) return 0;
 
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   dx1 = 0.0;
+   dx2 = 0.0;
+   dy1 = 0.0;
+   dy2 = 0.0;
+
 /* Initialise the returned value to indicate that the vector can not
    be found. */
    ret = 0;
@@ -17166,8 +17282,11 @@ static int IsASkyFrame( AstObject *obj ) {
    int ret;        
    AstFrame *frm;  
 
+/* initialise */
+   ret = 0;
+
 /* Check the global status. */
-   if( !astOK ) return 0;
+   if( !astOK ) return ret;
 
 /* If the Object is a SkyFrame, return 1. */
    if( astIsASkyFrame( obj ) ) {
@@ -19808,6 +19927,10 @@ static void PlotLabels( AstPlot *this, int esc, AstFrame *frame, int axis,
 /* Return without action if an error has occurred, or there are no labels to 
    draw. */
    if( !astOK || nlab == 0 || !list || !astGetNumLab( this, axis ) ) return;
+ 
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   rootoff = 0;
 
 /* Get the number of bounding boxes describing the labels already drawn
    (this will be non-zero only if this is the second axis to be labelled). */
@@ -22995,31 +23118,29 @@ static TickInfo *TickMarks( AstPlot *this, int axis, double *cen, double *gap,
    AstFrame *frame;    /* Pointer to the current Frame in the Plot */
    TickInfo *ret;      /* Pointer to the returned structure. */
    char **labels;      /* Pointer to list of formatted labels */
-   char **new;         /* Pointer to list of shortened formatted labels */
+   char **newlabels;   /* Pointer to new list of shortened formatted labels */
+   char **oldlabels;   /* Pointer to old list of formatted labels */
    char *fields[ MAXFLD ]; /* Pointers to starts of fields in a label */
+   char *old_format;   /* Original Format string */
+   char *used_fmt;     /* Copy of format string actually used */
+   const char *a;      /* Pointer to next character to consider */
    const char *fmt;    /* Format string actually used */
-   const char *old_format; /* Original Format string */
    double *ticks;      /* Pointer to major tick mark values */
    double cen0;        /* Supplied value of cen */
    double junk;        /* Unused value */
    double refval;      /* Value for other axis to use when normalizing */
    double used_gap;    /* The gap size actually used */
-   int axdigset;       /* Was the Axis Digits attribute set originally? */
    int bot_digits;     /* Digits value which makes labels as short as possible */
-   int dig_low;        /* The lowest value to use for Digits */
    int digits;         /* New Digits value */
+   int digset;         /* Did the format string fix the no. of digits to use? */
    int fmtset;         /* Was a format set? */
-   int frdigset;       /* Was the Frame Digits attribute set originally? */
    int i;              /* Tick index. */
    int nc[ MAXFLD ];   /* Lengths of fields in a label */
    int nf;             /* Number of fields in a label */
    int nmajor;         /* No. of major tick marks */
    int nminor;         /* No. of minor tick marks */
    int ok;             /* Are all adjacent labels different? */
-   int old_digits;     /* Original Digits value (-1 if not set) */
-   int req_digits;     /* Original Digits value (default value if not set) */
-   int status;         /* Original AST status */
-   int top_digits;     /* Digits value needed to make all labels different */
+   int reset_fmt;      /* Re-instate the original state of the Format attribute? */
    
 
 /* If a NULL pointer has been supplied for "this", release the resources
@@ -23049,216 +23170,184 @@ static TickInfo *TickMarks( AstPlot *this, int axis, double *cen, double *gap,
    indicate that no memory has yet been obtained. */
    labels = NULL;
 
+/* Initialise the pointer to a copy of the used format string to indicate 
+   that no memory has yet been obtained. */
+   used_fmt = NULL;
+
 /* Get a pointer to the axis. */
    ax = astGetAxis( frame, axis );
 
+/* See if a value has been set for the axis Format. */
+   fmtset = astTestFormat( frame, axis );
+
 /* Get an initial set of tick mark values. This also establishes defaults for 
-   LogTicks and LogLabel attributes. */
-   used_gap = GetTicks( this, axis, cen, &ticks, &nmajor, &nminor, 1, 
+   LogTicks and LogLabel attributes, and so must be done before the
+   following block which uses the LogLabel attribute. */
+   used_gap = GetTicks( this, axis, cen, &ticks, &nmajor, &nminor, fmtset, 
                         inval, &refval, method, class );
 
-/* Save a copy of the Frame's Format value, if set. */
-   fmtset = astTestFormat( frame, axis );
-   if( fmtset ) {
-      fmt = astGetFormat( frame, axis );
-      old_format = (const char *) astStore( NULL, (void *) fmt, strlen(fmt) + 1 );
-   } else {
-      old_format = NULL;
-   }
-
 /* See if exponential labels using superscript powers are required.  */
+   old_format = NULL;
+   reset_fmt = 0;
    if( astGetLogLabel( this, axis ) && astGetEscape( this ) &&
        GCap( this, GRF__SCALES, 1 ) ) {
+
+/* Save a copy of the Frame's Format value, if set. It will be
+   re-instated at the end of this function. */
+      if( fmtset ) {
+         fmt = astGetFormat( frame, axis );
+         old_format = astStore( NULL, (void *) fmt, strlen(fmt) + 1 );
+      }
 
 /* Temporarily use a format of "%&g" to get "10**x" style axis labels,
    with super-scripted "x". */
       astSetFormat( frame, axis, "%&g" );
 
-/* Not all subclasses of Frame support this format specified, so format a 
+/* Not all subclasses of Frame support this format specifier, so format a 
    test value, and see if it has two fields, the first of which is "10".
    If not, we cannot use log labels so re-instate the original format. */
       nf = astFields( frame, axis, "%&g", astFormat( frame, axis, 1.0E4 ),
                       MAXFLD, fields, nc, &junk );
       if( nf != 2 || nc[ 0 ] != 2 || strncmp( fields[ 0 ], "10", 2 ) ) {
-         if( fmtset ) {
+         if( old_format ) {
             astSetFormat( frame, axis, old_format );
+            old_format = astFree( old_format);
          } else {
             astClearFormat( frame, axis );
          }
+
+/* If the "%&g" format is usable, note that we should reset the Format
+   back to its original state before leaving this function. */
+      } else {
+         reset_fmt = 1;
       }
    }
 
-/* See if a value has been set for the axis Digits. */
-   axdigset = astTestAxisDigits( ax );
+/* If a value has been set for the axis Format, see if the format string 
+   contains a wildcard precision specifier ".*". If so, we are free to
+   vary the number of digits used in the label in order to produce
+   distinct labels. If no value has been set for the axis FOrmat,we are
+   also free to vary the number of digits. */
+   if( fmtset ) {
+      digset = 1;
+      fmt = astGetFormat( frame, axis );
+      a = fmt;
+      while( (a = strchr( a, '.' )) ){
+         if( *(++a) == '*' ) {
+            digset = 0;
+            break;
+         }
+      }
+   } else {
+      digset = 0;
+   }
 
-/* See if a value has been set for the Frame Digits. */
-   frdigset = astTestDigits( frame );
-
-/* If the axis Format string or Digits value, or the Frame Digits value, is 
-   set, we should attempt to use them, so that the user's attempts to get a 
-   specific result are not foiled. */
-   if( fmtset || axdigset || frdigset ){
+/* If the axis precision has been specified, either through the Format string 
+   or Digits value, or the Frame Digits value, we should use it so that the 
+   user's attempts to get a specific result are not foiled. */
+   if( digset || astTestAxisDigits( ax ) || astTestDigits( frame ) ){
 
 /* Reserve memory to hold pointers to the formatted labels. */
       labels = (char **) astMalloc( sizeof(char *)*(size_t)nmajor );
 
-/* See if the initial tick marks found above wouldproduce any adjacent labels 
-   which are identical. If there are not, the labels are formatted and 
-   returned in "labels". */
-      fmt = astGetFormat( frame, axis );
+/* Format the labels. We do not check that all adjacent labels are distinct
+   in order not to foil the users choice of format. That is, "ok" is set
+   non-zero by the call to CheckLabels, even if some identical adjacent
+   labels are found. */
       ok = CheckLabels( frame, axis, ticks, nmajor, 1, labels, refval );
 
-   }
+/* Note the format used. */
+      fmt = astGetFormat( frame, axis );
+      used_fmt = (char *) astStore( used_fmt, (void *) fmt, strlen( fmt ) + 1 );
 
-/* If no Format has been set for the Frame, or if the set Format results in
-   some adjacent labels being identical, we need to find a Format which
-   gives different labels, but without using any more digits than
-   necessary. */
-   if( !ok ){
+/* If no precision has been specified for the axis, we need to find a
+   Digits value which gives different labels, but without using any more 
+   digits than necessary. */
+   } else {
 
-/* Clear the Frame's Format value, if set, so that the Digits value will be 
-   used to determine the default format. */
-      if( fmtset ) astClearFormat( frame, axis );
+/* Reserve memory to hold pointers to an initial set of labels formatted
+   with the default digits value. */
+      labels = (char **) astMalloc( sizeof(char *)*(size_t)nmajor );
 
-/* If a value has been set for the axis Digits or the Frame Digits, get it. 
-   Otherwise set the value to -1. */
-      if( axdigset ) {
-         req_digits = astGetAxisDigits( ax );
-         old_digits = req_digits;
-         dig_low = req_digits;
+/* Produce these default labels. */
+      CheckLabels( frame, axis, ticks, nmajor, 1, labels, refval );
 
-      } else if( frdigset ) {
-         req_digits = astGetDigits( frame );
-         dig_low = req_digits;
+/* The first task is to decide what the smallest usable number of digits 
+   is. Starting at the default number of digits used above to produce the
+   default labels, we reduce the number of digits until one or more of the 
+   formatted labels *increases* in length. This can happen for instance if 
+   printf decides to include an exponent in the label. The *absolute*
+   minimum value 1. Set this first. */
+      bot_digits = 1;
+      oldlabels = labels;
+      for( digits = astGetDigits( frame ) - 1; digits > 0; digits-- ){
+         astSetAxisDigits( ax, digits );
 
-      } else {
-         req_digits = astGetDigits( frame );
-         dig_low = 1;
+/* CheckLabels2 formats the labels with the decreased number of digits,
+   and compares them with the old labels in "labels". If any of the new labels
+   are longer than the corresponding old labels, then a null pointer is
+   returned. Otherwise, a pointer is returned to the new set of labels. */
+         newlabels = CheckLabels2( frame, axis, ticks, nmajor, oldlabels, refval );
+
+/* Free the old labels unless they are the orignal labels (which are
+   needed below). */
+         if( oldlabels != labels ) {
+            for( i = 0; i < nmajor; i++ ){
+               if( oldlabels[ i ] ) oldlabels[ i ] = (char *) astFree( (void *) oldlabels[ i ] );
+            }
+            oldlabels = (char **) astFree( (void *) oldlabels );
+         }
+
+/* If any of the labels got longer as a result of reducing the digits
+   value, then use the previous number of digits as the lowest possible
+   number of digits. Break out of the loop. */
+         if( !newlabels ) {
+            bot_digits = digits + 1;
+            break;
+         }
+
+/* If none of the labels got longer, we arrive here. Use the shorter labels 
+   for the next pass round this loop. */
+         oldlabels = newlabels;
       }
 
-/* Loop round increasing the number of digits in the formatted labels
-   until all adjacent labels are different. An arbitrary upper limit of 
-   1000 is used for Digits to stop it looping for ever. */    
-      for( digits = req_digits; digits < 1000; digits++ ){
+/* Now loop round increasing the number of digits in the formatted labels 
+   from the lowest usable value found above until all adjacent labels are 
+   different. An arbitrary upper limit of 1000 is used for Digits to stop it 
+   looping for ever. */    
+      for( digits = bot_digits; digits < 1000; digits++ ){
 
 /* Store the new Digits value. */
          astSetAxisDigits( ax, digits );
          
-/* Get a set of tick mark values. */
-         if( cen ) *cen = cen0;
-         used_gap = GetTicks( this, axis, cen, &ticks, &nmajor, &nminor,
-                              0, inval, &refval, method, class );
-
-/* Expand the memory holding the pointers to the formatted labels. */
-         labels = (char **) astGrow( labels, nmajor, sizeof(char *) );
-
 /* Break out of the loop if a Digits value has been found which results
-   in all adjacent labels being different. */
-         fmt = astGetFormat( frame, axis );
+   in all adjacent labels being different. Note the format used (we know 
+   the Format attribute is currently unset, but the default Format string
+   reflects the current value of the Digits attribute). */
          if( CheckLabels( frame, axis, ticks, nmajor, 0, labels, refval ) ) {
             ok = 1;
-            top_digits = digits;
+            fmt = astGetFormat( frame, axis );
+            used_fmt = (char *) astStore( NULL, (void *) fmt, strlen( fmt ) + 1 );
             break;
          }
       }
 
-/* Top_digits gives the precision required to make all labels distinct, but is 
-   limited to be never less than the Digits value for the axis. This
-   value may be too high (i.e. we may be able to reduce digits and *still*
-   have distinct labels). We enter a loop in which digits is reduced by
-   one each time. On each pass, the labels are compared with the previous
-   set of labels. The loop is left when reducing the number of digits
-   causes any of the labels to increase in length (as can happen for
-   instance if printf decides to include an exponent in the label). We do 
-   this to find the shortest labels which can be used to describe each
-   tick value. */
-      if( ok ){
-         ok = 0;
-         for( digits = top_digits - 1; digits > 0; digits-- ){
-            astSetAxisDigits( ax, digits );
-
-/* CheckLabels2 formats the labels with the decreased number of digits,
-   and compares them with the old labels in "labels". If all the new labels
-   are longer than the corresponding old labels, then a null pointer is
-   returned. Otherwise, a pointer is returned to the new set of labels. */
-            fmt = astGetFormat( frame, axis );
-            new = CheckLabels2( frame, axis, ticks, nmajor, labels, refval );
-
-/* Free the old labels. */
-            for( i = 0; i < nmajor; i++ ){
-               if( labels[ i ] ) labels[ i ] = (char *) astFree( (void *) labels[ i ] );
-            }
-            labels = (char **) astFree( (void *) labels );
-
-/* If any of the labels got longer as a result of reducing the digits
-   value, then use the previous number of digits. Break out of the loop. */
-            if( !new ) {
-               bot_digits = digits + 1;
-               ok = 1;
-               break;
-            }
-
-/* Use the shorter labels from now on. */
-            labels = new;
-
-/* If the user requested more digits, then honour the request by exiting
-   this loop (free the new labels first). */
-            if( digits <= dig_low ) {
-               bot_digits = dig_low; 
-               ok = 1;
-
-               for( i = 0; i < nmajor; i++ ){
-                  if( new[ i ] ) new[ i ] = (char *) astFree( (void *) new[ i ] );
-               }
-               new = (char **) astFree( (void *) new );
-
-               break;
-            }
-         }
-      }
-
-/* The above loop may have reduced the digits value too much so that
-   adjacent labels are indistinct. Go through another loop increasing the
-   digits until all adjacent labels are again distinct, and then get
-   the used format and leave the loop. */
-      if( ok ) {
-         ok = 0;
-         labels = (char **) astMalloc( sizeof(char *)*(size_t) nmajor );
-         if( labels ) {
-            for( digits = bot_digits; digits < 1000; digits++ ){
-               astSetAxisDigits( ax, digits );
-               fmt = astGetFormat( frame, axis );
-               if( CheckLabels( frame, axis, ticks, nmajor, 0, labels, refval ) ) {
-                  ok = 1;
-                  break;
-               }
-            }
-         }
-      }
-
-/* Clear the Digits and Format values. */
+/* Clear the Digits value. */
       astClearAxisDigits( ax );
-      astClearAxisFormat( ax );
-   
-/* Restore the original axis Format and Digits values, if set. */
-      if( old_format ) astSetAxisFormat( ax, old_format );
-      if( axdigset ) astSetAxisDigits( ax, old_digits );
-
    }
-
-/* Ensure the original axis format is re-instated (even if an error has
-   occurred). */
-   status = astStatus;
-   astClearStatus;
-   if( fmtset ) {
-      astSetFormat( frame, axis, old_format );
-   } else {
-      astClearFormat( frame, axis );
-   }
-   astSetStatus( status );
 
 /* Annul the pointer to the Axis. */
    ax = astAnnul( ax );
+
+/* Re-instate the original format specifier if required. */
+   if( reset_fmt ) {
+      if( old_format ) {
+         astSetFormat( frame, axis, old_format );
+         old_format = astFree( old_format);
+      } else {
+         astClearFormat( frame, axis );
+      }
+   } 
 
 /* If suitable labels were found... */
    if( ok ) {
@@ -23281,11 +23370,12 @@ static TickInfo *TickMarks( AstPlot *this, int axis, double *cen, double *gap,
          ret->nminor = nminor;
          ret->ticks = ticks;
          ret->labels = labels;
-         ret->fmt = (char *) astStore( NULL, (void *) fmt, strlen( fmt ) + 1 );
+         ret->fmt = used_fmt;
+         used_fmt = NULL;
          ret->start = NULL;
          ret->length = NULL;
          ret->nsect = 0;
-      }
+      } 
 
 /* If no suitable labels were found report an error. */
    } else if( astOK ){
@@ -23301,8 +23391,9 @@ static TickInfo *TickMarks( AstPlot *this, int axis, double *cen, double *gap,
       }
    }
 
-/* Release the pointer to the current Frame from the Plot. */
+/* Release any remaining resources. */
    frame = astAnnul( frame );
+   if( used_fmt ) used_fmt = astFree( used_fmt );
 
 /* If an error has occurred, release the returned information. */
    if( !astOK ){
@@ -23407,6 +23498,13 @@ static void TraceBorder( AstPlot *this, double **ptr1, double **ptr2, int dim, i
 
 /* Check the global error status. */
    if ( !astOK ) return;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   x0 = 0;
+   y0 = 0;
+   i0 = 0;
+   j0  = 0;
 
 /* Initialise the returned flags to indicate that the good/bad boundary
    does not intersect any of the edges. */
@@ -24253,6 +24351,10 @@ static double Typical( int n, double *value, double lolim, double hilim,
 
 /* Check the global error status. */
    if ( !astOK ) return result;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   ibin = 0;
 
 /* Find the minimum and maximum value in the supplied array, which are
    also within the supplied limits. Also store the first good value 
@@ -25975,6 +26077,10 @@ AstPlot *astPlot_( void *frame_void, const float *graphbox,
 /* Check the global status. */
    if ( !astOK ) return NULL;
 
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   new = NULL;
+
 /* Obtain and validate a pointer to any supplied Frame structure. */
    if( frame_void ){
       frame = astCheckFrame( frame_void );
@@ -26116,6 +26222,11 @@ AstPlot *astInitPlot_( void *mem, size_t size, int init, AstPlotVtab *vtab,
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   fset = NULL;
+   mess = NULL;
 
 /* If necessary, initialise the virtual function table. */
    if ( init ) astInitPlotVtab( vtab, name );
@@ -27329,6 +27440,10 @@ f     function is invoked with STATUS set to an error value, or if it
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   new = NULL;
 
 /* Obtain a Frame pointer from any ID supplied and validate the
    pointer to ensure it identifies a valid Frame. */

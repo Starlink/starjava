@@ -33,7 +33,7 @@ f     The WinMap class does not define any new routines beyond those
 *     which are applicable to all Mappings.
 
 *  Copyright:
-*     Copyright (C) 2004 Central Laboratory of the Research Councils
+*     <COPYRIGHT_STATEMENT>
 
 *  Authors:
 *     DSB: David Berry (Starlink)
@@ -76,6 +76,8 @@ f     The WinMap class does not define any new routines beyond those
 *        (e.g. WinPerm, etc), to simplify the returned Mappings.
 *     23-APR-2004 (DSB):
 *        Changes to simplification algorithm.
+*     1-SEP-2004 (DSB):
+*        Ensure do1 and do2 are initialised before use in MapMerge.
 *class--
 */
 
@@ -749,6 +751,12 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* Check the global error status. */
    if ( !astOK ) return result;
 
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   i1 = 0;
+   i2 = 0;
+   neighbour = 0;
+
 /* Get the number of axes for the WinMap. */
    nin = astGetNin( ( *map_list )[ where ] );
 
@@ -1064,6 +1072,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
                                   ( *invert_list )[ where + 1 ], &do2 );
             } else {
                swaphi = 0;
+               do2 = 0;
             }
 
 /* If so, step through each of the Mappings which follow the WinMap, 
@@ -1108,6 +1117,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
                                   ( *invert_list )[ where ], &do1 );
             } else {
                swaplo = 0;
+               do1 = 0;
             }
 
             nstep1 = -1;
@@ -1484,6 +1494,10 @@ static void PermGet( AstPermMap *map, int **outperm, int **inperm,
 /* Check the global error status and the supplied pointers. */
    if ( !astOK || !outperm || !inperm || !consts ) return;
 
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   nc = 0;
+
 /* Get the number of input and output axes for the supplied PermMap. */
    nin = astGetNin( map );
    nout = astGetNout( map );
@@ -1787,6 +1801,11 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 
 /* Check the global error status. */
    if ( !astOK ) return NULL;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   aa = 0.0;
+   bb = 0.0;
 
 /* Obtain a pointer to the WinMap. */
    map = (AstWinMap *) this;
@@ -2186,6 +2205,11 @@ static void WinPerm( AstMapping **maps, int *inverts, int iwm  ){
 
 /* Check the global error status. */
    if ( !astOK ) return;
+
+/* Initialise variables to avoid "used of uninitialised variable"
+   messages from dumb compilers. */
+   p1 = NULL;
+   w1 = NULL;
 
 /* Store pointers to the supplied WinMap and the PermMap. */
    wm = (AstWinMap *) maps[ iwm ];

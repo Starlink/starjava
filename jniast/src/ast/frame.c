@@ -102,7 +102,7 @@ f     - AST_UNFORMAT: Read a formatted coordinate value for a Frame axis
 *     both equal to the number of Frame axes.
 
 *  Copyright:
-*     Copyright (C) 2004 Central Laboratory of the Research Councils
+*     <COPYRIGHT_STATEMENT>
 
 *  Authors:
 *     RFWS: R.F. Warren-Smith (Starlink)
@@ -164,6 +164,10 @@ f     - AST_UNFORMAT: Read a formatted coordinate value for a Frame axis
 *     24-JAN-2004 (DSB):
 *        o  Added astFields.
 *        o  Added argument "fmt" to Abbrev.
+*     7-SEP-2004 (DSB):
+*        Modified SetUnit to exclude any trailing spaces
+*     8-SEP-2004 (DSB):
+*        Added astResolvePoints.
 *class--
 */
 
@@ -609,6 +613,7 @@ static AstFrame *PickAxes( AstFrame *, int, const int[], AstMapping ** );
 static AstFrameSet *Convert( AstFrame *, AstFrame *, const char * );
 static AstFrameSet *ConvertX( AstFrame *, AstFrame *, const char * );
 static AstFrameSet *FindFrame( AstFrame *, AstFrame *, const char * );
+static AstPointSet *ResolvePoints( AstFrame *, const double [], const double [], AstPointSet *, AstPointSet * );
 static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet * );
 static char *CleanDomain( char * );
 static const char *Abbrev( AstFrame *, int, const char *, const char *, const char * );
@@ -1242,6 +1247,13 @@ c     invoked with the AST error status set, or if it should fail for
 f     invoked with STATUS set to an error value, or if it should fail for
 *     any reason.
 *--
+
+*  Implementation Deficiencies;
+*     - The protected interface for this function uses 1-based axis
+*     numbering (like the public interface), rather than the more usual
+*     zero-based system used by all other protected interfaces. There is 
+*     no real reason for this, and it should be changed at some time.
+
 */
 
 /* Local Variables: */
@@ -2128,8 +2140,13 @@ f        AST_TRAN2), then it provides a means of converting coordinates
 *        destination coordinate system.
 
 *  Applicability:
+*     DSBSpecFrame
+*        Alignment occurs in the upper sideband expressed within the
+*        spectral system and standard of rest given by attributes AlignSystem 
+*        and AlignStdOfRest.
 *     Frame
-*        This function applies to all Frames.
+*        This function applies to all Frames. Alignment occurs within the
+*        coordinate system given by attribute AlignSystem.
 *     FrameSet
 c        If either of the "from" or "to" parameters is a pointer to a
 f        If either of the FROM or TO arguments is a pointer to a
@@ -2195,6 +2212,9 @@ c        it by specifying its domain in the "domainlist" string, or (b)
 f        it by specifying its domain in the DOMAINLIST string, or (b)
 *        making it the base Frame, since this is always considered
 *        first.
+*     SpecFrame
+*        Alignment occurs within the spectral system and standard of rest 
+*        given by attributes AlignSystem and AlignStdOfRest.
 
 *  Examples:
 c     cvt = astConvert( a, b, "" );
@@ -4398,6 +4418,7 @@ void astInitFrameVtab_(  AstFrameVtab *vtab, const char *name ) {
    vtab->Offset = Offset;
    vtab->Offset2 = Offset2;
    vtab->Resolve = Resolve;
+   vtab->ResolvePoints = ResolvePoints;
    vtab->Overlay = Overlay;
    vtab->PermAxes = PermAxes;
    vtab->PickAxes = PickAxes;
@@ -4974,8 +4995,8 @@ f     AST_OFFSET2
 
 *  Synopsis:
 c     #include "frame.h"
-c     double Offset2( AstFrame *this, const double point1[2], double angle,
-c                   double offset, double point2[2] );
+c     double astOffset2( AstFrame *this, const double point1[2], double angle,
+c                        double offset, double point2[2] );
 f     RESULT = AST_OFFSET2( THIS, POINT1, ANGLE, OFFSET, POINT2, STATUS )
 
 *  Class Membership:
@@ -6270,6 +6291,265 @@ f     AST_DISTANCE function.
 
 }
 
+static AstPointSet *ResolvePoints( AstFrame *this, const double point1[], 
+                                   const double point2[], AstPointSet *in,
+                                   AstPointSet *out ) {
+/*
+*+
+*  Name:
+*     astResolvePoints
+
+*  Purpose:
+*     Resolve a set of vectors into orthogonal components
+
+*  Type:
+*     Protected virtual function.
+
+*  Synopsis:
+*     #include "frame.h"
+*     AstPointSet *astResolvePoints( AstFrame *this, const double point1[], 
+*                                    const double point2[], AstPointSet *in,
+*                                    AstPointSet *out )
+
+*  Class Membership:
+*     Frame method.
+
+*  Description:
+*     This function takes a Frame and a set of vectors encapsulated
+*     in a PointSet, and resolves each one into two orthogonal components,
+*     returning these two components in another PointSet.
+*
+*     This is exactly the same as the public astResolve method, except
+*     that this method allows many vectors to be processed in a single call,
+*     thus reducing the computational cost of overheads of many
+*     individual calls to astResolve.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame.
+*     point1
+*        An array of double, with one element for each Frame axis
+*        (Naxes attribute). This marks the start of the basis vector,
+*        and of the vectors to be resolved.
+*     point2
+*        An array of double, with one element for each Frame axis
+*        (Naxes attribute). This marks the end of the basis vector.
+*     in
+*        Pointer to the PointSet holding the ends of the vectors to be
+*        resolved.
+*     out
+*        Pointer to a PointSet which will hold the length of the two
+*        resolved components. A NULL value may also be given, in which 
+*        case a new PointSet will be created by this function.
+
+*  Returned Value:
+*     Pointer to the output (possibly new) PointSet. The first axis will 
+*     hold the lengths of the vector components parallel to the basis vector. 
+*     These values will be signed (positive values are in the same sense as 
+*     movement from point 1 to point 2. The second axis will hold the lengths 
+*     of the vector components perpendicular to the basis vector. These
+*     values will always be positive.
+
+*  Notes:
+*     - The number of coordinate values per point in the input
+*     PointSet must match the number of axes in the supplied Frame.
+*     - If an output PointSet is supplied, it must have space for
+*     sufficient number of points and 2 coordinate values per point.
+*     - A null pointer will be returned if this function is invoked
+*     with the global error status set, or if it should fail for any
+*     reason.
+*     - We assume flat geometry throughout this function. Other classes,  
+*     (e.g. SkyFrame) will override this method using more appropriate 
+*     geometry. 
+*-
+*/
+
+/* Local Variables: */
+   AstPointSet *result;          /* Pointer to output PointSet */
+   double **ptr_in;              /* Pointers to input axis values */
+   double **ptr_out;             /* Pointers to returned axis values */
+   double *basisv;               /* Pointer to array holding basis vector */
+   double *d1;                   /* Pointer to next parallel component value */
+   double *d2;                   /* Pointer to next perpendicular component value */
+   double bv;                    /* Length of basis vector */
+   double c;                     /* Constant value */
+   double d;                     /* Component length */
+   double dp;                    /* Dot product */
+   int axis;                     /* Loop counter for axes */
+   int ipoint;                   /* Index of next point */
+   int nax;                      /* Number of Frame axes */
+   int ncoord_in;                /* Number of input PointSet coordinates */
+   int ncoord_out;               /* Number of coordinates in output PointSet */
+   int npoint;                   /* Number of points to transform */
+   int npoint_out;               /* Number of points in output PointSet */
+   int ok;                       /* OK to proceed? */
+
+/* Initialise. */
+   result = NULL;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain the number of axes in the Frame. */
+   nax = astGetNaxes( this );
+
+/* Obtain the number of input vectors to resolve and the number of coordinate
+   values per vector. */
+   npoint = astGetNpoint( in );
+   ncoord_in = astGetNcoord( in );
+
+/* If OK, check that the number of input coordinates matches the number
+   required by the Frame. Report an error if these numbers do not match. */
+   if ( astOK && ( ncoord_in != nax ) ) {
+      astError( AST__NCPIN, "astResolvePoints(%s): Bad number of coordinate "
+                "values (%d) in input %s.", astGetClass( this ), ncoord_in,
+                astGetClass( in ) );
+      astError( AST__NCPIN, "The %s given requires %d coordinate value(s) for "
+                "each input point.", astGetClass( this ), nax );
+   }
+
+/* If still OK, and a non-NULL pointer has been given for the output PointSet,
+   then obtain the number of points and number of coordinates per point for
+   this PointSet. */
+   if ( astOK && out ) {
+      npoint_out = astGetNpoint( out );
+      ncoord_out = astGetNcoord( out );
+
+/* Check that the dimensions of this PointSet are adequate to accommodate the
+   output coordinate values and report an error if they are not. */
+      if ( astOK ) {
+         if ( npoint_out < npoint ) {
+            astError( AST__NOPTS, "astResolvePoints(%s): Too few points (%d) in "
+                      "output %s.", astGetClass( this ), npoint_out,
+                      astGetClass( out ) );
+            astError( AST__NOPTS, "The %s needs space to hold %d transformed "
+                      "point(s).", astGetClass( this ), npoint );
+         } else if ( ncoord_out < 2 ) {
+            astError( AST__NOCTS, "astResolvePoints(%s): Too few coordinate "
+                      "values per point (%d) in output %s.",
+                      astGetClass( this ), ncoord_out, astGetClass( out ) );
+            astError( AST__NOCTS, "The %s supplied needs space to store 2 "
+                      "coordinate value(s) per transformed point.",
+                      astGetClass( this ) );
+         }
+      }
+   }
+
+/* If all the validation stages are passed successfully, and a NULL output
+   pointer was given, then create a new PointSet to encapsulate the output
+   coordinate data. */
+   if ( astOK ) {
+      if ( !out ) {
+         result = astPointSet( npoint, 2, "" );
+
+/* Otherwise, use the PointSet supplied. */
+      } else {
+         result = out;
+      }
+   }
+
+/* Get pointers to the input and output axis values */
+   ptr_in = astGetPoints( in );
+   ptr_out = astGetPoints( result );
+
+/* Allocate work space. */
+   basisv = astMalloc( sizeof( double )*(size_t) nax );
+
+/* Check pointers can be used safely */
+   if( astOK ) {
+
+/* Check if the supplied positions defining the basis vector are good.
+   Store the basis vector, and get its squared length. */
+      ok = 1;
+      bv = 0.0;
+      for( axis = 0; axis < nax; axis++ ){
+         if( point1[ axis ] == AST__BAD ||
+             point2[ axis ] == AST__BAD ) {
+            ok = 0;
+            break;
+         } else {
+            basisv[ axis ] =  point2[ axis ] - point1[ axis ];
+            bv += basisv[ axis ]*basisv[ axis ];
+         }
+      }
+
+/* Check the basis vector does not have zero length, and convert the
+   squared length into a length. */
+      if( ok && bv > 0.0 ) {
+         bv = sqrt( bv );
+      } else {
+         ok = 0;
+      }
+
+/* Store points to the first two axis arrays in the returned PointSet. */
+      d1 = ptr_out[ 0 ];
+      d2 = ptr_out[ 1 ];
+
+/* Check supplied values can be used */
+      if( ok ) {
+
+/* Loop round each supplied vector. */
+         for( ipoint = 0; ipoint < npoint; ipoint++, d1++, d2++ ) {
+
+/* Find the dot product of the basis vector with the vector joining point 1
+   and the end of the current vector. */
+            ok = 1;
+            dp = 0.0;
+            for( axis = 0; axis < nax; axis++ ){
+               d = ptr_in[ axis ][ ipoint ] - point1[ axis ];
+               if( d != AST__BAD ) {
+                  dp += basisv[ axis ] * d;
+               } else {
+                  ok = 0;
+                  break;
+               }
+            }
+
+/* If this input position is good... */
+            if( ok ) {
+
+/* The dot product is the required parallel component length multiplied by the 
+   length of the basis vector. Form the distance d1. */
+               *d1 = dp/bv;
+
+/* Offset away from point 1 towards point 2 by a distance of d1, and form the 
+   required length d2. */
+               *d2 = 0.0;
+               c = *d1/bv;
+               for( axis = 0; axis < nax; axis++ ){
+                  d = ptr_in[ axis ][ ipoint ] - 
+                      ( point1[ axis ] + c*basisv[ axis ] );
+                  *d2 += d*d;
+               }
+               *d2 = sqrt( *d2 );
+
+/* If this input vector is bad, put bad values in the output */
+            } else {
+               *d1 = AST__BAD;
+               *d2 = AST__BAD;
+            }
+         }
+
+/* If supplied values cannot be used, fill the returned PointSet with bad
+   values */
+      } else {
+         for( ipoint = 0; ipoint < npoint; ipoint++, d1++, d2++ ) {
+            *d1 = AST__BAD;
+            *d2 = AST__BAD;
+         }
+      }
+   }
+
+/* Free resources */
+   basisv = astFree( basisv );
+
+/* Annul the returned PointSet if an error occurred. */
+   if( !astOK ) result = astAnnul( result );
+
+/* Return a pointer to the output PointSet. */
+   return result;
+}
+
 static void SetActiveUnit( AstFrame *this, int value ){
 /*
 *++
@@ -6848,34 +7128,47 @@ static void SetUnit( AstFrame *this, int axis, const char *unit ) {
 
 /* Local Variables: */
    AstAxis *ax;                  /* Pointer to Axis object */
+   char *c;                      /* Copy of supplied string */
    const char *oldunit;          /* Pointer to old units string */
+   int l;                        /* Used length of supplied string */
 
 /* Check the global error status. */
    if ( !astOK ) return;
 
+/* Get a copy of the supplied string which excludes trailing spaces. */
+   l = astChrLen( unit );
+   c = astStore( NULL, unit, (size_t) (l + 1) );
+   if( astOK ) {
+      c[ l ] = 0;
+
 /* Validate the axis index and obtain a pointer to the required Axis. */
    (void) astValidateAxis( this, axis, "astSetUnit" );
-   ax = astGetAxis( this, axis );
+      ax = astGetAxis( this, axis );
 
 /* The new unit may require the Label and/or Symbol to be changed, but
    only if the Frames ActiveUnit flag is set. */
-   if( astGetActiveUnit( this ) ) {
+      if( astGetActiveUnit( this ) ) {
 
 /* Get the existing Axis unit, using the astGetUnit method (rather than
    astGetAxisUnit) in order to get any default value in the case where
    the Unit attribute is not set. */
-      oldunit = astGetUnit( this, axis );
+         oldunit = astGetUnit( this, axis );
 
 /* Assign the new Unit value. This modifies labels and/or Symbols if
    necessary. */
-      NewUnit( ax, oldunit, unit, "astSetUnit", astGetClass( this ) );
-   }
+         NewUnit( ax, oldunit, c, "astSetUnit", astGetClass( this ) );
+      }
 
 /* Set the Axis Unit attribute value. */
-   astSetAxisUnit( ax, unit );
+      astSetAxisUnit( ax, c );
 
 /* Annul the Axis pointer. */
-   ax = astAnnul( ax );
+      ax = astAnnul( ax );
+   }
+
+/* Free the string copy */
+   c = astFree( c );
+
 }
 
 static int SubFrame( AstFrame *target, AstFrame *template,
@@ -8520,8 +8813,10 @@ c        this.
 *     - ".": Indicates that decimal places are to be given for the
 *     final field in the formatted string (whichever field this
 *     is). The "." should be followed immediately by an unsigned
-*     integer which gives the number of decimal places required. By
-*     default, no decimal places are given.
+*     integer which gives the number of decimal places required, or by an
+*     asterisk. If an asterisk is supplied, a default number of decimal
+*     places is used which is based on the value of the Digits 
+*     attribute. 
 *
 *     All of the above format specifiers are case-insensitive. If
 *     several characters make conflicting requests (e.g. if both "i"
@@ -8745,7 +9040,9 @@ f     Frame axis (e.g. using AST_FORMAT). Its value may be set either
 *
 *     Note that the Digits value acts only as a means of determining a
 *     default Format string. Its effects are over-ridden if a Format
-*     string is set explicitly for an axis.
+*     string is set explicitly for an axis. However, if the Format string
+*     includes a precision given by ".*" then the Digits attribute is
+*     used to determine the number of decimal placs to produce.
 
 *  Applicability:
 *     Frame
@@ -8755,6 +9052,10 @@ f     Frame axis (e.g. using AST_FORMAT). Its value may be set either
 *        The Digits attribute of a FrameSet (or one of its axes) is
 *        the same as that of its current Frame (as specified by the
 *        Current attribute).
+*     Plot
+*        The default Digits value used by the Plot class when drawing
+*        annotated axis labels is the smallest value which results in all 
+*        adjacent labels being distinct.
 *att--
 */
 /* Clear the Digits value by setting it to -INT_MAX. */
@@ -10656,6 +10957,13 @@ int astFields_( AstFrame *this, int axis, const char *fmt,
 void astCheckPerm_( AstFrame *this, const int *perm, const char *method ) {
    if ( !astOK ) return;
    (**astMEMBER(this,Frame,CheckPerm))( this, perm, method );
+}
+
+AstPointSet *astResolvePoints_( AstFrame *this, const double point1[], 
+                                const double point2[], AstPointSet *in,
+                                AstPointSet *out ) {
+   if ( !astOK ) return NULL;
+   return (**astMEMBER(this,Frame,ResolvePoints))( this, point1, point2, in, out );
 }
 AstFrameSet *astConvert_( AstFrame *from, AstFrame *to,
                           const char *domainlist ) {

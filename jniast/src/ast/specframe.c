@@ -55,7 +55,7 @@ c     - astGetRefPos: Get reference position in any celestial system
 f     - AST_GETREFPOS: Get reference position in any celestial system
 
 *  Copyright:
-*     Copyright (C) 2004 Central Laboratory of the Research Councils
+*     <COPYRIGHT_STATEMENT>
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -2814,15 +2814,18 @@ static void Overlay( AstFrame *template, const int *template_axes,
       astSet##attribute( result, astGet##attribute( template ) ); \
    }
 
-/* Use the macro to transfer each SpecFrame attribute in turn. */
+/* Use the macro to transfer each SpecFrame attribute in turn. Note,
+   SourceVRF must be overlayed before SourceVel. Otherwise the stored value 
+   for SourceVel would be changed from the default SourceVRF to the specified
+   SourceVRF when SourceVRF was overlayed. */
       OVERLAY(AlignStdOfRest)
       OVERLAY(GeoLat)
       OVERLAY(GeoLon)
       OVERLAY(RefDec)
       OVERLAY(RefRA)
       OVERLAY(RestFreq)
-      OVERLAY(SourceVel)
       OVERLAY(SourceVRF)
+      OVERLAY(SourceVel)
       OVERLAY(StdOfRest)
    }
 
@@ -4117,7 +4120,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
       } else {
          align_sys = astGetSystem( target );
          align_sor = astGetStdOfRest( target );
-         align_svel = astGetSourceVel( target );
+         align_svel = ConvertSourceVel( target, AST__HLSOR );
       }
 
 /* Generate a Mapping that takes account of changes in the sky coordinate
@@ -5058,17 +5061,23 @@ astMAKE_TEST(SpecFrame,RestFreq,( this->restfreq != AST__BAD ))
 *     This attribute (together with SourceVRF, RefRA and RefDec) defines the 
 *     "Source" standard of rest (see attribute StdOfRest). This is a rest frame
 *     which is moving towards the position given by RefRA and RefDec at a 
-*     velocity given by SourceVel (in km/s). When setting a value for
-*     SourceVel, the velocity should be supplied in the rest frame
-*     specified by the SourceVRF attribute. Likewise, when getting the
-*     value of SourceVel, it will be returned in the rest frame specified
-*     by the SourceVRF attribute.
+*     apparent radial ("relativistic") velocity given by SourceVel (in km/s). 
+*     When setting a value for SourceVel, the velocity should be supplied in 
+*     the rest frame specified by the SourceVRF attribute. Likewise, when 
+*     getting the value of SourceVel, it will be returned in the rest frame 
+*     specified by the SourceVRF attribute.
 *
 *     The default value is zero.
 
 *  Applicability:
 *     SpecFrame
 *        All SpecFrames have this attribute.
+
+*  Notes:
+*     - It is important to set an appropriate value for SourceVRF before
+*     setting a value for SourceVel. If a new value is later set for
+*     SourceVRF, the value stored for SourceVel will simultaneously be 
+*     changed to the new standard of rest.
 
 *att--
 */
@@ -5105,13 +5114,14 @@ astMAKE_GET(SpecFrame,SourceVel,double,0.0,((this->sourcevel!=AST__BAD)?this->so
 *     If the value of SourceVRF is changed, the value stored for SourceVel 
 *     will be converted from the old to the new rest frame.
 *
-*     The values which can be supplied are the same as for the StdOfrest 
+*     The values which can be supplied are the same as for the StdOfRest 
 *     attribute (except that SourceVRF cannot be set to "Source"). The 
 *     default value is "Helio".
 
 *  Applicability:
 *     SpecFrame
 *        All SpecFrames have this attribute.
+
 *att--
 */
 /* The SourceVRF value has a value of AST__BADSOR when not set yielding 

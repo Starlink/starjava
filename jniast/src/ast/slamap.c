@@ -47,7 +47,7 @@ c     - astSlaAdd: Add a celestial coordinate conversion to an SlaMap
 f     - AST_SLAADD: Add a celestial coordinate conversion to an SlaMap
 
 *  Copyright:
-*     Copyright (C) 2004 Central Laboratory of the Research Councils
+*     <COPYRIGHT_STATEMENT>
 
 *  Authors:
 *     RFWS: R.F. Warren-Smith (Starlink)
