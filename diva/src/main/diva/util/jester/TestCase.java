@@ -1,7 +1,7 @@
 /*
- * $Id: TestCase.java,v 1.4 2000/05/02 00:45:30 johnr Exp $
+ * $Id: TestCase.java,v 1.7 2002/01/10 10:33:53 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.jester;
@@ -21,13 +21,17 @@ package diva.util.jester;
  * by multiple tests, common result testing methods, and so on.
  * 
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.7 $
  */
 public abstract class TestCase {
-  /**
-   * The name of this test case
-   */
-  private String _name;
+    // The name of this test case
+    private String _name;
+
+    // The start time of this test case
+    private long _startTime = 0;
+
+    // The stop time of this test case
+    private long _stopTime = 0;
 
   /**
    * Construct a test case with the given name
@@ -50,11 +54,11 @@ public abstract class TestCase {
    * second argument is a string, which should generally be a copy
    * of the expression that produced the first argument.
    */
-  public void assertTest(boolean passed, String msg) throws TestFailedException {
+  public void assertExpr (boolean passed, String msg) throws TestFailedException {
     if (!passed) {
       throw new TestFailedException(msg);
     }
-  } // PWD: renamed assertTest from assert, 1.4 clash.
+  } 
 
   /**
    * Assert the equality of two objects. This method uses the equals()
@@ -84,6 +88,26 @@ public abstract class TestCase {
   }
 
   /**
+   * Get the execution time of this test case. If the time is
+   * zero (and the timers were called) then return 1.
+   */
+  public int getExecutionTime () {
+      int diff =  (int) (_stopTime - _startTime);
+      if (_startTime != 0 && diff == 0) {
+	  return 1;
+      } else {
+	  return diff;
+      }
+  }
+
+  /**
+   * Get the name of this test case
+   */
+  public String getName () {
+    return _name;
+  }
+
+  /**
    * Initialize the test case. This is a concrete method that does
    * nothing. It is not requires that this method be overridden, but
    * any test that is more than a few lines should do so to
@@ -97,13 +121,6 @@ public abstract class TestCase {
   }
 
   /**
-   * Get the name of this test case
-   */
-  public String getName () {
-    return _name;
-  }
-
-  /**
    * Run the test case. This method actually runs the test.
    * Result checking should not be done here, but in the
    * check() method. The method signature includes the completely
@@ -111,5 +128,22 @@ public abstract class TestCase {
    * arbitrary code.
    */
   public abstract void run () throws Exception;
+
+    /** Start the execution timer. This can be called only once in
+     * the execution of the test case. If it is called (and the
+     * stopTimer() method id also called), the execution time is
+     * printed by the test harness.
+     */
+    public void startTimer () {
+	_startTime = System.currentTimeMillis();
+    }
+
+    /** Stop the execution timer. The difference between the start and
+     * stop times will be reported by the test harness.
+     */
+    public void stopTimer () {
+	_stopTime = System.currentTimeMillis();
+    }
 }
+
 

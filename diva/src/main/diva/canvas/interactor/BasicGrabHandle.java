@@ -1,7 +1,7 @@
 /*
- * $Id: BasicGrabHandle.java,v 1.5 2000/05/02 00:43:29 johnr Exp $
+ * $Id: BasicGrabHandle.java,v 1.7 2001/07/22 22:00:36 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.interactor;
@@ -19,7 +19,7 @@ import java.awt.geom.Rectangle2D;
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.5 $
+ * @version	$Revision: 1.7 $
  */
 public class BasicGrabHandle extends BasicRectangle implements GrabHandle {
     /** The site
@@ -69,13 +69,9 @@ public class BasicGrabHandle extends BasicRectangle implements GrabHandle {
      * Reposition the grab-handle if necessary
      */
     public void relocate () {
-	// BIG FIXME This doesn't work for hierarchical figures because we
-	// need to take the transformcontext into account.
-        // FIXME.  OK, we hacked it, but what about nested panes?
+        // Be sure to take into account that the transformContext of the
+        // site and the context of the grab handle may be different.
         TransformContext tc = getTransformContext();
-        while(tc.getParent() != null) {
-            tc = tc.getParent(); //hack hack hack
-        }
         Point2D p = _site.getPoint(tc);
 	double x = p.getX();
         double y = p.getY();
@@ -115,4 +111,5 @@ public class BasicGrabHandle extends BasicRectangle implements GrabHandle {
         _site.translate(x,y);
     }
 }
+
 

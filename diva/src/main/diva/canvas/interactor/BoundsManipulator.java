@@ -1,7 +1,7 @@
 /*
- * $Id: BoundsManipulator.java,v 1.15 2000/06/19 19:04:30 neuendor Exp $
+ * $Id: BoundsManipulator.java,v 1.17 2001/07/24 06:33:01 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.interactor;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.15 $
+ * @version	$Revision: 1.17 $
  */
 public class BoundsManipulator extends Manipulator {
 
@@ -70,7 +70,7 @@ public class BoundsManipulator extends Manipulator {
     }
 
     /** Create a new instance of this manipulator. The new
-     * instance will have the same grab handle, and interaction role
+     * instance will have the same grab handle, and interactor
      * for grab-handles, as this one.
      */
     public FigureDecorator newInstance (Figure f) {
@@ -105,7 +105,7 @@ public class BoundsManipulator extends Manipulator {
             Iterator i = _geometry.sites();
             GrabHandle g = null;
             while (i.hasNext()) {
-                // Create a grab handle and set up the interaction role
+                // Create a grab handle and set up the interactor
                 Site site = (Site)i.next();
                 g = getGrabHandleFactory().createGrabHandle(site);
                 g.setParent(this);
@@ -165,5 +165,6 @@ public class BoundsManipulator extends Manipulator {
         }
     }
 }
+
 
 

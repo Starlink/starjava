@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * $Id: AbstractPaintedGraphic.java,v 1.12 2002/08/12 06:36:59 johnr Exp $
+ *
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.java2d;
@@ -17,6 +19,8 @@ import java.awt.geom.Rectangle2D;
  * abstraction.
  *
  * @author Nick Zamora
+ * @version $Revision: 1.12 $
+ * @deprecated Will be removed in Diva 0.4. Use diva.compat.canvas if needed.
  */
 public abstract class AbstractPaintedGraphic implements PaintedGraphic {
 
@@ -49,29 +53,31 @@ public abstract class AbstractPaintedGraphic implements PaintedGraphic {
 
         // FIXME: these bounds REALLY need to be cached.  But it's 
         // painful because of the public members.
-//         if (stroke == null) {
-//             return shape.getBounds2D();
-//         } else if(stroke instanceof BasicStroke) {
-//             // For some reason (antialiasing?) the bounds returned by 
-//             // BasicStroke is off by one.  This code works around it.
-//             // if all we want is the bounds, then we don't need to actually
-//             // stroke the shape.
-//             Rectangle2D rect = shape.getBounds2D();
-//             int width = (int)((BasicStroke)stroke).getLineWidth();// + 2;
-//             return new Rectangle2D.Double(rect.getX() - width, 
-//                                           rect.getY() - width,
-//                                           rect.getWidth() + width + width,
-//     					  rect.getHeight() + width + width);
-//         } else {
-//   	    // For some reason (antialiasing?) the bounds returned by 
-//  	    // BasicStroke is off by one.  This code works around it.
-//   	    Rectangle2D rect = stroke.createStrokedShape(shape).getBounds2D();
-//             return rect;
-//             return new Rectangle2D.Double(rect.getX() - 1, 
-//    					  rect.getY() - 1,
-//    					  rect.getWidth() + 2,
-//    					  rect.getHeight() + 2);
-//   	}
+//        if (stroke == null) {
+//            return shape.getBounds2D();
+//        } else if(stroke instanceof BasicStroke) {
+//            // For some reason (antialiasing?) the bounds returned by 
+//	    // BasicStroke is off by one.  This code works around it.
+//            // if all we want is the bounds, then we don't need to actually
+//            // stroke the shape.  We've had reports that this is no longer
+//            // necessary with JDK1.3.
+//            Rectangle2D rect = shape.getBounds2D();
+//            int width = (int)((BasicStroke)stroke).getLineWidth() + 2;
+//	    return new Rectangle2D.Double(rect.getX() - width, 
+//					  rect.getY() - width,
+//					  rect.getWidth() + width + width,
+//					  rect.getHeight() + width + width);
+//        } else {
+//	    // For some reason (antialiasing?) the bounds returned by 
+//	    // BasicStroke is off by one.  This code works around it.
+//            // We've had reports that this is no longer
+//            // necessary with JDK1.3.
+//	    Rectangle2D rect = stroke.createStrokedShape(shape).getBounds2D();
+//            return new Rectangle2D.Double(rect.getX() - 1, 
+//					  rect.getY() - 1,
+//					  rect.getWidth() + 2,
+//					  rect.getHeight() + 2);
+//	}
     }
 
     /** Get the stroke.
@@ -122,3 +128,4 @@ public abstract class AbstractPaintedGraphic implements PaintedGraphic {
      */
     public abstract void setLineWidth (float lineWidth); 
 }
+
