@@ -37,6 +37,7 @@ import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.gui.AstTicks;
+import uk.ac.starlink.ast.gui.AstPlotSource;
 import uk.ac.starlink.ast.gui.ColourStore;
 import uk.ac.starlink.ast.gui.GraphicsEdges;
 import uk.ac.starlink.ast.gui.GraphicsHints;
@@ -69,7 +70,7 @@ import uk.ac.starlink.splat.util.SplatException;
  */
 public class DivaPlot
     extends JCanvas
-    implements Draw, Printable, MouseListener
+    implements Draw, Printable, MouseListener, AstPlotSource
 {
     /**
      * X scale factor for displaying data.
@@ -1296,5 +1297,11 @@ public class DivaPlot
             drawActions = new DrawActions( this, null );
         }
         return drawActions;
+    }
+
+    // Implementation of AstPlotSource interface.
+    public Plot getPlot()
+    {
+        return astJ.getPlot();
     }
 }
