@@ -13,8 +13,9 @@ import uk.ac.starlink.topcat.func.Arithmetic;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
 import uk.ac.starlink.topcat.func.Conversions;
 import uk.ac.starlink.topcat.func.Coords;
-import uk.ac.starlink.topcat.func.Maths;
 import uk.ac.starlink.topcat.func.Image;
+import uk.ac.starlink.topcat.func.Maths;
+import uk.ac.starlink.topcat.func.Mgc;
 import uk.ac.starlink.topcat.func.Output;
 import uk.ac.starlink.topcat.func.Sdss;
 import uk.ac.starlink.topcat.func.Sog;
@@ -168,6 +169,7 @@ public class JELUtils {
             if ( TopcatUtils.canSplat() ) {
                 classList.add( Splat.class );
             }
+            classList.add( Mgc.class );
             classList.add( Sdss.class );
             classList.add( SuperCosmos.class );
             classList.add( TwoQZ.class );
