@@ -43,6 +43,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.dom.DOMSource;
 
 import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.BadHandler;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.Requirements;
 import uk.ac.starlink.array.Type;
@@ -328,6 +329,24 @@ public class HDXImage
         }
     }
 
+    /**
+     * Return the Bad pixel value for the current NDArray. 
+     * Returns Double.NaN if none is defined.
+     */
+    public double getBadValue()
+    {
+        if ( ndArray != null ) {
+            BadHandler handler = ndArray.getBadHandler();
+            if ( handler != null ) {
+                Number value = handler.getBadValue();
+                if ( value != null ) {
+                    return value.doubleValue();
+                }
+            }
+        }
+        return Double.NaN;
+    }
+
     public static void setDefaultTileWidth( int w )
     {
         defaultTileWidth = w;
@@ -461,7 +480,6 @@ public class HDXImage
                                                                 scanlineStride,
                                                                 bandOffsets );
     }
-
 
     /**
      * Create an object to manage the data based on the type and set
