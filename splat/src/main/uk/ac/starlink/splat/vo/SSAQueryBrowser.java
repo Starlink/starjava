@@ -522,6 +522,7 @@ public class SSAQueryBrowser
             boolean interrupted = false;
             public Object construct()
             {
+                progressPanel.start();
                 try {
                     runProcessQueryList( localQueryList );
                 }
