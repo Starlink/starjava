@@ -984,7 +984,7 @@
 
       <!-- Cope with custom tags. -->
       <tag name="example"
-           description="Example"
+           description="Examples:"
            scope="methods, fields"
            enabled="true"/>
 
