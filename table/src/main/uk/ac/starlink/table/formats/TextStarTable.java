@@ -418,7 +418,7 @@ public class TextStarTable extends RandomStarTable {
      * @param   stream  the stream to read
      */
     private String eatLine( InputStream stream ) throws IOException {
-        buffer.setLength( 0 );
+        buffer = new StringBuffer();
         for ( boolean done = false; ! done; ) {
             int c = stream.read();
             switch ( (char) c ) {
@@ -448,7 +448,7 @@ public class TextStarTable extends RandomStarTable {
      */
     private String readString( InputStream stream ) throws IOException {
         char delimiter = (char) stream.read();
-        buffer.setLength( 0 );
+        buffer = new StringBuffer();
         while ( true ) {
             int c = stream.read();
             if ( c == delimiter ) {
@@ -484,7 +484,7 @@ public class TextStarTable extends RandomStarTable {
      * @throws  IOException  if an I/O error occurs
      */
     private String readToken( PushbackInputStream stream ) throws IOException {
-        buffer.setLength( 0 );
+        buffer = new StringBuffer();
         for ( boolean done = false; ! done; ) {
             int c = stream.read();
             switch ( (char) c ) {
