@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.HeadlessException;
+import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
@@ -11,6 +12,16 @@ public class StarTableNodeChooserTest extends TestCase {
 
     public StarTableNodeChooserTest( String name ) {
         super( name );
+    }
+
+    public void testFileChooser() {
+        try {
+            JFileChooser fc = new StarTableChooser().getFileChooser();
+            assertTrue( fc != null );
+        }
+        catch ( HeadlessException e ) {
+            System.out.println( "Headless environment - no GUI test" );
+        }
     }
 
     /**
