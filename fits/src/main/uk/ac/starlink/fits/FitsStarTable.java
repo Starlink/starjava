@@ -3,16 +3,19 @@ package uk.ac.starlink.fits;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.fits.TableData;
 import nom.tam.fits.TableHDU;
-import uk.ac.starlink.table.ColumnHeader;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RandomStarTable;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * An implementation of the StarTable interface which uses FITS TABLE
@@ -27,26 +30,41 @@ public class FitsStarTable extends RandomStarTable {
     private final int ncol;
 
     /* The following are indexed by column. */
-    private final ColumnHeader[] colheads;
+    private final ColumnInfo[] colinfos;
     private final double[] scales;
     private final double[] zeros;
     private final boolean[] isScaled;
     private final long[] blanks;
     private final boolean[] hasBlank;
 
-    /* Metadata keys. */
-    private final static String TNULL_KEY = "Blank value";
-    private final static String TSCAL_KEY = "SCALE";
-    private final static String TZERO_KEY = "ZERO";
-    private final static String TDISP_KEY = "Display format";
-    private final static String TDIM_KEY = "Array arrangement";
-    private final static String TBCOL_KEY = "Start column";
-    private final static String TFORM_KEY = "Format";
-    private final static List metadataKeyList = 
-        Collections.unmodifiableList( Arrays.asList( new String[] {
-            TNULL_KEY, TSCAL_KEY, TZERO_KEY, TDISP_KEY, TDIM_KEY,
-            TBCOL_KEY, TFORM_KEY,
-        } ) );
+    /* Auxiliary metadata for columns. */
+    private final static ValueInfo tnullInfo = new DefaultValueInfo(
+        "Blank",
+        Long.class,
+        "Bad value indicator (TNULLn card)" );
+    private final static ValueInfo tscalInfo = new DefaultValueInfo(
+        "Scale",
+        Double.class,
+        "Multiplier for values (TSCALn card)" );
+    private final static ValueInfo tzeroInfo = new DefaultValueInfo(
+        "Zero",
+        Double.class,
+        "Offset for values (TZEROn card)" );
+    private final static ValueInfo tdispInfo = new DefaultValueInfo(
+        "Format",
+        String.class, 
+        "Display format in FORTRAN notation (TDISPn card)" );
+    private final static ValueInfo tbcolInfo = new DefaultValueInfo(
+        "Start column",
+        Integer.class,
+        "Start column for data (TBCOLn card)" );
+    private final static ValueInfo tformInfo = new DefaultValueInfo(
+        "Format code",
+        String.class,
+        "Data type code (TFORMn card)" );
+    private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
+        tnullInfo, tscalInfo, tzeroInfo, tdispInfo, tbcolInfo, tformInfo,
+    } );
 
     /**
      * Constructs a FitsStarTable object from a FITS TableHDU object.
@@ -57,7 +75,7 @@ public class FitsStarTable extends RandomStarTable {
         this.thdu = thdu;
         nrow = thdu.getNRows();
         ncol = thdu.getNCols();
-        colheads = new ColumnHeader[ ncol ];
+        colinfos = new ColumnInfo[ ncol ];
         scales = new double[ ncol ];
         Arrays.fill( scales, 1.0 );
         zeros = new double[ ncol ];
@@ -66,75 +84,100 @@ public class FitsStarTable extends RandomStarTable {
         hasBlank = new boolean[ ncol ];
 
         Header cards = thdu.getHeader();
-        for ( int i = 0; i < ncol; i++ ) {
-            ColumnHeader colhead = new ColumnHeader( thdu.getColumnName( i ) );
-            Map metadata = new HashMap();
-            colheads[ i ] = colhead;
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            int jcol = icol + 1;
+            ColumnInfo cinfo = new ColumnInfo( thdu.getColumnName( icol ) );
+            List auxdata = cinfo.getAuxData();
+            colinfos[ icol ] = cinfo;
 
             /* Units. */
-            String tunit = cards.getStringValue( "TUNIT" + ( i + 1 ) );
+            String tunit = cards.getStringValue( "TUNIT" + jcol );
             if ( tunit != null ) {
-                colhead.setUnitString( tunit );
+                cinfo.setUnitString( tunit );
             }
 
             /* Format string. */
-            String tdisp = cards.getStringValue( "TDISP" + ( i + 1 ) );
+            String tdisp = cards.getStringValue( "TDISP" + jcol );
             if ( tdisp != null ) {
-                metadata.put( TDISP_KEY, tdisp );
+                auxdata.add( new DescribedValue( tdispInfo, tdisp ) );
             }
 
             /* Blank value. */
-            String tnull = cards.getStringValue( "TNULL" + ( i + 1 ) );
+            String tnull = cards.getStringValue( "TNULL" + jcol );
             if ( tnull != null ) {
-                blanks[ i ] = Long.parseLong( tnull );
-                hasBlank[ i ] = true;
-                metadata.put( TNULL_KEY, tnull );
+                long nullval = Long.parseLong( tnull );
+                blanks[ icol ] = nullval;
+                hasBlank[ icol ] = true;
+                auxdata.add( new DescribedValue( tnullInfo, 
+                                                 new Long( nullval ) ) );
             }
             else {
-                colhead.setNullable( false );
+                cinfo.setNullable( false );
             }
                 
+            /* Shape. */
+            String tdim = cards.getStringValue( "TDIM" + jcol );
+            if ( tdim != null ) {
+                tdim = tdim.trim();
+                if ( tdim.charAt( 0 ) == '(' && 
+                     tdim.charAt( tdim.length() - 1 ) == ')' ) {
+                    tdim = tdim.substring( 1, tdim.length() - 1 ).trim();
+                    String[] sdims = tdim.split( "," );
+                    if ( sdims.length > 0 ) {
+                        try {
+                            int[] dims = new int[ sdims.length ];
+                            for ( int i = 0; i < sdims.length; i++ ) {
+                                dims[ i ] = Integer.parseInt( sdims[ i ] );
+                            }
+                            cinfo.setShape( dims );
+                        }
+                        catch ( NumberFormatException e ) {
+                            // can't set shape
+                        }
+                    }
+                }
+            }
+
             /* Scaling. */
-            String tscal = cards.getStringValue( "TSCAL" + ( i + 1 ) );
-            String tzero = cards.getStringValue( "TZERO" + ( i + 1 ) );
+            String tscal = cards.getStringValue( "TSCAL" + jcol );
+            String tzero = cards.getStringValue( "TZERO" + jcol );
             if ( tscal != null ) {
-                scales[ i ] = Double.parseDouble( tscal );
-                metadata.put( TSCAL_KEY, tscal );
+                double scalval = Double.parseDouble( tscal );
+                scales[ icol ] = scalval;
+                auxdata.add( new DescribedValue( tscalInfo,
+                                                 new Double( scalval ) ) );
             }
             if ( tzero != null ) {
-                zeros[ i ] = Double.parseDouble( tzero );
-                metadata.put( TZERO_KEY, tzero );
+                double zeroval = Double.parseDouble( tzero );
+                zeros[ icol ] = zeroval;
+                auxdata.add( new DescribedValue( tzeroInfo,
+                                                 new Double( zeroval ) ) );
             }
-            if ( scales[ i ] != 1.0 || zeros[ i ] != 0.0 ) {
-                isScaled[ i ] = true;
+            if ( scales[ icol ] != 1.0 || zeros[ icol ] != 0.0 ) {
+                isScaled[ icol ] = true;
             }
 
             /* Implementation specifics. */
-            String tbcol = cards.getStringValue( "TBCOL" + ( i + 1 ) );
+            String tbcol = cards.getStringValue( "TBCOL" + jcol );
             if ( tbcol != null ) {
-                metadata.put( TBCOL_KEY, tbcol );
+                int bcolval = Integer.parseInt( tbcol );
+                auxdata.add( new DescribedValue( tbcolInfo, 
+                                                 new Integer( bcolval ) ) );
             }
-            String tform = cards.getStringValue( "TFORM" + ( i + 1 ) );
+            String tform = cards.getStringValue( "TFORM" + jcol );
             if ( tform != null ) {
-                metadata.put( TFORM_KEY, tform );
+                auxdata.add( new DescribedValue( tformInfo, tform ) );
             }
-            String tdim = cards.getStringValue( "TDIM" + ( i + 1 ) );
-            if ( tdim != null ) {
-                metadata.put( TDIM_KEY, tdim );
-            }
-
-            /* Set the column metadata attribute. */
-            colhead.setMetadata( metadata );
 
             /* Class of column. */
             Class cls = Object.class;
-            if ( isScaled[ i ] ) {
-                colhead.setContentClass( Double.class );
+            if ( isScaled[ icol ] ) {
+                cinfo.setContentClass( Double.class );
             }
             else if ( nrow > 0 ) {
-                Object test = getCell( 0, i );
+                Object test = doGetCell( 0, icol );
                 if ( test != null ) {
-                    colhead.setContentClass( test.getClass() );
+                    cinfo.setContentClass( test.getClass() );
                 }
             }
         }
@@ -149,6 +192,11 @@ public class FitsStarTable extends RandomStarTable {
     }
 
     public Object getCell( long lrow, int icol ) throws IOException {
+        setCurrent( lrow );
+        return doGetCell( lrow, icol );
+    }
+
+    private Object doGetCell( long lrow, int icol ) throws IOException {
         int irow = (int) lrow;
         assert (long) irow == lrow;
 
@@ -252,11 +300,11 @@ public class FitsStarTable extends RandomStarTable {
         return base;
     }
 
-    public ColumnHeader getHeader( int icol ) {
-        return colheads[ icol ];
+    public ColumnInfo getColumnInfo( int icol ) {
+        return colinfos[ icol ];
     }
 
-    public List getColumnMetadataKeys() {
-        return metadataKeyList;
+    public List getColumnAuxDataInfos() {
+        return auxDataInfos;
     }
 }
