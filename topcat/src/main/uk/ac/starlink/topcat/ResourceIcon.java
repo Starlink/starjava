@@ -104,6 +104,8 @@ public class ResourceIcon implements Icon {
         DOWN = makeIcon( "arrow_s_pad.gif" ),
         UP_TRIM = makeIcon( "arrow_n.gif" ),
         DOWN_TRIM = makeIcon( "arrow_s.gif" ),
+        EQUATION = makeIcon( "xeq.gif" ),
+        PLOT_LINES = makeIcon( "lines.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),
