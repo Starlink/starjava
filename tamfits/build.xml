@@ -79,7 +79,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TAMFITS"/>
   <property name="name" value="tamfits"/>
-  <property name="version" value="0.93"/>
+  <property name="version" value="0.96a"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="nom.tam"/>
