@@ -57,6 +57,16 @@ public abstract class AbstractFunctionFitter
         return Math.sqrt( rmssum / (double)( x.length - 1 ) );
     }
 
+    // Calculate the residuals to the given data for the fit.
+    public double[] calcResiduals( double[] x, double[] y )
+    {
+        double[] resids = new double[x.length];
+        for ( int i = 0; i < x.length; i++ ) {
+            resids[i] = y[i] - evalYData( x[i] );
+        }
+        return resids;
+    }
+
     // Calculate an RMS to the given data and pre-calculated fit.
     public double calcRms( double[] x, double[] y, double[] fity )
     {
