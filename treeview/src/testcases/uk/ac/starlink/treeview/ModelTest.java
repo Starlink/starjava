@@ -3,6 +3,7 @@ package uk.ac.starlink.treeview;
 import java.io.File;
 import javax.swing.JFrame;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 import junit.framework.TestCase;
 
@@ -22,14 +23,21 @@ public class ModelTest extends TestCase {
     }
 
     public void testModel() throws NoSuchDataException, InterruptedException {
-        DataNodeTreeModel model = new DataNodeTreeModel( new DemoDataNode() );
+        final DataNode root = new DemoDataNode();
+        DataNodeTreeModel model = new DataNodeTreeModel( root );
+        assertEquals( model.getRoot(), root );
         JFrame window = new JFrame();
-        JTree jtree = new DataNodeJTree( model );
-        jtree.expandRow( 0 );
-        window.getContentPane().add( new DataNodeJTree( model ) );
+        final DataNodeJTree jtree = new DataNodeJTree( model );
+        window.getContentPane().add( jtree );
         window.pack();
-        window.setSize( 200, 200 );
+        window.setSize( 400, 1000 );
         window.setVisible( true );
-        Thread.currentThread().sleep( 1000 );
+
+        // doesn't work (doesn't appear to display) - why not??
+        Thread expander = jtree.recursiveExpand( root );
+        expander.join();
+        // assertEquals( 253, model.getNodeCount() - 1 );
+        assertEquals( model.getRoot(), root );
+        Thread.currentThread().sleep( 4000 );
     }
 }

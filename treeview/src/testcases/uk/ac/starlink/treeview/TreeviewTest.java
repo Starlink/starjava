@@ -98,7 +98,7 @@ public class TreeviewTest extends TestCase {
         return (String[]) lines.toArray( new String[ 0 ] );
     }
 
-    public void testGUIMode() {
+    public void testGUIMode() throws InterruptedException {
         if ( args != null ) {
             return;
         }
@@ -107,12 +107,7 @@ public class TreeviewTest extends TestCase {
             return;
         }
         Driver.main( new String[] { "-demo" } );
-        try {
-            Thread.currentThread().sleep( 1000 );
-        }
-        catch ( InterruptedException e ) {
-            e.printStackTrace();
-        }
+        Thread.currentThread().sleep( 1000 );
     }
 
     public void testWithArgs() throws IOException {
