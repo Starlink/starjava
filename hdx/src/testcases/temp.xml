@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdx>
+  <ndx>
+    <data>
+      file:/home2/pdraper/java/cvs/java/uk/ac/starlink/hdx/t/reduced_data1.sdf#data_array
+    </data>
+    <variance>
+file:/home2/pdraper/java/cvs/java/uk/ac/starlink/hdx/t/reduced_data1.sdf#variance
+    </variance>
+    <wcs>
+    <FrameSet>
+      <_attribute name="Nframe" value="3"/>
+      <_attribute name="Currnt" value="3"/>
+      <_attribute name="Nnode" value="4"/>
+      <_attribute name="Nod1" value="2"/>
+      <_attribute name="Nod2" value="3"/>
+      <_attribute name="Nod3" value="4"/>
+      <_attribute name="Lnk2" value="1"/>
+      <_attribute name="Lnk3" value="1"/>
+      <_attribute name="Lnk4" value="1"/>
+      <Frame label="Frm1">
+         <_attribute name="Title" value="&quot;Data grid index; first pixel at (1)&quot;"/>
+         <_attribute name="Naxes" value="1"/>
+         <_attribute name="Domain" value="&quot;GRID&quot;"/>
+         <Axis label="Ax1">
+            <_attribute name="Label" value="&quot;Data grid index 1&quot;"/>
+            <_attribute name="Symbol" value="&quot;g1&quot;"/>
+            <_attribute name="Unit" value="&quot;pixel&quot;"/>
+            <_attribute name="Format" value="&quot;%3.1f&quot;"/>
+        </Axis>
+      </Frame>
+      <Frame label="Frm2">
+         <_attribute name="Title" value="&quot;Pixel coordinate; first pixel at (0.5)&quot;"/>
+         <_attribute name="Naxes" value="1"/>
+         <_attribute name="Domain" value="&quot;PIXEL&quot;"/>
+         <Axis label="Ax1">
+            <_attribute name="Label" value="&quot;Pixel coordinate 1&quot;"/>
+            <_attribute name="Symbol" value="&quot;p1&quot;"/>
+            <_attribute name="Unit" value="&quot;pixel&quot;"/>
+            <_attribute name="Format" value="&quot;%3.1f&quot;"/>
+        </Axis>
+      </Frame>
+      <Frame label="Frm3">
+         <_attribute name="Title" value="&quot;Axis coordinate; first pixel at (1103.745)&quot;"/>
+         <_attribute name="Naxes" value="1"/>
+         <_attribute name="Domain" value="&quot;AXIS&quot;"/>
+         <Axis label="Ax1">
+            <_attribute name="Label" value="&quot;Wavelength&quot;"/>
+            <_attribute name="Symbol" value="&quot;a1&quot;"/>
+         </Axis>
+       </Frame>
+       <UnitMap label="Map2">
+          <_attribute name="Nin" value="1"/>
+          <_isa class="Mapping"/>
+       </UnitMap>
+       <WinMap label="Map3">
+          <_attribute name="Nin" value="1"/>
+          <_isa class="Mapping"/>
+          <_attribute name="Sft1" value="-0.5"/>
+       </WinMap>
+       <WinMap label="Map4">
+          <_attribute name="Nin" value="1"/>
+          <_isa class="Mapping"/>
+          <_attribute name="Sft1" value="1101.24499511719"/>
+          <_attribute name="Scl1" value="2.5"/>
+       </WinMap>
+    </FrameSet>
+    </wcs>
+  </ndx>
+</hdx>
