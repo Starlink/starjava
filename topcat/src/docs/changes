@@ -1,0 +1,48 @@
+V1.1-1.
+ - Fixed internationalised numeric formatting bug reported by Francois Ochsenbein.
+ - Fixed pair matching bug.
+V1.1-2.
+ - Fixed VOTable attribute formatting bug (failed to escape '<')
+V1.1-3.
+ - Added Angles functions.
+V1.2.
+ - Didn't really exist (sometime name for V1.1-3)
+V1.3.
+ - Rewrote plotting, now much faster, more flexible, more scaleable.  
+ - Added blob-selection of subsets.
+ - You can highlight a row using the data window the plot window.
+ - Linear regression lines plotted on linear or log graphs 
+ - Linear regression coefficients available in popup window
+ - New functions ln() and log10() available for algebraic expressions.
+ - Improved (publication-quality) EPS output for plots.
+ - GIF output for plots.
+ - New flag -disk to force PREFER_DISK storage policy (TOPCAT & tablecopy)
+ - Text and FITS tables now less likely to outrun memory
+ - Text handler smarter about using Short/Float in preference to Integer/Double
+ - Text handler understands [dD] as well as [eE] for exponent
+ - Table joins now pick the closest match not just any qualifying
+ - Efficiency gains in table joins, also less likely to outrun memory
+ - Pair match now records match score (distance between pairs)
+ - JEL performance improvements (prevent most NullPointerExceptions)
+ - SubsetWindow counting performance improvements (limit progressbar updates)
+ - Improved updating of viewed table when other cells are changed
+ - Null handling improved for FITS and VOTable/FITS output formats
+ - Improved window resizing for some dialogue boxes
+ - Improved error messages from synthetic subset/column expression entry
+ - Synthetic column expressions now written out into column descriptions
+ - Can add/remove table parameters
+ - One-step column replacement dialogue from data window or column window
+ - Fixed bug in text handler for sexagesimal angles with -0 degrees/hours
+ - Changed row subset #ID to _ID
+ - New Control Window action in File menu of all windows
+ - New match types (anisotropic Cartesian, Sky+X, Sky+XY)
+ - FITS files can now store column descriptions in (non-standard) TCOMMx headers
+ - MethodWindow now displays calculation methods and activation methods separate
+ - Full documentation in MethodWindow of all available functions
+ - Full documentation in SUN/253 of all available functions
+ - Can now input match errors in arcsec, arcmin, degrees as well as radians
+ - Can now select units (radians/degrees) for angle match columns 
+ - Changed the names of the properties used by JELUtils.
+ - More improvements to pair matching efficiency.
+ - Activation string serialized to output table (VOTable PARAM).
+ - VOTable processing improvements (full VOTable 1.1 compatibility, J2SE1.5)
