@@ -482,11 +482,19 @@ public class SpecAnimatorFrame
             Object target = plotList.getSelectedItem();
             if ( target instanceof String ) {
 
-                // Must be "Create" so make a new Plot. Need a
-                // spectrum initially so use the first and then
-                // remove it.
-                SpecData spec = globalList.getSpectrum( indices[0] );
-                PlotControlFrame pFrame = browser.displaySpectrum( spec );
+                // Must be "Create" so make a new Plot. Need a spectrum
+                // initially so use the first valid one and then remove it.
+
+                PlotControlFrame pFrame = null;
+                SpecData spec = null;
+                for ( int i = 0; i < indices.length; i++ ) {
+                    spec = globalList.getSpectrum( indices[i] );
+                    pFrame = browser.displaySpectrum( spec );
+                    if ( pFrame != null ) break;
+                }
+                if ( pFrame == null ) {
+                    throw new RuntimeException("Cannot find a valid spectrum");
+                }
                 animatePlot = pFrame.getPlot();
                 globalList.removeSpectrum( animatePlot, indices[0] );
             }
@@ -549,7 +557,9 @@ public class SpecAnimatorFrame
                     catch (SplatException ignored) {
                         // Failed to display spectrum, make a simple
                         // report and pass on.
-                        ignored.printStackTrace();
+                        System.out.println( ignored.getMessage() );
+                        removeLastSpectrum();
+                        lastIndex = newIndex;
                         return;
                     }
                     spectrumName.setText( spec.getShortName() );
@@ -597,10 +607,12 @@ public class SpecAnimatorFrame
         if ( timer != null ) {
             timer.stop();
             removeLastSpectrum();
-            indices = null;
             lastIndex = -1;
             timer = null;
             spectrumName.setText( " " );
+            if ( indices != null ) {
+                specList.setSelectedIndices( indices );
+            }
         }
     }
 
