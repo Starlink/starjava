@@ -92,11 +92,9 @@ public class ConeSearchDialog extends JPanel implements TableLoadDialog {
                                                .length == 1 );
             }
         } );
-        JComboBox qselector = regPanel_.getQuerySelector();
-        qselector.setModel( new DefaultComboBoxModel( new String[] {
+        regPanel_.getQueryPanel().setPresetQueries( new String[] {
             "serviceType like 'CONE'",
-        } ) );
-        qselector.setSelectedIndex( 0 );
+        } );
         add( regPanel_, BorderLayout.CENTER );
 
         /* Add controls for performing the actual cone search. */

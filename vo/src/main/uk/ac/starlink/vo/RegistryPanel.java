@@ -2,10 +2,8 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,7 +13,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ListSelectionModel;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -42,20 +39,14 @@ import org.us_vo.www.SimpleResource;
 public class RegistryPanel extends JPanel {
 
     private Thread queryWorker_;
-    protected JComboBox urlSelector_;
-    protected JComboBox querySelector_;
     protected Action submitQueryAction_;
     protected Action cancelQueryAction_;
     protected JScrollPane scroller_;
     protected RegistryTable regTable_;
+    private final RegistryQueryPanel queryPanel_;
     private JComponent workingPanel_;
     private JComponent dataPanel_;
     private List activeItems_;
-
-    /** Known registry URLs.  */
-    public static String[] KNOWN_REGISTRIES = new String[] {
-        "http://voservices.net/registry/registry.asmx",
-    };
 
     /**
      * Constructs a RegistryPanel.
@@ -79,31 +70,9 @@ public class RegistryPanel extends JPanel {
 
         /* Create the component which will hold the query parameters. */
         JComponent qBox = Box.createVerticalBox();
-
-        /* Registry URL selector. */
-        JComponent urlLine = Box.createHorizontalBox();
-        urlSelector_ = new JComboBox( KNOWN_REGISTRIES ) {
-            public Dimension getMaximumSize() { 
-                return getPreferredSize();
-            }
-        };
-        urlSelector_.setSelectedIndex( 0 );
-        urlLine.add( new JLabel( "Registry: " ) );
-        urlLine.add( urlSelector_ );
-        urlLine.add( Box.createHorizontalGlue() );
-        activeItems_.add( urlSelector_ );
-        qBox.add( urlLine );
-        qBox.add( Box.createVerticalStrut( 5 ) );
-
-        /* Query text selector. */
-        JComponent queryLine = Box.createHorizontalBox();
-        querySelector_ = new JComboBox();
-        querySelector_.setEditable( true );
-        queryLine.add( new JLabel( "Query: " ) );
-        queryLine.add( querySelector_ );
-        activeItems_.add( querySelector_ );
-        qBox.add( queryLine );
-        qBox.add( Box.createVerticalStrut( 5 ) );
+        queryPanel_ = new RegistryQueryPanel();
+        activeItems_.add( queryPanel_ );
+        qBox.add( queryPanel_ );
 
         /* Component to hold submit/cancel buttons. */
         JComponent controlLine = Box.createHorizontalBox();
@@ -135,6 +104,10 @@ public class RegistryPanel extends JPanel {
         add( scroller_, BorderLayout.CENTER );
     }
 
+    public RegistryQueryPanel getQueryPanel() {
+        return queryPanel_;
+    }
+
     /**
      * Called from the event dispatch thread when a successful 
      * registry query which returns 1 or more records has been completed.
@@ -144,24 +117,6 @@ public class RegistryPanel extends JPanel {
      *                     successful query
      */
     protected void gotData( SimpleResource[] resources ) {
-    }
-
-    /**
-     * Returns the registry query text selector.
-     *
-     * @return  query selector
-     */
-    public JComboBox getQuerySelector() {
-        return querySelector_;
-    }
-
-    /**
-     * Returns query endpoint selector.
-     *
-     * @return  registry service URL selector
-     */
-    public JComboBox getURLSelector() {
-        return urlSelector_;
     }
 
     /**
@@ -199,29 +154,17 @@ public class RegistryPanel extends JPanel {
      */
     public void submitQuery() {
         
-        /* Get the registry endpoint URL. */
-        String regServ = (String) urlSelector_.getSelectedItem();
-        final URL regURL;
+        /* Get the query specification object. */
+        final RegistryQueryPanel.Query query;
         try {
-            regURL = new URL( regServ );
+            query = queryPanel_.getRegistryQuery();
         }
         catch ( MalformedURLException e ) {
-            String msg = regServ.trim().length() == 0 
-                       ? "Blank registry URL"
-                       : "Bad registry URL: " + regServ;
-            JOptionPane.showMessageDialog( this, msg, "Query Error",
+            JOptionPane.showMessageDialog( this, e.getMessage(), "Query Error",
                                            JOptionPane.ERROR_MESSAGE );
             return;
         }
 
-        /* Get the query string. */
-        final String query = (String) querySelector_.getSelectedItem();
-        if ( query.trim().length() == 0 ) {
-            JOptionPane.showMessageDialog( this, "Blank query string",
-                                           "Query Error",
-                                           JOptionPane.ERROR_MESSAGE );
-        }
-        
         /* Begin an asynchronous query on the registry. */
         setWorking( "Performing Registry Query" );
         Thread worker = new Thread( "Registry query" ) {
@@ -230,8 +173,7 @@ public class RegistryPanel extends JPanel {
             Thread wk = this;
             public void run() {
                 try {
-                    SimpleResource[] dat = new RegistryInterrogator( regURL )
-                                          .getResources( query );
+                    SimpleResource[] dat = query.performQuery();
                     if ( dat == null || dat.length == 0 ) {
                         errmsg = "No resources found for query";
                     }
