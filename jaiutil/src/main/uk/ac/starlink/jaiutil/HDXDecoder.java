@@ -65,12 +65,7 @@ public class HDXDecoder extends ImageDecoderImpl
     public RenderedImage decodeAsRenderedImage( int page ) 
         throws IOException 
     {
-        try {
-            hdxImage.setNDX( page );
-        }
-        catch( NdxException e ) {
-            throw new IOException( e.toString() );
-        }
+        hdxImage.setNDX( page );
         return hdxImage;
     }
 
