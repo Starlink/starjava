@@ -7,6 +7,17 @@ import java.io.IOException;
  * rows are permuted.  Each row in the wrapper table is a view
  * of one in the base table.  It is permitted for the wrapper to contain
  * multiple views of the same column in the base.
+ * <p>
+ * A <code>long[]</code> array, <code>rowMap</code>, is used to keep
+ * track of which rows in this table correspond to which rows in the
+ * base table; the <tt>n</tt>'th row in this table corresponds to the
+ * <tt>rowMap[n]</tt>'th row in the base table.
+ * The <tt>rowMap</tt> array may contain duplicate entries, but should
+ * not contain any entries larger than the number of rows in the base table.
+ * Any negative entry is treated as a special case resulting in a 'blank'
+ * row of all null values.
+ * It can be modified during the life of the table, but it's not a good
+ * idea to do this while a <tt>RowSequence</tt> is active.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -16,19 +27,13 @@ public class RowPermutedStarTable extends WrapperStarTable {
 
     /**
      * Constructs a new <tt>RowPermutedStarTable</tt> from a base table
-     * and an array of <tt>long</tt>s describing which rows in the new
-     * wrapper table correspond to which rows in the base one.
-     * The new table will have <tt>rowMap.length</tt> rows, and 
-     * row <tt>i</tt> in the new table will correspond to row 
-     * <tt>rowMap[i]</tt> in the base one.  The <tt>rowMap</tt> array
-     * may contain duplicate entries; any negative entry is treated as
-     * a special case resulting in a 'blank' row of all null objects.
+     * and a <tt>rowMap</tt> array.
      * <p>
      * <tt>baseTable</tt> must provide random access.
      *
      * @param  baseTable  base table
-     * @param  rowMap     array mapping rows in <tt>baseTable</tt> to rows in
-     *                    the new permuted table
+     * @param  rowMap     array mapping rows in the new permuted table to 
+     *                    rows in <tt>baseTable</tt>
      * @throws IllegalArgumentException  if <tt>baseTable.isRandom</tt> returns
      *         <tt>false</tt>
      */
@@ -38,6 +43,40 @@ public class RowPermutedStarTable extends WrapperStarTable {
             throw new IllegalArgumentException( "No random access in base " +
                                                 "table " + baseTable );
         }
+        this.rowMap = rowMap;
+    }
+
+    /**
+     * Constructs a new RowPermutedTable with rows initially in unpermuted
+     * order.
+     *
+     * @param  baseTable  base table
+     */
+    public RowPermutedStarTable( StarTable baseTable ) {
+        this( baseTable, 
+              new long[ Math.max( checkedLongToInt( baseTable.getRowCount() ),
+                                  0 ) ] );
+        int nrow = rowMap.length;
+        for ( int i = 0; i < nrow; i++ ) {
+            rowMap[ i ] = i;
+        }
+    }
+
+    /**
+     * Returns the mapping array.
+     * 
+     * @return  array mapping rows in this table to rows in the base table
+     */
+    public long[] getRowMap() {
+        return rowMap;
+    }
+
+    /**
+     * Sets the mapping array.
+     *
+     * @param  rowMap array mapping rows in this table to rows in the base table
+     */
+    public void setRowMap( long[] rowMap ) {
         this.rowMap = rowMap;
     }
 

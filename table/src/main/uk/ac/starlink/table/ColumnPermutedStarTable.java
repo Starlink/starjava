@@ -8,71 +8,66 @@ import java.io.IOException;
  * of one in the base table.  It is permitted for the wrapper to contain
  * multiple views of the same column in the base, but note that modifying
  * a cell in one of these will modify it in the other.
+ * <p>
+ * An <tt>int[]</tt> array, <tt>columnMap</tt>, is used to keep track of
+ * which columns in this table correspond to which columns in the base table;
+ * the <tt>n</tt>'th column in this table corresponds to the 
+ * <tt>columnMap[n]</tt>'th column in the base table.
+ * The <tt>columnMap</tt> array may contain duplicate entries, but all
+ * its entries must be in the range <tt>0..baseTable.getColumnCount()-1</tt>.
+ * This table will have <tt>columnMap.length</tt> entries.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class ColumnPermutedStarTable extends WrapperStarTable {
 
-    private int[] colMap;
-    private int ncol;
+    private int[] columnMap;
 
     /**
      * Constructs a new <tt>ColumnPermutedStarTable</tt> 
-     * from a base <tt>StarTable</tt> and
-     * an array describing which columns in the new wrapper table correspond
-     * to which columns in the base one.
-     * The new table will have <tt>colMap.length</tt> columns, and 
-     * the column <tt>i</tt> in the new table will correspond to
-     * column <tt>colMap[i]</tt> in <tt>baseTable</tt>.  
-     * The <tt>colMap</tt> array may contain duplicate entries, but 
-     * all its entries must be in the range
-     * <tt>0..baseTable.getColumnCount()-1</tt>.
+     * from a base <tt>StarTable</tt> and a <tt>columnMap</tt> array.
      *
      * @param  baseTable   the table on which this one is based
-     * @param  colMap array describing where each column of this table
+     * @param  columnMap  array describing where each column of this table
      *         comes from in <tt>baseTable</tt>
      */
-    public ColumnPermutedStarTable( StarTable baseTable, int[] colMap ) {
+    public ColumnPermutedStarTable( StarTable baseTable, int[] columnMap ) {
         super( baseTable );
-        this.colMap = (int[]) colMap.clone();
-        ncol = colMap.length;
-
-        /* Validate the permutation map. */
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            if ( colMap[ icol ] < 0 || 
-                 colMap[ icol ] > baseTable.getColumnCount() ) {
-                throw new IllegalArgumentException(
-                    "Illegal column permutation map: " +
-                    "colMap[" + icol + "] outside range 0.." + 
-                    baseTable.getColumnCount() );
-            }
-        }
+        this.columnMap = columnMap;
     }
 
     /**
      * Returns the mapping used to define the permutation of the columns
      * of this table with respect to the base table.
-     * Column <tt>i</tt> of this table is the same as column 
-     * <tt>getColMap()[i]</tt> of the base table.
      *
      * @return  column permutation map
      */
-    public int[] getColMap() {
-        return (int[]) colMap.clone();
+    public int[] getColumnMap() {
+        return columnMap;
+    }
+
+    /**
+     * Sets the mapping used to define the permutation of the columns
+     * of this table with respect to the base table.
+     *
+     * @param  columnMap  column permutation map
+     */
+    public void setColumnMap( int[] columnMap ) {
+        this.columnMap = columnMap;
     }
 
     public int getColumnCount() {
-        return ncol;
+        return columnMap.length;
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        return baseTable.getColumnInfo( colMap[ icol ] );
+        return baseTable.getColumnInfo( columnMap [ icol ] );
     }
 
     public RowSequence getRowSequence() throws IOException {
         return new WrapperRowSequence( baseTable.getRowSequence() ) {
             public Object getCell( int icol ) throws IOException {
-                return baseSeq.getCell( colMap[ icol ] );
+                return baseSeq.getCell( columnMap [ icol ] );
             }
             public Object[] getRow() throws IOException {
                 return permuteRow( baseSeq.getRow() );
@@ -81,7 +76,7 @@ public class ColumnPermutedStarTable extends WrapperStarTable {
     }
 
     public Object getCell( long irow, int icol ) throws IOException {
-        return baseTable.getCell( irow, colMap[ icol ] );
+        return baseTable.getCell( irow, columnMap [ icol ] );
     }
 
     public Object[] getRow( long irow ) throws IOException {
@@ -95,9 +90,10 @@ public class ColumnPermutedStarTable extends WrapperStarTable {
      * @return  the corresponding row in this table
      */
     private Object[] permuteRow( Object[] baseRow ) {
+        int ncol = columnMap.length;
         Object[] row = new Object[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
-            row[ icol ] = baseRow[ colMap[ icol ] ];
+            row[ icol ] = baseRow[ columnMap [ icol ] ];
         }
         return row;
     }
