@@ -50,6 +50,7 @@ public class TablePipe extends TableTask {
         KeepColumnFilter.class.getName(),
         DeleteColumnFilter.class.getName(),
         ExplodeFilter.class.getName(),
+        CacheFilter.class.getName(),
         RandomFilter.class.getName(),
         SequentialFilter.class.getName(),
     };
