@@ -1,5 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
 <body>
+
 
 <h3>Column Metadata Window</h3>
 
@@ -23,20 +28,20 @@ or dragging the mouse to select several.
 When they are selected certain items in the Column menu can be used.
 
 <dl>
-<dt><strong>New synthetic column</strong>
+<dt>New synthetic column
 <dd>This allows you to add a new column based on the existing ones - 
     see the section on <a href="synthetic.html>Synthetic columns</a>.
 
-<dt><strong>Delete selected column(s)</strong>
+<dt>Delete selected column(s)
 <dd>Any selected columns will be deleted from the table in the main browser
     window.
 
-<dt><strong>Sort selected up</strong>
+<dt>Sort selected up
 <dd>If a single column is selected then the row order in the main browser
     window will be re-ordered so that the selected column's values appear
     in ascending order.
 
-<dt><strong>Sort selected down</strong>
+<dt>Sort selected down
 <dd>Like <strong>Sort selected up</strong> but with the opposite sense.
 
 </dl>
@@ -58,16 +63,16 @@ in the viewer and how much metadata it has.
 Some of the items are these:
 <dl>
 
-<dt><strong>Index</strong>
+<dt>Index
 <dd>The number of the column in the browser window display; also the 
     number of the row in the grid shown here. 
     This value can change for a given column if some columns 
     are deleted moved or inserted.
 
-<dt><strong>Name</strong>
+<dt>Name
 <dd>The name of the column.
 
-<dt><strong>Class</strong>
+<dt>Class
 <dd>The Java class of the items in that column.  You don't have to know 
     very much Java to understand these; they are Float or Double for
     floating point numbers; Byte, Short, Integer or Long for integer
@@ -77,32 +82,32 @@ Some of the items are these:
     The characters '[]' after the name of the class indicates that each
     cell in the column holds an array of the indicated type.
 
-<dt><strong>Shape</strong>
+<dt>Shape
 <dd>Cells of a table can contain arrays as well as scalars.
     If the column contains an array type, this indicates the shape that
     it should be interpreted as.  It gives the dimensions in column-major
     order.  The last element may be a '*' to indicate that the size
     of the array may be variable.  For scalar columns, this item will be blank.
 
-<dt><strong>Units</strong>
+<dt>Units
 <dd>The units in which quantities in this column are expressed.
 
-<dt><strong>Description</strong>
+<dt>Description
 <dd>A textual description of the function of this column.
 
-<dt><strong>UCD</strong>
+<dt>UCD
 <dd>The UCD associated with this column, if one is specified.
     UCDs are <a href="http://vizier.u-strasbg.fr/doc/UCD.htx">Uniform 
     Content Descriptors</a>, and indicate the semantics
     of the values in this column.
 
-<dt><strong>Expression</strong>
+<dt>Expression
 <dd>The algebraic expression defining the values in this column.
     This will only be filled in if the column in question is a 
     synthetic column which you have added, rather than one present in
     the data in its original loaded form.
 
-<dt><strong>$ID</strong>
+<dt>$ID
 <dd>A unique and unchanging ID value for each column.   These are useful
     in defining expressions for synthetic columns, since they are
     guaranteed unique for each column.  Although the column Name can

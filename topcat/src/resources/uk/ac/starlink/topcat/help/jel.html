@@ -1,7 +1,12 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
 <body>
 
-<h4>Expression Syntax</h4>
+
+<h3>Expression Syntax</h3>
 
 <p>The expressions used to define 
 <a href="synthetic.html">Synthetic Columns</a> and some 
@@ -16,13 +21,13 @@ Unfortunately a complete tutorial on writing Java expressions is beyond
 the scope of this document, but it should provide enough information
 for even a novice to write useful expressions.
 
-<h5>Referencing cell values</h5>
+<h4>Referencing cell values</h4>
 
 <p>To create a useful expression for a cell in a column, you will
 have to refer to other cells in different columns of the same table row.
 You can do this in two ways:
 <dl>
-<dt><strong>By Name</strong>
+<dt>By Name
 <dd>The Name of the column may be used if it is unique (no other column in
     the table has the same name) and if it has a suitable form.
     This means that it must have the form of a Java variable - basically
@@ -32,7 +37,7 @@ You can do this in two ways:
     letters for this purpose.
     Column names are treated case-insensitively.
 
-<dt><strong>By $ID</strong>
+<dt>By $ID
 <dd>The "$ID" identifier of the column may always be used to refer to it.
     This is just a "$" sign followed by a unique integer assigned by the
     viewer to each column when it is first encountered.
@@ -49,18 +54,18 @@ The value of this is the same as the row number in the unsorted table
 column contains one of the corresponding types.  Otherwise it will
 be an Object of the type held by the column.
 
-<h5>Referencing Row Subset flags</h5>
+<h4>Referencing Row Subset flags</h4>
 
 <p>If you have any Row Subsets defined you can also access the value
 of the boolean (true/false) flag indicating whether the current row
 is in that each subset.  Again there are two ways of doing this:
 <dl>
-<dt><strong>By Name</strong>
+<dt>By Name
 <dd>The name assigned to the subset when it was created can be used
     if it is unique and if it has a suitable form.  The same comments
     apply as to column names above.
 
-<dt><strong>By #ID</strong>
+<dt>By #ID
 <dd>The "#ID" identifier of the subset may always be used to refer to it.
     As for the "$ID" identifier for columns above, this is a unique
     index preceded by a special symbol, "#".
@@ -71,41 +76,41 @@ when combining existing subsets using logical operators to create
 a new subset.
 
 
-<h5>Operators</h5>
+<h4>Operators</h4>
 
 <p>The operators are pretty much the same as in C.
 The common ones are:
 <dl>
-<dt><strong>Arithmetic</strong>
+<dt>Arithmetic
 <dd>
   <dl>
-  <dt><strong><tt>+</tt></strong> (add)
-  <dt><strong><tt>-</tt></strong> (substract)
-  <dt><strong><tt>*</tt></strong> (mutliply)
-  <dt><strong><tt>/</tt></strong> (divide)
-  <dt><strong><tt>%</tt></strong> (modulus)
+  <dt><tt>+</tt> (add)
+  <dt><tt>-</tt> (subtract)
+  <dt><tt>*</tt> (mutliply)
+  <dt><tt>/</tt> (divide)
+  <dt><tt>%</tt> (modulus)
   </dl>
 
 <dt><strong>Logical</strong>
 <dd>
   <dl>
-  <dt><strong><tt>!&nbsp;</tt></strong> (not)
-  <dt><strong><tt>&amp;&amp;</tt></strong> (and)
-  <dt><strong><tt>||</tt></strong> (or)
-  <dt><strong><tt>==</tt></strong> (identity)
-  <dt><strong><tt>!=</tt></strong> (non-identity)
-  <dt><strong><tt>&lt;&nbsp;</tt></strong> (less than)
-  <dt><strong><tt>&gt;&nbsp;</tt></strong> (greater than)
-  <dt><strong><tt>&lt;=</tt></strong> (less than or equal)
-  <dt><strong><tt>&gt;=</tt></strong> (greater than or equal)
+  <dt><tt>!&nbsp;</tt> (not)
+  <dt><tt>&amp;&amp;</tt> (and)
+  <dt><tt>||</tt> (or)
+  <dt><tt>==</tt> (identity)
+  <dt><tt>!=</tt> (non-identity)
+  <dt><tt>&lt;&nbsp;</tt> (less than)
+  <dt><tt>&gt;&nbsp;</tt> (greater than)
+  <dt><tt>&lt;=</tt> (less than or equal)
+  <dt><tt>&gt;=</tt> (greater than or equal)
   </dl>
 
-<dt><strong>Other</strong>
+<dt>Other
 <dd>
   <dl>
-  <dt><strong><tt>[]</tt></strong> (array dereferencing)
-  <dt><strong><tt>?:</tt></strong> (conditional switch)
-  <dt><strong><tt>instanceof</tt></strong> (class membership)
+  <dt><tt>[]</tt> (array dereferencing)
+  <dt><tt>?:</tt> (conditional switch)
+  <dt><tt>instanceof</tt> (class membership)
   </dl>
 </dl>
 
@@ -113,38 +118,38 @@ All the methods of the <tt>Math</tt> and <tt>String</tt>
 classes are available too,
 for instance:
 <dl>
-<dt><strong>Math static methods</strong>
+<dt>Math static methods
 <dd>
   <dl>
-  <dt><strong><tt>abs(x)</tt></strong> (absolute value)
-  <dt><strong><tt>cos(x)</tt></strong> (cosine)
-  <dt><strong><tt>sqrt(x)</tt></strong> (square root)
-  <dt><strong><tt>max(a,b)</tt></strong> (maximum)
-  <dt><strong><tt>pow(a,b)</tt></strong> (exponentiation)
-  <dt><strong><tt>toRadians(deg)</tt></strong> (angle conversion)
+  <dt><tt>abs(x)</tt> (absolute value)
+  <dt><tt>cos(x)</tt> (cosine)
+  <dt><tt>sqrt(x)</tt> (square root)
+  <dt><tt>max(a,b)</tt> (maximum)
+  <dt><tt>pow(a,b)</tt> (exponentiation)
+  <dt><tt>toRadians(deg)</tt> (angle conversion)
   </dl>
 
 <dt><strong>String instance methods</strong>
 <dd>
   <dl>
-  <dt><strong><tt>startsWith(s)</tt></strong> (comparison)
-  <dt><strong><tt>equals(s)</tt></strong> (equality)
-  <dt><strong><tt>equalsIgnoreCase(s</tt>)</strong> (case-insensitive)
-  <dt><strong><tt>matches(regex)</tt></strong> (regular expression matching)
+  <dt><tt>startsWith(s)</tt> (comparison)
+  <dt><tt>equals(s)</tt> (equality)
+  <dt><tt>equalsIgnoreCase(s)</tt> (case-insensitive)
+  <dt><tt>matches(regex)</tt> (regular expression matching)
   </dl>
 </dl>
   
 
-<h5>Examples</h5>
+<h4>Examples</h4>
 
-Here are some examples for synthetic columns:
+<p>Here are some examples for synthetic columns:
 <dl>
-<dt><strong>Average</strong>
+<dt>Average
 <dd><pre>
     ( first + second ) * 0.5
     </pre>
 
-<dt><strong>Outlier clipping</strong>
+<dt>Outlier clipping
 <dd><pre>
     min( 1000, max( value, 0 ) )
     </pre>
@@ -153,18 +158,18 @@ Here are some examples for synthetic columns:
 and here are some examples of boolean expressions that could be used
 to define Row Subsets (or to create boolean synthetic columns):
 <dl>
-<dt><strong>Within a circle</strong>
+<dt>Within a circle
 <dd><pre>
     sqrt( pow($2,2) + pow($3,2) ) &lt; 0.01
     </pre>
 
-<dt><strong>String matching</strong>
+<dt>String matching
 <dd><pre>
     CONSTELLATION.equalsIgnoreCase( "cygnus" )
     </pre>
 </dl>
 
-<dt><strong>Combining subsets</strong>
+<dt>Combining subsets
 <dd><pre>
     ( #1 && #2 ) && ! #3
     </pre>

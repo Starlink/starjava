@@ -1,5 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
 <body>
+
 
 <h3>Plot Window</h3>
 
@@ -38,12 +43,12 @@ Below the plot there are two sets of controls for selecting the
 table column which will provide the X and Y axis values.
 Each one consists of two parts:
 <dl>
-<dt><strong>Column selector</strong>
+<dt>Column selector
 <dd>A selection box from which column names in the main table can be
    selected.  Only columns which can be plotted from (i.e. scalar numeric
    ones) will be displayed in this selector.
 
-<dt><strong>Log checkbox</strong>
+<dt>Log checkbox
 <dd>This checkbox can be clicked to toggle whether the axis in question
     is to be plotted logarithmically or not.  If it is logarithmic,
     any negative values are simply ignored (not plotted).
@@ -53,25 +58,25 @@ Each one consists of two parts:
 <h4>Toolbar</h4>
 
 <dl>
-<dt><image src="../images/Print24.gif"><strong>Print</strong>
+<dt><image src="../images/Print24.gif">Print
 <dd>Pops up a dialogue which will print the current plot as an EPS file
     The plot is currently not really of publication quality.
 
-<dt><image src="../images/Redo24.gif"><strong>Replot</strong>
+<dt><image src="../images/Redo24.gif">Replot
 <dd>Redraws the current plot from scratch.  
     This may be useful if the data in the
     table has been changed.
 
-<dt><image src="../images/4way3.gif"><strong>Rescale</strong>
+<dt><image src="../images/4way3.gif">Rescale
 <dd>Rescales the axes of the current plot so that it contains all 
     the data points in the currently selected subsets.
     By default the plot will be scaled like this, but it it may have changed
     because of changes in the subset selection or from zooming in or out.
 
-<dt><image src="../images/gridon.gif"><strong>Grid</strong>
+<dt><image src="../images/gridon.gif">Grid
 <dd>Toggles whether a grid is drawn over the plotting surface or not.
 
-<dt><image src="../images/spoints5.gif"><strong>Subset from visible</strong>
+<dt><image src="../images/spoints5.gif">Subset from visible
 <dd>Defines a new Row Subset consisting of only the points which 
     are currently visible on the plotting surface.
     A dialogue will be popped up to ask for a name for the new subset.
