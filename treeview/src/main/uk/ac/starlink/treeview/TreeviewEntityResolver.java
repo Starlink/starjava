@@ -10,12 +10,13 @@ import java.util.HashMap;
 import java.util.Map;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
+import uk.ac.starlink.util.StarEntityResolver;
 
 /**
  * Provides specialised XML entity resolution for Treeview.
- * Treeview keeps local copies of a few resources in {@link #TEXT_PATH}
- * so that it doesn't need to make external connections to resolve these.
- * Additionally, any entity which is retrieved using a URL by this 
+ * As well as the local copies of some useful entities provided by 
+ * the superclass {@link StarEntityResolver}
+ * any entity which is retrieved using a URL by this 
  * entity resolver is cached for future use for the case in which,
  * for instance, multiple files in the same directory reference the
  * same external entity.  Done this way, you don't have to keep making
@@ -25,39 +26,31 @@ import org.xml.sax.InputSource;
  */
 public class TreeviewEntityResolver implements EntityResolver {
 
-    public static final String TEXT_PATH = "uk/ac/starlink/treeview/text/";
+    private static TreeviewEntityResolver instance = 
+        new TreeviewEntityResolver();
 
-    private static EntityResolver instance = new TreeviewEntityResolver();
-
-    private ClassLoader loader = getClass().getClassLoader();
+    private StarEntityResolver localResolver = StarEntityResolver.getInstance();
     private Map cache = new HashMap();
 
     /**
      * Returns the sole instance of this singleton class.
      */
-    public static EntityResolver getInstance() {
+    public static TreeviewEntityResolver getInstance() {
         return instance;
     }
 
+    /**
+     * Private sole constructor.
+     */
     private TreeviewEntityResolver() {
     }
 
     public InputSource resolveEntity( String publicId, String systemId ) {
 
-        /* See if it is one of the items we keep on hand. */
-        String resourcePath = null;
-        if ( systemId.endsWith( "VOTable.dtd" ) ) {
-            resourcePath = TEXT_PATH + "VOTable.dtd";
-        }
-        else if ( systemId.endsWith( "astrores.dtd" ) ) {
-            resourcePath = TEXT_PATH + "astrores.dtd";
-        }
-        if ( resourcePath != null ) {
-            InputStream istrm = loader.getResourceAsStream( resourcePath );
-            InputSource isrc = new InputSource( istrm );
-            isrc.setPublicId( publicId );
-            isrc.setSystemId( systemId );
-            return isrc;
+        /* Give StarEntityResolver a chance to retrieve it from a local copy. */
+        InputSource is = localResolver.resolveEntity( publicId, systemId );
+        if ( is != null ) {
+            return is;
         }
 
         /* See if it's in the cache. */
