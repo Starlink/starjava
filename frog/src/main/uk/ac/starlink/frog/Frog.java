@@ -919,7 +919,7 @@ public class Frog extends JFrame
         menuBar.add( helpMenu );
         
         //  help dialog        
-        final String helpString =  Utilities.getReleaseName() + "Online Help";
+        final String helpString =  Utilities.getReleaseName() + " Help System";
         JMenuItem helpItem = new JMenuItem( helpString );
         helpItem.addActionListener( new ActionListener() {
            public void actionPerformed(ActionEvent e) { 
