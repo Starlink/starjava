@@ -227,13 +227,16 @@
       <resources>
         <j2se version="1.4+"/>
 
+        <property name="org.astrogrid.registry.query.endpoint" 
+                  value="http://hydra.star.le.ac.uk:8080/astrogrid-registry/services/RegistryQuery"/>
+
         <!-- Alternative 1 - JNLP files got locally. -->
         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
 
         <!-- Alternative 2 - JNLP files got from AstroGrid. -->
-        <!--
+ <!--
           <extension href="http://software.astrogrid.org/jnlp/astrogrid-cdk-core/astrogrid-cdk-core.jnlp" name="ASTROGRID-CDK"/>
-        -->
+  !-->
 
       </resources>
 
