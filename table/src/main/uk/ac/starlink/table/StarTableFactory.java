@@ -85,7 +85,7 @@ import uk.ac.starlink.util.URLDataSource;
  *
  * <p>The factory has a flag <tt>requireRandom</tt> which determines 
  * whether the <tt>makeStarTable</tt> methods are guaranteed to return
- * tables which provide random access (<tt>StarTable.isRandom()==true<tt>).
+ * tables which provide random access (<tt>StarTable.isRandom()==true</tt>).
  * <strong>NOTE</strong> the meaning (and name) of this flag has changed
  * as of STIL version 2.1.  Previously it was only a hint that random
  * tables were preferred.  Now setting it true guarantees that all 
