@@ -170,8 +170,13 @@ public class Driver {
 
         /* Fine tune the logging - we don't need HDS or AST here, so 
          * stop them complaining when they can't be loaded. */
-        Logger.getLogger( "uk.ac.starlink.hds" ).setLevel( Level.OFF );
-        Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
+        try {
+            Logger.getLogger( "uk.ac.starlink.hds" ).setLevel( Level.OFF );
+            Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
+        }
+        catch ( SecurityException e ) {
+            // If running in a sandbox, this may be blocked - never mind.
+        }
 
         /* Start up the GUI now. */
         getControlWindow();
