@@ -16,6 +16,10 @@ package uk.ac.starlink.topcat.func;
  */
 public class Sdss {
 
+    /** Base URL for SkyServer JPEG retrieval service. */
+    public static final String BASE_URL = 
+        "http://skyservice.pha.jhu.edu/dr2/ImgCutout/getjpeg.aspx";
+
     /**
      * Private constructor prevents instantiation.
      */
@@ -33,14 +37,38 @@ public class Sdss {
      * @return  short log message
      */
     public static String sdssCutout( double ra, double dec, int pixels ) {
-        String query = new Query( "http://skyservice.pha.jhu.edu/" +
-                                  "dr2/ImgCutout/getjpeg.aspx" )
+        String query = new CgiQuery( BASE_URL )
              .addArgument( "ra", Math.toDegrees( ra ) )
              .addArgument( "dec", Math.toDegrees( dec ) )
              .addArgument( "height", pixels )
              .addArgument( "width", pixels )
              .toString();
-        return Sog.sog( query );
+        return Image.displayImage( query );
+    }
+
+    /**
+     * Displays a colour cutout image of a specified size from the SDSS
+     * around a given sky position with pixels of a given size.
+     * Pixels are square, and their size on the sky is specified by
+     * the <code>scale</code> argument.  The displayed image has 
+     * <code>pixels</code> pixels along each side.
+     *
+     * @param  ra  Right Ascension in radians
+     * @param  dec Declination in radians
+     * @param  pixels  size of displayed image in SDSS pixels
+     * @param  scale   pixel size in arcseconds
+     * @return  short log message
+     */
+    public static String sdssCutout( double ra, double dec, int pixels,
+                                     double scale ) {
+        String query = new CgiQuery( BASE_URL )
+             .addArgument( "ra", Math.toDegrees( ra ) )
+             .addArgument( "dec", Math.toDegrees( dec ) )
+             .addArgument( "height", pixels )
+             .addArgument( "width", pixels )
+             .addArgument( "scale", scale )
+             .toString();
+        return Image.displayImage( query );
     }
 
     /**
@@ -56,41 +84,4 @@ public class Sdss {
         return sdssCutout( ra, dec, 128 );
     }
 
-    /** 
-     * Helper class for forming CGI queries.
-     */
-    private static class Query {
-        StringBuffer sbuf_ = new StringBuffer();
-        Query( String endpoint ) {
-            sbuf_.append( endpoint )
-                 .append( '?' );
-        }
-        Query addArgument( String name, double value ) {
-            return addArgument( name, Double.toString( value ) );
-        }
-        Query addArgument( String name, long value ) {
-            return addArgument( name, Long.toString( value ) );
-        }
-        Query addArgument( String name, String value ) {
-            sbuf_.append( '&' )
-                 .append( name )
-                 .append( '=' );
-            for ( int i = 0; i < value.length(); i++ ) {
-                char c = value.charAt( i );
-                switch ( c ) {
-                    case ' ':
-                    case '%':
-                        sbuf_.append( '%' )
-                             .append( Integer.toHexString( (int) c ) );
-                        break;
-                    default:
-                        sbuf_.append( c );
-                }
-            }
-            return this;
-        }
-        public String toString() {
-            return sbuf_.toString();
-        }
-    }
 }

@@ -14,9 +14,12 @@ import uk.ac.starlink.topcat.func.Conversions;
 import uk.ac.starlink.topcat.func.Coords;
 import uk.ac.starlink.topcat.func.Maths;
 import uk.ac.starlink.topcat.func.Output;
+import uk.ac.starlink.topcat.func.Sdss;
 import uk.ac.starlink.topcat.func.Sog;
 import uk.ac.starlink.topcat.func.Splat;
 import uk.ac.starlink.topcat.func.Strings;
+import uk.ac.starlink.topcat.func.SuperCosmos;
+import uk.ac.starlink.topcat.func.TwoQZ;
 
 /**
  * This class provides some utility methods for use with the JEL
@@ -87,8 +90,10 @@ public class JELUtils {
                     for ( int i = 0; i < cs.length; i++ ) {
                         String className = cs[ i ].trim();
                         Class clazz = classForName( className );
-                        if ( clazz != null ) {
-                            classList.add( clazz );
+                        if ( clazz != null ) { 
+                            if ( ! classList.contains( clazz ) ) {
+                                classList.add( clazz );
+                            }
                         }
                         else {
                             logger.warning( "Class not found: " + className );
@@ -157,6 +162,9 @@ public class JELUtils {
             if ( TopcatUtils.canSog() ) { 
                 classList.add( Sog.class );
             }
+            classList.add( Sdss.class );
+            classList.add( SuperCosmos.class );
+            classList.add( TwoQZ.class );
 
             /* Add classes specified by a system property. */
             try {
@@ -168,7 +176,9 @@ public class JELUtils {
                         String className = cs[ i ].trim();
                         Class clazz = classForName( className );
                         if ( clazz != null ) {
-                            classList.add( clazz );
+                            if ( ! classList.contains( clazz ) ) {
+                                classList.add( clazz );
+                            }
                         }
                         else {
                             logger.warning( "Class not found: " + className );
