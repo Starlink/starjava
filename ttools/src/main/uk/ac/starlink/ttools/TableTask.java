@@ -89,6 +89,7 @@ public abstract class TableTask {
             if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 if ( arg.equals( "-disk" ) ) {
                     it.remove();
+                    StoragePolicy.setDefaultPolicy( StoragePolicy.PREFER_DISK );
                     getTableFactory().setStoragePolicy( StoragePolicy
                                                        .PREFER_DISK );
                 }
