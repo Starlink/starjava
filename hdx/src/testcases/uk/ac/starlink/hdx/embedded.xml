@@ -16,6 +16,10 @@
     <hdx:variance
       hdx:uri="file:test2.fits"
       >junk</hdx:variance>
+
+    <!-- no-namespace attribute is scooped up and included when it's
+         on an HDX-namespace element (best practice) -->
+    <hdx:quality uri="file:test7.fits"/>
   </hdx:ndx>
 
   <!-- ...and an empty one -->
@@ -38,10 +42,17 @@
 	Miscellaneous content
       </wotsit>
       <blarfle
-	hdx:hdxname="quality"
+	hdx:hdxname="variance"
 	b:uri="file:test4.fits">
 	file:test5.fits
       </blarfle>
+      <!-- no-namespace attributes are _not_ scooped up when used with
+           the architectural attribute -->
+      <grunt
+        hdx:hdxname="quality"
+        uri="file:test8.fits">
+        file:test9.fits
+      </grunt>
     </stuff>
   </other>
 </rubbish>

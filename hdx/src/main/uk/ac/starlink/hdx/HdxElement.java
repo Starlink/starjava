@@ -132,7 +132,7 @@ class HdxElement
 
     /**
      * Constructs an HdxElement from a plain Element, where the {@link
-     * HdxResourceType} has already been determined.  This is ap
+     * HdxResourceType} has already been determined.  This is a
      * <em>private</em> constructor.
      *
      * <p>If the <code>setType</code> parameter is null, then the
@@ -158,7 +158,8 @@ class HdxElement
      * >Simon St Laurent</a>, and see <a
      * href="http://lists.xml.org/archives/xml-dev/200207/msg01551.html"
      * >David Carlisle</a> for a point of view which rationalises this
-     * without necessarily claiming it as best practice.
+     * without necessarily claiming it as best practice.  The {@link
+     * HdxFactory#newHdxContainer(Element,URI)} method contracts this behaviour.
      *
      * @param el element to extract information from.  It's OK for
      * this to be null -- this is purely so that this class can also service
@@ -183,20 +184,30 @@ class HdxElement
         
         String backingNodeNSPrefix;
         Element backingNode;
+        int attsToUse;
         
+        ElementTypeInfo inf;
         if (setType == null) {
             if (el == null)
                 throw new IllegalArgumentException
-                    ("HdxElement(null,null,...)");
+                        ("HdxElement(null,null,...)");
             
-            ElementTypeInfo inf = getElementTypeInfo(el,
-                                                     (inNamespace ? 1 : -1));
-            giName = inf.getName();
-            backingNodeNSPrefix = inf.getPrefix();
+            inf = getElementTypeInfo(el, (inNamespace ? 1 : -1));
         } else {
-            giName = setType.getName();
-            backingNodeNSPrefix = setType.getPrefix();
+            inf = setType;
         }
+        giName = inf.getName();
+        backingNodeNSPrefix = inf.getPrefix();
+
+        // which attributes are we to use?
+        if (inf.fromArch())
+            attsToUse = AttributeMap.ATTS_NS;
+        else if (inf.fromNamespace())
+            // ...but not from the architecture attribute
+            attsToUse = AttributeMap.ATTS_NS | AttributeMap.ATTS_NONS;
+        else
+            attsToUse = AttributeMap.ATTS_NONS;
+        
         assert giName != null;
         backingNode = el;        
 
@@ -207,7 +218,8 @@ class HdxElement
 
         attributeMap = new AttributeMap((HdxDocument)owner,
                                         backingNode,
-                                        backingNodeNSPrefix);
+                                        backingNodeNSPrefix,
+                                        attsToUse);
 
         if (backingNode == null) {
             assert backingNodeNSPrefix == null;
@@ -275,9 +287,15 @@ class HdxElement
         
             Attr hdxname = el.getAttributeNodeNS(HdxResourceType.HDX_NAMESPACE,
                                                  HdxResourceType.HDX_ARCHATT);
-            if (hdxname != null)
-                return new ElementTypeInfo(hdxname.getValue(),
-                                           hdxname.getPrefix());
+            if (hdxname != null) {
+                ElementTypeInfo inf = new ElementTypeInfo(hdxname.getValue(),
+                                                      hdxname.getPrefix());
+                inf.setArch(true);
+                return inf;
+            }
+//             if (hdxname != null)
+//                 return new ElementTypeInfo(hdxname.getValue(),
+//                                            hdxname.getPrefix());
         }
 
         if (nsswitch <= 0 && gins == null)
@@ -291,10 +309,12 @@ class HdxElement
         private HdxResourceType t;
         private String hdxname;
         private String prefix;
+        private boolean hadArchAttribute;
         public ElementTypeInfo(String typename, String prefix) {
             this.t = HdxResourceType.match(typename);
             this.hdxname = typename;
             this.prefix = prefix;
+            this.hadArchAttribute = false;
         }
         /** Get the registered resource type that this element corresponds to.
          * @return HdxResourceType.NONE if the element has no registered type.
@@ -304,6 +324,14 @@ class HdxElement
         public String getPrefix() { return prefix; }
         /** Was this element from the HDX namespace? */
         public boolean fromNamespace() { return prefix != null; }
+        /** Was the Element type specified on an architectural
+            attribute? */
+        public boolean fromArch() {
+            return hadArchAttribute;
+        }
+        public void setArch(boolean is) {
+            hadArchAttribute = is;
+        }
         public String toString() {
             return (prefix == null ? "" : prefix) + ':' + hdxname;
         }
@@ -1144,14 +1172,12 @@ class HdxElement
 
     private class AttributeMap 
             implements Cloneable {
+        public static final int ATTS_NS = 1;
+        public static final int ATTS_NONS = 2;
         private java.util.Map myMap;
         final private HdxDocument doc;
         /**
-         * An Element in another DOM which backs the attributes in this map.  Non-null
-         * indicates that there is such an element.  We don't
-         * change this element other than to possibly alter the set of
-         * attributes on it.
-         *
+         * The shadow element, initialised from the constructor.
          * <p>The support for backing nodes is <em>only</em> for
          * attributes -- there is no support for any corresponding shadowing of
          * operations which modify the tree, and no need for that either
@@ -1159,6 +1185,7 @@ class HdxElement
          * non-trivial redesign of the {@link HdxNode} class. 
          */
         final private Element shadowElement;
+
         /**
          * Prefix used for this namespace when setting attributes on
          * the shadow element.  Non-null also indicates that these
@@ -1170,16 +1197,38 @@ class HdxElement
          * declared.
          */
         final private String shadowElementPrefix;
+
         /** If true, new attributes are added to the shadow node, too */
         public boolean shadowNewAttributes;
-        
+
+        /**
+         * Creates a new map of HDX-namespace attributes, optionally
+         * backed by the attributes in a given element.
+         *
+         * @param doc the Document which owns these attributes
+         * @param shadowElement
+         * an Element in another DOM which backs the attributes in this map.  Non-null
+         * indicates that there is such an element.  We don't
+         * change this element other than to possibly alter the set of
+         * attributes on it.
+         * @param shadowElementPrefix the prefix declared in the
+         * shadow element to correspond to the HDX namespace.  If
+         * null, no such prefix was declared (or there is no shadow element).
+         * @param attsToUse flags composed of the ATTS_NS or ATTS_NONS
+         * constants OR-ed together.  If ATTS_NS is set, then use
+         * attributes which are in the HDX namespace; if ATTS_NONS is
+         * set, use attributes in no namespace.  Either or both may be
+         * set, but assert that one or the other is.
+         */
         public AttributeMap(HdxDocument doc,
                             Element shadowElement,
-                            String shadowElementPrefix) {
+                            String shadowElementPrefix,
+                            int attsToUse) {
             this.doc = doc;
             this.shadowElement = shadowElement;
             this.shadowElementPrefix = shadowElementPrefix;
             shadowNewAttributes = true; // default
+
 
             // Create the map.
             // Could do this lazily, but that's more work.
@@ -1192,31 +1241,35 @@ class HdxElement
             // element's attributes at this point.
             if (shadowElement != null) {
                 NamedNodeMap shAtts = shadowElement.getAttributes();
+                String elNS = shadowElement.getNamespaceURI();
                 for (int i=0; i<shAtts.getLength(); i++) {
                     Attr a = (Attr)shAtts.item(i);
                     String ns = a.getNamespaceURI();
-                    boolean oneOfOurs
-                            = (shadowElementPrefix == null
-                               ? ns == null
-                               : (ns !=null
-                                  && ns.equals(HdxResourceType.HDX_NAMESPACE)));
-                    if (oneOfOurs) {
-                        String myname = (ns==null
-                                         ? a.getName()
-                                         : a.getLocalName());
-                        if (! myname.equals(HdxResourceType.HDX_ARCHATT)) {
-                            // Carefully avoid including the Hdx name
-                            // attribute, since this is only to
-                            // indicate the Hdx type which this shadow
-                            // Element corresponds do.
 
-                            // Because shadowNewAttributes is defaulted to
-                            // true, it's correct to shadow all these attributes
-                            Attr newAttr = newHdxAttr
-                                    (myname, null, a, doc, HdxElement.this);
-                            
-                            myMap.put(myname, newAttr);
-                        }
+                    assert attsToUse != 0;
+                    boolean oneOfOurs = 
+                            ( (attsToUse & ATTS_NS) != 0
+                              && ns != null
+                              && ns.equals(HdxResourceType.HDX_NAMESPACE))
+                            ||
+                            ( (attsToUse & ATTS_NONS) != 0
+                              && ns == null);
+
+                    String myname = (ns==null
+                                     ? a.getName()
+                                     : a.getLocalName());
+                    if (myname.equals(HdxResourceType.HDX_ARCHATT)) {
+                        // Carefully avoid including the Hdx name
+                        // attribute, since this is only to
+                        // indicate the Hdx type which this shadow
+                        // Element corresponds do.
+                        oneOfOurs = false;
+                    }
+                             
+                    if (oneOfOurs) {
+                        Attr newAttr = newHdxAttr
+                                (myname, null, a, doc, HdxElement.this);
+                        myMap.put(myname, newAttr);
                     } else if (a.getName().equals("xml:base")) {
                         // special-case this.  Note that we _ignore_
                         // any xml:base attributes which are on

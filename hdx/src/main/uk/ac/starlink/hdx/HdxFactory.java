@@ -343,7 +343,14 @@ public class HdxFactory {
      * for the HDX namespace in the elements below, and indeed will
      * ignore elements in the HDX namespace.  Otherwise, the method
      * will examine <em>only</em> elements and attributes in the HDX
-     * namespace.
+     * namespace.  As a special case, if the element is in the HDX namespace,
+     * then any unprefixed attributes on the element are taken to be
+     * in that namespace also.  This is a contradiction to the XML
+     * standard, which states that unprefixed attributes are in
+     * <em>no</em> namespace, not even the default one.  However,
+     * there are no reasonable cases where this behaviour is useful,
+     * and it is massively confusing, so this constitutes best
+     * practice.
      *
      * @param el an element in or beneath which there is the XML which
      * represents a single HDX object

@@ -852,44 +852,34 @@ public class HdxTest
     }
 
     // Not used at present
-//     private void assertNodeEquals(short type, String name, String value,
-//                                   Node n) {
+//     // Given a node n, asserts that this is an Element node, that its
+//     // name is `name', and that the list of attributes on it is
+//     // precisely that listed in the `name=value ...' list `attlist'
+//     private void assertElementEquals(String name, String attlist, Node n) {
 //         assertNotNull(n);
-//         assertEquals(type, n.getNodeType());
+//         assertEquals(Node.ELEMENT_NODE, n.getNodeType());
 //         assertEquals(name, n.getNodeName());
-//         if (value != null)
-//             assertEquals(value, n.getNodeValue());
+        
+//         NamedNodeMap atts = n.getAttributes();
+//         int attsUnchecked = atts.getLength();
+
+//         if (attlist == null) {
+//             assertEquals(0, attsUnchecked);
+//         } else {
+//             java.util.StringTokenizer st
+//                     = new java.util.StringTokenizer(attlist, "= ");
+//             while (st.hasMoreTokens()) {
+//                 String attname = st.nextToken();
+//                 if (!st.hasMoreTokens())
+//                     throw new IllegalArgumentException
+//                             ("unbalanced attlist to assertElementEquals");
+//                 String attvalue = st.nextToken();
+//                 assertEquals(attvalue,
+//                              atts.getNamedItem(attname).getNodeValue());
+//                 attsUnchecked--;
+//             }
+//             assertEquals(0, attsUnchecked);
+//         }
 //         return;
 //     }
-
-    // Given a node n, asserts that this is an Element node, that its
-    // name is `name', and that the list of attributes on it is
-    // precisely that listed in the `name=value ...' list `attlist'
-    private void assertElementEquals(String name, String attlist, Node n) {
-        assertNotNull(n);
-        assertEquals(Node.ELEMENT_NODE, n.getNodeType());
-        assertEquals(name, n.getNodeName());
-        
-        NamedNodeMap atts = n.getAttributes();
-        int attsUnchecked = atts.getLength();
-
-        if (attlist == null) {
-            assertEquals(0, attsUnchecked);
-        } else {
-            java.util.StringTokenizer st
-                    = new java.util.StringTokenizer(attlist, "= ");
-            while (st.hasMoreTokens()) {
-                String attname = st.nextToken();
-                if (!st.hasMoreTokens())
-                    throw new IllegalArgumentException
-                            ("unbalanced attlist to assertElementEquals");
-                String attvalue = st.nextToken();
-                assertEquals(attvalue,
-                             atts.getNamedItem(attname).getNodeValue());
-                attsUnchecked--;
-            }
-            assertEquals(0, attsUnchecked);
-        }
-        return;
-    }
 }
