@@ -21,6 +21,14 @@ import uk.ac.starlink.table.ValueInfo;
 /**
  * An implementation of the StarTable interface which uses FITS TABLE
  * or BINTABLE extensions.
+ * <p>
+ * This implementation uses the table handling in the <tt>nom.tam.fits</tt>
+ * package.  I think that performance could be considerably improved
+ * by rewriting the table access from scratch.  The reason for this is
+ * largely that the nom.tam.fits classes do a lot of wrapping of values
+ * in (perhaps multi-dimensional) arrays, which is not for our purposes
+ * necessary.  Such a re-implementation would take a bit of effort
+ * unfortunately.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -306,7 +314,7 @@ public class FitsStarTable extends RandomStarTable {
              * string, regard a string of all spaces as blank. */
             else if ( cls == String.class ) {
                 String val = ((String[]) base)[ 0 ];
-                return val.matches( "^ *$" ) ? null : val;
+                return isEmpty( val ) ? null : val;
             }
         }
 
@@ -318,8 +326,7 @@ public class FitsStarTable extends RandomStarTable {
         }
 
         /* If it's string of blanks, regard it as a null. */
-        if ( base.getClass() == String.class && 
-             ((String) base).matches( "^ *$" ) ) {
+        if ( base instanceof String && isEmpty( (String) base) ) {
             return null;
         }
 
@@ -379,5 +386,21 @@ public class FitsStarTable extends RandomStarTable {
             return ArrayFuncs.flatten( base ).getClass();
         }
         return base.getClass();
+    }
+
+    /**
+     * Indicates whether a given string is empty, that is all spaces.
+     *
+     * @param  str  string to test
+     * @return <tt>true</tt> if it contains no non-space characters
+     */
+    private static boolean isEmpty( String str ) {
+        int leng = str.length();
+        for ( int i = 0; i < leng; i++ ) {
+            if ( str.charAt( i ) != ' ' ) {
+                return false;
+            }
+        }
+        return true;
     }
 }
