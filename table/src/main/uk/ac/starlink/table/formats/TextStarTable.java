@@ -400,8 +400,8 @@ public class TextStarTable extends RandomStarTable {
         }
         else if ( readCol != ncol ) {
             throw new TableFormatException( 
-                "Column number mismatch in row " + ( nrow - 1 ) +
-                " (" + readCol + " != " + ncol + ")" );
+                "Wrong number of columns in row " + nrow +
+                " (expecting " + ncol + ", found " + readCol + ")" );
         }
         readCol = 0;
     }
