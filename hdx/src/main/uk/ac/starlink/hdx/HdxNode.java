@@ -16,12 +16,18 @@ import java.util.logging.Level;
  *
  * <p>Package private.
  *
+ * <p>Note that only DOM Level 2 methods are currently implemented.
+ * If this class is built using JDK1.5, then the DOM Level 3 methods
+ * will be present, but they do not implement the functionality
+ * defined by the DOM Level 3 specification (mostly they throw
+ * NOT_SUPPORTED_ERR type DOMExceptions).
+ *
  * @see HdxDocument
  */
 class HdxNode
         implements Node, Cloneable {
 
-    /* 
+    /*
      * Between them, these following variables implement a
      * doubly-linked list of children.
      */
@@ -37,7 +43,7 @@ class HdxNode
     private static java.util.logging.Logger logger
             = java.util.logging.Logger.getLogger( "uk.ac.starlink.hdx" );
 
-    /** 
+    /**
      * Creates a new Node.  Protected constructor should be called
      * from extending classes only.
      */
@@ -97,7 +103,7 @@ class HdxNode
             throws DOMException {
         return null;
     }
-    
+
     public void setNodeValue(String nodeValue)
             throws DOMException {
         switch (getNodeType()) {
@@ -132,13 +138,13 @@ class HdxNode
     public NamedNodeMap getAttributes() {
         return null;
     }
-    
+
     /* The following will typically not be overridden */
 
     public Node getParentNode() {
         return parent;
     }
-    
+
     public NodeList getChildNodes() {
         return new NodeList() {
             private java.util.ArrayList list = new java.util.ArrayList();
@@ -155,7 +161,7 @@ class HdxNode
             }
         };
     }
-    
+
     public Node getFirstChild() {
         return firstChild;
     }
@@ -168,7 +174,7 @@ class HdxNode
             t = t.nextSibling;
         return t;
     }
-    
+
     public Node getPreviousSibling() {
         return previousSibling;
     }
@@ -185,7 +191,7 @@ class HdxNode
 
     /**
      * Finds the given child.  Uses equals().
-     * 
+     *
      * @return the child, or null if it's not there
      */
     private HdxNode findChild (HdxNode n) {
@@ -239,7 +245,7 @@ class HdxNode
                 insertBefore((Node)li.next(), refChild);
             return newChild;
         }
-        
+
         assertInsertableNode(newChild);
         if (refChild != null)
             assertInsertableNode(refChild);
@@ -270,7 +276,7 @@ class HdxNode
             n.parent = this;
             n.nextSibling = kid;
             n.previousSibling = prev;
-            if (prev == null) {  // kid is first 
+            if (prev == null) {  // kid is first
                 firstChild = n;
             } else {
                 prev.nextSibling = n;
@@ -376,7 +382,7 @@ class HdxNode
 //         // two methods significantly different behavour
 //         HdxNode n = new HdxNode(nodeType, ownerDocument);
 //         if (deep) {
-//             for (HdxNode kid = (HdxNode)getFirstChild(); 
+//             for (HdxNode kid = (HdxNode)getFirstChild();
 //                  kid != null;
 //                  kid = (HdxNode)kid.getNextSibling())
 //             {
@@ -403,7 +409,7 @@ class HdxNode
     public Object clone() {
         return clone(true);
     }
-    
+
     /**
      * Creates and returns a copy of this Node.  The difference
      * between this method and a deep clone using {@link #cloneNode}
@@ -419,7 +425,7 @@ class HdxNode
             // disconnect this from its children (original still points to them)
             n.firstChild = null;
             if (deep) {
-                for (HdxNode kid = (HdxNode)getFirstChild(); 
+                for (HdxNode kid = (HdxNode)getFirstChild();
                      kid != null;
                      kid = (HdxNode)kid.getNextSibling())
                     n.appendChild((Node)kid.clone());
@@ -510,7 +516,7 @@ class HdxNode
         }
     }
 
-    public boolean isSupported(String feature, 
+    public boolean isSupported(String feature,
                                String version) {
         return false;           // correct thing to do?
     }
@@ -543,6 +549,76 @@ class HdxNode
         return null;
     }
 
+
+//DOM3     /* ** DOM Level 3 NOT supported ** */
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public Object setUserData( String key, Object data,
+//DOM3                                UserDataHandler handler ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "setUserData not implemented" );
+//DOM3     }
+//DOM3     
+//DOM3     /** Not implemented */
+//DOM3     public Object getUserData( String key ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "getUserData not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public Object getFeature( String feature, String version ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "getFeature not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     public boolean isEqualNode( Node node ) {
+//DOM3         return equals( node );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public String lookupNamespaceURI( String prefix ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "lookupNamespaceURI not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public boolean isDefaultNamespace( String namespaceURI ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "isDefaultNamespace not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public String lookupPrefix( String namespaceURI ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "lookupPrefix not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     public boolean isSameNode( Node other ) {
+//DOM3         return this == other;
+//DOM3     }
+//DOM3 
+//DOM3     public void setTextContent( String textContent ) {
+//DOM3         setNodeValue( textContent );
+//DOM3     }
+//DOM3 
+//DOM3     public String getTextContent() {
+//DOM3         return getNodeValue();
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public short compareDocumentPosition( Node other ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                             "compareDocumentPosition not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public String getBaseURI() {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "getBaseURI not implemented" );
+//DOM3     }
+
+
+
     /* ******************** PRIVATE HELPERS ******************** */
 
     /**
@@ -572,7 +648,7 @@ class HdxNode
     }
 
     /**
-     * Asserts that the current node is modifiable. 
+     * Asserts that the current node is modifiable.
      *
      * @throws DOMException.NO_MODIFICATION_ALLOWED_ERR if the Node is
      * read-only.
@@ -582,7 +658,7 @@ class HdxNode
         return;
     }
 
-    /** 
+    /**
      * Checks that we can edit this node into the current DOM.  Throws
      * a DOMException if not.
      *
@@ -646,7 +722,7 @@ class HdxNode
             this();
             add(i);
         }
-        /** 
+        /**
          * Adds another hashcode to the composite hashcode
          * @return this <code>HashCode</code> object
          */

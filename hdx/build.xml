@@ -72,7 +72,8 @@
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
-  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.url"
+    value="http://java.sun.com/j2se/${java.specification.version}/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!--
@@ -362,7 +363,7 @@
    !  (i.e. resources like images) should also be copied into place here.
    !-->
   <target name="build"
-          depends="prepare, check_packages"
+          depends="prepare, check_packages, build_sources"
           unless="runonly.install"
           description="-> compiles the source code">
 
@@ -371,7 +372,7 @@
         source="1.4"
         destdir="${build.classes}"
         debug="${debug}"
-        srcdir="${java.dir}"
+        srcdir="${build.java}"
         optimize="${optimize}">
 
       <classpath refid="classpath"/>
@@ -898,13 +899,35 @@
    !  part of the javadocs target.
    !-->
   <target name="javadoc-sources"
-          description="-> make source files for release API documention">
+          depends="build_sources"
+          description="-> make source files for release API documention"/>
 
+  <!-- 
+   !  Processes the raw source files to produce compilable java.
+   !  This massages the source in different ways according to whether
+   !  we are running JDK1.5 or 1.4.  These implement different levels
+   !  of the DOM specification, and the DOM implementation has to be
+   !  written differently in each case.
+   !-->
+  <target name="build_sources">
+
+    <!-- Set the value of the uncomment.pattern property to "DOM3" under
+     !   JDK1.5 or something which isn't going to crop up in the source 
+     !   under 1.4. -->
+    <condition property="uncomment.pattern" value="DOM3">
+      <contains string="${java.version}" substring="1.5"/>
+    </condition>
+    <condition property="uncomment.pattern" value="NOT_APPEARING">
+      <not>
+        <isset property="uncomment.pattern"/>
+      </not>
+    </condition>
+ 
+    <!-- Copy/edit the source files to the build tree from where they will
+     !   be compiled.  Any source lines which start "//" followed by the
+     !   value of the ucomment.pattern string will be uncommented, otherwise
+     !   they will be left alone. -->
     <mkdir dir="${build.java}"/>
-
-    <!-- Copy and/or generate the source to be included when creating
-     !   the full Starlink API javadocs-->
-
     <copy todir="${build.java}">
       <fileset dir="${java.dir}" defaultexcludes="yes">
           <exclude name="**/NdxDomImpl.java"/>
@@ -914,6 +937,12 @@
           <exclude name="**/VERSION"/>
           <exclude name="**/README"/>
       </fileset>
+      <filterchain>
+        <tokenfilter>
+          <linetokenizer/>
+          <replaceregex pattern="^//${uncomment.pattern} " replace=""/>
+        </tokenfilter>
+      </filterchain>
     </copy>
 
   </target>

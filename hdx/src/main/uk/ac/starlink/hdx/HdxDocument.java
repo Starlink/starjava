@@ -27,6 +27,12 @@ import org.w3c.dom.*;
  * </pre>
  * (where <code>&lt;el&gt;</code> represents the name of the document element.
  *
+ * <p>Note that only DOM Level 2 methods are currently implemented.
+ * If this class is built using JDK1.5, then the DOM Level 3 methods
+ * will be present, but they do not implement the functionality
+ * defined by the DOM Level 3 specification (mostly they throw
+ * NOT_SUPPORTED_ERR type DOMExceptions).
+ *
  * @author Norman Gray, Starlink
  * @version $Id$
  */
@@ -37,41 +43,8 @@ public class HdxDocument
     private static java.util.logging.Logger logger
             = java.util.logging.Logger.getLogger("uk.ac.starlink.hdx");
 
-    URI baseURI;
-
     public HdxDocument() {
         super(Node.DOCUMENT_NODE, null);
-    }
-
-    /**
-     * Obtains a base URI for this document. In the case of documents
-     * which are straightforwardly retrieved by resolving a URI, that
-     * URI is the most natural candidate for the base URI, but that is
-     * not guaranteed, since there are circumstances (not least those
-     * where the document was not retrieved in this manner) where the
-     * identification of a base URI is more subtle.
-     *
-     * <p>See also the <a href="http://www.w3.org/TR/xmlbase/" >XML
-     * Base Recommendation</a> for discussion of base URIs.
-     *
-     * @return a base URI for this Document
-     */
-    URI getBaseURI() {
-        return baseURI;
-    }
-    
-    /**
-     * Sets the base URI for this document.
-     *
-     * @param baseURI the base URI for the document.  This should be
-     * an absolute URI, but it is not required to be, since there are
-     * cases where no absolute URI is definable.
-     * @param override if true, the baseURI is always set; if false,
-     * and if there is already a baseURI set, this will not override it
-     */
-    void setBaseURI(URI baseURI, boolean override) {
-        if (this.baseURI == null || override)
-            this.baseURI = baseURI;
     }
 
     public DocumentType getDoctype() {
@@ -390,7 +363,106 @@ public class HdxDocument
     public Element getElementById(String elementId) {
         return null;
     }
-    
+
+//DOM3     /* ** DOM Level 3 Not Implemented ** */
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public Node renameNode( Node n, String namespaceURI,
+//DOM3                             String qualifiedName ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "renameNode not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public void normalizeDocument() {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "normalizeDocument not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public DOMConfiguration getDomConfig() {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "getDomConfig not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     public  Node adoptNode( Node source ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "adoptNode not implemented" );
+//DOM3         // Could be a call to importNode( source, true ),
+//DOM3         // but we need to remove from other document?
+//DOM3     }
+//DOM3 
+//DOM3     public void setDocumentURI( String documentURI ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "setDocumentURI not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     public String getDocumentURI() {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "getDocumentURI not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public void setStrictErrorChecking(boolean check) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                       "setStrictErrorChecking not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public boolean getStrictErrorChecking() {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                       "getStrictErrorChecking not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public void setXmlVersion(String value) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "setXmlVersion not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public String getXmlVersion() {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "getXmlVersion not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public void setXmlStandalone(boolean value) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "setXmlStandalone not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public boolean getXmlStandalone() {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "getXmlStandalone not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public void setXmlEncoding(String value) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "setXmlEncoding not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public String getXmlEncoding() {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "getXmlEncoding not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public String getInputEncoding() {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "getInputEncoding not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public void setInputEncoding(String value) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "setInputEncoding not implemented" );
+//DOM3     }
+
+
     private static class HdxFacadeElement
             extends HdxElement implements Cloneable {
 
@@ -935,6 +1007,30 @@ public class HdxDocument
         public String getNodeName() {
             return "#text";
         }
+
+//DOM3         /* ** DOM Level 3 Not implemented ** */
+//DOM3 
+//DOM3         /** Not implemented */
+//DOM3         public Text replaceWholeText(String content)
+//DOM3             throws DOMException
+//DOM3         {
+//DOM3             throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                     "replaceWholeText not implemented" );
+//DOM3         }
+//DOM3 
+//DOM3         /** Not implemented */
+//DOM3         public String getWholeText() {
+//DOM3             throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                     "getWholeText not implemented" );
+//DOM3         }
+//DOM3 
+//DOM3         /** Not implemented */
+//DOM3         public boolean isElementContentWhitespace() {
+//DOM3             throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                       "isElementContentWhitespace not implemented" );
+//DOM3         }
+        
+
     }
 
     /**

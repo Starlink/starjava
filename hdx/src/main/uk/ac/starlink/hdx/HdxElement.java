@@ -79,6 +79,12 @@ import java.util.logging.Level;
  * exception is <code>namespaceURI</code>, where a null argument is
  * documented to correspond to no namespace.
  *
+ * <p>Note that only DOM Level 2 methods are currently implemented.
+ * If this class is built using JDK1.5, then the DOM Level 3 methods
+ * will be present, but they do not implement the functionality
+ * defined by the DOM Level 3 specification (mostly they throw
+ * NOT_SUPPORTED_ERR type DOMExceptions).
+ *
  * @author Norman Gray (norman@astro.gla.ac.uk)
  * @version $Id$
  */
@@ -1008,6 +1014,36 @@ class HdxElement
         return el;
     }
 
+//DOM3     /*
+//DOM3      * DOM Level 3 not implemented.
+//DOM3      */
+//DOM3     
+//DOM3     /** Not implemented */
+//DOM3     public void setIdAttributeNode( Attr at, boolean makeId ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "setIdAttributeNode not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public void setIdAttribute( String name, boolean makeId ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "setIdAttribute not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public void setIdAttributeNS( String namespaceURI, String localName,
+//DOM3                                   boolean makeId ) {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "setIdAttributeNS not implemented" );
+//DOM3     }
+//DOM3 
+//DOM3     /** Not implemented */
+//DOM3     public TypeInfo getSchemaTypeInfo() {
+//DOM3         throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                 "getSchemaTypeInfo not implemented" );
+//DOM3     }
+
+
     /**
      * Creates and returns a copy of this Element and its attributes.
      * The difference between this method and a deep clone using
@@ -1217,6 +1253,23 @@ class HdxElement
         public Node getLastChild() {
             return getFirstChild();
         }
+
+//DOM3         /*
+//DOM3          * DOM Level 3, not implemented.
+//DOM3          */
+//DOM3 
+//DOM3         /** Not implemented */
+//DOM3         public boolean isId() {
+//DOM3             throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                     "isId not implemented" );
+//DOM3         }
+//DOM3 
+//DOM3         /** Not implemented */
+//DOM3         public TypeInfo getSchemaTypeInfo(){
+//DOM3             throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+//DOM3                                    "getSchemaTypeInfo not implemented" );
+//DOM3         }
+
         public Node cloneNode(boolean deep) { return (Node)clone(); }
         /**
          * Return a copy of this object.  If this Attr is backed by an
