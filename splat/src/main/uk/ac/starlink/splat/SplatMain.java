@@ -43,7 +43,7 @@ public class SplatMain
 
         //  Use reflection to load the real SPLAT entry point so that
         //  we do not pull in Swing until really necessary. Note do
-        //  not use Class.forName as we want to start from webstart.
+        //  not use Class.forName(String) as we want to start from webstart.
         try {
             Class browserClass =
                 Class.forName( "uk.ac.starlink.splat.iface.SplatBrowserMain",
