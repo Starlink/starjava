@@ -17,6 +17,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.StarEntityResolver;
 
 /**
  * Turns a JavaHelp XML file into an HTML table of contents frame.
@@ -251,8 +252,9 @@ public class HelpTransformer {
         File f = new File( baseDir, file );
         try {
             if ( parser == null ) {
-                    parser = DocumentBuilderFactory.newInstance()
-                                                   .newDocumentBuilder();
+                parser = DocumentBuilderFactory.newInstance()
+                                               .newDocumentBuilder();
+                parser.setEntityResolver( StarEntityResolver.getInstance() );
             }
             Document doc = parser.parse( f );
             String doctag = doc.getDocumentElement().getTagName();
