@@ -146,6 +146,17 @@ public class HDSTest extends TestCase {
 
         htype = HDSType._REAL;
         assertNotNull( htype.getBadValue() );
+
+        assertEquals( HDSType.fromName( "_BYTE" ), HDSType._BYTE );
+        assertEquals( HDSType.fromName( "_UBYTE" ), HDSType._UBYTE );
+        assertEquals( HDSType.fromName( "_WORD" ), HDSType._WORD );
+        assertEquals( HDSType.fromName( "_UWORD" ), HDSType._UWORD );
+        assertEquals( HDSType.fromName( "_INTEGER" ), HDSType._INTEGER );
+        assertEquals( HDSType.fromName( "_real" ), HDSType._REAL );
+        assertEquals( HDSType.fromName( "_double" ), HDSType._DOUBLE );
+        assertNull( HDSType.fromName( "_CHAR*80" ) );
+        assertNull( HDSType.fromName( "_logical" ) );
+        assertNull( HDSType.fromName( "NDF" ) );
     }
 
 }
