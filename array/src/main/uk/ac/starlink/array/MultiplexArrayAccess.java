@@ -70,16 +70,18 @@ class MultiplexArrayAccess extends DefaultArrayAccess {
 
     public void read( Object buffer, int start, int size ) throws IOException {
         synchronized ( impl ) {
-            setOffset( offset );
+            impl.setOffset( offset );
             super.read( buffer, start, size );
         }
+        offset += size;
     }
 
     public void write( Object buffer, int start, int size ) throws IOException {
         synchronized ( impl ) {
-            setOffset( offset );
+            impl.setOffset( offset );
             super.write( buffer, start, size );
         }
+        offset += size;
     }
 
     public void readTile( Object buffer, NDShape tile ) throws IOException {
