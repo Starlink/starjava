@@ -489,7 +489,8 @@ public class StarTableFactory {
      * handler previously.  If <tt>null</tt> or the empty string or
      * the special value {@link #AUTO_HANDLER} is 
      * supplied for <tt>handler</tt>, it will fall back on automatic 
-     * format detection.
+     * format detection.  A location of "-" means standard input - in 
+     * this case the handler must be specified.
      *
      * @param  location  the name of the table resource
      * @param  handler  specifier for the handler which can handle tables
@@ -504,6 +505,9 @@ public class StarTableFactory {
         if ( location.startsWith( "jdbc:" ) ) {
             return prepareTable( getJDBCHandler()
                                 .makeStarTable( location, requireRandom() ) );
+        }
+        else if ( location.equals( "-" ) ) {
+            return makeStarTable( System.in, getTableBuilder( handler ) );
         }
         else {
             return makeStarTable( DataSource.makeDataSource( location ),
@@ -534,6 +538,32 @@ public class StarTableFactory {
     public StarTable makeStarTable( URL url, String handler )
             throws TableFormatException, IOException {
         return makeStarTable( new URLDataSource( url ), handler );
+    }
+
+    /**
+     * Attempts to read and return a StarTable from an input stream.
+     * This is not always possible, since certain table handlers
+     * may required more than one pass through the input data.
+     * The handler must be specified (automatic format detection cannot
+     * be used on a stream).
+     * The input stream will be decompressed and buffered if necessary.
+     *
+     * @param  in  input stream 
+     * @param  builder   handler which understands the data in <tt>in</tt>
+     * @return  a table read from the stream if it could be done
+     * @see    TableBuilder#streamStarTable
+     * @throws  TableFormatException   if <code>builder</code> needs more
+     *          than one pass of the data, or the stream is in some way
+     *          malformed
+     * @throws  IOException for other I/O errors
+     */
+    public StarTable makeStarTable( InputStream in, TableBuilder builder )
+            throws TableFormatException, IOException {
+        in = Compression.decompressStatic( in );
+        in = new BufferedInputStream( in );
+        RowStore store = getStoragePolicy().makeRowStore();
+        builder.streamStarTable( in, store, null );
+        return prepareTable( store.getStarTable() );
     }
 
     /**
@@ -607,11 +637,7 @@ public class StarTableFactory {
                                 "DataFlavor " + flavor + 
                                 " support withdrawn?" );
                         }
-                        in = Compression.decompressStatic( in );
-                        in = new BufferedInputStream( in );
-                        RowStore store = getStoragePolicy().makeRowStore();
-                        builder.streamStarTable( in, store, null );
-                        return prepareTable( store.getStarTable() );
+                        return makeStarTable( in, builder );
                     }
                 }
             }
@@ -691,6 +717,9 @@ public class StarTableFactory {
      */
     public TableBuilder getTableBuilder( String name )
             throws TableFormatException {
+        if ( name == null ) {
+            throw new TableFormatException( "No table handler with null name" );
+        }
 
         /* Try all the known handlers, matching against format name. */
         List builders = new ArrayList( knownBuilders_ );
