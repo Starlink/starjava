@@ -34,6 +34,8 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     private NumberFormat sciFormat;
     private NumberFormat fixFormat;
     private NumberFormat intFormat;
+    private char decimalPoint;
+    private String decimalPointString;
     private boolean likeHeading;
     private String badText;
     private Color badColor;
@@ -289,16 +291,20 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
         if ( fixFormat == null ) {
             fixFormat = NumberFormat.getInstance();
             if ( fixFormat instanceof DecimalFormat ) {
-                ((DecimalFormat) fixFormat)
-                .applyPattern( " #####0.######;-#####0.######" );
+                DecimalFormat dformat = (DecimalFormat) fixFormat;
+                dformat.applyPattern( " #####0.######;-#####0.######" );
+                dformat.setDecimalSeparatorAlwaysShown( true );
+                decimalPoint = dformat.getDecimalFormatSymbols()
+                                      .getDecimalSeparator();
+                decimalPointString = "" + decimalPoint;
             }
         }
         StringBuffer buf = new StringBuffer( 20 );
         buf.append( fixFormat.format( dval ) );
-        int dotpos = buf.indexOf( "." );
+        int dotpos = buf.indexOf( decimalPointString );
         if ( dotpos < 0 ) {
             dotpos = buf.length();
-            buf.append( '.' );
+            buf.append( decimalPoint );
         }
         int pad = 11 - ( buf.length() - dotpos );
         for ( int i = 0; i < pad; i++ ) {
