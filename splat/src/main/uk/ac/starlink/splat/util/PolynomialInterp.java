@@ -7,8 +7,9 @@
  *     26-NOV-2003 (Peter W. Draper):
  *       Original version.
  */
-
 package uk.ac.starlink.splat.util;
+
+import uk.ac.starlink.diva.interp.LinearInterp;
 
 /**
  * Interpolate values using a polynomial fit of some degree.
