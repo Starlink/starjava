@@ -339,8 +339,9 @@ public class ImageDisplayMenuBar extends JMenuBar {
         //menu.add(createViewRotateMenu());
 
         // XXX Works okay for jskycat, but not supported by OT yet
-        menu.add(createViewFlipXMenuItem());
-        menu.add(createViewFlipYMenuItem());
+        // PWD: coordinates are not correct when flipped.
+        //menu.add(createViewFlipXMenuItem());
+        //menu.add(createViewFlipYMenuItem());
 
         menu.add(createViewSmoothScrollingMenuItem());
 
@@ -348,10 +349,10 @@ public class ImageDisplayMenuBar extends JMenuBar {
         //
         // Only add Look and Feel item if not using internal frames
         // (otherwise its in the main Image menu)
-        //if (_imageDisplay.getRootComponent() instanceof JFrame) {
-        //    menu.addSeparator();
-        //    menu.add(new LookAndFeelMenu());
-        //}
+        if (_imageDisplay.getRootComponent() instanceof JFrame) {
+            menu.addSeparator();
+            menu.add(new LookAndFeelMenu());
+        }
 
         return menu;
     }
