@@ -177,7 +177,7 @@ public class CutoutSelector extends JPanel implements ItemListener {
                 (CutoutService) serviceSelector_.getSelectedItem();
             if ( serv != null ) {
                 pixsizeLabel_.setText( " (" + serv.getPixelSize() + 
-                                       ") arcsec" );
+                                       " arcsec)" );
             }
             else {
                 pixsizeLabel_.setText( "     " );
