@@ -13,6 +13,7 @@
                       authorlist?,
                       softwareversion?,
                       docnumber?,
+                      history?,
                       docdate?,
                       contactlist? )>
   <!ELEMENT title ( #PCDATA )>
@@ -46,6 +47,8 @@
   <!ELEMENT blockquote %paracontent;>
   <!ELEMENT var %paracontent;>
   <!ELEMENT label %paracontent;>
+  <!ELEMENT history ( version* )>
+  <!ELEMENT version ( px+ )>
 
   <!ELEMENT blockcode ( #PCDATA | imports | hidden )*>
   <!ATTLIST blockcode group NMTOKEN #IMPLIED>

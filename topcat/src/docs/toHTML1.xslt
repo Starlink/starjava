@@ -54,6 +54,8 @@
         <xsl:apply-templates select="authorlist"/>
         <br/>
         <xsl:apply-templates select="docdate"/>
+        <br/>
+        <xsl:apply-templates select="history"/>
       </i>
     </p>
   </xsl:template>

@@ -109,6 +109,9 @@
       <fo:block>
         <xsl:apply-templates select="docdate"/>
       </fo:block>
+      <fo:block>
+        <xsl:apply-templates select="history"/>
+      </fo:block>
     </fo:block>
     <xsl:apply-templates select="../docbody/abstract"/>
   </xsl:template>
@@ -125,7 +128,6 @@
       <xsl:apply-templates/>
     </fo:block>
   </xsl:template>
-
 
   <!-- Docbody and children -->
 
