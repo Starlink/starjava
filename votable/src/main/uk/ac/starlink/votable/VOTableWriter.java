@@ -41,13 +41,28 @@ public class VOTableWriter implements StarTableWriter {
         /* Get the stream to write to. */
         PrintStream out;
         if ( location.equals( "-" ) ) {
-            out = System.out;
+            out = new PrintStream( System.out );
         }
         else {
             out = new PrintStream( 
                       new BufferedOutputStream( 
                           new FileOutputStream( new File( location ) ) ) );
         }
+        writeStarTable( startab, out );
+    }
+
+    /**
+     * Writes a StarTable to a given stream.
+     * <p>
+     * Currently, an entire XML VOTable document is written,
+     * and the TABLEDATA format (all table cells written inline
+     * as separate XML elements) is used.
+     *
+     * @param   startab  the table to write
+     * @param   out  the stream down which to write the table
+     */
+    public void writeStarTable( StarTable startab, PrintStream out ) 
+            throws IOException {
 
         /* Output preamble. */
         out.println( "<?xml version='1.0'?>" );
@@ -143,6 +158,11 @@ public class VOTableWriter implements StarTableWriter {
                 out.println( "</TD>" );
             }
             out.println( "  </TR>" );
+
+            /* PrintStreams don't check for errors, so do it here. */
+            if ( out.checkError() ) {
+                throw new IOException( "Error writing data" );
+            }
         }
         out.println( "</TABLEDATA>" );
 
