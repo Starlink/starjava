@@ -2,7 +2,7 @@
                        ANT for Starlink builds
                        =======================
 
-This is the ANT tool (version 1.5) together with some additional
+This is the ANT tool (version 1.6.2) together with some additional
 tasks and types required for Starlink ANT builds.
 
 Before you can build anything else you'll need to build this. First
@@ -49,14 +49,11 @@ The files:
 
 are also modified to add these new tasks and types to the standard sets.
 
-The files:
+The file:
 
    src/main/org/apache/tools/ant/taskdefs/Delete.java
-   src/main/org/apache/tools/ant/taskdefs/StreamPumper.java
 
-are also changed. Delete.java to allow better sub-classing and
-StreamPumper to remove a blocking problem that slows IO for the
-<exec> task.
+is also changed to allow better sub-classing.
 
 The tasks added are "loggedcopy" and "listdelete". These are
 modifications of the "copy" and "delete" tasks to add the ability to
