@@ -780,7 +780,7 @@ public class TopcatModel {
             }
         }
 
-        protected Window getWindow( Component parent ) {
+        public Window getWindow( Component parent ) {
             TopcatModel tcModel = TopcatModel.this;
             if ( this == viewerAct ) {
                 if ( ! hasWindow() ) {
