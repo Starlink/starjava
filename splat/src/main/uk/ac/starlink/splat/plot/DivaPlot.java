@@ -806,7 +806,7 @@ public class DivaPlot
                         (AstTicks) config.getControlsModel( AstTicks.class );
                     xGap = astTicks.getXGap();
                 }
-                if ( xGap == 0.0 || xGap == DefaultGrf.BAD ) {
+                if ( ( xGap == 0.0 || xGap == DefaultGrf.BAD ) && xScale > 2.0 ) {
                     xGap = astJ.getPlot().getD( "gap(1)" );
                     xGap = xGap / Math.max( 1.0, xScale * 0.5 );
                     astJ.astSetPlot( "gap(1)=" + xGap );
