@@ -614,7 +614,7 @@ public class PlotControlFrame
         if ( result == postscriptChooser.APPROVE_OPTION ) {
             File file = postscriptChooser.getSelectedFile();
             try {
-                plot.printPostscript( file.getName() );
+                plot.printPostscript( file.getPath() );
             }
             catch (SplatException e) {
                 JOptionPane.showMessageDialog ( this, e.getMessage(),
