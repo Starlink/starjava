@@ -26,7 +26,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -54,6 +53,8 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.WaveletFilter;
 import uk.ac.starlink.util.gui.GridBagLayouter;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 
 /**
  * Provides a toolbox with number of ways to filter a spectrum.
@@ -130,7 +131,7 @@ public class SpecFilterFrame
     /**
      * File chooser used for reading ranges from text files.
      */
-    protected JFileChooser fileChooser = null;
+    protected BasicFileChooser fileChooser = null;
 
     /**
      * Global list of spectral view (used for selecting a spectrum as
@@ -698,12 +699,12 @@ public class SpecFilterFrame
     protected void initFileChooser()
     {
         if ( fileChooser == null ) {
-            fileChooser = new JFileChooser( System.getProperty( "user.dir" ) );
+            fileChooser = new BasicFileChooser( false );
             fileChooser.setMultiSelectionEnabled( false );
 
             //  Add a filter for text files.
-            SpectralFileFilter textFileFilter =
-                new SpectralFileFilter( "txt", "TEXT files" );
+            BasicFileFilter textFileFilter =
+                new BasicFileFilter( "txt", "TEXT files" );
             fileChooser.addChoosableFileFilter( textFileFilter );
 
             //  But allow all files as well.

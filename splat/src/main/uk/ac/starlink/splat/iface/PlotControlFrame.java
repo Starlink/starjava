@@ -24,7 +24,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -44,6 +43,7 @@ import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.JPEGUtilities;
+import uk.ac.starlink.util.gui.BasicFileChooser;
 
 /**
  * PlotControlFrame provides a top-level wrapper for a PlotControl
@@ -141,7 +141,7 @@ public class PlotControlFrame
     /**
      * File chooser used for postscript files.
      */
-    protected JFileChooser postscriptChooser = null;
+    protected BasicFileChooser postscriptChooser = null;
 
     /**
      *  Plot a spectrum.
@@ -434,8 +434,7 @@ public class PlotControlFrame
     protected void printPostscriptDisplay()
     {
         if ( postscriptChooser == null ) {
-            postscriptChooser = 
-                new JFileChooser( System.getProperty( "user.dir" ) );
+            postscriptChooser = new BasicFileChooser( false );
             postscriptChooser.setSelectedFile( new File( "out.ps" ) );
         }
         int result = postscriptChooser.showSaveDialog( this );

@@ -39,7 +39,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -72,6 +71,8 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 
 /**
  * This is the main class for the SPLAT program. It creates the
@@ -179,7 +180,7 @@ public class SplatBrowser
     /**
      *  Open or save file chooser.
      */
-    protected JFileChooser fileChooser = null;
+    protected BasicFileChooser fileChooser = null;
 
     /**
      *  Names of files that are passed to other threads for loading.
@@ -195,7 +196,7 @@ public class SplatBrowser
     /**
      *  Stack open or save chooser.
      */
-    protected JFileChooser stackChooser = null;
+    protected BasicFileChooser stackChooser = null;
 
     /**
      *  Progress monitor for startup and loading files.
@@ -858,16 +859,16 @@ public class SplatBrowser
     protected void initFileChooser( boolean openDialog )
     {
         if ( fileChooser == null ) {
-            fileChooser = new JFileChooser( System.getProperty( "user.dir" ) );
+            fileChooser = new BasicFileChooser( false );
             fileChooser.setMultiSelectionEnabled( true );
             fileChooser.setFileView( new SpectralFileView() );
 
             //  Add FileFilters based on extension for all known types.
-            SpectralFileFilter fileFilter = null;
+            BasicFileFilter fileFilter = null;
             String[][] extensions = SpecDataFactory.extensions;
             String[] longNames = SpecDataFactory.longNames;
             for ( int i = 1; i < longNames.length; i++ ) {
-                fileFilter = new SpectralFileFilter( extensions[i], longNames[i] );
+                fileFilter = new BasicFileFilter( extensions[i], longNames[i] );
                 fileChooser.addChoosableFileFilter( fileFilter );
             }
 
@@ -987,11 +988,11 @@ public class SplatBrowser
     protected void initStackChooser( boolean openDialog )
     {
         if ( stackChooser == null ) {
-            stackChooser = new JFileChooser( System.getProperty( "user.dir" ) );
+            stackChooser = new BasicFileChooser( false );
             stackChooser.setMultiSelectionEnabled( false );
 
-            SpectralFileFilter stackFilter =
-                new SpectralFileFilter( "stk", "Stack files" );
+            BasicFileFilter stackFilter =
+                new BasicFileFilter( "stk", "Stack files" );
             stackChooser.addChoosableFileFilter( stackFilter );
 
             stackChooser.addChoosableFileFilter

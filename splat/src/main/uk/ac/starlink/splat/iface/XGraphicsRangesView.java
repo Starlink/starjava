@@ -25,7 +25,6 @@ import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -42,6 +41,8 @@ import uk.ac.starlink.splat.plot.DivaPlotGraphicsPane;
 import uk.ac.starlink.splat.plot.XRangeFigure;
 import uk.ac.starlink.splat.util.AsciiFileParser;
 import uk.ac.starlink.splat.plot.DivaPlot;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 
 /**
  * XGraphicsRangesView is controller and view for any ranges associated with
@@ -412,7 +413,7 @@ public class XGraphicsRangesView
     /**
      * File chooser used for reading and writing text files.
      */
-    protected JFileChooser fileChooser = null;
+    protected BasicFileChooser fileChooser = null;
 
     /**
      * Initialise the file chooser to have the necessary filters.
@@ -420,12 +421,12 @@ public class XGraphicsRangesView
     protected void initFileChooser()
     {
         if ( fileChooser == null ) {
-            fileChooser = new JFileChooser( System.getProperty( "user.dir" ) );
+            fileChooser = new BasicFileChooser( false );
             fileChooser.setMultiSelectionEnabled( false );
 
             //  Add a filter for text files.
-            SpectralFileFilter textFileFilter =
-                new SpectralFileFilter( "txt", "TEXT files" );
+            BasicFileFilter textFileFilter =
+                new BasicFileFilter( "txt", "TEXT files" );
             fileChooser.addChoosableFileFilter( textFileFilter );
 
             //  But allow all files as well.

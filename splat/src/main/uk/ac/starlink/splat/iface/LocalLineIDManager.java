@@ -15,6 +15,8 @@ import java.util.Properties;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import uk.ac.starlink.util.gui.BasicFileFilter;
+
 /**
  * Class that makes any locally installed line identification files
  * available as a series of items in a sub-menu.
@@ -77,8 +79,7 @@ public class LocalLineIDManager
     /**
      * Filter to view only ".ids" files.
      */
-    protected static SpectralFileFilter idsFilter = 
-        new SpectralFileFilter( "ids" );
+    protected static BasicFileFilter idsFilter = new BasicFileFilter( "ids" );
 
     /** 
      * Create a series of menus for the a directory. If any

@@ -16,7 +16,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -24,8 +23,11 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
+
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.plot.DivaPlot;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 
 /**
  * Component for displaying the results of a series of measurements of
@@ -243,7 +245,7 @@ public class LineFitView
     /**
      * File chooser used for writing text files.
      */
-    protected JFileChooser fileChooser = null;
+    protected BasicFileChooser fileChooser = null;
 
     /**
      * Initialise the file chooser to have the necessary filters.
@@ -251,12 +253,12 @@ public class LineFitView
     protected void initFileChooser()
     {
         if ( fileChooser == null ) {
-            fileChooser = new JFileChooser( System.getProperty( "user.dir" ) );
+            fileChooser = new BasicFileChooser( false );
             fileChooser.setMultiSelectionEnabled( false );
 
             //  Add a filter for text files.
-            SpectralFileFilter textFileFilter =
-                new SpectralFileFilter( "txt", "TEXT files" );
+            BasicFileFilter textFileFilter =
+                new BasicFileFilter( "txt", "TEXT files" );
             fileChooser.addChoosableFileFilter( textFileFilter );
 
             //  But allow all files as well.

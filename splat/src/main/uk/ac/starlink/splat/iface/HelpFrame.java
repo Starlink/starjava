@@ -32,6 +32,7 @@ import javax.swing.UIManager;
 
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
+import uk.ac.starlink.util.gui.JFontChooser;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 

@@ -22,7 +22,6 @@ import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -35,6 +34,8 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.AsciiFileParser;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 
 /**
  * Provides a toolbox with number of ways to cut out or remove parts
@@ -85,7 +86,7 @@ public class SpecCutterFrame extends JFrame
     /**
      * File chooser used for reading ranges from text files.
      */
-    protected JFileChooser fileChooser = null;
+    protected BasicFileChooser fileChooser = null;
 
     /**
      * Create an instance.
@@ -349,12 +350,12 @@ public class SpecCutterFrame extends JFrame
     protected void initFileChooser()
     {
         if ( fileChooser == null ) {
-            fileChooser = new JFileChooser( System.getProperty( "user.dir" ) );
+            fileChooser = new BasicFileChooser( false );
             fileChooser.setMultiSelectionEnabled( false );
 
             //  Add a filter for text files.
-            SpectralFileFilter textFileFilter =
-                new SpectralFileFilter( "txt", "TEXT files" );
+            BasicFileFilter textFileFilter =
+                new BasicFileFilter( "txt", "TEXT files" );
             fileChooser.addChoosableFileFilter( textFileFilter );
 
             //  But allow all files as well.
