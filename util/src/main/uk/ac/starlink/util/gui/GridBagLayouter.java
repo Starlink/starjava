@@ -132,6 +132,27 @@ public class GridBagLayouter
     }
 
     /**
+     * Add a JLabel using the current scheme.
+     * 
+     * @param label the string for the JLabel
+     * @param complete whether the line is now completed
+     */
+    public void add( String label, boolean complete )
+    {
+        add( new JLabel( label ), complete );
+    }
+
+    /**
+     * Add a JLabel using the current scheme. Assumes complete is false.
+     * 
+     * @param label the string for the JLabel
+     */
+    public void add( String label )
+    {
+        add( label, false );
+    }
+
+    /**
      * Add a control using the current scheme.
      * 
      * @param component the component to add
