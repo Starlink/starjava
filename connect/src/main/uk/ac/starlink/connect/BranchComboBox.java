@@ -156,15 +156,18 @@ public class BranchComboBox extends JComboBox {
                                   : null;
         }
 
-        public void setSelectedBranch( Branch branch ) {
-            int oldSize = getSize();
  
-            /* Sets the selected branch to a given value.
-             * If the given branch has the same root as one of the 
-             * existing holders, that holder's branch is set to the one 
-             * given and it is marked selected.  If the given branch is
-             * not rooted at the same place as any of the existing ones,
-             * a new holder is added containing it. */
+        /**
+         * Sets the selected branch to a given value.
+         * If the given branch has the same root as one of the 
+         * existing holders, that holder's branch is set to the one 
+         * given and it is marked selected.  If the given branch is
+         * not rooted at the same place as any of the existing ones,
+         * a new holder is added containing it.
+         *
+         * @param  branch   new selection
+         */
+        public void setSelectedBranch( Branch branch ) {
             Branch root = new BranchHolder( branch ).getRoot();
             for ( int i = 0; i < holders_.length; i++ ) {
                 if ( root.equals( holders_[ i ].getRoot() ) ) {
