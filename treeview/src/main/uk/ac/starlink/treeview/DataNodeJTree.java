@@ -193,22 +193,31 @@ public class DataNodeJTree extends JTree {
             }
         }
 
-        /* Make sure the tree knows that this node is open not shut. */
-        Object[] path = model.getPathToRoot( dataNode );
-        if ( path != null ) {
-            final TreePath tpath = new TreePath( path );
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    expandPath( tpath );
-                }
-            } );
-        }
-
         /* Activate new node expander if we need to do this.
          * This step, which is executed synchronously, may be time-consuming. */
         if ( newExpander != null ) {
             newExpander.expandNode();
         }
+
+        /* Make sure the tree knows that this node is open not shut. */
+        // It would be nice to do this before the actual expansion 
+        // (the previous step) so that you could see the expansion in 
+        // progress, but JTree doesn't seem to like having its
+        // nodes expanded when they still have no children.
+        // This could be fixed by keeping a record of which nodes need
+        // expansion when their children arrive and listening out for
+        // firstborn.
+        final TreeModelNode mNode = modelNode;
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                synchronized ( mNode ) {
+                    Object[] path = model.getPathToRoot( mNode.getDataNode() );
+                    if ( path != null ) {
+                        expandPath( new TreePath( path ) );
+                    }
+                }
+            }
+        } );
 
         /* Finally, recursively expand all the node's children. */
         for ( Iterator it = modelNode.getChildren().iterator();
