@@ -1,3 +1,87 @@
+Changes from Ant 1.5.3 to Ant 1.5.4
+===================================
+
+Changes that could break older environments:
+--------------------------------------------
+
+* If the Visual Age tasks used to work for you, they may stop doing so
+  now - and we'd like to know about it.  The current set of tasks is
+  supposed to work with any version of VAJ starting with 3.0.
+
+Fixed bugs:
+-----------
+
+* The Visual Age for Java tasks didn't work (at least for versions 3.0
+  and higher).  Bugzilla Report 10016.
+
+* URL-encoding in <vaj*port> didn't work properly.
+
+* VAJRemoteUtil called getAbsolutePath instead of getPath
+  causing problems when using a Windows VAJ server from a UNIX server.
+  Bugzilla Report 20457.
+
+* VAJImport task failed with NullPointerException when using DirectoryScanner.
+  Bugzilla Report 22080.
+
+Other changes:
+--------------
+
+* Shipped XML parser is now Xerces 2.5.0
+
+* <javah> will invoke oldjavah on JDK 1.4.2.  Bugzilla Report 18667.
+
+* The VAJ tasks now support a haltonfailure attribute to conditionally
+  keep building even if they fail.
+
+* It is now possible to use the latest (versioned or unversioned) edition
+  in <vajload> by using special wildcard characters.  Also fixes
+  Bugzilla Report 2236.
+
+Changes from Ant 1.5.2 to Ant 1.5.3
+===================================
+
+Changes that could break older environments:
+--------------------------------------------
+
+* The <zip> task and friends have again changed a method signature
+  (sorry, was necessary to fix bug 17780).  The return type of
+  getResourcesToAdd has changed.
+
+Fixed bugs:
+-----------
+
+* <zipfileset>'s filemode would get ignored and the dirmode was used
+  for the included files as well.  As a side effect, WinZIP was unable
+  to extract or display the files, so they seemed to be missing from
+  the archive.  Bugzilla Report 17648.
+
+* <ftp> could use the wrong path separator when trying to change the
+  remote working directory.  Bugzilla Report 17735.
+
+* <jar update="true"> would loose all original files if you didn't
+  specify any nested <(zip)fileset>s and the manifest had changed.
+  Bugzilla Report 17780.
+
+* If you used a value starting with \ on Windows for the appxml
+  attribute of <ear> or the webxml attribute of <war>, it would be
+  ignored.  Bugzilla Report 17871.
+
+* Ant will no longer implicitly add Sun's rt.jar in <javac> when you
+  use jvc and don't specify a bootclasspath.  Bugzilla Report 18055.
+  
+* The prefix attribute of <zipfileset> would not generate directory
+  entries for the prefix itself.  Bugzilla Report 18403.
+
+* starteam checkout can now handle deleted labels.  Bugzilla Report 17646.
+
+* The Unix wrapper script failed if you invoked it as a relative
+  symlink and ANT_HOME has not been set.  Bugzilla Report 17721.
+
+Other Changes:
+--------------
+* Added ability to specify manifest encoding for the <jar> and 
+  <manifest> tasks
+
 Changes from Ant 1.5.1 to Ant 1.5.2
 ===================================
 

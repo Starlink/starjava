@@ -93,7 +93,7 @@ import org.apache.tools.zip.ZipOutputStream;
  *
  * @author James Davidson <a href="mailto:duncan@x180.com">duncan@x180.com</a>
  * @author Jon S. Stevens <a href="mailto:jon@clearink.com">jon@clearink.com</a>
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
+ * @author Stefan Bodewig
  * @author <a href="mailto:levylambert@tiscali-dsl.de">Antoine Levy-Lambert</a>
  *
  * @since Ant 1.1
@@ -327,7 +327,11 @@ public class Zip extends MatchingTask {
         // we don't need to update if the original file doesn't exist
 
         addingNewFiles = true;
-        doUpdate = doUpdate && zipFile.exists();
+        if (doUpdate && !zipFile.exists()) {
+            doUpdate = false;
+            log("ignoring update attribute as " + archiveType
+                + " doesn't exist.", Project.MSG_DEBUG);
+        }
 
         // Add the files found in groupfileset to fileset
         for (int i = 0; i < groupfilesets.size(); i++) {
@@ -364,13 +368,15 @@ public class Zip extends MatchingTask {
         vfss.copyInto(fss);
         boolean success = false;
         try {
-            Resource[][] addThem = getResourcesToAdd(fss, zipFile, false);
+            // can also handle empty archives
+            ArchiveState state = getResourcesToAdd(fss, zipFile, false);
 
             // quick exit if the target is up to date
-            // can also handle empty archives
-            if (isEmpty(addThem)) {
+            if (!state.isOutOfDate()) {
                 return;
             }
+
+            Resource[][] addThem = state.getResourcesToAdd();
 
             if (doUpdate) {
                 renamedFile =
@@ -517,7 +523,7 @@ public class Zip extends MatchingTask {
             prefix = zfs.getPrefix();
             fullpath = zfs.getFullpath();
             dirMode = zfs.getDirMode();
-            fileMode = zfs.getDirMode();
+            fileMode = zfs.getFileMode();
         }
 
         if (prefix.length() > 0 && fullpath.length() > 0) {
@@ -531,10 +537,11 @@ public class Zip extends MatchingTask {
                                      + " file.");
         }
 
-        if (prefix.length() > 0
-            && !prefix.endsWith("/")
-            && !prefix.endsWith("\\")) {
-            prefix += "/";
+        if (prefix.length() > 0) {
+            if (!prefix.endsWith("/") && !prefix.endsWith("\\")) {
+                prefix += "/";
+            }
+            addParentDirs(null, prefix, zOut, "", dirMode);
         }
 
         ZipFile zf = null;
@@ -666,17 +673,38 @@ public class Zip extends MatchingTask {
      * out-of-date.  Subclasses overriding this method are supposed to
      * set this value correctly in their call to
      * super.getResourcesToAdd.
-     * @return an array of resources to add for each fileset passed in.
+     * @return an array of resources to add for each fileset passed in as well
+     *         as a flag that indicates whether the archive is uptodate.
      *
      * @exception BuildException if it likes
      */
-    protected Resource[][] getResourcesToAdd(FileSet[] filesets,
+    protected ArchiveState getResourcesToAdd(FileSet[] filesets,
                                              File zipFile,
                                              boolean needsUpdate)
         throws BuildException {
 
         Resource[][] initialResources = grabResources(filesets);
         if (isEmpty(initialResources)) {
+            if (needsUpdate && doUpdate) {
+                /*
+                 * This is a rather hairy case.
+                 *
+                 * One of our subclasses knows that we need to update the
+                 * archive, but at the same time, there are no resources
+                 * known to us that would need to be added.  Only the
+                 * subclass seems to know what's going on.
+                 *
+                 * This happens if <jar> detects that the manifest has changed,
+                 * for example.  The manifest is not part of any resources
+                 * because of our support for inline <manifest>s.
+                 *
+                 * If we invoke createEmptyZip like Ant 1.5.2 did,
+                 * we'll loose all stuff that has been in the original
+                 * archive (bugzilla report 17780).
+                 */
+                return new ArchiveState(true, initialResources);
+            }
+
             if (emptyBehavior.equals("skip")) {
                 if (doUpdate) {
                     log(archiveType + " archive " + zipFile 
@@ -696,16 +724,18 @@ public class Zip extends MatchingTask {
                 // Create.
                 createEmptyZip(zipFile);
             }
-            return initialResources;
+            return new ArchiveState(needsUpdate, initialResources);
         }
 
+        // initialResources is not empty
+
         if (!zipFile.exists()) {
-            return initialResources;
+            return new ArchiveState(true, initialResources);
         }
 
         if (needsUpdate && !doUpdate) {
             // we are recreating the archive, need all resources
-            return initialResources;
+            return new ArchiveState(true, initialResources);
         }
 
         Resource[][] newerResources = new Resource[filesets.length][];
@@ -773,10 +803,10 @@ public class Zip extends MatchingTask {
 
         if (needsUpdate && !doUpdate) {
             // we are recreating the archive, need all resources
-            return initialResources;
+            return new ArchiveState(true, initialResources);
         }
         
-        return newerResources;
+        return new ArchiveState(needsUpdate, newerResources);
     }
 
     /**
@@ -794,11 +824,11 @@ public class Zip extends MatchingTask {
             Vector resources = new Vector();
             String[] directories = rs.getIncludedDirectories();
             for (int j = 0; j < directories.length; j++) {
-                resources.add(rs.getResource(directories[j]));
+                resources.addElement(rs.getResource(directories[j]));
             }
             String[] files = rs.getIncludedFiles();
             for (int j = 0; j < files.length; j++) {
-                resources.add(rs.getResource(files[j]));
+                resources.addElement(rs.getResource(files[j]));
             }
             
             result[i] = new Resource[resources.size()];
@@ -1068,6 +1098,30 @@ public class Zip extends MatchingTask {
     public static class Duplicate extends EnumeratedAttribute {
         public String[] getValues() {
             return new String[] {"add", "preserve", "fail"};
+        }
+    }
+
+    /**
+     * Holds the up-to-date status and the out-of-date resources of
+     * the original archive.
+     *
+     * @since Ant 1.5.3
+     */
+    public static class ArchiveState {
+        private boolean outOfDate;
+        private Resource[][] resourcesToAdd;
+
+        ArchiveState(boolean state, Resource[][] r) {
+            outOfDate = state;
+            resourcesToAdd = r;
+        }
+
+        public boolean isOutOfDate() {
+            return outOfDate;
+        }
+
+        public Resource[][] getResourcesToAdd() {
+            return resourcesToAdd;
         }
     }
 }

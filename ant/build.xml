@@ -20,8 +20,8 @@
 
   <property name="Name" value="Apache Ant"/>
   <property name="name" value="ant"/>
-  <property name="version" value="1.5.2"/>
-  <property name="manifest-version" value="1.5.2"/>
+  <property name="version" value="1.5.4"/>
+  <property name="manifest-version" value="1.5.4"/>
 
   <property name="debug" value="true"/>
   <property name="chmod.fail" value="true"/>
@@ -288,10 +288,6 @@
   <patternset id="needs.antlr">
     <exclude name="${optional.package}/ANTLR*.java" unless="antlr.present"/>
   </patternset>
-  <patternset id="needs.servletapi">
-    <exclude name="${optional.package}/ide/VAJ*Servlet.java"
-             unless="servlet.present"/>
-  </patternset>
   <patternset id="needs.jmf">
     <exclude name="${optional.package}/sound/*.java" unless="jmf.present"/>
   </patternset>
@@ -432,10 +428,6 @@
                classpathref="classpath"/>
     <available property="which.present"
                classname="org.apache.env.Which"
-               classpathref="classpath"/>
-
-    <available property="servlet.present"
-               classname="javax.servlet.Servlet"
                classpathref="classpath"/>
 
     <available property="xerces.present"
@@ -613,7 +605,6 @@
       <patternset refid="needs.starteam"/>
       <patternset refid="needs.antlr"/>
       <patternset refid="needs.vaj"/>
-      <patternset refid="needs.servletapi"/>
       <patternset refid="needs.jmf"/>
       <patternset refid="needs.xalan2"/>
       <patternset refid="needs.jdepend"/>
