@@ -122,26 +122,16 @@ public class Loader {
         File archdir = new File( libdir, arch );
 
         /* Get the name of the library file. */
-        String filename;
-        if ( arch.equals( "x86" ) ) {
-            filename = libname + ".dll";
-        }
-        else if ( arch.equals( "alpha" ) ) {
-            filename = "lib" + libname + ".so";
-        }
-        else if ( arch.equals( "sparc" ) ) {
-            filename = "lib" + libname + ".so";
-        }
-        else if ( arch.equals( "i386" ) ) {
-            filename = "lib" + libname + ".so";
-        }
-        else {  // best guess
-            filename = "lib" + libname + ".so";
-        }
+        String filename = System.mapLibraryName( libname );
 
         /* Try to load it. */
         File libfile = new File( archdir, filename );
-        System.load( libfile.getAbsolutePath() );
+        try {
+            System.load( libfile.getCanonicalPath() );
+        }
+        catch (IOException e) {
+            throw new UnsatisfiedLinkError( e.getMessage() );
+        }
     }
 
     /**
