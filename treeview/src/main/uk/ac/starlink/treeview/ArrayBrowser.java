@@ -1,7 +1,9 @@
 package uk.ac.starlink.treeview;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Insets;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import javax.swing.BorderFactory;
@@ -36,7 +38,7 @@ import uk.ac.starlink.table.gui.StarJTable;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class ArrayBrowser extends JScrollPane {
+public class ArrayBrowser extends JPanel {
 
     private static final Object BAD_CELL = new Object();
 
@@ -91,6 +93,25 @@ public class ArrayBrowser extends JScrollPane {
          * fixed-width in any case. */
         crend.setCellFont( new Font( "Monospaced", Font.PLAIN, 
                                      crend.getFont().getSize() ) );
+
+        /* Place a scrollpane to hold the array browser. */
+        JScrollPane scroller = new JScrollPane() {
+            public Dimension getPreferredSize() {
+                Dimension size = ArrayBrowser.this.getSize();
+                Insets insets1 = ArrayBrowser.this.getInsets();
+                Insets insets2 = this.getInsets();
+                int x = size.width - insets1.left - insets1.right
+                                   - insets2.left - insets2.right;
+                int y = size.height - insets1.top - insets1.bottom
+                                    - insets2.top - insets2.bottom;
+
+                // I don't know why this -1 is necessary!
+                return new Dimension( x, y - 1 );
+            }
+        };
+        scroller.setAlignmentX( 0.0f );
+        scroller.setAlignmentY( 0.0f );
+        add( scroller );
 
         /* Handle the two-dimensional case by making a normal 2d table. */
         if ( ndim == 2 ) {
@@ -158,9 +179,9 @@ public class ArrayBrowser extends JScrollPane {
             };
 
             /* Add them to the correct parts of this frame. */
-            setViewportView( dataTab );
-            setRowHeaderView( rowHead );
-            setColumnHeaderView( colHead );
+            scroller.setViewportView( dataTab );
+            scroller.setRowHeaderView( rowHead );
+            scroller.setColumnHeaderView( colHead );
 
             /* Sort out some borders for the headers. */
             Color bcol = Color.BLACK;
@@ -173,7 +194,7 @@ public class ArrayBrowser extends JScrollPane {
             JPanel box = new JPanel();
             box.setBorder( BorderFactory
                           .createMatteBorder( 0, 0, 2, 2, bcol ) );
-            setCorner( UPPER_LEFT_CORNER, box );
+            scroller.setCorner( JScrollPane.UPPER_LEFT_CORNER, box );
 
             /* Configure the header components. */
             rowHead.setDefaultRenderer( Object.class, hrend );
@@ -234,7 +255,7 @@ public class ArrayBrowser extends JScrollPane {
 
             /* Construct the table itself. */
             JTable tab = new JTable( dataModel );
-            setViewportView( tab );
+            scroller.setViewportView( tab );
 
             /* Configure the rendering. */
             tab.setTableHeader( null );
