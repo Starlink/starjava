@@ -216,8 +216,7 @@ public class FormatsTest extends TestCase {
             throws IOException, SAXException {
         StarTable t1 = table;
         writer.setDoctypeDeclaration( 
-            "<!DOCTYPE VOTABLE SYSTEM " +
-            "'http://cdsweb.u-strasbg.fr/xml/VOTable.dtd'>" );
+            "<!DOCTYPE VOTABLE SYSTEM 'some/where/VOTable.dtd'>" );
         writer.writeStarTable( t1, loc.toString() );
         assertValidXML( new InputSource( loc.toString() ) );
         StarTable t2 = new StarTableFactory()
