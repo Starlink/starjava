@@ -35,6 +35,8 @@
       <p>We have implemented this model in an extensible, pluggable
         Java library, which incorporates VOTables.  We are basing our
         current software developments on this structure.</p>
+
+      <p>$Revision$</p>
     </div>
 
     <p>HDX is two things:</p>
@@ -136,6 +138,35 @@
 
     </dl>
 
+    <p>HDX functions as a coordination layer, tying together otherwise
+    distinct metadata.  We can visualise a hierarchy of metadata as follows:</p>
+
+    <p class="figure"><img src="metadata.png" alt="Layers of HDX
+        metadata: data, then per-bitbucket metadata, then coordination
+        metadata"/></p>
+
+    <p>In the bottom layer are the bitbuckets containing the data, and
+    above that are various structures <em>describing</em> that data.
+    We can detach that metadata from the data it describes (conceptually,
+    if not literally), with the result that (a) it becomes natural to
+    associate a particular piece of metadata with several different
+    bitbuckets by the same mechanism through which we associate the
+    image and corresponding variance, say, and (b) the different types
+    of metadata then become naturally independent of each other, and can
+    be specified and evolved at different rates.  Since in this scheme
+    each chunk of metadata conceptualy refers to a single bitbucket
+    (for example, WCS information specifies how a single pixel grid maps
+    to the sky, even if that WCS information is separately associated
+    with two distinct bitbuckets), the metadata standards are relieved
+    of the need to express and maintain coordination information.
+    That information is
+    supplied by the higher layer in the diagram, HDX, which associates
+    data objects with each other and with the metadata which describes
+    them.  Factoring out the coordination information in this way makes
+    the metadata simpler, and leaves the coordination metadata having
+    to solve a rather simple problem; as a result, the HDX model and
+    syntax are not complicated.</p>
+
     <p>Although HDX as such is only a framework for tying together
       data descriptions, with code support for creating new types,
       there are some structures which are already defined as part of
@@ -153,7 +184,20 @@
       proposals for metadata structures, we believe vindicates the
       drive for simplicity that has informed the HDX design.</p>
 
-    <p>An NDX contains an <code>&lt;image&gt;</code>, plus optionally
+    <p>An NDX looks like the following:</p>
+
+<pre>
+    &lt;hdx>
+      &lt;ndx>
+        &lt;image uri="file:/tmp/mydata.fits"/>
+        &lt;variance uri="file:/tmp/mydata-var.fits"/>
+        &lt;quality uri="http://telescope.edu/instrument/bad-pixels.fits"/>
+      &lt;/ndx>
+      &lt;wcs tbd="true"/>
+      &lt;etc>[...]&lt;/etc>
+    &lt;/hdx>
+</pre>
+    <p>It contains an <code>&lt;image&gt;</code>, plus optionally
       <code>&lt;variance&gt;</code> and <code>&lt;quality&gt;</code>
       (representing data errors and bad data respectively), plus
       optional <code>&lt;history&gt;</code>, plus other structures
@@ -205,7 +249,7 @@
 
     <h2 id="hdxdal">HDX as a data access layer</h2>
 
-    <p>See the current <a href="www.starlink.ac.uk/starjavadocs/"
+    <p>See the current <a href="http://www.starlink.ac.uk/starjavadocs/"
       >javadocs</a> for the project as a whole.</p>
 
     <p>The ideas of `HDX-as-a-data-model' described above is spartan,
@@ -226,7 +270,9 @@
     <ul>
       <li>handling of FITS, XML and NDF for input and output, as part
         of a pluggable structure for input handlers;</li>
-      <li>registration and optional validation of new types;</li>
+      <li>registration and optional validation of new types, and the
+      code which associates the XML element types and corresonding
+      Java classes;</li>
       <li>namespace processing for input XML, allowing HDX structure
         to be overlaid on `foreign' XML if key attributes are included;</li>
       <li>URI and <code>xml:base</code> resolution.</li>
@@ -276,8 +322,8 @@
       application processed this last?'.  This
       suggests that a `one spec fits all' approach is doomed to
       protracted birth pangs, since any spec comprehensive enough to
-      be useful, is complicated enough to be contentious.  Even a
-      segmented approach is problematic: if different parts of a spec
+      be useful, is complicated enough to be contentious.  That is,
+      one-size-fits-all will never be finalised: if different parts of a spec
       address different problems, the fact that they are artificially
       yoked together means that it could be dificult to evolve those
       parts at different rates.</p>
@@ -348,7 +394,7 @@
 
     <div class="signature">
       <a href="/users/norman/" >Norman</a><br/>
-      2003 May 9
+      $Date$
     </div>
   </body>
 </html>
