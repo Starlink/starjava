@@ -105,12 +105,14 @@ public class TableViewerWindow extends TopcatViewWindow
         columnModel.addColumnModelListener( this );
     
         /* Actions for new subsets from the row selection. */
-        includeAct = new ViewerAction( "Subset from selected rows", null,
+        includeAct = new ViewerAction( "Subset From Selected Rows",
+                                       ResourceIcon.INCLUDE_ROWS,
                                        "Define a new row subset containing " +
                                        "all selected rows" );
-        excludeAct = new ViewerAction( "Subset from unselected rows", null,
+        excludeAct = new ViewerAction( "Subset From Unselected Rows",
+                                       ResourceIcon.EXCLUDE_ROWS,
                                        "Define a new row subset containing " +
-                                       "all unselected rows" );
+                                       "all visible unselected rows" );
 
         /* Configure a listener for row selection events. */
         final ListSelectionModel selectionModel = jtab.getSelectionModel();
@@ -156,6 +158,11 @@ public class TableViewerWindow extends TopcatViewWindow
         scrollpane.getViewport().setViewPosition( new Point( 0, 0 ) );
         StarJTable.configureColumnWidths( jtab, MAX_COLUMN_WIDTH,
                                           MAX_SAMPLE_ROWS );
+
+        /* Add actions to the toolbar. */
+        getToolBar().add( includeAct );
+        getToolBar().add( excludeAct );
+        getToolBar().addSeparator();
 
         /* Add help information. */
         addHelp( "TableViewerWindow" );
@@ -236,6 +243,40 @@ public class TableViewerWindow extends TopcatViewWindow
         return bits;
     }
 
+    /**
+     * Returns a BitSet in which bit <i>i</i> is set if a table view row
+     * corresponding to row <i>i</i> of this viewer's data model 
+     * (a) is currently active (part of the current subset) and
+     * (b) has not been selected in the GUI.  The BitSet has the same
+     * number of bits as the data model has rows.
+     *
+     * @return  new bit vector
+     */
+    private BitSet getUnselectedRowFlags() {
+        int nrow = (int) dataModel.getRowCount();
+        BitSet bits = new BitSet( nrow );
+        int nactive = jtab.getRowCount();
+        ListSelectionModel selModel = jtab.getSelectionModel();
+        int[] rowMap = viewModel.getRowMap();
+        if ( rowMap == null ) {
+            for ( int i = 0; i < nactive; i++ ) {
+                if ( ! selModel.isSelectedIndex( i ) ) {
+                    bits.set( i );
+                }
+            }
+        }
+        else {
+            assert rowMap.length == nactive;
+            for ( int i = 0; i < nactive; i++ ) {
+                if ( ! selModel.isSelectedIndex( i ) ) {
+                    bits.set( rowMap[ i ] );
+                }
+            }
+        }
+        return bits;
+    }
+    
+
     /*
      * Implementation of TableModelListener interface.
      */
@@ -276,22 +317,16 @@ public class TableViewerWindow extends TopcatViewWindow
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            if ( this == includeAct ) {
+            if ( this == includeAct || this == excludeAct ) {
+                boolean exclude = this == excludeAct;
                 String name = tcModel
                              .enquireSubsetName( getEventWindow( evt ) );
                 if ( name != null ) {
-                    BitSet bits = getSelectedRowFlags();
-                    tcModel.addSubset( new BitsRowSubset( name, bits ) );
-                }
-            }
-            else if ( this == excludeAct ) {
-                String name = tcModel
-                             .enquireSubsetName( getEventWindow( evt ) );
-                if ( name != null ) {
-                    BitSet bits = getSelectedRowFlags();
-                    int nrow = (int) dataModel.getRowCount();
-                    bits.flip( 0, nrow );
-                    tcModel.addSubset( new BitsRowSubset( name, bits ) );
+                    BitSet bits = exclude ? getUnselectedRowFlags()
+                                          : getSelectedRowFlags();
+                    RowSubset rset = new BitsRowSubset( name, bits );
+                    tcModel.addSubset( rset );
+                    tcModel.applySubset( rset );
                 }
             }
             else {

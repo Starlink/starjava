@@ -1947,6 +1947,26 @@ some cells (e.g. ones containing arrays rather than scalars) cannot
 currently be edited.  If it looks like an edit has taken place, it has.
 </p>
 
+<p>The following buttons are available in the toolbar:
+<dl>
+<dt>&IMG.INCLUDE_ROWS; Subset From Selected Rows</dt>
+<dd><p>Defines a new <ref id="subsets">Row Subset</ref> consisting of those
+    rows which are currently highlighted.  You can highlight a 
+    contiguous group of rows by dragging the mouse over them; 
+    further contiguous groups can be added by holding the 
+    <label>Control</label> key down while dragging.
+    </p></dd>
+
+<dt>&IMG.EXCLUDE_ROWS; Subset From Unselected Rows</dt>
+<dd><p>Defines a new Row Subset consisting of those rows which are visible
+    but currently not highlighted.  You can highlight a 
+    contiguous group of rows by dragging the mouse over them;
+    further contiguous groups can be added by holding the 
+    <label>Control</label> key down while dragging.
+    </p></dd>
+</dl>
+</p>
+
 <p>As well as the normal menu, right-clicking over one of the columns
 in the displayed table will present a 
 column popup menu, which provides a convenient
@@ -2466,7 +2486,8 @@ You can also use the <label>Subsets To Plot</label> item on the
     </p></dd>
 
 <dt>&IMG.VISIBLE_SUBSET; Subset From Visible</dt>
-<dd><p>Defines a new Row Subset consisting of only the points which
+<dd><p>Defines a new <ref id="subsets">Row Subset</ref>
+    consisting of only the points which
     are currently visible on the plotting surface.
     A dialogue will be popped up to ask for a name for the new subset.
     In this way points in a given region of the parameter space can
