@@ -28,9 +28,11 @@ import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Vector;
 
@@ -42,6 +44,7 @@ import javax.print.attribute.PrintRequestAttributeSet;
 import javax.print.attribute.standard.JobName;
 import javax.print.attribute.standard.MediaSizeName;
 import javax.print.attribute.standard.OrientationRequested;
+
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -847,10 +850,10 @@ public class PlotControl
     }
 
     /**
-     * Look for postscript printing services (in the absence of any
-     * proper services).
+     * Look for postscript printing services.
      */
-    protected PrintService[] getPostscriptPrintServices()
+    protected PrintService[] getPostscriptPrintServices( String fileName )
+        throws SplatException
     {       
         FileOutputStream outstream;
         StreamPrintService psPrinter;
@@ -860,59 +863,90 @@ public class PlotControl
             PrinterJob.lookupStreamPrintServices( psMimeType );
         if ( factories.length > 0 ) {
             try {
-                outstream = new FileOutputStream( new File( "out.ps" ));
+                outstream = new FileOutputStream( new File( fileName ) );
                 PrintService[] services = new PrintService[1];
                 services[0] =  factories[0].getPrintService( outstream );
                 return services;
             }
-            catch (FileNotFoundException e) {
-                //  No postscript either.
+            catch ( FileNotFoundException e ) {
+                throw new SplatException( e );
             }
         }
         return new PrintService[0];
     }
 
     /**
-     * Make a printable copy of the Plot content.
+     * Print to a postscript file.
      */
-    public void print()
+    public void printPostscript( String fileName )
+        throws SplatException
     {
-        PrinterJob pj = PrinterJob.getPrinterJob();
-        PrintService[] services = PrinterJob.lookupPrintServices(); 
+        PrintService[] services = getPostscriptPrintServices( fileName );
         if ( services.length == 0 ) {
-            // No print services are available (i.e. no valid local
-            // printers), can we still print to a postscript file?
-            services = getPostscriptPrintServices();
-        }
-        if ( services.length > 0 ) {
-
-            //  Create the default PrintRequestAttributeSet if not done
-            //  already. If created then first print request will ask
-            //  for the page settings to be verified.
-            boolean pageVerify = false;
-            if ( pageSet == null ) {
-                //  Make the default landscape A4.
-                pageSet = new HashPrintRequestAttributeSet();
-                pageSet.add( OrientationRequested.LANDSCAPE );
-                pageSet.add( MediaSizeName.ISO_A4 );
-                pageSet.add
-                    ( new JobName( Utilities.getTitle("printer job"),null ) );
-                pageVerify = true;
-            }
-
             try {
+                PrinterJob pj = PrinterJob.getPrinterJob();
                 pj.setPrintService( services[0] );
                 pj.setPrintable( plot );
-                if ( pageVerify ) {
-                    pj.pageDialog( pageSet );
-                }
+                makePageSet();
                 if ( pj.printDialog( pageSet ) ) {
                     pj.print( pageSet );
+                    ((StreamPrintService)services[0]).dispose();
+                    ((StreamPrintService)services[0]).getOutputStream().close();
                 }
             }
             catch ( PrinterException e ) {
-                e.printStackTrace();
+                throw new SplatException( e );
             }
+            catch ( IOException e ) {
+                throw new SplatException( e );
+            }
+        }
+        else {
+            // Report there are no printers available.
+            throw new SplatException( "Sorry no printers are available" );
+        }
+    }
+
+    /**
+     * Make a printable copy of the Plot content.
+     */
+    public void print()
+        throws SplatException
+    {
+        PrintService[] services = PrinterJob.lookupPrintServices(); 
+        if ( services.length == 0 ) {
+
+            // No actual print services are available (i.e. no valid local
+            // printers), then fall back to the postscript option.
+            printPostscript( "out.ps" );
+            return;
+        }
+
+        try {
+            PrinterJob pj = PrinterJob.getPrinterJob();
+            pj.setPrintService( services[0] );
+            pj.setPrintable( plot );
+            makePageSet();
+            if ( pj.printDialog( pageSet ) ) {
+                pj.print( pageSet );
+            }
+        }
+        catch ( PrinterException e ) {
+            throw new SplatException( e );
+        }
+    }
+
+    /**
+     * Create the default PageSet for printing. This is A4.
+     */
+    private void makePageSet()
+    {
+        if ( pageSet == null ) {
+            pageSet = new HashPrintRequestAttributeSet();
+            pageSet.add( OrientationRequested.LANDSCAPE );
+            pageSet.add( MediaSizeName.ISO_A4 );
+            pageSet.add
+                ( new JobName( Utilities.getTitle( "printer job" ), null ) );
         }
     }
 

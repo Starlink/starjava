@@ -17,15 +17,19 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.io.File;
+
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
@@ -39,6 +43,7 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.util.JPEGUtilities;
 
 /**
  * PlotControlFrame provides a top-level wrapper for a PlotControl
@@ -129,8 +134,14 @@ public class PlotControlFrame
     protected JButton lineFitButton = new JButton();
     protected JButton pannerButton = new JButton();
     protected JButton polyFitButton = new JButton();
+    protected JButton printButton = new JButton();
     protected JButton printPostscriptButton = new JButton();
     protected JButton printJPEGButton = new JButton();
+
+    /**
+     * File chooser used for postscript files.
+     */
+    protected JFileChooser postscriptChooser = null;
 
     /**
      *  Plot a spectrum.
@@ -241,8 +252,10 @@ public class PlotControlFrame
         fileMenu.setText( "File" );
         menuBar.add( fileMenu );
 
-        ImageIcon printPostscriptImage = new ImageIcon(
+        ImageIcon printImage = new ImageIcon(
             ImageHolder.class.getResource( "print.gif" ) );
+        ImageIcon printPostscriptImage = new ImageIcon(
+            ImageHolder.class.getResource( "postscriptprint.gif" ) );
         ImageIcon printJPEGImage = new ImageIcon(
             ImageHolder.class.getResource( "jpeg.gif" ) );
         ImageIcon closeImage = new ImageIcon(
@@ -256,15 +269,22 @@ public class PlotControlFrame
         ImageIcon pannerImage = new ImageIcon(
             ImageHolder.class.getResource( "panner.gif" ) );
 
-        //  Add action to print figure to postscript.
+        //  Add action to print figure.
+        PrintAction printAction  = new PrintAction( "Print", printImage );
+        fileMenu.add( printAction );
+        printButton = toolBar.add( printAction );
+        printButton.setToolTipText( "Print display to local printer or file" );
+
+        //  Add action to print figure to postscript file.
         PrintPostscriptAction printPostscriptAction  =
-            new PrintPostscriptAction( "Print", printPostscriptImage );
+            new PrintPostscriptAction( "Print to postscript", 
+                                       printPostscriptImage );
         fileMenu.add( printPostscriptAction );
         printPostscriptButton = toolBar.add( printPostscriptAction );
         printPostscriptButton.setToolTipText
-            ( "Print display to printer or file (postscript)" );
+            ( "Print display to postscript file" );
 
-        //  Add action to print figure to postscript.
+        //  Add action to print figure to a JPEG.
         PrintJPEGAction printJPEGAction  =
             new PrintJPEGAction( "Print to JPEG", printJPEGImage );
         fileMenu.add( printJPEGAction );
@@ -394,11 +414,42 @@ public class PlotControlFrame
     }
 
     /**
-     *  Print the current display to a postscript (UNIX) file or printer.
+     *  Print the current display to a printer.
+     */
+    protected void printDisplay()
+    {
+        try {
+            plot.print();
+        }
+        catch (SplatException e) {
+            JOptionPane.showMessageDialog ( this, e.getMessage(), 
+                                            "Printer warning", 
+                                            JOptionPane.ERROR_MESSAGE );
+        }
+    }
+
+    /**
+     *  Print the current display to a postscript file.
      */
     protected void printPostscriptDisplay()
     {
-        plot.print();
+        if ( postscriptChooser == null ) {
+            postscriptChooser = 
+                new JFileChooser( System.getProperty( "user.dir" ) );
+            postscriptChooser.setSelectedFile( new File( "out.ps" ) );
+        }
+        int result = postscriptChooser.showSaveDialog( this );
+        if ( result == postscriptChooser.APPROVE_OPTION ) {
+            File file = postscriptChooser.getSelectedFile();
+            try {
+                plot.printPostscript( file.getName() );
+            }
+            catch (SplatException e) {
+                JOptionPane.showMessageDialog ( this, e.getMessage(), 
+                                                "Printer warning", 
+                                                JOptionPane.ERROR_MESSAGE );
+            }
+        }
     }
 
     /**
@@ -406,7 +457,7 @@ public class PlotControlFrame
      */
     protected void printJPEGDisplay()
     {
-        uk.ac.starlink.splat.util.JPEGUtilities.showJPEGChooser(plot.getPlot());
+        JPEGUtilities.showJPEGChooser( plot.getPlot() );
     }
 
     /**
@@ -769,6 +820,19 @@ public class PlotControlFrame
         }
         public void actionPerformed( ActionEvent ae ) {
             closeWindow();
+        }
+    }
+
+    /**
+     *  Inner class defining Action for printing.
+     */
+    protected class PrintAction extends AbstractAction
+    {
+        public PrintAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            printDisplay();
         }
     }
 
