@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Spectral coordinate system attributes window</TITLE>
+<META NAME="description" CONTENT="Spectral coordinate system attributes window">
+<META NAME="keywords" CONTENT="sun243">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="sun243.css">
+<LINK REL="next" HREF="node13.html">
+<LINK REL="previous" HREF="node11.html">
+<LINK REL="up" HREF="node7.html">
+<LINK REL="next" HREF="node13.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html197"
+ HREF="node13.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html195"
+ HREF="node7.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html189"
+ HREF="node11.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="101"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html198"
+ HREF="node13.html">The simple binary maths window</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html196"
+ HREF="node7.html">Help for individual windows</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html190"
+ HREF="node11.html">The view and modify spectral values window</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00045000000000000000">
+Spectral coordinate system attributes window</A>
+</H2>
+
+<P>
+This window allows you to define the coordinate systems that describe
+your spectra. The most trivial use of these is simply to document what
+type of coordinate and units your spectra are measured in, examples
+are wavelength in air in angstroms, frequency in GHz, velocity in
+km/s, <I>etc.</I>When supplied these values will be used to annotate any
+plots, but can also be used to compare spectra in different coordinate
+systems and to transform a spectrum from one coordinate system to
+another.
+
+<P>
+A more complete description of the coordinate system also includes two
+further pieces of information, the time and place when the observation
+was made and the direction and speed of what was being observed. Taken
+together these define the "rest frames" of the observation and the
+source. 
+
+<P>
+In the following picture you can see that I have an observation
+(topocentric) of NGC1275 (RA: 03:19:47.49, Dec: 41:30:40.5 FK5 J2000)
+made in air, calibrated in angstroms, taken in June 1999 on the
+William Herschel Telescope. I've also entered that NGC1275 as observed
+from the centre of the Sun (heliocentric) has a recessional velocity
+of 5300km/s.
+
+<P>
+<DIV ALIGN="CENTER">
+ <IMG
+ WIDTH="289" HEIGHT="352" ALIGN="BOTTOM" BORDER="0"
+ SRC="coordinatesystemwindow.gif"
+ ALT="1152">
+ 
+</DIV>
+
+<P>
+To apply this to a spectrum that has no coordinate information (or
+incorrect coordinate information) you need to press the
+<B>Set</B> button. Note that you can apply the same coordinates
+to more than one spectrum by selecting them all in the view of the
+global list shown in this window.
+
+<P>
+Now say that you wanted to compare this spectrum with a standard set
+of emission lines, obviously taken at rest in a laboratory. If you
+load the emission line catalogue and display it in the same plot and
+then select the <B>Options=&gt;Match coordinates</B> item the
+labels will be red-shifted to the rest frame of the source (<I>i.e.</I> where
+the lines from the galaxy originated). This is shown in action in the
+next figure where the lines before matching are shown in blue and red
+after matching.
+
+<P>
+<DIV ALIGN="CENTER">
+ <IMG
+ WIDTH="461" HEIGHT="353" ALIGN="BOTTOM" BORDER="0"
+ SRC="coordinatesystemplot.gif"
+ ALT="1158">
+ 
+</DIV>
+
+<P>
+The alternative to this method is switch 
+<B>Options=&gt;Match coordinates</B> off and transform the galaxy
+spectrum to what it would have looked like in the source standard of
+rest (<I>i.e.</I> if you had taken the measurements travelling with the
+galaxy). To do this change the <B>Standard of rest:</B> to
+<B>Source</B> but now press the <B>Convert</B> button. This
+remaps the spectral coordinates permanently. 
+
+<P>
+Using this method you can also transform your spectrum to other
+systems and units (say frequency or energy) and rest frames (so you
+can go from topocentric to heliocentric or the kinematic or dynamic
+local standards of rest). With  <B>Options=&gt;Match coordinates</B>
+switched on you can also directly compare spectra calibrated in all
+these different systems.
+
+<P>
+When transforming to velocity (optical, radio and relativistic
+velocities are supported) a rest "frequency" is also needed. 
+Conceptually this is the value that the centre of a line with
+locally zero velocity has. The rest frequency can actually be
+specified in various units, for instance angstroms.
+
+<P>
+To find out more about spectral coordinate systems you'll need to
+refer to `FITS-WCS paper III Representations of spectral coordinates
+in FITS (Greisen, Valdes, Calabretta &amp; Allen)' and the Starlink AST
+library documentation (<A HREF="/star/docs/sun211.htx/sun211.html#xref_ss:specframes">SUN/211</A>).
+
+<P>
+
+<BR> <HR>
+<A NAME="tex2html197"
+ HREF="node13.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html195"
+ HREF="node7.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html189"
+ HREF="node11.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="101"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html198"
+ HREF="node13.html">The simple binary maths window</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html196"
+ HREF="node7.html">Help for individual windows</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html190"
+ HREF="node11.html">The view and modify spectral values window</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>03 June 2003<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2003 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Displaying more than one spectrum</TITLE>
+<META NAME="description" CONTENT="Displaying more than one spectrum">
+<META NAME="keywords" CONTENT="sun243">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="sun243.css">
+<LINK REL="next" HREF="node6.html">
+<LINK REL="previous" HREF="node4.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node6.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html104"
+ HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html102"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html96"
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="101"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html105"
+ HREF="node6.html">Basic control of a plot view</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html103"
+ HREF="node3.html">Getting started</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html97"
+ HREF="node4.html">Displaying a spectrum</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00032000000000000000"></A><A NAME="xref_displaying_more_than_one_spectrum"></A>
+<BR>
+Displaying more than one spectrum
+</H2>
+
+<P>
+Displaying many spectra at the same time isn't much more difficult
+than the single spectrum case. Just open up several spectra by giving
+their names on the command-line, or by opening them using the
+<B>File=&gt;Open</B> dialog. This will produce a main window that
+looks something like:
+
+<P>
+<DIV ALIGN="CENTER">
+ <IMG
+ WIDTH="352" HEIGHT="308" ALIGN="BOTTOM" BORDER="0"
+ SRC="browser3.gif"
+ ALT="405">
+ 
+</DIV>
+
+<P>
+If you've opened all the spectra at once (you can do this using the
+<B>File=&gt;Open</B> dialog by selecting more than one file -
+just hold down the shift key while selecting each one) then they will
+have also all appeared displayed in a single plot, which should look
+something like:
+
+<P>
+<DIV ALIGN="CENTER">
+ <IMG
+ WIDTH="461" HEIGHT="353" ALIGN="BOTTOM" BORDER="0"
+ SRC="plot2.gif"
+ ALT="409">
+ 
+</DIV>
+
+<P>
+Again you should now close the plot (or all the plots if you've opened
+the spectra one-by-one) so you can find out how to add spectra to
+plots manually.
+
+<P>
+There are three ways to display a set of spectra in a single plot, you
+can either open a plot just displaying one spectrum and then add the
+others one-by-one, by two different methods, or you can open a plot
+displaying a pre-selected list of spectra. Let's cover the latter
+option first.
+
+<P>
+<A NAME="selecting_spectra"></A>The first thing to do is identify which spectra you want to display in
+the same plot, you do this by selecting their names in the
+<B>Global list of spectra:</B> list. You can select more than one
+name at a time by holding down the control key, while clicking on the
+name. It's also possible to select ranges of names by selecting the
+first name and then selecting the last name while holding down the
+shift key. Have a play to see the effects that you can get with
+combinations of these (hint: using the control key also allows you to
+remove single names from the selection). To select all the names you
+can also use the <B>Edit=&gt;Select all spectra</B> menu item.
+
+<P>
+Now that you've selected the spectra to display, just press the
+multi-display button: <IMG
+ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
+ SRC="multidisplay.gif"
+ ALT="413"> and all the spectra
+will be displayed in a single plot. Note that if you inadvertently
+press the single display button: <IMG
+ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
+ SRC="display.gif"
+ ALT="414">, then each
+spectrum will appear in a plot of it's own (this can be a very bad
+idea if you have a very large number of spectra selected!).
+
+<P>
+To make the identification of the spectra clearer you can just press
+the auto-colour button: <IMG
+ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
+ SRC="rainbow.gif"
+ ALT="415">. Each press of this
+button should generate a new set of colours, so just keep clicking
+until you see a combination that you like.
+
+<P>
+The second method for adding more than one spectrum to a plot is the
+simplest, you can drag spectra from the <B>Global list of
+spectra:</B> and drop them into the display area of the plot. To drag a
+single spectrum just make sure that it is selected and then attempt to
+drag it from the <B>Global list of spectra:</B> into the plot
+(during dragging a document icon should be attached to your screen
+pointer). To drag more than one you just need to make all the spectra
+you want displayed selected and then attempt to drag any of the
+selected set.
+
+<P>
+The third method is actually also the method you'd use to remove a
+spectrum from a plot. The first thing to do is select a spectrum in the
+<B>Global list of spectra:</B>,
+this shows its properties in the
+<B>Properties of current spectra:</B>
+side of the browser window, including which views
+are being made (<I>i.e.</I> which plots are displaying it). To add or remove
+a spectrum from a plot you need to click on the square shown in the
+<B>Displayed</B> column, so that it becomes ticked or unticked. See
+in the following image that <TT>test spectrum 2</TT> is currently
+being displayed in <TT>&lt;plot1&gt;</TT>:
+
+<P>
+<DIV ALIGN="CENTER">
+ <IMG
+ WIDTH="352" HEIGHT="308" ALIGN="BOTTOM" BORDER="0"
+ SRC="browser4.gif"
+ ALT="425">
+ 
+</DIV>
+
+<P>
+If any spectra were not displayed in this plot then they could be
+added to it using this mechanism. Naturally this also extends to the
+case when there are many plots available.
+
+<P>
+
+<BR> <HR>
+<A NAME="tex2html104"
+ HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html102"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html96"
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="101"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html105"
+ HREF="node6.html">Basic control of a plot view</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html103"
+ HREF="node3.html">Getting started</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html97"
+ HREF="node4.html">Displaying a spectrum</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>03 June 2003<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2003 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>
