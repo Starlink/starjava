@@ -798,8 +798,7 @@ public class TableViewer extends AuxWindow
             /* Display table parameters. */
             else if ( this == paramAct ) {
                 if ( paramWindow == null ) {
-                    paramWindow = new ParameterWindow( dataModel, columnModel,
-                                                       parent );
+                    paramWindow = new ParameterWindow( tv );
                 }
                 else {
                     paramWindow.makeVisible();
