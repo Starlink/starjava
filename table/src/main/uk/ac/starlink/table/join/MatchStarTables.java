@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -13,6 +12,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -144,7 +144,7 @@ public class MatchStarTables {
     public static StarTable makeInternalMatchTable( int iTable, 
                                                     Collection rowLinks, 
                                                     long rowCount ) {
-        final int nrow = AbstractStarTable.checkedLongToInt( rowCount );
+        final int nrow = Tables.checkedLongToInt( rowCount );
 
         /* Construct and populate arrays containing per-row information
          * about internal matches. */
@@ -159,7 +159,7 @@ public class MatchStarTables {
                 RowRef ref = link.getRef( i );
                 if ( ref.getTableIndex() == iTable ) {
                     long lrow = ref.getRowIndex();
-                    int irow = AbstractStarTable.checkedLongToInt( lrow );
+                    int irow = Tables.checkedLongToInt( lrow );
                     grpIds[ irow ] = grpId;
                     grpSizes[ grpId ]++;
                 }
