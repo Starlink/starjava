@@ -12,6 +12,7 @@ import nom.tam.fits.HeaderCard;
 import nom.tam.fits.TruncatedFileException;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
+import nom.tam.util.BufferedFile;
 import nom.tam.util.Cursor;
 import uk.ac.starlink.array.Type;
 import uk.ac.starlink.util.Compression;
@@ -161,14 +162,24 @@ public class FitsConstants {
         ArrayDataInput strm;
 
         /* Get a stream for the whole file. */
-        if ( datsrc instanceof FileDataSource && 
-             datsrc.getCompression() == Compression.NONE ) {
-            strm = new MappedFile( ((FileDataSource) datsrc)
-                                  .getFile().toString() );
-        }
-        else {
+
+    // Using a MappedFile works, and apparently allows you to look at
+    // tables of unlimited size(?) but makes table access extremely slow.
+    // Using a BufferedFile gives screeds of IOExceptions.
+    // Fall back for now to using a BufferedDataInputStream in all cases,
+    // which requires all data to be held in memory and so limits the
+    // size of tables which can be accessed, but does seem to work 
+    // at a reasonable speed.
+    // This is under investigation.
+    //
+    //  if ( datsrc instanceof FileDataSource && 
+    //       datsrc.getCompression() == Compression.NONE ) {
+    //      strm = new MappedFile( ((FileDataSource) datsrc)
+    //                            .getFile().toString() );
+    //  }
+    //  else {
             strm = new BufferedDataInputStream( datsrc.getInputStream() );
-        }
+    //  }
 
         /* If we have a position, try to position the stream accordingly. */
         String pos = datsrc.getPosition();
