@@ -2,9 +2,9 @@
     + [DIR] fits
       + [FIT] cube.fits  (120,120,8,1)
         + [IMG] Primary HDU  (Image (120,120,8,1) )
-          + [WCS] WCS  2 frames; current domain "CMP"
+          + [WCS] WCS  2 frames; current domain "VELO-LSR-STOKES-SKY"
             - [FRM] GRID  (4 axes) "Pixel Coordinates"
-            - [FRM] CMP  (4 axes) "4-d compound coordinate system"
+            - [FRM] VELO-LSR-STOKES-SKY  (4 axes) "4-d compound coordinate system"
       + [FIT] tables.fit
         - [HDU] Primary HDU  (Header)
         - [TBL] HDU 1  ASCII table (13x138)

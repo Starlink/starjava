@@ -342,6 +342,18 @@
   <property name="tests-classpath.value" refid="tests-classpath"/>
 
   <!--
+   !    ============
+   !    Library path
+   !    ============
+   !    Used by test targets for locating native libraries.
+   !-->
+  <path id="libpath">
+    <pathelement path="${java.library.path}"/>
+    <pathelement location="${star.jar.dir}/${os.arch}"/>
+  </path>
+  <property name="libpath" refid="libpath"/>
+
+  <!--
    !    =========================================
    !    Check availability of direct dependencies
    !    =========================================
@@ -1110,6 +1122,7 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="uk.ac.starlink.treeview.test.args"
                    value="${treeview.args}"/>
+      <sysproperty key="java.library.path" value="${libpath}"/>
 
       <formatter type="brief" usefile="false"/>
 

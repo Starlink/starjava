@@ -23,6 +23,7 @@ public class FrameDataNode extends DefaultDataNode {
     private JComponent fullView;
     private String name;
     private boolean sky;
+    private boolean spec;
 
     /**
      * Creates a FrameDataNode from an AST Frame object.
@@ -37,6 +38,7 @@ public class FrameDataNode extends DefaultDataNode {
         }
         setLabel( name );
         sky = frame instanceof SkyFrame;
+        spec = frame instanceof SpecFrame;
         description = "(" + frame.getNaxes() + " axes) \"" 
                           + frame.getTitle() + "\"";
     }
@@ -59,8 +61,17 @@ public class FrameDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return iconMaker.getIcon( sky ? IconFactory.SKYFRAME
-                                      : IconFactory.FRAME );
+        short iconid;
+        if ( sky ) {
+            iconid = IconFactory.SKYFRAME;
+        }
+        else if ( spec ) {
+            iconid = IconFactory.SPECFRAME;
+        }
+        else {
+            iconid = IconFactory.FRAME;
+        }
+        return iconMaker.getIcon( iconid ); 
     }
 
     public String getName() {

@@ -71,6 +71,7 @@ public class IconFactory {
     public static final short DATA = 135;
     public static final short VOTABLE = 140;
     public static final short VOCOMPONENT = 141;
+    public static final short SPECFRAME = 142;
     public static final short SPLAT = 200;
     public static final short SOG = 201;
     public static final short HANDLE_EXPAND = 301;
@@ -189,6 +190,7 @@ public class IconFactory {
             case DATA:           iname = "plaindat.gif";             break;
             case VOTABLE:        iname = "telescope2.gif";           break;
             case VOCOMPONENT:    iname = "smallbox1.gif";            break;
+            case SPECFRAME:      iname = "axes81.gif";               break;
             case SPLAT:          iname = "multidisplay.gif";         break;
             case SOG:            iname = "sogimage.gif";             break;
             case HANDLE_EXPAND:  iname = "Tree.expandedIcon";        break;
