@@ -153,10 +153,13 @@ public class HdxFactory {
                          * environment of dynamic network class
                          * loading.
                          */
-                        Class newclass = Class.forName
-                                (classname, // class name
-                                 true, // yes, initialise it
-                                 ClassLoader.getSystemClassLoader());
+                        Class newclass = 
+                            Class.forName (classname, // class name
+                                           true,      // yes, initialise it
+                                           Thread.currentThread().getContextClassLoader());
+                        //ClassLoader.getSystemClassLoader());
+
+
                     }
                 }
             }
@@ -185,6 +188,7 @@ public class HdxFactory {
      * Obtains an instance of the <code>HdxFactory</code>.
      */
     public static HdxFactory getInstance() {
+        System.out.println( "Request for HdxFactory instance" );
         if (defaultInstance == null)
             defaultInstance = new HdxFactory(null);
         return defaultInstance;

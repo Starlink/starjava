@@ -219,11 +219,15 @@ public class HdxResourceType {
                         // somewhat odd environment of JUnit regression tests,
                         // and (c) in the potentially very odd environment of
                         // dynamic network class loading.
-                        Class newclass = Class.forName
-                                (classname, // class name
-                                 true, // yes, initialise it
-                                 ClassLoader.getSystemClassLoader());
-                    }
+                        //Class newclass = Class.forName
+                        //        (classname, // class name
+                        //         true, // yes, initialise it
+                        //         ClassLoader.getSystemClassLoader());
+                        Class.forName (classname, // class name
+                                       true,      // yes, initialise it
+                                       Thread.currentThread().getContextClassLoader());
+                    
+                    }    
                 }
             }
         } catch (NoSuchElementException ex) {
@@ -363,7 +367,7 @@ public class HdxResourceType {
     public void setConstructedClass(String classname) 
             throws HdxException {
         try {
-            Class c = Class.forName(classname);
+            Class c = this.getClass().forName(classname);
             setConstructedClass(c);
         } catch (ClassNotFoundException ex) {
           throw new HdxException ("Class " + classname + " not registrable: "

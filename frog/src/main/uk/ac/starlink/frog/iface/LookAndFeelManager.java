@@ -168,7 +168,7 @@ public class LookAndFeelManager implements ActionListener
     public boolean haveLookAndFeel( String look )
     {
         try {
-            Class lookClass = Class.forName( look );
+            Class lookClass = this.getClass().forName( look );
             LookAndFeel newLook = (LookAndFeel) ( lookClass.newInstance() );
             return newLook.isSupportedLookAndFeel();
         }
