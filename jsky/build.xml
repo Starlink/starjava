@@ -271,8 +271,11 @@
 
     <!-- Installation based directories (based on "star.install")-->
     <property name="star.bin" value="${star.install}/bin"/>
+    <property name="star.bin.pkg" value="${star.bin}/${name}"/>
     <property name="star.lib" value="${star.install}/lib"/>
+    <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.docs" value="${star.install}/docs"/>
+    <property name="star.docs.pkg" value="${star.docs}/${name}"/>
 
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.bin}"/>
@@ -286,12 +289,19 @@
       <fileset dir="${dist.bin}"/>
     </loggedcopy>
 
+    <!-- Also remove the package-specific directory. 
+     !   Note exact format is required.-->
+    <echo file="${install.log}" append="true">${star.bin.pkg}
+</echo>
+
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="false">
+                logfileAppend="true">
       <fileset dir="${dist.lib}"/>
     </loggedcopy>
+    <echo file="${install.log}" append="true">${star.lib.pkg}
+</echo>
 
     <loggedcopy todir="${star.docs}"
                 logfile="${install.log}"
@@ -299,6 +309,8 @@
                 logfileAppend="true">
       <fileset dir="${dist.docs}"/>
     </loggedcopy>
+    <echo file="${install.log}" append="true">${star.docs.pkg}
+</echo>
 
   </target>
 

@@ -175,6 +175,9 @@
 
     <!-- JUnit -->
     <pathelement location="${star.jar.dir}/junit/junit.jar"/>
+
+    <!-- FITS -->
+    <pathelement location="${star.jar.dir}/tamfits/tamfits.jar"/>
     
   </extclasspath>
 
@@ -196,6 +199,7 @@
    !-->
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.dir}/junit/lib/junit/junit.jar"/>
+    <pathelement location="${star.build.dir}/tamfits/lib/tamfits/tamfits.jar"/>
   </extclasspath>
 
   <path id="built.classpath">
@@ -347,7 +351,7 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" 
-                   value="../junit/junit.jar"/>
+                   value="../junit/junit.jar ../tamfits/tamfits.jar"/>
       </manifest>
     </jar>
 
@@ -558,7 +562,7 @@
    ! directories. 
    !
    ! An installed system is potentially "undoable" as the copied names
-   ! are logged to "${install.log}".
+   ! and package-specific directories are logged to "${install.log}".
    !-->
   <target name="install"
           depends="dist"
@@ -580,12 +584,17 @@
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="true">
+                logfileAppend="false">
       <fileset dir="${dist.lib}">
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
       </fileset>
     </loggedcopy>
+
+    <!-- Also remove the package-specific directory. 
+     !   Note exact format is required.-->
+    <echo file="${install.log}" append="true">${star.lib.pkg}
+</echo>
 
     <loggedcopy todir="${star.docs}"
                 logfile="${install.log}"
@@ -601,6 +610,8 @@
                 logfileAppend="true">
       <fileset dir="${dist.docs}" includes="${unfiltered.files}"/>
     </loggedcopy>
+    <echo file="${install.log}" append="true">${star.docs.pkg}
+</echo>
 
   </target>
 

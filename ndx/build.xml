@@ -177,7 +177,7 @@
     <pathelement location="${star.jar.dir}/array/array.jar"/>
 
     <!-- JNIAST -->
-    <pathelement location="${star.jar.dir}/ast/ast.jar"/>
+    <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
 
     <!-- Util -->
     <pathelement location="${star.jar.dir}/util/util.jar"/>
@@ -208,7 +208,6 @@
    !-->
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
-    <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
     <pathelement location="${star.build.dir}/junit/lib/junit/junit.jar"/>
     <pathelement location="${star.build.dir}/hds/lib/hds/hds.jar"/>
@@ -592,7 +591,7 @@
    ! directories. 
    !
    ! An installed system is potentially "undoable" as the copied names
-   ! are logged to "${install.log}".
+   ! and package-specific directories are logged to "${install.log}".
    !-->
   <target name="install"
           depends="dist"
@@ -614,12 +613,17 @@
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="true">
+                logfileAppend="false">
       <fileset dir="${dist.lib}">
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
       </fileset>
     </loggedcopy>
+
+    <!-- Also remove the package-specific directory. 
+     !   Note exact format is required.-->
+    <echo file="${install.log}" append="true">${star.lib.pkg}
+</echo>
 
     <loggedcopy todir="${star.docs}"
                 logfile="${install.log}"
@@ -635,6 +639,8 @@
                 logfileAppend="true">
       <fileset dir="${dist.docs}" includes="${unfiltered.files}"/>
     </loggedcopy>
+    <echo file="${install.log}" append="true">${star.docs.pkg}
+</echo>
 
   </target>
 

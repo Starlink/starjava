@@ -287,7 +287,9 @@
 
     <!-- Installation based directories (based on "star.install")-->
     <property name="star.lib" value="${star.install}/lib"/>
+    <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.docs" value="${star.install}/docs"/>
+    <property name="star.docs.pkg" value="${star.docs}/${name}"/>
 
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.lib}"/>
@@ -299,13 +301,18 @@
                 logfileAppend="false">
       <fileset dir="${dist.lib}"/>
     </loggedcopy>
+    <echo file="${install.log}" append="true">${star.lib.pkg}
+</echo>
 
-    <!--<loggedcopy todir="${star.docs}"
+<!--<loggedcopy todir="${star.docs}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
                 logfileAppend="true">
       <fileset dir="${dist.docs}"/>
-    </loggedcopy>-->
+    </loggedcopy>
+    <echo file="${install.log}" append="true">${star.docs.pkg}
+</echo>
+-->
 
   </target>
 

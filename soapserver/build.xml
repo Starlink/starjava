@@ -619,7 +619,7 @@
    ! directories. 
    !
    ! An installed system is potentially "undoable" as the copied names
-   ! are logged to "${install.log}".
+   ! and package-specific directories are logged to "${install.log}".
    !-->
   <target name="install"
           depends="dist"
@@ -647,6 +647,11 @@
       <fileset dir="${dist.bin}"/>
     </loggedcopy>
 
+    <!-- Also remove the package-specific directory. 
+     !   Note exact format is required.-->
+    <echo file="${install.log}" append="true">${star.bin.pkg}
+</echo>
+
     <chmod perm="ugo+rx" failonerror="${chmod.fail}">
       <fileset dir="${star.bin}">
         <present targetdir="${dist.bin}" present="both"/>
@@ -662,6 +667,8 @@
         <include name="**/*.zip"/>
       </fileset>
     </loggedcopy>
+    <echo file="${install.log}" append="true">${star.lib.pkg}
+</echo>
 
     <loggedcopy todir="${star.docs}"
                 logfile="${install.log}"
@@ -677,6 +684,8 @@
                 logfileAppend="true">
       <fileset dir="${dist.docs}" includes="${unfiltered.files}"/>
     </loggedcopy>
+    <echo file="${install.log}" append="true">${star.docs.pkg}
+</echo>
 
   </target>
 
