@@ -2,6 +2,7 @@ package uk.ac.starlink.srb;
 
 import edu.sdsc.grid.io.srb.SRBFile;
 import edu.sdsc.grid.io.srb.SRBFileOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import uk.ac.starlink.connect.Leaf;
@@ -29,7 +30,12 @@ class SRBLeaf extends SRBNode implements Leaf {
     }
 
     public OutputStream getOutputStream() throws IOException {
-        return new SRBFileOutputStream( getFile() );
+
+        /* Wrap the output stream in a buffered one here - the Jargon
+         * streams seem to perform quite badly with the default buffer
+         * size (a normal BufferedOutputStream has a 2k buffer). */
+        return new BufferedOutputStream( new SRBFileOutputStream( getFile() ),
+                                         32 * 1024 );
     }
 
     public DataSource getDataSource() throws IOException {

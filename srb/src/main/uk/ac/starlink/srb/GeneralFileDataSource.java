@@ -1,5 +1,6 @@
 package uk.ac.starlink.srb;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import edu.sdsc.grid.io.GeneralFile;
@@ -30,6 +31,11 @@ public class GeneralFileDataSource extends DataSource {
     }
 
     public InputStream getRawInputStream() throws IOException {
-        return FileFactory.newFileInputStream( gf_ );
+
+        /* Wrap the input stream in a buffered one here - the Jargon
+         * streams seem to perform quite badly with the default buffer
+         * size (a normal BufferedInputStream has a 2k buffer). */
+        return new BufferedInputStream( FileFactory.newFileInputStream( gf_ ),
+                                        32 * 1024 );
     }
 }
