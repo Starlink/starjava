@@ -239,7 +239,7 @@ public class Table extends VOElement {
             StarTable startab = new FitsTableBuilder()
                                .makeStarTable( datsrc, false );
             if ( startab == null ) {
-                throw new VOTableFormatException( 
+                throw new IOException( 
                     "STREAM element does not contain a FITS table" );
             }
             return new TableBodies.StarTableTabularData( startab );

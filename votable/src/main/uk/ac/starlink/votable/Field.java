@@ -63,17 +63,23 @@ public class Field extends VOElement {
                     isVariable = true;
                 }
                 else {
+                    int dim;
                     try {
-                        arraysize[ i ] = Long.parseLong( dimtxt[ i ] );
-                        sliceSize *= arraysize[ i ];
+                        dim = Long.parseLong( dimtxt[ i ] );
                     }
                     catch ( NumberFormatException e ) {
-                        throw new VOTableFormatException( e );
+                        dim = 1;
+                        logger.warning( "Bad arraysize element " + dimtxt[ i ]
+                                      + " - assuming 1" );
                     }
                     if ( arraysize[ i ] <= 0 ) {
-                        throw new VOTableFormatException(
-                           "Negative dimensions illegal: " + as );
+                        dim = 1;
+                        logger.warning( "Bad arraysize element " + 
+                                        arraysize[ i ] + " is negative" +
+                                        " - assuming 1" );
                     }
+                    arraysize[ i ] = dim;
+                    sliceSize *= arraysize[ i ];
                 }
             }
         }
