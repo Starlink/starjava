@@ -51,6 +51,7 @@ public class Driver {
     private static final ValueInfo DEMOLOC_INFO = 
         new DefaultValueInfo( "DemoLoc", String.class, "Demo file location" );
     private static String[] KNOWN_DIALOGS = new String[] {
+        "uk.ac.starlink.table.gui.FileChooserLoader",
         "uk.ac.starlink.datanode.tree.TreeTableLoadDialog",
         SQLReadDialog.class.getName(),
         "uk.ac.starlink.vo.ConeSearchDialog",
