@@ -1,79 +1,39 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.javacc;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.zip.ZipFile;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Execute;
-
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.CommandlineJava;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.JavaEnvUtils;
 
-import java.io.File;
-
-import java.util.Hashtable;
-import java.util.Enumeration;
-
 /**
  * JavaCC compiler compiler task.
  *
- * @author thomas.haas@softwired-inc.com
- * @author Michael Saunders <a href="mailto:michael@amtec.com">michael@amtec.com</a>
  */
 public class JavaCC extends Task {
 
@@ -99,6 +59,7 @@ public class JavaCC extends Task {
     private static final String SANITY_CHECK           = "SANITY_CHECK";
     private static final String FORCE_LA_CHECK         = "FORCE_LA_CHECK";
     private static final String CACHE_TOKENS           = "CACHE_TOKENS";
+    private static final String KEEP_LINE_COLUMN       = "KEEP_LINE_COLUMN";
 
     private final Hashtable optionalAttrs = new Hashtable();
 
@@ -109,6 +70,36 @@ public class JavaCC extends Task {
 
     private CommandlineJava cmdl = new CommandlineJava();
 
+    protected static final int TASKDEF_TYPE_JAVACC = 1;
+    protected static final int TASKDEF_TYPE_JJTREE = 2;
+    protected static final int TASKDEF_TYPE_JJDOC = 3;
+
+    protected static final String[] ARCHIVE_LOCATIONS =
+        new String[] {
+            "JavaCC.zip",
+            "bin/lib/JavaCC.zip",
+            "bin/lib/javacc.jar",
+            "javacc.jar", // used by jpackage for JavaCC 3.x
+        };
+
+    protected static final int[] ARCHIVE_LOCATIONS_VS_MAJOR_VERSION =
+        new int[] {
+            1,
+            2,
+            3,
+            3,
+        };
+
+    protected static final String COM_PACKAGE = "COM.sun.labs.";
+    protected static final String COM_JAVACC_CLASS = "javacc.Main";
+    protected static final String COM_JJTREE_CLASS = "jjtree.Main";
+    protected static final String COM_JJDOC_CLASS = "jjdoc.JJDocMain";
+
+    protected static final String ORG_PACKAGE_3_0 = "org.netbeans.javacc.";
+    protected static final String ORG_PACKAGE_3_1 = "org.javacc.";
+    protected static final String ORG_JAVACC_CLASS = "parser.Main";
+    protected static final String ORG_JJTREE_CLASS = COM_JJTREE_CLASS;
+    protected static final String ORG_JJDOC_CLASS = COM_JJDOC_CLASS;
 
     /**
      * Sets the LOOKAHEAD grammar option.
@@ -251,6 +242,13 @@ public class JavaCC extends Task {
     }
 
     /**
+     * Sets the KEEP_LINE_COLUMN grammar option.
+     */
+    public void setKeeplinecolumn(boolean keepLineColumn) {
+        optionalAttrs.put(KEEP_LINE_COLUMN, new Boolean(keepLineColumn));
+    }
+
+    /**
      * The directory to write the generated files to.
      * If not set, the files are written to the directory
      * containing the grammar file.
@@ -275,7 +273,6 @@ public class JavaCC extends Task {
 
     public JavaCC() {
         cmdl.setVm(JavaEnvUtils.getJreExecutable("java"));
-        cmdl.setClassname("COM.sun.labs.javacc.Main");
     }
 
     public void execute() throws BuildException {
@@ -300,7 +297,7 @@ public class JavaCC extends Task {
             throw new BuildException("Outputdir not a directory.");
         }
         cmdl.createArgument().setValue("-OUTPUT_DIRECTORY:"
-            + outputDirectory.getAbsolutePath());
+                                       + outputDirectory.getAbsolutePath());
 
         // determine if the generated java file is up-to-date
         final File javaFile = getOutputJavaFile(outputDirectory, target);
@@ -310,7 +307,10 @@ public class JavaCC extends Task {
         }
         cmdl.createArgument().setValue(target.getAbsolutePath());
 
-        final Path classpath = cmdl.createClasspath(project);
+        cmdl.setClassname(JavaCC.getMainClass(javaccHome,
+                                              JavaCC.TASKDEF_TYPE_JAVACC));
+
+        final Path classpath = cmdl.createClasspath(getProject());
         final File javaccJar = JavaCC.getArchiveFile(javaccHome);
         classpath.createPathElement().setPath(javaccJar.getAbsolutePath());
         classpath.addJavaRuntime();
@@ -323,34 +323,156 @@ public class JavaCC extends Task {
     }
 
     /**
-     * Helper class to retrieve the path used to store the JavaCC.zip which is
-     * different from versions.
+     * Helper method to retrieve the path used to store the JavaCC.zip
+     * or javacc.jar which is different from versions.
+     *
      * @param home the javacc home path directory.
-     * @throws BuildException thrown if the home directory is invalid or if the archive
-     * could not be found despite attemps to do so.
+     * @throws BuildException thrown if the home directory is invalid
+     * or if the archive could not be found despite attempts to do so.
      * @return the file object pointing to the JavaCC archive.
      */
     protected static File getArchiveFile(File home) throws BuildException {
+        return new File(home,
+                        ARCHIVE_LOCATIONS[getArchiveLocationIndex(home)]);
+    }
+
+    /**
+     * Helper method to retrieve main class which is different from versions.
+     * @param home the javacc home path directory.
+     * @param type the taskdef.
+     * @throws BuildException thrown if the home directory is invalid
+     * or if the archive could not be found despite attempts to do so.
+     * @return the main class for the taskdef.
+     */
+    protected static String getMainClass(File home, int type)
+        throws BuildException {
+
+        int majorVersion = getMajorVersionNumber(home);
+        String packagePrefix = null;
+        String mainClass = null;
+
+        switch (majorVersion) {
+        case 1:
+        case 2:
+            packagePrefix = COM_PACKAGE;
+
+            switch (type) {
+            case TASKDEF_TYPE_JAVACC:
+                mainClass = COM_JAVACC_CLASS;
+
+                break;
+
+            case TASKDEF_TYPE_JJTREE:
+                mainClass = COM_JJTREE_CLASS;
+
+                break;
+
+            case TASKDEF_TYPE_JJDOC:
+                mainClass = COM_JJDOC_CLASS;
+
+                break;
+            }
+
+            break;
+
+        case 3:
+            /*
+             * This is where the fun starts, JavaCC 3.0 uses
+             * org.netbeans.javacc, 3.1 uses org.javacc - I wonder
+             * which version is going to use net.java.javacc.
+             *
+             * Look into to the archive to pick up the best
+             * package.
+             */
+            ZipFile zf = null;
+            try {
+                zf = new ZipFile(getArchiveFile(home));
+                if (zf.getEntry(ORG_PACKAGE_3_0.replace('.', '/')) != null) {
+                    packagePrefix = ORG_PACKAGE_3_0;
+                } else {
+                    packagePrefix = ORG_PACKAGE_3_1;
+                }
+            } catch (IOException e) {
+                throw new BuildException("Error reading javacc.jar", e);
+            } finally {
+                if (zf != null) {
+                    try {
+                        zf.close();
+                    } catch (IOException e) {
+                        throw new BuildException(e);
+                    }
+                }
+            }
+
+            switch (type) {
+            case TASKDEF_TYPE_JAVACC:
+                mainClass = ORG_JAVACC_CLASS;
+
+                break;
+
+            case TASKDEF_TYPE_JJTREE:
+                mainClass = ORG_JJTREE_CLASS;
+
+                break;
+
+            case TASKDEF_TYPE_JJDOC:
+                mainClass = ORG_JJDOC_CLASS;
+
+                break;
+            }
+
+            break;
+        }
+
+        return packagePrefix + mainClass;
+    }
+
+    /**
+     * Helper method to determine the archive location index.
+     *
+     * @param home the javacc home path directory.
+     * @throws BuildException thrown if the home directory is invalid
+     * or if the archive could not be found despite attempts to do so.
+     * @return the archive location index
+     */
+    private static int getArchiveLocationIndex(File home)
+        throws BuildException {
+
         if (home == null || !home.isDirectory()) {
             throw new BuildException("JavaCC home must be a valid directory.");
         }
-        // javacc prior to 2.0
-        File f = new File(home, "JavaCC.zip");
-        if (f.exists()){
-          return f;
+
+        for (int i = 0; i < ARCHIVE_LOCATIONS.length; i++) {
+            File f = new File(home, ARCHIVE_LOCATIONS[i]);
+
+            if (f.exists()) {
+                return i;
+            }
         }
-        // javacc install 2.0+
-        f = new File(home, "bin/lib/JavaCC.zip");
-        if (f.exists()){
-          return f;
-        }
-        throw new BuildException("Could not find a path to JavaCC.zip from '" + home + "'.");
+
+        throw new BuildException("Could not find a path to JavaCC.zip "
+                                 + "or javacc.jar from '" + home + "'.");
+    }
+
+    /**
+     * Helper method to determine the major version number of JavaCC.
+     *
+     * @param home the javacc home path directory.
+     * @throws BuildException thrown if the home directory is invalid
+     * or if the archive could not be found despite attempts to do so.
+     * @return a the major version number
+     */
+    protected static int getMajorVersionNumber(File home)
+        throws BuildException {
+
+        return
+            ARCHIVE_LOCATIONS_VS_MAJOR_VERSION[getArchiveLocationIndex(home)];
     }
 
     /**
      * Determines the output Java file to be generated by the given grammar
      * file.
-     * 
+     *
      */
     private File getOutputJavaFile(File outputdir, File srcfile) {
         String path = srcfile.getPath();

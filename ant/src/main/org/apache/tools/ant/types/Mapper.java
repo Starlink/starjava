@@ -1,82 +1,56 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.types;
 
+import java.util.Properties;
+import java.util.Stack;
 import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.util.FileNameMapper;
-
-import java.util.Properties;
-import java.util.Stack;
+import org.apache.tools.ant.util.CompositeMapper;
+import org.apache.tools.ant.util.ContainerMapper;
 
 /**
  * Element to define a FileNameMapper.
  *
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a> 
  */
 public class Mapper extends DataType implements Cloneable {
 
     protected MapperType type = null;
+    protected String classname = null;
+    protected Path classpath = null;
+    protected String from = null;
+    protected String to = null;
 
+    private ContainerMapper container = null;
+
+    /**
+     * Construct a new <CODE>Mapper</CODE> element.
+     * @param p   the owning Ant <CODE>Project</CODE>.
+     */
     public Mapper(Project p) {
         setProject(p);
     }
 
     /**
-     * Set the type of FileNameMapper to use.
+     * Set the type of <code>FileNameMapper</code> to use.
+     * @param type   the <CODE>MapperType</CODE> enumerated attribute.
      */
     public void setType(MapperType type) {
         if (isReference()) {
@@ -85,7 +59,37 @@ public class Mapper extends DataType implements Cloneable {
         this.type = type;
     }
 
-    protected String classname = null;
+    /**
+     * Add a nested <CODE>FileNameMapper</CODE>.
+     * @param fileNameMapper   the <CODE>FileNameMapper</CODE> to add.
+     */
+    public void add(FileNameMapper fileNameMapper) {
+        if (isReference()) {
+            throw noChildrenAllowed();
+        }
+        if (container == null) {
+            if (type == null && classname == null) {
+                container = new CompositeMapper();
+            } else {
+                FileNameMapper m = getImplementation();
+                if (m instanceof ContainerMapper) {
+                    container = (ContainerMapper)m;
+                } else {
+                    throw new BuildException(String.valueOf(m)
+                        + " mapper implementation does not support nested mappers!");
+                }
+            }
+        }
+        container.add(fileNameMapper);
+    }
+
+    /**
+     * Add a Mapper
+     * @param mapper the mapper to add
+     */
+    public void addConfiguredMapper(Mapper mapper) {
+        add(mapper.getImplementation());
+    }
 
     /**
      * Set the class name of the FileNameMapper to use.
@@ -96,8 +100,6 @@ public class Mapper extends DataType implements Cloneable {
         }
         this.classname = classname;
     }
-
-    protected Path classpath = null;
 
     /**
      * Set the classpath to load the FileNameMapper through (attribute).
@@ -137,8 +139,6 @@ public class Mapper extends DataType implements Cloneable {
         createClasspath().setRefid(r);
     }
 
-    protected String from = null;
-
     /**
      * Set the argument to FileNameMapper.setFrom
      */
@@ -148,8 +148,6 @@ public class Mapper extends DataType implements Cloneable {
         }
         this.from = from;
     }
-
-    protected String to = null;
 
     /**
      * Set the argument to FileNameMapper.setTo
@@ -181,59 +179,72 @@ public class Mapper extends DataType implements Cloneable {
         if (isReference()) {
             return getRef().getImplementation();
         }
-        
-        if (type == null && classname == null) {
-            throw new BuildException("one of the attributes type or classname is required");
+
+        if (type == null && classname == null && container == null) {
+            throw new BuildException(
+                "nested mapper or "
+                + "one of the attributes type or classname is required");
+        }
+
+        if (container != null) {
+            return container;
         }
 
         if (type != null && classname != null) {
-            throw new BuildException("must not specify both type and classname attribute");
+            throw new BuildException(
+                "must not specify both type and classname attribute");
         }
 
         try {
-            if (type != null) {
-                classname = type.getImplementation();
+            FileNameMapper m
+                = (FileNameMapper)(getImplementationClass().newInstance());
+            final Project project = getProject();
+            if (project != null) {
+                project.setProjectReference(m);
             }
-
-            Class c = null;
-            if (classpath == null) {
-                c = Class.forName(classname);
-            } else {
-                AntClassLoader al = new AntClassLoader(getProject(), 
-                                                       classpath);
-                c = al.loadClass(classname);
-                AntClassLoader.initializeClass(c);
-            }
-            
-            FileNameMapper m = (FileNameMapper) c.newInstance();
             m.setFrom(from);
             m.setTo(to);
+
             return m;
         } catch (BuildException be) {
             throw be;
         } catch (Throwable t) {
             throw new BuildException(t);
-        } finally {
-            if (type != null) {
-                classname = null;
-            }
         }
     }
-        
+
+     /**
+     * Gets the Class object associated with the mapper implementation.
+     * @return <CODE>Class</CODE>.
+     */
+    protected Class getImplementationClass() throws ClassNotFoundException {
+
+        String classname = this.classname;
+        if (type != null) {
+            classname = type.getImplementation();
+        }
+
+        ClassLoader loader = (classpath == null)
+            ? getClass().getClassLoader()
+            : getProject().createClassLoader(classpath);
+
+        return Class.forName(classname, true, loader);
+    }
+
     /**
      * Performs the check for circular references and returns the
-     * referenced Mapper.  
+     * referenced Mapper.
      */
     protected Mapper getRef() {
-        if (!checked) {
+        if (!isChecked()) {
             Stack stk = new Stack();
             stk.push(this);
             dieOnCircularReference(stk, getProject());
         }
-        
-        Object o = ref.getReferencedObject(getProject());
+
+        Object o = getRefid().getReferencedObject(getProject());
         if (!(o instanceof Mapper)) {
-            String msg = ref.getRefId() + " doesn\'t denote a mapper";
+            String msg = getRefid().getRefId() + " doesn\'t denote a mapper";
             throw new BuildException(msg);
         } else {
             return (Mapper) o;
@@ -248,23 +259,25 @@ public class Mapper extends DataType implements Cloneable {
 
         public MapperType() {
             implementations = new Properties();
-            implementations.put("identity", 
+            implementations.put("identity",
                                 "org.apache.tools.ant.util.IdentityMapper");
-            implementations.put("flatten", 
+            implementations.put("flatten",
                                 "org.apache.tools.ant.util.FlatFileNameMapper");
-            implementations.put("glob", 
+            implementations.put("glob",
                                 "org.apache.tools.ant.util.GlobPatternMapper");
-            implementations.put("merge", 
+            implementations.put("merge",
                                 "org.apache.tools.ant.util.MergingMapper");
-            implementations.put("regexp", 
+            implementations.put("regexp",
                                 "org.apache.tools.ant.util.RegexpPatternMapper");
-            implementations.put("package", 
+            implementations.put("package",
                                 "org.apache.tools.ant.util.PackageNameMapper");
+            implementations.put("unpackage",
+                                "org.apache.tools.ant.util.UnPackageNameMapper");
         }
 
         public String[] getValues() {
-            return new String[] {"identity", "flatten", "glob", 
-                                 "merge", "regexp", "package"};
+            return new String[] {"identity", "flatten", "glob",
+                                 "merge", "regexp", "package", "unpackage"};
         }
 
         public String getImplementation() {

@@ -1,83 +1,44 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.IntrospectionHelper;
-
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.TaskContainer;
-import org.apache.tools.ant.types.EnumeratedAttribute;
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.OutputStreamWriter;
-import java.io.FileOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.io.FileWriter;
-import java.io.IOException;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.IntrospectionHelper;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.TaskContainer;
+import org.apache.tools.ant.types.EnumeratedAttribute;
+import org.apache.tools.ant.types.Reference;
 
 /**
  * Creates a partial DTD for Ant from the currently known tasks.
  *
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
  *
- * @version $Revision: 1.25.2.1 $
+ * @version $Revision: 1.37.2.4 $
  *
  * @since Ant 1.1
  *
@@ -87,9 +48,9 @@ public class AntStructure extends Task {
 
     private final String lSep = System.getProperty("line.separator");
 
-    private final String BOOLEAN = "%boolean;";
-    private final String TASKS = "%tasks;";
-    private final String TYPES = "%types;";
+    private static final String BOOLEAN = "%boolean;";
+    private static final String TASKS = "%tasks;";
+    private static final String TYPES = "%types;";
 
     private Hashtable visited = new Hashtable();
 
@@ -97,6 +58,7 @@ public class AntStructure extends Task {
 
     /**
      * The output file.
+     * @param output the output file
      */
     public void setOutput(File output) {
         this.output = output;
@@ -110,7 +72,7 @@ public class AntStructure extends Task {
     public void execute() throws BuildException {
 
         if (output == null) {
-            throw new BuildException("output attribute is required", location);
+            throw new BuildException("output attribute is required", getLocation());
         }
 
         PrintWriter out = null;
@@ -127,30 +89,28 @@ public class AntStructure extends Task {
                 out = new PrintWriter(new FileWriter(output));
             }
 
-            printHead(out, project.getTaskDefinitions().keys(),
-                      project.getDataTypeDefinitions().keys());
+            printHead(out, getProject().getTaskDefinitions().keys(),
+                      getProject().getDataTypeDefinitions().keys());
 
             printTargetDecl(out);
 
-            Enumeration dataTypes = project.getDataTypeDefinitions().keys();
+            Enumeration dataTypes = getProject().getDataTypeDefinitions().keys();
             while (dataTypes.hasMoreElements()) {
                 String typeName = (String) dataTypes.nextElement();
                 printElementDecl(out, typeName,
-                                 (Class) project.getDataTypeDefinitions().get(typeName));
+                                 (Class) getProject().getDataTypeDefinitions().get(typeName));
             }
 
-            Enumeration tasks = project.getTaskDefinitions().keys();
+            Enumeration tasks = getProject().getTaskDefinitions().keys();
             while (tasks.hasMoreElements()) {
                 String taskName = (String) tasks.nextElement();
                 printElementDecl(out, taskName,
-                                 (Class) project.getTaskDefinitions().get(taskName));
+                                 (Class) getProject().getTaskDefinitions().get(taskName));
             }
 
-            printTail(out);
-
         } catch (IOException ioe) {
-            throw new BuildException("Error writing " 
-                + output.getAbsolutePath(), ioe, location);
+            throw new BuildException("Error writing "
+                + output.getAbsolutePath(), ioe, getLocation());
         } finally {
             if (out != null) {
                 out.close();
@@ -196,13 +156,14 @@ public class AntStructure extends Task {
 
         out.println("");
 
-        out.print("<!ELEMENT project (target | property | taskdef");
-        out.print(" | typedef | ");
+        out.print("<!ELEMENT project (target | ");
+        out.print(TASKS);
+        out.print(" | ");
         out.print(TYPES);
         out.println(")*>");
         out.println("<!ATTLIST project");
         out.println("          name    CDATA #IMPLIED");
-        out.println("          default CDATA #REQUIRED");
+        out.println("          default CDATA #IMPLIED");
         out.println("          basedir CDATA #IMPLIED>");
         out.println("");
     }
@@ -273,9 +234,9 @@ public class AntStructure extends Task {
             v.addElement(TASKS);
         }
 
-        Enumeration enum = ih.getNestedElements();
-        while (enum.hasMoreElements()) {
-            v.addElement(enum.nextElement());
+        Enumeration e = ih.getNestedElements();
+        while (e.hasMoreElements()) {
+            v.addElement(e.nextElement());
         }
 
         if (v.isEmpty()) {
@@ -297,25 +258,25 @@ public class AntStructure extends Task {
         sb.append(">");
         out.println(sb);
 
-        sb.setLength(0);
-        sb.append("<!ATTLIST ").append(name);
+        sb = new StringBuffer("<!ATTLIST ");
+        sb.append(name);
         sb.append(lSep).append("          id ID #IMPLIED");
 
-        enum = ih.getAttributes();
-        while (enum.hasMoreElements()) {
-            String attrName = (String) enum.nextElement();
+        e = ih.getAttributes();
+        while (e.hasMoreElements()) {
+            String attrName = (String) e.nextElement();
             if ("id".equals(attrName)) {
               continue;
             }
 
             sb.append(lSep).append("          ").append(attrName).append(" ");
             Class type = ih.getAttributeType(attrName);
-            if (type.equals(java.lang.Boolean.class) ||
-                type.equals(java.lang.Boolean.TYPE)) {
+            if (type.equals(java.lang.Boolean.class)
+                || type.equals(java.lang.Boolean.TYPE)) {
                 sb.append(BOOLEAN).append(" ");
-            } else if (org.apache.tools.ant.types.Reference.class.isAssignableFrom(type)) {
+            } else if (Reference.class.isAssignableFrom(type)) {
                 sb.append("IDREF ");
-            } else if (org.apache.tools.ant.types.EnumeratedAttribute.class.isAssignableFrom(type)) {
+            } else if (EnumeratedAttribute.class.isAssignableFrom(type)) {
                 try {
                     EnumeratedAttribute ea =
                         (EnumeratedAttribute) type.newInstance();
@@ -350,27 +311,26 @@ public class AntStructure extends Task {
         final int count = v.size();
         for (int i = 0; i < count; i++) {
             String nestedName = (String) v.elementAt(i);
-            if (!"#PCDATA".equals(nestedName) 
-                 && !TASKS.equals(nestedName) 
+            if (!"#PCDATA".equals(nestedName)
+                 && !TASKS.equals(nestedName)
                  && !TYPES.equals(nestedName)) {
                 printElementDecl(out, nestedName, ih.getElementType(nestedName));
             }
         }
     }
 
-    private void printTail(PrintWriter out) {}
-
     /**
      * Does this String match the XML-NMTOKEN production?
+     * @param s the string to test
+     * @return true if the string matches the XML-NMTOKEN
      */
     protected boolean isNmtoken(String s) {
         final int length = s.length();
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
-            // XXX - we are ommitting CombiningChar and Extender here
-            if (!Character.isLetterOrDigit(c) &&
-                c != '.' && c != '-' &&
-                c != '_' && c != ':') {
+            // XXX - we are committing CombiningChar and Extender here
+            if (!Character.isLetterOrDigit(c)
+                && c != '.' && c != '-' && c != '_' && c != ':') {
                 return false;
             }
         }
@@ -382,6 +342,8 @@ public class AntStructure extends Task {
      *
      * <p>Otherwise they are not suitable as an enumerated attribute,
      * for example.</p>
+     * @param s the array of string to test
+     * @return true if all the strings in the array math XML-NMTOKEN
      */
     protected boolean areNmtokens(String[] s) {
         for (int i = 0; i < s.length; i++) {

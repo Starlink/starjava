@@ -1,57 +1,20 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
-/* 
+/*
  * Portions of this software are based upon public domain software
  * originally written at the National Center for Supercomputing Applications,
  * University of Illinois, Urbana-Champaign.
@@ -62,7 +25,6 @@ package org.apache.tools.ant.taskdefs.optional.perforce;
 
 import java.io.File;
 import java.util.Vector;
-
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
@@ -73,28 +35,37 @@ import org.apache.tools.ant.types.FileSet;
  * <b>Example Usage:</b>
  * <table border="1">
  * <th>Function</th><th>Command</th>
- * <tr><td>Add files using P4USER, P4PORT and P4CLIENT settings specified</td><td>&lt;P4add <br>P4view="//projects/foo/main/source/..." <br>P4User="fbloggs" <br>P4Port="km01:1666" <br>P4Client="fbloggsclient"&gt;<br>&lt;fileset basedir="dir" includes="**&#47;*.java"&gt;<br>&lt;/p4add&gt;</td></tr>
- * <tr><td>Add files using P4USER, P4PORT and P4CLIENT settings defined in environment</td><td>&lt;P4add P4view="//projects/foo/main/source/..." /&gt;<br>&lt;fileset basedir="dir" includes="**&#47;*.java"&gt;<br>&lt;/p4add&gt;</td></tr>
- * <tr><td>Specify the length of command line arguments to pass to each invocation of p4</td><td>&lt;p4add Commandlength="450"&gt;</td></tr>
+ * <tr><td>Add files using P4USER, P4PORT and P4CLIENT settings specified</td>
+ * <td>&lt;P4add <br>P4view="//projects/foo/main/source/..." <br>P4User="fbloggs"
+ * <br>P4Port="km01:1666"
+ * <br>P4Client="fbloggsclient"&gt;<br>&lt;fileset basedir="dir" includes="**&#47;*.java"&gt;<br>
+ * &lt;/p4add&gt;</td></tr>
+ * <tr><td>Add files using P4USER, P4PORT and P4CLIENT settings defined in environment</td><td>
+ * &lt;P4add P4view="//projects/foo/main/source/..." /&gt;<br>&lt;fileset basedir="dir"
+ * includes="**&#47;*.java"&gt;<br>&lt;/p4add&gt;</td></tr>
+ * <tr><td>Specify the length of command line arguments to pass to each invocation of p4</td>
+ * <td>&lt;p4add Commandlength="450"&gt;</td></tr>
  * </table>
  *
- * @author <A HREF="mailto:leslie.hughes@rubus.com">Les Hughes</A>
- * @author <A HREF="mailto:ashundi@tibco.com">Anli Shundi</A>
+ *
+ * @ant.task category="scm"
  */
 public class P4Add extends P4Base {
-
+    private static final int DEFAULT_CMD_LENGTH = 450;
     private int changelist;
     private String addCmd = "";
     private Vector filesets = new Vector();
-    private int cmdLength = 450;
+    private int cmdLength = DEFAULT_CMD_LENGTH;
 
     /**
      *   positive integer specifying the maximum length
-     *   of the commandline when calling Perforce to add the files. 
+     *   of the commandline when calling Perforce to add the files.
      *   Defaults to 450, higher values mean faster execution,
      *   but also possible failures.
+     *   @param len maximum length of command line default is 450.
+     *   @throws BuildException if trying to set the command line length to 0 or less.
      */
-     
+
     public void setCommandlength(int len) throws BuildException {
         if (len <= 0) {
             throw new BuildException("P4Add: Commandlength should be a positive number");
@@ -106,6 +77,10 @@ public class P4Add extends P4Base {
      * If specified the open files are associated with the
      * specified pending changelist number; otherwise the open files are
      * associated with the default changelist.
+     *
+     * @param changelist the change list number
+     *
+     * @throws BuildException if trying to set a change list number &lt;=0.
      */
     public void setChangelist(int changelist) throws BuildException {
         if (changelist <= 0) {
@@ -117,11 +92,18 @@ public class P4Add extends P4Base {
 
     /**
      * files to add
+     *
+     * @param set the FileSet that one wants to add to Perforce Source Control
      */
     public void addFileset(FileSet set) {
         filesets.addElement(set);
     }
 
+    /**
+     * run the task.
+     *
+     * @throws BuildException if the execution of the Perforce command fails.
+     */
     public void execute() throws BuildException {
 
         if (P4View != null) {
@@ -134,7 +116,7 @@ public class P4Add extends P4Base {
 
         for (int i = 0; i < filesets.size(); i++) {
             FileSet fs = (FileSet) filesets.elementAt(i);
-            DirectoryScanner ds = fs.getDirectoryScanner(project);
+            DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             //File fromDir = fs.getDir(project);
 
             String[] srcFiles = ds.getIncludedFiles();
@@ -144,7 +126,7 @@ public class P4Add extends P4Base {
                     filelist.append(" ").append('"').append(f.getAbsolutePath()).append('"');
                     if (filelist.length() > cmdLength) {
                         execP4Add(filelist);
-                        filelist.setLength(0);
+                        filelist = new StringBuffer();
                     }
                 }
                 if (filelist.length() > 0) {

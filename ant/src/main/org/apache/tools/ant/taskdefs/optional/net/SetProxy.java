@@ -1,73 +1,36 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in
- * the documentation and/or other materials provided with the
- * distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- * any, must include the following acknowlegement:
- * "This product includes software developed by the
- * Apache Software Foundation (http://www.apache.org/)."
- * Alternately, this acknowlegement may appear in the software itself,
- * if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- * Foundation" must not be used to endorse or promote products derived
- * from this software without prior written permission. For written
- * permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- * nor may "Apache" appear in their names without prior written
- * permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
-
 package org.apache.tools.ant.taskdefs.optional.net;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.lang.reflect.*;
-import org.apache.tools.ant.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Properties;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
  * Sets Java's web proxy properties, so that tasks and code run in
  * the same JVM can have through-the-firewall access to remote web sites,
  * and remote ftp sites.
- * You can nominate an http and ftp proxy, or a socks server, reset the server 
+ * You can nominate an http and ftp proxy, or a socks server, reset the server
  * settings, or do nothing at all.
- * <p> 
+ * <p>
  * Examples
  * <pre>&lt;setproxy/&gt;</pre>
  * do nothing
@@ -80,15 +43,16 @@ import org.apache.tools.ant.util.JavaEnvUtils;
  * <pre>&lt;setproxy socksproxyhost="socksy"/&gt;</pre>
  * use socks via socksy:1080
  * <pre>&lt;setproxy socksproxyhost=""/&gt;</pre>
- * stop using the socks server
- 
- 
- 
+ * stop using the socks server.
+ * <p>
+ * You can set a username and password for http with the <tt>proxyHost</tt>
+ * and <tt>proxyPassword</tt> attributes. On Java1.4 and above these can also be
+ * used against SOCKS5 servers.
+ * </p>
  * @see <a href="http://java.sun.com/j2se/1.4/docs/guide/net/properties.html">
  *  java 1.4 network property list</a>
- * @author Steve Loughran
   *@since       Ant 1.5
- * @ant.task
+ * @ant.task category="network"
  */
 public class SetProxy extends Task {
 
@@ -106,17 +70,27 @@ public class SetProxy extends Task {
      * socks host.
      */
     private String socksProxyHost = null;
-    
+
     /**
-     * socks proxy port. 1080 is the default
+     * Socks proxy port. Default is 1080.
      */
     private int socksProxyPort = 1080;
 
 
     /**
      * list of non proxy hosts
-     */ 
+     */
     private String nonProxyHosts = null;
+
+    /**
+     * user for http only
+     */
+    private String proxyUser = null;
+
+    /**
+     * password for http only
+     */
+    private String proxyPassword = null;
 
     /**
      * the HTTP/ftp proxy host. Set this to "" for the http proxy
@@ -158,15 +132,35 @@ public class SetProxy extends Task {
         this.socksProxyPort = port;
     }
 
+
     /**
      * A list of hosts to bypass the proxy on. These should be separated
      * with the vertical bar character '|'. Only in Java 1.4 does ftp use
      * this list.
      * e.g. fozbot.corp.sun.com|*.eng.sun.com
      * @param nonProxyHosts lists of hosts to talk direct to
-     */ 
+     */
     public void setNonProxyHosts(String nonProxyHosts) {
         this.nonProxyHosts = nonProxyHosts;
+    }
+
+    /**
+     * set the proxy user. Probably requires a password to accompany this
+     * setting. Default=""
+     * @param proxyUser username
+     * @since Ant1.6
+     */
+    public void setProxyUser(String proxyUser) {
+        this.proxyUser = proxyUser;
+    }
+
+    /**
+     * Set the password for the proxy. Used only if the proxyUser is set.
+     * @param proxyPassword password to go with the username
+     * @since Ant1.6
+     */
+    public void setProxyPassword(String proxyPassword) {
+        this.proxyPassword = proxyPassword;
     }
 
     /**
@@ -174,7 +168,6 @@ public class SetProxy extends Task {
      * get applied these settings last beyond the life of the object and
      * apply to all network connections
      * Relevant docs: buglist #4183340
-     * @return true if the settings were applied
      */
 
     public void applyWebProxySettings() {
@@ -195,11 +188,19 @@ public class SetProxy extends Task {
                 sysprops.put("ftp.proxyPort", portString);
                 if (nonProxyHosts != null) {
                     sysprops.put("http.nonProxyHosts", nonProxyHosts);
+                    sysprops.put("https.nonProxyHosts", nonProxyHosts);
                     sysprops.put("ftp.nonProxyHosts", nonProxyHosts);
-                }                    
+                }
+                if (proxyUser != null) {
+                    sysprops.put("http.proxyUser", proxyUser);
+                    sysprops.put("http.proxyPassword", proxyPassword);
+                }
             } else {
                 log("resetting http proxy", Project.MSG_VERBOSE);
+                sysprops.remove("http.proxyHost");
                 sysprops.remove("http.proxyPort");
+                sysprops.remove("http.proxyUser");
+                sysprops.remove("http.proxyPassword");
                 sysprops.remove("https.proxyHost");
                 sysprops.remove("https.proxyPort");
                 sysprops.remove("ftp.proxyHost");
@@ -214,27 +215,35 @@ public class SetProxy extends Task {
                 enablingProxy = true;
                 sysprops.put("socksProxyHost", socksProxyHost);
                 sysprops.put("socksProxyPort", Integer.toString(socksProxyPort));
+                if (proxyUser != null) {
+                    //this may be a java1.4 thingy only
+                    sysprops.put("java.net.socks.username", proxyUser);
+                    sysprops.put("java.net.socks.password", proxyPassword);
+                }
+
             } else {
                 log("resetting socks proxy", Project.MSG_VERBOSE);
                 sysprops.remove("socksProxyHost");
                 sysprops.remove("socksProxyPort");
+                sysprops.remove("java.net.socks.username");
+                sysprops.remove("java.net.socks.password");
             }
         }
-        
+
 
         //for Java1.1 we need to tell the system that the settings are new
-        if (settingsChanged &&
-            JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
+        if (settingsChanged
+            && JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
             legacyResetProxySettingsCall(enablingProxy);
         }
     }
 
     /**
      * list out what is going on
-     */ 
+     */
     private void traceSettingInfo() {
-        log("Setting proxy to " 
-                + (proxyHost != null ? proxyHost : "''") 
+        log("Setting proxy to "
+                + (proxyHost != null ? proxyHost : "''")
                 + ":" + proxyPort,
                 Project.MSG_VERBOSE);
     }
@@ -254,17 +263,13 @@ public class SetProxy extends Task {
             Method reset = c.getMethod("resetProperties", null);
             reset.invoke(null, null);
             return true;
-        }
-        catch (ClassNotFoundException cnfe) {
+        } catch (ClassNotFoundException cnfe) {
             return false;
-        }
-        catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             return false;
-        }
-        catch (IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             return false;
-        }
-        catch (InvocationTargetException e) {
+        } catch (InvocationTargetException e) {
             return false;
         }
     }

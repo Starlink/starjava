@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.cvslib;
 
@@ -62,6 +25,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Vector;
+import java.util.StringTokenizer;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.AbstractCvsTask;
@@ -95,18 +60,27 @@ import org.apache.tools.ant.util.FileUtils;
  * &lt;!ELEMENT prevrevision ( #PCDATA ) &gt;
  * </PRE>
  *
- * @author <a href="mailto:fred@castify.net">Frederic Lavigne</a>
- * @author <a href="mailto:rvanoo@xs4all.nl">Rob van Oostrum</a>
- * @version $Revision: 1.6.2.5 $ $Date: 2003/02/10 14:24:56 $
+ * @version $Revision: 1.16.2.7 $ $Date: 2004/03/09 17:01:40 $
  * @since Ant 1.5
  * @ant.task name="cvstagdiff"
  */
 public class CvsTagDiff extends AbstractCvsTask {
-
+    /**
+     * Token to identify the word file in the rdiff log
+     */
+    static final String FILE_STRING = "File ";
+    /**
+     * Token to identify the word file in the rdiff log
+     */
+    static final String TO_STRING = " to ";
     /**
      * Token to identify a new file in the rdiff log
      */
-    static final String FILE_IS_NEW = " is new; current revision ";
+    static final String FILE_IS_NEW = " is new;";
+    /**
+     * Token to identify the revision
+     */
+    static final String REVISION = "revision ";
 
     /**
      * Token to identify a modified file in the rdiff log
@@ -121,43 +95,44 @@ public class CvsTagDiff extends AbstractCvsTask {
     /**
      * The cvs package/module to analyse
      */
-    private String m_package;
+    private String mypackage;
 
     /**
      * The earliest tag from which diffs are to be included in the report.
      */
-    private String m_startTag;
+    private String mystartTag;
 
     /**
      * The latest tag from which diffs are to be included in the report.
      */
-    private String m_endTag;
+    private String myendTag;
 
     /**
      * The earliest date from which diffs are to be included in the report.
      */
-    private String m_startDate;
+    private String mystartDate;
 
     /**
      * The latest date from which diffs are to be included in the report.
      */
-    private String m_endDate;
+    private String myendDate;
 
     /**
      * The file in which to write the diff report.
      */
-    private File m_destfile;
+    private File mydestfile;
 
     /**
      * Used to create the temp file for cvs log
      */
-    private FileUtils m_fileUtils = FileUtils.newFileUtils();
+    private FileUtils myfileUtils = FileUtils.newFileUtils();
 
     /**
      * The package/module to analyze.
+     * @param p the name of the package to analyse
      */
     public void setPackage(String p) {
-        m_package = p;
+        mypackage = p;
     }
 
     /**
@@ -166,7 +141,7 @@ public class CvsTagDiff extends AbstractCvsTask {
      * @param s the start tag.
      */
     public void setStartTag(String s) {
-        m_startTag = s;
+        mystartTag = s;
     }
 
     /**
@@ -175,7 +150,7 @@ public class CvsTagDiff extends AbstractCvsTask {
      * @param s the start date.
      */
     public void setStartDate(String s) {
-        m_startDate = s;
+        mystartDate = s;
     }
 
     /**
@@ -184,7 +159,7 @@ public class CvsTagDiff extends AbstractCvsTask {
      * @param s the end tag.
      */
     public void setEndTag(String s) {
-        m_endTag = s;
+        myendTag = s;
     }
 
     /**
@@ -193,7 +168,7 @@ public class CvsTagDiff extends AbstractCvsTask {
      * @param s the end date.
      */
     public void setEndDate(String s) {
-        m_endDate = s;
+        myendDate = s;
     }
 
     /**
@@ -202,7 +177,7 @@ public class CvsTagDiff extends AbstractCvsTask {
      * @param f the output file for the diff.
      */
     public void setDestFile(File f) {
-        m_destfile = f;
+        mydestfile = f;
     }
 
     /**
@@ -215,17 +190,33 @@ public class CvsTagDiff extends AbstractCvsTask {
         validate();
 
         // build the rdiff command
-        String rdiff = "rdiff -s " +
-            (m_startTag != null ? ("-r " + m_startTag) : ("-D " + m_startDate))
-            + " "
-            + (m_endTag != null ? ("-r " + m_endTag) : ("-D " + m_endDate))
-            + " " + m_package;
-        log("Cvs command is " + rdiff, Project.MSG_VERBOSE);
-        setCommand(rdiff);
-
+        addCommandArgument("rdiff");
+        addCommandArgument("-s");
+        if (mystartTag != null) {
+            addCommandArgument("-r");
+            addCommandArgument(mystartTag);
+        } else {
+            addCommandArgument("-D");
+            addCommandArgument(mystartDate);
+        }
+        if (myendTag != null) {
+            addCommandArgument("-r");
+            addCommandArgument(myendTag);
+        } else {
+            addCommandArgument("-D");
+            addCommandArgument(myendDate);
+        }
+        // support multiple packages
+        StringTokenizer myTokenizer = new StringTokenizer(mypackage);
+        while (myTokenizer.hasMoreTokens()) {
+            addCommandArgument(myTokenizer.nextToken());
+        }
+        // force command not to be null
+        setCommand("");
         File tmpFile = null;
         try {
-            tmpFile = m_fileUtils.createTempFile("cvstagdiff", ".log", null);
+            tmpFile = myfileUtils.createTempFile("cvstagdiff", ".log", null);
+            tmpFile.deleteOnExit();
             setOutput(tmpFile);
 
             // run the cvs command
@@ -260,15 +251,21 @@ public class CvsTagDiff extends AbstractCvsTask {
             reader = new BufferedReader(new FileReader(tmpFile));
 
             // entries are of the form:
+            //CVS 1.11
             // File module/filename is new; current revision 1.1
+            //CVS 1.11.9
+            // File module/filename is new; cvstag_2003_11_03_2  revision 1.1
             // or
             // File module/filename changed from revision 1.4 to 1.6
             // or
             // File module/filename is removed; not included in
             // release tag SKINLF_12
-
+            //CVS 1.11.9
+            // File testantoine/antoine.bat is removed; TESTANTOINE_1 revision 1.1.1.1
+            //
             // get rid of 'File module/"
-            int headerLength = 5 + m_package.length() + 1;
+            String toBeRemoved = FILE_STRING + mypackage + "/";
+            int headerLength = toBeRemoved.length();
             Vector entries = new Vector();
 
             String line = reader.readLine();
@@ -276,37 +273,55 @@ public class CvsTagDiff extends AbstractCvsTask {
             CvsTagEntry entry = null;
 
             while (null != line) {
-                line = line.substring(headerLength);
+                if (line.length() > headerLength) {
+                    if (line.startsWith(toBeRemoved)) {
+                        line = line.substring(headerLength);
+                    } else {
+                        line = line.substring(FILE_STRING.length());
+                    }
 
-                if ((index = line.indexOf(FILE_IS_NEW)) != -1) {
-                    // it is a new file
-                    // set the revision but not the prevrevision
-                    String filename = line.substring(0, index);
-                    String rev = line.substring(index + FILE_IS_NEW.length());
-
-                    entries.addElement(entry = new CvsTagEntry(filename, rev));
-                    log(entry.toString(), Project.MSG_VERBOSE);
-                } else if ((index = line.indexOf(FILE_HAS_CHANGED)) != -1) {
-                    // it is a modified file
-                    // set the revision and the prevrevision
-                    String filename = line.substring(0, index);
-                    int revSeparator = line.indexOf(" to ", index);
-                    String prevRevision =
-                        line.substring(index + FILE_HAS_CHANGED.length(),
-                                       revSeparator);
-                     // 4 is " to " length
-                    String revision = line.substring(revSeparator + 4);
-
-                    entries.addElement(entry = new CvsTagEntry(filename,
-                                                               revision,
-                                                               prevRevision));
-                    log(entry.toString(), Project.MSG_VERBOSE);
-                } else if ((index = line.indexOf(FILE_WAS_REMOVED)) != -1) {
-                    // it is a removed file
-                    String filename = line.substring(0, index);
-
-                    entries.addElement(entry = new CvsTagEntry(filename));
-                    log(entry.toString(), Project.MSG_VERBOSE);
+                    if ((index = line.indexOf(FILE_IS_NEW)) != -1) {
+//CVS 1.11
+//File apps/websphere/lib/something.jar is new; current revision 1.2
+//CVS 1.11.9
+//File apps/websphere/lib/something.jar is new; cvstag_2003_11_03_2 revision 1.2
+                        // it is a new file
+                        // set the revision but not the prevrevision
+                        String filename = line.substring(0, index);
+                        String rev = null;
+                        int indexrev = -1;
+                        if ((indexrev = line.indexOf(REVISION, index)) != -1) {
+                            rev = line.substring(indexrev + REVISION.length());
+                        }
+                        entry = new CvsTagEntry(filename, rev);
+                        entries.addElement(entry);
+                        log(entry.toString(), Project.MSG_VERBOSE);
+                    } else if ((index = line.indexOf(FILE_HAS_CHANGED)) != -1) {
+                        // it is a modified file
+                        // set the revision and the prevrevision
+                        String filename = line.substring(0, index);
+                        int revSeparator = line.indexOf(" to ", index);
+                        String prevRevision =
+                            line.substring(index + FILE_HAS_CHANGED.length(),
+                                revSeparator);
+                        String revision = line.substring(revSeparator + TO_STRING.length());
+                        entry = new CvsTagEntry(filename,
+                            revision,
+                            prevRevision);
+                        entries.addElement(entry);
+                        log(entry.toString(), Project.MSG_VERBOSE);
+                    } else if ((index = line.indexOf(FILE_WAS_REMOVED)) != -1) {
+                        // it is a removed file
+                        String filename = line.substring(0, index);
+                        String rev = null;
+                        int indexrev = -1;
+                        if ((indexrev = line.indexOf(REVISION, index)) != -1) {
+                            rev = line.substring(indexrev + REVISION.length());
+                        }
+                        entry = new CvsTagEntry(filename, null, rev);
+                        entries.addElement(entry);
+                        log(entry.toString(), Project.MSG_VERBOSE);
+                    }
                 }
                 line = reader.readLine();
             }
@@ -322,6 +337,7 @@ public class CvsTagDiff extends AbstractCvsTask {
                 try {
                     reader.close();
                 } catch (IOException e) {
+                    log(e.toString(), Project.MSG_ERR);
                 }
             }
         }
@@ -336,21 +352,25 @@ public class CvsTagDiff extends AbstractCvsTask {
     private void writeTagDiff(CvsTagEntry[] entries) throws BuildException {
         FileOutputStream output = null;
         try {
-            output = new FileOutputStream(m_destfile);
+            output = new FileOutputStream(mydestfile);
             PrintWriter writer = new PrintWriter(
                                      new OutputStreamWriter(output, "UTF-8"));
             writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
             writer.print("<tagdiff ");
-            if (m_startTag != null) {
-                writer.print("startTag=\"" + m_startTag + "\" ");
+            if (mystartTag != null) {
+                writer.print("startTag=\"" + mystartTag + "\" ");
             } else {
-                writer.print("startDate=\"" + m_startDate + "\" ");
+                writer.print("startDate=\"" + mystartDate + "\" ");
             }
-            if (m_endTag != null) {
-                writer.print("endTag=\"" + m_endTag + "\" ");
+            if (myendTag != null) {
+                writer.print("endTag=\"" + myendTag + "\" ");
             } else {
-                writer.print("endDate=\"" + m_endDate + "\" ");
+                writer.print("endDate=\"" + myendDate + "\" ");
             }
+
+            writer.print("cvsroot=\"" + getCvsRoot() + "\" ");
+            writer.print("package=\"" + mypackage + "\" ");
+
             writer.println(">");
             for (int i = 0, c = entries.length; i < c; i++) {
                 writeTagEntry(writer, entries[i]);
@@ -366,7 +386,9 @@ public class CvsTagDiff extends AbstractCvsTask {
             if (null != output) {
                 try {
                     output.close();
-                } catch (IOException ioe) { }
+                } catch (IOException ioe) {
+                    log(ioe.toString(), Project.MSG_ERR);
+                }
             }
         }
     }
@@ -399,28 +421,28 @@ public class CvsTagDiff extends AbstractCvsTask {
      * @exception BuildException if a parameter is not correctly set
      */
     private void validate() throws BuildException {
-        if (null == m_package) {
+        if (null == mypackage) {
             throw new BuildException("Package/module must be set.");
         }
 
-        if (null == m_destfile) {
+        if (null == mydestfile) {
             throw new BuildException("Destfile must be set.");
         }
 
-        if (null == m_startTag && null == m_startDate) {
+        if (null == mystartTag && null == mystartDate) {
             throw new BuildException("Start tag or start date must be set.");
         }
 
-        if (null != m_startTag && null != m_startDate) {
+        if (null != mystartTag && null != mystartDate) {
             throw new BuildException("Only one of start tag and start date "
                                      + "must be set.");
         }
 
-        if (null == m_endTag && null == m_endDate) {
+        if (null == myendTag && null == myendDate) {
             throw new BuildException("End tag or end date must be set.");
         }
 
-        if (null != m_endTag && null != m_endDate) {
+        if (null != myendTag && null != myendDate) {
             throw new BuildException("Only one of end tag and end date must "
                                      + "be set.");
         }

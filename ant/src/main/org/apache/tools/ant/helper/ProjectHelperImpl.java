@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.helper;
@@ -60,31 +23,31 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
-import org.xml.sax.Locator;
-import org.xml.sax.InputSource;
-import org.xml.sax.HandlerBase;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.DocumentHandler;
-import org.xml.sax.AttributeList;
-import org.xml.sax.helpers.XMLReaderAdapter;
-import org.apache.tools.ant.ProjectHelper;
-import org.apache.tools.ant.UnknownElement;
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.IntrospectionHelper;
+import org.apache.tools.ant.Location;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectHelper;
+import org.apache.tools.ant.RuntimeConfigurable;
 import org.apache.tools.ant.Target;
 import org.apache.tools.ant.Task;
-import org.apache.tools.ant.RuntimeConfigurable;
-import org.apache.tools.ant.IntrospectionHelper;
+import org.apache.tools.ant.TypeAdapter;
 import org.apache.tools.ant.TaskContainer;
-import org.apache.tools.ant.Location;
-import org.apache.tools.ant.TaskAdapter;
+import org.apache.tools.ant.UnknownElement;
+import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.JAXPUtils;
+import org.xml.sax.AttributeList;
+import org.xml.sax.DocumentHandler;
+import org.xml.sax.HandlerBase;
+import org.xml.sax.InputSource;
+import org.xml.sax.Locator;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.XMLReaderAdapter;
 
 /**
  * Original helper.
  *
- * @author duncan@x180.com
  */
 public class ProjectHelperImpl extends ProjectHelper {
 
@@ -108,6 +71,24 @@ public class ProjectHelperImpl extends ProjectHelper {
      * Used for giving locations of errors etc.
      */
     private Locator locator;
+    /**
+     * Target that all other targets will depend upon implicitly.
+     *
+     * <p>This holds all tasks and data type definitions that have
+     * been placed outside of targets.</p>
+     */
+    private Target implicitTarget = new Target();
+    /**
+     * helper for path -> URI and URI -> path conversions.
+     */
+    private static FileUtils fu = FileUtils.newFileUtils();
+
+    /**
+     * default constructor
+     */
+    public ProjectHelperImpl() {
+        implicitTarget.setName("");
+    }
 
     /**
      * Parses the project file, configuring the project as it goes.
@@ -119,7 +100,8 @@ public class ProjectHelperImpl extends ProjectHelper {
      */
     public void parse(Project project, Object source) throws BuildException {
         if (!(source instanceof File)) {
-            throw new BuildException("Only File source supported by default plugin");
+            throw new BuildException("Only File source supported by "
+                + "default plugin");
         }
         File buildFile = (File) source;
         FileInputStream inputStream = null;
@@ -137,11 +119,7 @@ public class ProjectHelperImpl extends ProjectHelper {
             }
 
 
-            String uri = "file:" + buildFile.getAbsolutePath().replace('\\', '/');
-            for (int index = uri.indexOf('#'); index != -1; index = uri.indexOf('#')) {
-                uri = uri.substring(0, index) + "%23" + uri.substring(index + 1);
-            }
-
+            String uri = fu.toURI(buildFile.getAbsolutePath());
             inputStream = new FileInputStream(buildFile);
             inputSource = new InputSource(inputStream);
             inputSource.setSystemId(uri);
@@ -217,7 +195,7 @@ public class ProjectHelperImpl extends ProjectHelper {
         /** Helper impl. With non-static internal classes, the compiler will generate
             this automatically - but this will fail with some compilers ( reporting
             "Expecting to find object/array on stack" ). If we pass it
-            explicitely it'll work with more compilers.
+            explicitly it'll work with more compilers.
         */
         ProjectHelperImpl helperImpl;
 
@@ -277,12 +255,6 @@ public class ProjectHelperImpl extends ProjectHelper {
         }
 
         /**
-         * Called when this element and all elements nested into it have been
-         * handled.
-         */
-        protected void finished() {}
-
-        /**
          * Handles the end of an element. Any required clean-up is performed
          * by the finished() method and then the original handler is restored to
          * the parser.
@@ -292,12 +264,8 @@ public class ProjectHelperImpl extends ProjectHelper {
          *
          * @exception SAXException in case of error (not thrown in
          *                         this implementation)
-         *
-         * @see #finished()
          */
         public void endElement(String name) throws SAXException {
-
-            finished();
             // Let parent resume handling SAX events
             helperImpl.parser.setDocumentHandler(parentHandler);
         }
@@ -316,7 +284,7 @@ public class ProjectHelperImpl extends ProjectHelper {
         /**
          * Resolves file: URIs relative to the build file.
          *
-         * @param publicId The public identifer, or <code>null</code>
+         * @param publicId The public identifier, or <code>null</code>
          *                 if none is available. Ignored in this
          *                 implementation.
          * @param systemId The system identifier provided in the XML
@@ -328,32 +296,15 @@ public class ProjectHelperImpl extends ProjectHelper {
             helperImpl.project.log("resolving systemId: " + systemId, Project.MSG_VERBOSE);
 
             if (systemId.startsWith("file:")) {
-                String path = systemId.substring(5);
-                int index = path.indexOf("file:");
-
-                // we only have to handle these for backward compatibility
-                // since they are in the FAQ.
-                while (index != -1) {
-                    path = path.substring(0, index) + path.substring(index + 5);
-                    index = path.indexOf("file:");
-                }
-
-                String entitySystemId = path;
-                index = path.indexOf("%23");
-                // convert these to #
-                while (index != -1) {
-                    path = path.substring(0, index) + "#" + path.substring(index + 3);
-                    index = path.indexOf("%23");
-                }
+                String path = fu.fromURI(systemId);
 
                 File file = new File(path);
                 if (!file.isAbsolute()) {
-                    file = new File(helperImpl.buildFileParent, path);
+                    file = fu.resolveFile(helperImpl.buildFileParent, path);
                 }
-
                 try {
                     InputSource inputSource = new InputSource(new FileInputStream(file));
-                    inputSource.setSystemId("file:" + entitySystemId);
+                    inputSource.setSystemId(fu.toURI(file.getAbsolutePath()));
                     return inputSource;
                 } catch (FileNotFoundException fne) {
                     helperImpl.project.log(file.getAbsolutePath() + " could not be found",
@@ -380,7 +331,8 @@ public class ProjectHelperImpl extends ProjectHelper {
             if (tag.equals("project")) {
                 new ProjectHandler(helperImpl, this).init(tag, attrs);
             } else {
-                throw new SAXParseException("Config file is not of expected XML type", helperImpl.locator);
+                throw new SAXParseException("Config file is not of expected "
+                    + "XML type", helperImpl.locator);
             }
         }
 
@@ -451,12 +403,10 @@ public class ProjectHelperImpl extends ProjectHelper {
                 }
             }
 
-            if (def == null) {
-                throw new SAXParseException("The default attribute of project "
-                                            + "is required", 
-                                            helperImpl.locator);
-            } else {
+            if (def != null && !def.equals("")) {
                 helperImpl.project.setDefaultTarget(def);
+            } else {
+                throw new BuildException("The default attribute is required");
             }
 
             if (name != null) {
@@ -465,7 +415,7 @@ public class ProjectHelperImpl extends ProjectHelper {
             }
 
             if (id != null) {
-              helperImpl.project.addReference(id, helperImpl.project);
+                helperImpl.project.addReference(id, helperImpl.project);
             }
 
             if (helperImpl.project.getProperty("basedir") != null) {
@@ -478,12 +428,14 @@ public class ProjectHelperImpl extends ProjectHelper {
                     if ((new File(baseDir)).isAbsolute()) {
                         helperImpl.project.setBasedir(baseDir);
                     } else {
-                        helperImpl.project.setBaseDir(helperImpl.project.resolveFile(baseDir,
-                                                                                     helperImpl.buildFileParent));
+                        File resolvedBaseDir = helperImpl.project.resolveFile(baseDir,
+                                helperImpl.buildFileParent);
+                        helperImpl.project.setBaseDir(resolvedBaseDir);
                     }
                 }
             }
 
+            helperImpl.project.addTarget("", helperImpl.implicitTarget);
         }
 
         /**
@@ -502,72 +454,16 @@ public class ProjectHelperImpl extends ProjectHelper {
          *            or a data type definition
          */
         public void startElement(String name, AttributeList attrs) throws SAXParseException {
-            if (name.equals("taskdef")) {
-                handleTaskdef(name, attrs);
-            } else if (name.equals("typedef")) {
-                handleTypedef(name, attrs);
-            } else if (name.equals("property")) {
-                handleProperty(name, attrs);
-            } else if (name.equals("target")) {
+            if (name.equals("target")) {
                 handleTarget(name, attrs);
-            } else if (helperImpl.project.getDataTypeDefinitions().get(name) != null) {
-                handleDataType(name, attrs);
             } else {
-                throw new SAXParseException("Unexpected element \"" + name + "\"", helperImpl.locator);
+                handleElement(helperImpl, this, helperImpl.implicitTarget,
+                              name, attrs);
             }
         }
 
         /**
-         * Handles a task defintion element by creating a task handler
-         * and initialising is with the details of the element.
-         *
-         * @param name The name of the element to be handled.
-         *            Will not be <code>null</code>.
-         * @param attrs Attributes of the element to be handled.
-         *              Will not be <code>null</code>.
-         *
-         * @exception SAXParseException if an error occurs when initialising
-         *                              the task handler
-         *
-         */
-        private void handleTaskdef(String name, AttributeList attrs) throws SAXParseException {
-            (new TaskHandler(helperImpl, this, null, null, null)).init(name, attrs);
-        }
-
-        /**
-         * Handles a type defintion element by creating a task handler
-         * and initialising is with the details of the element.
-         *
-         * @param name The name of the element to be handled.
-         *            Will not be <code>null</code>.
-         * @param attrs Attributes of the element to be handled.
-         *              Will not be <code>null</code>.
-         *
-         * @exception SAXParseException if an error occurs initialising the
-         *                              handler
-         */
-        private void handleTypedef(String name, AttributeList attrs) throws SAXParseException {
-            (new TaskHandler(helperImpl, this, null, null, null)).init(name, attrs);
-        }
-
-        /**
-         * Handles a property defintion element by creating a task handler
-         * and initialising is with the details of the element.
-         *
-         * @param name The name of the element to be handled.
-         *            Will not be <code>null</code>.
-         * @param attrs Attributes of the element to be handled.
-         *              Will not be <code>null</code>.
-         *
-         * @exception SAXParseException if an error occurs initialising
-         *                              the handler
-         */
-        private void handleProperty(String name, AttributeList attrs) throws SAXParseException {
-            (new TaskHandler(helperImpl, this, null, null, null)).init(name, attrs);
-        }
-
-        /**
-         * Handles a target defintion element by creating a target handler
+         * Handles a target definition element by creating a target handler
          * and initialising is with the details of the element.
          *
          * @param tag The name of the element to be handled.
@@ -580,21 +476,6 @@ public class ProjectHelperImpl extends ProjectHelper {
          */
         private void handleTarget(String tag, AttributeList attrs) throws SAXParseException {
             new TargetHandler(helperImpl, this).init(tag, attrs);
-        }
-        /**
-         * Handles a data type defintion element by creating a data type
-         * handler and initialising is with the details of the element.
-         *
-         * @param name The name of the element to be handled.
-         *            Will not be <code>null</code>.
-         * @param attrs Attributes of the element to be handled.
-         *              Will not be <code>null</code>.
-         *
-         * @exception SAXParseException if an error occurs initialising
-         *                              the handler
-         */
-        private void handleDataType(String name, AttributeList attrs) throws SAXParseException {
-            new DataTypeHandler(helperImpl, this).init(name, attrs);
         }
 
     }
@@ -647,6 +528,11 @@ public class ProjectHelperImpl extends ProjectHelper {
 
                 if (key.equals("name")) {
                     name = value;
+                    if (name.equals("")) {
+                        throw new BuildException("name attribute must not"
+                                                 + " be empty",
+                                                 new Location(helperImpl.locator));
+                    }
                 } else if (key.equals("depends")) {
                     depends = value;
                 } else if (key.equals("if")) {
@@ -658,7 +544,8 @@ public class ProjectHelperImpl extends ProjectHelper {
                 } else if (key.equals("description")) {
                     description = value;
                 } else {
-                    throw new SAXParseException("Unexpected attribute \"" + key + "\"", helperImpl.locator);
+                    throw new SAXParseException("Unexpected attribute \""
+                        + key + "\"", helperImpl.locator);
                 }
             }
 
@@ -668,6 +555,10 @@ public class ProjectHelperImpl extends ProjectHelper {
             }
 
             target = new Target();
+
+            // implicit target must be first on dependency list
+            target.addDependency("");
+
             target.setName(name);
             target.setIf(ifCond);
             target.setUnless(unlessCond);
@@ -697,12 +588,70 @@ public class ProjectHelperImpl extends ProjectHelper {
          *                              the appropriate child handler
          */
         public void startElement(String name, AttributeList attrs) throws SAXParseException {
-            if (helperImpl.project.getDataTypeDefinitions().get(name) != null) {
-                new DataTypeHandler(helperImpl, this, target).init(name, attrs);
+            handleElement(helperImpl, this, target, name, attrs);
+        }
+    }
+
+    /**
+     * Start a new DataTypeHandler if element is known to be a
+     * data-type and a TaskHandler otherwise.
+     *
+     * <p>Factored out of TargetHandler.</p>
+     *
+     * @since Ant 1.6
+     */
+    private static void handleElement(ProjectHelperImpl helperImpl,
+                                      DocumentHandler parent,
+                                      Target target, String elementName,
+                                      AttributeList attrs)
+        throws SAXParseException {
+        if (elementName.equals("description")) {
+            new DescriptionHandler(helperImpl, parent);
+        } else if (helperImpl.project.getDataTypeDefinitions()
+                   .get(elementName) != null) {
+            new DataTypeHandler(helperImpl, parent, target)
+                .init(elementName, attrs);
+        } else {
+            new TaskHandler(helperImpl, parent, target, null, target)
+                .init(elementName, attrs);
+        }
+    }
+
+    /**
+     * Handler for "description" elements.
+     */
+    static class DescriptionHandler extends AbstractHandler {
+
+        /**
+         * Constructor which just delegates to the superconstructor.
+         *
+         * @param parentHandler The handler which should be restored to the
+         *                      parser at the end of the element.
+         *                      Must not be <code>null</code>.
+         */
+        public DescriptionHandler(ProjectHelperImpl helperImpl,
+                                  DocumentHandler parentHandler) {
+            super(helperImpl, parentHandler);
+        }
+
+        /**
+         * Adds the text as description to the project.
+         *
+         * @param buf A character array of the text within the element.
+         *            Will not be <code>null</code>.
+         * @param start The start element in the array.
+         * @param count The number of characters to read from the array.
+         */
+        public void characters(char[] buf, int start, int count) {
+            String text = new String(buf, start, count);
+            String currentDescription = helperImpl.project.getDescription();
+            if (currentDescription == null) {
+                helperImpl.project.setDescription(text);
             } else {
-                new TaskHandler(helperImpl, this, target, null, target).init(name, attrs);
+                helperImpl.project.setDescription(currentDescription + text);
             }
         }
+
     }
 
     /**
@@ -741,21 +690,17 @@ public class ProjectHelperImpl extends ProjectHelper {
          *                      Must not be <code>null</code>.
          *
          * @param container     Container for the element.
-         *                      May be <code>null</code> if the target is
-         *                      <code>null</code> as well. If the
-         *                      target is <code>null</code>, this parameter
-         *                      is effectively ignored.
+         *                      Must not be <code>null</code>.
          *
          * @param parentWrapper Wrapper for the parent element, if any.
-         *                      May be <code>null</code>. If the
-         *                      target is <code>null</code>, this parameter
-         *                      is effectively ignored.
+         *                      May be <code>null</code>.
          *
          * @param target        Target this element is part of.
-         *                      May be <code>null</code>.
+         *                      Must not be <code>null</code>.
          */
         public TaskHandler(ProjectHelperImpl helperImpl, DocumentHandler parentHandler,
-                           TaskContainer container, RuntimeConfigurable parentWrapper, Target target) {
+                           TaskContainer container,
+                           RuntimeConfigurable parentWrapper, Target target) {
             super(helperImpl, parentHandler);
             this.container = container;
             this.parentWrapper = parentWrapper;
@@ -793,59 +738,29 @@ public class ProjectHelperImpl extends ProjectHelper {
                 task.setTaskName(tag);
             }
 
-            task.setLocation(new Location(helperImpl.locator.getSystemId(), helperImpl.locator.getLineNumber(),
-                                          helperImpl.locator.getColumnNumber()));
+            task.setLocation(new Location(helperImpl.locator));
             helperImpl.configureId(task, attrs);
 
-            // Top level tasks don't have associated targets
-            if (target != null) {
-                task.setOwningTarget(target);
-                container.addTask(task);
-                task.init();
-                wrapper = task.getRuntimeConfigurableWrapper();
-                wrapper.setAttributes(attrs);
-                if (parentWrapper != null) {
-                    parentWrapper.addChild(wrapper);
-                }
-            } else {
-                task.init();
-                configure(task, attrs, helperImpl.project);
+            task.setOwningTarget(target);
+            container.addTask(task);
+            task.init();
+            wrapper = task.getRuntimeConfigurableWrapper();
+            wrapper.setAttributes(attrs);
+            if (parentWrapper != null) {
+                parentWrapper.addChild(wrapper);
             }
         }
 
         /**
-         * Executes the task if it is a top-level one.
-         */
-        protected void finished() {
-            if (task != null && target == null) {
-                task.execute();
-            }
-        }
-
-        /**
-         * Adds text to the task, using the wrapper if one is
-         * available (in other words if the task is within a target)
-         * or using addText otherwise.
+         * Adds text to the task, using the wrapper.
          *
          * @param buf A character array of the text within the element.
          *            Will not be <code>null</code>.
          * @param start The start element in the array.
          * @param count The number of characters to read from the array.
-         *
-         * @exception SAXParseException if the element doesn't support text
-         *
-         * @see ProjectHelper#addText(Project,Object,char[],int,int)
          */
-        public void characters(char[] buf, int start, int count) throws SAXParseException {
-            if (wrapper == null) {
-                try {
-                    ProjectHelper.addText(helperImpl.project, task, buf, start, count);
-                } catch (BuildException exc) {
-                    throw new SAXParseException(exc.getMessage(), helperImpl.locator, exc);
-                }
-            } else {
-                wrapper.addText(buf, start, count);
-            }
+        public void characters(char[] buf, int start, int count) {
+            wrapper.addText(buf, start, count);
         }
 
         /**
@@ -907,10 +822,10 @@ public class ProjectHelperImpl extends ProjectHelper {
          *                      Must not be <code>null</code>.
          *
          * @param parentWrapper Wrapper for the parent element, if any.
-         *                      May be <code>null</code>.
+         *                      Must not be <code>null</code>.
          *
          * @param target        Target this element is part of.
-         *                      May be <code>null</code>.
+         *                      Must not be <code>null</code>.
          */
         public NestedElementHandler(ProjectHelperImpl helperImpl,
                                     DocumentHandler parentHandler,
@@ -919,8 +834,8 @@ public class ProjectHelperImpl extends ProjectHelper {
                                     Target target) {
             super(helperImpl, parentHandler);
 
-            if (parent instanceof TaskAdapter) {
-                this.parent = ((TaskAdapter) parent).getProxy();
+            if (parent instanceof TypeAdapter) {
+                this.parent = ((TypeAdapter) parent).getProxy();
             } else {
                 this.parent = parent;
             }
@@ -962,42 +877,24 @@ public class ProjectHelperImpl extends ProjectHelper {
 
                 helperImpl.configureId(child, attrs);
 
-                if (parentWrapper != null) {
-                    childWrapper = new RuntimeConfigurable(child, propType);
-                    childWrapper.setAttributes(attrs);
-                    parentWrapper.addChild(childWrapper);
-                } else {
-                    configure(child, attrs, helperImpl.project);
-                    ih.storeElement(helperImpl.project, parent, child, elementName);
-                }
+                childWrapper = new RuntimeConfigurable(child, propType);
+                childWrapper.setAttributes(attrs);
+                parentWrapper.addChild(childWrapper);
             } catch (BuildException exc) {
                 throw new SAXParseException(exc.getMessage(), helperImpl.locator, exc);
             }
         }
 
         /**
-         * Adds text to the element, using the wrapper if one is
-         * available or using addText otherwise.
+         * Adds text to the element, using the wrapper.
          *
          * @param buf A character array of the text within the element.
          *            Will not be <code>null</code>.
          * @param start The start element in the array.
          * @param count The number of characters to read from the array.
-         *
-         * @exception SAXParseException if the element doesn't support text
-         *
-         * @see ProjectHelper#addText(Project,Object,char[],int,int)
          */
-        public void characters(char[] buf, int start, int count) throws SAXParseException {
-            if (parentWrapper == null) {
-                try {
-                    ProjectHelper.addText(helperImpl.project, child, buf, start, count);
-                } catch (BuildException exc) {
-                    throw new SAXParseException(exc.getMessage(), helperImpl.locator, exc);
-                }
-            } else {
-                childWrapper.addText(buf, start, count);
-            }
+        public void characters(char[] buf, int start, int count) {
+            childWrapper.addText(buf, start, count);
         }
 
         /**
@@ -1038,17 +935,6 @@ public class ProjectHelperImpl extends ProjectHelper {
         private RuntimeConfigurable wrapper = null;
 
         /**
-         * Constructor with no target specified.
-         *
-         * @param parentHandler The handler which should be restored to the
-         *                      parser at the end of the element.
-         *                      Must not be <code>null</code>.
-         */
-        public DataTypeHandler(ProjectHelperImpl helperImpl, DocumentHandler parentHandler) {
-            this(helperImpl, parentHandler, null);
-        }
-
-        /**
          * Constructor with a target specified.
          *
          * @param parentHandler The handler which should be restored to the
@@ -1056,9 +942,10 @@ public class ProjectHelperImpl extends ProjectHelper {
          *                      Must not be <code>null</code>.
          *
          * @param target The parent target of this element.
-         *               May be <code>null</code>.
+         *               Must not be <code>null</code>.
          */
-        public DataTypeHandler(ProjectHelperImpl helperImpl, DocumentHandler parentHandler, Target target) {
+        public DataTypeHandler(ProjectHelperImpl helperImpl,
+                               DocumentHandler parentHandler, Target target) {
             super(helperImpl, parentHandler);
             this.target = target;
         }
@@ -1086,39 +973,26 @@ public class ProjectHelperImpl extends ProjectHelper {
                     throw new BuildException("Unknown data type " + propType);
                 }
 
-                if (target != null) {
-                    wrapper = new RuntimeConfigurable(element, propType);
-                    wrapper.setAttributes(attrs);
-                    target.addDataType(wrapper);
-                } else {
-                    configure(element, attrs, helperImpl.project);
-                    helperImpl.configureId(element, attrs);
-                }
+                wrapper = new RuntimeConfigurable(element, propType);
+                wrapper.setAttributes(attrs);
+                target.addDataType(wrapper);
             } catch (BuildException exc) {
                 throw new SAXParseException(exc.getMessage(), helperImpl.locator, exc);
             }
         }
 
-        // XXX: (Jon Skeet) Any reason why this doesn't use the wrapper
-        // if one is available, whereas NestedElementHandler.characters does?
         /**
-         * Adds text to the element.
+         * Adds text to the using the wrapper.
          *
          * @param buf A character array of the text within the element.
          *            Will not be <code>null</code>.
          * @param start The start element in the array.
          * @param count The number of characters to read from the array.
          *
-         * @exception SAXParseException if the element doesn't support text
-         *
          * @see ProjectHelper#addText(Project,Object,char[],int,int)
          */
-        public void characters(char[] buf, int start, int count) throws SAXParseException {
-            try {
-                ProjectHelper.addText(helperImpl.project, element, buf, start, count);
-            } catch (BuildException exc) {
-                throw new SAXParseException(exc.getMessage(), helperImpl.locator, exc);
-            }
+        public void characters(char[] buf, int start, int count) {
+            wrapper.addText(buf, start, count);
         }
 
         /**

@@ -1,67 +1,34 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
+
+import org.apache.tools.ant.util.CollectionUtils;
 
 /**
  * Class to implement a target object with required parameters.
  *
- * @author James Davidson <a href="mailto:duncan@x180.com">duncan@x180.com</a>
  */
 public class Target implements TaskContainer {
 
@@ -72,22 +39,26 @@ public class Target implements TaskContainer {
     /** The "unless" condition to test on execution. */
     private String unlessCondition = "";
     /** List of targets this target is dependent on. */
-    private Vector dependencies = new Vector(2);
+    private List dependencies = null;
     /** Children of this target (tasks and data types). */
-    private Vector children = new Vector(5);
+    private List children = new ArrayList();
+    /** Since Ant 1.6.2 */
+    private Location location = Location.UNKNOWN_LOCATION;
+
     /** Project this target belongs to. */
     private Project project;
+
     /** Description of this target, if any. */
     private String description = null;
 
     /** Sole constructor. */
     public Target() {
     }
-    
-    /** 
-     * Sets the project this target belongs to. 
-     * 
-     * @param project The project this target belongs to. 
+
+    /**
+     * Sets the project this target belongs to.
+     *
+     * @param project The project this target belongs to.
      *                Must not be <code>null</code>.
      */
     public void setProject(Project project) {
@@ -96,8 +67,8 @@ public class Target implements TaskContainer {
 
     /**
      * Returns the project this target belongs to.
-     * 
-     * @return The project this target belongs to, or <code>null</code> if 
+     *
+     * @return The project this target belongs to, or <code>null</code> if
      *         the project has not been set yet.
      */
     public Project getProject() {
@@ -105,9 +76,27 @@ public class Target implements TaskContainer {
     }
 
     /**
+     * Sets the location of this target's definition.
+     *
+     * @param location   <CODE>Location</CODE>
+     */
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    /**
+     * Get the location of this target's definition.
+     *
+     * @return <CODE>Location</CODE>
+     */
+    public Location getLocation() {
+        return location;
+    }
+
+    /**
      * Sets the list of targets this target is dependent on.
      * The targets themselves are not resolved at this time.
-     * 
+     *
      * @param depS A comma-separated list of targets this target
      *             depends on. Must not be <code>null</code>.
      */
@@ -121,19 +110,19 @@ public class Target implements TaskContainer {
                 // Make sure the dependency is not empty string
                 if (token.equals("") || token.equals(",")) {
                     throw new BuildException("Syntax Error: Depend "
-                        + "attribute for target \"" + getName() 
+                        + "attribute for target \"" + getName()
                         + "\" has an empty string for dependency.");
                 }
 
                 addDependency(token);
-                
+
                 // Make sure that depends attribute does not
                 // end in a ,
                 if (tok.hasMoreTokens()) {
                     token = tok.nextToken();
                     if (!tok.hasMoreTokens() || !token.equals(",")) {
-                        throw new BuildException("Syntax Error: Depend " 
-                            + "attribute for target \"" + getName() 
+                        throw new BuildException("Syntax Error: Depend "
+                            + "attribute for target \"" + getName()
                             + "\" ends with a , character");
                     }
                 }
@@ -143,7 +132,7 @@ public class Target implements TaskContainer {
 
     /**
      * Sets the name of this target.
-     * 
+     *
      * @param name The name of this target. Should not be <code>null</code>.
      */
     public void setName(String name) {
@@ -152,7 +141,7 @@ public class Target implements TaskContainer {
 
     /**
      * Returns the name of this target.
-     * 
+     *
      * @return the name of this target, or <code>null</code> if the
      *         name has not been set yet.
      */
@@ -162,60 +151,82 @@ public class Target implements TaskContainer {
 
     /**
      * Adds a task to this target.
-     * 
+     *
      * @param task The task to be added. Must not be <code>null</code>.
      */
     public void addTask(Task task) {
-        children.addElement(task);
+        children.add(task);
     }
 
     /**
      * Adds the wrapper for a data type element to this target.
-     * 
-     * @param r The wrapper for the data type element to be added. 
+     *
+     * @param r The wrapper for the data type element to be added.
      *          Must not be <code>null</code>.
      */
     public void addDataType(RuntimeConfigurable r) {
-        children.addElement(r);
+        children.add(r);
     }
 
-    /** 
+    /**
      * Returns the current set of tasks to be executed by this target.
-     * 
+     *
      * @return an array of the tasks currently within this target
      */
     public Task[] getTasks() {
-        Vector tasks = new Vector(children.size());
-        Enumeration enum = children.elements();
-        while (enum.hasMoreElements()) {
-            Object o = enum.nextElement();
+        List tasks = new ArrayList(children.size());
+        Iterator it = children.iterator();
+        while (it.hasNext()) {
+            Object o = it.next();
             if (o instanceof Task) {
-                tasks.addElement(o);
+                tasks.add(o);
             }
         }
-        
-        Task[] retval = new Task[tasks.size()];
-        tasks.copyInto(retval);
-        return retval;
+
+        return (Task[]) tasks.toArray(new Task[tasks.size()]);
     }
 
     /**
      * Adds a dependency to this target.
-     * 
+     *
      * @param dependency The name of a target this target is dependent on.
      *                   Must not be <code>null</code>.
      */
     public void addDependency(String dependency) {
-        dependencies.addElement(dependency);
+        if (dependencies == null) {
+            dependencies = new ArrayList(2);
+        }
+        dependencies.add(dependency);
     }
 
     /**
      * Returns an enumeration of the dependencies of this target.
-     * 
+     *
      * @return an enumeration of the dependencies of this target
      */
     public Enumeration getDependencies() {
-        return dependencies.elements();
+        if (dependencies != null) {
+            return Collections.enumeration(dependencies);
+        } else {
+            return new CollectionUtils.EmptyEnumeration();
+        }
+    }
+
+    /**
+     * Does this target depend on the named target?
+     * @param other the other named target.
+     * @return true if the target does depend on the named target
+     * @since Ant 1.6
+     */
+    public boolean dependsOn(String other) {
+        if (getProject() != null) {
+            List l = getProject().topoSort(getName(),
+                                           getProject().getTargets());
+            int myIdx = l.indexOf(this);
+            int otherIdx = l.indexOf(getProject().getTargets().get(other));
+            return myIdx >= otherIdx;
+        }
+        return false;
     }
 
     /**
@@ -226,7 +237,7 @@ public class Target implements TaskContainer {
      * property <code>foo</code> has value <code>bar</code>, setting
      * the "if" condition to <code>${foo}_x</code> will mean that the
      * task will only execute if property <code>bar_x</code> is set.
-     * 
+     *
      * @param property The property condition to test on execution.
      *                 May be <code>null</code>, in which case
      *                 no "if" test is performed.
@@ -234,7 +245,17 @@ public class Target implements TaskContainer {
     public void setIf(String property) {
         this.ifCondition = (property == null) ? "" : property;
     }
- 
+
+    /**
+     * Returns the "if" property condition of this target.
+     *
+     * @return the "if" property condition or <code>null</code> if no
+     *         "if" condition had been defined.
+     */
+    public String getIf() {
+        return ("".equals(ifCondition) ? null : ifCondition);
+    }
+
     /**
      * Sets the "unless" condition to test on execution. This is the
      * name of a property to test for existence - if the property
@@ -243,7 +264,7 @@ public class Target implements TaskContainer {
      * property <code>foo</code> has value <code>bar</code>, setting
      * the "unless" condition to <code>${foo}_x</code> will mean that the
      * task will only execute if property <code>bar_x</code> isn't set.
-     * 
+     *
      * @param property The property condition to test on execution.
      *                 May be <code>null</code>, in which case
      *                 no "unless" test is performed.
@@ -253,10 +274,20 @@ public class Target implements TaskContainer {
     }
 
     /**
+     * Returns the "unless" property condition of this target.
+     *
+     * @return the "unless" property condition or <code>null</code>
+     *         if no "unless" condition had been defined.
+     */
+    public String getUnless() {
+        return ("".equals(unlessCondition) ? null : unlessCondition);
+    }
+
+    /**
      * Sets the description of this target.
-     * 
-     * @param description The description for this target. 
-     *                    May be <code>null</code>, indicating that no 
+     *
+     * @param description The description for this target.
+     *                    May be <code>null</code>, indicating that no
      *                    description is available.
      */
     public void setDescription(String description) {
@@ -265,7 +296,7 @@ public class Target implements TaskContainer {
 
     /**
      * Returns the description of this target.
-     * 
+     *
      * @return the description of this target, or <code>null</code> if no
      *         description is available.
      */
@@ -275,7 +306,7 @@ public class Target implements TaskContainer {
 
     /**
      * Returns the name of this target.
-     * 
+     *
      * @return the name of this target, or <code>null</code> if the
      *         name has not been set yet.
      */
@@ -289,21 +320,22 @@ public class Target implements TaskContainer {
      * method, as it does no checking of its own. If either the "if"
      * or "unless" test prevents this target from being executed, a verbose
      * message is logged giving the reason. It is recommended that clients
-     * of this class call performTasks rather than this method so that 
+     * of this class call performTasks rather than this method so that
      * appropriate build events are fired.
-     * 
+     *
      * @exception BuildException if any of the tasks fail or if a data type
      *                           configuration fails.
-     * 
+     *
      * @see #performTasks()
      * @see #setIf(String)
      * @see #setUnless(String)
      */
     public void execute() throws BuildException {
         if (testIfCondition() && testUnlessCondition()) {
-            Enumeration enum = children.elements();
-            while (enum.hasMoreElements()) {
-                Object o = enum.nextElement();
+            for (int taskPosition = 0;
+                 taskPosition < children.size();
+                 ++taskPosition) {
+                Object o = children.get(taskPosition);
                 if (o instanceof Task) {
                     Task task = (Task) o;
                     task.perform();
@@ -313,38 +345,40 @@ public class Target implements TaskContainer {
                 }
             }
         } else if (!testIfCondition()) {
-            project.log(this, "Skipped because property '" 
-                        + project.replaceProperties(this.ifCondition) 
+            project.log(this, "Skipped because property '"
+                        + project.replaceProperties(this.ifCondition)
                         + "' not set.", Project.MSG_VERBOSE);
         } else {
-            project.log(this, "Skipped because property '" 
-                        + project.replaceProperties(this.unlessCondition) 
+            project.log(this, "Skipped because property '"
+                        + project.replaceProperties(this.unlessCondition)
                         + "' set.", Project.MSG_VERBOSE);
         }
     }
 
     /**
      * Performs the tasks within this target (if the conditions are met),
-     * firing target started/target finished messages around a call to 
+     * firing target started/target finished messages around a call to
      * execute.
-     * 
+     *
      * @see #execute()
      */
     public final void performTasks() {
+        RuntimeException thrown = null;
+        project.fireTargetStarted(this);
         try {
-            project.fireTargetStarted(this);
             execute();
-            project.fireTargetFinished(this, null);
         } catch (RuntimeException exc) {
-            project.fireTargetFinished(this, exc);
+            thrown = exc;
             throw exc;
+        } finally {
+            project.fireTargetFinished(this, thrown);
         }
     }
-    
+
     /**
      * Replaces all occurrences of the given task in the list
      * of children with the replacement data type wrapper.
-     * 
+     *
      * @param el The task to replace.
      *           Must not be <code>null</code>.
      * @param o  The data type wrapper to replace <code>el</code> with.
@@ -352,14 +386,14 @@ public class Target implements TaskContainer {
     void replaceChild(Task el, RuntimeConfigurable o) {
         int index;
         while ((index = children.indexOf(el)) >= 0) {
-            children.setElementAt(o, index);
+            children.set(index, o);
         }
     }
 
     /**
      * Replaces all occurrences of the given task in the list
      * of children with the replacement task.
-     * 
+     *
      * @param el The task to replace.
      *           Must not be <code>null</code>.
      * @param o  The task to replace <code>el</code> with.
@@ -367,13 +401,13 @@ public class Target implements TaskContainer {
     void replaceChild(Task el, Task o) {
         int index;
         while ((index = children.indexOf(el)) >= 0) {
-            children.setElementAt(o, index);
+            children.set(index, o);
         }
     }
 
     /**
      * Tests whether or not the "if" condition is satisfied.
-     * 
+     *
      * @return whether or not the "if" condition is satisfied. If no
      *         condition (or an empty condition) has been set,
      *         <code>true</code> is returned.
@@ -384,14 +418,14 @@ public class Target implements TaskContainer {
         if ("".equals(ifCondition)) {
             return true;
         }
-        
+
         String test = project.replaceProperties(ifCondition);
         return project.getProperty(test) != null;
     }
 
     /**
      * Tests whether or not the "unless" condition is satisfied.
-     * 
+     *
      * @return whether or not the "unless" condition is satisfied. If no
      *         condition (or an empty condition) has been set,
      *         <code>true</code> is returned.

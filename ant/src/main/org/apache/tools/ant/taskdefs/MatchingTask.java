@@ -1,88 +1,60 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
-import org.apache.tools.ant.Task;
+import java.io.File;
+import java.util.Enumeration;
+import java.util.StringTokenizer;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.PatternSet;
-import org.apache.tools.ant.types.selectors.*;
-
-import java.io.File;
-import java.util.StringTokenizer;
-import java.util.Enumeration;
+import org.apache.tools.ant.types.selectors.AndSelector;
+import org.apache.tools.ant.types.selectors.ContainsRegexpSelector;
+import org.apache.tools.ant.types.selectors.ContainsSelector;
+import org.apache.tools.ant.types.selectors.DateSelector;
+import org.apache.tools.ant.types.selectors.DependSelector;
+import org.apache.tools.ant.types.selectors.DepthSelector;
+import org.apache.tools.ant.types.selectors.DifferentSelector;
+import org.apache.tools.ant.types.selectors.ExtendSelector;
+import org.apache.tools.ant.types.selectors.FileSelector;
+import org.apache.tools.ant.types.selectors.FilenameSelector;
+import org.apache.tools.ant.types.selectors.MajoritySelector;
+import org.apache.tools.ant.types.selectors.NoneSelector;
+import org.apache.tools.ant.types.selectors.NotSelector;
+import org.apache.tools.ant.types.selectors.OrSelector;
+import org.apache.tools.ant.types.selectors.PresentSelector;
+import org.apache.tools.ant.types.selectors.SelectSelector;
+import org.apache.tools.ant.types.selectors.SelectorContainer;
+import org.apache.tools.ant.types.selectors.SizeSelector;
+import org.apache.tools.ant.types.selectors.TypeSelector;
+import org.apache.tools.ant.types.selectors.modifiedselector.ModifiedSelector;
 
 /**
- * This is an abstract task that should be used by all those tasks that 
+ * This is an abstract task that should be used by all those tasks that
  * require to include or exclude files based on pattern matching.
  *
- * @author Arnout J. Kuiper 
- *         <a href="mailto:ajkuiper@wxs.nl">ajkuiper@wxs.nl</a> 
- * @author Stefano Mazzocchi 
- *         <a href="mailto:stefano@apache.org">stefano@apache.org</a>
- * @author Sam Ruby <a href="mailto:rubys@us.ibm.com">rubys@us.ibm.com</a>
- * @author Jon S. Stevens <a href="mailto:jon@clearink.com">jon@clearink.com</a>
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <a href="mailto:bruce@callenish.com">Bruce Atherton</a>
  * @since Ant 1.1
  */
 
 public abstract class MatchingTask extends Task implements SelectorContainer {
 
-    protected boolean useDefaultExcludes = true;
     protected FileSet fileset = new FileSet();
 
     /**
@@ -95,6 +67,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a name entry on the include list
+     * @return a NameEntry object to be configured
      */
     public PatternSet.NameEntry createInclude() {
         return fileset.createInclude();
@@ -102,6 +75,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a name entry on the include files list
+     * @return an NameEntry object to be configured
      */
     public PatternSet.NameEntry createIncludesFile() {
         return fileset.createIncludesFile();
@@ -109,6 +83,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a name entry on the exclude list
+     * @return an NameEntry object to be configured
      */
     public PatternSet.NameEntry createExclude() {
         return fileset.createExclude();
@@ -116,6 +91,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a name entry on the include files list
+     * @return an NameEntry object to be configured
      */
     public PatternSet.NameEntry createExcludesFile() {
         return fileset.createExcludesFile();
@@ -123,6 +99,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a set of patterns
+     * @return PatternSet object to be configured
      */
     public PatternSet createPatternSet() {
         return fileset.createPatternSet();
@@ -146,10 +123,9 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
      * @param itemString the string containing the files to include.
      */
     public void XsetItems(String itemString) {
-        log("The items attribute is deprecated. " +
-            "Please use the includes attribute.",
-            Project.MSG_WARN);
-        if (itemString == null || itemString.equals("*") 
+        log("The items attribute is deprecated. "
+            + "Please use the includes attribute.", Project.MSG_WARN);
+        if (itemString == null || itemString.equals("*")
             || itemString.equals(".")) {
             createInclude().setName("**");
         } else {
@@ -174,15 +150,14 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
     }
 
     /**
-     * List of filenames and directory names to not include. They should be 
+     * List of filenames and directory names to not include. They should be
      * either , or " " (space) separated. The ignored files will be logged.
      *
      * @param ignoreString the string containing the files to ignore.
      */
     public void XsetIgnore(String ignoreString) {
-        log("The ignore attribute is deprecated." +
-            "Please use the excludes attribute.",
-            Project.MSG_WARN);
+        log("The ignore attribute is deprecated."
+            + "Please use the excludes attribute.", Project.MSG_WARN);
         if (ignoreString != null && ignoreString.length() > 0) {
             StringTokenizer tok = new StringTokenizer(ignoreString, ", ",
                                                       false);
@@ -200,7 +175,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
      *                           shouldn't be used.
      */
     public void setDefaultexcludes(boolean useDefaultExcludes) {
-        this.useDefaultExcludes = useDefaultExcludes;
+        fileset.setDefaultexcludes(useDefaultExcludes);
     }
 
     /**
@@ -208,7 +183,6 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
      */
     protected DirectoryScanner getDirectoryScanner(File baseDir) {
         fileset.setDir(baseDir);
-        fileset.setDefaultexcludes(useDefaultExcludes);
         return fileset.getDirectoryScanner(getProject());
     }
 
@@ -271,7 +245,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * Returns the set of selectors as an array.
-     *
+     * @param p the current project
      * @return an array of selectors in this container
      */
     public FileSelector[] getSelectors(Project p) {
@@ -291,7 +265,6 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
      * Add a new selector into this container.
      *
      * @param selector the new selector to add
-     * @return the selector that was added
      */
     public void appendSelector(FileSelector selector) {
         fileset.appendSelector(selector);
@@ -301,6 +274,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a "Select" selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addSelector(SelectSelector selector) {
         fileset.addSelector(selector);
@@ -308,6 +282,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add an "And" selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addAnd(AndSelector selector) {
         fileset.addAnd(selector);
@@ -315,6 +290,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add an "Or" selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addOr(OrSelector selector) {
         fileset.addOr(selector);
@@ -322,6 +298,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a "Not" selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addNot(NotSelector selector) {
         fileset.addNot(selector);
@@ -329,6 +306,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a "None" selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addNone(NoneSelector selector) {
         fileset.addNone(selector);
@@ -336,6 +314,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a majority selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addMajority(MajoritySelector selector) {
         fileset.addMajority(selector);
@@ -343,6 +322,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a selector date entry on the selector list
+     * @param selector the selector to add
      */
     public void addDate(DateSelector selector) {
         fileset.addDate(selector);
@@ -350,6 +330,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a selector size entry on the selector list
+     * @param selector the selector to add
      */
     public void addSize(SizeSelector selector) {
         fileset.addSize(selector);
@@ -357,6 +338,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a selector filename entry on the selector list
+     * @param selector the selector to add
      */
     public void addFilename(FilenameSelector selector) {
         fileset.addFilename(selector);
@@ -364,6 +346,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add an extended selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addCustom(ExtendSelector selector) {
         fileset.addCustom(selector);
@@ -371,6 +354,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a contains selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addContains(ContainsSelector selector) {
         fileset.addContains(selector);
@@ -378,6 +362,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a present selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addPresent(PresentSelector selector) {
         fileset.addPresent(selector);
@@ -385,6 +370,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a depth selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addDepth(DepthSelector selector) {
         fileset.addDepth(selector);
@@ -392,13 +378,58 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * add a depends selector entry on the selector list
+     * @param selector the selector to add
      */
     public void addDepend(DependSelector selector) {
         fileset.addDepend(selector);
     }
 
     /**
-     * Accessor for the implict fileset.
+     * add a regular expression selector entry on the selector list
+     * @param selector the selector to add
+     */
+    public void addContainsRegexp(ContainsRegexpSelector selector) {
+        fileset.addContainsRegexp(selector);
+    }
+
+    /**
+     * add a type selector entry on the type list
+     * @param selector the selector to add
+     * @since ant 1.6
+     */
+    public void addDifferent(DifferentSelector selector) {
+        fileset.addDifferent(selector);
+    }
+
+    /**
+     * add a type selector entry on the type list
+     * @param selector the selector to add
+     * @since ant 1.6
+     */
+    public void addType(TypeSelector selector) {
+        fileset.addType(selector);
+    }
+
+    /**
+     * add the modified selector
+     * @param selector the selector to add
+     * @since ant 1.6
+     */
+    public void addModified(ModifiedSelector selector) {
+        fileset.addModified(selector);
+    }
+
+    /**
+     * add an arbitary selector
+     * @param selector the selector to add
+     * @since Ant 1.6
+     */
+    public void add(FileSelector selector) {
+        fileset.add(selector);
+    }
+
+    /**
+     * Accessor for the implicit fileset.
      *
      * @since Ant 1.5.2
      */

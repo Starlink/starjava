@@ -3,14 +3,18 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Mail Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
 
 <h2><a name="mail">Mail</a></h2>
 <h3>Description</h3>
-<p>A task to send SMTP email. This task can send mail using either plain
-text, UU encoding, or MIME format mail, depending on what is available.
+<p>A task to send SMTP email.<br></br><br></br>
+This task can send mail using either plain
+text, UU encoding, or MIME format mail, depending on what is available.<br></br><br></br>
+<br>
+SMTP auth and SSL/TLS require JavaMail and are only available in MIME format.<br></br><br></br>
 Attachments may be sent using nested
 <a href="../CoreTypes/fileset.html">fileset</a> elements.</p>
 <p><strong>Note:</strong> This task may depend on external libraries
@@ -31,6 +35,11 @@ Library Dependencies</a> for more information.
     <td valign="top">Email address of sender.</td>
     <td align="center" valign="top">Either a <code>from</code> attribute, or a <code>&lt;from&gt;</code>
     element.</td>
+  </tr>
+  <tr>
+    <td valign="top">replyto</td>
+    <td valign="top">Replyto email address.</td>
+    <td align="center" valign="top">No</td>
   </tr>
   <tr>
     <td valign="top">tolist</td>
@@ -94,10 +103,36 @@ Library Dependencies</a> for more information.
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
+    <td valign="top">user</td>
+    <td valign="top">user name for SMTP auth</td>
+    <td valign="center">Yes, if SMTP auth is required on your SMTP server<br></br>
+    the email message will be then sent using Mime and requires JavaMail</td>
+  </tr>
+  <tr>
+    <td valign="top">password</td>
+    <td valign="top">password for SMTP auth</td>
+    <td valign="center">Yes, if SMTP auth is required on your SMTP server<br></br>
+    the email message will be then sent using Mime and requires JavaMail</td>
+  </tr>
+  <tr>
+    <td valign="top">ssl</td>
+    <td valign="top">"true", "on" or "yes" accepted here<br></br>
+    indicates whether you need TLS/SSL</td>
+    <td valign="center">No</td>
+  </tr>
+  <tr>
     <td valign="top">encoding</td>
     <td valign="top">Specifies the encoding to use for the content of the email.
     Values are <code>mime</code>, <code>uu</code>, <code>plain</code>, or
-      <code>auto</code>.  The default value is <code>auto</code>.</td>
+      <code>auto</code>.  The default value is <code>auto</code>.
+      <code>uu</code> or <code>plain</code> are not compatible with SMTP auth</td>
+    <td align="center" valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">charset</td>
+    <td valign="top">Character set of the email.<br>
+    You can also set the charset in the message nested element.<br>
+    These options are mutually exclusive.</td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
@@ -107,9 +142,22 @@ Library Dependencies</a> for more information.
   </tr>
 </table>
 
+<h3>Note regarding the attributes containing email addresses</h3>
+Since ant 1.6, the attributes from, replyto, tolist, cclist, bcclist
+can contain email addresses of the form :
+<ul>
+<li>address@xyz.com</li>
+<li>name &lt;address@xyz.com&gt;</li>
+<li>&lt;address@xyz.com&gt; name</li>
+<li>(name) address@xyz.com</li>
+<li>address@xyz.com (name)</li>
+</ul>
+<p>You need to enter the angle brackets as XML entities
+<code>&amp;gt;</code> and <code>&amp;lt;</code>.</p>
+
 <h3>Parameters specified as nested elements</h3>
 
-<h4>to / cc / bcc / from</h4>
+<h4>to / cc / bcc / from/ replyto </h4>
 <p>Adds an email address element.  It takes the following attributes:</p>
 
 <table width="60%" border="1" cellpadding="2" cellspacing="0">
@@ -151,6 +199,13 @@ attributes:</p>
     <td valign="top">The content type to use for the message.</td>
     <td align="center" valign="top">No</td>
   </tr>
+  <tr>
+    <td valign="top">charset</td>
+    <td valign="top">Character set of the message<br>
+    You can also set the charset as attribute of the enclosing mail task.<br>
+    These options are mutually exclusive.</td>
+    <td align="center" valign="top">No</td>
+  </tr>
 </table>
 
 <p>If the <code>src</code> attribute is not specified, then text can be added
@@ -173,7 +228,8 @@ the <code>&lt;message&gt;</code> element.</p>
 
 <blockquote><pre>
 &lt;mail mailhost=&quot;smtp.myisp.com&quot; mailport=&quot;1025&quot; subject=&quot;Test build&quot;&gt;
-  &lt;from address=&quot;me@myisp.com&quot;/&gt;
+  &lt;from address=&quot;config@myisp.com&quot;/&gt;
+  &lt;replyto address=&quot;me@myisp.com&quot;/&gt;
   &lt;to address=&quot;all@xyz.com&quot;/&gt;
   &lt;message&gt;The ${buildname} nightly build has completed&lt;/message&gt;
   &lt;fileset dir=&quot;dist&quot;&gt;
@@ -182,15 +238,30 @@ the <code>&lt;message&gt;</code> element.</p>
 &lt;/mail&gt;
 </pre></blockquote>
 
-<p>Sends an eMail from <i>me@myisp.com</i> to <i>all@xyz.com</i> with a subject of
-<i>Test Build</i> and attaches any zip files from the dist directory.&nbsp; The
+<p>Sends an eMail from <i>config@myisp.com</i> to <i>all@xyz.com</i> with a subject of
+<i>Test Build</i>. Replies to this email will go to <i>me@myisp.com</i>.
+Any zip files from the dist directory are attached.&nbsp; The
 task will attempt to use JavaMail and fall back to UU encoding or no encoding in
 that order depending on what support classes are available. <code>${buildname}</code>
 will be replaced with the <code>buildname</code> property's value.</p>
+
+<blockquote><pre>
+&lt;property name=&quot;line2&quot; value=&quot;some_international_message&quot;/&gt;
+&lt;echo message=&quot;${line2}&quot;/&gt;
+
+&lt;mail mailhost=&quot;somehost@xyz.com&quot; mailport=&quot;25&quot; subject=&quot;Test build&quot;  charset=&quot;utf-8&quot;&gt;
+  &lt;from address=&quot;me@myist.com&quot;/&gt;
+  &lt;to address=&quot;all@xyz.com&quot; /&gt;
+  &lt;message&gt;some international text:${line2}&lt;/message&gt;
+&lt;/mail&gt;
+</pre></blockquote>
+
+<p>Sends an eMail from <i>me@myisp.com</i> to <i>all@xyz.com</i> with a subject of
+<i>Test Build</i>, the message body being coded in UTF-8
+
 <hr>
-<p align="center">Copyright &copy; 2000-2003 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>
 </html>
-

@@ -1,83 +1,44 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Vector;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.PatternSet;
+import org.apache.tools.ant.types.selectors.SelectorUtils;
 import org.apache.tools.ant.util.FileUtils;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.IOException;
-import java.util.Date;
-import java.util.Vector;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipEntry;
+import org.apache.tools.zip.ZipEntry;
+import org.apache.tools.zip.ZipFile;
 
 /**
  * Unzip a file.
  *
- * @author costin@dnt.ro
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author Magesh Umasankar
  *
  * @since Ant 1.1
  *
@@ -93,13 +54,17 @@ public class Expand extends Task {
     private Vector patternsets = new Vector();
     private Vector filesets = new Vector();
 
+    private static final String NATIVE_ENCODING = "native-encoding";
+
+    private String encoding = "UTF8";
+
     /**
      * Do the work.
      *
      * @exception BuildException Thrown in unrecoverable error.
      */
     public void execute() throws BuildException {
-        if ("expand".equals(taskType)) {
+        if ("expand".equals(getTaskType())) {
             log("!! expand is deprecated. Use unzip instead. !!");
         }
 
@@ -114,15 +79,15 @@ public class Expand extends Task {
         }
 
         if (dest.exists() && !dest.isDirectory()) {
-            throw new BuildException("Dest must be a directory.", location);
+            throw new BuildException("Dest must be a directory.", getLocation());
         }
 
         FileUtils fileUtils = FileUtils.newFileUtils();
 
         if (source != null) {
             if (source.isDirectory()) {
-                throw new BuildException("Src must not be a directory." +
-                    " Use nested filesets instead.", location);
+                throw new BuildException("Src must not be a directory."
+                    + " Use nested filesets instead.", getLocation());
             } else {
                 expandFile(fileUtils, source, dest);
             }
@@ -147,14 +112,13 @@ public class Expand extends Task {
      */
     protected void expandFile(FileUtils fileUtils, File srcF, File dir) {
         log("Expanding: " + srcF + " into " + dir, Project.MSG_INFO);
-        ZipInputStream zis = null;
+        ZipFile zf = null;
         try {
-            // code from WarExpand
-            zis = new ZipInputStream(new FileInputStream(srcF));
-            ZipEntry ze = null;
-
-            while ((ze = zis.getNextEntry()) != null) {
-                extractFile(fileUtils, srcF, dir, zis,
+            zf = new ZipFile(srcF, encoding);
+            Enumeration e = zf.getEntries();
+            while (e.hasMoreElements()) {
+                ZipEntry ze = (ZipEntry) e.nextElement();
+                extractFile(fileUtils, srcF, dir, zf.getInputStream(ze),
                             ze.getName(), new Date(ze.getTime()),
                             ze.isDirectory());
             }
@@ -164,10 +128,12 @@ public class Expand extends Task {
             throw new BuildException("Error while expanding " + srcF.getPath(),
                                      ioe);
         } finally {
-            if (zis != null) {
+            if (zf != null) {
                 try {
-                    zis.close();
-                } catch (IOException e) {}
+                    zf.close();
+                } catch (IOException e) {
+                    //ignore
+                }
             }
         }
     }
@@ -179,7 +145,8 @@ public class Expand extends Task {
                                throws IOException {
 
         if (patternsets != null && patternsets.size() > 0) {
-            String name = entryName;
+            String name = entryName.replace('/', File.separatorChar)
+                .replace('\\', File.separatorChar);
             boolean included = false;
             for (int v = 0; v < patternsets.size(); v++) {
                 PatternSet p = (PatternSet) patternsets.elementAt(v);
@@ -188,23 +155,35 @@ public class Expand extends Task {
                     // no include pattern implicitly means includes="**"
                     incls = new String[] {"**"};
                 }
-                    
+
                 for (int w = 0; w < incls.length; w++) {
-                    included = DirectoryScanner.match(incls[w], name);
+                    String pattern = incls[w].replace('/', File.separatorChar)
+                        .replace('\\', File.separatorChar);
+                    if (pattern.endsWith(File.separator)) {
+                        pattern += "**";
+                    }
+
+                    included = SelectorUtils.matchPath(pattern, name);
                     if (included) {
                         break;
                     }
                 }
-                
+
                 if (!included) {
                     break;
                 }
-                
+
 
                 String[] excls = p.getExcludePatterns(getProject());
                 if (excls != null) {
                     for (int w = 0; w < excls.length; w++) {
-                        included = !(DirectoryScanner.match(excls[w], name));
+                        String pattern = excls[w]
+                            .replace('/', File.separatorChar)
+                            .replace('\\', File.separatorChar);
+                        if (pattern.endsWith(File.separator)) {
+                            pattern += "**";
+                        }
+                        included = !(SelectorUtils.matchPath(pattern, name));
                         if (!included) {
                             break;
                         }
@@ -216,7 +195,6 @@ public class Expand extends Task {
                 return;
             }
         }
-
         File f = fileUtils.resolveFile(dir, entryName);
         try {
             if (!overwrite && f.exists()
@@ -230,7 +208,7 @@ public class Expand extends Task {
                 Project.MSG_VERBOSE);
             // create intermediary directories - sometimes zip don't add them
             File dirF = fileUtils.getParentFile(f);
-            if ( dirF != null ) {
+            if (dirF != null) {
                 dirF.mkdirs();
             }
 
@@ -254,7 +232,9 @@ public class Expand extends Task {
                     if (fos != null) {
                         try {
                             fos.close();
-                        } catch (IOException e) {}
+                        } catch (IOException e) {
+                            // ignore
+                        }
                     }
                 }
             }
@@ -305,6 +285,21 @@ public class Expand extends Task {
      */
     public void addFileset(FileSet set) {
         filesets.addElement(set);
+    }
+
+    /**
+     * Sets the encoding to assume for file names and comments.
+     *
+     * <p>Set to <code>native-encoding</code> if you want your
+     * platform's native encoding, defaults to UTF8.</p>
+     *
+     * @since Ant 1.6
+     */
+    public void setEncoding(String encoding) {
+        if (NATIVE_ENCODING.equals(encoding)) {
+            encoding = null;
+        }
+        this.encoding = encoding;
     }
 
 }

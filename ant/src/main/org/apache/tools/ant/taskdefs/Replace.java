@@ -1,98 +1,57 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.Enumeration;
+import java.util.Properties;
+import java.util.Vector;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.StringUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.io.Writer;
-import java.io.FileWriter;
-import java.io.OutputStreamWriter;
-import java.io.FileOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.util.Enumeration;
-import java.util.Properties;
-import java.util.Vector;
-
 /**
  * Replaces all occurrences of one or more string tokens with given
- * values in the indicated files. Each value can be either a string 
+ * values in the indicated files. Each value can be either a string
  * or the value of a property available in a designated property file.
  * If you want to replace a text that crosses line boundaries, you
  * must use a nested <code>&lt;replacetoken&gt;</code> element.
- * @author Stefano Mazzocchi 
- *         <a href="mailto:stefano@apache.org">stefano@apache.org</a>
- * @author <a href="mailto:erik@desknetinc.com">Erik Langenbach</a>
  *
  * @since Ant 1.1
  *
  * @ant.task category="filesystem"
  */
 public class Replace extends MatchingTask {
-    
+
     private File src = null;
     private NestedString token = null;
     private NestedString value = new NestedString();
@@ -105,12 +64,12 @@ public class Replace extends MatchingTask {
     private File dir = null;
 
     private int fileCount;
-    private int replaceCount;    
+    private int replaceCount;
     private boolean summary = false;
-    
+
     /** The encoding used to read and write files - if null, uses default */
     private String encoding = null;
-    
+
     private FileUtils fileUtils = FileUtils.newFileUtils();
 
     /**
@@ -120,12 +79,20 @@ public class Replace extends MatchingTask {
 
         private StringBuffer buf = new StringBuffer();
 
+        /**
+         * the text of the element
+         *
+         * @param val the string to add
+         */
         public void addText(String val) {
             buf.append(val);
         }
 
+        /**
+         * @return the text
+         */
         public String getText() {
-            return buf.toString();
+            return buf.substring(0);
         }
     }
 
@@ -144,7 +111,7 @@ public class Replace extends MatchingTask {
         public void validate() throws BuildException {
             //Validate mandatory attributes
             if (token == null) {
-                String message = "token is a mandatory attribute " 
+                String message = "token is a mandatory attribute "
                     + "of replacefilter.";
                 throw new BuildException(message);
             }
@@ -157,8 +124,8 @@ public class Replace extends MatchingTask {
 
             //value and property are mutually exclusive attributes
             if ((value != null) && (property != null)) {
-                String message = "Either value or property " 
-                    + "can be specified, but a replacefilter " 
+                String message = "Either value or property "
+                    + "can be specified, but a replacefilter "
                     + "element cannot have both.";
                 throw new BuildException(message);
             }
@@ -173,9 +140,9 @@ public class Replace extends MatchingTask {
                 }
 
                 //Make sure property exists in property file
-                if (properties == null ||
-                    properties.getProperty(property) == null) {
-                    String message = "property \"" + property 
+                if (properties == null
+                    || properties.getProperty(property) == null) {
+                    String message = "property \"" + property
                         + "\" was not found in " + propertyFile.getPath();
                     throw new BuildException(message);
                 }
@@ -184,6 +151,7 @@ public class Replace extends MatchingTask {
 
         /**
          * Get the replacement value for this filter token.
+         * @return the replacement value
          */
         public String getReplaceValue() {
             if (property != null) {
@@ -257,56 +225,56 @@ public class Replace extends MatchingTask {
     public void execute() throws BuildException {
 
         Vector savedFilters = (Vector) replacefilters.clone();
-        Properties savedProperties = 
+        Properties savedProperties =
             properties == null ? null : (Properties) properties.clone();
 
         try {
             if (replaceFilterFile != null) {
                 Properties props = getProperties(replaceFilterFile);
-                Enumeration enum = props.keys();
-                while (enum.hasMoreElements()){
-                    String token =  enum.nextElement().toString();
+                Enumeration e = props.keys();
+                while (e.hasMoreElements()) {
+                    String token =  e.nextElement().toString();
                     Replacefilter replaceFilter = createReplacefilter();
                     replaceFilter.setToken(token);
                     replaceFilter.setValue(props.getProperty(token));
                 }
             }
-            
+
             validateAttributes();
-            
+
             if (propertyFile != null) {
                 properties = getProperties(propertyFile);
             }
-            
+
             validateReplacefilters();
             fileCount = 0;
             replaceCount = 0;
-            
+
             if (src != null) {
                 processFile(src);
             }
-            
+
             if (dir != null) {
                 DirectoryScanner ds = super.getDirectoryScanner(dir);
                 String[] srcs = ds.getIncludedFiles();
-                
+
                 for (int i = 0; i < srcs.length; i++) {
                     File file = new File(dir, srcs[i]);
                     processFile(file);
                 }
             }
-            
+
             if (summary) {
-                log("Replaced " + replaceCount + " occurrences in " 
+                log("Replaced " + replaceCount + " occurrences in "
                     + fileCount + " files.", Project.MSG_INFO);
             }
         } finally {
             replacefilters = savedFilters;
             properties = savedProperties;
         } // end of finally
-        
+
     }
-    
+
     /**
      * Validate attributes provided for this task in .xml build file.
      *
@@ -315,12 +283,12 @@ public class Replace extends MatchingTask {
      */
     public void validateAttributes() throws BuildException {
         if (src == null && dir == null) {
-            String message = "Either the file or the dir attribute " 
+            String message = "Either the file or the dir attribute "
                 + "must be specified";
             throw new BuildException(message, getLocation());
         }
         if (propertyFile != null && !propertyFile.exists()) {
-            String message = "Property file " + propertyFile.getPath() 
+            String message = "Property file " + propertyFile.getPath()
                 + " does not exist.";
             throw new BuildException(message, getLocation());
         }
@@ -344,7 +312,7 @@ public class Replace extends MatchingTask {
     public void validateReplacefilters()
             throws BuildException {
         for (int i = 0; i < replacefilters.size(); i++) {
-            Replacefilter element = 
+            Replacefilter element =
                 (Replacefilter) replacefilters.elementAt(i);
             element.validate();
         }
@@ -353,7 +321,7 @@ public class Replace extends MatchingTask {
     /**
      * helper method to load a properties file and throw a build exception
      * if it cannot be loaded
-     * @param propertyFile
+     * @param propertyFile the file to load the properties from
      * @return loaded properties collection
      * @throws BuildException if the file could not be found or read
      */
@@ -363,11 +331,11 @@ public class Replace extends MatchingTask {
         try {
             properties.load(new FileInputStream(propertyFile));
         } catch (FileNotFoundException e) {
-            String message = "Property file (" + propertyFile.getPath() 
+            String message = "Property file (" + propertyFile.getPath()
                 + ") not found.";
             throw new BuildException(message);
         } catch (IOException e) {
-            String message = "Property file (" + propertyFile.getPath() 
+            String message = "Property file (" + propertyFile.getPath()
                 + ") cannot be loaded.";
             throw new BuildException(message);
         }
@@ -385,12 +353,13 @@ public class Replace extends MatchingTask {
      */
     private void processFile(File src) throws BuildException {
         if (!src.exists()) {
-            throw new BuildException("Replace: source file " + src.getPath() 
+            throw new BuildException("Replace: source file " + src.getPath()
                                      + " doesn't exist", getLocation());
         }
 
-        File temp = fileUtils.createTempFile("rep", ".tmp", 
+        File temp = fileUtils.createTempFile("rep", ".tmp",
                                              fileUtils.getParentFile(src));
+        temp.deleteOnExit();
 
         Reader reader = null;
         Writer writer = null;
@@ -399,28 +368,14 @@ public class Replace extends MatchingTask {
                 : new InputStreamReader(new FileInputStream(src), encoding);
             writer = encoding == null ? new FileWriter(temp)
                 : new OutputStreamWriter(new FileOutputStream(temp), encoding);
-            
+
             BufferedReader br = new BufferedReader(reader);
             BufferedWriter bw = new BufferedWriter(writer);
 
-            // read the entire file into a StringBuffer
-            //   size of work buffer may be bigger than needed
-            //   when multibyte characters exist in the source file
-            //   but then again, it might be smaller than needed on
-            //   platforms like Windows where length can't be trusted
-            int fileLengthInBytes = (int) src.length();
-            StringBuffer tmpBuf = new StringBuffer(fileLengthInBytes);
-            int readChar = 0;
-            int totread = 0;
-            while (true) {
-                readChar = br.read();
-                if (readChar < 0) { break; }
-                tmpBuf.append((char) readChar);
-                totread++;
+            String buf = fileUtils.readFully(br);
+            if (buf == null) {
+                buf = "";
             }
-
-            // create a String so we can use indexOf
-            String buf = tmpBuf.toString();
 
             //Preserve original string (buf) so we can compare the result
             String newString = new String(buf);
@@ -429,13 +384,17 @@ public class Replace extends MatchingTask {
                 // line separators in values and tokens are "\n"
                 // in order to compare with the file contents, replace them
                 // as needed
-                String val = stringReplace(value.getText(), "\n",
+                String val = stringReplace(value.getText(), "\r\n",
+                                           "\n", false);
+                val = stringReplace(val, "\n",
                                            StringUtils.LINE_SEP, false);
-                String tok = stringReplace(token.getText(), "\n",
+                String tok = stringReplace(token.getText(), "\r\n",
+                                            "\n", false);
+                tok = stringReplace(tok, "\n",
                                            StringUtils.LINE_SEP, false);
-                
+
                 // for each found token, replace with value
-                log("Replacing in " + src.getPath() + ": " + token.getText() 
+                log("Replacing in " + src.getPath() + ": " + token.getText()
                     + " --> " + value.getText(), Project.MSG_VERBOSE);
                 newString = stringReplace(newString, tok, val, true);
             }
@@ -460,36 +419,33 @@ public class Replace extends MatchingTask {
             // otherwise, delete the new one
             if (changes) {
                 ++fileCount;
-                if (!src.delete()) {
-                    throw new BuildException("Couldn't delete " + src,
-                                             getLocation());
-                }
-                if (!temp.renameTo(src)) {
-                    throw new BuildException("Couldn't rename temporary file " 
-                                             + temp, getLocation());
-                }
+                fileUtils.rename(temp, src);
                 temp = null;
             }
         } catch (IOException ioe) {
-            throw new BuildException("IOException in " + src + " - " + 
-                                     ioe.getClass().getName() + ":" 
-                                     + ioe.getMessage(), ioe, getLocation());
+            throw new BuildException("IOException in " + src + " - "
+                                    + ioe.getClass().getName() + ":"
+                                    + ioe.getMessage(), ioe, getLocation());
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                    // ignore
+                }
             }
             if (writer != null) {
                 try {
                     writer.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                    // ignore
+                }
             }
             if (temp != null) {
                 temp.delete();
             }
         }
-        
+
     }
 
     /**
@@ -505,9 +461,9 @@ public class Replace extends MatchingTask {
             Replacefilter filter = (Replacefilter) replacefilters.elementAt(i);
 
             //for each found token, replace with value
-            log("Replacing in " + filename + ": " + filter.getToken() 
+            log("Replacing in " + filename + ": " + filter.getToken()
                 + " --> " + filter.getReplaceValue(), Project.MSG_VERBOSE);
-            newString = stringReplace(newString, filter.getToken(), 
+            newString = stringReplace(newString, filter.getToken(),
                                       filter.getReplaceValue(), true);
         }
 
@@ -534,8 +490,8 @@ public class Replace extends MatchingTask {
     public void setSummary(boolean summary) {
         this.summary = summary;
     }
-    
-    
+
+
     /**
      * Sets the name of a property file containing filters; optional.
      * Each property will be treated as a
@@ -585,7 +541,7 @@ public class Replace extends MatchingTask {
     public void setEncoding(String encoding) {
         this.encoding = encoding;
     }
-    
+
     /**
      * the token to filter as the text of a nested element
      * @return nested token to configure
@@ -618,6 +574,7 @@ public class Replace extends MatchingTask {
 
     /**
      * Add a nested &lt;replacefilter&gt; element.
+     * @return a nested ReplaceFilter object to be configured
      */
     public Replacefilter createReplacefilter() {
         Replacefilter filter = new Replacefilter();
@@ -627,7 +584,7 @@ public class Replace extends MatchingTask {
 
     /**
      * Replace occurrences of str1 in string str with str2
-     */    
+     */
     private String stringReplace(String str, String str1, String str2,
                                  boolean countReplaces) {
         StringBuffer ret = new StringBuffer();

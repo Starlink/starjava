@@ -1,70 +1,32 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.io.StringReader;
-import java.io.BufferedReader;
-
-import java.util.Vector;
-import java.util.Hashtable;
+import java.io.StringWriter;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.Vector;
 import netrexx.lang.Rexx;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -123,7 +85,6 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  * <li>The directory the source is in (see sourcedir option)
  * </ol>
  *
- * @author dIon Gillard <a href="mailto:dion@multitask.com.au">dion@multitask.com.au</a>
  */
 public class NetRexxC extends MatchingTask {
 
@@ -140,7 +101,6 @@ public class NetRexxC extends MatchingTask {
     private boolean diag;
     private boolean explicit;
     private boolean format;
-    private boolean java;
     private boolean keep;
     private boolean logo = true;
     private boolean replace;
@@ -165,17 +125,19 @@ public class NetRexxC extends MatchingTask {
     private boolean suppressDeprecation = false;
 
     // constants for the messages to suppress by flags and their corresponding properties
-    static final String MSG_METHOD_ARGUMENT_NOT_USED = "Warning: Method argument is not used";
-    static final String MSG_PRIVATE_PROPERTY_NOT_USED = "Warning: Private property is defined but not used";
-    static final String MSG_VARIABLE_NOT_USED = "Warning: Variable is set but not used";
-    static final String MSG_EXCEPTION_NOT_SIGNALLED = "is in SIGNALS list but is not signalled within the method";
+    static final String MSG_METHOD_ARGUMENT_NOT_USED
+        = "Warning: Method argument is not used";
+    static final String MSG_PRIVATE_PROPERTY_NOT_USED
+        = "Warning: Private property is defined but not used";
+    static final String MSG_VARIABLE_NOT_USED
+        = "Warning: Variable is set but not used";
+    static final String MSG_EXCEPTION_NOT_SIGNALLED
+        = "is in SIGNALS list but is not signalled within the method";
     static final String MSG_DEPRECATION = "has been deprecated";
 
     // other implementation variables
     private Vector compileList = new Vector();
     private Hashtable filecopyList = new Hashtable();
-    private String oldClasspath = System.getProperty("java.class.path");
-
 
     /**
      * Set whether literals are treated as binary, rather than NetRexx types
@@ -294,7 +256,7 @@ public class NetRexxC extends MatchingTask {
      * false.
      */
     public void setJava(boolean java) {
-        this.java = java;
+        log("The attribute java is currently unused.", Project.MSG_WARN);
     }
 
 
@@ -531,107 +493,103 @@ public class NetRexxC extends MatchingTask {
      * with arguments like -Dant.netrexxc.verbose=verbose5 one can easily take
      * control of all netrexxc-tasks.
      */
-    // Sorry for the formatting, but that way it's easier to keep in sync with the private properties (line by line).
     public void init() {
         String p;
 
-        if ((p = project.getProperty("ant.netrexxc.binary")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.binary")) != null) {
             this.binary = Project.toBoolean(p);
         }
         // classpath makes no sense
-        if ((p = project.getProperty("ant.netrexxc.comments")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.comments")) != null) {
             this.comments = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.compact")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.compact")) != null) {
             this.compact = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.compile")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.compile")) != null) {
             this.compile = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.console")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.console")) != null) {
             this.console = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.crossref")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.crossref")) != null) {
             this.crossref = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.decimal")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.decimal")) != null) {
             this.decimal = Project.toBoolean(p);
             // destDir
         }
-        if ((p = project.getProperty("ant.netrexxc.diag")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.diag")) != null) {
             this.diag = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.explicit")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.explicit")) != null) {
             this.explicit = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.format")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.format")) != null) {
             this.format = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.java")) != null) {
-            this.java = Project.toBoolean(p);
-        }
-        if ((p = project.getProperty("ant.netrexxc.keep")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.keep")) != null) {
             this.keep = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.logo")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.logo")) != null) {
             this.logo = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.replace")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.replace")) != null) {
             this.replace = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.savelog")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.savelog")) != null) {
             this.savelog = Project.toBoolean(p);
             // srcDir
         }
-        if ((p = project.getProperty("ant.netrexxc.sourcedir")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.sourcedir")) != null) {
             this.sourcedir = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.strictargs")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.strictargs")) != null) {
             this.strictargs = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.strictassign")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.strictassign")) != null) {
             this.strictassign = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.strictcase")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.strictcase")) != null) {
             this.strictcase = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.strictimport")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.strictimport")) != null) {
             this.strictimport = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.strictprops")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.strictprops")) != null) {
             this.strictprops = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.strictsignal")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.strictsignal")) != null) {
             this.strictsignal = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.symbols")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.symbols")) != null) {
             this.symbols = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.time")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.time")) != null) {
             this.time = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.trace")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.trace")) != null) {
             setTrace(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.utf8")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.utf8")) != null) {
             this.utf8 = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.verbose")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.verbose")) != null) {
             setVerbose(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.suppressMethodArgumentNotUsed")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.suppressMethodArgumentNotUsed")) != null) {
             this.suppressMethodArgumentNotUsed = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.suppressPrivatePropertyNotUsed")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.suppressPrivatePropertyNotUsed")) != null) {
             this.suppressPrivatePropertyNotUsed = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.suppressVariableNotUsed")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.suppressVariableNotUsed")) != null) {
             this.suppressVariableNotUsed = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.suppressExceptionNotSignalled")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.suppressExceptionNotSignalled")) != null) {
             this.suppressExceptionNotSignalled = Project.toBoolean(p);
         }
-        if ((p = project.getProperty("ant.netrexxc.suppressDeprecation")) != null) {
+        if ((p = getProject().getProperty("ant.netrexxc.suppressDeprecation")) != null) {
             this.suppressDeprecation = Project.toBoolean(p);
         }
     }
@@ -705,14 +663,14 @@ public class NetRexxC extends MatchingTask {
                  + (filecopyList.size() == 1 ? "" : "s")
                  + " to " + destDir.getAbsolutePath());
 
-            Enumeration enum = filecopyList.keys();
+            Enumeration e = filecopyList.keys();
 
-            while (enum.hasMoreElements()) {
-                String fromFile = (String) enum.nextElement();
+            while (e.hasMoreElements()) {
+                String fromFile = (String) e.nextElement();
                 String toFile = (String) filecopyList.get(fromFile);
 
                 try {
-                    project.copyFile(fromFile, toFile);
+                    getProject().copyFile(fromFile, toFile);
                 } catch (IOException ioe) {
                     String msg = "Failed to copy " + fromFile + " to " + toFile
                          + " due to " + ioe.getMessage();
@@ -724,13 +682,12 @@ public class NetRexxC extends MatchingTask {
     }
 
 
-    /** Peforms a copmile using the NetRexx 1.1.x compiler  */
+    /** Performs a compile using the NetRexx 1.1.x compiler  */
     private void doNetRexxCompile() throws BuildException {
         log("Using NetRexx compiler", Project.MSG_VERBOSE);
 
         String classpath = getCompileClasspath();
         StringBuffer compileOptions = new StringBuffer();
-        StringBuffer fileList = new StringBuffer();
 
         // create an array of strings for input to the compiler: one array
         // comes from the compile options, the other from the compileList
@@ -744,7 +701,7 @@ public class NetRexxC extends MatchingTask {
             j++;
         }
         // create a single array of arguments for the compiler
-        String compileArgs[] = new String[compileOptionsArray.length + fileListArray.length];
+        String[] compileArgs = new String[compileOptionsArray.length + fileListArray.length];
 
         for (int i = 0; i < compileOptionsArray.length; i++) {
             compileArgs[i] = compileOptionsArray[i];
@@ -790,38 +747,48 @@ public class NetRexxC extends MatchingTask {
             String l;
             BufferedReader in = new BufferedReader(new StringReader(out.toString()));
 
-            log("replacing destdir '" + ddir + "' through sourcedir '" + sdir + "'", Project.MSG_VERBOSE);
+            log("replacing destdir '" + ddir + "' through sourcedir '"
+                + sdir + "'", Project.MSG_VERBOSE);
             while ((l = in.readLine()) != null) {
                 int idx;
 
-                while (doReplace && ((idx = l.indexOf(ddir)) != -1)) {// path is mentioned in the message
+                while (doReplace && ((idx = l.indexOf(ddir)) != -1)) {
+                    // path is mentioned in the message
                     l = (new StringBuffer(l)).replace(idx, idx + dlen, sdir).toString();
                 }
                 // verbose level logging for suppressed messages
-                if (suppressMethodArgumentNotUsed && l.indexOf(MSG_METHOD_ARGUMENT_NOT_USED) != -1) {
+                if (suppressMethodArgumentNotUsed
+                    && l.indexOf(MSG_METHOD_ARGUMENT_NOT_USED) != -1) {
                     log(l, Project.MSG_VERBOSE);
-                } else if (suppressPrivatePropertyNotUsed && l.indexOf(MSG_PRIVATE_PROPERTY_NOT_USED) != -1) {
+                } else if (suppressPrivatePropertyNotUsed
+                    && l.indexOf(MSG_PRIVATE_PROPERTY_NOT_USED) != -1) {
                     log(l, Project.MSG_VERBOSE);
-                } else if (suppressVariableNotUsed && l.indexOf(MSG_VARIABLE_NOT_USED) != -1) {
+                } else if (suppressVariableNotUsed
+                    && l.indexOf(MSG_VARIABLE_NOT_USED) != -1) {
                     log(l, Project.MSG_VERBOSE);
-                } else if (suppressExceptionNotSignalled && l.indexOf(MSG_EXCEPTION_NOT_SIGNALLED) != -1) {
+                } else if (suppressExceptionNotSignalled
+                    && l.indexOf(MSG_EXCEPTION_NOT_SIGNALLED) != -1) {
                     log(l, Project.MSG_VERBOSE);
-                } else if (suppressDeprecation && l.indexOf(MSG_DEPRECATION) != -1) {
+                } else if (suppressDeprecation
+                    && l.indexOf(MSG_DEPRECATION) != -1) {
                     log(l, Project.MSG_VERBOSE);
-                } else if (l.indexOf("Error:") != -1) {// error level logging for compiler errors
+                } else if (l.indexOf("Error:") != -1) {
+                    // error level logging for compiler errors
                     log(l, Project.MSG_ERR);
-                } else if (l.indexOf("Warning:") != -1) {// warning for all warning messages
+                } else if (l.indexOf("Warning:") != -1) {
+                    // warning for all warning messages
                     log(l, Project.MSG_WARN);
                 } else {
-                    log(l, Project.MSG_INFO);// info level for the rest.
+                    log(l, Project.MSG_INFO); // info level for the rest.
                 }
             }
             if (rc > 1) {
-                throw new BuildException("Compile failed, messages should have been provided.");
+                throw new BuildException("Compile failed, messages should "
+                    + "have been provided.");
             }
         } catch (IOException ioe) {
-            throw new BuildException("Unexpected IOException while playing with Strings",
-                ioe);
+            throw new BuildException("Unexpected IOException while "
+                + "playing with Strings", ioe);
         } finally {
             // need to reset java.class.path property
             // since the NetRexx compiler has no option for the classpath
@@ -904,14 +871,14 @@ public class NetRexxC extends MatchingTask {
             System.getProperty("path.separator"), false);
 
         while (tok.hasMoreTokens()) {
-            File f = project.resolveFile(tok.nextToken());
+            File f = getProject().resolveFile(tok.nextToken());
 
             if (f.exists()) {
                 target.append(File.pathSeparator);
                 target.append(f.getAbsolutePath());
             } else {
-                log("Dropping from classpath: " +
-                    f.getAbsolutePath(), Project.MSG_VERBOSE);
+                log("Dropping from classpath: "
+                    + f.getAbsolutePath(), Project.MSG_VERBOSE);
             }
         }
 

@@ -1,61 +1,25 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.util;
 
 import java.text.ChoiceFormat;
 import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -67,12 +31,10 @@ import java.util.TimeZone;
  * defined format (<a href="http://www.w3.org/TR/NOTE-datetime">ISO8601</a>)
  * or a plurialization correct elapsed time in minutes and seconds.
  *
- * @author <a href="mailto:sbailliez@apache.org">Stephane Bailliez</a>
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
  *
  * @since Ant 1.5
- * 
- * @version $Revision: 1.5.2.2 $
+ *
+ * @version $Revision: 1.11.2.4 $
  */
 public final class DateUtils {
 
@@ -108,11 +70,9 @@ public final class DateUtils {
 
     private static final double[] LIMITS = {0, 1, 2};
 
-    private static final String[] MINUTES_PART =
-            {"", "1 minute ", "{0,number} minutes "};
+    private static final String[] MINUTES_PART = {"", "1 minute ", "{0,number} minutes "};
 
-    private static final String[] SECONDS_PART =
-            {"0 seconds", "1 second", "{1,number} seconds"};
+    private static final String[] SECONDS_PART = {"0 seconds", "1 second", "{1,number} seconds"};
 
     private static final ChoiceFormat MINUTES_FORMAT =
             new ChoiceFormat(LIMITS, MINUTES_PART);
@@ -162,7 +122,7 @@ public final class DateUtils {
      * <li>seconds are always displayed in plural form (ie "0 seconds" or
      * "10 seconds") except for 1 (ie "1 second")</li>
      * </ul>
-     * @param time the elapsed time to report in milliseconds.
+     * @param millis the elapsed time to report in milliseconds.
      * @return the formatted text in minutes/seconds.
      */
     public static String formatElapsedTime(long millis) {
@@ -236,7 +196,7 @@ public final class DateUtils {
     public static String getDateForHeader() {
         Calendar cal = Calendar.getInstance();
         TimeZone tz = cal.getTimeZone();
-        int offset = tz.getOffset(cal.get(Calendar.ERA), 
+        int offset = tz.getOffset(cal.get(Calendar.ERA),
                                   cal.get(Calendar.YEAR),
                                   cal.get(Calendar.MONTH),
                                   cal.get(Calendar.DAY_OF_MONTH),
@@ -255,5 +215,56 @@ public final class DateUtils {
         }
         tzMarker.append(minutes);
         return DATE_HEADER_FORMAT.format(cal.getTime()) + tzMarker.toString();
+    }
+
+    /**
+     * Parse a string as a datetime using the ISO8601_DATETIME format which is
+     * <code>yyyy-MM-dd'T'HH:mm:ss</code>
+     *
+     * @param datestr string to be parsed
+     *
+     * @return a java.util.Date object as parsed by the format.
+     * @exception ParseException if the supplied string cannot be parsed by
+     * this pattern.
+     * @since Ant 1.6
+     */
+    public static Date parseIso8601DateTime(String datestr)
+        throws ParseException {
+        return new SimpleDateFormat(ISO8601_DATETIME_PATTERN).parse(datestr);
+    }
+
+    /**
+     * Parse a string as a date using the ISO8601_DATE format which is
+     * <code>yyyy-MM-dd</code>
+     *
+     * @param datestr string to be parsed
+     *
+     * @return a java.util.Date object as parsed by the format.
+     * @exception ParseException if the supplied string cannot be parsed by
+     * this pattern.
+     * @since Ant 1.6
+     */
+    public static Date parseIso8601Date(String datestr) throws ParseException {
+        return new SimpleDateFormat(ISO8601_DATE_PATTERN).parse(datestr);
+    }
+
+    /**
+     * Parse a string as a date using the either the ISO8601_DATETIME
+     * or ISO8601_DATE formats.
+     *
+     * @param datestr string to be parsed
+     *
+     * @return a java.util.Date object as parsed by the formats.
+     * @exception ParseException if the supplied string cannot be parsed by
+     * either of these patterns.
+     * @since Ant 1.6
+     */
+    public static Date parseIso8601DateTimeOrDate(String datestr)
+        throws ParseException {
+        try {
+            return parseIso8601DateTime(datestr);
+        } catch (ParseException px) {
+            return parseIso8601Date(datestr);
+        }
     }
 }

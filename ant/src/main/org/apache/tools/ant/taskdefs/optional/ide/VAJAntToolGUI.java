@@ -1,99 +1,60 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.ide;
 
 
-import java.util.Vector;
-import java.awt.Frame;
-import java.awt.Dialog;
-import java.awt.Panel;
-import java.awt.MenuBar;
-import java.awt.Menu;
-import java.awt.MenuItem;
-import java.awt.Label;
-import java.awt.TextField;
-import java.awt.TextArea;
-import java.awt.List;
-import java.awt.Choice;
+import java.awt.BorderLayout;
 import java.awt.Button;
+import java.awt.Choice;
+import java.awt.Dialog;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
-import java.awt.BorderLayout;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.Toolkit;
 import java.awt.Font;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Label;
+import java.awt.List;
+import java.awt.Menu;
+import java.awt.MenuBar;
+import java.awt.MenuItem;
+import java.awt.Panel;
 import java.awt.SystemColor;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemListener;
-import java.awt.event.TextListener;
-import java.awt.event.WindowListener;
+import java.awt.TextArea;
+import java.awt.TextField;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.TextEvent;
+import java.awt.event.TextListener;
 import java.awt.event.WindowEvent;
-
+import java.awt.event.WindowListener;
 import java.beans.PropertyChangeListener;
-
+import java.util.Vector;
+import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.BuildListener;
-import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.util.StringUtils;
 import org.apache.tools.ant.util.DateUtils;
+import org.apache.tools.ant.util.StringUtils;
 
 /**
  * This is a simple grafical user interface to provide the information needed
@@ -108,7 +69,6 @@ import org.apache.tools.ant.util.DateUtils;
  * but in fact I did a lot of <i>code-beautification</i> ;-).
  * <p>
  * @version 1.0 h
- * @author Christoph Wilhelms, TUI Infotec GmbH
  */
 public class VAJAntToolGUI extends Frame {
     /**
@@ -135,7 +95,6 @@ public class VAJAntToolGUI extends Frame {
     private Panel iContentsPane = null;
     private Panel iOptionenPanel = null;
     private Panel iCommandButtonPanel = null;
-    private FlowLayout iCommandButtonPanelFlowLayout = null;
     // Project name
     private Label iProjectLabel = null;
     private Label iProjectText = null;
@@ -196,7 +155,7 @@ public class VAJAntToolGUI extends Frame {
 
         /**
          *  Fired after the last target has finished. This event
-         *  will still be thrown if an error occured during the build.
+         *  will still be thrown if an error occurred during the build.
          *
          *  @see BuildEvent#getException()
          */
@@ -213,7 +172,7 @@ public class VAJAntToolGUI extends Frame {
                 logException(error);
             }
 
-            getMessageTextArea().append(lineSeparator + "Total time: " 
+            getMessageTextArea().append(lineSeparator + "Total time: "
                 + DateUtils.formatElapsedTime(System.currentTimeMillis() - startTime));
         }
 
@@ -266,7 +225,7 @@ public class VAJAntToolGUI extends Frame {
 
         /**
          *  Fired when a target has finished. This event will
-         *  still be thrown if an error occured during the build.
+         *  still be thrown if an error occurred during the build.
          *
          *  @see BuildEvent#getException()
          */
@@ -286,7 +245,7 @@ public class VAJAntToolGUI extends Frame {
 
         /**
          *  Fired when a task has finished. This event will still
-         *  be throw if an error occured during the build.
+         *  be throw if an error occurred during the build.
          *
          *  @see BuildEvent#getException()
          */
@@ -305,7 +264,9 @@ public class VAJAntToolGUI extends Frame {
     /**
      * Eventhandler to handle all AWT-events
      */
-    private class PrivateEventHandler implements ActionListener, ItemListener, TextListener, WindowListener, PropertyChangeListener {
+    private class PrivateEventHandler
+        implements ActionListener, ItemListener, TextListener,
+                   WindowListener, PropertyChangeListener {
         /**
          * ActionListener method
          */
@@ -318,7 +279,8 @@ public class VAJAntToolGUI extends Frame {
                     getFileDialog().setFile("*.xml");
                     getFileDialog().show();
                     if (!getFileDialog().getFile().equals("")) {
-                        getBuildFileTextField().setText(getFileDialog().getDirectory() + getFileDialog().getFile());
+                        getBuildFileTextField().setText(getFileDialog().getDirectory()
+                        + getFileDialog().getFile());
                     }
                 }
                 // dispose and exit application
@@ -395,10 +357,12 @@ public class VAJAntToolGUI extends Frame {
          * PropertyChangeListener method
          */
         public void propertyChange(java.beans.PropertyChangeEvent evt) {
-            if (evt.getSource() == VAJAntToolGUI.this.getBuildInfo() && (evt.getPropertyName().equals("projectName"))) {
+            if (evt.getSource() == VAJAntToolGUI.this.getBuildInfo()
+                && (evt.getPropertyName().equals("projectName"))) {
                 connectProjectNameToLabel();
             }
-            if (evt.getSource() == VAJAntToolGUI.this.getBuildInfo() && (evt.getPropertyName().equals("buildFileName"))) {
+            if (evt.getSource() == VAJAntToolGUI.this.getBuildInfo()
+                && (evt.getPropertyName().equals("buildFileName"))) {
                 connectBuildFileNameToTextField();
             }
         }
@@ -431,12 +395,18 @@ public class VAJAntToolGUI extends Frame {
                 handleException(exc);
             }
         }
-        public void windowActivated(WindowEvent e) {};
-        public void windowClosed(WindowEvent e) {};
-        public void windowDeactivated(WindowEvent e) {};
-        public void windowDeiconified(WindowEvent e) {};
-        public void windowIconified(WindowEvent e) {};
-        public void windowOpened(WindowEvent e) {};
+        public void windowActivated(WindowEvent e) {
+        }
+        public void windowClosed(WindowEvent e) {
+        }
+        public void windowDeactivated(WindowEvent e) {
+        }
+        public void windowDeiconified(WindowEvent e) {
+        }
+        public void windowIconified(WindowEvent e) {
+        }
+        public void windowOpened(WindowEvent e) {
+        }
     }
 
     /**
@@ -448,9 +418,8 @@ public class VAJAntToolGUI extends Frame {
     }
     /**
      * AntMake constructor called by VAJAntTool integration.
-     * @param buildInfo VAJBuildInfo
+     * @param newBuildInfo VAJBuildInfo
      */
-
     public VAJAntToolGUI(VAJBuildInfo newBuildInfo) {
         super();
         setBuildInfo(newBuildInfo);
@@ -565,7 +534,8 @@ public class VAJAntToolGUI extends Frame {
                 iAboutContactLabel = new Label();
                 iAboutContactLabel.setName("AboutContactLabel");
                 iAboutContactLabel.setAlignment(java.awt.Label.CENTER);
-                iAboutContactLabel.setText("contact: wolf.siberski@tui.de or christoph.wilhelms@tui.de");
+                iAboutContactLabel.setText("contact: wolf.siberski@tui.de or "
+                    + "christoph.wilhelms@tui.de");
             } catch (Throwable iExc) {
                 handleException(iExc);
             }
@@ -853,7 +823,7 @@ public class VAJAntToolGUI extends Frame {
             iCommandButtonPanelFlowLayout.setAlignment(FlowLayout.RIGHT);
         } catch (Throwable iExc) {
             handleException(iExc);
-        };
+        }
         return iCommandButtonPanelFlowLayout;
     }
     /**
@@ -966,8 +936,10 @@ public class VAJAntToolGUI extends Frame {
                 iMessageCommandPanel = new Panel();
                 iMessageCommandPanel.setName("MessageCommandPanel");
                 iMessageCommandPanel.setLayout(new FlowLayout());
-                getMessageCommandPanel().add(getMessageClearLogButton(), getMessageClearLogButton().getName());
-                getMessageCommandPanel().add(getMessageOkButton(), getMessageOkButton().getName());
+                getMessageCommandPanel().add(getMessageClearLogButton(),
+                                             getMessageClearLogButton().getName());
+                getMessageCommandPanel().add(getMessageOkButton(),
+                                             getMessageOkButton().getName());
             } catch (Throwable iExc) {
                 handleException(iExc);
             }
@@ -1006,7 +978,9 @@ public class VAJAntToolGUI extends Frame {
                 iMessageFrame.setBounds(0, 0, 750, 250);
                 iMessageFrame.setTitle("Message Log");
                 iMessageFrame.add(getMessageContentPanel(), "Center");
-                iMessageFrame.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width / 2) - (iMessageFrame.getSize().width / 2), (java.awt.Toolkit.getDefaultToolkit().getScreenSize().height / 2));
+                iMessageFrame.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width / 2)
+                        - (iMessageFrame.getSize().width / 2),
+                    (java.awt.Toolkit.getDefaultToolkit().getScreenSize().height / 2));
             } catch (Throwable iExc) {
                 handleException(iExc);
             }
@@ -1145,19 +1119,25 @@ public class VAJAntToolGUI extends Frame {
                 constraintsTargetList.insets = new Insets(4, 4, 4, 4);
                 getOptionenPanel().add(getTargetList(), constraintsTargetList);
 
-                GridBagConstraints constraintsMessageOutputLevelLabel = new GridBagConstraints();
-                constraintsMessageOutputLevelLabel.gridx = 0; constraintsMessageOutputLevelLabel.gridy = 4;
+                GridBagConstraints constraintsMessageOutputLevelLabel
+                    = new GridBagConstraints();
+                constraintsMessageOutputLevelLabel.gridx = 0;
+                constraintsMessageOutputLevelLabel.gridy = 4;
                 constraintsMessageOutputLevelLabel.anchor = GridBagConstraints.WEST;
                 constraintsMessageOutputLevelLabel.insets = new Insets(4, 4, 4, 4);
-                getOptionenPanel().add(getMessageOutputLevelLabel(), constraintsMessageOutputLevelLabel);
+                getOptionenPanel().add(getMessageOutputLevelLabel(),
+                                       constraintsMessageOutputLevelLabel);
 
-                GridBagConstraints constraintsMessageOutputLevelChoice = new GridBagConstraints();
-                constraintsMessageOutputLevelChoice.gridx = 1; constraintsMessageOutputLevelChoice.gridy = 4;
+                GridBagConstraints constraintsMessageOutputLevelChoice
+                    = new GridBagConstraints();
+                constraintsMessageOutputLevelChoice.gridx = 1;
+                constraintsMessageOutputLevelChoice.gridy = 4;
                 constraintsMessageOutputLevelChoice.fill = GridBagConstraints.HORIZONTAL;
                 constraintsMessageOutputLevelChoice.anchor = GridBagConstraints.WEST;
                 constraintsMessageOutputLevelChoice.weightx = 1.0;
                 constraintsMessageOutputLevelChoice.insets = new Insets(4, 4, 4, 4);
-                getOptionenPanel().add(getMessageOutputLevelChoice(), constraintsMessageOutputLevelChoice);
+                getOptionenPanel().add(getMessageOutputLevelChoice(),
+                                       constraintsMessageOutputLevelChoice);
             } catch (Throwable iExc) {
                 handleException(iExc);
             }
@@ -1328,7 +1308,10 @@ public class VAJAntToolGUI extends Frame {
         } catch (Throwable iExc) {
             handleException(iExc);
         }
-        setLocation((Toolkit.getDefaultToolkit().getScreenSize().width / 2) - (getSize().width / 2), (java.awt.Toolkit.getDefaultToolkit().getScreenSize().height / 2) - (getSize().height));
+        setLocation((Toolkit.getDefaultToolkit().getScreenSize().width / 2)
+                - (getSize().width / 2),
+            (java.awt.Toolkit.getDefaultToolkit().getScreenSize().height / 2)
+                - (getSize().height));
         if ((getTargetList().getItemCount() == 0) || (getTargetList().getSelectedIndex() < 0)) {
             getBuildButton().setEnabled(false);
         }
@@ -1368,8 +1351,10 @@ public class VAJAntToolGUI extends Frame {
                 // Select the log-level given by BuildInfo
                 getMessageOutputLevelChoice().select(iBuildInfo.getOutputMessageLevel());
                 fillList();
-                // BuildInfo can conly be saved to a VAJ project if tool API is called via the projects context-menu
-                if ((iBuildInfo.getVAJProjectName() == null) || (iBuildInfo.getVAJProjectName().equals(""))) {
+                // BuildInfo can conly be saved to a VAJ project if tool API
+                // is called via the projects context-menu
+                if ((iBuildInfo.getVAJProjectName() == null)
+                    || (iBuildInfo.getVAJProjectName().equals(""))) {
                     getSaveMenuItem().setEnabled(false);
                 }
             } catch (Throwable iExc) {

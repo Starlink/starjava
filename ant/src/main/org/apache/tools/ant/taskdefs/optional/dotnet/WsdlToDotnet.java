@@ -1,105 +1,79 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.dotnet;
 
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.BuildException;
 import java.io.File;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Task;
 
 /**
  * Converts a WSDL file or URL resource into a .NET language.
  *
+ * Why add a wrapper to the MS WSDL tool?
+ * So that you can verify that your web services, be they written with Axis or
+ *anyone else's SOAP toolkit, work with .NET clients.
+ *
+ *This task is dependency aware when using a file as a source and destination;
+ *so if you &lt;get&gt; the file (with <code>usetimestamp="true"</code>) then
+ *you only rebuild stuff when the WSDL file is changed. Of course,
+ *if the server generates a new timestamp every time you ask for the WSDL,
+ *this is not enough...use the &lt;filesmatch&gt; &lt;condition&gt; to
+ *to byte for byte comparison against a cached WSDL file then make
+ *the target conditional on that test failing.
+
  * See "Creating an XML Web Service Proxy", "wsdl.exe" docs in
  * the framework SDK documentation
- * @author      Steve Loughran steve_l@iseran.com
  * @version     0.5
- * @ant.task    name="wsdltodotnet" category="dotnet"
+ * @ant.task    category="dotnet"
  * @since       Ant 1.5
  */
 
-public class WsdlToDotnet extends Task  { 
-    
+public class WsdlToDotnet extends Task  {
+
     /**
      * name of output file (required)
-     */ 
+     */
     private File destFile = null;
-    
+
     /**
      * url to retrieve
-     */ 
+     */
     private String url = null;
-    
+
     /**
      * name of source file
-     */ 
+     */
     private File srcFile = null;
-    
+
     /**
      * language; defaults to C#
-     */ 
+     */
     private String language = "CS";
-    
+
     /**
      * flag set to true to generate server side skeleton
-     */ 
+     */
     private boolean server = false;
-    
+
     /**
      * namespace
-     */ 
+     */
     private String namespace = null;
-    
+
     /**
      *  flag to control action on execution trouble
      */
@@ -109,7 +83,7 @@ public class WsdlToDotnet extends Task  {
      *  any extra command options?
      */
     protected String extraOptions = null;
-    
+
     /**
      * Name of the file to generate. Required
      * @param destFile filename
@@ -165,7 +139,8 @@ public class WsdlToDotnet extends Task  {
     }
 
     /**
-     * Should failure halt the build? optional, default=true
+     * Whether or not a failure should halt the build.
+     * Optional - default is <code>true</code>.
      * @param failOnError new failure option
      */
     public void setFailOnError(boolean failOnError) {
@@ -181,12 +156,12 @@ public class WsdlToDotnet extends Task  {
     public void setExtraOptions(String extraOptions) {
         this.extraOptions = extraOptions;
     }
-    
+
     /**
      * validation code
      * @throws  BuildException  if validation failed
-     */ 
-    protected void validate() 
+     */
+    protected void validate()
             throws BuildException {
         if (destFile == null) {
             throw new BuildException("destination file must be specified");
@@ -194,7 +169,7 @@ public class WsdlToDotnet extends Task  {
         if (destFile.isDirectory()) {
             throw new BuildException(
                 "destination file is a directory");
-        }        
+        }
         if (url != null && srcFile != null) {
             throw new BuildException(
                     "you can not specify both a source file and a URL");
@@ -226,8 +201,6 @@ public class WsdlToDotnet extends Task  {
         validate();
         NetCommand command = new NetCommand(this, "WSDL", "wsdl");
         command.setFailOnError(failOnError);
-        //DEBUG helper
-        command.setTraceCommandLine(true);
         //fill in args
         command.addArgument("/nologo");
         command.addArgument("/out:" + destFile);
@@ -240,17 +213,17 @@ public class WsdlToDotnet extends Task  {
 
         //set source and rebuild options
         boolean rebuild = true;
-        if(srcFile!=null) {
+        if (srcFile != null) {
             command.addArgument(srcFile.toString());
             //rebuild unless the dest file is newer than the source file
-            if (srcFile.exists() && destFile.exists() &&
-                srcFile.lastModified() <= destFile.lastModified()) {
+            if (srcFile.exists() && destFile.exists()
+                && srcFile.lastModified() <= destFile.lastModified()) {
                 rebuild = false;
             }
         } else {
             //no source file? must be a url, which has no dependency
             //handling
-            rebuild=true;
+            rebuild = true;
             command.addArgument(url);
         }
         if (rebuild) {

@@ -1,68 +1,31 @@
 <xsl:stylesheet  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
   xmlns:lxslt="http://xml.apache.org/xslt"
-  xmlns:redirect="org.apache.xalan.xslt.extensions.Redirect"
+  xmlns:redirect="org.apache.xalan.lib.Redirect"
   extension-element-prefixes="redirect">
 <xsl:output method="html" indent="yes" encoding="US-ASCII"/>
 <!--
- The Apache Software License, Version 1.1
-
- Copyright (c) 2002 The Apache Software Foundation.  All rights
- reserved.
-
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions
- are met:
-
- 1. Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-
- 2. Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in
-    the documentation and/or other materials provided with the
-    distribution.
-
- 3. The end-user documentation included with the redistribution, if
-    any, must include the following acknowlegement:
-       "This product includes software developed by the
-        Apache Software Foundation (http://www.apache.org/)."
-    Alternately, this acknowlegement may appear in the software itself,
-    if and wherever such third-party acknowlegements normally appear.
-
- 4. The names "Ant" and "Apache Software
-    Foundation" must not be used to endorse or promote products derived
-    from this software without prior written permission. For written
-    permission, please contact apache@apache.org.
-
- 5. Products derived from this software may not be called "Apache"
-    nor may "Apache" appear in their names without prior written
-    permission of the Apache Group.
-
- THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- SUCH DAMAGE.
- ====================================================================
-
- This software consists of voluntary contributions made by many
- individuals on behalf of the Apache Software Foundation.  For more
- information on the Apache Software Foundation, please see
- <http://www.apache.org/>.
- -->
+    Copyright  2002-2004 The Apache Software Foundation
+   
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+   
+         http://www.apache.org/licenses/LICENSE-2.0
+   
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+   
+-->
 <!--
 
  Sample stylesheet to be used with JDepend XML output.
- 
+
  It creates a set of HTML files a la javadoc where you can browse easily
  through all packages and classes.
- 
+
  @author <a href="mailto:jtulley@novell.com">Jeff Tulley</a>
 
   -->
@@ -103,7 +66,7 @@
    <redirect:write file="{$output.dir}/all-packages.html">
     <xsl:apply-templates select="Packages" mode="all.packages"/>
   </redirect:write>
-  
+
   <!-- create the all-cycles.html at the root -->
   <redirect:write file="{$output.dir}/all-cycles.html">
     <xsl:apply-templates select="Cycles" mode="all.cycles"/>
@@ -150,7 +113,7 @@
     table.details tr td{
     background:#eeeee0;
     }
-    
+
     p {
     line-height:1.5em;
     margin-top:0.5em; margin-bottom:1.0em;
@@ -212,7 +175,7 @@
                <th><a href="overview-explanations.html#EXabstractness">Abstractness</a></th>
                <th><a href="overview-explanations.html#EXinstability">Instability</a></th>
                <th><a href="overview-explanations.html#EXdistance">Distance</a></th>
-      
+
             </tr>
             <xsl:for-each select="./Packages/Package">
                <xsl:if test="count(error) = 0">
@@ -264,12 +227,12 @@
   [<a href="overview-cycles.html">cycles</a>]
   [<a href="overview-explanations.html">explanations</a>]
    </td></tr></table>
-  
+
   <xsl:for-each select="./Packages/Package">
     <xsl:if test="count(error) = 0">
       <h3><a><xsl:attribute name="name">PK<xsl:value-of select="@name"/></xsl:attribute>
       <xsl:value-of select="@name"/></a></h3>
-      
+
       <table width="100%"><tr>
         <td><a href="overview-explanations.html#EXafferent">Afferent Couplings</a>: <xsl:value-of select="Stats/Ca"/></td>
         <td><a href="overview-explanations.html#EXefferent">Efferent Couplings</a>: <xsl:value-of select="Stats/Ce"/></td>
@@ -277,7 +240,7 @@
         <td><a href="overview-explanations.html#EXinstability">Instability</a>: <xsl:value-of select="Stats/I"/></td>
         <td><a href="overview-explanations.html#EXdistance">Distance</a>: <xsl:value-of select="Stats/D"/></td>
       </tr></table>
-      
+
       <table width="100%" class="details">
         <tr>
           <th>Abstract Classes</th>
@@ -360,7 +323,7 @@
   [<a href="#NVcycles">cycles</a>]
    [<a href="#NVexplanations">explanations</a>]
   </td></tr></table> -->
-  
+
   <xsl:if test="count(Cycles/Package) = 0">
     <p>There are no cyclic dependancies.</p>
   </xsl:if>
@@ -380,7 +343,7 @@
   </body>
   </html>
 </xsl:template>
-    
+
 <xsl:template match="JDepend" mode="explanations">
    <html>
       <head>
@@ -396,16 +359,16 @@
   [<a href="overview-cycles.html">cycles</a>]
   [explanations]
    </td></tr></table>
-  
+
   <p>The following explanations are for quick reference and are lifted directly from the original <a href="http://www.clarkware.com/software/JDepend.html">JDepend documentation</a>.</p>
-  
+
   <h3><a name="EXnumber">Number of Classes</a></h3>
     <p>The number of concrete and abstract classes (and interfaces) in the package is an indicator of the extensibility of the package.</p>
   <h3><a name="EXafferent">Afferent Couplings</a></h3>
     <p>The number of other packages that depend upon classes within the package is an indicator of the package's responsibility. </p>
   <h3><a name="EXefferent">Efferent Couplings</a></h3>
     <p>The number of other packages that the classes in the package depend upon is an indicator of the package's independence. </p>
-  <h3><a name="EXabstractness">Abstractness</a></h3> 
+  <h3><a name="EXabstractness">Abstractness</a></h3>
     <p>The ratio of the number of abstract classes (and interfaces) in the analyzed package to the total number of classes in the analyzed package. </p>
     <p>The range for this metric is 0 to 1, with A=0 indicating a completely concrete package and A=1 indicating a completely abstract package. </p>
   <h3><a name="EXinstability">Instability</a></h3>
@@ -415,12 +378,12 @@
     <p>The perpendicular distance of a package from the idealized line A + I = 1. This metric is an indicator of the package's balance between abstractness and stability. </p>
     <p>A package squarely on the main sequence is optimally balanced with respect to its abstractness and stability. Ideal packages are either completely abstract and stable (x=0, y=1) or completely concrete and instable (x=1, y=0). </p>
     <p>The range for this metric is 0 to 1, with D=0 indicating a package that is coincident with the main sequence and D=1 indicating a package that is as far from the main sequence as possible. </p>
-  
+
       </body>
    </html>
 </xsl:template>
-  
-  
+
+
 <!--
 Creates an html file that contains a link to all package links in overview-packages.html.
   @bug there will be a problem here, I don't know yet how to handle unnamed package :(
@@ -506,7 +469,7 @@ Creates an html file that contains a link to all package links in overview-cycle
     </td>
   </tr>
 </xsl:template>
-    
+
 <!-- Page HEADER -->
 <xsl:template name="pageHeader">
    <h1>JDepend Analysis</h1>

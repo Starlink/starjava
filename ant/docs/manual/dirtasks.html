@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Directory-based Tasks</title>
+<link rel="stylesheet" type="text/css" href="stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -32,7 +33,7 @@ which can be used at the same time:</p>
 
 <p>We said that Directory-based tasks can sometimes act as an implicit
 <a href="CoreTypes/fileset.html"><code>&lt;fileset&gt;</code></a>,
-but in addtion to that, a FileSet acts as an implicit
+but in addition to that, a FileSet acts as an implicit
 <a href="CoreTypes/patternset.html"><code>&lt;patternset&gt;</code></a>.</p>
 
 <p>The inclusion and exclusion elements of the implicit PatternSet can be
@@ -188,7 +189,7 @@ tasks that can act as an implicit fileset:</p>
   <li><a href="CoreTasks/tar.html">&lt;tar&gt;</a></li>
   <li><a href="CoreTasks/zip.html">&lt;zip&gt;</a></li>
   <li><a href="OptionalTasks/ejb.html#ddcreator">&lt;ddcreator&gt;</a></li>
-  <li><a href="OptionalTasks/ejb.html#ejbjar.html">&lt;ejbjar&gt;</a></li>
+  <li><a href="OptionalTasks/ejb.html#ejbjar">&lt;ejbjar&gt;</a></li>
   <li><a href="OptionalTasks/ejb.html#ejbc">&lt;ejbc&gt;</a></li>
   <li><a href="OptionalTasks/cab.html">&lt;cab&gt;</a></li>
   <li><a href="OptionalTasks/icontract.html">&lt;icontract&gt;</a></li>
@@ -261,10 +262,16 @@ directory-based tasks. They are:</p>
      **/.svn/**
      **/.DS_Store
 </pre>
-<p>If you do not want these default excludes applied, you may disable them
-with the <code>defaultexcludes=&quot;no&quot;</code> attribute.</p>
+<p>If you do not want these default excludes applied, you may disable
+them with the <code>defaultexcludes=&quot;no&quot;</code>
+attribute.</p>
+
+<p>This is the default list, note that you can modify the list of
+default excludes by using the <a
+href="CoreTasks/defaultexcludes.html">defaultexcludes</a> task.</p>
+
 <hr>
-<p align="center">Copyright &copy; 2000-2003 Apache Software Foundation. All
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All
 rights Reserved.</p>
 
 </body>

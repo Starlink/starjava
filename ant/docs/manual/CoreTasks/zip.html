@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Zip Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -36,14 +37,16 @@ only reflect the relative paths of files <i>within</i> each fileset. The Zip tas
 <p>The Zip task also supports the merging of multiple zip files into the zip file. 
 This is possible through either the <i>src</i> attribute of any nested filesets 
 or by using the special nested fileset <i>zipgroupfileset</i>.</p>
-<p>The <code>update</code> parameter controls what happens if the
-ZIP file already exists. When set to <code>yes</code>, the ZIP file is
+
+<p>The <code>update</code> parameter controls what happens if the ZIP
+file already exists. When set to <code>yes</code>, the ZIP file is
 updated with the files specified. (New files are added; old files are
 replaced with the new versions.) When set to <code>no</code> (the
-default) the ZIP file is overwritten.  Please note that ZIP files
-store file modification times with a granularity of two seconds.  If a
-file is less than two seconds newer than the entry in the archive, Ant
-will not consider it newer.</p>
+default) the ZIP file is overwritten if any of the files that would be
+added to the archive are newer than the entries inside the archive.
+Please note that ZIP files store file modification times with a
+granularity of two seconds.  If a file is less than two seconds newer
+than the entry in the archive, Ant will not consider it newer.</p>
 
 <p>The <code>whenempty</code> parameter controls what happens when no files match.
 If <code>skip</code> (the default), the ZIP is not created and a warning is issued.
@@ -59,7 +62,7 @@ Java.</p>
 
 <p>Starting with Ant 1.5.2, &lt;zip&gt; can store Unix permissions
 inside the archive (see description of the filemode and dirmode
-attributes for <a href="#zipfileset">&lt;zipfileset&gt;</a>).
+attributes for <a href="../CoreTypes/zipfileset.html">&lt;zipfileset&gt;</a>).
 Unfortunately there is no portable way to store these permissions.
 Ant uses the algorithm used by <a href="http://www.info-zip.org">Info-Zip's</a>
 implementation of the zip and unzip commands - these are the default
@@ -75,12 +78,11 @@ versions of zip and unzip for many Unix and Unix-like systems.</p>
   <tr>
     <td valign="top">destfile</td>
     <td valign="top">the zip-file to create.</td>
-    <td align="center" valign="top">Yes</td>
+    <td align="center" valign="top" rowspan="2">Exactly one of the two.</td>
   </tr>
   <tr>
     <td valign="top">zipfile</td>
     <td valign="top">the <i>deprecated</i> old name of destfile.</td>
-    <td align="center" valign="top">Yes</td>
   </tr>
   <tr>
     <td valign="top">basedir</td>
@@ -89,7 +91,19 @@ versions of zip and unzip for many Unix and Unix-like systems.</p>
   </tr>
   <tr>
     <td valign="top">compress</td>
-    <td valign="top">Not only store data but also compress them, defaults to true</td>
+    <td valign="top">Not only store data but also compress them,
+    defaults to true.  Unless you set the <em>keepcompression</em>
+    attribute to false, this will apply to the entire archive, not
+    only the files you've added while updating.</td>
+    <td align="center" valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">keepcompression</td>
+    <td valign="top">For entries coming from existing archives (like
+    nested <em>zipfileset</em>s or while updating the archive), keep
+    the compression as it has been originally instead of using the
+    <em>compress</em> attribute.  Defaults false.  <em>Since Ant
+    1.6</em></td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
@@ -151,6 +165,20 @@ versions of zip and unzip for many Unix and Unix-like systems.</p>
     <td valign="top">behavior when a duplicate file is found.  Valid values are &quot;add&quot;, &quot;preserve&quot;, and &quot;fail&quot;. The default value is &quot;add&quot;.  </td>
     <td valign="top" align="center">No</td>
   </tr>
+  <tr>
+    <td valign="top">roundup</td>
+    <td valign="top">Whether the file modification times will be
+    rounded up to the next even number of seconds.<br>
+    Zip archives store file modification times with a granularity of
+    two seconds, so the times will either be rounded up or down.  If
+    you round down, the archive will always seem out-of-date when you
+    rerun the task, so the default is to round up.  Rounding up may
+    lead to a different type of problems like JSPs inside a web
+    archive that seem to be slightly more recent than precompiled
+    pages, rendering precompilation useless.<br>
+    Defaults to true.  <em>Since Ant 1.6.2</em></td>
+    <td align="center" valign="top">No</td>
+  </tr>
 </table>
 <h3>Parameters specified as nested elements</h3>
 <h4>fileset</h4>
@@ -158,62 +186,11 @@ versions of zip and unzip for many Unix and Unix-like systems.</p>
 href="../CoreTypes/fileset.html"><code>&lt;fileset&gt;</code></a> elements to specify
 the files to be included in the archive.</p>
 
-<h4><a name="zipfileset">zipfileset</a></h4>
+<h4>zipfileset</h4>
 
-<p>A <code>&lt;zipfileset&gt;</code> is a special form of a
-<code>&lt;fileset&gt;</code> that adds some extra functionality.  It
-supports all attributes of <code>&lt;fileset&gt;</code> in addition to
-those listed below.</p>
-
-<h3>Parameters</h3>
-<table border="1" cellpadding="2" cellspacing="0">
-  <tr>
-    <td valign="top"><b>Attribute</b></td>
-    <td valign="top"><b>Description</b></td>
-    <td valign="top" align="center"><b>Required</b></td>
-  </tr>
-  <tr>
-    <td valign="top">prefix</td>
-    <td valign="top">all files in the fileset are prefixed with that
-    path in the archive.</td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">fullpath</td>
-    <td valign="top">the file described by the fileset is placed at
-    that exact location in the archive.</td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">src</td>
-    <td valign="top">may be used in place of the <i>dir</i> attribute
-    to specify a zip file whose contents will be extracted and
-    included in the archive.</td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">filemode</td>
-    <td valign="top">A 3 digit octal string, specify the user, group
-    and other modes in the standard Unix fashion.  Only applies to
-    plain files.  Default is 644. <em>since Ant 1.5.2</em>.</td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">dirmode</td>
-    <td valign="top">A 3 digit octal string, specify the user, group
-    and other modes in the standard Unix fashion.  Only applies to
-    directories.  Default is 755. <em>since Ant 1.5.2</em>.</td>
-    <td align="center" valign="top">No</td>
-  </tr>
-</table>
-
-<p>The <i>fullpath</i> attribute can only be set for filesets that
-represent a single file. The <i>prefix</i> and <i>fullpath</i>
-attributes cannot both be set on the same fileset.</p>
-
-<p>When using the <i>src</i> attribute, include and exclude patterns
-may be used to specify a subset of the zip file for inclusion in the
-archive as with the <i>dir</i> attribute.</p>
+<p>The zip task supports any number of nested <a
+href="../CoreTypes/zipfileset.html"><code>&lt;zipfileset&gt;</code></a> elements to specify
+the files to be included in the archive.</p>
 
 <h4>zipgroupfileset</h4>
 <p>A <code>&lt;zipgroupfileset&gt;</code> allows for multiple zip files to be 
@@ -279,7 +256,7 @@ The code
 <p>
 <p>zips all files in the <code>htdocs/manual</code> directory into the <code>docs/user-guide</code> directory in the archive and includes all the files in any file that maches <code>examples*.zip</code>, such as all files within <code>examples1.zip</code> or <code>examples_for_brian.zip</code>.
 <hr>
-<p align="center">Copyright &copy; 2000-2003 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>

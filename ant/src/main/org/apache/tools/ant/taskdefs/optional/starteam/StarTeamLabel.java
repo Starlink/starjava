@@ -1,61 +1,23 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.starteam;
 
 import com.starbase.starteam.Label;
 import com.starbase.starteam.View;
-import com.starbase.starteam.ViewConfiguration;
 import com.starbase.util.OLEDate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -75,8 +37,6 @@ import org.apache.tools.ant.BuildException;
  * starteamurl="server:port/project/view"/&gt;
  * </pre>
  *
- * @author Christopher Charlier, ThoughtWorks, Inc. 2001
- * @author <a href="mailto:jcyip@thoughtworks.com">Jason Yip</a>
  * @see <A HREF="http://www.starbase.com/">StarBase Web Site</A>
  *
  * @ant.task name="stlabel" category="scm"
@@ -94,12 +54,12 @@ public class StarTeamLabel extends StarTeamTask {
     private String description;
 
     /**
-     * If true, this will be a build label.  If false, it will be a build
+     * If true, this will be a build label.  If false, it will be a non-build
      * label.  The default is false.  Has no effect if revision label is
      * true.
      */
     private boolean buildlabel = false;
-    
+
     /**
      * If true, this will be a revision label.  If false, it will be a build
      * label.  The default is false.
@@ -124,38 +84,38 @@ public class StarTeamLabel extends StarTeamTask {
     }
 
     /**
-     * Optional description of the label to be stored in the StarTeam project.
+     * Description of the label to be stored in the StarTeam project.
      */
     public void setDescription(String description) {
         this.description = description;
     }
 
     /**
-     * set the type of label based on the supplied value - if true, this 
+     * set the type of label based on the supplied value - if true, this
      * label will be a revision label, if false, a build label.
-     * 
-     * @param revision If true this will be a revision label; if false, 
+     *
+     * @param buildlabel If true this will be a revision label; if false,
      * a build label
      */
-    public void setBuildLabel( boolean buildlabel ) {
+    public void setBuildLabel(boolean buildlabel) {
         this.buildlabel = buildlabel;
     }
-    
+
     /**
-     * set the type of label based on the supplied value - if true, this 
+     * set the type of label based on the supplied value - if true, this
      * label will be a revision label, if false, a build label.
-     * 
-     * @param revision If true this will be a revision label; if false, 
+     *
+     * @param revisionlabel If true this will be a revision label; if false,
      * a build label
      */
-    public void setRevisionLabel( boolean revisionlabel ) {
+    public void setRevisionLabel(boolean revisionlabel) {
         this.revisionlabel = revisionlabel;
     }
 
 
 
     /**
-     * The timestamp of the build that will be stored with the label; required.  
+     * The timestamp of the build that will be stored with the label; required.
      * Must be formatted <code>yyyyMMddHHmmss</code>
      */
     public void setLastBuild(String lastbuild) throws BuildException {
@@ -163,8 +123,8 @@ public class StarTeamLabel extends StarTeamTask {
             Date lastBuildTime = DATE_FORMAT.parse(lastbuild);
             this.lastBuild = new OLEDate(lastBuildTime);
         } catch (ParseException e) {
-            throw new BuildException("Unable to parse the date '" + 
-                                     lastbuild + "'", e);
+            throw new BuildException("Unable to parse the date '"
+                + lastbuild + "'", e);
         }
     }
 
@@ -176,32 +136,36 @@ public class StarTeamLabel extends StarTeamTask {
     public void execute() throws BuildException {
 
         if (this.revisionlabel && this.buildlabel) {
-            throw new BuildException(
-                "'revisionlabel' and 'buildlabel' both specified.  " +
-                "A revision label cannot be a build label.");
+            throw new BuildException("'revisionlabel' and 'buildlabel' "
+                + "both specified.  A revision label cannot be a build label.");
         }
 
-        View snapshot = openView();
+        try {
+            View snapshot = openView();
 
-        // Create the new label and update the repository
+            // Create the new label and update the repository
 
-        if (this.revisionlabel) {
-            new Label(snapshot, this.labelName, this.description).update();
-            log("Created Revision Label " + this.labelName);
-        } 
-        else if (null != lastBuild){
-            new Label(snapshot, this.labelName, this.description,this.lastBuild,
-                      this.buildlabel).update();
-            log("Created View Label (" 
-                +(this.buildlabel ? "" : "non-") + "build) " + this.labelName
-                +" as of " + this.lastBuild.toString());
+            if (this.revisionlabel) {
+                new Label(snapshot, this.labelName, this.description).update();
+                log("Created Revision Label " + this.labelName);
+            } else if (null != lastBuild) {
+                new Label(snapshot, this.labelName, this.description, this.lastBuild,
+                          this.buildlabel).update();
+                log("Created View Label ("
+                    + (this.buildlabel ? "" : "non-") + "build) " + this.labelName
+                    + " as of " + this.lastBuild.toString());
+            } else {
+                new Label(snapshot, this.labelName, this.description,
+                          this.buildlabel).update();
+                log("Created View Label ("
+                    + (this.buildlabel ? "" : "non-") + "build) " + this.labelName);
+            }
+        } catch (Exception e) {
+            throw new BuildException(e);
+        } finally {
+            disconnectFromServer();
         }
-        else {
-            new Label(snapshot, this.labelName, this.description,
-                      this.buildlabel).update();
-            log("Created View Label (" 
-                +(this.buildlabel ? "" : "non-") + "build) " + this.labelName);
-        }
+
     }
 
     /**

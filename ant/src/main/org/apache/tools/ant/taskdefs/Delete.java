@@ -1,71 +1,37 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
-import org.apache.tools.ant.Project;
+import java.io.File;
+import java.util.Vector;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.condition.Os;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.PatternSet;
 import org.apache.tools.ant.types.selectors.AndSelector;
+import org.apache.tools.ant.types.selectors.ContainsRegexpSelector;
 import org.apache.tools.ant.types.selectors.ContainsSelector;
 import org.apache.tools.ant.types.selectors.DateSelector;
 import org.apache.tools.ant.types.selectors.DependSelector;
 import org.apache.tools.ant.types.selectors.DepthSelector;
 import org.apache.tools.ant.types.selectors.ExtendSelector;
-import org.apache.tools.ant.types.selectors.FileSelector;
 import org.apache.tools.ant.types.selectors.FilenameSelector;
 import org.apache.tools.ant.types.selectors.MajoritySelector;
 import org.apache.tools.ant.types.selectors.NoneSelector;
@@ -73,33 +39,26 @@ import org.apache.tools.ant.types.selectors.NotSelector;
 import org.apache.tools.ant.types.selectors.OrSelector;
 import org.apache.tools.ant.types.selectors.PresentSelector;
 import org.apache.tools.ant.types.selectors.SelectSelector;
-import org.apache.tools.ant.types.selectors.SelectorContainer;
 import org.apache.tools.ant.types.selectors.SizeSelector;
-import java.io.File;
-import java.util.Vector;
+import org.apache.tools.ant.types.selectors.FileSelector;
+import org.apache.tools.ant.types.selectors.modifiedselector.ModifiedSelector;
 
 /**
  * Deletes a file or directory, or set of files defined by a fileset.
- * The original delete task would delete a file, or a set of files 
- * using the include/exclude syntax.  The deltree task would delete a 
+ * The original delete task would delete a file, or a set of files
+ * using the include/exclude syntax.  The deltree task would delete a
  * directory tree.  This task combines the functionality of these two
  * originally distinct tasks.
  * <p>Currently Delete extends MatchingTask.  This is intend <i>only</i>
  * to provide backwards compatibility for a release.  The future position
  * is to use nested filesets exclusively.</p>
- * 
- * @author Stefano Mazzocchi 
- *         <a href="mailto:stefano@apache.org">stefano@apache.org</a>
- * @author Tom Dimock <a href="mailto:tad1@cornell.edu">tad1@cornell.edu</a>
- * @author Glenn McAllister 
- *         <a href="mailto:glennm@ca.ibm.com">glennm@ca.ibm.com</a>
- * @author Jon S. Stevens <a href="mailto:jon@latchkey.com">jon@latchkey.com</a>
  *
  * @since Ant 1.2
  *
  * @ant.task category="filesystem"
  */
 public class Delete extends MatchingTask {
+    private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
     protected File file = null;
     protected File dir = null;
     protected Vector filesets = new Vector();
@@ -110,6 +69,7 @@ public class Delete extends MatchingTask {
     private int verbosity = Project.MSG_VERBOSE;
     private boolean quiet = false;
     private boolean failonerror = true;
+    private boolean deleteOnExit = false;
 
     /**
      * Set the name of a single file to be removed.
@@ -167,23 +127,37 @@ public class Delete extends MatchingTask {
          this.failonerror = failonerror;
      }
 
+    /**
+     * If true, on failure to delete, note the error and set
+     * the deleteonexit flag, and continue
+     *
+     * @param deleteOnExit true or false
+     */
+     public void setDeleteOnExit(boolean deleteOnExit) {
+         this.deleteOnExit = deleteOnExit;
+     }
+
 
     /**
      * If true, delete empty directories.
+     * @param includeEmpty if true delete empty directories (only
+     *                     for filesets). Default is false.
      */
     public void setIncludeEmptyDirs(boolean includeEmpty) {
         this.includeEmpty = includeEmpty;
     }
 
    /**
-     * Adds a set of files to be deleted.
-     */
+    * Adds a set of files to be deleted.
+    * @param set the set of files to be deleted
+    */
     public void addFileset(FileSet set) {
         filesets.addElement(set);
     }
 
     /**
      * add a name entry on the include list
+     * @return a NameEntry object to be configured
      */
     public PatternSet.NameEntry createInclude() {
         usedMatchingTask = true;
@@ -192,14 +166,16 @@ public class Delete extends MatchingTask {
 
     /**
      * add a name entry on the include files list
+     * @return an NameEntry object to be configured
      */
     public PatternSet.NameEntry createIncludesFile() {
         usedMatchingTask = true;
         return super.createIncludesFile();
     }
-    
+
     /**
      * add a name entry on the exclude list
+     * @return an NameEntry object to be configured
      */
     public PatternSet.NameEntry createExclude() {
         usedMatchingTask = true;
@@ -208,14 +184,16 @@ public class Delete extends MatchingTask {
 
     /**
      * add a name entry on the include files list
+     * @return an NameEntry object to be configured
      */
     public PatternSet.NameEntry createExcludesFile() {
         usedMatchingTask = true;
         return super.createExcludesFile();
     }
-    
+
     /**
      * add a set of patterns
+     * @return PatternSet object to be configured
      */
     public PatternSet createPatternSet() {
         usedMatchingTask = true;
@@ -301,6 +279,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a "Select" selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addSelector(SelectSelector selector) {
         usedMatchingTask = true;
@@ -309,6 +288,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add an "And" selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addAnd(AndSelector selector) {
         usedMatchingTask = true;
@@ -317,6 +297,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add an "Or" selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addOr(OrSelector selector) {
         usedMatchingTask = true;
@@ -325,6 +306,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a "Not" selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addNot(NotSelector selector) {
         usedMatchingTask = true;
@@ -333,6 +315,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a "None" selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addNone(NoneSelector selector) {
         usedMatchingTask = true;
@@ -341,6 +324,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a majority selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addMajority(MajoritySelector selector) {
         usedMatchingTask = true;
@@ -349,6 +333,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a selector date entry on the selector list
+     * @param selector the selector to be added
      */
     public void addDate(DateSelector selector) {
         usedMatchingTask = true;
@@ -357,6 +342,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a selector size entry on the selector list
+     * @param selector the selector to be added
      */
     public void addSize(SizeSelector selector) {
         usedMatchingTask = true;
@@ -365,6 +351,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a selector filename entry on the selector list
+     * @param selector the selector to be added
      */
     public void addFilename(FilenameSelector selector) {
         usedMatchingTask = true;
@@ -373,6 +360,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add an extended selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addCustom(ExtendSelector selector) {
         usedMatchingTask = true;
@@ -381,6 +369,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a contains selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addContains(ContainsSelector selector) {
         usedMatchingTask = true;
@@ -389,6 +378,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a present selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addPresent(PresentSelector selector) {
         usedMatchingTask = true;
@@ -397,6 +387,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a depth selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addDepth(DepthSelector selector) {
         usedMatchingTask = true;
@@ -405,6 +396,7 @@ public class Delete extends MatchingTask {
 
     /**
      * add a depends selector entry on the selector list
+     * @param selector the selector to be added
      */
     public void addDepend(DependSelector selector) {
         usedMatchingTask = true;
@@ -412,7 +404,37 @@ public class Delete extends MatchingTask {
     }
 
     /**
+     * add a regular expression selector entry on the selector list
+     * @param selector the selector to be added
+     */
+    public void addContainsRegexp(ContainsRegexpSelector selector) {
+        usedMatchingTask = true;
+        super.addContainsRegexp(selector);
+    }
+
+    /**
+     * add the modified selector
+     * @param selector the selector to add
+     * @since ant 1.6
+     */
+    public void addModified(ModifiedSelector selector) {
+        usedMatchingTask = true;
+        super.addModified(selector);
+    }
+
+    /**
+     * add an arbitrary selector
+     * @param selector the selector to be added
+     * @since Ant 1.6
+     */
+    public void add(FileSelector selector) {
+        usedMatchingTask = true;
+        super.add(selector);
+    }
+
+    /**
      * Delete the file(s).
+     * @exception BuildException if an error occurs
      */
     public void execute() throws BuildException {
         if (usedMatchingTask) {
@@ -430,39 +452,39 @@ public class Delete extends MatchingTask {
             throw new BuildException("quiet and failonerror cannot both be "
                                      + "set to true", getLocation());
         }
-        
+
 
         // delete the single file
         if (file != null) {
             if (file.exists()) {
                 if (file.isDirectory()) {
-                    log("Directory " + file.getAbsolutePath() 
+                    log("Directory " + file.getAbsolutePath()
                         + " cannot be removed using the file attribute.  "
                         + "Use dir instead.");
                 } else {
                     log("Deleting: " + file.getAbsolutePath());
 
-                    if (!file.delete()) {
-                        String message = "Unable to delete file " 
+                    if (!delete(file)) {
+                        String message = "Unable to delete file "
                             + file.getAbsolutePath();
                         if (failonerror) {
                             throw new BuildException(message);
-                        } else { 
-                            log(message, quiet ? Project.MSG_VERBOSE 
+                        } else {
+                            log(message, quiet ? Project.MSG_VERBOSE
                                                : Project.MSG_WARN);
                         }
                     }
                 }
             } else {
-                log("Could not find file " + file.getAbsolutePath() 
-                    + " to delete.", 
+                log("Could not find file " + file.getAbsolutePath()
+                    + " to delete.",
                     Project.MSG_VERBOSE);
             }
         }
 
         // delete the directory
-        if (dir != null && dir.exists() && dir.isDirectory() && 
-            !usedMatchingTask) {
+        if (dir != null && dir.exists() && dir.isDirectory()
+            && !usedMatchingTask) {
             /*
                If verbosity is MSG_VERBOSE, that mean we are doing
                regular logging (backwards as that sounds).  In that
@@ -489,7 +511,7 @@ public class Delete extends MatchingTask {
                 if (failonerror) {
                     throw be;
                 } else {
-                    log(be.getMessage(), 
+                    log(be.getMessage(),
                         quiet ? Project.MSG_VERBOSE : Project.MSG_WARN);
                 }
             }
@@ -507,7 +529,7 @@ public class Delete extends MatchingTask {
                 if (failonerror) {
                     throw be;
                 } else {
-                    log(be.getMessage(), 
+                    log(be.getMessage(),
                         quiet ? Project.MSG_VERBOSE : Project.MSG_WARN);
                 }
             }
@@ -517,7 +539,42 @@ public class Delete extends MatchingTask {
 //************************************************************************
 //  protected and private methods
 //************************************************************************
+    /**
+     * Accommodate Windows bug encountered in both Sun and IBM JDKs.
+     * Others possible. If the delete does not work, call System.gc(),
+     * wait a little and try again.
+     */
+    private boolean delete(File f) {
+        if (!f.delete()) {
+            if (Os.isFamily("windows")) {
+                System.gc();
+            }
+            try {
+                Thread.sleep(DELETE_RETRY_SLEEP_MILLIS);
+            } catch (InterruptedException ex) {
+                // Ignore Exception
+            }
+            if (!f.delete()) {
+                if (deleteOnExit) {
+                    int level = quiet ? Project.MSG_VERBOSE : Project.MSG_INFO;
+                    log("Failed to delete " + f + ", calling deleteOnExit."
+                        + " This attempts to delete the file when the ant jvm"
+                        + " has exited and might not succeed."
+                        , level);
+                    f.deleteOnExit();
+                    return true;
+                }
+                return false;
+            }
+        }
+        return true;
+    }
 
+    /**
+     * Delete a directory
+     *
+     * @param d the directory to delete
+     */
     protected void removeDir(File d) {
         String[] list = d.list();
         if (list == null) {
@@ -530,8 +587,8 @@ public class Delete extends MatchingTask {
                 removeDir(f);
             } else {
                 log("Deleting " + f.getAbsolutePath(), verbosity);
-                if (!f.delete()) {
-                    String message = "Unable to delete file " 
+                if (!delete(f)) {
+                    String message = "Unable to delete file "
                         + f.getAbsolutePath();
                     if (failonerror) {
                         throw new BuildException(message);
@@ -543,8 +600,8 @@ public class Delete extends MatchingTask {
             }
         }
         log("Deleting directory " + d.getAbsolutePath(), verbosity);
-        if (!d.delete()) {
-            String message = "Unable to delete directory " 
+        if (!delete(d)) {
+            String message = "Unable to delete directory "
                 + dir.getAbsolutePath();
             if (failonerror) {
                 throw new BuildException(message);
@@ -564,13 +621,13 @@ public class Delete extends MatchingTask {
      */
     protected void removeFiles(File d, String[] files, String[] dirs) {
         if (files.length > 0) {
-            log("Deleting " + files.length + " files from " 
+            log("Deleting " + files.length + " files from "
                 + d.getAbsolutePath());
             for (int j = 0; j < files.length; j++) {
                 File f = new File(d, files[j]);
                 log("Deleting " + f.getAbsolutePath(), verbosity);
-                if (!f.delete()) {
-                    String message = "Unable to delete file " 
+                if (!delete(f)) {
+                    String message = "Unable to delete file "
                         + f.getAbsolutePath();
                     if (failonerror) {
                         throw new BuildException(message);
@@ -589,7 +646,7 @@ public class Delete extends MatchingTask {
                 String[] dirFiles = dir.list();
                 if (dirFiles == null || dirFiles.length == 0) {
                     log("Deleting " + dir.getAbsolutePath(), verbosity);
-                    if (!dir.delete()) {
+                    if (!delete(dir)) {
                         String message = "Unable to delete directory "
                                 + dir.getAbsolutePath();
                         if (failonerror) {
@@ -605,11 +662,10 @@ public class Delete extends MatchingTask {
             }
 
             if (dirCount > 0) {
-                log("Deleted " + dirCount + " director" +
-                    (dirCount == 1 ? "y" : "ies") +
-                    " from " + d.getAbsolutePath());
+                log("Deleted " + dirCount + " director"
+                    + (dirCount == 1 ? "y" : "ies")
+                    + " from " + d.getAbsolutePath());
             }
         }
     }
 }
-

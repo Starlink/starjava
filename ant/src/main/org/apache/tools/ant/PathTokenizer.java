@@ -1,63 +1,25 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000,2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000,2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant;
 
-import org.apache.tools.ant.taskdefs.condition.Os;
-
+import java.io.File;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-import java.io.File;
+import org.apache.tools.ant.taskdefs.condition.Os;
 
 /**
  * A Path tokenizer takes a path and returns the components that make up
@@ -66,15 +28,13 @@ import java.io.File;
  * The path can use path separators of either ':' or ';' and file separators
  * of either '/' or '\'.
  *
- * @author Conor MacNeill
- * @author <a href="mailto:jtulley@novell.com">Jeff Tulley</a> 
- */ 
+ */
 public class PathTokenizer {
     /**
      * A tokenizer to break the string up based on the ':' or ';' separators.
      */
     private StringTokenizer tokenizer;
-    
+
     /**
      * A String which stores any path components which have been read ahead
      * due to DOS filesystem compensation.
@@ -96,12 +56,12 @@ public class PathTokenizer {
 
     /**
      * Constructs a path tokenizer for the specified path.
-     * 
+     *
      * @param path The path to tokenize. Must not be <code>null</code>.
      */
     public PathTokenizer(String path) {
         if (onNetWare) {
-            // For NetWare, use the boolean=true mode, so we can use delimiter 
+            // For NetWare, use the boolean=true mode, so we can use delimiter
             // information to make a better decision later.
             tokenizer = new StringTokenizer(path, ":;", true);
         } else {
@@ -109,31 +69,31 @@ public class PathTokenizer {
             // enough information to tokenize correctly.
             tokenizer = new StringTokenizer(path, ":;", false);
         }
-        dosStyleFilesystem = File.pathSeparatorChar == ';'; 
+        dosStyleFilesystem = File.pathSeparatorChar == ';';
     }
 
     /**
      * Tests if there are more path elements available from this tokenizer's
-     * path. If this method returns <code>true</code>, then a subsequent call 
+     * path. If this method returns <code>true</code>, then a subsequent call
      * to nextToken will successfully return a token.
-     * 
-     * @return <code>true</code> if and only if there is at least one token 
+     *
+     * @return <code>true</code> if and only if there is at least one token
      * in the string after the current position; <code>false</code> otherwise.
      */
     public boolean hasMoreTokens() {
         if (lookahead != null) {
             return true;
         }
-        
+
         return tokenizer.hasMoreTokens();
     }
-    
+
     /**
      * Returns the next path element from this tokenizer.
-     * 
+     *
      * @return the next path element from this tokenizer.
-     * 
-     * @exception NoSuchElementException if there are no more elements in this 
+     *
+     * @exception NoSuchElementException if there are no more elements in this
      *            tokenizer's path.
      */
     public String nextToken() throws NoSuchElementException {
@@ -143,8 +103,8 @@ public class PathTokenizer {
             lookahead = null;
         } else {
             token = tokenizer.nextToken().trim();
-        }            
-            
+        }
+
         if (!onNetWare) {
             if (token.length() == 1 && Character.isLetter(token.charAt(0))
                                     && dosStyleFilesystem
@@ -154,7 +114,7 @@ public class PathTokenizer {
                 String nextToken = tokenizer.nextToken().trim();
                 if (nextToken.startsWith("\\") || nextToken.startsWith("/")) {
                     // we know we are on a DOS style platform and the next path
-                    // starts with a slash or backslash, so we know this is a 
+                    // starts with a slash or backslash, so we know this is a
                     // drive spec
                     token += ":" + nextToken;
                 } else {
@@ -169,15 +129,17 @@ public class PathTokenizer {
                 // ignore ";" and get the next token
                 token = tokenizer.nextToken().trim();
             }
-            
+
             if (tokenizer.hasMoreTokens()) {
                 // this path could be a drive spec, so look at the next token
                 String nextToken = tokenizer.nextToken().trim();
-                
+
                 // make sure we aren't going to get the path separator next
                 if (!nextToken.equals(File.pathSeparator)) {
                     if (nextToken.equals(":")) {
-                        if (!token.startsWith("/") && !token.startsWith("\\")){ 
+                        if (!token.startsWith("/") && !token.startsWith("\\")
+                            && !token.startsWith(".")
+                            && !token.startsWith("..")) {
                             // it indeed is a drive spec, get the next bit
                             String oneMore = tokenizer.nextToken().trim();
                             if (!oneMore.equals(File.pathSeparator)) {
@@ -199,4 +161,4 @@ public class PathTokenizer {
         return token;
     }
 }
-          
+

@@ -1,59 +1,20 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional;
-
-
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,21 +33,23 @@ import org.apache.tools.ant.taskdefs.Javac;
 import org.apache.tools.ant.taskdefs.MatchingTask;
 import org.apache.tools.ant.taskdefs.Mkdir;
 import org.apache.tools.ant.taskdefs.compilers.DefaultCompilerAdapter;
-
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
 
 /**
  * Instruments Java classes with iContract DBC preprocessor.
  * <br/>
- * The task can generate a properties file for <a href="http://hjem.sol.no/hellesoy/icontrol.html">iControl</a>,
- * a graphical user interface that lets you turn on/off assertions. iControl generates a control file that you can refer to
+ * The task can generate a properties file for
+ * <a href="http://hjem.sol.no/hellesoy/icontrol.html">iControl</a>,
+ * a graphical user interface that lets you turn on/off assertions.
+ * iControl generates a control file that you can refer to
  * from this task using the controlfile attribute.
- * iContract is at <a href="http://www.reliable-systems.com/tools/">http://www.reliable-systems.com/tools/</a>
+ * iContract is at
+ * <a href="http://www.reliable-systems.com/tools/">
+ *   http://www.reliable-systems.com/tools/</a>
  * <p/>
  * Thanks to Rainer Schmitz for enhancements and comments.
  *
- * @author <a href="mailto:aslak.hellesoy@bekk.no">Aslak Helles�a>
  *
  * <p/>
  * <table border="1" cellpadding="2" cellspacing="0">
@@ -102,95 +65,112 @@ import org.apache.tools.ant.types.Reference;
  *   </tr>
  *   <tr>
  *     <td valign="top">instrumentdir</td>
- *     <td valign="top">Indicates where the instrumented source files should go.</td>
+ *     <td valign="top">Indicates where the instrumented source
+ *                      files should go.</td>
  *     <td valign="top" align="center">Yes</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">repositorydir</td>
- *     <td valign="top">Indicates where the repository source files should go.</td>
+ *     <td valign="top">Indicates where the repository source
+ *                      files should go.</td>
  *     <td valign="top" align="center">Yes</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">builddir</td>
- *     <td valign="top">Indicates where the compiled instrumented classes should go.
- *       Defaults to the value of instrumentdir.
+ *     <td valign="top">Indicates where the compiled instrumented
+ *                      classes should go. Defaults to the value of
+ *                      instrumentdir.
  *       </p>
- *       <em>NOTE:</em> Don't use the same directory for compiled instrumented classes
- *       and uninstrumented classes. It will break the dependency checking. (Classes will
- *       not be reinstrumented if you change them).</td>
+ *       <em>NOTE:</em> Don't use the same directory for compiled
+ *       instrumented classes and uninstrumented classes. It will break the
+ *       dependency checking. (Classes will not be reinstrumented if you
+ *       change them).</td>
  *     <td valign="top" align="center">No</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">repbuilddir</td>
- *     <td valign="top">Indicates where the compiled repository classes should go.
- *       Defaults to the value of repositorydir.</td>
+ *     <td valign="top">Indicates where the compiled repository classes
+ *                      should go. Defaults to the value of repositorydir.</td>
  *     <td valign="top" align="center">No</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">pre</td>
- *     <td valign="top">Indicates whether or not to instrument for preconditions.
- *       Defaults to <code>true</code> unless controlfile is specified, in which case it
- *       defaults to <code>false</code>.</td>
+ *     <td valign="top">Indicates whether or not to instrument for
+ *                      preconditions. Defaults to <code>true</code> unless
+ *                      controlfile is specified, in which case it defaults
+ *                      to <code>false</code>.</td>
  *     <td valign="top" align="center">No</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">post</td>
- *     <td valign="top">Indicates whether or not to instrument for postconditions.
- *       Defaults to <code>true</code> unless controlfile is specified, in which case it
- *       defaults to <code>false</code>.</td>
+ *     <td valign="top">Indicates whether or not to instrument for
+ *                      postconditions. Defaults to <code>true</code> unless
+ *                      controlfile is specified, in which case it defaults
+ *                      to <code>false</code>.</td>
  *     <td valign="top" align="center">No</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">invariant</td>
  *     <td valign="top">Indicates whether or not to instrument for invariants.
- *       Defaults to <code>true</code> unless controlfile is specified, in which case it
- *       defaults to <code>false</code>.</td>
+ *                      Defaults to <code>true</code> unless controlfile is
+ *                      specified, in which case it defaults to
+ *                      <code>false</code>.</td>
  *     <td valign="top" align="center">No</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">failthrowable</td>
- *     <td valign="top">The full name of the Throwable (Exception) that should be
- *       thrown when an assertion is violated. Defaults to <code>java.lang.Error</code></td>
+ *     <td valign="top">The full name of the Throwable (Exception) that
+ *                      should be thrown when an assertion is violated.
+ *                      Defaults to <code>java.lang.Error</code></td>
  *     <td valign="top" align="center">No</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">verbosity</td>
- *     <td valign="top">Indicates the verbosity level of iContract. Any combination
- *       of <code>error*,warning*,note*,info*,progress*,debug*</code> (comma separated) can be
- *       used. Defaults to <code>error*</code></td>
+ *     <td valign="top">Indicates the verbosity level of iContract.
+ *       Any combination of
+ *       <code>error*,warning*,note*,info*,progress*,debug*</code>
+ *       (comma separated) can be used. Defaults to <code>error*</code></td>
  *     <td valign="top" align="center">No</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">quiet</td>
- *     <td valign="top">Indicates if iContract should be quiet. Turn it off if many your classes extend uninstrumented classes
- *     and you don't want warnings about this. Defaults to <code>false</code></td>
+ *     <td valign="top">Indicates if iContract should be quiet. Turn it off
+ *       if many your classes extend uninstrumented classes and you don't
+ *       want warnings about this. Defaults to <code>false</code></td>
  *     <td valign="top" align="center">No</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">updateicontrol</td>
- *     <td valign="top">If set to true, it indicates that the properties file for
- *       iControl in the current directory should be updated (or created if it doesn't exist).
- *       Defaults to <code>false</code>.</td>
+ *     <td valign="top">If set to true, it indicates that the properties
+ *       file for iControl in the current directory should be updated
+ *       (or created if it doesn't exist). Defaults to <code>false</code>.
+ *     </td>
  *     <td valign="top" align="center">No</td>
  *   </tr>
  *   <tr>
  *     <td valign="top">controlfile</td>
- *     <td valign="top">The name of the control file to pass to iContract. Consider using iControl to generate the file.
- *       Default is not to pass a file. </td>
- *     <td valign="top" align="center">Only if <code>updateicontrol=true</code></td>
+ *     <td valign="top">The name of the control file to pass to iContract.
+ *                      Consider using iControl to generate the file.
+ *                      Default is not to pass a file. </td>
+ *     <td valign="top" align="center">
+ *                      Only if <code>updateicontrol=true</code></td>
  *   </tr>
  *   <tr>
  *     <td valign="top">classdir</td>
- *     <td valign="top">Indicates where compiled (unistrumented) classes are located.
- *       This is required in order to properly update the icontrol.properties file, not
- *       for instrumentation.</td>
- *     <td valign="top" align="center">Only if <code>updateicontrol=true</code></td>
+ *     <td valign="top">Indicates where compiled (unistrumented) classes are
+ *                      located. This is required in order to properly update
+ *                      the icontrol.properties file, not for instrumentation.
+ *     </td>
+ *     <td valign="top" align="center">Only if
+ *                                     <code>updateicontrol=true</code></td>
  *   </tr>
  *   <tr>
  *     <td valign="top">targets</td>
- *     <td valign="top">Name of the file that will be generated by this task, which lists all the
- *        classes that iContract will instrument. If specified, the file will not be deleted after execution.
- *        If not specified, a file will still be created, but it will be deleted after execution.</td>
+ *     <td valign="top">Name of the file that will be generated by this task,
+ *                      which lists all the classes that iContract will
+ *                      instrument. If specified, the file will not be deleted
+ *                      after execution. If not specified, a file will still
+ *                      be created, but it will be deleted after execution.</td>
  *     <td valign="top" align="center">No</td>
  *   </tr>
  * </table>
@@ -223,8 +203,9 @@ import org.apache.tools.ant.types.Reference;
  */
 public class IContract extends MatchingTask {
 
-    private static final String ICONTROL_PROPERTIES_HEADER =
-        " You might want to set classRoot to point to your normal compilation class root directory.";
+    private static final String ICONTROL_PROPERTIES_HEADER
+        = "You might want to set classRoot to point to your normal "
+            + "compilation class root directory.";
 
     /** compiler to use for instrumenation */
     private String icCompiler = "javac";
@@ -233,7 +214,7 @@ public class IContract extends MatchingTask {
     private File targets = null;
 
     /**
-     * will be set to true if any of the sourca files are newer than the
+     * will be set to true if any of the source files are newer than the
      * instrumented files
      */
     private boolean dirty = false;
@@ -283,8 +264,12 @@ public class IContract extends MatchingTask {
     private boolean invariant = true;
     private boolean invariantModified = false;
 
-    /** Indicates whether or not to instrument all files regardless of timestamp */
-    // can't be explicitly set, is set if control file exists and is newer than any source file
+    /**
+     * Indicates whether or not to instrument all files regardless of timestamp
+     *
+     * Can't be explicitly set, is set if control file exists and is newer
+     * than any source file
+     */
     private boolean instrumentall = false;
 
     /**
@@ -529,13 +514,14 @@ public class IContract extends MatchingTask {
             }
 
 
-            // We want to be notified if iContract jar is missing. This makes life easier for the user
-            // who didn't understand that iContract is a separate library (duh!)
+            // We want to be notified if iContract jar is missing.
+            // This makes life easier for the user who didn't understand
+            // that iContract is a separate library (duh!)
             getProject().addBuildListener(new IContractPresenceDetector());
 
-            // Prepare the directories for iContract. iContract will make them if they
-            // don't exist, but for some reason I don't know, it will complain about the REP files
-            // afterwards
+            // Prepare the directories for iContract. iContract will make
+            // them if they don't exist, but for some reason I don't know,
+            // it will complain about the REP files afterwards
             Mkdir mkdir = (Mkdir) getProject().createTask("mkdir");
 
             mkdir.setDir(instrumentDir);
@@ -548,42 +534,60 @@ public class IContract extends MatchingTask {
             // Set the classpath that is needed for regular Javac compilation
             Path baseClasspath = createClasspath();
 
-            // Might need to add the core classes if we're not using Sun's Javac (like Jikes)
+            // Might need to add the core classes if we're not using
+            // Sun's Javac (like Jikes)
             String compiler = getProject().getProperty("build.compiler");
             ClasspathHelper classpathHelper = new ClasspathHelper(compiler);
 
             classpathHelper.modify(baseClasspath);
 
-            // Create the classpath required to compile the sourcefiles BEFORE instrumentation
+            // Create the classpath required to compile the sourcefiles
+            // BEFORE instrumentation
             Path beforeInstrumentationClasspath = ((Path) baseClasspath.clone());
 
             beforeInstrumentationClasspath.append(new Path(getProject(),
                 srcDir.getAbsolutePath()));
 
-            // Create the classpath required to compile the sourcefiles AFTER instrumentation
+            // Create the classpath required to compile the sourcefiles
+            // AFTER instrumentation
             Path afterInstrumentationClasspath = ((Path) baseClasspath.clone());
 
-            afterInstrumentationClasspath.append(new Path(getProject(), instrumentDir.getAbsolutePath()));
-            afterInstrumentationClasspath.append(new Path(getProject(), repositoryDir.getAbsolutePath()));
-            afterInstrumentationClasspath.append(new Path(getProject(), srcDir.getAbsolutePath()));
-            afterInstrumentationClasspath.append(new Path(getProject(), buildDir.getAbsolutePath()));
+            afterInstrumentationClasspath.append(new Path(getProject(),
+                instrumentDir.getAbsolutePath()));
+            afterInstrumentationClasspath.append(new Path(getProject(),
+                repositoryDir.getAbsolutePath()));
+            afterInstrumentationClasspath.append(new Path(getProject(),
+                srcDir.getAbsolutePath()));
+            afterInstrumentationClasspath.append(new Path(getProject(),
+                buildDir.getAbsolutePath()));
 
-            // Create the classpath required to automatically compile the repository files
+            // Create the classpath required to automatically compile the
+            // repository files
             Path repositoryClasspath = ((Path) baseClasspath.clone());
 
-            repositoryClasspath.append(new Path(getProject(), instrumentDir.getAbsolutePath()));
-            repositoryClasspath.append(new Path(getProject(), srcDir.getAbsolutePath()));
-            repositoryClasspath.append(new Path(getProject(), repositoryDir.getAbsolutePath()));
-            repositoryClasspath.append(new Path(getProject(), buildDir.getAbsolutePath()));
+            repositoryClasspath.append(new Path(getProject(),
+                instrumentDir.getAbsolutePath()));
+            repositoryClasspath.append(new Path(getProject(),
+                srcDir.getAbsolutePath()));
+            repositoryClasspath.append(new Path(getProject(),
+                repositoryDir.getAbsolutePath()));
+            repositoryClasspath.append(new Path(getProject(),
+                buildDir.getAbsolutePath()));
 
             // Create the classpath required for iContract itself
             Path iContractClasspath = ((Path) baseClasspath.clone());
 
-            iContractClasspath.append(new Path(getProject(), System.getProperty("java.home") + File.separator + ".." + File.separator + "lib" + File.separator + "tools.jar"));
-            iContractClasspath.append(new Path(getProject(), srcDir.getAbsolutePath()));
-            iContractClasspath.append(new Path(getProject(), repositoryDir.getAbsolutePath()));
-            iContractClasspath.append(new Path(getProject(), instrumentDir.getAbsolutePath()));
-            iContractClasspath.append(new Path(getProject(), buildDir.getAbsolutePath()));
+            iContractClasspath.append(new Path(getProject(),
+                System.getProperty("java.home") + File.separator + ".."
+                    + File.separator + "lib" + File.separator + "tools.jar"));
+            iContractClasspath.append(new Path(getProject(),
+                srcDir.getAbsolutePath()));
+            iContractClasspath.append(new Path(getProject(),
+                repositoryDir.getAbsolutePath()));
+            iContractClasspath.append(new Path(getProject(),
+                instrumentDir.getAbsolutePath()));
+            iContractClasspath.append(new Path(getProject(),
+                buildDir.getAbsolutePath()));
 
             // Create a forked java process
             Java iContract = (Java) getProject().createTask("java");
@@ -598,36 +602,63 @@ public class IContract extends MatchingTask {
 
             args.append(directiveString());
             args.append("-v").append(verbosity).append(" ");
-            args.append("-b").append("\"").append(icCompiler).append(" -classpath ").append(beforeInstrumentationClasspath).append("\" ");
-            args.append("-c").append("\"").append(icCompiler).append(" -classpath ").append(afterInstrumentationClasspath).append(" -d ").append(buildDir).append("\" ");
-            args.append("-n").append("\"").append(icCompiler).append(" -classpath ").append(repositoryClasspath).append("\" ");
+
+            args.append("-b").append("\"").append(icCompiler);
+            args.append(" -classpath ").append(beforeInstrumentationClasspath);
+            args.append("\" ");
+
+            args.append("-c").append("\"").append(icCompiler);
+            args.append(" -classpath ").append(afterInstrumentationClasspath);
+            args.append(" -d ").append(buildDir).append("\" ");
+
+            args.append("-n").append("\"").append(icCompiler);
+            args.append(" -classpath ").append(repositoryClasspath);
+            args.append("\" ");
+
             args.append("-d").append(failThrowable).append(" ");
-            args.append("-o").append(instrumentDir).append(File.separator).append("@p").append(File.separator).append("@f.@e ");
-            args.append("-k").append(repositoryDir).append(File.separator).append("@p ");
+
+            args.append("-o").append(instrumentDir).append(File.separator);
+            args.append("@p").append(File.separator).append("@f.@e ");
+
+            args.append("-k").append(repositoryDir).append(File.separator);
+            args.append("@p ");
+
             args.append(quiet ? "-q " : "");
-            args.append(instrumentall ? "-a " : "");// reinstrument everything if controlFile exists and is newer than any class
+            // reinstrument everything if controlFile exists and is newer
+            // than any class
+            args.append(instrumentall ? "-a " : "");
             args.append("@").append(targets.getAbsolutePath());
             iContract.createArg().setLine(args.toString());
 
-//System.out.println( "JAVA -classpath " + iContractClasspath + " com.reliablesystems.iContract.Tool " + args.toString() );
+            //System.out.println( "JAVA -classpath " + iContractClasspath
+            //    + " com.reliablesystems.iContract.Tool " + args.toString() );
 
             // update iControlProperties if it's set.
             if (updateIcontrol) {
                 Properties iControlProps = new Properties();
 
-                try {// to read existing propertiesfile
+                try {
+                    // to read existing propertiesfile
                     iControlProps.load(new FileInputStream("icontrol.properties"));
                 } catch (IOException e) {
-                    log("File icontrol.properties not found. That's ok. Writing a default one.");
+                    log("File icontrol.properties not found. That's ok. "
+                        + "Writing a default one.");
                 }
-                iControlProps.setProperty("sourceRoot", srcDir.getAbsolutePath());
-                iControlProps.setProperty("classRoot", classDir.getAbsolutePath());
-                iControlProps.setProperty("classpath", afterInstrumentationClasspath.toString());
-                iControlProps.setProperty("controlFile", controlFile.getAbsolutePath());
-                iControlProps.setProperty("targetsFile", targets.getAbsolutePath());
+                iControlProps.setProperty("sourceRoot",
+                    srcDir.getAbsolutePath());
+                iControlProps.setProperty("classRoot",
+                    classDir.getAbsolutePath());
+                iControlProps.setProperty("classpath",
+                    afterInstrumentationClasspath.toString());
+                iControlProps.setProperty("controlFile",
+                    controlFile.getAbsolutePath());
+                iControlProps.setProperty("targetsFile",
+                    targets.getAbsolutePath());
 
-                try {// to read existing propertiesfile
-                    iControlProps.store(new FileOutputStream("icontrol.properties"), ICONTROL_PROPERTIES_HEADER);
+                try {
+                    // to read existing propertiesfile
+                    iControlProps.store(new FileOutputStream("icontrol.properties"),
+                        ICONTROL_PROPERTIES_HEADER);
                     log("Updated icontrol.properties");
                 } catch (IOException e) {
                     log("Couldn't write icontrol.properties.");
@@ -639,13 +670,17 @@ public class IContract extends MatchingTask {
 
             if (result != 0) {
                 if (iContractMissing) {
-                    log("iContract can't be found on your classpath. Your classpath is:");
+                    log("iContract can't be found on your classpath. "
+                        + "Your classpath is:");
                     log(classpath.toString());
-                    log("If you don't have the iContract jar, go get it at http://www.reliable-systems.com/tools/");
+                    log("If you don't have the iContract jar, go get it at "
+                        + "http://www.reliable-systems.com/tools/");
                 }
-                throw new BuildException("iContract instrumentation failed. Code=" + result);
+                throw new BuildException("iContract instrumentation failed. "
+                    + "Code = " + result);
             }
-        } else {// not dirty
+        } else {
+            // not dirty
             //log( "Nothing to do. Everything up to date." );
         }
     }
@@ -654,22 +689,28 @@ public class IContract extends MatchingTask {
     /** Checks that the required attributes are set.  */
     private void preconditions() throws BuildException {
         if (srcDir == null) {
-            throw new BuildException("srcdir attribute must be set!", location);
+            throw new BuildException("srcdir attribute must be set!",
+                getLocation());
         }
         if (!srcDir.exists()) {
-            throw new BuildException("srcdir \"" + srcDir.getPath() + "\" does not exist!", location);
+            throw new BuildException("srcdir \"" + srcDir.getPath()
+                + "\" does not exist!", getLocation());
         }
         if (instrumentDir == null) {
-            throw new BuildException("instrumentdir attribute must be set!", location);
+            throw new BuildException("instrumentdir attribute must be set!",
+                getLocation());
         }
         if (repositoryDir == null) {
-            throw new BuildException("repositorydir attribute must be set!", location);
+            throw new BuildException("repositorydir attribute must be set!",
+                getLocation());
         }
-        if (updateIcontrol == true && classDir == null) {
-            throw new BuildException("classdir attribute must be specified when updateicontrol=true!", location);
+        if (updateIcontrol && classDir == null) {
+            throw new BuildException("classdir attribute must be specified "
+                + "when updateicontrol=true!", getLocation());
         }
-        if (updateIcontrol == true && controlFile == null) {
-            throw new BuildException("controlfile attribute must be specified when updateicontrol=true!", location);
+        if (updateIcontrol && controlFile == null) {
+            throw new BuildException("controlfile attribute must be specified "
+                + "when updateicontrol=true!", getLocation());
         }
     }
 
@@ -698,10 +739,12 @@ public class IContract extends MatchingTask {
         try {
             if (targets == null) {
                 targets = new File("targets");
-                log("Warning: targets file not specified. generating file: " + targets.getName());
+                log("Warning: targets file not specified. generating file: "
+                    + targets.getName());
                 writeTargets = true;
             } else if (!targets.exists()) {
-                log("Specified targets file doesn't exist. generating file: " + targets.getName());
+                log("Specified targets file doesn't exist. generating file: "
+                    + targets.getName());
                 writeTargets = true;
             }
             if (writeTargets) {
@@ -717,15 +760,18 @@ public class IContract extends MatchingTask {
                     if (targetPrinter != null) {
                         targetPrinter.println(srcFile.getAbsolutePath());
                     }
-                    File classFile = new File(buildDir, files[i].substring(0, files[i].indexOf(".java")) + ".class");
+                    File classFile
+                        = new File(buildDir, files[i].substring(0, files[i].indexOf(".java")) + ".class");
 
                     if (srcFile.lastModified() > now) {
-                        log("Warning: file modified in the future: " +
-                            files[i], Project.MSG_WARN);
+                        log("Warning: file modified in the future: "
+                            + files[i], Project.MSG_WARN);
                     }
 
                     if (!classFile.exists() || srcFile.lastModified() > classFile.lastModified()) {
-                        //log( "Found a file newer than the instrumentDir class file: " + srcFile.getPath() + " newer than " + classFile.getPath() + ". Running iContract again..." );
+                        //log( "Found a file newer than the instrumentDir class file: "
+                        //    + srcFile.getPath() + " newer than " + classFile.getPath()
+                        //    + ". Running iContract again..." );
                         dirty = true;
                     }
                 }
@@ -753,7 +799,10 @@ public class IContract extends MatchingTask {
                         if (files[i].endsWith(".class")) {
                             if (controlFileTime > srcFile.lastModified()) {
                                 if (!dirty) {
-                                    log("Control file " + controlFile.getAbsolutePath() + " has been updated. Instrumenting all files...");
+                                    log("Control file "
+                                        + controlFile.getAbsolutePath()
+                                        + " has been updated. "
+                                        + "Instrumenting all files...");
                                 }
                                 dirty = true;
                                 instrumentall = true;
@@ -763,7 +812,8 @@ public class IContract extends MatchingTask {
                 }
             }
         } catch (Throwable t) {
-            throw new BuildException("Got an interesting exception:" + t.getMessage());
+            throw new BuildException("Got an interesting exception:"
+                + t.getMessage());
         }
     }
 
@@ -815,7 +865,6 @@ public class IContract extends MatchingTask {
      * about missing iContract is missing. Used to indicate a more verbose
      * error to the user, with advice about how to solve the problem
      *
-     * @author Conor MacNeill
      */
     private class IContractPresenceDetector implements BuildListener {
         public void buildFinished(BuildEvent event) {
@@ -855,7 +904,6 @@ public class IContract extends MatchingTask {
      * like Jikes. It reuses the logic from DefaultCompilerAdapter, which is
      * protected, so we have to subclass it.
      *
-     * @author Conor MacNeill
      */
     private class ClasspathHelper extends DefaultCompilerAdapter {
         private final String compiler;
@@ -868,7 +916,8 @@ public class IContract extends MatchingTask {
 
         // make it public
         public void modify(Path path) {
-            // depending on what compiler to use, set the includeJavaRuntime flag
+            // depending on what compiler to use, set the
+            // includeJavaRuntime flag
             if ("jikes".equals(compiler)) {
                 icCompiler = compiler;
                 includeJavaRuntime = true;

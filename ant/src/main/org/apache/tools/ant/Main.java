@@ -1,76 +1,40 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant;
 
-import org.apache.tools.ant.input.DefaultInputHandler;
-import org.apache.tools.ant.input.InputHandler;
-import org.apache.tools.ant.util.JavaEnvUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Vector;
-import java.util.Properties;
+import java.io.PrintStream;
 import java.util.Enumeration;
+import java.util.Properties;
+import java.util.Vector;
+import org.apache.tools.ant.input.DefaultInputHandler;
+import org.apache.tools.ant.input.InputHandler;
+import org.apache.tools.ant.util.JavaEnvUtils;
+import org.apache.tools.ant.launch.AntMain;
+
 
 /**
  * Command line entry point into Ant. This class is entered via the
- * cannonical `public static void main` entry point and reads the
+ * canonical `public static void main` entry point and reads the
  * command line arguments. It then assembles and executes an Ant
  * project.
  * <p>
@@ -78,9 +42,8 @@ import java.util.Enumeration;
  * to use as an entry point. Please see the source code of this
  * class to see how it manipulates the Ant project classes.
  *
- * @author duncan@x180.com
  */
-public class Main {
+public class Main implements AntMain {
 
     /** The default build file name. */
     public static final String DEFAULT_BUILD_FILENAME = "build.xml";
@@ -98,16 +61,22 @@ public class Main {
     private static PrintStream err = System.err;
 
     /** The build targets. */
-    private Vector targets = new Vector(5);
+    private Vector targets = new Vector();
 
     /** Set of properties that can be used by tasks. */
     private Properties definedProps = new Properties();
 
     /** Names of classes to add as listeners to project. */
-    private Vector listeners = new Vector(5);
+    private Vector listeners = new Vector(1);
 
     /** File names of property files to load on startup. */
-    private Vector propertyFiles = new Vector(5);
+    private Vector propertyFiles = new Vector(1);
+
+    /** Indicates whether this build is to support interactive input */
+    private boolean allowInput = true;
+
+    /** keep going mode */
+    private boolean keepGoingMode = false;
 
     /**
      * The Ant logger class. There may be only one logger. It will have
@@ -146,6 +115,11 @@ public class Main {
     private static boolean isLogFileUsed = false;
 
     /**
+     * optional thread priority
+     */
+    private Integer threadPriority=null;
+
+    /**
      * Prints the message of the Throwable if it (the message) is not
      * <code>null</code>.
      *
@@ -173,12 +147,27 @@ public class Main {
      */
     public static void start(String[] args, Properties additionalUserProperties,
                              ClassLoader coreLoader) {
-        Main m = null;
+        Main m = new Main();
+        m.startAnt(args, additionalUserProperties, coreLoader);
+    }
+
+    /**
+     * Start Ant
+     * @param args command line args
+     * @param additionalUserProperties properties to set beyond those that
+     *        may be specified on the args list
+     * @param coreLoader - not used
+     *
+     * @since Ant 1.6
+     */
+    public void startAnt(String[] args, Properties additionalUserProperties,
+                         ClassLoader coreLoader) {
 
         try {
             Diagnostics.validateVersion();
-            m = new Main(args);
+            processArgs(args);
         } catch (Throwable exc) {
+            handleLogfile();
             printMessage(exc);
             System.exit(1);
         }
@@ -188,37 +177,54 @@ public class Main {
                     e.hasMoreElements();) {
                 String key = (String) e.nextElement();
                 String property = additionalUserProperties.getProperty(key);
-                m.definedProps.put(key, property);
+                definedProps.put(key, property);
             }
         }
 
+        // expect the worst
+        int exitCode = 1;
         try {
-            m.runBuild(coreLoader);
-            System.exit(0);
+            try {
+                runBuild(coreLoader);
+                exitCode = 0;
+            } catch (ExitStatusException ese) {
+                exitCode = ese.getStatus();
+                if (exitCode != 0) {
+                    throw ese;
+                }
+            }
         } catch (BuildException be) {
-            if (m.err != System.err) {
+            if (err != System.err) {
                 printMessage(be);
             }
-            System.exit(1);
         } catch (Throwable exc) {
             exc.printStackTrace();
             printMessage(exc);
-            System.exit(1);
         } finally {
-            if (isLogFileUsed) {
-                if (out != null) {
-                    try {
-                        out.close();
-                    } catch (final Exception e) {
-                        //ignore
-                    }
+            handleLogfile();
+        }
+        System.exit(exitCode);
+    }
+
+    /**
+     * Close logfiles, if we have been writing to them.
+     *
+     * @since Ant 1.6
+     */
+    private static void handleLogfile() {
+        if (isLogFileUsed) {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (final Exception e) {
+                    //ignore
                 }
-                if (err != null) {
-                    try {
-                        err.close();
-                    } catch (final Exception e) {
-                        //ignore
-                    }
+            }
+            if (err != null) {
+                try {
+                    err.close();
+                } catch (final Exception e) {
+                    //ignore
                 }
             }
         }
@@ -235,10 +241,13 @@ public class Main {
         start(args, null, null);
     }
 
-    // XXX: (Jon Skeet) Error handling appears to be inconsistent here.
-    // Sometimes there's just a return statement, and sometimes a
-    // BuildException is thrown. What's the rationale for when to do
-    // what?
+    /**
+     * Constructor used when creating Main for later arg processing
+     * and startup
+     */
+    public Main() {
+    }
+
     /**
      * Sole constructor, which parses and deals with command line
      * arguments.
@@ -247,8 +256,23 @@ public class Main {
      *
      * @exception BuildException if the specified build file doesn't exist
      *                           or is a directory.
+     *
+     * @deprecated
      */
     protected Main(String[] args) throws BuildException {
+        processArgs(args);
+    }
+
+    /**
+     * Process command line arguments.
+     * When ant is started from Launcher, the -lib argument does not get
+     * passed through to this routine.
+     *
+     * @param args the command line arguments.
+     *
+     * @since Ant 1.6
+     */
+    private void processArgs(String[] args) {
         String searchForThis = null;
         PrintStream logTo = null;
 
@@ -257,13 +281,13 @@ public class Main {
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
 
-            if (arg.equals("-help")) {
+            if (arg.equals("-help") || arg.equals("-h")) {
                 printUsage();
                 return;
             } else if (arg.equals("-version")) {
                 printVersion();
                 return;
-            } else if (arg.equals("-diagnostics")){
+            } else if (arg.equals("-diagnostics")) {
                 Diagnostics.doReport(System.out);
                 return;
             } else if (arg.equals("-quiet") || arg.equals("-q")) {
@@ -271,9 +295,11 @@ public class Main {
             } else if (arg.equals("-verbose") || arg.equals("-v")) {
                 printVersion();
                 msgOutputLevel = Project.MSG_VERBOSE;
-            } else if (arg.equals("-debug")) {
+            } else if (arg.equals("-debug") || arg.equals("-d")) {
                 printVersion();
                 msgOutputLevel = Project.MSG_DEBUG;
+            } else if (arg.equals("-noinput")) {
+                allowInput = false;
             } else if (arg.equals("-logfile") || arg.equals("-l")) {
                 try {
                     File logFile = new File(args[i + 1]);
@@ -284,13 +310,11 @@ public class Main {
                     String msg = "Cannot write on the specified log file. "
                         + "Make sure the path exists and you have write "
                         + "permissions.";
-                    System.out.println(msg);
-                    return;
+                    throw new BuildException(msg);
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
-                    String msg = "You must specify a log file when " +
-                        "using the -log argument";
-                    System.out.println(msg);
-                    return;
+                    String msg = "You must specify a log file when "
+                        + "using the -log argument";
+                    throw new BuildException(msg);
                 }
             } else if (arg.equals("-buildfile") || arg.equals("-file")
                        || arg.equals("-f")) {
@@ -298,25 +322,23 @@ public class Main {
                     buildFile = new File(args[i + 1].replace('/', File.separatorChar));
                     i++;
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
-                    String msg = "You must specify a buildfile when " +
-                        "using the -buildfile argument";
-                    System.out.println(msg);
-                    return;
+                    String msg = "You must specify a buildfile when "
+                        + "using the -buildfile argument";
+                    throw new BuildException(msg);
                 }
             } else if (arg.equals("-listener")) {
                 try {
                     listeners.addElement(args[i + 1]);
                     i++;
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
-                    String msg = "You must specify a classname when " +
-                        "using the -listener argument";
-                    System.out.println(msg);
-                    return;
+                    String msg = "You must specify a classname when "
+                        + "using the -listener argument";
+                    throw new BuildException(msg);
                 }
             } else if (arg.startsWith("-D")) {
 
                 /* Interestingly enough, we get to here when a user
-                 * uses -Dname=value. However, in some cases, the JDK
+                 * uses -Dname=value. However, in some cases, the OS
                  * goes ahead and parses this out to args
                  *   {"-Dname", "value"}
                  * so instead of parsing on "=", we just make the "-D"
@@ -334,41 +356,41 @@ public class Main {
                     name = name.substring(0, posEq);
                 } else if (i < args.length - 1) {
                     value = args[++i];
-                       }
+                } else {
+                    throw new BuildException("Missing value for property "
+                                             + name);
+                }
 
                 definedProps.put(name, value);
             } else if (arg.equals("-logger")) {
                 if (loggerClassname != null) {
-                    System.out.println("Only one logger class may "
+                    throw new BuildException("Only one logger class may "
                         + " be specified.");
-                    return;
                 }
                 try {
                     loggerClassname = args[++i];
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
-                    System.out.println("You must specify a classname when " +
-                                       "using the -logger argument");
-                    return;
+                    throw new BuildException("You must specify a classname when"
+                                             + " using the -logger argument");
                 }
             } else if (arg.equals("-inputhandler")) {
                 if (inputHandlerClassname != null) {
-                    System.out.println("Only one input handler class may " +
-                                       "be specified.");
-                    return;
+                    throw new BuildException("Only one input handler class may "
+                                             + "be specified.");
                 }
                 try {
                     inputHandlerClassname = args[++i];
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
-                    System.out.println("You must specify a classname when " +
-                                       "using the -inputhandler argument");
-                    return;
+                    throw new BuildException("You must specify a classname when"
+                                             + " using the -inputhandler"
+                                             + " argument");
                 }
-            } else if (arg.equals("-emacs")) {
+            } else if (arg.equals("-emacs") || arg.equals("-e")) {
                 emacsMode = true;
-            } else if (arg.equals("-projecthelp")) {
+            } else if (arg.equals("-projecthelp") || arg.equals("-p")) {
                 // set the flag to display the targets and quit
                 projectHelp = true;
-            } else if (arg.equals("-find")) {
+            } else if (arg.equals("-find") || arg.equals("-s")) {
                 // eat up next arg if present, default to build.xml
                 if (i < args.length - 1) {
                     searchForThis = args[++i];
@@ -380,17 +402,35 @@ public class Main {
                     propertyFiles.addElement(args[i + 1]);
                     i++;
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
-                    String msg = "You must specify a property filename when " +
-                        "using the -propertyfile argument";
-                    System.out.println(msg);
-                    return;
+                    String msg = "You must specify a property filename when "
+                        + "using the -propertyfile argument";
+                    throw new BuildException(msg);
+                }
+            } else if (arg.equals("-k") || arg.equals("-keep-going")) {
+                keepGoingMode = true;
+            } else if (arg.equals("-nice")) {
+                try {
+                    threadPriority=Integer.decode(args[i + 1]);
+                } catch (ArrayIndexOutOfBoundsException aioobe) {
+                    throw new BuildException(
+                            "You must supply a niceness value (1-10)"+
+                            " after the -nice option");
+                } catch (NumberFormatException e) {
+                    throw new BuildException("Unrecognized niceness value: " +
+                            args[i + 1]);
+                }
+                i++;
+                if(threadPriority.intValue()<Thread.MIN_PRIORITY ||
+                        threadPriority.intValue()>Thread.MAX_PRIORITY) {
+                    throw new BuildException(
+                            "Niceness value is out of the range 1-10");
                 }
             } else if (arg.startsWith("-")) {
                 // we don't have any more args to recognize!
                 String msg = "Unknown argument: " + arg;
                 System.out.println(msg);
                 printUsage();
-                return;
+                throw new BuildException("");
             } else {
                 // if it's no other arg, it may be the target
                 targets.addElement(arg);
@@ -415,7 +455,7 @@ public class Main {
         }
 
         // make sure it's not a directory (this falls into the ultra
-        // paranoid lets check everything catagory
+        // paranoid lets check everything category
 
         if (buildFile.isDirectory()) {
             System.out.println("What? Buildfile: " + buildFile + " is a dir!");
@@ -440,7 +480,8 @@ public class Main {
                 if (fis != null) {
                     try {
                         fis.close();
-                    } catch (IOException e){
+                    } catch (IOException e) {
+                        // ignore
                     }
                 }
             }
@@ -460,9 +501,10 @@ public class Main {
         }
 
         if (logTo != null) {
-            out = err = logTo;
+            out = logTo;
+            err = logTo;
             System.setOut(out);
-            System.setErr(out);
+            System.setErr(err);
         }
         readyToRun = true;
     }
@@ -471,27 +513,26 @@ public class Main {
      * Helper to get the parent file for a given file.
      * <p>
      * Added to simulate File.getParentFile() from JDK 1.2.
+     * @deprecated
      *
      * @param file   File to find parent of. Must not be <code>null</code>.
      * @return       Parent file or null if none
      */
     private File getParentFile(File file) {
-        String filename = file.getAbsolutePath();
-        file = new File(filename);
-        filename = file.getParent();
+        File parent = file.getParentFile();
 
-        if (filename != null && msgOutputLevel >= Project.MSG_VERBOSE) {
-            System.out.println("Searching in " + filename);
+        if (parent != null && msgOutputLevel >= Project.MSG_VERBOSE) {
+            System.out.println("Searching in " + parent.getAbsolutePath());
         }
 
-        return (filename == null) ? null : new File(filename);
+        return parent;
     }
 
     /**
      * Search parent directories for the build file.
      * <p>
      * Takes the given target as a suffix to append to each
-     * parent directory in seach of a build file.  Once the
+     * parent directory in search of a build file.  Once the
      * root of the file-system has been reached an exception
      * is thrown.
      *
@@ -559,26 +600,45 @@ public class Main {
 
             PrintStream err = System.err;
             PrintStream out = System.out;
+            InputStream in = System.in;
 
             // use a system manager that prevents from System.exit()
             // only in JDK > 1.1
             SecurityManager oldsm = null;
-            if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_0) &&
-                !JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)){
+            if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_0)
+                && !JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
                 oldsm = System.getSecurityManager();
 
                 //SecurityManager can not be installed here for backwards
-                //compatability reasons (PD). Needs to be loaded prior to
+                //compatibility reasons (PD). Needs to be loaded prior to
                 //ant class if we are going to implement it.
                 //System.setSecurityManager(new NoExitSecurityManager());
             }
             try {
+                if (allowInput) {
+                    project.setDefaultInputStream(System.in);
+                }
+                System.setIn(new DemuxInputStream(project));
                 System.setOut(new PrintStream(new DemuxOutputStream(project, false)));
                 System.setErr(new PrintStream(new DemuxOutputStream(project, true)));
+
 
                 if (!projectHelp) {
                     project.fireBuildStarted();
                 }
+
+                // set the thread priorities
+                if (threadPriority != null) {
+                    try {
+                        project.log("Setting Ant's thread priority to "
+                                + threadPriority,Project.MSG_VERBOSE);
+                        Thread.currentThread().setPriority(threadPriority.intValue());
+                    } catch (SecurityException swallowed) {
+                        //we cannot set the priority here.
+                        project.log("A security manager refused to set the -nice value");
+                    }
+                }
+
                 project.init();
                 project.setUserProperty("ant.version", getAntVersion());
 
@@ -593,6 +653,8 @@ public class Main {
                 project.setUserProperty("ant.file",
                                         buildFile.getAbsolutePath());
 
+                project.setKeepGoingMode(keepGoingMode);
+
                 ProjectHelper.configureProject(project, buildFile);
 
                 if (projectHelp) {
@@ -603,19 +665,22 @@ public class Main {
 
                 // make sure that we have a target to execute
                 if (targets.size() == 0) {
-                    targets.addElement(project.getDefaultTarget());
+                    if (project.getDefaultTarget() != null) {
+                        targets.addElement(project.getDefaultTarget());
+                    }
                 }
 
                 project.executeTargets(targets);
             } finally {
                 // put back the original security manager
                 //The following will never eval to true. (PD)
-                if (oldsm != null){
+                if (oldsm != null) {
                     System.setSecurityManager(oldsm);
                 }
 
                 System.setOut(out);
                 System.setErr(err);
+                System.setIn(in);
             }
         } catch (RuntimeException exc) {
             error = exc;
@@ -626,6 +691,8 @@ public class Main {
         } finally {
             if (!projectHelp) {
                 project.fireBuildFinished(error);
+            } else if (error != null) {
+                project.log(error.toString(), Project.MSG_ERR);
             }
         }
     }
@@ -647,6 +714,9 @@ public class Main {
             try {
                 BuildListener listener =
                     (BuildListener) Class.forName(className).newInstance();
+                if (project != null) {
+                    project.setProjectReference(listener);
+                }
                 project.addBuildListener(listener);
             } catch (Throwable exc) {
                 throw new BuildException("Unable to instantiate listener "
@@ -658,10 +728,12 @@ public class Main {
     /**
      * Creates the InputHandler and adds it to the project.
      *
+     * @param project the project instance.
+     *
      * @exception BuildException if a specified InputHandler
      *                           implementation could not be loaded.
      */
-    private void addInputHandler(Project project) {
+    private void addInputHandler(Project project) throws BuildException {
         InputHandler handler = null;
         if (inputHandlerClassname == null) {
             handler = new DefaultInputHandler();
@@ -669,13 +741,15 @@ public class Main {
             try {
                 handler = (InputHandler)
                     (Class.forName(inputHandlerClassname).newInstance());
+                if (project != null) {
+                    project.setProjectReference(handler);
+                }
             } catch (ClassCastException e) {
                 String msg = "The specified input handler class "
                     + inputHandlerClassname
                     + " does not implement the InputHandler interface";
                 throw new BuildException(msg);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 String msg = "Unable to instantiate specified input handler "
                     + "class " + inputHandlerClassname + " : "
                     + e.getClass().getName();
@@ -699,7 +773,8 @@ public class Main {
         BuildLogger logger = null;
         if (loggerClassname != null) {
             try {
-                logger = (BuildLogger) (Class.forName(loggerClassname).newInstance());
+                Class loggerClass = Class.forName(loggerClassname);
+                logger = (BuildLogger) (loggerClass.newInstance());
             } catch (ClassCastException e) {
                 System.err.println("The specified logger class "
                     + loggerClassname
@@ -731,28 +806,34 @@ public class Main {
         StringBuffer msg = new StringBuffer();
         msg.append("ant [options] [target [target2 [target3] ...]]" + lSep);
         msg.append("Options: " + lSep);
-        msg.append("  -help                  print this message" + lSep);
-        msg.append("  -projecthelp           print project help information" + lSep);
+        msg.append("  -help, -h              print this message" + lSep);
+        msg.append("  -projecthelp, -p       print project help information" + lSep);
         msg.append("  -version               print the version information and exit" + lSep);
         msg.append("  -diagnostics           print information that might be helpful to" + lSep);
         msg.append("                         diagnose or report problems." + lSep);
         msg.append("  -quiet, -q             be extra quiet" + lSep);
         msg.append("  -verbose, -v           be extra verbose" + lSep);
-        msg.append("  -debug                 print debugging information" + lSep);
-        msg.append("  -emacs                 produce logging information without adornments" + lSep);
+        msg.append("  -debug, -d             print debugging information" + lSep);
+        msg.append("  -emacs, -e             produce logging information without adornments" + lSep);
+        msg.append("  -lib <path>            specifies a path to search for jars and classes" + lSep);
         msg.append("  -logfile <file>        use given file for log" + lSep);
         msg.append("    -l     <file>                ''" + lSep);
         msg.append("  -logger <classname>    the class which is to perform logging" + lSep);
         msg.append("  -listener <classname>  add an instance of class as a project listener" + lSep);
+        msg.append("  -noinput               do not allow interactive input" + lSep);
         msg.append("  -buildfile <file>      use given buildfile" + lSep);
         msg.append("    -file    <file>              ''" + lSep);
         msg.append("    -f       <file>              ''" + lSep);
         msg.append("  -D<property>=<value>   use value for given property" + lSep);
+        msg.append("  -keep-going, -k        execute all targets that do not depend" + lSep);
+        msg.append("                         on failed target(s)" + lSep);
         msg.append("  -propertyfile <name>   load all properties from file with -D" + lSep);
         msg.append("                         properties taking precedence" + lSep);
         msg.append("  -inputhandler <class>  the class which will handle input requests" + lSep);
-        msg.append("  -find <file>           search for buildfile towards the root of the" + lSep);
-        msg.append("                         filesystem and use it" + lSep);
+        msg.append("  -find <file>           (s)earch for buildfile towards the root of" + lSep);
+        msg.append("    -s  <file>           the filesystem and use it" + lSep);
+        msg.append("  -nice  number          A niceness value for the main thread:" + lSep +
+                   "                         1 (lowest) to 10 (highest); 5 is the default" + lSep);
         System.out.println(msg.toString());
     }
 
@@ -843,6 +924,9 @@ public class Main {
         while (ptargets.hasMoreElements()) {
             currentTarget = (Target) ptargets.nextElement();
             targetName = currentTarget.getName();
+            if (targetName.equals("")) {
+                continue;
+            }
             targetDescription = currentTarget.getDescription();
             // maintain a sorted list of targets
             if (targetDescription == null) {
@@ -862,11 +946,11 @@ public class Main {
                      maxLength);
         //if there were no main targets, we list all subtargets
         //as it means nothing has a description
-        if(topNames.size()==0) {
-            printSubTargets=true;
+        if (topNames.size() == 0) {
+            printSubTargets = true;
         }
         if (printSubTargets) {
-            printTargets(project, subNames, null, "Subtargets:", 0);
+            printTargets(project, subNames, null, "Other targets:", 0);
         }
 
         String defaultTarget = project.getDefaultTarget();
@@ -900,6 +984,8 @@ public class Main {
      * Writes a formatted list of target names to <code>System.out</code>
      * with an optional description.
      *
+     *
+     * @param project the project instance.
      * @param names The names to be printed.
      *              Must not be <code>null</code>.
      * @param descriptions The associated target descriptions.
@@ -914,8 +1000,8 @@ public class Main {
      *               position so they line up (so long as the names really
      *               <i>are</i> shorter than this).
      */
-    private static void printTargets(Project project,Vector names,
-                                     Vector descriptions,String heading,
+    private static void printTargets(Project project, Vector names,
+                                     Vector descriptions, String heading,
                                      int maxlen) {
         // now, start printing the targets and their descriptions
         String lSep = System.getProperty("line.separator");

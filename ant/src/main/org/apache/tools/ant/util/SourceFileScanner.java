@@ -1,67 +1,27 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.util;
 
-import org.apache.tools.ant.Project;
+import java.io.File;
+import java.util.Vector;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.ResourceFactory;
 import org.apache.tools.ant.types.Resource;
-import org.apache.tools.ant.taskdefs.condition.Os;
-
-import java.io.File;
-import java.util.Vector;
 
 /**
  * Utility class that collects the functionality of the various
@@ -71,8 +31,6 @@ import java.util.Vector;
  * subset of the files given as a parameter and holds only those that
  * are newer than their corresponding target files.</p>
  *
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <a href="mailto:levylambert@tiscali-dsl.de">Antoine Levy-Lambert</a>
  */
 public class SourceFileScanner implements ResourceFactory {
 
@@ -102,6 +60,27 @@ public class SourceFileScanner implements ResourceFactory {
      */
     public String[] restrict(String[] files, File srcDir, File destDir,
                              FileNameMapper mapper) {
+        return restrict(files, srcDir, destDir, mapper,
+                        fileUtils.getFileTimestampGranularity());
+    }
+
+    /**
+     * Restrict the given set of files to those that are newer than
+     * their corresponding target files.
+     *
+     * @param files   the original set of files
+     * @param srcDir  all files are relative to this directory
+     * @param destDir target files live here. if null file names
+     *                returned by the mapper are assumed to be absolute.
+     * @param mapper  knows how to construct a target file names from
+     *                source file names.
+     * @param granularity The number of milliseconds leeway to give
+     *                    before deciding a target is out of date.
+     *
+     * @since Ant 1.6.2
+     */
+    public String[] restrict(String[] files, File srcDir, File destDir,
+                             FileNameMapper mapper, long granularity) {
         // record destdir for later use in getResource
         this.destDir = destDir;
         Vector v = new Vector();
@@ -110,16 +89,16 @@ public class SourceFileScanner implements ResourceFactory {
             v.addElement(new Resource(files[i], src.exists(),
                                       src.lastModified(), src.isDirectory()));
         }
-        Resource[] sourceresources= new Resource[v.size()];
+        Resource[] sourceresources = new Resource[v.size()];
         v.copyInto(sourceresources);
 
         // build the list of sources which are out of date with
         // respect to the target
-        Resource[] outofdate = 
+        Resource[] outofdate =
             ResourceUtils.selectOutOfDateSources(task, sourceresources,
-                                                 mapper, this);
+                                                 mapper, this, granularity);
         String[] result = new String[outofdate.length];
-        for (int counter=0; counter < outofdate.length; counter++) {
+        for (int counter = 0; counter < outofdate.length; counter++) {
             result[counter] = outofdate[counter].getName();
         }
         return result;
@@ -132,7 +111,20 @@ public class SourceFileScanner implements ResourceFactory {
      */
     public File[] restrictAsFiles(String[] files, File srcDir, File destDir,
                                   FileNameMapper mapper) {
-        String[] res = restrict(files, srcDir, destDir, mapper);
+        return restrictAsFiles(files, srcDir, destDir, mapper,
+                               fileUtils.getFileTimestampGranularity());
+    }
+
+    /**
+     * Convinience layer on top of restrict that returns the source
+     * files as File objects (containing absolute paths if srcDir is
+     * absolute).
+     *
+     * @since Ant 1.6.2
+     */
+    public File[] restrictAsFiles(String[] files, File srcDir, File destDir,
+                                  FileNameMapper mapper, long granularity) {
+        String[] res = restrict(files, srcDir, destDir, mapper, granularity);
         File[] result = new File[res.length];
         for (int i = 0; i < res.length; i++) {
             result[i] = new File(srcDir, res[i]);
@@ -153,3 +145,4 @@ public class SourceFileScanner implements ResourceFactory {
                             src.isDirectory());
     }
 }
+

@@ -1,81 +1,44 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.junit;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.types.EnumeratedAttribute;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.types.EnumeratedAttribute;
 
 /**
  * <p> A wrapper for the implementations of <code>JUnitResultFormatter</code>.
- * In particular, used as a nested <code>&lt;formatter&gt;</code> element in a <code>&lt;junit&gt;</code> task.
- * <p> For example, 
+ * In particular, used as a nested <code>&lt;formatter&gt;</code> element in
+ * a <code>&lt;junit&gt;</code> task.
+ * <p> For example,
  * <code><pre>
  *       &lt;junit printsummary="no" haltonfailure="yes" fork="false"&gt;
  *           &lt;formatter type="plain" usefile="false" /&gt;
  *           &lt;test name="org.apache.ecs.InternationalCharTest" /&gt;
  *       &lt;/junit&gt;</pre></code>
- * adds a <code>plain</code> type implementation (<code>PlainJUnitResultFormatter</code>) to display the results of the test.
+ * adds a <code>plain</code> type implementation
+ * (<code>PlainJUnitResultFormatter</code>) to display the results of the test.
  *
  * <p> Either the <code>type</code> or the <code>classname</code> attribute
- * must be set. 
- *
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
+ * must be set.
  *
  * @see JUnitTask
  * @see XMLJUnitResultFormatter
@@ -90,6 +53,15 @@ public class FormatterElement {
     private OutputStream out = System.out;
     private File outFile;
     private boolean useFile = true;
+    private String ifProperty;
+    private String unlessProperty;
+
+    public static final String XML_FORMATTER_CLASS_NAME =
+        "org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter";
+    public static final String BRIEF_FORMATTER_CLASS_NAME =
+        "org.apache.tools.ant.taskdefs.optional.junit.BriefJUnitResultFormatter";
+    public static final String PLAIN_FORMATTER_CLASS_NAME =
+        "org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter";
 
     /**
      * <p> Quick way to use a standard formatter.
@@ -101,19 +73,18 @@ public class FormatterElement {
      * <li> The <code>plain</code> type (the default) uses a <code>PlainJUnitResultFormatter</code>.
      * </ul>
      *
-     * <p> Sets <code>classname</code> attribute - so you can't use that attribute if you use this one.
+     * <p> Sets <code>classname</code> attribute - so you can't use that
+     * attribute if you use this one.
      */
     public void setType(TypeAttribute type) {
         if ("xml".equals(type.getValue())) {
-            setClassname("org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter");
-            setExtension(".xml");
+            setClassname(XML_FORMATTER_CLASS_NAME);
         } else {
             if ("brief".equals(type.getValue())) {
-                setClassname("org.apache.tools.ant.taskdefs.optional.junit.BriefJUnitResultFormatter");
+                setClassname(BRIEF_FORMATTER_CLASS_NAME);
             } else { // must be plain, ensured by TypeAttribute
-                setClassname("org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter");
+                setClassname(PLAIN_FORMATTER_CLASS_NAME);
             }
-            setExtension(".txt");
         }
     }
 
@@ -124,6 +95,13 @@ public class FormatterElement {
      */
     public void setClassname(String classname) {
         this.classname = classname;
+        if (XML_FORMATTER_CLASS_NAME.equals(classname)) {
+           setExtension(".xml");
+        } else if (PLAIN_FORMATTER_CLASS_NAME.equals(classname)) {
+           setExtension(".txt");
+        } else if (BRIEF_FORMATTER_CLASS_NAME.equals(classname)) {
+           setExtension(".txt");
+        }
     }
 
     /**
@@ -173,14 +151,64 @@ public class FormatterElement {
         return useFile;
     }
 
+    /**
+     * Set whether this formatter should be used.  It will be
+     * used if the property has been set, otherwise it won't.
+     * @param ifProperty name of property
+     */
+    public void setIf(String ifProperty) {
+        this.ifProperty = ifProperty;
+    }
+
+    /**
+     * Set whether this formatter should NOT be used. It
+     * will not be used if the property has been set, orthwise it
+     * will be used.
+     * @param unlessProperty name of property
+     */
+    public void setUnless(String unlessProperty) {
+        this.unlessProperty = unlessProperty;
+    }
+
+    /**
+     * Ensures that the selector passes the conditions placed
+     * on it with <code>if</code> and <code>unless</code> properties.
+     */
+    public boolean shouldUse(Task t) {
+        if (ifProperty != null && t.getProject().getProperty(ifProperty) == null) {
+            return false;
+        } else if (unlessProperty != null
+                    && t.getProject().getProperty(unlessProperty) != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @since Ant 1.2
+     */
     JUnitResultFormatter createFormatter() throws BuildException {
+        return createFormatter(null);
+    }
+
+    /**
+     * @since Ant 1.6
+     */
+    JUnitResultFormatter createFormatter(ClassLoader loader)
+        throws BuildException {
+
         if (classname == null) {
             throw new BuildException("you must specify type or classname");
         }
-        
+
         Class f = null;
         try {
-            f = Class.forName(classname);
+            if (loader == null) {
+                f = Class.forName(classname);
+            } else {
+                f = Class.forName(classname, true, loader);
+            }
         } catch (ClassNotFoundException e) {
             throw new BuildException(e);
         }
@@ -195,7 +223,7 @@ public class FormatterElement {
         }
 
         if (!(o instanceof JUnitResultFormatter)) {
-            throw new BuildException(classname 
+            throw new BuildException(classname
                 + " is not a JUnitResultFormatter");
         }
 
@@ -214,7 +242,7 @@ public class FormatterElement {
 
     /**
      * <p> Enumerated attribute with the values "plain", "xml" and "brief".
-     * 
+     *
      * <p> Use to enumerate options for <code>type</code> attribute.
      */
     public static class TypeAttribute extends EnumeratedAttribute {

@@ -3,39 +3,51 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>AntCall Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
 
 <h2><a name="antcall">AntCall</a></h2>
 <h3>Description</h3>
-<p>Call another target within the same build-file optionally specifying some
-properties (param's in this context)</p>
+
+<p>Call another target within the same build-file optionally
+specifying some properties (param's in this context).  <strong>This
+task must no be used outside of a <code>target</code>.</strong></p>
+
 <p>By default, all of the properties of the current project will be
 available in the new project.   Alternatively, you can
 set the <i>inheritAll</i> attribute to <code>false</code> and only
 &quot;user&quot; properties (i.e., those passed on the command-line)
 will be passed to the new project.  In either case, the set of
-properties passed to the new project will override the properties that 
+properties passed to the new project will override the properties that
 are set in the new project (See also the <a href="property.html">property task</a>).</p>
-<p>You can also set properties in the new project from the old project by
-using nested param tags. These properties are always passed regardless of the
-setting of <i>inheritAll</i>.  This allows you to parameterize your subprojects.</p>
+<p>You can also set properties in the new project from the old project
+by using nested param tags. These properties are always passed
+to the new project and any project created in that project
+regardless of the setting of <i>inheritAll</i>.  This allows you to
+parameterize your subprojects.  Properties defined on the command line
+can not be overridden by nested &lt;param&gt; elements.</p>
 
 <p>Nested <a href="#reference"><i>&lt;reference&gt;</i></a> elements can
 be used to copy references from the calling project to the new
 project, optionally under a different id.  References taken from
-nested elements will override existing references in the new
-project.</p>
+nested elements will override existing references that have been
+defined outside of targets in the new project - but not those defined
+inside of targets.</p>
 
 <p>
 When a target is invoked by antcall, all of its dependent targets will
 also be called within the context of any new parameters. For example. if
-the target &quot;doSomethingElse&quot; depended on the target &quot;init&quot;, then the 
-<i>antcall</i> of &quot;doSomethingElse&quot; will call &quot;init&quot; during the call. 
-Of course, any properties defined in the antcall task or inherited from the calling target 
-will be fixed and not overridable in the init task -or indeed in the &quot;doSomethingElse&quot; task.  
+the target &quot;doSomethingElse&quot; depended on the target &quot;init&quot;, then the
+<i>antcall</i> of &quot;doSomethingElse&quot; will call &quot;init&quot; during the call.
+Of course, any properties defined in the antcall task or inherited from the calling target
+will be fixed and not overridable in the init task -or indeed in the &quot;doSomethingElse&quot; task.
 </p>
+
+<p>If the build file changes after you've started the build, the
+behavior of this task is undefined.</p>
+
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -56,11 +68,11 @@ will be fixed and not overridable in the init task -or indeed in the &quot;doSom
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
-    <td valign="top">inheritRefs</td> 
+    <td valign="top">inheritRefs</td>
     <td valign="top">If <code>true</code>, pass all references to the
       new Ant project.  Defaults to <code>false</code>.</td>
     <td align="center" valign="top">No</td>
-  </tr>  
+  </tr>
 </table>
 
 <h3>Note on <code>inheritRefs</code></h3>
@@ -74,16 +86,13 @@ are those defined by nested <code>&lt;reference&gt;</code> elements or
 references defined by tasks directly (not using the <code>id</code>
 attribute).</p>
 
-<p>Inherited references are not available to top level tasks of the
-child project.</p>
-
 <h3>Parameters specified as nested elements</h3>
 <h4>param</h4>
 <p>Specifies the properties to set before running the specified target. See <a
 href="property.html">property</a> for usage guidelines.</p>
 
 <h4><a name="reference">reference</a></h4>
-<p>Used to chose references that shall be copied into the new project,
+<p>Used to choose references that shall be copied into the new project,
 optionally changing their id.</p>
 
 <table border="1" cellpadding="2" cellspacing="0">
@@ -103,6 +112,14 @@ optionally changing their id.</p>
     <td valign="top" align="center">No, defaults to the value of refid.</td>
   </tr>
 </table>
+
+<h4>propertyset</h4>
+
+<p>You can specify a set of properties to be copied into the new
+project with <a
+href="../CoreTypes/propertyset.html">propertyset</a>s.</p>
+
+<p><em>since Ant 1.6</em>.</p>
 
 <h3>Examples</h3>
 <pre>
@@ -127,9 +144,8 @@ optionally changing their id.</p>
 <p>will copy the parent's definition of <code>path1</code> into the
 new project using the id <code>path2</code>.</p>
 
-<hr><p align="center">Copyright &copy; 2000-2002 Apache Software Foundation. All rights
+<hr><p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>
 </html>
-

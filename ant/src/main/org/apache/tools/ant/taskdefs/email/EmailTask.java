@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.email;
 
@@ -70,12 +33,6 @@ import org.apache.tools.ant.types.FileSet;
  * A task to send SMTP email. This is a refactoring of the SendMail and
  * MimeMail tasks such that both are within a single task.
  *
- * @author Magesh Umasankar
- * @author glenn_twiggs@bmc.com
- * @author steve_l@iseran.com steve loughran
- * @author ehatcher@apache.org Erik Hatcher
- * @author paulo.gaspar@krankikom.de Paulo Gaspar
- * @author roxspring@imapmail.org Rob Oxspring
  * @since Ant 1.5
  * @ant.task name="mail" category="network"
  */
@@ -101,11 +58,9 @@ public class EmailTask
          * @return a list of valid entries
          */
         public String[] getValues() {
-            return new String[]
-                {AUTO, MIME, UU, PLAIN};
+            return new String[] {AUTO, MIME, UU, PLAIN};
         }
     }
-
 
     private String encoding = AUTO;
     /** host running SMTP  */
@@ -119,9 +74,11 @@ public class EmailTask
     private boolean failOnError = true;
     private boolean includeFileNames = false;
     private String messageMimeType = null;
-
+    /** special headers */
     /** sender  */
     private EmailAddress from = null;
+    /** replyto */
+    private Vector replyToList = new Vector();
     /** TO recipients  */
     private Vector toList = new Vector();
     /** CC (Carbon Copy) recipients  */
@@ -132,7 +89,41 @@ public class EmailTask
     /** file list  */
     private Vector files = new Vector();
     private Vector filesets = new Vector();
+    /** Character set for MimeMailer*/
+    private String charset = null;
+    /** User for SMTP auth */
+    private String user = null;
+    /** Password for SMTP auth */
+    private String password = null;
+    /** indicate if the user wishes SSL-TLS */
+    private boolean SSL = false;
 
+    /**
+     * sets the user for SMTP auth; this requires JavaMail
+     * @param user
+     * @since ant 1.6
+     */
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    /**
+     * sets the password for SMTP auth; this requires JavaMail
+     * @param password
+     * @since ant 1.6
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    /**
+     * tells if the user needs to send his data over SSL
+     * @param SSL
+     * @since ant 1.6
+     */
+    public void setSSL(boolean SSL) {
+        this.SSL = SSL;
+    }
 
     /**
      * Allows the build writer to choose the preferred encoding method
@@ -218,7 +209,7 @@ public class EmailTask
 
 
     /**
-     * Add a message elemnt
+     * Add a message element
      *
      * @param message The message object
      * @throws BuildException if a message has already been added
@@ -259,6 +250,28 @@ public class EmailTask
         }
 
         this.from = new EmailAddress(address);
+    }
+
+
+    /**
+     * Adds a replyto address element
+     *
+     * @param address The address to reply to
+     * @since ant 1.6
+     */
+    public void addReplyTo(EmailAddress address) {
+        this.replyToList.add(address);
+    }
+
+
+    /**
+     * Shorthand to set the replyto address element
+     *
+     * @param address The address to which replies should be directed
+     * @since ant 1.6
+     */
+    public void setReplyTo(String address) {
+        this.replyToList.add(new EmailAddress(address));
     }
 
 
@@ -353,7 +366,7 @@ public class EmailTask
         StringTokenizer t = new StringTokenizer(filenames, ", ");
 
         while (t.hasMoreTokens()) {
-            files.addElement(project.resolveFile(t.nextToken()));
+            files.addElement(getProject().resolveFile(t.nextToken()));
         }
     }
 
@@ -399,7 +412,6 @@ public class EmailTask
 
             // prepare for the auto select mechanism
             boolean autoFound = false;
-
             // try MIME format
             if (encoding.equals(MIME)
                  || (encoding.equals(AUTO) && !autoFound)) {
@@ -410,9 +422,21 @@ public class EmailTask
                     autoFound = true;
                     log("Using MIME mail", Project.MSG_VERBOSE);
                 } catch (Throwable e) {
-                    log("Failed to initialise MIME mail", Project.MSG_WARN);
+                    log("Failed to initialise MIME mail: "
+                        + e.getMessage(), Project.MSG_WARN);
                 }
             }
+            // SMTP auth only allowed with MIME mail
+            if (autoFound == false && ((user != null) || (password != null))
+                && (encoding.equals(UU) || encoding.equals(PLAIN))) {
+                throw new BuildException("SMTP auth only possible with MIME mail");
+            }
+            // SSL only allowed with MIME mail
+            if (autoFound == false && (SSL)
+                && (encoding.equals(UU) || encoding.equals(PLAIN))) {
+                throw new BuildException("SSL only possible with MIME mail");
+            }
+
 
             // try UU format
             if (encoding.equals(UU)
@@ -468,6 +492,15 @@ public class EmailTask
                     message.setMimeType(messageMimeType);
                 }
             }
+            // set the character set if not done already (and required)
+            if (charset != null) {
+                if (message.getCharset() != null) {
+                    throw new BuildException("The charset can only be "
+                         + "specified in one location");
+                } else {
+                    message.setCharset(charset);
+                }
+            }
 
             // identify which files should be attached
             Enumeration e = filesets.elements();
@@ -475,7 +508,7 @@ public class EmailTask
             while (e.hasMoreElements()) {
                 FileSet fs = (FileSet) e.nextElement();
 
-                DirectoryScanner ds = fs.getDirectoryScanner(project);
+                DirectoryScanner ds = fs.getDirectoryScanner(getProject());
                 String[] includedFiles = ds.getIncludedFiles();
                 File baseDir = ds.getBasedir();
 
@@ -489,6 +522,7 @@ public class EmailTask
             // let the user know what's going to happen
             log("Sending email: " + subject, Project.MSG_INFO);
             log("From " + from, Project.MSG_VERBOSE);
+            log("ReplyTo " + replyToList, Project.MSG_VERBOSE);
             log("To " + toList, Project.MSG_VERBOSE);
             log("Cc " + ccList, Project.MSG_VERBOSE);
             log("Bcc " + bccList, Project.MSG_VERBOSE);
@@ -496,8 +530,12 @@ public class EmailTask
             // pass the params to the mailer
             mailer.setHost(host);
             mailer.setPort(port);
+            mailer.setUser(user);
+            mailer.setPassword(password);
+            mailer.setSSL(SSL);
             mailer.setMessage(message);
             mailer.setFrom(from);
+            mailer.setReplyToList(replyToList);
             mailer.setToList(toList);
             mailer.setCcList(ccList);
             mailer.setBccList(bccList);
@@ -519,10 +557,33 @@ public class EmailTask
             if (failOnError) {
                 throw e;
             }
+        } catch (Exception e) {
+          log("Failed to send email", Project.MSG_WARN);
+          if (failOnError) {
+            throw new BuildException(e);
+          }
         } finally {
             message = savedMessage;
             files = savedFiles;
         }
+    }
+    /**
+     * Sets the character set of mail message.
+     * Will be ignored if mimeType contains ....; Charset=... substring or
+     * encoding is not a <code>mime</code>
+     * @since Ant 1.6
+     */
+    public void setCharset(String charset) {
+      this.charset = charset;
+    }
+    /**
+     * Returns the character set of mail message.
+     *
+     * @return Charset of mail message.
+     * @since Ant 1.6
+     */
+    public String getCharset() {
+      return charset;
     }
 }
 

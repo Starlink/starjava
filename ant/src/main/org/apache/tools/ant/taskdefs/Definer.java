@@ -1,342 +1,509 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights 
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
-import org.apache.tools.ant.Task;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Enumeration;
+import java.util.Locale;
+import java.util.NoSuchElementException;
+import java.util.Properties;
+
+import org.apache.tools.ant.AntTypeDefinition;
+import org.apache.tools.ant.ComponentHelper;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.AntClassLoader;
-import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.types.Reference;
-
-import java.util.Properties;
-import java.util.Enumeration;
-import java.io.File;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
+import org.apache.tools.ant.ProjectHelper;
+import org.apache.tools.ant.types.EnumeratedAttribute;
 
 /**
- * Base class for Taskdef and Typedef - does all the classpath
- * handling and and class loading.
- *
- * @author Costin Manolache
- * @author <a href="stefan.bodewig@epost.de">Stefan Bodewig</a>
+ * Base class for Taskdef and Typedef - handles all
+ * the attributes for Typedef. The uri and class
+ * handling is handled by DefBase
  *
  * @since Ant 1.4
  */
-public abstract class Definer extends Task {
+public abstract class Definer extends DefBase {
+    private static class ResourceStack extends ThreadLocal {
+        public Object initialValue() {
+            return new HashMap();
+        }
+        Map getStack() {
+            return (Map) get();
+        }
+    }
+    private static ResourceStack resourceStack = new ResourceStack();
     private String name;
-    private String value;
-    private Path classpath;
+    private String classname;
     private File file;
     private String resource;
-    private boolean reverseLoader = false;
-    private String loaderId = null;
-    private String classpathId = null;
-    
-    private static final String REUSE_LOADER_REF = "ant.reuse.loader";
-    
-    /**
-     * @deprecated stop using this attribute
-     * @ant.attribute ignore="true"
-     */
-    public void setReverseLoader(boolean reverseLoader) {
-        this.reverseLoader = reverseLoader;
-        log("The reverseloader attribute is DEPRECATED. It will be removed", 
-            Project.MSG_WARN);
-    }
-    
-    /**
-     * Set the classpath to be used when searching for component being defined
-     * 
-     * @param classpath an Ant Path object containing the classpath.
-     */
-    public void setClasspath(Path classpath) {
-        if (this.classpath == null) {
-            this.classpath = classpath;
-        } else {
-            this.classpath.append(classpath);
-        }
-    }
+
+    private   int    format = Format.PROPERTIES;
+    private   boolean definerSet = false;
+    private   int         onError = OnError.FAIL;
+    private   String      adapter;
+    private   String      adaptTo;
+
+    private   Class       adapterClass;
+    private   Class       adaptToClass;
 
     /**
-     * Create the classpath to be used when searching for component being defined
-     */ 
-    public Path createClasspath() {
-        if (this.classpath == null) {
-            this.classpath = new Path(project);
-        }
-        return this.classpath.createPath();
-    }
-
-    /**
-     * reference to a classpath to use when loading the files.
-     * To actually share the same loader, set loaderref as well
-     */
-    public void setClasspathRef(Reference r) {
-        classpathId=r.getRefId();
-        createClasspath().setRefid(r);
-    }
-
-    /**
-     * Use the reference to locate the loader. If the loader is not
-     * found, taskdef will use the specified classpath and register it
-     * with the specified name.
-     *     
-     * This allow multiple taskdef/typedef to use the same class loader,
-     * so they can be used together. It eliminate the need to
-     * put them in the CLASSPATH.
+     * Enumerated type for onError attribute
      *
-     * @since Ant 1.5
+     * @see EnumeratedAttribute
      */
-    public void setLoaderRef(Reference r) {
-        loaderId = r.getRefId();
+    public static class OnError extends EnumeratedAttribute {
+        /** Enumerated values */
+        public static final int  FAIL = 0, REPORT = 1, IGNORE = 2;
+        /**
+         * Constructor
+         */
+        public OnError() {
+            super();
+        }
+
+        /**
+         * Constructor using a string.
+         * @param value the value of the attribute
+         */
+        public OnError(String value) {
+            setValue(value);
+        }
+
+        /**
+         * get the values
+         * @return an array of the allowed values for this attribute.
+         */
+        public String[] getValues() {
+            return new String[] {"fail", "report", "ignore"};
+        }
     }
 
-    
+    /**
+     * Enumerated type for format attribute
+     *
+     * @see EnumeratedAttribute
+     */
+    public static class Format extends EnumeratedAttribute {
+        /** Enumerated values */
+        public static final int PROPERTIES = 0, XML = 1;
+
+        /**
+         * get the values
+         * @return an array of the allowed values for this attribute.
+         */
+        public String[] getValues() {
+            return new String[] {"properties", "xml"};
+        }
+    }
+
+    /**
+     * What to do if there is an error in loading the class.
+     * <dl>
+     *   <li>error - throw build exception</li>
+     *   <li>report - output at warning level</li>
+     *   <li>ignore - output at debug level</li>
+     * </dl>
+     *
+     * @param onError an <code>OnError</code> value
+     */
+    public void setOnError(OnError onError) {
+        this.onError = onError.getIndex();
+    }
+
+    /**
+     * Sets the format of the file or resource
+     * @param format the enumerated value - xml or properties
+     */
+    public void setFormat(Format format) {
+        this.format = format.getIndex();
+    }
+
+    /**
+     * @return the name for this definition
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @return the file containing definitions
+     */
+    public File getFile() {
+        return file;
+    }
+
+    /**
+     * @return the resource containing definitions
+     */
+    public String getResource() {
+        return resource;
+    }
+
+
+    /**
+     * Run the definition.
+     *
+     * @exception BuildException if an error occurs
+     */
     public void execute() throws BuildException {
-        AntClassLoader al = createLoader();
+        ClassLoader al = createLoader();
 
-        if (file == null && resource == null) {
+        if (!definerSet) {
+            throw new BuildException(
+                "name, file or resource attribute of "
+                + getTaskName() + " is undefined", getLocation());
+        }
 
-            // simple case - one definition
-            if (name == null || value == null) {
-                String msg = "name or classname attributes of "
-                    + getTaskName() + " element "
-                    + "are undefined";
-                throw new BuildException(msg);
+        if (name != null) {
+            if (classname == null) {
+                throw new BuildException(
+                    "classname attribute of " + getTaskName() + " element "
+                    + "is undefined", getLocation());
             }
-            addDefinition(al, name, value);
-
+            addDefinition(al, name, classname);
         } else {
-
-            InputStream is = null;
-            try {
-                if (name != null || value != null) {
-                    String msg = "You must not specify name or value "
-                        + "together with file or resource.";
-                    throw new BuildException(msg, location);
+            if (classname != null) {
+                String msg = "You must not specify classname "
+                    + "together with file or resource.";
+                throw new BuildException(msg, getLocation());
+            }
+            Enumeration/*<URL>*/ urls = null;
+            if (file != null) {
+                final URL url = fileToURL();
+                if (url == null) {
+                    return;
                 }
-            
-                if (file != null && resource != null) {
-                    String msg = "You must not specify both, file and "
-                        + "resource.";
-                    throw new BuildException(msg, location);
-                }
-            
-
-                Properties props = new Properties();
-                if (file != null) {
-                    log("Loading definitions from file " + file, 
-                        Project.MSG_VERBOSE);
-                    is = new FileInputStream(file);
-                    if (is == null) {
-                        log("Could not load definitions from file " + file
-                            + ". It doesn\'t exist.", Project.MSG_WARN);
+                urls = new Enumeration() {
+                    private boolean more = true;
+                    public boolean hasMoreElements() {
+                        return more;
                     }
-                }    
-                if (resource != null) {
-                    log("Loading definitions from resource " + resource, 
-                        Project.MSG_VERBOSE);
-                    is = al.getResourceAsStream(resource);
-                    if (is == null) {
-                        log("Could not load definitions from resource " 
-                            + resource + ". It could not be found.", 
+                    public Object nextElement() throws NoSuchElementException {
+                        if (more) {
+                            more = false;
+                            return url;
+                        } else {
+                            throw new NoSuchElementException();
+                        }
+                    }
+                };
+            } else {
+                urls = resourceToURLs(al);
+            }
+
+            while (urls.hasMoreElements()) {
+                URL url = (URL) urls.nextElement();
+
+                int format = this.format;
+                if (url.toString().toLowerCase(Locale.US).endsWith(".xml")) {
+                    format = Format.XML;
+                }
+
+                if (format == Format.PROPERTIES) {
+                    loadProperties(al, url);
+                    break;
+                } else {
+                    if (resourceStack.getStack().get(url) != null) {
+                        log("Warning: Recursive loading of " + url
+                            + " ignored"
+                            + " at " + getLocation()
+                            + " originally loaded at "
+                            + resourceStack.getStack().get(url),
                             Project.MSG_WARN);
+                    } else {
+                        try {
+                            resourceStack.getStack().put(url, getLocation());
+                            loadAntlib(al, url);
+                        } finally {
+                            resourceStack.getStack().remove(url);
+                        }
                     }
-                }
-
-                if (is != null) {
-                    props.load(is);
-                    Enumeration keys = props.keys();
-                    while (keys.hasMoreElements()) {
-                        String n = (String) keys.nextElement();
-                        String v = props.getProperty(n);
-                        addDefinition(al, n, v);
-                    }
-                }
-            } catch (IOException ex) {
-                throw new BuildException(ex, location);
-            } finally {
-                if (is != null) {
-                    try {
-                        is.close();
-                    } catch (IOException e) {}
                 }
             }
         }
     }
-    
-    /**
-     * create the classloader then hand the definition off to the subclass;
-     * @throws BuildException when the class wont load for any reason
-     */
-    private void addDefinition(ClassLoader al, String name, String value)
-        throws BuildException {
+
+    private URL fileToURL() {
+        if (!(file.exists())) {
+            log("File " + file + " does not exist", Project.MSG_WARN);
+            return null;
+        }
+        if (!(file.isFile())) {
+            log("File " + file + " is not a file", Project.MSG_WARN);
+            return null;
+        }
         try {
-            Class c = al.loadClass(value);
-            AntClassLoader.initializeClass(c);
-            addDefinition(name, c);
-        } catch (ClassNotFoundException cnfe) {
-            String msg = getTaskName() + " class " + value 
-                + " cannot be found";
-            throw new BuildException(msg, cnfe, location);
-        } catch (NoClassDefFoundError ncdfe) {
-            String msg = getTaskName() + " class " + value 
-                + " cannot be found";
-            throw new BuildException(msg, ncdfe, location);
+            return file.toURL();
+        } catch (Exception ex) {
+            log("File " + file + " cannot use as URL: "
+                + ex.toString(), Project.MSG_WARN);
+            return null;
+        }
+    }
+
+    private Enumeration/*<URL>*/ resourceToURLs(ClassLoader classLoader) {
+        Enumeration ret;
+        try {
+            ret = classLoader.getResources(resource);
+        } catch (IOException e) {
+            throw new BuildException(
+                "Could not fetch resources named " + resource,
+                e, getLocation());
+        }
+        if (!ret.hasMoreElements()) {
+            if (onError != OnError.IGNORE) {
+                log("Could not load definitions from resource "
+                    + resource + ". It could not be found.",
+                    Project.MSG_WARN);
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Load type definitions as properties from a url.
+     *
+     * @param al the classloader to use
+     * @param url the url to get the definitions from
+     */
+    protected void loadProperties(ClassLoader al, URL url) {
+        InputStream is = null;
+        try {
+            is = url.openStream();
+            if (is == null) {
+                log("Could not load definitions from " + url,
+                    Project.MSG_WARN);
+                return;
+            }
+            Properties props = new Properties();
+            props.load(is);
+            Enumeration keys = props.keys();
+            while (keys.hasMoreElements()) {
+                name = ((String) keys.nextElement());
+                classname = props.getProperty(name);
+                addDefinition(al, name, classname);
+            }
+        } catch (IOException ex) {
+            throw new BuildException(ex, getLocation());
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
         }
     }
 
     /**
-     * create a classloader for this definition
+     * Load an antlib from a url.
+     *
+     * @param classLoader the classloader to use.
+     * @param url the url to load the definitions from.
      */
-    private AntClassLoader createLoader() {
-        // magic property 
-        if (project.getProperty(REUSE_LOADER_REF) != null) {
-            // Generate the 'reuse' name automatically from the reference.
-            // This allows <taskdefs> that work on both ant1.4 and ant1.5.
-            // ( in 1.4 it'll require the task/type to be in classpath if they
-            //   are used togheter ).
-            if (loaderId == null && classpathId != null) {
-                loaderId = "ant.loader." + classpathId;
-            }
+    private void loadAntlib(ClassLoader classLoader, URL url) {
+        try {
+            Antlib antlib = Antlib.createAntlib(getProject(), url, getURI());
+            antlib.setClassLoader(classLoader);
+            antlib.setURI(getURI());
+            antlib.perform();
+        } catch (BuildException ex) {
+            throw ProjectHelper.addLocationToBuildException(
+                ex, getLocation());
         }
-        
-        // If a loader has been set ( either by loaderRef or magic property )
-        if (loaderId != null) {
-            Object reusedLoader = project.getReference(loaderId);
-            if (reusedLoader != null) {
-                if (reusedLoader instanceof AntClassLoader) {
-                    return (AntClassLoader)reusedLoader;
-                }
-                // In future the reference object may be the <loader> type
-                // if( reusedLoader instanceof Loader ) {
-                //      return ((Loader)reusedLoader).getLoader(project);
-                // }
-            }
-        }
-       
-        AntClassLoader al = null;
-        if (classpath != null) {
-            al = new AntClassLoader(project, classpath, !reverseLoader);
-        } else {
-            al = new AntClassLoader(project, Path.systemClasspath, 
-                                    !reverseLoader);
-        }
-        // need to load Task via system classloader or the new
-        // task we want to define will never be a Task but always
-        // be wrapped into a TaskAdapter.
-        al.addSystemPackageRoot("org.apache.tools.ant");
-
-
-        // If the loader is new, record it for future uses by other
-        // task/typedefs
-        if (loaderId != null) {
-            if (project.getReference(loaderId) == null) {
-                project.addReference(loaderId, al);
-            }
-        }
-
-        return al;
     }
 
     /**
      * Name of the property file  to load
      * ant name/classname pairs from.
+     * @param file the file
      */
     public void setFile(File file) {
+        if (definerSet) {
+            tooManyDefinitions();
+        }
+        definerSet = true;
         this.file = file;
     }
 
     /**
      * Name of the property resource to load
      * ant name/classname pairs from.
+     * @param res the resource to use
      */
     public void setResource(String res) {
+        if (definerSet) {
+            tooManyDefinitions();
+        }
+        definerSet = true;
         this.resource = res;
     }
 
     /**
-     * Name of the property resource to load
-     * ant name/classname pairs from.
+     * Name of the definition
+     * @param name the name of the definition
      */
     public void setName(String name) {
+        if (definerSet) {
+            tooManyDefinitions();
+        }
+        definerSet = true;
         this.name = name;
     }
 
     /**
-     * what is the classname we are definining? Can be null
+     * Returns the classname of the object we are defining.
+     * May be <code>null</code>.
+     * @return the class name
      */
     public String getClassname() {
-        return value;
+        return classname;
     }
 
     /**
-     * the full class name of the object being defined.
+     * The full class name of the object being defined.
      * Required, unless file or resource have
      * been specified.
+     * @param classname the name of the class
      */
-    public void setClassname(String v) {
-        value = v;
+    public void setClassname(String classname) {
+        this.classname = classname;
     }
 
     /**
-     * this must be implemented by subclasses; it is the callback
-     * they will get to add a new definition of their type
+     * Set the class name of the adapter class.
+     * An adapter class is used to proxy the
+     * definition class. It is used if the
+     * definition class is not assignable to
+     * the adaptto class, or if the adaptto
+     * class is not present.
+     *
+     * @param adapter the name of the adapter class
      */
-    protected abstract void addDefinition(String name, Class c);
+
+    public void setAdapter(String adapter) {
+        this.adapter = adapter;
+    }
+
+    /**
+     * Set the adapter class.
+     *
+     * @param adapterClass the class to use to adapt the definition class
+     */
+    protected void setAdapterClass(Class adapterClass) {
+        this.adapterClass = adapterClass;
+    }
+
+    /**
+     * Set the classname of the class that the definition
+     * must be compatible with, either directly or
+     * by use of the adapter class.
+     *
+     * @param adaptTo the name of the adaptto class
+     */
+    public void setAdaptTo(String adaptTo) {
+        this.adaptTo = adaptTo;
+    }
+
+    /**
+     * Set the class for adaptToClass, to be
+     * used by derived classes, used instead of
+     * the adaptTo attribute.
+     *
+     * @param adaptToClass the class for adapto.
+     */
+    protected void setAdaptToClass(Class adaptToClass) {
+        this.adaptToClass = adaptToClass;
+    }
+
+
+    /**
+     * Add a definition using the attributes of Definer
+     *
+     * @param al the ClassLoader to use
+     * @param name the name of the definition
+     * @param classname the classname of the definition
+     * @exception BuildException if an error occurs
+     */
+    protected void addDefinition(ClassLoader al, String name, String classname)
+        throws BuildException {
+        Class cl = null;
+        try {
+            try {
+                name = ProjectHelper.genComponentName(getURI(), name);
+
+                if (onError != OnError.IGNORE) {
+                    cl = Class.forName(classname, true, al);
+                }
+
+                if (adapter != null) {
+                    adapterClass = Class.forName(adapter, true, al);
+                }
+
+                if (adaptTo != null) {
+                    adaptToClass = Class.forName(adaptTo, true, al);
+                }
+
+                AntTypeDefinition def = new AntTypeDefinition();
+                def.setName(name);
+                def.setClassName(classname);
+                def.setClass(cl);
+                def.setAdapterClass(adapterClass);
+                def.setAdaptToClass(adaptToClass);
+                def.setClassLoader(al);
+                if (cl != null) {
+                    def.checkClass(getProject());
+                }
+                ComponentHelper.getComponentHelper(getProject())
+                    .addDataTypeDefinition(def);
+            } catch (ClassNotFoundException cnfe) {
+                String msg = getTaskName() + " class " + classname
+                    + " cannot be found";
+                throw new BuildException(msg, cnfe, getLocation());
+            } catch (NoClassDefFoundError ncdfe) {
+                String msg = getTaskName() + " A class needed by class "
+                    + classname + " cannot be found: " + ncdfe.getMessage();
+                throw new BuildException(msg, ncdfe, getLocation());
+            }
+        } catch (BuildException ex) {
+            switch (onError) {
+                case OnError.FAIL:
+                    throw ex;
+                case OnError.REPORT:
+                    log(ex.getLocation() + "Warning: " + ex.getMessage(),
+                        Project.MSG_WARN);
+                    break;
+                default:
+                    log(ex.getLocation() + ex.getMessage(),
+                        Project.MSG_DEBUG);
+            }
+        }
+    }
+
+    private void tooManyDefinitions() {
+        throw new BuildException(
+            "Only one of the attributes name,file,resource"
+            + " can be set", getLocation());
+    }
 }

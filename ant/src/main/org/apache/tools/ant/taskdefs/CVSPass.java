@@ -1,76 +1,37 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights 
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
 
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.util.StringUtils;
-
-import java.io.File;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
-import java.io.PrintWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.util.StringUtils;
 
 /**
  * Adds an new entry to a CVS password file.
  *
- * @author <a href="jeff@custommonkey.org">Jeff Martin</a>
- * @version $Revision: 1.13.2.4 $
+ * @version $Revision: 1.20.2.4 $
  *
  * @since Ant 1.4
  *
@@ -78,7 +39,7 @@ import java.io.IOException;
  */
 public class CVSPass extends Task {
     /** CVS Root */
-    private String cvsRoot = null; 
+    private String cvsRoot = null;
     /** Password file to add password to */
     private File passFile = null;
     /** Password to add to file */
@@ -101,13 +62,13 @@ public class CVSPass extends Task {
         192, 159, 244, 239, 185, 168, 215, 144, 139, 165, 180, 157, 147, 186, 214, 176,
         227, 231, 219, 169, 175, 156, 206, 198, 129, 164, 150, 210, 154, 177, 134, 127,
         182, 128, 158, 208, 162, 132, 167, 209, 149, 241, 153, 251, 237, 236, 171, 195,
-        243, 233, 253, 240, 194, 250, 191, 155, 142, 137, 245, 235, 163, 242, 178, 152 
+        243, 233, 253, 240, 194, 250, 191, 155, 142, 137, 245, 235, 163, 242, 178, 152
     };
 
     /**
      * Create a CVS task using the default cvspass file location.
      */
-    public CVSPass(){
+    public CVSPass() {
         passFile = new File(
             System.getProperty("cygwin.user.home",
                 System.getProperty("user.home"))
@@ -117,7 +78,7 @@ public class CVSPass extends Task {
     /**
      * Does the work.
      *
-     * @exception BuildException if someting goes wrong with the build
+     * @exception BuildException if something goes wrong with the build
      */
     public final void execute() throws BuildException {
         if (cvsRoot == null) {
@@ -148,7 +109,7 @@ public class CVSPass extends Task {
                 }
             }
 
-            String pwdfile = buf.toString() + cvsRoot + " A" 
+            String pwdfile = buf.toString() + cvsRoot + " A"
                 + mangle(password);
 
             log("Writing -> " + pwdfile , Project.MSG_DEBUG);
@@ -162,7 +123,9 @@ public class CVSPass extends Task {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                    // ignore
+                }
             }
             if (writer != null) {
                 writer.close();
@@ -170,7 +133,7 @@ public class CVSPass extends Task {
         }
     }
 
-    private final String mangle(String password){
+    private final String mangle(String password) {
         StringBuffer buf = new StringBuffer();
         for (int i = 0; i < password.length(); i++) {
             buf.append(shifts[password.charAt(i)]);
@@ -180,6 +143,8 @@ public class CVSPass extends Task {
 
     /**
      * The CVS repository to add an entry for.
+     *
+     * @param cvsRoot the CVS repository
      */
     public void setCvsroot(String cvsRoot) {
         this.cvsRoot = cvsRoot;
@@ -187,6 +152,8 @@ public class CVSPass extends Task {
 
     /**
      * Password file to add the entry to.
+     *
+     * @param passFile the password file.
      */
     public void setPassfile(File passFile) {
         this.passFile = passFile;
@@ -194,6 +161,8 @@ public class CVSPass extends Task {
 
     /**
      * Password to be added to the password file.
+     *
+     * @param password the password.
      */
     public void setPassword(String password) {
         this.password = password;

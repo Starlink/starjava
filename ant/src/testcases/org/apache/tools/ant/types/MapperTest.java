@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2002,2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.types;
@@ -63,11 +26,12 @@ import junit.framework.TestCase;
 import junit.framework.AssertionFailedError;
 
 import java.io.File;
+import java.util.List;
+import java.util.Arrays;
 
 /**
  * JUnit 3 testcases for org.apache.tools.ant.types.Mapper.
  *
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a> 
  */
 
 public class MapperTest extends TestCase {
@@ -154,7 +118,7 @@ public class MapperTest extends TestCase {
                          be.getMessage());
         }
 
-        // dummy1 --> dummy2 --> dummy3 
+        // dummy1 --> dummy2 --> dummy3
         // (which holds a glob mapper from "*.java" to "*.class"
         m1 = new Mapper(project);
         project.addReference("dummy1", m1);
@@ -176,6 +140,79 @@ public class MapperTest extends TestCase {
         assertEquals("a.class", result[0]);
     }
 
+    public void testNested() {
+        Mapper mapper1 = new Mapper(project);
+        Mapper.MapperType mt = new Mapper.MapperType();
+        mt.setValue("glob");
+        mapper1.setType(mt);
+        mapper1.setFrom("from*");
+        mapper1.setTo("to*");
+
+        //mix element types
+        FileNameMapper mapper2 = new FlatFileNameMapper();
+        FileNameMapper mapper3 = new MergingMapper();
+        mapper3.setTo("mergefile");
+
+        Mapper container = new Mapper(project);
+        container.addConfiguredMapper(mapper1);
+        container.add(mapper2);
+        container.add(mapper3);
+
+        FileNameMapper fileNameMapper = container.getImplementation();
+        String[] targets = fileNameMapper.mapFileName("fromfilename");
+        assertNotNull("no filenames mapped", targets);
+        assertEquals("wrong number of filenames mapped", 3, targets.length);
+        List list = Arrays.asList(targets);
+        assertTrue("cannot find expected target \"tofilename\"",
+            list.contains("tofilename"));
+        assertTrue("cannot find expected target \"fromfilename\"",
+            list.contains("fromfilename"));
+        assertTrue("cannot find expected target \"mergefile\"",
+            list.contains("mergefile"));
+    }
+
+    public void testChained() {
+
+        // a --> b --> c --- def
+        //               \-- ghi
+
+        FileNameMapper mapperAB = new GlobPatternMapper();
+        mapperAB.setFrom("a");
+        mapperAB.setTo("b");
+
+        FileNameMapper mapperBC = new GlobPatternMapper();
+        mapperBC.setFrom("b");
+        mapperBC.setTo("c");
+
+        //implicit composite
+        Mapper mapperCX = new Mapper(project);
+
+        FileNameMapper mapperDEF = new GlobPatternMapper();
+        mapperDEF.setFrom("c");
+        mapperDEF.setTo("def");
+
+        FileNameMapper mapperGHI = new GlobPatternMapper();
+        mapperGHI.setFrom("c");
+        mapperGHI.setTo("ghi");
+
+        mapperCX.add(mapperDEF);
+        mapperCX.add(mapperGHI);
+
+        Mapper chained = new Mapper(project);
+        chained.setClassname(ChainedMapper.class.getName());
+        chained.add(mapperAB);
+        chained.add(mapperBC);
+        chained.addConfiguredMapper(mapperCX);
+
+        FileNameMapper fileNameMapper = chained.getImplementation();
+        String[] targets = fileNameMapper.mapFileName("a");
+        assertNotNull("no filenames mapped", targets);
+        assertEquals("wrong number of filenames mapped", 2, targets.length);
+        List list = Arrays.asList(targets);
+        assertTrue("cannot find expected target \"def\"", list.contains("def"));
+        assertTrue("cannot find expected target \"ghi\"", list.contains("ghi"));
+    }
+
     public void testCopyTaskWithTwoFilesets() {
         TaskdefForCopyTest t = new TaskdefForCopyTest("test1");
         try {
@@ -191,7 +228,7 @@ public class MapperTest extends TestCase {
             super(name);
         }
 
-        public void setUp() { 
+        public void setUp() {
             configureProject("src/etc/testcases/types/mapper.xml");
         }
 
@@ -199,7 +236,7 @@ public class MapperTest extends TestCase {
             executeTarget("cleanup");
         }
 
-        public void test1() { 
+        public void test1() {
             executeTarget("test1");
         }
     }

@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Listeners &amp; Loggers</title>
+<link rel="stylesheet" type="text/css" href="stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -121,9 +122,38 @@ control for turning off success or failure messages individually.</p>
     <td width="63%">No, default &quot;localhost&quot;</td>
   </tr>
   <tr>
+    <td width="337">MailLogger.port </td>
+    <td width="63%">SMTP Port for the Mail server</td>
+    <td width="63%">No, default &quot;25&quot;</td>
+  </tr>
+  <tr>
+    <td width="337">MailLogger.user</td>
+    <td width="63%">user name for SMTP auth</td>
+    <td width="63%">Yes, if SMTP auth is required on your SMTP server<br/>
+    the email message will be then sent using Mime and requires JavaMail</td>
+  </tr>
+  <tr>
+    <td width="337">MailLogger.password</td>
+    <td width="63%">password for SMTP auth</td>
+    <td width="63%">Yes, if SMTP auth is required on your SMTP server<br/>
+    the email message will be then sent using Mime and requires JavaMail</td>
+  </tr>
+  <tr>
+    <td width="337">MailLogger.ssl</td>
+    <td width="63%">on or true if ssl is needed<br/>
+    This feature requires JavaMail</td>
+    <td width="63%">
+    no</td>
+  </tr>
+  <tr>
     <td width="337">MailLogger.from</td>
     <td width="63%">Mail &quot;from&quot; address</td>
     <td width="63%">Yes, if mail needs to be sent</td>
+  </tr>
+  <tr>
+    <td width="337">MailLogger.replyto</td>
+    <td width="63%">Mail &quot;replyto&quot; address(es), comma-separated</td>
+    <td width="63%">No</td>
   </tr>
   <tr>
     <td width="337">MailLogger.failure.notify </td>
@@ -276,15 +306,15 @@ or logger, the output is not generated until the build is complete, as it
 buffers the information in order to provide timing information for task,
 targets, and the project.
 <p>
-By default the XML file creates 
-a reference to an XSLT file "log.xsl" in the current directory; look in 
-ANT_HOME/etc for one of these. You can set the property 
+By default the XML file creates
+a reference to an XSLT file "log.xsl" in the current directory; look in
+ANT_HOME/etc for one of these. You can set the property
 <code>ant.XmlLogger.stylesheet.uri</code> to provide a uri to a style sheet.
-this can be a relative or absolute file path, or an http URL. 
+this can be a relative or absolute file path, or an http URL.
 If you set the property to the empty string, "", no XSLT transform
-is declared at all. 
+is declared at all.
 
- 
+
 
 
 </p>
@@ -309,7 +339,7 @@ developers.</p>
 </ul>
 
 <hr>
-<p align="center">Copyright &copy; 2000-2002 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>

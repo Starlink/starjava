@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2002,2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.metamata;
 
@@ -74,16 +37,14 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.AttributesImpl;
-
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
 import org.apache.tools.ant.util.DateUtils;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
 
 /**
  * A handy metrics handler. Most of this code was done only with the
@@ -94,7 +55,6 @@ import org.apache.tools.ant.util.DateUtils;
  * This class can be used to transform a text file or to process the
  * output stream directly.
  *
- * @author  <a href="mailto:sbailliez@imediation.com">Stephane Bailliez</a>
  */
 public class MMetricsStreamHandler implements ExecuteStreamHandler {
 
@@ -174,7 +134,8 @@ public class MMetricsStreamHandler implements ExecuteStreamHandler {
             attr.addAttribute("", "company", "company", "CDATA", "metamata");
             attr.addAttribute("", "snapshot_created", "snapshot_created", "CDATA",
                     DateUtils.format(now, DateUtils.ISO8601_DATETIME_PATTERN));
-//            attr.addAttribute("", "elapsed_time", "elapsed_time", "CDATA", String.valueOf(now.getTime() - program_start.getTime()));
+            // attr.addAttribute("", "elapsed_time", "elapsed_time", "CDATA",
+            //    String.valueOf(now.getTime() - program_start.getTime()));
             attr.addAttribute("", "program_start", "program_start", "CDATA",
                     DateUtils.format(new Date(), DateUtils.ISO8601_DATETIME_PATTERN));
             metricsHandler.startElement("", "metrics", "metrics", attr);
@@ -415,7 +376,7 @@ class MetricsElement {
         while ((pos = line.indexOf('\t')) != -1) {
             String token = line.substring(0, pos);
             // only parse what coudl be a valid number. ie not constructs nor no value
-            /*if (metrics.size() != 0 || token.length() != 0){
+            /*if (metrics.size() != 0 || token.length() != 0) {
                 Number num = METAMATA_NF.parse(token); // parse with Metamata NF
                 token = NEUTRAL_NF.format(num.doubleValue()); // and format with a neutral NF
             }*/
@@ -426,7 +387,8 @@ class MetricsElement {
 
         // there should be exactly 14 tokens (1 name + 13 metrics), if not, there is a problem !
         if (metrics.size() != 14) {
-            throw new ParseException("Could not parse the following line as a metrics: -->" + line + "<--", -1);
+            throw new ParseException("Could not parse the following line as "
+                + "a metrics: -->" + line + "<--", -1);
         }
 
         // remove the first token it's made of the indentation string and the

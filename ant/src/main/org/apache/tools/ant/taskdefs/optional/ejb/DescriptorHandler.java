@@ -1,73 +1,34 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.ejb;
 
-import java.util.Hashtable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-
+import java.util.Hashtable;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
+import org.xml.sax.AttributeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.AttributeList;
-
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.Project;
 
 /**
  * Inner class used by EjbJar to facilitate the parsing of deployment
@@ -166,11 +127,12 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
             // resolve relative to project basedir
             fileDTD = owningTask.getProject().resolveFile(location);
         }
-        
+
         if (fileDTD.exists()) {
             if (publicId != null) {
                 fileDTDs.put(publicId, fileDTD);
-                owningTask.log("Mapped publicId " + publicId + " to file " + fileDTD, Project.MSG_VERBOSE);
+                owningTask.log("Mapped publicId " + publicId + " to file "
+                    + fileDTD, Project.MSG_VERBOSE);
             }
             return;
         }
@@ -178,7 +140,8 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
         if (getClass().getResource(location) != null) {
             if (publicId != null) {
                 resourceDTDs.put(publicId, location);
-                owningTask.log("Mapped publicId " + publicId + " to resource " + location, Project.MSG_VERBOSE);
+                owningTask.log("Mapped publicId " + publicId + " to resource "
+                    + location, Project.MSG_VERBOSE);
             }
         }
 
@@ -200,7 +163,8 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
         File dtdFile = (File) fileDTDs.get(publicId);
         if (dtdFile != null) {
             try {
-                owningTask.log("Resolved " + publicId + " to local file " + dtdFile, Project.MSG_VERBOSE);
+                owningTask.log("Resolved " + publicId + " to local file "
+                    + dtdFile, Project.MSG_VERBOSE);
                 return new InputSource(new FileInputStream(dtdFile));
             } catch (FileNotFoundException ex) {
                 // ignore
@@ -211,7 +175,8 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
         if (dtdResourceName != null) {
             InputStream is = this.getClass().getResourceAsStream(dtdResourceName);
             if (is != null) {
-                owningTask.log("Resolved " + publicId + " to local resource " + dtdResourceName, Project.MSG_VERBOSE);
+                owningTask.log("Resolved " + publicId + " to local resource "
+                    + dtdResourceName, Project.MSG_VERBOSE);
                 return new InputSource(is);
             }
         }
@@ -220,15 +185,16 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
         if (dtdUrl != null) {
             try {
                 InputStream is = dtdUrl.openStream();
-                owningTask.log("Resolved " + publicId + " to url " + dtdUrl, Project.MSG_VERBOSE);
+                owningTask.log("Resolved " + publicId + " to url "
+                    + dtdUrl, Project.MSG_VERBOSE);
                 return new InputSource(is);
             } catch (IOException ioe) {
                 //ignore
             }
         }
 
-        owningTask.log("Could not resolve ( publicId: " + publicId + ", systemId: " + systemId + ") to a local entity",
-                        Project.MSG_INFO);
+        owningTask.log("Could not resolve ( publicId: " + publicId
+            + ", systemId: " + systemId + ") to a local entity", Project.MSG_INFO);
 
         return null;
     }
@@ -343,17 +309,19 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
 
 
     protected void processElement() {
-        if (inEJBRef || 
-            (parseState != STATE_IN_ENTITY && parseState != STATE_IN_SESSION && parseState != STATE_IN_MESSAGE)) {
+        if (inEJBRef
+            || (parseState != STATE_IN_ENTITY
+                && parseState != STATE_IN_SESSION
+                && parseState != STATE_IN_MESSAGE)) {
             return;
         }
 
-        if (currentElement.equals(HOME_INTERFACE)   ||
-            currentElement.equals(REMOTE_INTERFACE) ||
-            currentElement.equals(LOCAL_INTERFACE) ||
-            currentElement.equals(LOCAL_HOME_INTERFACE) ||
-            currentElement.equals(BEAN_CLASS)       ||
-            currentElement.equals(PK_CLASS)) {
+        if (currentElement.equals(HOME_INTERFACE)
+            || currentElement.equals(REMOTE_INTERFACE)
+            || currentElement.equals(LOCAL_INTERFACE)
+            || currentElement.equals(LOCAL_HOME_INTERFACE)
+            || currentElement.equals(BEAN_CLASS)
+            || currentElement.equals(PK_CLASS)) {
 
             // Get the filename into a String object
             File classFile = null;
@@ -361,8 +329,8 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
 
             // If it's a primitive wrapper then we shouldn't try and put
             // it into the jar, so ignore it.
-            if (!className.startsWith("java.") &&
-                !className.startsWith("javax.")) {
+            if (!className.startsWith("java.")
+                && !className.startsWith("javax.")) {
                 // Translate periods into path separators, add .class to the
                 // name, create the File object and add it to the Hashtable.
                 className = className.replace('.', File.separatorChar);
@@ -372,7 +340,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
             }
         }
 
-    // Get the value of the <ejb-name> tag.  Only the first occurence.
+    // Get the value of the <ejb-name> tag.  Only the first occurrence.
         if (currentElement.equals(EJB_NAME)) {
             if (ejbName == null) {
                 ejbName = currentText.trim();

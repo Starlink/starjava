@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 /*
@@ -66,7 +29,6 @@ import java.io.IOException;
  * An input stream that decompresses from the BZip2 format (without the file
  * header chars) to be read as any other stream.
  *
- * @author <a href="mailto:keiron@aftexsw.com">Keiron Liddle</a>
  */
 public class CBZip2InputStream extends InputStream implements BZip2Constants {
     private static void cadvise() {
@@ -117,8 +79,6 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
 
     private boolean blockRandomised;
 
-    private int bytesIn;
-    private int bytesOut;
     private int bsBuff;
     private int bsLive;
     private CRC mCrc = new CRC();
@@ -139,12 +99,12 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
       freq table collected to save a pass over the data
       during decompression.
     */
-    private int unzftab[] = new int[256];
+    private int[] unzftab = new int[256];
 
-    private int limit[][] = new int[N_GROUPS][MAX_ALPHA_SIZE];
-    private int base[][] = new int[N_GROUPS][MAX_ALPHA_SIZE];
-    private int perm[][] = new int[N_GROUPS][MAX_ALPHA_SIZE];
-    private int minLens[] = new int[N_GROUPS];
+    private int[][] limit = new int[N_GROUPS][MAX_ALPHA_SIZE];
+    private int[][] base = new int[N_GROUPS][MAX_ALPHA_SIZE];
+    private int[][] perm = new int[N_GROUPS][MAX_ALPHA_SIZE];
+    private int[] minLens = new int[N_GROUPS];
 
     private InputStream bsStream;
 
@@ -302,10 +262,11 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
             if (this.bsStream != null) {
                 if (this.bsStream != System.in) {
                     this.bsStream.close();
-                    this.bsStream= null;
+                    this.bsStream = null;
                 }
             }
         } catch (IOException ioe) {
+            //ignore
         }
     }
 
@@ -313,28 +274,24 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
         bsStream = f;
         bsLive = 0;
         bsBuff = 0;
-        bytesOut = 0;
-        bytesIn = 0;
     }
 
     private int bsR(int n) {
         int v;
-        {
-            while (bsLive < n) {
-                int zzi;
-                char thech = 0;
-                try {
-                    thech = (char) bsStream.read();
-                } catch (IOException e) {
-                    compressedStreamEOF();
-                }
-                if (thech == -1) {
-                    compressedStreamEOF();
-                }
-                zzi = thech;
-                bsBuff = (bsBuff << 8) | (zzi & 0xff);
-                bsLive += 8;
+        while (bsLive < n) {
+            int zzi;
+            char thech = 0;
+            try {
+                thech = (char) bsStream.read();
+            } catch (IOException e) {
+                compressedStreamEOF();
             }
+            if (thech == -1) {
+                compressedStreamEOF();
+            }
+            zzi = thech;
+            bsBuff = (bsBuff << 8) | (zzi & 0xff);
+            bsLive += 8;
         }
 
         v = (bsBuff >> (bsLive - n)) & ((1 << n) - 1);
@@ -376,7 +333,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
                     pp++;
                 }
             }
-        };
+        }
 
         for (i = 0; i < MAX_CODE_LEN; i++) {
             base[i] = 0;
@@ -618,7 +575,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
                                 bsLive--;
                             }
                             zvec = (zvec << 1) | zj;
-                        };
+                        }
                         nextSym = perm[zt][zvec - base[zt][zn]];
                     }
                 } while (nextSym == RUNA || nextSym == RUNB);
@@ -631,7 +588,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
                     last++;
                     ll8[last] = ch;
                     s--;
-                };
+                }
 
                 if (last >= limitLast) {
                     blockOverrun();
@@ -698,7 +655,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
                             bsLive--;
                         }
                         zvec = (zvec << 1) | zj;
-                    };
+                    }
                     nextSym = perm[zt][zvec - base[zt][zn]];
                 }
                 continue;

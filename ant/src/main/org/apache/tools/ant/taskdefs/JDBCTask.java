@@ -1,65 +1,21 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs;
-
-import org.apache.tools.ant.AntClassLoader;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.types.Reference;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -67,6 +23,12 @@ import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.Hashtable;
 import java.util.Properties;
+import org.apache.tools.ant.AntClassLoader;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.Reference;
 
 /**
  * Handles JDBC configuration needed by SQL type tasks.
@@ -83,7 +45,7 @@ import java.sql.Statement;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.taskdefs.JDBCTask;
 
-public class SQLExampleTask extends JDBCTask {	
+public class SQLExampleTask extends JDBCTask {
 
     private String tableName;
 
@@ -91,9 +53,9 @@ public class SQLExampleTask extends JDBCTask {
         Connection conn = getConnection();
         Statement stmt=null;
         try {
-            if (tableName == null ) {
+            if (tableName == null) {
                 throw new BuildException("TableName must be specified",location);
-            }             
+            }
             String sql = "SELECT * FROM "+tableName;
             stmt= conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
@@ -101,13 +63,13 @@ public class SQLExampleTask extends JDBCTask {
                 log(rs.getObject(1).toString());
             }
         } catch (SQLException e) {
-        
+
         } finally {
             if (stmt != null) {
-                try {stmt.close();}catch (SQLException ingore){}
+                try {stmt.close();}catch (SQLException ingore) {}
             }
             if (conn != null) {
-                try {conn.close();}catch (SQLException ingore){}
+                try {conn.close();}catch (SQLException ingore) {}
             }
         }
     }
@@ -117,15 +79,10 @@ public class SQLExampleTask extends JDBCTask {
 
 }
 
- 
+
 </pre></code>
 
 
- * @author <a href="mailto:nick@chalko.com">Nick Chalko</a>
- * @author <a href="mailto:jeff@custommonkey.org">Jeff Martin</a>
- * @author <A href="mailto:gholam@xtra.co.nz">Michael McCallum</A>
- * @author <A href="mailto:tim.stephenson@sybase.com">Tim Stephenson</A>
- *
  * @since Ant 1.5
  *
  */
@@ -204,13 +161,13 @@ public abstract class JDBCTask extends Task {
      */
     public Path createClasspath() {
         if (this.classpath == null) {
-            this.classpath = new Path(project);
+            this.classpath = new Path(getProject());
         }
         return this.classpath.createPath();
     }
 
     /**
-     * Set the classpath for loading the driver 
+     * Set the classpath for loading the driver
      * using the classpath reference.
      */
     public void setClasspathRef(Reference r) {
@@ -251,7 +208,7 @@ public abstract class JDBCTask extends Task {
     }
 
     /**
-     * Execute task only if the lower case product name 
+     * Execute task only if the lower case product name
      * of the DB matches this
      * @param rdbms The rdbms to set
      */
@@ -260,7 +217,7 @@ public abstract class JDBCTask extends Task {
     }
 
     /**
-     * Sets the version string, execute task only if 
+     * Sets the version string, execute task only if
      * rdbms version match; optional.
      * @param version The version to set
      */
@@ -295,7 +252,8 @@ public abstract class JDBCTask extends Task {
 
                 log("Version = " + theVersion, Project.MSG_VERBOSE);
                 if (theVersion == null
-                        || !(theVersion.startsWith(version) || theVersion.indexOf(" " + version) >= 0)) {
+                        || !(theVersion.startsWith(version)
+                        || theVersion.indexOf(" " + version) >= 0)) {
                     log("Not the required version: \"" + version + "\"", Project.MSG_VERBOSE);
                     return false;
                 }
@@ -318,20 +276,24 @@ public abstract class JDBCTask extends Task {
     }
 
     /**
-     * Creates a new Connection as using the driver, url, userid and password specified.
+     * Creates a new Connection as using the driver, url, userid and password
+     * specified.
+     *
      * The calling method is responsible for closing the connection.
+     *
      * @return Connection the newly created connection.
-     * @throws BuildException if the UserId/Password/Url is not set or there is no suitable driver or the driver fails to load.
+     * @throws BuildException if the UserId/Password/Url is not set or there
+     * is no suitable driver or the driver fails to load.
      */
     protected Connection getConnection() throws BuildException {
         if (userId == null) {
-            throw new BuildException("User Id attribute must be set!", location);
+            throw new BuildException("User Id attribute must be set!", getLocation());
         }
         if (password == null) {
-            throw new BuildException("Password attribute must be set!", location);
+            throw new BuildException("Password attribute must be set!", getLocation());
         }
         if (url == null) {
-            throw new BuildException("Url attribute must be set!", location);
+            throw new BuildException("Url attribute must be set!", getLocation());
         }
         try {
 
@@ -349,7 +311,7 @@ public abstract class JDBCTask extends Task {
             conn.setAutoCommit(autocommit);
             return conn;
         } catch (SQLException e) {
-            throw new BuildException(e, location);
+            throw new BuildException(e, getLocation());
         }
 
     }
@@ -362,7 +324,7 @@ public abstract class JDBCTask extends Task {
      */
     private Driver getDriver() throws BuildException {
         if (driver == null) {
-            throw new BuildException("Driver attribute must be set!", location);
+            throw new BuildException("Driver attribute must be set!", getLocation());
         }
 
         Driver driverInstance = null;
@@ -380,37 +342,38 @@ public abstract class JDBCTask extends Task {
                         loader = (AntClassLoader) loaderMap.get(driver);
                     }
                     if (loader == null) {
-                        log(
-                                "Loading " + driver + " using AntClassLoader with classpath " + classpath,
-                                Project.MSG_VERBOSE);
-                        loader = new AntClassLoader(project, classpath);
+                        log("Loading " + driver
+                            + " using AntClassLoader with classpath "
+                            + classpath, Project.MSG_VERBOSE);
+                        loader = getProject().createClassLoader(classpath);
                         if (caching) {
                             loaderMap.put(driver, loader);
                         }
                     } else {
-                        log(
-                                "Loading " + driver + " using a cached AntClassLoader.",
+                        log("Loading " + driver
+                            + " using a cached AntClassLoader.",
                                 Project.MSG_VERBOSE);
                     }
                 }
                 dc = loader.loadClass(driver);
             } else {
-                log("Loading " + driver + " using system loader.", Project.MSG_VERBOSE);
+                log("Loading " + driver + " using system loader.",
+                    Project.MSG_VERBOSE);
                 dc = Class.forName(driver);
             }
             driverInstance = (Driver) dc.newInstance();
         } catch (ClassNotFoundException e) {
             throw new BuildException(
                     "Class Not Found: JDBC driver " + driver + " could not be loaded",
-                    location);
+                    getLocation());
         } catch (IllegalAccessException e) {
             throw new BuildException(
                     "Illegal Access: JDBC driver " + driver + " could not be loaded",
-                    location);
+                    getLocation());
         } catch (InstantiationException e) {
             throw new BuildException(
                     "Instantiation Exception: JDBC driver " + driver + " could not be loaded",
-                    location);
+                    getLocation());
         }
         return driverInstance;
     }

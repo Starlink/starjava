@@ -4,6 +4,7 @@
 <meta http-equiv="Content-Language" content="en-us">
 <title>EJB Tasks</title>
 
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -19,10 +20,11 @@
   <li>Conor MacNeill</li>
   <li>Cyrille Morvan (<a href="mailto:cmorvan@ingenosya.com">cmorvan@ingenosya.com</a>)</li>
   <li>Greg Nelson (<a href="mailto:gn@sun.com">gn@sun.com</a>)</li>
+  <li>Rob van Oostrum(<a href="mailto:rob@springwellfarms.ca">rob@springwellfarms.ca</a>)</li>
 </ul>
 
-<p>Version 1.5.4<br>
-$Id: ejb.html,v 1.23.2.18 2003/07/17 11:05:34 bodewig Exp $
+<p>Version 1.6.2<br>
+$Id: ejb.html,v 1.36.2.4 2004/02/09 22:12:11 antoine Exp $
 </p>
 <hr>
 <h2>Table of Contents</h2>
@@ -530,7 +532,7 @@ specify the BEA Home to have this task work correctly under 6.0</p>
 <h2><a name="ejbjar">ejbjar</a></h2>
 <h3><b>Description:</b></h3>
 
-<p>This task is designed to support building of EJB jar files (EJB 1.1 &amp; 2.0). 
+<p>This task is designed to support building of EJB jar files (EJB 1.1 &amp; 2.0).
 Support is currently provided for 'vanilla' EJB jar files - i.e. those containing only
 the user generated class files and the standard deployment descriptor. Nested
 elements provide support for vendor specific deployment tools. These currently
@@ -714,7 +716,15 @@ the value <code>none</code>.</p>
                      namespace. Note that this attribute is only used if the
                      task is generating generic jars (i.e. no vendor-specific
                      deployment elements have been specified).</td>
-    <td valign="top" align="center">Yes</td>
+    <td valign="top" align="center">Yes, unless vendor-specific deployment elements
+    have been specified.</td>
+  </tr>
+  <tr>
+    <td valign="top">cmpversion</td>
+    <td valign="top">Either <code>1.0</code> or <code>2.0</code>.<br/>
+    Default is <code>1.0</code>.<br/>
+    A CMP 2.0 implementation exists currently only for JBoss.</td>
+    <td valign="top" align="center">No</td>
   </tr>
   <tr>
     <td valign="top">naming</td>
@@ -844,8 +854,18 @@ deployment element are detailed here.
 <h3><a name="ejbjar_jboss">Jboss element</a></h3>
 
 <p>The jboss element searches for the JBoss specific deployment descriptors and adds them
-to the final ejb jar file. JBoss has two deployment descriptors jboss.xml and jaws.xml
-(for container manager persistence only). The JBoss server uses hot deployment and does
+to the final ejb jar file. JBoss has two deployment descriptors:
+<ul><li>jboss.xml</li>
+<li>for container manager persistence:<br/>
+<table border="1">
+<tr><td><b>CMP version</b></td><td><b>File name</b></td></tr>
+<tr><td>CMP 1.0</td><td>jaws.xml</td></tr>
+<tr><td>CMP 2.0</td><td>jbosscmp-jdbc.xml</td></tr>
+</table>
+</li>
+</ul>
+<br/>
+. The JBoss server uses hot deployment and does
 not require compilation of additional stubs and skeletons.</p>
 
 <table border="1" cellpadding="2" cellspacing="0">
@@ -1344,7 +1364,7 @@ the classpath of the ejbdeploy tool and set the <i>websphere.home</i> property (
 in the descriptor dir:</p>
 
 <pre>
-     &lt;property name=&quot;websphere.home&quot; value=&quot;${was4.home}&quot;/&gt;
+     &lt;property name=&quot;webpshere.home&quot; value=&quot;${was4.home}&quot;/&gt;
      &lt;ejbjar srcdir="${build.class}" descriptordir="etc/ejb"&gt;
       &lt;include name="*-ejb-jar.xml"/&gt;
       &lt;websphere dbvendor="DB2UDBOS390_V6"
@@ -1723,7 +1743,7 @@ descriptors to use the naming standard. This will create only one ejb jar file -
 </pre>
 
 <hr>
-<p align="center">Copyright &copy; 2000-2003 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 

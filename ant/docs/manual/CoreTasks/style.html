@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Xslt/Style Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -12,8 +13,9 @@
 <p>Process a set of documents via XSLT.</p>
 <p>This is useful for building views of XML based documentation,
 or for generating code.</p>
-<p><b>Note:</b> This task depends on external libraries not included in the Ant distribution.
-See <a href="../install.html#librarydependencies">Library Dependencies</a> for more information.</p>
+<p><b>Note:</b> If you are using JDK 1.4 or higher, this task does not require external libraries
+not supplied in the Ant distribution. Otherwise,
+see <a href="../install.html#librarydependencies">Library Dependencies</a> for more information.</p>
 <p>It is possible to refine the set of files that are being processed. This can be
 done with the <i>includes</i>, <i>includesfile</i>, <i>excludes</i>, <i>excludesfile</i> and <i>defaultexcludes</i>
 attributes. With the <i>includes</i> or <i>includesfile</i> attribute you specify the files you want to
@@ -55,7 +57,8 @@ element which is used to perform Entity and URI resolution</p>
   <tr>
     <td valign="top">extension</td>
     <td valign="top">desired file extension to be used for the targets. If not
-      specified, the default is &quot;.html&quot;.</td>
+      specified, the default is &quot;.html&quot;.  Will be ignored if
+      a nested &lt;mapper&gt; has been specified.</td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
@@ -186,10 +189,21 @@ element is used to perform Entity and URI resolution.</p>
   </tr>
   <tr>
     <td valign="top">expression</td>
-    <td valign="top">XSL expression to be placed into the param. To pass a text
-      value into the style sheet it needs to be escaped using single quotes.</td>
+    <td valign="top">Text value to be placed into the param.<br/>
+    Was originally intended to be an XSL expression.</td>
     <td align="center" valign="top">Yes</td>
   </tr>
+  <tr>
+    <td valign="top">if</td>
+    <td valign="top">The param will only passed if this property is set.</td>
+    <td align="center" valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">unless</td>
+    <td valign="top">The param will only passed unless this property is set.</td>
+    <td align="center" valign="top">No</td>
+  </tr>
+
 </table>
 
 <h4>outputproperty ('trax' processors only)</h4>
@@ -214,6 +228,77 @@ XSLT specifications</a>.
     <td align="center" valign="top">Yes</td>
   </tr>
 </table>
+
+<h4>factory ('trax' processors only)</h4>
+Used to specify factory settings.
+<h4>Parameters</h4>
+<table width="60%" border="1" cellpadding="2" cellspacing="0">
+  <tr>
+    <td valign="top"><b>Attribute</b></td>
+    <td valign="top"><b>Description</b></td>
+    <td align="center" valign="top"><b>Required</b></td>
+  </tr>
+  <tr>
+    <td valign="top">name</td>
+    <td valign="top">fully qualified classname of the
+    transformer factory to use. For example
+      <tt>org.apache.xalan.processor.TransformerFactoryImpl</tt>
+       or <tt>org.apache.xalan.xsltc.trax.TransformerFactoryImpl</tt>
+       or <tt>net.sf.saxon.TransformerFactoryImpl</tt>...
+    </td>
+    <td align="center" valign="top">No. Defaults to the JAXP lookup mechanism.</td>
+  </tr>
+</table>
+<blockquote>
+<h4>attribute </h4>
+<p>Used to specify settings of the processor factory.
+The attribute names and values are entirely processor specific
+so you must be aware of the implementation to figure them out.
+Read the documentation of your processor.
+For example, in Xalan 2.x:
+<ul>
+<li>http://xml.apache.org/xalan/features/optimize (boolean)</li>
+<li>http://xml.apache.org/xalan/features/incremental (boolean)</li>
+<li>...</li>
+</ul>
+And in Saxon 7.x:
+<ul>
+<li>http://saxon.sf.net/feature/allow-external-functions (boolean)</li>
+<li>http://saxon.sf.net/feature/timing (boolean)</li>
+<li>http://saxon.sf.net/feature/traceListener (string)</li>
+<li>http://saxon.sf.net/feature/treeModel (integer)</li>
+<li>http://saxon.sf.net/feature/linenumbering (integer)</li>
+<li>...</li>
+</ul>
+<h4>Parameters</h4>
+<table width="60%" border="1" cellpadding="2" cellspacing="0">
+  <tr>
+    <td valign="top"><b>Attribute</b></td>
+    <td valign="top"><b>Description</b></td>
+    <td align="center" valign="top"><b>Required</b></td>
+  </tr>
+  <tr>
+    <td valign="top">name</td>
+    <td valign="top">Name of the attribute</td>
+    <td align="center" valign="top">Yes</td>
+  </tr>
+  <tr>
+    <td valign="top">value</td>
+    <td valign="top">value of the attribute.</td>
+    <td align="center" valign="top">Yes</td>
+  </tr>
+</table>
+</blockquote>
+
+<h4>mapper</h4>
+
+<p><em>since Ant 1.6.2</em></p>
+
+<p>You can define filename transformations by using a nested <a
+href="../CoreTypes/mapper.html">mapper</a> element. The default mapper
+used by <code>&lt;xslt&gt;</code> removes the file extension from the
+source file and adds the extension specified via the extension
+attribute.</p>
 
 <h3>Examples</h3>
 <blockquote>
@@ -254,12 +339,24 @@ XSLT specifications</a>.
   &lt;outputproperty name=&quot;indent&quot; value=&quot;yes&quot;/&gt;
 &lt;/xslt&gt;</pre>
 
-  
+  <h4>Using factory settings</h4>
+<pre>&lt;xslt in=&quot;doc.xml&quot; out=&quot;build/doc/output.xml&quot;
+      style=&quot;style/apache.xsl&quot;&gt;
+  &lt;factory name=&quot;org.apache.xalan.processor.TransformerFactoryImpl&quot;&gt;
+    &lt;attribute name=&quot;http://xml.apache.org/xalan/features/optimize&quot; value=&quot;true&quot;/&gt;
+  &lt;/factory&gt;
+&lt;/xslt&gt;</pre>
+
+  <h4>Using a mapper</h4>
+<pre>&lt;xslt basedir=&quot;in&quot; destdir=&quot;out&quot;
+      style=&quot;style/apache.xsl&quot;&gt;
+  &lt;mapper type=&quot;glob&quot; from=&quot;*.xml.en&quot; to=&quot;*.html.en&quot;/&gt;
+&lt;/xslt&gt;</pre>
+
  </blockquote>
 <hr>
-<p align="center">Copyright &copy; 2000-2003 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>
 </html>
-

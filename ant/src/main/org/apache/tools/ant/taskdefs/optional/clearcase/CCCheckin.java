@@ -1,65 +1,26 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000,2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000,2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.clearcase;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.types.Commandline;
-
-
-
 
 /**
  * Performs ClearCase checkin.
@@ -107,23 +68,28 @@ import org.apache.tools.ant.types.Commandline;
  *      <td>Allows the file to be checked in even if it is identical to the original</td>
  *      <td>No</td>
  *   <tr>
+ *   <tr>
+ *      <td>failonerr</td>
+ *      <td>Throw an exception if the command fails. Default is true</td>
+ *      <td>No</td>
+ *   <tr>
  * </table>
  *
- * @author Curtis White
  */
 public class CCCheckin extends ClearCase {
-    private String m_Comment = null;
-    private String m_Cfile = null;
-    private boolean m_Nwarn = false;
-    private boolean m_Ptime = false;
-    private boolean m_Keep = false;
-    private boolean m_Identical = true;
+    private String mComment = null;
+    private String mCfile = null;
+    private boolean mNwarn = false;
+    private boolean mPtime = false;
+    private boolean mKeep = false;
+    private boolean mIdentical = true;
 
     /**
      * Executes the task.
      * <p>
      * Builds a command line to execute cleartool and then calls Exec's run method
      * to execute the command line.
+     * @throws BuildException if the command fails and failonerr is set to true
      */
     public void execute() throws BuildException {
         Commandline commandLine = new Commandline();
@@ -143,10 +109,14 @@ public class CCCheckin extends ClearCase {
 
         checkOptions(commandLine);
 
+        if (!getFailOnErr()) {
+            getProject().log("Ignoring any errors that occur for: "
+                    + getViewPathBasename(), Project.MSG_VERBOSE);
+        }
         result = run(commandLine);
-        if (result != 0) {
+        if (Execute.isFailure(result) && getFailOnErr()) {
             String msg = "Failed executing: " + commandLine.toString();
-            throw new BuildException(msg, location);
+            throw new BuildException(msg, getLocation());
         }
     }
 
@@ -198,7 +168,7 @@ public class CCCheckin extends ClearCase {
      * @param comment the comment string
      */
     public void setComment(String comment) {
-        m_Comment = comment;
+        mComment = comment;
     }
 
     /**
@@ -207,7 +177,7 @@ public class CCCheckin extends ClearCase {
      * @return String containing the comment
      */
     public String getComment() {
-        return m_Comment;
+        return mComment;
     }
 
     /**
@@ -216,7 +186,7 @@ public class CCCheckin extends ClearCase {
      * @param cfile the path to the comment file
      */
     public void setCommentFile(String cfile) {
-        m_Cfile = cfile;
+        mCfile = cfile;
     }
 
     /**
@@ -225,7 +195,7 @@ public class CCCheckin extends ClearCase {
      * @return String containing the path to the comment file
      */
     public String getCommentFile() {
-        return m_Cfile;
+        return mCfile;
     }
 
     /**
@@ -234,7 +204,7 @@ public class CCCheckin extends ClearCase {
      * @param nwarn the status to set the flag to
      */
     public void setNoWarn(boolean nwarn) {
-        m_Nwarn = nwarn;
+        mNwarn = nwarn;
     }
 
     /**
@@ -243,7 +213,7 @@ public class CCCheckin extends ClearCase {
      * @return boolean containing status of nwarn flag
      */
     public boolean getNoWarn() {
-        return m_Nwarn;
+        return mNwarn;
     }
 
     /**
@@ -252,7 +222,7 @@ public class CCCheckin extends ClearCase {
      * @param ptime the status to set the flag to
      */
     public void setPreserveTime(boolean ptime) {
-        m_Ptime = ptime;
+        mPtime = ptime;
     }
 
     /**
@@ -261,7 +231,7 @@ public class CCCheckin extends ClearCase {
      * @return boolean containing status of preservetime flag
      */
     public boolean getPreserveTime() {
-        return m_Ptime;
+        return mPtime;
     }
 
     /**
@@ -270,7 +240,7 @@ public class CCCheckin extends ClearCase {
      * @param keep the status to set the flag to
      */
     public void setKeepCopy(boolean keep) {
-        m_Keep = keep;
+        mKeep = keep;
     }
 
     /**
@@ -279,7 +249,7 @@ public class CCCheckin extends ClearCase {
      * @return boolean containing status of keepcopy flag
      */
     public boolean getKeepCopy() {
-        return m_Keep;
+        return mKeep;
     }
 
     /**
@@ -289,7 +259,7 @@ public class CCCheckin extends ClearCase {
      * @param identical the status to set the flag to
      */
     public void setIdentical(boolean identical) {
-        m_Identical = identical;
+        mIdentical = identical;
     }
 
     /**
@@ -298,14 +268,15 @@ public class CCCheckin extends ClearCase {
      * @return boolean containing status of identical flag
      */
     public boolean getIdentical() {
-        return m_Identical;
+        return mIdentical;
     }
 
 
     /**
      * Get the 'comment' command
      *
-     * @param cmd containing the command line string with or without the comment flag and string appended
+     * @param cmd containing the command line string with or
+     *            without the comment flag and string appended
      */
     private void getCommentCommand(Commandline cmd) {
         if (getComment() != null) {
@@ -322,7 +293,8 @@ public class CCCheckin extends ClearCase {
     /**
      * Get the 'commentfile' command
      *
-     * @param cmd containing the command line string with or without the commentfile flag and file appended
+     * @param cmd containing the command line string with or
+     *            without the commentfile flag and file appended
      */
     private void getCommentFileCommand(Commandline cmd) {
         if (getCommentFile() != null) {

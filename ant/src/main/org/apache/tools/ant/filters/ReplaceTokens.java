@@ -1,62 +1,24 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.filters;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Hashtable;
-
 import org.apache.tools.ant.types.Parameter;
 import org.apache.tools.ant.BuildException;
 
@@ -77,7 +39,6 @@ import org.apache.tools.ant.BuildException;
  *   &lt;param type="token" name="DATE" value="${TODAY}"/&gt;
  * &lt;/filterreader&gt;</pre>
  *
- * @author Magesh Umasankar
  */
 public final class ReplaceTokens
     extends BaseParamFilterReader
@@ -96,10 +57,10 @@ public final class ReplaceTokens
 
     /** Index into replacement data */
     private int replaceIndex = -1;
-    
+
     /** Index into queue data */
     private int queueIndex = -1;
-    
+
     /** Hashtable to hold the replacee-replacer pairs (String to String). */
     private Hashtable hash = new Hashtable();
 
@@ -111,7 +72,7 @@ public final class ReplaceTokens
 
     /**
      * Constructor for "dummy" instances.
-     * 
+     *
      * @see BaseFilterReader#BaseFilterReader()
      */
     public ReplaceTokens() {
@@ -136,19 +97,19 @@ public final class ReplaceTokens
             }
             return ch;
         }
-        
+
         return in.read();
     }
-    
+
     /**
      * Returns the next character in the filtered stream, replacing tokens
      * from the original stream.
-     * 
+     *
      * @return the next character in the resulting stream, or -1
      * if the end of the resulting stream has been reached
-     * 
+     *
      * @exception IOException if the underlying stream throws an IOException
-     * during reading     
+     * during reading
      */
     public final int read() throws IOException {
         if (!getInitialized()) {
@@ -163,7 +124,7 @@ public final class ReplaceTokens
             }
             return ch;
         }
-        
+
         int ch = getNextChar();
 
         if (ch == beginToken) {
@@ -181,18 +142,20 @@ public final class ReplaceTokens
                 if (queuedData == null || queueIndex == -1) {
                     queuedData = key.toString();
                 } else {
-                    queuedData 
+                    queuedData
                         = key.toString() + queuedData.substring(queueIndex);
                 }
                 queueIndex = 0;
                 return beginToken;
             } else {
                 key.setLength(key.length() - 1);
-                
+
                 final String replaceWith = (String) hash.get(key.toString());
                 if (replaceWith != null) {
-                    replaceData = replaceWith;
-                    replaceIndex = 0;
+                    if (replaceWith.length() > 0) {
+                        replaceData = replaceWith;
+                        replaceIndex = 0;
+                    }
                     return read();
                 } else {
                     String newData = key.toString() + endToken;
@@ -211,7 +174,7 @@ public final class ReplaceTokens
 
     /**
      * Sets the "begin token" character.
-     * 
+     *
      * @param beginToken the character used to denote the beginning of a token
      */
     public final void setBeginToken(final char beginToken) {
@@ -220,7 +183,7 @@ public final class ReplaceTokens
 
     /**
      * Returns the "begin token" character.
-     * 
+     *
      * @return the character used to denote the beginning of a token
      */
     private final char getBeginToken() {
@@ -229,7 +192,7 @@ public final class ReplaceTokens
 
     /**
      * Sets the "end token" character.
-     * 
+     *
      * @param endToken the character used to denote the end of a token
      */
     public final void setEndToken(final char endToken) {
@@ -238,7 +201,7 @@ public final class ReplaceTokens
 
     /**
      * Returns the "end token" character.
-     * 
+     *
      * @return the character used to denote the end of a token
      */
     private final char getEndToken() {
@@ -247,7 +210,7 @@ public final class ReplaceTokens
 
     /**
      * Adds a token element to the map of tokens to replace.
-     * 
+     *
      * @param token The token to add to the map of replacements.
      *              Must not be <code>null</code>.
      */
@@ -257,7 +220,7 @@ public final class ReplaceTokens
 
     /**
      * Sets the map of tokens to replace.
-     * 
+     *
      * @param hash A map (String->String) of token keys to replacement
      * values. Must not be <code>null</code>.
      */
@@ -267,7 +230,7 @@ public final class ReplaceTokens
 
     /**
      * Returns the map of tokens which will be replaced.
-     * 
+     *
      * @return a map (String->String) of token keys to replacement
      * values
      */
@@ -278,10 +241,10 @@ public final class ReplaceTokens
     /**
      * Creates a new ReplaceTokens using the passed in
      * Reader for instantiation.
-     * 
+     *
      * @param rdr A Reader object providing the underlying stream.
      *            Must not be <code>null</code>.
-     * 
+     *
      * @return a new filter based on this configuration, but filtering
      *         the specified reader
      */
@@ -308,13 +271,13 @@ public final class ReplaceTokens
                         String value = params[i].getValue();
                         if ("begintoken".equals(name)) {
                             if (value.length() == 0) {
-                                throw new BuildException("Begin token cannot " 
+                                throw new BuildException("Begin token cannot "
                                     + "be empty");
                             }
                             beginToken = params[i].getValue().charAt(0);
                         } else if ("endtoken".equals(name)) {
                             if (value.length() == 0) {
-                                throw new BuildException("End token cannot " 
+                                throw new BuildException("End token cannot "
                                     + "be empty");
                             }
                             endToken = params[i].getValue().charAt(0);
@@ -342,7 +305,7 @@ public final class ReplaceTokens
 
         /**
          * Sets the token key
-         * 
+         *
          * @param key The key for this token. Must not be <code>null</code>.
          */
         public final void setKey(String key) {
@@ -351,7 +314,7 @@ public final class ReplaceTokens
 
         /**
          * Sets the token value
-         * 
+         *
          * @param value The value for this token. Must not be <code>null</code>.
          */
         public final void setValue(String value) {
@@ -360,7 +323,7 @@ public final class ReplaceTokens
 
         /**
          * Returns the key for this token.
-         * 
+         *
          * @return the key for this token
          */
         public final String getKey() {
@@ -369,7 +332,7 @@ public final class ReplaceTokens
 
         /**
          * Returns the value for this token.
-         * 
+         *
          * @return the value for this token
          */
         public final String getValue() {

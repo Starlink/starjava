@@ -1,81 +1,46 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
-
+import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Execute;
-import org.apache.tools.ant.taskdefs.LogStreamHandler;
+import org.apache.tools.ant.taskdefs.LogOutputStream;
+import org.apache.tools.ant.taskdefs.PumpStreamHandler;
+import org.apache.tools.ant.taskdefs.condition.Os;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.CommandlineJava;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.JavaEnvUtils;
+import org.apache.tools.ant.util.LoaderUtils;
+import org.apache.tools.ant.util.TeeOutputStream;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
- *  Invokes the ANTLR Translator generator on a grammar file. 
+ *  Invokes the ANTLR Translator generator on a grammar file.
  *
- * @author <a href="mailto:emeade@geekfarm.org">Erik Meade</a>
- * @author <a href="mailto:sbailliez@apache.org">Stephane Bailliez</a>
- * @author <a href="mailto:aphid@browsecode.org">Stephen Chin</a>
  */
 public class ANTLR extends Task {
 
@@ -88,10 +53,7 @@ public class ANTLR extends Task {
     private File outputDirectory;
 
     /** an optional super grammar file */
-    private String superGrammar;
-
-    /** optional flag to enable parseView debugging */
-    private boolean debug;
+    private File superGrammar;
 
     /** optional flag to enable html output */
     private boolean html;
@@ -111,15 +73,23 @@ public class ANTLR extends Task {
     /** optional flag to add trace methods to the tree walker only */
     private boolean traceTreeWalker;
 
-    /** should fork ? */
-    private final boolean fork = true;
-
     /** working directory */
     private File workingdir = null;
+
+    /** captures ANTLR's output */
+    private ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+    /** The debug attribute */
+    private boolean debug;
+
+
+    /** Instance of a utility class to use for file operations. */
+    private FileUtils fileUtils;
 
     public ANTLR() {
         commandline.setVm(JavaEnvUtils.getJreExecutable("java"));
         commandline.setClassname("antlr.Tool");
+        fileUtils = FileUtils.newFileUtils();
     }
 
     /**
@@ -140,16 +110,30 @@ public class ANTLR extends Task {
 
     /**
      * Sets an optional super grammar file.
+     * Use setGlib(File superGrammar) instead.
+     * @deprecated  since ant 1.6
      */
     public void setGlib(String superGrammar) {
+        String sg = null;
+        if (Os.isFamily("dos")) {
+            sg = superGrammar.replace('\\', '/');
+        } else {
+            sg = superGrammar;
+        }
+        setGlib(fileUtils.resolveFile(getProject().getBaseDir(), sg));
+    }
+    /**
+     * Sets an optional super grammar file
+     * @since ant 1.6
+     */
+    public void setGlib(File superGrammar) {
         this.superGrammar = superGrammar;
     }
-
     /**
      * Sets a flag to enable ParseView debugging
      */
     public void setDebug(boolean enable) {
-        debug = enable;
+        this.debug = enable;
     }
 
     /**
@@ -217,7 +201,7 @@ public class ANTLR extends Task {
      * because a directory might be given for Antlr debug.
      */
     public Path createClasspath() {
-        return commandline.createClasspath(project).createPath();
+        return commandline.createClasspath(getProject()).createPath();
     }
 
     /**
@@ -235,7 +219,7 @@ public class ANTLR extends Task {
      * specify it directly.
      */
     public void init() throws BuildException {
-        addClasspathEntry("/antlr/Tool.class");
+        addClasspathEntry("/antlr/ANTLRGrammarParseBehavior.class");
     }
 
     /**
@@ -246,44 +230,66 @@ public class ANTLR extends Task {
      * getResource doesn't contain the name of the archive.</p>
      */
     protected void addClasspathEntry(String resource) {
-        URL url = getClass().getResource(resource);
-        if (url != null) {
-            String u = url.toString();
-            if (u.startsWith("jar:file:")) {
-                int pling = u.indexOf("!");
-                String jarName = u.substring(9, pling);
-                log("Implicitly adding " + jarName + " to classpath",
-                        Project.MSG_DEBUG);
-                createClasspath().setLocation(new File((new File(jarName)).getAbsolutePath()));
-            } else if (u.startsWith("file:")) {
-                int tail = u.indexOf(resource);
-                String dirName = u.substring(5, tail);
-                log("Implicitly adding " + dirName + " to classpath",
-                        Project.MSG_DEBUG);
-                createClasspath().setLocation(new File((new File(dirName)).getAbsolutePath()));
-            } else {
-                log("Don\'t know how to handle resource URL " + u,
-                        Project.MSG_DEBUG);
-            }
+        /*
+         * pre Ant 1.6 this method used to call getClass().getResource
+         * while Ant 1.6 will call ClassLoader.getResource().
+         *
+         * The difference is that Class.getResource expects a leading
+         * slash for "absolute" resources and will strip it before
+         * delegating to ClassLoader.getResource - so we now have to
+         * emulate Class's behavior.
+         */
+        if (resource.startsWith("/")) {
+            resource = resource.substring(1);
         } else {
-            log("Couldn\'t find " + resource, Project.MSG_DEBUG);
+            resource = "org/apache/tools/ant/taskdefs/optional/"
+                + resource;
+        }
+
+        File f = LoaderUtils.getResourceSource(getClass().getClassLoader(),
+                                               resource);
+        if (f != null) {
+            log("Found " + f.getAbsolutePath(), Project.MSG_DEBUG);
+            createClasspath().setLocation(f);
+        } else {
+            log("Couldn\'t find " + resource, Project.MSG_VERBOSE);
         }
     }
 
     public void execute() throws BuildException {
         validateAttributes();
-        //TODO: use ANTLR to parse the grammer file to do this.
-        if (target.lastModified() > getGeneratedFile().lastModified()) {
+
+        //TODO: use ANTLR to parse the grammar file to do this.
+        File generatedFile = getGeneratedFile();
+        boolean targetIsOutOfDate =
+            target.lastModified() > generatedFile.lastModified();
+        boolean superGrammarIsOutOfDate  = superGrammar != null
+                && (superGrammar.lastModified() > generatedFile.lastModified());
+        if (targetIsOutOfDate || superGrammarIsOutOfDate) {
+            if (targetIsOutOfDate) {
+                log("Compiling " + target + " as it is newer than "
+                    + generatedFile, Project.MSG_VERBOSE);
+            } else if (superGrammarIsOutOfDate) {
+                log("Compiling " + target + " as " + superGrammar
+                    + " is newer than " + generatedFile, Project.MSG_VERBOSE);
+            }
             populateAttributes();
             commandline.createArgument().setValue(target.toString());
 
             log(commandline.describeCommand(), Project.MSG_VERBOSE);
             int err = run(commandline.getCommandline());
-            if (err == 1) {
-                throw new BuildException("ANTLR returned: " + err, location);
+            if (err != 0) {
+                throw new BuildException("ANTLR returned: " + err, getLocation());
+            } else {
+                String output = bos.toString();
+                if (output.indexOf("error:") > -1) {
+                    throw new BuildException("ANTLR signaled an error: "
+                                             + output, getLocation());
+                }
             }
         } else {
-            log("Skipped grammar file. Generated file is newer.", Project.MSG_VERBOSE);
+            log("Skipped grammar file. Generated file " + generatedFile
+                + " is newer.", Project.MSG_VERBOSE);
         }
     }
 
@@ -296,7 +302,7 @@ public class ANTLR extends Task {
         commandline.createArgument().setValue(outputDirectory.toString());
         if (superGrammar != null) {
             commandline.createArgument().setValue("-glib");
-            commandline.createArgument().setValue(superGrammar);
+            commandline.createArgument().setValue(superGrammar.toString());
         }
         if (html) {
             commandline.createArgument().setValue("-html");
@@ -314,7 +320,14 @@ public class ANTLR extends Task {
             commandline.createArgument().setValue("-traceLexer");
         }
         if (traceTreeWalker) {
-            commandline.createArgument().setValue("-traceTreeWalker");
+            if (is272()) {
+                commandline.createArgument().setValue("-traceTreeParser");
+            } else {
+                commandline.createArgument().setValue("-traceTreeWalker");
+            }
+        }
+        if (debug) {
+            commandline.createArgument().setValue("-debug");
         }
     }
 
@@ -325,7 +338,6 @@ public class ANTLR extends Task {
 
         // if no output directory is specified, used the target's directory
         if (outputDirectory == null) {
-            String fileName = target.toString();
             setOutputdirectory(new File(target.getParent()));
         }
         if (!outputDirectory.isDirectory()) {
@@ -357,9 +369,15 @@ public class ANTLR extends Task {
 
     /** execute in a forked VM */
     private int run(String[] command) throws BuildException {
-        Execute exe = new Execute(new LogStreamHandler(this, Project.MSG_INFO,
-                Project.MSG_WARN), null);
-        exe.setAntRun(project);
+        PumpStreamHandler psh =
+            new PumpStreamHandler(new LogOutputStream(this, Project.MSG_INFO),
+                                  new TeeOutputStream(
+                                                      new LogOutputStream(this,
+                                                                          Project.MSG_WARN),
+                                                      bos)
+                                  );
+        Execute exe = new Execute(psh, null);
+        exe.setAntRun(getProject());
         if (workingdir != null) {
             exe.setWorkingDirectory(workingdir);
         }
@@ -367,7 +385,30 @@ public class ANTLR extends Task {
         try {
             return exe.execute();
         } catch (IOException e) {
-            throw new BuildException(e, location);
+            throw new BuildException(e, getLocation());
+        } finally {
+            try {
+                bos.close();
+            } catch (IOException e) {
+                // ignore
+            }
         }
+    }
+
+    /**
+     * Whether the antlr version is 2.7.2 (or higher).
+     *
+     * @return true if the version of Antlr present is 2.7.2 or later.
+     * @since Ant 1.6
+     */
+    protected boolean is272() {
+        try {
+            AntClassLoader l = new AntClassLoader(getProject(),
+                                                  commandline.getClasspath());
+            l.loadClass("antlr.Version");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        } // end of try-catch
     }
 }

@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 /*
  * Portions of this software are based upon public domain software
@@ -70,15 +33,20 @@ import org.apache.tools.ant.Project;
  * <b>Example Usage:</b>
  * <table border="1">
  * <th>Function</th><th>Command</th>
- * <tr><td>Sync to head using P4USER, P4PORT and P4CLIENT settings specified</td><td>&lt;P4Sync <br>P4view="//projects/foo/main/source/..." <br>P4User="fbloggs" <br>P4Port="km01:1666" <br>P4Client="fbloggsclient" /&gt;</td></tr>
- * <tr><td>Sync to head using P4USER, P4PORT and P4CLIENT settings defined in environment</td><td>&lt;P4Sync P4view="//projects/foo/main/source/..." /&gt;</td></tr>
- * <tr><td>Force a re-sync to head, refreshing all files</td><td>&lt;P4Sync force="yes" P4view="//projects/foo/main/source/..." /&gt;</td></tr>
+ * <tr><td>Sync to head using P4USER, P4PORT and P4CLIENT settings specified</td>
+ * <td>&lt;P4Sync <br>P4view="//projects/foo/main/source/..." <br>
+ * P4User="fbloggs" <br>P4Port="km01:1666" <br>P4Client="fbloggsclient" /&gt;</td></tr>
+ * <tr><td>Sync to head using P4USER, P4PORT and P4CLIENT settings defined in environment</td>
+ * <td>&lt;P4Sync P4view="//projects/foo/main/source/..." /&gt;</td></tr>
+ * <tr><td>Force a re-sync to head, refreshing all files</td>
+ * <td>&lt;P4Sync force="yes" P4view="//projects/foo/main/source/..." /&gt;</td></tr>
  * <tr><td>Sync to a label</td><td>&lt;P4Sync label="myPerforceLabel" /&gt;</td></tr>
  * </table>
  *
  * @todo Add decent label error handling for non-exsitant labels
  *
- * @author <A HREF="mailto:leslie.hughes@rubus.com">Les Hughes</A>
+ *
+ * @ant.task category="scm"
  */
 public class P4Sync extends P4Base {
 
@@ -87,6 +55,8 @@ public class P4Sync extends P4Base {
 
     /**
      * Label to sync client to; optional.
+     * @param label name of a label against which one want to sync
+     * @throws BuildException if label is null or empty string
      */
     public void setLabel(String label) throws BuildException {
         if (label == null && !label.equals("")) {
@@ -100,6 +70,8 @@ public class P4Sync extends P4Base {
 
     /**
      * force a refresh of files, if this attribute is set; false by default.
+     * @param force sync all files, whether they are supposed to be already uptodate or not.
+     * @throws BuildException if a label is set and force is null
      */
     public void setForce(String force) throws BuildException {
         if (force == null && !label.equals("")) {
@@ -108,6 +80,11 @@ public class P4Sync extends P4Base {
         P4CmdOpts = "-f";
     }
 
+    /**
+     * do the work
+     * @throws BuildException if an error occurs during the execution of the Perforce command
+     * and failOnError is set to true
+     */
     public void execute() throws BuildException {
 
 

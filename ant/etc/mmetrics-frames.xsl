@@ -1,67 +1,30 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
   xmlns:lxslt="http://xml.apache.org/xslt"
   xmlns:xalan="http://xml.apache.org/xalan"
-  xmlns:redirect="org.apache.xalan.xslt.extensions.Redirect"
+  xmlns:redirect="org.apache.xalan.lib.Redirect"
   exclude-result-prefixes="xalan"
   extension-element-prefixes="redirect">
 <xsl:output method="html" indent="yes" encoding="US-ASCII"/>
 <xsl:decimal-format decimal-separator="." grouping-separator="," />
 <!--
- The Apache Software License, Version 1.1
-
- Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- reserved.
-
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions
- are met:
-
- 1. Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-
- 2. Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in
-    the documentation and/or other materials provided with the
-    distribution.
-
- 3. The end-user documentation included with the redistribution, if
-    any, must include the following acknowlegement:
-       "This product includes software developed by the
-        Apache Software Foundation (http://www.apache.org/)."
-    Alternately, this acknowlegement may appear in the software itself,
-    if and wherever such third-party acknowlegements normally appear.
-
- 4. The names "Ant" and "Apache Software
-    Foundation" must not be used to endorse or promote products derived
-    from this software without prior written permission. For written
-    permission, please contact apache@apache.org.
-
- 5. Products derived from this software may not be called "Apache"
-    nor may "Apache" appear in their names without prior written
-    permission of the Apache Group.
-
- THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- SUCH DAMAGE.
- ====================================================================
-
- This software consists of voluntary contributions made by many
- individuals on behalf of the Apache Software Foundation.  For more
- information on the Apache Software Foundation, please see
- <http://www.apache.org/>.
- -->
+    Copyright  2001-2004 The Apache Software Foundation
+   
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+   
+         http://www.apache.org/licenses/LICENSE-2.0
+   
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+   
+-->
 <!--
   @author Stephane Bailliez <a href="mailto:sbailliez@apache.org"/>
-  --> 
+  -->
 <xsl:param name="output.dir" select="'.'"/>
 
 <!-- default max value for the metrics -->
@@ -115,7 +78,7 @@
   <redirect:write file="{$output.dir}/metrics-reference.html">
     <xsl:call-template name="metrics-reference.html"/>
   </redirect:write>
-  
+
   <!-- create the overview-packages.html at the root -->
   <redirect:write file="{$output.dir}/overview-summary.html">
     <xsl:apply-templates select="." mode="overview.packages"/>
@@ -125,12 +88,12 @@
   <redirect:write file="{$output.dir}/overview-frame.html">
     <xsl:apply-templates select="." mode="all.packages"/>
   </redirect:write>
-  
+
   <!-- create the all-classes.html at the root -->
   <redirect:write file="{$output.dir}/allclasses-frame.html">
     <xsl:apply-templates select="." mode="all.classes"/>
   </redirect:write>
-  
+
   <!-- process all packages -->
   <xsl:apply-templates select=".//package"/>
 </xsl:template>
@@ -141,17 +104,17 @@
   <xsl:variable name="package.dir">
     <xsl:if test="not($package.name = 'unnamed package')"><xsl:value-of select="translate($package.name,'.','/')"/></xsl:if>
     <xsl:if test="$package.name = 'unnamed package'">.</xsl:if>
-  </xsl:variable> 
+  </xsl:variable>
   <!-- create a classes-list.html in the package directory -->
   <redirect:write file="{$output.dir}/{$package.dir}/package-frame.html">
     <xsl:apply-templates select="." mode="classes.list"/>
   </redirect:write>
-  
+
   <!-- create a package-summary.html in the package directory -->
   <redirect:write file="{$output.dir}/{$package.dir}/package-summary.html">
     <xsl:apply-templates select="." mode="package.summary"/>
   </redirect:write>
-  
+
   <!-- for each class, creates a @name.html -->
   <!-- @bug there will be a problem with inner classes having the same name, it will be overwritten -->
   <xsl:for-each select="$doctree/classes/class[@package = current()/@name]">
@@ -493,10 +456,10 @@ will increase this number.
       background-color:#FFFFFF;
       color:#000000;
     }
-    .a td { 
+    .a td {
       background: #efefef;
     }
-    .b td { 
+    .b td {
       background: #fff;
     }
     th, td {
@@ -513,7 +476,7 @@ will increase this number.
       border: none
     }
     table.log tr td, tr th {
-      
+
     }
     h2 {
       font-weight:bold;
@@ -549,19 +512,19 @@ will increase this number.
     </HEAD>
     <BODY>
       <xsl:call-template name="pageHeader"/>
-      
+
       <H3>Class <xsl:if test="not($package.name = 'unnamed package')"><xsl:value-of select="$package.name"/>.</xsl:if><xsl:value-of select="@name"/></H3>
       <table class="log" border="0" cellpadding="5" cellspacing="2" width="100%">
         <xsl:call-template name="all.metrics.header"/>
         <xsl:apply-templates select="." mode="print.metrics"/>
       </table>
-  
+
       <H3>Methods</H3>
       <table class="log" border="0" cellpadding="5" cellspacing="2" width="100%">
         <xsl:call-template name="method.metrics.header"/>
         <xsl:apply-templates select="method" mode="print.metrics"/>
       </table>
-      
+
       <xsl:call-template name="pageFooter"/>
     </BODY>
   </HTML>
@@ -584,7 +547,7 @@ will increase this number.
           </td>
         </tr>
       </table>
-  
+
       <H2>Classes</H2>
       <TABLE WIDTH="100%">
         <!-- xalan-nodeset:nodeset for Xalan 1.2.2 -->
@@ -594,7 +557,7 @@ will increase this number.
             <td nowrap="nowrap">
               <a href="{@name}.html" target="classFrame"><xsl:value-of select="@name"/></a>
             </td>
-          </tr>               
+          </tr>
             </xsl:for-each>
       </TABLE>
     </BODY>
@@ -705,7 +668,7 @@ will increase this number.
       <th><a href="metrics-reference.html#NOCL">NOCL</a></th>
     </tr>
     <xsl:apply-templates select="." mode="print.metrics"/>
-    </table>    
+    </table>
     <table border="0" width="100%">
     <tr>
     <td style="text-align: justify;">
@@ -748,12 +711,12 @@ will increase this number.
       <xsl:call-template name="pageHeader"/>
       <!-- create an anchor to this package name -->
       <h3>Package <xsl:value-of select="@name"/></h3>
-      
+
       <table class="log" border="0" cellpadding="5" cellspacing="2" width="100%">
         <xsl:call-template name="all.metrics.header"/>
         <xsl:apply-templates select="." mode="print.metrics"/>
       </table>
-      
+
       <table border="0" width="100%">
       <tr>
       <td style="text-align: justify;">
@@ -770,7 +733,7 @@ will increase this number.
       </td>
       </tr>
       </table>
-      
+
       <xsl:variable name="classes-in-package" select="$doctree/classes/class[@package = current()/@name]"/>
       <xsl:if test="count($classes-in-package) &gt; 0">
         <H3>Classes</H3>
@@ -782,7 +745,7 @@ will increase this number.
           </xsl:for-each>
         </table>
       </xsl:if>
-      
+
       <xsl:call-template name="pageFooter"/>
     </body>
   </HTML>
@@ -796,13 +759,13 @@ will increase this number.
 <xsl:template name="path">
   <xsl:param name="path"/>
   <xsl:if test="contains($path,'.')">
-    <xsl:text>../</xsl:text>  
+    <xsl:text>../</xsl:text>
     <xsl:call-template name="path">
       <xsl:with-param name="path"><xsl:value-of select="substring-after($path,'.')"/></xsl:with-param>
-    </xsl:call-template>  
+    </xsl:call-template>
   </xsl:if>
   <xsl:if test="not(contains($path,'.')) and not($path = '')">
-    <xsl:text>../</xsl:text>  
+    <xsl:text>../</xsl:text>
   </xsl:if>
 </xsl:template>
 
@@ -979,7 +942,7 @@ will increase this number.
       <xsl:with-param name="max" select="$loc.max"/>
     </xsl:call-template>
   </xsl:template>
-  
+
   <xsl:template match="@dit">
     <xsl:call-template name="display-value">
       <xsl:with-param name="value" select="current()"/>
@@ -1067,4 +1030,4 @@ will increase this number.
   </xsl:template>
 
 </xsl:stylesheet>
-  
+

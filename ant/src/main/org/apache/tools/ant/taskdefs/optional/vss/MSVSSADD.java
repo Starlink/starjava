@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.optional.vss;
@@ -60,36 +23,26 @@ import org.apache.tools.ant.types.Path;
 
 /**
  * Performs Add commands to Microsoft Visual SourceSafe.
- * Based on the VSS Checkin code by Martin Poeschl
  *
- * @author Nigel Magnay
+ *
  * @ant.task name="vssadd" category="scm"
  */
 public class MSVSSADD extends MSVSS {
 
     private String m_LocalPath = null;
-    private boolean m_Recursive = false;
-    private boolean m_Writable = false;
-    private String m_AutoResponse = null;
-    private String m_Comment = "-";
 
     /**
-     * Executes the task.
-     * <p>
-     * Builds a command line to execute ss and then calls Exec's run method
-     * to execute the command line.
+     * Builds a command line to execute ss.
+     * @return     The constructed commandline.
      */
-    public void execute() throws BuildException {
+    protected Commandline buildCmdLine() {
         Commandline commandLine = new Commandline();
-        int result = 0;
 
-         // first off, make sure that we've got a command and a localPath ...
-        if (getLocalPath() == null) {
+        // first off, make sure that we've got a command and a localPath ...
+        if (getLocalpath() == null) {
             String msg = "localPath attribute must be set!";
-            throw new BuildException(msg, location);
+            throw new BuildException(msg, getLocation());
         }
-
-        // now look for illegal combinations of things ...
 
         // build the command line from what we got the format is
         // ss Add VSS items [-B] [-C] [-D-] [-H] [-I-] [-K] [-N] [-O] [-R] [-W] [-Y] [-?]
@@ -98,124 +51,72 @@ public class MSVSSADD extends MSVSS {
         commandLine.createArgument().setValue(COMMAND_ADD);
 
         // VSS items
-        commandLine.createArgument().setValue(getLocalPath());        
+        commandLine.createArgument().setValue(getLocalpath());
         // -I- or -I-Y or -I-N
-        getAutoresponse(commandLine);
+        commandLine.createArgument().setValue(getAutoresponse());
         // -R
-        getRecursiveCommand(commandLine);
+        commandLine.createArgument().setValue(getRecursive());
         // -W
-        getWritableCommand(commandLine);
+        commandLine.createArgument().setValue(getWritable());
         // -Y
-        getLoginCommand(commandLine);
+        commandLine.createArgument().setValue(getLogin());
         // -C
-        commandLine.createArgument().setValue("-C" + getComment());
+        commandLine.createArgument().setValue(getComment());
 
-        result = run(commandLine);
-        if (result != 0) {
-            String msg = "Failed executing: " + commandLine.toString();
-            throw new BuildException(msg, location);
-        }
+        return commandLine;
     }
 
     /**
-     * Set behaviour recursive or non-recursive
+     * Returns the local path without the flag.; required
+     * @todo See why this returns the local path without the flag.
+     * @return The local path value.
+     */
+    protected String getLocalpath() {
+        return m_LocalPath;
+    }
+
+    /**
+     * Add files recursively. Defaults to false.
+     *
+     * @param recursive  The boolean value for recursive.
      */
     public void setRecursive(boolean recursive) {
-        m_Recursive = recursive;
+        super.setInternalRecursive(recursive);
     }
 
     /**
-     * @return the 'recursive' command if the attribute was 'true', otherwise an empty string
+     * Unset the READ-ONLY flag on local copies of files added to VSS. Defaults to false.
+     *
+     * @param   writable The boolean value for writable.
      */
-    public void getRecursiveCommand(Commandline cmd) {
-        if (!m_Recursive) {
-            return;
-        } else {
-            cmd.createArgument().setValue(FLAG_RECURSION);
-        }
+    public final void setWritable(boolean writable) {
+        super.setInternalWritable(writable);
     }
 
     /**
-     * Leave added files writable? Default: false. 
+     * Autoresponce behaviour. Valid options are Y and N.
+     *
+     * @param response The auto response value.
      */
-    public final void setWritable(boolean argWritable) {
-        m_Writable = argWritable;
+    public void setAutoresponse(String response) {
+        super.setInternalAutoResponse(response);
     }
 
     /**
-     * @return the 'make writable' command if the attribute was 'true', otherwise an empty string
-     */
-    public void getWritableCommand(Commandline cmd) {
-        if (!m_Writable) {
-            return;
-        } else {
-            cmd.createArgument().setValue(FLAG_WRITABLE);
-        }
-    }
-
-    /**
-     * What to respond with (sets the -I option). By default, -I- is
-     * used; values of Y or N will be appended to this.
-     */      
-    public void setAutoresponse(String response){
-        if (response.equals("") || response.equals("null")) {
-            m_AutoResponse = null;
-        } else {
-            m_AutoResponse = response;
-        }
-    }
-
-    /**
-     * Checks the value set for the autoResponse.
-     * if it equals "Y" then we return -I-Y
-     * if it equals "N" then we return -I-N
-     * otherwise we return -I
-     */
-    public void getAutoresponse(Commandline cmd) {
-
-        if (m_AutoResponse == null) {
-            cmd.createArgument().setValue(FLAG_AUTORESPONSE_DEF);
-        } else if (m_AutoResponse.equalsIgnoreCase("Y")) {
-            cmd.createArgument().setValue(FLAG_AUTORESPONSE_YES);
-
-        } else if (m_AutoResponse.equalsIgnoreCase("N")) {
-            cmd.createArgument().setValue(FLAG_AUTORESPONSE_NO);
-        } else {
-            cmd.createArgument().setValue(FLAG_AUTORESPONSE_DEF);
-        } // end of else
-
-    }
-
-    /**
-     * Sets the comment to apply; optional.
-     * <p>
-     * If this is null or empty, it will be replaced with "-" which
-     * is what SourceSafe uses for an empty comment.
+     * Comment to apply to files added to SourceSafe.
+     *
+     * @param comment The comment to apply in SourceSafe
      */
     public void setComment(String comment) {
-        if (comment.equals("") || comment.equals("null")) {
-            m_Comment = "-";
-        } else {
-            m_Comment = comment;
-        }
+        super.setInternalComment(comment);
     }
 
     /**
-     * Gets the comment to be applied.
-     * @return the comment to be applied.
-     */
-    public String getComment() {
-        return m_Comment;
-    }
-
-    /**
-     * Set the local path.
+     * Override the project working directory.
+     *
+     * @param   localPath   The path on disk.
      */
     public void setLocalpath(Path localPath) {
         m_LocalPath = localPath.toString();
-    }
-
-    public String getLocalPath() {
-        return m_LocalPath;
     }
 }

@@ -1,73 +1,36 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.types.selectors;
 
 import java.io.File;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Locale;
 
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.condition.Os;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.Parameter;
-import org.apache.tools.ant.taskdefs.condition.Os;
 
 /**
  * Selector that chooses files based on their last modified date.
  *
- * @author <a href="mailto:bruce@callenish.com">Bruce Atherton</a>
  * @since 1.5
  */
 public class DateSelector extends BaseExtendSelector {
@@ -77,32 +40,49 @@ public class DateSelector extends BaseExtendSelector {
     private boolean includeDirs = false;
     private int granularity = 0;
     private int cmp = 2;
-    public final static String MILLIS_KEY = "millis";
-    public final static String DATETIME_KEY = "datetime";
-    public final static String CHECKDIRS_KEY = "checkdirs";
-    public final static String GRANULARITY_KEY = "granularity";
-    public final static String WHEN_KEY = "when";
+    private String pattern;
+    /** Key to used for parameterized custom selector */
+    public static final String MILLIS_KEY = "millis";
+    /** Key to used for parameterized custom selector */
+    public static final String DATETIME_KEY = "datetime";
+    /** Key to used for parameterized custom selector */
+    public static final String CHECKDIRS_KEY = "checkdirs";
+    /** Key to used for parameterized custom selector */
+    public static final String GRANULARITY_KEY = "granularity";
+    /** Key to used for parameterized custom selector */
+    public static final String WHEN_KEY = "when";
+    /** Key to used for parameterized custom selector */
+    public static final String PATTERN_KEY = "pattern";
 
+    /**
+     * Creates a new <code>DateSelector</code> instance.
+     *
+     */
     public DateSelector() {
         if (Os.isFamily("dos")) {
             granularity = 2000;
         }
     }
 
+    /**
+     * @return a string describing this object
+     */
     public String toString() {
         StringBuffer buf = new StringBuffer("{dateselector date: ");
         buf.append(dateTime);
         buf.append(" compare: ");
         if (cmp == 0) {
             buf.append("before");
-        }
-        else if (cmp == 1) {
+        } else if (cmp == 1) {
             buf.append("after");
         } else {
             buf.append("equal");
         }
         buf.append(" granularity: ");
         buf.append(granularity);
+        if (pattern != null) {
+            buf.append(" pattern: ").append(pattern);
+        }
         buf.append("}");
         return buf.toString();
     }
@@ -119,8 +99,12 @@ public class DateSelector extends BaseExtendSelector {
 
     /**
      * Returns the millisecond value the selector is set for.
+     * @return the millisecond value
      */
     public long getMillis() {
+        if (dateTime != null) {
+            validate();
+        }
         return millis;
     }
 
@@ -132,24 +116,6 @@ public class DateSelector extends BaseExtendSelector {
      */
     public void setDatetime(String dateTime) {
         this.dateTime = dateTime;
-        if (dateTime != null) {
-            DateFormat df = DateFormat.getDateTimeInstance(
-                                                    DateFormat.SHORT,
-                                                    DateFormat.SHORT,
-                                                    Locale.US);
-            try {
-                setMillis(df.parse(dateTime).getTime());
-                if (millis < 0) {
-                    setError("Date of " + dateTime
-                        + " results in negative milliseconds value relative"
-                        + " to epoch (January 1, 1970, 00:00:00 GMT).");
-                }
-            } catch (ParseException pe) {
-                    setError("Date of " + dateTime
-                        + " Cannot be parsed correctly. It should be in"
-                        + " MM/DD/YYYY HH:MM AM_PM format.");
-            }
-        }
     }
 
     /**
@@ -164,6 +130,7 @@ public class DateSelector extends BaseExtendSelector {
     /**
      * Sets the number of milliseconds leeway we will give before we consider
      * a file not to have matched a date.
+     * @param granularity the number of milliconds leeway
      */
     public void setGranularity(int granularity) {
         this.granularity = granularity;
@@ -180,6 +147,15 @@ public class DateSelector extends BaseExtendSelector {
     }
 
     /**
+     * Sets the pattern to be used for the SimpleDateFormat
+     *
+     * @param pattern the pattern that defines the date format
+     */
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
+    }
+
+    /**
      * When using this as a custom selector, this method will be called.
      * It translates each parameter into the appropriate setXXX() call.
      *
@@ -193,33 +169,30 @@ public class DateSelector extends BaseExtendSelector {
                 if (MILLIS_KEY.equalsIgnoreCase(paramname)) {
                     try {
                         setMillis(new Long(parameters[i].getValue()
-                                ).longValue());
+                        ).longValue());
                     } catch (NumberFormatException nfe) {
-                        setError("Invalid millisecond setting " +
-                            parameters[i].getValue());
+                        setError("Invalid millisecond setting "
+                                + parameters[i].getValue());
                     }
-                }
-                else if (DATETIME_KEY.equalsIgnoreCase(paramname)) {
+                } else if (DATETIME_KEY.equalsIgnoreCase(paramname)) {
                     setDatetime(parameters[i].getValue());
-                }
-                else if (CHECKDIRS_KEY.equalsIgnoreCase(paramname)) {
+                } else if (CHECKDIRS_KEY.equalsIgnoreCase(paramname)) {
                     setCheckdirs(Project.toBoolean(parameters[i].getValue()));
-                }
-                else if (GRANULARITY_KEY.equalsIgnoreCase(paramname)) {
+                } else if (GRANULARITY_KEY.equalsIgnoreCase(paramname)) {
                     try {
                         setGranularity(new Integer(parameters[i].getValue()
-                                ).intValue());
+                        ).intValue());
                     } catch (NumberFormatException nfe) {
-                        setError("Invalid granularity setting " +
-                            parameters[i].getValue());
+                        setError("Invalid granularity setting "
+                            + parameters[i].getValue());
                     }
-                }
-                else if (WHEN_KEY.equalsIgnoreCase(paramname)) {
+                } else if (WHEN_KEY.equalsIgnoreCase(paramname)) {
                     TimeComparisons cmp = new TimeComparisons();
                     cmp.setValue(parameters[i].getValue());
                     setWhen(cmp);
-                }
-                else {
+                } else if (PATTERN_KEY.equalsIgnoreCase(paramname)) {
+                    setPattern(parameters[i].getValue());
+                } else {
                     setError("Invalid parameter " + paramname);
                 }
             }
@@ -233,12 +206,27 @@ public class DateSelector extends BaseExtendSelector {
     public void verifySettings() {
         if (dateTime == null && millis < 0) {
             setError("You must provide a datetime or the number of "
-                + "milliseconds.");
-        }
-        else if (millis < 0) {
-            setError("Date of " + dateTime
-                + " results in negative milliseconds"
-                + " value relative to epoch (January 1, 1970, 00:00:00 GMT).");
+                    + "milliseconds.");
+        } else if (millis < 0 && dateTime != null) {
+            // check millis and only set it once.
+            DateFormat df = ((pattern == null)
+                ? DateFormat.getDateTimeInstance(
+                    DateFormat.SHORT, DateFormat.SHORT, Locale.US)
+                : new SimpleDateFormat(pattern));
+
+            try {
+                setMillis(df.parse(dateTime).getTime());
+                if (millis < 0) {
+                    setError("Date of " + dateTime
+                        + " results in negative milliseconds value"
+                        + " relative to epoch (January 1, 1970, 00:00:00 GMT).");
+                }
+            } catch (ParseException pe) {
+                setError("Date of " + dateTime
+                        + " Cannot be parsed correctly. It should be in"
+                        + ((pattern == null)
+                        ? " MM/DD/YYYY HH:MM AM_PM" : pattern) + " format.");
+            }
         }
     }
 
@@ -252,18 +240,18 @@ public class DateSelector extends BaseExtendSelector {
      * @return whether the file should be selected or not
      */
     public boolean isSelected(File basedir, String filename, File file) {
+
         validate();
-        if (file.isDirectory() && (includeDirs == false)) {
+
+        if (file.isDirectory() && (!includeDirs)) {
             return true;
         }
         if (cmp == 0) {
             return ((file.lastModified() - granularity) < millis);
-        }
-        else if (cmp == 1) {
+        } else if (cmp == 1) {
             return ((file.lastModified() + granularity) > millis);
-        }
-        else {
-            return (Math.abs(file.lastModified() -  millis) <= granularity);
+        } else {
+            return (Math.abs(file.lastModified() - millis) <= granularity);
         }
     }
 
@@ -272,8 +260,11 @@ public class DateSelector extends BaseExtendSelector {
      * <p>
      */
     public static class TimeComparisons extends EnumeratedAttribute {
+        /**
+         * @return the values as an array of strings
+         */
         public String[] getValues() {
-            return new String[] {"before", "after", "equal"};
+            return new String[]{"before", "after", "equal"};
         }
     }
 

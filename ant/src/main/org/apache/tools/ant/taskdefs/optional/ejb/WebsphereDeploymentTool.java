@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.ejb;
 
@@ -63,14 +26,13 @@ import java.util.Iterator;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
-import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Java;
-import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.Environment;
 import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Websphere deployment tool that augments the ejbjar task.
@@ -86,20 +48,20 @@ import org.apache.tools.ant.types.Path;
  *    <li>Map.mapxmi</li>
  *    <li>Schema.dbxmi</li>
  * </ul>
- * In terms of WebSphere, the generation of container code and stubs is called <code>deployment</code>.
- * This step can be performed by the websphere element as part of the jar generation process. If the
- * switch <code>ejbdeploy</code> is on, the ejbdeploy tool from the websphere toolset is called for
- * every ejb-jar. Unfortunately, this step only works, if you use the ibm jdk. Otherwise, the rmic
- * (called by ejbdeploy) throws a ClassFormatError. Be sure to switch ejbdeploy off, if run ant with
+ * In terms of WebSphere, the generation of container code and stubs is
+ * called <code>deployment</code>. This step can be performed by the websphere
+ * element as part of the jar generation process. If the switch
+ * <code>ejbdeploy</code> is on, the ejbdeploy tool from the websphere toolset
+ * is called for every ejb-jar. Unfortunately, this step only works, if you
+ * use the ibm jdk. Otherwise, the rmic (called by ejbdeploy) throws a
+ * ClassFormatError. Be sure to switch ejbdeploy off, if run ant with
  * sun jdk.
  *
- * @author <a href="mailto:msahu@interkeel.com">Maneesh Sahu</a>
  */
 public class WebsphereDeploymentTool extends GenericDeploymentTool {
     /**
      * Enumerated attribute with the values for the database vendor types
      *
-     * @author Conor MacNeill
      */
     public static class DBVendor extends EnumeratedAttribute {
         public String[] getValues() {
@@ -275,9 +237,9 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     /**
      * Flag to disable informational messages; optional, default false.
      *
-     * @param noinfom
+     * @param noinform if true disables informational messages
      */
-    public void setNoinform(boolean noinfom) {
+    public void setNoinform(boolean noinform) {
         this.noinform = noinform;
     }
 
@@ -441,8 +403,9 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
             ejbFiles.put(META_DIR + WAS_EXT,
                 websphereEXT);
         } else {
-            log("Unable to locate websphere extensions. It was expected to be in " +
-                websphereEXT.getPath(), Project.MSG_VERBOSE);
+            log("Unable to locate websphere extensions. "
+                + "It was expected to be in "
+                + websphereEXT.getPath(), Project.MSG_VERBOSE);
         }
 
         File websphereBND = new File(getConfig().descriptorDir, ddPrefix + WAS_BND);
@@ -451,14 +414,17 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
             ejbFiles.put(META_DIR + WAS_BND,
                 websphereBND);
         } else {
-            log("Unable to locate websphere bindings. It was expected to be in " +
-                websphereBND.getPath(), Project.MSG_VERBOSE);
+            log("Unable to locate websphere bindings. "
+                + "It was expected to be in "
+                + websphereBND.getPath(), Project.MSG_VERBOSE);
         }
 
         if (!newCMP) {
-            log("The old method for locating CMP files has been DEPRECATED.", Project.MSG_VERBOSE);
-            log("Please adjust your websphere descriptor and set newCMP=\"true\" " +
-                "to use the new CMP descriptor inclusion mechanism. ", Project.MSG_VERBOSE);
+            log("The old method for locating CMP files has been DEPRECATED.",
+                Project.MSG_VERBOSE);
+            log("Please adjust your websphere descriptor and set "
+                + "newCMP=\"true\" to use the new CMP descriptor "
+                + "inclusion mechanism. ", Project.MSG_VERBOSE);
         } else {
             // We attempt to put in the MAP and Schema files of CMP beans
             try {
@@ -470,8 +436,8 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                     ejbFiles.put(META_DIR + WAS_CMP_MAP,
                         websphereMAP);
                 } else {
-                    log("Unable to locate the websphere Map: " +
-                        websphereMAP.getPath(), Project.MSG_VERBOSE);
+                    log("Unable to locate the websphere Map: "
+                        + websphereMAP.getPath(), Project.MSG_VERBOSE);
                 }
 
                 File websphereSchema = new File(getConfig().descriptorDir,
@@ -481,13 +447,13 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                     ejbFiles.put(META_DIR + SCHEMA_DIR + WAS_CMP_SCHEMA,
                         websphereSchema);
                 } else {
-                    log("Unable to locate the websphere Schema: " +
-                        websphereSchema.getPath(), Project.MSG_VERBOSE);
+                    log("Unable to locate the websphere Schema: "
+                        + websphereSchema.getPath(), Project.MSG_VERBOSE);
                 }
                 // Theres nothing else to see here...keep moving sonny
             } catch (Exception e) {
-                String msg = "Exception while adding Vendor specific files: " +
-                    e.toString();
+                String msg = "Exception while adding Vendor specific files: "
+                    + e.toString();
 
                 throw new BuildException(msg, e);
             }
@@ -558,7 +524,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
         }
 
         return options.toString();
-    }// end getOptions
+    }
 
 
     /**
@@ -573,19 +539,6 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     private void buildWebsphereJar(File sourceJar, File destJar) {
         try {
             if (ejbdeploy) {
-                String args =
-                    " " + sourceJar.getPath() +
-                    " " + tempdir +
-                    " " + destJar.getPath() +
-                    " " + getOptions();
-
-                if (getCombinedClasspath() != null && getCombinedClasspath().toString().length() > 0) {
-                    args += " -cp " + getCombinedClasspath();
-                }
-
-                // Why do my ""'s get stripped away???
-                log("EJB Deploy Options: " + args, Project.MSG_VERBOSE);
-
                 Java javaTask = (Java) getTask().getProject().createTask("java");
                 // Set the JvmArgs
                 javaTask.createJvmarg().setValue("-Xms64m");
@@ -606,9 +559,15 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                 javaTask.setTaskName("ejbdeploy");
                 javaTask.setClassname("com.ibm.etools.ejbdeploy.EJBDeploy");
 
-                Commandline.Argument arguments = javaTask.createArg();
-
-                arguments.setLine(args);
+                javaTask.createArg().setValue(sourceJar.getPath());
+                javaTask.createArg().setValue(tempdir);
+                javaTask.createArg().setValue(destJar.getPath());
+                javaTask.createArg().setLine(getOptions());
+                if (getCombinedClasspath() != null
+                    && getCombinedClasspath().toString().length() > 0) {
+                    javaTask.createArg().setValue("-cp");
+                    javaTask.createArg().setValue(getCombinedClasspath().toString());
+                }
 
                 Path classpath = wasClasspath;
 
@@ -674,7 +633,8 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
         if (ejbdeploy) {
             String home = getTask().getProject().getProperty("websphere.home");
             if (home == null) {
-                throw new BuildException("The 'websphere.home' property must be set when 'ejbdeploy=true'");
+                throw new BuildException("The 'websphere.home' property must "
+                    + "be set when 'ejbdeploy=true'");
             }
             websphereHome = getTask().getProject().resolveFile(home);
         }
@@ -694,7 +654,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
      * If the actual bean changes without changing the the method signatures
      * then only the bean classfile needs to be updated and the rest of the
      * websphere jar file can remain the same. If the Interfaces, ie. the
-     * method signatures change or if the xml deployment dicriptors changed,
+     * method signatures change or if the xml deployment descriptors changed,
      * the whole jar needs to be rebuilt with ejbdeploy. This is not strictly
      * true for the xml files. If the JNDI name changes then the jar doesnt
      * have to be rebuild, but if the resources references change then it
@@ -714,8 +674,8 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
         JarOutputStream newJarStream = null;
 
         try {
-            log("Checking if websphere Jar needs to be rebuilt for jar " + websphereJarFile.getName(),
-                Project.MSG_VERBOSE);
+            log("Checking if websphere Jar needs to be rebuilt for jar "
+                + websphereJarFile.getName(), Project.MSG_VERBOSE);
             // Only go forward if the generic and the websphere file both exist
             if (genericJarFile.exists() && genericJarFile.isFile()
                  && websphereJarFile.exists() && websphereJarFile.isFile()) {
@@ -752,12 +712,13 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                         JarEntry genericEntry = (JarEntry) genericEntries.get(filepath);
                         JarEntry wasEntry = (JarEntry) wasEntries.get(filepath);
 
-                        if ((genericEntry.getCrc() != wasEntry.getCrc()) ||
-                            (genericEntry.getSize() != wasEntry.getSize())) {
+                        if ((genericEntry.getCrc() != wasEntry.getCrc())
+                            || (genericEntry.getSize() != wasEntry.getSize())) {
 
                             if (genericEntry.getName().endsWith(".class")) {
                                 //File are different see if its an object or an interface
-                                String classname = genericEntry.getName().replace(File.separatorChar, '.');
+                                String classname
+                                    = genericEntry.getName().replace(File.separatorChar, '.');
 
                                 classname = classname.substring(0, classname.lastIndexOf(".class"));
 
@@ -765,7 +726,8 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
 
                                 if (genclass.isInterface()) {
                                     //Interface changed   rebuild jar.
-                                    log("Interface " + genclass.getName() + " has changed", Project.MSG_VERBOSE);
+                                    log("Interface " + genclass.getName()
+                                        + " has changed", Project.MSG_VERBOSE);
                                     rebuild = true;
                                     break;
                                 } else {
@@ -776,15 +738,18 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                                 // is it the manifest. If so ignore it
                                 if (!genericEntry.getName().equals("META-INF/MANIFEST.MF")) {
                                     //File other then class changed   rebuild
-                                    log("Non class file " + genericEntry.getName() + " has changed", Project.MSG_VERBOSE);
+                                    log("Non class file " + genericEntry.getName()
+                                        + " has changed", Project.MSG_VERBOSE);
                                     rebuild = true;
                                 }
                                 break;
                             }
                         }
-                    } else {// a file doesnt exist rebuild
+                    } else {
+                        // a file doesn't exist rebuild
 
-                        log("File " + filepath + " not present in websphere jar", Project.MSG_VERBOSE);
+                        log("File " + filepath + " not present in websphere jar",
+                            Project.MSG_VERBOSE);
                         rebuild = true;
                         break;
                     }
@@ -807,8 +772,8 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                         InputStream is;
                         JarEntry je = (JarEntry) e.nextElement();
 
-                        if (je.getCompressedSize() == -1 ||
-                            je.getCompressedSize() == je.getSize()) {
+                        if (je.getCompressedSize() == -1
+                            || je.getCompressedSize() == je.getSize()) {
                             newJarStream.setLevel(0);
                         } else {
                             newJarStream.setLevel(9);
@@ -821,7 +786,8 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                             // Use the entry from the generic jar
                             je = (JarEntry) replaceEntries.get(je.getName());
                             is = genericJar.getInputStream(je);
-                        } else {//use fle from original websphere jar
+                        } else {
+                            //use fle from original websphere jar
 
                             is = wasJar.getInputStream(je);
                         }
@@ -833,7 +799,8 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                         is.close();
                     }
                 } else {
-                    log("websphere Jar rebuild needed due to changed interface or XML", Project.MSG_VERBOSE);
+                    log("websphere Jar rebuild needed due to changed "
+                        + "interface or XML", Project.MSG_VERBOSE);
                 }
             } else {
                 rebuild = true;
@@ -872,9 +839,11 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                 } catch (IOException closeException) {
                 }
 
-                websphereJarFile.delete();
-                newwasJarFile.renameTo(websphereJarFile);
-                if (!websphereJarFile.exists()) {
+                try {
+                    FileUtils.newFileUtils().rename(newwasJarFile,
+                                                    websphereJarFile);
+                } catch (IOException renameException) {
+                    log(renameException.getMessage(), Project.MSG_WARN);
                     rebuild = true;
                 }
             }
@@ -901,7 +870,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
             lookupPath.append(classpath);
         }
 
-        return new AntClassLoader(getTask().getProject(), lookupPath);
+        return getTask().getProject().createClassLoader(lookupPath);
     }
 }
 

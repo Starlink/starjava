@@ -1,6 +1,7 @@
 <html>
 <head>
 <title>JUnit Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 <body>
 
@@ -68,6 +69,24 @@ elements</a>).</p>
     <td align="center" valign="top">No; default is <code>off</code>.</td>
   </tr>
   <tr>
+    <td valign="top">forkmode</td>
+    <td valign="top">Controls how many Java Virtual Machines get
+    created if you want to fork some tests.  Possible values are
+    &quot;perTest&quot; (the default), &quot;perBatch&quot; and
+    &quot;once&quot;.  &quot;once&quot; creates only a single Java VM
+    for all tests while &quot;perTest&quot; creates a new VM for each
+    TestCase class.  &quot;perBatch&quot; creates a VM for each nested
+    <code>&lt;batchtest&gt;</code> and one collecting all nested
+    <code>&lt;test&gt;</code>s.  Note that only tests with the same
+    settings of <code>filtertrace</code>, <code>haltonerror</code>,
+    <code>haltonfailure</code>, <code>errorproperty</code> and
+    <code>failureproperty</code> can share a VM, so even if you set
+    <code>forkmode</code> to &quot;once&quot;, Ant may have to create
+    more than a single Java VM.  This attribute is ignored for tests
+    that don't get forked into a new Java VM.  <em>since Ant 1.6.2</em></td>
+    <td align="center" valign="top">No; default is <code>perTest</code>.</td>
+  </tr>
+  <tr>
     <td valign="top">haltonerror</td>
     <td valign="top">Stop the build process if an error occurs during the test
        run.</td>
@@ -97,7 +116,7 @@ elements</a>).</p>
   </tr>
   <tr>
     <td valign="top">timeout</td>
-    <td valign="top">Cancel the individual tests if they don&apos;t finish
+    <td valign="top">Cancel the individual tests if they don't finish
       in the given time (measured in milliseconds).  Ignored if
       <code>fork</code> is disabled.</td>
     <td align="center" valign="top">No</td>
@@ -132,7 +151,11 @@ elements</a>).</p>
   <tr>
     <td valign="top">includeantruntime</td>
     <td valign="top">Implicitly add the Ant classes required to run
-      the tests and JUnit to the classpath in forked mode.</td>
+      the tests and JUnit to the classpath in forked mode.
+      <b>Note:</b> Please read the <a
+      href="../../faq.html#junit-no-runtime-xml">Ant FAQ</a> if you
+      want to set this to <code>false</code> and use the XML formatter
+      at the same time.</td>
     <td align="center" valign="top">No; default is <code>true</code>.</td>
   </tr>
   <tr>
@@ -141,6 +164,20 @@ elements</a>).</p>
       logging system as well as to the formatters.  By default only the
       formatters receive the output.</td>
     <td align="center" valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">tempdir</td>
+    <td valign="top">Where Ant should place temporary files.
+      <em>Since Ant 1.6</em>.</td>
+    <td align="center" valign="top">No; default is the project's base
+      directory.</td>
+  </tr>
+  <tr>
+    <td valign="top">reloading</td>
+    <td valign="top">Whether or not a new classloader should be instantiated for each test case.<br/>
+    Ignore if <code>fork</code> is set to true.
+      <em>Since Ant 1.6</em>.</td>
+    <td align="center" valign="top">No; default is <code>true</code>.</td>
   </tr>
 </table>
 
@@ -205,6 +242,12 @@ The attributes for this element are the same as for <a href="../CoreTasks/exec.h
 <p>would run the test in ANT's VM and make the <code>basedir</code> property
 available to the test.</p>
 
+<h4>syspropertyset</h4>
+
+<p>You can specify a set of properties to be used as system properties
+with <a href="../CoreTypes/propertyset.html">syspropertyset</a>s.</p>
+
+<p><em>since Ant 1.6</em>.</p>
 
 <h4>env</h4>
 
@@ -214,6 +257,34 @@ of the <code>&lt;env&gt;</code> element's attributes, see the
 description in the <a href="../CoreTasks/exec.html#env">exec</a> task.</p>
 
 <p>Settings will be ignored if <code>fork</code> is disabled.</p>
+
+<h4>bootclasspath</h4>
+
+<p>The location of bootstrap class files can be specified using this
+<a href="../using.html#path">PATH like structure</a> - will be ignored
+if <i>fork</i> is not <code>true</code> or the target VM doesn't
+support it (i.e. Java 1.1).</p>
+
+<p><em>since Ant 1.6</em>.</p>
+
+<h4>permissions</h4>
+<p>Security permissions can be revoked and granted during the execution of the 
+class via a nested <i>permissions</i> element. For more information please
+see <a href="../CoreTypes/permissions.html">permissions</a></p>
+
+<p>Settings will be ignored if fork is enabled.</p>
+
+<p><em>since Ant 1.6</em>.</p>
+ 
+<h4>assertions</h4>
+
+<p>You can control enablement of Java 1.4 assertions with an
+<a href="../CoreTypes/assertions.html"><tt>&lt;assertions&gt;</tt></a>
+subelement.</p>
+ 
+<p>Assertion statements are currently ignored in non-forked mode.</p>
+
+<p><em>since Ant 1.6.</em></p>
 
 <h4>formatter</h4>
 
@@ -235,6 +306,12 @@ can be specified.</p>
 <p>If you use the XML formatter, it may not include the same output
 that your tests have written as some characters are illegal in XML
 documents and will be dropped.</p>
+
+<p><b>Note:</b> Please read the <a
+href="../../faq.html#junit-no-runtime-xml">Ant FAQ</a> if you want to
+set the fork attribute to <code>true</code>, the includeAntRuntime
+attribute to <code>false</code> and use the XML formatter at the same
+time.</p>
 
 <table border="1" cellpadding="2" cellspacing="0">
 <tr>
@@ -263,6 +340,16 @@ documents and will be dropped.</p>
       sent to a file.</td>
     <td align="center">No; default is <code>true</code>.</td>
   </tr>
+  <tr>
+    <td valign="top">if</td>
+    <td valign="top">Only use formatter if the named property is set.</td>
+    <td align="center">No; default is <code>true</code>.</td>
+  </tr>
+  <tr>
+    <td valign="top">unless</td>
+    <td valign="top">Only use formatter if the named property is <b>not</b> set.</td>
+    <td align="center">No; default is <code>true</code>.</td>
+  </tr>  
 </table>
 
 <h4>test</h4>
@@ -479,7 +566,7 @@ aborted. Results are collected in files named
 <code>${reports.tests}</code>.</p>
 
 <hr>
-<p align="center">Copyright &copy; 2000-2002 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 </body>
 </html>

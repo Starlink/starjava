@@ -1,86 +1,45 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2000-2004 The Apache Software Foundation
  *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional.ejb;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.FileOutputStream;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Iterator;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
-import java.util.Enumeration;
-
-
 import javax.xml.parsers.SAXParser;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
-import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Location;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.AntClassLoader;
-import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.depend.DependencyAnalyzer;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 
 /**
@@ -91,7 +50,6 @@ import org.apache.tools.ant.util.depend.DependencyAnalyzer;
  * deployment tools. A number of template methods are provided through which the
  * vendor specific tool can hook into the EJB creation process.
  *
- * @author Conor MacNeill
  */
 public class GenericDeploymentTool implements EJBDeploymentTool {
     /** The standard META-INF directory in jar files */
@@ -379,15 +337,18 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
                 addedfiles.add(logicalFilename);
            }
         } catch (IOException ioe) {
-            log("WARNING: IOException while adding entry " +
-                logicalFilename + " to jarfile from " + inputFile.getPath() + " " +
-                ioe.getClass().getName() + "-" + ioe.getMessage(), Project.MSG_WARN);
+            log("WARNING: IOException while adding entry "
+                + logicalFilename + " to jarfile from "
+                + inputFile.getPath() + " "  + ioe.getClass().getName()
+                + "-" + ioe.getMessage(), Project.MSG_WARN);
         } finally {
             // Close up the file input stream for the class file
             if (iStream != null) {
                 try {
                     iStream.close();
-                } catch (IOException closeException) {}
+                } catch (IOException closeException) {
+                    // ignore
+                }
             }
         }
     }
@@ -550,7 +511,8 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
              * look like much, we use a SAXParser and an inner class to
              * get hold of all the classfile names for the descriptor.
              */
-            descriptorStream = new FileInputStream(new File(config.descriptorDir, descriptorFileName));
+            descriptorStream
+                = new FileInputStream(new File(config.descriptorDir, descriptorFileName));
             saxParser.parse(new InputSource(descriptorStream), handler);
 
             ejbFiles = handler.getFiles();
@@ -559,7 +521,9 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
             if (descriptorStream != null) {
                 try {
                     descriptorStream.close();
-                } catch (IOException closeException) {}
+                } catch (IOException closeException) {
+                    // ignore
+                }
             }
         }
 
@@ -659,9 +623,9 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
 
         if (config.namingScheme.getValue().equals(EjbJar.NamingScheme.DESCRIPTOR)) {
             ddPrefix = baseName + config.baseNameTerminator;
-        } else if (config.namingScheme.getValue().equals(EjbJar.NamingScheme.BASEJARNAME) ||
-                   config.namingScheme.getValue().equals(EjbJar.NamingScheme.EJB_NAME) ||
-                   config.namingScheme.getValue().equals(EjbJar.NamingScheme.DIRECTORY)) {
+        } else if (config.namingScheme.getValue().equals(EjbJar.NamingScheme.BASEJARNAME)
+            || config.namingScheme.getValue().equals(EjbJar.NamingScheme.EJB_NAME)
+            || config.namingScheme.getValue().equals(EjbJar.NamingScheme.DIRECTORY)) {
             String canonicalDescriptor = descriptorFileName.replace('\\', '/');
             int index = canonicalDescriptor.lastIndexOf('/');
             if (index == -1) {
@@ -768,7 +732,7 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
      * ejbFiles.
      */
     protected void writeJar(String baseName, File jarfile, Hashtable files,
-                            String publicId) throws BuildException{
+                            String publicId) throws BuildException {
 
         JarOutputStream jarStream = null;
         try {
@@ -796,8 +760,8 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
                     String defaultManifest = "/org/apache/tools/ant/defaultManifest.mf";
                     in = this.getClass().getResourceAsStream(defaultManifest);
                     if (in == null) {
-                        throw new BuildException("Could not find default manifest: " + defaultManifest,
-                                                  getLocation());
+                        throw new BuildException("Could not find "
+                            + "default manifest: " + defaultManifest);
                     }
                 }
 
@@ -841,7 +805,8 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
                         if (entryIndex < 0) {
                             entryName = innerfiles[i];
                         } else {
-                            entryName = entryName.substring(0, entryIndex) + File.separatorChar + innerfiles[i];
+                            entryName = entryName.substring(0, entryIndex)
+                                + File.separatorChar + innerfiles[i];
                         }
                         // link the file
                         entryFile = new File(config.srcDir, entryName);
@@ -864,7 +829,9 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
             if (jarStream != null) {
                 try {
                     jarStream.close();
-                } catch (IOException closeException) {}
+                } catch (IOException closeException) {
+                    // ignore
+                }
             }
         }
     } // end of writeJar
@@ -929,7 +896,8 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
         if (combinedClasspath == null) {
             classpathLoader = getClass().getClassLoader();
         } else {
-            classpathLoader = new AntClassLoader(getTask().getProject(), combinedClasspath);
+            classpathLoader
+                = getTask().getProject().createClassLoader(combinedClasspath);
         }
 
         return classpathLoader;

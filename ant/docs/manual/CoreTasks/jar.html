@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Jar Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -28,12 +29,13 @@ supports all attributes of <code>&lt;fileset&gt;</code>
 <code>&lt;patternset&gt;</code> elements.</p>
 <p>You can also use nested file sets for more flexibility, and specify
 multiple ones to merge together different trees of files into one JAR.
-The extended fileset and groupfileset attributes from the zip task are
+The extended fileset and groupfileset child elements from the zip task are
 also available in the jar task.
 See the <a href="zip.html">Zip</a> task for more details and examples.</p>
 <p>If the manifest is omitted, a simple one will be supplied by Ant.</p>
-<p>The <code>update</code> parameter controls what happens if the
-JAR file already exists. When set to <code>yes</code>, the JAR file is
+
+<p>The <code>update</code> parameter controls what happens if the JAR
+file already exists. When set to <code>yes</code>, the JAR file is
 updated with the files specified. When set to <code>no</code> (the
 default) the JAR file is overwritten. An example use of this is
 provided in the <a href="zip.html">Zip task documentation</a>.  Please
@@ -72,7 +74,19 @@ being wrapped and continued on the next line.
   </tr>
   <tr>
     <td valign="top">compress</td>
-    <td valign="top">Not only store data but also compress them, defaults to true</td>
+    <td valign="top">Not only store data but also compress them,
+    defaults to true.  Unless you set the <em>keepcompression</em>
+    attribute to false, this will apply to the entire archive, not
+    only the files you've added while updating.</td>
+    <td align="center" valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">keepcompression</td>
+    <td valign="top">For entries coming from existing archives (like
+    nested <em>zipfileset</em>s or while updating the archive), keep
+    the compression as it has been originally instead of using the
+    <em>compress</em> attribute.  Defaults false.  <em>Since Ant
+    1.6</em></td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
@@ -124,6 +138,12 @@ being wrapped and continued on the next line.
     <td valign="top" align="center">No</td>
   </tr>
   <tr>
+    <td valign="top">filesetmanifest</td>
+    <td valign="top">behavior when a Manifest is found in a zipfileset or zipgroupfileset file is found.  Valid values are &quot;skip&quot;, &quot;merge&quot;, and &quot;mergewithoutmain&quot;.  &quot;merge&quot; will merge all of the manifests together, and merge this into any other specified manifests.  &quot;mergewithoutmain&quot; merges everything but the Main section of the manifests.  Default value is &quot;skip&quot;.
+    </td>
+    <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
     <td valign="top">update</td>
     <td valign="top">indicates whether to update or overwrite
       the destination file if it already exists.  Default is &quot;false&quot;.</td>
@@ -141,13 +161,33 @@ being wrapped and continued on the next line.
   </tr>
   <tr>
     <td valign="top">index</td>
-    <td valign="top">whether to create an <A HREF="http://java.sun.com/j2se/1.3/docs/guide/jar/jar.html#JAR%20Index">index list</A> to speed up classloading.  This is a JDK 1.3+ specific feature.  Defaults to false. </td>
+    <td valign="top">whether to create an <A
+    HREF="http://java.sun.com/j2se/1.3/docs/guide/jar/jar.html#JAR%20Index">index
+    list</A> to speed up classloading.  This is a JDK 1.3+ specific
+    feature.  Unless you specify additional jars with nested <a
+    href="#indexjars"><code>indexjars</code></a> elements, only the
+    contents of this jar will be included in the index.  Defaults to
+    false.</td>
     <td valign="top" align="center">No</td>
   </tr>
   <tr>
     <td valign="top">manifestencoding</td>
     <td valign="top">The encoding used to read the JAR manifest, when a manifest file is specified.</td>
     <td valign="top" align="center">No, defaults to the platform encoding.</td>
+  </tr>
+  <tr>
+    <td valign="top">roundup</td>
+    <td valign="top">Whether the file modification times will be
+    rounded up to the next even number of seconds.<br>
+    Zip archives store file modification times with a granularity of
+    two seconds, so the times will either be rounded up or down.  If
+    you round down, the archive will always seem out-of-date when you
+    rerun the task, so the default is to round up.  Rounding up may
+    lead to a different type of problems like JSPs inside a web
+    archive that seem to be slightly more recent than precompiled
+    pages, rendering precompilation useless.<br>
+    Defaults to true.  <em>Since Ant 1.6.2</em></td>
+    <td align="center" valign="top">No</td>
   </tr>
 </table>
 
@@ -170,11 +210,38 @@ If both an inline manifest and an external file are both specified, the
 manifests are merged.
 </p>
 
-<p>When using inline manifests, the Jar task will check whether the build
-file is more recent that the Jar file when deciding whether to rebuild the
-Jar. This will not take into account property file changes which may affect
-the resulting Jar.
+<p>When using inline manifests, the Jar task will check whether the manifest 
+contents have changed (i.e. the manifest as specified is different in any way 
+from the manifest that exists in the Jar, if it exists. 
+If the manifest values have changed the jar will be updated or rebuilt, as
+appropriate.
 </p>
+
+<a name="indexjars"><h4>indexjars</h4></a>
+
+<p><em>since ant 1.6.2</em></p>
+
+<p>The nested <code>indexjars</code> element specifies a <a
+href="../using.html#path">PATH like structure</a>.  Its content is
+completely ignored unless you set the index attribute of the task to
+true.</p>
+
+<p>The index created by this task will contain indices for the
+archives contained in this path, the names used for the archioves
+depend on your manifest:</p>
+<ul>
+  <li>If the generated jar's manifest contains no Class-Path
+  attribute, the file name without any leading directory path will be
+  used and all parts of the path will get indexed.</li>
+  <li>If the manifest contains a Class-Path attribute, this task will
+  try to guess which part of the Class-Path belongs to a given
+  archive.  If it cannot guess a name, the archive will be skipped,
+  otherwise tha name listed inside the Class-PAth attribute will be
+  used.</li>
+</ul>
+
+<p>This task will not create any index entries for archives that are
+empty or only contain files inside the META-INF directory.</p>
 
 <h3>Examples</h3>
 <pre>  &lt;jar destfile=&quot;${dist}/lib/app.jar&quot; basedir=&quot;${build}/classes&quot;/&gt;</pre>
@@ -233,7 +300,7 @@ Name: common/class1.class
 Sealed: false</code></pre>
 
 <hr>
-<p align="center">Copyright &copy; 2000-2003 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>

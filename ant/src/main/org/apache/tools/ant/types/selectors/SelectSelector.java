@@ -1,65 +1,26 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.types.selectors;
 
-import java.io.File;
 import java.util.Enumeration;
+import java.io.File;
 
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.BuildException;
-import  org.apache.tools.ant.types.Reference;
 
 /**
  * This selector just holds one other selector and forwards all
@@ -69,10 +30,12 @@ import  org.apache.tools.ant.types.Reference;
  * works as expected. Note that this is the only selector you
  * can reference.
  *
- * @author <a href="mailto:bruce@callenish.com">Bruce Atherton</a>
  * @since 1.5
  */
-public class SelectSelector extends AndSelector {
+public class SelectSelector extends BaseSelectorContainer {
+
+    private String ifProperty;
+    private String unlessProperty;
 
     /**
      * Default constructor.
@@ -80,10 +43,22 @@ public class SelectSelector extends AndSelector {
     public SelectSelector() {
     }
 
+    /**
+     * @return a string describing this object
+     */
     public String toString() {
         StringBuffer buf = new StringBuffer();
         if (hasSelectors()) {
-            buf.append("{select: ");
+            buf.append("{select");
+            if (ifProperty != null) {
+                buf.append(" if: ");
+                buf.append(ifProperty);
+            }
+            if (unlessProperty != null) {
+                buf.append(" unless: ");
+                buf.append(unlessProperty);
+            }
+            buf.append(" ");
             buf.append(super.toString());
             buf.append("}");
         }
@@ -101,6 +76,7 @@ public class SelectSelector extends AndSelector {
 
     /**
      * Indicates whether there are any selectors here.
+     * @return whether any selectors are in this container
      */
     public boolean hasSelectors() {
         if (isReference()) {
@@ -111,6 +87,7 @@ public class SelectSelector extends AndSelector {
 
     /**
      * Gives the count of the number of selectors in this container
+     * @return the number of selectors in this container
      */
     public int selectorCount() {
         if (isReference()) {
@@ -121,6 +98,8 @@ public class SelectSelector extends AndSelector {
 
     /**
      * Returns the set of selectors as an array.
+     * @param p the current project
+     * @return an array of selectors in this container
      */
     public FileSelector[] getSelectors(Project p) {
         if (isReference()) {
@@ -131,6 +110,7 @@ public class SelectSelector extends AndSelector {
 
     /**
      * Returns an enumerator for accessing the set of selectors.
+     * @return an enumerator that goes through each of the selectors
      */
     public Enumeration selectorElements() {
         if (isReference()) {
@@ -143,7 +123,6 @@ public class SelectSelector extends AndSelector {
      * Add a new selector into this container.
      *
      * @param selector the new selector to add
-     * @return the selector that was added
      */
     public void appendSelector(FileSelector selector) {
         if (isReference()) {
@@ -153,17 +132,79 @@ public class SelectSelector extends AndSelector {
     }
 
 
-
     /**
      * Makes sure that there is only one entry, sets an error message if
      * not.
      */
     public void verifySettings() {
-        if (selectorCount() != 1) {
-            setError("One and only one selector is allowed within the " +
-                    "<selector> tag");
+        int cnt = selectorCount();
+        if (cnt < 0 || cnt > 1) {
+            setError("Only one selector is allowed within the "
+                + "<selector> tag");
         }
     }
 
+    /**
+     * Ensures that the selector passes the conditions placed
+     * on it with <code>if</code> and <code>unless</code>.
+     * @return true if conditions are passed
+     */
+    public boolean passesConditions() {
+        if (ifProperty != null
+            && getProject().getProperty(ifProperty) == null) {
+            return false;
+        } else if (unlessProperty != null
+            && getProject().getProperty(unlessProperty) != null) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Sets the if attribute to a property which must exist for the
+     * selector to select any files.
+     * @param ifProperty the property to check
+     */
+    public void setIf(String ifProperty) {
+        this.ifProperty = ifProperty;
+    }
+
+    /**
+     * Sets the unless attribute to a property which cannot exist for the
+     * selector to select any files.
+     * @param unlessProperty the property to check
+     */
+    public void setUnless(String unlessProperty) {
+        this.unlessProperty = unlessProperty;
+    }
+
+    /**
+     * Returns true (the file is selected) only if the if property (if any)
+     * exists, the unless property (if any) doesn't exist, and the
+     * contained selector (if any) selects the file. If there is no contained
+     * selector, return true (because we assume that the point was to test
+     * the if and unless conditions).
+     *
+     * @param basedir the base directory the scan is being done from
+     * @param filename the name of the file to check
+     * @param file a java.io.File object for the filename that the selector
+     * can use
+     * @return whether the file should be selected or not
+     */
+    public boolean isSelected(File basedir, String filename, File file) {
+        validate();
+
+        // Deal with if and unless properties first
+        if (!(passesConditions())) {
+            return false;
+        }
+
+        Enumeration e = selectorElements();
+        if (!(e.hasMoreElements())) {
+            return true;
+        }
+        FileSelector f = (FileSelector) e.nextElement();
+        return f.isSelected(basedir, filename, file);
+    }
 }
 

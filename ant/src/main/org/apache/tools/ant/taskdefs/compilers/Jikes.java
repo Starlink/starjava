@@ -1,80 +1,38 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 
 package org.apache.tools.ant.taskdefs.compilers;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Commandline;
+import org.apache.tools.ant.types.Path;
 
 /**
  * The implementation of the jikes compiler.
  * This is primarily a cut-and-paste from the original javac task before it
  * was refactored.
  *
- * @author James Davidson <a href="mailto:duncan@x180.com">duncan@x180.com</a>
- * @author Robin Green 
- *         <a href="mailto:greenrd@hotmail.com">greenrd@hotmail.com</a>
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a> 
- * @author <a href="mailto:jayglanville@home.com">J D Glanville</a>
  * @since Ant 1.3
  */
 public class Jikes extends DefaultCompilerAdapter {
 
     /**
-     * Performs a compile using the Jikes compiler from IBM..
+     * Performs a compile using the Jikes compiler from IBM.
      * Mostly of this code is identical to doClassicCompile()
      * However, it does not support all options like
      * bootclasspath, extdirs, deprecation and so on, because
@@ -122,9 +80,10 @@ public class Jikes extends DefaultCompilerAdapter {
         if (jikesPath != null) {
             classpath.append(new Path(project, jikesPath));
         }
-        
+
         Commandline cmd = new Commandline();
-        cmd.setExecutable("jikes");
+        String exec = getJavac().getExecutable();
+        cmd.setExecutable(exec == null ? "jikes" : exec);
 
         if (deprecation == true) {
             cmd.createArgument().setValue("-deprecation");
@@ -134,7 +93,7 @@ public class Jikes extends DefaultCompilerAdapter {
             cmd.createArgument().setValue("-d");
             cmd.createArgument().setFile(destDir);
         }
-        
+
         cmd.createArgument().setValue("-classpath");
         cmd.createArgument().setPath(classpath);
 
@@ -153,7 +112,13 @@ public class Jikes extends DefaultCompilerAdapter {
         }
         if (depend) {
             cmd.createArgument().setValue("-depend");
-        } 
+        }
+
+        if (target != null) {
+            cmd.createArgument().setValue("-target");
+            cmd.createArgument().setValue(target);
+        }
+
         /**
          * XXX
          * Perhaps we shouldn't use properties for these
@@ -165,7 +130,7 @@ public class Jikes extends DefaultCompilerAdapter {
          * Jikes has the nice feature to print error
          * messages in a form readable by emacs, so
          * that emacs can directly set the cursor
-         * to the place, where the error occured.
+         * to the place, where the error occurred.
          */
         String emacsProperty = project.getProperty("build.compiler.emacs");
         if (emacsProperty != null && Project.toBoolean(emacsProperty)) {
@@ -178,7 +143,7 @@ public class Jikes extends DefaultCompilerAdapter {
          * that don't exist. As this is often the case, these
          * warning can be pretty annoying.
          */
-        String warningsProperty = 
+        String warningsProperty =
             project.getProperty("build.compiler.warnings");
         if (warningsProperty != null) {
             attributes.log("!! the build.compiler.warnings property is "
@@ -189,32 +154,32 @@ public class Jikes extends DefaultCompilerAdapter {
                 cmd.createArgument().setValue("-nowarn");
             }
         } if (attributes.getNowarn()) {
-            /* 
+            /*
              * FIXME later
              *
-             * let the magic property win over the attribute for backwards 
+             * let the magic property win over the attribute for backwards
              * compatibility
              */
             cmd.createArgument().setValue("-nowarn");
         }
 
         /**
-         * Jikes can issue pedantic warnings. 
+         * Jikes can issue pedantic warnings.
          */
-        String pedanticProperty = 
+        String pedanticProperty =
             project.getProperty("build.compiler.pedantic");
         if (pedanticProperty != null && Project.toBoolean(pedanticProperty)) {
             cmd.createArgument().setValue("+P");
         }
- 
+
         /**
          * Jikes supports something it calls "full dependency
          * checking", see the jikes documentation for differences
          * between -depend and +F.
          */
-        String fullDependProperty = 
+        String fullDependProperty =
             project.getProperty("build.compiler.fulldepend");
-        if (fullDependProperty != null 
+        if (fullDependProperty != null
             && Project.toBoolean(fullDependProperty)) {
             cmd.createArgument().setValue("+F");
         }
@@ -229,7 +194,7 @@ public class Jikes extends DefaultCompilerAdapter {
         int firstFileName = cmd.size();
         logAndAddFilesToCompile(cmd);
 
-        return 
+        return
             executeExternalCompile(cmd.getCommandline(), firstFileName) == 0;
     }
 

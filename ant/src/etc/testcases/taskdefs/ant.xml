@@ -31,6 +31,10 @@
     <antcall target=""/>
   </target>
 
+  <target name="test4b">
+    <antcall target="does-not-exist"/>
+  </target>
+
   <target name="test5">
     <antcall target="dummy"/>
   </target>
@@ -139,4 +143,46 @@
     <property name="test" value="5" />
     <echo message="The value of test is ${test}" />
   </target>
+
+  <target name="test-propertyset">
+    <property name="test1" value="1"/>
+    <property name="test2" value="2"/>
+    <propertyset id="set">
+      <propertyref name="test1"/>
+      <mapper type="glob" from="*" to="*.x"/>
+    </propertyset>
+    <ant antfile="ant.xml" target="echo-for-propertyset-test" 
+         inheritall="false">
+      <propertyset refid="set"/>
+    </ant>
+  </target>
+
+  <target name="echo-for-propertyset-test">
+    <echo>test1 is ${test1}</echo>
+    <echo>test2 is ${test2}</echo>
+    <echo>test1.x is ${test1.x}</echo>
+  </target>
+
+  <target name="infinite-loop-via-depends">
+    <antcall target="dependent"/>
+  </target>
+
+  <target name="middleman" depends="infinite-loop-via-depends"/>
+  <target name="dependent" depends="middleman"/>
+  
+  <target name="multi-same-property">
+    <ant antfile="ant.xml" target="echo-for-multi-same">
+      <property name="prop" value="one"/>
+      <property name="prop" value="two"/>
+    </ant>
+  </target>
+
+  <target name="echo-for-multi-same">
+    <echo>prop is ${prop}</echo>
+  </target>
+
+  <target name="topleveltarget">
+    <ant antfile="ant.topleveltest.xml"/>
+  </target>
+
 </project>

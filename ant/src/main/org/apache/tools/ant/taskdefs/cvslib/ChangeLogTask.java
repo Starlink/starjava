@@ -1,55 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.cvslib;
 
@@ -66,10 +29,10 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Vector;
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Execute;
+import org.apache.tools.ant.taskdefs.AbstractCvsTask;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.FileSet;
 
@@ -98,13 +61,11 @@ import org.apache.tools.ant.types.FileSet;
  * <FONT color=#6a5acd>&lt;!ELEMENT</FONT> prevrevision <FONT color=#ff00ff>(#PCDATA)</FONT><FONT color=#6a5acd>&gt;</FONT>
  * </PRE>
  *
- * @author <a href="mailto:jeff.martin@synamic.co.uk">Jeff Martin</a>
- * @author <a href="mailto:peter@apache.org">Peter Donald</a>
- * @version $Revision: 1.14.2.6 $ $Date: 2003/02/21 00:19:22 $
+ * @version $Revision: 1.25.2.5 $ $Date: 2004/03/09 17:01:40 $
  * @since Ant 1.5
- * @ant.task name="cvschangelog"
+ * @ant.task name="cvschangelog" category="scm"
  */
-public class ChangeLogTask extends Task {
+public class ChangeLogTask extends AbstractCvsTask {
     /** User list */
     private File m_usersFile;
 
@@ -117,14 +78,14 @@ public class ChangeLogTask extends Task {
     /** Output file */
     private File m_destfile;
 
-    /** The earliest date at which to start processing entrys.  */
+    /** The earliest date at which to start processing entries.  */
     private Date m_start;
 
-    /** The latest date at which to stop processing entrys.  */
+    /** The latest date at which to stop processing entries.  */
     private Date m_stop;
 
     /**
-     * Filesets containting list of files against which the cvs log will be
+     * Filesets containing list of files against which the cvs log will be
      * performed. If empty then all files will in the working directory will
      * be checked.
      */
@@ -217,16 +178,15 @@ public class ChangeLogTask extends Task {
     /**
      * Execute task
      *
-     * @exception BuildException if something goes wrong executing the 
+     * @exception BuildException if something goes wrong executing the
      *            cvs command
      */
     public void execute() throws BuildException {
-        File savedDir = m_dir;// may be altered in validate
+        File savedDir = m_dir; // may be altered in validate
 
         try {
 
             validate();
-
             final Properties userList = new Properties();
 
             loadUserlist(userList);
@@ -239,11 +199,22 @@ public class ChangeLogTask extends Task {
                 userList.put(user.getUserID(), user.getDisplayname());
             }
 
-            final Commandline command = new Commandline();
 
-            command.setExecutable("cvs");
-            command.createArgument().setValue("log");
+            setCommand("log");
 
+            if (getTag() != null) {
+                CvsVersion myCvsVersion = new CvsVersion();
+                myCvsVersion.setProject(getProject());
+                myCvsVersion.setTaskName("cvsversion");
+                myCvsVersion.setCvsRoot(getCvsRoot());
+                myCvsVersion.setCvsRsh(getCvsRsh());
+                myCvsVersion.setPassfile(getPassFile());
+                myCvsVersion.setDest(m_dir);
+                myCvsVersion.execute();
+                if (myCvsVersion.supportsCvsLogWithSOption()) {
+                    addCommandArgument("-S");
+                }
+            }
             if (null != m_start) {
                 final SimpleDateFormat outputDate =
                     new SimpleDateFormat("yyyy-MM-dd");
@@ -251,9 +222,9 @@ public class ChangeLogTask extends Task {
                 // We want something of the form: -d ">=YYYY-MM-dd"
                 final String dateRange = ">=" + outputDate.format(m_start);
 
-		// Supply '-d' as a separate argument - Bug# 14397
-                command.createArgument().setValue("-d");
-                command.createArgument().setValue(dateRange);
+        // Supply '-d' as a separate argument - Bug# 14397
+                addCommandArgument("-d");
+                addCommandArgument(dateRange);
             }
 
             // Check if list of files to check has been specified
@@ -267,7 +238,7 @@ public class ChangeLogTask extends Task {
                     final String[] files = scanner.getIncludedFiles();
 
                     for (int i = 0; i < files.length; i++) {
-                        command.createArgument().setValue(files[i]);
+                        addCommandArgument(files[i]);
                     }
                 }
             }
@@ -276,23 +247,11 @@ public class ChangeLogTask extends Task {
             final RedirectingStreamHandler handler =
                 new RedirectingStreamHandler(parser);
 
-            log(command.describeCommand(), Project.MSG_VERBOSE);
+            log(getCommand(), Project.MSG_VERBOSE);
 
-            final Execute exe = new Execute(handler);
-
-            exe.setWorkingDirectory(m_dir);
-            exe.setCommandline(command.getCommandline());
-            exe.setAntRun(getProject());
-            try {
-                final int resultCode = exe.execute();
-
-                if (0 != resultCode) {
-                    throw new BuildException("Error running cvs log");
-                }
-            } catch (final IOException ioe) {
-                throw new BuildException(ioe.toString());
-            }
-
+            setDest(m_dir);
+            setExecuteStreamHandler(handler);
+            super.execute();
             final String errors = handler.getErrors();
 
             if (null != errors) {
@@ -359,7 +318,7 @@ public class ChangeLogTask extends Task {
     }
 
     /**
-     * Filter the specified entrys accoridn to an appropriate rule.
+     * Filter the specified entries according to an appropriate rule.
      *
      * @param entrySet the entry set to filter
      * @return the filtered entry set
@@ -406,7 +365,7 @@ public class ChangeLogTask extends Task {
      * Print changelog to file specified in task.
      *
      * @param entrySet the entry set to write.
-     * @throws BuildException if theres an error writing changelog.
+     * @throws BuildException if there is an error writing changelog.
      */
     private void writeChangeLog(final CVSEntry[] entrySet)
          throws BuildException {

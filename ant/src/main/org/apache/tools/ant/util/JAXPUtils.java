@@ -1,70 +1,32 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2002-2004 The Apache Software Foundation
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.util;
 
+import java.io.File;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import org.apache.tools.ant.BuildException;
-
 import org.xml.sax.Parser;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.FactoryConfigurationError;
-import java.io.File;
-
 
 /**
  * Collection of helper methods that retrieve a ParserFactory or
@@ -72,16 +34,17 @@ import java.io.File;
  *
  * <p>This class will create only a single factory instance.</p>
  *
- * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
  *
  * @since Ant 1.5
  */
 public class JAXPUtils {
 
     /**
-     * The file protocol: 'file://'
+     * Helper for systemId.
+     *
+     * @since Ant 1.6
      */
-    private static final String FILE_PROTOCOL_PREFIX = "file://";
+    private static final FileUtils fu = FileUtils.newFileUtils();
 
     /**
      * Parser factory to use to create parsers.
@@ -92,6 +55,20 @@ public class JAXPUtils {
     private static SAXParserFactory parserFactory = null;
 
     /**
+     * Parser Factory to create Namespace aware parsers.
+     *
+     * @since Ant 1.6
+     */
+    private static SAXParserFactory nsParserFactory = null;
+
+    /**
+     * Parser factory to use to create document builders.
+     *
+     * @since Ant 1.6
+     */
+    private static DocumentBuilderFactory builderFactory = null;
+
+    /**
      * Returns the parser factory to use. Only one parser factory is
      * ever created by this method and is then cached for future use.
      *
@@ -99,13 +76,31 @@ public class JAXPUtils {
      *
      * @since Ant 1.5
      */
-    public synchronized static SAXParserFactory getParserFactory() 
+    public static synchronized SAXParserFactory getParserFactory()
         throws BuildException {
 
         if (parserFactory == null) {
             parserFactory = newParserFactory();
         }
         return parserFactory;
+    }
+
+    /**
+     * Returns the parser factory to use to create namespace aware parsers.
+     *
+     * @return a SAXParserFactory to use which supports manufacture of
+     * namespace aware parsers
+     *
+     * @since Ant 1.6
+     */
+    public static synchronized SAXParserFactory getNSParserFactory()
+        throws BuildException {
+
+        if (nsParserFactory == null) {
+            nsParserFactory = newParserFactory();
+            nsParserFactory.setNamespaceAware(true);
+        }
+        return nsParserFactory;
     }
 
     /**
@@ -119,7 +114,7 @@ public class JAXPUtils {
             return SAXParserFactory.newInstance();
         } catch (FactoryConfigurationError e) {
             throw new BuildException("XML parser factory has not been "
-                                     + "configured correctly: " 
+                                     + "configured correctly: "
                                      + e.getMessage(), e);
         }
     }
@@ -134,7 +129,7 @@ public class JAXPUtils {
      */
     public static Parser getParser() throws BuildException {
         try {
-            return newSAXParser().getParser();
+            return newSAXParser(getParserFactory()).getParser();
         } catch (SAXException e) {
             throw convertToBuildException(e);
         }
@@ -150,7 +145,22 @@ public class JAXPUtils {
      */
     public static XMLReader getXMLReader() throws BuildException {
         try {
-            return newSAXParser().getXMLReader();
+            return newSAXParser(getParserFactory()).getXMLReader();
+        } catch (SAXException e) {
+            throw convertToBuildException(e);
+        }
+    }
+
+    /**
+     * Returns a newly created SAX 2 XMLReader, which is namespace aware
+     *
+     * @return a SAX 2 XMLReader.
+     * @see #getParserFactory
+     * @since Ant 1.6
+     */
+    public static XMLReader getNamespaceXMLReader() throws BuildException {
+        try {
+            return newSAXParser(getNSParserFactory()).getXMLReader();
         } catch (SAXException e) {
             throw convertToBuildException(e);
         }
@@ -165,16 +175,22 @@ public class JAXPUtils {
      * @return the systemid corresponding to the given file.
      * @since Ant 1.5.2
      */
-    public static String getSystemId(File file){
-        String path = file.getAbsolutePath();
-        path = path.replace('\\', '/');
+    public static String getSystemId(File file) {
+        return fu.toURI(file.getAbsolutePath());
+    }
 
-        // on Windows, use 'file:///'
-        if (File.separatorChar == '\\') {
-            return FILE_PROTOCOL_PREFIX + "/" + path;
+    /**
+     * Returns a newly created DocumentBuilder.
+     *
+     * @return a DocumentBuilder
+     * @since Ant 1.6
+     */
+    public static DocumentBuilder getDocumentBuilder() throws BuildException {
+        try {
+            return getDocumentBuilderFactory().newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new BuildException(e);
         }
-        // Unix, use 'file://'
-        return FILE_PROTOCOL_PREFIX + path;
     }
 
     /**
@@ -183,9 +199,10 @@ public class JAXPUtils {
      *
      * @since Ant 1.5
      */
-    private static SAXParser newSAXParser() throws BuildException {
+    private static SAXParser newSAXParser(SAXParserFactory factory)
+         throws BuildException {
         try {
-            return getParserFactory().newSAXParser();
+            return factory.newSAXParser();
         } catch (ParserConfigurationException e) {
             throw new BuildException("Cannot create parser for the given "
                                      + "configuration: " + e.getMessage(), e);
@@ -206,6 +223,26 @@ public class JAXPUtils {
         } else {
             return new BuildException(e);
         }
+    }
+
+    /**
+     * Obtains the default builder factory if not already.
+     *
+     * @since Ant 1.6
+     */
+    private static synchronized
+        DocumentBuilderFactory getDocumentBuilderFactory()
+        throws BuildException {
+        if (builderFactory == null) {
+            try {
+                builderFactory = DocumentBuilderFactory.newInstance();
+            } catch (FactoryConfigurationError e) {
+                throw new BuildException("Document builder factory has not "
+                                         + "been configured correctly: "
+                                         + e.getMessage(), e);
+            }
+        }
+        return builderFactory;
     }
 
 }

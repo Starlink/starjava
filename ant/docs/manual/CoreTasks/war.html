@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>WAR Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -28,13 +29,12 @@ attributes of zipfilesets in a Zip or Jar task.)</p>
   <tr>
     <td valign="top">destfile</td>
     <td valign="top">the WAR file to create.</td>
-    <td valign="top" align="center">Yes</td>
+    <td align="center" valign="top" rowspan="2">Exactly one of the two.</td>
   </tr>
   <tr>
     <td valign="top">warfile</td>
     <td valign="top"><i>Deprecated<i> name of the file to create
     -use <tt>destfile</tt> instead.</td>
-    <td valign="top" align="center">No</td>
   </tr>      
   <tr>
     <td valign="top">webxml</td>
@@ -48,7 +48,19 @@ attributes of zipfilesets in a Zip or Jar task.)</p>
   </tr>
   <tr>
     <td valign="top">compress</td>
-    <td valign="top">Not only store data but also compress them, defaults to true</td>
+    <td valign="top">Not only store data but also compress them,
+    defaults to true.  Unless you set the <em>keepcompression</em>
+    attribute to false, this will apply to the entire archive, not
+    only the files you've added while updating.</td>
+    <td align="center" valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">keepcompression</td>
+    <td valign="top">For entries coming from existing archives (like
+    nested <em>zipfileset</em>s or while updating the archive), keep
+    the compression as it has been originally instead of using the
+    <em>compress</em> attribute.  Defaults false.  <em>Since Ant
+    1.6</em></td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
@@ -109,6 +121,20 @@ attributes of zipfilesets in a Zip or Jar task.)</p>
     <td valign="top">duplicate</td>
     <td valign="top">behavior when a duplicate file is found.  Valid values are &quot;add&quot;, &quot;preserve&quot;, and &quot;fail&quot;.  The default value is &quot;add&quot;.  </td>
     <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">roundup</td>
+    <td valign="top">Whether the file modification times will be
+    rounded up to the next even number of seconds.<br>
+    Zip archives store file modification times with a granularity of
+    two seconds, so the times will either be rounded up or down.  If
+    you round down, the archive will always seem out-of-date when you
+    rerun the task, so the default is to round up.  Rounding up may
+    lead to a different type of problems like JSPs inside a web
+    archive that seem to be slightly more recent than precompiled
+    pages, rendering precompilation useless.<br>
+    Defaults to true.  <em>Since Ant 1.6.2</em></td>
+    <td align="center" valign="top">No</td>
   </tr>
 </table>
 <h3>Nested elements</h3>
@@ -171,8 +197,16 @@ images/large/logo.gif
 using Ant's default manifest file. The content of
 <code>WEB-INF/web.xml</code> is identical to
 <code>src/metadata/myapp.xml</code>.
+
+We regulary receive bug reports that this task is creating the WEB-INF
+directory, and thus it is our fault your webapp doesn't work. The cause
+of these complaints lies in WinZip, which turns an all upper-case
+directory into an all lower case one in a fit of helpfulness. Please check that
+jar xvf yourwebapp.war shows the same behaviour before filing another
+report. 
+
 <hr>
-<p align="center">Copyright &copy; 2000-2003 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>

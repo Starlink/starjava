@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Input Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -24,7 +25,10 @@ one of the predefined.</p>
 <p>Optionally a property can be created from the value entered by the
 user. This property can then be used during the following build
 run. Input behaves according to <a href="property.html">property
-task</a> which means that existing properties cannot be overriden.</p>
+task</a> which means that existing properties cannot be overriden.
+Since Ant 1.6, <code>&lt;input&gt;</code> will not prompt for input if
+a property should be set by the task that has already been set in the
+project (and the task wouldn't have any effect).</p>
 
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
@@ -54,6 +58,13 @@ task</a> which means that existing properties cannot be overriden.</p>
     input. Behaviour is equal to <a href="property.html">property
     task</a> which means that existing properties cannot be
     overriden.</td>
+    <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">defaultvalue</td>
+    <td valign="top">Defines the default value of the property to be
+    created from input.  Property value will be set to default if no
+    input is received.</td>
     <td valign="top" align="center">No</td>
   </tr>
 </table>
@@ -95,8 +106,17 @@ user.&quot;.</p>
 <p>Will display the message &quot;Please enter db-username:&quot; and set the
 property <code>db.user</code> to the value entered by the user.</p>
 
+<pre>  &lt;input
+    message=&quot;Please enter db-username:&quot;
+    addproperty=&quot;db.user&quot;
+    defaultvalue=&quot;Scott-Tiger&quot;
+  /&gt;</pre>
+<p>Same as above, but will set <code>db.user</code> to the value
+<i>Scott- Tiger</i> if the user enters no value (simply types
+&lt;return&gt;).</p>
+
 <hr>
-<p align="center">Copyright &copy; 2001-2002 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2001-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 </body>
 </html>

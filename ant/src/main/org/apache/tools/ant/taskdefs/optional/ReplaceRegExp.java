@@ -1,65 +1,34 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright  2001-2004 The Apache Software Foundation
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "Ant" and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
  */
 package org.apache.tools.ant.taskdefs.optional;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.Vector;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -76,7 +45,7 @@ import org.apache.tools.ant.util.regexp.Regexp;
  * file.  The input file(s) must be able to be properly processed by
  * a Reader instance.  That is, they must be text only, no binary.
  *
- * The syntax of the regular expression depends on the implemtation that
+ * The syntax of the regular expression depends on the implementation that
  * you choose to use. The system property <code>ant.regexp.regexpimpl</code>
  * will be the classname of the implementation that will be used (the default
  * is <code>org.apache.tools.ant.util.regexp.JakartaOroRegexp</code> and
@@ -99,8 +68,8 @@ import org.apache.tools.ant.util.regexp.Regexp;
  *   Call Syntax:
  *
  *     &lt;replaceregexp file="file"
- *                    match="pattern" 
- *                    replace="pattern" 
+ *                    match="pattern"
+ *                    replace="pattern"
  *                    flags="options"?
  *                    byline="true|false"? &gt;
  *       regexp?
@@ -116,10 +85,11 @@ import org.apache.tools.ant.util.regexp.Regexp;
  *
  *   Attributes:
  *
- *     file    --&gt; A single file to operation on (mutually exclusive with the fileset subelements)
- *     match   --&gt; The Regular expression to match 
- *     replace --&gt; The Expression replacement string 
- *     flags   --&gt; The options to give to the replacement 
+ *     file    --&gt; A single file to operation on (mutually exclusive
+ *                    with the fileset subelements)
+ *     match   --&gt; The Regular expression to match
+ *     replace --&gt; The Expression replacement string
+ *     flags   --&gt; The options to give to the replacement
  *                 g = Substitute all occurrences. default is to replace only the first one
  *                 i = Case insensitive match
  *
@@ -140,7 +110,6 @@ import org.apache.tools.ant.util.regexp.Regexp;
  *
  * </pre>
  *
- * @author <a href="mailto:mattinger@mindless.com">Matthew Inger</a>
  */
 public class ReplaceRegExp extends Task {
 
@@ -153,6 +122,10 @@ public class ReplaceRegExp extends Task {
 
     private FileUtils fileUtils = FileUtils.newFileUtils();
 
+    /**
+     * Encoding to assume for the files
+     */
+    private String encoding = null;
 
     /** Default Constructor  */
     public ReplaceRegExp() {
@@ -170,6 +143,7 @@ public class ReplaceRegExp extends Task {
     /**
      * file for which the regular expression should be replaced;
      * required unless a nested fileset is supplied.
+     * @param file The file for which the reg exp should be replaced.
      */
     public void setFile(File file) {
         this.file = file;
@@ -179,6 +153,7 @@ public class ReplaceRegExp extends Task {
     /**
      * the regular expression pattern to match in the file(s);
      * required if no nested &lt;regexp&gt; is used
+     * @param match the match attribute.
      */
     public void setMatch(String match) {
         if (regex != null) {
@@ -194,8 +169,9 @@ public class ReplaceRegExp extends Task {
      * The substitution pattern to place in the file(s) in place
      * of the regular expression.
      * Required if no nested &lt;substitution&gt; is used
+     * @param replace the replace attribute
      */
-                     
+
     public void setReplace(String replace) {
         if (subs != null) {
             throw new BuildException("Only one substitution expression is "
@@ -210,14 +186,17 @@ public class ReplaceRegExp extends Task {
      * The flags to use when matching the regular expression.  For more
      * information, consult the Perl5 syntax.
      * <ul>
-     *  <li>g : Global replacement.  Replace all occurences found
+     *  <li>g : Global replacement.  Replace all occurrences found
      *  <li>i : Case Insensitive.  Do not consider case in the match
-     *  <li>m : Multiline.  Treat the string as multiple lines of input, 
-     *         using "^" and "$" as the start or end of any line, respectively, rather than start or end of string.
+     *  <li>m : Multiline.  Treat the string as multiple lines of input,
+     *         using "^" and "$" as the start or end of any line, respectively,
+     *         rather than start or end of string.
      *  <li> s : Singleline.  Treat the string as a single line of input, using
-     *        "." to match any character, including a newline, which normally, it would not match.
+     *        "." to match any character, including a newline, which normally,
+     *        it would not match.
      *</ul>
-     */                     
+     * @param flags the flags attribute
+     */
     public void setFlags(String flags) {
         this.flags = flags;
     }
@@ -226,9 +205,11 @@ public class ReplaceRegExp extends Task {
     /**
      * Process the file(s) one line at a time, executing the replacement
      * on one line at a time.  This is useful if you
-     * want to only replace the first occurence of a regular expression on
+     * want to only replace the first occurrence of a regular expression on
      * each line, which is not easy to do when processing the file as a whole.
      * Defaults to <i>false</i>.</td>
+     * @param byline the byline attribute as a string
+     * @deprecated - use setByLine(boolean)
      */
     public void setByLine(String byline) {
         Boolean res = Boolean.valueOf(byline);
@@ -239,9 +220,33 @@ public class ReplaceRegExp extends Task {
         this.byline = res.booleanValue();
     }
 
+    /**
+     * Process the file(s) one line at a time, executing the replacement
+     * on one line at a time.  This is useful if you
+     * want to only replace the first occurrence of a regular expression on
+     * each line, which is not easy to do when processing the file as a whole.
+     * Defaults to <i>false</i>.</td>
+     * @param byline the byline attribute
+     */
+    public void setByLine(boolean byline) {
+        this.byline = byline;
+    }
+
+
+    /**
+     * Specifies the encoding Ant expects the files to be in -
+     * defaults to the platforms default encoding.
+     * @param encoding the encoding attribute
+     *
+     * @since Ant 1.6
+     */
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
 
     /**
      * list files to apply the replacement to
+     * @param set the fileset element
      */
     public void addFileset(FileSet set) {
         filesets.addElement(set);
@@ -252,6 +257,7 @@ public class ReplaceRegExp extends Task {
      * A regular expression.
      * You can use this element to refer to a previously
      * defined regular expression datatype instance
+     * @return the regular expression object to be configured as an element
      */
     public RegularExpression createRegexp() {
         if (regex != null) {
@@ -266,6 +272,7 @@ public class ReplaceRegExp extends Task {
     /**
      * A substitution pattern.  You can use this element to refer to a previously
      * defined substitution pattern datatype instance.
+     * @return the substitution pattern object to be configured as an element
      */
     public Substitution createSubstitution() {
         if (subs != null) {
@@ -278,6 +285,16 @@ public class ReplaceRegExp extends Task {
     }
 
 
+    /**
+     * Invoke a regular expression (r) on a string (input) using
+     * substitutions (s) for a matching regex.
+     *
+     * @param r a regular expression
+     * @param s a Substitution
+     * @param input the string to do the replacement on
+     * @param options The options for the regular expression
+     * @return the replacement result
+     */
     protected String doReplace(RegularExpression r,
                                Substitution s,
                                String input,
@@ -286,7 +303,8 @@ public class ReplaceRegExp extends Task {
         Regexp regexp = r.getRegexp(getProject());
 
         if (regexp.matches(input, options)) {
-            res = regexp.substitute(input, s.getExpression(getProject()), 
+            log("Found match; substituting", Project.MSG_DEBUG);
+            res = regexp.substitute(input, s.getExpression(getProject()),
                                     options);
         }
 
@@ -294,18 +312,30 @@ public class ReplaceRegExp extends Task {
     }
 
 
-    /** Perform the replace on the entire file  */
+    /**
+     *  Perform the replacement on a file
+     *
+     * @param f the file to perform the relacement on
+     * @param options the regular expressions options
+     * @exception IOException if an error occurs
+     */
     protected void doReplace(File f, int options)
          throws IOException {
-        File parentDir = fileUtils.getParentFile(f);
-        File temp = fileUtils.createTempFile("replace", ".txt", parentDir);
+        File temp = fileUtils.createTempFile("replace", ".txt", null);
+        temp.deleteOnExit();
 
-        FileReader r = null;
-        FileWriter w = null;
+        Reader r = null;
+        Writer w = null;
 
         try {
-            r = new FileReader(f);
-            w = new FileWriter(temp);
+            if (encoding == null) {
+                r = new FileReader(f);
+                w = new FileWriter(temp);
+            } else {
+                r = new InputStreamReader(new FileInputStream(f), encoding);
+                w = new OutputStreamWriter(new FileOutputStream(temp),
+                                           encoding);
+            }
 
             BufferedReader br = new BufferedReader(r);
             BufferedWriter bw = new BufferedWriter(w);
@@ -313,13 +343,11 @@ public class ReplaceRegExp extends Task {
 
             boolean changes = false;
 
-            log("Replacing pattern '" + regex.getPattern(getProject()) +
-                "' with '" + subs.getExpression(getProject()) +
-                "' in '" + f.getPath() + "'" +
-                (byline ? " by line" : "") +
-                (flags.length() > 0 ? " with flags: '" + flags + "'" : "") +
-                ".",
-                Project.MSG_VERBOSE);
+            log("Replacing pattern '" + regex.getPattern(getProject())
+                + "' with '" + subs.getExpression(getProject())
+                + "' in '" + f.getPath() + "'" + (byline ? " by line" : "")
+                + (flags.length() > 0 ? " with flags: '" + flags + "'" : "")
+                + ".", Project.MSG_VERBOSE);
 
             if (byline) {
                 StringBuffer linebuf = new StringBuffer();
@@ -344,14 +372,13 @@ public class ReplaceRegExp extends Task {
                             pw.print(res);
                             pw.print('\r');
 
-                            linebuf.setLength(0);
+                            linebuf = new StringBuffer();
                             // hasCR is still true (for the second one)
                         } else {
                             // first CR in this line
                             hasCR = true;
                         }
-                    }
-                    else if (c == '\n') {
+                    } else if (c == '\n') {
                         // LF -> EOL
                         line = linebuf.toString();
                         res  = doReplace(regex, subs, line, options);
@@ -367,7 +394,7 @@ public class ReplaceRegExp extends Task {
                         }
                         pw.print('\n');
 
-                        linebuf.setLength(0);
+                        linebuf = new StringBuffer();
                     } else { // any other char
                         if ((hasCR) || (c < 0)) {
                             // Mac-style linebreak or EOF (or both)
@@ -384,7 +411,7 @@ public class ReplaceRegExp extends Task {
                                 hasCR = false;
                             }
 
-                            linebuf.setLength(0);
+                            linebuf = new StringBuffer();
                         }
 
                         if (c >= 0) {
@@ -395,17 +422,10 @@ public class ReplaceRegExp extends Task {
 
                 pw.flush();
             } else {
-                int flen = (int) f.length();
-                char tmpBuf[] = new char[flen];
-                int numread = 0;
-                int totread = 0;
-
-                while (numread != -1 && totread < flen) {
-                    numread = br.read(tmpBuf, totread, flen);
-                    totread += numread;
+                String buf = fileUtils.readFully(br);
+                if (buf == null) {
+                    buf = "";
                 }
-
-                String buf = new String(tmpBuf);
 
                 String res = doReplace(regex, subs, buf, options);
 
@@ -423,15 +443,16 @@ public class ReplaceRegExp extends Task {
             w = null;
 
             if (changes) {
-                if (!f.delete()) {
-                    throw new BuildException("Couldn't delete " + f,
-                                             getLocation());
-                }
-                if (!temp.renameTo(f)) {
-                    throw new BuildException("Couldn't rename temporary file " 
+                log("File has changed; saving the updated file", Project.MSG_VERBOSE);
+                try {
+                    fileUtils.rename(temp, f);
+                    temp = null;
+                } catch (IOException e) {
+                    throw new BuildException("Couldn't rename temporary file "
                                              + temp, getLocation());
                 }
-                temp = null;
+            } else {
+                log("No change made", Project.MSG_DEBUG);
             }
         } finally {
             try {
@@ -439,6 +460,7 @@ public class ReplaceRegExp extends Task {
                     r.close();
                 }
             } catch (Exception e) {
+                // ignore any secondary exceptions
             }
 
             try {
@@ -446,6 +468,7 @@ public class ReplaceRegExp extends Task {
                     w.close();
                 }
             } catch (Exception e) {
+                // ignore any secondary exceptions
             }
             if (temp != null) {
                 temp.delete();
@@ -454,8 +477,12 @@ public class ReplaceRegExp extends Task {
     }
 
 
-    public void execute()
-         throws BuildException {
+    /**
+     * Execute the task
+     *
+     * @throws BuildException is there is a problem in the task execution.
+     */
+    public void execute() throws BuildException {
         if (regex == null) {
             throw new BuildException("No expression to match.");
         }
@@ -490,12 +517,12 @@ public class ReplaceRegExp extends Task {
             try {
                 doReplace(file, options);
             } catch (IOException e) {
-                log("An error occurred processing file: '" 
+                log("An error occurred processing file: '"
                     + file.getAbsolutePath() + "': " + e.toString(),
                     Project.MSG_ERR);
             }
         } else if (file != null) {
-            log("The following file is missing: '" 
+            log("The following file is missing: '"
                 + file.getAbsolutePath() + "'", Project.MSG_ERR);
         }
 
@@ -505,7 +532,7 @@ public class ReplaceRegExp extends Task {
             FileSet fs = (FileSet) (filesets.elementAt(i));
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
 
-            String files[] = ds.getIncludedFiles();
+            String[] files = ds.getIncludedFiles();
 
             for (int j = 0; j < files.length; j++) {
                 File f = new File(fs.getDir(getProject()), files[j]);
@@ -514,12 +541,12 @@ public class ReplaceRegExp extends Task {
                     try {
                         doReplace(f, options);
                     } catch (Exception e) {
-                        log("An error occurred processing file: '" 
+                        log("An error occurred processing file: '"
                             + f.getAbsolutePath() + "': " + e.toString(),
                             Project.MSG_ERR);
                     }
                 } else {
-                    log("The following file is missing: '" 
+                    log("The following file is missing: '"
                         + f.getAbsolutePath() + "'", Project.MSG_ERR);
                 }
             }

@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Echo Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -51,13 +52,21 @@ ignored</p>
   
 </table>
 <h3>Examples</h3>
-<pre>  &lt;echo message=&quot;Hello, world&quot;/&gt;</pre>
-<pre>  
+<pre>
+&lt;echo message=&quot;Hello, world&quot;/&gt;
+</pre>
+<pre>
+&lt;echo message=&quot;Embed a line break:${line.separator}&quot;/&gt;
+</pre>
+<pre>
+&lt;echo&gt;Embed another:${line.separator}&lt;/echo&gt;
+</pre>
+<pre>
 &lt;echo&gt;This is a longer message stretching over
 two lines.
 &lt;/echo&gt;
 </pre>
-<pre>  
+<pre>
 &lt;echo&gt;
 This is a longer message stretching over
 three lines; the first line is a blank
@@ -83,7 +92,7 @@ Note the use of a double $ symbol to stop Ant
 filtering out the single $ during variable expansion   
 <hr>
 
-<p align="center">Copyright &copy; 2000-2002 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2002,2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>

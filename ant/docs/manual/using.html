@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <title>Writing a Simple Buildfile</title>
+<link rel="stylesheet" type="text/css" href="stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -30,7 +31,7 @@ to be unique. (For additional information, see the
   <tr>
     <td valign="top">default</td>
     <td valign="top">the default target to use when no target is supplied.</td>
-    <td align="center" valign="top">Yes.</td>
+    <td align="center" valign="top"><!-- No.  No target will be run if omitted.--> Yes.</td>
   </tr>
   <tr>
     <td valign="top">basedir</td>
@@ -77,8 +78,16 @@ can get executed earlier when an earlier target depends on it:</p>
 <code>depends</code> attribute, you
 might think that first target C, then B and then A is executed.
 Wrong! C depends on B, and B depends on A, so first A is executed, then B, then C, and finally D.</p>
-<p>A target gets executed only once, even when more than one target
-depends on it (see the previous example).</p>
+<p>In a chain of dependencies stretching back from a given target such
+as D above, each target gets executed only once, even when more than
+one target depends on it. Thus, executing the D target will first
+result in C being called, which in turn will first call B, which in
+turn will first call A. After A, then B, then C have executed,
+execution returns to the dependency list of D, which will <u>not</u>
+call B and A, since they were already called in process of dependency
+resolution for C and B respectively as dependencies of D. Had no such
+dependencies been discovered in processing C and B, B and A would
+have been executed after C in processing D's dependency list.</p>
 <p>A target also has the ability to perform its execution if (or
 unless) a property has been set. This allows, for example, better
 control on the building process depending on the state of the system
@@ -111,6 +120,8 @@ href="CoreTasks/tstamp.html">tstamp</a> tasks in a so-called
 all other targets depend. Make sure that target is always the first one in
 the depends list of the other targets. In this manual, most initialization targets
 have the name <code>&quot;init&quot;</code>.</p>
+<p>If the depends attribute and the if/unless attribute are set, the depends attribute is
+executed first.</p>
 <p>A target has the following attributes:</p>
 <table border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -284,11 +295,13 @@ ant.java.version    the JVM version Ant detected; currently it can hold
 &lt;/project&gt;
 </pre>
 
-Notice that we are declaring properties outside any target. The
-<tt>&lt;property&gt;</tt>,<tt>&lt;typedef&gt;</tt> and <tt>&lt;taskdef&gt;</tt>
-tasks are special in that they can be declared outside any target. When you
-do this they are evaluated before any targets are executed. No other tasks
-can be declared outside targets.
+<p>Notice that we are declaring properties outside any target.  As of
+Ant 1.6 all tasks can be declared outside targets (earlier version
+only allowed <tt>&lt;property&gt;</tt>,<tt>&lt;typedef&gt;</tt> and
+<tt>&lt;taskdef&gt;</tt>).  When you do this they are evaluated before
+any targets are executed.  Some tasks will generate build failures if
+they are used outside of targets as they may cause infinite loops
+otherwise (<code>&lt;antcall&gt;</code> for example).</p>
 
 <p>
 We have given some targets descriptions; this causes the <tt>projecthelp</tt>
@@ -373,7 +386,7 @@ defined.</p>
         &lt;include name=&quot;apps/**/classes&quot;/&gt;
         &lt;exclude name=&quot;apps/**/*Test*&quot;/&gt;
       &lt;/dirset&gt;
-      &lt;filelist refid=&quot;third-party_jars&quot;&gt;
+      &lt;filelist refid=&quot;third-party_jars&quot;/&gt;
     &lt;/classpath&gt;
 </pre>
 <p>This builds a path that holds the value of <code>${classpath}</code>,
@@ -429,7 +442,7 @@ that contain space characters, nested <code>arg</code> elements can be used.</p>
     <td valign="top">value</td>
     <td valign="top">a single command-line argument; can contain space
       characters.</td>
-    <td align="center" rowspan="4">Exactly one of these.</td>
+    <td align="center" rowspan="5">Exactly one of these.</td>
   </tr>
   <tr>
     <td valign="top">file</td>
@@ -442,6 +455,12 @@ that contain space characters, nested <code>arg</code> elements can be used.</p>
       string as a single command-line argument; you can use <code>;</code>
       or <code>:</code> as
       path separators and Ant will convert it to the platform's local
+      conventions.</td>
+  </tr>
+  <tr>
+    <td valign="top">pathref</td>
+    <td valign="top"><a href="#references">Reference</a> to a path
+      defined elsewhere.  Ant will convert it to the platform's local
       conventions.</td>
   </tr>
   <tr>
@@ -524,14 +543,14 @@ example.</p>
 &lt;/project&gt;
 </pre></blockquote>
 <p>All tasks that use nested elements for <a
-href="CoreTypes/patternset.html">PatternSet</a>s, <a href="CoreTypes/fileset.html">FileSet</a>s or
+href="CoreTypes/patternset.html">PatternSet</a>s, <a href="CoreTypes/fileset.html">FileSet</a>s,
+<a href="CoreTypes/zipfileset.html">ZipFileSet</a>s  or
 <a href="#path">path-like structures</a> accept references to these
 structures as well.</p>
 
 <hr>
-<p align="center">Copyright &copy; 2000-2003 Apache Software Foundation. All rights
+<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
 Reserved.</p>
 
 </body>
 </html>
-
