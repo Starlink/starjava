@@ -854,6 +854,8 @@
            fork="${junit.fork}"
            dir="${tests.etc.dir}"
            >
+
+      <jvmarg value="-enableassertions"/>
       <!-- dir=... means we have that directory as the cwd when
            running the tests, so we can put test files there -->
       <classpath refid="tests-classpath"/>
@@ -886,6 +888,7 @@
           fork="${junit.fork}"
           filtertrace="${junit.filtertrace}"
           dir="${tests.etc.dir}">
+      <jvmarg value="-enableassertions"/>
       <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="java.library.path" value="${star.lib.arch}"/>
