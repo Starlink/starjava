@@ -42,6 +42,7 @@ import javax.media.jai.TiledImage;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.dom.DOMSource;
 
@@ -170,6 +171,20 @@ public class HDXImage
         Ndx ndx = xmlHandler.makeNdx( xmlSource, AccessMode.READ );
         ndxs.add( ndx );
         setNDX( page );
+    }
+
+    /**
+     * Construct a HDXImage.
+     *
+     * @param source a Source containing an HDX document.
+     */
+    public HDXImage( Source source )
+        throws IOException
+    {
+        XMLNdxHandler xmlHandler = XMLNdxHandler.getInstance();
+        Ndx ndx = xmlHandler.makeNdx( source, AccessMode.READ );
+        ndxs.add( ndx );
+        setNDX( 0 );
     }
 
     /**
