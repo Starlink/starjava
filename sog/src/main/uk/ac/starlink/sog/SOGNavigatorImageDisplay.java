@@ -18,6 +18,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.InputStream;
 import java.io.IOException;
 
+import javax.media.jai.JAI;
 import javax.media.jai.PlanarImage;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -26,7 +27,9 @@ import javax.swing.SwingUtilities;
 import jsky.coords.CoordinateConverter;
 import jsky.coords.WorldCoordinateConverter;
 import jsky.image.ImageProcessor;
+import jsky.image.fits.codec.FITSImage;
 import jsky.navigator.NavigatorImageDisplay;
+import jsky.util.FileUtil;
 import jsky.util.gui.DialogUtil;
 
 import org.w3c.dom.Element;
@@ -95,6 +98,91 @@ public class SOGNavigatorImageDisplay
         //  Add our CanvasDraw.
         sogCanvasDraw = new SOGCanvasDraw( this );
         setCanvasDraw( sogCanvasDraw );
+    }
+
+    /**
+     * Set the filename.... Whole method lifted from
+     * DivaMainImageDisplay as we need to control creation differently
+     * to how JSky works... XXX need to track any changes.
+     */
+    public void setFilename( String fileOrUrl ) 
+    {
+        if ( fileOrUrl.startsWith( "http:" ) ) {
+            setURL( FileUtil.makeURL( null, fileOrUrl ) );
+            return;
+        }
+        if ( !checkSave() ) {
+            return;
+        }
+
+        addToHistory();
+        _filename = fileOrUrl;
+        _url = _origURL = FileUtil.makeURL( null, fileOrUrl );
+
+        // free up any previously opened FITS images
+        FITSImage fitsImage = getFitsImage();
+        if (fitsImage != null) {
+            fitsImage.close();
+            fitsImage.clearTileCache();
+            fitsImage = null;
+        }
+
+        // Do same for the HdxImage?
+        if ( hdxImage != null ) {
+            //hdxImage.close();
+            hdxImage.clearTileCache();
+            hdxImage = null;
+        }
+
+        // load non FITS and HDX images with JAI, others use more
+        // efficienct implementations.
+
+        if ( isJAIImageType( _filename ) ) {
+            try {
+                setImage( JAI.create( "fileload", _filename ) );
+            }
+            catch ( Exception e ) {
+                DialogUtil.error( e );
+                _filename = null;
+                _url = _origURL = null;
+                clear();
+            }
+        }
+        else if ( _filename.endsWith( "xml" ) || 
+                  _filename.endsWith( "sdf" )  ) {
+            //  HDX/NDF
+            try {
+                hdxImage = new HDXImage( _filename );
+                setImage( PlanarImage.wrapRenderedImage( hdxImage ) );
+            }
+            catch ( IOException e ) {
+                DialogUtil.error( e );
+                _filename = null; 
+                _url = _origURL = null;
+                clear();
+            }
+        }
+        else {
+            //  FITS Image. 13/01/03 is much faster than HDX FITS access...
+            try {
+                fitsImage = new FITSImage(_filename);
+                initFITSImage(fitsImage);
+                setImage(fitsImage);
+            }
+            catch (Exception e) {
+                // fall back to JAI method
+                try {
+                    setImage(JAI.create("fileload", _filename));
+                }
+                catch (Exception ex) {
+                    DialogUtil.error(e);
+                    _filename = null;
+                    _url = _origURL = null;
+                    clear();
+                }
+            }
+        }
+        updateTitle();
     }
 
     /**
@@ -421,21 +509,6 @@ public class SOGNavigatorImageDisplay
     {
         return doExit;
     }
-
-    /**
-     * Return true if the given filename has a suffix that indicates
-     * that it is not a FITS file and is one of the standard JAI
-     * supported image types. Need to override this so that XML files
-     * are re-directed.
-     */
-    public boolean isJAIImageType( String filename ) 
-    {
-        if ( filename.endsWith("xml") ) {
-            return true;
-        }
-        return super.isJAIImageType( filename );
-    }
-
 
 //
 // PlotController interface.
