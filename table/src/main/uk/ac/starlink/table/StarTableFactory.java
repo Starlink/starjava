@@ -17,6 +17,7 @@ import uk.ac.starlink.table.formats.CsvTableBuilder;
 import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.URLDataSource;
 
 /**
@@ -55,7 +56,7 @@ import uk.ac.starlink.util.URLDataSource;
  * encountered an <tt>IOException</tt> may be thrown instead.
  * <p>
  * By default, if the corresponding classes are present, the following
- * TableBuilders are installed in the default handler list
+ * TableBuilders are installed in the <em>default handler list</em>
  * (used by default in automatic format detection):
  * <ul>
  * <li> {@link uk.ac.starlink.votable.FitsPlusTableBuilder}
@@ -64,19 +65,25 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="fits")
  * <li> {@link uk.ac.starlink.votable.VOTableBuilder}
  *      (format name="votable")
- * <li> {@link uk.ac.starlink.table.formats.AsciiTableBuilder}
- *      (format name="ascii")
  * </ul>
- * and the following additional ones are in the known list
+ *
+ * <p>The following additional handlers are installed in the
+ * <em>known handler list</em>
  * (not used by default but available by specifying the format name):
  * <ul>
+ * <li> {@link uk.ac.starlink.table.formats.AsciiTableBuilder}
+ *      (format name="ascii")
  * <li> {@link uk.ac.starlink.table.formats.CsvTableBuilder}
  *      (format name="csv")
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  *      (format name="wdc")
  * </ul>
- * <p>
- * The factory has a flag <tt>wantRandom</tt> which determines 
+ * Additionally, any classes named in the 
+ * <tt>startable.readers</tt> system property (as a colon-separated list)
+ * which implement the {@link TableBuilder} interface and have a no-arg
+ * constructor will be instantiated and added to the known handler list.
+ *
+ * <p>The factory has a flag <tt>wantRandom</tt> which determines 
  * whether random-access tables are
  * preferred results of the <tt>makeStarTable</tt> methods.
  * Setting this flag to <tt>true</tt> does <em>not</em> guarantee
@@ -95,14 +102,21 @@ public class StarTableFactory {
     private boolean wantRandom_;
     private StoragePolicy storagePolicy_;
 
+    /**
+     * System property which can contain a list of {@link TableBuilder} classes
+     * for addition to the known (non-automatically detected) handler list.
+     */
+    public static final String KNOWN_BUILDERS_PROPERTY =
+        "startable.readers";
+
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
     private static String[] defaultBuilderClasses = { 
         "uk.ac.starlink.votable.FitsPlusTableBuilder",
         "uk.ac.starlink.fits.FitsTableBuilder",
         "uk.ac.starlink.votable.VOTableBuilder",
-        AsciiTableBuilder.class.getName(),
     };
     private static String[] knownBuilderClasses = {
+        AsciiTableBuilder.class.getName(),
         CsvTableBuilder.class.getName(),
         WDCTableBuilder.class.getName(),
     };
@@ -161,6 +175,11 @@ public class StarTableFactory {
                 logger.config( "Failed to register " + className + " - " + e );
             }
         }
+
+        /* Attempt to add known handlers listed in system property. */
+        knownBuilders_.addAll( Loader
+                              .getClassInstances( KNOWN_BUILDERS_PROPERTY,
+                                                  TableBuilder.class ) );
     }
 
     /**

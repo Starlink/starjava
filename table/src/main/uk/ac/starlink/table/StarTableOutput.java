@@ -18,6 +18,7 @@ import uk.ac.starlink.table.formats.CsvTableWriter;
 import uk.ac.starlink.table.formats.HTMLTableWriter;
 import uk.ac.starlink.table.formats.LatexTableWriter;
 import uk.ac.starlink.table.formats.TextTableWriter;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Outputs StarTable objects.
@@ -38,7 +39,12 @@ import uk.ac.starlink.table.formats.TextTableWriter;
  * <li> {@link uk.ac.starlink.table.formats.LatexTableWriter}
  * <li> {@link uk.ac.starlink.mirage.MirageTableWriter}
  * </ul>
- * It can additionally write to JDBC tables.
+ * Additionally, any classes named in the <tt>startable.writers</tt>
+ * system property (as a colon-separated list) which implement the
+ * {@link StarTableWriter} interface and have a no-arg constructor will be
+ * instantiated and added to this list of handlers.
+ *
+ * <p>It can additionally write to JDBC tables.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -62,6 +68,11 @@ public class StarTableOutput {
     private StarTableWriter voWriter;
     private Method voWriteMethod;
 
+    /**
+     * System property which can contain a list of {@link StarTableWriter}
+     * classes for addition to the list of known output handlers.
+     */
+    public static final String EXTRA_WRITERS_PROPERTY = "startable.writers";
 
     /**
      * Constructs a StarTableOutput with a default list of handlers.
@@ -124,6 +135,12 @@ public class StarTableOutput {
                 logger.config( "Failed to register " + className + " - " + e );
             }
         }
+
+        /* Add any further handlers specified by system property. */
+        handlers.addAll( Loader.getClassInstances( EXTRA_WRITERS_PROPERTY,
+                                                   StarTableWriter.class ) );
+
+        /* Further initialization. */
         initializeForTransferables();
     }
  
