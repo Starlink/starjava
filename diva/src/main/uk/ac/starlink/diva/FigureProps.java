@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2002-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     20-FEB-2002 (Peter W. Draper):
  *       Original version.
+ *     27-JAN-2004 (Peter W. Draper):
+ *       Moved to DIVA package from SPLAT.
  */
 package uk.ac.starlink.diva;
 
@@ -21,14 +23,16 @@ import java.io.DataOutputStream;
 import org.w3c.dom.Element;
 
 import uk.ac.starlink.diva.interp.Interpolator;
-import uk.ac.starlink.util.XMLEncodeAndDecode;
-import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
-import uk.ac.starlink.util.gui.AWTXMLEncodeAndDecode;
 import uk.ac.starlink.diva.interp.InterpolatorFactory;
+import uk.ac.starlink.util.PrimitiveXMLEncodeDecode;
+import uk.ac.starlink.util.XMLEncodeDecode;
+import uk.ac.starlink.util.gui.AWTXMLEncodeDecode;
 
 /**
- * A simple container class for storing the configuration properties
- * of Figures created by {@link DrawFigureFactory}.
+ * A container class for storing the configuration properties of Figures
+ * created by {@link DrawFigureFactory}. Also provides facilities for
+ * creating a serialized version of the properties (so that the Figure can be
+ * re-created) in XML.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -37,6 +41,7 @@ import uk.ac.starlink.diva.interp.InterpolatorFactory;
  * @see DrawActions
  */
 public class FigureProps
+    implement XMLEncodeDecode
 {
     /**
      * DrawFigureFactory constant for this figure type.
@@ -597,77 +602,85 @@ public class FigureProps
         if ( type != -1 ) {
             shortName = DrawFigureFactory.shortNames[type];
         }
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "type",
-                                                     shortName );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement, "type",
+                                                  shortName );
 
         //  Positions.
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "x1", x1 );
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "y1", y1 );
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "x2", x2 );
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "y2", y2 );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement, "x1", x1 );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement, "y1", y1 );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement, "x2", x2 );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement, "y2", y2 );
         if ( xa != null && ya != null ) {
-            PrimitiveXMLEncodeAndDecode
+            //  Encode these in base64.
+            Element base64Element = PrimitiveXMLEncodeDecode
                 .addChildElement( rootElement, "xarray",
                                   encodeBase64DoubleArray( xa ));
-            PrimitiveXMLEncodeAndDecode
+            base64Element.setAttribute( "size",
+               PrimitiveXMLEncodeDecode.intToString( xa.length ) );
+            base64Element.setAttribute( "encoding", "base64" );
+
+            base64Element = PrimitiveXMLEncodeDecode
                 .addChildElement( rootElement, "yarray",
                                   encodeBase64DoubleArray( ya ));
+            base64Element.setAttribute( "size",
+               PrimitiveXMLEncodeDecode.intToString( ya.length ) );
+            base64Element.setAttribute( "encoding", "base64" );
         }
 
         //  Lengths.
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
-                                                     "width", width );
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
-                                                     "height", height );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement,
+                                                  "width", width );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement,
+                                                  "height", height );
 
         //  Colors.
         if ( outline != null ) {
-            AWTXMLEncodeAndDecode.addChildElement( rootElement,
-                                                   "outline", (Color)outline );
+            AWTXMLEncodeDecode.addChildElement( rootElement,
+                                                "outline", (Color)outline );
         }
         if ( fill != null ) {
-            AWTXMLEncodeAndDecode.addChildElement( rootElement, "fill", 
-                                                   (Color) fill );
+            AWTXMLEncodeDecode.addChildElement( rootElement, "fill",
+                                                (Color) fill );
         }
 
         //  Line thickness.
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
-                                                     "thickness", thickness );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement,
+                                                  "thickness", thickness );
 
         //  Curve interpolator.
         if ( interpolator != null ) {
-            writeInterpolator( PrimitiveXMLEncodeAndDecode
+            writeInterpolator( PrimitiveXMLEncodeDecode
                                .addChildElement(rootElement,"interpolator") );
         }
 
         //  String.
         if ( text != null ) {
-            PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "text",
-                                                         text );
+            PrimitiveXMLEncodeDecode.addChildElement( rootElement, "text",
+                                                      text );
         }
         if ( font != null ) {
-            AWTXMLEncodeAndDecode.addChildElement( rootElement, "font", font );
+            AWTXMLEncodeDecode.addChildElement( rootElement, "font", font );
         }
 
         //  Composite.
         if ( composite != null ) {
-            AWTXMLEncodeAndDecode.addChildElement( rootElement, "composite", 
-                                                   composite );
+            AWTXMLEncodeDecode.addChildElement( rootElement, "composite",
+                                                composite );
         }
     }
 
     public void decode( Element rootElement )
     {
         List children =
-            PrimitiveXMLEncodeAndDecode.getChildElements( rootElement );
+            PrimitiveXMLEncodeDecode.getChildElements( rootElement );
         int size = children.size();
         Element element = null;
         String name = null;
         String value = null;
         for ( int i = 0; i < size; i++ ) {
             element = (Element) children.get( i );
-            name = PrimitiveXMLEncodeAndDecode.getElementName( element );
-            value = PrimitiveXMLEncodeAndDecode.getElementValue( element );
+            name = PrimitiveXMLEncodeDecode.getElementName( element );
+            value = PrimitiveXMLEncodeDecode.getElementValue( element );
             setFromString( name, value, element );
         }
     }
@@ -692,51 +705,51 @@ public class FigureProps
             return;
         }
         if ( name.equals( "x1" ) ) {
-            setX1( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            setX1( PrimitiveXMLEncodeDecode.doubleFromString( value ) );
             return;
         }
         if ( name.equals( "y1" ) ) {
-            setY1( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            setY1( PrimitiveXMLEncodeDecode.doubleFromString( value ) );
             return;
         }
         if ( name.equals( "x2" ) ) {
-            setX2( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            setX2( PrimitiveXMLEncodeDecode.doubleFromString( value ) );
             return;
         }
         if ( name.equals( "y2" ) ) {
-            setY2( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            setY2( PrimitiveXMLEncodeDecode.doubleFromString( value ) );
             return;
         }
         if ( name.equals( "xarray" ) ) {
             String ssize = element.getAttribute( "size" );
-            int size = PrimitiveXMLEncodeAndDecode.intFromString( ssize );
+            int size = PrimitiveXMLEncodeDecode.intFromString( ssize );
             setXArray( decodeBase64DoubleArray( size, value ) );
             return;
         }
         if ( name.equals( "yarray" ) ) {
             String ssize = element.getAttribute( "size" );
-            int size = PrimitiveXMLEncodeAndDecode.intFromString( ssize );
+            int size = PrimitiveXMLEncodeDecode.intFromString( ssize );
             setYArray( decodeBase64DoubleArray( size, value ) );
             return;
         }
         if ( name.equals( "width" ) ) {
-            setWidth( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            setWidth( PrimitiveXMLEncodeDecode.doubleFromString( value ) );
             return;
         }
         if ( name.equals( "height" ) ) {
-            setHeight( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            setHeight( PrimitiveXMLEncodeDecode.doubleFromString( value ) );
             return;
         }
         if ( name.equals( "outline" ) ) {
-            setOutline( AWTXMLEncodeAndDecode.colorFromString( value ) );
+            setOutline( AWTXMLEncodeDecode.colorFromString( value ) );
             return;
         }
         if ( name.equals( "fill" ) ) {
-            setFill( AWTXMLEncodeAndDecode.colorFromString( value ) );
+            setFill( AWTXMLEncodeDecode.colorFromString( value ) );
             return;
         }
         if ( name.equals( "thickness" ) ) {
-            setThickness(PrimitiveXMLEncodeAndDecode.doubleFromString(value));
+            setThickness(PrimitiveXMLEncodeDecode.doubleFromString(value));
             return;
         }
         if ( name.equals( "interpolator" ) ) {
@@ -748,11 +761,11 @@ public class FigureProps
             return;
         }
         if ( name.equals( "font" ) ) {
-            setFont( AWTXMLEncodeAndDecode.fontFromString( value ) );
+            setFont( AWTXMLEncodeDecode.fontFromString( value ) );
             return;
         }
         if ( name.equals( "composite" ) ) {
-            setComposite( AWTXMLEncodeAndDecode.compositeFromString( value ) );
+            setComposite( AWTXMLEncodeDecode.compositeFromString( value ) );
             return;
         }
     }
@@ -761,8 +774,8 @@ public class FigureProps
      * Read a stored interpolator from the given Element.
      *
      * <interpolator class="type">
-     *    <xarray>base64enc</xarray>
-     *    <yarray>base64enc</yarray>
+     *    <xarray size="n" encoding="base64">base64enc</xarray>
+     *    <yarray size="n" encoding="bass64">base64enc</yarray>
      * </interpolator>
      */
     protected void readInterpolator( Element element )
@@ -774,18 +787,18 @@ public class FigureProps
 
         //  X data.
         List children =
-            PrimitiveXMLEncodeAndDecode.getChildElements( element );
+            PrimitiveXMLEncodeDecode.getChildElements( element );
         Element child = (Element) children.get( 0 );
         String value = child.getAttribute( "size" );
-        int size = PrimitiveXMLEncodeAndDecode.intFromString( value );
-        value = PrimitiveXMLEncodeAndDecode.getElementValue( child );
+        int size = PrimitiveXMLEncodeDecode.intFromString( value );
+        value = PrimitiveXMLEncodeDecode.getElementValue( child );
         double[] x = decodeBase64DoubleArray( size, value );
 
         //  Y data
         child = (Element) children.get( 1 );
         value = child.getAttribute( "size" );
-        size = PrimitiveXMLEncodeAndDecode.intFromString( value );
-        value = PrimitiveXMLEncodeAndDecode.getElementValue( child );
+        size = PrimitiveXMLEncodeDecode.intFromString( value );
+        value = PrimitiveXMLEncodeDecode.getElementValue( child );
         double[] y = decodeBase64DoubleArray( size, value );
 
         //  Activate the Interpolator.
@@ -796,8 +809,8 @@ public class FigureProps
      * Write description of the interpolator to the given Element.
      *
      * <interpolator type="type">
-     *    <xarray size="n">base64enc</xarray>
-     *    <yarray size="n">base64enc</yarray>
+     *    <xarray size="n" encoding="base64">base64enc</xarray>
+     *    <yarray size="n" encoding="base64">base64enc</yarray>
      * </interpolator>
      */
     protected void writeInterpolator( Element element )
@@ -810,19 +823,21 @@ public class FigureProps
         //  Add X and Y vertices.
         double[] array = interpolator.getXCoords();
         String value = encodeBase64DoubleArray( array );
-        Element child = PrimitiveXMLEncodeAndDecode.addChildElement( element,
-                                                                     "xarray", 
-                                                                     value );
-        child.setAttribute( "size", 
-              PrimitiveXMLEncodeAndDecode.intToString( array.length ) );
+        Element child = PrimitiveXMLEncodeDecode.addChildElement( element,
+                                                                  "xarray",
+                                                                  value );
+        child.setAttribute( "size",
+              PrimitiveXMLEncodeDecode.intToString( array.length ) );
+        element.setAttribute( "encoding", "base64" );
 
         array = interpolator.getYCoords();
         value = encodeBase64DoubleArray( array );
-        child = PrimitiveXMLEncodeAndDecode.addChildElement( element, 
-                                                             "yarray",
-                                                             value );
-        child.setAttribute( "size", 
-              PrimitiveXMLEncodeAndDecode.intToString( array.length ) );
+        child = PrimitiveXMLEncodeDecode.addChildElement( element,
+                                                          "yarray",
+                                                          value );
+        child.setAttribute( "size",
+              PrimitiveXMLEncodeDecode.intToString( array.length ) );
+        element.setAttribute( "encoding", "base64" );
     }
 
     /**
@@ -838,6 +853,7 @@ public class FigureProps
             double[] array = new double[size];
             for ( int i = 0; i < size; i++ ) {
                 array[i] = dis.readDouble();
+                System.out.println( "Read: " + array[i] );
             }
             dis.close();
             b64is.close();
@@ -846,6 +862,7 @@ public class FigureProps
         }
         catch (Exception e) {
             // Do nothing...
+            e.printStackTrace();
         }
         return null;
 
@@ -862,8 +879,10 @@ public class FigureProps
             DataOutputStream dos = new DataOutputStream( b64os );
             int size = array.length;
             for ( int i = 0; i < size; i++ ) {
+                System.out.println( "Encoding: " + array[i] );
                 dos.writeDouble( array[i] );
             }
+            b64os.endBase64();
             String result = bos.toString();
             dos.close();
             b64os.close();
@@ -872,6 +891,7 @@ public class FigureProps
         }
         catch (Exception e) {
             // Do nothing...
+            e.printStackTrace();
         }
         return null;
     }
