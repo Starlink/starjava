@@ -381,7 +381,7 @@
 
   <xsl:template mode="ref" match="subsubsubsect">
     <xsl:apply-templates mode="ref" select=".."/>
-    <xsl:text> </xsl:text>
+    <xsl:text>.</xsl:text>
     <xsl:number count="subsubsubsect"/>
   </xsl:template>
 
