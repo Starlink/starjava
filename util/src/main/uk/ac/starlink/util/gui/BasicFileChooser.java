@@ -70,9 +70,31 @@ import sun.awt.shell.ShellFolder;
 public class BasicFileChooser
     extends JFileChooser
 {
+    /**
+     * Construct a default instance.
+     */
     public BasicFileChooser()
     {
         super();
+    }
+
+    /**
+     * Construct a instance with a choice of default directory. If
+     * home is true then the users home directory is selected,
+     * otherwise the process default directory is selected.
+     */
+    public BasicFileChooser( boolean home )
+    {
+        this( home ? System.getProperty( "user.home" ) : 
+                     System.getProperty( "user.dir" ) );
+    }
+
+    /**
+     * Construct a instance with a choice of default directory.
+     */
+    public BasicFileChooser( String defaultDirectory )
+    {
+        super( defaultDirectory );
     }
 
     public void approveSelection() 
