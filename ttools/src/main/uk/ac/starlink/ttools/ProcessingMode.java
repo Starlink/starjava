@@ -49,6 +49,17 @@ public abstract class ProcessingMode {
     }
 
     /**
+     * Returns a list of additional flags which can be used when this
+     * mode is operational (as processed by setArgs).
+     * The default implementation returns null.
+     *
+     * @return   usage string describing mode-specific flags
+     */
+    public String getModeUsage() {
+        return null;
+    }
+
+    /**
      * Returns the output stream to which processing modes should write
      * user-directed (human-readable) output.
      *
