@@ -1,5 +1,6 @@
 package uk.ac.starlink.table;
 
+import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -87,10 +88,10 @@ public class TextTableWriter implements StarTableWriter {
 
     private OutputStream getStream( String location ) throws IOException {
         if ( location.equals( "-" ) ) {
-            return System.out;
+            return new BufferedOutputStream( System.out );
         }
         else {
-            return new FileOutputStream( location );
+            return new BufferedOutputStream( new FileOutputStream( location ) );
         }
     }
 
