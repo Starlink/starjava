@@ -106,10 +106,13 @@ public class XMLNdxHandler implements NdxHandler {
      * Constructs a readable Ndx object from an XML source.
      *
      * @param  xsrc  an XML source containing the XML representation of
-     *               the NDX.  Note that the SystemId attribute, if present,
+     *               the NDX.  Must represent a document or element.
+     *               Note that the SystemId attribute, if present,
      *               will be used to resolve relative URLs
      * @param   mode read/write/update access mode for component arrays
      * @throws  IOException  if some error occurs in the I/O
+     * @throws  IllegalArgumentException  if <tt>xsrc</tt> does not 
+     *          correspond to a document or element XML source
      */
     public Ndx makeNdx( Source xsrc, AccessMode mode ) throws IOException {
 
@@ -150,7 +153,7 @@ public class XMLNdxHandler implements NdxHandler {
             ndxel = (Element) ndxdom;
         }
         else {
-            throw new RuntimeException( "Do what?" );
+            throw new IllegalArgumentException( "Not a Document or Element" );
         }
         if ( ! ndxel.getTagName().equals( "ndx" ) ) {
             throw new IOException( 
