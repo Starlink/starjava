@@ -67,7 +67,7 @@ public class Driver {
         /* Construct the usage message. */
         String usageMsg = 
               "Usage: " + cmdName +
-            "\n         [-text] [-strict] [-debug] [-split(x|y|0)]" +
+            "\n         [-demo] [-text] [-strict] [-debug] [-split(x|y|0)]" +
             "\n         ";
         Iterator flagIt = nodeTypeFlags.keySet().iterator();
         while ( flagIt.hasNext() ) {
@@ -104,6 +104,15 @@ public class Driver {
                 else if ( arg.equals( "-debug" ) ) {
                     nodeFactory.setVerbose( true );
                     DataNodeBuilder.verbose = true;
+                }
+                else if ( arg.equals( "-demo" ) ) {
+                    try {
+                        topNodes.add( new DemoDataNode() );
+                    }
+                    catch ( NoSuchDataException e ) {
+                        exitWithError( e.getMessage() + "\n" );
+                        throw new Error();  // not reached
+                    }
                 }
                 else if ( nodeTypeFlags.containsKey( arg ) ) {
                     Class prefClass = (Class) nodeTypeFlags.get( arg );
@@ -191,7 +200,8 @@ public class Driver {
      * Create and display the viewer object.
      */
     private static void viewAsGUI( DataNode root, short orient ) {
-        StaticTreeViewer tv = new StaticTreeViewer( root, "Treeview", orient );
+        StaticTreeViewer tv = 
+            new StaticTreeViewer( root, "Starlink Treeview", orient );
         tv.addWindowListener( new WindowAdapter() {
             public void windowClosing( WindowEvent e ) {
                 System.exit( 0 );
