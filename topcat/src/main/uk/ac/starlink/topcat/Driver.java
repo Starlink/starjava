@@ -236,7 +236,7 @@ public class Driver {
                 it.remove();
                 loaderList.add( "uk.ac.starlink.vo.RegistryTableLoadDialog" );
             }
-            else if ( arg.startsWith( "-" ) ) {
+            else if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 System.err.println( usage );
                 System.exit( 1 );
             }
@@ -261,7 +261,7 @@ public class Driver {
                     System.exit( 1 );
                 }
             }
-            else if ( arg.startsWith( "-" ) ) {
+            else if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 System.err.println( usage );
                 System.exit( 1 );
             }
@@ -331,27 +331,27 @@ public class Driver {
             }
         }
 
+        /* Downgrade this thread's priority now; anything done after this 
+         * point is done at a lower priority so as not to impact GUI setup
+         * too much. */
+        Thread here = Thread.currentThread();
+        try {
+            here.setPriority( ( here.getPriority() + Thread.MIN_PRIORITY )
+                              / 2 );
+        }
+        catch ( SecurityException e ) {
+            // never mind.
+        }
+       
         /* Start up remote services.  Do it in a separate, low-priority
          * thread to avoid impact on startup time. */
         if ( soapServe ) {
-            Thread init = new Thread( "TOPCAT SOAP services initialization" ) {
-                public void run() {
-                    try {
-                        TopcatSOAPServer.initServices( getControlWindow() );
-                    }
-                    catch ( Throwable e ) {
-                        logger.warning( "No SOAP server: " + e );
-                    }
-                }
-            };
             try {
-                init.setPriority( ( init.getPriority() + Thread.MIN_PRIORITY )
-                                  / 2 );
+                TopcatSOAPServer.initServices( getControlWindow() );
             }
-            catch ( SecurityException e ) {
-                // never mind.
+            catch ( Throwable e ) {
+                logger.warning( "No SOAP server: " + e );
             }
-            init.start();
         }
     }
 
