@@ -1,7 +1,6 @@
 package uk.ac.starlink.table;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -10,6 +9,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import junit.framework.AssertionFailedError;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.FitsTableWriter;
@@ -187,7 +187,7 @@ public class FormatsTest extends TestCase {
             throws IOException, SAXException {
         StarTable t1 = table;
         writer.writeStarTable( t1, loc.toString() );
-        assertValidXML( new FileInputStream( loc ) );
+        assertValidXML( new InputSource( loc.toString() ) );
         StarTable t2 = new StarTableFactory()
                       .makeStarTable( loc.toString() );
         assertTrue( t2 instanceof VOStarTable );
@@ -201,7 +201,7 @@ public class FormatsTest extends TestCase {
         writer.setDoctypeDeclaration( 
             "<!DOCTYPE VOTABLE SYSTEM 'http://nowhere/VOTable.dtd'>" );
         writer.writeStarTable( t1, tmpFile.toString() );
-        assertValidXML( new FileInputStream( tmpFile ) );
+        assertValidXML( new InputSource( tmpFile.toString() ) );
 
         tmpFile.delete();
         writer.setDoctypeDeclaration( docDecl );

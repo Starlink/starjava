@@ -901,19 +901,17 @@ public class TestCase extends junit.framework.TestCase {
      * The stream is passed through a validating XML parser.
      * Badly-formed XML, or failure to conform to any DTD or schema referenced 
      * in the document's declaration will result in a SAXParseException.
-     * The stream will be closed following the (successful or unsuccessful)
-     * parsing and validation.
      * <p>
      * Entity resolution is done using an instance of 
      * {@link StarEntityResolver}.
      *
      * @param  message  message associated with assertion failure
-     * @param  strm  input stream containing an XML document
+     * @param  isrc  input source containing an XML document
      * @throws  IOException  if there is an error reading <tt>strm</tt>
      * @throws  SAXException  if the document in <tt>strm</tt> is badly-formed
      *                        or invalid
      */
-    public void assertValidXML( String message, InputStream strm )
+    public void assertValidXML( String message, InputSource isrc )
             throws IOException, SAXException {
         final String prefix = message == null ? "" : ( message + ": " );
 
@@ -972,12 +970,7 @@ public class TestCase extends junit.framework.TestCase {
         };
 
         /* Do the parse. */
-        try {
-            parser.parse( strm, handler );
-        }
-        finally {
-            strm.close();
-        }
+        parser.parse( isrc, handler );
     }
 
     /**
@@ -986,19 +979,17 @@ public class TestCase extends junit.framework.TestCase {
      * Badly-formed XML, or failure to conform to any DTD or schema
      * referenced in the 
      * document's declaration will result in a SAXParseException.
-     * The stream will be closed following the (successful or unsuccessful)
-     * parsing and validation.
      *
-     * @param  strm  input stream containing an XML document
+     * @param  isrc  input stream containing an XML document
      * @throws  IOException  if there is an error reading <tt>strm</tt>
      * @throws  SAXException  if the document in <tt>strm</tt> is badly-formed
      *                        or invalid
      */
-    public void assertValidXML( InputStream strm ) 
+    public void assertValidXML( InputSource isrc ) 
             throws IOException, SAXException {
-        assertValidXML( null, strm );
+        assertValidXML( null, isrc );
     }
-    
+
     /**
      * Fills a given array with random numbers between two floating point
      * values.

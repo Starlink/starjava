@@ -9,6 +9,7 @@ import java.io.StringReader;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.TransformerException;
 import junit.framework.AssertionFailedError;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.w3c.dom.*;
 
@@ -123,6 +124,7 @@ public class TestCaseTest extends TestCase {
 
     private void validateString( String text )
             throws IOException, SAXException {
-        assertValidXML( new ByteArrayInputStream( text.getBytes() ) );
+        assertValidXML( new InputSource( 
+                            new ByteArrayInputStream( text.getBytes() ) ) );
     }
 }

@@ -174,7 +174,8 @@ public class SerializerTest extends TestCase {
         byte[] xmltext = bytestream.toByteArray();
         // new FileOutputStream( "j" ).write( xmltext );
 
-        assertValidXML( new ByteArrayInputStream( xmltext ) );
+        assertValidXML( new InputSource( 
+                            new ByteArrayInputStream( xmltext ) ) );
 
         /* Test all constructors, validating and not.  There are significantly
          * different paths through the code for each one, in particular 
