@@ -1035,6 +1035,25 @@ public class PlotControl
     }
 
     /**
+     * Add a list of SpecData references to the list of displayed spectra.
+     *
+     * @param specin references to the SpecData.
+     */
+    public void addSpectra( SpecData specin[] )
+        throws SplatException
+    {
+        spectra.add( specin );
+        try {
+            updateThePlot( null );
+        }
+        catch (SplatException e) {
+            spectra.remove( specin );
+            throw e;
+        }
+
+    }
+
+    /**
      * Remove a spectrum from the plot.
      *
      * @param spec reference to a spectrum.
@@ -1140,7 +1159,7 @@ public class PlotControl
     {
         // NOTE: This method may be used by TOPCAT classes.
         // At time of writing, TOPCAT calls this method, followed by
-        // updateThePlot(null), to change the data conten of the plot.
+        // updateThePlot(null), to change the data content of the plot.
 
         this.spectra = spectra;
         plot.setSpecDataComp( spectra );
@@ -1314,10 +1333,7 @@ public class PlotControl
                 range[1] = dataLimits.getXUpper();
                 range[2] = dataLimits.getYLower();
                 range[3] = dataLimits.getYUpper();
-                range = spectra.transformRange(getCurrentSpectrum(),
-                                               referenceSpec,
-                                               range,
-                                               spectra.isDataUnitsMatching());
+                range = spectra.transformRange( referenceSpec, range );
                 dataLimits.setXLower( range[0] );
                 dataLimits.setXUpper( range[1] );
                 dataLimits.setYLower( range[2] );
