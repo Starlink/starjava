@@ -1,0 +1,169 @@
+<html>
+<body>
+Implements a parameter and control subsystem for application tasks.
+
+<p>
+This package provides the necessary infrastructure for writing
+tasks that do things for users, along the same lines as ADAM A-tasks.
+
+<p>
+An alternative version of the ADAM SUBPAR library has been written to allow
+existing Starlink Fortran/C coded applications to be run as Java Native
+Interface methods using this, Java, parameter system instead of the traditional
+one. In this way Java and Fortran-coded applications can be invoked and share
+parameter values in the traditional ADAM way.
+
+<p>
+At the moment all the necessary machinery is provided for invoking
+tasks from the command line in a way that looks ADAM-like,
+but it is designed so that, for instance, a GUI-style invoker 
+could be written to invoke the same tasks.
+
+<p>
+Application classes extend the {@link uk.ac.starlink.jpcs.Dtask} class and
+provide methods to perform the required application tasks. Dtask provides
+methods to set up the parameter system and return any output.
+
+<p>
+Application code is written using a simple template which allows tasks
+to be run from a command line or as web services. It has to provide for each
+task a public method which uses the
+{@link uk.ac.starlink.jpcs.Dtask#runTask Dtask.runTask()}
+method and another user-written, private method to do the work.
+The package (Kappa for example) extends {@link uk.ac.starlink.jpcs.Dtask} and
+has public method <code>stats</code> and private method <code>jnistats</code>.
+
+<p>
+(By convention, for a public task method <code>taskName</code> the private task
+method is named <code>jnitaskName</code> if it is a Java Native Interface method
+and <code>taskNameEngine</code> if it is a pure-Java method.
+<code>uk.ac.starlink.partest.ParTest.adamtest()</code> uses a
+JNI method (<code>jniadamtest</code>) to do the work and
+<code>uk.ac.starlink.partest.ParTest.javatest()</code> uses a
+pure-Java method (<code>javatestEngine</code>).
+
+<p>
+The public task methods accept an array of
+Strings containing the arguments, and return the array of Strings returned by 
+<code>runTask</code>. The given array is passed on to <code>runTask</code>;
+the returned array is in the form of an XML document
+representing a {@link uk.ac.starlink.jpcs.TaskReply} which may contain a
+{@link uk.ac.starlink.jpcs.Msg}
+containing information for the user and/or a
+{@link uk.ac.starlink.jpcs.ParameterValueList} containing
+the task Parameter values (both given and returned).  
+
+<p>
+The parameter system is based on the {@link uk.ac.starlink.jpcs.Parameter}
+which contains information about an application parameter.
+Information held is very similar to that of the traditional Starlink parameter,
+that is:
+<dl>
+<dt>Name
+<dd>The name of the parameter. This must start with a letter and be unique
+within the application task. Names are not case-significant.
+<dt>Type
+<dd>The type of the Parameter. Currently type may be: NumberParameter,
+StringParameter or BooleanParameter
+<dt>Position
+<dd>The command-line position allocated to this parameter.
+<dt>Keyword
+<dd>The keyword by which this parameter is known to the user - it defaults to
+the parameter name. The keyword can be used to specify parameter values on the
+command line by '<code>keyword=value</code>'. For BooleanParameters the simple
+ keyword may be
+given to indicate '<code>keyword=true</code>' or the keyword prefixed with 
+'<code>no</code>' to indicate
+'<code>keyword=false</code>'. Keyword parameter specifications are ignored in
+ calculating the
+'position' of positional specifiers.
+<dt>Vpath
+<dd>This is a search path of possible ways to find a value for the parameter if
+its value is not given on the command line. Possible sources of the value are:
+   <dl>
+   <dt>prompt
+   <dd>Obtain a value by prompting the user.
+   <dt>current
+   <dd>Use the value used in the last invocation. Parameter values are saved
+   in a file named <code>taskname.par</code> between invocations for this
+    purpose.
+   <dt>default
+   <dd>Use the default value.
+   <dt>dynamic
+   <dd>Use the dynamic default value. (Usually set by the applicaion code.)
+   <dt>global
+   <dd>Use the value of the 'global' parameter associated with this parameter.
+   </dl>
+<dt>Prompt
+<dd>A string to be used in any prompts
+<dt>Ppath
+<dd>This is a search path of possible ways to find a suggested value for the
+parameter. The suggested value is usually appended to the Prompt string when a
+value is requested, and used if a null reply is received. (Note that a null
+reply is not the same as the {@link uk.ac.starlink.jpcs.NullParameterValue}).
+Possible sources of the suggested value are: current, default, dynamic and
+global - they have the same meanings as for Vpath.
+<dt>Association
+<dd>The parameter may be associated with a 'global' parameter for input or
+output. If associated for input, the value of the global parameter may be used
+in a vpath or ppath search; if associated for output, the value of the global
+will be set to the value of this parameter on task completion. The set of global
+parameters is retained and thus may be used to pass information from one
+application to another. Global parameter values are save in a file named
+'<code>GLOBAL.PAR</code>'.
+<dt>Value
+<dd>A Parameter value is always held as an Object. The Object type will depend
+upon the Parameter type and the value given.
+</dl>
+
+<p>
+Classes 
+{@link uk.ac.starlink.jpcs.NumberParameter},
+{@link uk.ac.starlink.jpcs.StringParameter} and
+{@link uk.ac.starlink.jpcs.BooleanParameter} extend
+{@link uk.ac.starlink.jpcs.Parameter}.
+They provide methods to check that given values are valid for the particular
+type, and methods to set and get values of appropriate types. For example,
+NumberParameter has methods
+{@link uk.ac.starlink.jpcs.NumberParameter#getDouble getDouble()},
+{@link uk.ac.starlink.jpcs.NumberParameter#getFloat getFloat()} and 
+{@link uk.ac.starlink.jpcs.NumberParameter#getInt getInt()} but
+BooleanParameter only has 
+{@link uk.ac.starlink.jpcs.BooleanParameter#getBoolean getBoolean()}.
+(All Parameters have <code>getString()</code>.)
+
+<p>
+The basic parameter types may also have arrays of the type as their value -
+these are held as Objects of class
+{@link uk.ac.starlink.jpcs.ArrayParameterValue}.
+
+<p>
+Each application task has a {@link uk.ac.starlink.jpcs.ParameterList} associated
+with it. The ParameterList is a list of Parameters and provides methods for
+constructing the list and finding Parameters with particular properties (name,
+keyword and position). The usual (but not the only) way of constructing the
+ParameterList for a task is to read its Interface (<code>.ifx</code>) File.
+This is analogous to the ADAM Interface (<code>.ifl</code>) File and can
+contain all the information required about a parameter, except its value.
+Having set up the ParameterList, its 
+{@link uk.ac.starlink.jpcs.ParameterList#parseCommandLine parseCommandLine()}
+method may be used to set any values specified on the command line.
+
+<p> 
+The IFD package of classic Starlink provides tools which may be used to create
+<code>.ifx</code> files from classic task Interface Files.
+Tool <code>ifd2jstar</code> produces a <code>.ifx</code> file from an Interface
+Definition File (<code>.ifd</code> file).
+If only a classic Interface File (<code>.ifl</code>) is available, an Interface
+Definition File can be produced from it using tool <code>ifl2ifd</code>.
+ 
+<p>
+The {@link uk.ac.starlink.jpcs.Dtask#runTask Dtask.runTask()} method creates a
+{@link uk.ac.starlink.jpcs.Msg} and {@link uk.ac.starlink.jpcs.ParameterList}
+for the task and passes them as arguments to the user's private method.
+The ParameterList is created by reading the task's Interface File (which is
+found by the {@link uk.ac.starlink.jpcs.Dtask#findIfx Dtask.findIfx()} method)
+and filling in any values specified by the given arguments array.
+
+</body>
+</html>
