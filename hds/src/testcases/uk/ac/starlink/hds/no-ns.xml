@@ -1,85 +1,85 @@
 <?xml version="1.0" ?>
 <hdx>
 <ndx>
-<title>Output from FLATCOR</title>
-<image>reduced_data1.sdf#data_array</image>
-<variance>reduced_data1.sdf#variance</variance>
-    <wcs encoding="AST-XML">
-      <FrameSet>
-        <_attribute name="Nframe" value="5"/>
-        <_attribute name="Currnt" value="5"/>
-        <_attribute name="Lnk2" value="1"/>
-        <_attribute name="Lnk3" value="1"/>
-        <_attribute name="Lnk4" value="1"/>
-        <_attribute name="Lnk5" value="4"/>
-        <Frame label="Frm1">
-          <_attribute name="Naxes" value="2"/>
-          <_attribute name="Domain" value="GRID"/>
-          <Axis label="Ax1">
-            <_attribute name="Label" value="GRID1"/>
-          </Axis>
-          <Axis label="Ax2">
-            <_attribute name="Label" value="GRID2"/>
-          </Axis>
-        </Frame>
-        <Frame label="Frm2">
-          <_attribute name="Naxes" value="2"/>
-          <_attribute name="Domain" value="PIXEL"/>
-          <Axis label="Ax1">
-            <_attribute name="Label" value="PIXEL1"/>
-          </Axis>
-          <Axis label="Ax2">
-            <_attribute name="Label" value="PIXEL2"/>
-          </Axis>
-        </Frame>
-        <Frame label="Frm3">
-          <_attribute name="Naxes" value="2"/>
-          <_attribute name="Domain" value="AXIS"/>
-          <Axis label="Ax1">
-            <_attribute name="Label" value="AXIS1"/>
-          </Axis>
-          <Axis label="Ax2">
-            <_attribute name="Label" value="AXIS2"/>
-          </Axis>
-        </Frame>
-        <Frame label="Frm4">
-          <_attribute name="Title" value="Alignment of CCDGENERATE test data"/>
-          <_attribute name="Naxes" value="2"/>
-          <_attribute name="Domain" value="CCD_GEN"/>
-          <Axis label="Ax1"/>
-          <Axis label="Ax2"/>
-        </Frame>
-        <Frame label="Frm5">
-          <_attribute name="Title" value="Alignment by REGISTER"/>
-          <_attribute name="Naxes" value="2"/>
-          <_attribute name="Domain" value="CCD_REG"/>
-          <Axis label="Ax1"/>
-          <Axis label="Ax2"/>
-        </Frame>
-        <ShiftMap label="Map2">
-          <_attribute name="Nin" value="2"/>
-          <_isa class="Mapping"/>
-          <_attribute name="Sft1" value="4.5"/>
-          <_attribute name="Sft2" value="-0.5"/>
-        </ShiftMap>
-        <UnitMap label="Map3">
-          <_attribute name="Nin" value="2"/>
-          <_isa class="Mapping"/>
-        </UnitMap>
-        <WinMap label="Map4">
-          <_attribute name="Nin" value="2"/>
-          <_isa class="Mapping"/>
-          <_attribute name="Sft1" value="5.5"/>
-          <_attribute name="Sft2" value="0.5"/>
-        </WinMap>
-        <WinMap label="Map5">
-          <_attribute name="Nin" value="2"/>
-          <_isa class="Mapping"/>
-          <_attribute name="Sft1" value="-1"/>
-          <_attribute name="Sft2" value="-1"/>
-        </WinMap>
-      </FrameSet>
-    </wcs>
+  <title>Output from FLATCOR</title>
+  <image>reduced_data1.sdf#data_array</image>
+  <variance>reduced_data1.sdf#variance</variance>
+  <wcs encoding="AST-XML">
+    <FrameSet>
+      <_attribute name="Nframe" value="5"/>
+      <_attribute name="Currnt" value="5"/>
+      <_attribute name="Lnk2" value="1"/>
+      <_attribute name="Lnk3" value="2"/>
+      <_attribute name="Lnk4" value="1"/>
+      <_attribute name="Lnk5" value="4"/>
+      <Frame label="Frm1">
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" value="GRID"/>
+        <Axis label="Ax1">
+          <_attribute name="Label" value="GRID1"/>
+        </Axis>
+        <Axis label="Ax2">
+          <_attribute name="Label" value="GRID2"/>
+        </Axis>
+      </Frame>
+      <Frame label="Frm2">
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" value="PIXEL"/>
+        <Axis label="Ax1">
+          <_attribute name="Label" value="PIXEL1"/>
+        </Axis>
+        <Axis label="Ax2">
+          <_attribute name="Label" value="PIXEL2"/>
+        </Axis>
+      </Frame>
+      <Frame label="Frm3">
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" value="AXIS"/>
+        <Axis label="Ax1">
+          <_attribute name="Label" value="AXIS1"/>
+        </Axis>
+        <Axis label="Ax2">
+          <_attribute name="Label" value="AXIS2"/>
+        </Axis>
+      </Frame>
+      <Frame label="Frm4">
+        <_attribute name="Title" value="Alignment of CCDGENERATE test data"/>
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" value="CCD_GEN"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <Frame label="Frm5">
+        <_attribute name="Title" value="Alignment by REGISTER"/>
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" value="CCD_REG"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <ShiftMap label="Map2">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+        <_attribute name="Sft1" value="4.5"/>
+        <_attribute name="Sft2" value="-0.5"/>
+      </ShiftMap>
+      <UnitMap label="Map3">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+      </UnitMap>
+      <WinMap label="Map4">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+        <_attribute name="Sft1" value="5.5"/>
+        <_attribute name="Sft2" value="0.5"/>
+      </WinMap>
+      <WinMap label="Map5">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+        <_attribute name="Sft1" value="-1"/>
+        <_attribute name="Sft2" value="-1"/>
+      </WinMap>
+    </FrameSet>
+  </wcs>
   <etc>
     <FITS type="_CHAR*80">
       <!--Extension content not yet implemented-->
