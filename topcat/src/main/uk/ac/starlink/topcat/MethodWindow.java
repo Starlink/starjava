@@ -47,7 +47,7 @@ public class MethodWindow extends AuxWindow {
      *         purposes
      */
     public MethodWindow( Component parent ) {
-        super( "Available Methods", null );
+        super( "Available Methods", parent );
 
         /* Put class information into the tree. */
         for ( Iterator it = staticClasses.iterator(); it.hasNext(); ) {
