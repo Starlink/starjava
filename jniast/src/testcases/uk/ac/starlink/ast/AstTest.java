@@ -11,6 +11,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import junit.framework.Test;
@@ -515,8 +517,13 @@ public class AstTest extends TestCase {
         int ast__air = WcsMap.AST__AIR;
         AstObject.getAstConstantD( "AST__BAD" );
 
-        assertEquals( "AST V2.0-6; JNIAST native V2.0-4; JNIAST java V2.0-4",
-                      AstObject.reportVersions() );
+        Matcher matcher = Pattern.compile( "AST V2.0-([0-9]+); " +
+                                           "JNIAST native V2.0-4; " +
+                                           "JNIAST java V2.0-4" )
+                                 .matcher( AstObject.reportVersions() );
+        assertTrue( matcher.matches() );
+        int astRelease = Integer.parseInt( matcher.group( 1 ) );
+        assertTrue( "Checking AST version", astRelease >= 6 );
 
         String absentConstName = "ABSENT_CONSTANT";
         try {
