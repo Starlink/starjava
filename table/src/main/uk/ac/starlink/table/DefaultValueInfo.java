@@ -4,6 +4,8 @@ import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableCellEditor;
@@ -30,6 +32,9 @@ public class DefaultValueInfo implements ValueInfo {
     private int elementSize = -1;
     private TableCellRenderer cellRenderer;
     private TableCellEditor cellEditor;
+
+    private static Pattern trailDigits = Pattern.compile( "\\.([0-9]+)$" );
+    private static Pattern trailSpaces = Pattern.compile( "( +)$" );
 
     /**
      * Constructs a new generic <tt>DefaultValueInfo</tt> object
@@ -404,6 +409,25 @@ public class DefaultValueInfo implements ValueInfo {
         }
     
         /* Truncate if required. */
+        if ( buf.length() > maxLength &&
+             ( value instanceof Float || value instanceof Double ) ) {
+            Matcher tmatch = trailDigits.matcher( buf );
+            if ( tmatch.find() ) {
+                int over = buf.length() - maxLength;
+                if ( tmatch.group( 1 ).length() > over ) {
+                    buf.setLength( maxLength );
+                }
+            }
+        }
+        if ( buf.length() > maxLength ) {
+            Matcher tmatch = trailSpaces.matcher( buf );
+            if ( tmatch.lookingAt() ) {
+                int over = buf.length() - maxLength;
+                if ( tmatch.group( 1 ).length() > buf.length() - maxLength ) {
+                    buf.setLength( maxLength );
+                }
+            }
+        }
         if ( buf.length() > maxLength ) {
             buf.setLength( Math.max( 0, maxLength - 3 ) );
             buf.append( "..." );

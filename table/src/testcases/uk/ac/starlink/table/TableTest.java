@@ -32,6 +32,15 @@ public class TableTest extends TestCase {
         st.addColumn( iCol );
         st.addColumn( xCol );
         st.addColumn( yCol );
+    }
 
+    public void testFormatting() {
+        DefaultValueInfo info = new DefaultValueInfo( "test", Double.class );
+        assertEquals( "1.2345678",
+                      info.formatValue( new Double( 1.2345678 ), 100 ) );
+        assertEquals( "1.234",
+                      info.formatValue( new Double( 1.2345678 ), 5 ) );
+        assertEquals( "1.234...", 
+                      info.formatValue( new Double( 1.2345678e10 ), 8 ) );
     }
 }
