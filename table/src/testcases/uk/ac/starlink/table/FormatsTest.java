@@ -141,11 +141,23 @@ public class FormatsTest extends TestCase {
         checkStarTable( t2 );
 
         assertFitsTableEquals( t1, t2 );
-        StarTable t3 = new StarTableFactory()
+        assertFitsTableEquals( t1, t2 );
+        StarTable t3 = new StarTableFactory( false )
                       .makeStarTable( "file:" + loc );
         assertTrue( t3 instanceof BintableStarTable );
+        assertTrue( ! t3.isRandom() );
         checkStarTable( t3 );
         assertFitsTableEquals( t1, t3 );
+        assertFitsTableEquals( t1, t3 );
+
+        StarTable t4 = new StarTableFactory( true )
+                      .makeStarTable( "file:" + loc );
+        assertTrue( t4 instanceof BintableStarTable );
+        assertTrue( t4.isRandom() );
+        checkStarTable( t4 );
+        assertFitsTableEquals( t1, t4 );
+
+        // assertTableEquals( t3, t4 );
 
         String name = "Dobbin";
         ((BintableStarTable) t2).setName( name );
@@ -308,6 +320,7 @@ public class FormatsTest extends TestCase {
      * through these tests without errors.
      */
     void checkStarTable( StarTable st ) throws IOException {
+        Tables.checkTable( st );
         int ncol = st.getColumnCount();
         boolean isRandom = st.isRandom();
         int[] nels = new int[ ncol ];
