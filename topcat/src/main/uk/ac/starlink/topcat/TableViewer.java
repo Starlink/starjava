@@ -7,6 +7,8 @@ import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -20,8 +22,11 @@ import java.util.BitSet;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -32,10 +37,15 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JToolBar;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
@@ -66,7 +76,9 @@ import uk.ac.starlink.util.Loader;
  * 
  * @author   Mark Taylor (Starlink)
  */
-public class TableViewer extends AuxWindow {
+public class TableViewer extends AuxWindow
+                         implements TableModelListener, 
+                                    TableColumnModelListener {
 
     private PlasticStarTable dataModel;
     private ViewerTableModel viewModel;
@@ -77,6 +89,8 @@ public class TableViewer extends AuxWindow {
     private TableRowHeader rowHead;
     private JScrollPane scrollpane;
     private JProgressBar progBar;
+    private JComboBox subSelector;
+    private JComboBox sortSelector;
     private ColumnInfoWindow colinfoWindow;
     private ParameterWindow paramWindow;
     private StatsWindow statsWindow;
@@ -99,6 +113,7 @@ public class TableViewer extends AuxWindow {
     private static StarTableOutput taboutput = new StarTableOutput();
     private static StarTableChooser chooser;
     private static StarTableSaver saver;
+    private static ListCellRenderer columnRenderer;
 
     private static final String DEFAULT_TITLE = "TOPCAT";
     private static int MAX_COLUMN_WIDTH = 300;
@@ -190,9 +205,6 @@ public class TableViewer extends AuxWindow {
             setStarTable( startab );
         }
 
-        /* Keep track of instances. */
-        setDefaultCloseOperation( DISPOSE_ON_CLOSE );
-
         /* Set up menus. */
         JMenuBar mb = getJMenuBar();
 
@@ -235,6 +247,47 @@ public class TableViewer extends AuxWindow {
             mb.add( launchMenu );
             launchMenu.add( mirageAct ).setIcon( null );
         }
+
+        /* Controls. */
+        JPanel controlPanel = getControlPanel();
+
+        /* Row subset selector. */
+        subSelector = subsets.makeComboBox();
+        subSelector.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                if ( evt.getStateChange() == ItemEvent.SELECTED ) {
+                    applySubset( (RowSubset) evt.getItem() );
+                }
+            }
+        } );
+        controlPanel.add( new JLabel( "Row Subset: " ) );
+        controlPanel.add( subSelector );
+
+        /* Sort order selector. */
+        ComboBoxModel sortselModel =
+            new RestrictedColumnComboBoxModel( columnModel, true ) {
+                protected boolean acceptColumn( TableColumn tcol ) {
+                    StarTableColumn stcol = (StarTableColumn) tcol;
+                    Class clazz = stcol.getColumnInfo().getContentClass();
+                    return Comparable.class.isAssignableFrom( clazz );
+                }
+            };
+        sortSelector = new JComboBox( sortselModel );
+        sortSelector.setSelectedItem( ColumnComboBoxModel.NO_COLUMN );
+        sortSelector.setRenderer( getColumnRenderer() );
+        sortSelector.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                boolean up = true;
+                if ( evt.getStateChange() == ItemEvent.SELECTED ) {
+                    TableColumn tcol = (TableColumn) evt.getItem();
+                    sortBy( tcol == ColumnComboBoxModel.NO_COLUMN ? null : tcol,
+                            up );
+                }
+            }
+        } );
+        controlPanel.add( new JLabel( "     " ) );
+        controlPanel.add( new JLabel( "Sort Column: " ) );
+        controlPanel.add( sortSelector );
 
         /* Toolbar. */
         JToolBar toolBar = getToolBar();
@@ -290,6 +343,10 @@ public class TableViewer extends AuxWindow {
 
         /* Add help information. */
         addHelp( "TableViewer" );
+
+        /* Apply the default row subset. */
+        applySubset( RowSubset.ALL );
+        updateHeading();
 
         /* Display. */
         pack();
@@ -404,6 +461,12 @@ public class TableViewer extends AuxWindow {
                 columnModel.addColumn( tcol );
             }
             jtab.setColumnModel( columnModel );
+
+            /* Make sure the viewer window is updated when the TableModel
+             * or the TableColumnModel changes changes (for instance 
+             * change of table shape). */
+            viewModel.addTableModelListener( this );
+            columnModel.addColumnModelListener( this );
 
             /* Set the view up right. */
             scrollpane.getViewport().setViewPosition( new Point( 0, 0 ) );
@@ -543,7 +606,12 @@ public class TableViewer extends AuxWindow {
      * @param  rset  the row subset to use
      */
     public void applySubset( RowSubset rset ) {
-        viewModel.setSubset( rset );
+        if ( rset != viewModel.getSubset() ) {
+            viewModel.setSubset( rset );
+        }
+        if ( rset != subSelector.getSelectedItem() ) {
+            subSelector.setSelectedItem( rset );
+        }
     }
 
     /**
@@ -608,16 +676,6 @@ public class TableViewer extends AuxWindow {
     }
 
     /**
-     * Change the order that the table rows are displayed in.
-     *
-     * @param  order  new order in which visible rows should be seeen;
-     *         may be null to indicate natural order.
-     */
-    private void setOrder( int[] order ) {
-        viewModel.setOrder( order );
-    }
-
-    /**
      * Call this method to indicate that where there is a choice between
      * a command line and a graphical user interface, the graphical one
      * should be used.  The idea is that if the application is started
@@ -679,12 +737,13 @@ public class TableViewer extends AuxWindow {
         popper.add( addcolAct );
 
         if ( jcol >= 0 ) {
-            int icol = columnModel.getColumn( jcol ).getModelIndex();
+            StarTableColumn stcol = (StarTableColumn) 
+                                    columnModel.getColumn( jcol );
+            ColumnInfo colinfo = stcol.getColumnInfo();
             if ( Comparable.class
-                           .isAssignableFrom( dataModel.getColumnInfo( icol )
-                                                       .getContentClass() ) ) {
-                popper.add( new SortAction( icol, true ) );
-                popper.add( new SortAction( icol, false ) );
+                           .isAssignableFrom( colinfo.getContentClass() ) ) {
+                popper.add( new SortAction( stcol, true ) );
+                popper.add( new SortAction( stcol, false ) );
             }
         }
         else {
@@ -790,7 +849,7 @@ public class TableViewer extends AuxWindow {
 
             /* Set the row order back to normal. */
             else if ( this == unsortAct ) {
-                setOrder( null );
+                sortBy( null, false );
             }
 
             /* Define a new subset by dialog. */
@@ -841,32 +900,28 @@ public class TableViewer extends AuxWindow {
      * view rows, and installing this into this viewer's data model.
      */
     private class SortAction extends AbstractAction {
-        private int icol;
+        private TableColumn tcol;
         private boolean ascending;
 
         /**
          * Constructs a new SortAction which will sort in a given direction
          * based on a given column.
          *
-         * @param  icol  the index of the column to be sorted on in 
-         *               this viewer's model 
+         * @param  tcol  the column to be sorted on (must be a column in
+         *               this viewer's model)
          * @param  ascending  true for ascending sort, false for descending
          */
-        public SortAction( int icol, boolean ascending ) {
+        public SortAction( TableColumn tcol, boolean ascending ) {
             super( "Sort " + ( ascending ? "up" : "down" ) );
-            this.icol = icol;
+            this.tcol = tcol;
             this.ascending = ascending;
-            putValue( SHORT_DESCRIPTION, "Sort rows by ascending value of " 
-                                       + getColumnLabel( icol ) );
+            String name = tcol.getIdentifier().toString();
+            putValue( SHORT_DESCRIPTION,
+                      "Sort rows by ascending value of " + name );
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            try {
-                setOrder( getSortOrder( icol, ascending ) );
-            }
-            catch ( IOException e ) {
-                e.printStackTrace();
-            }
+            sortBy( tcol, ascending );
         }
     }
 
@@ -879,13 +934,38 @@ public class TableViewer extends AuxWindow {
      *               be applied
      * @param  ascending  true for ascending sort, false for descending
      */
-    public void sortBy( int icol, boolean ascending ) throws IOException {
-        if ( icol >= 0 ) {
-            setOrder( getSortOrder( icol, ascending ) );
+    public void sortBy( TableColumn tcol, boolean ascending ) {
+
+        /* Check that the selection box selected item is consistent with 
+         * the sort we have been asked to do.  If not, set the box 
+         * correctly and return; this will cause the reinvocation of this
+         * method. */
+        TableColumn nocol = ColumnComboBoxModel.NO_COLUMN;
+        TableColumn selectorTcol = (TableColumn) sortSelector.getSelectedItem();
+        TableColumn selectedTcol = selectorTcol == nocol ? null : selectorTcol;
+        if ( tcol != selectedTcol ) {
+            sortSelector.setSelectedItem( tcol == null ? nocol : tcol );
+            sortSelector.repaint();
+            return;
+        }
+
+        /* Do the sort. */
+        int[] order;
+        if ( tcol == null ) {
+            order = null;
         }
         else {
-            setOrder( null );
+            int modelIndex = tcol.getModelIndex();
+            try {
+                order = getSortOrder( modelIndex, ascending );
+            }
+            catch ( IOException e ) {
+                e.printStackTrace();
+                beep();
+                return;
+            }
         }
+        viewModel.setOrder( order );
     }
 
     /**
@@ -999,6 +1079,107 @@ public class TableViewer extends AuxWindow {
         return coldat;
     }
 
+    /**
+     * Returns a new JComboBox for selecting columns in the columnModel
+     * associated with this viewer.  Any item returned by the returned
+     * component's {@link javax.swing.JComboBox#getSelectedItem} method
+     * will be a {@link uk.ac.starlink.table.gui.StarTableColumn}
+     * (or <tt>null</tt>).
+     * <p>
+     * If the <tt>hasNone</tt> parameter is set true, then the combobox
+     * will contain an item additional to all the columns with the 
+     * value <tt>null</tt>.
+     *
+     * @return   column selector
+     */
+    public JComboBox makeColumnComboBox( boolean hasNone ) {
+        JComboBox colBox = 
+            new JComboBox( new ColumnComboBoxModel( columnModel, hasNone ) );
+        colBox.setRenderer( getColumnRenderer() );
+        return colBox;
+    }
+
+    /**
+     * Returns a renderer suitable for rendering StarTableColumn objects
+     * into a JComboBox.  It can render other things too if necesary.
+     *
+     * @return   a combobox cell renderer
+     */
+    public static ListCellRenderer getColumnRenderer() {
+        if ( columnRenderer == null ) {
+            columnRenderer = new CustomComboBoxRenderer() {
+                public Object mapValue( Object value ) {
+                    if ( value instanceof StarTableColumn ) {
+                        return ((StarTableColumn) value)
+                              .getColumnInfo()
+                              .getName();
+                    }
+                    else {
+                        return value;
+                    }
+                }
+            };
+        }
+        return columnRenderer;
+    }
+
+    /**
+     * Updates the short heading which describes the table.
+     * Since this contains information about the table shape, this method
+     * should be invoked whenever the number of rows or columns might
+     * have changed.
+     */
+    private void updateHeading() {
+        int nrow = jtab.getRowCount();
+        int ncol = jtab.getColumnCount();
+        RowSubset rset = viewModel.getSubset();
+        String head = new StringBuffer()
+            .append( "Data for " )
+            .append( rset == RowSubset.ALL ? "all rows" 
+                                           : ( "row subset: " + rset ) )
+            .append( " (" ) 
+            .append( nrow ) 
+            .append( ' ' )
+            .append( nrow == 1 ? "row" : "rows" )
+            .append( " x " )
+            .append( ncol )
+            .append( ' ' )
+            .append( nrow == 1 ? "column" : "columns" )
+            .append( ')' )
+            .toString();
+        setMainHeading( head );
+    }
+
+    /*
+     * Implementation of TableModelListener interface.
+     */
+    public void tableChanged( TableModelEvent evt ) {
+        if ( evt.getSource() == viewModel ) {
+            if ( evt.getLastRow() > viewModel.getRowCount() ||
+                 evt.getType() != TableModelEvent.UPDATE ) {
+                updateHeading();
+            }
+        }
+    }
+
+    /*
+     * Implementation of TableColumnModelListener interface.
+     */
+    public void columnAdded( TableColumnModelEvent evt ) {
+        if ( evt.getSource() == columnModel ) {
+            updateHeading();
+        }
+    }
+    public void columnRemoved( TableColumnModelEvent evt ) {
+        if ( evt.getSource() == columnModel ) {
+            updateHeading();
+        }
+    }
+    public void columnMarginChanged( ChangeEvent evt ) {}
+    public void columnMoved( TableColumnModelEvent evt ) {}
+    public void columnSelectionChanged( ListSelectionEvent evt ) {}
+    
+   
     /**
      * Main method for the table viewer application.
      */
