@@ -19,6 +19,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import uk.ac.starlink.mirage.MirageDriver;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableChooser;
 import uk.ac.starlink.table.gui.StarTableSaver;
@@ -49,6 +50,8 @@ public class TableViewer extends JFrame {
     private Action newAct;
     private Action saveAct;
     private Action dupAct;
+    private Action mirageAct;
+    private Action plotAct;
 
     private static StarTableFactory tabfact = new StarTableFactory();
     private static StarTableOutput taboutput = new StarTableOutput();
@@ -96,6 +99,11 @@ public class TableViewer extends JFrame {
         dupAct = new ViewerAction( "Duplicate", 0,
                        "Display another copy of this table in a new viewer" );
 
+        mirageAct = new ViewerAction( "Mirage", 0,
+                                      "Launch Mirage to display this table" );
+        plotAct = new ViewerAction( "Plot", 0,
+                                    "Plot columns from this table" );
+
         /* Configure the table. */
         if ( startab != null ) {
             setStarTable( startab );
@@ -109,6 +117,7 @@ public class TableViewer extends JFrame {
         JMenuBar mb = new JMenuBar();
         setJMenuBar( mb );
 
+        /* File menu. */
         JMenu fileMenu = new JMenu( "File" );
         mb.add( fileMenu );
         fileMenu.add( newAct ).setIcon( null );
@@ -117,6 +126,18 @@ public class TableViewer extends JFrame {
         fileMenu.add( saveAct ).setIcon( null );
         fileMenu.add( closeAct ).setIcon( null );
         fileMenu.add( exitAct ).setIcon( null );
+
+        /* Launch menu. */
+        if ( MirageDriver.isMirageAvailable() ) {
+            JMenu launchMenu = new JMenu( "Launch" );
+            mb.add( launchMenu );
+            launchMenu.add( mirageAct ).setIcon( null );
+        }
+
+        /* Plot menu. */
+        JMenu plotMenu = new JMenu( "Plot" );
+        mb.add( plotMenu );
+        plotMenu.add( plotAct ).setIcon( null );
 
         /* Display. */
         pack();
@@ -272,6 +293,27 @@ public class TableViewer extends JFrame {
             else if ( this == saveAct ) {
                 assert startab != null;  // action would be disabled 
                 getSaver().saveTable( startab, parent );
+            }
+
+            /* Launch Mirage. */
+            else if ( this == mirageAct ) {
+                assert MirageDriver.isMirageAvailable();
+                try {
+                    MirageDriver.invokeMirage( startab, null );
+                }
+                catch ( ClassNotFoundException e ) {
+                    throw new AssertionError(); 
+                }
+                catch ( Exception e ) {
+                    JOptionPane.showMessageDialog( parent, e.toString(),
+                                                   "Error launching Mirage",
+                                                   JOptionPane.ERROR_MESSAGE );
+                }
+            }
+
+            /* Open a plot window. */
+            else if ( this == plotAct ) {
+                wtracker.register( new PlotWindow( startab ) );
             }
 
             /* Shouldn't happen. */

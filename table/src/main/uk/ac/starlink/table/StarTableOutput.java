@@ -20,6 +20,7 @@ import uk.ac.starlink.table.jdbc.JDBCHandler;
  * <ul>
  * <li> {@link uk.ac.starlink.table.TextTableWriter}
  * <li> {@link uk.ac.starlink.votable.VOTableWriter}
+ * <li> {@link uk.ac.starlink.mirage.MirageTableWriter}
  * </ul>
  * It can additionally write to JDBC tables.
  *
@@ -32,6 +33,7 @@ public class StarTableOutput {
     private static String[] defaultHandlerClasses = {
         "uk.ac.starlink.table.TextTableWriter",
         "uk.ac.starlink.votable.VOTableWriter",
+        "uk.ac.starlink.mirage.MirageTableWriter",
     };
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
 
