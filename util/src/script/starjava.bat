@@ -1,3 +1,4 @@
+echo off
 REM Batch file for invoking java in Windows.
 REM Not sure exactly which operating systems (if any?) this will work for.
 REM This assumes that the correct "java" command (1.4) is on the path.
@@ -8,11 +9,11 @@ set BINDIR=%~dp0
 
 rem Augment the PATH with the expected location of DLLs.
 rem ----------------------------------------------------
-path "%BINDIR%\..\lib;%PATH%"
+path "%BINDIR%..\lib;%PATH%"
 
 rem Set up some properties.
 rem -----------------------
-set LOGCONFIG="%BINDIR%\..\etc\logging.properties"
+set LOGCONFIG="%BINDIR%..\etc\logging.properties"
 
 rem Set the java command to use (just get one off the path).
 rem --------------------------------------------------------
