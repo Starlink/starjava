@@ -249,6 +249,12 @@ public class HexDumper extends JTable {
                             sb.append( '\u00b7' );
                         }
                     }
+
+                    // For some reason this sometimes appears wrong in the
+                    // table viewer - e.g. first line of "<HTML>\n<HEAD>\n<T"
+                    // comes out "..      ".  No luck tracking this down - 
+                    // the string leaves this method and is processed 
+                    // through the cell renderer correctly.  Weird JTree bug??
                     return sb.toString();
                 }
                 else {
