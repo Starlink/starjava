@@ -116,13 +116,17 @@ public class MappedFile
      * Methods dealing with movement through the file.
      */
 
-    public void seek( long offsetFromStart ) {
+    public void seek( long offsetFromStart ) throws IOException {
+        if ( offsetFromStart > length() ) {
+            throw new IOException( "Attempt to seek beyond end of file" );
+        }
         niobuf.position( (int) offsetFromStart );
+  
     }
 
     public long skip( long offset ) {
-        niobuf.position( niobuf.position() + (int) offset );
-        return offset;
+        return (long) skipBytes( (int) Math.min( offset, 
+                                                 (long) Integer.MAX_VALUE ) );
     }
 
     public long getFilePointer() {
