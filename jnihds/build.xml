@@ -583,7 +583,7 @@
    !  by webstart applications. Copies of this jar file should be
    !  periodically committed to CVS (in the "src/lib/${arch} directory)
    !  so that a webstart install can support all the known operating
-   !  systems. 
+   !  systems. Note that signed jars should not be committed.
    !-->
   <target name="webstart_jar"
           depends="build">
@@ -594,12 +594,6 @@
         <attribute name="Built-By" value="${user.name}"/>
       </manifest>
     </jar>
-
-    <signjar jar="${dist.lib.arch}/${name}_libs.jar"
-             alias="${webstart.alias}"
-             keystore="${webstart.keystore}"
-             keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}"/>
 
   </target>
 
