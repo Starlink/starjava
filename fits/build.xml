@@ -246,13 +246,13 @@
 
   <path id="built.classpath">
 
-    <!-- Directly dependent third party jars -->
-    <path refid="built.jarpath"/>
-
     <!-- All locally built classes -->
     <dirset dir="${star.build.dir}">
       <include name="*/build/classes"/>
     </dirset>
+
+    <!-- Directly dependent third party jars -->
+    <path refid="built.jarpath"/>
 
     <!-- Finally add all "dist" jar files to make sure everything is
      !   resolved, including relative URLs out of the local package -->
