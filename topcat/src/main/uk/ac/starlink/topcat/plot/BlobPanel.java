@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Shape;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
@@ -22,7 +24,9 @@ import javax.swing.event.MouseInputListener;
  * you can create several separate or overlapping blobs by doing 
  * several click-drag sequences.  If you drag off the window the
  * currently-dragged region will be ditched.  Clicking with the right
- * button removes the most recently-added blob.  Try it, it's easy.
+ * button removes the most recently-added blob.  Resizing the window
+ * clears any existing blobs (since it's not obvious how or if to 
+ * resize the blobs).  Try it, it's easy.
  *
  * @author   Mark Taylor (Starlink)
  * @since    8 Jul 2004
@@ -41,6 +45,11 @@ public class BlobPanel extends JComponent
     public BlobPanel() {
         addMouseListener( this );
         addMouseMotionListener( this );
+        addComponentListener( new ComponentAdapter() {
+            public void componentResized( ComponentEvent evt ) {
+                clear();
+            }
+        } );
         setOpaque( false );
         clear();
     }
