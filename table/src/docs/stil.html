@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head><title>STIL - Starlink Tables Infrastructure Library</title></head>
+
+<body bgcolor="white">
+<hr>
+<h1 align="center"><img src="stil_large.gif">&nbsp;&nbsp;STIL&nbsp;&nbsp;<a href="http://www.starlink.ac.uk/"><img src="starlinklogo3.gif" border="0"></a></h1>
+<h2 align="center"><u>S</u>tarlink <u>T</u>ables <u>I</u>nfrastructure <u>L</u>ibrary</h2>
+<hr>
+
+<ul>
+<li><a href="#intro">What is STIL?</a>
+<li><a href="#features">Features</a>
+<li><a href="#docs">Documentation</a>
+<li><a href="#download">How to obtain it</a>
+<li><a href="#contact">Further Information</a>
+</ul>
+
+<hr>
+<h2><a name="intro"></a><img src="stil_small.gif">&nbsp;What is STIL?</h2>
+
+<p>Starlink Tables Infrastructure Library is a set of java classes
+which allow generic input, processing and output of tabular data.
+It presents to the application programmer a view of a table which
+looks the same regardless of whether it came from a FITS file,
+a VOTable, an ASCII text file, a query on a relational database,
+or whatever.
+Thus the application doesn't have to worry about the storage format
+of tables either when reading or writing them, it can concentrate
+on doing processing.
+STIL's idea of a table is rich enough to include table and column
+metadata, and table cells which contain scalar or single- or multi-dimensional
+array data of numerical, string or other types.
+
+<p>STIL comes with a large range of supported input and output formats,
+but can be extended to cope with new ones.
+
+<p>STIL has been designed with astronomical tables in mind,
+but could be used for processing of tabular data from other fields.
+
+
+<hr>
+<h2><a name="features"></a><img src="stil_small.gif">&nbsp;Features</h2>
+
+The table I/O has the following features:
+<ul>
+<li>Many table serialization formats supported
+<li>Pluggable architecture allows addition of new formats
+<li>Any-to-any format conversion is trivial
+<li>Access to large tables is possible (not constrained by memory)
+</ul>
+
+<p>STIL includes sophisticated VOTable I/O facilities which can,
+if desired, be used largely independently of the rest of the package.
+As well as the general features listed above this has the following features:
+<ul>
+<li>Reads all VOTable data formats (TABLEDATA, FITS, BINARY)
+<li>Writes all VOTable data formats
+<li>Full access to hierarchical document structure
+<li>Flexible table output (you can construct hierarchical documents)
+<li>Hybrid SAX/DOM parsing for efficient input
+<li>Parsing does not attempt network connections to retrieve VOTable DTD/schema
+<li>Best-efforts parsing of non-conforming/invalid documents
+</ul>
+
+<hr>
+<h2><a name="docs"></a><img src="stil_small.gif">&nbsp;Supported Formats</h2>
+
+The following formats are supported for table input:
+<ul>
+<li>FITS
+<li>VOTable
+<li>SQL
+<li>ASCII
+<li>World Data Center
+</ul>
+and the following for table output:
+<ul>
+<li>FITS
+<li>VOTable
+<li>SQL
+<li>Human-readable text
+<li>HTML
+<li>LaTeX
+<li>Mirage
+</ul>
+
+<hr>
+<h2><a name="docs"></a><img src="stil_small.gif">&nbsp;Documentation</h2>
+
+There are two main sources of documentation for STIL:
+<ul>
+<li>The main programmer's overview document is SUN/unassigned, available as:
+  <ul>
+  <li><a href="stil_sun.html">Single HTML document</a>
+  <li><a href="stil_sun/index.html">Multi-page HTML document</a>
+  <li><a href="stil_sun.xml">XML document</a>
+  </ul>
+<li>The definitive API documentation is available in the javadocs:
+  <ul>
+  <li>Browse <a href="javadocs/index.html">javadocs online</a>
+  <li>Download the <a href="stil_docs.zip">documentation  zip file</a>
+  </ul>
+</ul>
+
+<hr>
+<h2><a name="download"></a><img src="stil_small.gif">&nbsp;How to obtain it</h2>
+
+You can get STIL in one of the following ways:
+<ul>
+<li>Download the entire Starlink java set, of which STIL forms part
+<li>Download <a href="http://www.starlink.ac.uk/topcat/">TOPCAT</a> 
+    (all the STIL libraries are contained in the TOPCAT installation)
+<li>Down load the standalone jar file <a href="stil.jar"/>stil.jar</a>
+</ul>
+
+<p>The source code is also available:
+<ul>
+<li>STIL source code <a href="stil_src.zip">zip file</a>
+</ul>
+
+<hr>
+<h2><a name="contact"></a><img src="stil_small.gif">&nbsp;Further Information</h2>
+<p>If you have any comments, questions, requests, bugs etc, please contact me:
+<ul>
+<li>Author <a href="http://www.star.bris.ac.uk/~mbt/">Mark Taylor</a>,
+            <a href="http://www.star.bris.ac.uk/">Astrophysics group</a>,
+            <a href="http://www.phy.bris.ac.uk/">Physics Department</a>,
+            <a href="http://www.bris.ac.uk/">Bristol University</a>
+
+<li>Email: <a href="mailto:m.b.taylor@bristol.ac.uk">m.b.taylor@bristol.ac.uk</a
+>
+<li>STIL WWW page: <a href="http://www.ast.bristol.ac.uk/topcat/">http://www.ast.bristol.ac.uk/~mbt/stil/</a>
+<li>Starlink: <a href="http://www.starlink.ac.uk/">http://www.starlink.ac.uk/</a>
+</ul>
+
+
+</body>
+</html>
+

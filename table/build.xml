@@ -79,7 +79,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="Table"/>
   <property name="name" value="table"/>
-  <property name="version" value="0.3"/>
+  <property name="version" value="1.0"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.table"/>
@@ -132,6 +132,7 @@
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
+  <property name="build.docs" value="${build.dir}/docs"/>
 
   <!-- Distribution directories, these are created in the current
    !   directory, unless dist.dir is redefined. Files that will be
@@ -871,6 +872,103 @@
     </javadoc>
 
   </target>
+
+  <!--
+   !   ============================
+   !   Creates custom documentation
+   !   ============================
+   !
+   !  This is currently a bit messy - it's a private target.
+   !-->
+
+  <target name="webpage"
+          depends="build, javadocs"
+          description="-> makes the STIL package web page">
+
+    <!-- Transform XML document to readable formats. -->
+    <xslt in="${src.docs}/stil_sun.xml" style="${src.docs}/toHTML1.xslt" 
+          out="${build.docs}/stil_sun.html">
+      <param name="JAVADOCS" expression="javadocs/"/>
+      <param name="VERSION" expression="${version}"/>
+    </xslt>
+
+    <xslt in="${src.docs}/stil_sun.xml" style="${src.docs}/toHTML.xslt"
+          out="${build.docs}/tmp_multi.html">
+      <param name="JAVADOCS" expression="../javadocs/"/>
+      <param name="VERSION" expression="${version}"/>
+    </xslt>
+    <javac srcdir="${src.docs}" destdir="${build.docs}"
+           includes="MultiHTML.java"/>
+    <java classname="MultiHTML" fork="true" dir="${src.docs}" 
+          classpath="${build.docs}">
+      <arg file="${build.docs}/tmp_multi.html"/>
+      <arg file="${build.docs}/stil_sun"/>
+    </java>
+
+    <!-- Copy auxiliary files to built docs directory. -->
+    <copy todir="${build.docs}">
+      <fileset dir="${src.docs}">
+        <include name="*.gif"/>
+        <include name="*.xml"/>
+      </fileset>
+    </copy>
+    <copy file="${src.docs}/stil.html" tofile="${build.docs}/index.html"/>
+
+    <!-- Full javadocs (includes some external packages) -->
+    <mkdir dir="${build.docs}/javadocs"/>
+    <javadoc useexternalfile="yes"
+             destdir="${build.docs}/javadocs"
+             author="true"
+             version="true"
+             locale="en"
+             windowtitle="STIL"
+             doctitle="STIL"
+             defaultexcludes="yes"
+             source="${source.version}"
+             classpathref="classpath">
+      <package name="uk.ac.starlink.table.*"/>
+      <package name="uk.ac.starlink.votable.*"/>
+      <package name="uk.ac.starlink.fits.*"/>
+      <package name="uk.ac.starlink.mirage.*"/>
+      <package name="uk.ac.starlink.util"/>
+      <sourcepath>
+        <pathelement path="${star.dir}/source/table/src/main"/>
+        <pathelement path="${star.dir}/source/votable/src/main"/>
+        <pathelement path="${star.dir}/source/fits/src/main"/>
+        <pathelement path="${star.dir}/source/mirage/src/main"/>
+        <pathelement path="${star.dir}/source/util/src/main"/>
+      </sourcepath>
+      <link offline="true" href="${javaapi.url}"
+            packagelistLoc="${javaapi.lis}"/>
+      <bottom>Copyright &#169; ${year} \\
+              CLRC: Central Laboratory of the Research Councils.
+              All Rights Reserved.</bottom>
+    </javadoc>
+
+    <zip destfile="${build.docs}/stil_doc.zip">
+      <fileset dir="${star.dir}/source/table/build/classes"/>
+      <fileset dir="${star.dir}/source/votable/build/classes"/>
+      <fileset dir="${star.dir}/source/fits/build/classes"/>
+      <fileset dir="${star.dir}/source/tamfits/build/classes"/>
+      <fileset dir="${star.dir}/source/mirage/build/classes"/>
+      <fileset dir="${star.dir}/source/util/build/classes"
+               includes="uk/ac/starlink/util/*"/>
+      <fileset dir="${build.docs}">
+        <include name="*.html"/>
+        <include name="stil_sun*/**"/>
+      </fileset>
+    </zip>
+
+    <zip destfile="${build.docs}/stil_src.zip">
+      <fileset dir="${star.dir}/source/table/src/main/" includes="**/*.java"/>
+      <fileset dir="${star.dir}/source/votable/src/main/" includes="**/*.java"/>
+      <fileset dir="${star.dir}/source/fits/src/main/" includes="**/*.java"/>
+      <fileset dir="${star.dir}/source/mirage/src/main" includes="**/*.java"/>
+      <fileset dir="${star.dir}/source/util/src/main" includes="**/*.java"/>
+    </zip>
+  </target>
+
+
 
   <!-- This checks if the javadocs are up to date with respect to the
    !   java source, if so then the "javadoc.notrequired" variable is
