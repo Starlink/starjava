@@ -202,6 +202,18 @@ public class HDXImage
     }
 
     /**
+     * Construct a HDXImage from a NDX.
+     *
+     * @param ndx the Ndx reference.
+     */
+    public HDXImage( Ndx ndx )
+        throws IOException
+    {
+        ndxs.add( ndx );
+        setNDX( 0 );
+    }
+
+    /**
      * Create a HDXImage from a w3c Document.
      *
      * @param Document HDX structure
