@@ -235,6 +235,7 @@ public class ControlWindow extends AuxWindow
        
         /* Add general control buttons to the toolbar. */
         JToolBar toolBar = getToolBar();
+        toolBar.setFloatable( true );
         toolBar.add( readAct ).setTransferHandler( importTransferHandler );
         toolBar.add( matchAct );
         toolBar.add( concatAct );
@@ -293,6 +294,9 @@ public class ControlWindow extends AuxWindow
             winMenu.add( showActions[ i ] );
         }
         getJMenuBar().add( winMenu );
+
+        /* Mark this window as top-level. */
+        setCloseIsExit();
 
         /* Add help information. */
         addHelp( "ControlWindow" );

@@ -55,6 +55,7 @@ public class AuxWindow extends JFrame {
     private JPanel mainArea;
     private JPanel controlPanel;
     private JMenuBar menuBar;
+    private boolean closeIsExit;
 
     private Action aboutAct;
     private Action closeAct;
@@ -91,7 +92,8 @@ public class AuxWindow extends JFrame {
         menuBar.add( fileMenu );
         closeAct = new AuxAction( "Close", ResourceIcon.CLOSE,
                                   "Close this window" );
-        exitAct = new AuxAction( "Exit", null, "Exit the application" );
+        exitAct = new AuxAction( "Exit", ResourceIcon.EXIT,
+                                 "Exit the application" );
         JMenuItem closeItem = fileMenu.add( closeAct );
         closeItem.setMnemonic( KeyEvent.VK_C );
         if ( Driver.isStandalone() ) {
@@ -101,8 +103,7 @@ public class AuxWindow extends JFrame {
 
         /* Set up a toolbar. */
         toolBar = new JToolBar();
-        toolBar.add( closeAct );
-        toolBar.addSeparator();
+        toolBar.setFloatable( false );
         getContentPane().add( toolBar, BorderLayout.NORTH );
 
         /* Divide the main area into heading, main area, and control panels. */
@@ -124,10 +125,10 @@ public class AuxWindow extends JFrame {
     }
 
     /**
-     * Adds help actions to this window, in the menu and toolbar.
+     * Adds standard actions to this window, in the menu and toolbar.
      * This method should generally be called by subclasses after they
      * have added any other menus and toolbar buttons specific to their
-     * function, since the help buttons appear as the last ones.
+     * function, since the standard buttons appear as the last ones.
      * <p>
      * An ID can be supplied to indicate the page which should be shown
      * in the help viewer when context-sensitive help is requested.
@@ -154,7 +155,6 @@ public class AuxWindow extends JFrame {
 
         /* Add it to the tool bar. */
         toolBar.add( helpAct );
-        toolBar.addSeparator();
 
         /* Add one or two items to the help menu. */
         if ( helpID != null ) {
@@ -166,6 +166,9 @@ public class AuxWindow extends JFrame {
         /* Add an About action. */
         aboutAct = new AuxAction( "About TOPCAT", null, null );
         helpMenu.add( aboutAct );
+
+        /* Add a close button. */
+        toolBar.add( closeIsExit ? exitAct : closeAct );
     }
 
     /**
@@ -197,6 +200,32 @@ public class AuxWindow extends JFrame {
         JProgressBar progBar = new JProgressBar();
         getContentPane().add( progBar, BorderLayout.SOUTH );
         return progBar;
+    }
+
+    /**
+     * Irrevocably marks this window as one for which the Close action has
+     * the same effect as the Exit action.  Any Close invocation buttons
+     * are replaced with exit ones, duplicates removed, etc.
+     * Should be called <em>before</em> any call to {@link #addHelp}.
+     */
+    public void setCloseIsExit() {
+        closeIsExit = true;
+
+        /* Remove any Close item in the File menu. */
+        boolean exitFound = false;
+        for ( int i = fileMenu.getItemCount() - 1; i >= 0; i-- ) {
+            JMenuItem item = fileMenu.getItem( i );
+            if ( item != null ) {
+                Action act = item.getAction();
+                if ( act == closeAct ) {
+                    fileMenu.remove( item );
+                }
+                else if ( act == exitAct ) {
+                    exitFound = true;
+                }
+            }
+        }
+        assert exitFound;
     }
 
     /**
@@ -265,7 +294,6 @@ public class AuxWindow extends JFrame {
     public Image getIconImage() {
         return ResourceIcon.TOPCAT.getImage();
     }
-
 
     /**
      * Returns the "About" message.  It's an array of strings, one per line.
