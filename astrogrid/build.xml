@@ -196,10 +196,13 @@
   <extclasspath id="installed.classpath">
 
     <!-- AstroGrid CDK -->
-    <pathelement location="${star.jar.dir}/astrogrid/astrogrid.jar"/>
+    <pathelement location="${star.jar.dir}/aglib/aglib.jar"/>
 
     <!-- Table -->
     <pathelement location="${star.jar.dir}/table/table.jar"/>
+
+    <!-- VO -->
+    <pathelement location="${star.jar.dir}/vo/vo.jar"/>
 
   </extclasspath>
 
@@ -222,9 +225,11 @@
   <extclasspath id="built.jarpath">
 
     <pathelement 
-       location="${star.build.dir}/astrogrid/lib/astrogrid/astrogrid.jar"/>
+       location="${star.build.dir}/aglib/lib/aglib/aglib.jar"/>
     <pathelement 
        location="${star.build.dir}/table/lib/table/table.jar"/>
+    <pathelement
+       location="${star.build.dir}/vo/lib/vo/vo.jar"/>
 
   </extclasspath>
 
@@ -318,17 +323,23 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!-- AstroGrid -->
-    <available property="astrogrid.present"
+    <!-- AGLIB -->
+    <available property="aglib.present"
                classpathref="classpath"
                classname="org.astrogrid.store.tree.TreeClient"/>
-    <fail message="No AstroGrid available" unless="astrogrid.present"/>
+    <fail message="No AGLIB available" unless="aglib.present"/>
 
     <!-- Table -->
     <available property="table.present"
                classpathref="classpath"
                classname="uk.ac.starlink.table.StarTable"/>
     <fail message="No Table available" unless="table.present"/>
+
+    <!-- VO -->
+    <available property="vo.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.vo.RemoteTreeBrowser"/>
+    <fail message="No VO available" unless="vo.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
