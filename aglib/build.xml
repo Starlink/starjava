@@ -174,7 +174,7 @@
      !   pointing to the other jars. -->
     <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/aglib.jar"
-         basedir="${dist.dir}" excludes="**">
+         basedir="${src.dir}/resources">
 
       <!-- Create the manifest, note wraps in column 80 are done
        !   automatically, so just use a single line. Dependencies
@@ -226,7 +226,15 @@
 
       <resources>
         <j2se version="1.4+"/>
+
+        <!-- Alternative 1 - JNLP files got locally. -->
         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+
+        <!-- Alternative 2 - JNLP files got from AstroGrid. -->
+        <!--
+          <extension href="http://software.astrogrid.org/jnlp/astrogrid-cdk-core/astrogrid-cdk-core.jnlp" name="ASTROGRID-CDK"/>
+        -->
+
       </resources>
 
       <component_desc/>

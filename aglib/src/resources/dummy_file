@@ -1,0 +1,4 @@
+This file is for inclusion in aglib.jar, a jar file which exists only
+for its manifest.
+It's here only because javaws 1.2 has trouble with jar files that contain
+no entries.
