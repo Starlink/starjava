@@ -1177,13 +1177,16 @@ public class TableViewer extends AuxWindow
         setStandalone( true );
         if ( args.length > 0 ) {
             int nok = 0;
+            boolean help = false;
             TableViewer lastViewer = null;
             for ( int i = 0; i < args.length; i++ ) {
 
                 /* Deal with any known flags. */
                 if ( args[ i ].startsWith( "-h" ) ) {
-                    System.out.println( usage );
-                    System.exit( 0 );
+                    System.out.println( "Displaying help browser" );
+                    help = true;
+                    HelpWindow.getInstance( null );
+                    break;
                 }
 
                 /* Try to interpret each command line argument as a 
@@ -1220,7 +1223,7 @@ public class TableViewer extends AuxWindow
             }
 
             /* Bail out in any case if we have no working tables. */
-            if ( nok == 0 ) {
+            if ( nok == 0 && ! help ) {
                 System.exit( 1 );
             }
         }
