@@ -669,7 +669,8 @@ public class SSAQueryBrowser
      * selected parameter determines the behaviour of all or just the selected
      * spectra.
      */
-    protected void displaySpectra( boolean selected, StarJTable table, int row )
+    protected void displaySpectra( boolean selected, StarJTable table, 
+                                   int row )
     {
         //  List of all spectra to be loaded and their data formats and short
         //  names.
@@ -787,7 +788,7 @@ public class SSAQueryBrowser
             if ( linkcol != -1 ) {
                 RowSequence rseq = null;
                 try {
-                    if ( ! selected ) {
+                    if ( ! selected && selection == null ) {
                         //  Using all rows.
                         rseq = starTable.getRowSequence();
                         while ( rseq.hasNext() ) {
