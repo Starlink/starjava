@@ -253,14 +253,14 @@
           description="--> generate the complete java documentation">
 
      <!-- First make the all the java source available in a suitable
-      !   fashion for gathering together into a single fileset-->
+      !   fashion for gathering together. -->
      <antcall target="call_package_ant">
         <param name="what" value="javadoc-sources"/>
      </antcall>
 
      <!-- A bug in 1.4.0 means that all return types (arrays?) must be
-      !   on the classpath, so we need this for the
-      !   present (otherwise javadoc hangs). Supposedly fixed in 1.4.1
+      !   on the classpath, so we need this for the present (otherwise      
+      !   javadoc hangs). Supposedly fixed in 1.4.1
       !-->
      <path id="classpath">
        <dirset dir="${star.build.dir}">
@@ -270,14 +270,6 @@
           <include name="*/lib/*/*.jar"/>
        </fileset>
      </path>
-
-     <path id="sourcepath">
-       <dirset dir="${star.build.dir}" id="sourcepathdirs">
-          <include name="*/build/java"/>
-       </dirset>
-     </path>
-     <property name="sourcepathvalue" refid="sourcepath"/>
-     <echo message="${sourcepathvalue}"/>
 
      <mkdir dir="${docs.javadocs}"/>
      <javadoc useexternalfile="yes"
