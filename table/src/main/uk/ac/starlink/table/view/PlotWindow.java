@@ -35,7 +35,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
  */
 public class PlotWindow extends AuxWindow implements ActionListener {
 
-    private StarTableModel stmodel;
+    private ExtendedStarTableModel stmodel;
     private TableColumnModel tcmodel;
     private JComboBox xColBox;
     private JComboBox yColBox;
@@ -52,12 +52,11 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      * @param   tcmodel  the TableColumn
      * @param   parent  the parent component
      */
-    public PlotWindow( StarTableModel stmodel, TableColumnModel tcmodel,
+    public PlotWindow( ExtendedStarTableModel stmodel, TableColumnModel tcmodel,
                        Component parent ) {
         super( "Table Plotter", stmodel, parent );
         this.stmodel = stmodel;
         this.tcmodel = tcmodel;
-        StarTable startab = getStarTable();
 
         /* Do some window setup. */
         setSize( 400, 400 );
@@ -79,8 +78,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         yColBox = new JComboBox();
         int nok = 0;
         for ( int i = 0; i < tcmodel.getColumnCount(); i++ ) {
-            int index = tcmodel.getColumn( i ).getModelIndex();
-            ColumnInfo cinfo = startab.getColumnInfo( index );
+            StarTableColumn tcol = (StarTableColumn) tcmodel.getColumn( i );
+            ColumnInfo cinfo = tcol.getColumnInfo();
+            int index = tcol.getModelIndex();
             if ( Number.class.isAssignableFrom( cinfo.getContentClass() ) ) {
                 ColumnEntry colent = new ColumnEntry( cinfo, index );
                 xColBox.addItem( colent );
@@ -118,9 +118,10 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             public void columnAdded( TableColumnModelEvent evt ) {
                 TableColumnModel tcmodel = PlotWindow.this.tcmodel;
                 assert tcmodel == evt.getSource();
-                TableColumn added = tcmodel.getColumn( evt.getToIndex() );
+                StarTableColumn added = (StarTableColumn)
+                                        tcmodel.getColumn( evt.getToIndex() );
                 int index = added.getModelIndex();
-                ColumnInfo cinfo = ((StarTableColumn) added).getColumnInfo();
+                ColumnInfo cinfo = added.getColumnInfo();
                 if ( Number.class
                            .isAssignableFrom( cinfo.getContentClass() ) ) {
                     ColumnEntry colent = new ColumnEntry( cinfo, index );
@@ -164,22 +165,12 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     }
 
     /**
-     * Returns the StarTable whose data is being plotted here.
-     *
-     * @param the startable
-     */
-    private StarTable getStarTable() {
-        return stmodel.getStarTable();
-    }
-
-    /**
      * Returns a plot component based on a given plotting state.
      *
      * @param  state  the PlotState determining plot characteristics
      * @return  a PlotBox component representing the plot
      */
     private PlotBox makePlot( PlotState state ) {
-        StarTable startab = getStarTable();
         int xcol = state.xCol.index;
         int ycol = state.yCol.index;
         ColumnInfo xColumn = state.xCol.info;
@@ -191,32 +182,24 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             plot.setMarksStyle( "dots", 0 );
             plot.setXLog( state.xLog );
             plot.setYLog( state.yLog );
-            try {
-                int nrow = 0;
-                int ngood = 0;
-                for ( RowSequence rseq = startab.getRowSequence();
-                      rseq.hasNext(); ) {
-                    rseq.next();
-                    Object xval = rseq.getCell( xcol );
-                    Object yval = rseq.getCell( ycol );
-                    if ( xval instanceof Number &&
-                         yval instanceof Number ) {
-                        double x = ((Number) xval).doubleValue();
-                        double y = ((Number) yval).doubleValue();
-                        if ( state.xLog && x <= 0.0 ||
-                             state.yLog && y <= 0.0 ) {
-                            // can't take log of negative value
-                        }
-                        else {
-                            plot.addPoint( 0, x, y, state.plotline );
-                        }
-                        ngood++;
+            int nrow = stmodel.getRowCount();
+            int ngood = 0;
+            for ( int irow = 0; irow < nrow; irow++ ) {
+                Object xval = stmodel.getValueAt( irow, xcol );
+                Object yval = stmodel.getValueAt( irow, ycol );
+                if ( xval instanceof Number &&
+                     yval instanceof Number ) {
+                    double x = ((Number) xval).doubleValue();
+                    double y = ((Number) yval).doubleValue();
+                    if ( state.xLog && x <= 0.0 ||
+                         state.yLog && y <= 0.0 ) {
+                        // can't take log of negative value
                     }
-                    nrow++;
+                    else {
+                        plot.addPoint( 0, x, y, state.plotline );
+                    }
+                    ngood++;
                 }
-            }
-            catch ( IOException e ) {
-                e.printStackTrace();
             }
         }
         else {
@@ -224,7 +207,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         }
 
         /* Generic configuration. */
-        plotbox.setTitle( startab.getName() );
+        plotbox.setTitle( stmodel.getStarTable().getName() );
 
         /* Axis labels. */
         String xName = xColumn.getName();

@@ -21,10 +21,10 @@ public class ColumnInfoWindow extends AuxWindow {
 
     private JTable jtab;
     private TableColumnModel tcmodel;
-    private StarTableModel stmodel;
+    private ExtendedStarTableModel stmodel;
 
-    public ColumnInfoWindow( StarTableModel stmodel, TableColumnModel tcmodel,
-                             Component parent ) {
+    public ColumnInfoWindow( ExtendedStarTableModel stmodel, 
+                             TableColumnModel tcmodel, Component parent ) {
         super( "Table Columns", stmodel, parent );
         this.tcmodel = tcmodel;
         this.stmodel = stmodel;

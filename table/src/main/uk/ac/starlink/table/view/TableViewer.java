@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -25,20 +26,24 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+import uk.ac.starlink.table.AbstractStarTable;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.StarTableChooser;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.table.gui.StarTableSaver;
-import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.StarTableOutput;
-import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableRowHeader;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
@@ -62,10 +67,11 @@ public class TableViewer extends JFrame {
      * object itself around is no good for this since it does not have
      * all the necessary machinery of listeners and event handling.
      */
-    private StarTableModel stmodel;
+    private ExtendedStarTableModel stmodel;
     private TableColumnModel tcmodel;
 
     private StarJTable jtab;
+    private JTable rowHead;
     private JScrollPane scrollpane;
     private Action exitAct;
     private Action closeAct;
@@ -77,6 +83,7 @@ public class TableViewer extends JFrame {
     private Action plotAct;
     private Action paramAct;
     private Action colinfoAct;
+    private Action unsortAct;
 
     private static StarTableFactory tabfact = new StarTableFactory();
     private static StarTableOutput taboutput = new StarTableOutput();
@@ -86,6 +93,8 @@ public class TableViewer extends JFrame {
     private static WindowTracker wtracker = new WindowTracker();
     private static final String DEFAULT_TITLE = "Table Viewer";
 
+    private static int MAX_COLUMN_WIDTH = 300;
+    private static int MAX_SAMPLE_ROWS = 20;
     /**
      * Constructs a new TableViewer not initially viewing any table.
      *
@@ -117,7 +126,15 @@ public class TableViewer extends JFrame {
         jtab.setColumnSelectionAllowed( true );
         scrollpane = new SizingScrollPane( jtab );
         getContentPane().add( scrollpane, BorderLayout.CENTER );
-        scrollpane.setRowHeaderView( new TableRowHeader( jtab ) );
+
+        /* Set up row header panel. */
+        rowHead = new TableRowHeader( jtab ) {
+            public int rowNumber( int irow ) {
+                int[] rowMap = stmodel.getRowPermutation();
+                return ( ( rowMap == null ) ? irow : rowMap[ irow ] ) + 1;
+            }
+        };
+        scrollpane.setRowHeaderView( rowHead );
 
         /* Create and configure actions. */
         exitAct = new ViewerAction( "Exit", 0,
@@ -137,10 +154,12 @@ public class TableViewer extends JFrame {
                                       "Launch Mirage to display this table" );
         plotAct = new ViewerAction( "Plot", 0,
                                     "Plot columns from this table" );
-        paramAct = new ViewerAction( "Parameters", 0,
+        paramAct = new ViewerAction( "Table parameters", 0,
                                      "Display table metadata" );
-        colinfoAct = new ViewerAction( "Columns", 0,
+        colinfoAct = new ViewerAction( "Column metadata", 0,
                                        "Display column metadata" );
+        unsortAct = new ViewerAction( "Unsort", 0,
+                                      "Display in original order" );
 
         /* Configure the table. */
         if ( startab != null ) {
@@ -223,15 +242,30 @@ public class TableViewer extends JFrame {
      */
     public void setStarTable( StarTable startab ) {
         if ( startab != null ) {
+
+            /* Ensure that we have random access. */
             if ( ! startab.isRandom() ) {
                 throw new IllegalArgumentException( 
                     "Can't use non-random table" );
             }
-            jtab.setStarTable( startab, false );
+
+            /* Construct a TableModel which will contain the StarTable,
+             * and also allow some additional functionality such as 
+             * row permutation and column addition. */
+            stmodel = new ExtendedStarTableModel( startab );
+
+            /* Construct a corresponding TableColumnModel. */
+            tcmodel = new DefaultTableColumnModel();
+            for ( int icol = 0; icol < startab.getColumnCount(); icol++ ) {
+                ColumnInfo cinfo = startab.getColumnInfo( icol );
+                tcmodel.addColumn( new StarTableColumn( cinfo, icol ) );
+            }
+
+            /* Configure the JTable. */
+            jtab.setModel( stmodel );
+            jtab.setColumnModel( tcmodel );
             scrollpane.getViewport().setViewPosition( new Point( 0, 0 ) );
-            stmodel = (StarTableModel) jtab.getModel();
-            tcmodel = jtab.getColumnModel();
-            jtab.configureColumnWidths( 300, 20 );
+            jtab.configureColumnWidths( MAX_COLUMN_WIDTH, MAX_SAMPLE_ROWS );
         }
         else {
             jtab.setStarTable( null, false );
@@ -240,6 +274,54 @@ public class TableViewer extends JFrame {
         }
         setTitle( AuxWindow.makeTitle( DEFAULT_TITLE, startab ) );
         configureActions();
+    }
+
+    /**
+     * Appends a new column to the existing table at a given column index.
+     * This method appends a column to the TableModel, fixes the 
+     * TableColumnModel to put it in at the right place, and 
+     * ensures that everybody is notified about what has gone on.
+     *
+     * @param  colIndex  the column index at which the new column is
+     *         to be appended
+     */
+    public void appendColumn( ColumnData col, int colIndex ) {
+
+        /* Check that we are not trying to add the column beyond the end of
+         * the table. */
+        if ( colIndex > tcmodel.getColumnCount() ) {
+            throw new IllegalArgumentException();
+        }
+
+        /* Add the column to the table model itself. */
+        stmodel.addColumn( col );
+
+        /* Add the new column to the column model. */
+        TableColumn tc = new StarTableColumn( col.getColumnInfo(),
+                                              stmodel.getColumnCount() - 1 );
+        tcmodel.addColumn( tc );
+
+        /* Move the new column to the requested position. */
+        tcmodel.moveColumn( tcmodel.getColumnCount() - 1, colIndex );
+
+        /* Set its width. */
+        StarJTable.configureColumnWidth( jtab, MAX_COLUMN_WIDTH,
+                                         MAX_SAMPLE_ROWS, colIndex );
+    }
+
+    /**
+     * Returns a label for a given column.  This will normally be the
+     * column's name, but if it doesn't have one, it may be a number or
+     * something.
+     *
+     * @param  icol  the index of the column in this viewer's TableModel 
+     */
+    public String getColumnLabel( int icol ) {
+        String name = stmodel.getColumnName( icol );
+        if ( name == null || name.toString().trim().length() == 0 ) {
+            name = "$" + icol;
+        }
+        return name;
     }
 
     /**
@@ -266,13 +348,14 @@ public class TableViewer extends JFrame {
      *          <tt>stmodel</tt> appear to display
      */
     public static StarTable getApparentStarTable( TableColumnModel tcmodel,
-                                                  StarTableModel stmodel ) {
+                                              ExtendedStarTableModel stmodel ) {
         int ncol1 = tcmodel.getColumnCount();
         int[] colmap = new int[ ncol1 ];
         for ( int i = 0; i < ncol1; i++ ) {
             colmap[ i ] = tcmodel.getColumn( i ).getModelIndex();
         }
-        return new ColumnPermutedStarTable( stmodel.getStarTable(), colmap );
+        return new ColumnPermutedStarTable( stmodel.getApparentStarTable(), 
+                                            colmap );
     }
 
     /**
@@ -307,6 +390,17 @@ public class TableViewer extends JFrame {
             saver.setStarTableOutput( taboutput );
         }
         return saver;
+    }
+
+    /**
+     * Change the order that the table rows are displayed in.
+     *
+     * @param  rowMap  new table model to table view row mapping.
+     *         May be null to indicate natural order.
+     */
+    private void permuteRows( int[] rowMap ) {
+        stmodel.permuteRows( rowMap );
+        rowHead.tableChanged( new TableModelEvent( rowHead.getModel() ) );
     }
 
     /**
@@ -347,12 +441,34 @@ public class TableViewer extends JFrame {
      */
     private JPopupMenu columnPopup( final int jcol ) {
         JPopupMenu popper = new JPopupMenu();
+
         Action deleteAct = new AbstractAction( "Delete" ) {
             public void actionPerformed( ActionEvent evt ) {
                 tcmodel.removeColumn( tcmodel.getColumn( jcol ) );
             }
         };
         popper.add( deleteAct );
+
+  // Doesn't yet provide a useful service
+  //    Action addcolAct = new AbstractAction( "New column" ) {
+  //        public void actionPerformed( ActionEvent evt ) {
+  //            Component parent = TableViewer.this;
+  //            ColumnData coldata = new ColumnDialog( stmodel, parent )
+  //                                .getColumn();
+  //            if ( coldata != null ) {
+  //                appendColumn( coldata, jcol + 1 );
+  //            }
+  //        }
+  //    };
+  //    popper.add( addcolAct );
+
+        int icol = tcmodel.getColumn( jcol ).getModelIndex();
+        if ( Comparable.class.isAssignableFrom( stmodel.getColumnInfo( icol )
+                                               .getContentClass() ) ) {
+            popper.add( new SortAction( icol, true ) );
+            popper.add( new SortAction( icol, false ) );
+        }
+
         return popper;
     }
 
@@ -442,12 +558,105 @@ public class TableViewer extends JFrame {
                .register( new ColumnInfoWindow( stmodel, tcmodel, parent ) );
             }
 
+            else if ( this == unsortAct ) {
+                permuteRows( null );
+            }
+
             /* Shouldn't happen. */
             else {
                 throw new AssertionError( 
                     "Unhandled action (programming error)" );
             }
         }
+    }
+
+    /**
+     * Class defining an Action which does table sorting.  The sort is
+     * effected by creating a mapping between model rows and (sorted)
+     * view rows, and installing this into this viewer's 
+     * ExtendedStarTableModel.
+     */
+    private class SortAction extends AbstractAction {
+        private int icol;
+        private boolean ascending;
+
+        /**
+         * Constructs a new SortAction which will sort in a given direction
+         * based on a given column.
+         *
+         * @param  icol  the index of the column to be sorted on in 
+         *               this viewer's model 
+         * @param  ascending  true for ascending sort, false for descending
+         */
+        public SortAction( int icol, boolean ascending ) {
+            super( "Sort " + ( ascending ? "up" : "down" ) );
+            this.icol = icol;
+            this.ascending = ascending;
+            putValue( SHORT_DESCRIPTION, "Sort rows by ascending value of " 
+                                       + getColumnLabel( icol ) );
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            try {
+                permuteRows( getSortOrder( icol, ascending ) );
+            }
+            catch ( IOException e ) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Returns a row mapping array which gives the sort order corresponding
+     * to a sort on values in a given column.
+     *
+     * @param  icol  the index of the column to be sorted on in 
+     *               this viewer's model 
+     * @param  ascending  true for ascending sort, false for descending
+     */
+    private int[] getSortOrder( int icol, final boolean ascending )
+            throws IOException {
+
+        /* Define a little class for objects being sorted. */
+        class Item implements Comparable { 
+            int rank;
+            Comparable value;
+            int sense = ascending ? 1 : -1;
+            public int compareTo( Object o ) {
+                if ( value != null && o != null ) {
+                    return sense * 
+                           value.compareTo( (Comparable) ((Item) o).value );
+                }
+                else if ( value == null && o == null ) {
+                    return 0;
+                }
+                else {
+                    return sense * ( ( value == null ) ? 1 : -1 );
+                }
+            }
+        }
+
+        /* Construct a list of all the elements in the given column. */
+        int nrow = AbstractStarTable.checkedLongToInt( stmodel.getRowCount() );
+        ColumnData coldata = stmodel.getColumnData( icol );
+        Item[] items = new Item[ nrow ];
+        for ( int i = 0; i < nrow; i++ ) {
+            Item item = new Item();
+            item.rank = i;
+            item.value = (Comparable) coldata.readValue( (long) i );
+            items[ i ] = item;
+        }
+
+        /* Sort the list on the ordering of the items. */
+        Arrays.sort( items );
+
+        /* Construct and return a list of reordered ranks from the 
+         * sorted array. */
+        int[] rowMap = new int[ nrow ];
+        for ( int i = 0; i < nrow; i++ ) {
+            rowMap[ i ] = items[ i ].rank;
+        }
+        return rowMap;
     }
 
     /**
