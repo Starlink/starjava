@@ -63,10 +63,11 @@ public class TextStarTable extends AbstractStarTable {
     private Decoder[] decoders_;
     private List comments_;
     private boolean[] maybeBoolean_;
+    private boolean[] maybeShort_;
     private boolean[] maybeInteger_;
+    private boolean[] maybeLong_;
     private boolean[] maybeFloat_;
     private boolean[] maybeDouble_;
-    private boolean[] maybeLong_;
     private int[] stringLength_;
     private boolean dataStarted_;
     private List cellList_ = new ArrayList();
@@ -192,6 +193,14 @@ public class TextStarTable extends AbstractStarTable {
                     }
                 };
             }
+            else if ( maybeShort_[ icol ] ) {
+                colinfo = new ColumnInfo( name, Short.class, null );
+                decoder = new Decoder() {
+                    Object decode( String value ) {
+                        return new Short( Short.parseShort( value ) );
+                    }
+                };
+            }
             else if ( maybeInteger_[ icol ] ) {
                 colinfo = new ColumnInfo( name, Integer.class, null );
                 decoder = new Decoder() {
@@ -248,8 +257,9 @@ public class TextStarTable extends AbstractStarTable {
     private void initMetadata( int ncol ) {
         ncol_ = ncol;
         maybeBoolean_ = makeFlagArray( true );
+        maybeShort_ = makeFlagArray( true );
         maybeInteger_ = makeFlagArray( true );
-        maybeFloat_ = makeFlagArray( false );
+        maybeFloat_ = makeFlagArray( true );
         maybeDouble_ = makeFlagArray( true );
         maybeLong_ = makeFlagArray( true );
         stringLength_ = new int[ ncol ];
@@ -295,6 +305,15 @@ public class TextStarTable extends AbstractStarTable {
                     maybeBoolean_[ icol ] = false;
                 }
             }
+            if ( ! done && maybeShort_[ icol ] ) {
+                try {
+                    Short.parseShort( cell );
+                    done = true;
+                }
+                catch ( NumberFormatException e ) {
+                    maybeShort_[ icol ] = false;
+                }
+            }
             if ( ! done && maybeInteger_[ icol ] ) {
                 try {
                     Integer.parseInt( cell );
@@ -304,21 +323,22 @@ public class TextStarTable extends AbstractStarTable {
                     maybeInteger_[ icol ] = false;
                 }
             }
-            if ( ! done && maybeFloat_[ icol ] ) {
+            if ( ! done && ( maybeFloat_[ icol ] || maybeDouble_[ icol ] ) ) {
                 try {
-                    Float.parseFloat( cell );
+                    ParsedFloat pf = parseFloating( cell );
+                    if ( maybeFloat_[ icol ] ) {
+                        if ( pf.sigFig > 7 ) {
+                            maybeFloat_[ icol ] = false;
+                        }
+                        else if ( ! Double.isInfinite( pf.dValue ) &&
+                                  Float.isInfinite( (float) pf.dValue ) ) {
+                            maybeFloat_[ icol ] = false;
+                        }
+                    }
                     done = true;
                 }
                 catch ( NumberFormatException e ) {
                     maybeFloat_[ icol ] = false;
-                }
-            }
-            if ( ! done && maybeDouble_[ icol ] ) {
-                try {
-                    Double.parseDouble( cell );
-                    done = true;
-                }
-                catch ( NumberFormatException e ) {
                     maybeDouble_[ icol ] = false;
                 }
             }
@@ -585,6 +605,96 @@ public class TextStarTable extends AbstractStarTable {
                 break;
             }
         }
+    }
+
+    /**
+     * Helper class to encapsulate the result of a floating point number 
+     * parse.
+     */
+    private static class ParsedFloat {
+
+        /** Singleton instance. */
+        static ParsedFloat instance = new ParsedFloat();
+
+        /** Number of significant figures. */
+        int sigFig;
+
+        /** Value of the number. */
+        double dValue;
+
+        /**
+         * Returns an instance with given values.  This is always the
+         * same instance - cheap, and possible, because we happen to know
+         * only one instance is ever considered at once.
+         */
+        static ParsedFloat getInstance( int sigFig, double dValue ) {
+            instance.sigFig = sigFig;
+            instance.dValue = dValue;
+            return instance;
+        }
+    }
+
+    /**
+     * Parses a floating point value.  This does a couple of extra things
+     * than Double.parseDouble - it understands 'd' or 'D' as the exponent
+     * signifier as well as 'e' or 'E', and it counts the number of
+     * significant figures.
+     *
+     * @param   item  string representing a floating point number
+     * @return  object encapsulating information about the floating pont
+     *          value extracted from <tt>item</tt> - note it's always the
+     *          same instance returned, so don't hang onto it
+     * @throws  NumberFormatException  if <tt>item</tt> can't be understood
+     *          as a float or double
+     */
+    private static ParsedFloat parseFloating( String item ) {
+
+        /* Do a couple of jobs by looking at the string directly:
+         * Substitute 'd' or 'D' which may indicate an exponent in 
+         * FORTRAN77-style output for an 'e', and count the number of
+         * significant figures.  With some more work it would be possible
+         * to do the actual parse here, but since this probably isn't
+         * a huge bottleneck we leave it to Double.parseDouble. */
+        int nc = item.length();
+        boolean foundExp = false;
+        int sigFig = 0;
+        for ( int i = 0; i < nc; i++ ) {
+            char c = item.charAt( i );
+            switch ( c ) {
+                case 'd':
+                case 'D':
+                    if ( ! foundExp ) {
+                        StringBuffer sbuf = new StringBuffer( item );
+                        sbuf.setCharAt( i, 'e' );
+                        item = sbuf.toString();
+                    }
+                    foundExp = true;
+                    break;
+                case 'e':
+                case 'E':
+                    foundExp = true;
+                    break;
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    if ( ! foundExp ) {
+                        sigFig++;
+                    }
+                    break;
+                default:
+            }
+        }
+
+        /* Parse the number. */
+        double dvalue = Double.parseDouble( item );
+        return ParsedFloat.getInstance( sigFig, dvalue );
     }
 
     /**
