@@ -205,7 +205,7 @@ public class ImageHDUDataNode extends HDUDataNode {
             dv.addSeparator();
             dv.addKeyedItem( "HDU type", hduType );
             if ( shape != null ) {
-                dv.addKeyedItem( "Shape", shape );
+                dv.addKeyedItem( "Shape", NDShape.toString( shape.getDims() ) );
             }
             if ( dataType != null ) {
                 dv.addKeyedItem( "Pixel type", dataType ); 
