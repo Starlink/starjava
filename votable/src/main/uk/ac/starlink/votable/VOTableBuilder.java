@@ -162,13 +162,17 @@ public class VOTableBuilder implements TableBuilder {
      * access to the data is required.  
      * Invocation of this method should be cheap on memory even
      * for large XML documents and/or tables.
+     * Invocation is synchronous, so the method only returns when the
+     * streaming has been done (successfully or otherwise).
      *
      * @param  istrm  stream from which the VOTable document will be supplied
      * @param  sink   callback interface into which the table metadata and
      *                data will be dumped
      * @param  index  if present, a string representation of the index of
      *                the table in the document to be read - "0" means the
-     *                first one encountered, "1" means the second, etc
+     *                first one encountered, "1" means the second, etc.
+     *                If it's <tt>null</tt> or not of numeric form the 
+     *                first table will be used
      */
     public void streamStarTable( InputStream istrm, TableSink sink, 
                                  String index ) throws IOException {
