@@ -1,8 +1,12 @@
 package uk.ac.starlink.topcat;
 
 import gnu.jel.CompilationException;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
@@ -19,13 +24,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableColumn;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.func.Image;
-import uk.ac.starlink.topcat.func.Sog;
-import uk.ac.starlink.topcat.func.Splat;
+import uk.ac.starlink.topcat.func.Spectrum;
 
 /**
  * A dialogue window which queries the user for a new activation action
@@ -53,30 +60,54 @@ public class ActivationQueryWindow extends QueryWindow {
         ActivatorFactory[] factories = new ActivatorFactory[] {
             new NopActivatorFactory(),
             new CutoutActivatorFactory(),
-            new SogActivatorFactory(),
             new ImageActivatorFactory(),
-            new SplatActivatorFactory(),
+            new SpectrumActivatorFactory(),
             new JELActivatorFactory(),
         };
 
         /* Set up the window outline. */
-        JComponent mainBox = Box.createVerticalBox();
-        mainBox.add( Box.createHorizontalStrut( 400 ) );
+        GridBagLayout layer = new GridBagLayout();
+        GridBagConstraints bc = new GridBagConstraints();
+        bc.gridy = 0;
+        bc.gridx = 0;
+        bc.ipadx = 4;
+        bc.ipady = 4;
+        bc.insets = new Insets( 2, 2, 2, 2 );
+        bc.anchor = GridBagConstraints.WEST;
+        GridBagConstraints qc = (GridBagConstraints) bc.clone();
+        qc.gridx++;
+        qc.fill = GridBagConstraints.BOTH;
+        qc.weightx = 1.0;
+        JComponent mainBox = new JPanel( layer );
         getMainArea().add( mainBox );
 
         /* Add a new row for each activator factory. */
         ButtonGroup buttGroup = new ButtonGroup();
         for ( int i = 0; i < factories.length; i++ ) {
             ActivatorFactory fact = factories[ i ];
+            fact.setEnabled( false );
+
+            /* Place radio button. */
             JRadioButton butt = fact.button_;
             butt.setEnabled( fact.isPossible() );
             buttGroup.add( butt );
-            Box hbox = Box.createHorizontalBox();
-            hbox.add( butt );
-            hbox.add( fact.getQueryComponent() );
-            hbox.add( Box.createHorizontalGlue() );
-            mainBox.add( hbox );
-            fact.setEnabled( false );
+            layer.setConstraints( butt, bc );
+            mainBox.add( butt );
+
+            /* Place query component. */
+            JComponent query = fact.getQueryComponent();
+            Border border = BorderFactory
+                           .createBevelBorder( BevelBorder.RAISED );
+            border = BorderFactory
+                    .createCompoundBorder( border,
+                         BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+            query.setBorder( border );
+            layer.setConstraints( query, qc );
+            mainBox.add( query );
+           
+            /* Update constraints. */
+            bc.gridy++;
+            qc.gridy++;
         }
         factories[ 0 ].button_.setSelected( true );
 
@@ -107,6 +138,20 @@ public class ActivationQueryWindow extends QueryWindow {
     }
 
     /**
+     * Returns a label which identifies a particular column in this window's
+     * table.  Used for labelling display windows.
+     *
+     * @param   tcol  column
+     * @return   label
+     */
+    private String getWindowLabel( TableColumn tcol ) {
+        String tname = tcol instanceof StarTableColumn 
+                     ? ((StarTableColumn) tcol).getColumnInfo().getName()
+                     : tcol.getHeaderValue().toString();
+        return tname + "(" + tcModel_.getID() + ")";
+    }
+
+    /**
      * Helper class defining the appearance and fucntionality of an
      * option for creating new Activator objects on the basis of
      * user selections.
@@ -115,6 +160,7 @@ public class ActivationQueryWindow extends QueryWindow {
         String description_;
         JRadioButton button_;
         JPanel queryPanel_;
+        Component[] enablables_;
 
         /**
          * Constructs a new factory.
@@ -125,7 +171,7 @@ public class ActivationQueryWindow extends QueryWindow {
             description_ = desc;
             button_ = new JRadioButton( desc );
             button_.addChangeListener( this );
-            queryPanel_ = new JPanel();
+            queryPanel_ = new JPanel( new BorderLayout() );
         }
 
         /**
@@ -154,7 +200,13 @@ public class ActivationQueryWindow extends QueryWindow {
          *
          * @param  enabled  true iff the user is permitted to interact
          */
-        abstract void setEnabled( boolean enabled );
+        public void setEnabled( boolean enabled ) {
+            if ( enablables_ != null ) {
+                for ( int i = 0; i < enablables_.length; i++ ) {
+                    enablables_[ i ].setEnabled( enabled );
+                }
+            }
+        }
 
         /**
          * Returns a new Activator object in accordance with the current
@@ -177,7 +229,6 @@ public class ActivationQueryWindow extends QueryWindow {
                 }
             }
         }
-
     }
 
     /**
@@ -187,8 +238,6 @@ public class ActivationQueryWindow extends QueryWindow {
         JComponent qcomp_ = new JPanel();
         NopActivatorFactory() {
             super( "No Action" );
-        }
-        void setEnabled( boolean enabled ) {
         }
         Activator makeActivator() {
             return Activator.NOP;
@@ -202,17 +251,16 @@ public class ActivationQueryWindow extends QueryWindow {
         JComboBox codeField_;
 
         JELActivatorFactory() {
-            super( "Execute Custom Code: " );
+            super( "Execute Custom Code" );
             codeField_ = tcModel_.getActivatorList().makeComboBox();
             codeField_.setEditable( true );
             codeField_.validate();
-            codeField_.setMinimumSize( 
-                new Dimension( 200, codeField_.getHeight() ) );
-            queryPanel_.add( codeField_ );
-        }
-
-        void setEnabled( boolean enabled ) {
-            codeField_.setEnabled( enabled );
+            JLabel codeLabel = new JLabel( "Executable Expression: " );
+            enablables_ = new Component[] { codeField_, codeLabel, };
+            Box box = Box.createHorizontalBox();
+            box.add( codeLabel );
+            box.add( codeField_ );
+            queryPanel_.add( box );
         }
 
         Activator makeActivator() {
@@ -246,13 +294,13 @@ public class ActivationQueryWindow extends QueryWindow {
         CutoutSelector cutter_;
 
         CutoutActivatorFactory() {
-            super( "Display Cutout Image: " );
+            super( "Display Cutout Image" );
             cutter_ = new CutoutSelector( tcModel_ );
-            queryPanel_.add( cutter_ );
-        }
-
-        void setEnabled( boolean enabled ) {
-            cutter_.setEnabled( enabled );
+            Box box = Box.createHorizontalBox();
+            box.add( cutter_ );
+            box.add( Box.createHorizontalGlue() );
+            queryPanel_.add( box );
+            enablables_ = new Component[] { cutter_, };
         }
 
         Activator makeActivator() {
@@ -268,7 +316,7 @@ public class ActivationQueryWindow extends QueryWindow {
         JComboBox colSelector_;
 
         ColumnActivatorFactory( String descrip ) {
-            super( descrip );
+            super( "Display Named " + descrip );
             colSelector_ = new RestrictedColumnComboBoxModel( tcModel_
                                                              .getColumnModel(),
                                                               true ) {
@@ -281,7 +329,13 @@ public class ActivationQueryWindow extends QueryWindow {
                 }
             }.makeComboBox();
             colSelector_.setSelectedIndex( 0 );
-            queryPanel_.add( colSelector_ );
+            JLabel colLabel = new JLabel( descrip + " Location column: " );
+            enablables_ = new Component[] { colLabel, colSelector_, };
+            Box box = Box.createHorizontalBox();
+            box.add( colLabel );
+            box.add( colSelector_ );
+            box.add( Box.createHorizontalGlue() );
+            queryPanel_.add( box );
         }
 
         boolean isPossible() {
@@ -303,30 +357,6 @@ public class ActivationQueryWindow extends QueryWindow {
 
         abstract Activator makeActivator( TableColumn tcol );
 
-        void setEnabled( boolean enabled ) {
-            colSelector_.setEnabled( enabled );
-        }
-    }
-
-    /**
-     * Activator factory for displaying a column in SOG.
-     */
-    private class SogActivatorFactory extends ColumnActivatorFactory {
-        SogActivatorFactory() {
-            super( "Display Named Image in SoG: " );
-        }
-        Activator makeActivator( TableColumn tcol ) {
-            return new ColumnActivator( "sog", tcol ) {
-                String activateValue( Object val ) {
-                    return val == null 
-                         ? null
-                         : Sog.sog( val.toString() );
-                }
-            };
-        }
-        boolean isPossible() {
-            return super.isPossible() && TopcatUtils.canSog();
-        }
     }
 
     /**
@@ -334,32 +364,34 @@ public class ActivationQueryWindow extends QueryWindow {
      */
     private class ImageActivatorFactory extends ColumnActivatorFactory {
         ImageActivatorFactory() {
-            super( "Display Named Image in Image Window: " );
+            super( "Image" );
         }
-        Activator makeActivator( TableColumn tcol ) {
+        Activator makeActivator( final TableColumn tcol ) {
             return new ColumnActivator( "image", tcol ) {
                 String activateValue( Object val ) {
                     return val == null
                          ? null
-                         : Image.displayBasicImage( val.toString() );
+                         : Image.displayImage( getWindowLabel( tcol ),
+                                               val.toString() );
                 }
             };
         }
     }
 
     /**
-     * Activator factory for displaying a column in SPLAT.
+     * Activator factory for displaying a column in a spectrum viewer.
      */
-    private class SplatActivatorFactory extends ColumnActivatorFactory {
-        SplatActivatorFactory() {
-            super( "Display Named Spectrum in SPLAT: " );
+    private class SpectrumActivatorFactory extends ColumnActivatorFactory {
+        SpectrumActivatorFactory() {
+            super( "Spectrum" );
         }
-        Activator makeActivator( TableColumn tcol ) {
-            return new ColumnActivator( "splat", tcol ) {
+        Activator makeActivator( final TableColumn tcol ) {
+            return new ColumnActivator( "spectrum", tcol ) {
                 String activateValue( Object val ) {
                     return val == null
                          ? null
-                         : Splat.splat( val.toString() );
+                         : Spectrum.displaySpectrum( getWindowLabel( tcol ),
+                                                     val.toString() );
                 }
             };
         }
