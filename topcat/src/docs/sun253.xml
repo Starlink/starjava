@@ -1635,6 +1635,13 @@ you can add new functions by writing your own classes -
 see <ref id="jelExtend"/>.
 </p>
 
+<p><strong>Note:</strong> if Java is running in an environment with
+certain security restrictions (a security manager which
+does not permit creation of custom class loaders) then algebraic
+expressions won't work at all, and the buttons which allow you to
+enter them will be disabled.
+</p>
+
 <subsect>
 <subhead><title>Referencing Cell Values</title></subhead>
 
