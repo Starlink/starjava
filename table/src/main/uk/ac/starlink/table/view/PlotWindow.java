@@ -8,9 +8,13 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.BitSet;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
@@ -44,6 +48,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     private JComboBox subCombo;
     private JPanel plotPanel;
     private PlotState lastState;
+    private BitSet plottedRows = new BitSet();
+    private PlotBox plot;
 
     /**
      * Constructs a PlotWindow for a given <tt>TableModel</tt> and 
@@ -55,7 +61,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      * @param   parent  the parent component
      */
     public PlotWindow( StarTable stable, TableColumnModel tcmodel,
-                       OptionsListModel subsets, Component parent ) {
+                       final OptionsListModel subsets, Component parent ) {
         super( "Table Plotter", stable, parent );
         this.stable = stable;
         this.tcmodel = tcmodel;
@@ -174,6 +180,33 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         cp.add( plotPanel, BorderLayout.CENTER );
         cp.add( configPanel, BorderLayout.SOUTH );
 
+        /* Construct a new menu for subset operations. */
+        JMenu subsetMenu = new JMenu( "Subsets" );
+        subsetMenu.add( new BasicAction( "New subset from visible",
+                                         "Define a new row subset containing " +
+                                         "only currently plotted points" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                String name = TableViewer.enquireSubsetName( PlotWindow.this );
+                if ( name != null ) {
+                    subsets.add( new BitsRowSubset( name, calcVisibleRows() ) );
+                }
+            }
+        } );
+
+  // doesn't work properly
+  //    Action applysubsetAct = new AbstractAction() {
+  //        public void actionPerformed( ActionEvent evt ) {
+  //            int index = evt.getID();
+  //            subCombo.setSelectedIndex( index );
+  //            PlotWindow.this.actionPerformed( null );
+  //        }
+  //    };
+  //    JMenu applysubsetMenu = 
+  //        subsets.makeJMenu( "Apply subset", applysubsetAct );
+  //    subsetMenu.add( applysubsetMenu );
+
+        getJMenuBar().add( subsetMenu );
+
         /* Do the plotting. */
         actionPerformed( null );
 
@@ -204,6 +237,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             long nrow = stable.getRowCount();
             long ngood = 0;
             long nerror = 0;
+            plottedRows.clear();
             for ( long lrow = 0; lrow < nrow; lrow++ ) {
                 if ( rset == null || rset.isIncluded( lrow ) ) {
                     try {
@@ -221,6 +255,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                                 plot.addPoint( 0, x, y, state.plotline );
                             }
                             ngood++;
+                            plottedRows.set( (int) lrow );
                         }
                     }
                     catch ( IOException e ) {
@@ -260,6 +295,44 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     }
 
     /**
+     * Returns a BitSet which corresponds to those rows which have are
+     * currently visible; that is they were plotted and they fall within
+     * the bounds of the curretly visible PlotBox.
+     * 
+     * @return  a vector of flags representing visible rows
+     */
+    private BitSet calcVisibleRows() {
+        int xcol = lastState.xCol.index;
+        int ycol = lastState.yCol.index;
+        int nrow = (int) stable.getRowCount();
+        double[] xr = plot.getXRange();
+        double[] yr = plot.getYRange();
+        double x0 = xr[ 0 ];
+        double y0 = yr[ 0 ];
+        double x1 = xr[ 1 ];
+        double y1 = yr[ 1 ];
+        BitSet visibleRows = new BitSet();
+        try {
+            for ( int irow = 0; irow < nrow; irow++ ) {
+                long lrow = (long) irow;
+                if ( plottedRows.get( irow ) ) {
+                    Object xval = stable.getCell( lrow, xcol );
+                    Object yval = stable.getCell( lrow, ycol );
+                    double x = ((Number) xval).doubleValue();
+                    double y = ((Number) yval).doubleValue();
+                    if ( x >= x0 && x <= x1 && y >= y0 && y <= y1 ) {
+                        visibleRows.set( irow );
+                    }
+                }
+            }
+        }
+        catch ( IOException e ) {
+            // oh well
+        }
+        return visibleRows;
+    }
+
+    /**
      * This method is called whenever something happens which may cause
      * the plot to need to be updated.
      *
@@ -270,7 +343,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         if ( ! state.equals( lastState ) ) {
             lastState = state;
             plotPanel.removeAll();
-            PlotBox plot = makePlot( state );
+            plot = makePlot( state );
             plotPanel.add( plot, BorderLayout.CENTER );
             plotPanel.revalidate();
         }

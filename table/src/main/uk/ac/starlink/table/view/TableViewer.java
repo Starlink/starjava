@@ -308,6 +308,15 @@ public class TableViewer extends JFrame {
     }
 
     /**
+     * Indicates whether the TableViewer application is standalone or not.
+     *
+     * @return  whether this should act as a standalone application.
+     */
+    public static boolean isStandalone() {
+        return standalone;
+    }
+
+    /**
      * Sets the viewer to view a given StarTable.
      * The given table must provide random access.
      *
@@ -576,13 +585,12 @@ public class TableViewer extends JFrame {
      * classes loaded) than defining a new anonymous class for 
      * each action.
      */
-    private class ViewerAction extends AbstractAction {
+    private class ViewerAction extends BasicAction {
 
         private final Window parent = TableViewer.this;
 
         ViewerAction( String name, int iconId, String shortdesc ) {
-            super( name, null );
-            putValue( SHORT_DESCRIPTION, shortdesc );
+            super( name, iconId, shortdesc );
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -661,23 +669,20 @@ public class TableViewer extends JFrame {
 
             /* Define a new subset using selected rows. */
             else if ( this == includeAct ) {
-                String name = enquireSubsetName();
+                String name = enquireSubsetName( parent );
                 if ( name != null ) {
                     BitSet bits = getSelectedRowFlags();
-  System.out.println( bits.cardinality() );
                     addSubset( new BitsRowSubset( name, bits ) );
                 }
             }
 
             /* Define a new subset using unselected rows. */
             else if ( this == excludeAct ) {
-                String name = enquireSubsetName();
+                String name = enquireSubsetName( parent );
                 if ( name != null ) {
                     BitSet bits = getSelectedRowFlags();
-  System.out.print( bits.cardinality() + "  " );
                     int nrow = (int) dataModel.getRowCount();
                     bits.flip( 0, nrow );
-  System.out.println( bits.cardinality() );
                     addSubset( new BitsRowSubset( name, bits ) );
                 }
             }
@@ -814,11 +819,12 @@ public class TableViewer extends JFrame {
     /**
      * Pops up a modal dialog to ask the user the name for a new RowSubset.
      *
+     * @param  parent component, used for positioning
      * @return  a new subset name entered by the user, or <tt>null</tt> if 
      *          he bailed out
      */
-    private String enquireSubsetName() {
-        String name = JOptionPane.showInputDialog( this, "New subset name" );
+    public static String enquireSubsetName( Component parent ) {
+        String name = JOptionPane.showInputDialog( parent, "New subset name" );
         if ( name == null || name.trim().length() == 0 ) {
             return null;
         }

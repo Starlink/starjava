@@ -3,7 +3,12 @@ package uk.ac.starlink.table.view;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import javax.swing.Action;
+import javax.swing.AbstractAction;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -16,6 +21,8 @@ import uk.ac.starlink.table.StarTable;
  * @author   Mark Taylor (Starlink)
  */
 class AuxWindow extends JFrame {
+
+    protected JMenu fileMenu;
 
     /**
      * Constructs an AuxWindow based on a <tt>StarTable</tt>.
@@ -30,6 +37,26 @@ class AuxWindow extends JFrame {
         setTitle( makeTitle( baseTitle, startab ) );
         setDefaultCloseOperation( DISPOSE_ON_CLOSE );
         setLocationRelativeTo( parent );
+
+        /* Set up a basic menubar with a File menu. */
+        JMenuBar mb = new JMenuBar();
+        setJMenuBar( mb );
+        JMenu fileMenu = new JMenu( "File" );
+        mb.add( fileMenu );
+        Action closeAct = new BasicAction( "Close", "Close this window" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                dispose();
+            }
+        };
+        Action exitAct = new BasicAction( "Exit", "Exit the application" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                System.exit( 0 );
+            }
+        };
+        fileMenu.add( closeAct );
+        if ( TableViewer.isStandalone() ) {
+            fileMenu.add( exitAct );
+        }
     }
 
     /**
