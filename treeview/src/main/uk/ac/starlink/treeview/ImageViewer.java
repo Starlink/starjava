@@ -45,20 +45,27 @@ class ImageViewer extends JPanel {
 
             /* Construct a current frame selector. */
             int nfrm = wcs.getNframe();
-            String[] frameNames = new String[ nfrm ];
+            String[] frameNames = new String[ nfrm + 1 ];
+            frameNames[ 0 ] = "no grid";
             for ( int i = 0; i < nfrm; i++ ) {
-                frameNames[ i ] = ( i + 1 ) + ": " 
-                                + wcs.getFrame( i + 1 ).getDomain();
+                frameNames[ i + 1 ] = ( i + 1 ) + ": " 
+                                    + wcs.getFrame( i + 1 ).getDomain();
             }
             final JComboBox selecter = new JComboBox( frameNames );
             final Plot plot = view.getPlot();
             assert plot != null;
-            selecter.setSelectedIndex( plot.getCurrent() - 2 );
+            selecter.setSelectedIndex( plot.getCurrent() - 1 );
             selecter.addItemListener( new ItemListener() {
                 public void itemStateChanged( ItemEvent evt ) {
                     if ( evt.getStateChange() == ItemEvent.SELECTED ) {
-                        int currentFrame = selecter.getSelectedIndex() + 1;
-                        plot.setCurrent( currentFrame + 1 );
+                        int currentFrame = selecter.getSelectedIndex();
+                        if ( currentFrame == 0 ) {
+                            view.setDoPlot( false );
+                        } 
+                        else {
+                            view.setDoPlot( true );
+                            plot.setCurrent( currentFrame + 1 );
+                        }
                         view.rePlot();
                     }
                 }

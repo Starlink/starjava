@@ -25,6 +25,7 @@ public class ImageViewPane extends JPanel {
 
     private Plot plot;
     private JPanel plotPanel;
+    private boolean doPlot = true;
 
     /**
      * Construct an image view from an NDArray.
@@ -166,12 +167,24 @@ public class ImageViewPane extends JPanel {
     }
 
     /**
+     * Determines whether the plot graphics will actually be written over
+     * the image at the next rePlot call.
+     *
+     * @param  doPlot  whether to draw anything
+     */
+    public void setDoPlot( boolean doPlot ) {
+        this.doPlot = doPlot;
+    }
+
+    /**
      * Redraws the Plot object, taking into account any reconfiguration that
      * has been done on it.
      */
     public void rePlot() {
         plot.clear();
-        plot.grid();
+        if ( doPlot ) {
+            plot.grid();
+        }
         plotPanel.repaint();
     }
 }
