@@ -91,7 +91,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="FROG"/>
   <property name="name" value="frog"/>
-  <property name="version" value="0.6.0"/>
+  <property name="version" value="0.7.0"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.frog"/>
