@@ -1,13 +1,19 @@
 package uk.ac.starlink.fits;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
+import nom.tam.util.ArrayDataOutput;
+import nom.tam.util.BufferedDataOutputStream;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -42,7 +48,8 @@ public class FitsNdxTest extends TestCase {
         tmpdir = System.getProperty( "java.io.tmpdir" );
     }
 
-    public void testHandler() throws TransformerException, IOException {
+    public void testHandler() throws TransformerException, IOException,
+                                     MalformedURLException {
         NdxHandler handler = FitsNdxHandler.getInstance();
 
         /* Get an NdxIO and check we are installed there. */
@@ -63,13 +70,21 @@ public class FitsNdxTest extends TestCase {
         Ndx xndx = ndxio.makeNdx( xloc, AccessMode.READ );
         assertNdxEqual( ndx, xndx );
 
-        /* Write the NDX out as a new FITS file. */
+        /* Write the NDX out as a new FITS file via the NdxIO. */
         ndxio.setHandlers( new NdxHandler[] { FitsNdxHandler.getInstance() } );
         String hloc = tmpdir + "/" + "copy.fits";
         ndxio.outputNdx( hloc, ndx );
         Ndx hndx = ndxio.makeNdx( hloc, AccessMode.READ );
         assertNdxEqual( ndx, hndx );
 
+        /* Write it out directly. */
+        File ofile = new File( tmpdir, "copy2.fits" );
+        ArrayDataOutput ostrm =
+            new BufferedDataOutputStream( new FileOutputStream( ofile ) );
+        FitsNdxHandler.getInstance().outputNdx( ostrm, ofile.toURL(), xndx );
+        ostrm.close();
+        Ndx fndx = ndxio.makeNdx( ofile.toURL(), AccessMode.READ );
+        assertNdxEqual( ndx, fndx );
     }
 
     public void testDOM()

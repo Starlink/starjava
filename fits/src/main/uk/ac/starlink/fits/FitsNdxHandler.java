@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.MalformedURLException;
@@ -270,6 +271,51 @@ public class FitsNdxHandler
                 "Cannot write an NDX at HDU > 0 in FITS file (" + url + ")" );
         }
 
+        /* Open a stream into which the NDX can be written. */
+        URL container = furl.getContainer();
+        ArrayDataOutput strm;
+        if ( container.getProtocol().equals( "file" ) ) {
+            String filename = container.getPath();
+            if ( new File( filename ).delete() ) {
+                logger.info( "Deleted existing file " + filename +
+                             " prior to rewriting" );
+            }
+            strm = new BufferedFile( filename, "rw" );
+        }
+        else {
+            URLConnection conn = container.openConnection();
+            conn.setDoInput( false );
+            conn.setDoOutput( true );
+
+            /* The following may throw a java.net.UnknownServiceException
+             * (which is-a IOException) - in fact it almost certainly will,
+             * since I don't know of any URL protocols (including file)
+             * which support output streams. */
+            conn.connect();
+            OutputStream stream = conn.getOutputStream();
+            strm = new BufferedDataOutputStream( stream );
+        }
+
+        try {
+            outputNdx( strm, url, ndx );
+        }
+        finally {
+            strm.close();
+        }
+        return true;
+    }
+
+    /**
+     * Writes an NDX to a given output stream.  The stream is not closed
+     * following the write.
+     *
+     * @param  strm  the stream to which the NDX should be written
+     * @param  url   the URL represented by the stream; may be <tt>null</tt>
+     * @param  ndx  the ndx to write
+     */
+    public void outputNdx( ArrayDataOutput strm, URL url, Ndx ndx ) 
+            throws IOException {
+
         /* Construct Header object containing information about this NDX. */
         int nhdu = 0;
         int ihdu;
@@ -313,31 +359,6 @@ public class FitsNdxHandler
                                .initCause( e );
         }
 
-        /* Open a stream into which the NDX can be written. */
-        URL container = furl.getContainer();
-        ArrayDataOutput strm;
-        if ( container.getProtocol().equals( "file" ) ) {
-            String filename = container.getPath();
-            if ( new File( filename ).delete() ) {
-                logger.info( "Deleted existing file " + filename +
-                             " prior to rewriting" );
-            }
-            strm = new BufferedFile( filename, "rw" );
-        }
-        else {
-            URLConnection conn = container.openConnection();
-            conn.setDoInput( false );
-            conn.setDoOutput( true );
-
-            /* The following may throw a java.net.UnknownServiceException
-             * (which is-a IOException) - in fact it almost certainly will,
-             * since I don't know of any URL protocols (including file)
-             * which support output streams. */
-            conn.connect();
-            OutputStream stream = conn.getOutputStream();
-            strm = new BufferedDataOutputStream( stream );
-        }
-
         /* Write the image array, containing all the main NDX headers. */
         NDArray im = ndx.getImage();
         Type itype = im.getType();
@@ -347,11 +368,16 @@ public class FitsNdxHandler
             new WritableFitsArrayImpl( im.getShape(), itype, ibadval,
                                        strm, true, cards );
         URL iurl;
-        try {
-            iurl = new URL( url, "#" + ihdu );
+        if ( url != null ) {
+            try {
+                iurl = new URL( url, "#" + ihdu );
+            }
+            catch ( MalformedURLException e ) {
+                throw new AssertionError( e );
+            }
         }
-        catch ( MalformedURLException e ) {
-            throw new AssertionError( e );
+        else {
+            iurl = null;
         }
         NDArray inda = new BridgeNDArray( iimpl, iurl );
         NDArrays.copy( im, inda ); 
@@ -370,11 +396,16 @@ public class FitsNdxHandler
                 new WritableFitsArrayImpl( var.getShape(), vtype, vbadval, 
                                            strm, false, vcards );
             URL vurl;
-            try {
-                vurl = new URL( url, "#" + vhdu );
+            if ( url != null ) {
+                try {
+                    vurl = new URL( url, "#" + vhdu );
+                }
+                catch ( MalformedURLException e ) {
+                    throw new AssertionError( e );
+                }
             }
-            catch ( MalformedURLException e ) {
-                throw new AssertionError( e );
+            else {
+                vurl = null;
             }
             vnda = new BridgeNDArray( vimpl, vurl );
             NDArrays.copy( var, vnda );
@@ -391,11 +422,16 @@ public class FitsNdxHandler
                 new WritableFitsArrayImpl( qual.getShape(), qtype, null,
                                            strm, false, qcards );
             URL qurl;
-            try {
-                qurl = new URL( url, "#" + qhdu );
+            if ( url != null ) {
+                try {
+                    qurl = new URL( url, "#" + qhdu );
+                }
+                catch ( MalformedURLException e ) {
+                    throw new AssertionError( e );
+                }
             }
-            catch ( MalformedURLException e ) {
-                throw new AssertionError( e );
+            else {
+                qurl = null;
             }
             qnda = new BridgeNDArray( qimpl, qurl );
             NDArrays.copy( qual, qnda );
@@ -417,9 +453,9 @@ public class FitsNdxHandler
                     .newHdxContainer( ondx.getHdxFacade() );
 
             ByteArrayOutputStream bufos = new ByteArrayOutputStream();
-            new SourceReader()
-                    .writeSource( hdx.getSource( URLUtils.urlToUri(url) ),
-                                  bufos );
+            URI uri = url == null ? null 
+                                  : URLUtils.urlToUri( url );
+            new SourceReader().writeSource( hdx.getSource( uri ), bufos );
 
             byte[] bytes = bufos.toByteArray();
             int nchar = bytes.length;
@@ -445,6 +481,7 @@ public class FitsNdxHandler
             if ( over > 0 ) {
                 strm.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
             }
+            strm.flush();
         }
         catch ( FitsException e ) {
             throw (IOException) new IOException( e.getMessage() )
@@ -457,9 +494,6 @@ public class FitsNdxHandler
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
-
-        strm.close();
-        return true;
     }
 
     private static NDArray makeFitsDummyArray( NDArray nda ) {
