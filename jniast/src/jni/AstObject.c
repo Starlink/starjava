@@ -397,7 +397,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_set(
    const char *settings = jniastGetUTF( env, jSettings );
 
    ASTCALL(
-      astSet( pointer.AstObject, settings );
+      astSet( pointer.AstObject, "%s", settings );
    )
    jniastReleaseUTF( env, jSettings, settings );
 }

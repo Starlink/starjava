@@ -503,7 +503,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_set(
    const char *settings = jniastGetUTF( env, jSettings );
 
    PLOTCALL(
-      astSet( pointer.Plot, settings );
+      astSet( pointer.Plot, "%s", settings );
    )
    jniastReleaseUTF( env, jSettings, settings );
 }
