@@ -38,6 +38,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import uk.ac.starlink.table.StarTable;
 
 /**
  * Provides a common superclass for windows popped up by TOPCAT.
@@ -66,6 +67,7 @@ public class AuxWindow extends JFrame {
 
     private static String[] about;
     private static String version;
+    private static String stilVersion;
     private static final Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
     private static final Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -317,7 +319,8 @@ public class AuxWindow extends JFrame {
             about = new String[] {
                 "TOPCAT",
                 "Tool for OPerations on Catalogues And Tables",
-                "Version " + getVersion(),
+                "TOPCAT Version " + getVersion(),
+                "STIL Version " + getSTILVersion(),
                 "Copyright " + '\u00a9' + 
                 " Central Laboratory of the Research Councils",
                 "Authors: Mark Taylor (Starlink)",
@@ -363,6 +366,44 @@ public class AuxWindow extends JFrame {
             }
         }
         return version;
+    }
+
+    /**
+     * Returns the version string for the version of STIL being used here.
+     *
+     * @return  STIL version number
+     */
+    public static String getSTILVersion() {
+        if ( stilVersion == null ) {
+            InputStream strm = null;
+            try {
+                strm = StarTable.class.getResourceAsStream( "stil.version" );
+                if ( strm != null ) {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( int b; ( b = strm.read() ) > 0; ) {
+                        sbuf.append( (char) b );
+                    }
+                    stilVersion = sbuf.toString().trim();
+                }
+            }
+            catch ( IOException e ) {
+            }
+            finally {
+                if ( strm != null ) {
+                    try {
+                        strm.close();
+                    }
+                    catch ( IOException e ) {
+                    }
+                }
+            }
+            if ( version == null ) {
+                logger.warning( "Couldn't load version string from "
+                              + "uk/ac/starlink/table/stil.version" );
+                stilVersion = "?";
+            }
+        }
+        return stilVersion;
     }
 
     /**
