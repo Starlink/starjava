@@ -15,7 +15,7 @@ import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.SourceReader;
 
 /**
- * Generic node for representing VOTable elements.
+ * Node representing a top-level VOTable document.
  */
 public class VOTableDataNode extends VOComponentDataNode {
 
@@ -41,5 +41,4 @@ public class VOTableDataNode extends VOComponentDataNode {
     public String getPathSeparator() {
         return "#";
     }
-
 }
