@@ -354,13 +354,25 @@ public class NdxDataNode extends DefaultDataNode {
         }
 
         if ( endim > 2 && Driver.hasJAI ) {
-            dv.addPane( "Slice view", new ComponentMaker() {
+            dv.addPane( "Slices", new ComponentMaker() {
                 public JComponent getComponent() {
                     if ( endim != ndim ) {
                         return new SliceViewer( image, null );
                     }
                     else {
                         return new SliceViewer( image, ast );
+                    }
+                }
+            } );
+        }
+        if ( endim == 3 && Driver.hasJAI ) {
+            dv.addPane( "Collapsed", new ComponentMaker() {
+                public JComponent getComponent() throws IOException {
+                    if ( endim != ndim ) {
+                        return new CollapseViewer( eimage, null );
+                    }
+                    else {
+                        return new CollapseViewer( image, ast );
                     }
                 }
             } );

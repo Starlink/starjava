@@ -189,13 +189,25 @@ public class NDArrayDataNode extends DefaultDataNode {
             } );
         }
         if ( endim > 2 && Driver.hasJAI ) {
-            dv.addPane( "Slice view", new ComponentMaker() {
+            dv.addPane( "Slices", new ComponentMaker() {
                 public JComponent getComponent() {
                     if ( endim != ndim ) {
                         return new SliceViewer( rnda, null );
                     }
                     else {
                         return new SliceViewer( rnda, wcs );
+                    }
+                }
+            } );
+        }
+        if ( endim == 3 && Driver.hasJAI ) {    
+            dv.addPane( "Collapsed", new ComponentMaker() {
+                public JComponent getComponent() throws IOException {
+                    if ( endim != ndim ) {
+                        return new CollapseViewer( enda, null );
+                    }
+                    else {
+                        return new CollapseViewer( rnda, wcs );
                     }
                 }
             } );
