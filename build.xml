@@ -162,6 +162,9 @@
     <echo message="Executing FITS target: ${what}"/> 
     <ant dir="./fits" target="${what}"/> 
 
+    <echo message="Executing Pal target: ${what}"/>
+    <ant dir="./pal" target="${what}"/>
+
     <echo message="Executing VOTable target: ${what}"/>
     <ant dir="./votable" target="${what}"/>
     
@@ -185,9 +188,6 @@
 
     <echo message="Executing Treeview target: ${what}"/>
     <ant dir="./treeview" target="${what}"/>
-    
-    <echo message="Executing Pal target: ${what}"/>
-    <ant dir="./pal" target="${what}"/>
     
     <echo message="Executing Coco target: ${what}"/>
     <ant dir="./coco" target="${what}"/>
