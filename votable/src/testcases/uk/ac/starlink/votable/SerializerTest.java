@@ -29,6 +29,7 @@ import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.PrimitiveArrayColumn;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.TestCase;
@@ -36,6 +37,8 @@ import uk.ac.starlink.util.TestCase;
 public class SerializerTest extends TestCase {
 
     StarTable table0;
+    VOElementFactory factory = 
+        new VOElementFactory( StoragePolicy.PREFER_MEMORY );
 
     public SerializerTest( String name ) {
         super( name );
@@ -107,7 +110,7 @@ public class SerializerTest extends TestCase {
     }
 
     private void checkOKSource( Source xsrc ) throws SAXException, IOException {
-        VOElement res = VOElementFactory.makeVOElement( xsrc );
+        VOElement res = factory.makeVOElement( xsrc );
         TableElement table = (TableElement) res.getChildByName( "TABLE" );
         checkTableValues( table );
     }
@@ -115,7 +118,7 @@ public class SerializerTest extends TestCase {
     private void checkBadSource( Source xsrc )
             throws TransformerException, IOException {
         try {
-            VOElement res = VOElementFactory.makeVOElement( xsrc );
+            VOElement res = factory.makeVOElement( xsrc );
             TableElement table = (TableElement) res.getChildByName( "TABLE" );
             RowStepper rstep = table.getData().getRowStepper();
             assertNull( "If the table can be constructed, " +
@@ -187,21 +190,21 @@ public class SerializerTest extends TestCase {
             Document docnode1 =
                 (Document) new SourceReader()
                           .getDOM( new StreamSource( asStream( xmltext ) ) );
-            vodocs.add( VOElementFactory
+            vodocs.add( factory
                        .makeVOElement( new ByteArrayInputStream( xmltext ), 
                                        null ) );
-            vodocs.add( VOElementFactory.makeVOElement( docnode1, null ) );
+            vodocs.add( factory.makeVOElement( docnode1, null ) );
             Source xsrc = new DOMSource( docnode1, null );
-            vodocs.add( VOElementFactory.makeVOElement( (Source) xsrc ) );
-            vodocs.add( VOElementFactory.makeVOElement( (DOMSource) xsrc ) );
-            DOMSource dsrc0 = VOElementFactory.
+            vodocs.add( factory.makeVOElement( (Source) xsrc ) );
+            vodocs.add( factory.makeVOElement( (DOMSource) xsrc ) );
+            DOMSource dsrc0 = factory.
                 transformToDOM( new StreamSource( asStream( xmltext ) ),
                                 false );
-            DOMSource dsrc1 = VOElementFactory.
+            DOMSource dsrc1 = factory.
                 transformToDOM( new StreamSource( asStream( xmltext ) ), 
                                 true );
-            vodocs.add( VOElementFactory.makeVOElement( dsrc0 ) );
-            vodocs.add( VOElementFactory.makeVOElement( dsrc1 ) );
+            vodocs.add( factory.makeVOElement( dsrc0 ) );
+            vodocs.add( factory.makeVOElement( dsrc1 ) );
             for ( Iterator it = vodocs.iterator(); it.hasNext(); ) {
                 exerciseVOTableDocument( (VOElement) it.next() );
             }

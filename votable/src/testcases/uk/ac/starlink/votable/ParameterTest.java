@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
 
@@ -13,6 +14,7 @@ public class ParameterTest extends TestCase implements TableSink {
 
     DataSource votsrc = 
         DataSource.makeDataSource( getClass().getResource( "docexample.xml" ) );
+    StoragePolicy policy = StoragePolicy.PREFER_MEMORY;
     boolean gotMeta;
     boolean gotRows;
     boolean gotEnd;
@@ -22,12 +24,15 @@ public class ParameterTest extends TestCase implements TableSink {
     }
 
     public void testRead() throws IOException {
-        checkParams( new VOTableBuilder().makeStarTable( votsrc, false ) );
-        checkParams( new VOTableBuilder().makeStarTable( votsrc, true ) );
+        checkParams( new VOTableBuilder()
+                    .makeStarTable( votsrc, false, policy ) );
+        checkParams( new VOTableBuilder()
+                    .makeStarTable( votsrc, true, policy ) );
     }
 
     public void testDOM() throws IOException, SAXException {
-        VOElement top = VOElementFactory.makeVOElement( votsrc.getURL() );
+        VOElement top = new VOElementFactory( policy )
+                       .makeVOElement( votsrc.getURL() );
         TableElement vot = (TableElement) 
                            top.getDescendantsByName( "TABLE" )[ 0 ];
         StarTable st = new VOStarTable( vot );
