@@ -18,10 +18,7 @@ import java.net.Socket;
 
 import uk.ac.starlink.frog.util.FrogDebug;
 
-
-// NB: Use Peter's AsciiFileParser class directly from SPLAT? DO I really
-//     want to create a SPLAT dependancy here?
-import uk.ac.starlink.splat.util.AsciiFileParser;
+import uk.ac.starlink.util.AsciiFileParser;
 
 /**
  * This class provides utility methods for remote control based
