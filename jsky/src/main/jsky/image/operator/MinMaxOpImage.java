@@ -6,6 +6,9 @@
  * who             when        what
  * --------------  ----------  ----------------------------------------
  * Allan Brighton  1999/05/03  Created
+ * Peter W. Draper 2002/10/01  Added double precision support
+ * Mark Taylor     2002/10/01  Fixed selection of initial minimum value
+ *                             when bad values are present
  */
 
 package jsky.image.operator;
@@ -20,6 +23,7 @@ import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 
 import javax.media.jai.DataBufferFloat;
+import javax.media.jai.DataBufferDouble;
 import javax.media.jai.ImageLayout;
 import javax.media.jai.ROI;
 import javax.media.jai.StatisticsOpImage;
@@ -157,6 +161,15 @@ class MinMaxOpImage extends StatisticsOpImage {
                 float[] data = dataBuffer.getData();
                 float ignore = (float) this.ignore;
                 getMinMaxFloat(data, ignore, x0, y0, x1, y1, w, stats);
+            }
+            break;
+
+        case DataBuffer.TYPE_DOUBLE:
+            {
+                DataBufferDouble dataBuffer = (DataBufferDouble) source.getDataBuffer();
+                double[] data = dataBuffer.getData();
+                double ignore = (double) this.ignore;
+                getMinMaxDouble(data, ignore, x0, y0, x1, y1, w, stats);
             }
             break;
 
@@ -423,6 +436,60 @@ class MinMaxOpImage extends StatisticsOpImage {
             for (int j = y0; j <= y1; j += yPeriod) {
                 float val = data[j * w + i];
                 if (Float.isNaN(val) || (val == ignore))
+                    continue;
+                if (val < min)
+                    min = val;
+                else if (val > max) {
+                    max = val;
+                }
+            }
+        }
+        stats[0] = min;
+        stats[1] = max;
+    }
+
+    /**
+     * Get the min and max pixel values in the given region and write
+     * them to the given array (Double version).
+     *
+     * @param data The image data.
+     * @param ignore The value of the pixels to ignore
+     * @param x0, y0, x1, y1 The coordinates of the area to examine.
+     * @param w The width of the source image.
+     * @param stats array to hold the results.
+     */
+    void getMinMaxDouble(double[] data, double ignore, int x0, int y0, int x1, int y1, int w,
+                         double[] stats) {
+        double min, max;
+        if (!Double.isNaN(stats[0])) {
+            min = stats[0];
+            max = stats[1];
+        }
+        else {
+            min = data[0];
+
+            // check for NaNs and ignores
+            if (Double.isNaN(min) || (min == ignore)) {
+                done:
+                for (int i = x0; i <= x1; i += xPeriod) {
+                    for (int j = y0; j <= y1; j += yPeriod) {
+                        min = data[j * w + i];
+                        if (Double.isNaN(min) || (min == ignore))
+                            continue;
+                        break done;
+                    }
+                }
+            }
+            if (Double.isNaN(min) || (min == ignore)) {
+                min = 0.0;
+            }
+            max = min;
+        }
+
+        for (int i = x0; i <= x1; i += xPeriod) {
+            for (int j = y0; j <= y1; j += yPeriod) {
+                double val = data[j * w + i];
+                if (Double.isNaN(val) || (val == ignore))
                     continue;
                 if (val < min)
                     min = val;
