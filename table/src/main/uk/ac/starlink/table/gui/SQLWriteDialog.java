@@ -8,6 +8,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.jdbc.JDBCFormatter;
+import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * A popup dialog for querying the user about the location of a new
@@ -46,9 +47,7 @@ public class SQLWriteDialog extends SQLDialog {
                     return true;
                 }
                 catch ( Exception e ) {
-                    JOptionPane.showMessageDialog( dialog, e.toString(),
-                                                   "Can't write table",
-                                                   JOptionPane.ERROR_MESSAGE );
+                    ErrorDialog.showError( e, "Can't write table", dialog );
                 }
             }
             else {

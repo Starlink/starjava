@@ -11,6 +11,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
+import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * Widget to ask the user for a new row subset to define.
@@ -95,13 +96,14 @@ public class SubsetDialog extends JOptionPane {
                 else {
                     try {
                         RowSubset rset = 
-                            new SyntheticRowSubset( stable, subsets, getName(), 
-                                                    getExpression() );
+                            new SyntheticRowSubset( stable, subsets, name, 
+                                                    expr );
                         dialog.dispose();
                         return rset;
                     }
                     catch ( Exception e ) {
-                        reportError( dialog, e.toString() );
+                        ErrorDialog.showError( e, "Can't make sense of " + expr,
+                                               dialog );
                     }
                 }
             }

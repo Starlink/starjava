@@ -11,6 +11,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
+import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * Widget to ask the user how he would like to add a new column.
@@ -121,8 +122,8 @@ public class ColumnDialog extends JOptionPane {
                     return col;
                 }
                 catch ( Exception e ) {
-                    showMessageDialog( dialog, e.toString(), 
-                                       "Bad column definition", ERROR_MESSAGE );
+                    ErrorDialog.showError( e, "Bad column definition: " + expr,
+                                           dialog );
                 }
             }
             else {

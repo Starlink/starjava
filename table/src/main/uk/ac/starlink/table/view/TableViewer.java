@@ -53,6 +53,7 @@ import uk.ac.starlink.table.gui.TableRowHeader;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
+import uk.ac.starlink.util.ErrorDialog;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -739,9 +740,8 @@ public class TableViewer extends JFrame {
                     MirageHandler.invokeMirage( mirageTable, null );
                 }
                 catch ( Exception e ) {
-                    JOptionPane.showMessageDialog( parent, e.toString(),
-                                                   "Error launching Mirage",
-                                                   JOptionPane.ERROR_MESSAGE );
+                    ErrorDialog.showError( e, "Error launching Mirage",
+                                           parent );
                 }
             }
 

@@ -53,6 +53,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.ProgressBarStarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * Top level window which presents plots derived from a <tt>StarTable</tt>.
@@ -205,10 +206,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                         }
                     }
                     catch ( IOException e ) {
-                        JOptionPane
-                       .showMessageDialog( parent, e.toString(),
-                                           "Error writing EPS",
-                                           JOptionPane.ERROR_MESSAGE );
+                        ErrorDialog.showError( e, "Error writing EPS", parent );
                     }
                 }
             }

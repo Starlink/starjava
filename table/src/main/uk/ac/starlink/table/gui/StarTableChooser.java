@@ -20,6 +20,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
+import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * Dialog which permits selection of an existing {@link StarTable}.
@@ -168,9 +169,7 @@ public class StarTableChooser extends JOptionPane {
                     return st;
                 }
                 catch ( IOException e ) {
-                    JOptionPane.showMessageDialog( parent, e.toString(),
-                                                   "Can't randomise table",
-                                                   JOptionPane.ERROR_MESSAGE );
+                    ErrorDialog.showError( e, "Can't randomise table", parent );
                 }
             }
         } 

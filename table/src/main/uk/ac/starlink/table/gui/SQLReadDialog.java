@@ -6,6 +6,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * A popup dialog which interrogates the user about an SQL query on 
@@ -42,9 +43,7 @@ public class SQLReadDialog extends SQLDialog {
                     return tab;
                 }
                 catch ( Exception e ) {
-                    JOptionPane.showMessageDialog( dialog, e.toString(),
-                                                   "Can't read table",
-                                                   JOptionPane.ERROR_MESSAGE );
+                    ErrorDialog.showError( e, "Can't read table", dialog );
                 }
             }
             else {
