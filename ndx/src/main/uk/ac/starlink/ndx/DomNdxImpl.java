@@ -86,6 +86,14 @@ class DomNdxImpl implements NdxImpl {
                              HdxResourceType.TITLE.getHoistAttribute() );
     }
 
+    public String getLabel() {
+        return getChildText( "label", "value" );
+    }
+
+    public String getUnits() {
+        return getChildText( "units", "value" );
+    }
+
     public int getBadBits() {
         String bytestr = getChildText( "badbits", "value" );
         return ( bytestr == null ) ? (byte) 0
@@ -131,6 +139,14 @@ class DomNdxImpl implements NdxImpl {
 
     public boolean hasTitle() {
         return getTitle() != null;
+    }
+
+    public boolean hasLabel() {
+        return getLabel() != null;
+    }
+
+    public boolean hasUnits() {
+        return getUnits() != null;
     }
 
     public boolean hasWCS() {

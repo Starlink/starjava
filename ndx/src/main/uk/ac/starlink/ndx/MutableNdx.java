@@ -51,6 +51,23 @@ public interface MutableNdx extends Ndx {
     void setTitle( String title );
 
     /**
+     * Sets the label component of this Ndx.
+     *
+     * @param   label  the new label.
+     *          if <tt>null</tt>, this Ndx will be considered to have no label
+     */
+    void setLabel( String label );
+
+    /**
+     * Sets the units component of this Ndx.
+     *
+     * @param   units  the new units string.
+     *          if <tt>null</tt>, this Ndx will be considered to have no 
+     *          units component
+     */
+    void setUnits( String units );
+
+    /**
      * Sets the bad bits mask for this Ndx.
      *
      * @param   badbits  the new bad bits mask

@@ -116,6 +116,42 @@ class NDFNdxImpl implements NdxImpl {
         }
     }
 
+    public boolean hasLabel() {
+        try {
+            return ndf.datThere( "LABEL" );
+        }
+        catch ( HDSException e ) {
+            throw new RuntimeException( e );
+        }
+    }
+
+    public String getLabel() {
+        try {
+            return ndf.datFind( "LABEL" ).datGet0c();
+        }
+        catch ( HDSException e ) {
+            throw new RuntimeException( e );
+        }
+    }
+
+    public boolean hasUnits() {
+        try {
+            return ndf.datThere( "UNITS" );
+        }
+        catch ( HDSException e ) {
+            throw new RuntimeException( e );
+        }
+    }
+
+    public String getUnits() {
+        try {
+            return ndf.datFind( "UNITS" ).datGet0c();
+        }
+        catch ( HDSException e ) {
+            throw new RuntimeException( e );
+        }
+    }
+
     public boolean hasWCS() {
         return AstPackage.isAvailable() 
             && ( wcsArray() != null || axisArray() != null );

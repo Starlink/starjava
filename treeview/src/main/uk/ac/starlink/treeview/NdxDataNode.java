@@ -182,6 +182,20 @@ public class NdxDataNode extends DefaultDataNode
             children.add( tit );
         }
 
+        if ( ndx.hasLabel() ) {
+            DataNode lab;
+            lab = new ScalarDataNode( "Label", "string", ndx.getLabel() );
+            getChildMaker().configureDataNode( lab, this, null );
+            children.add( lab );
+        }
+
+        if ( ndx.hasUnits() ) {
+            DataNode uni;
+            uni = new ScalarDataNode( "Units", "string", ndx.getUnits() );
+            getChildMaker().configureDataNode( uni, this, null );
+            children.add( uni );
+        }
+
         DataNode im = makeChild( ndx.getImage() );
         im.setLabel( "image" );
         children.add( im );

@@ -202,6 +202,11 @@ public class FitsNdxHandler
             /* Try to get an image NDArray at this URL. */
             final NDArray image = fab.makeNDArray( url, mode );
 
+            /* Get Units information from the headers. */
+            String units = hdr.containsKey( "BUNIT" ) 
+                         ? hdr.getStringValue( "BUNIT" )
+                         : null;
+
             /* Get the WCS information, if possible. */
             final FrameSet wcs;
             if ( AstPackage.isAvailable() ) {
@@ -242,6 +247,9 @@ public class FitsNdxHandler
             MutableNdx ndx = new DefaultMutableNdx( image );
             if ( wcs != null ) {
                 ndx.setWCS( wcs );
+            }
+            if ( units != null ) {
+                ndx.setUnits( units );
             }
             return ndx;
         }
@@ -338,6 +346,12 @@ public class FitsNdxHandler
             }
             xhdu = nhdu++;
 
+            /* Write a header giving units if we have them. */
+            if ( ndx.hasUnits() ) {
+                cardlist.add( new HeaderCard( "BUNIT", ndx.getUnits(),
+                                              "Image array units" ) );
+            }
+
             /* Write a header indicating where the XML HDU can be found. */
             cardlist.add( 
                 new HeaderCard( FitsConstants.NDX_XML, "#" + xhdu,
@@ -390,8 +404,22 @@ public class FitsNdxHandler
             Number vbadval = 
                 vtype.isFloating() ? vtype.defaultBadValue()
                                    : var.getBadHandler().getBadValue();
-            HeaderCard[] vcards = new HeaderCard[] { 
-                commentCard( "VARIANCE component of NDX structure" ) };
+            List vcardlist = new ArrayList();
+            vcardlist.add( 
+                commentCard( "VARIANCE component of NDX structure" ) );
+            if ( ndx.hasUnits() ) {
+                String vunits = "(" + ndx.getUnits() + ")**2";
+                try {
+                    vcardlist.add( new HeaderCard( "BUNIT", vunits,
+                                                   "Variance array units" ) );
+                }
+                catch ( HeaderCardException e ) {
+                    logger.warning( "Failed to write variance unit string " 
+                                  + vunits );
+                }
+            }
+            HeaderCard[] vcards = 
+                (HeaderCard[]) vcardlist.toArray( new HeaderCard[ 0 ] );
             ArrayImpl vimpl = 
                 new WritableFitsArrayImpl( var.getShape(), vtype, vbadval, 
                                            strm, false, vcards );

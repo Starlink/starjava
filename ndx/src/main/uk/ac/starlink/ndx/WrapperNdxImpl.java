@@ -31,6 +31,22 @@ public class WrapperNdxImpl implements NdxImpl {
         return ndx.getTitle();
     }
 
+    public boolean hasLabel() {
+        return ndx.hasLabel();
+    }
+
+    public String getLabel() {
+        return ndx.getLabel();
+    }
+
+    public boolean hasUnits() {
+        return ndx.hasUnits();
+    }
+
+    public String getUnits() {
+        return ndx.getUnits();
+    }
+
     public boolean hasEtc() {
         return ndx.hasEtc();
     }

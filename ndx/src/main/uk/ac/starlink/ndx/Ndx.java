@@ -99,6 +99,42 @@ public interface Ndx {
     String getTitle();
 
     /**
+     * Indicates whether there is a label component.
+     *
+     * @return   true if {@link #getLabel} may be called
+     */
+    boolean hasLabel();
+
+    /**
+     * Returns the label string for this Ndx.
+     * This describes the quantity held in the data array.
+     * May only be called if {@link #hasLabel} returns <tt>true</tt>.
+     *
+     * @return  the label string
+     * @throws  UnsupportedOperationException  if <tt>hasLabel</tt>
+     *          returns <tt>false</tt>
+     */
+    String getLabel();
+
+    /**
+     * Indicates whether there is a units component.
+     *
+     * @return   true if {@link #getUnits} may be called
+     */
+    boolean hasUnits();
+
+    /**
+     * Returns the units string for this Ndx.  
+     * This indicates the units of the values in the data array.
+     * May only be called if {@link #hasUnits} returns <tt>true</tt>.
+     *
+     * @return  the units string
+     * @throws  UnsupportedOperationException  if <tt>hasUnits</tt>
+     *          returns <tt>false</tt>
+     */
+    String getUnits();
+
+    /**
      * Find out if the NDX contains user-defined extension information.
      *
      * @return true if {@link #getEtc} may be called

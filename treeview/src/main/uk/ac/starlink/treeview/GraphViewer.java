@@ -2,6 +2,7 @@ package uk.ac.starlink.treeview;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
@@ -94,6 +95,8 @@ public class GraphViewer extends DivaPlot {
         private double[] errData;
         private NDShape shape;
         private String title;
+        private String label;
+        private String units;
 
         public NdxSpecDataImpl( Ndx ndx ) throws IOException, SplatException {
             super( ndx.hasTitle() ? ndx.getTitle() : null );
@@ -101,6 +104,8 @@ public class GraphViewer extends DivaPlot {
             this.ast = Ndxs.getAst( ndx );
             this.shape = ndx.getImage().getShape();
             this.title = ndx.hasTitle() ? ndx.getTitle() : null;
+            this.label = ndx.hasLabel() ? ndx.getLabel() : null;
+            this.units = ndx.hasUnits() ? ndx.getUnits() : null;
             int npix = (int) ndx.getImage().getShape().getNumPixels();
 
             Requirements req = new Requirements( AccessMode.READ )
@@ -146,10 +151,10 @@ public class GraphViewer extends DivaPlot {
         }
         public String getProperty( String key ) {
             if ( key.equals( "label" ) ) {
-                return "";
+                return label;
             }
             else if ( key.equals( "units" ) ) {
-                return "";
+                return units;
             }
             else {
                 return "";

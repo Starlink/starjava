@@ -211,6 +211,8 @@ public class XMLNdxHandler implements NdxHandler {
         NDArray variance = null;
         NDArray quality = null;
         String title = null;
+        String label = null;
+        String units = null;
         FrameSet wcs = null;
         int badbits = 0;
         Node etc = null;
@@ -233,6 +235,16 @@ public class XMLNdxHandler implements NdxHandler {
                     title = cel.getAttribute( "value" );
                     if (title.length() == 0) // no such attribute
                         title = getTextContent( cel );
+                }
+                else if ( tagname.equals( "label" ) ) {
+                    label = cel.getAttribute( "value" );
+                    if (label.length() == 0) // no such attribute
+                        label = getTextContent( cel );
+                }
+                else if ( tagname.equals( "units" ) ) {
+                    units = cel.getAttribute( "value" );
+                    if (units.length() == 0) // no such attribute
+                        units = getTextContent( cel );
                 }
                 else if ( tagname.equals( "badbits" ) ) {
                     String badbitsString = cel.getAttribute( "value" );
@@ -283,7 +295,8 @@ public class XMLNdxHandler implements NdxHandler {
             }
         }
 
-        return makeNdx( image, variance, quality, title, wcs, badbits, etc );
+        return makeNdx( image, variance, quality, title, label, units, 
+                        wcs, badbits, etc );
     }
 
     private NDArray makeNDArray( Element el, AccessMode mode, String systemId )
@@ -321,6 +334,7 @@ public class XMLNdxHandler implements NdxHandler {
 
     private Ndx makeNdx( final NDArray image, final NDArray variance, 
                          final NDArray quality, final String title,
+                         final String label, final String units,
                          final FrameSet wcs, final int badbits,
                          final Node etc )
             throws IOException {
@@ -341,6 +355,12 @@ public class XMLNdxHandler implements NdxHandler {
             public String getTitle() {
                 return title;
             }
+            public String getLabel() {
+                return label;
+            }
+            public String getUnits() {
+                return units;
+            }
             public Object getWCS() {
                 return wcs;
             }
@@ -352,6 +372,12 @@ public class XMLNdxHandler implements NdxHandler {
             }
             public boolean hasTitle() {
                 return title != null;
+            }
+            public boolean hasLabel() {
+                return label != null;
+            }
+            public boolean hasUnits() {
+                return units != null;
             }
             public boolean hasVariance() {
                 return variance != null;

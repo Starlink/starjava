@@ -44,7 +44,7 @@ public interface NdxImpl {
     /**
      * Indicates whether a title component is available.
      *
-     * @return   true if and only if getTitle will return a string
+     * @return   true if and only if {@link #getTitle} will return a string
      */
     boolean hasTitle();
 
@@ -55,6 +55,36 @@ public interface NdxImpl {
      * @return  a string containing the Ndx title
      */
     String getTitle();
+
+    /**
+     * Indicates whether a label component is available.
+     *
+     * @return  true if and only if {@link #getLabel} will return a string
+     */
+    boolean hasLabel();
+
+    /**
+     * Gets the label component.
+     * This method will only be called if {@link #hasLabel} returns true.
+     *
+     * @return  a string containing the Ndx label (data description)
+     */
+    String getLabel();
+
+    /**
+     * Indicates whether a units component is available.
+     *
+     * @return  true if and only if {@link #getUnits} will return a string
+     */
+    boolean hasUnits();
+
+    /**
+     * Gets the units component.
+     * This method will only be called if {@link #hasUnits} returns true.
+     *
+     * @return  a string containing the units of the Ndx data
+     */
+    String getUnits();
 
     /**
      * Indicates whether a WCS component is available.

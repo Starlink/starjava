@@ -25,6 +25,8 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
     private Element etc = null;
     private FrameSet ast = null;
     private String title = null;
+    private String label = null;
+    private String units = null;
     private NDArray image = null;
     private NDArray variance = null;
     private NDArray quality = null;
@@ -35,6 +37,8 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
     private boolean badbitsSet = false;
     private boolean etcSet = false;
     private boolean titleSet = false;
+    private boolean labelSet = false;
+    private boolean unitsSet = false;
 
     /**
      * Constructs a MutableNdx from a given NdxImpl. 
@@ -84,6 +88,10 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
             public Source getEtc() { return null; }
             public boolean hasTitle() { return false; }
             public String getTitle() { return null; }
+            public boolean hasLabel() { return false; }
+            public String getLabel() { return null; }
+            public boolean hasUnits() { return false; }
+            public String getUnits() { return null; }
             public boolean hasWCS() { return false; }
             public Object getWCS() { return null; }
         } );
@@ -184,6 +192,48 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
         }
         else {
             return super.getTitle();
+        }
+    }
+
+    public void setLabel( String label ) {
+        labelSet = true;
+        this.label = label;
+    }
+    public boolean hasLabel() {
+        return labelSet ? ( label != null ) : super.hasLabel();
+    }
+    public String getLabel() {
+        if ( labelSet ) {
+            if ( hasLabel() ) {
+                return label;
+            }
+            else {
+                throw new UnsupportedOperationException( "No label component" );
+            }
+        }
+        else {
+            return super.getLabel();
+        }
+    }
+
+    public void setUnits( String units ) {
+        unitsSet = true;
+        this.units = units;
+    }
+    public boolean hasUnits() {
+        return unitsSet ? ( units != null ) : super.hasUnits();
+    }
+    public String getUnits() {
+        if ( unitsSet ) {
+            if ( hasUnits() ) {
+                return units;
+            }
+            else {
+                throw new UnsupportedOperationException( "No units component" );
+            }
+        }
+        else {
+            return super.getUnits();
         }
     }
 

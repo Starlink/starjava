@@ -21,9 +21,8 @@ import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSReference;
 import uk.ac.starlink.hds.NDFNdxHandler;
-import uk.ac.starlink.ndx.DefaultMutableNdx;
-import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
+import uk.ac.starlink.ndx.Ndxs;
 
 /**
  * A {@link DataNode} representing an
@@ -39,7 +38,7 @@ public class NDFDataNode extends HDSDataNode
 
     private HDSObject ndfobj;
     private NDShape shape;
-    private FrameSet wcs;
+    private FrameSet wcsFrameSet;
     private DataNodeFactory axisChildMaker;
     private DataNodeFactory ndfChildMaker;
     private Ndx ndx;
@@ -133,7 +132,6 @@ public class NDFDataNode extends HDSDataNode
                     DataNode wcsnode = makeNDFChild( ndfobj.datFind( "WCS" ) );
                     if ( wcsnode instanceof WCSDataNode ) {
                         wcsComponent = (WCSDataNode) wcsnode;
-                        wcs = wcsComponent.getWcs();
                     }
                     else {
                         throw new NoSuchDataException( "Not a WCSDataNode" );
@@ -321,12 +319,17 @@ public class NDFDataNode extends HDSDataNode
                              ")" );
         }
         if ( wcsComponent != null ) {
-            int cur = wcs.getCurrent();
             dv.addSubHead( "World Coordinate Systems" );
-            dv.addKeyedItem( "Number of frames", wcs.getNframe() );
-            dv.addKeyedItem( "Current frame",
-                             Integer.toString( cur ) + " (" + 
-                             wcs.getFrame( cur ).getDomain() + ")" );
+            try {
+                int cur = getWCS().getCurrent();
+                dv.addKeyedItem( "Number of frames", getWCS().getNframe() );
+                dv.addKeyedItem( "Current frame",
+                                 Integer.toString( cur ) + " (" + 
+                                 getWCS().getFrame( cur ).getDomain() + ")" );
+            }
+            catch ( IOException e ) {
+                dv.addKeyedItem( "Error", e.toString() );
+            }
         }
         if ( extensions != null ) {
             dv.addSubHead( "Extensions" );
@@ -362,6 +365,13 @@ public class NDFDataNode extends HDSDataNode
         return qualityBadbits;
     }
 
+    private FrameSet getWCS() throws IOException {
+        if ( wcsFrameSet == null ) {
+            wcsFrameSet = Ndxs.getAst( getNdx() );
+        }
+        return wcsFrameSet;
+    }
+
     public Ndx getNdx() throws IOException {
         if ( ndx == null ) {
             URL ndurl;
@@ -372,10 +382,8 @@ public class NDFDataNode extends HDSDataNode
                 ndurl = null;
             }
             try {
-                Ndx baseNdx = NDFNdxHandler.getInstance()
-                             .makeNdx( ndfobj, ndurl, AccessMode.READ );
-                ndx = new DefaultMutableNdx( baseNdx );
-                ((MutableNdx) ndx).setWCS( wcs );
+                ndx = NDFNdxHandler.getInstance()
+                     .makeNdx( ndfobj, ndurl, AccessMode.READ );
             }
             catch ( HDSException e ) {
                 throw (IOException) 

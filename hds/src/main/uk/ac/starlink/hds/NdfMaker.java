@@ -280,6 +280,20 @@ public class NdfMaker {
             ndfob.datFind( "TITLE" ).datPut0c( title );
         }
 
+        /* Label component. */
+        if ( ndx.hasLabel() ) {
+            String label = ndx.getLabel();
+            ndfob.datNew( "LABEL", "_CHAR*" + label.length(), SCALAR_DIMS );
+            ndfob.datFind( "LABEL" ).datPut0c( label );
+        }
+
+        /* Units component. */
+        if ( ndx.hasUnits() ) {
+            String units = ndx.getUnits();
+            ndfob.datNew( "UNITS", "_CHAR*" + units.length(), SCALAR_DIMS );
+            ndfob.datFind( "UNITS" ).datPut0c( units );
+        }
+
         /* WCS component. */
         if ( ndx.hasWCS() ) {
             FrameSet wcs = doctorForNDF( ndx.getAst(), shape );

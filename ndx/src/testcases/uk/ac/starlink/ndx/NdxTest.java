@@ -105,6 +105,7 @@ public class NdxTest extends TestCase {
         vndx.setVariance( vvariance );
         vndx.setQuality( vquality );
         vndx.setTitle( "Mark's first test NDX" );
+        vndx.setUnits( "fortnights" );
         vndx.setEtc( new SourceReader().getDOM( etcSrc ) );
 
         return vndx;

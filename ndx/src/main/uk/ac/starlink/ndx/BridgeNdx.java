@@ -59,8 +59,12 @@ public class BridgeNdx implements Ndx {
     private final NdxImpl impl;
     private FrameSet ast;
     private String title;
+    private String label;
+    private String units;
     private Boolean hasEtc;
     private Boolean hasTitle;
+    private Boolean hasLabel;
+    private Boolean hasUnits;
     private Boolean hasVariance;
     private Boolean hasQuality;
     private Boolean hasWCS;
@@ -75,6 +79,8 @@ public class BridgeNdx implements Ndx {
     final private static String XMLNAME_VARIANCE = "variance";
     final private static String XMLNAME_QUALITY = "quality";
     final private static String XMLNAME_TITLE = "title";
+    final private static String XMLNAME_LABEL = "label";
+    final private static String XMLNAME_UNITS = "units";
     final private static String XMLNAME_BADBITS = "badbits";
     final private static String XMLNAME_WCS = "wcs";
     final private static String XMLNAME_ETC = "etc";
@@ -291,6 +297,20 @@ public class BridgeNdx implements Ndx {
         return hasTitle.booleanValue();
     }
 
+    public boolean hasLabel() {
+        if ( hasLabel == null ) {
+            hasLabel = Boolean.valueOf( impl.hasLabel() );
+        }
+        return hasLabel.booleanValue();
+    }
+
+    public boolean hasUnits() {
+        if ( hasUnits == null ) {
+            hasUnits = Boolean.valueOf( impl.hasUnits() );
+        }
+        return hasUnits.booleanValue();
+    }
+
     public boolean hasEtc() {
         if ( hasEtc == null ) {
             hasEtc = Boolean.valueOf( impl.hasEtc() );
@@ -314,6 +334,26 @@ public class BridgeNdx implements Ndx {
             title = impl.getTitle();
         }
         return title;
+    }
+
+    public String getLabel() {
+        if ( ! hasLabel() ) {
+            throw new UnsupportedOperationException( "No label component" );
+        }
+        if ( label == null ) {
+            label = impl.getLabel();
+        }
+        return label;
+    }
+
+    public String getUnits() {
+        if ( ! hasUnits() ) {
+            throw new UnsupportedOperationException( "No units component" );
+        }
+        if ( units == null ) {
+            units = impl.getUnits();
+        }
+        return units;
     }
 
     public Source getEtc() {
@@ -514,6 +554,20 @@ public class BridgeNdx implements Ndx {
             Element titleEl = doc.createElement( XMLNAME_TITLE );
             titleEl.setAttribute( "value", getTitle() );
             ndxEl.appendChild( titleEl );
+        }
+
+        /* Write a label element. */
+        if ( hasLabel() ) {
+            Element labelEl = doc.createElement( XMLNAME_LABEL );
+            labelEl.setAttribute( "value", getLabel() );
+            ndxEl.appendChild( labelEl );
+        }
+
+        /* Write a units element. */
+        if ( hasUnits() ) {
+            Element unitsEl = doc.createElement( XMLNAME_UNITS );
+            unitsEl.setAttribute( "value", getUnits() );
+            ndxEl.appendChild( unitsEl );
         }
 
         /* Write an image element. */
