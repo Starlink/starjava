@@ -16,6 +16,7 @@ public class HDSObjectTest extends TestCase {
     public static String containerName;
     public static File containerFile;
     public static HDSObject top;
+    public static boolean tried;
     public static HDSObject dataArray;
     public static HDSObject wcsArray;
     public static HDSObject moreObj;
@@ -28,7 +29,8 @@ public class HDSObjectTest extends TestCase {
 
     protected void setUp() throws HDSException, IOException {
         assertTrue( HDSPackage.isAvailable() );
-        if ( top == null ) {
+        if ( ! tried ) {
+            tried = true;
             String tmpdir = System.getProperty( "java.io.tmpdir" );
             containerName = tmpdir + File.separatorChar + "test_ndf";
             containerFile = new File( containerName + ".sdf" );
@@ -45,6 +47,8 @@ public class HDSObjectTest extends TestCase {
             while ( ( b = istrm.read() ) >= 0 ) {
                 ostrm.write( b );
             }
+            istrm.close();
+            ostrm.close();
             top = HDSObject.hdsOpen( containerName, "UPDATE" );
             dataArray = top.datFind( "DATA_ARRAY" ).datFind( "DATA" );
             wcsArray = top.datFind( "WCS" ).datFind( "DATA" );
