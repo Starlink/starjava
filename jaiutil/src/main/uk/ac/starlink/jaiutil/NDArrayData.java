@@ -6,9 +6,12 @@ package uk.ac.starlink.jaiutil;
 import java.awt.image.Raster;
 import java.io.IOException;
 
-import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayAccess;
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.array.Requirements;
 
 /**
  * An abstract base class for performing data type specific operations
@@ -50,6 +53,13 @@ public abstract class NDArrayData
     public NDArrayData( NDArray nda )
         throws IOException
     {
+        //  Make sure we have random access. Does nothing if already
+        //  have this, but is needed for remote data (this causes a
+        //  local copy to be created).
+        Requirements req = 
+            new Requirements( AccessMode.READ ).setRandom( true );
+        nda = NDArrays.toRequiredArray( nda, req );
+
         this.tiler = nda.getAccess();
         long[] axes = null;
         try {
@@ -93,7 +103,11 @@ public abstract class NDArrayData
     {
 	long[] corners;
         int[] lengths;
-        if ( x == 0 ) x = 1;
+        
+        // Why do I do this?
+        //if ( x == 0 ) x = 1;
+        //if ( y == 0 ) y = 1;
+        x++; y++;
 
         //  TODO: test 3 and 4D cases.
 	switch(naxis) {
