@@ -419,17 +419,9 @@
           unless="runonly.install"
           description="-> compiles the source code">
 
-    <!-- Create the Version class, this just returns the current package
-         version. -->
-    <concat destfile="${java.dir}/uk/ac/starlink/splat/util/Version.java"
-            append="false">
-package uk.ac.starlink.splat.util;
-public class Version {
-   public static String getVersion() {
-      return "${version}";
-   }
-}    
-    </concat>
+    <!-- Update the version properties file. -->
+    <echo file="${java.dir}/uk/ac/starlink/splat/util/splat.version"
+          message="version=${version}${line.separator}"/>
 
     <mkdir dir="${build.classes}"/>
     <javac srcdir="${java.dir}"
@@ -454,6 +446,7 @@ public class Version {
       <fileset dir="${java.dir}">
         <include name="**/deploy.wsdd"/>
         <include name="**/*.xml"/>
+        <include name="**/splat.version"/>
         <include name="**/images/**"/>
       </fileset>
     </copy>
