@@ -48,7 +48,7 @@ public class StarTableOutput {
      * Constructs a StarTableOutput with a default list of handlers.
      */
     public StarTableOutput() {
-        handlers = new ArrayList( 4 );
+        handlers = new ArrayList();
 
         /* Attempt to add default handlers if they are available. */
         for ( int i = 0; i < defaultHandlerClasses.length; i++ ) {
@@ -65,6 +65,18 @@ public class StarTableOutput {
             catch ( Exception e ) {
                 logger.config( "Failed to register " + className + " - " + e );
             }
+        }
+
+        /* Add some variant handlers for VOTable if possible. */
+        try {
+            List extras = (List)
+                Class.forName( "uk.ac.starlink.votable.VOTableWriter" )
+                     .getMethod( "getVariantHandlers", new Class[ 0 ] )
+                     .invoke( null, new Object[ 0 ] );
+            handlers.addAll( extras );
+        }
+        catch ( Exception e ) {
+            logger.config( "No variant VOTable handlers" );
         }
     }
 
