@@ -840,9 +840,10 @@ public class SpecDataFactory
      *   <li>Expansion into a spectrum per line of the original data</li>
      *   <li>Vectorisation of the original data into a single spectrum</li>
      * </ul>
-     * To be reprocessable a SpecData must have an implementation that is 2D,
-     * higher dimensions are not supported and 1D spectrum require no
-     * reprocessing. In both these cases a null is returned.
+     * To be reprocessable a SpecData must have an implementation that is 2D
+     * (or reducible to 2D).  Higher dimensions are not supported and 1D
+     * spectrum require no reprocessing. In both these cases a null is
+     * returned.
      *
      * @param specData the SpecData object to reprocess.
      * @param method the method to use when reprocessing, COLLAPSE, EXPAND or
@@ -854,7 +855,7 @@ public class SpecDataFactory
         SpecData[] results = null;
         SpecDataImpl impl = specData.getSpecDataImpl();
         int[] dims = impl.getDims();
-        if ( dims.length != 2 ) {
+        if ( dims.length == 1 ) {
             return results;
         }
 
