@@ -24,4 +24,13 @@ public class URLDataSource extends DataSource {
     protected InputStream getRawInputStream() throws IOException {
         return url.openStream();
     }
+
+    /**
+     * Returns the URL on which this <tt>URLDataSource</tt> is based.
+     *
+     * @return  the URL
+     */
+    public URL getURL() {
+        return url;
+    }
 }

@@ -25,4 +25,13 @@ public class FileDataSource extends DataSource {
     protected InputStream getRawInputStream() throws IOException {
         return new FileInputStream( file );
     }
+
+    /**
+     * Returns the File object on which this <tt>FileDataSource</tt> is based.
+     *
+     * @return  the file
+     */
+    public File getFile() {
+        return file;
+    }
 }
