@@ -2,12 +2,14 @@ package uk.ac.starlink.topcat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import gnu.jel.Library;
 import gnu.jel.DVMap;
 import java.util.Date;
 import java.util.Hashtable;
+import uk.ac.starlink.topcat.func.Activation;
 import uk.ac.starlink.topcat.func.Angles;
 import uk.ac.starlink.topcat.func.Miscellaneous;
 
@@ -24,18 +26,37 @@ public class JELUtils {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
-     * Returns a JEL Library suitable for expression evaluation on this
-     * column's table.  This method is provided as a utility for
-     * classes which need to get a library, it is not for use by
-     * compiled JEL expressions, hence it is not declared public.
+     * Returns a JEL Library suitable for expression evaluation.
      *
      * @param    rowReader  object which can read rows from the table to
      *           be used for expression evaluation
      * @return   a library
      */
-    static Library getLibrary( JELRowReader rowReader ) {
+    public static Library getLibrary( JELRowReader rowReader ) {
         Class[] staticLib = 
             (Class[]) getStaticClasses().toArray( new Class[ 0 ] );
+        Class[] dynamicLib = new Class[] { JELRowReader.class };
+        Class[] dotClasses = new Class[] { String.class, Date.class };
+        DVMap resolver = rowReader;
+        Hashtable cnmap = null;
+        return new Library( staticLib, dynamicLib, dotClasses,
+                            resolver, cnmap );
+    }
+
+    /**
+     * Returns a JEL library suitable for code activation.
+     * This includes access to methods which do stuff (e.g. write to 
+     * System.out, pop up viewers) rather than just ones which 
+     * calculate things.
+     *
+     * @param  rowReader  object which can read rows from the table to
+     *         be used for expression execution
+     * @return a library
+     */
+    static Library getActivationLibrary( JELRowReader rowReader ) {
+        List statix = new ArrayList( getStaticClasses() );
+        statix.add( Activation.class );
+        Class[] staticLib = (Class[]) statix.toArray( new Class[ 0 ] );
         Class[] dynamicLib = new Class[] { JELRowReader.class };
         Class[] dotClasses = new Class[] { String.class, Date.class };
         DVMap resolver = rowReader;
@@ -85,7 +106,7 @@ public class JELUtils {
             /* Combine to produce the final list. */
             staticClasses = classList;
         }
-        return staticClasses;
+        return Collections.unmodifiableList( staticClasses );
     }
 
      /**
