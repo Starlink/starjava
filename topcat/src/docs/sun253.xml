@@ -75,7 +75,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>February 2005</docdate>
+<docdate>March 2005</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -3180,14 +3180,14 @@ introduced since the last version:
 
     </dl></p></dd>
 
-<dt>Version 1.4-1 (8 Feb 2005)</dt>
+<dt>Version 1.4-1 (8 February 2005)</dt>
 <dd><p>
     <ul>
     <li>Added Search Column item to Data Window column popup menu</li>
     </ul>
     </p></dd>
 
-<dt>Version 1.5 (Mar 2005)</dt>
+<dt>Version 1.5 (15 March 2005)</dt>
 <dd>
 <p><dl>
   <dt>File Access</dt>
