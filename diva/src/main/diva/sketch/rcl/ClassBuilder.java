@@ -28,7 +28,7 @@ public class ClassBuilder extends AbstractXmlBuilder {
                 " expects no children in build()";
             throw new Exception(err);
         }
-        Class c = Class.forName(type);
+        Class c = this.getClass().forName(type);
         return c.newInstance();
     }
 

@@ -42,7 +42,7 @@ public abstract class TextAnnotations extends AbstractXmlBuilder
         return out;
     }
     public Object build(XmlElement elt, String type) throws Exception {
-        Class c = Class.forName(type);
+        Class c = this.getClass().forName(type);
         TextAnnotations ta = (TextAnnotations)c.newInstance();
         ta.setCharWidth(Double.parseDouble(elt.getAttribute(CHAR_WIDTH)));
         ta.setCharHeight(Double.parseDouble(elt.getAttribute(CHAR_HEIGHT)));
