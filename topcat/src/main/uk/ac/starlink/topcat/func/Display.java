@@ -37,6 +37,12 @@ public class Display {
     private static Map splatSpectra_ = new HashMap();
     private static PlotControlFrame splatPlotFrame_;
     private static PlotControl splatPlot_;
+
+    /**
+     * Private constructor prevents instantiation.
+     */
+    private Display() {
+    }
     
     /**
      * Displays the file at a given location as an image 

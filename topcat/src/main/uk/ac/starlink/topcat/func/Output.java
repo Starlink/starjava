@@ -14,6 +14,12 @@ package uk.ac.starlink.topcat.func;
 public class Output {
 
     /**
+     * Private constructor prevents instantiation.
+     */
+    private Output() {
+    }
+
+    /**
      * Outputs a string value to the user log.
      *
      * @param  val  value

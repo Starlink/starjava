@@ -22,6 +22,12 @@ public class TwoQZ {
     public static final String FITS_TAIL = ".fits.gz";
 
     /**
+     * Private constructor prevents instantiation.
+     */
+    private TwoQZ() {
+    }
+
+    /**
      * Displays all the spectra relating to a 2QZ object in an external
      * viewer (SPLAT).
      *

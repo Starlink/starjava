@@ -15,6 +15,12 @@ package uk.ac.starlink.topcat.func;
 public class Arithmetic {
 
     /**
+     * Private constructor prevents instantiation.
+     */
+    private Arithmetic() {
+    }
+
+    /**
      * Rounds a value up to an integer value.
      * Formally, returns the smallest (closest to negative infinity)
      * integer value that is not less than the argument.

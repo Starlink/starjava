@@ -22,6 +22,12 @@ public class Strings {
     private static Map patterns = new HashMap();
 
     /**
+     * Private constructor prevents instantiation.
+     */
+    private Strings() {
+    }
+
+    /**
      * Concatenates two strings.  
      * In most cases the same effect can be achieved by
      * writing <code>s1+s2</code>, but blank values can sometimes appear as

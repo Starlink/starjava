@@ -30,6 +30,12 @@ public class Maths {
 
 
     /**
+     * Private constructor prevents instantiation.
+     */
+    private Maths() {
+    }
+
+    /**
      * Sine of an angle.
      *
      * @param   theta   an angle, in radians.

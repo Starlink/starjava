@@ -16,6 +16,12 @@ import java.util.Arrays;
 public class Conversions {
 
     /**
+     * Private constructor prevents instantiation.
+     */
+    private Conversions() {
+    }
+
+    /**
      * Turns a numeric value into a string.
      *
      * @param  value  numeric value

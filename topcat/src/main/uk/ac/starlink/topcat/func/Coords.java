@@ -26,6 +26,12 @@ public class Coords {
         getSexPattern( "[:h ]", "[:m' ]", "[s\"]?" );
 
     /**
+     * Private constructor prevents instantiation.
+     */
+    private Coords() {
+    }
+
+    /**
      * Converts an angle in radians to a formatted degrees:minutes:seconds 
      * string.  No fractional part of the seconds field is given.
      *

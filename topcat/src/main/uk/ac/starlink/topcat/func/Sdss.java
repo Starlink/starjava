@@ -17,6 +17,12 @@ package uk.ac.starlink.topcat.func;
 public class Sdss {
 
     /**
+     * Private constructor prevents instantiation.
+     */
+    private Sdss() {
+    }
+
+    /**
      * Displays a colour cutout image of a specified size from the 
      * SDSS around a given sky position.  The displayed image is square, 
      * a given number of (0.4arcsec) pixels on each side.
