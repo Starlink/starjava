@@ -7,7 +7,7 @@
      certainly changing the semantics. -->
 
 <hdx>
-<ndx>
+<ndx xml:base='../../../../../etc/testcases/'>
 <image>file:test1.fits</image>
 <variance uri="file:test2.fits"
   >file:test3.fits</variance>

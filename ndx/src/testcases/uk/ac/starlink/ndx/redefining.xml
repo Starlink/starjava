@@ -3,7 +3,9 @@
 <!-- testing:constantly redefining namespaces -->
 
 <rubbish>
-  <ns1:ndx xmlns:ns1='http://www.starlink.ac.uk/HDX'>
+  <ns1:ndx
+       xml:base='../../../../../etc/testcases/' 
+       xmlns:ns1='http://www.starlink.ac.uk/HDX'>
     <ns2:image xmlns:ns2='http://www.starlink.ac.uk/HDX'>
       file:test1.fits
     </ns2:image>
@@ -15,6 +17,7 @@
   <something>
     <stuff
       ns4:name='ndx'
+      xml:base='../../../../../etc/testcases/' 
       xmlns:ns4='http://www.starlink.ac.uk/HDX'>
       <cheesy
 	ns5:name='image'
