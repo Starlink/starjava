@@ -238,6 +238,7 @@ public class VOComponentDataNode extends DefaultDataNode {
         if ( description != null && description.length() > 0 ) {
             dv.addSubHead( "Description" );
             dv.addText( description );
+            dv.addSeparator();
         }
 
         /* Coosys. */

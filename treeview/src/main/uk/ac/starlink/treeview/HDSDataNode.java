@@ -366,7 +366,7 @@ public class HDSDataNode extends DefaultDataNode {
 
                     /* If it's non-numeric, present a view of its data. */
                     else {
-                        dv.addPane( "Array data", new ComponentMaker() {
+                        dv.addScalingPane( "Array data", new ComponentMaker() {
                             public JComponent getComponent() 
                                     throws HDSException {
                                 ArrayStructure ary = new ArrayStructure( hobj );

@@ -333,7 +333,7 @@ public class NdxDataNode extends DefaultDataNode {
             } );
         }
 
-        dv.addPane( "Pixel values", new ComponentMaker() {
+        dv.addScalingPane( "Pixel values", new ComponentMaker() {
             public JComponent getComponent() throws IOException {
                 if ( endim == 2 && ndim != 2 ) {
                     return new ArrayBrowser( eimage );

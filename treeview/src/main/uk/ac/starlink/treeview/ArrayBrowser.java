@@ -1,10 +1,18 @@
 package uk.ac.starlink.treeview;
 
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.Color;
+import java.awt.Font;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -15,25 +23,22 @@ import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Order;
 import uk.ac.starlink.array.OrderedNDShape;
+import uk.ac.starlink.array.Type;
 import uk.ac.starlink.hds.ArrayStructure;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.hds.HDSType;
+import uk.ac.starlink.table.gui.NumericCellRenderer;
 import uk.ac.starlink.table.gui.StarJTable;
-import uk.ac.starlink.table.gui.StarTableCellRenderer;
 
 /**
  * Displays an array of primitives in a JTable.
- * 
+ *
  * @author   Mark Taylor (Starlink)
  */
-class ArrayBrowser extends JTable {
+public class ArrayBrowser extends JScrollPane {
 
-    private static TableCellRenderer bodyRenderer;
-    private static TableCellRenderer borderRenderer;
-    private static final Object BAD_CELL = null;
-
-    private int ndim;
-    private TableModel model;
+    private static final Object BAD_CELL = new Object();
 
     /**
      * Constructs an ArrayBrowser from an NDArray.
@@ -61,131 +66,192 @@ class ArrayBrowser extends JTable {
      * pixel sequence (ordered shape).
      */
     private ArrayBrowser( final CellGetter cg, final OrderedNDShape shape ) {
-        ndim = shape.getNumDims();
-        borderRenderer = new StarTableCellRenderer( true );
-        bodyRenderer = new StarTableCellRenderer();
-        ((StarTableCellRenderer) bodyRenderer).setBadValue( BAD_CELL );
 
-        /* Construct a model. */
+        /* Get array shape. */
+        int ndim = shape.getNumDims();
+        final long[] dims = shape.getDims();
+        final long[] origin = shape.getOrigin();
+
+        /* Get a renderer suitable for headers. */
+        DefaultTableCellRenderer hrend = new DefaultTableCellRenderer();
+        hrend.setFont( UIManager.getFont( "TableHeader.font" ) );
+        hrend.setBackground( UIManager.getColor( "TableHeader.background" ) );
+        hrend.setForeground( UIManager.getColor( "TableHeader.foreground" ) );
+        hrend.setHorizontalAlignment( SwingConstants.RIGHT );
+
+        /* Get a renderer suitable for cells. */
+        final NumericCellRenderer crend = 
+            new NumericCellRenderer( cg.getContentClass() );
+        crend.setBadValue( BAD_CELL );
+
+        /* At present the only string arrays which this browser is likely
+         * to be rendering will be the contents of HDS _CHAR arrays.
+         * On the whole it is more sensible to render these in a fixed
+         * width font (e.g. FITS cards).  Numeric data should be 
+         * fixed-width in any case. */
+        crend.setCellFont( new Font( "Monospaced", Font.PLAIN, 
+                                     crend.getFont().getSize() ) );
+
+        /* Handle the two-dimensional case by making a normal 2d table. */
         if ( ndim == 2 ) {
-            final int cols = (int) shape.getDims()[ 0 ];
-            final int rows = (int) shape.getDims()[ 1 ];
-            final long o0 = shape.getOrigin()[ 0 ];
-            final long o1 = shape.getOrigin()[ 1 ];
-            model = new AbstractTableModel() {
+
+            /* Construct a model for the table data. */
+            TableModel dataModel;
+            final int ncol = (int) dims[ 0 ];
+            final int nrow = (int) dims[ 1 ];
+            final long o0 = origin[ 0 ];
+            final long o1 = origin[ 1 ];
+            dataModel = new AbstractTableModel() {
                 public int getRowCount() {
-                    return rows + 2;
+                    return nrow;
                 }
                 public int getColumnCount() {
-                    return cols + 2;
+                    return ncol;
                 }
-                public Object getValueAt( int row, int col ) {
-                    int r = row - 1;
-                    int c = col - 1; 
-                    if ( r >= 0 && r < rows && c >= 0 && c < cols ) {
-                        long p0 = o0 + ( (long) c );
-                        long p1 = o1 + ( (long) rows - 1 - r );
-                        long[] pos = new long[] { p0, p1 };
-                        int index = (int) shape.positionToOffset( pos );
-                        return cg.getValueAt( index );
-                    }
-                    else {
-                        if ( ( r < 0 || r >= rows ) &&
-                             ( c >= 0 && c < cols ) ) {
-                            long p0 = o0 + ( (long) c );
-                            return Long.toString( p0 );
-                        }
-                        else if ( ( c < 0 || c >= cols ) &&
-                                  ( r >= 0 && r < rows ) ) {
-                            long p1 = o1 + ( (long) rows - 1 - r );
-                            return Long.toString( p1 );
-                        }
-                        else {
-                            return null;
-                        }
-                    }
+                public Object getValueAt( int irow, int icol ) {
+                    long p0 = o0 + ( (long) icol );
+                    long p1 = o1 + ( (long) nrow - 1 - irow );
+                    long[] pos = new long[] { p0, p1 };
+                    int index = (int) shape.positionToOffset( pos );
+                    return cg.getValueAt( index );
                 }
             };
-            setAutoResizeMode( AUTO_RESIZE_OFF );
-        }
-        else {
-            final int rows = (int) shape.getNumPixels();
-            final long[] dims = shape.getDims();
-            final long[] org = shape.getOrigin();
 
-            model = new AbstractTableModel() {
+            /* Construct models for the label components. */
+            TableModel rowModel = new AbstractTableModel() {
                 public int getRowCount() {
-                    return rows;
+                    return nrow;
                 }
                 public int getColumnCount() {
-                    return 2;
+                    return 1;
                 }
-                public Object getValueAt( int row, int column ) {
-                    int index = row;
-                    if ( column == 1 ) {
-                        return cg.getValueAt( index );
-                    }
-                    else {
-                        return NDShape.toString(
-                                 shape.offsetToPosition( (long) index ) );
-                    }
+                public Object getValueAt( int irow, int icol ) {
+                    return new Long( o1 + (long) nrow - 1 - irow ) + "  ";
                 }
             };
-        }
+            TableModel colModel = new AbstractTableModel() {
+                public int getRowCount() {
+                    return 1;
+                }
+                public int getColumnCount() {
+                    return ncol; 
+                }
+                public Object getValueAt( int irow, int icol ) {
+                    return new Long( o0 + (long) icol  ) + "  ";
+                }
+            };
 
-        /* Set the table data model. */
-        setModel( model );
+            /* Construct the tables which will form the labels. */
+            JTable rowHead = new JTable( rowModel );
+            JTable colHead = new JTable( colModel );
 
-        /* Sort out column widths. */
-        TableColumnModel tcm = getColumnModel();
-        if ( ndim == 2 ) {
-            int ncol = model.getColumnCount();
+            /* Construct the table which will form the data view.  
+             * The business about the enclosing scroll pane is necessary since
+             * otherwise JTable takes control of the columnheader of the
+             * scrollpane itself, and on this occasion we want to handle it. */
+            JTable dataTab = new JTable( dataModel ) {
+                protected void configureEnclosingScrollPane() {
+                }
+                public TableCellRenderer getCellRenderer( int irow, int icol ) {
+                    return crend;
+                }
+            };
 
-            /* Get width of first and last columns. */
-            long lastpix = shape.getDims()[ 1 ] - 1;
-            Object borderObj = Long.toString( lastpix ); 
-            Component borderCell = 
-                borderRenderer
-               .getTableCellRendererComponent( this, borderObj, false, false,
-                                               (int) lastpix, 0 );
-            int borderColwidth = borderCell.getPreferredSize().width + 10;
-            tcm.getColumn( 0 ).setPreferredWidth( borderColwidth );
-            tcm.getColumn( ncol - 1 ).setPreferredWidth( borderColwidth );
+            /* Add them to the correct parts of this frame. */
+            setViewportView( dataTab );
+            setRowHeaderView( rowHead );
+            setColumnHeaderView( colHead );
 
-            /* Get width of body columns. */
-            Object bodyObj = new Double( Math.PI * 1e-99 );
-            Component bodyCell =
-                bodyRenderer
-               .getTableCellRendererComponent( this, bodyObj, false, false, 
-                                               1, 1 );
-            int bodyColwidth = bodyCell.getPreferredSize().width + 10;
-            for ( int i = 1; i < ncol - 1; i++ ) {
-                tcm.getColumn( i ).setPreferredWidth( bodyColwidth + 10 );
+            /* Sort out some borders for the headers. */
+            Color bcol = Color.BLACK;
+            Border cb = BorderFactory.createMatteBorder( 0, 0, 2, 0, bcol );
+            colHead.setBorder( cb );
+            Border rb = BorderFactory.createMatteBorder( 0, 0, 0, 2, bcol );
+            rowHead.setBorder( rb );
+
+            /* Put a corner in. */
+            JPanel box = new JPanel();
+            box.setBorder( BorderFactory
+                          .createMatteBorder( 0, 0, 2, 2, bcol ) );
+            setCorner( UPPER_LEFT_CORNER, box );
+
+            /* Configure the header components. */
+            rowHead.setDefaultRenderer( Object.class, hrend );
+            colHead.setDefaultRenderer( Object.class, hrend );
+            JTable[] tables = new JTable[] { dataTab, rowHead, colHead };
+            for ( int i = 0; i < tables.length; i++ ) {
+                JTable table = tables[ i ];
+                table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+                table.setTableHeader( null );
+                table.setPreferredScrollableViewportSize( table
+                                                         .getPreferredSize() );
+                table.setColumnSelectionAllowed( false );
+                table.setRowSelectionAllowed( false );
+            }
+
+            /* Set the column widths. */
+            int cwidth = crend.getCellWidth();
+            TableColumnModel dataTcm = dataTab.getColumnModel();
+            TableColumnModel colTcm = colHead.getColumnModel();
+            for ( int i = 0; i < ncol; i++ ) {
+                dataTcm.getColumn( i ).setPreferredWidth( cwidth );
+                colTcm.getColumn( i ).setPreferredWidth( cwidth );
             }
         }
+
+        /* If it's not 2-d, treat it as 1-d. */
         else {
-            long lastpix = shape.getNumPixels() - 1;
-            String rep = NDShape.toString( shape.offsetToPosition( lastpix ) );
-            int colwidth = getFont().getSize() * rep.length();
-            TableColumn tcol = getColumnModel().getColumn( 0 );
-            tcol.setMaxWidth( colwidth );
-            tcol.setMinWidth( colwidth );
+
+            /* Set up the model. */
+            final int nrow = (int) shape.getNumPixels();
+            final boolean alignRight = 
+                ( crend.getHorizontalAlignment() == SwingConstants.RIGHT );
+            TableModel dataModel = new AbstractTableModel() {
+                public int getRowCount() {
+                    return nrow;
+                }
+                public int getColumnCount() {
+                    return 2 + ( alignRight ? 1 : 0 );
+                }
+                public Object getValueAt( int irow, int icol ) {
+                    if ( icol == 0 ) {
+                        long[] pos = shape.offsetToPosition( (long) irow );
+                        return NDShape.toString( pos ) + "  ";
+                    }
+                    else if ( icol == 1 ) {
+                        return cg.getValueAt( irow );
+                    }
+                    else {
+                        return null;
+                    }
+                }
+            };
+
+            /* Construct the table itself. */
+            JTable tab = new JTable( dataModel );
+            setViewportView( tab );
+
+            /* Configure the rendering. */
+            tab.setTableHeader( null );
+            tab.setShowVerticalLines( false );
+            TableColumnModel tcm = tab.getColumnModel();
+            TableColumn tcol0 = tcm.getColumn( 0 );
+            TableColumn tcol1 = tcm.getColumn( 1 );
+            tcol0.setCellRenderer( hrend );
+            tcol1.setCellRenderer( crend );
+
+            /* Sort out column widths. */
+            int w0 = Math.max( StarJTable.getCellWidth( tab, 0, 0 ),
+                               StarJTable.getCellWidth( tab, nrow - 1, 0 ) )
+                   + 20;
+            tcol0.setMinWidth( w0 );
+            tcol0.setMaxWidth( w0 );
+            if ( alignRight ) {
+                int w1 = crend.getCellWidth() + 20;
+                tcol1.setMinWidth( w1 );
+                tcol1.setMaxWidth( w1 );
+            }
         }
-
-        /* Table configuration. */
-        setColumnSelectionAllowed( false );
-        setCellSelectionEnabled( false );
-        setDragEnabled( false );
-        setRowSelectionAllowed( false );
-        setTableHeader( null );
-    }
-
-    public TableCellRenderer getCellRenderer( int row, int col ) {
-        boolean isBorder =
-            ( ndim == 2 ) ? ( row == 0 || row == model.getRowCount() - 1 ||
-                              col == 0 || col == model.getColumnCount() - 1 )
-                          : ( col == 0 );
-        return isBorder ? borderRenderer : bodyRenderer;
     }
 
     /**
@@ -200,16 +266,22 @@ class ArrayBrowser extends JTable {
          * Returns the object at the cell indicated by a given offset.
          */
         Object getValueAt( int offset );
+
+        /**
+         * Returns the class of data we expect to obtain as cells.
+         */
+        Class getContentClass();
     }
 
     private static CellGetter makeCellGetter( NDArray nda ) throws IOException {
         if ( ! nda.isRandom() ) {
-            throw new IOException( "NDArray " + nda + 
+            throw new IOException( "NDArray " + nda +
                                    " does not have random access" );
         }
         final BadHandler bh = nda.getBadHandler();
         final Object buf = nda.getType().newArray( 1 );
         final ArrayAccess acc = nda.getAccess();
+        final Class clazz = getWrapperClass( nda.getType() );
         CellGetter cg = new CellGetter() {
             public Object getValueAt( int index ) {
                 try {
@@ -223,6 +295,9 @@ class ArrayBrowser extends JTable {
                     return BAD_CELL;
                 }
             }
+            public Class getContentClass() {
+                return clazz;
+            }
         };
         return cg;
     }
@@ -230,8 +305,12 @@ class ArrayBrowser extends JTable {
     private static CellGetter makeCellGetter( ArrayStructure ary )
             throws HDSException {
         final HDSObject datobj = ary.getData();
-        final OrderedNDShape dshape = 
+        final OrderedNDShape dshape =
             new OrderedNDShape( datobj.datShape(), Order.COLUMN_MAJOR );
+        HDSType htype = ary.getType();
+        final Class clazz = ( htype == null )
+                          ? Object.class 
+                          : getWrapperClass( ary.getType().getJavaType() );
         CellGetter cg = new CellGetter() {
             public Object getValueAt( int index ) {
                 try {
@@ -244,7 +323,15 @@ class ArrayBrowser extends JTable {
                     return BAD_CELL;
                 }
             }
+            public Class getContentClass() {
+                return clazz;
+            }
         };
         return cg;
     }
+
+    private static Class getWrapperClass( Type type ) {
+        return Array.get( type.newArray( 1 ), 0 ).getClass();
+    }
+
 }

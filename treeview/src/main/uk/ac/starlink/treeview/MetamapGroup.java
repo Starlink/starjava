@@ -23,6 +23,7 @@ public class MetamapGroup {
     private final List knownKeys;
     private final Map[] metamaps;
     private Comparator keyComparator;
+    private List ordering = new ArrayList();
 
     /**
      * Initialises a MetamapGroup which will contain a given number of items.
@@ -83,7 +84,6 @@ public class MetamapGroup {
 
     /**
      * Mandates an ordering to be imposed on the metadata keys.
-     * The supplied list is a 
      * The effect of this call is to influence the order of the list 
      * returned by subsequent calls of {@link #getKnownKeys}.
      * <p>
@@ -95,6 +95,7 @@ public class MetamapGroup {
      * @param   a list of strings which may appear in the metadata keys
      */
     public void setKeyOrder( List ordering ) {
+        this.ordering = new ArrayList( ordering );
         final List order = new ArrayList( ordering );
         Collections.reverse( order );
         keyComparator = new Comparator() {
@@ -102,6 +103,18 @@ public class MetamapGroup {
                 return order.indexOf( key2 ) - order.indexOf( key1 );
             }
         };
+    }
+
+    /**
+     * Returns the list which defines ordering for any keys which crop up.
+     * This will have the same contents as the argument of the last call
+     * to {@link #setKeyOrder}, or an empty list if that method has 
+     * not been called.
+     *
+     * @return  current key ordering 
+     */
+    public List getKeyOrder() {
+        return ordering;
     }
 
     /**
@@ -116,7 +129,7 @@ public class MetamapGroup {
         if ( keyComparator != null ) {
             Collections.sort( knownKeys, keyComparator );
         }
-        return knownKeys;
+        return new ArrayList( knownKeys );
     }
 
     /**

@@ -15,7 +15,6 @@ import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsStarTable;
-import uk.ac.starlink.table.ColumnHeader;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -120,37 +119,16 @@ public class TableHDUDataNode extends HDUDataNode {
                     throw new AssertionError();
                 }
 
-                /* Make a table out of it. */
-                final StarTable startable = new FitsStarTable( thdu );
-
-                /* Get and display info about the table. */
-                int ncols = startable.getColumnCount();
-                long nrows = startable.getRowCount();
-                dv.addKeyedItem( "Columns", ncols );
-                dv.addKeyedItem( "Rows", nrows );
-
-                dv.addSubHead( "Columns" );
-                for ( int i = 0; i < ncols; i++ ) {
-                    ColumnHeader head = startable.getHeader( i );
-                    dv.addKeyedItem( "Column " + ( i + 1 ), head.getName() );
-                }
+                /* Show the header cards. */
                 dv.addPane( "Header cards", new ComponentMaker() {
                     public JComponent getComponent() {
                         return new TextViewer( header.iterator() );
                     }
                 } );
-                dv.addPane( "Column details", new ComponentMaker() {
-                    public JComponent getComponent() {
-                        MetamapGroup metagroup =
-                            new StarTableMetamapGroup( startable );
-                        return new MetaTable( metagroup );
-                    }
-                } );
-                dv.addPane( "Table data", new ComponentMaker() {
-                    public JComponent getComponent() {
-                        return new TreeviewJTable( startable );
-                    }
-                } );
+
+                /* Make a StarTable out of it, and do table-specific display. */
+                final StarTable startable = new FitsStarTable( thdu );
+                StarTableDataNode.addDataViews( dv, startable );
             }
             catch ( final FitsException e ) {
                 dv.addPane( "Error reading table", new ComponentMaker() {

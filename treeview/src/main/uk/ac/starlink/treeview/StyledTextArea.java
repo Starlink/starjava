@@ -89,7 +89,10 @@ public class StyledTextArea extends JTextPane {
     }
 
     public void addKeyedItem( String name, String value ) {
-        append( "itemname", name + ":\u00a0\u00a0" );
+
+        /* Use non-breaking spaces to stop the line being broken in 
+         * bad places. */
+        append( "itemname", name.replace( ' ', '\u00a0' ) + ":\u00a0\u00a0" );
         append( "itemvalue", value + "\n" );
     }
 

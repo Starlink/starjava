@@ -1,14 +1,18 @@
 package uk.ac.starlink.treeview;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.votable.Field;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.Table;
@@ -80,29 +84,13 @@ public class VOTableTableDataNode extends VOComponentDataNode {
 
             /* Generic items. */
             addVOComponentViews( dv, vocel, systemId );
-
-            /* Fields. */
-            dv.addSubHead( "Columns" );
-            int ncol = votable.getColumnCount();
-            for ( int i = 0; i < ncol; i++ ) {
-                Field field = votable.getField( i );
-                dv.addText( ( i + 1 ) + ": " + field.getHandle() );
+            try {
+                StarTableDataNode.addDataViews( dv, getStarTable() );
             }
-
-            /* Column view. */
-            dv.addPane( "Column details", new ComponentMaker() {
-                public JComponent getComponent() throws IOException {
-                    MetamapGroup metagroup =
-                        new StarTableMetamapGroup( getStarTable() );
-                    return new MetaTable( metagroup );
-                }
-            } );
-
-            /* Table view. */
-            if ( dat != null ) {
-                dv.addPane( "Table contents", new ComponentMaker() {
-                    public JComponent getComponent() throws IOException {
-                        return new TreeviewJTable( getStarTable() );
+            catch ( final IOException e ) {
+                dv.addPane( "Error reading table", new ComponentMaker() {
+                    public JComponent getComponent() {
+                        return new TextViewer( e );
                     }
                 } );
             }
@@ -113,6 +101,16 @@ public class VOTableTableDataNode extends VOComponentDataNode {
     private StarTable getStarTable() throws IOException {
         if ( startable == null ) {
             startable = Tables.randomTable( new VOStarTable( votable ) );
+
+            /* Remove the "Description" parameter since it is treated 
+             * specially by VOTable nodes. */
+            for ( Iterator it = startable.getParameters().iterator();
+                  it.hasNext(); ) {
+                if ( ((DescribedValue) it.next())
+                    .getInfo().getName().equals( "Description" ) ) {
+                    it.remove();
+                }
+            }
         }
         return startable;
     }

@@ -240,6 +240,7 @@ public class Driver {
      * they haven't make pretty-good guesses about them.
      */
     private static void guessProperties() {
+        Loader.loadProperties();
         Properties props = System.getProperties();
         String prefix = "uk.ac.starlink.treeview.";
         String sc = "" + File.separatorChar;
