@@ -4,6 +4,13 @@ import java.awt.GraphicsEnvironment;
 import java.lang.reflect.Array;
 import java.util.Random;
 import java.net.URL;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import junit.framework.AssertionFailedError;
 import org.w3c.dom.*;
 
@@ -601,6 +608,58 @@ public class TestCase extends junit.framework.TestCase {
      */
     public void assertDOMEquals( Node expected, Node actual ) {
         assertDOMEquals( expected, actual, null, 0 );
+    }
+
+    /**
+     * Asserts that two XML {@link javax.xml.transform.Source} objects represent
+     * the same XML Infoset.  Differences in whitespace and
+     * in comments may be ignored (but this depends on the implementation).
+     * <p>
+     * The current implementation just tranforms to strings, normalises
+     * whitespace and compares strings.  It could be done more cleverly.
+     *
+     * @param   expected  the Source object containing the expected infoset
+     * @param   actual    the Source object containing the actual infoset,
+     *                    asserted to match <tt>expected</tt>
+     * @param flags a set of flags indicating which node tests to
+     * omit.  Passing as zero includes all tests.
+     * @throws  AssertionFailedError is the assertion is untrue
+     */
+    public void assertSourceEquals( Source expected, Source actual,
+                                    int flags ) {
+                 /* OK if both null. */
+        if ( expected == null && actual == null ) {
+            return;
+        }
+
+        /* Get a transformer. */
+        Transformer trans;
+        try {
+            trans = TransformerFactory.newInstance().newTransformer();
+            trans.setOutputProperty( OutputKeys.METHOD, "xml" );
+            trans
+           .setOutputProperty( "{http://xml.apache.org/xslt}indent-amount",
+                               "0" );
+            trans.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
+        }
+        catch ( TransformerConfigurationException e ) {
+            throw new RuntimeException( "Unexpected configuration error", e );
+        }
+
+        /* Transform both sources to get strings. */
+        DOMResult res1 = new DOMResult();
+        DOMResult res2 = new DOMResult();
+        try {
+            trans.transform( expected, res1 );
+            trans.transform( actual, res2 );
+            assertDOMEquals( res1.getNode(), res2.getNode(), null, flags );
+        }
+        catch ( TransformerException e ) {
+            throw (AssertionFailedError)
+                  new AssertionFailedError( "At least one source could not be "
+                                          + "transformed" )
+                 .initCause( e );
+        }
     }
     
     /**
