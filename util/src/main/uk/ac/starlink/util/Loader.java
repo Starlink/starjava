@@ -100,15 +100,16 @@ public class Loader {
             throws SecurityException, UnsatisfiedLinkError {
 
         /* Try to pick the library up off the path in the usual way. */
+        Throwable err1;
         try {
             System.loadLibrary( libname );
             return;
         }
         catch ( SecurityException e ) {
-            // drop through
+            err1 = e;
         }
-        catch ( UnsatisfiedLinkError e ) {
-            // drop through
+        catch ( LinkageError e ) {
+            err1 = e;
         }
 
         /* If we have arrived here, it's not on the path.  Try to find it
@@ -130,7 +131,16 @@ public class Loader {
             System.load( libfile.getCanonicalPath() );
         }
         catch (IOException e) {
-            throw new UnsatisfiedLinkError( e.getMessage() );
+            throw (UnsatisfiedLinkError)
+                  new UnsatisfiedLinkError( "couldn't load library " + 
+                                            libname + ": " + e.getMessage() )
+                 .initCause( err1 );
+        }
+        catch ( LinkageError e ) {
+            throw (UnsatisfiedLinkError)
+                  new UnsatisfiedLinkError( "couldn't load library " +
+                                            libname + ": " + e.getMessage() )
+                 .initCause( err1 );
         }
     }
 
