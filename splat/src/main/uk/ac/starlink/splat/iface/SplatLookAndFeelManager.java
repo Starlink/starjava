@@ -54,6 +54,18 @@ public class SplatLookAndFeelManager implements ActionListener
        UIManager.getCrossPlatformLookAndFeelClassName();
 
     /**
+     * GTK look and feel.
+     */
+    private static final String gtk  =
+        "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+    
+    /**
+     * Metal look and feel.
+     */
+    private static final String metal = 
+        "javax.swing.plaf.metal.MetalLookAndFeel";
+
+    /**
      * UI preferences.
      */
     protected static Preferences prefs =
@@ -106,9 +118,11 @@ public class SplatLookAndFeelManager implements ActionListener
         addThemes();
 
         //  Restore users last default look and theme.
-        String lastLook = prefs.get( "SplatLookAndFeelManager_look", defaultLook );
-        String lastTheme = prefs.get( "SplatLookAndFeelManager_theme", "Default" );
-        if ( ! defaultLook.equals( lastLook ) || 
+        String lastLook = prefs.get( "SplatLookAndFeelManager_look",
+                                     defaultLook );
+        String lastTheme = prefs.get( "SplatLookAndFeelManager_theme",
+                                      "Default" );
+        if ( ! defaultLook.equals( lastLook ) ||
              ! "Default".equals( lastTheme ) ) {
             defaultLook = lastLook;
             setThemeFromName( lastTheme  );
@@ -125,10 +139,16 @@ public class SplatLookAndFeelManager implements ActionListener
         ButtonGroup lfGroup = new ButtonGroup();
         JMenu selectLookMenu = new JMenu( "Look and feel" );
 
+        //  1.4.2 hack, GTK isn't available by default yet. Remove for
+        //  Java 1.5.
+        UIManager.installLookAndFeel( "GTK", gtk );
+
         final UIManager.LookAndFeelInfo[] lfInfo =
             UIManager.getInstalledLookAndFeels();
+
         final JRadioButtonMenuItem lfItems[] =
             new JRadioButtonMenuItem[lfInfo.length];
+
         for ( int i = 0; i < lfInfo.length; i++ ) {
             final UIManager.LookAndFeelInfo info = lfInfo[i];
             String name = info.getName();
@@ -157,7 +177,7 @@ public class SplatLookAndFeelManager implements ActionListener
     {
         if( defaultLook != look ) {
             defaultLook = look;
-            themeMenu.setEnabled( look == "javax.swing.plaf.metal.MetalLookAndFeel" );
+            themeMenu.setEnabled( look.equals( metal ) );
             updateLookAndFeel();
             prefs.put( "SplatLookAndFeelManager_look", defaultLook );
         }
