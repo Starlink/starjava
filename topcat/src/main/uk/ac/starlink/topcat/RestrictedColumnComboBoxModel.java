@@ -88,7 +88,7 @@ public abstract class RestrictedColumnComboBoxModel
             activeColumns = new ArrayList();
             modelColumns = new ArrayList();
             if ( hasNone ) {
-                activeColumns.add( null );
+                activeColumns.add( NO_COLUMN );
             }
             for ( int i = 0; i < colModel.getColumnCount(); i++ ) {
                 TableColumn tc = colModel.getColumn( i );
