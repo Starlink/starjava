@@ -55,7 +55,7 @@ public interface TableLoadDialog {
      * The dialogue may wish to allow the user to modify the selection
      * by presenting a {@link javax.swing.JComboBox} based on this model.
      * A suitable model can be obtained using 
-     * {@link StarTableChooser#makeFormatBoxModel}.
+     * {@link TableLoadChooser#makeFormatBoxModel}.
      * 
      * @param  parent   parent window
      * @param  factory  factory which may be used for table creation

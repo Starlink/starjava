@@ -183,7 +183,7 @@ public abstract class TableSaveChooser extends JPanel {
      * 
      * @param  loader  loader
      */
-    public void configureFromLoader( StarTableChooser loader ) {
+    public void configureFromLoader( TableLoadChooser loader ) {
         FilestoreChooser saveChooser = getFilestoreChooser();
         FilestoreChooser loadChooser = loader.getFilestoreChooser();
         if ( saveChooser != null && loadChooser != null ) {

@@ -16,7 +16,7 @@ import uk.ac.starlink.table.StarTable;
  * You can't nest these.
  * All these calls must be performed from the event dispatch thread.
  *
- * @see   StarTableChooser
+ * @see   TableLoadChooser
  * @author   Mark Taylor (Starlink)
  * @since    29 Nov 2004
  */
