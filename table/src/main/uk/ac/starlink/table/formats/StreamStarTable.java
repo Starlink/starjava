@@ -193,9 +193,9 @@ public abstract class StreamStarTable extends AbstractStarTable {
             maybeBoolean_ = makeFlagArray( true );
             maybeShort_ = makeFlagArray( true );
             maybeInteger_ = makeFlagArray( true );
+            maybeLong_ = makeFlagArray( true );
             maybeFloat_ = makeFlagArray( true );
             maybeDouble_ = makeFlagArray( true );
-            maybeLong_ = makeFlagArray( true );
             stringLength_ = new int[ ncol ]; 
         }
 
@@ -271,12 +271,24 @@ public abstract class StreamStarTable extends AbstractStarTable {
                         maybeInteger_[ icol ] = false;
                     }
                 }
+                if ( ! done && maybeLong_[ icol ] ) {
+                    try {
+                        long val = Long.parseLong( cell );
+                        if ( val == 0 && isMinus ) {
+                            throw new NumberFormatException();
+                        }
+                        done = true;
+                    }
+                    catch ( NumberFormatException e ) {
+                        maybeLong_[ icol ] = false;
+                    }
+                }
                 if ( ! done && ( maybeFloat_[ icol ] || 
                                  maybeDouble_[ icol ] ) ) {
                     try {
                         ParsedFloat pf = parseFloating( cell );
                         if ( maybeFloat_[ icol ] ) {
-                            if ( pf.sigFig > 7 ) {
+                            if ( pf.sigFig > 6 ) {
                                 maybeFloat_[ icol ] = false;
                             }
                             else if ( ! Double.isInfinite( pf.dValue ) &&
@@ -289,15 +301,6 @@ public abstract class StreamStarTable extends AbstractStarTable {
                     catch ( NumberFormatException e ) {
                         maybeFloat_[ icol ] = false;
                         maybeDouble_[ icol ] = false;
-                    }
-                }
-                if ( ! done && maybeLong_[ icol ] ) {
-                    try {
-                        Long.parseLong( cell );
-                        done = true;
-                    }
-                    catch ( NumberFormatException e ) {
-                        maybeLong_[ icol ] = false;
                     }
                 }
             }
@@ -343,6 +346,14 @@ public abstract class StreamStarTable extends AbstractStarTable {
                         }
                     };
                 }
+                else if ( maybeLong_[ icol ] ) {
+                    colinfo = new ColumnInfo( name, Long.class, null );
+                    decoder = new Decoder() {
+                        Object decode( String value ) {
+                            return new Long( Long.parseLong( value ) );
+                        }
+                    };
+                }
                 else if ( maybeFloat_[ icol ] ) {
                     colinfo = new ColumnInfo( name, Float.class, null );
                     decoder = new Decoder() {
@@ -356,14 +367,6 @@ public abstract class StreamStarTable extends AbstractStarTable {
                     decoder = new Decoder() {
                         Object decode( String value ) {
                             return new Double( Double.parseDouble( value ) );
-                        }
-                    };
-                }
-                else if ( maybeLong_[ icol ] ) {
-                    colinfo = new ColumnInfo( name, Long.class, null );
-                    decoder = new Decoder() {
-                        Object decode( String value ) {
-                            return new Long( Long.parseLong( value ) );
                         }
                     };
                 }

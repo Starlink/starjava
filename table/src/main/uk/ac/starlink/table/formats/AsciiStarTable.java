@@ -49,9 +49,9 @@ import uk.ac.starlink.util.DataSource;
  *        <code>Boolean</code>,
  *        <code>Short</code>
  *        <code>Integer</code>,
+ *        <code>Long</code>,  
  *        <code>Float</code>,
  *        <code>Double</code>,
- *        <code>Long</code>,  
  *        <code>String</code>
  *     </li>
  * <li>Empty lines are ignored</li>
