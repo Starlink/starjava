@@ -128,8 +128,7 @@ public class PlotWindow extends TopcatViewWindow
     private static final MarkStyleProfile MARKERS3;
     private static final MarkStyleProfile MARKERS4;
     private static final MarkStyleProfile MARKERS5;
-    private static final MarkStyleProfile[] MARKER_PROFILES = 
-                                            new MarkStyleProfile[] {
+    static final MarkStyleProfile[] MARKER_PROFILES = new MarkStyleProfile[] {
         MARKERS1 =
         MarkStyleProfile.spots( "Pixels", 0 ),
         MARKERS2 =
@@ -363,7 +362,7 @@ public class PlotWindow extends TopcatViewWindow
         Action replotAction = new BasicAction( "Replot", ResourceIcon.REDO,
                                                "Redraw the plot" ) {
             public void actionPerformed( ActionEvent evt ) {
-                forceReplot();
+                doReplot( true, true );
             }
         };
 
@@ -460,6 +459,7 @@ public class PlotWindow extends TopcatViewWindow
         getToolBar().addSeparator();
         getToolBar().add( resizeAction );
         getToolBar().add( gridButton );
+        getToolBar().add( replotAction );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromvisibleAction_ );
         getToolBar().addSeparator();
@@ -481,27 +481,29 @@ public class PlotWindow extends TopcatViewWindow
      * it was done.
      */
     public void replot() {
-        doReplot( false );
+        doReplot( false, false );
     }
 
     /**
      * Redraws the plot unconditionally.
      */
     public void forceReplot() {
-        doReplot( true );
+        doReplot( true, false );
     }
 
     /**
      * Redraws the plot, perhaps taking account of whether the plot state
      * has changed since last time it was done.
      *
-     * @param  force  if true, do the replot in any case;
-     *                if false, only do it if the PlotState has changed
+     * @param  forcePlot  if true, do the replot in any case;
+     *                    if false, only do it if the PlotState has changed
+     * @param  forceData  if true, re-acquire data in any case;
+     *                    if false, only do it if the data selection has changed
      */
-    private void doReplot( boolean force ) {
+    private void doReplot( boolean forcePlot, boolean forceData ) {
         PlotState state = getPlotState();
         PlotState lastState = plot_.getState();
-        if ( force || ! state.equals( lastState ) ) {
+        if ( forcePlot || ! state.equals( lastState ) ) {
 
             /* Cancel any active blob-drawing.  This is necesary since 
              * the replot may put a different set of points inside it.
@@ -520,7 +522,7 @@ public class PlotWindow extends TopcatViewWindow
              * most tables.  Doing it like that would complicate the 
              * programming (and UI) significantly, so for now leave it
              * until it appears to be a problem. */
-            if ( ! state.sameData( lastState ) ) {
+            if ( forceData || ! state.sameData( lastState ) ) {
                 Points points;
                 try {
                     points = readPoints( state );
