@@ -34,6 +34,16 @@ public class VOTableWriter implements StarTableWriter {
 
     private DataFormat dataFormat = DataFormat.TABLEDATA;
     private boolean inline = true;
+    private String xmlDeclaration = DEFAULT_XML_DECLARATION;
+    private String doctypeDeclaration = DEFAULT_DOCTYPE_DECLARATION;
+
+    /** Default XML declaration in written documents. */
+    public static final String DEFAULT_XML_DECLARATION =
+        "<?xml version='1.0'?>";
+
+    /** Default document type declaration in written documents. */
+    public static final String DEFAULT_DOCTYPE_DECLARATION =
+        "<!DOCTYPE VOTABLE SYSTEM 'http://us-vo.org/xml/VOTable.dtd'>";
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.votable" );
@@ -104,10 +114,9 @@ public class VOTableWriter implements StarTableWriter {
             new BufferedWriter( new OutputStreamWriter( out ) );
 
         /* Output preamble. */
-        writer.write( "<?xml version='1.0'?>" );
+        writer.write( xmlDeclaration );
         writer.newLine();
-        writer.write( "<!DOCTYPE VOTABLE SYSTEM "
-                    + "'http://us-vo.org/xml/VOTable.dtd'>" );
+        writer.write( doctypeDeclaration );
         writer.newLine();
         writer.write( "<VOTABLE version='1.0'>" );
         writer.newLine();
@@ -335,6 +344,46 @@ public class VOTableWriter implements StarTableWriter {
      */
     public boolean getInline() {
         return inline;
+    }
+
+    /**
+     * Sets the XML declaration which will be used by this writer
+     * at the head of any document written.
+     * By default this is the value of {@link #DEFAULT_XML_DECLARATION}.
+     *
+     * @param  new XML declaration
+     */
+    public void setXMLDeclaration( String xmlDecl ) {
+        this.xmlDeclaration = xmlDecl;
+    }
+
+    /**
+     * Returns the XML declaration which is used by this writer
+     * at the head of any document written.
+     */
+    public String getXMLDeclaration() {
+        return xmlDeclaration;
+    }
+
+    /**
+     * Sets the document type declaration which will be used by this writer
+     * at the head of any document written.  By default this is
+     * the value of {@link #DEFAULT_DOCTYPE_DECLARATION}.
+     *
+     * @param  doctypeDecl  new declaration
+     */
+    public void setDoctypeDeclaration( String doctypeDecl ) {
+        this.doctypeDeclaration = doctypeDecl;
+    }
+
+    /**
+     * Returns the document type declaration which is used by this writer
+     * at the head of any document written.
+     *
+     * @return  doctypeDecl
+     */
+    public String getDoctypeDeclaration() {
+        return doctypeDeclaration;
     }
 
     /**
