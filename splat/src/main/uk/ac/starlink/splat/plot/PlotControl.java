@@ -355,8 +355,7 @@ public class PlotControl
 
         //  JComboBox sets default size this way!
         nameList.setPrototypeDisplayValue
-            ( "AqAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqA" );
-
+            ( "                                    " );
 
         //  Add the SimpleDataLimitControls to quickly choose a cut on the Y
         //  range.
