@@ -440,6 +440,19 @@
 
   </target>
 
+  <target name="build-standalone" depends="install">
+    <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
+      <classpath refid="classpath"/>
+      <arg value="-o"/><arg value="${dist.lib.pkg}/tpipe.jar"/>
+      <arg value="-x"/><arg value="junit.jar"/>
+      <arg value="-x"/><arg value="array.jar"/>
+      <arg value="-x"/><arg value="jniast.jar"/>
+      <arg value="-x"/><arg value="hdx.jar"/>
+      <arg value="-x"/><arg value="ndx.jar"/>
+      <arg value="${star.lib.pkg}/ttools.jar"/>
+    </java>
+  </target>
+
   <!--
    !   ============================
    !   Create the package jar files
@@ -462,7 +475,7 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Main-Class" value="uk.ac.starlink.ttools.TableTool"/>
+        <attribute name="Main-Class" value="uk.ac.starlink.ttools.TablePipe"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
