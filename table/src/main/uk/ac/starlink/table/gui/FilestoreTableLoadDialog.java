@@ -82,4 +82,12 @@ public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
         return chooser_;
     }
 
+    public void setEnabled( boolean enabled ) {
+        if ( enabled != isEnabled() ) {
+            chooser_.setEnabled( enabled );
+            formatSelector_.setEnabled( enabled );
+        }
+        super.setEnabled( enabled );
+    }
+
 }

@@ -66,6 +66,7 @@ public class FilestoreChooser extends JPanel {
     private final PropertyChangeListener connectorWatcher_;
     private final Action upAction_;
     private final Action okAction_;
+    private final Component[] activeComponents_;
     private Branch lastBranch_;
     private ConnectorAction connectorAction_;
     private List connectorActions_;
@@ -83,9 +84,11 @@ public class FilestoreChooser extends JPanel {
         add( main, BorderLayout.CENTER );
         Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
         Border etchBorder = BorderFactory.createEtchedBorder();
+        List activeList = new ArrayList();
 
         /* Construct and place a chooser for the current directory. */
         branchSelector_ = new BranchComboBox();
+        activeList.add( branchSelector_ );
         Box branchBox = Box.createHorizontalBox();
         branchBox.add( new JLabel( "Location: " ) );
         branchBox.add( branchSelector_ );
@@ -94,7 +97,7 @@ public class FilestoreChooser extends JPanel {
 
         /* Define and add a button for moving up a directory. */
         Icon upIcon = UIManager.getIcon( "FileChooser.upFolderIcon" );
-       upAction_ = new AbstractAction( null, upIcon ) {
+        upAction_ = new AbstractAction( null, upIcon ) {
             public void actionPerformed( ActionEvent evt ) {
                 Branch parent = getBranch().getParent();
                 if ( parent != null ) {
@@ -118,6 +121,7 @@ public class FilestoreChooser extends JPanel {
         };
         homeAction.setEnabled( homedir != null );
         JButton homeButton = new JButton( homeAction );
+        activeList.add( homeButton );
         branchBox.add( Box.createHorizontalStrut( 5 ) );
         branchBox.add( homeButton );
 
@@ -145,6 +149,7 @@ public class FilestoreChooser extends JPanel {
 
         /* Text entry field for typing in the name of a file or directory. */
         nameField_ = new JTextField();
+        activeList.add( nameField_ );
         Box nameBox = Box.createHorizontalBox();
         nameBox.add( new JLabel( "File Name: " ) );
         nameBox.add( nameField_ );
@@ -216,6 +221,8 @@ public class FilestoreChooser extends JPanel {
                 }
             }
         };
+        activeComponents_ = (Component[]) 
+                            activeList.toArray( new Component[ 0 ] );
     }
 
     /**
@@ -252,6 +259,17 @@ public class FilestoreChooser extends JPanel {
      */
     public Action getOkAction() {
         return okAction_;
+    }
+
+    public void setEnabled( boolean enabled ) {
+        if ( enabled != isEnabled() ) {
+            okAction_.setEnabled( enabled );
+            for ( int i = 0; i < activeComponents_.length; i++ ) {
+                activeComponents_[ i ].setEnabled( enabled );
+            }
+            upAction_.setEnabled( enabled && lastBranch_.getParent() != null );
+        }
+        super.setEnabled( enabled );
     }
 
     /**
@@ -378,12 +396,14 @@ public class FilestoreChooser extends JPanel {
      * counts as a final selection.
      */
     private void ok() {
-        Node node = getSelectedNode();
-        if ( node instanceof Leaf ) {
-            leafSelected( (Leaf) node );
-        }
-        else if ( node instanceof Branch ) {
-            setBranch( (Branch) node );
+        if ( okAction_.isEnabled() ) {
+            Node node = getSelectedNode();
+            if ( node instanceof Leaf ) {
+                leafSelected( (Leaf) node );
+            }
+            else if ( node instanceof Branch ) {
+                setBranch( (Branch) node );
+            }
         }
     }
 
