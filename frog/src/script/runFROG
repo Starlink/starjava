@@ -28,6 +28,8 @@
 #     {enter_new_authors_here}
 
 #  History:
+#     07-FEB-2004 (AA):
+#        Added CLASSPATH to FROG Help JAR file
 #     26-NOV-2002 (AA):
 #        Modified for FROG
 #     01-AUG-2002 (PWD):
@@ -69,6 +71,15 @@ if test ! -f "$appjar"; then
    echo "Failed to locate the frog application. Please define FROG_DIR"
    exit
 fi
+
+# Make sure that we get the frog_docs.jar file nito the CLASSPATH
+if test -z "$CLASSPATH"; then
+   CLASSPATH=$FROG_DIR/../../lib/frog/frog_help.jar
+else
+   CLASSPATH=$FROG_DIR/../../lib/frog/frog_help.jar:${CLASSPATH}
+fi
+export CLASSPATH
+#echo $CLASSPATH
 
 # Run up the main application. Uses the JVM located by the starjava
 # script

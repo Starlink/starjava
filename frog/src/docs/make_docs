@@ -1,0 +1,15 @@
+#!/bin/csh 
+
+#  Convert Latex SUN243 into hypertext for the on-line docs and help
+#  system.
+
+setenv HTX_EMAIL '<A HREF="mailto:frog@starlink.ac.uk">frog@starlink.ac.uk</A>'
+
+#  Help system docs, these need to be in a jar file so we can 
+#  access them from javahelp? Figures?
+
+jar cf frog_help.jar FrogHelpSet.hs Map.jhm TOC.xml frogdocs
+mv frog_help.jar ../lib/
+
+echo "Created JavaHelp archives"
+

@@ -91,7 +91,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="FROG"/>
   <property name="name" value="frog"/>
-  <property name="version" value="0.1a"/>
+  <property name="version" value="0.6.0"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.frog"/>
@@ -210,7 +210,9 @@
     <!-- HDX -->
     <!--<pathelement location="${star.jar.dir}/hdx/hdx.jar"/>-->
 
-   
+    <!-- SOAP Server -->
+    <pathelement location="${star.jar.dir}/soapserver/lib/soapserver/soapserver.jar"/>
+  
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -395,6 +397,7 @@
       <fileset dir="${java.dir}">
         <include name="**/deploy.wsdd"/>
         <include name="**/images/**"/>
+        <include name="help/**"/>
       </fileset>
     </copy>
 

@@ -1,0 +1,7 @@
+#!/bin/csh
+
+#  Update the JavaHelpSearch directory to match the hypertext help.
+#  Assumes the correct version is in sun243.htx/.
+
+/work/java/jh2.0/javahelp/bin/jhindexer frogdocs
+

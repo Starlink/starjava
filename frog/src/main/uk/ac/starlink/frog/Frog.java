@@ -3,12 +3,14 @@ package uk.ac.starlink.frog;
 // General stuff
 import java.io.File;
 import java.util.ArrayList;
+import java.net.URL;
 
 // GUI stuff
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.help.*;
 
 // Interface classes
 import uk.ac.starlink.frog.iface.LookAndFeelManager;
@@ -42,6 +44,9 @@ import uk.ac.starlink.frog.data.GramManager;
 import uk.ac.starlink.frog.data.GramFactory;
 import uk.ac.starlink.frog.data.GramComp;
 import uk.ac.starlink.frog.data.Gram;
+
+// JavaHelp
+import uk.ac.starlink.frog.help.HelpHolder;
 
 /**
  * This class for constructs the FROG user interface. It creates the main 
@@ -913,7 +918,49 @@ public class Frog extends JFrame
         menuBar.add( Box.createHorizontalGlue() );
         menuBar.add( helpMenu );
         
-         //  about dialog        
+        //  help dialog        
+        final String helpString =  Utilities.getReleaseName() + "Online Help";
+        JMenuItem helpItem = new JMenuItem( helpString );
+        helpItem.addActionListener( new ActionListener() {
+           public void actionPerformed(ActionEvent e) { 
+               
+               debugManager.print( "Creating an helpViewer...");
+               JHelp helpViewer = null;
+               try {
+                   
+	           //ClassLoader loader = this.getClass().getClassLoader();
+	           //URL url = HelpSet.findHelpSet( loader, "FrogHelpSet.hs");
+                   
+                   URL url = Frog.class.getResource( "/FrogHelpSet.hs" );
+                   if ( url == null ) {
+                     throw new FrogException( "Failed to locate HelpSet" );
+                   }
+                   debugManager.print("  HelpSet = " + url.toString() );
+                   
+                   HelpSet helpSet = new HelpSet( null, url );
+                   helpViewer = new JHelp( helpSet );
+                   helpViewer.setCurrentID("Frog.SplashPage");
+	      } catch (Exception exception) {
+	         debugManager.print("  Cannot find FrogHelpSet.hs");
+                 exception.printStackTrace();
+     	      }
+              
+              // Create a new frame.
+              try {
+                 JFrame frame = new JFrame();
+                 frame.setSize(500,500);
+                 frame.getContentPane().add(helpViewer);
+                 frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                 frame.setVisible(true);
+              } catch (Exception exception) {
+	         debugManager.print("  Cannot create new frame for helpViewer");
+     	      }   
+           }              
+        }); 
+        helpMenu.add(helpItem);  
+        
+        
+        //  about dialog        
         final String aboutString =  "About " + Utilities.getReleaseName();
         JMenuItem aboutItem = new JMenuItem( aboutString);
         aboutItem.addActionListener( new ActionListener() {
