@@ -46,6 +46,7 @@
   <mapID target="FITSWrite" url="fits-write.html"/>
   <mapID target="VOTableWrite" url="votable-write.html"/>
   <mapID target="TextWrite" url="text-write.html"/>
+  <mapID target="HTMLWrite" url="html-write.html"/>
   <mapID target="LatexWrite" url="latex-write.html"/>
   <mapID target="JDBCWrite" url="jdbc-write.html"/>
   <mapID target="MirageWrite" url="mirage.html"/>
