@@ -135,58 +135,6 @@ class TableBodies {
     }
 
     /**
-     * TabularData implementation which stores its data in an array of
-     * rows.
-     */
-    static class RowListTabularData implements TabularData {
-
-        Class[] classes;
-        List rows;
-
-        public RowListTabularData() {
-        }
-
-        public RowListTabularData( Class[] classes, List rows ) {
-            this.classes = classes;
-            this.rows = rows;
-        }
-
-        public int getColumnCount() {
-            return classes.length;
-        }
-
-        public long getRowCount() {
-            return (long) rows.size();
-        }
-
-        public Class getContentClass( int icol ) {
-            return classes[ icol ];
-        }
-
-        public RowStepper getRowStepper() {
-            return new RowStepper() {
-                int irow = 0;
-                public Object[] nextRow() {
-                    return irow < rows.size() ? (Object[]) rows.get( irow++ ) 
-                                              : null;
-                }
-            };
-        }
-
-        public boolean isRandom() {
-            return true;
-        }
-
-        public Object getCell( long lrow, int icol ) {
-            return ((Object[]) rows.get( (int) lrow ))[ icol ];
-        }
-
-        public Object[] getRow( long lrow ) {
-            return (Object[]) rows.get( (int) lrow );
-        }
-    }
-
-    /**
      * TabularData implementation for a BINARY STREAM element with an
      * <tt>href</tt> attribute pointing to the data.
      */
@@ -210,7 +158,7 @@ class TableBodies {
     }
 
     /**
-     * TabularData implementation for a TABLEDATA DOME element which 
+     * TabularData implementation for a TABLEDATA DOM element which 
      * contains the data as TR and TD descendants.
      */
     static class TabledataTabularData extends SequentialTabularData {
