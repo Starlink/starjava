@@ -156,33 +156,25 @@ public class LineIDSpecData
             }
         }
 
-        //  Transform positions into graphics coordinates.
-        double[][] xygpos = astJ.astTran2( (Mapping) plot, xypos, false );
-
-        //  Do the same for the clip region.
-        Rectangle cliprect = null;
-        if ( limits != null ) {
-            double[][] clippos = astJ.astTran2( plot, limits, false );
-            cliprect =
-                new Rectangle( (int) clippos[0][0],
-                               (int) clippos[1][1],
-                               (int) ( clippos[0][1] - clippos[0][0] ),
-                               (int) ( clippos[1][0] - clippos[1][1] ) );
-        }
-
-        //  Need to do this for text...
+        //  Define general parameters. Note these are "overridden" by
+        //  the Plot when "strings" parameters are set (allows the
+        //  selection of colour using the same buttons as for a normal
+        //  spectrum). The text style can be set using the "strings"
+        //  configuration options of the plot (which is why we use it
+        //  and not the Grf object, which bypasses the Plot).
         DefaultGrf defaultGrf = (DefaultGrf) grf;
         DefaultGrfState oldState = setGrfAttributes( defaultGrf );
 
-        defaultGrf.setClipRegion( cliprect );
+        float[] up = new float[2];
+        up[0] = 1.0F;
+        up[1] = 0.0F;
+        double[] pos = new double[2];
 
-        for ( int i = 0; i < labels.length; i++ ) {
-            defaultGrf.text( labels[i], xygpos[0][i], xygpos[1][i], 
-                             "CC", 1.0, 0.0 );
+        for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
+            pos[0] = xypos[j];
+            pos[1] = xypos[j+1];
+            plot.text( labels[i], pos, up, "CC" );
         }
-
-        defaultGrf.setClipRegion( null );
-
         resetGrfAttributes( defaultGrf, oldState );
     }
 }
