@@ -45,7 +45,7 @@ public class SyntheticSubsetQueryWindow extends QueryWindow {
         getToolBar().addSeparator();
 
         /* Add help information. */
-        addHelp( "jel" );
+        addHelp( "SyntheticSubsetQueryWindow" );
 
         /* Show the window. */
         pack();

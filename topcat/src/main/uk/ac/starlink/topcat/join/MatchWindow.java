@@ -109,7 +109,8 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         common.add( engineBox );
 
         /* Add standard help actions. */
-        addHelp( "MatchWindow" );
+        addHelp( nTable == 1 ? "MatchWindow1"
+                             : "MatchWindow" );
 
         /* Set up components associated with logging calculation progress. */
         logArea = new JTextArea();
