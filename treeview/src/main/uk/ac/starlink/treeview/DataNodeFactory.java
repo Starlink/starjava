@@ -41,6 +41,7 @@ import uk.ac.starlink.util.FileDataSource;
  * <li> {@link JDBCDataNode}
  * <li> {@link StarTableDataNode}
  * <li> {@link HDXDataNode}
+ * <li> {@link DocumentDataNode}
  * <li> {@link XMLDataNode}
  * <li> {@link CompressedDataNode}
  * <li> {@link FileDataNode}
@@ -597,6 +598,7 @@ public class DataNodeFactory {
                 JDBCDataNode.class,
                 StarTableDataNode.class,
                 HDXDataNode.class,
+                DocumentDataNode.class,
                 XMLDataNode.class,
                 VOTableTableDataNode.class,
                 VOComponentDataNode.class,
