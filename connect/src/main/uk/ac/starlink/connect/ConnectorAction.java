@@ -7,6 +7,8 @@ import java.awt.Frame;
 import java.awt.Insets;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -85,6 +87,8 @@ public class ConnectorAction extends AbstractAction {
         JPanel stack = new JPanel( layer );
         AuthKey[] keys = connector.getKeys();
         fieldMap_ = new HashMap();
+        JTextField firstField = null;
+        JTextField firstEmpty = null;
         for ( int i = 0; i < keys.length; i++ ) {
             AuthKey key = keys[ i ];
             GridBagConstraints c = new GridBagConstraints();
@@ -107,6 +111,9 @@ public class ConnectorAction extends AbstractAction {
                              : new JTextField( 20 );
             layer.setConstraints( field, c );
             stack.add( field );
+            if ( firstField == null ) {
+                firstField = field;
+            }
 
             /* Store the field. */
             fieldMap_.put( key, field );
@@ -119,6 +126,9 @@ public class ConnectorAction extends AbstractAction {
             if ( dfault != null ) {
                 field.setText( dfault );
             }
+            else if ( firstEmpty == null ) {
+                firstEmpty = field;
+            }
 
             /* Add description information as a tooltip if available. */
             String desc = key.getDescription();
@@ -127,8 +137,24 @@ public class ConnectorAction extends AbstractAction {
                 field.setToolTipText( desc );
             }
         }
+
+        /* Place the stack. */
         entryPanel_ = new JPanel( new BorderLayout() );
         entryPanel_.add( stack, BorderLayout.CENTER );
+
+        /* Arrange for the first empty field to have focus when the 
+         * window is initially popped up. */
+        if ( firstEmpty != null ) {
+            final Component initFocus = firstEmpty;
+            firstField.addFocusListener( new FocusAdapter() {
+                boolean done_;
+                public void focusGained( FocusEvent evt ) {
+                    if ( ! done_ ) {
+                        done_ = initFocus.requestFocusInWindow();
+                    }
+                }
+            } );
+        }
     }
 
     public void actionPerformed( ActionEvent evt ) {
