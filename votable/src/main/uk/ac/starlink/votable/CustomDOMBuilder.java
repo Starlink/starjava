@@ -17,10 +17,7 @@ import org.w3c.dom.Node;
  * and plug this in using {@link #setCustomHandler}.
  * <p>
  * I thought there would be this functionality somewhere in the J2SE,
- * but I can't find it, even in the non-public classes (this class
- * uses a non-public class in any case, one of the Crimson ones).
- * It might be something like what Crimson's ElementFactory does, but
- * that is deprecated in any case.
+ * but I can't find it, even in the non-public classes.
  * <p>
  * To use this class, install it as the {@link org.xml.sax.ContentHandler}
  * of a SAX parser ({@link org.xml.sax.XMLReader}), do a <tt>parse</tt>,
@@ -30,7 +27,7 @@ import org.w3c.dom.Node;
  */
 class CustomDOMBuilder implements ContentHandler {
 
-    private SAXDocumentBuilder builder = new CrimsonSAXDocumentBuilder();
+    private SAXDocumentBuilder builder = new VOSAXDocumentBuilder();
     private ContentHandler customHandler = new DefaultContentHandler();
     private Locator locator;
 
