@@ -25,6 +25,7 @@ import uk.ac.starlink.table.gui.BasicTableLoadDialog;
 public class RegistryTableLoadDialog extends BasicTableLoadDialog {
 
     private final RegistryQueryPanel rqPanel_;
+    private static Boolean available_;
 
     /** List of preset queries available by default. */
     public static String[] defaultQueries_ = new String[] {
@@ -56,7 +57,16 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
     }
 
     public boolean isAvailable() {
-        return RegistryInterrogator.isAvailable();
+        if ( available_ == null ) {
+            try {
+                available_ = Boolean.valueOf( RegistryInterrogator
+                                             .isAvailable() );
+            }
+            catch ( Throwable th ) {
+                available_ = Boolean.FALSE;
+            }
+        }
+        return available_.booleanValue();
     }
 
     public void setEnabled( boolean enabled ) {
