@@ -377,7 +377,16 @@ public class XMLDataNode extends DefaultDataNode {
              * of an XML document. */
             for ( int j = 0; j < MAGICS.length; j++ ) {
                 if ( test.startsWith( MAGICS[ j ] ) ) {
-                    return encoding;
+
+                    /* If it is HTML then take this to mean it's NOT XML - 
+                     * it is most likely to be not well-formed. */
+                    if ( test.indexOf( "HTML" ) > 0 ||
+                         test.indexOf( "html" ) > 0 ) {
+                        return null;
+                    }
+                    else {
+                        return encoding;
+                    }
                 }
             }
         }

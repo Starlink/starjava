@@ -6,7 +6,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 import javax.xml.transform.dom.DOMSource;
 import uk.ac.starlink.util.DataSource;
 
@@ -20,6 +22,20 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
 
     /** Singleton instance. */
     private static SourceDataNodeBuilder instance = new SourceDataNodeBuilder();
+
+    /** Error handler used for parsing XML. */
+    private static ErrorHandler xhandler = new ErrorHandler() {
+        public void warning( SAXParseException e ) {
+            // ignore it
+        }
+        public void error( SAXParseException e ) {
+            // ignore it
+        }
+        public void fatalError( SAXParseException e ) throws SAXParseException {
+            // bail out
+            throw e;
+        }
+    };
 
     /**
      * Obtains the singleton instance of this class.
@@ -140,6 +156,7 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
             }
         }
         parser.setEntityResolver( TreeviewEntityResolver.getInstance() );
+        parser.setErrorHandler( xhandler );
 
         /* Parse the XML file. */
         Document doc;
