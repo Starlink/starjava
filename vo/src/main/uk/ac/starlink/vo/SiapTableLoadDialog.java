@@ -27,13 +27,11 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
      */
     public SiapTableLoadDialog() {
         super( "SIAP Query",
-               "Get results of a Simple Image Access Protocol query" );
-        getRegistryPanel().getQueryPanel().setPresetQueries( new String[] {
-            "serviceType like 'SIAP'",
-        } );
-        Action okAction = getOkAction();
+               "Get results of a Simple Image Access Protocol query",
+               "serviceType like 'SIAP'" );
 
         /* Add fields for entering SIAP query parameters. */
+        Action okAction = getOkAction();
         raField_ = DoubleValueField.makeRADegreesField();
         raField_.getEntryField().addActionListener( okAction );
         raField_.setDescription( "Right Ascension of " +

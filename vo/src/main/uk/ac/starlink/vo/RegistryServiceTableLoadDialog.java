@@ -38,6 +38,9 @@ public abstract class RegistryServiceTableLoadDialog
 
     private final JComponent controlBox_;
     private final RegistryPanel regPanel_;
+    private final String queryString_;
+    private final String name_;
+    private boolean setup_;
     private static Boolean available_;
     private static final Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -47,9 +50,13 @@ public abstract class RegistryServiceTableLoadDialog
      *
      * @param  name  dialogue name
      * @param  description  dialogue description
+     * @param  queryString  text of registry query
      */
-    public RegistryServiceTableLoadDialog( String name, String description ) {
+    public RegistryServiceTableLoadDialog( String name, String description,
+                                           String queryString ) {
         super( name, description );
+        name_ = name;
+        queryString_ = queryString;
         final Action okAction = getOkAction();
         okAction.setEnabled( false );
         setLayout( new BorderLayout() );
@@ -124,6 +131,27 @@ public abstract class RegistryServiceTableLoadDialog
     }
 
     protected JDialog createDialog( Component parent ) {
+
+        /* Do one-time setup.  Doing it in the constructor is too early. */
+        if ( ! setup_ ) {
+            setup_ = true;
+
+            /* There's code here to either allow the user to specify the
+             * registry search or do it automatically.  It's more confusing for
+             * the user to have to do it, so for now hardwire in the automatic
+             * option.  Could get more fussy about this, but these classes are
+             * likely to get overhauled in the near future in any case, so
+             * this will do for now. */
+            boolean interactive = false;
+            if ( interactive ) {
+                regPanel_.getQueryPanel()
+                         .setPresetQueries( new String[] { queryString_ } );
+            }
+            else {
+                String msg = "Searching registry for " + name_ + " services";
+                regPanel_.performAutoQuery( queryString_, msg );
+            }
+        }
 
         /* Embellish the dialogue with a menu allowing selection of which
          * columns are visible in the displayed registry table. */

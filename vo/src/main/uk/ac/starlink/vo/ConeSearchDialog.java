@@ -29,13 +29,11 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
      */
     public ConeSearchDialog() {
         super( "Cone Search",
-               "Obtain source catalogues using cone search web services" );
-        getRegistryPanel().getQueryPanel().setPresetQueries( new String[] {
-            "serviceType like 'CONE'",
-        } );
-        Action okAction = getOkAction();
+               "Obtain source catalogues using cone search web services",
+               "serviceType like 'CONE'" );
 
         /* Add fields for entering query parameters. */
+        Action okAction = getOkAction();
         raField_ = DoubleValueField.makeRADegreesField();
         raField_.getEntryField().addActionListener( okAction );
         raField_.setDescription( "Right Ascension of cone centre (J2000)" );
