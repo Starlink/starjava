@@ -56,6 +56,12 @@ public class GraphViewer extends DivaPlot {
             xScale = 1.0F;
             yScale = 1.0F;
             xyScaled = true;
+
+            /* It shouldn't really be necessary to invoke repaint here;
+             * it seems to be required though, owing to what I belive to
+             * be miscoding in diva.canvas.JCanvas (which overrides paint
+             * when it ought to override paintComponent). */
+            repaint();
         }
         super.paintComponent( g );
         lastSize = size;
