@@ -1307,6 +1307,15 @@ public class PlotControl
         return (SpecData) nameList.getSelectedItem();
     }
 
+    /**
+     * Set whether the percentile cuts also have a fit to Y scale 
+     * automatically applied.
+     */
+    public void setAutoFitPercentiles( boolean autofit )
+    {
+        simpleDataLimits.setAutoFit( autofit );
+    }
+
 //
 //  Implement the PlotScaledListener interface.
 //
