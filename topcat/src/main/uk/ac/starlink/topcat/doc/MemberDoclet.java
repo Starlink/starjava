@@ -35,7 +35,7 @@ public abstract class MemberDoclet {
     private final Set packages_ = new HashSet();
 
     private static final Pattern P_PATTERN = 
-        Pattern.compile( "\\s*(</*[Pp]>)?\\s*(<[Pp]>)?\\s*" );
+        Pattern.compile( "\\s*(</*[Pp]>)?\\s*(<[Pp]>)\\s*" );
     private static final Map TYPE_NAMES;
     static {
         TYPE_NAMES = new HashMap();
@@ -116,6 +116,19 @@ public abstract class MemberDoclet {
     protected abstract void outParameters( Parameter[] params,
                                            String[] comments )
             throws IOException;
+
+    /**
+     * Output examples of the current documentandum (presumably a method).
+     *
+     * @param  examples  array of strings each representing an example
+     */
+    protected abstract void outExamples( String[] examples ) throws IOException;
+
+    /**
+     * Output a description item.
+     *
+     * @param  descrip  description string
+     */
     protected abstract void outDescription( String descrip ) throws IOException;
 
     /**
@@ -272,6 +285,9 @@ public abstract class MemberDoclet {
             else {
                 outItem( "Return Type", typeString( rtype ) );
             }
+        }
+        if ( examples.length > 0 ) {
+            outExamples( examples );
         }
         outItem( "Signature", 
                  "<tt>" + rtype.toString() + " " 
