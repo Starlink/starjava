@@ -41,6 +41,7 @@
   <!ENTITY FIG.ImageWindow '&figs;ImageWindow.gif'>
   <!ENTITY FIG.Splat '&figs;Splat.gif'>
   <!ENTITY FIG.HelpWindow '&figs;HelpWindow.gif'>
+  <!ENTITY FIG.ParameterQueryWindow '&figs;ParameterQueryWindow.gif'>
   <!ENTITY FIG.SyntheticColumnQueryWindow 
            '&figs;SyntheticColumnQueryWindow.gif'>
   <!ENTITY FIG.SyntheticSubsetQueryWindow 
@@ -558,23 +559,6 @@ for instance a table you have opened could
 be the result of an SQL query on a database.
 </p>
 
-<p>The program has no "native" file format, but if you have no particular
-preference about which format to save tables to, 
-<ref id="outFits">FITS</ref> is a good choice.
-Uncompressed FITS tables do not in most cases have to be read all the
-way through (they are 'mapped' into memory), which makes them very
-fast to load up.
-The FITS format which is written by default also uses a trick to 
-store extra metadata, such as table parameters and UCDs 
-in a way TOPCAT (or other STIL-based programs - see below) 
-can read in again later (see <ref id="outFits"/>). 
-These files are quite usable as normal FITS tables by other applications, 
-but they will only be able to see the limited metadata stored in the
-FITS headers.
-If you want to write to a format which retains all metadata in a portable
-format, then one of the <ref id="outVotable"/> formats might be better.
-</p>
-
 <p>Since you can load a table from one format and save it in a different
 one, TOPCAT can be used to convert a table from one format to another.
 If this is all you want to do however, you may find it more 
@@ -954,6 +938,23 @@ to be output by selecting from the Save Window's
 the following sections describe the possible choices.
 In some cases there are variants within each format - these are
 described as well.
+</p>
+
+<p>The program has no "native" file format, but if you have no particular
+preference about which format to save tables to, 
+<ref id="outFits">FITS</ref> is a good choice.
+Uncompressed FITS tables do not in most cases have to be read all the
+way through (they are 'mapped' into memory), which makes them very
+fast to load up.
+The FITS format which is written by default
+(also known as "FITS-plus") also uses a trick to 
+store extra metadata, such as table parameters and UCDs 
+in a way TOPCAT can read in again later (see <ref id="outFits"/>). 
+These files are quite usable as normal FITS tables by other applications, 
+but they will only be able to see the limited metadata stored in the
+FITS headers.
+If you want to write to a format which retains all metadata in a portable
+format, then one of the <ref id="outVotable"/> formats might be better.
 </p>
 
 <subsubsect id="outFits">
@@ -1419,7 +1420,17 @@ don't match as well...
 <li>What to do for rows that don't have exactly one match</li>
 </ul>
 and to start the matching operation.
-To match two tables, use the <label>Pair Match</label> (&IMG.MATCH2;) button
+Currently, if there is more than one possible match for a row in
+either of the tables being joined, the best one will be retained
+and others will be discarded. 
+The 'match score', indicating how close a successful match was, 
+is recorded in an additional column in the resulting table.
+Columns in the resulting table retain their original names
+unless that would lead to ambiguity, in which case
+a disambiguating suffix "_1" or "_2" is added to the column name.
+</p>
+
+<p>To match two tables, use the <label>Pair Match</label> (&IMG.MATCH2;) button
 in the <ref id="ControlWindow">Control Window</ref>; 
 to match more tables than two at once, use the other options on the
 Control Window's <label>Join</label> menu.
@@ -2929,6 +2940,12 @@ representing actions that can be invoked from the window.
 Most of them contain the following buttons:
 <dl>
 
+<dt>&IMG.CONTROL; Control Window</dt>
+<dd><p>Ensures that the Control Window is visible on the screen,
+    deiconifying and raising it if necessary.  This can be useful if
+    you 'lose' the window behind a proliferation of other ones.
+    </p></dd>
+
 <dt>&IMG.CLOSE; Close</dt> 
 <dd><p>Closes the window.  This convenience button 
     has the same effect as closing the window
@@ -3167,7 +3184,8 @@ The currently selected table is highlighted - clicking on a different
 table name (or using the arrow keys if the list has keyboard focus) 
 will change the selection.  The properties of the
 selected table are displayed in the Current Table Properties panel
-to its right.
+to its right, and a number of the toolbar buttons and menu items
+refer to it.
 </p>
 
 <p>If you double-click on a table in the list, or press Return
@@ -3249,6 +3267,13 @@ Here is what the individual items mean:
     rows are part of the Apparent Table
     and allows you to choose another one.  "All" indicates that all
     rows are included.
+    </p></dd>
+
+<dt>Activation Action</dt>
+<dd><p>The currently selected
+    <ref plaintextref="yes" id="activation">Activation Action</ref>.
+    The action can be changed by clicking on this button to display
+    the <ref id="ActivationQueryWindow">Activation Window</ref>.
     </p></dd>
 
 </dl>
@@ -3345,6 +3370,17 @@ these views are described in more details in <ref id="views"/>.
 </dl>
 </p>
 
+<p>The following buttons are miscellaneous:
+<dl>
+
+<dt>&IMG.FUNCTION; <ref id="MethodWindow">Available Functions Window</ref></dt>
+<dd><p>Displays a window containing all the functions which can be used 
+    for writing algebraic expressions (see <ref id="jel"/>).
+    </p></dd>
+
+</dl>
+</p>
+
 </subsubsect>
 
 <subsubsect id="controlMenus">
@@ -3425,13 +3461,16 @@ before (it won't display windows which have never explicitly been opened).
     </p></dd>
 
 </dl>
+Note that the <label>Control Window</label> item (&IMG.CONTROL;) 
+on menus on all other windows is also useful for window management -
+it brings back the control window if it's been hidden.
 </p>
 
 <p>The <label>Joins</label> menu, as well as containing the actions
 for table concatenation, internal matching and pair matching which 
 are available from the toolbar, also gives you the option to join
 three or four tables at once by matching rows.
-These windows works pretty much the same as the 
+The multi-table match windows work pretty much the same as the 
 <ref id="MatchWindow">Pair Matching Window</ref>,
 but with more tables.
 </p>
@@ -3468,8 +3507,9 @@ or if you have opened it before, will make sure it's visible.
 several of them, the number of windows on the screen can get out of
 hand and it's easy to lose track of what window is where.
 In this case the Control Window's <label>Windows</label> menu
-(described in <ref id="controlMenus"/>) can be handy to keep them
-under control.
+(described in <ref id="controlMenus"/>), or the
+<label>File|Control Window</label> menu item in any of the view windows
+can be handy to keep them under control.
 </p>
 
 <p>The following sections describe each of these table view windows in turn.
@@ -3538,27 +3578,38 @@ in the displayed table will present a
 way to do some things with the column in question:
 <dl>
 
-<dt>Hide</dt>
-<dd><p>Hides the column.  It can be reinstated from the
-    <ref id="ColumnInfoWindow">Columns window</ref>.
+<dt>&IMG.MODIFY; Replace Column</dt>
+<dd><p>Pops up a
+    <ref id="SyntheticColumnQueryWindow">Synthetic Column dialogue</ref>
+    to replace this column with a new synthetic one.
+    The dialogue is initialised with the same name, units etc as the
+    selected column, and with an expression that evaluates to its value.
+    You can alter any of these, and the new column will replace the
+    old one, which will be hidden and renamed by appending a suffix
+    like "_old" to its name.
     </p></dd>
 
-<dt>Synthetic Column</dt>
+<dt>&IMG.ADD; New Synthetic Column</dt>
 <dd><p>Pops up a 
     <ref id="SyntheticColumnQueryWindow">Synthetic Column dialogue</ref> 
     to insert a new synthetic column just after this one.
     </p></dd>
 
-<dt>Sort up</dt>
+<dt>&IMG.UP; Sort up</dt>
 <dd><p>Sorts the table rows according to ascending value of the contents of
     the column.  Only available if some kind of order (e.g. numeric or
     alphabetic) can sensibly be applied to the column.
     </p></dd>
 
-<dt>Sort down</dt>
+<dt>&IMG.DOWN; Sort down</dt>
 <dd><p>Sorts the table rows according to descending value of the contents of
     the column.  Only available if some kind of order (e.g. numeric or
     alphabetic) can sensibly be applied to the column.
+    </p></dd>
+
+<dt>&IMG.HIDE; Hide</dt>
+<dd><p>Hides the column.  It can be reinstated from the
+    <ref id="ColumnInfoWindow">Columns window</ref>.
     </p></dd>
 
 </dl>
@@ -3584,8 +3635,8 @@ button when the chosen table is selected in the
 
 <p>In table/database parlance, an item of
 per-table metadata is often known as a "parameter" of the table.
-The number of rows and columns will always be listed; many table file
-formats (VOTable excepted) 
+The number of rows and columns will always be listed; some table file
+formats
 don't have facilities for storing other table parameter metadata,
 so there may not be much of interest displayed in this window.
 </p>
@@ -3601,10 +3652,26 @@ from the display - in this case the <label>Display</label> menu can be
 used to reveal it.
 </p>
 
-<p>You can edit some paramenter values and descriptions by double-clicking
+<p>You can edit some parameter values and descriptions by double-clicking
 on them as usual.  
-It is not currently possible to add parameters; this should be added in
-a future release.
+</p>
+
+<p>The following items are available in the toolbar:
+<dl>
+
+<dt>&IMG.ADD; Add Parameter</dt>
+<dd><p>Pops up a <ref id="ParameterQueryWindow">New Parameter Window</ref>
+    to allow you to add a new parameter to the table.
+    </p></dd>
+
+<dt>&IMG.DELETE; Remove Parameter</dt>
+<dd><p>If one of the parameters displayed in the JTable in this window
+    has been selected by clicking on its row, 
+    then clicking this button will remove it. 
+    You will be prompted before the removal takes place.
+    Some parameters such as Rows Count cannot be removed.
+    </p></dd>
+</dl>
 </p>
 
 </subsubsect>
@@ -3758,6 +3825,18 @@ so can be changed by dragging the column headers around in the
     column, or at the end if none is selected.
     </p></dd>
 
+<dt>&IMG.MODIFY; Replace Column With Synthetic</dt>
+<dd><p>If a single column is selected, then clicking this button will
+    pop up a 
+    <ref id="SyntheticColumnQueryWindow">Synthetic Column dialogue</ref>
+    to replace the selected column with a new synthetic one.
+    The dialogue is initialised with the same name, units etc as the
+    selected column, and with an expression that evaluates to its value.
+    You can alter any of these, and the new column will replace the
+    old one, which will be hidden and renamed by appending a suffix
+    like "_old" to its name.
+    </p></dd>
+
 <dt>&IMG.HIDE;  Hide Selected Column(s)</dt>
 <dd><p>If any of the JTable rows are selected, then clicking this button
     will hide them, that is, remove them from the
@@ -3849,7 +3928,7 @@ are as follows:
 <dt>Column &column.id.char;ID</dt>
 <dd><p>If the subset has been defined by equivalence with a boolean-valued
     column, this will show the &column.id.char;ID of
-    the column that it came from.
+    the column that it came from (see <ref id="ColumnInfoWindow"/>).
     </p></dd>
 </dl>
 </p>
@@ -4024,7 +4103,7 @@ the subset will correspond to the current row subset.
 </dl>
 </p>
 
-<p>For a large table the calculations may take a while.  While they are
+<p>For a large table the calculations may take a short while.  While they are
 being performed you can interact with the window as normal,
 but a progress bar is shown at the bottom of the window.
 If you initiate a new calculation (by pushing the Recalculate button or
@@ -4093,7 +4172,7 @@ defined <ref id="subsets">Row Subsets</ref> should be plotted on this graph.
 Different subsets are plotted
 using different markers, so you can see where different groups of results
 lie in relation to each other.
-You can also use the <label>Subsets To Plot</label> item on the
+You can alternatively use the <label>Subsets To Plot</label> item on the
 <label>Subsets</label> menu.
 The subsets are plotted in order of which was most recently selected.
 This makes a difference on a crowded plot or where some points are 
@@ -4108,10 +4187,21 @@ they'll be shown on top.
 
 <dt>&IMG.PRINT; Export as EPS</dt>
 <dd><p>Pops up a dialogue which will print the current plot as an EPS file.
+    In general this is a faithful and high quality rendering of what
+    is displayed in the plot window.  However, if plotting is being done
+    using the transparent markers, it won't come out right since 
+    transparency cannot be represented in PostScript; the markers will
+    be rendered as if they were opaque.
+    Currently, if there are many points being plotted, this can result
+    in a rather large output file.
+    <!-- getting on for 0.5 kbyte per point! Too embarassed to write this. --> 
     </p></dd>
 
 <dt>&IMG.IMAGE; Export as GIF</dt>
 <dd><p>Pops up a dialogue which will output the current plot to a GIF file.
+    The output file is just the same as the plotted image that you see.
+    Resize the plotting window before the export to control the size 
+    of the output GIF.
     </p></dd>
 
 <dt>&IMG.RESIZE; Rescale</dt>
@@ -4121,6 +4211,18 @@ they'll be shown on top.
     because of changes in the subset selection or from zooming in or out.
     </p></dd>
 
+<dt>&IMG.REDO; Replot</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to 
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    the plot is not automatically redrawn (since this is potentially an
+    expensive operation and you may not require it).
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
 <dt>&IMG.GRID_ON; Grid</dt>
 <dd><p>Toggles whether a grid is drawn over the plotting surface or not.
     </p></dd>
@@ -4128,18 +4230,60 @@ they'll be shown on top.
 <dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
 <dd><p>Allows you to draw a region on the screen defining a new 
     <ref id="subsets">Row Subset</ref>.  When you have finished 
-    drawing it, click it again to indicate you're done.
-    See <ref id="plotSubsets"/> for more detail.
+    drawing it, click this button again to indicate you're done.
+    See <ref id="plotSubsets"/> for more details.
     </p></dd>
 
 <dt>&IMG.VISIBLE_SUBSET; Subset From Visible</dt>
 <dd><p>Defines a new <label>Row Subset</label>
     consisting of only the points which
     are currently visible on the plotting surface.
-    See <ref id="plotSubsets"/> for more detail.
+    See <ref id="plotSubsets"/> for more details.
     </p></dd>
 
 </dl>
+</p>
+
+<p>The <label>Marker Types</label> menu allows you to select a 
+set of markers which will be used for plotting.
+Some of these sets are marked "Transparent" - for these, 
+instead of pixels on the plot blocking out ones already plotted,
+the more markers that are plotted at a given screen position, 
+the darker in colour it will appear.  This can be useful if
+you have very many points to plot, since you can see by the 
+colour of pixels on the plot how many points are there in 
+crowded regions.  Unfortunately transparent points are not rendered
+properly when exported to PostScript files (they come out opaque),
+but they still work when exported to GIF format.
+The marker type set used initially depends on how many rows there 
+are in the table (large dots for few rows, small ones for many).
+</p>
+
+<p>The <label>Regression</label> menu provides facilities for
+calculating and plotting linear regression lines for some or
+all of the subsets on display.  The following options appear
+on the menu:
+<dl>
+<dt>&IMG.PLOT_LINES; Plot Regression For Subsets...</dt>
+<dd><p>Presents you with a checkbox menu which allows you to select
+    which subsets regression lines will be displayed for.
+    Each subset whose box you select will have a line plotted on the
+    graph representing its least-squares fit regression line
+    in the same colour as the points for that subset.
+    </p></dd>
+
+<dt>&IMG.EQUATION; Display Regression Coefficients</dt>
+<dd><p>Displays a window giving the gradient, intercept and
+    product moment correlation coefficient for each regression line
+    which has been plotted.
+    </p></dd>
+</dl>
+Note the regression lines plotted are those calculated from all the
+<em>visible</em> points in the subset in question - any points
+off the edge of the graph are disregarded.  Thus, zooming in and
+out will change the correlation coefficients and line geometry.
+The linear correlation functionality is experimental in this version
+of the program, and will be improved in future.
 </p>
 
 <subsubsubsect id="plotSubsets">
@@ -4153,7 +4297,7 @@ may correspond to a physically important grouping of objects which
 you would like to treat separately elsewhere in the program, 
 for instance by calculating statistics on just these rows, 
 writing them out to a new table, 
-or plotting them in a different colour on graph with different coordinates.
+or plotting them in a different colour on graphs with different coordinates.
 This is easily accomplished by creating a new 
 <ref id="subsets">Row Subset</ref> containing the grouped points,
 and the Plot Window gives you two ways to do this.
@@ -4245,11 +4389,13 @@ following ways, described in more detail in the following sections:
 </ul>
 </p>
 
-<p>In most cases TOPCAT can happily read files or resources which are
-compressed (using gzip, bzip2 or Unix compress).
-You do not need to indicate what table format you are referring to,
-TOPCAT will detect the format and any compression
-based on the location given.
+<p>As described in <ref id="inFormats"/>, TOPCAT can recognise some
+table formats (VOTable, FITS) automatically, while for others 
+(Comma-Separated Values, ASCII) you will have to tell it what 
+format the file is in by choosing from the <label>Format</label> 
+selector which appears in the Load Window and some of the dialogues 
+descending from it.
+Compression is always handled automatically.
 </p>
 
 <p>If you successfully specify the location of a table in any of these ways,
@@ -4262,8 +4408,8 @@ a window will pop up telling you what went wrong.
 
 <p>If you get an <code>OutOfMemoryError</code> while loading a table,
 you will have to run TOPCAT with more memory, as described in
-<ref id="jvmMemory"/> (though note that not all data formats require the
-table to be loaded into memory).
+<ref id="jvmMemory"/> or use the <code>-disk</code> flag described in
+<ref id="topcatArgs"/>.
 </p>
 
 <subsubsect id="loadString">
@@ -4285,6 +4431,12 @@ It may also be a location which does not correspond to a file
 at all, such as the specification of an SQL query on a relational database.
 For these more complicated cases you may find it easier to use
 one of the other methods for specifying a table to load.
+</p>
+
+<p>The <label>Format</label> selector must be set correctly:
+the "(auto)" setting will automatically pick up VOTable or FITS tables,
+otherwise you will need to select the option describing the format of
+the file you are attempting to load.
 </p>
 
 </subsubsect>
@@ -4313,9 +4465,13 @@ or double-clicking on displayed directories.
 <p>All files are shown, and there is no indication of which ones represent
 tables and which do not.  To open one of the displayed files as a table,
 double-click on it or select it by clicking once and click the
-<label>Open Table</label> button.  If you pick a file which cannot be converted
-into a table (it is not in a recognised input format) an error window
-will pop up.
+<label>Open Table</label> button.  
+The <label>Table Format</label> selector must be set correctly:
+the "(auto)" setting will automatically pick up VOTable or FITS tables,
+otherwise you will need to select the option describing the format of
+the file you are attempting to load.
+If you pick a file which cannot be converted
+into a table an error window will pop up.
 </p>
 
 <p>Because this browser only works at the file level, there is a limit
@@ -4352,8 +4508,10 @@ in some ways, but with important differences:
 <ul>
 <li>It shows the file system in a 'tree-like' fashion, so that multiple
     levels of the hierarchy are displayed at once</li>
-<li>It understands which items in the hierarchy represent tables and
-    which represent other kinds of object (for instance plain files)</li>
+<li>It understands which items in the hierarchy represent tables
+    that can be automatically detected and
+    which represent other kinds of object (for instance directories,
+    zip files, or plain text files)</li>
 <li>It can look inside hierarchical files, so for instance it can
     investigate a Tar or Zip archive which may contain table entries,
     or display multiple tabular HDUs in a FITS file, or multiple
@@ -4368,7 +4526,7 @@ some other type of item (for instance an HDU in a FITS file or an
 entry in a tar archive).  The line contains a little icon
 which indicates what kind of node it is and a short text string which
 gives its name and maybe some description.
-Tables which represent tables are indicated by the 
+Nodes which represent tables are indicated by the 
 &IMG.TABLE; icon.
 For nodes which have some internal structure there is also a
 "handle" which indicates whether they are
@@ -4380,6 +4538,14 @@ and some additional description will appear in the panel below the
 hierarchy display.  The text is in <strong>bold</strong> if the node in
 question can be opened as a table, and non-bold if it is some
 non-table item.
+</p>
+
+<p><strong>Note:</strong> an important restriction of this browser
+is that it will only pick up tables which can be identified 
+automatically - this includes FITS and VOTable files, but does not
+include text-based formats such as ASCII and Comma-Separated Values.
+If you want to load one of the latter types of table, you will need
+to use one of the other load methods and specify table format explicitly.
 </p>
 
 <p>You can see how this browser works on an example directory of tables
@@ -4538,6 +4704,12 @@ which you can access in a number of ways:
 </ul>
 </p>
 
+<p>Note these examples are a bit of a mixed bag, and are not all
+that exemplary in nature.  They are just present to allow you to 
+play around with some of TOPCAT's features if you don't have any
+real data to hand.
+</p>
+
 </subsubsect>
 
 </subsect>
@@ -4573,7 +4745,7 @@ a location for the table to be written.
 <p>You can use the <label>Table Output Format</label>
 selector box to pick
 the format in which the table will be written from one
-of the <ref id="outFormats">supported output formats</ref>.
+of the <ref plaintextref="yes" id="outFormats">supported output formats</ref>.
 There is no default format, and it won't automatically save to the
 same format it was loaded from, but if you leave it on "(auto)" it
 will try to guess the format based on the filename given;
@@ -4659,7 +4831,8 @@ or double-clicking on displayed directories.
 To save to a new file, type it into the <label>File Name</label> field;
 this will save the table under that name into the directory which is displayed.
 You can (re)set the format in which the file will be written using
-the <label>Output Format</label> selector box on the right.
+the <label>Output Format</label> selector box on the right
+(see <ref id="outFormats"/> for discussion of output formats).
 </p>
 
 </subsubsect>
@@ -4819,11 +4992,17 @@ versions of the tables being joined, so that any row subsets,
 hidden columns, or sorts currently in force will be reflected in the
 output.
 Progress information on the match, which may take some time,
-is provided in the logging window and by a scrollbar at the bottom
+is provided in the logging window and by a progress bar at the bottom
 of the window.  When it is completed, you will be informed by a
 popup window which indicates that a new table has been created.
 This table will be added to the list in the Control Window and can
 be examined, manipulated and saved like any other.
+The new table has an additional column added at the end which gives
+the 'match score' for each successful match: the exact meaning of
+this is dependent on the match type, but it is a non-negative 
+numerical value which broadly speaking represents the 
+"distance" between the two matched points - a smaller value 
+indicates a better match.
 </p>
 
 <p>The Match Window provides a set of controls which allow you
@@ -4847,7 +5026,7 @@ It consists of these main parts:
     </p></dd>
 
 <dt>Log window</dt>
-<dd><p>Displays progress as the match is taking place.  The scrollbar
+<dd><p>Reports on progress as the match is taking place.  The progress bar
     at the bottom of the window also provides an indication of how
     far through each stage processing has got.
     </p></dd>
@@ -4861,9 +5040,9 @@ It consists of these main parts:
     </p></dd>
 
 </dl>
-The following sections describe some of these components in more detail.
+</p>
 
-
+<p>The following sections describe some of these components in more detail.
 </p>
 
 <subsubsect id="matchCriteria">
@@ -4874,7 +5053,7 @@ between two rows.  The selection you make in this box will determine
 which columns you have to fill in for the table(s) being matched
 in the rest of the window.  In most cases what you are selecting here
 is the coordinate space in which rows will be compared against each other,
-and a numerical value to determine how close two rows have to be
+and a numerical value or values to determine how close two rows have to be
 in terms of a metric on that space to count as a match.
 </p>
 
@@ -4884,26 +5063,20 @@ in terms of a metric on that space to count as a match.
 <dt>Sky</dt>
 <dd><p>Comparison of positions on the celestial sphere.
     In this case you will need to specify columns giving
-    Right Ascension and Declination (in radians)
+    Right Ascension and Declination
     for each table participating in the match
     The Error value you must fill in is the maximum separation of matched
-    points in radians around a great circle.
-    (For reference: 1 degree=.0174533 rad;
-                    1 arcmin=2.90888e-4 rad;
-                    1 arcsec = 4.84813e-6 rad).
+    points in around a great circle.
     </p></dd>
 
 <dt>Spherical Polar</dt>
 <dd><p>Comparison of positions in the sky taking account of radial distance.
     In this case you will need to specify columns giving
-    Right Ascension and Declination (in radians) and radial distance
-    (in arbitrary units)
+    Right Ascension and Declination in angular units, 
+    and radial distance in arbitrary units
     for each table participating in the match.
     The Error value is a maximum spatial separation of matched points
     in the same units as the radial distance.
-    (For reference: 1 degree=.0174533 rad;
-                    1 arcmin=2.90888e-4 rad;
-                    1 arcsec = 4.84813e-6 rad).
     </p></dd>
 
 <dt>Exact Value</dt>
@@ -4917,16 +5090,61 @@ in terms of a metric on that space to count as a match.
     </p></dd>
 
 <dt>N-dimensional Cartesian</dt>
-<dd><p>Comparison of positions in an N-dimensional Cartesian space.
-    In this case you will need to specify N columns giving Cartesian
-    coordinates
-    for each table participating in the match.
+<dd><p>Comparison of positions in an isotropic N-dimensional Cartesian space.
+    In this case you will need to specify N columns giving
+    coordinates for each table participating in the match.
     The Error value is the maximum spatial separation of matched points.
+    Currently the highest dimensionality you can select is 3-d -
+    does anyone want a higher number?
+    </p></dd>
+
+<dt>N-dimensional Cartesian (anisotropic)</dt>
+<dd><p>Comparison of positions in an N-dimensional Cartesian space
+    with an anisotropic metric.
+    In this case you will need to specify N columns giving coordinates
+    for each table participating in the match,
+    and an error radius for each of these dimensions.
+    Points P1 and P2 are considered to match if P2 falls within
+    the ellipsoid defined by the error radii centered on P1.
+    This kind of match will typically be used for non-'spatial' spaces,
+    for instance (magnitude,redshift) space, in which the metrics in 
+    different dimensions are not related to each other.
     Currently the highest dimensionality you can select is 4-d -
     does anyone want a higher number?
     </p></dd>
 
+<dt>Sky + X</dt>
+<dd><p>Comparison of positions on the celestial sphere with an additional
+    numeric constraint.
+    This is a combination of the Sky and 
+    1-d Cartesian matches above, so the columns you need
+    to supply are RA, Dec and one extra, and the errors are 
+    angular separation on the sky and the error in the extra column.
+    A match is registered if it matches in both of the constituent tests.
+    You could use this for instance to match objects which are both close
+    on the sky and have similar luminosities.
+    </p></dd>
+
+<dt>Sky + XY</dt>
+<dd><p>Comparison of positions on the celestial sphere with an additional
+    2-d anisotropic Cartesian constraint.
+    This is a combination of the Sky and 2-d Anisotropic Cartesian
+    matches above, so the columns you need to supply are
+    RA, Dec and two extra, and the errors are 
+    angular separation on the sky and the error radii corresponding to
+    the extra columns.
+    A match is registered if it matches in both of the constituent tests.
+    You could use this for instance to match objects which are both close
+    on the sky and have similar luminosities and redshifts.
+    </p></dd>
+
 </dl>
+</p>
+
+<p>Depending on the match type, the units of the error value(s) you enter
+may be significant.  In this case, there will be a unit selector
+displayed alongside the entry box.  You must choose units which 
+are correct for the number you enter.
 </p>
 
 </subsubsect>
@@ -4940,15 +5158,17 @@ columns in the tables you will be joining will provide the data
 For each table you must select the names of the required columns;
 the ones you need to select will depend on the 
 <ref id="matchCriteria">match criteria</ref> you have chosen.
-If a particular unit is required (e.g. radians for the RA and Dec
-columns in a sky match) this will be noted by the column selector -
-you must ensure that you use columns which have these units.
-If the columns of your table are in different units, you will have
-to create new synthetic columns (see <ref id="SyntheticColumnQueryWindow"/>)
-in the right units - the <code>toRadians</code> function may be useful.
 </p>
 
-<p>In some cases these column selectors may have a value filled in
+<p>For some columns, such as Right Ascension and Declination in sky matches,
+units are important for the columns you select.
+In this case, there will be a selector box for the units alongside
+the selector box for the column itself.  You must ensure that the
+correct units have been selected, or the results of the match will be 
+rubbish.
+</p>
+
+<p>In some cases these column and/or unit selectors may have a value filled in
 automatically (if the program thinks it can guess appropriate ones)
 but you should ensure that it has guessed correctly in this case.
 Only suitable columns are available for choosing from these column
@@ -4993,26 +5213,30 @@ and
    1135.201    600.100     14.6
     702.622   1004.972     19.0
 </verbatim>
-then requiring Matched Rows Only for both tables would give you a 
+then a Cartesian match of the two sets of X and Y values with an error of 1.0
+requiring Matched Rows Only for both tables would give you a 
 result like this:
 <verbatim>
-     X_1       Y_1         Vmag    X_2        Y_2         Bmag
-     ---       ---         ----    ---        ---         ----
-   1134.822    599.247     13.8   1135.201    600.100     14.6
-    909.613    543.293      9.3    909.523    543.800     10.1
+     X_1       Y_1         Vmag    X_2        Y_2         Bmag    MatchScore
+     ---       ---         ----    ---        ---         ----    ----------
+   1134.822    599.247     13.8   1135.201    600.100     14.6     0.933
+    909.613    543.293      9.3    909.523    543.800     10.1     0.515
 </verbatim>
 while choosing All Rows for the first table would give you this:
 <verbatim>
-     X_1       Y_1         Vmag    X_2        Y_2         Bmag
-     ---       ---         ----    ---        ---         ----
-   1134.822    599.247     13.8   1135.201    600.100     14.6
+     X_1       Y_1         Vmag    X_2        Y_2         Bmag    MatchScore
+     ---       ---         ----    ---        ---         ----    ----------
+   1134.822    599.247     13.8   1135.201    600.100     14.6     0.933
     659.68    1046.874     17.2
-    909.613    543.293      9.3    909.523    543.800     10.1
+    909.613    543.293      9.3    909.523    543.800     10.1     0.515
 </verbatim>
 </p>
 
-<p>As in this example, if the join causes column names to be duplicated,
-the offending columns are renamed to disambiguate them.
+<p>A couple of other points are illustrated in this example:
+since the join would have resulted in duplicate column names, 
+the X and Y columns are renamed by appending a suffix.
+The MatchScore column which gets added is here simply the distance in 
+Cartesian space between the points (X_1,Y_1) and (X_2,Y_2).
 </p>
 
 </subsubsect>
@@ -5047,7 +5271,7 @@ versions of the tables being joined, so that any row subsets,
 hidden columns, or sorts currently in force will be reflected in the
 output.
 Progress information on the match, which may take some time,
-is provided in the logging window and by a scrollbar at the bottom
+is provided in the logging window and by a progress bar at the bottom
 of the window.  When it is completed, you will be informed by a
 popup window which indicates that a new table has been created.
 This table will be added to the list in the Control Window and can
@@ -5074,7 +5298,7 @@ be examined, manipulated and saved like any other.
     </p></dd>
 
 <dt>Log Window</dt>
-<dd><p>Displays progress as the match is taking place.  The scrollbar
+<dd><p>Displays progress as the match is taking place.  The progress bar
     at the bottom of the window also provides an indication of how
     far through each stage processing has got.
     </p></dd>
@@ -5385,6 +5609,36 @@ and paste from this using your platform's usual mechanisms for this.
 
 </subsect>
 
+<subsect id="ParameterQueryWindow">
+<subhead><title>New Parameter Window</title></subhead>
+
+<figure>
+<caption><px>New Parameter dialogue window</px></caption>
+<figureimage src="&FIG.ParameterQueryWindow;"/>
+</figure>
+
+<p>The New Parameter window allows you to enter a new table parameter
+to be added to a table.
+It can be obtained by clicking the <label>New Parameter</label> (&IMG.ADD;)
+button in the <ref id="ParameterWindow"/>.
+A parameter is simply a fixed value attached to a table and can contain
+information which is a string, a scalar, an array... in fact exactly
+the same sorts of values which can appear in table cells.
+</p>
+
+<p>The window is pretty straightforward to use: fill in the fields
+and click <label>OK</label> to complete the addition.
+The <label>Type</label> selector allows you to select what kind of
+value you have input.  The only compulsory field is
+<label>Parameter Name</label>; any of the others may be left blank,
+though you will usually want to fill in at least the <label>Value</label>
+field as well.  Often, the parameter will have a string value, 
+in which case the <label>Units</label> field is not very relevant.
+</p>
+
+</subsect>
+
+
 <subsect id="SyntheticColumnQueryWindow">
 <subhead><title>Synthetic Column Window</title></subhead>
 
@@ -5401,7 +5655,8 @@ will be calculated on demand as a function of the values of cells
 of other columns in that row.  You can think of this as providing
 functionality like that of a column-oriented spreadsheet.
 You can activate the dialogue using the 
-<label>Add Column</label> (&IMG.ADD;) button in the
+<label>Add Column</label> (&IMG.ADD;) or
+<label>Replace Column</label> (&IMG.MODIFY;) buttons in the
 <ref id="ColumnInfoWindow">Columns Window</ref> or from the 
 (right-click) popup menu in the <ref id="TableViewerWindow">Data Window</ref>.
 </p>
@@ -5422,6 +5677,16 @@ define the new column:
     </ul>
     </p></dd>
 
+<dt>Expression</dt>
+<dd><p>This is the algebraic expression which defines the values that the
+    cells in the new column of the table will have.  The rules for
+    writing algebraic expressions are described in <ref id="jel"/>,
+    and detailed documentation of the functions you can use can be 
+    seen in the <ref id="MethodWindow">Available Functions Window</ref>,
+    which you can see by clicking the <label>Show Functions</label>
+    (&IMG.FUNCTION;) button on the toolbar.
+    </p></dd>
+
 <dt>Units</dt>
 <dd><p>The units of the column.  If the quantity it represents is dimensionless
     or you don't know the units, this can be left blank.  It would be
@@ -5434,15 +5699,6 @@ define the new column:
     column are.  May be left blank.
     </p></dd>
 
-<dt>Expression</dt>
-<dd><p>This is the algebraic expression which defines the values that the
-    cells in the new column of the table will have.  It may be any
-    legal expression which returns a primitive or object.  Broadly
-    speaking you can use mathematical operators to combine values
-    taken from the same row in other columns which are referred to
-    by the names or &column.id.char;ID identifiers of those columns.
-    The rules are explained in <ref id="jel"/>.
-    </p></dd>
 <dt>UCD</dt>
 <dd><p>A <webref url="http://vizier.u-strasbg.fr/doc/UCD.htx"
                  >Unified Content Descriptor</webref>
@@ -5463,13 +5719,7 @@ define the new column:
     </p></dd>
 </dl>
 Of these, the <label>Expression</label> is the only one which must be
-filled in.  The rules for writing algebraic expressions are
-detailed in <ref id="jel"/>, 
-and a summary of the (built-in and user-defined)
-functions available can be seen in the 
-<ref id="MethodWindow">Available Functions Window</ref>
-which you can view using the 
-<label>Show Functions</label> (&IMG.FUNCTION;) button on the toolbar.
+filled in.  
 </p>
 
 <p>Having filled in the form to your satisfaction, hit the
@@ -5544,16 +5794,14 @@ define the new subset:
     using their names or &column.id.char;ID identifiers,
     and other subsets may be
     referenced using their names or &subset.id.char;ID identifiers.
-    A range of logical and mathematical operators can be used;
-    the rules for expression syntax are explained in <ref id="jel"/>.
+    The rules for expression syntax are described in <ref id="jel"/>,
+    and detailed documentation of the functions you can use can be 
+    seen in the <ref id="MethodWindow">Available Functions Window</ref>,
+    which you can see by clicking the <label>Show Functions</label>
+    (&IMG.FUNCTION;) button on the toolbar.
     </p></dd>
 
 </dl>
-A summary of the (built-in and user-defined)
-functions available can be seen in the 
-<ref id="MethodWindow">Available Functions Window</ref>
-which you can view using the 
-<label>Show Functions</label> (&IMG.FUNCTION;) button on the toolbar.
 </p>
 
 <p>Having filled in the form to your satisfaction, hit the
@@ -5581,8 +5829,6 @@ available for use when writing
 <ref id="jel" plaintextref="yes">algebraic expressions</ref>.
 This includes both the built-in expressions and any 
 <ref id="jelExtend">extended ones</ref> you might have added.
-They are grouped by the class which defines them, and displayed
-in a tree-like structure.
 You can find this window by using the 
 <label>Show Functions</label> (&IMG.FUNCTION;) button in the
 <ref id="SyntheticColumnQueryWindow">Synthetic Column</ref> or 
@@ -5590,24 +5836,61 @@ You can find this window by using the
 window toolbars.
 </p>
 
-<p>When initially displayed, the window shows just the names of
-the classes which provide methods.
-By double-clicking on these names (or equivalently
-by clicking on their 'handle': &IMG.COLLAPSED;)
-you can open them up to see the methods they contain.
-The listing here doesn't describe what these methods do, but the
-name and list of arguments may give you a clue.
+<p>On the left hand side of the window is a tree-like representation
+of the functions you can use.  Each item in this tree is one of the
+following:
+<dl>
+
+<dt>&IMG.FOLDER_NODE; Folder</dt>
+<dd><p>A group of classes.  There's only one of these, marked 
+    "Activation Functions", and it contains functions which are only
+    available for use in 
+    <ref plaintextref="yes" id="activation">Activation Actions</ref>.
+    When defining a new synthetic columns or algebraic subsets they
+    are not used.
+    </p></dd>
+
+<dt>&IMG.LIBRARY_NODE; Class</dt>
+<dd><p>A set of functions and/or constants; 
+    it doesn't matter what class a function
+    is in when you use it, but since the functions in a class are 
+    usually related this makes it easier to find the one you're looking
+    for in this window.
+    </p></dd>
+
+<dt>&IMG.FUNCTION_NODE; Function</dt>
+<dd><p>A function that you can use in an expression.
+    </p></dd>
+
+<dt>&IMG.CONSTANT_NODE; Constant</dt>
+<dd><p>A constant value which you can refer to by name in an expression
+    (as long as it doesn't clash with a column name).
+    </p></dd>
+
+</dl>
 </p>
 
-<p>Each method has a listing something like this:
-<verbatim>
-   float average( int, int )
-</verbatim>
-which means that there is a function called "average" which takes two
-arguments of type <code>int</code> (= integer), and returns a value of
-type <code>float</code> (= floating point).
+<p>Of these, the Folder and Class items have a 'handle' (&IMG.COLLAPSED;),
+which means that they contain other items 
+(classes and functions/constants respectively).
+By clicking on the handle (or equivalently double-clicking on the name)
+you can toggle whether the item is open (so you can see its contents)
+or closed (so you can't).  So to see the functions in a class,
+click on its handle and they will be revealed.
 </p>
 
+<p>You can click on any of these items and information about it 
+will appear in the right hand panel.  In the case of functions
+this describes the function, its arguments, what it does, and
+how to use it.  The explanations should be fairly self-explanatory;
+for instance the description in the figure above indicates that
+you could use the invocation <code>atan2(X_POS,Y_POS)</code> 
+as the expression for a new table column which gives the angle from
+the X axis of a point whose position is given by columns with 
+the names X_POS and Y_POS.
+Examples of a number of these functions are given in 
+<ref id="jelExamples"/>.
+</p>
 
 <p>Using the Add button (&IMG.ADD;)
 you can specify the name of a class to add to those available.
@@ -5619,6 +5902,9 @@ Note however it would be more usual to specify these using
 the system property <code>jel.classes</code> or 
 <code>jel.classes.activation</code> at startup,
 as described in <ref id="jelExtend"/>.
+Classes added in this way will be visible in the tree, but may 
+not have proper documentation (clicking on them may not reveal
+a description in the right hand panel).
 </p>
 
 </subsect>
@@ -5664,16 +5950,63 @@ apply here as well.
 <code>java -classpath topcat.jar uk.ac.starlink.table.TableCopy -help</code>)
 produces the following usage message:
 <verbatim>&tablecopy.usage;</verbatim>
+</p>
 
-The input format is sensed by examining the in-table argument, and the
-output format can be supplied using the "<code>-ofmt</code>" flag.
-If the <code>-ofmt</code> flag is not used, 
-the tool may be able to work out the required format
-by looking at the out-table argument (for instance one ending in ".FIT"
-is assumed to be a FITS table); if not it will fail with an error message
-and you will have to specify the format explicitly.
-For some output formats the special output name "-" can be used to
-represent standard output.
+<p>The flags and arguments have the following meaning:
+<dl>
+
+<dt>-disk</dt>
+<dd><p>Causes temporary files to be used for backing store when table data
+    must be stored.  Use this flag if you're getting an OutOfMemoryError
+    otherwise.
+    </p></dd>
+
+<dt>-debug</dt>
+<dd><p>Causes some logging and error reporting to be more verbose than
+    usual.
+    </p></dd>
+
+<dt>-verbose</dt>
+<dd><p>Causes progress to be reported on standard error during table reading,
+    and possibly some additional logging messages.
+    </p></dd>
+
+<dt>-help</dt>
+<dd><p>Prints a usage message to standard output.
+    </p></dd>
+
+<dt>-ifmt <em>in-format</em></dt>
+<dd><p>Specifies the input format to be used
+    (one of the known in-formats listed above - matching is case-insensitive).
+    This flag can be used if you know what format your input table is in.
+    If it's omitted, then
+    an attempt will be made to detect the format of <em>in-table</em>
+    automatically, but this cannot always be done correctly, in which
+    case the program will exit with an error explaining which formats
+    were attempted.
+    </p></dd>
+
+<dt>-ofmt <em>out-format</em></dt>
+<dd><p>Specifies the output format to be used
+    (one of the known out-formats listed above - matching is case-insensitive).
+    This flag can be used to determine what format to write to.
+    If it's omitted, then the output filename will be examined to try
+    to guess what sort of file is required (e.g. by looking at the extension).
+    If it doesn't look like any particular known type, the program will
+    exit with an error.
+    </p></dd>
+
+<dt><em>in-table</em></dt>
+<dd><p>Location of the input table.  This is typically a filename or URL.
+    </p></dd>
+
+<dt><em>out-table</em></dt>
+<dd><p>Location of the output table.  This is typically a filename to
+    write to.  In some cases it can be the special string "-" to indicate
+    output to the standard output stream.
+    </p></dd>
+
+</dl>
 </p>
 
 <p>Here are some examples of use:
@@ -5684,10 +6017,10 @@ represent standard output.
     </verbatim>
 </li>
 
-<li>Do the same thing but to a VOTable with the data base64-encoded
-    inline in BINARY format:
+<li>Copy a Comma-Separated Value format table to a VOTable with 
+    the data base64-encoded inline in BINARY format:
     <verbatim>
-    tablecopy -ofmt votable-binary stars.fits stars.vot
+    tablecopy -ifmt csv -ofmt votable-binary stars.csv stars.vot
     </verbatim>
 </li>
 
