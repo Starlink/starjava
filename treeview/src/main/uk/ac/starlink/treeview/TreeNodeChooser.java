@@ -31,6 +31,8 @@ import javax.swing.tree.TreePath;
  * around it to locate a node of interest.  One node can be selected.
  * This is intended to be used in a similar way to the JFileChooser
  * component.
+ *
+ * @author   Mark Taylor (Starlink)
  */
 public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
 
@@ -50,6 +52,9 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     private DataNode chosenNode;
     private JDialog currentDialog;
 
+    /**
+     * Constructs a new chooser widget with no content.
+     */
     public TreeNodeChooser() {
         setLayout( new BorderLayout() );
         Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
@@ -93,7 +98,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         jtree.addTreeSelectionListener( this );
         JScrollPane scroller = new JScrollPane( jtree );
         scroller.setBorder( etchedBorder );
-        scroller.setPreferredSize( new Dimension( 400, 400 ) );
+        scroller.setPreferredSize( new Dimension( 400, 300 ) );
         add( scroller, BorderLayout.CENTER );
 
         /* Construct and place the info panel */
@@ -136,6 +141,11 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         bottomBox.add( buttonBox );
     }
 
+    /**
+     * Constructs a new chooser widget with a given initial root.
+     *
+     * @param   root  the root of the hierarchy
+     */
     public TreeNodeChooser( DataNode root ) {
         this();
         setRoot( root );
@@ -151,7 +161,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      */
     public void setRootObject( Object obj ) {
         try {
-            setRoot( nodeMaker.makeDataNode( null, obj ) );
+            setRoot( getNodeMaker().makeDataNode( null, obj ) );
         }
         catch ( NoSuchDataException e ) {
             Toolkit.getDefaultToolkit().beep();
@@ -162,7 +172,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      * Sets the root node of the tree.  The entire tree is replaced by
      * a new one based at the given node and expanded one level.
      *
-     * @param  rootnew root
+     * @param  root   new root 
      */
     public void setRoot( DataNode root ) {
         DataNode oldRoot = (DataNode) jtree.getModel().getRoot();
@@ -185,6 +195,11 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         rootSelector.setBottomNode( root );
     }
 
+    /**
+     * Returns the root of the tree displayed in this chooser.
+     *
+     * @return  root node
+     */
     public DataNode getRoot() {
         return (DataNode) jtree.getModel().getRoot();
     }
@@ -253,11 +268,26 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         return dialog;
     }
 
+    /**
+     * This method is used whenever a new DataNode needs to be created
+     * from an object.
+     *
+     * @param  parent  new data node's parent (may be null for root)
+     * @param  obj     the object from which to construct the new data node
+     * @return  the new data node based on <tt>obj</tt>
+     */
     public DataNode makeDataNode( DataNode parent, Object obj )
             throws NoSuchDataException {
-        return nodeMaker.makeDataNode( parent, obj );
+        return getNodeMaker().makeDataNode( parent, obj );
     }
 
+    /**
+     * Invoked when the selection is changed to update the display 
+     * according to the current selection.  Subclasses may override
+     * this to customise the info panel.
+     *
+     * @param  node  the node currently selected
+     */
     protected void showNodeDetail( DataNode node ) {
         infoPanel.setIcon( node == null ? null : node.getIcon() );
         nameLabel.setText( node == null ? null : node.getName() );
@@ -265,6 +295,13 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         descLabel.setText( node == null ? null : node.getDescription() );
     }
 
+    /**
+     * Indicates whether a given node is eligable to be chosen with
+     * the Accept button.
+     *
+     * @param  node  the node to test
+     * @return  <tt>true</tt> iff <tt>node</tt> can be chosen by this chooser
+     */
     protected boolean isChoosable( DataNode node ) {
         return true;
     }
@@ -324,6 +361,28 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
 
         /* Return the actions for use in the toolbar thingy. */
         return new Action[] { upAction, downAction, homeAction, };
+    }
+
+    /**
+     * Returns the DataNodeFactory which is used for turning objects into
+     * data nodes.  This method is used wherever a node factory is 
+     * required, so subclasses may override it to change the node creation
+     * behaviour.
+     *
+     * @return  the data node factory
+     */
+    public DataNodeFactory getNodeMaker() {
+        return nodeMaker;
+    }
+
+    /**
+     * Sets the DataNodeFactory which is used for turning objects into
+     * data nodes.
+     *
+     * @param  nodeMaker  the new data node factory
+     */
+    public void setNodeMaker( DataNodeFactory nodeMaker ) {
+        this.nodeMaker = nodeMaker;
     }
 
     /**

@@ -1,6 +1,7 @@
 package uk.ac.starlink.treeview;
 
 import java.awt.Component;
+import java.io.File;
 import java.io.IOException;
 import javax.swing.JDialog;
 import uk.ac.starlink.table.StarTable;
@@ -11,6 +12,8 @@ import uk.ac.starlink.util.ErrorDialog;
  */
 public class TableNodeChooser extends TreeNodeChooser {
 
+    private DataNodeFactory nodeFact;
+
     /**
      * Constructs a new chooser.
      *
@@ -18,6 +21,57 @@ public class TableNodeChooser extends TreeNodeChooser {
      */
     public TableNodeChooser( DataNode root ) {
         super( root );
+    }
+
+    /**
+     * Constructs a new chooser with the current directory as the root.
+     */
+    public TableNodeChooser() {
+        super();
+        try {
+            File dir = new File( System.getProperty( "user.dir" ) );
+            setRoot( new FileDataNode( dir ) );
+        }
+        catch ( NoSuchDataException e ) {
+            // never mind
+        }
+    }
+
+    /**
+     * Returns a lazily created node factory suitable for making nodes 
+     * in a table-browsing environment.
+     */
+    public DataNodeFactory getNodeMaker() {
+        if ( nodeFact == null ) {
+            nodeFact = new DataNodeFactory();
+
+            /* You might think that it would be sensible to put the
+             * StarTable node at the head of the list, but this isn't
+             * the case, since it's too eager: for instance it would turn 
+             * a FITS file into a StarTable if any of its HDUs were tables,
+             * and we want to be offered the opportunity of expanding it
+             * and picking an HDU of our choice.  So we just remove some
+             * of the node types which are not going to have tables 
+             * inside. */
+            String[] eschewed = new String[] {
+                "uk.ac.starlink.treeview.NdxDataNode",
+                "uk.ac.starlink.treeview.NDFDataNode",
+                "uk.ac.starlink.treeview.WCSDataNode",
+                "uk.ac.starlink.treeview.HDSDataNode",
+                "uk.ac.starlink.treeview.NDArrayDataNode",
+            };
+            for ( int i = 0; i < eschewed.length; i++ ) {
+                try {
+                    Class clazz = Class.forName( eschewed[ i ] );
+                    nodeFact.removeNodeClass( clazz );
+                }
+                catch ( ClassNotFoundException e ) {
+                    // class not known, will not be created
+                    // logger.warn( "Class " + echewed[ i ] + " not known" );
+                }
+            }
+        }
+        return nodeFact;
     }
 
     /**
@@ -41,6 +95,7 @@ public class TableNodeChooser extends TreeNodeChooser {
      * If an error occurs in turning the selection into a table,
      * the user will be informed, and <tt>null</tt> will be returned.
      *
+     * @param  parent  the parent component for the dialog
      * @param  buttonText  the text to appear on the 'choose' button
      *         (or <tt>null</tt> for default)
      * @param  title  the title of the dialog window
@@ -61,6 +116,21 @@ public class TableNodeChooser extends TreeNodeChooser {
                                    parent );
             return null;
         }
+    }
+
+    /**
+     * Pops up a modal dialog to choose a table from this chooser, with
+     * default characteristics.
+     * If an error occurs in turning the selection into a table,
+     * the user will be informed, and <tt>null</tt> will be returned.
+     *
+     * @param  parent  the parent component for the dialog
+     * @return a table corresponding to the selected DataNode, 
+     *         or <tt>null</tt> if none was selected or there was an error
+     *         in converting it to a table
+     */
+    public StarTable chooseStarTable( Component parent ) {
+        return chooseStarTable( parent, "Open Table", "Table browser" );
     }
 
     /**
