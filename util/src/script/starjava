@@ -15,6 +15,7 @@
 #        - sets the LD_LIBRARY_PATH to pick up the right versions of 
 #          shared libraries
 #        - configures logging properties in a sensible way
+#        - defines the SOAP contact directory.
 #     
 #     The preferred "java" command is Starlink one; this increases the 
 #     likelihood that programs are only executed by JVMs that they have 
@@ -59,7 +60,9 @@
 #     21-APR-2004 (BC):
 #        Added support for Power Macintosh
 #     21-OCT-2004 (PWD):
-#        Added support fot Cygwin.
+#        Added support for Cygwin.
+#     16-DEC-2004 (PWD):
+#        Added adam.user property to define ADAM_USER with the JVM.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -143,8 +146,14 @@ fi
 export LD_LIBRARY_PATH
 
 #  Set any necessary properties.
-
 props=""
+if test -z "$ADAM_USER"; then
+  if test -d "$HOME/adam"; then
+     props="-Dadam.user=${HOME}/adam"
+  fi
+else
+  props="-Dadam.user=${ADAM_USER}"
+fi  
 props="$props -Djava.util.logging.config.file=$bindir/../etc/logging.properties"
 
 #  Execute the java command with the command line arguments.
