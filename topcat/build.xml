@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 
 <!--
- !   Table build file
+ !   TOPCAT build file
  !
- !   This file describes how to build and install Table from
- !   source and binary releases. Table is a class library
- !   (i.e. provides an API and related documentation).
+ !   This file describes how to build and install {Package}
+ !   from a source and binary release. {Package} is an application
+ !   package, i.e. provides user-level commands and interfaces, as
+ !   well as a programming API.
  !
  !   The main targets are:
  !
@@ -31,7 +32,7 @@
  !
  !-->
 
-<project name="Build file for Table" default="build" basedir=".">
+<project name="Build file for TOPCAT" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,12 +78,12 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="Table"/>
-  <property name="name" value="table"/>
-  <property name="version" value="0.3"/>
+  <property name="Name" value="TOPCAT"/>
+  <property name="name" value="topcat"/>
+  <property name="version" value="0.2"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="uk.ac.starlink.table"/>
+  <property name="package.name" value="uk.ac.starlink.topcat"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
@@ -151,10 +152,6 @@
   <property name="dist.etc.pkg" value="${dist.etc}/${name}"/>
   <property name="dist.javadocs" value="${dist.docs}/${name}/javadocs"/>
 
-  <!-- Any achitecture-specific files (shared libraries) will be placed in
-   !   an appropriate subdirectory of dist.lib -->
-  <property name="dist.lib.arch" value="${dist.lib}/${os.arch}"/>
-
   <!-- Version for zipped/tarred export files. -->
   <property name="dist.version" value="${name}-${version}"/>
 
@@ -183,7 +180,10 @@
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- UTIL -->
+    <!-- Table -->
+    <pathelement location="${star.jar.dir}/table/table.jar"/>
+
+    <!-- Util -->
     <pathelement location="${star.jar.dir}/util/util.jar"/>
 
   </extclasspath>
@@ -205,10 +205,26 @@
    !   the extra classpath.
    !-->
   <extclasspath id="built.jarpath">
-    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
+    <pathelement location="${star.build.jar}/util/lib/util/util.jar"/>
+    <pathelement location="${star.build.jar}/table/lib/table/table.jar"/>
   </extclasspath>
 
+  <!-- "Local" third party jars. Normally these will be kept in their
+   !   own third party package, but may be kept here temporarily, say
+   !   if there are version conflicts that cannot be addressed.
+   !   They are installed with the package jar files and should be
+   !   entered into the main jar file manifest.
+   !-->
+  <path id="package.jars">
+     <fileset dir="${src.jars.dir}">
+        <include name="*.jar"/>
+     </fileset>
+  </path>
+
   <path id="built.classpath">
+
+    <!-- Local third party jars -->
+    <path refid="package.jars"/>
 
     <!-- All locally built classes -->
     <dirset dir="${star.build.dir}">
@@ -239,14 +255,14 @@
 
   <!-- Unification of all classpaths using extra, built, installed order-->
   <path id="classpath">
-     <path refid="local.classpath"/>
-     <path refid="built.classpath"/>
-     <path refid="installed.classpath"/>
+    <path refid="local.classpath"/>
+    <path refid="built.classpath"/>
+    <path refid="installed.classpath"/>
   </path>
 
   <!-- JUnit tests classpath, add tests.dir and tests.etc.dir so that
    !   resources may be located there -->
- <path id="tests-classpath">
+  <path id="tests-classpath">
     <pathelement location="${build.classes}"/>
     <pathelement location="${build.tests}"/>
     <pathelement location="${tests.dir}"/>
@@ -256,6 +272,18 @@
 
   <!-- Turn this path into a string which is passed to the tests -->
   <property name="tests-classpath.value" refid="tests-classpath"/>
+
+  <!--
+   !    ============
+   !    Library path
+   !    ============
+   !    Used by test targets for locating native libraries.
+   !-->
+  <path id="tests-libpath.id">
+    <pathelement path="${java.library.path}"/>
+    <pathelement location="${star.jar.dir}/${os.arch}"/>
+  </path>
+  <property name="tests-libpath" refid="tests-libpath.id"/>
 
   <!--
    !    =========================================
@@ -269,11 +297,17 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!-- Need Util -->
+    <!-- UTIL -->
     <available property="util.present"
                classpathref="classpath"
                classname="uk.ac.starlink.util.DataSource"/>
-    <fail message="No Util available" unless="util.present"/>
+    <fail message="No UTIL available" unless="util.present"/>
+
+    <!-- TABLE -->
+    <available property="table.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.table.StarTable"/>
+    <fail message="No TABLE available" unless="table.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -347,6 +381,15 @@
       <fileset dir="${src.dir}/resources"/>
     </copy>
 
+    <!-- Local third party jars, if any. Copy straight into
+     !   distribution directories to save on unnecessary copies and to
+     !   make these available for resolution by other locally built
+     !   packages that are using this one -->
+    <mkdir dir="${dist.lib.pkg}"/>
+    <copy todir="${dist.lib.pkg}">
+       <fileset dir="${src.jars.dir}"/>
+    </copy>
+
   </target>
 
   <!--
@@ -357,8 +400,9 @@
    !  Creates a jar file from the build.classes directory tree. If
    !  jars of sub-components are also required these should be also
    !  created here. Note this requires a manifest file that defines the
-   !  jars that we directly depend on (using relative URLs). The jar
-   !  files should be placed directly in the distribution directories.
+   !  jars that we directly depend on (using relative URLs) on and
+   !  defines the application entrance point. The jar files should be
+   !  placed directly in the distribution directories. 
    !-->
   <target name="jars"
           depends="build"
@@ -369,11 +413,11 @@
     <jar destfile="${dist.lib.pkg}/${name}.jar"
          basedir="${build.classes}">
       <manifest>
-        <attribute name="Main-Class" 
-                   value="uk.ac.starlink.table.TableCopy"/>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path" 
-                   value="../util/util.jar ../votable/votable.jar ../fits/fits.jar ../mirage/mirage.jar"/>
+        <attribute name="Main-Class"
+                   value="uk.ac.starlink.topcat.TableViewer"/>
+        <attribute name="Class-Path"
+                   value="plot.jar jel_g.jar ../util/util.jar ../table/table.jar ../mirage/mirage.jar"/>
       </manifest>
     </jar>
 
@@ -401,13 +445,14 @@
 
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
-    <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.bin.pkg}"/>
+    <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
+    <mkdir dir="${dist.etc.pkg}"/>
 
     <!-- Copy application scripts. -->
     <copy todir="${dist.bin.pkg}">
-      <fileset dir="${script.dir}/"/>
+      <fileset dir="${script.dir}/" />
     </copy>
 
     <!-- Copy extra documentation, note doesn't include javadocs these
@@ -615,31 +660,21 @@
     <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
-    <property name="star.lib.arch" value="${star.lib}/${os.arch}"/>
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.lib.pkg}"/>
     <mkdir dir="${star.docs.pkg}"/>
 
-    <!-- Note: if you uncomment any of the following (reasonable since
-     !   the class library may not have any scripts), then make sure
-     !   that the first loggedcopy has logfileAppend="false" so that
-     !   the copy logfile is initialised -->
-    <loggedcopy todir="${star.lib}"
-                logfile="${install.log}"
-                overwrite="${install.overwrite}"
-                logfileAppend="false">
-      <fileset dir="${dist.lib}">
-        <include name="**/*.jar"/>
-        <include name="**/*.zip"/>
-      </fileset>
-    </loggedcopy>
-
     <loggedcopy todir="${star.bin}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="true">
+                logfileAppend="false">
       <fileset dir="${dist.bin}"/>
     </loggedcopy>
+
+    <!-- Also remove the package-specific directory.
+     !   Note exact format is required.-->
+    <echo file="${install.log}" append="true">${star.bin.pkg}
+</echo>
 
     <chmod perm="ugo+rx" failonerror="${chmod.fail}">
       <fileset dir="${star.bin}">
@@ -647,8 +682,15 @@
       </fileset>
     </chmod>
 
-    <!-- Also remove the package-specific directory.
-     !   Note exact format is required.-->
+    <loggedcopy todir="${star.lib}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.lib}">
+        <include name="**/*.jar"/>
+        <include name="**/*.zip"/>
+      </fileset>
+    </loggedcopy>
     <echo file="${install.log}" append="true">${star.lib.pkg}
 </echo>
 
@@ -666,8 +708,6 @@
                 logfileAppend="true">
       <fileset dir="${dist.docs}" includes="${unfiltered.files}"/>
     </loggedcopy>
-
-    <!-- Also remove the package-specific directory-->
     <echo file="${install.log}" append="true">${star.docs.pkg}
 </echo>
 
@@ -703,11 +743,11 @@
    !   De-install from the "Starlink" tree
    !   ===================================
    !
-   !  Uses the content of the "${install.log}" to remove the files
+   ! Uses the content of the "${install.log}" to remove the files
    !  that were copied into place by the install target. If this fails
    !  then hopefully the log file will not be deleted!
    !-->
-  <target name="deinstall"
+ <target name="deinstall"
           description="-> undo the install target">
 
     <available file="${install.log}" property="install.log.present"/>
@@ -782,7 +822,7 @@
           unless="javadoc.notrequired">
 
     <uptodate property="javadoc.notrequired"
-              targetfile="${dist.javadocs}/packages.html" >
+              targetfile="${dist.javadocs}/packages.html">
         <srcfiles dir= "${java.dir}" includes="**/*.java"/>
     </uptodate>
 
@@ -805,6 +845,10 @@
    !  src/main tree. When javadocs can be generated incrementally this
    !  arrangement should be reworked to generate whatever is needed as
    !  part of the javadocs target.
+   ! 
+   !  Application packages should only make public those parts of
+   !  their internal APIs that they are prepared to support. Consider
+   !  adding such code to proper class libraries (such as util).
    !-->
   <target name="javadoc-sources"
           description="-> make source files for release API documention">
@@ -850,8 +894,13 @@
    !   ============
    !-->
   <target name="test"
+          description="-> does nothing">
+    <echo message="no tests defined"/>
+  </target>
+<!--
           depends="run-tests"
           description="-> run JUnit tests"/>
+-->
 
   <target name="run-tests"
           depends="compile-tests"
@@ -868,6 +917,7 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
+      <sysproperty key="java.library.path" value="${tests-libpath}"/>
 
       <formatter type="brief" usefile="false"/>
 
@@ -895,6 +945,7 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
+      <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>

@@ -19,7 +19,7 @@ import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
-import uk.ac.starlink.table.view.TableViewer;
+import uk.ac.starlink.topcat.TableViewer;
 import uk.ac.starlink.util.DataSource;
 
 /**

@@ -212,6 +212,9 @@
     <!-- Util -->
     <pathelement location="${star.jar.dir}/util/util.jar"/>
 
+    <!-- TOPCAT -->
+    <pathelement location="${star.jar.dir}/topcat/topcat.jar"/>
+
     <!-- JSky -->
     <pathelement location="${star.jar.dir}/jsky/jsky.jar"/>
 
@@ -264,6 +267,8 @@
        location="${star.build.dir}/votable/lib/votable/ndx.jar"/>
     <pathelement
        location="${star.build.dir}/util/lib/util/util.jar"/>
+    <pathelement
+       location="${star.build.dir}/topcat/lib/topcat/topcat.jar"/>
     <pathelement
        location="${star.build.dir}/jsky/lib/jsky/jsky.jar"/>
     <pathelement
@@ -436,6 +441,12 @@
                classname="uk.ac.starlink.util.TestCase"/>
     <fail message="No Util available" unless="util.present"/>
 
+    <!-- Need TOPCAT -->
+    <available property="topcat.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.topcat.TableViewer"/>
+    <fail message="No TOPCAT available" unless="topcat.present"/>
+
     <!-- Need JSky -->
     <available property="jsky.present"
                classpathref="classpath"
@@ -603,7 +614,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.treeview.Driver"/>
         <attribute name="Class-Path"
-           value="../array/array.jar ../table/table.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../ndx/ndx.jar ../votable/votable.jar ../util/util.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../axis/axis.jar ../ant.jar"/>
+           value="../array/array.jar ../table/table.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../ndx/ndx.jar ../votable/votable.jar ../util/util.jar ../topcat/topcat.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../axis/axis.jar ../ant.jar"/>
       </manifest>
     </jar>
 

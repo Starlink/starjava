@@ -177,11 +177,14 @@
     <echo message="Executing SPLAT target: ${what}"/>
     <ant dir="./splat" target="${what}"/>
 
-    <echo message="Executing Treeview target: ${what}"/>
-    <ant dir="./treeview" target="${what}"/>
-
     <echo message="Executing Mirage target: ${what}"/>
     <ant dir="./mirage" target="${what}"/>
+
+    <echo message="Executing TOPCAT target: ${what}"/>
+    <ant dir="./topcat" target="${what}"/>
+
+    <echo message="Executing Treeview target: ${what}"/>
+    <ant dir="./treeview" target="${what}"/>
     
     <echo message="Executing Pal target: ${what}"/>
     <ant dir="./pal" target="${what}"/>
