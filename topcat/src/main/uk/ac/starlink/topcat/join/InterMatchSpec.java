@@ -99,6 +99,8 @@ public class InterMatchSpec extends MatchSpec {
      */
     public void calculate( ProgressIndicator indicator )
             throws IOException, InterruptedException {
+        matchSubsets = null;
+        result = null;
         TopcatModel[] tcModels = new TopcatModel[ nTable ];
         StarTable[] tables = new StarTable[ nTable ];
         StarTable[] bases = new StarTable[ nTable ];
