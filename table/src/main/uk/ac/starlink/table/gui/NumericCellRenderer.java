@@ -208,7 +208,9 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
                 return;
             }
             else if ( aval <= Float.MIN_VALUE ) {
-                setText( formatFixedFloat( 0.0f ) );
+                boolean isNeg =
+                    ( Float.floatToIntBits( fval ) & 0x80000000 ) != 0;
+                setText( formatFixedFloat( isNeg ? -0.0f : 0.0f ) );
                 return;
             }
             else if ( aval < 1e-4 || aval >= 1e5 ) {
