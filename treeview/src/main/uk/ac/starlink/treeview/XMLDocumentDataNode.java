@@ -43,6 +43,7 @@ public class XMLDocumentDataNode extends XMLDataNode {
 
     public XMLDocumentDataNode( Source xsrc ) throws NoSuchDataException {
         this( getDocumentNode( xsrc ) );
+        setSystemId( xsrc.getSystemId() );
     }
         
 

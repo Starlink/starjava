@@ -25,6 +25,7 @@ public class XMLDataNode extends DefaultDataNode {
     private final String description;
     private Icon icon;
     private JComponent fullView;
+    private String systemId;
 
     public static final int MAX_LINES = 12;
 
@@ -40,6 +41,7 @@ public class XMLDataNode extends DefaultDataNode {
 
     public XMLDataNode( Source xsrc ) throws NoSuchDataException {
         this( makeNode( xsrc ) );
+        setSystemId( xsrc.getSystemId() );
     }
 
     protected XMLDataNode( Node domNode,
@@ -50,6 +52,7 @@ public class XMLDataNode extends DefaultDataNode {
                            short iconId,
                            String description ) {
         this.domNode = domNode;
+        this.systemId = systemId;
         this.name = name;
         this.tla = tla;
         this.type = type;
@@ -57,6 +60,10 @@ public class XMLDataNode extends DefaultDataNode {
         this.iconId = iconId;
         this.description = description;
         setLabel( name );
+    }
+
+    public void setSystemId( String systemId ) {
+        this.systemId = systemId;
     }
 
     public String getName() {
@@ -100,7 +107,13 @@ public class XMLDataNode extends DefaultDataNode {
                 Node nod = next;
                 next = firstUsefulSibling( next.getNextSibling() );
                 try {
-                    return childMaker.makeDataNode( new DOMSource( nod ) );
+                    DataNode dn = childMaker
+                                 .makeDataNode( new DOMSource( nod,
+                                                               systemId ) );
+                    if ( dn instanceof XMLDataNode ) {
+                        ((XMLDataNode) dn).setSystemId( systemId );
+                    }
+                    return dn;
                 }
                 catch ( Exception e ) {
                     return new DefaultDataNode( e );
