@@ -24,6 +24,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultButtonModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -119,36 +120,27 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         configPanel.add( xConfig );
         configPanel.add( yConfig );
 
-        /* Add axis selectors for X and Y. */
-        xColBox = new JComboBox();
-        yColBox = new JComboBox();
-        int nok = 0;
-        for ( int i = 0; i < columnModel.getColumnCount(); i++ ) {
-            StarTableColumn tcol = (StarTableColumn) columnModel.getColumn( i );
-            ColumnInfo cinfo = tcol.getColumnInfo();
-            int index = tcol.getModelIndex();
-            if ( Number.class.isAssignableFrom( cinfo.getContentClass() ) ||
-                 Date.class.isAssignableFrom( cinfo.getContentClass() ) ) {
-                ColumnEntry colent = new ColumnEntry( cinfo, index );
-                xColBox.addItem( colent );
-                yColBox.addItem( colent );
-                nok++;
-            }
+        /* Construct axis selectors for X and Y. */
+        xColBox = makePlottableColumnComboBox();
+        yColBox = makePlottableColumnComboBox();
+
+        /* If there are too few numeric columns then inform the user and
+         * bail out. */
+        assert xColBox.getItemCount() == yColBox.getItemCount();
+        if ( xColBox.getItemCount() < 2 ) {
+            JOptionPane.showMessageDialog( null, "No numeric columns in table",
+                                           "Plot error", 
+                                           JOptionPane.ERROR_MESSAGE );
+            dispose();
         }
+
+        /* Place the selectors in this window. */
         xConfig.add( xColBox );
         yConfig.add( yColBox );
         xColBox.setSelectedIndex( 0 );
         yColBox.setSelectedIndex( 1 );
         xColBox.addActionListener( this );
         yColBox.addActionListener( this );
-
-        /* If there are no numeric columns then inform the user and bail out. */
-        if ( nok == 0 )  {
-            JOptionPane.showMessageDialog( null, "No numeric columns in table",
-                                           "Plot error", 
-                                           JOptionPane.ERROR_MESSAGE );
-            dispose();
-        }
 
         /* Add linear/log selectors for X and Y. */
         xLogBox = new JCheckBox( "Log plot" );
@@ -157,28 +149,6 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         yConfig.add( yLogBox );
         xLogBox.addActionListener( this );
         yLogBox.addActionListener( this );
-
-        /* Arrange for new columns to be reflected in this window,
-         * by adding them to the plot column selection boxes.  Don't bother 
-         * changing things if a column is removed or moved though. */
-        columnModel.addColumnModelListener( new TableColumnModelAdapter() {
-            public void columnAdded( TableColumnModelEvent evt ) {
-                TableColumnModel columnModel = PlotWindow.this.columnModel;
-                assert columnModel == evt.getSource();
-                StarTableColumn added = 
-                    (StarTableColumn) columnModel.getColumn( evt.getToIndex() );
-                int index = added.getModelIndex();
-                ColumnInfo cinfo = added.getColumnInfo();
-                if ( Number.class
-                           .isAssignableFrom( cinfo.getContentClass() ) ||
-                     Date.class
-                         .isAssignableFrom( cinfo.getContentClass() ) ) {
-                    ColumnEntry colent = new ColumnEntry( cinfo, index );
-                    xColBox.addItem( colent );
-                    yColBox.addItem( colent );
-                }
-            }
-        } );
 
         /* Add a menu for printing the graph. */
         Action printAction = new BasicAction( "Print as EPS",
@@ -378,10 +348,10 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         }
 
         /* Interrogate the plot state. */
-        int xcol = state.xCol.index;
-        int ycol = state.yCol.index;
-        ColumnInfo xColumn = state.xCol.info;
-        ColumnInfo yColumn = state.yCol.info;
+        int xcol = getColumnIndex( state.xCol );
+        int ycol = getColumnIndex( state.yCol );
+        ColumnInfo xColumn = state.xCol.getColumnInfo();
+        ColumnInfo yColumn = state.yCol.getColumnInfo();
         RowSubset[] rsets = state.subsetMask;
         int nrsets = rsets.length;
         boolean autoSize = xrange == null || yrange == null;
@@ -494,8 +464,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         }
 
         /* Otherwise work out the proper answer. */
-        int xcol = lastState.xCol.index;
-        int ycol = lastState.yCol.index;
+        int xcol = getColumnIndex( lastState.xCol );
+        int ycol = getColumnIndex( lastState.yCol );
         int nrow = (int) dataModel.getRowCount();
         double[] xr = lastPlot.getXRange();
         double[] yr = lastPlot.getYRange();
@@ -546,6 +516,47 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     }
 
     /**
+     * Returns a new JComboBox from which can be selected any of the
+     * columns of the table which can be plotted.
+     * This box will be updated when new columns are added to the 
+     * table model and so on.
+     *
+     * @param  combo box
+     */
+    public JComboBox makePlottableColumnComboBox() {
+
+        /* Construct a model which contains an entry for each column 
+         * which contains Numbers or Dates. */
+        ComboBoxModel boxModel = 
+            new RestrictedColumnComboBoxModel( tv.getColumnModel(), false ) {
+                protected boolean acceptColumn( TableColumn tcol ) {
+                    StarTableColumn stcol = (StarTableColumn) tcol;
+                    Class clazz = stcol.getColumnInfo().getContentClass();
+                    return Number.class.isAssignableFrom( clazz )
+                        || Date.class.isAssignableFrom( clazz );
+                }
+            };
+
+        /* Create a new combobox. */
+        JComboBox box = new JComboBox( boxModel );
+
+        /* Give it a suitable renderer. */
+        box.setRenderer( tv.getColumnRenderer() );
+        return box;
+    }
+
+    /**
+     * Returns the index in the TableModel (not the TableColumnModel) of
+     * the given TableColumn.
+     *
+     * @param   tcol   the column whose index is to be found
+     * @return  the index of <tt>tcol</tt> in the table model
+     */
+    public int getColumnIndex( TableColumn tcol ) {
+        return tcol.getModelIndex();
+    }
+
+    /**
      * This method is called whenever something happens which may cause
      * the plot to need to be updated.
      *
@@ -593,22 +604,6 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         }
         else {
             return Double.NaN;
-        }
-    }
-
-    /**
-     * Helper class to hold objects which represent columns in a 
-     * combobox.
-     */
-    private static class ColumnEntry {
-        int index;  // index in TableModel, not TableColumnModel
-        ColumnInfo info;
-        public ColumnEntry( ColumnInfo info, int index ) {
-            this.info = info;
-            this.index = index;
-        }
-        public String toString() { 
-            return info.getName();
         }
     }
 
@@ -762,8 +757,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         private void doPlotting() throws IOException {
 
             /* Obtain the things we need to know from the plot state. */
-            int xcol = state.xCol.index;
-            int ycol = state.yCol.index;
+            int xcol = getColumnIndex( state.xCol );
+            int ycol = getColumnIndex( state.yCol );
             boolean xLog = state.xLog;
             boolean yLog = state.yLog;
             boolean plotline = state.plotline;
@@ -835,8 +830,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      */
     private PlotState getPlotState() {
         PlotState state = new PlotState();
-        state.xCol = (ColumnEntry) xColBox.getSelectedItem();
-        state.yCol = (ColumnEntry) yColBox.getSelectedItem();
+        state.xCol = (StarTableColumn) xColBox.getSelectedItem();
+        state.yCol = (StarTableColumn) yColBox.getSelectedItem();
         state.xLog = xLogBox.isSelected();
         state.yLog = yLogBox.isSelected();
         state.plotline = false;
@@ -865,8 +860,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      * the <tt>equals</tt> method.
      */
     private static class PlotState {
-        ColumnEntry xCol;
-        ColumnEntry yCol;
+        StarTableColumn xCol;
+        StarTableColumn yCol;
         boolean xLog;
         boolean yLog;
         RowSubset[] subsetMask;
