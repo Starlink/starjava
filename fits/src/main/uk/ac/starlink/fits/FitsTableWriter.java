@@ -1,6 +1,7 @@
 package uk.ac.starlink.fits;
 
 import java.io.DataOutput;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -349,21 +350,42 @@ public class FitsTableWriter implements StarTableWriter {
     private static ArrayDataOutput getOutputStream( String location )
             throws IOException {
 
-        /* Get a stream. */
+        /* Interpret the name "-" as standard output. */
         ArrayDataOutput strm;
+        File tmpFile = null;
         if ( location.equals( "-" ) ) {
             strm = new BufferedDataOutputStream( System.out );
         }
-        else {
-            BufferedFile bstrm = new BufferedFile( location, "rw" );
-            strm = bstrm;
 
-            /* Attempting to set the length to zero if it's already zero
-             * can sometimes throw an exception (if it's /dev/null).
-             * So don't set the length unnecessarily. */
-            if ( bstrm.length() > 0L ) {
-                bstrm.setLength( 0L );
+        /* Otherwise, it's a filename. */
+        else {
+
+            /* Check that the file does not already exist.  If it does,
+             * ensure that we are not actually overwriting the data in place.
+             * This is for the case in which the original file has been,
+             * and is still, mapped into memory (MappedFile) and 
+             * overwriting it would mess up all the data.  This would happen,
+             * for instance, in the case that you try to save a table 
+             * from TOPCAT under the same name that you loaded it as.
+             * Since the details of file mapping behaviour are dependent 
+             * on the OS, the following strategy can't be guaranteed to
+             * work, but it's a fair bet under unix. */
+            File file = new File( location );
+            if ( file.exists() ) {
+                tmpFile = new File( file.getPath() + ".bak" );
+                if ( ! file.renameTo( tmpFile ) ) {
+                    throw new IOException( "Failed to rename " + file + 
+                                           " -> " + tmpFile );
+                }
             }
+            final File tmpFile1 = tmpFile;
+            BufferedFile bstrm = new BufferedFile( location, "rw" ) {
+                public void close() throws IOException {
+                    super.close();
+                    // tmpFile1.delete();
+                }
+            };
+            strm = bstrm;
         }
 
         /* Write a null header for the primary HDU. */
@@ -384,6 +406,9 @@ public class FitsTableWriter implements StarTableWriter {
         }
 
         /* Return the stream. */
+        if ( tmpFile != null ) {
+            tmpFile.deleteOnExit();
+        }
         return strm;
     }
 
