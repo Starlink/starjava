@@ -1,6 +1,9 @@
 package uk.ac.starlink.connect;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.filechooser.FileSystemView;
 
 /**
  * Branch representing a directory file.
@@ -9,6 +12,10 @@ import java.io.File;
  * @since    18 Feb 2005
  */
 public class FileBranch extends FileNode implements Branch {
+
+    private boolean hidingEnabled_ = true;
+    private static final FileSystemView fsv_ = 
+        FileSystemView.getFileSystemView();
 
     /**
      * Constructs a branch from a File object representing an existing
@@ -26,11 +33,14 @@ public class FileBranch extends FileNode implements Branch {
 
     public Node[] getChildren() {
         File[] files = file_.listFiles();
-        Node[] children = new Node[ files.length ];
+        List nodeList = new ArrayList( files.length );
         for ( int i = 0; i < files.length; i++ ) {
-            children[ i ] = createNode( files[ i ] );
+            File file = files[ i ];
+            if ( ! hidingEnabled_ || ! fsv_.isHiddenFile( file ) ) {
+                nodeList.add( createNode( file ) );
+            }
         }
-        return children;
+        return (Node[]) nodeList.toArray( new Node[ 0 ] );
     }
 
     public Node createNode( String location ) {
@@ -38,6 +48,30 @@ public class FileBranch extends FileNode implements Branch {
         if ( ! file.isAbsolute() ) {
             file = new File( file_, location );
         }
-        return createNode( file );
+        Node node = createNode( file );
+        if ( node instanceof FileBranch ) {
+            ((FileBranch) node).setHidingEnabled( hidingEnabled_ );
+        }
+        return node;
+    }
+
+    /**
+     * Indicates whether files marked as hidden by the default FileSystemView
+     * are shown or not.
+     *
+     * @return  true  if hidden files are not shown
+     */
+    public boolean isHidingEnabled() {
+        return hidingEnabled_;
+    }
+
+    /**
+     * Sets whether files marked as hidden by the default FileSystemView
+     * are shown or not.  The default is true.
+     *
+     * @param   hiding   true  to hide hidden files
+     */
+    public void setHidingEnabled( boolean hiding ) {
+        hidingEnabled_ = hiding;
     }
 }
