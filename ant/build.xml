@@ -71,6 +71,8 @@
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
 
   <path id="classpath">
+     <!-- PWD: add expected JUnit jar file -->
+     <pathelement location="../junit/lib/junit/junit.jar"/>
   </path>
 
   <!-- empty for JDK 1.2+, contains classes.zip otherwise -->

@@ -118,7 +118,7 @@ if $rpm_mode; then
   done
 
 # in rpm mode ant/lib is in /usr/share/java/ant
-ANT_LIB=${JAVALIBDIR}/ant
+  ANT_LIB=${JAVALIBDIR}/ant
 
 fi
 
@@ -135,6 +135,11 @@ do
     fi
   fi
 done
+
+# PWD: locate the JUnit jar file and add that.
+if [ -f "$ANT_LIB/junit/junit.jar" ]; then
+   LOCALCLASSPATH="${ANT_LIB}/junit/junit.jar:${LOCALCLASSPATH}"
+fi
 
 if [ -n "$JAVA_HOME" ] ; then
   if [ -f "$JAVA_HOME/lib/tools.jar" ] ; then
