@@ -5,7 +5,7 @@ import org.dom4j.io.SAXReader;
 import java.net.URL;
 import java.util.List;
 import java.util.Properties;
-import java.io.File;
+import java.io.InputStream;
 import uk.ac.starlink.hdx.array.NDArray;
 
 /** Factory returns HDX objects.  Package private.
@@ -185,7 +185,7 @@ public class HdxContainerFactory {
      * property file called <code>ndx.prop</code> in the current
      * directory, or specified as a system property on the java
      * command line.
-     * 
+     *
      * <p>This method, along with its companions {@link
      * #initialiseTransformer} and {@link #transformNdx}, is not
      * necessarily a final solution to the problem of navigating
@@ -208,23 +208,23 @@ public class HdxContainerFactory {
      * </pre>
      * Element <code>foo</code> is in the given namespace, but
      * attribute <code>bar</code> isn't.
-     * 
+     *
      * <p>None of these are killing problems.  (a) we can cope with,
      * and since the transformer is a static object, the start up
-     * cost could be amortized quite effectively; (b) isn't a problem 
+     * cost could be amortized quite effectively; (b) isn't a problem
      * since this is only intended to be used for reading XML
      * specifications, so we don't need to round-trip documents
      * carrying other elements unknown to this system.  (c) is an
-     * unavoidable consequence of the XML Namespace definition, which 
+     * unavoidable consequence of the XML Namespace definition, which
      * we simply have to be slightly careful of, and warn folk not to
      * start being too clever.
-     * 
+     *
      * <p>The alternative is to deal with the namespace trickery
      * up-front, by making the methods which root around the tree very much
      * cleverer.  The problem with that is that I believe we'd have
      * to add similar cleverness in a variety of places, which is
      * errorprone and potentially confusing.
-     * 
+     *
      * @return the normalised DOM tree.
      * @throws HdxException if there is a problem locating or using
      * the XSLT transformation script.
@@ -236,8 +236,8 @@ public class HdxContainerFactory {
         // PWD: remove
         // String normalizeHdxXslt = hdxprops.getProperty("hdx.normalizer");
         // and get the resource from a placed fixed with respect to this class.
-        URL normalizeHdxXslt = 
-            getClass().getResource( "support/normalize-hdx.xslt" );
+        InputStream normalizeHdxXslt =
+            getClass().getResourceAsStream( "support/normalize-hdx.xslt" );
 
         if (normalizeHdxXslt == null)
             throw new HdxException("No value for property hdx.normalizer");
@@ -245,7 +245,7 @@ public class HdxContainerFactory {
         try {
             System.err.println("normalizeHdx: transforming");
             if (transformer == null)
-                initialiseTransformer(new File(normalizeHdxXslt.getFile()));
+                initialiseTransformer( normalizeHdxXslt );
 
             return transformNdx (dom);
         } catch (javax.xml.transform.TransformerException e) {
@@ -253,13 +253,13 @@ public class HdxContainerFactory {
         }
     }
 
-    /** Creates a new XSLT transformer.  
+    /** Creates a new XSLT transformer.
      *
      * <p>Constructs the transformer lazily.  Idempotent.
      * @throws HdxException if there is a problem initialising the
      * transformer.
      */
-    private static void initialiseTransformer (File stylesheet)
+    private static void initialiseTransformer (InputStream stylesheet)
             throws HdxException {
 
         if (transformer != null)
