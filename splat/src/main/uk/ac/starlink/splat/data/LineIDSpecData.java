@@ -119,8 +119,41 @@ public class LineIDSpecData
      * Draw the "spectrum". In this case it means draw the line id
      * strings. 
      */
-    public void drawSpec( Grf grf, Plot plot, double[] limits )
+    public void drawSpec( Grf grf, Plot plot, double[] limits, 
+                          boolean physical )
     {
+        //  Set up clip region if needed.
+        Rectangle cliprect = null;
+        if ( limits != null ) {
+            double[][] clippos = null;
+            if ( physical ) {
+                clippos = astJ.astTran2( plot, limits, false );
+                cliprect =
+                    new Rectangle( (int) clippos[0][0],
+                                   (int) clippos[1][1],
+                                   (int) ( clippos[0][1] - clippos[0][0] ),
+                                   (int) ( clippos[1][0] - clippos[1][1] ) );
+            }
+            else {
+                cliprect = new Rectangle( (int) limits[0], (int) limits[3],
+                                          (int) ( limits[2] - limits[0] ),
+                                          (int) ( limits[1] - limits[3] ) );
+
+                clippos = astJ.astTran2( plot, limits, true );
+
+                //  Transform limits to physical for positioning of labels.
+                limits[0] = clippos[0][0];
+                limits[1] = clippos[1][0];
+                limits[2] = clippos[0][1];
+                limits[3] = clippos[1][1];
+            }
+        }
+        else {
+            // Cannot have null limits.
+            limits = new double[4];
+        }
+
+        //  Get all labels.
         String[] labels = getLabels();
         double yshift = 0.1 * ( limits[3] - limits[1] );
 
@@ -164,6 +197,7 @@ public class LineIDSpecData
         //  and not the Grf object, which bypasses the Plot).
         DefaultGrf defaultGrf = (DefaultGrf) grf;
         DefaultGrfState oldState = setGrfAttributes( defaultGrf, false );
+        defaultGrf.setClipRegion( cliprect );
 
         float[] up = new float[2];
         up[0] = 1.0F;
@@ -176,5 +210,6 @@ public class LineIDSpecData
             plot.text( labels[i], pos, up, "CC" );
         }
         resetGrfAttributes( defaultGrf, oldState, false );
+        defaultGrf.setClipRegion( null );
     }
 }
