@@ -815,7 +815,16 @@ public class SpecDataComp
             return;
         }
         Plot localPlot = plot;
+
+        //  Transform limits into graphics coordinates, if possible. These
+        //  apply to all spectra.
+        boolean physical = false;
         double[] localLimits = transformLimits( plot, limits, false );
+        if ( localLimits == null ) {
+            //  No graphics limits, assume given limits are valid and physical.
+            localLimits = limits;
+            physical = true;
+        }
         SpecData spectrum = null;
         FrameSet mapping = null;
 
@@ -826,7 +835,9 @@ public class SpecDataComp
             if ( coordinateMatching ) {
                 if ( ! spectrum.equals( currentSpec ) ) {
                     //  The coordinates systems and, optionally, data units of
-                    //  the spectra need to be matched.
+                    //  the spectra need to be matched so that they are drawn
+                    //  to the correct scale on the Plot of the current
+                    //  spectrum.
                     mapping = (FrameSet) mappings.get( spectrum );
                     localPlot = alignPlots( plot, mapping );
                 }
@@ -834,7 +845,7 @@ public class SpecDataComp
                     localPlot = plot;
                 }
             }
-            spectrum.drawSpec( grf, localPlot, localLimits, false );
+            spectrum.drawSpec( grf, localPlot, localLimits, physical );
         }
     }
 
