@@ -207,10 +207,10 @@ public class DefaultGrf
         return component;
     }
 
-    /** 
+    /**
      * Establish a graphics context for grouping a set of related drawing
      * operations. The context is associated with the given String, which you
-     * must ensure is unique within your application. 
+     * must ensure is unique within your application.
      * The key can be used to reference this context when clearing grahics.
      * A special context {@link #DEFAULT} is recognised as the default
      * context. This is the initial state and can be reused (although
@@ -223,7 +223,7 @@ public class DefaultGrf
     public void establishContext( String key )
     {
         if ( key == null || key.equals( DEFAULT ) ) {
-            
+
             //  Default context. Retrieve this if available.
             if ( masterContext.size() != 0 ) {
                 currentContext = (ArrayList) masterMap.get( key );
@@ -283,7 +283,7 @@ public class DefaultGrf
     public void reAdd( String key, Object context )
     {
         if ( key == null || key.equals( DEFAULT ) ) {
-            
+
             //  Default context. Not allowed, so ignore.
             return;
         }
@@ -800,7 +800,7 @@ public class DefaultGrf
         //  Recover the context lists in the order they were added.
         for ( int j = 0; j < masterContext.size(); j++ ) {
             context = (ArrayList) masterContext.get( j );
-            
+
             //  Render each context container in the order they were added.
             size = context.size();
             for ( int i = 0; i < size; i++ ) {
@@ -841,7 +841,7 @@ public class DefaultGrf
         //  Set line thickness and dashes.
         Stroke oldstroke = g2.getStroke();
         g2.setStroke( lineStroke( (int) gstate.getStyle(),
-            (float) gstate.getWidth() ) );
+                                  (float) gstate.getWidth() ) );
 
         //  Set the clipping region. If an explicit one if given then
         //  use it's union with the graphics clip.
@@ -849,15 +849,14 @@ public class DefaultGrf
         Shape oldclip = g2.getClip();
         if ( localClip != null ) {
             g2.clipRect( localClip.x, localClip.y, localClip.width,
-                localClip.height );
+                         localClip.height );
         }
         Rectangle globalClip = g2.getClipBounds();
 
         //  Set the alpha blending fraction.
         Composite oldAlpha = g2.getComposite();
-        g2.setComposite( AlphaComposite.getInstance
-            ( AlphaComposite.SRC_OVER,
-            (float) gstate.getAlpha() ) );
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                                                   (float)gstate.getAlpha()) );
 
         //  Define an extent of values along the X axis that need to
         //  be drawn. This is a guess which we use to cut down on the
@@ -1026,6 +1025,16 @@ public class DefaultGrf
         }
         float x = (float) cont.getX();
         float y = (float) cont.getY();
+        DefaultGrfState gstate = (DefaultGrfState) cont.getGrfState();
+
+        //  Set the clipping region. If an explicit one if given then
+        //  use it's union with the graphics clip.
+        Rectangle localClip = gstate.getClip();
+        Shape oldclip = g2.getClip();
+        if ( localClip != null ) {
+            g2.clipRect( localClip.x, localClip.y, localClip.width,
+                         localClip.height );
+        }
 
         //  If text doesn't lie in the current clipping region then
         //  don't draw it (Graphics2D is more careful and inspects off
@@ -1033,15 +1042,23 @@ public class DefaultGrf
         //  the effects of any strokes etc., which have a width). Note
         //  this isn't accurate, we should work with the intersection
         //  of the rotated and scaled Shape. -100, +200 pixels is just a
-        //  longish string (vertical or horizontal).
-        if ( ! g2.hitClip( (int) x - 100, (int) y - 100, 200, 200 ) ) {
-            return;
+        //  longish string (vertical or horizontal). When a local clip is
+        //  being used, try to preserve that as much as possible, so just
+        //  do the obvious test.
+        if ( localClip == null ) {
+            if ( ! g2.hitClip( (int) x - 100, (int) y - 100, 200, 200 ) ) {
+                return;
+            }
+        }
+        else {
+            if ( ! g2.hitClip( (int) x, (int) y, 1, 1 ) ) {
+                return;
+            }
         }
 
         //  Get the state associated with this request.
         String text = cont.getText();
         double angle = cont.getAngle();
-        DefaultGrfState gstate = (DefaultGrfState) cont.getGrfState();
         double size = gstate.getSize();
 
         //  Set the text colour.
@@ -1071,6 +1088,9 @@ public class DefaultGrf
 
         //  Restore transform.
         g2.setTransform( oldtrans );
+
+        //  Restore clip.
+        g2.setClip( oldclip );
     }
 
 
@@ -1097,6 +1117,15 @@ public class DefaultGrf
         g2.setStroke( lineStroke( (int) gstate.getStyle(),
             (float) gstate.getWidth() ) );
 
+        //  Set the clipping region. If an explicit one if given then
+        //  use it's union with the graphics clip.
+        Rectangle localClip = gstate.getClip();
+        Shape oldclip = g2.getClip();
+        if ( localClip != null ) {
+            g2.clipRect( localClip.x, localClip.y, localClip.width,
+                         localClip.height );
+        }
+
         //  Draw the marker at each position. Skip those that don't
         //  lie within the clip region.
         for ( int i = 0; i < x.length; i++ ) {
@@ -1109,6 +1138,9 @@ public class DefaultGrf
 
         //  Restore Stroke.
         g2.setStroke( oldstroke );
+
+        //  Restore clip.
+        g2.setClip( oldclip );
     }
 
     /**
