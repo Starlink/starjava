@@ -49,6 +49,7 @@ public class LineIDSpecData
         super( lineIDImpl );
         this.lineIDImpl = lineIDImpl;
         useInAutoRanging = false; // by default.
+        setPointSize( 1.0 );
     }
 
     /**
