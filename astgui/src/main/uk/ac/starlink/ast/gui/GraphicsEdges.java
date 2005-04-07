@@ -79,7 +79,7 @@ public class GraphicsEdges
      */
     public void setDefaults()
     {
-        clip = true;
+        clip = false;
         xLeft = 0.05;
         xRight = 0.00;
         yTop = 0.03;
