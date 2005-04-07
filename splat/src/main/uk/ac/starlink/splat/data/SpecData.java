@@ -1578,10 +1578,12 @@ public class SpecData
      * @param grf Grf object that can be drawn into using AST primitives.
      * @param plot reference to Plot defining transformation from physical
      *      coordinates into graphics coordinates.
-     * @param limits limits of the region to draw in physical coordinates
-     *      (e.g. user defined ranges), used to clip graphics.
+     * @param limits limits of the region to draw used to clip graphics.
+     *        These can be in physical or graphics coordinates.
+     * @param physical whether limits are physical or graphical.
      */
-    public void drawSpec( Grf grf, Plot plot, double[] limits )
+    public void drawSpec( Grf grf, Plot plot, double[] limits, 
+                          boolean physical )
     {
         //  Get a list of positions suitable for transforming.
         //  Note BAD value is same for graphics (AST, Grf) and data,
@@ -1655,12 +1657,19 @@ public class SpecData
         //  Do the same for the clip region.
         Rectangle cliprect = null;
         if ( limits != null ) {
-            double[][] clippos = astJ.astTran2( plot, limits, false );
-            cliprect =
-                new Rectangle( (int) clippos[0][0],
-                               (int) clippos[1][1],
-                               (int) ( clippos[0][1] - clippos[0][0] ),
-                               (int) ( clippos[1][0] - clippos[1][1] ) );
+            if ( physical ) {
+                double[][] clippos = astJ.astTran2( plot, limits, false );
+                cliprect =
+                    new Rectangle( (int) clippos[0][0],
+                                   (int) clippos[1][1],
+                                   (int) ( clippos[0][1] - clippos[0][0] ),
+                                   (int) ( clippos[1][0] - clippos[1][1] ) );
+            }
+            else {
+                cliprect = new Rectangle( (int) limits[0], (int) limits[3],
+                                          (int) ( limits[2] - limits[0] ),
+                                          (int) ( limits[1] - limits[3] ) );
+            }
         }
 
         //  Plot using the GRF primitive, rather than astPolyCurve, as

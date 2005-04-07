@@ -154,9 +154,14 @@ public class DivaPlot
     protected double yMax;
 
     /**
-     * Bounding box for creating Plot from physical coordinates.
+     * Bounding box for creating full-sized Plot from physical coordinates.
      */
     protected double[] baseBox = new double[4];
+
+    /**
+     * Bounding box of visible region in physical coordinates.
+     */
+    protected double[] visibleBaseBox = new double[4];
 
     /**
      * Reference to spectra composite object. This plots the actual spectra
@@ -818,21 +823,31 @@ public class DivaPlot
         double[] limits = null;
         if ( graphicsEdges.isClipped() ) {
             limits = new double[4];
-            if ( dataLimits.isXFlipped() ) {
-                limits[0] = xMax;
-                limits[2] = xMin;
+
+            //  Check for when we are just displaying the visible region.
+            if ( visibleOnly ) {
+                limits[0] = visibleBaseBox[0];
+                limits[1] = visibleBaseBox[1];
+                limits[2] = visibleBaseBox[2];
+                limits[3] = visibleBaseBox[3];
             }
             else {
-                limits[0] = xMin;
-                limits[2] = xMax;
-            }
-            if ( dataLimits.isYFlipped() ) {
-                limits[1] = yMax;
-                limits[3] = yMin;
-            }
-            else {
-                limits[1] = yMin;
-                limits[3] = yMax;
+                if ( dataLimits.isXFlipped() ) {
+                    limits[0] = xMax;
+                    limits[2] = xMin;
+                }
+                else {
+                    limits[0] = xMin;
+                    limits[2] = xMax;
+                }
+                if ( dataLimits.isYFlipped() ) {
+                    limits[1] = yMax;
+                    limits[3] = yMin;
+                }
+                else {
+                    limits[1] = yMin;
+                    limits[3] = yMax;
+                }
             }
         }
         if ( spectra.count() > 0 ) {
@@ -874,9 +889,13 @@ public class DivaPlot
         //  we need to draw everything, but when we're tracking the grid to
         //  just the visible area (visibleOnly mode) we also need to redraw
         //  the grid, regardless of whether a scale has occurred or not, but
-        //  under that circumstance we do not draw the more expensive spectra.
+        //  under that circumstance we do not draw the more expensive spectra,
+        //  unless the graphics are clipped, in which case we have no choice.
         try {
             if ( xyScaled || visibleOnly ) {
+                if ( visibleOnly && graphicsEdges.isClipped() ) {
+                    xyScaled = true;
+                }
 
                 //  If needed keep reference to existing AstPlot so we know
                 //  how graphics coordinates are already drawn and can rescale
@@ -1077,40 +1096,31 @@ public class DivaPlot
             pos[3] = graphrect.y;
             double tmp[][] = transform( pos, true );
             if ( tmp != null ) {
-                xMin = tmp[0][0];
-                yMin = tmp[1][0];
-                xMax = tmp[0][1];
-                yMax = tmp[1][1];
+                double xMin = tmp[0][0];
+                double yMin = tmp[1][0];
+                double xMax = tmp[0][1];
+                double yMax = tmp[1][1];
 
                 if ( dataLimits.isXFlipped() ) {
-                    baseBox[0] = xMax;
-                    baseBox[2] = xMin;
+                    visibleBaseBox[0] = xMax;
+                    visibleBaseBox[2] = xMin;
                 }
                 else {
-                    baseBox[0] = xMin;
-                    baseBox[2] = xMax;
+                    visibleBaseBox[0] = xMin;
+                    visibleBaseBox[2] = xMax;
                 }
                 if ( dataLimits.isYFlipped() ) {
-                    baseBox[1] = yMax;
-                    baseBox[3] = yMin;
+                    visibleBaseBox[1] = yMax;
+                    visibleBaseBox[3] = yMin;
                 }
                 else {
-                    baseBox[1] = yMin;
-                    baseBox[3] = yMax;
+                    visibleBaseBox[1] = yMin;
+                    visibleBaseBox[3] = yMax;
                 }
             }
 
             //  Now create the astPlot that only covers the visible part.
-            mainPlot = new Plot( astref, graphrect, baseBox );
-
-            // XXX Need an update for some reason...
-            // XXX need to understand why.
-            try {
-                updateProps( false );
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
+            mainPlot = new Plot( astref, graphrect, visibleBaseBox );
         }
         else {
             //  Graphics fills all of component except for reserve.

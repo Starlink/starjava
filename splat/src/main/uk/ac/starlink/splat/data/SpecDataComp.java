@@ -531,7 +531,7 @@ public class SpecDataComp
                     xEndPoints = spectrum.getXEndPoints();
                     yEndPoints = spectrum.getYEndPoints();
                     mapping = (FrameSet) mappings.get( spectrum );
-                    newrange = transformEndPoints( mapping, xEndPoints, 
+                    newrange = transformEndPoints( mapping, xEndPoints,
                                                    yEndPoints );
                 }
                 else {
@@ -666,7 +666,7 @@ public class SpecDataComp
             if ( ! spectrum.equals( currentSpec ) ) {
                 if ( spectrum.isUseInAutoRanging() ) {
                     if ( coordinateMatching ) {
-                        if ( spectrum.isDrawErrorBars() && 
+                        if ( spectrum.isDrawErrorBars() &&
                              errorbarAutoRanging ) {
                             xEndPoints = spectrum.getXFullEndPoints();
                             yEndPoints = spectrum.getYFullEndPoints();
@@ -676,7 +676,7 @@ public class SpecDataComp
                             yEndPoints = spectrum.getYEndPoints();
                         }
                         mapping = (FrameSet) mappings.get( spectrum );
-                        newrange = transformEndPoints( mapping, xEndPoints, 
+                        newrange = transformEndPoints( mapping, xEndPoints,
                                                        yEndPoints );
                     }
                     else {
@@ -736,7 +736,8 @@ public class SpecDataComp
      *
      * The input coordinates are two sets of [x1,y1,x2,y2,x3,y3,x4,y4] arrays.
      */
-    protected double[] transformEndPoints( FrameSet mapping, double[] xEndPoints,
+    protected double[] transformEndPoints( FrameSet mapping, 
+                                           double[] xEndPoints,
                                            double[] yEndPoints )
     {
         if ( xEndPoints == null || yEndPoints == null ) return null;
@@ -775,7 +776,8 @@ public class SpecDataComp
      *
      * The input and output coordinates are [x1,y1,x2,y2,...].
      */
-    public double[] transformLimits( FrameSet mapping, double[] limits )
+    public double[] transformLimits( FrameSet mapping, double[] limits, 
+                                     boolean forward )
         throws SplatException
     {
         if ( limits == null ) return null;
@@ -785,13 +787,16 @@ public class SpecDataComp
         //  2D coords, so need separate X,Y coords.
         double xin[] = new double[limits.length/2];
         double yin[] = new double[xin.length];
+
         for ( int i = 0, j = 0; i < xin.length; i++, j+=2 ) {
             xin[i] = limits[j];
             yin[i] = limits[j+1];
         }
-        double[][] tmp = mapping.tran2( xin.length, xin, yin, true );
+
+        double[][] tmp = mapping.tran2( xin.length, xin, yin, forward );
 
         // Put back to vectorized array.
+        boolean bad = false;
         result = new double[limits.length];
         for ( int i = 0, j = 0; i < xin.length; i++, j+=2 ) {
             result[j] = tmp[0][i];
@@ -810,7 +815,7 @@ public class SpecDataComp
             return;
         }
         Plot localPlot = plot;
-        double[] localLimits = limits;
+        double[] localLimits = transformLimits( plot, limits, false );
         SpecData spectrum = null;
         FrameSet mapping = null;
 
@@ -824,14 +829,12 @@ public class SpecDataComp
                     //  the spectra need to be matched.
                     mapping = (FrameSet) mappings.get( spectrum );
                     localPlot = alignPlots( plot, mapping );
-                    localLimits = transformLimits( mapping, limits );
                 }
                 else {
                     localPlot = plot;
-                    localLimits = limits;
                 }
             }
-            spectrum.drawSpec( grf, localPlot, localLimits );
+            spectrum.drawSpec( grf, localPlot, localLimits, false );
         }
     }
 
@@ -859,9 +862,9 @@ public class SpecDataComp
 
             //  Get the current frames of the current spectrum and the target
             //  one.
-            Frame to = 
+            Frame to =
                 currentSpec.getAst().getRef().getFrame(FrameSet.AST__CURRENT);
-            Frame from = 
+            Frame from =
                 spectrum.getAst().getRef().getFrame(FrameSet.AST__CURRENT);
 
             //  Determine if the current spectrum has a SpecFrame. This will
@@ -884,7 +887,7 @@ public class SpecDataComp
                 // units will have value "unknown" or have no data positions,
                 // in those cases set the data units to those of the current
                 // spectrum.
-                boolean haveDataPositions = 
+                boolean haveDataPositions =
                     ((LineIDSpecData) spectrum).haveDataPositions();
                 String dataUnits = from.getC( "unit(2)" );
                 if ( dataUnits == null || dataUnits.equals( "unknown" ) ) {
@@ -900,7 +903,7 @@ public class SpecDataComp
                     //  Make the right kind of Frame. SpecFluxFrames will not
                     //  match any other type of Frame.
                     if ( to instanceof SpecFluxFrame ) {
-                        from = new SpecFluxFrame( (SpecFrame) fromSpecFrame, 
+                        from = new SpecFluxFrame( (SpecFrame) fromSpecFrame,
                                                   (FluxFrame) toUnitFrame );
                     }
                     else {
