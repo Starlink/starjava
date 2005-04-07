@@ -19,12 +19,13 @@ import uk.ac.starlink.splat.ast.ASTJ;
  *  @author Peter W. Draper
  *  @see SpecData
  */
-public interface SpecDataAccess 
+public interface SpecDataAccess
 {
     /**
      *  Draw the spectral data using the graphics context provided.
      */
-    public void drawSpec( Grf grf, Plot plot, double[] limits );
+    public void drawSpec( Grf grf, Plot plot, double[] limits,
+                          boolean physical );
 
     /**
      *  Get reference to ASTJ object that implements the spectral
@@ -49,7 +50,7 @@ public interface SpecDataAccess
 
     /**
      *  Get the full range (i.e.<!-- --> data limits plus standard deviations)
-     *  of the spectral data. 
+     *  of the spectral data.
      */
     public double[] getFullRange();
 
@@ -68,7 +69,7 @@ public interface SpecDataAccess
      *  @param xg X graphics coordinate
      *  @param plot AST plot needed to transform graphics position
      *              into physical coordinates
-     *  
+     *
      */
     public double[] lookup( int xg, Plot plot );
 }
