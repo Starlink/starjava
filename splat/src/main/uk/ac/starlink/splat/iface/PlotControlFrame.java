@@ -146,6 +146,7 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem dataUnitsMatching = null;
     protected JCheckBoxMenuItem showVisibleOnly = null;
+    protected JCheckBoxMenuItem clipGraphics = null;
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem autoFitPercentiles = null;
     protected JCheckBoxMenuItem showShortNames = null;
@@ -533,6 +534,15 @@ public class PlotControlFrame
 
         state = prefs.getBoolean( "PlotControlFrame_showvisibleonly", false );
         showVisibleOnly.setSelected( state );
+
+        //  Whether to clip spectrum graphics to lie with axes border.
+        clipGraphics = 
+            new JCheckBoxMenuItem( "Only display spectra within axes" );
+        optionsMenu.add( clipGraphics );
+        clipGraphics.addItemListener( this );
+
+        state = prefs.getBoolean( "PlotControlFrame_clipgraphics", false );
+        clipGraphics.setSelected( state );
 
         //  Include spacing for error bars in the auto ranging.
         errorbarAutoRanging = new JCheckBoxMenuItem("Error bar auto-ranging");
@@ -1366,10 +1376,19 @@ public class PlotControlFrame
             }
             return;
         }
+
         if ( source.equals( showVisibleOnly ) ) {
             boolean state = showVisibleOnly.isSelected();
             plot.getPlot().setVisibleOnly( state );
             prefs.putBoolean( "PlotControlFrame_showvisibleonly", state );
+            plot.updatePlot();
+            return;
+        }
+
+        if ( source.equals( clipGraphics ) ) {
+            boolean state = clipGraphics.isSelected();
+            plot.getPlot().getGraphicsEdges().setClipped( state );
+            prefs.putBoolean( "PlotControlFrame_clipgraphics", state );
             plot.updatePlot();
             return;
         }
