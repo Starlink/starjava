@@ -8,8 +8,8 @@
 
   <service name="VotableTest" provider="java:RPC" streaming="on">
 
-    <requestFlow><handler type="loghandler"/></requestFlow>   -->
-    <responseFlow><handler type="loghandler"/></responseFlow> -->
+    <!-- <requestFlow><handler type="loghandler"/></requestFlow>   -->
+    <!-- <responseFlow><handler type="loghandler"/></responseFlow> -->
 
     <typeMapping
          qname="votable:VOTABLE"
