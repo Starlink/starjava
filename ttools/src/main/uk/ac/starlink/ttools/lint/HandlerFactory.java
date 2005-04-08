@@ -60,6 +60,12 @@ public class HandlerFactory {
         else if ( "TD".equals( name ) ) {
             handler = new TdHandler();
         }
+        else if ( "STREAM".equals( name ) ) {
+            handler = new StreamHandler();
+        }
+        else if ( "BINARY".equals( name ) ) {
+            handler = new BinaryHandler();
+        }
         else {
             handler = new ElementHandler();
         }
