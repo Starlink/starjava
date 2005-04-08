@@ -30,7 +30,7 @@ public class StreamHandler extends ElementHandler {
         /* Get and check href and encoding attributes. */
         String href = getAttribute( "href" );
         String encoding = getAttribute( "encoding" );
-        if ( href == null || href.trim().length() == 0 && 
+        if ( ( href == null || href.trim().length() == 0 ) && 
              ! "base64".equals( encoding ) ) {
             warning( this + " has no href but encoding is not base64" );
         }
