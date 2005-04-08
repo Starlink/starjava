@@ -35,6 +35,10 @@ script has been installed ("../../bin") to your PATH. If you don't do this
 you'll start getting messages about unknown tasks (like extclasspath) at some
 point.
 
+If you see other errors that are clearly related to ANT, after or during
+installation then you should clear out any previous versions and try a clean
+rebuild.
+
 The new files added to this release are:
 
    src/main/uk/ac/starlink/ant/tasks/LoggedCopy.java
