@@ -42,7 +42,9 @@ instructions in the "README.Starlink" file.
 If you already have a STARJAVA installation you may be able to use the ANT
 script found in the /star/starjava/bin directory, but if ANT reports that it
 is finding unexpected elements in the build files you will need to rebuild
-ANT.
+ANT. Other oddities when rebuilding ANT may be because you are picking up
+elements from an existing installation. To avoid this clear out the old
+version completely, or install into a different directory.
 
    Start using the new ANT
    -----------------------
@@ -98,4 +100,4 @@ STARJAVA already installed check the environment variables and aliases and
 re-define these as appropriate).
 
 
-Peter W. Draper 15-MAR-2005 (p.w.draper@durham.ac.uk)
+Peter W. Draper 08-APR-2005 (p.w.draper@durham.ac.uk)
