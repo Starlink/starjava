@@ -1,0 +1,79 @@
+
+#+
+#  Name:
+#     votlint
+
+#  Purpose:
+#     Invokes the VOTLINT utility on Unix.
+
+#  Description:
+#     This shell script invokes one of the utilities in the TTOOLS package.
+
+#  Authors:
+#     MBT: Mark Taylor (Starlink)
+
+#  History:
+#     7-APR-2005 (MBT):
+#        Original version.
+#-
+
+#  Find where this script is located.  We normally find this out by
+#  looking at where we were invoked from, but this can be overridden
+#  by setting TTOOLS_DIR (necessary if invocation is from another
+#  directory because of filesystem links).
+if test -z "$TTOOLS_DIR"
+then
+    bindir="`dirname $0`"
+else
+    bindir="$TTOOLS_DIR"
+fi
+
+#  Locate the application jar file.  This is relative to this script.
+appjar="$bindir/../lib/ttools/ttools.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate $appjar."
+   exit 1
+fi
+addpath="$bindir/../lib/topcat/topcat.jar"
+
+#  Locate the java startup script.
+starjava="$bindir/starjava"
+if test ! -f "$starjava"; then
+   echo "Failed to locate $starjava."
+   exit 1
+fi
+
+#  Divide the arguments into two parts: those destined as flags for
+#  the java binary, and the rest.
+javaArgs=""
+appArgs=""
+while test "$1"
+do
+   if echo $1 | grep -- '^-[XD]' >/dev/null
+   then
+      javaArgs="$javaArgs \"$1\""
+   else
+      appArgs="$appArgs \"$1\""
+   fi
+   if [ "$1" = "-verbose" ]
+   then
+      verbose=1
+   fi
+   shift
+done
+
+#  Assemble the command line.
+cmd="$starjava \
+     $javaArgs \
+     -classpath ${appjar}:${addpath}:${CLASSPATH} \
+     uk.ac.starlink.ttools.lint.Linter \
+     $appArgs"
+
+#  Echo it if verbose.
+if [ $verbose ]
+then
+   echo >&1 "$cmd"
+fi
+
+#  Execute it.
+eval "$cmd"
