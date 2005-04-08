@@ -336,11 +336,11 @@ public class VOTableWriter implements StarTableWriter {
         writer.write( ">" );
         writer.newLine();
 
-        /* Output table parameters as PARAM elements. */
-        serializer.writeParams( writer );
-
         /* Output a DESCRIPTION element if we have something suitable. */
         serializer.writeDescription( writer );
+
+        /* Output table parameters as PARAM elements. */
+        serializer.writeParams( writer );
 
         /* Output FIELD headers as determined by this object. */
         serializer.writeFields( writer );

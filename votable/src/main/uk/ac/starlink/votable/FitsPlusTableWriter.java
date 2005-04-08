@@ -137,6 +137,7 @@ public class FitsPlusTableWriter extends FitsTableWriter {
 
         /* Output table element containing the metadata with the help of 
          * the VOTable serializer. */
+        voser.writeDescription( writer );
         voser.writeParams( writer );
         writer.write( "<TABLE" );
         String tname = table.getName();
@@ -150,7 +151,6 @@ public class FitsPlusTableWriter extends FitsTableWriter {
         }
         writer.write( ">" );
         writer.newLine();
-        voser.writeDescription( writer );
         voser.writeFields( writer );
         writer.write( "<!-- Dummy VOTable - no DATA element -->" );
         writer.newLine();
