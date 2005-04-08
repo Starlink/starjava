@@ -382,7 +382,7 @@ public abstract class ValueParser {
                 }
             }
             else if ( text.equalsIgnoreCase( "true" ) ||
-                      text.equalsIgnoreCase( "faslse" ) ) {
+                      text.equalsIgnoreCase( "false" ) ) {
                 return;
             }
             else {
