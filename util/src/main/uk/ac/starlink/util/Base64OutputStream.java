@@ -35,7 +35,7 @@
  * We would like to eventually use Sun's base64 encoder, but it is not
  * public yet.  It is in the sun.misc package in JDK1.2.
  */
-package uk.ac.starlink.votable;
+package uk.ac.starlink.util;
 
 import java.io.FilterOutputStream;
 import java.io.OutputStream;
@@ -47,14 +47,14 @@ import java.io.IOException;
  * to write out the final padding.
  * The class also automatically puts line breaks in the output stream.
  * <p>
- * Minor modifications made for use in Starlink VOTable package:
+ * Minor modifications made for use in Starlink software:
  * constructors now take OutputStream not PrintStream, assertion 
  * mechanism changed.
  *
  * @author  Mozilla project
  * @author  Mark Taylor (Starlink)
  */
-class Base64OutputStream extends FilterOutputStream {
+public class Base64OutputStream extends FilterOutputStream {
 
         static byte[] endLine;
         static {

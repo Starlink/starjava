@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.util.zip.GZIPInputStream;
+import uk.ac.starlink.util.Base64InputStream;
 
 /**
  * RowStepper implementation which reads streamed data in VOTable BINARY

@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package uk.ac.starlink.votable;
+package uk.ac.starlink.util;
 
 import java.io.*;
 import java.util.Arrays;
@@ -45,7 +45,7 @@ import java.util.Arrays;
  *
  * @author  Mozilla project
  */
-class Base64InputStream extends FilterInputStream {
+public class Base64InputStream extends FilterInputStream {
 
     private static final int WOULD_BLOCK = -2;
 

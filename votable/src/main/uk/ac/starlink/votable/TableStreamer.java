@@ -30,6 +30,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.util.Base64InputStream;
 import uk.ac.starlink.util.PipeReaderThread;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.util.URLUtils;

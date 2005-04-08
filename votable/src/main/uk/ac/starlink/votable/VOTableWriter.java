@@ -15,6 +15,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.util.Base64OutputStream;
 
 /**
  * Implementation of the <tt>StarTableWriter</tt> interface for

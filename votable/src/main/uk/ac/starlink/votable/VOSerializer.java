@@ -20,6 +20,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.util.Base64OutputStream;
 
 /**
  * Class which knows how to serialize a table's fields and data to a
