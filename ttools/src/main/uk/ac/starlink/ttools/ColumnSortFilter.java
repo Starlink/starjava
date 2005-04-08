@@ -61,6 +61,7 @@ public class ColumnSortFilter implements ProcessingFilter {
         }
 
         public StarTable wrap( StarTable base ) throws IOException {
+            base = Tables.randomTable( base );
             ColumnIdentifier identifier = new ColumnIdentifier( base );
             int[] colIndices = new int[ colIds_.length ];
             for ( int i = 0; i < colIds_.length; i++ ) {
