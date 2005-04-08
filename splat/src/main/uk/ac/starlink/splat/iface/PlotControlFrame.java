@@ -146,7 +146,8 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem dataUnitsMatching = null;
     protected JCheckBoxMenuItem showVisibleOnly = null;
-    protected JCheckBoxMenuItem clipGraphics = null;
+    //protected JCheckBoxMenuItem clipGraphics = null;
+    protected PlotGraphicsClipMenuItem clipGraphics = null;
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem autoFitPercentiles = null;
     protected JCheckBoxMenuItem showShortNames = null;
@@ -537,7 +538,8 @@ public class PlotControlFrame
 
         //  Whether to clip spectrum graphics to lie with axes border.
         clipGraphics = 
-            new JCheckBoxMenuItem( "Only display spectra within axes" );
+            new PlotGraphicsClipMenuItem( plot.getPlot(), 
+                                          "Only display spectra within axes" );
         optionsMenu.add( clipGraphics );
         clipGraphics.addItemListener( this );
 
