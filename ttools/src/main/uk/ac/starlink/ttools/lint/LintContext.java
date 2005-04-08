@@ -229,7 +229,7 @@ public class LintContext {
      * @param  msg  message
      */
     public void info( String msg ) {
-        message( "INFO", msg );
+        message( "INFO", msg, null );
     }
 
     /**
@@ -238,7 +238,7 @@ public class LintContext {
      * @param  msg  message
      */
     public void warning( String msg ) {
-        message( "WARNING", msg );
+        message( "WARNING", msg, null );
     }
 
     /**
@@ -248,19 +248,29 @@ public class LintContext {
      */
     public void error( String msg ) {
         errCount_++;
-        message( "ERROR", msg );
+        message( "ERROR", msg, null );
     }
 
     /**
      * Dispatches a message to the user.  Context information, such as
      * position in the parse and message severity, are output as well
      * as the text itself.  Additionally an effort is made not to write
-     * the same message millions of times.
+     * the same message millions of times.  Either the <tt>msg</tt>
+     * or the <tt>e</tt> arguments, but not both, may be null.
      *
      * @param  type  indication of message severity
      * @param  msg   specific message content
+     * @param  e     throwable associated with this message
      */
-    private void message( String type, String msg ) {
+    void message( String type, String msg, Throwable e ) {
+
+        /* Fill in the message from the throwable if necessary. */
+        if ( msg == null && e != null ) {
+            msg = e.getMessage();
+            if ( msg == null ) {
+                msg = e.toString();
+            }
+        }
 
         /* See how many times (if any) we have output this same message 
          * before now.  If it's more than a certain threshold, don't
@@ -294,16 +304,17 @@ public class LintContext {
             if ( repeat == MAX_REPEAT - 1 ) {
                 sbuf.append( " (more...)" );
             }
+            String text = sbuf.toString();
 
             /* Output the message. */
+            out_.println( text );
             if ( debug_ ) {
-                Exception e = new LintException( sbuf.toString() );
-                e.fillInStackTrace();
+                if ( e == null ) {
+                    e = new LintException( msg );
+                    e.fillInStackTrace();
+                }
                 e.printStackTrace( out_ );
                 out_.println();
-            }
-            else {
-                out_.println( sbuf.toString() );
             }
         }
     }

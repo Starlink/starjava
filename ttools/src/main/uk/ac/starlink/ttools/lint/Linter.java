@@ -31,7 +31,7 @@ public class Linter {
     /**
      * Main method.
      */
-    public static void main( String[] args ) throws IOException, SAXException {
+    public static void main( String[] args ) {
         String usage = "votlint [-debug] [votable]";
 
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -59,44 +59,52 @@ public class Linter {
 
         final LintContext context = new LintContext();
         context.setDebug( debug );
+        try {
 
-        /* Get the input stream. */
-        InputStream in;
-        if ( systemId == null ) {
-            in = System.in;
+            /* Get the input stream. */
+            InputStream in;
+            if ( systemId == null ) {
+                in = System.in;
+            }
+            else {
+                try {
+                    in = DataSource.getInputStream( systemId );
+                }
+                catch ( FileNotFoundException e ) {
+                    System.err.println( "No such file " + systemId );
+                    System.exit( 1 );
+                    throw new AssertionError();
+                }
+            }
+
+            /* Interpolate the VOTable DOCTYPE declaration if necessary. */
+            DoctypeInterpolator interp = new DoctypeInterpolator() {
+                public void message( String msg ) {
+                    context.info( msg );
+                }
+            };
+            in = interp.getStreamWithDoctype( new BufferedInputStream( in ) );
+            String vers = interp.getVotableVersion();
+            if ( vers != null ) {
+                if ( context.getVersion() == null ) {
+                    context.setVersion( vers );
+                }
+            }
+
+            /* Turn it into a SAX source. */
+            InputSource sax = new InputSource( in );
+            sax.setSystemId( systemId );
+
+            /* Perform the parse. */
+            new Linter( context ).createParser().parse( sax );
+            System.exit( 0 );
         }
-        else {
-            try {
-                in = DataSource.getInputStream( systemId );
-            }
-            catch ( FileNotFoundException e ) {
-                System.err.println( "No such file " + systemId );
-                System.exit( 1 );
-                throw new AssertionError();
-            }
+        catch ( IOException e ) {
+            context.message( "ERROR", null, e );
         }
-
-        /* Interpolate the VOTable DOCTYPE declaration if necessary. */
-        DoctypeInterpolator interp = new DoctypeInterpolator() {
-            public void message( String msg ) {
-                context.info( msg );
-            }
-        };
-        in = interp.getStreamWithDoctype( new BufferedInputStream( in ) );
-        String vers = interp.getVotableVersion();
-        if ( vers != null ) {
-            if ( context.getVersion() == null ) {
-                context.setVersion( vers );
-            }
+        catch ( SAXException e ) {
+            context.message( "ERROR", null, e );
         }
-
-        /* Turn it into a SAX source. */
-        InputSource sax = new InputSource( in );
-        sax.setSystemId( systemId );
-
-        /* Perform the parse. */
-        new Linter( context ).createParser().parse( sax );
-        System.exit( 0 );
     }
 
     /**
@@ -147,13 +155,13 @@ public class Linter {
         /* Install an error handler. */
         parser.setErrorHandler( new ErrorHandler() {
             public void warning( SAXParseException e ) {
-                context_.error( e.getMessage() );
+                context_.message( "ERROR", null, e );
             }
             public void error( SAXParseException e ) {
-                context_.error( e.getMessage() );
+                context_.message( "ERROR", null, e );
             }
             public void fatalError( SAXParseException e ) {
-                context_.error( "FATAL: " + e.getMessage() );
+                context_.message( "FATAL", null, e );
             }
         } );
 
