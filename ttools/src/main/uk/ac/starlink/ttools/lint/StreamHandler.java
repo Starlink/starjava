@@ -41,7 +41,6 @@ public class StreamHandler extends ElementHandler {
 
             /* If we have the data specified by URL, feed the resulting
              * decoded input stream to the stream consumer directly. */
-            String href = getAttribute( "href" );
             if ( href != null ) {
                 Locator locator = getContext().getLocator();
                 String systemId = locator == null ? null 
