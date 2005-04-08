@@ -137,7 +137,7 @@ public class DoctypeInterpolator {
         byte[] buf = new byte[ maxLeng ];
         int pos = 0;
         while ( maxLeng - pos > 0 ) {
-            int ngot = in.read( buf, 0, maxLeng - pos );
+            int ngot = in.read( buf, pos, maxLeng - pos );
             if ( ngot > 0 ) {
                 pos += ngot;
             }
