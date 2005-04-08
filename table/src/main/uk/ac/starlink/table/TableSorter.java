@@ -25,6 +25,7 @@ class TableSorter {
      *          last in the collation order, false if they should
      *          be considered first
      * @return  an array mapping the rows in a table to their sorted order
+     * @throws  IOException  if <tt>table.isRandom()</tt> returns false
      */ 
     public static long[] getSortedOrder( StarTable table, int[] colIndices,
                                          boolean up, boolean nullsLast )

@@ -299,7 +299,7 @@ public class Tables {
      * the table is used, and blank values may be ranked at the start or
      * end of the collation order.
      *
-     * @param   table  table to sort
+     * @param   table  table to sort - must be random access
      * @param   colIndices  indices of the columns which are to act as sort
      *          keys; first element is primary key etc
      * @param   up  true for sorting into ascending order, false for 
@@ -309,6 +309,7 @@ public class Tables {
      *          be considered first
      * @return  a table with the same rows as <tt>table</tt> but in an 
      *          order determined by the other arguments
+     * @throws  IOException if <tt>table.isRandom</tt> is not true
      */
     public static StarTable sortTable( StarTable table, int[] colIndices,
                                        boolean up, boolean nullsLast )
