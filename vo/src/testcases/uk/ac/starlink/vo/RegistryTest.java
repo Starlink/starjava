@@ -10,13 +10,15 @@ public class RegistryTest extends TestCase {
     }
 
     public void testContents() throws Exception {
-        RegistryInterrogator queryer = new RegistryInterrogator();
-        String query = "serviceType like 'CONE' and facility like 'HST'";
-        SimpleResource[] data = queryer.getResources( query );
-        assertTrue( data.length > 0 );
-        SimpleResource r0 = data[ 0 ];
-        assertEquals( "CONE", r0.getServiceType() );
-        assertEquals( "HST", r0.getFacility() );
-        ConeSearch coner = new ConeSearch( r0 );
+        if ( AxisOK.isOK() ) {
+            RegistryInterrogator queryer = new RegistryInterrogator();
+            String query = "serviceType like 'CONE' and facility like 'HST'";
+            SimpleResource[] data = queryer.getResources( query );
+            assertTrue( data.length > 0 );
+            SimpleResource r0 = data[ 0 ];
+            assertEquals( "CONE", r0.getServiceType() );
+            assertEquals( "HST", r0.getFacility() );
+            ConeSearch coner = new ConeSearch( r0 );
+        }
     }
 }

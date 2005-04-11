@@ -9,8 +9,10 @@ public class ResolverTest extends TestCase {
     }
 
     public void testPosition() throws ResolverException {
-        ResolverInfo info = ResolverInfo.resolve( "fomalhaut" );
-        assertEquals( 344.412, info.getRaDegrees(), 0.001 );
-        assertEquals( -29.622, info.getDecDegrees(), 0.001 );
+        if ( AxisOK.isOK() ) {
+            ResolverInfo info = ResolverInfo.resolve( "fomalhaut" );
+            assertEquals( 344.412, info.getRaDegrees(), 0.001 );
+            assertEquals( -29.622, info.getDecDegrees(), 0.001 );
+        }
     }
 }

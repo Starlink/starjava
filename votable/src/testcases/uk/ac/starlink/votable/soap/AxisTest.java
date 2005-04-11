@@ -20,9 +20,11 @@ public class AxisTest extends TableTestCase {
     }
 
     public void testAxis() throws Exception {
-        StarTable inTable = AutoStarTable.getDemoTable( 100 );
-        StarTable outTable = copyTableUsingAxis( inTable );
-        assertVOTableEquals( inTable, outTable, true );
+        if ( AxisOK.isOK() ) {
+            StarTable inTable = AutoStarTable.getDemoTable( 100 );
+            StarTable outTable = copyTableUsingAxis( inTable );
+            assertVOTableEquals( inTable, outTable, true );
+        }
     }
 
     public StarTable copyTableUsingAxis( StarTable inTable )
