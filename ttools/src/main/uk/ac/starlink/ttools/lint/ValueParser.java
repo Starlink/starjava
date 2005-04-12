@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.lint;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.util.StringTokenizer;
 
 /**
@@ -35,6 +36,28 @@ public abstract class ValueParser {
      * @param  in  input stream
      */
     public abstract void checkStream( InputStream in ) throws IOException;
+
+    /**
+     * Returns the class of values which would be used in Java to represent
+     * an object parsed by this parser, although this class does not 
+     * actually return such values.  This should be the same class
+     * that {@link uk.ac.starlink.table.ValueInfo#getContentClass}
+     * would return for this object if a StarTable was being built.
+     *
+     * @return  value class
+     */
+    public abstract Class getContentClass();
+
+    /**
+     * Returns the number of items of class {@link #getContentClass} which
+     * correspond to values parsed by this parser.  This should be the
+     * same as the product of shape elements returned by
+     * {@link uk.ac.starlink.table.ValueInfo#getShape()}.
+     * If the number is indeterminate, -1 should be returned.
+     *
+     * @return  number of elements per value
+     */
+    public abstract int getElementCount();
 
     /**
      * Sets this parser's context.
@@ -177,7 +200,7 @@ public abstract class ValueParser {
                     int nString = nel / stringLeng;
                     return new FixedArrayParser(
                                      new FixedCharParser( ascii, stringLeng ),
-                                     nString );
+                                     String[].class, nString );
                 }
             }
         }
@@ -189,33 +212,41 @@ public abstract class ValueParser {
                 return new FixedBitParser( nel );
             }
         }
-        else if ( "floatComplex".equals( datatype ) ||
-                  "doubleComplex".equals( datatype ) ) {
-            ValueParser base = datatype.equals( "floatComplex" )
-                             ? (ValueParser) new FloatParser()
-                             : (ValueParser) new DoubleParser();
+        else if ( "floatComplex".equals( datatype ) ) {
             if ( nel < 0 ) {
-                return base == null ? null 
-                                    : new VariableArrayParser( base );
+                return new VariableArrayParser( new FloatParser(),
+                                                float[].class );
             }
             else {
-                return base == null ? null
-                                    : new FixedArrayParser( base, nel * 2 );
+                return new FixedArrayParser( new FloatParser(), 
+                                             float[].class, nel * 2 );
+            }
+        }
+        else if ( "doubleComplex".equals( datatype ) ) {
+            if ( nel < 0 ) {
+                return new VariableArrayParser( new DoubleParser(),
+                                                double[].class );
+            }
+            else {
+                return new FixedArrayParser( new DoubleParser(), 
+                                             double[].class, nel * 2 );
             }
         }
         else {
             if ( nel == 1 ) {
                 return makeScalarParser( datatype, handler );
             }
-            else if ( nel < 0 ) {
-                ValueParser base = makeScalarParser( datatype, handler );
-                return base == null ? null
-                                    : new VariableArrayParser( base );
-            }
             else {
                 ValueParser base = makeScalarParser( datatype, handler );
-                return base == null ? null
-                                    : new FixedArrayParser( base, nel ); 
+                if ( base == null ) {
+                    return null;
+                }
+                else {
+                    Class clazz = getArrayClass( base.getContentClass() );
+                    return nel < 0 
+                       ? (ValueParser) new VariableArrayParser( base, clazz )
+                       : (ValueParser) new FixedArrayParser( base, clazz, nel );
+                }
             }
         }
     }
@@ -232,16 +263,19 @@ public abstract class ValueParser {
             return new BooleanParser();
         }
         else if ( "unsignedByte".equals( datatype ) ) {
-            return new IntegerParser( 1, 0, 255 );
+            return new IntegerParser( 1, 0, 255, Short.class );
         }
         else if ( "short".equals( datatype ) ) {
-            return new IntegerParser( 2, Short.MIN_VALUE, Short.MAX_VALUE );
+            return new IntegerParser( 2, Short.MIN_VALUE, Short.MAX_VALUE,
+                                      Short.class );
         }
         else if ( "int".equals( datatype ) ) {
-            return new IntegerParser( 4, Integer.MIN_VALUE, Integer.MAX_VALUE );
+            return new IntegerParser( 4, Integer.MIN_VALUE, Integer.MAX_VALUE,
+                                      Integer.class );
         }
         else if ( "long".equals( datatype ) ) {
-            return new IntegerParser( 8, Long.MIN_VALUE, Long.MAX_VALUE );
+            return new IntegerParser( 8, Long.MIN_VALUE, Long.MAX_VALUE,
+                                      Long.class );
         }
         else if ( "float".equals( datatype ) ) {
             return new FloatParser();
@@ -257,19 +291,57 @@ public abstract class ValueParser {
     }
 
     /**
+     * Abstract parser superclass which just keeps track of parser
+     * class and count.
+     */
+    private static abstract class AbstractParser extends ValueParser {
+        private final Class clazz_;
+        private final int count_;
+
+        /**
+         * Constructor.
+         *
+         * @param   clazz  element class
+         * @param   count  element count
+         */
+        public AbstractParser( Class clazz, int count ) {
+            clazz_ = clazz;
+            count_ = count;
+        }
+        public Class getContentClass() {
+            return clazz_;
+        }
+        public int getElementCount() {
+            return count_;
+        }
+    }
+
+    /**
      * Parser whose stream reading method uncritically reads in a 
      * fixed number of bytes.
      */
     private static abstract class SlurpParser extends ValueParser {
-        final int nbyte_;
+        private final int nbyte_;
+        private final Class clazz_;
+        private final int count_;
 
         /**
          * Constructor.
          *
          * @param  nbyte  number of bytes read by stream reading method.
+         * @param  clazz  class of elements
+         * @param  count  number of elements
          */
-        SlurpParser( int nbyte ) {
+        SlurpParser( int nbyte, Class clazz, int count ) {
             nbyte_ = nbyte;
+            clazz_ = clazz;
+            count_ = count;
+        }
+        public Class getContentClass() {
+            return clazz_;
+        }
+        public int getElementCount() {
+            return count_;
         }
         public void checkStream( InputStream in ) throws IOException {
             slurpStream( in, nbyte_ );
@@ -280,7 +352,7 @@ public abstract class ValueParser {
     /**
      * Parser which reads a fixed number of scalar elements.
      */
-    private static class FixedArrayParser extends ValueParser {
+    private static class FixedArrayParser extends AbstractParser {
         final ValueParser base_;
         final int count_;
 
@@ -290,7 +362,8 @@ public abstract class ValueParser {
          * @param   base  parser which can read a scalar
          * @param   count  number of scalar elements read by this parser
          */
-        FixedArrayParser( ValueParser base, int count ) {
+        FixedArrayParser( ValueParser base, Class clazz, int count ) {
+            super( clazz, count );
             base_ = base;
             count_ = count;
             base_.toString();
@@ -322,7 +395,7 @@ public abstract class ValueParser {
     /**
      * Parser which reads a variable number of scalar elements.
      */
-    private static class VariableArrayParser extends ValueParser {
+    private static class VariableArrayParser extends AbstractParser {
         final ValueParser base_;
 
         /**
@@ -330,7 +403,8 @@ public abstract class ValueParser {
          *
          * @param  base  parser which can read a scalar
          */
-        VariableArrayParser( ValueParser base ) {
+        VariableArrayParser( ValueParser base, Class clazz ) {
+            super( clazz, -1 );
             base_ = base;
             base_.toString();
         }
@@ -364,7 +438,11 @@ public abstract class ValueParser {
     /**
      * Parser for boolean scalars.
      */
-    private static class BooleanParser extends ValueParser {
+    private static class BooleanParser extends AbstractParser {
+
+        public BooleanParser() {
+            super( Boolean.class, 1 );
+        }
 
         public void checkString( String text ) {
             int leng = text.length();
@@ -420,8 +498,8 @@ public abstract class ValueParser {
          * @param   minVal  minimum legal value for integer
          * @param   maxVal  maximum legal value for integer
          */
-        IntegerParser( int nbyte, long minVal, long maxVal ) {
-            super( nbyte );
+        IntegerParser( int nbyte, long minVal, long maxVal, Class clazz ) {
+            super( nbyte, clazz, 1 );
             minVal_ = minVal;
             maxVal_ = maxVal;
         }
@@ -469,7 +547,7 @@ public abstract class ValueParser {
      */
     private static class FloatParser extends SlurpParser {
         FloatParser() {
-            super( 4 );
+            super( 4, Float.class, 1 );
         }
         public void checkString( String text ) {
             if ( "NaN".equals( text ) ||
@@ -494,7 +572,7 @@ public abstract class ValueParser {
      */
     private static class DoubleParser extends SlurpParser {
         DoubleParser() {
-            super( 8 );
+            super( 8, Double.class, 1 );
         }
         public void checkString( String text ) {
             if ( "NaN".equals( text ) ||
@@ -526,7 +604,7 @@ public abstract class ValueParser {
          * @param  count  number of bits
          */
         FixedBitParser( int count ) {
-            super( ( count + 7 ) / 8 );
+            super( ( count + 7 ) / 8, Boolean.class, count );
             count_ = count;
         }
         public void checkString( String text ) {
@@ -554,7 +632,10 @@ public abstract class ValueParser {
     /**
      * Parser for variable length bit vectors.
      */
-    private static class VariableBitParser extends ValueParser {
+    private static class VariableBitParser extends AbstractParser {
+        public VariableBitParser() {
+            super( boolean[].class, -1 );
+        }
         public void checkString( String text ) {
             int leng = text.length();
             for ( int i = 0; i < leng; i++ ) {
@@ -586,7 +667,7 @@ public abstract class ValueParser {
          *                16-bit unicode
          */
         public SingleCharParser( boolean ascii ) {
-            super( ascii ? 1 : 2 );
+            super( ascii ? 1 : 2, Character.class, 1 );
             ascii_ = ascii;
         }
         public void checkString( String text ) {
@@ -620,7 +701,7 @@ public abstract class ValueParser {
          * @param  count  number of characters in string
          */
         public FixedCharParser( boolean ascii, int count ) {
-            super( count * ( ascii ? 1 : 2 ) );
+            super( count * ( ascii ? 1 : 2 ), String.class, 1 );
         }
         public void checkString( String text ) {
         }
@@ -629,7 +710,7 @@ public abstract class ValueParser {
     /**
      * Parser for variable-length character arrays.
      */
-    private static class VariableCharParser extends ValueParser {
+    private static class VariableCharParser extends AbstractParser {
         final boolean ascii_;
 
         /**
@@ -639,6 +720,7 @@ public abstract class ValueParser {
          *                16-bit unicode
          */
         VariableCharParser( boolean ascii ) {
+            super( String.class, 1 );
             ascii_ = ascii;
         }
         public void checkString( String text ) {
@@ -651,7 +733,7 @@ public abstract class ValueParser {
     /**
      * Parser for variable-length multidimensional character arrays.
      */
-    private static class VariableStringArrayParser extends ValueParser {
+    private static class VariableStringArrayParser extends AbstractParser {
         final boolean ascii_;
         final int stringLeng_;
 
@@ -663,6 +745,7 @@ public abstract class ValueParser {
          * @param  stringLeng  size of fastest-varying array index
          */
         VariableStringArrayParser( boolean ascii, int stringLeng ) {
+            super( String[].class, -1 );
             ascii_ = ascii;
             stringLeng_ = stringLeng;
         }
@@ -726,6 +809,43 @@ public abstract class ValueParser {
             else {
                 return count;
             }
+        }
+    }
+
+    /**
+     * Returns the array class corresponding to a wrapper class.
+     *
+     * @param   wclazz  wrapper class
+     * @return  corresponding primitive array class
+     */
+    private static Class getArrayClass( Class wclazz ) {
+        if ( wclazz == Boolean.class ) {
+            return boolean[].class;
+        }
+        else if ( wclazz == Character.class ) {
+            return char[].class;
+        }
+        else if ( wclazz == Byte.class ) {
+            return byte[].class;
+        }
+        else if ( wclazz == Short.class ) {
+            return short[].class;
+        }
+        else if ( wclazz == Integer.class ) {
+            return int[].class;
+        }
+        else if ( wclazz == Long.class ) {
+            return long[].class;
+        }
+        else if ( wclazz == Float.class ) {
+            return float[].class;
+        }
+        else if ( wclazz == Double.class ) {
+            return double[].class;
+        }
+        else {
+            assert false;
+            return Array.newInstance( wclazz, 0 ).getClass();
         }
     }
        
