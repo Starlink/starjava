@@ -13,7 +13,7 @@ public class TableHandler extends ElementHandler {
 
     private long nrowsSpecified_ = -1L;
     private long nrowsSeen_ = 0L;
-    private List parsers_ = new ArrayList();
+    private List fields_ = new ArrayList();
 
     public void endElement() {
 
@@ -43,19 +43,18 @@ public class TableHandler extends ElementHandler {
      *
      * @param   parser  parser for the newly added field
      */
-    public void registerField( ValueParser parser ) {
-        parsers_.add( parser );
+    public void registerField( FieldHandler field ) {
+        fields_.add( field );
     }
 
     /**
-     * Returns a list of the parsers currently found.  There will be
-     * one for each FIELD child so far encountered (though some may be
-     * null).
+     * Returns a list of the fields currently found.  There will be
+     * one for each FIELD child so far encountered.
      *
      * @return  parser list
      */
-    public List getParsers() {
-        return parsers_;
+    public List getFields() {
+        return fields_;
     }
 
     /**

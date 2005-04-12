@@ -20,7 +20,7 @@ public class FieldHandler extends ParamHandler {
                              getAncestry().getAncestor( TableHandler.class );
         if ( table != null ) {
             tableRef_ = table.getRef();
-            table.registerField( getParser() );
+            table.registerField( this );
         }
         else {
             error( this + " outside of TABLE" );

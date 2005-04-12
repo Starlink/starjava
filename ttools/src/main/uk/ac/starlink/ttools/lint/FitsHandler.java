@@ -53,7 +53,8 @@ public class FitsHandler extends StreamingHandler
      * @param   vParser  VOTable parsers
      * @param   column   FITS column info
      */
-    private void checkConsistent( ValueParser vParser, ColumnInfo cinfo ) {
+    private void checkConsistent( FieldHandler vField, ColumnInfo cinfo ) {
+        ValueParser vParser = vField.getParser();
 
         /* Check that the classes you'd get from both match.  This is an
          * indirect check, and relies on the coding in ValueParser being
@@ -62,7 +63,8 @@ public class FitsHandler extends StreamingHandler
         Class vClass = vParser.getContentClass();
         Class fClass = cinfo.getContentClass();
         if ( ! vClass.equals( fClass ) ) {
-            warning( "FITS column type does not match VOTable column type (" +
+            warning( "VOTable/FITS type mismatch for column " + 
+                     vField.getRef() + " (" +
                      vClass.getName() + " != " + fClass.getName() + ")" );
         }
 
@@ -81,9 +83,8 @@ public class FitsHandler extends StreamingHandler
             fSize = 1;
         }
         if ( vSize > 0 && fSize > 0 && vSize != fSize ) {
-            warning( "FITS column array size does not match " +
-                     "VOTable column array size (" +
-                     vSize + " != " + fSize + ")" );
+            warning( "VOTable/FITS array size mismatch for column " + 
+                     vField.getRef() + " (" + vSize + " != " + fSize + ")" );
         }
     }
 
@@ -98,17 +99,17 @@ public class FitsHandler extends StreamingHandler
         /* First check there are the same number of columns in the FITS
          * table as in the declared table. */
         int ncol = meta.getColumnCount();
-        ValueParser[] parsers = getParsers();
-        if ( ncol != parsers.length ) {
+        FieldHandler[] fields = getFields();
+        if ( ncol != fields.length ) {
             warning( "FITS table has " + ncol + " columns and VOTable has " +
-                     parsers.length + " - no type checking done" );
+                     fields.length + " - no type checking done" );
         }
 
         /* Then check that each column looks consistent between the two
          * views. */
         else {
             for ( int icol = 0; icol < ncol; icol++ ) {
-                checkConsistent( parsers[ icol ], meta.getColumnInfo( icol ) );
+                checkConsistent( fields[ icol ], meta.getColumnInfo( icol ) );
             }
         }
     }

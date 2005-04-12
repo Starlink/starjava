@@ -8,7 +8,7 @@ package uk.ac.starlink.ttools.lint;
  */
 public class DataHandler extends ElementHandler {
 
-    private ValueParser[] parsers_;
+    private FieldHandler[] fields_;
 
     public void startElement() {
 
@@ -18,27 +18,27 @@ public class DataHandler extends ElementHandler {
         TableHandler table =
             (TableHandler) getAncestry().getAncestor( TableHandler.class );
         if ( table != null ) {
-            parsers_ = (ValueParser[])
-                       table.getParsers().toArray( new ValueParser[ 0 ] );
-            if ( parsers_.length == 0 ) {
+            fields_ = (FieldHandler[])
+                      table.getFields().toArray( new FieldHandler[ 0 ] );
+            if ( fields_.length == 0 ) {
                 error( "There are no columns in this table!" );
             }
         }
         else {
-            parsers_ = new ValueParser[ 0 ];
+            fields_ = new FieldHandler[ 0 ];
             error( getName() + " outside TABLE" );
         }
     }
 
     /**
-     * Returns the parser for a given column.
+     * Returns the FieldHandler object for a given column.
      *
      * @param  icol  column index
-     * @return   parser for column <tt>icol</tt>, or null if we don't know
-     *           how to parse it
+     * @return   field handler for column <tt>icol</tt>,
+     *           or null if that column doesn't exist
      */
-    public ValueParser getParser( int icol ) {
-        return icol < parsers_.length ? parsers_[ icol ] : null;
+    public FieldHandler getField( int icol ) {
+        return icol < fields_.length ? fields_[ icol ] : null;
     }
 
     /**
@@ -47,6 +47,6 @@ public class DataHandler extends ElementHandler {
      * @return   column count
      */
     public int getColumnCount() {
-        return parsers_.length;
+        return fields_.length;
     }
 }

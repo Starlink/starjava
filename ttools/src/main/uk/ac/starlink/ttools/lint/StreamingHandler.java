@@ -12,7 +12,7 @@ import java.io.InputStream;
  */
 public abstract class StreamingHandler extends ElementHandler {
 
-    private ValueParser[] parsers_;
+    private FieldHandler[] fields_;
     private TableHandler table_;
 
     public void startElement() {
@@ -32,11 +32,11 @@ public abstract class StreamingHandler extends ElementHandler {
             error( this + " not child of DATA" );
         }
 
-        /* Store the parsers. */
+        /* Store the fields. */
         if ( data != null ) {
-            parsers_ = new ValueParser[ data.getColumnCount() ];
-            for ( int icol = 0; icol < parsers_.length; icol++ ) {
-                parsers_[ icol ] = data.getParser( icol );
+            fields_ = new FieldHandler[ data.getColumnCount() ];
+            for ( int icol = 0; icol < fields_.length; icol++ ) {
+                fields_[ icol ] = data.getField( icol );
             }
         }
         else {
@@ -45,12 +45,12 @@ public abstract class StreamingHandler extends ElementHandler {
     }
 
     /**
-     * Returns the parsers used for this stream.
+     * Returns the fields used for this stream.
      *
-     * @return  value parser objects for the columns held in this stream
+     * @return  FieldHandler objects for the columns held in this stream
      */
-    public ValueParser[] getParsers() {
-        return parsers_;
+    public FieldHandler[] getFields() {
+        return fields_;
     }
 
     /**
