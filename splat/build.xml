@@ -423,11 +423,6 @@
           unless="runonly.install"
           description="-> compiles the source code">
 
-    <!-- Update the version properties file. -->
-    <echo file="${java.dir}/uk/ac/starlink/splat/util/splat.version"
-          message="version=${version}${line.separator}"/>
-
-    <mkdir dir="${build.classes}"/>
     <javac srcdir="${java.dir}"
            destdir="${build.classes}"
            debug="${debug}"
@@ -450,7 +445,6 @@
       <fileset dir="${java.dir}">
         <include name="**/deploy.wsdd"/>
         <include name="**/*.xml"/>
-        <include name="**/splat.version"/>
         <include name="**/images/**"/>
       </fileset>
     </copy>
@@ -471,6 +465,14 @@
     <antcall target="execute_mk_script">
       <param name="mk.action" value="build"/>
     </antcall>
+
+    <!-- Update the version properties file. Keep copy in real source for
+     !   reference, but do not copy that into place. -->
+    <echo file="${java.dir}/uk/ac/starlink/splat/util/splat.version"
+          message="version=${version}${line.separator}"/>
+    <mkdir dir="${build.classes}"/>
+    <echo file="${build.classes}/uk/ac/starlink/splat/util/splat.version"
+          message="version=${version}${line.separator}"/>
 
   </target>
 
