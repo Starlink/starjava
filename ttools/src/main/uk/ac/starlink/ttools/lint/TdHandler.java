@@ -18,7 +18,8 @@ public class TdHandler extends ElementHandler {
         DataHandler data = (DataHandler) 
                            family.getAncestor( DataHandler.class );
         if ( data != null ) {
-            ValueParser parser = data.getParser( family.getSiblingIndex() );
+            ValueParser parser = data.getField( family.getSiblingIndex() )
+                                     .getParser();
             if ( parser != null ) {
                 parser.checkString( content_.toString() );
             }
