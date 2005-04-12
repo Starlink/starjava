@@ -55,10 +55,8 @@ import uk.ac.starlink.splat.plot.PlotControl;
  * the viewport surface (this behaviour is better for spectra). As
  * time has progressed real SPLAT functionality has crept in too.
  *
- *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @author Peter W. Draper (michaels@eecs.berkeley.edu)
  * @since $Date$
  * @since 13-JUN-2001
  * @author Peter W. Draper
@@ -151,8 +149,8 @@ public class PlotPanner extends JPanel
     {
 	if ( _target != null ) {
 
-            //  Get a transformation that maps the viewport onto our
-            //  display surface.
+            //  Get a transformation that maps the viewport onto our display
+            //  surface.
             Dimension viewSize =_target.getView().getSize();
 	    Rectangle viewRect =
 		new Rectangle( 0, 0, viewSize.width, viewSize.height );
@@ -161,18 +159,36 @@ public class PlotPanner extends JPanel
             AffineTransform forward =
 		CanvasUtilities.computeFitTransform( viewRect, myRect );
 
+            //  When the plot is just displaying axes in the visible area and
+            //  clipping is switched on that doesn't give a very useful
+            //  display, so always switch off the visible only option.
+            boolean state = plot.getPlot().getVisibleOnly();
+            if ( state ) {
+                plot.getPlot().setVisibleOnly( false );
+                try {
+                    plot.getPlot().staticUpdate();
+                }
+                catch (Exception e) {
+                    // Do nothing.
+                }
+            }
+
             //  Do the clever bit. Get the viewport to draw into our
-            //  Graphics2D object, using the transform to fit
-            //  everything on.
+            //  Graphics2D object, using the transform to fit everything on.
             Graphics2D g2d = (Graphics2D)g;
             g2d.transform( forward );
             _target.getView().paint( g );
+
+            //  Restore visibleOnly state.
+            if ( state ) {
+                plot.getPlot().setVisibleOnly( true );
+            }
 
             //  Now add the viewport position as a rectangle.
             g.setColor(Color.red);
             Rectangle r = _target.getViewRect();
             g.drawRect( r.x, r.y, r.width, r.height );
-        } 
+        }
         else {
 	    Rectangle r = _getInsetBounds();
 	    g.clearRect( r.x, r.y, r.width, r.height );
@@ -289,7 +305,7 @@ public class PlotPanner extends JPanel
             }
         }
 
-        /** 
+        /**
          *  Decrement the X zoom factor by one.
          */
         protected void decrementXZoom()
