@@ -1419,8 +1419,19 @@ public class DivaPlot
         double pageHeight = pf.getImageableHeight() - 2.0 * ySaved;
         double xinset = pf.getImageableX() + xSaved;
         double yinset = pf.getImageableY() + ySaved;
-        double compWidth = (double) getWidth();
-        double compHeight = (double) getHeight();
+        double compWidth;
+        double compHeight;
+        Rectangle visrect = null;
+        if ( visibleOnly ) {
+            //  Only print visible part.
+            visrect = getVisibleRect();
+            compWidth = (double) visrect.width;
+            compHeight = (double) visrect.height;
+        }
+        else {
+            compWidth = (double) getWidth();
+            compHeight = (double) getHeight();
+        }
         double xscale = pageWidth / compWidth;
         double yscale = pageHeight / compHeight;
         if ( xscale < yscale ) {
@@ -1428,6 +1439,11 @@ public class DivaPlot
         }
         else {
             xscale = yscale;
+        }
+
+        if ( visibleOnly ) {
+            xinset = xinset - ( visrect.x * xscale );
+            yinset = yinset - ( visrect.y * yscale );
         }
 
         //  Shift and scale.
