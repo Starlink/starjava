@@ -66,6 +66,9 @@ public class HandlerFactory {
         else if ( "BINARY".equals( name ) ) {
             handler = new BinaryHandler();
         }
+        else if ( "FITS".equals( name ) ) {
+            handler = new FitsHandler();
+        }
         else {
             handler = new ElementHandler();
         }
