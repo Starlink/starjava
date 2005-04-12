@@ -3,9 +3,13 @@ package uk.ac.starlink.ttools.lint;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.Locator;
+import org.xml.sax.SAXParseException;
 
 /**
  * SAX ContentHandler used for linting VOTables.
@@ -16,13 +20,15 @@ import org.xml.sax.Locator;
  * @author   Mark Taylor (Starlink)
  * @since    7 Apr 2005
  */
-public class LintContentHandler implements ContentHandler {
+public class LintContentHandler implements ContentHandler, ErrorHandler {
 
     private final LintContext context_;
     private final HandlerStack stack_;
 
+    private static final Pattern NS_PAT = getNamespaceNamePattern();
     private final static Map EMPTY_MAP =
         Collections.unmodifiableMap( new HashMap() );
+
 
     /**
      * Constructor. 
@@ -50,9 +56,11 @@ public class LintContentHandler implements ContentHandler {
     }
 
     public void startPrefixMapping( String prefix, String uri ) {
+        context_.getNamespaceMap().put( prefix, uri );
     }
 
     public void endPrefixMapping( String prefix ) {
+        context_.getNamespaceMap().remove( prefix );
     }
 
     public void startElement( String namespaceURI, String localName, 
@@ -120,6 +128,77 @@ public class LintContentHandler implements ContentHandler {
 
     public void skippedEntity( String name ) {
         context_.info( "Skipping entity " + name );
+    }
+
+    // ErrorHandler implementation.
+
+    public void warning( SAXParseException e ) {
+        context_.message( "WARN", null, e );
+    }
+
+    public void error( SAXParseException e ) {
+        if ( ! isNamespaceError( e ) ) {
+            context_.message( "ERROR", null, e );
+        }
+    }
+
+    public void fatalError( SAXParseException e ) {
+        context_.message( "FATAL", null, e );
+    }
+
+    /**
+     * This method checks if an error message looks like it relates to a
+     * namespace-qualified element or attribute and if it does returns true.
+     * This is required since many common validation errors can result from
+     * a basically healthy VOTable document (e.g. xsi:schemaLocation=...).
+     * Necessarily, the checking done here is very ad hoc and not very
+     * satisfactory.
+     *
+     * @param   e  error
+     * @return  true iff <tt>e</tt> looks like a namespace validation error
+     *          (and hence should not be reported to the user)
+     */
+    private boolean isNamespaceError( SAXParseException e ) {
+        String msg = e.getMessage();
+        if ( msg != null ) {
+            if ( msg.indexOf( "xmlns" ) >= 0 ) {
+                return true;
+            }
+            Matcher matcher = NS_PAT.matcher( msg );
+            if ( matcher.lookingAt() ) {
+                String prefix = matcher.group( 1 );
+                String localName = matcher.group( 2 );
+                if ( prefix.toLowerCase().startsWith( "xml" ) ) {
+                    return true;
+                }
+                else if ( context_.getNamespaceMap().containsKey( prefix ) ) {
+                    return true;
+                }
+                else {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns a pattern which matches a namespace-qualified XML name.
+     * It contains two groups, the first giving the prefix and the second
+     * giving the localName.
+     *
+     * @param  XML name pattern
+     */
+    private static Pattern getNamespaceNamePattern() {
+        String charPat = "\\p{Lu}\\p{Ll}_";
+        String startCharPat = charPat + "0-9\\-\\.";
+        String pats = ".*?"
+                    + "([" + startCharPat + "]"
+                    + "[" + charPat + "]*"
+                    + "):("
+                    + "[" + charPat + "]+"
+                    + ")";
+        return Pattern.compile( pats );
     }
 
 }

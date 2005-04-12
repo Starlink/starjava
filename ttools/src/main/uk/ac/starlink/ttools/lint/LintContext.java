@@ -23,6 +23,7 @@ public class LintContext {
     private final Map idMap_;
     private final Map refMap_;
     private final Map msgMap_;
+    private final Map namespaceMap_;
     private final CheckerFactory checkerFactory_;
     private final HandlerFactory handlerFactory_;
 
@@ -64,6 +65,7 @@ public class LintContext {
         idMap_ = new HashMap();
         refMap_ = new HashMap();
         msgMap_ = new HashMap();
+        namespaceMap_ = new HashMap();
         checkerFactory_ = new CheckerFactory( this );
         handlerFactory_ = new HandlerFactory( this );
     }
@@ -150,6 +152,14 @@ public class LintContext {
      */
     public Map getAttributeCheckers( String localName ) {
         return checkerFactory_.getAttributeCheckers( localName );
+    }
+
+    /**
+     * Returns prefix->namespaceURI map for the xmlns namespaces currently
+     * in scope.
+     */
+    public Map getNamespaceMap() {
+        return namespaceMap_;
     }
 
     /**

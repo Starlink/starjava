@@ -152,24 +152,12 @@ public class Linter {
                               "done properly (" + e + ")" );
         }
 
-        /* Install an error handler. */
-        parser.setErrorHandler( new ErrorHandler() {
-            public void warning( SAXParseException e ) {
-                context_.message( "ERROR", null, e );
-            }
-            public void error( SAXParseException e ) {
-                context_.message( "ERROR", null, e );
-            }
-            public void fatalError( SAXParseException e ) {
-                context_.message( "FATAL", null, e );
-            }
-        } );
-
-        /* Install a linting content handler. */
-        parser.setContentHandler( new LintContentHandler( context_ ) );
+        /* Install the custom content handler and error handler. */
+        LintContentHandler lintHandler = new LintContentHandler( context_ );
+        parser.setContentHandler( lintHandler );
+        parser.setErrorHandler( lintHandler );
 
         /* Return the parser. */
         return parser;
     }
-
 }
