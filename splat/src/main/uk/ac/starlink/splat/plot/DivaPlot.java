@@ -826,10 +826,22 @@ public class DivaPlot
 
             //  Check for when we are just displaying the visible region.
             if ( visibleOnly ) {
-                limits[0] = visibleBaseBox[0];
-                limits[1] = visibleBaseBox[1];
-                limits[2] = visibleBaseBox[2];
-                limits[3] = visibleBaseBox[3];
+                if ( dataLimits.isXFlipped() ) {
+                    limits[0] = Math.max(visibleBaseBox[2], visibleBaseBox[0]);
+                    limits[2] = Math.min(visibleBaseBox[2], visibleBaseBox[0]);
+                }
+                else {
+                    limits[0] = Math.min(visibleBaseBox[2], visibleBaseBox[0]);
+                    limits[2] = Math.max(visibleBaseBox[2], visibleBaseBox[0]);
+                }
+                if ( dataLimits.isYFlipped() ) {
+                    limits[1] = Math.max(visibleBaseBox[3], visibleBaseBox[1]);
+                    limits[3] = Math.min(visibleBaseBox[3], visibleBaseBox[1]);
+                }
+                else {
+                    limits[1] = Math.min(visibleBaseBox[3], visibleBaseBox[1]);
+                    limits[3] = Math.max(visibleBaseBox[3], visibleBaseBox[1]);
+                }
             }
             else {
                 if ( dataLimits.isXFlipped() ) {
@@ -1096,27 +1108,10 @@ public class DivaPlot
             pos[3] = graphrect.y;
             double tmp[][] = transform( pos, true );
             if ( tmp != null ) {
-                double xMin = tmp[0][0];
-                double yMin = tmp[1][0];
-                double xMax = tmp[0][1];
-                double yMax = tmp[1][1];
-
-                if ( dataLimits.isXFlipped() ) {
-                    visibleBaseBox[0] = xMax;
-                    visibleBaseBox[2] = xMin;
-                }
-                else {
-                    visibleBaseBox[0] = xMin;
-                    visibleBaseBox[2] = xMax;
-                }
-                if ( dataLimits.isYFlipped() ) {
-                    visibleBaseBox[1] = yMax;
-                    visibleBaseBox[3] = yMin;
-                }
-                else {
-                    visibleBaseBox[1] = yMin;
-                    visibleBaseBox[3] = yMax;
-                }
+                visibleBaseBox[0] = tmp[0][0]; // xMin
+                visibleBaseBox[1] = tmp[1][0]; // yMin
+                visibleBaseBox[2] = tmp[0][1]; // xMax
+                visibleBaseBox[3] = tmp[1][1]; // yMax
             }
 
             //  Now create the astPlot that only covers the visible part.
