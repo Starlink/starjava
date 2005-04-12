@@ -40,9 +40,11 @@ public class JDBCFormatter {
         /* Table deletion. */
         Statement stmt = conn.createStatement();
         try {
-            String cmd = "DELETE FROM " + tableName;
+            String cmd = "DROP TABLE " + tableName;
             logger.info( cmd );
             stmt.executeUpdate( cmd );
+            logger.warning( "Dropped existing table " + tableName + 
+                            " to write new one" );
         }
         catch ( SQLException e ) {
             // no action - might not be there
@@ -264,6 +266,13 @@ public class JDBCFormatter {
         if ( ! types.containsKey( new Integer( Types.NULL ) ) ) {
             types.put( new Integer( Types.NULL ), "NULL" );
         }
+
+        /* Hack for PostgreSQL for which the above procedure results in
+         * "text" instead of "varchar" for the Types.VARCHAR type
+         * (driver is at fault I'd say, should report varchar before text). */
+        types.put( new Integer( Types.VARCHAR ), "VARCHAR" );
+
+        /* Hack for DBMSs which don't return the right types in other ways. */
         setTypeFallback( types, Types.FLOAT, Types.REAL );
         setTypeFallback( types, Types.REAL, Types.FLOAT );
         setTypeFallback( types, Types.FLOAT, Types.DOUBLE );
