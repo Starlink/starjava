@@ -33,6 +33,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.FluxFrame;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.SpecData;
@@ -188,14 +189,14 @@ public class SpecDataUnitsFrame
         controlsPanel.add( actionBar, BorderLayout.SOUTH );
 
         // Add an action to convert from the existing data units to some new
-        // data units. Trickly as involves modification of underlying data
+        // data units. Tricky as involves modification of underlying data
         // values.
-        //ConvertAction convertAction = new ConvertAction();
-        //fileMenu.add( convertAction );
-        //JButton convertButton = new JButton( convertAction );
-        //actionBar.add( Box.createGlue() );
-        //actionBar.add( convertButton );
-        //actionBar.add( Box.createGlue() );
+        ConvertAction convertAction = new ConvertAction();
+        fileMenu.add( convertAction );
+        JButton convertButton = new JButton( convertAction );
+        actionBar.add( Box.createGlue() );
+        actionBar.add( convertButton );
+        actionBar.add( Box.createGlue() );
 
         // Add an action to set the data units.
         SetAction setAction = new SetAction();
@@ -249,7 +250,7 @@ public class SpecDataUnitsFrame
         JLabel label = new JLabel( "Units: " );
         gbl.add( label, false );
         gbl.add( unitsBox, true );
-        unitsBox.setToolTipText( "Units that describe the data values ");
+        unitsBox.setToolTipText( "Units that describe the data values" );
 
         gbl.eatSpare();
 
@@ -271,7 +272,7 @@ public class SpecDataUnitsFrame
      * spectra must already have FluxFrame and the new units should be
      * matchable.
      */
-    public void matchCoordType( boolean set )
+    public void matchUnitsType( boolean set )
     {
         //  Get a list of the selected spectra.
         int[] indices = specList.getSelectedIndices();
@@ -314,33 +315,36 @@ public class SpecDataUnitsFrame
     }
 
     /**
-     *
+     * Convert current units of a spectrum to some new values.
      */
     protected void convertToUnits( SpecData spec, String units )
     {
-        //  XXX Conversion requires an AST FrameSet that is using a FluxFrame,
-        //  plus if the AST FrameSet is re-created (from the data units) then
-        //  these will be lost, so we may need to transform the actual data
-        //  values themselves. For now just use a mapping, but since this is
-        //  the one created by the SpecData object it will be quite volatile.
+        //  To convert the data units of a spectrum we need to set the
+        //  apparent units of the underlying SpecData object. We need to do it
+        //  this way, rather than say by just modifying the FluxFrame units,
+        //  as the data values themselves may be immutable and without being
+        //  able to modify the data values any changes we make will be lost
+        //  when the plot FrameSet is re-generated.
+        spec.setApparentDataUnits( units );
+
+        // Do a full update to get the changes propagated throughout.
         try {
-            FrameSet frameSet = spec.getAst().getRef();
-            FrameSet localCopy = (FrameSet) frameSet.copy();
-            localCopy.set( "unit(2)=" + units );
-            frameSet.set( "unit(2)=" + units );
+            spec.initialiseAst();
             
-            // Just cause a global list update, as we don't want to
-            // re-generate the AST frameset (for which we'd use
-            // spec.initialiseAst()).
+            //  Check if the change has succeeded.
+            if ( spec.getApparentDataUnits() == null ) {
+                throw new SplatException( "Cannot convert to new data units" );
+            }
             globalList.notifySpecListeners( spec );
         }
-        catch (AstException e) {
-            new ExceptionDialog(this,"Failed to convert to new data units",e);
+        catch (SplatException e) {
+            new ExceptionDialog( this,  "Failed to convert to new " +
+                                 "data units", e );
         }
     }
 
     /**
-     *
+     * Set data units of the spectrum.
      */
     protected void setToUnits( SpecData spec, String units )
     {
@@ -442,7 +446,7 @@ public class SpecDataUnitsFrame
         }
         public void actionPerformed( ActionEvent ae )
         {
-            matchCoordType( false );
+            matchUnitsType( false );
         }
     }
 
@@ -462,7 +466,7 @@ public class SpecDataUnitsFrame
         }
         public void actionPerformed( ActionEvent ae )
         {
-            matchCoordType( true );
+            matchUnitsType( true );
         }
     }
 
