@@ -382,7 +382,7 @@ public class ASTJ
      *  @param end   last position in input base frame coordinates (GRID)
      *  @param label label for the data units (can be blank).
      *  @param units data units (can be blank), if given these will be used to
-     *               construct a FluxFrame which may be part of a
+     *               construct a FluxFrame which will be part of a
      *               SpecFluxFrame, if a SpecFrame can also be derived.
      *  @param dist  Spectral coordinates should be shown as a
      *               distance (rather than coordinate).
@@ -503,17 +503,22 @@ public class ASTJ
         boolean haveSpecFrame = f1 instanceof SpecFrame;
 
         // If we have data units that can be understood (as some kind of flux
-        // in general), then create a FluxFrame using them. Otherwise we use a
-        // plain Frame to just represent the data values/coordinates.
+        // in general), then create a FluxFrame using them, but only if we
+        // also have a SpecFrame. A FluxFrame without a SpecFrame may not be
+        // very useful as unit transformations will fail anyway (they require
+        // a spectral coordinate, which is why you need both to create a
+        // SpecFluxFrame).  Otherwise we use a plain Frame to just represent
+        // the data values.
         Frame f2 = null;
-        if ( ! units.equals( "" ) && ! units.equals( "unknown" ) ) {
+        if ( haveSpecFrame && 
+             ! units.equals( "" ) && ! units.equals( "unknown" ) ) {
             try {
                 f2 = createFluxFrame( units, null, true );
             }
             catch (AstException e) {
                 //  Units are invalid.
                 f2 = null;
-                logger.info( "Data units: " + units  + " (" + 
+                logger.info( "Data units: " + units  + " (" +
                              e.getMessage() + ")" );
             }
         }
@@ -579,7 +584,7 @@ public class ASTJ
      * attributes. If throwError is true then a failure results in an
      * AstException being thrown, otherwise a null is returned on failure.
      */
-    public static FluxFrame createFluxFrame( String units, String attributes, 
+    public static FluxFrame createFluxFrame( String units, String attributes,
                                              boolean throwError )
         throws AstException
     {
