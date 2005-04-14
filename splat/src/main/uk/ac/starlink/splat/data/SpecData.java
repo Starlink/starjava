@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.Mapping;
@@ -165,6 +166,7 @@ public class SpecData
         this.impl = impl;
         shortName = impl.getShortName();
         fullName = impl.getFullName();
+        apparentDataUnits = null;
         if ( ! check || ( check && impl.getData() != null  ) ) {
             readData();
         }
@@ -193,7 +195,9 @@ public class SpecData
         this.impl = null;
         this.xPos = null;
         this.yPos = null;
+        this.yPosOri = null;
         this.yErr = null;
+        this.yErrOri = null;
         this.astJ = null;
         super.finalize();
     }
@@ -348,11 +352,13 @@ public class SpecData
      * The Y data values for the spectrum.
      */
     protected double[] yPos = null;
+    protected double[] yPosOri = null;
 
     /**
      * The Y data errors for the spectrum.
      */
     protected double[] yErr = null;
+    protected double[] yErrOri = null;
 
     /**
      * Symbolic name of the spectrum.
@@ -502,6 +508,15 @@ public class SpecData
     protected String serializedDataUnits = null;
     protected String serializedDataLabel = null;
 
+    /**
+     * The apparent data units. If possible conversion from the actual data
+     * units to these values will occur (this is achieved by transforming the
+     * data values using the FluxFrame part of the spectral AST FrameSet). If
+     * not possible then these will be ignored.
+     */
+    protected String apparentDataUnits = null;
+
+
     //  ==============
     //  Public methods
     //  ==============
@@ -585,7 +600,8 @@ public class SpecData
 
 
     /**
-     * Set the data units.
+     * Set the data units of the underlying representation. This will not
+     * cause any modification of the data value themselves.
      *
      * @param dataUnits data units string in AST format.
      */
@@ -603,6 +619,30 @@ public class SpecData
     public void setDataLabel( String dataLabel )
     {
         impl.setDataLabel( dataLabel );
+    }
+
+    /**
+     * Set the apparent data units. If possible the spectral FrameSet will
+     * present the data values in these units. This usually requires a
+     * FluxFrame, i.e. the underlying data must have recognised data units.
+     * <p>
+     * These units will not be used until the next regeneration of the
+     * spectral FrameSet. A null value will return to the original units.
+     *
+     * @param dataUnits apparent data units string in AST format.
+     */
+    public void setApparentDataUnits( String dataUnits )
+    {
+        apparentDataUnits = dataUnits;
+    }
+
+    /**
+     * Get the apparent data units currently in use. These are null then they
+     * have not been set, or have been found invalid.
+     */
+    public String getApparentDataUnits()
+    {
+        return apparentDataUnits;
     }
 
     /**
@@ -1333,7 +1373,9 @@ public class SpecData
         //  Get the spectrum data counts and errors (can be null).
         try {
             yPos = impl.getData();
+            yPosOri = yPos;
             yErr = impl.getDataErrors();
+            yErrOri = yPos;
         }
         catch (RuntimeException e) {
             // None specific errors, like no data...
@@ -1413,6 +1455,9 @@ public class SpecData
                 xPos = tPos;
                 tPos = null;
 
+                //  Set the apparent data units, if possible.
+                convertToApparentDataUnits();
+
                 //  Set the axis range.
                 setRange();
             }
@@ -1422,6 +1467,76 @@ public class SpecData
         }
     }
 
+    /**
+     * Convert the data units to some new value, if possible.
+     */
+    protected void convertToApparentDataUnits()
+    {
+        if ( apparentDataUnits == null ||
+             apparentDataUnits.equals( "Unknown" ) ) {
+            return;
+        }
+
+        //  To do this we need to modify the data values and then set the
+        //  data units of the Frame representing the data value to
+        //  match. This necessarily means creating a memory copy of the
+        //  data values. We work with the full Frame, rather than extracting
+        //  the second axis, as FluxFrames will only transform properly when
+        //  part of a SpecFluxFrame (to get from pre frequency to per
+        //  wavelength requires the spectral coordinate).
+        
+        //  Get a reference to the current Frame. This should be a
+        //  SpecFluxFrame or a plain CmpFrame.
+        FrameSet frameSet = astJ.getRef();
+        Frame currentFrame = frameSet.getFrame( FrameSet.AST__CURRENT );
+        
+        //  Make a copy of this and set the new units.
+        Frame targetFrame = (Frame) currentFrame.copy();
+        targetFrame.setActiveUnit( true );
+        targetFrame.set( "unit(2)=" + apparentDataUnits );
+        
+        //  Now try to convert between them
+        currentFrame.setActiveUnit( true );
+        Mapping mapping = currentFrame.convert( targetFrame, "" );
+        if ( mapping == null ) {
+            
+            //  If fails then just use the values we have.
+            logger.info( shortName + ": cannot data units from " + 
+                         currentFrame.getC( "unit" ) + " to " + 
+                         apparentDataUnits );
+            apparentDataUnits = null;
+            return;
+        }
+
+        //  Now transform the original data values, not ones that may have
+        //  already been transformed. The FrameSet will match these.
+        try {
+            double[][] tmp1 = mapping.tran2( yPos.length, xPos, yPosOri, 
+                                             true );
+            if ( yErr != null ) {
+                double[][] tmp2 = mapping.tran2( yPos.length, xPos, yErrOri, 
+                                                 true );
+                yErr = new double[yPos.length];
+                for ( int i = 0; i < yPos.length; i++ ) {
+                    yErr[i] = tmp2[1][i];
+                }
+            }
+            yPos = new double[yPos.length];
+            for ( int i = 0; i < yPos.length; i++ ) {
+                yPos[i] = tmp1[1][i];
+            }
+        }
+        catch (AstException e) {
+            logger.info( shortName + ": failed to convert to new data units ( "
+                         + e.getMessage() + " )" );
+            apparentDataUnits = null;
+            return;
+        }
+
+        //  And set the data units.
+        currentFrame.setActiveUnit( false );
+        currentFrame.set( "unit(2)=" + apparentDataUnits );
+    }
 
     /**
      * Return the most significant axis of the data held by the
@@ -1486,7 +1601,7 @@ public class SpecData
                         yMax = yPos[i];
                         yMaxX = xPos[i];
                     }
-                    
+
                     tmp = yPos[i] - ( yErr[i] * errorNSigma );
                     if ( tmp < fullYMin ) {
                         fullYMin = tmp;
@@ -1582,7 +1697,7 @@ public class SpecData
      *        These can be in physical or graphics coordinates.
      * @param physical whether limits are physical or graphical.
      */
-    public void drawSpec( Grf grf, Plot plot, double[] limits, 
+    public void drawSpec( Grf grf, Plot plot, double[] limits,
                           boolean physical )
     {
         //  Get a list of positions suitable for transforming.
@@ -2241,7 +2356,7 @@ public class SpecData
         //  Store data units and label.
         serializedDataUnits = impl.getProperty( "units" );
         serializedDataLabel = impl.getProperty( "label" );
-        
+
         //  And store all member variables.
         out.defaultWriteObject();
 
@@ -2252,7 +2367,7 @@ public class SpecData
     /**
      * Restore an object from a serialized state. Note all objects restored by
      * this route are assigned a MEMSpecDataImpl object, as the association
-     * between a disk file and deserialized object cannot be guaranteed 
+     * between a disk file and deserialized object cannot be guaranteed
      * (TODO: might like to store some details about the original file
      * somewhere). This method is also necessary so that AST objects can be
      * restored.
@@ -2288,7 +2403,7 @@ public class SpecData
                 }
 
                 if ( haveYDataErrors() ) {
-                    newImpl.setFullData( frameSet, getYData(), 
+                    newImpl.setFullData( frameSet, getYData(),
                                          getYDataErrors() );
                 }
                 else {
@@ -2297,7 +2412,7 @@ public class SpecData
             }
             else {
                 if ( haveYDataErrors() ) {
-                    newImpl.setSimpleData( getXData(), getYData(), 
+                    newImpl.setSimpleData( getXData(), getYData(),
                                            getYDataErrors() );
                 }
                 else {
