@@ -12,17 +12,37 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.util.StarEntityResolver;
 
-class TableStreamer extends TableXMLReader implements TableHandler {
+/**
+ * Content which goes through a SAX stream and just extracts
+ * the data from a single TABLE element, copying its metadata and data
+ * to a given TableSink.
+ * <p>
+ * A previous version of this class skipped all elements until it
+ * found the TABLE element it was looking for.  This is a bit too
+ * drastic - other parts of the DOM may be required in case the
+ * required TABLE references them using by ID using <tt>ref</tt> attributes.
+ *
+ * @author   Mark Taylor
+ */
+class TableStreamer extends TableContentHandler implements TableHandler {
 
     private int skipTables_;
     private final TableSink sink_;
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.votable" );
 
-    public TableStreamer( XMLReader parent, TableSink sink, int itable,
-                          boolean strict ) {
-        super( parent, strict );
+    /**
+     * Constructor.
+     *
+     * @param   sink  table destination
+     * @param   itable   index of table to be streamed - 0 means the first
+     *          TABLE element encountered, 1 means the second etc
+     * @param  strict whether to enforce strict reading of the VOTable standard
+     */
+    public TableStreamer( TableSink sink, int itable, boolean strict ) {
+        super( strict );
         setTableHandler( null );
         setReadHrefTables( false );
         sink_ = sink;
@@ -104,6 +124,9 @@ class TableStreamer extends TableXMLReader implements TableHandler {
                                 .initCause( e );
         }
 
+        /* Install a custom entity resolver. */
+        parser.setEntityResolver( StarEntityResolver.getInstance() );
+
         /* Install an error handler. */
         parser.setErrorHandler( new ErrorHandler() {
             public void error( SAXParseException e ) {
@@ -117,16 +140,15 @@ class TableStreamer extends TableXMLReader implements TableHandler {
             }
         } );
 
-        /* Filter the SAX parse so that it pulls out data from one table
+        /* Install a content handler which can pull out data from one table
          * as required. */
-        TableStreamer tableParser = 
-            new TableStreamer( parser, sink, itable, strict );
+        parser.setContentHandler( new TableStreamer( sink, itable, strict ) );
 
         /* Do the parse.  We expect to be signalled by the handler with a
          * SuccessfulCompletionException if the table gets copied.
          * Otherwise, it hasn't happened. */
         try {
-            tableParser.parse( saxsrc );
+            parser.parse( saxsrc );
         }
         catch ( SuccessfulCompletionException e ) {
             return;

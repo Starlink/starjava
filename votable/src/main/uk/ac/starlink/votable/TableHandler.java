@@ -9,7 +9,7 @@ import org.xml.sax.SAXException;
  *
  * @author   Mark Taylor (Starlink)
  * @since    15 Apr 2005
- * @see   TableXMLReader
+ * @see   TableContentHandler
  */
 public interface TableHandler {
 
