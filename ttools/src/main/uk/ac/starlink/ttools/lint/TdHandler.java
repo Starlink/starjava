@@ -18,10 +18,12 @@ public class TdHandler extends ElementHandler {
         DataHandler data = (DataHandler) 
                            family.getAncestor( DataHandler.class );
         if ( data != null ) {
-            ValueParser parser = data.getField( family.getSiblingIndex() )
-                                     .getParser();
-            if ( parser != null ) {
-                parser.checkString( content_.toString() );
+            FieldHandler field = data.getField( family.getSiblingIndex() );
+            if ( field != null ) {
+                ValueParser parser = field.getParser();
+                if ( parser != null ) {
+                    parser.checkString( content_.toString() );
+                }
             }
         }
         else {
