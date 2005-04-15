@@ -234,6 +234,9 @@ public class SerializerTest extends TestCase {
             catch ( SAXException e ) {
                 // ok
             }
+            catch ( IOException e ) {
+                // ok
+            }
         }
         catch ( ConnectException e ) {
             System.err.println( "Couldn't perform test - failed to make " +
