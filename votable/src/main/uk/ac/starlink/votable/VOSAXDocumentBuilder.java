@@ -25,7 +25,7 @@ import uk.ac.starlink.votable.dom.DelegatingDocument;
  * @author   Mark Taylor (Starlink)
  * @since    9 Sep 2004
  */
-public class VOSAXDocumentBuilder implements SAXDocumentBuilder {
+class VOSAXDocumentBuilder implements SAXDocumentBuilder {
 
     private Locator locator_;
     private VODocument doc_;
