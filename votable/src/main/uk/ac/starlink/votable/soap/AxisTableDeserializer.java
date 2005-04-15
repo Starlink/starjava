@@ -6,13 +6,13 @@ import org.apache.axis.encoding.DeserializationContext;
 import org.apache.axis.message.SOAPHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 import org.w3c.dom.Element;
+import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.votable.TableElement;
-import uk.ac.starlink.votable.VODocument;
-import uk.ac.starlink.votable.VOElement;
-import uk.ac.starlink.votable.VOSAXDocumentBuilder;
-import uk.ac.starlink.votable.VOStarTable;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.votable.TableContentHandler;
+import uk.ac.starlink.votable.TableHandler;
 
 /**
  * Custom deserializer for VOTables.
@@ -26,17 +26,31 @@ import uk.ac.starlink.votable.VOStarTable;
  * @author   Mark Taylor (Starlink)
  * @since    23 Mar 2005
  */
-public class AxisTableDeserializer extends DeserializerImpl {
+public class AxisTableDeserializer extends DeserializerImpl
+                                   implements TableHandler {
 
+    private final StoragePolicy storagePolicy_;
     private StarTable starTable_;
-    private VOSAXDocumentBuilder voParser_;
+    private TableContentHandler voParser_;
+    private RowStore rowStore_;
+    private boolean done_;
+
+    /**
+     * Constructor.
+     *
+     * @param  storagePolicy  policy for storing streamed table data
+     */
+    public AxisTableDeserializer( StoragePolicy storagePolicy ) {
+        storagePolicy_ = storagePolicy;
+    }
 
     public SOAPHandler onStartChild( String namespace, String localName,
                                      String prefix, Attributes atts,
                                      DeserializationContext context )
             throws SAXException {
         if ( "VOTABLE".equals( localName ) ) {
-            voParser_ = new VOSAXDocumentBuilder( true );
+            voParser_ = new TableContentHandler( true );
+            voParser_.setTableHandler( this );
             voParser_.startDocument();
             return new DelegatingSOAPHandler( voParser_ );
         }
@@ -48,9 +62,48 @@ public class AxisTableDeserializer extends DeserializerImpl {
     public void onEndElement( String namespace, String localName,
                               DeserializationContext context )
             throws SAXException {
-        if ( componentsReady() ) {
+        if ( starTable_ != null ) {
             valueComplete();
         }
+    }
+
+    public void startTable( StarTable meta ) {
+        rowStore_ = storagePolicy_.makeConfiguredRowStore( meta );
+    }
+
+    public void rowData( Object[] row ) throws SAXException {
+        try {
+            rowStore_.acceptRow( row );
+        }
+        catch ( IOException e ) {
+            if ( e.getCause() instanceof SAXException ) {
+                throw (SAXException) e.getCause();
+            }
+            else {
+                throw (SAXException)
+                      new SAXParseException( e.getMessage(),
+                                             voParser_.getLocator() )
+                     .initCause( e );
+            }
+        }
+    }
+
+    public void endTable() throws SAXException {
+        try {
+            rowStore_.endRows();
+        }
+        catch ( IOException e ) {
+            if ( e.getCause() instanceof SAXException ) {
+                throw (SAXException) e.getCause();
+            }
+            else {
+                throw (SAXException)
+                      new SAXParseException( e.getMessage(),
+                                             voParser_.getLocator() )
+                     .initCause( e );
+            }
+        }
+        starTable_ = rowStore_.getStarTable();
     }
 
     public Object getValue() {
@@ -58,28 +111,14 @@ public class AxisTableDeserializer extends DeserializerImpl {
     }
 
     public boolean componentsReady() {
-        return voParser_ != null
-            && voParser_.getDocument() != null
-            && voParser_.getDocument().getDocumentElement() != null;
+        return done_;
     }
 
     public void valueComplete() throws SAXException {
-        if ( voParser_ != null && starTable_ == null ) {
+        if ( ! done_ ) {
             voParser_.endDocument();
-            VODocument doc = (VODocument) voParser_.getDocument();
-            VOElement docEl = (VOElement) doc.getDocumentElement();
-            TableElement tabEl = 
-                (TableElement) docEl.getChildByName( "RESOURCE" )
-                                    .getChildByName( "TABLE" );
-            try {
-                starTable_ = new VOStarTable( tabEl );
-                setValue( starTable_ );
-            }
-            catch ( IOException e ) {
-                throw (SAXException) 
-                      new SAXException( "VOTable deserialization failed" )
-                     .initCause( e );
-            }
+            setValue( starTable_ );
+            done_ = true;
         }
         super.valueComplete();
     }
