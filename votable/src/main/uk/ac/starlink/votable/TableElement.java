@@ -59,7 +59,7 @@ public class TableElement extends VOElement {
      * @return  the FIELD elements which describe the columns of this table
      */
     public FieldElement[] getFields() {
-        VOElement[] voels = getMetadata().getChildrenByName( "FIELD" );
+        VOElement[] voels = getMetadataElement().getChildrenByName( "FIELD" );
         FieldElement[] fels = new FieldElement[ voels.length ];
         System.arraycopy( voels, 0, fels, 0, voels.length );
         return fels;
@@ -143,6 +143,55 @@ public class TableElement extends VOElement {
      */
     void setData( TabularData tdata ) {
         tdata_ = tdata;
+    }
+
+    /**
+     * Returns a data-less StarTable which can serve as the metadata
+     * description for this table element, suitable for passing to a
+     * {@link TableHandler} or {@link uk.ac.starlink.table.TableSink}.
+     * This method should only be called before any TabularData has
+     * been assigned to this element (before {@link #setData} has 
+     * been called).
+     *
+     * @return   metadata table
+     */
+    StarTable getMetadataTable() {
+
+        /* Work out the number of rows we should report - either the 
+         * number in the table or -1, not 0. */
+        long nr;
+        if ( hasAttribute( "nrows" ) ) {
+            try {
+                nr = Long.parseLong( getAttribute( "nrows" ) );
+            }
+            catch ( NumberFormatException e ) {
+                nr = -1L;
+            }
+        }
+        else {
+            nr = -1L;
+        }
+        final long nrow = nr;
+
+        /* Construct a dummy TabularData containing no data. */
+        FieldElement[] fields = getFields();
+        int ncol = fields.length;
+        Class[] clazzes = new Class[ ncol ];
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            clazzes[ icol ] = fields[ icol ].getDecoder().getContentClass();
+        }
+        TabularData tdata = new TableBodies.EmptyTabularData( clazzes );
+
+        /* Return a VOStarTable using this element's metadata and the
+         * dummy, blank, data object. */
+        return new VOStarTable( this, tdata ) {
+            public long getRowCount() {
+                return nrow;
+            }
+            public boolean isRandom() {
+                return false;
+            }
+        };
     }
 
     /**
@@ -267,7 +316,7 @@ public class TableElement extends VOElement {
      *
      * @return   FIELD-bearing description element of this table
      */
-    private TableElement getMetadata() {
+    private TableElement getMetadataElement() {
         if ( hasAttribute( "ref" ) ) {
             String ref = getAttribute( "ref" );
             Node node = getOwnerDocument().getElementById( ref );
