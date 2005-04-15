@@ -1,11 +1,12 @@
 <?xml version='1.0'?>
 <!DOCTYPE VOTABLE SYSTEM 'http://us-vo.org/xml/VOTable.dtd'>
-<VOTABLE version='1.0'>
+<VOTABLE version='1.1'>
 <!--
  !  VOTable written by uk.ac.starlink.votable.VOTableWriter
  !-->
 <RESOURCE>
-<PARAM name="Author" value="Mark Taylor" ID="author-id"/>
+<PARAM name="Author" value="Mark Taylor" ID="author-id"
+       datatype="char" arraysize="*"/>
 <TABLE name="main-animals" ID="t1">
 <FIELD datatype="int" name="index"/>
 <FIELD arraysize="8" datatype="char" name="Species"/>
@@ -17,7 +18,7 @@
   <FIELDref ref="legs-id"/>
   <FIELDref ref="height-id"/>
   <PARAMref ref="author-id"/>
-  <PARAM name="Planet" value="Earth"/>
+  <PARAM name="Planet" value="Earth" datatype="char" arraysize="*"/>
 </GROUP>
 <DATA>
 <TABLEDATA>
