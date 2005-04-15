@@ -92,14 +92,26 @@ public class VOStarTable extends AbstractStarTable {
     } );
 
     /**
-     * Construct a VOStarTable from a VOTable <tt>Table</tt> object.
+     * Construct a VOStarTable from a TABLE element.
+     * The data itself is inferred or constructed from the state and
+     * content of the element.
      *
      * @param  votable  Table VOElement
      */
     public VOStarTable( TableElement votable ) throws IOException {
+        this( votable, votable.getData() );
+    }
+
+    /**
+     * Construct a VOStarTable from a TABLE element forcing a particular
+     * data implementation.
+     *
+     * @param  votable  Table VOElement, which supplies the table's metadata
+     * @param  tdata   object supplying the table's data
+     */
+    VOStarTable( TableElement votable, TabularData tdata ) {
         this.votable = votable;
-        this.tdata = votable.getData();
-        int ncol = tdata.getColumnCount();
+        this.tdata = tdata;
         setName( calculateName( votable ) );
     }
 
@@ -408,5 +420,4 @@ public class VOStarTable extends AbstractStarTable {
             return new DescribedValue( vinfo, href );
         }
     }
-
 }
