@@ -5,6 +5,7 @@ import java.util.Iterator;
 import javax.xml.rpc.encoding.Deserializer;
 import org.apache.axis.Constants;
 import org.apache.axis.encoding.DeserializerFactory;
+import uk.ac.starlink.table.StoragePolicy;
 
 /**
  * Custom deserializer factory for streaming StarTables using AXIS.
@@ -15,7 +16,7 @@ import org.apache.axis.encoding.DeserializerFactory;
 public class AxisTableDeserializerFactory implements DeserializerFactory {
 
     public Deserializer getDeserializerAs( String mechanismType ) {
-        return new AxisTableDeserializer();
+        return new AxisTableDeserializer( StoragePolicy.getDefaultPolicy() );
     }
 
     public Iterator getSupportedMechanismTypes() {
