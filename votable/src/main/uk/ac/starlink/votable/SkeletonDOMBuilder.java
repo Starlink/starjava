@@ -133,7 +133,9 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
 
         public void startDocument() throws SAXException {
             super.startDocument();
-            systemId_ = getLocator().getSystemId();
+            if ( getLocator() != null ) {
+                systemId_ = getLocator().getSystemId();
+            }
         }
 
         public void startElement( String namespaceURI, String localName,
