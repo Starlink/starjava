@@ -1,11 +1,17 @@
 package uk.ac.starlink.ttools;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableContentHandler;
@@ -17,6 +23,7 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.LexicalHandler;
+import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
@@ -26,12 +33,17 @@ import org.xml.sax.helpers.DefaultHandler;
  * unchanged apart from events within a DATA element, which are written
  * in one of the VOTable encodings as selected by the user.
  *
+ * <p>One exception to the rule is that, for implementation-specific 
+ * reasons, FIELD elements with <tt>datatype="unsignedByte"</tt> are
+ * changed to have <tt>datatype="short"</tt> instead.
+ *
  * @author   Mark Taylor (Starlink)
  * @since    18 Apr 2005
  */
 class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
 
     private final DataFormat format_;
+    private final boolean inline_;
     private final String baseLoc_;
     private final TableContentHandler votParser_;
     private final SAXWriter saxWriter_;
@@ -43,6 +55,10 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
     private StreamRowStore streamStore_;
     private BufferedWriter out_;
     private Locator locator_;
+    private int iTable_;
+
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools" );
 
     /**
      * Constructor.
@@ -51,11 +67,19 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
      *                 VOTable standard
      * @param  format  encoding type for output DATA elements; may be null
      *                 for DATA-less output
+     * @param  inline  true for tables written inline, false for tables written
+     *                 to an href-referenced stream
      * @param  base    base table location; used to construct URIs for
-     *                 out-of-line table streams
+     *                 out-of-line table streams (only used if inline=false)
      */
-    public VotCopyHandler( boolean strict, DataFormat format, String base ) {
+    public VotCopyHandler( boolean strict, DataFormat format, boolean inline,
+                           String base ) {
+        if ( ! inline && base == null ) {
+            throw new IllegalArgumentException( "Must specify base location " +
+                                                "for out-of-line tables" );
+        }
         format_ = format;
+        inline_ = inline;
         baseLoc_ = base;
         votParser_ = new TableContentHandler( strict );
         votParser_.setReadHrefTables( true );
@@ -79,19 +103,18 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
     }
 
     public void startTable( final StarTable meta ) throws SAXException {
+        iTable_++;
         assert handler_ == discardHandler_;
         assert streamThread_ == null;
         streamStore_ = new StreamRowStore();
         streamThread_ = new Thread( "Table Streamer" ) {
+          
             public void run() {
                 try {
                     if ( format_ != null ) {
                         assert handler_ == discardHandler_;
                         streamStore_.acceptMetadata( meta );
-                        StarTable table = streamStore_.getStarTable();
-                        VOSerializer voser =
-                             VOSerializer.makeSerializer( format_, table );
-                        voser.writeInlineDataElement( out_ );
+                        writeDataElement( streamStore_.getStarTable() );
                         assert handler_ == discardHandler_;
                     }
                     else {
@@ -155,6 +178,7 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
     public void startDocument() throws SAXException {
         votParser_.startDocument();
         saxWriter_.startDocument();
+        iTable_ = 0;
     }
 
     public void endDocument() throws SAXException {
@@ -169,6 +193,22 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
         if ( "DATA".equals( localName ) ) {
             handlerStack_.push( handler_ );
             handler_ = discardHandler_;
+        }
+        else if ( "FIELD".equals( localName ) ) {
+
+            /* Unfortunately we have to translate unsignedByte datatypes
+             * to short ones here.  This is because the serializers in the
+             * VOTable package all use short as an internal representation
+             * for unsignedByte because of the difficulties of representing
+             * an unsigned value in Java. */
+            if ( "unsignedByte".equals( atts.getValue( "datatype" ) ) ) {
+                AttributesImpl newAtts = new AttributesImpl( atts );
+                int itype = newAtts.getIndex( "datatype" );
+                newAtts.setValue( itype, "short" );
+                atts = newAtts;
+                log( Level.WARNING, "FIELD datatype has been changed from " +
+                                    "unsignedByte to short" );
+            }
         }
         handler_.startElement( namespaceURI, localName, qName, atts );
     }
@@ -237,6 +277,8 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
 
     public void startDTD( String name, String publicId, String systemId )
             throws SAXException {
+        handlerStack_.push( handler_ );
+        handler_ = discardHandler_;
         if ( handler_ instanceof LexicalHandler ) {
             ((LexicalHandler) handler_).startDTD( name, publicId, systemId );
         }
@@ -246,6 +288,7 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
         if ( handler_ instanceof LexicalHandler ) {
             ((LexicalHandler) handler_).endDTD();
         }
+        handler_ = handlerStack_.pop();
     }
 
     public void startEntity( String name ) throws SAXException {
@@ -258,6 +301,70 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
         if ( handler_ instanceof LexicalHandler ) {
             ((LexicalHandler) handler_).endEntity( name );
         }
+    }
+
+    /**
+     * Outputs a DATA element representing a table to the destination stream
+     * according to the current settings.
+     *
+     * @param   table  table to write
+     */
+    private void writeDataElement( StarTable table ) throws IOException {
+
+        /* Construct a serializer which can write the table data. */
+        VOSerializer voser = VOSerializer.makeSerializer( format_, table );
+
+        /* If it's out-of-line, open a new file for output and write data
+         * to it. */
+        if ( ( format_ == DataFormat.BINARY || format_ == DataFormat.FITS ) &&
+             ! inline_ && baseLoc_ != null ) {
+            String ext = format_ == DataFormat.BINARY ? ".bin" : ".fits";
+            File file = new File( baseLoc_ + "-" + iTable_ + ext );
+            if ( file.exists() ) {
+                log( Level.WARNING, "Overwriting file " + file + " for table " +
+                                    iTable_ + " data" );
+            }
+            else {
+                log( Level.INFO, "Writing data for table " + iTable_ + 
+                                 " in file " + file );
+            }
+            String href = file.isAbsolute() ? file.toString()
+                                            : file.getName();
+            DataOutputStream datstrm = new DataOutputStream(
+                                           new BufferedOutputStream(
+                                               new FileOutputStream( file ) ) );
+            voser.writeHrefDataElement( out_, href, datstrm );
+            datstrm.flush();
+            datstrm.close();
+        }
+
+        /* Otherwise, just write the data inline. */
+        else {
+            voser.writeInlineDataElement( out_ );
+        }
+    }
+
+    /**
+     * Writes a message through the log system.
+     *
+     * @param  level   log level
+     * @param  msg    message
+     */
+    private void log( Level level, String msg ) {
+        StringBuffer buf = new StringBuffer();
+        if ( locator_ != null ) {
+            int line = locator_.getLineNumber();
+            int col = locator_.getColumnNumber();
+            if ( line >= 0 ) {
+                buf.append( "l." + line );
+                if ( col >= 0 ) {
+                    buf.append( ", c." + col );
+                }
+                buf.append( ": " );
+            }
+            buf.append( msg );
+        }
+        logger_.log( level, buf.toString() );
     }
 
 

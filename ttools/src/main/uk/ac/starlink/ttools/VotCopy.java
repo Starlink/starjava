@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,6 +61,7 @@ public class VotCopy {
         DataFormat format = DataFormat.TABLEDATA;
         Charset encoding = null;
         String base = null;
+        boolean inline = true;
         boolean debug = false;
         Boolean isStrict = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
@@ -105,6 +107,10 @@ public class VotCopy {
                     System.exit( 1 );
                 }
             }
+            else if ( arg.equals( "-href" ) ) {
+                it.remove();
+                inline = false;
+            }
             else if ( arg.equals( "-debug" ) ) {
                 it.remove();
                 debug = true;
@@ -136,6 +142,18 @@ public class VotCopy {
             System.exit( 1 );
         }
 
+        /* Work out base filename if required. */
+        if ( ! inline && base == null ) {
+            if ( outName == null || "-".equals( outName ) ) {
+                System.err.println( "Must supply -base argument with -href " +
+                                    "output to a stream" );
+                System.exit( 1 );
+            }
+            else {
+                base = outName.replaceFirst( "\\.[a-zA-Z]*$", "" );
+            }
+        }
+
         /* Get input and output streams. */
         String systemId = inName.equals( "-" ) ? "." : inName;
         InputStream in = null;
@@ -150,7 +168,7 @@ public class VotCopy {
             in = new BufferedInputStream( in );
 
             /* Do the copy. */
-            saxCopy( systemId, in, out, format, base, strict );
+            saxCopy( systemId, in, out, format, inline, base, strict );
             out.flush();
         }
         catch ( IOException e ) {
@@ -204,7 +222,8 @@ public class VotCopy {
      * @param  strict    whether to enforce VOTable standard strictly
      */
     public static void saxCopy( String systemId, InputStream in, Writer out,
-                                DataFormat format, String base, boolean strict )
+                                DataFormat format, boolean inline, String base,
+                                boolean strict )
             throws SAXException, IOException {
 
         /* Get a SAX parser. */
@@ -240,7 +259,8 @@ public class VotCopy {
 
         /* Install a content handler which can pull out data from one table
          * as required. */
-        VotCopyHandler copier = new VotCopyHandler( strict, format, base );
+        VotCopyHandler copier = new VotCopyHandler( strict, format, inline,
+                                                    base );
         copier.setOutput( out );
         parser.setContentHandler( copier );
 
@@ -302,7 +322,7 @@ public class VotCopy {
     private static boolean trySetFeature( SAXParserFactory spfact,
                                           String feature, boolean value ) {
         try {
-            spfact.setFeature( "http://xml.org/sax/properties/" + feature, 
+            spfact.setFeature( "http://xml.org/sax/features/" + feature, 
                                value );
             return true;
         }
