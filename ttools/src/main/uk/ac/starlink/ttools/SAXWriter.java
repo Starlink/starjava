@@ -38,7 +38,6 @@ class SAXWriter implements ContentHandler, LexicalHandler {
     }
 
     public void startDocument() throws SAXException {
-        out( "<?xml version=\"1.0\"?>\n" );
     }
 
     public void endDocument() throws SAXException {
