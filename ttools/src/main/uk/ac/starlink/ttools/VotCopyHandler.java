@@ -103,7 +103,6 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
     }
 
     public void startTable( final StarTable meta ) throws SAXException {
-        iTable_++;
         assert handler_ == discardHandler_;
         assert streamThread_ == null;
         streamStore_ = new StreamRowStore();
@@ -309,7 +308,8 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
      *
      * @param   table  table to write
      */
-    private void writeDataElement( StarTable table ) throws IOException {
+    public void writeDataElement( StarTable table ) throws IOException {
+        iTable_++;
 
         /* Construct a serializer which can write the table data. */
         VOSerializer voser = VOSerializer.makeSerializer( format_, table );
@@ -362,8 +362,8 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
                 }
                 buf.append( ": " );
             }
-            buf.append( msg );
         }
+        buf.append( msg );
         logger_.log( level, buf.toString() );
     }
 
