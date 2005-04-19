@@ -60,7 +60,8 @@ public abstract class TableTask {
                     e.printStackTrace( System.err );
                 }
                 else {
-                    System.err.println( e.getMessage() );
+                    String msg = e.getMessage();
+                    System.err.println( msg == null ? e.toString() : msg );
                 }
                 return false;
             }
