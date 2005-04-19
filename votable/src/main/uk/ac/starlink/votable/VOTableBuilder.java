@@ -186,6 +186,9 @@ public class VOTableBuilder implements TableBuilder {
      * Invocation is synchronous, so the method only returns when the
      * streaming has been done (successfully or otherwise).
      *
+     * <p>For more flexible streamed access to VOTable data, use a 
+     * {@link TableContentHandler}.
+     *
      * @param  istrm  stream from which the VOTable document will be supplied
      * @param  sink   callback interface into which the table metadata and
      *                data will be dumped
