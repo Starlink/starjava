@@ -22,6 +22,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.ext.LexicalHandler;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.votable.DataFormat;
@@ -30,15 +31,14 @@ import uk.ac.starlink.votable.VOElementFactory;
 /**
  * Copies a VOTable XML document intact but with control over the
  * DATA encoding type.
- * Currently, some lexical details may be mangled or lost.
  *
  * @author   Mark Taylor (Starlink)
- * @since    22 Sep 2004
+ * @since    19 Apr 2005
  */
 public class VotCopy {
 
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.ttools" );
-    private static final String SAX_FEATURE = "http://xml.org/sax/features/";
+    private static final String SAX_PROPERTY = "http://xml.org/sax/properties/";
 
     /**
      * Main method.  See usage message (-h) for details.
@@ -50,6 +50,7 @@ public class VotCopy {
                      + " [-disk]"
                      + " [-base name]"
                      + " [-debug]"
+                     + " [-strict]"
                      + " [-f[ormat] tabledata|binary|fits|none]"
                      + " [-encode encoding]"
                      + " [<in> [<out>]]";
@@ -107,6 +108,10 @@ public class VotCopy {
             else if ( arg.equals( "-debug" ) ) {
                 it.remove();
                 debug = true;
+            }
+            else if ( arg.equals( "-strict" ) ) {
+                it.remove();
+                isStrict = Boolean.TRUE;
             }
             else if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
                 System.out.println( usage );
@@ -208,7 +213,8 @@ public class VotCopy {
             SAXParserFactory spfact = SAXParserFactory.newInstance();
             spfact.setValidating( false );
             spfact.setNamespaceAware( true );
-            spfact.setFeature( SAX_FEATURE + "namespace-prefixes", true );
+            trySetFeature( spfact, "namespace-prefixes", true );
+            trySetFeature( spfact, "external-general-entities", false );
             parser = spfact.newSAXParser().getXMLReader();
         }
         catch ( ParserConfigurationException e ) {
@@ -237,6 +243,16 @@ public class VotCopy {
         VotCopyHandler copier = new VotCopyHandler( strict, format, base );
         copier.setOutput( out );
         parser.setContentHandler( copier );
+
+        /* Try to set the lexical handler.  If this fails you just lose some
+         * lexical details such as comments and CDATA marked sections. */
+        try {
+            parser.setProperty( SAX_PROPERTY + "lexical-handler",
+                                (LexicalHandler) copier );
+        }
+        catch ( SAXException e ) {
+            logger_.info( "Lexical handler not set: " + e );
+        }
 
         /* Create a SAX input source. */
         InputSource saxsrc = new InputSource( in );
@@ -273,6 +289,29 @@ public class VotCopy {
         System.err.println( err.toString() );
         System.exit( 1 );
         throw new AssertionError();
+    }
+
+    /**
+     * Attempts to set a feature on a SAXParserFactory, but doesn't panic
+     * if it can't.
+     *
+     * @param  spfact   factory
+     * @param  feature  feature name <em>excluding</em> the 
+     *                  "http://xml.org/sax/features/" part
+     */
+    private static boolean trySetFeature( SAXParserFactory spfact,
+                                          String feature, boolean value ) {
+        try {
+            spfact.setFeature( "http://xml.org/sax/properties/" + feature, 
+                               value );
+            return true;
+        }
+        catch ( ParserConfigurationException e ) {
+            return false;
+        }
+        catch ( SAXException e ) {
+            return false;
+        }
     }
 
 }

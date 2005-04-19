@@ -7,6 +7,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.LexicalHandler;
 
 /**
  * SAX handler which does its best to reproduce an XML document by writing
@@ -15,11 +16,12 @@ import org.xml.sax.SAXParseException;
  * @author   Mark Taylor (Starlink)
  * @since    18 Apr 2005
  */
-class SAXWriter implements ContentHandler {
+class SAXWriter implements ContentHandler, LexicalHandler {
 
     private Writer out_;
     private Locator locator_;
     private String pendingTag_;
+    private boolean cdata_;
 
     /**
      * Sets the destination stream.  This method must be called before
@@ -127,6 +129,37 @@ class SAXWriter implements ContentHandler {
     public void endPrefixMapping( String prefix ) {
     }
 
+    public void comment( char[] ch, int start, int length )
+            throws SAXException {
+        flushTag();
+        out( "<!--" );
+        out( ch, start, length );
+        out( "-->" );
+    }
+
+    public void startCDATA() throws SAXException {
+        flushTag();
+        out( "<![CDATA[" );
+        cdata_ = true;
+    }
+
+    public void endCDATA() throws SAXException {
+        out( "]]>" );
+        cdata_ = false;
+    }
+
+    public void startDTD( String name, String publicId, String systemId ) {
+    }
+
+    public void endDTD() {
+    }
+
+    public void startEntity( String name ) {
+    }
+
+    public void endEntity( String name ) {
+    }
+
     /**
      * Ensures that any pending start tag has been output.
      */
@@ -211,23 +244,28 @@ class SAXWriter implements ContentHandler {
     private void escapeOut( char[] ch, int start, int leng )
             throws SAXException {
         try {
-            while ( leng-- > 0 ) {
-                char c = ch[ start++ ];
-                switch ( c ) {
-                    case '<':
-                        out_.write( "&lt;" );
-                        break;
-                    case '>':
-                        out_.write( "&gt;" );
-                        break;
-                    case '&':
-                        out_.write( "&amp;" );
-                        break;
-                    case '\"':
-                        out_.write( "&quot;" );
-                        break;
-                    default:
-                        out_.write( c );
+            if ( cdata_ ) {
+                out( ch, start, leng );
+            }
+            else {
+                while ( leng-- > 0 ) {
+                    char c = ch[ start++ ];
+                    switch ( c ) {
+                        case '<':
+                            out_.write( "&lt;" );
+                            break;
+                        case '>':
+                            out_.write( "&gt;" );
+                            break;
+                        case '&':
+                            out_.write( "&amp;" );
+                            break;
+                        case '\"':
+                            out_.write( "&quot;" );
+                            break;
+                        default:
+                            out_.write( c );
+                    }
                 }
             }
         }

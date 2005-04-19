@@ -16,6 +16,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
@@ -28,7 +29,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author   Mark Taylor (Starlink)
  * @since    18 Apr 2005
  */
-class VotCopyHandler implements ContentHandler, TableHandler {
+class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
 
     private final DataFormat format_;
     private final String baseLoc_;
@@ -36,6 +37,7 @@ class VotCopyHandler implements ContentHandler, TableHandler {
     private final SAXWriter saxWriter_;
     private final ContentHandler discardHandler_;
     private final HandlerStack handlerStack_;
+    private ContentHandler handler_;
     private Thread streamThread_;
     private Throwable streamError_;
     private StreamRowStore streamStore_;
@@ -61,7 +63,7 @@ class VotCopyHandler implements ContentHandler, TableHandler {
         saxWriter_ = new SAXWriter();
         discardHandler_ = new DefaultHandler();
         handlerStack_ = new HandlerStack();
-        handlerStack_.push( saxWriter_ );
+        handler_ = saxWriter_;
         setOutput( new OutputStreamWriter( System.out ) );
     }
 
@@ -77,20 +79,20 @@ class VotCopyHandler implements ContentHandler, TableHandler {
     }
 
     public void startTable( final StarTable meta ) throws SAXException {
-        assert handlerStack_.top() == discardHandler_;
+        assert handler_ == discardHandler_;
         assert streamThread_ == null;
         streamStore_ = new StreamRowStore();
         streamThread_ = new Thread( "Table Streamer" ) {
             public void run() {
                 try {
                     if ( format_ != null ) {
-                        assert handlerStack_.top() == discardHandler_;
+                        assert handler_ == discardHandler_;
                         streamStore_.acceptMetadata( meta );
                         StarTable table = streamStore_.getStarTable();
                         VOSerializer voser =
                              VOSerializer.makeSerializer( format_, table );
                         voser.writeInlineDataElement( out_ );
-                        assert handlerStack_.top() == discardHandler_;
+                        assert handler_ == discardHandler_;
                     }
                     else {
                         out_.write( "<!-- No data -->" );
@@ -125,7 +127,7 @@ class VotCopyHandler implements ContentHandler, TableHandler {
                   new SAXParseException( e.getMessage(), locator_ )
                  .initCause( e );
         }
-        assert handlerStack_.top() == discardHandler_;
+        assert handler_ == discardHandler_;
         streamThread_ = null;
 
         /* If an error was encountered during writing the table (at the
@@ -165,73 +167,110 @@ class VotCopyHandler implements ContentHandler, TableHandler {
             throws SAXException {
         votParser_.startElement( namespaceURI, localName, qName, atts );
         if ( "DATA".equals( localName ) ) {
-            handlerStack_.push( discardHandler_ );
+            handlerStack_.push( handler_ );
+            handler_ = discardHandler_;
         }
-        handlerStack_.top()
-                     .startElement( namespaceURI, localName, qName, atts );
+        handler_.startElement( namespaceURI, localName, qName, atts );
     }
 
     public void endElement( String namespaceURI, String localName,
                             String qName ) throws SAXException {
         votParser_.endElement( namespaceURI, localName, qName );
-        handlerStack_.top().endElement( namespaceURI, localName, qName );
+        handler_.endElement( namespaceURI, localName, qName );
         if ( "DATA".equals( localName ) ) {
-            handlerStack_.pop();
+            handler_ = handlerStack_.pop();
         }
     }
 
     public void characters( char[] ch, int start, int length )
             throws SAXException {
         votParser_.characters( ch, start, length );
-        handlerStack_.top().characters( ch, start, length );
+        handler_.characters( ch, start, length );
     }
 
     public void ignorableWhitespace( char[] ch, int start, int length )
             throws SAXException {
         votParser_.ignorableWhitespace( ch, start, length );
-        handlerStack_.top().ignorableWhitespace( ch, start, length );
+        handler_.ignorableWhitespace( ch, start, length );
     }
 
     public void startPrefixMapping( String prefix, String uri )
             throws SAXException {
         votParser_.startPrefixMapping( prefix, uri );
-        handlerStack_.top().startPrefixMapping( prefix, uri );
+        handler_.startPrefixMapping( prefix, uri );
     }
 
     public void endPrefixMapping( String prefix ) throws SAXException {
         votParser_.endPrefixMapping( prefix );
-        handlerStack_.top().endPrefixMapping( prefix );
+        handler_.endPrefixMapping( prefix );
     }
 
     public void skippedEntity( String name ) throws SAXException {
         votParser_.skippedEntity( name );
-        handlerStack_.top().skippedEntity( name );
+        handler_.skippedEntity( name );
     }
 
     public void processingInstruction( String target, String data )
             throws SAXException {
         votParser_.processingInstruction( target, data );
-        handlerStack_.top().processingInstruction( target, data );
+        handler_.processingInstruction( target, data );
     }
 
+    public void comment( char[] ch, int start, int length )
+            throws SAXException {
+        if ( handler_ instanceof LexicalHandler ) {
+            ((LexicalHandler) handler_).comment( ch, start, length );
+        }
+    }
+
+    public void startCDATA() throws SAXException {
+        if ( handler_ instanceof LexicalHandler ) {
+            ((LexicalHandler) handler_).startCDATA();
+        }
+    }
+
+    public void endCDATA() throws SAXException {
+        if ( handler_ instanceof LexicalHandler ) {
+            ((LexicalHandler) handler_).endCDATA();
+        }
+    }
+
+    public void startDTD( String name, String publicId, String systemId )
+            throws SAXException {
+        if ( handler_ instanceof LexicalHandler ) {
+            ((LexicalHandler) handler_).startDTD( name, publicId, systemId );
+        }
+    }
+
+    public void endDTD() throws SAXException {
+        if ( handler_ instanceof LexicalHandler ) {
+            ((LexicalHandler) handler_).endDTD();
+        }
+    }
+
+    public void startEntity( String name ) throws SAXException {
+        if ( handler_ instanceof LexicalHandler ) {
+            ((LexicalHandler) handler_).startEntity( name );
+        }
+    }
+
+    public void endEntity( String name ) throws SAXException {
+        if ( handler_ instanceof LexicalHandler ) {
+            ((LexicalHandler) handler_).endEntity( name );
+        }
+    }
+
+
     /**
-     * Helper class for managing the ContentHandler to which all non-specially
-     * handled SAX events get sent.  This may be overkill; as currently
-     * implemented all events are passed to a SAX copyer under normal
-     * circumstances, or ignored within a DATA element.
+     * Helper class for saving ContentHandler context.
+     * This may be overkill; as currently
+     * implemented all events are passed to a SAX copier under normal
+     * circumstances, or ignored within a DATA element, so there's only
+     * ever either zero or one element on the stack.
      */
     private static class HandlerStack {
         private final List stack_ = new ArrayList();
         private ContentHandler top_;
-
-        /**
-         * Returns the handler at the top of the stack.
-         *
-         * @param   current handler
-         */
-        public ContentHandler top() {
-            return top_;
-        }
 
         /**
          * Pushes a new handler on the stack.
