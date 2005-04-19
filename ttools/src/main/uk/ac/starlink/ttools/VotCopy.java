@@ -18,12 +18,16 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.votable.DataFormat;
@@ -52,6 +56,7 @@ public class VotCopy {
                      + " [-base name]"
                      + " [-debug]"
                      + " [-strict]"
+                     + " [-dom]"
                      + " [-f[ormat] tabledata|binary|fits|none]"
                      + " [-encode encoding]"
                      + " [<in> [<out>]]";
@@ -63,7 +68,9 @@ public class VotCopy {
         String base = null;
         boolean inline = true;
         boolean debug = false;
+        boolean dom = false;
         Boolean isStrict = null;
+        StoragePolicy policy = StoragePolicy.getDefaultPolicy();
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
@@ -114,6 +121,14 @@ public class VotCopy {
             else if ( arg.equals( "-debug" ) ) {
                 it.remove();
                 debug = true;
+            }
+            else if ( arg.equals( "-dom" ) ) {
+                it.remove();
+                dom = true;
+            }
+            else if ( arg.equals( "-disk" ) ) {
+                it.remove();
+                policy = StoragePolicy.PREFER_DISK;
             }
             else if ( arg.equals( "-strict" ) ) {
                 it.remove();
@@ -167,8 +182,30 @@ public class VotCopy {
                                    : new OutputStreamWriter( ostrm, encoding );
             in = new BufferedInputStream( in );
 
+            /* Output the XML declaration. */
+            out.write( "<?xml version=\"1.0\"" );
+            if ( encoding != null ) {
+                out.write( " encoding=\"" + encoding + "\"" );
+            }
+            out.write( "?>\n" );
+
+            /* Construct a handler which can take SAX and SAX-like events and 
+             * turn them into XML output. */
+            VotCopyHandler handler = 
+                new VotCopyHandler( strict, format, inline, base );
+            handler.setOutput( out );
+
+            /* Prepare a stream of SAX events. */
+            InputSource saxsrc = new InputSource( in );
+            saxsrc.setSystemId( systemId );
+
             /* Do the copy. */
-            saxCopy( systemId, in, out, format, inline, base, strict );
+            if ( dom ) {
+                domCopy( saxsrc, handler, policy );
+            }
+            else {
+                saxCopy( saxsrc, handler );
+            }
             out.flush();
         }
         catch ( IOException e ) {
@@ -214,19 +251,58 @@ public class VotCopy {
      * Copies the SAX stream to the output, writing TABLE DATA elements
      * in a given encoding.
      *
-     * @param  systemId  system ID of input stream
-     * @param  in        input stream
-     * @param  out       destination stream
-     * @param  format    VOTable encoding format (may be null for DATA-less)
-     * @param  base      base URI for out-of-line output tables
-     * @param  strict    whether to enforce VOTable standard strictly
+     * @param  saxSrc       SAX input source
+     * @param  copyHandler  handler which can consume SAX events - may be
+     *                      a LexicalHandler too
      */
-    public static void saxCopy( String systemId, InputStream in, Writer out,
-                                DataFormat format, boolean inline, String base,
-                                boolean strict )
+    public static void saxCopy( InputSource saxSrc, VotCopyHandler copyHandler )
             throws SAXException, IOException {
 
-        /* Get a SAX parser. */
+        /* Create a suitable parser. */
+        XMLReader parser = createParser();
+
+        /* Install the copying content handler. */
+        parser.setContentHandler( copyHandler );
+
+        /* Try to set the lexical handler.  If this fails you just lose some
+         * lexical details such as comments and CDATA marked sections. */
+        try {
+            parser.setProperty( SAX_PROPERTY + "lexical-handler",
+                                (LexicalHandler) copyHandler );
+        }
+        catch ( SAXException e ) {
+            logger_.info( "Lexical handler not set: " + e );
+        }
+
+        /* Do the parse. */
+        parser.parse( saxSrc );
+    }
+
+    public static void domCopy( InputSource saxSrc, VotCopyHandler copyHandler,
+                                StoragePolicy policy )
+            throws SAXException, IOException {
+
+        /* Prepare a stream of SAX events. */
+        Source xsrc = new SAXSource( createParser(), saxSrc );
+
+        /* Construct a VOTable specialised DOM from it. */
+        DOMSource dsrc = new VOElementFactory( policy )
+                        .transformToDOM( xsrc, false );
+
+        /* Turn this DOM into a stream of SAX events to be fed to the
+         * copy handler. */
+        new DOMWriter( copyHandler ).writeNode( dsrc.getNode() );
+    }
+
+    /**
+     * Constructs a SAX parser with suitable characteristics for copying
+     * SAX events.
+     *
+     * @return   new parser
+     */
+    private static XMLReader createParser() throws SAXException {
+
+        /* Create a SAX parser. */
         XMLReader parser;
         try {
             SAXParserFactory spfact = SAXParserFactory.newInstance();
@@ -257,29 +333,8 @@ public class VotCopy {
             }
         } );
 
-        /* Install a content handler which can pull out data from one table
-         * as required. */
-        VotCopyHandler copier = new VotCopyHandler( strict, format, inline,
-                                                    base );
-        copier.setOutput( out );
-        parser.setContentHandler( copier );
-
-        /* Try to set the lexical handler.  If this fails you just lose some
-         * lexical details such as comments and CDATA marked sections. */
-        try {
-            parser.setProperty( SAX_PROPERTY + "lexical-handler",
-                                (LexicalHandler) copier );
-        }
-        catch ( SAXException e ) {
-            logger_.info( "Lexical handler not set: " + e );
-        }
-
-        /* Create a SAX input source. */
-        InputSource saxsrc = new InputSource( in );
-        saxsrc.setSystemId( systemId );
-
-        /* Do the parse. */
-        parser.parse( saxsrc );
+        /* Return. */
+        return parser;
     }
 
     /**
