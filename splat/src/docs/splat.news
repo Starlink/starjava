@@ -35,6 +35,10 @@
    The data and coordinate units of the current spectrum in a Plot
    can now be modified to preset values quickly.
 
+   Motion tracker in plot windows can now report the plot coordinates.
+   The default continues to be to report the nearest coordinate and 
+   data value of the current spectrum.
+
 
 1 Starlink SPLAT now a tool for the Virtual Observatory
 
