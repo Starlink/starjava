@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools;
+package uk.ac.starlink.ttools.copy;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -12,13 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import uk.ac.starlink.table.RowStore;
-import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.votable.DataFormat;
-import uk.ac.starlink.votable.TableContentHandler;
-import uk.ac.starlink.votable.TableHandler;
-import uk.ac.starlink.votable.VOSerializer;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
@@ -27,6 +20,15 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.table.RowStore;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.ttools.StreamRereadException;
+import uk.ac.starlink.ttools.StreamRowStore;
+import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.TableContentHandler;
+import uk.ac.starlink.votable.TableHandler;
+import uk.ac.starlink.votable.VOSerializer;
 
 /**
  * SAX content handler which takes SAX events and converts them to
@@ -42,7 +44,8 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author   Mark Taylor (Starlink)
  * @since    18 Apr 2005
  */
-class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
+public class VotCopyHandler
+        implements ContentHandler, LexicalHandler, TableHandler {
 
     private final DataFormat format_;
     private final boolean inline_;
@@ -71,7 +74,7 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
      * but may not be possible under some circumstances, e.g. for FITS
      * output when the number of rows is not known in advance.  
      * If a streamed copy is attempted when it's not possible,
-     * it will fail with a {@link StreamRereadException}
+     * it will fail with a {@link uk.ac.starlink.ttools.StreamRereadException}
      * (wrapped in a SAXException).
      *
      * @param  strict  whether to effect strict interpretation of the

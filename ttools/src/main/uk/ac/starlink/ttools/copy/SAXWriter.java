@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools;
+package uk.ac.starlink.ttools.copy;
 
 import java.io.IOException;
 import java.io.Writer;

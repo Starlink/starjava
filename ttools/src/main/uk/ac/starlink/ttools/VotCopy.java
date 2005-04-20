@@ -27,6 +27,7 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.ttools.copy.VotCopyHandler;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.votable.DataFormat;
