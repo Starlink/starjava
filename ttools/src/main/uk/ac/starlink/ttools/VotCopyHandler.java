@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableContentHandler;
 import uk.ac.starlink.votable.TableHandler;
@@ -45,14 +47,13 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
     private final DataFormat format_;
     private final boolean inline_;
     private final String baseLoc_;
+    private final boolean strict_;
     private final TableContentHandler votParser_;
     private final SAXWriter saxWriter_;
     private final ContentHandler discardHandler_;
     private final HandlerStack handlerStack_;
+    private final TableHandler tableHandler_;
     private ContentHandler handler_;
-    private Thread streamThread_;
-    private Throwable streamError_;
-    private StreamRowStore streamStore_;
     private BufferedWriter out_;
     private Locator locator_;
     private int iTable_;
@@ -61,7 +62,17 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
         Logger.getLogger( "uk.ac.starlink.ttools" );
 
     /**
-     * Constructor.
+     * Constructor.  The copy can be done in either cached or streamed
+     * mode, determined by the <tt>cache</tt> parameter.
+     * In streamed mode, each row encountered in the input SAX stream
+     * is copied to the output stream as soon as it is encountered.
+     * In cached mode, the whole table is assembled first, and then 
+     * written out at the end of the input.  Streamed mode is more efficient,
+     * but may not be possible under some circumstances, e.g. for FITS
+     * output when the number of rows is not known in advance.  
+     * If a streamed copy is attempted when it's not possible,
+     * it will fail with a {@link StreamRereadException}
+     * (wrapped in a SAXException).
      *
      * @param  strict  whether to effect strict interpretation of the
      *                 VOTable standard
@@ -71,9 +82,11 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
      *                 to an href-referenced stream
      * @param  base    base table location; used to construct URIs for
      *                 out-of-line table streams (only used if inline=false)
+     * @param  cache   whether tables will be cached prior to writing
+     * @param  policy  storage policy for cached tables
      */
     public VotCopyHandler( boolean strict, DataFormat format, boolean inline,
-                           String base ) {
+                           String base, boolean cache, StoragePolicy policy ) {
         if ( ! inline && base == null ) {
             throw new IllegalArgumentException( "Must specify base location " +
                                                 "for out-of-line tables" );
@@ -81,6 +94,7 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
         format_ = format;
         inline_ = inline;
         baseLoc_ = base;
+        strict_ = strict;
         votParser_ = new TableContentHandler( strict );
         votParser_.setReadHrefTables( true );
         votParser_.setTableHandler( this );
@@ -89,6 +103,17 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
         handlerStack_ = new HandlerStack();
         handler_ = saxWriter_;
         setOutput( new OutputStreamWriter( System.out ) );
+
+        /* Set up a handler to which table events will be forwarded. */
+        if ( format_ == null ) {
+            tableHandler_ = new EmptyTableHandler();
+        }
+        else if ( cache ) {
+            tableHandler_ = new CacheTableHandler( policy );
+        }
+        else {
+            tableHandler_ = new StreamTableHandler();
+        }
     }
 
     /**
@@ -104,68 +129,17 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
 
     public void startTable( final StarTable meta ) throws SAXException {
         assert handler_ == discardHandler_;
-        assert streamThread_ == null;
-        streamStore_ = new StreamRowStore();
-        streamThread_ = new Thread( "Table Streamer" ) {
-          
-            public void run() {
-                try {
-                    if ( format_ != null ) {
-                        assert handler_ == discardHandler_;
-                        streamStore_.acceptMetadata( meta );
-                        writeDataElement( streamStore_.getStarTable() );
-                        assert handler_ == discardHandler_;
-                    }
-                    else {
-                        out_.write( "<!-- No data -->" );
-                    }
-                }
-                catch ( IOException e ) {
-                    streamError_ = e;
-                }
-            }
-        };
-        streamThread_.start();
+        tableHandler_.startTable( meta );
     }
 
     public void rowData( Object[] row ) throws SAXException {
-        try {
-            streamStore_.acceptRow( row );
-        }
-        catch ( IOException e ) {
-            throw (SAXException)
-                  new SAXParseException( e.getMessage(), locator_ )
-                 .initCause( e );
-        }
+        assert handler_ == discardHandler_;
+        tableHandler_.rowData( row );
     }
 
     public void endTable() throws SAXException {
-        try {
-            streamStore_.endRows();
-            streamThread_.join();
-        }
-        catch ( InterruptedException e ) {
-            throw (SAXException)
-                  new SAXParseException( e.getMessage(), locator_ )
-                 .initCause( e );
-        }
         assert handler_ == discardHandler_;
-        streamThread_ = null;
-
-        /* If an error was encountered during writing the table (at the
-         * other end of the stream), rethrow it here. */
-        if ( streamError_ != null ) {
-            String msg;
-            if ( streamError_ instanceof StreamRereadException ) {
-                msg = "Can't stream, " +
-                      "table requires multiple reads for metadata";
-            }
-            else {
-                msg = streamError_.getMessage();
-            }
-            throw (SAXException) new SAXParseException( msg, locator_ )
-                                .initCause( streamError_ );
-        }
+        tableHandler_.endTable();
     }
 
     public void setDocumentLocator( Locator locator ) {
@@ -192,21 +166,44 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
         if ( "DATA".equals( localName ) ) {
             handlerStack_.push( handler_ );
             handler_ = discardHandler_;
+            saxWriter_.flush();
         }
         else if ( "FIELD".equals( localName ) ) {
+            String datatype = atts.getValue( "datatype" );
 
             /* Unfortunately we have to translate unsignedByte datatypes
              * to short ones here.  This is because the serializers in the
              * VOTable package all use short as an internal representation
              * for unsignedByte because of the difficulties of representing
              * an unsigned value in Java. */
-            if ( "unsignedByte".equals( atts.getValue( "datatype" ) ) ) {
+            if ( "unsignedByte".equals( datatype ) ) {
                 AttributesImpl newAtts = new AttributesImpl( atts );
                 int itype = newAtts.getIndex( "datatype" );
                 newAtts.setValue( itype, "short" );
                 atts = newAtts;
                 log( Level.WARNING, "FIELD datatype has been changed from " +
                                     "unsignedByte to short" );
+            }
+
+            /* Fix up arraysize values here. */
+            if ( ( "char".equals( datatype ) ||
+                   "unsignedChar".equals( datatype ) ) &&
+                 atts.getValue( "arraysize" ) == null ) {
+                String arraysize;
+                if ( strict_ ) {
+                    arraysize = "1";
+                    log( Level.INFO, "Inserted arraysize=\"1\" attribute " +
+                                     "to reduce confusion" );
+                }
+                else {
+                    arraysize = "*";
+                    log( Level.WARNING, "Inserted assumed arrraysize=\"*\"" +
+                                        "attribute" );
+                }
+                AttributesImpl newAtts = new AttributesImpl( atts );
+                newAtts.addAttribute( "", "arraysize", "arraysize", "CDATA",
+                                      arraysize );
+                atts = newAtts;
             }
         }
         handler_.startElement( namespaceURI, localName, qName, atts );
@@ -367,6 +364,148 @@ class VotCopyHandler implements ContentHandler, LexicalHandler, TableHandler {
         logger_.log( level, buf.toString() );
     }
 
+    /**
+     * Table handler implementation which writes no DATA element.
+     */
+    private class EmptyTableHandler implements TableHandler {
+
+        public void startTable( StarTable meta ) {
+            try {
+                out_.write( "<!-- no data -->" );
+            }
+            catch ( IOException e ) {
+                // doesn't really matter
+            }
+        }
+
+        public void rowData( Object[] row ) {
+        }
+
+        public void endTable() {
+        }
+    }
+
+    /**
+     * Table handler implementation which copies table data from a stream
+     * as it comes in.  This is only any good if the output can be written
+     * using a one-pass stream.
+     */
+    private class StreamTableHandler implements TableHandler {
+
+        private Thread streamThread_;
+        private StreamRowStore streamStore_;
+        private IOException error_;
+
+        public void startTable( final StarTable meta ) throws SAXException {
+            assert streamThread_ == null;
+            streamStore_ = new StreamRowStore();
+            streamThread_ = new Thread( "Table Streamer" ) {
+                public void run() {
+                    try {
+                        streamStore_.acceptMetadata( meta );
+                       
+                        writeDataElement( streamStore_.getStarTable() );
+                    }
+                    catch ( IOException e ) {
+                        error_ = e;
+                    }
+                }
+            };
+            streamThread_.start();
+        }
+
+        public void rowData( Object[] row ) throws SAXException {
+            try {
+                streamStore_.acceptRow( row );
+            }
+            catch ( IOException e ) {
+                throw (SAXException)
+                      new SAXParseException( e.getMessage(), locator_ )
+                     .initCause( e );
+            }
+        }
+
+        public void endTable() throws SAXException {
+            streamStore_.endRows();
+            try {
+                streamThread_.join();
+            }
+            catch ( InterruptedException e ) {
+                throw (SAXException)
+                      new SAXParseException( "Interrupted", locator_ )
+                     .initCause( e );
+            }
+            streamThread_ = null;
+            streamStore_ = null;
+
+            /* If an error was encountered during writing the table (at the
+             * other end of the stream), rethrow it here. */
+            if ( error_ != null ) {
+                String msg;
+                if ( error_ instanceof StreamRereadException ) {
+                    msg = "Can't stream, " +
+                          "table requires multiple reads for metadata";
+                }
+                else {
+                    msg = error_.getMessage();
+                }
+                throw (SAXException) new SAXParseException( msg, locator_ )
+                                    .initCause( error_ );
+            }
+        }
+    }
+
+    /**
+     * Table handler implementation which writes the table to a data cache
+     * (as determined by a StoragePolicy object) and then copies it to
+     * output at the end.
+     */
+    private class CacheTableHandler implements TableHandler {
+
+        private final StoragePolicy policy_;
+        private RowStore rowStore_;
+ 
+        public CacheTableHandler( StoragePolicy policy ) {
+            policy_ = policy;
+        }
+
+        public void startTable( StarTable meta ) throws SAXException {
+            assert rowStore_ == null;
+            rowStore_ = policy_.makeRowStore();
+            try {
+                rowStore_.acceptMetadata( meta );
+            }
+            catch ( IOException e ) {
+                throw (SAXException)
+                      new SAXParseException( e.getMessage(), locator_ )
+                     .initCause( e );
+            }
+        }
+
+        public void rowData( Object[] row ) throws SAXException {
+            try {
+                rowStore_.acceptRow( row );
+            }
+            catch ( IOException e ) {
+                throw (SAXException)
+                      new SAXParseException( e.getMessage(), locator_ )
+                     .initCause( e );
+            }
+        }
+
+        public void endTable() throws SAXException {
+            try {
+                rowStore_.endRows();
+                writeDataElement( rowStore_.getStarTable() );
+                rowStore_ = null;
+            }
+            catch ( IOException e ) {
+                throw (SAXException)
+                      new SAXParseException( e.getMessage(), locator_ )
+                     .initCause( e );
+            }
+        }
+    }
 
     /**
      * Helper class for saving ContentHandler context.

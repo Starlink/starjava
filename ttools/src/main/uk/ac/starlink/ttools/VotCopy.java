@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
@@ -56,7 +55,7 @@ public class VotCopy {
                      + " [-base name]"
                      + " [-debug]"
                      + " [-strict]"
-                     + " [-dom]"
+                     + " [-cache]"
                      + " [-f[ormat] tabledata|binary|fits|none]"
                      + " [-encode encoding]"
                      + " [<in> [<out>]]";
@@ -68,7 +67,7 @@ public class VotCopy {
         String base = null;
         boolean inline = true;
         boolean debug = false;
-        boolean dom = false;
+        boolean cache = false;
         Boolean isStrict = null;
         StoragePolicy policy = StoragePolicy.getDefaultPolicy();
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
@@ -122,9 +121,9 @@ public class VotCopy {
                 it.remove();
                 debug = true;
             }
-            else if ( arg.equals( "-dom" ) ) {
+            else if ( arg.equals( "-cache" ) ) {
                 it.remove();
-                dom = true;
+                cache = true;
             }
             else if ( arg.equals( "-disk" ) ) {
                 it.remove();
@@ -192,20 +191,16 @@ public class VotCopy {
             /* Construct a handler which can take SAX and SAX-like events and 
              * turn them into XML output. */
             VotCopyHandler handler = 
-                new VotCopyHandler( strict, format, inline, base );
+                new VotCopyHandler( strict, format, inline, base,
+                                    cache, policy );
             handler.setOutput( out );
 
             /* Prepare a stream of SAX events. */
             InputSource saxsrc = new InputSource( in );
             saxsrc.setSystemId( systemId );
 
-            /* Do the copy. */
-            if ( dom ) {
-                domCopy( saxsrc, handler, policy );
-            }
-            else {
-                saxCopy( saxsrc, handler );
-            }
+            /* Process the stream to perform the copy. */
+            saxCopy( saxsrc, handler );
             out.flush();
         }
         catch ( IOException e ) {
@@ -224,7 +219,7 @@ public class VotCopy {
             else {
                 if ( e.getCause() instanceof StreamRereadException ) {
                     System.err.println( e.getMessage() );
-                    System.err.println( "Try -dom option" );
+                    System.err.println( "Try -cache option" );
                 }
                 else {
                     System.err.println( e.toString() );
@@ -276,22 +271,6 @@ public class VotCopy {
 
         /* Do the parse. */
         parser.parse( saxSrc );
-    }
-
-    public static void domCopy( InputSource saxSrc, VotCopyHandler copyHandler,
-                                StoragePolicy policy )
-            throws SAXException, IOException {
-
-        /* Prepare a stream of SAX events. */
-        Source xsrc = new SAXSource( createParser(), saxSrc );
-
-        /* Construct a VOTable specialised DOM from it. */
-        DOMSource dsrc = new VOElementFactory( policy )
-                        .transformToDOM( xsrc, false );
-
-        /* Turn this DOM into a stream of SAX events to be fed to the
-         * copy handler. */
-        new DOMWriter( copyHandler ).writeNode( dsrc.getNode() );
     }
 
     /**
