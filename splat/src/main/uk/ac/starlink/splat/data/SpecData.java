@@ -2001,8 +2001,8 @@ public class SpecData
 
         //  Find which position is nearest in reality.
         double[] result = new double[2];
-        if ( ( xyphys[0][0] - xPos[bounds[0]] ) <
-             ( xPos[bounds[1]] - xyphys[0][0] ) ) {
+        if ( Math.abs( xyphys[0][0] - xPos[bounds[0]] ) <
+             Math.abs( xPos[bounds[1]] - xyphys[0][0] ) ) {
             result[0] = xPos[bounds[0]];
             result[1] = yPos[bounds[0]];
         }
