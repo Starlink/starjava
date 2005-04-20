@@ -144,6 +144,15 @@ public class FitsTableSerializer {
                 rseq.close();
             }
 
+            /* In the case of variable string lengths and no non-null data
+             * in any of the cells, maxChars could still be set negative.
+             * Fix that here. */
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                if ( maxChars[ icol ] < 0 ) {
+                    maxChars[ icol ] = 0;
+                }
+            }
+
             /* Work out the actual shapes for columns which have variable ones,
              * based on the shapes that we encountered in the rows. */
             if ( hasVarShapes ) {
