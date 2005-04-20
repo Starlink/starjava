@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  *
  *  History:
  *     29-SEP-2000 (Peter W. Draper):
@@ -37,8 +37,7 @@ public class GlobalSpecPlotList
     /**
      *  Creates the single class instance.
      */
-    private static final GlobalSpecPlotList instance =
-        new GlobalSpecPlotList();
+    private static final GlobalSpecPlotList instance= new GlobalSpecPlotList();
 
     /**
      *  Hide the constructor from use.
@@ -279,14 +278,25 @@ public class GlobalSpecPlotList
     }
 
     /**
-     *  Notify any listeners that the spectrum data has changed.
+     *  Notify any listeners that the spectrum data has been changed.
      *
      *  @param spectrum the SpecData object that has changed.
      */
-    public void notifySpecListeners( SpecData spectrum )
+    public void notifySpecListenersChange( SpecData spectrum )
     {
         int index = specList.indexOf( spectrum );
         fireSpectrumChanged( index );
+    }
+
+    /**
+     *  Notify any listeners that the spectrum data has been modified.
+     *
+     *  @param spectrum the SpecData object that has changed.
+     */
+    public void notifySpecListenersModified( SpecData spectrum )
+    {
+        int index = specList.indexOf( spectrum );
+        fireSpectrumModified( index );
     }
 
     /**
@@ -367,14 +377,35 @@ public class GlobalSpecPlotList
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == SpecListener.class ) {
                 if ( e == null ) {
-                    e = new SpecChangedEvent( this,
-                                               SpecChangedEvent.CHANGED,
-                                               index );
+                    e = new SpecChangedEvent( this, SpecChangedEvent.CHANGED,
+                                              index );
                 }
                 ((SpecListener)listeners[i+1]).spectrumChanged( e );
             }
         }
     }
+
+    /**
+     * Send a SpecChangedEvent object specifying that a spectrum has
+     * been modified to all listeners for the global list of spectra.
+     *
+     * @param index Index of the spectrum that changed.
+     */
+    protected void fireSpectrumModified( int index )
+    {
+        Object[] listeners = specListeners.getListenerList();
+        SpecChangedEvent e = null;
+        for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
+            if ( listeners[i] == SpecListener.class ) {
+                if ( e == null ) {
+                    e = new SpecChangedEvent( this, SpecChangedEvent.MODIFIED,
+                                              index );
+                }
+                ((SpecListener)listeners[i+1]).spectrumModified( e );
+            }
+        }
+    }
+
 
     /**
      * Send a SpecChangedEvent object specifying that the current
