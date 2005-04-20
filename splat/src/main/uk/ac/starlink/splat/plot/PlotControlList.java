@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  *
  *  History:
  *     28-SEP-2000 (Peter W. Draper):
@@ -17,8 +17,8 @@ import uk.ac.starlink.splat.util.SplatException;
  * all the known Plots and the spectra that they are (should be)
  * displaying. The PlotControlList object should be updated with any
  * new PlotControls when they are created (by PlotControl) and also
- * updated whenever a spectrum is destroyed or added or removed from a
- * Plot.
+ * updated whenever a spectrum is destroyed, added, removed or given 
+ * current status.
  *
  * @version $Id$
  * @author Peter W. Draper
@@ -143,7 +143,7 @@ public class PlotControlList
     /**
      * Return a name for a plot. This is <plotN>, but note that the N
      * isn't the local index, this is some other unique index (which
-     * grows by one for each plot created, no account of removed plot
+     * grows by one for each plot created, no account of removed plots
      * is made).
      *
      * @param index the index of the plot whose "name" is required.

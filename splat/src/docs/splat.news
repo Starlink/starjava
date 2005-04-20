@@ -32,6 +32,9 @@
 
    Spectra can now be transformed to different units.
 
+   The data and coordinate units of the current spectrum in a Plot
+   can now be modified to preset values quickly.
+
 
 1 Starlink SPLAT now a tool for the Virtual Observatory
 
