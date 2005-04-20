@@ -123,9 +123,15 @@ public class PlotControlFrame
     protected SpecFilterFrame filterFrame = null;
 
     /**
+     * The units window.
+     */
+    protected PlotUnitsFrame unitsFrame = null;
+
+    /**
      *  The global list of spectra and plots.
      */
-    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
+    private static GlobalSpecPlotList globalList = 
+        GlobalSpecPlotList.getInstance();
 
     /**
      * UI preferences.
@@ -146,7 +152,6 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem dataUnitsMatching = null;
     protected JCheckBoxMenuItem showVisibleOnly = null;
-    //protected JCheckBoxMenuItem clipGraphics = null;
     protected PlotGraphicsClipMenuItem clipGraphics = null;
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem autoFitPercentiles = null;
@@ -161,6 +166,7 @@ public class PlotControlFrame
     protected JButton configButton = new JButton();
     protected JButton viewCutterButton = new JButton();
     protected JButton filterButton = new JButton();
+    protected JButton unitsButton = new JButton();
     protected JButton regionCutterButton = new JButton();
     protected JButton fitHeightButton = new JButton();
     protected JButton fitWidthButton = new JButton();
@@ -423,6 +429,8 @@ public class PlotControlFrame
             new ImageIcon( ImageHolder.class.getResource("regioncutter.gif") );
         ImageIcon filterImage =
             new ImageIcon( ImageHolder.class.getResource( "filter.gif" ) );
+        ImageIcon unitsImage =
+            new ImageIcon( ImageHolder.class.getResource( "units.gif" ) );
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.
@@ -483,6 +491,13 @@ public class PlotControlFrame
         filterButton = toolBar.add( filterAction );
         filterButton.setToolTipText(
                      "Apply a filter to the current spectrum" );
+
+        UnitsAction unitsAction =
+            new UnitsAction( "Change units", unitsImage );
+        analysisMenu.add( unitsAction );
+        unitsButton = toolBar.add( unitsAction );
+        unitsButton.setToolTipText(
+                    "Change the units of the current spectrum" );
     }
 
     /**
@@ -1040,6 +1055,45 @@ public class PlotControlFrame
     }
 
     /**
+     *  Activate the units window.
+     */
+    public void showUnits()
+    {
+        if ( unitsFrame == null ) {
+            unitsFrame = new PlotUnitsFrame( getPlot() );
+            //  We'd like to know if the window is closed.
+            unitsFrame.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        unitsClosed();
+                    }
+                });
+        }
+	else {
+            Utilities.raiseFrame( unitsFrame );
+        }
+    }
+
+    /**
+     * Units window is closed.
+     */
+    protected void unitsClosed()
+    {
+        // Nullify if method for closing switches to dispose.
+        // unitsFrame = null;
+    }
+
+    /**
+     *  Close the filter window.
+     */
+    protected void closeUnits()
+    {
+        if ( unitsFrame != null ) {
+            unitsFrame.dispose();
+            unitsFrame = null;
+        }
+    }
+
+    /**
      * Set the main cursor to indicate waiting for some action to
      * complete and lock the interface by trapping all mouse events.
      */
@@ -1074,6 +1128,7 @@ public class PlotControlFrame
         closePanner();
         closeCutter();
         closeFilter();
+        closeUnits();
         plot.release();
     }
 
@@ -1268,6 +1323,19 @@ public class PlotControlFrame
         }
         public void actionPerformed( ActionEvent ae ) {
             showFilter();
+        }
+    }
+
+    /**
+     *  Inner class defining Action for changing units.
+     */
+    protected class UnitsAction extends AbstractAction
+    {
+        public UnitsAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            showUnits();
         }
     }
 
