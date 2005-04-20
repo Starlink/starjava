@@ -606,7 +606,7 @@ public class SplatSelectedProperties
                 if ( spec != null ) {
                     try {
                         spec.setXDataColumnName( column );
-                        globalList.notifySpecListeners( spec );
+                        globalList.notifySpecListenersModified( spec );
                     }
                     catch (SplatException e) {
                         e.printStackTrace();
@@ -632,7 +632,7 @@ public class SplatSelectedProperties
                 if ( spec != null ) {
                     try {
                         spec.setYDataColumnName( column );
-                        globalList.notifySpecListeners( spec );
+                        globalList.notifySpecListenersModified( spec );
                     }
                     catch (SplatException e) {
                         e.printStackTrace();
@@ -658,7 +658,7 @@ public class SplatSelectedProperties
                 if ( spec != null ) {
                     try {
                         spec.setYDataErrorColumnName( column );
-                        globalList.notifySpecListeners( spec );
+                        globalList.notifySpecListenersModified( spec );
                     }
                     catch (SplatException e) {
                         e.printStackTrace();

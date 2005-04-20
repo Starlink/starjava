@@ -293,7 +293,7 @@ public class SpecTableModel
                        }
                     }
                 }
-                globalList.notifySpecListeners( specData );
+                globalList.notifySpecListenersChange( specData );
             }
             catch (Exception e) {
                 ExceptionDialog eDialog = new ExceptionDialog( null, e );

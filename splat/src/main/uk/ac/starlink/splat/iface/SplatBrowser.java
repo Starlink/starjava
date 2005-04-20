@@ -2215,7 +2215,7 @@ public class SplatBrowser
                 spec = globalList.getSpectrum( indices[i] );
                 try {
                     specDataFactory.reOpen( spec );
-                    globalList.notifySpecListeners( spec );
+                    globalList.notifySpecListenersModified( spec );
                 }
                 catch (SplatException e) {
                     new ExceptionDialog( this, e );
