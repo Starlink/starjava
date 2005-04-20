@@ -160,6 +160,15 @@ class SAXWriter implements ContentHandler, LexicalHandler {
     }
 
     /**
+     * Ensures that any pending output has been written.  
+     * If other classes wish to write directly to this writer's 
+     * destination stream, they must call this method first.
+     */
+    public void flush() throws SAXException {
+        flushTag();
+    }
+
+    /**
      * Ensures that any pending start tag has been output.
      */
     private void flushTag() throws SAXException {
