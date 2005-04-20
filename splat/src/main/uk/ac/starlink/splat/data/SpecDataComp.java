@@ -144,7 +144,8 @@ public class SpecDataComp
      *  Create a SpecDataComp adding in the first from a concrete
      *  implementation.
      */
-    public SpecDataComp( SpecDataImpl inspec ) throws SplatException
+    public SpecDataComp( SpecDataImpl inspec )
+        throws SplatException
     {
         add( new SpecData( inspec ) );
     }
@@ -195,6 +196,16 @@ public class SpecDataComp
     public boolean isDataUnitsMatching()
     {
         return dataUnitsMatching;
+    }
+
+    /**
+     * Override default behaviour for regenerating all the inter-spectrum
+     * transformations. You will need to do this when a spectrum has been
+     * modified.
+     */
+    public void regenerate()
+    {
+        regenerateMappings = true;
     }
 
     /**
@@ -736,7 +747,7 @@ public class SpecDataComp
      *
      * The input coordinates are two sets of [x1,y1,x2,y2,x3,y3,x4,y4] arrays.
      */
-    protected double[] transformEndPoints( FrameSet mapping, 
+    protected double[] transformEndPoints( FrameSet mapping,
                                            double[] xEndPoints,
                                            double[] yEndPoints )
     {
@@ -776,7 +787,7 @@ public class SpecDataComp
      *
      * The input and output coordinates are [x1,y1,x2,y2,...].
      */
-    public double[] transformLimits( FrameSet mapping, double[] limits, 
+    public double[] transformLimits( FrameSet mapping, double[] limits,
                                      boolean forward )
         throws SplatException
     {
@@ -1078,7 +1089,6 @@ public class SpecDataComp
     //
     // Implement the ComboBoxModel interface.
     //
-
     public Object getSelectedItem()
     {
         // The current spectrum.
@@ -1092,6 +1102,15 @@ public class SpecDataComp
         }
     }
 
+    // Implement the ListModel part of ComboBoxModel.
+
+    protected EventListenerList listenerList = new EventListenerList();
+
+    public void addListDataListener( ListDataListener l )
+    {
+        listenerList.add( ListDataListener.class, l );
+    }
+
     public Object getElementAt( int index )
     {
         return get( index );
@@ -1102,12 +1121,8 @@ public class SpecDataComp
         return count();
     }
 
-    protected EventListenerList listenerList = new EventListenerList();
 
-    public void addListDataListener( ListDataListener l )
-    {
-        listenerList.add( ListDataListener.class, l );
-    }
+    // Implement handling of ListDataListeners.
 
     public void removeListDataListener( ListDataListener l )
     {
