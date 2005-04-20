@@ -34,6 +34,11 @@ public interface SpecListener
     public void spectrumChanged( SpecChangedEvent e );
 
     /**
+     *  Send when a spectrum has its data, units or coordinates changed.
+     */
+    public void spectrumModified( SpecChangedEvent e );
+
+    /**
      *  Send when a spectrum becomes "current".
      */
     public void spectrumCurrent( SpecChangedEvent e );
