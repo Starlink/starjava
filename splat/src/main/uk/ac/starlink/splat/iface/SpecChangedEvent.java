@@ -29,14 +29,19 @@ public class SpecChangedEvent extends EventObject
     public static final int REMOVED = 1;
     
     /**
-     *  Used when spectrum is changed (i.e.&nbsp;needs redrawing).
+     *  Used when spectrum is changed.
      */
-    public static final int CHANGED = 1;
+    public static final int CHANGED = 2;
     
+    /**
+     *  Used when spectrum is modified. Total redraw required.
+     */
+    public static final int MODIFIED = 3;
+
     /**
      *  Used when spectrum becomes current.
      */
-    public static final int CURRENT = 1;
+    public static final int CURRENT = 4;
     
     /**
      *  The type of event.
@@ -52,7 +57,7 @@ public class SpecChangedEvent extends EventObject
      *  Constructs a SpecChangedEvent object.
      *
      *  @param source - the source Object (typically this).
-     *  @param type an int specifying ADDED, REMOVED or CHANGED.
+     *  @param type one of the defined ints.
      *  @param index - an int specifying the position of the changed
      *                 spectrum.
      */
