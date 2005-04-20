@@ -11,6 +11,7 @@ import jargs.gnu.CmdLineParser;
 
 import java.io.File;
 import java.util.Properties;
+import java.util.prefs.Preferences;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -50,6 +51,7 @@ public class SplatBrowserMain
              " [{-n,--ndaction} c{ollapse}||e{xpand}||v{ectorize}]" +
              " [{-d,--dispax} axis_index]" +
              " [{-s,--selectax} axis_index]" +
+             " [{-c,--clear}]" +
              " [spectra1 spectra2 ...]" 
             );
     }
@@ -65,6 +67,7 @@ public class SplatBrowserMain
         String ndAction = null;
         Integer dispersionAxis = null;
         Integer selectAxis = null;
+        Boolean clearPrefs = Boolean.FALSE;
         if ( args != null && args.length != 0 && ! "".equals( args[0] ) ) {
 
             //  Parse the command-line.
@@ -76,6 +79,8 @@ public class SplatBrowserMain
                 parser.addIntegerOption( 'd', "dispax" );
             CmdLineParser.Option selectax = 
                 parser.addIntegerOption( 's', "selectax" );
+            CmdLineParser.Option clear = 
+                parser.addBooleanOption( 'c', "clear" );
 
             try {
                 parser.parse( args );
@@ -99,6 +104,12 @@ public class SplatBrowserMain
                 selectAxis = new Integer( selectAxis.intValue() - 1 );
             }
 
+            //  Clear preferences.
+            clearPrefs = (Boolean) parser.getOptionValue( clear );
+            if ( clearPrefs == null ) {
+                clearPrefs = Boolean.FALSE;
+            }
+
             //  Everything else should be spectra.
             spectraArgs = parser.getRemainingArgs();
         }
@@ -112,7 +123,7 @@ public class SplatBrowserMain
 
         //  Cause a load and/or guess of various properties that can
         //  be useful in locating resources etc.
-        guessProperties();
+        guessProperties( clearPrefs.booleanValue() );
 
         //  Make interface visible. Do this from an event thread as
         //  parts of the GUI could be realized before returning (not
@@ -131,8 +142,25 @@ public class SplatBrowserMain
      * Load user properties and make guesses for any that are needed
      * and are not set.
      */
-    public static void guessProperties()
+    public static void guessProperties( boolean clearPrefs )
     {
+        //  Clear application preferences, if requested. Need to do this for
+        //  each package that stores preferences. Or start walking the tree.
+        //  AFAIK only iface stores preferences.
+        if ( clearPrefs ) {
+            Preferences prefs = 
+                Preferences.userNodeForPackage( SplatBrowserMain.class );
+            try {
+                prefs.clear();
+            }
+            catch (Exception e) {
+                System.err.println( e.getMessage() );
+            }
+        }
+
+        //  Options that must be established before the UI is started.
+        Loader.tweakGuiForMac();
+
         Loader.loadProperties();
         Properties props = System.getProperties();
 
