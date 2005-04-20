@@ -272,7 +272,7 @@ public class LintContext {
      * @param  msg   specific message content
      * @param  e     throwable associated with this message
      */
-    void message( String type, String msg, Throwable e ) {
+    public void message( String type, String msg, Throwable e ) {
 
         /* Fill in the message from the throwable if necessary. */
         if ( msg == null && e != null ) {
