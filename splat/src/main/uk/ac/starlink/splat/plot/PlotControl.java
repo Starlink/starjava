@@ -1394,6 +1394,24 @@ public class PlotControl
     }
 
     /**
+     * Add an ItemListener to the JComboBox that selects the current
+     * spectrum. Register with this when you need to be informed about changes
+     * to the current spectrum.
+     */
+    public void addItemListener( ItemListener itemListener )
+    {
+        nameList.addItemListener( itemListener );
+    }
+
+    /**
+     * Remove an ItemListener added by {@link addItemListener}.
+     */
+    public void removeItemListener( ItemListener itemListener )
+    {
+        nameList.removeItemListener( itemListener );
+    }
+
+    /**
      * Set whether the percentile cuts also have a fit to Y scale
      * automatically applied.
      */
@@ -1516,7 +1534,31 @@ public class PlotControl
     }
 
     /**
-     * React to a change in the global current spectrum. Do nothing.
+     * React to spectrum modified, if one of ours.
+     *
+     * @param e object describing the event.
+     */
+    public void spectrumModified( SpecChangedEvent e )
+    {
+        int globalIndex = e.getIndex();
+        SpecData spectrum = globalList.getSpectrum( globalIndex );
+        int localIndex = spectra.indexOf( spectrum );
+        if ( localIndex > -1 ) {
+            try {
+                updateThePlot( null );
+
+                // Modified values, so we need to regenerate all mappings.
+                spectra.regenerate();
+            }
+            catch (SplatException ignored) {
+                // Do nothing, should be none-fatal.
+            }
+        }
+    }
+
+    /**
+     * React to a change in the global current spectrum. Do nothing this is
+     * not the same as the local current spectrum.
      *
      * @param e object describing the event.
      */
@@ -1572,8 +1614,8 @@ public class PlotControl
 //
     /**
      * Respond to selection of a new spectrum as the current one. This makes
-     * the selected spectrum current in the global list and forces the Plot
-     * to undergo a re-draw.
+     * the selected spectrum current in the global list (as a convenience) and
+     * forces the Plot to undergo a re-draw.
      *
      * @param e object describing the event.
      */
