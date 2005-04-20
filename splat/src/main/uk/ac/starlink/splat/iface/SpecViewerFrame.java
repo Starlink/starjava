@@ -318,7 +318,7 @@ public class SpecViewerFrame
     protected void specDataChanged()
     {
         model.update( true );
-        globalList.notifySpecListeners( specData );
+        globalList.notifySpecListenersModified( specData );
 
         //  Inform any local windows.
         if ( dataColumnGenerator != null ) {
@@ -960,6 +960,14 @@ public class SpecViewerFrame
                 refreshUndoRedo();
             }
         }
+    }
+
+    /**
+     *  Send when a spectrum is modified.
+     */
+    public void spectrumModified( SpecChangedEvent e )
+    {
+        spectrumChanged( e );
     }
 
     /**
