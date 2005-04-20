@@ -13,7 +13,7 @@ import javax.swing.ListSelectionModel;
 import uk.ac.starlink.splat.data.SpecData;
 
 /**
- * SplatListModel is an implementation of the ListModel interface for
+ * SpecListModel is an implementation of the ListModel interface for
  * mediating between the GlobalSpecPlotList object and the main view of
  * available spectra.
  *
@@ -130,6 +130,16 @@ public class SpecListModel
      *  we need to update.
      */
     public void spectrumChanged( SpecChangedEvent e ) 
+    {
+        int index = e.getIndex();
+        fireContentsChanged( this, index, index );
+    }
+
+    /**
+     *  React to a spectrum being modified. Could be the short name so
+     *  we need to update.
+     */
+    public void spectrumModified( SpecChangedEvent e ) 
     {
         int index = e.getIndex();
         fireContentsChanged( this, index, index );
