@@ -162,7 +162,7 @@ public class PlotPanner extends JPanel
             //  When the plot is just displaying axes in the visible area and
             //  clipping is switched on that doesn't give a very useful
             //  display, so always switch off the visible only option.
-            boolean state = plot.getPlot().getVisibleOnly();
+            boolean state = plot.getPlot().isVisibleOnly();
             if ( state ) {
                 plot.getPlot().setVisibleOnly( false );
                 try {
