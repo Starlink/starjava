@@ -252,6 +252,13 @@ public class DivaPlot
     protected boolean visibleOnly = false;
 
     /**
+     * Whether coordinate tracking moves freely around display reporting plot
+     * coordinates or is attached to the current spectrum and reports spectral
+     * coordinates and data values.
+     */
+    protected boolean trackFreely = false;
+
+    /**
      * Plot a series of spectra.
      *
      * @param spectra reference to spectra.
@@ -393,9 +400,27 @@ public class DivaPlot
     /**
      * Get whether we are only drawing the grid in the visible region.
      */
-    public boolean getVisibleOnly()
+    public boolean isVisibleOnly()
     {
         return visibleOnly;
+    }
+
+    /**
+     * Set whether or not the MouseMotionTracker reports the current Plot
+     * position, or the nearest position of the current spectrum.
+     */
+    public void setTrackFreely( boolean trackFreely )
+    {
+        this.trackFreely = trackFreely;
+    }
+
+    /**
+     * Get whether or not the MouseMotionTracker is reporting the current 
+     * graphics position, or the nearest position of the current spectrum.
+     */
+    public boolean isTrackFreely()
+    {
+        return trackFreely;
     }
 
     /**
@@ -1248,8 +1273,8 @@ public class DivaPlot
         if ( spectra.count() == 0 || ! showVHair ) {
             return;
         }
-        String[] xypos =
-            spectra.formatInterpolatedLookup( (int) getVHairPosition(), mainPlot );
+        String[] xypos = spectra.formatInterpolatedLookup
+            ( (int) getVHairPosition(), mainPlot );
         tracker.updateCoords( xypos[0], xypos[1] );
     }
 
@@ -1289,15 +1314,21 @@ public class DivaPlot
     public void trackMouseMotion( final MouseMotionTracker tracker )
     {
         this.tracker = tracker;
-        addMouseMotionListener(
-            new MouseMotionListener()
+        addMouseMotionListener( new MouseMotionListener()
             {
                 public void mouseMoved( MouseEvent e )
                 {
-                    if ( spectra.count() == 0 || ! readyToTrack || mainPlot == null ) {
+                    if ( spectra.count() == 0 || ! readyToTrack ||
+                         mainPlot == null ) {
                         return;
                     }
-                    String[] xypos = spectra.formatLookup( e.getX(), mainPlot );
+                    String[] xypos = null;
+                    if ( trackFreely ) {
+                        xypos = formatPos( e.getX(), e.getY() );
+                    }
+                    else {
+                        xypos = spectra.formatLookup( e.getX(), mainPlot );
+                    }
                     tracker.updateCoords( xypos[0], xypos[1] );
                     setVHairPosition( e.getX() );
                 }
@@ -1345,6 +1376,33 @@ public class DivaPlot
             return null;
         }
         return spectra.format( axis, mainPlot, value );
+    }
+
+    /**
+     * Convert graphics coordinates into formatted values for the current
+     * Plot axes.
+     *
+     * @param x the axis 1 graphics coordinate.
+     * @param y the axis 2 graphics coordinate.
+     * @return the formatted values, null when none can be determined.
+     */
+    public String[] formatPos( double x, double y )
+    {
+        if ( mainPlot == null ) {
+            return null;
+        }
+
+        //  Transform graphics to physical coordinates.
+        double[] gtmp = new double[2];
+        gtmp[0] = x;
+        gtmp[1] = y;
+        double[][] ptmp = transform( gtmp, true ); 
+        
+        //  Format.
+        String result[] = new String[2];
+        result[0] = mainPlot.format( 1, ptmp[0][0] );
+        result[1] = mainPlot.format( 2, ptmp[1][0] );
+        return result;
     }
 
     /**
@@ -1447,10 +1505,9 @@ public class DivaPlot
     }
 
     /**
-     * Return reference to the FrameSet used to transform from
-     * graphics to world coordinates. This is really a direct
-     * reference to the Plot, so do not modify it (any changes
-     * would be lost on the next resize).
+     * Return reference to the FrameSet used to transform from graphics to
+     * world coordinates. This is really a direct reference to the Plot, so do
+     * not modify it (any changes would be lost on the next resize).
      *
      * @return The Plot FrameSet
      */

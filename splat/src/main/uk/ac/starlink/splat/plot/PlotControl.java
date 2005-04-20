@@ -160,6 +160,7 @@ public class PlotControl
     protected JButton yIncr = new JButton();
     protected JButton yDecr = new JButton();
     protected JCheckBox showVHair = new JCheckBox( ":V-hair" );
+    protected JCheckBox trackFreely = new JCheckBox( ":Track free" );
     protected LogAxesControl logXAxis = new LogAxesControl();
     protected LogAxesControl logYAxis = new LogAxesControl();
 
@@ -447,6 +448,27 @@ public class PlotControl
         gbc.gridy = 1;
         controlPanel.add( logYAxis, gbc );
 
+        //  Add the toggle for mouse tracking freely.
+        gbc.gridx = 7;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.gridheight = 1;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.BOTH;
+        controlPanel.add( trackFreely, gbc );
+        trackFreely.setToolTipText( "Mouse tracks freely, otherwise displays" +
+                                    " current spectrum coordinates/values" );
+
+        trackFreely.addActionListener(
+            new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    toggleTrackFreely();
+                }
+            } );
+
+
         //  Add the zoom factor controls and set their default values.
         addZoomControls();
 
@@ -487,6 +509,9 @@ public class PlotControl
 
         //  Enable/disabled the vertical hair as Plot's status requires.
         showVHair.setSelected( plot.isShowVHair() );
+
+        //  Enable/disabled the track freely status as Plot suggests.
+        trackFreely.setSelected( plot.isTrackFreely() );
 
         //  Register ourselves with the global list of plots and
         //  spectra so we can see if any of our displayed spectra are
@@ -910,6 +935,15 @@ public class PlotControl
     protected void toggleVHair()
     {
         plot.setShowVHair( showVHair.isSelected() );
+    }
+
+    /**
+     * Toggle whether motion tracker shows plot coordinates or spectral
+     * coordinates and values.
+     */
+    protected void toggleTrackFreely()
+    {
+        plot.setTrackFreely( trackFreely.isSelected() );
     }
 
     /**
