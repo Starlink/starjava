@@ -58,7 +58,8 @@ public class SpecDataUnitsFrame
     /**
      * Reference to global list of spectra and plots.
      */
-    private GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
+    private static GlobalSpecPlotList globalList = 
+        GlobalSpecPlotList.getInstance();
 
     /**
      * UI preferences.
@@ -284,11 +285,16 @@ public class SpecDataUnitsFrame
             //  And apply to all selected spectra.
             for ( int i = 0; i < indices.length; i++ ) {
                 SpecData spec = globalList.getSpectrum( indices[i] );
-                if ( set ) {
-                    setToUnits( spec, units);
+                try {
+                    if ( set ) {
+                        setToUnits( spec, units);
+                    }
+                    else {
+                        convertToUnits( spec, units );
+                    }
                 }
-                else {
-                    convertToUnits( spec, units );
+                catch (SplatException e ) {
+                    new ExceptionDialog( this, e );
                 }
             }
         }
@@ -315,9 +321,16 @@ public class SpecDataUnitsFrame
     }
 
     /**
-     * Convert current units of a spectrum to some new values.
+     * Convert the data units of a spectrum. Changes the actual data values
+     * and the units as presented by the SpecData instance, but the underlying
+     * implementation is not modified.
+     *
+     * @param spec the SpecData instance.
+     * @param units the new units.
+     * @throws SplatException when an error occurs
      */
-    protected void convertToUnits( SpecData spec, String units )
+    public static void convertToUnits( SpecData spec, String units )
+        throws SplatException
     {
         //  To convert the data units of a spectrum we need to set the
         //  apparent units of the underlying SpecData object. We need to do it
@@ -335,29 +348,27 @@ public class SpecDataUnitsFrame
             if ( spec.getApparentDataUnits() == null ) {
                 throw new SplatException( "Cannot convert to new data units" );
             }
-            globalList.notifySpecListeners( spec );
+            globalList.notifySpecListenersModified( spec );
         }
         catch (SplatException e) {
-            new ExceptionDialog( this,  "Failed to convert to new " +
-                                 "data units", e );
+            throw new SplatException("Failed to convert to new data units", e);
         }
     }
 
     /**
-     * Set data units of the spectrum.
+     * Set data units of a spectrum.
+     * 
+     * @param spec the SpecData instance.
+     * @param units the new units.
      */
-    protected void setToUnits( SpecData spec, String units )
+    public static void setToUnits( SpecData spec, String units )
+        throws SplatException
     {
         // Do a full update to get the changes propagated throughout. This
         // creates a FluxFrame, if it can.
-        try {
-            spec.setDataUnits( units );
-            spec.initialiseAst();
-            globalList.notifySpecListeners( spec );
-        }
-        catch (SplatException e) {
-            new ExceptionDialog( this, e );
-        }
+        spec.setDataUnits( units );
+        spec.initialiseAst();
+        globalList.notifySpecListenersModified( spec );
     }
 
     /**
@@ -416,7 +427,8 @@ public class SpecDataUnitsFrame
     /**
      * Inner class defining Action for closing window.
      */
-    protected class CloseAction extends AbstractAction
+    protected class CloseAction 
+        extends AbstractAction
     {
         public CloseAction()
         {
@@ -436,7 +448,8 @@ public class SpecDataUnitsFrame
      * Inner class defining Action for converting the AST framesets to
      * the current set of attributes.
      */
-    protected class ConvertAction extends AbstractAction
+    protected class ConvertAction 
+        extends AbstractAction
     {
         public ConvertAction()
         {
@@ -457,7 +470,8 @@ public class SpecDataUnitsFrame
      * Inner class defining Action for setting the AST framesets to
      * the current set of attributes.
      */
-    protected class SetAction extends AbstractAction
+    protected class SetAction 
+        extends AbstractAction
     {
         public SetAction()
         {

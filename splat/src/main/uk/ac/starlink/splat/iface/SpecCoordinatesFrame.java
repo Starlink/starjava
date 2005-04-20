@@ -68,7 +68,8 @@ public class SpecCoordinatesFrame
     /**
      * Reference to global list of spectra and plots.
      */
-    private GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
+    private static GlobalSpecPlotList globalList = 
+        GlobalSpecPlotList.getInstance();
 
     /**
      * UI preferences.
@@ -668,12 +669,16 @@ public class SpecCoordinatesFrame
             //  And apply to all selected spectra.
             for ( int i = 0; i < indices.length; i++ ) {
                 SpecData spec = globalList.getSpectrum( indices[i] );
-                FrameSet frameSet = spec.getFrameSet();
-                if ( set ) {
-                    setToAttributes( spec, frameSet, attributes );
+                try {
+                    if ( set ) {
+                        setToAttributes( spec, attributes );
+                    }
+                    else {
+                        convertToAttributes( spec, attributes );
+                    }
                 }
-                else {
-                    convertToAttributes( spec, frameSet, attributes );
+                catch (SplatException e) {
+                    new ExceptionDialog( this, e );
                 }
             }
         }
@@ -757,76 +762,83 @@ public class SpecCoordinatesFrame
     }
 
     /**
+     * Convert a spectrum to a different coordinate system. The new system is
+     * specified as a set of AST attributes.
+     * 
+     * @param spec the spectrum to convert
+     * @param attributes the AST attributes describing the new system
+     *                   (for example: "system=WAVE,unit(1)=Angstrom").
      *
+     * @throws SplatException when an error occurs
      */
-    protected void convertToAttributes( SpecData spec, FrameSet frameSet,
-                                        String attributes )
+    public static void convertToAttributes( SpecData spec, String attributes )
+        throws SplatException
     {
-        //  Pick out first axis from FrameSet, this should be a
-        //  SpecFrame.
+        //  This modifies the underlying FrameSet. Not the plot version.
+        //  The makes sure the changes are propagated to any new plot
+        //  FrameSets.
+        FrameSet frameSet = spec.getFrameSet();
+
+        //  Pick out first axis from FrameSet, this should be a SpecFrame.
         int iaxes[] = { 1 };
         Frame picked = frameSet.pickAxes( 1, iaxes, null );
 
-        // Now set the values. Note we write to FrameSet not Frame as
-        // this makes the system remap. Try values out on a copy first
-        // as this protects against making the FrameSet bad by
-        // establishing a partial set of attributes.
+        // Now set the values. Note we write to FrameSet not Frame as this
+        // makes the system remap. Try values out on a copy first as this
+        // protects against making the FrameSet bad by establishing a partial
+        // set of attributes.
         if ( picked instanceof SpecFrame ) {
             try {
                 FrameSet localCopy = (FrameSet) frameSet.copy();
                 localCopy.set( attributes );
                 frameSet.set( attributes );
 
-                // Do a full update to get the changes
-                // propagated throughout.
-                try {
-                    spec.initialiseAst();
-                    globalList.notifySpecListeners( spec );
-                }
-                catch (SplatException e) {
-                    new ExceptionDialog( this, e );
-                }
+                // Do a full update to get the changes propagated throughout.
+                spec.initialiseAst();
+                globalList.notifySpecListenersModified( spec );
             }
             catch (AstException e) {
-                new ExceptionDialog( this,
-                                     "Failed to convert to new " +
-                                     "coordinate system", e );
+                throw new SplatException( "Failed to convert to new " +
+                                          "coordinate system", e );
             }
         }
         else {
-            SplatException e =
-                new SplatException( "Cannot convert coordinate type " +
-                                    "as the spectrum '" +
-                                    spec.getShortName() +
-                                    "' does not already have a " +
-                                    "spectral coordinate system" );
-            new ExceptionDialog( this, e );
+            throw new SplatException( "Cannot convert coordinate type " +
+                                      "as the spectrum '" +
+                                      spec.getShortName() +
+                                      "' does not already have a " +
+                                      "spectral coordinate system" );
         }
     }
 
     /**
-     *
+     * Set the coordinate system attributes of a spectrum. The system is
+     * specified as a set of AST attributes.
+     * 
+     * @param spec the spectrum to set
+     * @param attributes the AST attributes describing the system
+     *                   (for example: "system=WAVE,unit=Angstrom").
+     * @throws SplatException when an error occurs.
      */
-    protected void setToAttributes( SpecData spec, FrameSet frameSet,
-                                    String attributes )
+    public static void setToAttributes( SpecData spec, String attributes )
+        throws SplatException
     {
-        // If current frame doesn't contain a SpecFrame then we need
-        // to generate one.
+        //  This sets the underlying FrameSet. Not the plot version.  The
+        //  makes sure the changes are propagated to any new plot FrameSets,
+        //  and saved with the spectrum.
+        FrameSet frameSet = spec.getFrameSet();
+
+        // If current frame doesn't contain a SpecFrame then we need to
+        // generate one.
         Frame current = frameSet.getFrame( FrameSet.AST__CURRENT );
         int iaxes[] = { 1 };
         Frame picked = current.pickAxes( 1, iaxes, null );
         if ( ! ( picked instanceof SpecFrame ) ) {
-            // Simplest way is to get SpecData to do this work. What
-            // we use here doesn't matter as it will be overwritten by
-            // later calls.
+
+            // Simplest way is to get SpecData to do this work. What we use
+            // here doesn't matter as it will be overwritten by later calls.
             frameSet.set( "Label(1)=Wavelength, Unit(1)=Angstrom" );
-            try {
-                spec.initialiseAst();
-            }
-            catch (SplatException e) {
-                new ExceptionDialog( this, e );
-                return;
-            }
+            spec.initialiseAst();
         }
 
         // Now set the values. Note we write to Frame not FrameSet as
@@ -842,17 +854,11 @@ public class SpecCoordinatesFrame
             current.set( attributes );
 
             // Do a full update to get the changes propagated throughout.
-            try {
-                spec.initialiseAst();
-                globalList.notifySpecListeners( spec );
-            }
-            catch (SplatException e) {
-                new ExceptionDialog( this, e );
-            }
+            spec.initialiseAst();
+            globalList.notifySpecListenersModified( spec );
         }
         catch (AstException e) {
-            new ExceptionDialog( this,
-                                 "Failed to set new coordinate system", e );
+            throw new SplatException("Failed to set new coordinate system", e);
         }
     }
 
