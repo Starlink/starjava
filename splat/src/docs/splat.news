@@ -39,6 +39,9 @@
    The default continues to be to report the nearest coordinate and 
    data value of the current spectrum.
 
+   System look and feel is now the default. Mac OS X tweaks are enabled.
+
+
 
 1 Starlink SPLAT now a tool for the Virtual Observatory
 
