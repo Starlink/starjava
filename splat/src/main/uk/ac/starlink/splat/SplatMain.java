@@ -10,10 +10,11 @@ package uk.ac.starlink.splat;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
-import java.net.URL;
 import java.lang.reflect.Method;
+import java.net.URL;
 import uk.ac.starlink.splat.iface.SplashWindow;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Main class for the SPLAT application. Use this to start SPLAT with
@@ -29,6 +30,9 @@ public class SplatMain
 {
     public static void main( String[] args )
     {
+        //  Options that must be established before the UI is started.
+        Loader.tweakGuiForMac();
+
         //  Create and populate the SplashWindow.
         Frame splashFrame = null;
         URL imageURL = ImageHolder.class.getResource( "splash.gif" );
