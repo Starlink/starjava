@@ -48,21 +48,24 @@ import uk.ac.starlink.splat.iface.themes.SandStoneTheme;
 public class SplatLookAndFeelManager implements ActionListener
 {
     /**
-     *  The default look and feel.
+     *  The default look and feel. Was cross-platform now system.
      */
     protected String defaultLook =
-       UIManager.getCrossPlatformLookAndFeelClassName();
+        UIManager.getSystemLookAndFeelClassName();
+
+    protected String crossPlatformLook =
+        UIManager.getCrossPlatformLookAndFeelClassName();
 
     /**
      * GTK look and feel.
      */
     private static final String gtk  =
         "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
-    
+
     /**
      * Metal look and feel.
      */
-    private static final String metal = 
+    private static final String metal =
         "javax.swing.plaf.metal.MetalLookAndFeel";
 
     /**
@@ -72,8 +75,8 @@ public class SplatLookAndFeelManager implements ActionListener
         Preferences.userNodeForPackage( SplatLookAndFeelManager.class );
 
     /**
-     * The menu to populate with look and feels options and the
-     * available metal themes.
+     * The menu to populate with look and feels menu and the
+     * available metal themes menu.
      */
     protected JMenu targetMenu = null;
 
@@ -81,6 +84,11 @@ public class SplatLookAndFeelManager implements ActionListener
      * The metal themes menu.
      */
     protected JMenu themeMenu = null;
+
+    /**
+     * The menu of look and feels.
+     */
+    protected JMenu selectLookMenu = null;
 
     /**
      * Mapping of metal theme names to classes.
@@ -114,20 +122,24 @@ public class SplatLookAndFeelManager implements ActionListener
     {
         this.targetMenu = targetMenu;
         this.parentWindow = SwingUtilities.getWindowAncestor( parent );
+
+        if ( defaultLook == null ) {
+            //  No system look and feel.
+            defaultLook = crossPlatformLook;
+        }
+
+        //  Restore users last default look and theme.
+        defaultLook = prefs.get( "SplatLookAndFeelManager_look", defaultLook );
+        String lastTheme = 
+            prefs.get( "SplatLookAndFeelManager_theme", "Default" );
+
         addLookAndFeels();
         addThemes();
 
-        //  Restore users last default look and theme.
-        String lastLook = prefs.get( "SplatLookAndFeelManager_look",
-                                     defaultLook );
-        String lastTheme = prefs.get( "SplatLookAndFeelManager_theme",
-                                      "Default" );
-        if ( ! defaultLook.equals( lastLook ) ||
-             ! "Default".equals( lastTheme ) ) {
-            defaultLook = lastLook;
+        if ( ! "Default".equals( lastTheme ) ) {
             setThemeFromName( lastTheme  );
-            updateLookAndFeel();
         }
+        updateLookAndFeel();
     }
 
     /**
@@ -137,7 +149,7 @@ public class SplatLookAndFeelManager implements ActionListener
     protected void addLookAndFeels()
     {
         ButtonGroup lfGroup = new ButtonGroup();
-        JMenu selectLookMenu = new JMenu( "Look and feel" );
+        selectLookMenu = new JMenu( "Look and feel" );
 
         //  1.4.2 hack, GTK isn't available by default yet. Remove for
         //  Java 1.5.
@@ -238,13 +250,14 @@ public class SplatLookAndFeelManager implements ActionListener
         for ( int i = 0; i < themeMapping.length; i++ ) {
             if ( name.equals( themeMapping[i][0] ) ) {
                 try {
-                    Constructor ct = ((Class)themeMapping[i][1]).getConstructor(null);
+                    Constructor ct = 
+                        ((Class)themeMapping[i][1]).getConstructor(null);
                     setTheme( (DefaultMetalTheme)ct.newInstance(null) );
                     prefs.put( "SplatLookAndFeelManager_theme", name );
                 }
                 catch (Exception ex) {
-                    ex.printStackTrace();
-                    // Do nothing, it's just a colour scheme!
+                    System.out.println( ex.getMessage() );
+                    // It's just a colour scheme!
                 }
                 break;
             }
