@@ -40,6 +40,10 @@
    data value of the current spectrum.
 
    System look and feel is now the default. Mac OS X tweaks are enabled.
+  
+   Data units are supported when editing and creating new spectra 
+   (polynomial and line fits).
+
 
 
 
