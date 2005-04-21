@@ -928,9 +928,16 @@ public class DivaPlot
         //  the grid, regardless of whether a scale has occurred or not, but
         //  under that circumstance we do not draw the more expensive spectra,
         //  unless the graphics are clipped, in which case we have no choice.
+        //  When clipped we avoid drawing the graphics overlay, unless the
+        //  plot has been scaled (not doing so causes a dr-draw runaway as the
+        //  figure seems to be permanently dirty).
         try {
             if ( xyScaled || visibleOnly ) {
+                boolean scaleFigures = true;
                 if ( visibleOnly && graphicsEdges.isClipped() ) {
+                    if ( ! xyScaled ) {
+                        scaleFigures = false;
+                    }
                     xyScaled = true;
                 }
 
@@ -938,7 +945,7 @@ public class DivaPlot
                 //  how graphics coordinates are already drawn and can rescale
                 //  any overlay graphics to the correct size.
                 Plot oldAstPlot = mainPlot;
-                if ( xyScaled ) {
+                if ( xyScaled && scaleFigures ) {
                     if ( oldAstPlot != null ) {
                         oldAstPlot = (Plot) oldAstPlot.clone();
                     }
@@ -998,7 +1005,7 @@ public class DivaPlot
                     drawSpectra();
 
                     //  Resize overlay graphics.
-                    if ( oldAstPlot != null ) {
+                    if ( scaleFigures && oldAstPlot != null ) {
                         redrawOverlay( oldAstPlot );
                     }
 
