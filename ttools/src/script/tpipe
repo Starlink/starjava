@@ -63,11 +63,12 @@ do
 done
 
 #  Assemble the command line.
+
 cmd="$starjava \
-     $javaArgs \
+     \"$javaArgs\" \
      -classpath ${appjar}:${addpath}:${CLASSPATH} \
      uk.ac.starlink.ttools.TablePipe \
-     $appArgs"
+     \"$appArgs\""
 
 #  Echo it if verbose.
 if [ $verbose ]
