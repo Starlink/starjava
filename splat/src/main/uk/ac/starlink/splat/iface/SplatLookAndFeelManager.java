@@ -69,6 +69,12 @@ public class SplatLookAndFeelManager implements ActionListener
         "javax.swing.plaf.metal.MetalLookAndFeel";
 
     /**
+     * Motif look and feel.
+     */
+    private static final String motif = 
+        "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
+
+    /**
      * UI preferences.
      */
     protected static Preferences prefs =
@@ -123,8 +129,8 @@ public class SplatLookAndFeelManager implements ActionListener
         this.targetMenu = targetMenu;
         this.parentWindow = SwingUtilities.getWindowAncestor( parent );
 
-        if ( defaultLook == null ) {
-            //  No system look and feel.
+        if ( defaultLook == null || defaultLook.equals( motif ) ) {
+            //  No system look and feel, or just too ugly.
             defaultLook = crossPlatformLook;
         }
 
