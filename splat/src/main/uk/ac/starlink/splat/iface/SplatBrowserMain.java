@@ -144,6 +144,8 @@ public class SplatBrowserMain
      */
     public static void guessProperties( boolean clearPrefs )
     {
+        //  TOPCAT calls this method.
+
         //  Clear application preferences, if requested. Need to do this for
         //  each package that stores preferences. Or start walking the tree.
         //  AFAIK only iface stores preferences.
