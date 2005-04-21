@@ -114,7 +114,7 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
             Element el;
             if ( localName != null && localName.length() > 0 ) {
                 String prefix = (String) prefixMap_.get( namespaceURI );
-                String qualifiedName = prefix == null
+                String qualifiedName = prefix == null || prefix.length() == 0
                                      ? localName
                                      : prefix + ":" + localName;
                 el = doc_.createElementNS( namespaceURI, qualifiedName );
