@@ -51,7 +51,7 @@ import uk.ac.starlink.ast.gui.DecimalField;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class SimpleUnaryMaths 
+public class SimpleUnaryMaths
     extends JFrame
 {
     /**
@@ -261,7 +261,7 @@ public class SimpleUnaryMaths
             double constant = 0.0;
             try {
                 constant = constantField.getDoubleValue();
-            } 
+            }
             catch ( Exception e ) {
                 e.printStackTrace();
                 return;
@@ -310,7 +310,8 @@ public class SimpleUnaryMaths
             String name = operation + " (" + spec.getShortName() + ") " +
                           operator + " (" + constant + ") ";
             FrameSet frameSet = ASTJ.get1DFrameSet(spec.getAst().getRef(), 1);
-            createNewSpectrum( name, frameSet, coords, data, errors );
+            createNewSpectrum( name, frameSet, coords, 
+                               spec.getCurrentDataUnits(), data, errors );
         }
     }
 
@@ -354,20 +355,22 @@ public class SimpleUnaryMaths
      * Create a new spectrum from two data arrays of coordinates and
      * values and add it to the global list.
      */
-    protected void createNewSpectrum( String name, FrameSet sourceSet, 
-                                      double[] coords, double[] data, 
-                                      double[] errors )
+    protected void createNewSpectrum( String name, FrameSet sourceSet,
+                                      double[] coords, String dataUnits,
+                                      double[] data, double[] errors )
     {
         try {
             //  Create a memory spectrum to contain the fit.
             EditableSpecData newSpec = SpecDataFactory.getInstance()
                 .createEditable( name );
-        
+
             if ( errors != null ) {
-                newSpec.setSimpleUnitData( sourceSet, coords, data, errors );
+                newSpec.setSimpleUnitData( sourceSet, coords, dataUnits,
+                                           data, errors );
             }
             else {
-                newSpec.setSimpleUnitData( sourceSet, coords, data );
+                newSpec.setSimpleUnitData( sourceSet, coords, dataUnits, 
+                                           data );
             }
             globalList.add( newSpec );
 

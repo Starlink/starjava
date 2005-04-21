@@ -349,11 +349,11 @@ public class TXTSpecDataImpl
             writeAstAtt( r, "StdOfRest" );
             writeAstAtt( r, "SourceVRF" );
             writeAstAtt( r, "SourceVel" );
-            String units = getProperty( "units" );
+            String units = getDataUnits();
             if ( units != null ) {
                 r.write( "# DataUnits " + units + "\n" );
             }
-            String label = getProperty( "label" );
+            String label = getDataLabel();
             if ( label != null ) {
                 r.write( "# DataLabel " + label + "\n" );
             }
@@ -367,7 +367,7 @@ public class TXTSpecDataImpl
         if ( errors == null ) {
             for ( int i = 0; i < data.length; i++ ) {
                 try {
-                    r.write( coords[i]+" "+data[i]+"\n" );
+                    r.write( coords[i] + " " + data[i] + "\n" );
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -377,7 +377,7 @@ public class TXTSpecDataImpl
         else {
             for ( int i = 0; i < data.length; i++ ) {
                 try {
-                    r.write( coords[i]+ " "+data[i]+" "+errors[i]+"\n");
+                    r.write( coords[i] +" "+ data[i] +" "+ errors[i] +"\n");
                 }
                 catch (Exception e) {
                     e.printStackTrace();

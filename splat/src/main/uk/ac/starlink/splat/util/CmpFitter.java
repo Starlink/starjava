@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Iterator;
 
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -102,13 +103,16 @@ public class CmpFitter
         double[] x = specData.getXData();
         double[] y = specData.getYData();
         double[] w = specData.getYDataErrors();
+        FrameSet frameSet = specData.getFrameSet();
+        String dataUnits = specData.getCurrentDataUnits();
 
         //  Write initial guess complete spectrum to disk file.
         try {
             EditableSpecData memSpec = factory.createEditable( modelFile,
                                                                specData );
             double[] modelYData = fitter.evalYDataArray( x );
-            memSpec.setSimpleDataQuick( x, modelYData );
+            memSpec.setSimpleUnitDataQuick( frameSet, x, dataUnits, 
+                                            modelYData );
             SpecData initialSpec = factory.getClone( memSpec, modelFile );
             initialSpec.save();
             System.out.println( "Saved initial model as: " + modelFile );
@@ -132,7 +136,8 @@ public class CmpFitter
             for ( int i = 0; i < resids.length; i++ ) {
                 resids[i] = Math.abs( resids[i] );
             }
-            memSpec.setSimpleDataQuick( x, fitYData, resids );
+            memSpec.setSimpleUnitDataQuick( frameSet, x, dataUnits, fitYData, 
+                                            resids );
             SpecData fitSpec = factory.getClone( memSpec, fitFile );
             fitSpec.save();
             System.out.println( "Saved fit as: " + fitFile );
@@ -153,7 +158,8 @@ public class CmpFitter
                                                                    specData );
                 FunctionGenerator fg = (FunctionGenerator) i.next();
                 double[] fitYData = fg.evalYDataArray( x );
-                memSpec.setSimpleDataQuick( x, fitYData, null );
+                memSpec.setSimpleUnitDataQuick( frameSet, x, dataUnits, 
+                                                fitYData, null );
                 SpecData cmpSpec = factory.getClone( memSpec, name );
                 cmpSpec.save();
                 System.out.println( "Saved component line: " + name );

@@ -603,7 +603,7 @@ public class DeblendFrame
         // If using a constant background create a spectrum to
         // show this.
         if ( XBackYData == null ) {
-            updateConstantSpectrum( backgroundValue,
+            updateConstantSpectrum( currentSpectrum, backgroundValue,
                                     XSpecXData[0],
                                     XSpecXData[XSpecXData.length-1] );
         }
@@ -833,7 +833,9 @@ public class DeblendFrame
     /**
      * Update or create the constant value background spectrum.
      */
-    protected void updateConstantSpectrum( double value, double high, double low )
+    protected void updateConstantSpectrum( SpecData currentSpectrum,
+                                           double value, double high, 
+                                           double low )
     {
         try {
             boolean created = false;
@@ -851,7 +853,9 @@ public class DeblendFrame
             values[0] = value;
             values[1] = value;
 
-            constantSpectrum.setSimpleData( coords, values );
+            constantSpectrum.setSimpleUnitData
+                ( currentSpectrum.getFrameSet(), coords,
+                  currentSpectrum.getCurrentDataUnits(), values );
             constantSpectrum.setType( SpecData.POLYNOMIAL );
             constantSpectrum.setUseInAutoRanging( false );
             constantSpectrum.setShortName( "Constant " + value );
@@ -870,14 +874,18 @@ public class DeblendFrame
     /**
      *  Display a line fit as a spectrum.
      */
-    protected void displayFit( String name, double[] coords,
+    protected void displayFit( SpecData currentSpectrum,
+                               String name, double[] coords,
                                double[] data, int colourScheme )
     {
         //  Create a memory spectrum to contain the fit.
         try {
             EditableSpecData lineSpec = SpecDataFactory.getInstance()
                 .createEditable( name );
-            lineSpec.setSimpleData( coords, data );
+            lineSpec.setSimpleUnitData( currentSpectrum.getFrameSet(),
+                                        coords, 
+                                        currentSpectrum.getCurrentDataUnits(),
+                                        data );
             lineSpec.setType( SpecData.LINEFIT );
             lineSpec.setUseInAutoRanging( false );
             globalList.add( lineSpec );

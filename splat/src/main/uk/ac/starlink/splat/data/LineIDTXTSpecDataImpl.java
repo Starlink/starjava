@@ -349,11 +349,11 @@ public class LineIDTXTSpecDataImpl
             writeAstAtt( r, "StdOfRest" );
             writeAstAtt( r, "SourceVRF" );
             writeAstAtt( r, "SourceVel" );
-            String units = getProperty( "units" );
+            String units = getDataUnits();
             if ( units != null ) {
                 r.write( "# DataUnits " + units + "\n" );
             }
-            String label = getProperty( "label" );
+            String label = getDataLabel();
             if ( label != null ) {
                 r.write( "# DataLabel " + label + "\n" );
             }

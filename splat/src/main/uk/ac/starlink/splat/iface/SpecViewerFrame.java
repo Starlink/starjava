@@ -47,7 +47,7 @@ import uk.ac.starlink.splat.util.SplatException;
 
 /**
  * Displays a table of the values in a selected spectrum and allows
- * their modification (readonly spectra can be changed to modifiedable
+ * their modification (readonly spectra can be changed to modifiable
  * ones trivially by making a memory copy).
  * <p>
  * There are two basic ways of modifying the data, either values may
@@ -435,6 +435,7 @@ public class SpecViewerFrame
             FrameSet frameSet = 
                 ASTJ.get1DFrameSet( editSpec.getAst().getRef(), 1 );
             editSpec.setSimpleUnitDataQuick( frameSet, coords, 
+                                             specData.getCurrentDataUnits(),
                                              specData.getYData(),
                                              specData.getYDataErrors() );
             specDataChanged();
@@ -474,16 +475,16 @@ public class SpecViewerFrame
                 if ( source == dataColumnGenerator ) {
                     // Data column.
                     double[] errors = specData.getYDataErrors();
-                    ((EditableSpecData)specData).setFullDataQuick( frameSet,
-                                                                   column,
-                                                                   errors );
+                    ((EditableSpecData)specData).setFullDataQuick
+                        ( frameSet, specData.getCurrentDataUnits(), 
+                          column, errors );
                 }
                 else {
                     // Error column.
                     double[] values = specData.getYData();
-                    ((EditableSpecData)specData).setFullDataQuick( frameSet,
-                                                                   values,
-                                                                   column );
+                    ((EditableSpecData)specData).setFullDataQuick
+                        ( frameSet, specData.getCurrentDataUnits(), 
+                          values, column );
                 }
                 specDataChanged();
             }
@@ -613,8 +614,11 @@ public class SpecViewerFrame
         //  Update spectrum.
         try {
             EditableSpecData editSpec = (EditableSpecData) specData;
-            editSpec.setSimpleUnitDataQuick( editSpec.getAst().getRef(), 
-                                             newCoords, newValues, newErrors );
+            FrameSet frameSet = 
+                ASTJ.get1DFrameSet( editSpec.getAst().getRef(), 1 );
+            editSpec.setSimpleUnitDataQuick( frameSet, newCoords,
+                                             editSpec.getCurrentDataUnits(),
+                                             newValues, newErrors );
             specDataChanged();
         }
         catch (SplatException e) {
@@ -630,9 +634,12 @@ public class SpecViewerFrame
         if ( ! model.isReadOnly() && specData.haveYDataErrors() ) {
             FrameSet frameSet = specData.getFrameSet();
             double[] values = specData.getYData();
+            String valueUnits = specData.getCurrentDataUnits();
             double[] errors = null;
             try {
-                ((EditableSpecData)specData).setFullData( frameSet, values,
+                ((EditableSpecData)specData).setFullData( frameSet, 
+                                                          valueUnits,
+                                                          values,
                                                           errors );
                 specDataChanged();
             }
@@ -718,8 +725,11 @@ public class SpecViewerFrame
 
                 try {
                     EditableSpecData editSpec = (EditableSpecData) specData;
-                    editSpec.setSimpleUnitData( editSpec.getFrameSet(),
-                                                newCoords, newValues, 
+                    FrameSet frameSet = 
+                        ASTJ.get1DFrameSet( editSpec.getAst().getRef(), 1 );
+                    editSpec.setSimpleUnitData( frameSet, newCoords, 
+                                                editSpec.getCurrentDataUnits(),
+                                                newValues, 
                                                 newErrors );
                     specDataChanged();
                 }

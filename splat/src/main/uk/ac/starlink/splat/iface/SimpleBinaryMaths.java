@@ -275,6 +275,8 @@ public class SimpleBinaryMaths
         SpecData two = getViewTwoSpectrum();
         if ( one != null && two != null ) {
 
+            //  XXX Should match the coordinates and data units using AST.
+
             //  The X coordinates of one must match those of two.
             double[] coords = one.getXData();
             double[] oneData = one.getYData();
@@ -309,7 +311,8 @@ public class SimpleBinaryMaths
             String name = operation + " (" + one.getShortName() + ") " + 
                           operator + " (" + two.getShortName() + ") ";
             FrameSet frameSet = ASTJ.get1DFrameSet( one.getAst().getRef(), 1 );
-            createNewSpectrum( name, frameSet, coords, newData );
+            createNewSpectrum( name, frameSet, coords, 
+                               one.getCurrentDataUnits(), newData );
         }
     }
 
@@ -389,13 +392,14 @@ public class SimpleBinaryMaths
      * the coordinate system and the data units.
      */
     protected void createNewSpectrum( String name, FrameSet sourceSet, 
-                                      double[] coords, double[] data )
+                                      double[] coords, String dataUnits,
+                                      double[] data )
     {
         try {
             //  Create a memory spectrum to contain the fit.
             EditableSpecData newSpec = SpecDataFactory.getInstance()
                 .createEditable( name );
-            newSpec.setSimpleUnitData( sourceSet, coords, data );
+            newSpec.setSimpleUnitData( sourceSet, coords, dataUnits, data );
             globalList.add( newSpec );
 
             //  Spectral lines create here are red.

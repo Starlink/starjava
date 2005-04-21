@@ -85,12 +85,23 @@ public interface SpecDataImpl
     public void setDataUnits( String units );
 
     /**
+     * Get the units of the data values. When not set this should be "unknown".
+     */
+    public String getDataUnits();
+
+    /**
      * Set the label of the data values contained in this spectrum. This will
      * be used in plots as a label for the data axis and has no other meaning.
      * 
      * @param label the label describing the data values (flux density etc).
      */
     public void setDataLabel( String label );
+
+    /**
+     * Get the label of the data values. When not set this should be 
+     * "data values". 
+     */
+    public String getDataLabel();
 
     /**
      * Whether the class is a FITSHeaderSource. This means it has FITS

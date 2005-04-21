@@ -113,7 +113,7 @@ public class SplatPlotTable
         //  The table can have many rows selected.
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
-        //  Double click on a row raises the associated plot?
+        //  Double click on a row raises the associated plot.
         table.addMouseListener( new MouseAdapter() {
                 public void mouseClicked( MouseEvent e ) {
                     if ( e.getClickCount() >= 2 ) {

@@ -359,6 +359,32 @@ public final class Sort
     }
 
     /**
+     * Sort an integer array, plus array of associated integers using
+     * an insertion sort. This sort is very fast for small numbers of values
+     * and gets a boost from pre-sorted arrays.
+     */
+    public static void insertionSort2( int[] a, int[] ia )
+    {
+        int i;
+        int j;
+        int v;
+        int iv;
+
+        for ( i = 1; i < a.length; i++ ) {
+            v = a[i];
+            iv = ia[i];
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
+                a[j] = a[j-1];
+                ia[j] = ia[j-1];
+                j--;
+            }
+            a[j] = v;
+            ia[j] = iv;
+        }
+    }
+
+    /**
      * Sort a double precision array, plus an array of associated integers
      * using a sort suitable for large numbers of values, into ascending
      * order. This is stable and has guaranteed nlogn performance. Based on

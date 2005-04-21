@@ -25,9 +25,11 @@ public interface EditableSpecDataImpl
      * Takes a copy of all data.
      *
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      */
-    public void setSimpleData( double[] coords, double[] data )
+    public void setSimpleData( double[] coords, String dataUnits, 
+                               double[] data )
         throws SplatException;
 
     /**
@@ -38,10 +40,11 @@ public interface EditableSpecDataImpl
      * @param frameSet the 1D FrameSet to be used for properties. The current
      *                 Frame defines the spectrum coordinate system.
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      */
     public void setSimpleUnitData( FrameSet frameSet, double[] coords,
-                                   double[] data )
+                                   String dataUnits, double[] data )
         throws SplatException;
 
     /**
@@ -49,18 +52,22 @@ public interface EditableSpecDataImpl
      *
      * @param frameSet the FrameSet to be used for generating
      *                 coordinates.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      */
-    public void setFullData( FrameSet frameSet, double[] data )
+    public void setFullData( FrameSet frameSet, String dataUnits, 
+                             double[] data )
         throws SplatException;
 
     /**
      * Change the complete spectrum data. Original data is not copied.
      *
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      */
-    public void setSimpleDataQuick( double[] coords, double[] data )
+    public void setSimpleDataQuick( double[] coords, String dataUnits, 
+                                    double[] data )
         throws SplatException;
 
     /**
@@ -71,10 +78,11 @@ public interface EditableSpecDataImpl
      * @param frameSet the 1D FrameSet to be used for properties. The current
      *                 Frame defines the spectrum coordinate system.
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      */
     public void setSimpleUnitDataQuick( FrameSet frameSet, double[] coords,
-                                        double[] data )
+                                        String dataUnits, double[] data )
         throws SplatException;
 
     /**
@@ -83,9 +91,11 @@ public interface EditableSpecDataImpl
      *
      * @param frameSet the FrameSet to be used for generating
      *                 coordinates.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      */
-    public void setFullDataQuick( FrameSet frameSet, double[] data )
+    public void setFullDataQuick( FrameSet frameSet, String dataUnits, 
+                                  double[] data )
         throws SplatException;
 
     /**
@@ -93,11 +103,12 @@ public interface EditableSpecDataImpl
      * Takes a copy of all data.
      *
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setSimpleData( double[] coords,  double[] data,
-                               double[] errors )
+    public void setSimpleData( double[] coords,  String dataUnits, 
+                               double[] data, double[] errors )
         throws SplatException;
 
     /**
@@ -108,11 +119,13 @@ public interface EditableSpecDataImpl
      * @param frameSet the 1D FrameSet to be used for properties. The current
      *                 Frame defines the spectrum coordinate system.
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
     public void setSimpleUnitData( FrameSet frameSet, double[] coords,
-                                   double[] data, double[] errors )
+                                   String dataUnits, double[] data, 
+                                   double[] errors )
         throws SplatException;
 
     /**
@@ -120,11 +133,12 @@ public interface EditableSpecDataImpl
      *
      * @param frameSet the FrameSet to be used for generating
      *                 coordinates.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setFullData( FrameSet frameSet, double[] data,
-                             double[] errors )
+    public void setFullData( FrameSet frameSet, String dataUnits, 
+                             double[] data, double[] errors )
         throws SplatException;
 
     /**
@@ -132,11 +146,12 @@ public interface EditableSpecDataImpl
      * Original data is not copied.
      *
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setSimpleDataQuick( double[] coords, double[] data, 
-                                    double[] errors )
+    public void setSimpleDataQuick( double[] coords, String dataUnits, 
+                                    double[] data, double[] errors )
         throws SplatException;
 
     /**
@@ -147,11 +162,13 @@ public interface EditableSpecDataImpl
      * @param frameSet the 1D FrameSet to be used for properties. The current
      *                 Frame defines the spectrum coordinate system.
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
     public void setSimpleUnitDataQuick( FrameSet frameSet, double[] coords,
-                                        double[] data, double[] errors )
+                                        String dataUnits, double[] data, 
+                                        double[] errors )
         throws SplatException;
 
     /**
@@ -160,11 +177,12 @@ public interface EditableSpecDataImpl
      *
      * @param frameSet the FrameSet to be used for generating
      *                 coordinates.
+     * @param dataUnits the data units, if known.
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setFullDataQuick( FrameSet frameSet, double[] data,
-                                  double[] errors )
+    public void setFullDataQuick( FrameSet frameSet, String dataUnits, 
+                                  double[] data, double[] errors )
         throws SplatException;
 
     /**

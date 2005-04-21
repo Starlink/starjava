@@ -128,13 +128,35 @@ public abstract class AbstractSpecDataImpl
     //  Set the data units string.
     public void setDataUnits( String dataUnits )
     {
-        this.dataUnits = UnitUtilities.fixUpUnits( dataUnits );
+        if ( dataUnits != null ) {
+            this.dataUnits = UnitUtilities.fixUpUnits( dataUnits );
+        }
+        else {
+            this.dataUnits = "unknown";
+        }
+    }
+
+    //  Get the data units.
+    public String getDataUnits()
+    {
+        return dataUnits;
     }
 
     //  Set the data label string.
     public void setDataLabel( String dataLabel )
     {
-        this.dataLabel = dataLabel;
+        if ( dataLabel != null ) {
+            this.dataLabel = dataLabel;
+        }
+        else {
+            this.dataLabel = "data values";
+        }
+    }
+
+    //  Get the data label.
+    public String getDataLabel()
+    {
+        return dataLabel;
     }
 
     /**

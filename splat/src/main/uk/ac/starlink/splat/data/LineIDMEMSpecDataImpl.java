@@ -180,87 +180,97 @@ public class LineIDMEMSpecDataImpl
 // variable up to date.
 //
 
-    public void setSimpleData( double[] coords, double[] data )
+    public void setSimpleData( double[] coords, String dataUnits,
+                               double[] data )
         throws SplatException
     {
         haveDataPositions = ( data != null );
-        super.setSimpleData( coords, data );
+        super.setSimpleData( coords, dataUnits, data );
     }
 
     public void setSimpleUnitData( FrameSet sourceSet, double[] coords, 
-                                   double[] data )
+                                   String dataUnits, double[] data )
         throws SplatException
     {
         haveDataPositions = ( data != null );
-        super.setSimpleUnitData( sourceSet, coords, data );
+        super.setSimpleUnitData( sourceSet, coords, dataUnits, data );
     }
 
-    public void setFullData( FrameSet frameSet, double[] data )
+    public void setFullData( FrameSet frameSet, String dataUnits, 
+                             double[] data )
         throws SplatException
     {
         haveDataPositions = ( data != null );
-        super.setFullData( frameSet, data );
+        super.setFullData( frameSet, dataUnits, data );
     }
 
-    public void setSimpleDataQuick( double[] coords, double[] data )
+    public void setSimpleDataQuick( double[] coords, String dataUnits, 
+                                    double[] data )
     {
         haveDataPositions = ( data != null );
-        super.setSimpleDataQuick( coords, data );
+        super.setSimpleDataQuick( coords, dataUnits, data );
     }
 
     public void setSimpleUnitDataQuick( FrameSet sourceSet, double[] coords, 
-                                        double[] data )
+                                        String dataUnits, double[] data )
     {
         haveDataPositions = ( data != null );
-        super.setSimpleUnitDataQuick( sourceSet, coords, data );
+        super.setSimpleUnitDataQuick( sourceSet, coords, dataUnits, data );
     }
 
-    public void setFullDataQuick( FrameSet frameSet, double[] data )
+    public void setFullDataQuick( FrameSet frameSet, String dataUnits, 
+                                  double[] data )
     {
         haveDataPositions = ( data != null );
-        super.setFullDataQuick( frameSet, data );
+        super.setFullDataQuick( frameSet, dataUnits, data );
     }
 
-    public void setSimpleData( double[] coords, double[] data, double[] errors )
+    public void setSimpleData( double[] coords, String dataUnits, 
+                               double[] data, double[] errors )
         throws SplatException
     {
         haveDataPositions = ( data != null );
-        super.setSimpleData( coords, data, errors );
+        super.setSimpleData( coords, dataUnits, data, errors );
     }
 
     public void setSimpleUnitData( FrameSet sourceSet, double[] coords, 
-                                   double[] data, double[] errors )
+                                   String dataUnits, double[] data, 
+                                   double[] errors )
         throws SplatException
     {
         haveDataPositions = ( data != null );
-        super.setSimpleUnitData( sourceSet, coords, data, errors );
+        super.setSimpleUnitData( sourceSet, coords, dataUnits, data, errors );
     }
 
-    public void setFullData( FrameSet frameSet, double[] data, double[] errors )
+    public void setFullData( FrameSet frameSet, String dataUnits, 
+                             double[] data, double[] errors )
         throws SplatException
     {
         haveDataPositions = ( data != null );
-        super.setFullData( frameSet, data, errors );
+        super.setFullData( frameSet, dataUnits, data, errors );
     }
 
-    public void setSimpleDataQuick( double[] coords, double[] data, double[] errors )
+    public void setSimpleDataQuick( double[] coords, String dataUnits, 
+                                    double[] data, double[] errors )
     {
         haveDataPositions = ( data != null );
-        super.setSimpleDataQuick( coords, data, errors );
+        super.setSimpleDataQuick( coords, dataUnits, data, errors );
     }
 
     public void setSimpleUnitDataQuick( FrameSet sourceSet, double[] coords, 
-                                        double[] data, double[] errors )
+                                        String dataUnits, double[] data, 
+                                        double[] errors )
     {
         haveDataPositions = ( data != null );
-        super.setSimpleUnitDataQuick( sourceSet, coords, data, errors );
+        super.setSimpleUnitDataQuick( sourceSet, coords, dataUnits, data, 
+                                      errors );
     }
 
-    public void setFullDataQuick( FrameSet frameSet, double[] data,
-                                  double[] errors )
+    public void setFullDataQuick( FrameSet frameSet, String dataUnits, 
+                                  double[] data, double[] errors )
     {
         haveDataPositions = ( data != null );
-        super.setFullDataQuick( frameSet, data, errors );
+        super.setFullDataQuick( frameSet, dataUnits, data, errors );
     }
 
     public void setYDataValue( int index, double value )

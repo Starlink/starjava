@@ -2430,7 +2430,7 @@ public class SplatBrowser
                     for ( int i = 0; i < nrows; i++ ) {
                         coords[i] = (double) i + 1;
                     }
-                    newSpec.setSimpleDataQuick( coords, data );
+                    newSpec.setSimpleDataQuick( coords, null, data );
                     globalList.add( newSpec );
                }
                 catch (Exception e) {

@@ -16,7 +16,7 @@ import uk.ac.starlink.ast.FrameSet;
  *
  * @author Peter W. Draper
  * @version $Id$
- */      
+ */
 public abstract class AbstractEditableSpecDataImpl
     extends AbstractSpecDataImpl
     implements EditableSpecDataImpl
@@ -27,66 +27,76 @@ public abstract class AbstractEditableSpecDataImpl
      * @param name The specification of the spectrum (disk file name
      * etc.).
      */
-    public AbstractEditableSpecDataImpl( String name ) 
+    public AbstractEditableSpecDataImpl( String name )
         throws SplatException
     {
         super( name );
     }
-    
+
     /**
      * Constructor, clone from another spectrum.
      *
      * @param name a symbolic name for the spectrum.
      * @param spectrum the spectrum to clone.
      */
-    public AbstractEditableSpecDataImpl( String name, SpecData spectrum ) 
+    public AbstractEditableSpecDataImpl( String name, SpecData spectrum )
         throws SplatException
     {
         super( name, spectrum );
     }
 
-    abstract public void setSimpleData( double[] coords, double[] data )
+    abstract public void setSimpleData( double[] coords, String dataUnits,
+                                        double[] data )
         throws SplatException;
 
     abstract public void setSimpleUnitData( FrameSet frameSet, double[] coords,
-                                            double[] data )
+                                            String dataUnits, double[] data )
         throws SplatException;
 
-    abstract public void setFullData( FrameSet frameSet, double[] data )
+    abstract public void setFullData( FrameSet frameSet, String dataUnits,
+                                      double[] data )
         throws SplatException;
 
-    abstract public void setSimpleDataQuick( double[] coords, double[] data )
+    abstract public void setSimpleDataQuick( double[] coords, String dataUnits,
+                                             double[] data )
         throws SplatException;
 
-    abstract public void setSimpleUnitDataQuick( FrameSet frameSet, double[] coords,
+    abstract public void setSimpleUnitDataQuick( FrameSet frameSet,
+                                                 double[] coords,
+                                                 String dataUnits,
                                                  double[] data )
         throws SplatException;
 
-    abstract public void setFullDataQuick( FrameSet frameSet, double[] data )
+    abstract public void setFullDataQuick( FrameSet frameSet,
+                                           String dataUnits, double[] data )
         throws SplatException;
 
-    abstract public void setSimpleData( double[] coords,  double[] data,
-                                        double[] errors )
+    abstract public void setSimpleData( double[] coords,  String dataUnits,
+                                        double[] data, double[] errors )
         throws SplatException;
 
     abstract public void setSimpleUnitData( FrameSet frameSet, double[] coords,
-                                            double[] data, double[] errors )
+                                            String dataUnits, double[] data,
+                                            double[] errors )
         throws SplatException;
 
-    abstract public void setFullData( FrameSet frameSet, double[] data,
-                                      double[] errors )
+    abstract public void setFullData( FrameSet frameSet, String dataUnits,
+                                      double[] data, double[] errors )
         throws SplatException;
 
-    abstract public void setSimpleDataQuick( double[] coords, double[] data, 
-                                             double[] errors )
+    abstract public void setSimpleDataQuick( double[] coords, String dataUnits,
+                                             double[] data, double[] errors )
         throws SplatException;
 
-    abstract public void setSimpleUnitDataQuick( FrameSet frameSet, double[] coords,
-                                                 double[] data, double[] errors )
+    abstract public void setSimpleUnitDataQuick( FrameSet frameSet,
+                                                 double[] coords,
+                                                 String dataUnits,
+                                                 double[] data,
+                                                 double[] errors )
         throws SplatException;
 
-    abstract public void setFullDataQuick( FrameSet frameSet, double[] data,
-                                           double[] errors )
+    abstract public void setFullDataQuick( FrameSet frameSet, String dataUnits,
+                                           double[] data, double[] errors )
         throws SplatException;
 
     abstract public void setXDataValue( int index, double value )

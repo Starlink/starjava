@@ -83,7 +83,7 @@ public class MEMSpecDataImpl
 
         //  Record any source of header information.
         if ( spectrum.getSpecDataImpl().isFITSHeaderSource() ) {
-            headers = 
+            headers =
                ((FITSHeaderSource)spectrum.getSpecDataImpl()).getFitsHeaders();
         }
 
@@ -312,10 +312,10 @@ public class MEMSpecDataImpl
         throws SplatException
     {
         if ( errors != null ) {
-            setFullData( astref, data, errors );
+            setFullData( astref, dataUnits, data, errors );
         }
         else {
-	   setFullData( astref, data );
+	   setFullData( astref, dataUnits, data );
 	}
     }
 
@@ -374,89 +374,109 @@ public class MEMSpecDataImpl
     // Editable interface.
     //
 
-    public void setSimpleData( double[] coords, double[] data )
+    public void setSimpleData( double[] coords, String dataUnits,
+                               double[] data )
         throws SplatException
     {
         copyData( coords, data, null );
+        setDataUnits( dataUnits );
         createAst();
     }
 
     public void setSimpleUnitData( FrameSet sourceSet, double[] coords,
-                                   double[] data )
+                                   String dataUnits, double[] data )
         throws SplatException
     {
         copyData( coords, data, null );
+        setDataUnits( dataUnits );
         createAst( sourceSet );
     }
 
-    public void setFullData( FrameSet frameSet, double[] data )
+    public void setFullData( FrameSet frameSet, String dataUnits, 
+                             double[] data )
         throws SplatException
     {
         copyData( null, data, null );
+        setDataUnits( dataUnits );
         setAstCopy( frameSet );
     }
 
-    public void setSimpleDataQuick( double[] coords, double[] data )
+    public void setSimpleDataQuick( double[] coords, String dataUnits,
+                                    double[] data )
     {
         this.data = data;
         this.coords = coords;
+        setDataUnits( dataUnits );
         createAst();
     }
 
     public void setSimpleUnitDataQuick( FrameSet sourceSet, double[] coords,
-                                        double[] data )
+                                        String dataUnits, double[] data )
     {
         this.data = data;
         this.coords = coords;
+        setDataUnits( dataUnits );
         createAst( sourceSet );
     }
 
-    public void setFullDataQuick( FrameSet frameSet, double[] data )
+    public void setFullDataQuick( FrameSet frameSet, String dataUnits,
+                                  double[] data )
     {
         this.data = data;
+        setDataUnits( dataUnits );
         setAstCopy( frameSet );
     }
 
-    public void setSimpleData( double[] coords, double[] data, double[] errors )
+    public void setSimpleData( double[] coords, String dataUnits, 
+                               double[] data, double[] errors )
         throws SplatException
     {
         copyData( coords, data, errors );
+        setDataUnits( dataUnits );
         createAst();
     }
 
     public void setSimpleUnitData( FrameSet sourceSet, double[] coords,
-                                   double[] data, double[] errors )
+                                   String dataUnits, double[] data, 
+                                   double[] errors )
         throws SplatException
     {
         copyData( coords, data, errors );
+        setDataUnits( dataUnits );
         createAst( sourceSet );
     }
 
-    public void setFullData( FrameSet frameSet, double[] data, double[] errors )
+    public void setFullData( FrameSet frameSet, String dataUnits,
+                             double[] data, double[] errors )
         throws SplatException
     {
         copyData( null, data, errors );
+        setDataUnits( dataUnits );
         setAstCopy( frameSet );
     }
 
-    public void setSimpleDataQuick( double[] coords, double[] data, double[] errors )
+    public void setSimpleDataQuick( double[] coords, String dataUnits,
+                                    double[] data, double[] errors )
     {
-        setSimpleDataQuick( coords, data );
+        setSimpleDataQuick( coords, dataUnits, data );
+        setDataUnits( dataUnits );
         this.errors = errors;
     }
 
     public void setSimpleUnitDataQuick( FrameSet sourceSet, double[] coords,
-                                        double[] data, double[] errors )
+                                        String dataUnits, double[] data, 
+                                        double[] errors )
     {
-        setSimpleUnitDataQuick( sourceSet, coords, data );
+        setSimpleUnitDataQuick( sourceSet, coords, dataUnits, data );
         this.errors = errors;
     }
 
-    public void setFullDataQuick( FrameSet frameSet, double[] data,
-                                  double[] errors )
+    public void setFullDataQuick( FrameSet frameSet, String dataUnits,
+                                  double[] data, double[] errors )
     {
         this.data = data;
         this.errors = errors;
+        setDataUnits( dataUnits );
         setAstCopy( frameSet );
         createCoords();
     }

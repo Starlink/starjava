@@ -273,8 +273,10 @@ public class GlobalSpecPlotList
      */
     public void setCurrentSpectrum( int index )
     {
-        currentSpectrum = index;
-        fireCurrentSpectrumChanged();
+        if ( index != -1 ) {
+            currentSpectrum = index;
+            fireCurrentSpectrumChanged();
+        }
     }
 
     /**

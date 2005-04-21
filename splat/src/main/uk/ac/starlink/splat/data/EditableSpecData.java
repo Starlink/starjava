@@ -119,17 +119,19 @@ public class EditableSpecData
      * Change the complete spectrum data. Copies all data.
      *
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units if known.
      * @param data the spectrum data values.
      */
-    public void setSimpleData( double[] coords, double[] data )
+    public void setSimpleData( double[] coords, String dataUnits,
+                               double[] data )
         throws SplatException
     {
         if ( data.length != coords.length ) {
             throw new SplatException( "Data and coordinates must have " +
                                       "the same number of values" );
         }
-        constructColumnUndo( coords, data, null, false );
-        editableImpl.setSimpleData( coords, data );
+        constructColumnUndo( coords, dataUnits, data, null, false );
+        editableImpl.setSimpleData( coords, dataUnits, data );
         readData();
     }
 
@@ -141,18 +143,19 @@ public class EditableSpecData
      * @param frameSet the 1D FrameSet to be used for properties. The current
      *                 Frame defines the spectrum coordinate system.
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the spectrum data value units, if known.
      * @param data the spectrum data values.
      */
     public void setSimpleUnitData( FrameSet frameSet, double[] coords,
-                                   double[] data )
+                                   String dataUnits, double[] data )
         throws SplatException
     {
         if ( data.length != coords.length ) {
             throw new SplatException( "Data and coordinates must have " +
                                       "the same number of values" );
         }
-        constructColumnUndo( coords, data, null, false );
-        editableImpl.setSimpleUnitData( frameSet, coords, data );
+        constructColumnUndo( coords, dataUnits, data, null, false );
+        editableImpl.setSimpleUnitData( frameSet, coords, dataUnits, data );
         readData();
     }
 
@@ -160,13 +163,15 @@ public class EditableSpecData
      * Change the complete spectrum data and WCS. Copies all data.
      *
      * @param frameSet a FrameSet for the WCS of this data
+     * @param dataUnits the data units if known.
      * @param data the spectrum data values.
      */
-    public void setFullData( FrameSet frameSet, double[] data )
+    public void setFullData( FrameSet frameSet, String dataUnits,
+                             double[] data )
         throws SplatException
     {
-        constructColumnAndFrameSetUndo( data, null, false );
-        editableImpl.setFullData( frameSet, data );
+        constructColumnAndFrameSetUndo( dataUnits, data, null, false );
+        editableImpl.setFullData( frameSet, dataUnits, data );
         readData();
     }
 
@@ -175,17 +180,19 @@ public class EditableSpecData
      * keeps references.
      *
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units if known.
      * @param data the spectrum data values.
      */
-    public void setSimpleDataQuick( double[] coords, double[] data )
+    public void setSimpleDataQuick( double[] coords, String dataUnits,
+                                    double[] data )
         throws SplatException
     {
         if ( data.length != coords.length ) {
             throw new SplatException( "Data and coordinates must have " +
                                       "the same number of values" );
         }
-        constructColumnUndo( coords, data, null, true );
-        editableImpl.setSimpleDataQuick( coords, data );
+        constructColumnUndo( coords, dataUnits, data, null, true );
+        editableImpl.setSimpleDataQuick( coords, dataUnits, data );
         readData();
     }
 
@@ -197,18 +204,20 @@ public class EditableSpecData
      * @param frameSet the 1D FrameSet to be used for properties. The current
      *                 Frame defines the spectrum coordinate system.
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units if known
      * @param data the spectrum data values.
      */
-    public void setSimpleUnitDataQuick( FrameSet frameSet, double[] coords, 
-                                        double[] data )
+    public void setSimpleUnitDataQuick( FrameSet frameSet, double[] coords,
+                                        String dataUnits, double[] data )
         throws SplatException
     {
         if ( data.length != coords.length ) {
             throw new SplatException( "Data and coordinates must have " +
                                       "the same number of values" );
         }
-        constructColumnUndo( coords, data, null, true );
-        editableImpl.setSimpleUnitDataQuick( frameSet, coords, data );
+        constructColumnUndo( coords, dataUnits, data, null, true );
+        editableImpl.setSimpleUnitDataQuick( frameSet, coords, dataUnits,
+                                             data );
         readData();
     }
 
@@ -217,13 +226,15 @@ public class EditableSpecData
      * keeps references.
      *
      * @param frameSet a FrameSet for the WCS of this data
+     * @param dataUnits the data units if known
      * @param data the spectrum data values.
      */
-    public void setFullDataQuick( FrameSet frameSet, double[] data )
+    public void setFullDataQuick( FrameSet frameSet, String dataUnits,
+                                  double[] data )
         throws SplatException
     {
-        constructColumnAndFrameSetUndo( data, null, true );
-        editableImpl.setFullDataQuick( frameSet, data );
+        constructColumnAndFrameSetUndo( dataUnits, data, null, true );
+        editableImpl.setFullDataQuick( frameSet, dataUnits, data );
         readData();
     }
 
@@ -231,11 +242,12 @@ public class EditableSpecData
      * Change the complete spectrum data. Copies all data.
      *
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units if known
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setSimpleData( double[] coords, double[] data,
-                               double[] errors )
+    public void setSimpleData( double[] coords, String dataUnits,
+                               double[] data, double[] errors )
         throws SplatException
     {
         if ( ( data.length != coords.length && errors == null ) ||
@@ -244,8 +256,8 @@ public class EditableSpecData
             throw new SplatException( "Data and coordinates must have " +
                                       "the same number of values" );
         }
-        constructColumnUndo( coords, data, errors, false );
-        editableImpl.setSimpleData( coords, data, errors );
+        constructColumnUndo( coords, dataUnits, data, errors, false );
+        editableImpl.setSimpleData( coords, dataUnits, data, errors );
         readData();
     }
 
@@ -257,10 +269,12 @@ public class EditableSpecData
      * @param frameSet the 1D FrameSet to be used for properties. The current
      *                 Frame defines the spectrum coordinate system.
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units if known
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setSimpleUnitData( FrameSet frameSet, double[] coords, double[] data,
+    public void setSimpleUnitData( FrameSet frameSet, double[] coords,
+                                   String dataUnits, double[] data,
                                    double[] errors )
         throws SplatException
     {
@@ -270,8 +284,9 @@ public class EditableSpecData
             throw new SplatException( "Data and coordinates must have " +
                                       "the same number of values" );
         }
-        constructColumnUndo( coords, data, errors, false );
-        editableImpl.setSimpleUnitData( frameSet, coords, data, errors );
+        constructColumnUndo( coords, dataUnits, data, errors, false );
+        editableImpl.setSimpleUnitData( frameSet, coords, dataUnits, data,
+                                        errors );
         readData();
     }
 
@@ -279,19 +294,20 @@ public class EditableSpecData
      * Change the complete spectrum data and WCS. Copies all data.
      *
      * @param frameSet a FrameSet for the WCS of this data
+     * @param dataUnits the data units if known
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setFullData( FrameSet frameSet, double[] data,
-                             double[] errors )
+    public void setFullData( FrameSet frameSet, String dataUnits,
+                             double[] data, double[] errors )
         throws SplatException
     {
-        if ( ( errors == null ) || ( data.length != errors.length ) ) {
+        if ( ( errors != null ) && ( data.length != errors.length ) ) {
             throw new SplatException( "Data and errors must have " +
                                       "the same number of values" );
         }
-        constructColumnAndFrameSetUndo( data, errors, false );
-        editableImpl.setFullData( frameSet, data, errors );
+        constructColumnAndFrameSetUndo( dataUnits, data, errors, false );
+        editableImpl.setFullData( frameSet, dataUnits, data, errors );
         readData();
     }
 
@@ -299,11 +315,12 @@ public class EditableSpecData
      * Change the complete spectrum data. Doesn't copy data.
      *
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units if known
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setSimpleDataQuick( double[] coords, double[] data, 
-                                    double[] errors )
+    public void setSimpleDataQuick( double[] coords, String dataUnits,
+                                    double[] data, double[] errors )
         throws SplatException
     {
         if ( ( data.length != coords.length ) ||
@@ -311,8 +328,8 @@ public class EditableSpecData
             throw new SplatException( "Data and coordinates must have " +
                                       "the same number of values" );
         }
-        constructColumnUndo( coords, data, errors, true );
-        editableImpl.setSimpleDataQuick( coords, data, errors );
+        constructColumnUndo( coords, dataUnits, data, errors, true );
+        editableImpl.setSimpleDataQuick( coords, dataUnits, data, errors );
         readData();
     }
 
@@ -324,11 +341,13 @@ public class EditableSpecData
      * @param frameSet the 1D FrameSet to be used for properties. The current
      *                 Frame defines the spectrum coordinate system.
      * @param coords the spectrum coordinates, one per data value.
+     * @param dataUnits the data units if known
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setSimpleUnitDataQuick( FrameSet frameSet, double[] coords, 
-                                        double[] data, double[] errors )
+    public void setSimpleUnitDataQuick( FrameSet frameSet, double[] coords,
+                                        String dataUnits, double[] data,
+                                        double[] errors )
         throws SplatException
     {
         if ( ( data.length != coords.length ) ||
@@ -336,8 +355,9 @@ public class EditableSpecData
             throw new SplatException( "Data and coordinates must have " +
                                       "the same number of values" );
         }
-        constructColumnUndo( coords, data, errors, true );
-        editableImpl.setSimpleUnitDataQuick( frameSet, coords, data, errors );
+        constructColumnUndo( coords, dataUnits, data, errors, true );
+        editableImpl.setSimpleUnitDataQuick( frameSet, coords, dataUnits,
+                                             data, errors );
         readData();
     }
 
@@ -345,19 +365,20 @@ public class EditableSpecData
      * Change the complete spectrum data and WCS. Doesn't copy data.
      *
      * @param frameSet a FrameSet for the WCS of this data
+     * @param dataUnits the data units if known
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setFullDataQuick( FrameSet frameSet, double[] data,
-                                  double[] errors )
+    public void setFullDataQuick( FrameSet frameSet, String dataUnits,
+                                  double[] data, double[] errors )
         throws SplatException
     {
         if ( ( errors != null ) && ( data.length != errors.length ) ) {
             throw new SplatException( "Data and errors must have " +
                                       "the same number of values" );
         }
-        constructColumnAndFrameSetUndo( data, errors, true );
-        editableImpl.setFullDataQuick( frameSet, data, errors );
+        constructColumnAndFrameSetUndo( dataUnits, data, errors, true );
+        editableImpl.setFullDataQuick( frameSet, dataUnits, data, errors );
         readData();
     }
 
@@ -446,10 +467,12 @@ public class EditableSpecData
                     }
                 }
             }
-            setSimpleUnitDataQuick( getFrameSet(), nc, nd, ne );
+            setSimpleUnitDataQuick( getFrameSet(), nc, getCurrentDataUnits(),
+                                    nd, ne );
         }
         else {
-            setSimpleUnitDataQuick( getFrameSet(), xPos, yPos, yErr );
+            setSimpleUnitDataQuick( getFrameSet(), xPos, getCurrentDataUnits(),
+                                    yPos, yErr );
         }
     }
 
@@ -471,12 +494,13 @@ public class EditableSpecData
      * of any of the data columns.
      */
     protected void constructColumnUndo( double[] coords,
+                                        String dataUnits,
                                         double[] data,
                                         double[] errors,
                                         boolean needCopy )
     {
         if ( undoable && undoManager != null ) {
-            undoableEdit = new EditColumn( this, coords, data,
+            undoableEdit = new EditColumn( this, coords, dataUnits, data,
                                            errors, needCopy );
             undoManager.addEdit( undoableEdit );
         }
@@ -493,8 +517,10 @@ public class EditableSpecData
         extends AbstractUndoableEdit
     {
         private EditableSpecData specData = null;
+        private String dataUnits = null;
         private double[] data = null;
         private double[] coords = null;
+        private FrameSet frameSet = null;
         private double[] errors = null;
 
         /**
@@ -503,6 +529,7 @@ public class EditableSpecData
          * @param specData the specData object about to be modified
          * @param newCoords the coordinates about to applied (only used
          *                  if needCopy is true).
+         * @param newDataUnits the new data units (not used).
          * @param newData the data values about to applied (only used
          *                if needCopy is true).
          * @param newErrors the data errors about to applied. If null
@@ -511,8 +538,9 @@ public class EditableSpecData
          *                  needCopy is false).
          */
         public EditColumn( EditableSpecData specData,
-                           double[] newCoords, double[] newData,
-                           double[] newErrors, boolean needCopy )
+                           double[] newCoords, String newDataUnits,
+                           double[] newData, double[] newErrors, 
+                           boolean needCopy )
         {
             super();
             this.specData = specData;
@@ -526,7 +554,14 @@ public class EditableSpecData
                 }
             }
 
+            // Take clone of existing FrameSet so that we retain a full
+            // working copy regardless of other annuls. Note this is only used
+            // to keep the coordinate system properties. The actual mappings
+            // are not used.
+            this.frameSet = (FrameSet) specData.getFrameSet().clone();
+
             data = specData.getYData();
+            dataUnits = specData.getCurrentDataUnits();
             if ( needCopy && newData != null ) {
                 if ( data != newData ) {
                     data = makeCopy( data );
@@ -568,6 +603,12 @@ public class EditableSpecData
             double[] newCoords = coords;
             coords = specData.getXData();
 
+            FrameSet newFrameSet = frameSet;
+            frameSet = (FrameSet) specData.getFrameSet().clone();
+
+            String newDataUnits = dataUnits;
+            dataUnits = specData.getCurrentDataUnits();
+
             double[] newData = data;
             data = specData.getYData();
 
@@ -576,7 +617,9 @@ public class EditableSpecData
 
             try {
                 specData.undoable = false;
-                specData.setSimpleDataQuick( newCoords, newData, newErrors );
+                specData.setSimpleUnitDataQuick( newFrameSet, newCoords, 
+                                                 newDataUnits, 
+                                                 newData, newErrors );
                 specData.undoable = true;
             }
             catch (SplatException e) {
@@ -662,12 +705,14 @@ public class EditableSpecData
      * current state of the data columns and FrameSet (coordinates are
      * re-generated from this).
      */
-    protected void constructColumnAndFrameSetUndo( double[] data,
+    protected void constructColumnAndFrameSetUndo( String dataUnits,
+                                                   double[] data,
                                                    double[] errors,
                                                    boolean needCopy )
     {
         if ( undoable && undoManager != null ) {
-            undoableEdit = new EditColumnAndFrameSet( this, data, errors,
+            undoableEdit = new EditColumnAndFrameSet( this, dataUnits,
+                                                      data, errors,
                                                       needCopy );
             undoManager.addEdit( undoableEdit );
         }
@@ -684,12 +729,14 @@ public class EditableSpecData
         private EditableSpecData specData = null;
         private FrameSet frameSet = null;
         private double[] data = null;
+        private String dataUnits = null;
         private double[] errors = null;
 
         /**
          * Constructor.
          *
          * @param specData the specData object about to be modified
+         * @param newDataUnits the new data units (not used)
          * @param newData the data values about to applied (only used
          *                if needCopy is true).
          * @param newErrors the data errors about to applied. If null
@@ -698,17 +745,19 @@ public class EditableSpecData
          *                  needCopy is false).
          */
         public EditColumnAndFrameSet( EditableSpecData specData,
+                                      String newDataUnits,
                                       double[] newData, double[] newErrors,
                                       boolean needCopy )
         {
             super();
             this.specData = specData;
 
-            // Take clone of existing FrameSet so that annuls
-            // elsewhere are OK.
+            // Take clone of existing FrameSet so that we retain a full
+            // working copy regardless of other annuls.
             this.frameSet = (FrameSet) specData.getFrameSet().clone();
 
             data = specData.getYData();
+            dataUnits = specData.getCurrentDataUnits();
             if ( needCopy && newData != null ) {
                 if ( data != newData ) {
                     data = makeCopy( data );
@@ -750,6 +799,9 @@ public class EditableSpecData
             double[] newData = data;
             data = specData.getYData();
 
+            String newDataUnits = dataUnits;
+            dataUnits = specData.getCurrentDataUnits();
+
             double[] newErrors = errors;
             errors = specData.getYDataErrors();
 
@@ -758,7 +810,8 @@ public class EditableSpecData
 
             try {
                 specData.undoable = false;
-                specData.setFullDataQuick( targetFrameSet, newData, newErrors );
+                specData.setFullDataQuick( targetFrameSet, newDataUnits,
+                                           newData, newErrors );
                 specData.undoable = true;
             }
             catch (SplatException e) {

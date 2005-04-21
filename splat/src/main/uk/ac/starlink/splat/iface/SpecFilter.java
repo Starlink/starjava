@@ -328,7 +328,9 @@ public class SpecFilter
                                        String newName )
     {
         try {
-            newSpec.setFullDataQuick( newSpec.getFrameSet(), newData );
+            newSpec.setFullDataQuick( newSpec.getFrameSet(),
+                                      newSpec.getCurrentDataUnits(),
+                                      newData );
             newSpec.setShortName( newName );
             return newSpec;
         }

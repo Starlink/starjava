@@ -26,6 +26,7 @@ import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.ast.ASTChannel;
+import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfState;
@@ -166,7 +167,6 @@ public class SpecData
         this.impl = impl;
         shortName = impl.getShortName();
         fullName = impl.getFullName();
-        apparentDataUnits = null;
         if ( ! check || ( check && impl.getData() != null  ) ) {
             readData();
         }
@@ -610,6 +610,26 @@ public class SpecData
         impl.setDataUnits( dataUnits );
     }
 
+    /**
+     * Get the underlying data units. This should be set to "unknown" when
+     * unknown.
+     */
+    public String getDataUnits()
+    {
+        return impl.getDataUnits();
+    }
+
+    /**
+     * Get the current data units. These will be the apparent data units when
+     * they are in force, otherwise they will be the underlying data units.
+     */
+    public String getCurrentDataUnits()
+    {
+        if ( apparentDataUnits == null ) {
+            return impl.getDataUnits();
+        }
+        return apparentDataUnits;
+    }
 
     /**
      * Set the data label.
@@ -619,6 +639,14 @@ public class SpecData
     public void setDataLabel( String dataLabel )
     {
         impl.setDataLabel( dataLabel );
+    }
+
+    /**
+     * Get the data label. This should be set to "data values" when unknown.
+     */
+    public String getDataLabel()
+    {
+        return impl.getDataLabel();
     }
 
     /**
@@ -684,8 +712,7 @@ public class SpecData
         int[] upper = new int[nRanges];
         int[] low;
         int[] high;
-        int nvals = nRanges - 1;
-
+        int nvals = 0;
         for ( int i = 0, j = 0; j < nRanges; i += 2, j++ ) {
             low = bound( ranges[i] );
             lower[j] = low[1];
@@ -693,9 +720,22 @@ public class SpecData
             upper[j] = high[0];
             nvals += high[0] - low[1] + 1;
         }
+
+        if ( nvals < 0 ) {
+            //  Coordinates run in a reversed direction.
+            nvals = Math.abs( nvals ) + 2 * nRanges;
+            high = lower;
+            lower = upper;
+            upper = high;
+        }
+
+        //  Equal sets of bounds give no extraction.
         if ( nvals == 0 ) {
             return null;
         }
+
+        //  Add room for any gaps.
+        nvals += nRanges - 1;
 
         //  Copy extracted values.
         double[] newCoords = new double[nvals];
@@ -774,7 +814,19 @@ public class SpecData
             upper[j] = high[0];
             ndelete += high[0] - low[1] + 1;
         }
-        if ( ndelete >= xPos.length ) {
+
+        if ( ndelete < 0 ) {
+            //  Coordinates run in a reversed direction.
+            ndelete = Math.abs( ndelete ) + 2 * nRanges;
+            high = lower;
+            lower = upper;
+            upper = high;
+
+            //  The ranges must increase.
+            Sort.insertionSort2( lower, upper );
+        }
+
+        if ( ndelete >= xPos.length || ndelete == 0 ) {
             return null;
         }
 
@@ -864,10 +916,13 @@ public class SpecData
             FrameSet frameSet = ASTJ.get1DFrameSet( astJ.getRef(),
                                                     getMostSignificantAxis() );
             if ( errors == null ) {
-                newSpec.setSimpleUnitDataQuick( frameSet, coords, data );
+                newSpec.setSimpleUnitDataQuick( frameSet, coords,
+                                                getCurrentDataUnits(), data );
             }
             else {
-                newSpec.setSimpleUnitDataQuick( frameSet, coords, data, errors );
+                newSpec.setSimpleUnitDataQuick( frameSet, coords,
+                                                getCurrentDataUnits(), data,
+                                                errors );
             }
         }
         catch ( Exception e ) {
@@ -1372,6 +1427,7 @@ public class SpecData
     {
         //  Get the spectrum data counts and errors (can be null).
         try {
+            apparentDataUnits = null;
             yPos = impl.getData();
             yPosOri = yPos;
             yErr = impl.getDataErrors();
@@ -1423,8 +1479,8 @@ public class SpecData
             FrameSet specref = null;
             try {
                 specref = ast.makeSpectral( sigaxis, 0, yPos.length,
-                                            impl.getProperty( "label" ),
-                                            impl.getProperty( "units" ),
+                                            getDataLabel(), 
+                                            getCurrentDataUnits(),
                                             false );
             }
             catch (AstException e) {
@@ -1484,25 +1540,25 @@ public class SpecData
         //  the second axis, as FluxFrames will only transform properly when
         //  part of a SpecFluxFrame (to get from pre frequency to per
         //  wavelength requires the spectral coordinate).
-        
+
         //  Get a reference to the current Frame. This should be a
         //  SpecFluxFrame or a plain CmpFrame.
         FrameSet frameSet = astJ.getRef();
         Frame currentFrame = frameSet.getFrame( FrameSet.AST__CURRENT );
-        
+
         //  Make a copy of this and set the new units.
         Frame targetFrame = (Frame) currentFrame.copy();
         targetFrame.setActiveUnit( true );
         targetFrame.set( "unit(2)=" + apparentDataUnits );
-        
+
         //  Now try to convert between them
         currentFrame.setActiveUnit( true );
         Mapping mapping = currentFrame.convert( targetFrame, "" );
         if ( mapping == null ) {
-            
+
             //  If fails then just use the values we have.
-            logger.info( shortName + ": cannot data units from " + 
-                         currentFrame.getC( "unit" ) + " to " + 
+            logger.info( shortName + ": cannot data units from " +
+                         currentFrame.getC( "unit" ) + " to " +
                          apparentDataUnits );
             apparentDataUnits = null;
             return;
@@ -1511,10 +1567,10 @@ public class SpecData
         //  Now transform the original data values, not ones that may have
         //  already been transformed. The FrameSet will match these.
         try {
-            double[][] tmp1 = mapping.tran2( yPos.length, xPos, yPosOri, 
+            double[][] tmp1 = mapping.tran2( yPos.length, xPos, yPosOri,
                                              true );
             if ( yErr != null ) {
-                double[][] tmp2 = mapping.tran2( yPos.length, xPos, yErrOri, 
+                double[][] tmp2 = mapping.tran2( yPos.length, xPos, yErrOri,
                                                  true );
                 yErr = new double[yPos.length];
                 for ( int i = 0; i < yPos.length; i++ ) {
@@ -2295,7 +2351,7 @@ public class SpecData
     /**
      * Return the value of the spectrum at an arbitrary X position.
      *
-     * @param x the coordiante at which to evaluate this spectrum.
+     * @param x the coordinate at which to evaluate this spectrum.
      * @return data value of this spectrum at the given coordinate.
      */
     public double evalYData( double x )
@@ -2311,6 +2367,12 @@ public class SpecData
             return SpecData.BAD;
         }
         else {
+            if ( low > high ) {
+                int tmp = low;
+                low = high;
+                high = tmp;
+            }
+
             //  Interpolate a data value;
             double m = ( yPos[low] - yPos[high] ) / ( xPos[low] - xPos[high] );
             return x * m + ( yPos[low] - ( xPos[low] * m ) );
@@ -2354,8 +2416,8 @@ public class SpecData
         chan.write( impl.getAst() );
 
         //  Store data units and label.
-        serializedDataUnits = impl.getProperty( "units" );
-        serializedDataLabel = impl.getProperty( "label" );
+        serializedDataUnits = getCurrentDataUnits();
+        serializedDataLabel = getDataLabel();
 
         //  And store all member variables.
         out.defaultWriteObject();
@@ -2403,20 +2465,22 @@ public class SpecData
                 }
 
                 if ( haveYDataErrors() ) {
-                    newImpl.setFullData( frameSet, getYData(),
-                                         getYDataErrors() );
+                    newImpl.setFullData( frameSet, newImpl.getDataUnits(),
+                                         getYData(), getYDataErrors() );
                 }
                 else {
-                    newImpl.setFullData( frameSet, getYData() );
+                    newImpl.setFullData( frameSet, newImpl.getDataUnits(),
+                                         getYData() );
                 }
             }
             else {
                 if ( haveYDataErrors() ) {
-                    newImpl.setSimpleData( getXData(), getYData(),
-                                           getYDataErrors() );
+                    newImpl.setSimpleData( getXData(), newImpl.getDataUnits(),
+                                           getYData(), getYDataErrors() );
                 }
                 else {
-                    newImpl.setSimpleData( getXData(), getYData() );
+                    newImpl.setSimpleData( getXData(), newImpl.getDataUnits(),
+                                           getYData() );
                 }
             }
             this.impl = newImpl;
