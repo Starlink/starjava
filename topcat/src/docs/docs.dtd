@@ -2,7 +2,7 @@
   <!ENTITY % paracontent "( #PCDATA
                             | em | strong | code
                             | m | sub | sup
-                            | webref | javadoc | ref
+                            | webref | docxref | javadoc | ref
                             | blockquote | blockcode | verbatim
                             | dl | ul | ol
                             | var | label | img
@@ -81,6 +81,11 @@
   <!ELEMENT webref ( #PCDATA )>
   <!ATTLIST webref url CDATA #REQUIRED
                    plaintextref ( yes | no ) #IMPLIED>
+
+  <!ELEMENT docxref ( #PCDATA )>
+  <!ATTLIST docxref doc CDATA #REQUIRED
+                    loc CDATA #IMPLIED
+                    plaintextref ( yes | no ) #IMPLIED>
 
   <!ELEMENT javadoc ( #PCDATA )>
   <!ATTLIST javadoc class CDATA #REQUIRED

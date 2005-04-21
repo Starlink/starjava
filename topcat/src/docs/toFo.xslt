@@ -270,6 +270,27 @@
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template match="docxref">
+    <xsl:variable name="docRefText">
+      <xsl:call-template name="docRefText">
+        <xsl:with-param name="doc" select="@doc"/>
+        <xsl:with-param name="loc" select="@loc"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:choose>
+      <xsl:when test="string(.)">
+        <xsl:apply-templates/>
+        <!-- <xsl:call-template name="docRefNote"/> -->
+        <xsl:if test="@plaintextref='yes'">
+          <xsl:text> ($docRefText)</xsl:text>
+        </xsl:if>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$docRefText"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template match="verbatim">
     <fo:block xsl:use-attribute-sets="verbatim">
       <xsl:call-template name="trimVerb"/>
@@ -651,6 +672,26 @@
     </fo:footnote>
   </xsl:if>
   </xsl:template>
+
+  <xsl:template name="docRefText">
+    <xsl:param name="doc"/>
+    <xsl:param name="loc"/>
+    <xsl:choose>
+      <xsl:when test="$doc='sun252'">
+        <xsl:text>SUN/252</xsl:text>
+      </xsl:when>
+      <xsl:when test="$doc='sun253'">
+        <xsl:text>SUN/253</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:message terminate="yes">
+          <xsl:text>Unknown document ID </xsl:text>
+          <xsl:value-of select="$doc"/>
+        </xsl:message>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
 
   <!-- Attribute sets -->
 

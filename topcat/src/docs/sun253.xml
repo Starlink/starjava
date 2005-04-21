@@ -52,10 +52,6 @@
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
   <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.4.2/docs/">
-  <!ENTITY SUN.252 "<webref url='http://www.starlink.ac.uk/stil/sun252/'
-                            >SUN/252</webref>">
-  <!ENTITY SUN.253 "<webref url='http://www.starlink.ac.uk/topcat/sun253/'
-                            >SUN/253</webref>">
 ]>
 
 <sun>
@@ -75,7 +71,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>March 2005</docdate>
+<docdate>May 2005</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -208,7 +204,7 @@ It has been written by the
 The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
-which is documented more fully in &SUN.252;.
+which is documented more fully in <docxref doc="sun252"/>.
 It is written in pure Java (the current version requires J2SE1.4; 
 it will run under version 1.5/5.0, but certain features don't work correctly)
 which makes it highly portable, since it can run on any machine which has
@@ -2293,7 +2289,8 @@ The meaning of the flags is as follows:
     are given in the usage message you can see by giving the 
     <code>-help</code> flag (this message is shown above).
     You may also use the classname of a class on the classpath which
-    implements the <code>TableBuilder</code> interface - see &SUN.252;.
+    implements the <code>TableBuilder</code> interface - 
+    see <docxref doc="sun252"/>.
     </p></dd>
 
 <dt>-help</dt>
@@ -2688,6 +2685,8 @@ with the following RDBMSs and corresponding JDBC drivers:
 <dt><webref url="http://www.postgresql.org/">PostgreSQL</webref></dt>
 <dd><p>PostgreSQL 7.4.1 apparently works with 
     <webref url="http://jdbc.postgresql.org/">its own driver</webref>.
+    Note the performance of this driver appears to be rather poor,
+    at least for writing tables.
     </p></dd>
 </dl>
 Other RDBMSs and drivers may or may not work - please let us know the
@@ -2942,7 +2941,8 @@ are welcomed.
     not table browser (much easier to work with multiple tables).</li>
 <li>Extensive facilities for table joining by matching rows between 
     multiple tables or within a single one.</li>
-<li>Documentation much improved and available on- or off-line as &SUN.253;.</li>
+<li>Documentation much improved and available on- or off-line as 
+    <docxref doc="sun253"/>.</li>
 <li>Self-contained table access library 
     <webref url="http://www.starlink.ac.uk/stil/">STIL</webref> now provided
     as a separate product.</li>

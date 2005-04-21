@@ -188,6 +188,28 @@
     </a>
   </xsl:template>
 
+  <xsl:template match="docxref">
+    <xsl:element name="a">
+      <xsl:attribute name="href">
+        <xsl:call-template name="docRefUrl">
+          <xsl:with-param name="doc" select="@doc"/>
+          <xsl:with-param name="loc" select="@loc"/>
+        </xsl:call-template>
+      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="string(.)">
+          <xsl:apply-templates/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="docRefText">
+            <xsl:with-param name="doc" select="@doc"/>
+            <xsl:with-param name="loc" select="@loc"/>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:element>
+  </xsl:template>
+
   <xsl:template match="javadoc">
     <xsl:element name="a">
       <xsl:attribute name="href">
@@ -563,6 +585,46 @@
         <xsl:text>???</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="docRefText">
+    <xsl:param name="doc"/>
+    <xsl:param name="loc"/>
+    <xsl:choose>
+      <xsl:when test="$doc='sun252'">
+        <xsl:text>SUN/252</xsl:text>
+      </xsl:when>
+      <xsl:when test="$doc='sun253'">
+        <xsl:text>SUN/253</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:message terminate="yes">
+          <xsl:text>Unknown document ID $doc</xsl:text>
+        </xsl:message>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="docRefUrl">
+    <xsl:param name="doc"/>
+    <xsl:param name="loc"/>
+    <xsl:choose>
+      <xsl:when test="$doc='sun252'">
+        <xsl:text>http://www.starlink.ac.uk/stil/sun252/</xsl:text>
+      </xsl:when>
+      <xsl:when test="$doc='sun253'">
+        <xsl:text>http://www.starlink.ac.uk/topcat/sun253/</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:message terminate="yes">
+          <xsl:text>Unknown document ID $doc</xsl:text>
+        </xsl:message>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:if test="$loc">
+      <xsl:value-of select="$loc"/>
+      <xsl:text>.html</xsl:text>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template name="outImg">
