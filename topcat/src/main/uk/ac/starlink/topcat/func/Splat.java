@@ -184,7 +184,7 @@ public class Splat {
             synchronized ( Splat.class ) {
 
                 /* Application-level initialisations for SPLAT. */
-                SplatBrowserMain.guessProperties();
+                SplatBrowserMain.guessProperties( false );
 
                 /* Create the browser. */
                 splat_ = new SplatBrowser( true );
