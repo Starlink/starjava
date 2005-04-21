@@ -50,7 +50,7 @@ public class SplatNdxDisplayer extends NdxDisplayer {
     private synchronized SplatBrowser getBrowser( boolean embedded ) {
         if ( browser == null ) {
             //  Application-level initialisations for SPLAT.
-            SplatBrowserMain.guessProperties();
+            SplatBrowserMain.guessProperties( false );
 
             //  Create the browser.
             browser = new SplatBrowser( embedded );
