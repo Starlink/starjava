@@ -51,9 +51,9 @@ while test "$1"
 do
    if echo $1 | grep -- '^-[XD]' >/dev/null
    then
-      javaArgs="$javaArgs \"$1\""
+      javaArgs="$javaArgs "\'$1\'
    else
-      appArgs="$appArgs \"$1\""
+      appArgs="$appArgs "\'$1\'
    fi
    if [ "$1" = "-verbose" ]
    then
@@ -64,10 +64,10 @@ done
 
 #  Assemble the command line.
 cmd="$starjava \
-     \"$javaArgs\" \
+     $javaArgs \
      -classpath ${appjar}:${addpath}:${CLASSPATH} \
      uk.ac.starlink.ttools.VotCopy \
-     \"$appArgs\""
+     $appArgs"
 
 #  Echo it if verbose.
 if [ $verbose ]
