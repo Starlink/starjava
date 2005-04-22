@@ -1101,16 +1101,18 @@
 
     <!-- Construct XML documentation for the JEL-accessible classes.
      !   This is built using Javadoc, and forms part of the user document. -->
-    <javadoc doclet="uk.ac.starlink.topcat.doc.XmlDoclet"
+    <javadoc doclet="uk.ac.starlink.topcat.doc.SummaryXmlDoclet"
              docletpathref="classpath"
+             failonerror="true"
              public="true"
              additionalparam="-gen -o ${build.docs}/general-javadocs.xml" 
              sourcepath="${java.dir}/../../../ttools/src/main"
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
-    <javadoc doclet="uk.ac.starlink.topcat.doc.XmlDoclet"
+    <javadoc doclet="uk.ac.starlink.topcat.doc.SummaryXmlDoclet"
              docletpathref="docs-classpath"
+             failonerror="true"
              public="true"
              additionalparam="-act -o ${build.docs}/activation-javadocs.xml" 
              sourcepath="${java.dir}"
@@ -1123,6 +1125,7 @@
      !   method browser. -->
     <javadoc doclet="uk.ac.starlink.topcat.doc.HtmlDoclet"
              docletpathref="classpath"
+             failonerror="true"
              public="true"
              additionalparam="-headings"
              destdir="${build.classes}"
