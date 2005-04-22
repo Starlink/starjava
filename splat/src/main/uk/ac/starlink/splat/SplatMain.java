@@ -15,6 +15,7 @@ import java.net.URL;
 import uk.ac.starlink.splat.iface.SplashWindow;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.splat.util.Utilities;
 
 /**
  * Main class for the SPLAT application. Use this to start SPLAT with
@@ -37,9 +38,8 @@ public class SplatMain
         Frame splashFrame = null;
         URL imageURL = ImageHolder.class.getResource( "splash.gif" );
         if ( imageURL != null ) {
-            splashFrame =
-                SplashWindow.splash(
-                       Toolkit.getDefaultToolkit().createImage( imageURL ) );
+            splashFrame = SplashWindow.splash
+                ( Toolkit.getDefaultToolkit().createImage( imageURL ) );
         }
         else {
             System.err.println( "Failed to locate splash image" );

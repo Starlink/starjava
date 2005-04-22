@@ -221,7 +221,6 @@ public class LineFitFrame
      */
     public void finalize() throws Throwable
     {
-        globalList.removePlotListener( this );
         super.finalize();
     }
 
@@ -443,6 +442,7 @@ public class LineFitFrame
     protected void closeWindowEvent()
     {
         rangeList.deleteAllRanges();
+        globalList.removePlotListener( this );
         this.dispose();
     }
 
