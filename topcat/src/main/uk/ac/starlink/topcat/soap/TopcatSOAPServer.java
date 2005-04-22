@@ -13,7 +13,7 @@ import uk.ac.starlink.topcat.ControlWindow;
 /**
  * Implements the SOAP services offered by the TOPCAT application.
  * In most cases, you should call {@link #initServices} at the start of
- * the application and {@link #getServer} subsequently.
+ * the application and {@link #getInstance} subsequently.
  *
  * @author   Mark Taylor (Starlink)
  * @since    23 Mar 2005
@@ -134,7 +134,7 @@ public class TopcatSOAPServer {
 
     /**
      * Returns the default instance of this class.
-     * This will return <tt>null</tt> unless {@link initServices} has
+     * This will return <tt>null</tt> unless {@link #initServices} has
      * been successfully called.
      *
      * @return  server instance if the server is working
