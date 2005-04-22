@@ -417,7 +417,6 @@
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->
       <include name="**/*.java"/>
-      <exclude name="**/RandomJELRowReader.java"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
@@ -777,7 +776,7 @@
     <property name="star.lib" value="${star.install}/lib"/>
     <property name="star.etc" value="${star.install}/etc"/>
     <property name="star.docs" value="${star.install}/docs"/>
-    <property name="star.bin.pkg" value="${star.bin}/${name}"/>
+    <property name="star.bin.pkg" value="${star.bin}"/>
     <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
@@ -793,11 +792,6 @@
                 logfileAppend="false">
       <fileset dir="${dist.bin}"/>
     </loggedcopy>
-
-    <!-- Also remove the package-specific directory.
-     !   Note exact format is required.-->
-    <echo file="${install.log}" append="true">${star.bin.pkg}
-</echo>
 
     <chmod perm="ugo+rx" failonerror="${chmod.fail}">
       <fileset dir="${star.bin}">
