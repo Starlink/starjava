@@ -44,7 +44,7 @@ public class FullXmlDoclet extends XmlDoclet {
     }
 
     protected void startClass( ClassDoc clazz ) throws IOException {
-        out( "<subsubsect>" );
+        out( "<subsubsect id='" + clazz.qualifiedName() + "'>" );
         out( "<subhead><title>" + clazz.name() + "</title></subhead>" );
         out( "<p>" + clazz.commentText() + "</p>" );
         out( "<p><dl>" );
@@ -58,15 +58,15 @@ public class FullXmlDoclet extends XmlDoclet {
     protected void startMember( MemberDoc mem, String memType, String memName )
             throws IOException {
         out( "<dt>" + memName + "</dt>" );
-        out( "<dd>" );
+        out( "<dd><p>" );
     }
 
     protected void endMember() throws IOException {
-        out( "</dd>" );
+        out( "</p></dd>" );
     }
 
     protected void outDescription( String desc ) throws IOException {
-        out( paraise( desc ) );
+        out( desc.replaceAll( "<p>", "</p><p>" ) );
     }
 
     protected void outParameters( Parameter[] params, String[] comments )
