@@ -75,7 +75,21 @@ public class LineIDTXTSpecDataImpl
     {
         super( fileName );
         this.fullName = fileName;
-        readFromFile( fileName );
+        readFromFile( new File( fileName ) );
+    }
+
+    /**
+     * Create an object by opening a text file and reading its
+     * content.
+     *
+     * @param file the text file.
+     */
+    public LineIDTXTSpecDataImpl( File file )
+        throws SplatException
+    {
+        super( file.getPath() );
+        this.fullName = file.getAbsolutePath();
+        readFromFile( file );
     }
 
     /**
@@ -114,11 +128,6 @@ public class LineIDTXTSpecDataImpl
 // Implementation specific methods and variables.
 //
     /**
-     * Reference to the file.
-     */
-    protected File file = null;
-
-    /**
      * Map of any attributes read from file.
      */
     protected Map attributes = null;
@@ -126,16 +135,15 @@ public class LineIDTXTSpecDataImpl
     /**
      * Open an existing text file and read the contents.
      *
-     * @param fileName diskfile name of the text file.
+     * @param file the text file.
      */
-    protected void readFromFile( String fileName )
+    protected void readFromFile( File file )
         throws SplatException
     {
         //  Check file exists.
-        file = new File( fileName );
         if ( ! file.exists() && file.canRead() && file.isFile() ) {
             file = null;
-            throw new SplatException( "Cannot access file: " + fileName );
+            throw new SplatException( "Cannot access file: " + file );
         }
         readData( file );
     }
@@ -149,7 +157,7 @@ public class LineIDTXTSpecDataImpl
         throws SplatException
     {
         // If file exists, then we need to be able to overwrite it.
-        file = new File( fileName );
+        File file = new File( fileName );
         if ( file.exists() && file.isFile() && ! file.canWrite() ) {
             file = null;
             throw new SplatException( "Cannot write to file: " + fileName );

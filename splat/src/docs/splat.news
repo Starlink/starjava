@@ -44,7 +44,7 @@
    Data units are supported when editing and creating new spectra 
    (polynomial and line fits).
 
-
+   New filters, Hanning, Hamming, Welch and Barlett.
 
 
 1 Starlink SPLAT now a tool for the Virtual Observatory

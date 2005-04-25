@@ -26,6 +26,7 @@
  !      jars             -> creates the package jar file
  !      javadocs         -> creates the API documentation
  !      javadoc-sources  -> make source files for release API documention
+ !      build-lineids    -> create the distributable line identifier jar file
  !      test             -> run up SPLAT from local build
  !
  !   Authors:
@@ -286,6 +287,9 @@
       <include name="*/build/classes"/>
     </dirset>
 
+    <!-- Local line identifiers -->
+    <pathelement location="${build.dir}/ids"/>
+
     <!-- Directly dependent third party jars -->
     <path refid="built.jarpath"/>
 
@@ -476,6 +480,30 @@
 
   </target>
 
+  <!--
+   !   =======================
+   !   Create line id jar file
+   !   =======================
+   ! 
+   !  Creates the jar file that contains the line identifiers. This 
+   !  is just required when new files are added to the database and
+   !  is not normally run as part of a build process.
+   !-->
+  <target name="build-lineids"
+          depends="build"
+          description="Create the distributable line identifier jar file" >
+
+    <!-- Make the mirror tree with the pre-processed spectra -->
+    <java classname="uk.ac.starlink.splat.util.LineIDTree">
+      <classpath refid="classpath"/>
+      <arg value="${src.etc}/ids"/>
+      <arg value="${build.dir}/ids/ids"/>
+    </java>
+
+    <jar destfile="${src.jars.dir}/splat_lines.jar" 
+         basedir="${build.dir}/ids"/>
+
+  </target>
 
   <!-- 
    !   =============================
@@ -730,6 +758,7 @@
     <chmod perm="ugo+rx" dir="${dist.lib}" type="file" includes="libsplat*"
            failonerror="${chmod.fail}"/>
   </target>
+
 
   <!--
    !   ========================

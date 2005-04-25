@@ -9,24 +9,32 @@ package uk.ac.starlink.splat.data;
 
 import java.awt.Rectangle;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.io.IOException;
+
 import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfState;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.ast.ASTChannel;
 
 /**
  * A type of EditableSpecData that draws a string at a "spectral"
- * position. The expected use of these facilities is for identifying 
+ * position. The expected use of these facilities is for identifying
  * line positions, (TODO: as a vertical bar marker, plus ) as a string
  * (TODO: at some orientation and scale).
  *
  * @author Peter W. Draper
  * @version $Id$
- */      
-public class LineIDSpecData 
+ */
+public class LineIDSpecData
     extends EditableSpecData
+    implements Serializable
 {
     /**
      * Reference to the LineIDSpecDataImpl.
@@ -38,12 +46,22 @@ public class LineIDSpecData
      */
     protected transient SpecData specData = null;
 
+    /**
+     * Serialised form of the data labels, usually null.
+     */
+    protected String[] serializedLabels = null;
+
+    /**
+     * Serialization version ID string.
+     */
+    static final long serialVersionUID = -332954044517171663L;
+
     /** TODO: Undoable support */
 
     /**
      * Constructor, takes a LineIDSpecDataImpl.
      */
-    public LineIDSpecData( LineIDSpecDataImpl lineIDImpl ) 
+    public LineIDSpecData( LineIDSpecDataImpl lineIDImpl )
         throws SplatException
     {
         super( lineIDImpl );
@@ -57,7 +75,7 @@ public class LineIDSpecData
      * instance. The SpecData instance is used to supply the relative
      * positions of the labels.
      */
-    public LineIDSpecData( LineIDSpecDataImpl lineIDImpl, 
+    public LineIDSpecData( LineIDSpecDataImpl lineIDImpl,
                            SpecData specData )
         throws SplatException
     {
@@ -73,7 +91,7 @@ public class LineIDSpecData
     {
         this.specData = specData;
     }
-    
+
     /**
      * Get the SpecData in use. If none then null is returned.
      */
@@ -98,7 +116,7 @@ public class LineIDSpecData
     {
         lineIDImpl.setLabels( labels );
     }
-    
+
     /**
      * Set a specific label.
      */
@@ -118,9 +136,9 @@ public class LineIDSpecData
 
     /**
      * Draw the "spectrum". In this case it means draw the line id
-     * strings. 
+     * strings.
      */
-    public void drawSpec( Grf grf, Plot plot, double[] limits, 
+    public void drawSpec( Grf grf, Plot plot, double[] limits,
                           boolean physical )
     {
         //  Set up clip region if needed.
@@ -212,5 +230,102 @@ public class LineIDSpecData
         }
         resetGrfAttributes( defaultGrf, oldState, false );
         defaultGrf.setClipRegion( null );
+    }
+
+//
+//  Serializable interface.
+//
+
+    private void writeObject( ObjectOutputStream out )
+        throws IOException
+    {
+        //  Note we lift this from SpecData so that we can add the data labels
+        //  storage.
+
+        //  Serialize the AST FrameSet.
+        serializedFrameSet = new String[1];
+        ASTChannel chan = new ASTChannel( serializedFrameSet );
+        chan.write( lineIDImpl.getAst() );
+        serializedFrameSet = new String[chan.getIndex()];
+        chan.setArray( serializedFrameSet );
+        chan.write( lineIDImpl.getAst() );
+
+        //  Store data units and label.
+        serializedDataUnits = getCurrentDataUnits();
+        serializedDataLabel = getDataLabel();
+
+        //  Data labels.
+        serializedLabels = lineIDImpl.getLabels();
+
+        //  And store all member variables.
+        out.defaultWriteObject();
+
+        //  Finished.
+        serializedFrameSet = null;
+    }
+
+    private void readObject( ObjectInputStream in )
+        throws IOException, ClassNotFoundException
+    {
+        //  Note we lift this method from SpecData as we need a different impl
+        //  object and restore the data labels.
+
+        try {
+            // Restore state of member variables.
+            in.defaultReadObject();
+
+            //  Create the backing impl.
+            LineIDMEMSpecDataImpl newImpl =
+                new LineIDMEMSpecDataImpl( shortName );
+            fullName = null;
+
+            //  Restore the AST FrameSet, if available.
+            if ( serializedFrameSet != null ) {
+                ASTChannel chan = new ASTChannel( serializedFrameSet );
+                FrameSet frameSet = (FrameSet) chan.read();
+                serializedFrameSet = null;
+
+                if ( serializedDataUnits != null ) {
+                    newImpl.setDataUnits( serializedDataUnits );
+                    serializedDataUnits = null;
+                }
+                if ( serializedDataLabel != null ) {
+                    newImpl.setDataLabel( serializedDataLabel );
+                    serializedDataLabel = null;
+                }
+
+                if ( haveYDataErrors() ) {
+                    newImpl.setFullData( frameSet, newImpl.getDataUnits(),
+                                         getYData(), getYDataErrors() );
+                }
+                else {
+                    newImpl.setFullData( frameSet, newImpl.getDataUnits(),
+                                         getYData() );
+                }
+            }
+            else {
+                if ( haveYDataErrors() ) {
+                    newImpl.setSimpleData( getXData(), newImpl.getDataUnits(),
+                                           getYData(), getYDataErrors() );
+                }
+                else {
+                    newImpl.setSimpleData( getXData(), newImpl.getDataUnits(),
+                                           getYData() );
+                }
+            }
+
+            //  Restore data labels.
+            if ( serializedLabels != null ) {
+                newImpl.setLabels( serializedLabels );
+                serializedLabels = null;
+            }
+            this.lineIDImpl = newImpl;
+
+            //  Full reset of state.
+            readData();
+        }
+        catch ( SplatException e ) {
+            e.printStackTrace();
+        }
     }
 }
