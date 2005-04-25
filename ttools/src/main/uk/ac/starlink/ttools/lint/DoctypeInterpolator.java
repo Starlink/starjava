@@ -12,6 +12,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -169,6 +170,7 @@ public class DoctypeInterpolator {
             parser = SAXParserFactory.newInstance().newSAXParser()
                                      .getXMLReader();
             parser.setContentHandler( declCheck );
+            parser.setEntityResolver( declCheck );
             parser.setErrorHandler( declCheck );
             parser.setProperty( "http://xml.org/sax/properties/lexical-handler",
                                 declCheck );
@@ -268,7 +270,8 @@ public class DoctypeInterpolator {
      * it's decided one way or the other.
      */
     private class DeclarationChecker extends DefaultHandler
-              implements ContentHandler, ErrorHandler, LexicalHandler {
+              implements ContentHandler, EntityResolver, ErrorHandler,
+                         LexicalHandler {
         private Boolean hasDoctype_;
 
         /**
@@ -296,8 +299,7 @@ public class DoctypeInterpolator {
             throw new DoneException();
         }
 
-        public void startDTD( String name, String publicId, String systemId )
-                throws DoneException {
+        public void startDTD( String name, String publicId, String systemId ) {
             hasDoctype_ = Boolean.TRUE;
         }
 
@@ -307,7 +309,8 @@ public class DoctypeInterpolator {
         public void error( SAXParseException e ) {
         }
         public void fatalError( SAXParseException e ) throws SAXException {
-            throw new DoneException();
+            throw (DoneException) new DoneException()
+                 .initCause( e );
         }
 
         // Dummy LexicalHandler methods.
@@ -317,6 +320,13 @@ public class DoctypeInterpolator {
         public void startEntity( String name ) {}
         public void endEntity( String name ) {}
         public void comment( char[] ch, int start, int length ) {}
+
+        // EntityResolver.
+        public InputSource resolveEntity( String publicId, String systemId ) {
+
+            /* Returns an empty source - we're not interested in the data. */
+            return new InputSource( new ByteArrayInputStream( new byte[ 0 ] ) );
+        }
     }
 
     /**
