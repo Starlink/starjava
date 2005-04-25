@@ -16,12 +16,12 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import org.us_vo.www.SimpleResource;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Displays the parameters of a registry query and its results.
@@ -184,8 +184,7 @@ public class RegistryPanel extends JPanel {
             query = queryPanel_.getRegistryQuery();
         }
         catch ( MalformedURLException e ) {
-            JOptionPane.showMessageDialog( this, e.getMessage(), "Query Error",
-                                           JOptionPane.ERROR_MESSAGE );
+            ErrorDialog.showError( this, "Query Error", e ); 
             return;
         }
 
@@ -196,6 +195,7 @@ public class RegistryPanel extends JPanel {
             String errmsg;
             Thread wk = this;
             public void run() {
+                Throwable error = null;
                 try {
                     SimpleResource[] dat = query.performQuery();
                     if ( dat == null || dat.length == 0 ) {
@@ -206,16 +206,15 @@ public class RegistryPanel extends JPanel {
                     }
                 }
                 catch ( Throwable th ) {
-                    errmsg = th.getMessage();
+                    error = th;
                 }
+                final Throwable error1 = error;
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         if ( queryWorker_ == wk ) {
-                            if ( errmsg != null ) {
-                                JOptionPane
-                               .showMessageDialog( RegistryPanel.this, errmsg,
-                                                   "Query Error",
-                                                   JOptionPane.ERROR_MESSAGE );
+                            if ( error1 != null ) {
+                                ErrorDialog.showError( RegistryPanel.this,
+                                                       "Query Error", error1 );
                             }
                             else {
                                 regTable_.setData( data );

@@ -11,7 +11,6 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -23,6 +22,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 
 /**
@@ -192,9 +192,8 @@ public abstract class RemoteTreeBrowser extends JPanel {
                         tm = logIn();
                     }
                     catch ( IOException e ) {
-                        JOptionPane.showMessageDialog( 
-                            RemoteTreeBrowser.this, e.getMessage(),
-                            "Login error", JOptionPane.ERROR_MESSAGE );
+                        ErrorDialog.showError( RemoteTreeBrowser.this,
+                                               "Login Error", e );
                     }
                     if ( tm != null ) {
                         jtree_.setModel( tm );

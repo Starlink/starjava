@@ -13,13 +13,13 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import org.us_vo.www.SimpleResource;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Table load dialogue which allows cone searches.  Cone search services
@@ -171,11 +171,9 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
                                 setResolvedObject( info1 );
                             }
                             else {
-                                JOptionPane
-                               .showMessageDialog( ConeSearchDialog.this,
-                                                   error1.getMessage(),
-                                                   "Name Resolution Error",
-                                                   JOptionPane.ERROR_MESSAGE );
+                                ErrorDialog.showError( ConeSearchDialog.this,
+                                                       "Name Resolution Error",
+                                                       error1 );
                             }
                             setEnabled( true );
                         }
