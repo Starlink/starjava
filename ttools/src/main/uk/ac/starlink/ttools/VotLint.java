@@ -29,20 +29,42 @@ public class VotLint {
      * @param  args  argument vecctor
      */
     public static void main( String[] args ) {
-        String usage = "votlint [-debug] [votable]";
+        String usage = "votlint [-help] [-debug] [-novalid] [-version 1.0|1.1]"
+                  +  "\n        [votable]";
 
         List argList = new ArrayList( Arrays.asList( args ) );
         boolean debug = false;
+        boolean validate = true;
         String systemId = null;
+        String version = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-debug" ) ) {
                 it.remove();
                 debug = true;
             }
-            else if ( arg.startsWith( "-h" ) ) {
-                System.err.println( usage );
-                System.exit( 1 );
+            else if ( arg.equals( "-novalid" ) ) {
+                it.remove();
+                validate = false;
+            }
+            else if ( arg.equals( "-valid" ) ) {
+                it.remove();
+                validate = true;
+            }
+            else if ( arg.equals( "-version" ) ) {
+                it.remove();
+                if ( it.hasNext() ) {
+                    version = (String) it.next();
+                    it.remove();
+                }
+                else {
+                    System.err.println( usage );
+                    System.exit( 1 );
+                }
+            }
+            else if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
+                System.out.println( usage );
+                return;
             }
             else if ( systemId == null ) {
                 it.remove();
@@ -54,8 +76,9 @@ public class VotLint {
             System.exit( 1 );
         }
 
-        final LintContext context = new LintContext();
+        final LintContext context = new LintContext( version );
         context.setDebug( debug );
+        context.setValidating( validate );
         try {
 
             /* Get the input stream. */
@@ -74,17 +97,22 @@ public class VotLint {
                 }
             }
 
+            /* Buffer the input stream for efficiency. */
+            in = new BufferedInputStream( in );
+
             /* Interpolate the VOTable DOCTYPE declaration if necessary. */
-            DoctypeInterpolator interp = new DoctypeInterpolator() {
-                public void message( String msg ) {
-                    context.info( msg );
-                }
-            };
-            in = interp.getStreamWithDoctype( new BufferedInputStream( in ) );
-            String vers = interp.getVotableVersion();
-            if ( vers != null ) {
-                if ( context.getVersion() == null ) {
-                    context.setVersion( vers );
+            if ( validate ) {
+                DoctypeInterpolator interp = new DoctypeInterpolator() {
+                    public void message( String msg ) {
+                        context.info( msg );
+                    }
+                };
+                in = interp.getStreamWithDoctype( (BufferedInputStream) in );
+                String vers = interp.getVotableVersion();
+                if ( vers != null ) {
+                    if ( context.getVersion() == null ) {
+                        context.setVersion( vers );
+                    }
                 }
             }
 
@@ -93,7 +121,7 @@ public class VotLint {
             sax.setSystemId( systemId );
 
             /* Perform the parse. */
-            new Linter( context ).createParser().parse( sax );
+            new Linter( context ).createParser( validate ).parse( sax );
             System.exit( 0 );
         }
         catch ( IOException e ) {
