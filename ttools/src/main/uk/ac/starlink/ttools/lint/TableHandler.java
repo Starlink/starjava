@@ -22,7 +22,7 @@ public class TableHandler extends ElementHandler {
         if ( nrowsSpecified_ >= 0 ) {
             if ( nrowsSeen_ != nrowsSpecified_ ) {
                 error( "Row count (" + nrowsSeen_ + ") not equal to " +
-                       " nrows attribute (" + nrowsSpecified_ +")" );
+                       "nrows attribute (" + nrowsSpecified_ +")" );
             }
         }
     }
