@@ -59,7 +59,7 @@ public class RefChecker implements AttributeChecker {
         if ( ! legalReferents_.contains( toName ) ) {
             context.warning( fromName + " has ref '" + id + 
                              "' to element type " + toName +
-                             " - not meaningful" );
+                             " - is this meaningful?" );
         }
     }
 }
