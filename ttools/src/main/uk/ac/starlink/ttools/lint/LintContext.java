@@ -50,25 +50,13 @@ public class LintContext {
      * @param  version   version string (currently "1.0" or "1.1")
      */
     public LintContext( String version ) {
-        if ( version == null ) {
-            version_ = null;
-        }
-        else if ( version.equals( V10 ) ) {
-            version_ = V10;
-        }   
-        else if ( version.equals( V11 ) ) {
-            version_ = V11;
-        }       
-        else {  
-            throw new IllegalArgumentException( "Unknown VOTable version " +  
-                                                version );
-        }                    
         idMap_ = new HashMap();
         refMap_ = new HashMap();
         msgMap_ = new HashMap();
         namespaceMap_ = new HashMap();
         checkerFactory_ = new CheckerFactory( this );
         handlerFactory_ = new HandlerFactory( this );
+        setVersion( version );
     }
 
     /**
