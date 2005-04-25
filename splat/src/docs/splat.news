@@ -46,6 +46,8 @@
 
    New filters, Hanning, Hamming, Welch and Barlett.
 
+   Line identifiers are now available in the webstart version of SPLAT.
+
 
 1 Starlink SPLAT now a tool for the Virtual Observatory
 
