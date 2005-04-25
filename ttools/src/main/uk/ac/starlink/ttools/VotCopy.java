@@ -136,7 +136,7 @@ public class VotCopy {
             }
             else if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
                 System.out.println( usage );
-                System.exit( 0 );
+                return;
             }
             else if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 System.err.println( usage );
