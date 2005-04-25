@@ -19,6 +19,7 @@ public class LintContext {
     private PrintStream out_ = System.err;
     private int errCount_;
     private String version_;
+    private boolean validate_;
     private boolean debug_;
     private final Map idMap_;
     private final Map refMap_;
@@ -94,6 +95,24 @@ public class LintContext {
         else {
             warning( "Unknown VOTable version " + version );
         }
+    }
+
+    /**
+     * Sets whether this lint is validating.
+     *
+     * @param  validate  true for validating lint
+     */
+    public void setValidating( boolean validate ) {
+        validate_ = validate;
+    }
+
+    /**
+     * Indicates whether this lint is validating.
+     *
+     * @return   true for validating lint
+     */
+    public boolean isValidating() {
+        return validate_;
     }
 
     /**

@@ -75,15 +75,19 @@ public class LintEntityResolver implements EntityResolver, LexicalHandler {
         }
         else {
             if ( null == version ) {
-                context_.info( "Unspecified VOTable version - " +
-                               "validating for V1.1" );
+                if ( context_.isValidating() ) {
+                    context_.info( "Unspecified VOTable version" +
+                                   " - validating for V1.1" );
+                }
             }
             else if ( LintContext.V11.equals( version ) ) {
                 // no action
             }
             else {
-                context_.info( "Unknown VOTable version " + version + " - " +
-                               "validating for V1.1" );
+                if ( context_.isValidating() ) {
+                    context_.info( "Unknown VOTable version " + version +
+                                   " - validating for V1.1" );
+                }
             }
             filename = "votable-1.1.dtd";
         }

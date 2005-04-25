@@ -29,15 +29,16 @@ public class Linter {
      * Constructs a linting parser.  Parsing a SAX stream with this
      * object will perform the lint.
      *
+     * @param    validate  whether you want a validating parser
      * @return   parser
      */
-    public XMLReader createParser() throws SAXException {
+    public XMLReader createParser( boolean validate ) throws SAXException {
 
-        /* Get a validating parser. */
+        /* Get a validating or non-validating parser. */
         XMLReader parser;
         try {
             SAXParserFactory spfact = SAXParserFactory.newInstance();
-            spfact.setValidating( true );
+            spfact.setValidating( validate );
             spfact.setNamespaceAware( true );
             parser = spfact.newSAXParser().getXMLReader();
         }
