@@ -356,6 +356,7 @@ public class VOTableWriter implements StarTableWriter {
                                    BufferedWriter writer ) throws IOException {
 
         /* Close the open elements. */
+        writer.newLine();
         writer.write( "</TABLE>" );
         writer.newLine();
         writer.write( "</RESOURCE>" );

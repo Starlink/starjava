@@ -473,7 +473,6 @@ public abstract class VOSerializer {
             writer.write( "</TABLEDATA>" );
             writer.newLine();
             writer.write( "</DATA>" );
-            writer.newLine();
             writer.flush();
         }
 
@@ -541,7 +540,6 @@ public abstract class VOSerializer {
             writer.write( "</" + tagname + ">" );
             writer.newLine();
             writer.write( "</DATA>" );
-            writer.newLine();
         }
 
         public void writeHrefDataElement( BufferedWriter xmlwriter, String href,
@@ -563,7 +561,6 @@ public abstract class VOSerializer {
             xmlwriter.write( "</" + tagname + ">" );
             xmlwriter.newLine();
             xmlwriter.write( "</DATA>" );
-            xmlwriter.newLine();
 
             /* Write the bulk data to the output stream. */
             streamData( streamout );
