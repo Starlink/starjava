@@ -18,7 +18,8 @@ import uk.ac.starlink.util.Loader;
  * <p>Code which has no preferences about how to store data can obtain
  * an instance of this class using the {@link #getDefaultPolicy} method.
  * The initial value of this may be selected by setting the 
- * <tt>startable.storage</tt> system property; currently recognised values
+ * system property named by the string {@link #PREF_PROPERTY}
+ * ("startable.storage"); currently recognised values
  * are the strings "<tt>disk</tt>", "<tt>memory</tt>" and "<tt>discard</tt>".
  * You may also use the name of a class which extends <tt>StoragePolicy</tt>
  * and has a no-arg constructor, in which case one of these will be
@@ -49,7 +50,7 @@ public abstract class StoragePolicy {
      * initial setting of the default storage policy.
      * Currently recognised values are "disk", "memory" and "discard";
      */
-    private static final String PREF_PROPERTY = "startable.storage";
+    public static final String PREF_PROPERTY = "startable.storage";
 
     /**
      * Returns the default storage policy for this JVM.
