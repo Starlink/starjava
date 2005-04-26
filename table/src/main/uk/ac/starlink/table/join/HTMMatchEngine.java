@@ -13,9 +13,14 @@ import java.util.List;
 /**
  * Implements the object matching interface for sky coordinates
  * using the HTM (Hierarchical Triangular Mesh) pixel-indexing scheme.
+ * <p>
+ * Note that the {@link HEALPixMatchEngine} implementation normally gives
+ * much faster matching than this and should generally be used in
+ * preference.
  *
  * @author   Mark Taylor (Starlink)
- * @see      <http://www.sdss.jhu.edu/htm/doc/>
+ * @see      <a href="http://www.sdss.jhu.edu/htm/doc/"
+ *                   >http://www.sdss.jhu.edu/htm/doc</a>
  */
 public class HTMMatchEngine extends SkyMatchEngine {
 

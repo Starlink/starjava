@@ -20,6 +20,8 @@ import javax.vecmath.Vector3d;
  *
  * @author   Mark Taylor (Starlink)
  * @author   Nickolai Kouropatkine (EAG, Fermilab)
+ * @see      <a href="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
+ *                   >http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html</a>
  */
 public class HEALPixMatchEngine extends SkyMatchEngine {
 
@@ -30,6 +32,13 @@ public class HEALPixMatchEngine extends SkyMatchEngine {
         Logger.getLogger( "uk.ac.starlink.table.join" );
     private static final int SCHEME = 0; // Use HEALPix ring numbering scheme
 
+    /**
+     * Constructs a new match engine which considers two points 
+     * (RA,Dec tuples) to match if they are within a given angular
+     * distance on the celestial sphere.
+     *
+     * @param   separation  match radius in radians
+     */
     public HEALPixMatchEngine( double separation ) {
         super( separation );
         separation_ = separation;
