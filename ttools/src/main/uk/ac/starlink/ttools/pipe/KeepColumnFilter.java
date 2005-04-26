@@ -21,7 +21,7 @@ public class KeepColumnFilter implements ProcessingFilter {
         return "<colid-list>";
     }
 
-    public ProcessingStep createStep( Iterator argIt ) {
+    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
             String colIdList = (String) argIt.next();
             argIt.remove();
@@ -33,7 +33,7 @@ public class KeepColumnFilter implements ProcessingFilter {
             };
         }
         else {
-            return null;
+            throw new ArgException( "Missing column list" );
         }
     }
 

@@ -40,7 +40,7 @@ public class ExpressionSortFilter implements ProcessingFilter {
                              : "<expr>";
     }
 
-    public ProcessingStep createStep( Iterator argIt ) {
+    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         List keyList = new LinkedList();
         while ( argIt.hasNext() ) {
             String arg = (String) argIt.next();
@@ -51,7 +51,7 @@ public class ExpressionSortFilter implements ProcessingFilter {
                     argIt.remove();
                 }
                 else {
-                    return null;
+                    throw new ArgException( "Missing subkey expression" );
                 }
             }
             else {

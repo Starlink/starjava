@@ -22,14 +22,14 @@ public class DeleteColumnFilter implements ProcessingFilter {
         return "<colid-list>";
     }
 
-    public ProcessingStep createStep( Iterator argIt ) {
+    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
             String colIdList = (String) argIt.next();
             argIt.remove();
             return new DeleteColumnStep( colIdList.split( "\\s+" ) );
         }
         else {
-            return null;
+            throw new ArgException( "Missing column list" );
         }
     }
 

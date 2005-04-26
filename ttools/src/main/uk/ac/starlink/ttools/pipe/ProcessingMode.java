@@ -40,12 +40,15 @@ public abstract class ProcessingMode {
      * and left in the list.
      * The return value should be true if everything looks OK, 
      * false if there is some syntax error in the arguments.
+     * <p>
+     * If the argument list is badly-formed as far as this mode is 
+     * concerned, an {@link ArgException} should be thrown. 
+     * If its <code>usageFragment</code> is blank, it will be filled
+     * in later using this mode's usage text.
      * 
      * @param   argList  an array of strings obtained from the command line
-     * @return  true  iff the arguments are unobjectionable
      */
-    public boolean setArgs( List argList ) {
-        return true;
+    public void setArgs( List argList ) throws ArgException {
     }
 
     /**

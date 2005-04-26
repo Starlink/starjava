@@ -25,7 +25,7 @@ public class JdbcMode extends ProcessingMode {
         return "tosql";
     }
 
-    public boolean setArgs( List argList ) {
+    public void setArgs( List argList ) throws ArgException {
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
@@ -36,7 +36,7 @@ public class JdbcMode extends ProcessingMode {
                         it.remove();
                     }
                     else {
-                        return false;
+                        throw new ArgException( "Missing user name" );
                     }
                 }
                 else if ( arg.equals( "-password" ) ) {
@@ -46,7 +46,7 @@ public class JdbcMode extends ProcessingMode {
                         it.remove();
                     }
                     else {
-                        return false;
+                        throw new ArgException( "Missing password" );
                     }
                 }
                 else if ( arg.equals( "-url" ) ) {
@@ -56,7 +56,7 @@ public class JdbcMode extends ProcessingMode {
                         it.remove();
                     }
                     else {
-                        return false;
+                        throw new ArgException( "Missing JDBC URL" );
                     }
                 }
             }
@@ -65,7 +65,9 @@ public class JdbcMode extends ProcessingMode {
                 url_ = arg;
             }
         }
-        return url_ != null;
+        if ( url_ == null ) {
+            throw new ArgException( "No JDBC URL specified" );
+        }
     }
 
     public String getModeUsage() {

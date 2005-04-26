@@ -21,7 +21,7 @@ public class ColumnSortFilter implements ProcessingFilter {
         return "[-down] [-nullsfirst] <colid-list>";
     }
 
-    public ProcessingStep createStep( Iterator argIt ) {
+    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         boolean up = true;
         boolean nullsLast = true;
         String colidList = null;
@@ -45,7 +45,7 @@ public class ColumnSortFilter implements ProcessingFilter {
                                        up, nullsLast );
         }
         else {
-            return null;
+            throw new ArgException( "Missing column list" );
         }
     }
 

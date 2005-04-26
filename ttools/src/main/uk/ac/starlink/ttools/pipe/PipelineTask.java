@@ -80,10 +80,8 @@ public class PipelineTask extends TableTask {
         return "tpipe";
     }
 
-    public boolean setArgs( List argList ) {
-        if ( ! super.setArgs( argList ) ) {
-            return false;
-        }
+    public void setArgs( List argList ) throws ArgException {
+        super.setArgs( argList );
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
@@ -94,7 +92,8 @@ public class PipelineTask extends TableTask {
                         it.remove();
                     }
                     else {
-                        return false;
+                        throw new ArgException( "No format",
+                                                "-ifmt <in-format>" );
                     }
                 }
                 else if ( arg.equals( "-stream" ) ) {
@@ -111,7 +110,16 @@ public class PipelineTask extends TableTask {
                                 mode_ = mode;
                             }
                             else {
-                                return false;
+                                String ufrag = "[";
+                                for ( int j = 0; j < modes_.length; j++ ) {
+                                    if ( j > 0 ) {
+                                        ufrag += "|";
+                                    }
+                                    ufrag += "-" + modes_[ j ].getName();
+                                }
+                                ufrag += "]";
+                                throw new ArgException( "Can only specify " +
+                                                        "one mode", ufrag );
                             }
                         }
                     }
@@ -120,40 +128,36 @@ public class PipelineTask extends TableTask {
                          ProcessingFilter filter = filters_[ i ];
                          if ( arg.equals( "-" + filter.getName() ) ) {
                              it.remove();
-                             ProcessingStep step = null;
-                             try { 
-                                 step = filter.createStep( it );
+                             try {
+                                 pipeline_.add( filter.createStep( it ) );
                              }
-                             catch ( IllegalArgumentException e ) {
-                                 System.err.println( e.getMessage() );
-                             }
-                             if ( step == null ) {
-                                 String fname = filter.getName();
-                                 String fusage = filter.getFilterUsage();
-                                 String msg = fname + " mode usage: \n"
-                                            + "      -" + fname;
-                                 if ( fusage != null ) {
-                                     msg += " " + fusage;
+                             catch ( ArgException e ) {
+                                 if ( e.getUsageFragment() == null ) {
+                                     e.setUsageFragment( 
+                                         getUsageFragment( filter ) );
                                  }
-                                 System.err.println( msg );
-                                 return false;
-                             }
-                             else {
-                                 pipeline_.add( step );
+                                 throw e;
                              }
                          }
                     }
                 }
             }
-            else if ( inLoc_ == null ) {
-                it.remove();
-                inLoc_ = arg;
-            }
         }
         if ( mode_ == null ) {
             mode_ = new CopyMode();
         }
-        return mode_.setArgs( argList );
+        try {
+            mode_.setArgs( argList );
+        }
+        catch ( ArgException e ) {
+            if ( e.getUsageFragment() == null ) {
+                e.setUsageFragment( getUsageFragment( mode_ ) );
+            }
+            throw e;
+        }
+        if ( inLoc_ == null && argList.size() > 0 ) {
+            inLoc_ = (String) argList.remove( 0 );
+        }
     }
 
     /**
@@ -225,28 +229,12 @@ public class PipelineTask extends TableTask {
 
         help.append( "\n   Mode flags - Use one of:\n" );
         for ( int i = 0; i < modes_.length; i++ ) {
-            ProcessingMode mode = modes_[ i ];
-            help.append( "      -" )
-                .append( mode.getName() );
-            String modeUsage = mode.getModeUsage();
-            if ( modeUsage != null ) {
-                help.append( ' ' )
-                    .append( modeUsage );
-            }
-            help.append( '\n' );
+            help.append( "      " + getUsageFragment( modes_[ i ] ) + "\n" );
         }
 
         help.append( "\n   Filter flags - Use any sequence of:\n" );
         for ( int i = 0; i < filters_.length; i++ ) {
-            ProcessingFilter filter = filters_[ i ];
-            help.append( "      -" )
-                .append( filter.getName() );
-            String filterUsage = filter.getFilterUsage();
-            if ( filterUsage != null ) {
-                help.append( ' ' )
-                    .append( filterUsage );
-            }
-            help.append( '\n' );
+            help.append( "      " + getUsageFragment( filters_[ i ] ) + "\n" );
         }
 
         help.append( "\n   Auto-detected in-formats:\n" );
@@ -275,6 +263,24 @@ public class PipelineTask extends TableTask {
         opts.add( "<mode-flags>" );
         opts.add( "[<filter-flags>]" );
         return (String[]) opts.toArray( new String[ 0 ] );
+    }
+
+    private static String getUsageFragment( ProcessingMode mode ) {
+        String frag = "-" + mode.getName();
+        String modeUsage = mode.getModeUsage();
+        if ( modeUsage != null ) {
+            frag += " " + modeUsage;
+        }
+        return frag;
+    }
+
+    private static String getUsageFragment( ProcessingFilter filter ) {
+        String frag = "-" + filter.getName();
+        String filterUsage = filter.getFilterUsage();
+        if ( filterUsage != null ) {
+            frag += " " + filterUsage;
+        }
+        return frag;
     }
 
 }

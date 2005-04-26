@@ -22,7 +22,7 @@ public class AddColumnFilter implements ProcessingFilter {
         return "[-after <col-id> | -before <col-id>] <col-name> <expr>";
     }
 
-    public ProcessingStep createStep( Iterator argIt ) {
+    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         String posId = null;
         String colName = null;
         String expr = null;
@@ -57,7 +57,7 @@ public class AddColumnFilter implements ProcessingFilter {
             return new AddColumnStep( expr, colinfo, posId, after );
         }
         else {
-            return null;
+            throw new ArgException( "Bad addcol specification" );
         }
     }
 
@@ -91,7 +91,12 @@ public class AddColumnFilter implements ProcessingFilter {
                 return new AddJELColumnTable( base, cinfo_, expr_, ipos );
             }
             catch ( CompilationException e ) {
-                throw (IOException) new IOException( e.getMessage() )
+                String msg = "Bad expression \"" + expr_;
+                String errMsg = e.getMessage();
+                if ( errMsg != null ) {
+                    msg += ": " + errMsg;
+                }
+                throw (IOException) new IOException( msg )
                                    .initCause( e );
             }
         }

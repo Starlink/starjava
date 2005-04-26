@@ -48,26 +48,44 @@ public abstract class TableTask {
      */
     public boolean run( String[] args ) {
         List argList = new ArrayList( Arrays.asList( args ) );
-        if ( setArgs( argList ) && argList.isEmpty() ) {
-            try {
-                if ( ! isNoAction() ) {
-                    execute();
+        try {
+            setArgs( argList );
+            if ( ! argList.isEmpty() ) {
+                String msg = "Undigested arguments:";
+                for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+                    msg += " " + it.next().toString();
                 }
-                return true;
-            }
-            catch ( IOException e ) {
-                if ( debug_ ) {
-                    e.printStackTrace( System.err );
-                }
-                else {
-                    String msg = e.getMessage();
-                    System.err.println( msg == null ? e.toString() : msg );
-                }
+                System.err.println( msg );
+                System.err.println( getUsage() );
                 return false;
             }
+            if ( ! isNoAction() ) {
+                execute();
+            }
+            return true;
         }
-        else {
-            System.err.println( getUsage() );
+        catch ( ArgException e ) {
+            if ( debug_ ) {
+                e.printStackTrace( System.err );
+            }
+            else {
+                String msg = e.getMessage();
+                String usage = e.getUsageFragment();
+                System.err.println( e.getMessage() );
+                if ( usage != null ) {
+                    System.err.println( "Usage: " + usage );
+                }
+            }
+            return false;
+        }
+        catch ( IOException e ) {
+            if ( debug_ ) {
+                e.printStackTrace( System.err );
+            }
+            else {
+                String msg = e.getMessage();
+                System.err.println( msg == null ? e.toString() : msg );
+            }
             return false;
         }
     }
@@ -77,13 +95,10 @@ public abstract class TableTask {
      * Any arguments which this task knows about should be noted and
      * removed from the list.  Any others should be ignored,
      * and left in the list.
-     * The return value should be true if everything looks OK,
-     * false if there is some syntax error in the arguments.
      *
      * @param   argList  an array of strings obtained from the command line
-     * @return  true  iff the arguments are unobjectionable
      */
-    public boolean setArgs( List argList ) {
+    public void setArgs( List argList ) throws ArgException {
 
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
@@ -117,8 +132,6 @@ public abstract class TableTask {
         else {
             Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
         }
-
-        return true;
     }
 
     public boolean isVerbose() {

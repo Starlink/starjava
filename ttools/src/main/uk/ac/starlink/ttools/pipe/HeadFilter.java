@@ -19,17 +19,25 @@ public class HeadFilter implements ProcessingFilter {
         return "<nrows>";
     }
 
-    public ProcessingStep createStep( Iterator argIt ) {
+    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
-            long count = Long.parseLong( (String) argIt.next() );
-            if ( count < 0 ) {
-                throw new IllegalArgumentException( "Nrows must be >= 0" );
-            }
+            String countStr = (String) argIt.next();
             argIt.remove();
+            long count;
+            try {
+                count = Long.parseLong( countStr );
+            }
+            catch ( NumberFormatException e ) {
+                throw new ArgException( "Row count " + countStr + 
+                                        " not numeric" );
+            }
+            if ( count < 0 ) {
+                throw new ArgException( "Nrows must be >= 0" );
+            }
             return new HeadStep( count );
         }
         else {
-            return null;
+            throw new ArgException( "No row count given" );
         }
     }
 

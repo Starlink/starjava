@@ -21,14 +21,14 @@ public class SelectFilter implements ProcessingFilter {
         return "<expr>";
     }
 
-    public ProcessingStep createStep( Iterator argIt ) {
+    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
             String expr = (String) argIt.next();
             argIt.remove();
             return new SelectStep( expr );
         }
         else {
-            return null;
+            throw new ArgException( "Missing expression" );
         }
     }
 

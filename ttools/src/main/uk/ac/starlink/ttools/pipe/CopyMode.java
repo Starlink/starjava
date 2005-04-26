@@ -22,7 +22,7 @@ public class CopyMode extends ProcessingMode {
         return( "write" );
     }
 
-    public boolean setArgs( List argList ) {
+    public void setArgs( List argList ) throws ArgException {
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
@@ -33,7 +33,7 @@ public class CopyMode extends ProcessingMode {
                         it.remove();
                     }
                     else {
-                        return false;
+                        throw new ArgException( "Missing output format" );
                     }
                 }
                 else if ( arg.equals( "-o" ) || arg.equals( "-out" ) ) {
@@ -43,12 +43,11 @@ public class CopyMode extends ProcessingMode {
                         it.remove();
                     }
                     else {
-                        return false;
+                        throw new ArgException( "Missing output file" );
                     }
                 }
             }
         }
-        return true;
     }
 
     public String getModeUsage() {

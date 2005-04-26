@@ -13,17 +13,25 @@ public class EveryFilter implements ProcessingFilter {
         return "<step>";
     }
 
-    public ProcessingStep createStep( Iterator argIt ) {
+    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
-            long count = Long.parseLong( (String) argIt.next() );
-            if ( count <= 0 ) {
-                throw new IllegalArgumentException( "Step must be >= 1" );
-            }
+            String countStr = (String) argIt.next();
             argIt.remove();
+            long count;
+            try {
+                count = Long.parseLong( countStr );
+            }
+            catch ( NumberFormatException e ) {
+                throw new ArgException( "Step value " + countStr + 
+                                        " not numeric" );
+            }
+            if ( count <= 0 ) {
+                throw new ArgException( "Step must be >= 1" );
+            }
             return new EveryStep( count );
         }
         else {
-            return null;
+            throw new ArgException( "No step given" );
         }
     }
 

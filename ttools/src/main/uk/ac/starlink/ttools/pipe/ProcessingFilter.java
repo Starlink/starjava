@@ -38,13 +38,17 @@ public interface ProcessingFilter {
      * intended for this filter.  If legal, any that can be comprehended
      * by this filter should be read (iterated over) and removed,
      * and a <tt>ProcessingStep</tt> should accordingly be returned.
-     * If they are illegal, <tt>null</tt> should be returned.
-     * In the case of a successful (non-null) return, it is essential
+     * In the case of a successful return, it is essential
      * that no arguments other than the ones intended for this
      * filter are read from the iterator.
+     *
+     * <p>If the argument list is badly-formed as far as this filter is
+     * concerned, an {@link ArgException} should be thrown.
+     * If its <code>usageFrament</code> is blank, it will be filled in
+     * later using this mode's usage text.
      *
      * @param  argIt  iterator over command-line arguments positioned
      *         just after the -getName() flag
      */
-    ProcessingStep createStep( Iterator argIt );
+    ProcessingStep createStep( Iterator argIt ) throws ArgException;
 }
