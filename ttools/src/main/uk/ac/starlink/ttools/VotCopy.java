@@ -51,14 +51,15 @@ public class VotCopy {
     public static void main( String[] args ) {
         String cmdname = "votcopy";
         String usage = cmdname
-                     + " [-h[elp]]"
-                     + " [-disk]"
-                     + " [-base name]"
-                     + " [-debug]"
-                     + " [-strict]"
-                     + " [-cache]"
                      + " [-f[ormat] tabledata|binary|fits|none]"
-                     + " [-encode encoding]"
+                     + " [-href]"
+                     + " [-base name]"
+                     + " [-encode <xml-encoding>]"
+                     + " [-cache]"
+                     + " [-strict]"
+                     + " [-disk]"
+                     + " [-debug]"
+                     + " [-h[elp]]"
                      + " [<in> [<out>]]";
 
         /* Process flags. */
