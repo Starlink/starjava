@@ -71,10 +71,12 @@ public abstract class TableTask {
             else {
                 String msg = e.getMessage();
                 String usage = e.getUsageFragment();
+                System.err.println();
                 System.err.println( e.getMessage() );
                 if ( usage != null ) {
-                    System.err.println( "Usage: " + usage );
+                    System.err.println( "\nUsage: " + usage );
                 }
+                System.err.println();
             }
             return false;
         }

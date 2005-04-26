@@ -12,6 +12,7 @@ import uk.ac.starlink.table.ProgressLineStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.StreamRowStore;
 import uk.ac.starlink.util.DataSource;
@@ -90,6 +91,27 @@ public class PipelineTask extends TableTask {
                     if ( it.hasNext() ) {
                         inFmt_ = (String) it.next();
                         it.remove();
+                        if ( inFmt_ != null && inFmt_.trim().length() > 0 ) {
+                            try {
+                                getTableFactory().getTableBuilder( inFmt_ );
+                            }
+                            catch ( TableFormatException e ) {
+                                String msg = e.getMessage();
+                                if ( msg == null ) {
+                                    msg = "Unknown input format " + inFmt_;
+                                }
+                                String ufrag = "-ifmt <in-format>\n\n"
+                                             + "   Known in-formats:";
+                                for ( Iterator fmtIt = getTableFactory()
+                                                      .getKnownFormats()
+                                                      .iterator();
+                                      fmtIt.hasNext(); ) {
+                                    ufrag += "\n      " + 
+                                          ((String) fmtIt.next()).toLowerCase();
+                                }
+                                throw new ArgException( msg, ufrag );
+                            }
+                        }
                     }
                     else {
                         throw new ArgException( "No format",
@@ -110,14 +132,12 @@ public class PipelineTask extends TableTask {
                                 mode_ = mode;
                             }
                             else {
-                                String ufrag = "[";
+                                String ufrag = "tpipe <mode-flags>\n" + 
+                                               "\n   Known modes:";
                                 for ( int j = 0; j < modes_.length; j++ ) {
-                                    if ( j > 0 ) {
-                                        ufrag += "|";
-                                    }
-                                    ufrag += "-" + modes_[ j ].getName();
+                                    ufrag += "\n      " 
+                                           + getUsageFragment( modes_[ j ] );
                                 }
-                                ufrag += "]";
                                 throw new ArgException( "Can only specify " +
                                                         "one mode", ufrag );
                             }

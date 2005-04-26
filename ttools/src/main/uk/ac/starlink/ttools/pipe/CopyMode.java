@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.TableFormatException;
 
 /**
  * Processing mode which writes out a table.
@@ -31,6 +32,22 @@ public class CopyMode extends ProcessingMode {
                     if ( it.hasNext() ) {
                         outFmt_ = (String) it.next();
                         it.remove();
+                        if ( outFmt_ != null && outFmt_.trim().length() > 0 ) {
+                            try {
+                                getTableOutput().getHandler( outFmt_ );
+                            }
+                            catch ( TableFormatException e ) {
+                                String ufrag = "-" + getName() + " " +
+                                               getModeUsage() + "\n" +
+                                               getHelp();
+                                String msg = e.getMessage();
+                                if ( msg == null ) {
+                                    msg = "No handler for output format " +
+                                          outFmt_;
+                                }
+                                throw new ArgException( msg, ufrag );
+                            }
+                        }
                     }
                     else {
                         throw new ArgException( "Missing output format" );
