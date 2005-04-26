@@ -57,9 +57,9 @@ while test "$1"
 do
    if echo $1 | grep -- '^-[XD]' >/dev/null
    then
-      javaArgs="$javaArgs \"$1\""
+      javaArgs="$javaArgs "\'$1\'
    else
-      appArgs="$appArgs \"$1\""
+      appArgs="$appArgs "\'$1\'
    fi
    shift
 done
