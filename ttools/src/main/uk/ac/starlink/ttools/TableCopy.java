@@ -18,16 +18,11 @@ import uk.ac.starlink.table.TableBuilder;
  */
 public class TableCopy {
 
-    public static void main( String[] args ) {
+    private String[] pipeArgs_;
+    private boolean verbose_;
+    private boolean wantHelp_;
 
-        /* Set up usage message. */
-        String usage = "Usage: " + getCommandName() + " ";
-        char[] padc = new char[ usage.length() ];
-        Arrays.fill( padc, ' ' );
-        String pad = "\n" + new String( padc );
-        usage += "[-disk] [-debug] [-h[elp]] [-v[erbose]]"
-               + pad + "[-ifmt <in-format>] [-ofmt <out-format>]"
-               + pad + "[<in-table> [<out-table>]]";
+    private TableCopy( String[] args ) throws ArgException {
 
         /* Process flags. */
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -39,14 +34,17 @@ public class TableCopy {
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-disk" ) ||
-                 arg.equals( "-debug" ) ||
-                 arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
+                 arg.equals( "-debug" ) ) {
                 it.remove();
                 flags.add( arg );
             }
+            else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
+                it.remove();
+                verbose_ = true;
+                flags.add( arg );
+            }
             else if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
-                System.out.println( usage );
-                System.out.println( extraHelp() );
+                wantHelp_ = true;
                 return;
             }
             else if ( arg.equals( "-ifmt" ) ) {
@@ -56,8 +54,8 @@ public class TableCopy {
                     it.remove();
                 }
                 else {
-                    System.err.println( usage );
-                    System.exit( 1 );
+                    throw new ArgException( "Missing input format",
+                                            "-ifmt <in-format>" );
                 }
             }
             else if ( arg.equals( "-ofmt" ) ) {
@@ -67,13 +65,12 @@ public class TableCopy {
                     it.remove();
                 }
                 else {
-                    System.err.println( usage );
-                    System.exit( 1 );
+                    throw new ArgException( "Missing output format",
+                                            "-ofmt <out-format>" );
                 }
             }
-            else if ( arg.startsWith( "-" ) ) {
-                System.err.println( usage );
-                System.exit( 1 );
+            else if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
+                throw new ArgException( "Unknown flag " + arg );
             }
             else if ( in == null ) {
                 it.remove();
@@ -84,8 +81,7 @@ public class TableCopy {
                 out = arg;
             }
             else {
-                System.err.println( usage );
-                System.exit( 1 );
+                throw new ArgException( "Extra argument(s) " + arg + " ..." );
             }
         }
 
@@ -108,9 +104,70 @@ public class TableCopy {
         if ( in != null ) {
             tpArgs.add( in );
         }
+        pipeArgs_ = (String[]) tpArgs.toArray( new String[ 0 ] );
+    }
 
-        /* Execute TablePipe. */
-        TablePipe.main( (String[]) tpArgs.toArray( new String[ 0 ] ) );
+    private boolean isVerbose() {
+        return verbose_;
+    }
+
+    private boolean wantsHelp() {
+        return wantHelp_;
+    }
+
+    private String[] getPipeArgs() {
+        return pipeArgs_;
+    }
+
+    public static void main( String[] args ) {
+
+        /* Set up usage message. */
+        String usage = "Usage: " + getCommandName() + " ";
+        char[] padc = new char[ usage.length() ];
+        Arrays.fill( padc, ' ' );
+        String pad = "\n" + new String( padc );
+        usage += "[-disk] [-debug] [-h[elp]] [-v[erbose]]"
+               + pad + "[-ifmt <in-format>] [-ofmt <out-format>]"
+               + pad + "[<in-table> [<out-table>]]";
+
+        /* Translate the commands to TablePipe-friendly ones. */
+        try {
+            TableCopy tc = new TableCopy( args );
+            if ( tc.wantsHelp() ) {
+                System.out.println( usage );
+                System.out.println( extraHelp() );
+                return;
+            }
+            String[] pipeArgs = tc.getPipeArgs();
+
+            /* Echo command if necessary. */
+            if ( tc.isVerbose() ) {
+                System.err.print( "tpipe" );
+                for ( int i = 0; i < pipeArgs.length; i++ ) {
+                    System.err.print( " " + pipeArgs[ i ] );
+                }
+                System.err.println();
+                System.err.flush();
+            }
+
+            /* Execute TablePipe. */
+            TablePipe.main( pipeArgs );
+        }
+        catch ( ArgException e ) {
+            boolean debug = false;
+            if ( debug ) {
+                e.printStackTrace( System.err );
+            }
+            else {
+                String msg = e.getMessage();
+                String ufrag = e.getUsageFragment();
+                String us = ufrag == null ? usage : "Usage: " + ufrag;
+                System.err.println();
+                System.err.println( e.getMessage() );
+                System.err.println( "\n" + us + "\n" );
+            }
+            System.exit( 1 );
+        }
     }
 
     /**
