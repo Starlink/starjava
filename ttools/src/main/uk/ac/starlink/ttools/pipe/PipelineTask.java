@@ -282,7 +282,7 @@ public class PipelineTask extends TableTask {
         opts.add( "[-ifmt <in-format> [-stream]]" );
         opts.add( "<in-table>" );
         opts.add( "<mode-flags>" );
-        opts.add( "[<filter-flags>]" );
+        opts.add( "<filter-flags>" );
         return (String[]) opts.toArray( new String[ 0 ] );
     }
 
