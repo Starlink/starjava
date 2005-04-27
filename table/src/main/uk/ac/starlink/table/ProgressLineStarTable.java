@@ -15,7 +15,7 @@ public class ProgressLineStarTable extends WrapperStarTable {
 
     private static final char[] SPINNER = new char[] { '|', '/', '-', '\\', };
     private static final int INTERVAL = 500;
-    private static final int INITIAL_WAIT = 1000;
+    private static final int INITIAL_WAIT = 500;
 
     private final PrintStream out_;
 
