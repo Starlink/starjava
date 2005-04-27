@@ -24,12 +24,16 @@ import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.SpecFrame;
-import uk.ac.starlink.util.gui.BasicFileFilter;
+import uk.ac.starlink.splat.data.LineIDMEMSpecDataImpl;
 import uk.ac.starlink.splat.data.LineIDSpecData;
+import uk.ac.starlink.splat.data.LineIDSpecDataImpl;
+import uk.ac.starlink.splat.data.LineIDTXTSpecDataImpl;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 
 /**
  * Class that makes any locally installed line identification files
@@ -234,9 +238,29 @@ public class LocalLineIDManager
         return count;
     }
 
+    /**
+     * Reload the underlying implementation of the given line identifier
+     * spectrum. This can be used to refresh the actual spectrum by replacing
+     * the existing implementation.
+     */
+    public LineIDSpecDataImpl reLoadSpecDataImpl( LineIDSpecData specData )
+        throws SplatException
+    {
+        //  Check if we know about this one.
+        Iterator i = propsList.iterator();
+        LineProps props;
+        while( i.hasNext() ) {
+            props = (LineProps) i.next();
+            if ( props.isOurLineIDSpecData( specData ) ) {
+                return props.reLoadSpecDataImpl();
+            }
+        }
+        throw new SplatException( "Internal error, unknown line identifier: "
+                                  + specData.getShortName() );
+    }
 
     //
-    //  Action for dealing with the properties of each line 
+    //  Action class for dealing with the properties of each line 
     //  identifier spectrum.
     //
     protected class LineProps
@@ -261,6 +285,11 @@ public class LocalLineIDManager
         // Normally this is created lazily.
         private SpecFrame specFrame = null;
 
+        // Type of backing for the spectrum. There will be two kinds, ones
+        // loaded from the central repository and ones loaded from text
+        // files.
+        private boolean external = false;
+
         public LineProps( String description )
             throws SplatException
         {
@@ -275,8 +304,7 @@ public class LocalLineIDManager
                 setFullName( words[0] );
                 setName( words[0] );
                 setRange( words[1], words[2] );
-                setUnits( words[3] );
-                setSystem( words[4] );
+                setSystemAndUnits( words[4], words[3] );
             }
             else {
                 throw new SplatException( "Description file is corrupt" );
@@ -322,28 +350,23 @@ public class LocalLineIDManager
             }
         }
 
-        public void setUnits( String units )
-        {
-            this.units = units;
-            if ( specFrame != null ) {
-                specFrame.setUnit( 1, units );
-            }
-        }
-        public String getUnits()
-        {
-            return this.units;
-        }
-
-        public void setSystem( String system )
+        public void setSystemAndUnits( String system, String units )
         {
             this.system = system;
+            this.units = units;
             if ( specFrame != null ) {
                 specFrame.setSystem( system );
+                specFrame.setUnit( 1, units );
             }
         }
         public String getSystem()
         {
             return this.system;
+        }
+
+        public String getUnits()
+        {
+            return this.units;
         }
 
         public String toString()
@@ -366,8 +389,8 @@ public class LocalLineIDManager
             Mapping match = targetFrame.convert( specFrame, "" );
             if ( match != null ) {
                 double[] matchedRange = match.tran1( 2, targetRange, true );
-                if ( matchedRange[0] <= range[1] &&
-                     matchedRange[1] >= range[0] ) {
+                if ( Math.min(matchedRange[0],matchedRange[1]) <= range[1] &&
+                     Math.max(matchedRange[0],matchedRange[1]) >= range[0] ) {
                     return true;
                 }
             }
@@ -378,8 +401,7 @@ public class LocalLineIDManager
         {
             if ( specFrame == null ) {
                 specFrame = new SpecFrame();
-                setUnits( units );
-                setSystem( system );
+                setSystemAndUnits( system, units );
             }
         }
 
@@ -413,25 +435,84 @@ public class LocalLineIDManager
             else {
                 // Read the spectrum.
                 readSpectrum();
+                globalList.add( specData );
             }
+        }
+
+        /**
+         * Reload the underlying implementation of the spectrum. This can be
+         * used to refresh the actual spectrum by replacing the existing
+         * implementation.
+         */
+        public LineIDSpecDataImpl reLoadSpecDataImpl()
+            throws SplatException
+        {
+            LineIDSpecDataImpl impl = null;
+            if ( external ) {
+                impl = new LineIDTXTSpecDataImpl( fullName );
+            }
+            else {
+                //  One from the repository. Need to re-read the SpecData
+                //  instance and use the implementation from that.
+                InputStream specStr =
+                    this.getClass().getResourceAsStream( "/ids" + fullName );
+                if ( specStr != null ) {
+                    try {
+                        ObjectInputStream ois = new ObjectInputStream(specStr);
+                        LineIDSpecData specData = 
+                            (LineIDSpecData) ois.readObject();
+                        ois.close();
+                        impl = (LineIDSpecDataImpl) specData.getSpecDataImpl();
+                    }
+                    catch (Exception ie) {
+                        throw new SplatException( ie );
+                    }
+                }
+            }
+            return impl;
         }
 
         protected void readSpectrum()
         {
-            InputStream specStr =
-                this.getClass().getResourceAsStream( "/ids" + fullName );
-            if ( specStr != null ) {
+            if ( external ) {
+                //  In this case fullName is the file name.
                 try {
-                    ObjectInputStream ois = new ObjectInputStream(specStr);
-                    specData = (LineIDSpecData) ois.readObject();
-                    ois.close();
-                    globalList.add( specData );
+                    LineIDTXTSpecDataImpl impl = 
+                        new LineIDTXTSpecDataImpl( fullName );
+                    specData = new LineIDSpecData( impl );
+                    FrameSet frameSet = specData.getFrameSet();
+                    setSystemAndUnits( frameSet.getC( "system" ), 
+                                       frameSet.getC( "unit(1)" ) );
                     createSpecFrame();
                 }
-                catch (Exception ie) {
+                catch (SplatException ie) {
                     logger.log( Level.INFO, ie.getMessage(), ie );
                 }
             }
+            else {
+                //  One from the repository.
+                InputStream specStr =
+                    this.getClass().getResourceAsStream( "/ids" + fullName );
+                if ( specStr != null ) {
+                    try {
+                        ObjectInputStream ois = new ObjectInputStream(specStr);
+                        specData = (LineIDSpecData) ois.readObject();
+                        ois.close();
+                        createSpecFrame();
+                    }
+                    catch (Exception ie) {
+                        logger.log( Level.INFO, ie.getMessage(), ie );
+                    }
+                }
+            }
+        }
+            
+        /**
+         * See if a given LineIDSpecData is ours.
+         */
+        public boolean isOurLineIDSpecData( LineIDSpecData specData )
+        {
+            return ( this.specData == specData );
         }
 
         //
