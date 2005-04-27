@@ -35,11 +35,6 @@ public class EditableSpecData
     implements Serializable
 {
     /**
-     * Reference to the EditableSpecDataImpl.
-     */
-    protected transient EditableSpecDataImpl editableImpl = null;
-
-    /**
      * The last UndoableEdit object created.
      */
     protected transient UndoableEdit undoableEdit = null;
@@ -68,7 +63,6 @@ public class EditableSpecData
         throws SplatException
     {
         super( impl, true );
-        this.editableImpl = impl;
     }
 
     /**
@@ -133,7 +127,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, null, false );
-        editableImpl.setSimpleData( coords, dataUnits, data );
+        ((EditableSpecDataImpl)impl).setSimpleData( coords, dataUnits, data );
         readData();
     }
 
@@ -157,7 +151,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, null, false );
-        editableImpl.setSimpleUnitData( frameSet, coords, dataUnits, data );
+        ((EditableSpecDataImpl)impl).setSimpleUnitData( frameSet, coords, dataUnits, data );
         readData();
     }
 
@@ -173,7 +167,7 @@ public class EditableSpecData
         throws SplatException
     {
         constructColumnAndFrameSetUndo( dataUnits, data, null, false );
-        editableImpl.setFullData( frameSet, dataUnits, data );
+        ((EditableSpecDataImpl)impl).setFullData( frameSet, dataUnits, data );
         readData();
     }
 
@@ -194,7 +188,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, null, true );
-        editableImpl.setSimpleDataQuick( coords, dataUnits, data );
+        ((EditableSpecDataImpl)impl).setSimpleDataQuick( coords, dataUnits, data );
         readData();
     }
 
@@ -218,7 +212,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, null, true );
-        editableImpl.setSimpleUnitDataQuick( frameSet, coords, dataUnits,
+        ((EditableSpecDataImpl)impl).setSimpleUnitDataQuick( frameSet, coords, dataUnits,
                                              data );
         readData();
     }
@@ -236,7 +230,7 @@ public class EditableSpecData
         throws SplatException
     {
         constructColumnAndFrameSetUndo( dataUnits, data, null, true );
-        editableImpl.setFullDataQuick( frameSet, dataUnits, data );
+        ((EditableSpecDataImpl)impl).setFullDataQuick( frameSet, dataUnits, data );
         readData();
     }
 
@@ -259,7 +253,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, errors, false );
-        editableImpl.setSimpleData( coords, dataUnits, data, errors );
+        ((EditableSpecDataImpl)impl).setSimpleData( coords, dataUnits, data, errors );
         readData();
     }
 
@@ -287,7 +281,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, errors, false );
-        editableImpl.setSimpleUnitData( frameSet, coords, dataUnits, data,
+        ((EditableSpecDataImpl)impl).setSimpleUnitData( frameSet, coords, dataUnits, data,
                                         errors );
         readData();
     }
@@ -309,7 +303,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnAndFrameSetUndo( dataUnits, data, errors, false );
-        editableImpl.setFullData( frameSet, dataUnits, data, errors );
+        ((EditableSpecDataImpl)impl).setFullData( frameSet, dataUnits, data, errors );
         readData();
     }
 
@@ -331,7 +325,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, errors, true );
-        editableImpl.setSimpleDataQuick( coords, dataUnits, data, errors );
+        ((EditableSpecDataImpl)impl).setSimpleDataQuick( coords, dataUnits, data, errors );
         readData();
     }
 
@@ -358,7 +352,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, errors, true );
-        editableImpl.setSimpleUnitDataQuick( frameSet, coords, dataUnits,
+        ((EditableSpecDataImpl)impl).setSimpleUnitDataQuick( frameSet, coords, dataUnits,
                                              data, errors );
         readData();
     }
@@ -380,7 +374,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnAndFrameSetUndo( dataUnits, data, errors, true );
-        editableImpl.setFullDataQuick( frameSet, dataUnits, data, errors );
+        ((EditableSpecDataImpl)impl).setFullDataQuick( frameSet, dataUnits, data, errors );
         readData();
     }
 
@@ -391,7 +385,7 @@ public class EditableSpecData
         throws SplatException
     {
         constructCellUndo( EditCell.XCOLUMN, index );
-        editableImpl.setXDataValue( index, value );
+        ((EditableSpecDataImpl)impl).setXDataValue( index, value );
         readData();
     }
 
@@ -402,7 +396,7 @@ public class EditableSpecData
         throws SplatException
     {
         constructCellUndo( EditCell.YCOLUMN, index );
-        editableImpl.setYDataValue( index, value );
+        ((EditableSpecDataImpl)impl).setYDataValue( index, value );
         readData();
     }
 
@@ -413,7 +407,7 @@ public class EditableSpecData
         throws SplatException
     {
         constructCellUndo( EditCell.ECOLUMN, index );
-        editableImpl.setYDataErrorValue( index, value );
+        ((EditableSpecDataImpl)impl).setYDataErrorValue( index, value );
         readData();
     }
 
@@ -487,7 +481,7 @@ public class EditableSpecData
         // Give the new FrameSet to the implementation, then cause a
         // reset of the coordinates.
         constructFrameSetUndo();
-        editableImpl.setAst( frameSet );
+        ((EditableSpecDataImpl)impl).setAst( frameSet );
         readData();
     }
 
