@@ -168,7 +168,7 @@ public class SpecData
         shortName = impl.getShortName();
         fullName = impl.getFullName();
         if ( ! check || ( check && impl.getData() != null  ) ) {
-            readData();
+            readDataPrivate();
         }
     }
 
@@ -1422,7 +1422,16 @@ public class SpecData
      *
      * @exception SplatException thrown if an error condition is encountered.
      */
-    public void readData()
+    protected void readData()
+        throws SplatException
+    {
+        readDataPrivate();
+    }
+
+    /**
+     * Private version of readData as called from constructor.
+     */
+    private void readDataPrivate()
         throws SplatException
     {
         //  Get the spectrum data counts and errors (can be null).
@@ -1446,6 +1455,11 @@ public class SpecData
         initialiseAst();
     }
 
+    /**
+     * Initialise the spectral coordinates. Uses the AST information of the
+     * underlying implementation to generate a FrameSet suitable for plotting
+     * coordinates against data values and generates the "getXData()" array.
+     */
     public void initialiseAst()
         throws SplatException
     {
@@ -1515,7 +1529,7 @@ public class SpecData
                 convertToApparentDataUnits();
 
                 //  Set the axis range.
-                setRange();
+                setRangePrivate();
             }
             catch (Exception e) {
                 throw new SplatException( e );
@@ -1614,9 +1628,18 @@ public class SpecData
     }
 
     /**
-     * Set the range available in the data.
+     * Set/reset the current range of the data.
      */
     public void setRange()
+    {
+        setRangePrivate();
+    }
+
+    /**
+     * Private version of setRange. Called from constructor so should not be
+     * directly overridden.
+     */
+    private void setRangePrivate()
     {
         double xMin = Double.MAX_VALUE;
         double xMinY = 0.0;
@@ -1635,7 +1658,6 @@ public class SpecData
         double fullYMax = xMax;
         double fullYMaxX = 0.0;
         double tmp;
-
 
         if ( yErr != null ) {
 
@@ -2488,7 +2510,7 @@ public class SpecData
             this.impl = newImpl;
 
             //  Full reset of state.
-            readData();
+            readDataPrivate();
         }
         catch ( SplatException e ) {
             e.printStackTrace();
