@@ -25,6 +25,7 @@ import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
+import uk.ac.starlink.table.join.HEALPixMatchEngine;
 import uk.ac.starlink.table.join.HTMMatchEngine;
 import uk.ac.starlink.table.join.IsotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.MatchEngine;
@@ -379,18 +380,24 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         Arrays.fill( someLengths4, someLength );
         CombinedMatchEngine skyPlus1Engine = 
             new CombinedMatchEngine( new MatchEngine[] {
-                new HTMMatchEngine( someAngle ),
+                new HEALPixMatchEngine( someAngle ),
                 new AnisotropicCartesianMatchEngine( someLengths1 ),
             } );
         skyPlus1Engine.setName( "Sky + X" );
         CombinedMatchEngine skyPlus2Engine = 
             new CombinedMatchEngine( new MatchEngine[] {
-                new HTMMatchEngine( someAngle ),
+                new HEALPixMatchEngine( someAngle ),
                 new AnisotropicCartesianMatchEngine( someLengths2 ),
             } );
         skyPlus2Engine.setName( "Sky + XY" );
+        HTMMatchEngine htmEngine = new HTMMatchEngine( someAngle ) {
+            public String toString() {
+                return "HTM";
+            }
+        };
         return new MatchEngine[] {
-            new HTMMatchEngine( someAngle ),
+            new HEALPixMatchEngine( someAngle ),
+            htmEngine,
             new SphericalPolarMatchEngine( someLength ),
             new EqualsMatchEngine(),
             new IsotropicCartesianMatchEngine( 1, someLength, false ),
