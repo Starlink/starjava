@@ -9,6 +9,37 @@
 
   <!-- Define external URLs. -->
   <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.4.2/docs/">
+
+  <!-- Standard flag definitions -->
+  <!ENTITY flag-help '
+     <dt><code>-h</code></dt>
+     <dt><code>-help</code></dt>
+     <dd><p>Prints a usage message and exits.
+         </p></dd>'>
+  <!ENTITY flag-verbose '
+     <dt><code>-v</code></dt>
+     <dt><code>-verbose</code></dt>
+     <dd><p>May cause more information about progress to be written as
+         the command runs
+         </p></dd>'>
+  <!ENTITY flag-disk '
+     <dt>-disk</dt> 
+     <dd><p>Encourages the command to use temporary files on disk for caching
+         large amounts of data rather than doing it in memory.
+         This is a good flag to try if you are getting
+         <code>OutOfMemoryError</code>s.
+         This flag is in most cases equivalent to specifying the system
+         property <code>-Dstartable.storage=disk</code>.
+         </p></dd>'>
+   <!ENTITY flag-debug '
+     <dt>-debug</dt>
+     <dd><p>Causes any error messages, which are usually made brief, to
+         be accompanied by a stack trace.  If you are reporting a bug
+         (or debugging the code yourself), then you should use this flag
+         to get the most information about what has gone wrong.
+         </p></dd>'>
+
+  
 ]>
 
 <sun>
@@ -93,18 +124,21 @@ same ground as the STIL and TOPCAT user documents
 
 <p>Currently, this package consists of three commands:
 <ul>
+<li><code><ref id="tpipe" plaintextref="yes">tpipe</ref></code>:
+    Generic table pipeline processing utility
+    </li>
+<li><code><ref id="tcopy" plaintextref="yes">tcopy</ref></code>:
+    Table format converter
+    </li>
 <li><code><ref id="votcopy" plaintextref="yes">votcopy</ref></code>:
     VOTable encoding translator
     </li>
 <li><code><ref id="votlint" plaintextref="yes">votlint</ref></code>:
     VOTable checking utility
     </li>
-<li><code><ref id="tpipe" plaintextref="yes">tpipe</ref></code>:
-    Generic table pipeline processing utility
-    </li>
 </ul>
 It is expected that more will be introduced in the future,
-in particular a crosssmatching tool and perhaps some convenience
+in particular a crosssmatching tool and perhaps some more convenience
 commands which make it easier to do some of the operations 
 provided by <code>tpipe</code>.
 </p>
@@ -309,34 +343,10 @@ The classname of each command is listed with its description in
 descriptions elsewhere in this document, but some of them are common
 to most or all of the commands:
 <dl>
-
-<dt>-h</dt>
-<dt>-help</dt>
-<dd><p>Prints a usage message and exits.
-    </p></dd>
-
-<dt>-v</dt>
-<dt>-verbose</dt>
-<dd><p>May cause more information about progress to be written as the
-    command runs.
-    </p></dd>
-
-<dt>-disk</dt>
-<dd><p>Encourages the command to use temporary files on disk for caching
-    large amounts of data rather than doing it in memory.  
-    This is a good flag to try if you are getting 
-    <code>OutOfMemoryError</code>s.
-    This flag is in most cases equivalent to specifying the system 
-    property <code>-Dstartable.storage=disk</code>.
-    </p></dd>
-
-<dt>-debug</dt>
-<dd><p>Causes any error messages, which are usually made brief, to 
-    be accompanied by a stack trace.  If you are reporting a bug
-    (or debugging the code yourself), then you should use this flag
-    to get the most information about what has gone wrong.
-    </p></dd>
-
+&flag-help;
+&flag-verbose;
+&flag-disk;
+&flag-debug;
 </dl>
 </p>
 
@@ -535,7 +545,9 @@ For more details on these formats, see <docxref doc="sun252" loc="inFormats"/>.
 tools can detect the table format automatically, and no explicit 
 specification is necessary.  If this isn't the case and you omit
 the format specification, the tool will fail with a suitable error
-message.
+message.  It is always safe to specify the format explicitly,
+and may lead to more helpful error messages in the case that the
+table can't be read correctly.
 </p>
 
 </subsect>
@@ -548,7 +560,7 @@ using the <code>-ofmt</code> flag.
 The following list gives the values usually allowed for this;
 in some cases as you can see there are several variants of a given format.
 You can abbreviate these names, and the first match in the list below
-will be used, so for instance specifying <code>votable</code>" is equivalent
+will be used, so for instance specifying <code>votable</code> is equivalent
 to specifying <code>votable-tabledata</code>.
 
 <dl>
@@ -1302,13 +1314,8 @@ compression formats (gzip, Unix compress and bzip2).
     include UTF-16 etc.
     </p></dd>
 
-<dt><code>-debug</code></dt>
-<dd><p>Causes error reports to be more verbose.
-    </p></dd>
-
-<dt><code>-help</code></dt>
-<dd><p>Prints a usage message and exits.
-    </p></dd>
+&flag-debug;
+&flag-help;
 
 </dl>
 </p>
@@ -1571,13 +1578,8 @@ compression formats (gzip, Unix compress and bzip2).
     version specified using this flag, a warning is issued.
     </p></dd>
 
-<dt>-help</dt>
-<dd><p>Prints a usage message and exits.
-    </p></dd>
-
-<dt>-debug</dt>
-<dd><p>Causes error messages to be more verbose.
-    </p></dd>
+&flag-help;
+&flag-debug;
 
 </dl>
 </p>
@@ -1767,6 +1769,7 @@ invocation.
 <p>The basic form of a <code>tpipe</code> invocation is therefore
 <verbatim><![CDATA[
     tpipe <input-specifier> <filter-specifiers> <mode-specifier>
+          <other-flags>
 ]]></verbatim>
 (though in fact these elements can appear in any order and they are
 all optional).
@@ -1785,7 +1788,7 @@ as described in <ref id="invoke"/> using the classname
 processing will be performed.
 It has the form:
 <verbatim><![CDATA[
-    [-ifmt <in-format> [-stream]] [<in-table>]
+    [-ifmt <in-format> [-stream]] <in-table>
 ]]></verbatim>
 which is interpreted as follows:
 <dl>
@@ -1912,6 +1915,26 @@ optional or mandatory arguments.
     more than one read of the data downstream.
     </p></dd>
 
+<dt><code>-progress</code></dt>
+<dd><p>Monitors progress by displaying the number of rows processed so
+    far on the terminal (standard error).  This number is updated every
+    second or thereabouts; if all the processing is done in under a second
+    you won't see any output.  If the total number of rows in the table is
+    known, an ASCII-art progress bar is updated, otherwise just the
+    number of rows seen so far is written.
+    </p>
+
+    <p>Specifying <code>-verbose</code> has the effect of inserting a 
+    <code>-progress</code> flag at the start of the pipeline, 
+    so you can see how much progress has been made through the initial
+    input table.
+    By putting a <code>-progress</code>
+    at different points in pipeline you can monitor how
+    far different stages of the processing have progressed.
+    If you insert more than one <code>-progress</code> however, 
+    output to the terminal is going to get quite messy.
+    </p></dd>
+
 <dt><code>-random</code></dt>
 <dd><p>Only useful for debugging.
     </p></dd>
@@ -1998,6 +2021,20 @@ This means that with no mode specifier, the processed table is written to
 standard output in <code>text</code> format.
 </p>
 
+</subsubsubsect>
+
+<subsubsubsect>
+<subhead><title>Other Flags</title></subhead>
+
+<p>The following generic flags can also be issued:
+
+<dl>
+&flag-help;
+&flag-verbose;
+&flag-disk;
+&flag-debug;
+</dl>
+</p>
 </subsubsubsect>
 
 </subsubsect>
@@ -2155,6 +2192,158 @@ tpipe USNOB.FITS -every 1000000 -stats
 
 </dl>
 </p>
+</subsubsect>
+
+</subsect>
+
+<subsect id="tcopy">
+<subhead><title>tcopy</title></subhead>
+
+<p><code>tcopy</code> is a simple table copying tool.
+It simply copies a table from one place to another, but since
+you can specify the input and output formats as desired, it works
+as a converter from any of the supported 
+<ref id="inFormats" plaintextref="yes">input formats</ref> 
+to any of the supported 
+<ref id="outFormats" plaintextref="yes">output formats</ref>.
+</p>
+
+<p><code>tcopy</code> is designed as a drop-in replacement for the old
+<code>tablecopy</code> (<code>uk.ac.starlink.table.TableCopy</code>)
+tool which was supplied with STIL and TOPCAT - it has the same
+arguments and behaviour, but is implemented on top of 
+<ref id="tpipe">tpipe</ref> and will in some cases be more efficient.
+</p>
+
+<subsubsect>
+<subhead><title>Usage</title></subhead>
+
+<p>The basic usage of <code>tcopy</code> is
+<verbatim><![CDATA[
+    tcopy [-ifmt <in-format>] [-ofmt <out-format>] [<other-flags>]
+          <in-table> [<out-table>]
+]]></verbatim>
+If you don't have the Unix scripts installed, invoke it 
+as described in <ref id="invoke"/> using the classname
+<code>uk.ac.starlink.ttools.TableCopy</code>.
+</p>
+
+<p>The most important arguments are as follows:
+<dl>
+
+<dt><code>-ifmt &lt;in-format&gt;</code></dt>
+<dd><p>Specifies the format of the input table (one of the known formats 
+    listed in <ref id="inFormats"/> - matching is case-insensitive). 
+    This flag can be used if you know what format your input table is in. 
+    If it's omitted, then an attempt will be made to detect the format 
+    of in-table  automatically, but this cannot always be done 
+    correctly, in which case the program will exit with an error
+    explaining which formats were attempted.
+    </p></dd>
+
+<dt><code>-ofmt &lt;out-format&gt;</code></dt>
+<dd><p>Specifies the format in which the output table will be written
+    (one of the ones listed in <ref id="outFormats"/> - matching is
+    case-insensitive and you can use just the first few letters).
+    If this flag is omitted, then the output filename will be examined
+    to try to guess what sort of file is required, usually by looking
+    at the extension.  If it's not obvious from the filename what
+    output format is required, the program will exit with an error.
+    </p></dd>
+
+<dt><code>&lt;in-table&gt;</code></dt>
+<dd><p>The location of the input table.  This is usually a filename or
+    a URL, and may point to a file compressed in one of the supported
+    compression formats (Unix compress, gzip or bzip2).
+    If it is equal to the special value "<code>-</code>",
+    the input table will be read from standard input.
+    In this case the input format must be given explicitly using the
+    <code>-ifmt</code> flag.
+    </p></dd>
+
+<dt><code>&lt;out-table&gt;</code></dt>
+<dd><p>The location of the output table.  This is usually a filename to
+    write to.  If omitted, or if it is equal to the special value 
+    "<code>-</code>", the output table will be written to standard output.
+    In this case the output format must be given explicitly using the
+    <code>-ofmt</code> flag.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>The following generic flags can also be used:
+<dl>
+&flag-help;
+&flag-debug;
+&flag-disk;
+&flag-verbose;
+</dl>
+
+</p>
+
+</subsubsect>
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>tcopy</code> in use:
+<dl>
+
+<dt><verbatim>
+tcopy stars.fits stars.xml
+</verbatim></dt>
+<dd><p>Copies a FITS table to a VOTable.
+    Since no input format is specified, the format is automatically 
+    detected (FITS is one of the formats for which this is possible).
+    Since no output format is specified, the <code>stars.xml</code>
+    filename is examined to make a guess at the kind of output to write:
+    the <code>.xml</code> ending is taken to mean a TABLEDATA-encoded
+    VOTable.
+    </p></dd>
+
+<dt><verbatim>
+tcopy -ifmt fits stars.fits -ofmt votable-tabledata
+</verbatim></dt>
+<dd><p>Does the same as the previous example, but the input and output
+    formats have been specified explicitly.
+    </p></dd>
+
+<dt><verbatim>
+tcopy -ofmt text http://remote.host/data/vizer.xml.gz#4 -
+</verbatim></dt>
+<dd><p>Prints the contents of a remote VOTable to the terminal in 
+    a human-readable form.  The <code>#4</code> at the end of the URL
+    indicates that the data from the fifth <code>TABLE</code> element
+    in the remote document are to be used.  The gzip compression of
+    the table is taken care of automatically.
+    </p></dd>
+
+<dt><verbatim>
+tcopy -ifmt csv -ofmt latex spec.csv
+</verbatim></dt>
+<dd><p>Converts a comma-separated values file to a LaTeX table environment.
+    </p></dd>
+
+<dt><verbatim>
+tcopy -classpath /usr/local/jars/pg73jdbc3.jar \
+      -Djdbc.drivers=org.postgresql.Driver \
+      "jdbc:postgresql://localhost/imsim#SELECT ra, dec, Imag, Kmag FROM dqc" \
+      -ofmt fits wfslist.cat
+</verbatim></dt>
+<dd><p>Writes the results of an SQL query on a PostgreSQL database
+    to a FITS table.  The classpath is augmented to include the PostgreSQL
+    driver classes, and the driver class is named using the 
+    <code>jdbc.drivers</code> system property.
+    Use of SQL is a bit fiddly, and there are other ways to perform this
+    setup than on the command line - see <ref id="jdbcConfig"/>.
+    If a username or password is required, it will be prompted for on the
+    command line.
+    </p></dd>
+
+</dl>
+</p>
+
 </subsubsect>
 
 </subsect>
