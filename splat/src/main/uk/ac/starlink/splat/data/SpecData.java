@@ -2424,6 +2424,8 @@ public class SpecData
 
         //  Finished.
         serializedFrameSet = null;
+        serializedDataUnits = null;
+        serializedDataLabel = null;
     }
 
     /**
