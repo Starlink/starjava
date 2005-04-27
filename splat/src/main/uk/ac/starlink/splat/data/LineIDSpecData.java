@@ -38,11 +38,6 @@ public class LineIDSpecData
     implements Serializable
 {
     /**
-     * Reference to the LineIDSpecDataImpl.
-     */
-    protected transient LineIDSpecDataImpl lineIDImpl = null;
-
-    /**
      * Reference to an associated SpecData.
      */
     protected transient SpecData specData = null;
@@ -66,7 +61,6 @@ public class LineIDSpecData
         throws SplatException
     {
         super( lineIDImpl );
-        this.lineIDImpl = lineIDImpl;
         setRange();               // Deferred from super constructor
         useInAutoRanging = false; // by default.
         setPointSize( 1.0 );
@@ -107,8 +101,8 @@ public class LineIDSpecData
      */
     public String[] getLabels()
     {
-        if ( lineIDImpl != null ) {
-            return lineIDImpl.getLabels();
+        if ( impl != null && impl instanceof LineIDSpecDataImpl ) {
+            return ((LineIDSpecDataImpl)impl).getLabels();
         }
         return null;
     }
@@ -119,7 +113,9 @@ public class LineIDSpecData
     public void setLabels( String[] labels )
         throws SplatException
     {
-        lineIDImpl.setLabels( labels );
+        if ( impl != null && impl instanceof LineIDSpecDataImpl ) {
+            ((LineIDSpecDataImpl)impl).setLabels( labels );
+        }
     }
 
     /**
@@ -127,7 +123,9 @@ public class LineIDSpecData
      */
     public void setLabel( int index, String label )
     {
-        lineIDImpl.setLabel( index, label );
+        if ( impl != null && impl instanceof LineIDSpecDataImpl ) {
+            ((LineIDSpecDataImpl)impl).setLabel( index, label );
+        }
     }
 
     /**
@@ -136,14 +134,17 @@ public class LineIDSpecData
      */
     public boolean haveDataPositions()
     {
-        return lineIDImpl.haveDataPositions();
+        if ( impl != null && impl instanceof LineIDSpecDataImpl ) {
+            return ((LineIDSpecDataImpl)impl).haveDataPositions();
+        }
+        return false;
     }
 
     // Override setRange as the typical line id spectrum will not have data
     // values.
     public void setRange()
     {
-        if ( lineIDImpl == null ) return;
+        if ( impl == null || ! ( impl instanceof LineIDSpecDataImpl ) ) return;
 
         if ( haveDataPositions() ) {
             super.setRange();
@@ -216,7 +217,7 @@ public class LineIDSpecData
             }
         }
         else {
-            // Cannot have null limits.
+            // Cannot have null limits. Use the graphics limits instead?
             limits = new double[4];
         }
 
@@ -317,12 +318,11 @@ public class LineIDSpecData
                 newImpl.setLabels( serializedLabels );
                 serializedLabels = null;
             }
-            this.lineIDImpl = newImpl;
-            this.editableImpl = newImpl;
             this.impl = newImpl;
 
             //  Full reset of state.
             readData();
+            setRange();
         }
         catch ( SplatException e ) {
             e.printStackTrace();
