@@ -61,6 +61,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.ast.gui.AstAxes;
 import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.ast.gui.AxesControls;
@@ -78,6 +79,7 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.DecimalComboBoxEditor;
 import uk.ac.starlink.splat.iface.GlobalSpecPlotList;
 import uk.ac.starlink.splat.iface.LineRenderer;
+import uk.ac.starlink.splat.iface.LocalLineIDManager;
 import uk.ac.starlink.splat.iface.LogAxesControl;
 import uk.ac.starlink.splat.iface.SimpleDataLimitControls;
 import uk.ac.starlink.splat.iface.SpecChangedEvent;
@@ -1209,6 +1211,34 @@ public class PlotControl
 
         // The list of spectra is used as the model for the drop-down list.
         nameList.setModel( spectra );
+    }
+
+
+    /**
+     * Load and display line identifiers that match the current spectrum. 
+     * The identifiers loaded can be restricted to just those available in the
+     * global list, otherwise all known identifiers will be queried.
+     * 
+     * @param all if true then all known identifiers will be searched for
+     *            matches and loaded, otherwise just those already available
+     *            in the global list will be displayed.
+     */
+    public void loadLineIDs( boolean all, LocalLineIDManager manager )
+    {
+        //  Create a SpecFrame that describes the spectral coordinates of the
+        //  current spectrum.
+        Frame frame = getPlotCurrentFrame();
+        int[] iaxes = new int[] { 1 };
+        Frame picked = frame.pickAxes( 1, iaxes, null );
+        if ( picked instanceof SpecFrame ) {
+            try {
+                double[] range = spectra.getRange();
+                manager.matchDisplayLoad( (SpecFrame) picked, range, all, this );
+            }
+            catch (SplatException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
