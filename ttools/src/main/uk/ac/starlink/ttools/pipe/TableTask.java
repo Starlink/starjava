@@ -52,7 +52,8 @@ public abstract class TableTask {
         try {
             setArgs( argList );
             if ( ! argList.isEmpty() ) {
-                String msg = "Undigested arguments:";
+                boolean plural = argList.size() > 1 ? "s" : "";
+                String msg = "Undigested argument" + plural + ":";
                 for ( Iterator it = argList.iterator(); it.hasNext(); ) {
                     msg += " " + it.next().toString();
                 }
