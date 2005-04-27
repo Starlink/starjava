@@ -8,6 +8,7 @@
 
 package uk.ac.starlink.splat.data;
 
+import java.io.Serializable;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
@@ -31,6 +32,7 @@ import uk.ac.starlink.splat.util.SplatException;
  */
 public class EditableSpecData
     extends SpecData
+    implements Serializable
 {
     /**
      * Reference to the EditableSpecDataImpl.
@@ -45,13 +47,13 @@ public class EditableSpecData
     /**
      * The UndoManager for local UndoableEdit objects.
      */
-    protected UndoManager undoManager = null;
+    protected transient UndoManager undoManager = null;
 
     /**
      * Whether changes to this spectrum can be undone using the
      * UndoManager.
      */
-    protected boolean undoable = false;
+    protected transient boolean undoable = false;
 
     /**
      * Create an instance using the data in a given an EditableSpecDataImpl
