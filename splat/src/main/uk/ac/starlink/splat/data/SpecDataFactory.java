@@ -37,6 +37,7 @@ import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TemporaryFileDataSource;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.splat.iface.LocalLineIDManager;
 import uk.ac.starlink.votable.VOTableBuilder;
 
 /**
@@ -762,7 +763,8 @@ public class SpecDataFactory
 
         try {
             if ( specData instanceof LineIDSpecData ) {
-                newImpl = new LineIDTXTSpecDataImpl( specspec );
+                newImpl = LocalLineIDManager.getInstance()
+                    .reLoadSpecDataImpl( (LineIDSpecData) specData );
             }
             else if ( oldImpl instanceof FITSSpecDataImpl ) {
                 newImpl = new FITSSpecDataImpl( specspec );
