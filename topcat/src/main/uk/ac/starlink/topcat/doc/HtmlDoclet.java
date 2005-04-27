@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.StringTokenizer;
+import uk.ac.starlink.ttools.build.MemberDoclet;
 
 /**
  * Generates HTML pages for display at runtime in the MethodWindow.

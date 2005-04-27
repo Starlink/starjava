@@ -6,6 +6,7 @@ import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
 import java.io.IOException;
 import uk.ac.starlink.topcat.TopcatJELUtils;
+import uk.ac.starlink.ttools.build.XmlDoclet;
 
 /**
  * Doclet which documents public static members of classes in XML 
