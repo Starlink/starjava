@@ -130,7 +130,7 @@ public class PlotControlFrame
     /**
      *  The global list of spectra and plots.
      */
-    private static GlobalSpecPlotList globalList = 
+    private static GlobalSpecPlotList globalList =
         GlobalSpecPlotList.getInstance();
 
     /**
@@ -153,6 +153,8 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem dataUnitsMatching = null;
     protected JCheckBoxMenuItem showVisibleOnly = null;
     protected PlotGraphicsClipMenuItem clipGraphics = null;
+    protected JMenuItem loadAllLineIDs = null;
+    protected JMenuItem loadLoadedLineIDs = null;
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem autoFitPercentiles = null;
     protected JCheckBoxMenuItem showShortNames = null;
@@ -524,12 +526,12 @@ public class PlotControlFrame
 
         //  Arrange to carefully align coordinates when asked (expensive
         //  otherwise).
-        coordinateMatching = 
+        coordinateMatching =
             new JCheckBoxMenuItem( "Match coordinates and/or fluxes" );
         optionsMenu.add( coordinateMatching );
         coordinateMatching.addItemListener( this );
 
-        dataUnitsMatching = 
+        dataUnitsMatching =
             new JCheckBoxMenuItem( "Match non-flux data units" );
         optionsMenu.add( dataUnitsMatching );
         dataUnitsMatching.addItemListener( this );
@@ -543,7 +545,7 @@ public class PlotControlFrame
 
         //  Whether to just draw the grid in the visible region. Can be
         //  expensive so off by default.
-        showVisibleOnly = 
+        showVisibleOnly =
             new JCheckBoxMenuItem( "Only display grid axes in visible area" );
         optionsMenu.add( showVisibleOnly );
         showVisibleOnly.addItemListener( this );
@@ -552,14 +554,26 @@ public class PlotControlFrame
         showVisibleOnly.setSelected( state );
 
         //  Whether to clip spectrum graphics to lie with axes border.
-        clipGraphics = 
-            new PlotGraphicsClipMenuItem( plot.getPlot(), 
+        clipGraphics =
+            new PlotGraphicsClipMenuItem( plot.getPlot(),
                                           "Only display spectra within axes" );
         optionsMenu.add( clipGraphics );
         clipGraphics.addItemListener( this );
 
         state = prefs.getBoolean( "PlotControlFrame_clipgraphics", false );
         clipGraphics.setSelected( state );
+
+        //  Load line identifiers into the plot. This comes in two flavours
+        //  load all line identifiers and only those that are already
+        //  available in the global list.
+        loadAllLineIDs = new JMenuItem( "Load all matching line identifiers" );
+        optionsMenu.add( loadAllLineIDs );
+        loadAllLineIDs.addActionListener( this );
+
+        loadLoadedLineIDs = new JMenuItem
+            ( "Load all matching pre-loaded line identifiers" );
+        optionsMenu.add( loadLoadedLineIDs );
+        loadLoadedLineIDs.addActionListener( this );
 
         //  Include spacing for error bars in the auto ranging.
         errorbarAutoRanging = new JCheckBoxMenuItem("Error bar auto-ranging");
@@ -698,8 +712,8 @@ public class PlotControlFrame
             try {
                 AstAxes astAxes = (AstAxes) configFrame.getConfiguration()
                     .getControlsModel( AxesControls.getControlsModelClass() );
-                DataLimitControls dlc = 
-                    new DataLimitControls( divaPlot.getDataLimits(), plot, 
+                DataLimitControls dlc =
+                    new DataLimitControls( divaPlot.getDataLimits(), plot,
                                            astAxes );
                 configFrame.addExtraControls( dlc, false );
             }
@@ -1494,6 +1508,16 @@ public class PlotControlFrame
 
         if ( source.equals( removeCurrent ) ) {
             removeCurrentSpectrum();
+            return;
+        }
+
+        if ( source.equals( loadAllLineIDs ) ) {
+            plot.loadLineIDs( true, LocalLineIDManager.getInstance() );
+            return;
+        }
+
+        if ( source.equals( loadLoadedLineIDs ) ) {
+            plot.loadLineIDs( false, LocalLineIDManager.getInstance() );
             return;
         }
     }
