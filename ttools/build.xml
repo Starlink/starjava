@@ -108,6 +108,8 @@
 
   <!-- Directory containing miscellaneous docs -->
   <property name="src.docs" value="${src.dir}/docs"/>
+  <property name="user.doc" value="sunXXX"/>
+  <property name="docs.lib" value="${star.build.dir}/topcat/src/docs"/>
 
   <!-- Directory containing any script required to execute or setup package-->
   <property name="script.dir" value="${src.dir}/script"/>
@@ -130,6 +132,7 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.docs" value="${build.dir}/docs"/>
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
@@ -577,11 +580,10 @@
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
-  <!--
     <copy todir="${dist.docs.pkg}">
-      <fileset dir="${src.docs}"/>
+      <fileset dir="${src.docs}"
+               includes="${user.doc}/* *.pdf"/>
     </copy>
-  -->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
@@ -768,7 +770,7 @@
    ! and package-specific directories are logged to "${install.log}".
    !-->
   <target name="install"
-          depends="dist"
+          depends="dist, docs"
           description="-> installs distribution">
 
     <!-- Installation based directories (based on "star.install")-->
@@ -919,6 +921,7 @@
        !   java packages -->
       <packageset dir="${java.dir}" defaultexcludes="yes">
          <include name="**"/>
+         <exclude name="uk/ac/starlink/ttools/build"/>
       </packageset>
 
       <!-- Link to the full Java API at SUNs website -->
@@ -953,6 +956,91 @@
     </uptodate>
 
   </target>
+
+   <!--
+   !   =================================================
+   !   Creates additional documentation from XML sources
+   !   =================================================
+   !
+   !   The XML user document is downconverted to PDF and single- 
+   !   and multiple-file HTML versions in the docs directory.
+   !-->
+  <target name="docs"
+          depends="build, docs_check"
+          unless="docs.notrequired"
+          description="-> creates the user documentation">
+
+    <!-- Make destination directory for built files. -->
+    <mkdir dir="${build.docs}"/>
+
+    <!-- Copy required source files there. -->
+    <copy todir="${build.docs}">
+      <fileset dir="${src.docs}" includes="${user.doc}.xml"/>
+      <fileset dir="${docs.lib}" includes="docs.dtd"/>
+    </copy>
+
+    <!-- Construct XML documentation for the JEL-accessible classes.
+     !   This is built using Javadoc, and forms part of the user document. -->
+    <javadoc doclet="uk.ac.starlink.ttools.build.FullXmlDoclet"
+             docletpathref="classpath"
+             failonerror="true"
+             public="true"
+             additionalparam="-o ${build.docs}/jel-javadocs.xml"
+             sourcepath="${java.dir}"
+             packagenames="uk.ac.starlink.ttools.func"
+             classpathref="classpath"
+             source="${source.version}"/>
+
+    <!-- Transform the user document XML to a single HTML document. -->
+    <mkdir dir="${build.docs}/${user.doc}"/>
+    <xslt in="${build.docs}/${user.doc}.xml"
+          out="${build.docs}/${user.doc}/${user.doc}.html"
+          style="${docs.lib}/toHTML1.xslt">
+      <param name="VERSION" expression="${version}"/>
+      <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
+    </xslt>
+
+    <!-- Transform the user document XML to a PDF document via XSL-FO. -->
+    <xslt in="${build.docs}/${user.doc}.xml"
+          out="${build.docs}/${user.doc}.fo"
+          style="${docs.lib}//toFo.xslt">
+      <param name="VERSION" expression="${version}"/>
+      <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
+    </xslt>
+    <java classname="org.apache.fop.apps.Fop"
+          failonerror="yes"
+          fork="yes">
+      <classpath>
+        <fileset dir="${docs.lib}" includes="*.jar"/>
+      </classpath>
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-q"/>
+      <arg value="-fo"/> <arg value="${build.docs}/${user.doc}.fo"/>
+      <arg value="-pdf"/> <arg value="${build.docs}/${user.doc}.pdf"/>
+    </java>
+
+    <!-- Transform the user document from XML to HTML form for browsing. -->
+    <java classpathref="classpath"
+          dir="${src.docs}"
+          classname="uk.ac.starlink.util.MultiXML"
+          failonerror="yes"
+          fork="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-style"/> <arg value="${docs.lib}/toHTML.xslt"/>
+      <arg value="-param"/> <arg value="VERSION=${version}"/>
+      <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
+      <arg value="${build.docs}/${user.doc}.xml"/>
+      <arg value="${build.docs}/${user.doc}"/>
+    </java>
+  </target>
+
+  <!-- Checks whether the docs build is up to date. -->
+  <target name="docs_check" unless="docs.notrequired">
+    <uptodate property="docs.notrequired"
+              srcfile="${src.docs}/${user.doc}.xml"
+              targetfile="${build.docs}/${user.doc}/${user.doc}.html"/>
+  </target>
+
 
   <!--
    !   =========================================
