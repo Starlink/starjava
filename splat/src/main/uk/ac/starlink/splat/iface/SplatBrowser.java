@@ -834,7 +834,7 @@ public class SplatBrowser
         menuBar.add( optionsMenu );
 
         //  Add any locally availabel line identifiers.
-        new LocalLineIDManager( optionsMenu, this );
+        LocalLineIDManager.getInstance().populate( optionsMenu, this );
 
         //  Add the LookAndFeel selections.
         new SplatLookAndFeelManager( contentPane, optionsMenu );
