@@ -22,4 +22,13 @@ public class TablePipe {
         }
     }
 
+    /**
+     * Returns the short command name for this application.
+     *
+     * @return  "tpipe"
+     */
+    public static String getCommandName() {
+        return "tpipe";
+    }
+
 }

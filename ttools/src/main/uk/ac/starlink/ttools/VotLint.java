@@ -26,11 +26,15 @@ public class VotLint {
     /**
      * Main method.  Use <tt>-h</tt> flag for usage.
      *
-     * @param  args  argument vecctor
+     * @param  args  argument vector
      */
     public static void main( String[] args ) {
-        String usage = "votlint [-help] [-debug] [-novalid] [-version 1.0|1.1]"
-                  +  "\n        [votable]";
+        String usage = "Usage: " + getCommandName() + " ";
+        char[] padc = new char[ usage.length() ];
+        Arrays.fill( padc, ' ' );
+        String pad = "\n" + new String( padc );
+        usage += "[-help] [-debug] [-novalid] [-version 1.0|1.1]"
+               + pad + "[<votable>]";
 
         List argList = new ArrayList( Arrays.asList( args ) );
         boolean debug = false;
@@ -130,5 +134,14 @@ public class VotLint {
         catch ( SAXException e ) {
             context.message( "ERROR", null, e );
         }
+    }
+
+    /**
+     * Returns the short command name for this application.
+     *
+     * @return   "votlint"
+     */
+    public static String getCommandName() {
+        return "votlint";
     }
 }

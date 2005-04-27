@@ -49,18 +49,14 @@ public class VotCopy {
      * Main method.  See usage message (-h) for details.
      */
     public static void main( String[] args ) {
-        String cmdname = "votcopy";
-        String usage = cmdname
-                     + " [-f[ormat] tabledata|binary|fits|none]"
-                     + " [-href]"
-                     + " [-base name]"
-                     + " [-encode <xml-encoding>]"
-                     + " [-cache]"
-                     + " [-strict]"
-                     + " [-disk]"
-                     + " [-debug]"
-                     + " [-h[elp]]"
-                     + " [<in> [<out>]]";
+        String usage = "Usage: " + getCommandName() + " "; 
+        char[] padc = new char[ usage.length() ];
+        Arrays.fill( padc, ' ' );
+        String pad = "\n" + new String( padc );
+        usage += "[-f[ormat] tabledata|binary|fits|none] [-href] [-base name]"
+               + pad + "[-encode <xml-encoding>] [-cache] [-disk] [-strict] "
+               + pad + "[-debug] [-h[elp]]"
+               + pad + "[<in> [<out>]]";
 
         /* Process flags. */
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -242,6 +238,15 @@ public class VotCopy {
                 // no action
             }
         }
+    }
+
+    /**
+     * Returns the short command name for this application.
+     *
+     * @return   "votcopy"
+     */
+    public static String getCommandName() {
+        return "votcopy";
     }
 
     /**
