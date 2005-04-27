@@ -13,6 +13,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.IOException;
+import java.util.Arrays;
 
 import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.Plot;
@@ -66,6 +67,7 @@ public class LineIDSpecData
     {
         super( lineIDImpl );
         this.lineIDImpl = lineIDImpl;
+        setRange();               // Deferred from super constructor
         useInAutoRanging = false; // by default.
         setPointSize( 1.0 );
     }
@@ -105,7 +107,10 @@ public class LineIDSpecData
      */
     public String[] getLabels()
     {
-        return lineIDImpl.getLabels();
+        if ( lineIDImpl != null ) {
+            return lineIDImpl.getLabels();
+        }
+        return null;
     }
 
     /**
@@ -132,6 +137,49 @@ public class LineIDSpecData
     public boolean haveDataPositions()
     {
         return lineIDImpl.haveDataPositions();
+    }
+
+    // Override setRange as the typical line id spectrum will not have data
+    // values.
+    public void setRange()
+    {
+        if ( lineIDImpl == null ) return;
+
+        if ( haveDataPositions() ) {
+            super.setRange();
+            return;
+        }
+
+        double xMin = Double.MAX_VALUE;
+        double xMax = -Double.MAX_VALUE;
+        for ( int i = xPos.length - 1; i >= 0 ; i-- ) {
+            if ( xPos[i] != SpecData.BAD ) {
+                if ( xPos[i] < xMin ) {
+                    xMin = xPos[i];
+                }
+                if ( xPos[i] > xMax ) {
+                    xMax = xPos[i];
+                }
+            }
+        }
+        if ( xMin == Double.MAX_VALUE ) {
+            xMin = 0.0;
+        }
+        if ( xMax == -Double.MAX_VALUE ) {
+            xMax = 0.0;
+        }
+
+        //  Record plain range.
+        range[0] = xMin;
+        range[1] = xMax;
+        range[2] = -1.0;
+        range[3] = 1.0;
+
+        //  And the "full" version.
+        fullRange[0] = xMin;
+        fullRange[1] = xMax;
+        fullRange[2] = -1.0;
+        fullRange[3] = 1.0;
     }
 
     /**
@@ -239,80 +287,30 @@ public class LineIDSpecData
     private void writeObject( ObjectOutputStream out )
         throws IOException
     {
-        //  Note we lift this from SpecData so that we can add the data labels
-        //  storage.
-
-        //  Serialize the AST FrameSet.
-        serializedFrameSet = new String[1];
-        ASTChannel chan = new ASTChannel( serializedFrameSet );
-        chan.write( lineIDImpl.getAst() );
-        serializedFrameSet = new String[chan.getIndex()];
-        chan.setArray( serializedFrameSet );
-        chan.write( lineIDImpl.getAst() );
-
-        //  Store data units and label.
-        serializedDataUnits = getCurrentDataUnits();
-        serializedDataLabel = getDataLabel();
-
-        //  Data labels.
-        serializedLabels = lineIDImpl.getLabels();
+        //  Need to write out persistent data labels.
+        serializedLabels = getLabels();
 
         //  And store all member variables.
         out.defaultWriteObject();
 
         //  Finished.
-        serializedFrameSet = null;
+        serializedLabels = null;
     }
 
     private void readObject( ObjectInputStream in )
         throws IOException, ClassNotFoundException
     {
-        //  Note we lift this method from SpecData as we need a different impl
-        //  object and restore the data labels.
-
+        //  Note we use this method as we need a different impl object from
+        //  SpecData and need to restore the data labels.
         try {
             // Restore state of member variables.
             in.defaultReadObject();
 
-            //  Create the backing impl.
+            //  Create the backing impl, this will supercede one created by
+            //  the SpecData readObject.
             LineIDMEMSpecDataImpl newImpl =
-                new LineIDMEMSpecDataImpl( shortName );
+                new LineIDMEMSpecDataImpl( shortName, this );
             fullName = null;
-
-            //  Restore the AST FrameSet, if available.
-            if ( serializedFrameSet != null ) {
-                ASTChannel chan = new ASTChannel( serializedFrameSet );
-                FrameSet frameSet = (FrameSet) chan.read();
-                serializedFrameSet = null;
-
-                if ( serializedDataUnits != null ) {
-                    newImpl.setDataUnits( serializedDataUnits );
-                    serializedDataUnits = null;
-                }
-                if ( serializedDataLabel != null ) {
-                    newImpl.setDataLabel( serializedDataLabel );
-                    serializedDataLabel = null;
-                }
-
-                if ( haveYDataErrors() ) {
-                    newImpl.setFullData( frameSet, newImpl.getDataUnits(),
-                                         getYData(), getYDataErrors() );
-                }
-                else {
-                    newImpl.setFullData( frameSet, newImpl.getDataUnits(),
-                                         getYData() );
-                }
-            }
-            else {
-                if ( haveYDataErrors() ) {
-                    newImpl.setSimpleData( getXData(), newImpl.getDataUnits(),
-                                           getYData(), getYDataErrors() );
-                }
-                else {
-                    newImpl.setSimpleData( getXData(), newImpl.getDataUnits(),
-                                           getYData() );
-                }
-            }
 
             //  Restore data labels.
             if ( serializedLabels != null ) {
@@ -320,6 +318,8 @@ public class LineIDSpecData
                 serializedLabels = null;
             }
             this.lineIDImpl = newImpl;
+            this.editableImpl = newImpl;
+            this.impl = newImpl;
 
             //  Full reset of state.
             readData();
