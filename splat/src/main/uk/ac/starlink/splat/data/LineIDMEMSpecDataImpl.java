@@ -50,7 +50,13 @@ public class LineIDMEMSpecDataImpl
 
         // Get any labels.
         if ( spectrum instanceof LineIDSpecData ) {
-            setLabels( ( (LineIDSpecData) spectrum ).getLabels(), true );
+            String[] labels = ((LineIDSpecData) spectrum).getLabels();
+            if ( labels != null ) {
+                setLabels( labels, true );
+            }
+            else {
+                makeLabels();
+            }
         }
         else {
             //  Need a dummy set.
