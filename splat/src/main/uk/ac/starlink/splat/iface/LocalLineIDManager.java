@@ -7,14 +7,15 @@
  */
 package uk.ac.starlink.splat.iface;
 
-
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,10 +23,12 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import java.io.ObjectInputStream;
 
+import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.splat.data.LineIDSpecData;
+import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
@@ -37,6 +40,9 @@ import uk.ac.starlink.splat.util.SplatException;
  */
 public class LocalLineIDManager
 {
+    // The instance of this class. There is only one.
+    private static LocalLineIDManager instance = null;
+
     // Logger.
     private static Logger logger =
         Logger.getLogger( "uk.ac.starlink.splat.iface.LocalLineIDManager" );
@@ -66,15 +72,35 @@ public class LocalLineIDManager
     protected SplatBrowser browser = null;
 
     /**
-     * Constructor. Single argument is the menu to populate
+     * Constructor. Hidden from use.
+     */
+    private LocalLineIDManager()
+    {
+        readDescriptionFile();        
+    }
+    
+    /**
+     * Return reference to the single instance of this class.
+     */
+    public static LocalLineIDManager getInstance()
+    {
+        if ( instance == null ) {
+            instance = new LocalLineIDManager();
+        }
+        return instance;
+    }
+
+    /**
+     * Populate and remain attached to a menu that displays all the known line
+     * identifiers. This can only be used once per-application.
      *
      * @param targetMenu the menu to populate.
+     * @param browser where spectra will be realized.
      */
-    public LocalLineIDManager( JMenu targetMenu, SplatBrowser browser )
+    public void populate( JMenu targetMenu, SplatBrowser browser )
     {
         this.targetMenu = targetMenu;
         this.browser = browser;
-        readDescriptionFile();
         addLineIDs();
     }
 
@@ -142,7 +168,6 @@ public class LocalLineIDManager
      */
     protected void buildMenus( JMenu menu )
     {
-        int nprops = propsList.size();
         File file;
         JMenu newMenu;
         JMenuItem item;
@@ -152,8 +177,9 @@ public class LocalLineIDManager
         HashMap subMenus = new HashMap();
         int index;
 
-        for ( int i = 0; i < nprops; i++ ) {
-            props = (LineProps) propsList.get( i );
+        Iterator i = propsList.iterator();
+        while( i.hasNext() ) {
+            props = (LineProps) i.next();
             name = props.getName().substring( 1 ); // Strip leading "/"
             file = new File( name );
             parent = file.getParent();
@@ -184,24 +210,63 @@ public class LocalLineIDManager
         }
     }
 
+    /**
+     * Optionally load and display all the line identifiers that match a given
+     * spectral coordinate range. The line identifiers loaded can either be
+     * all from those known, or just those that are already available in the
+     * global list.  The range is specified as a lower and upper limit
+     * together with a SpecFrame that describes the system that the coordinate
+     * are defined in.
+     */
+    public int matchDisplayLoad( SpecFrame specFrame, double[] range, 
+                                 boolean load, PlotControl control )
+    {
+        int count = 0;
+        Iterator i = propsList.iterator();
+        LineProps props;
+        while( i.hasNext() ) {
+            props = (LineProps) i.next();
+            if ( props.intersects( specFrame, range ) ) {
+                count++;
+                props.maybeDisplaySpectrum( load, control );
+            }
+        }
+        return count;
+    }
+
+
     //
-    //  Action for containing the properties of each line identifier spectrum.
+    //  Action for dealing with the properties of each line 
+    //  identifier spectrum.
     //
     protected class LineProps
         extends AbstractAction
     {
         private String name;
         private String fullName;
+
+        // Coordinate range that the spectrum encompasses.
         private double[] range = new double[2];
+
+        // Spectral coordinates system and units of the range.
         private String units;
         private String system;
+
+        // The spectrum when deserialized.
         private LineIDSpecData specData = null;
+
+        // SpecFrame describing the system and units. Only applies to the
+        // initial coordinate range and may not be those of the specData
+        // instance after it has been created (could be edited elsewhere).
+        // Normally this is created lazily.
+        private SpecFrame specFrame = null;
 
         public LineProps( String description )
             throws SplatException
         {
             process( description );
         }
+
         private void process( String description )
             throws SplatException
         {
@@ -260,6 +325,9 @@ public class LocalLineIDManager
         public void setUnits( String units )
         {
             this.units = units;
+            if ( specFrame != null ) {
+                specFrame.setUnit( 1, units );
+            }
         }
         public String getUnits()
         {
@@ -269,6 +337,9 @@ public class LocalLineIDManager
         public void setSystem( String system )
         {
             this.system = system;
+            if ( specFrame != null ) {
+                specFrame.setSystem( system );
+            }
         }
         public String getSystem()
         {
@@ -280,6 +351,89 @@ public class LocalLineIDManager
             return name;
         }
 
+        /**
+         * Check if a given range of coordinates intersects the range of this
+         * instance.
+         *
+         * @param targetFrame a SpecFrame that describes the coordinates of
+         *                    the range.
+         * @param targetRange lower and upper limits in the coordinate system
+         *                    described by targetFrame.
+         */
+        public boolean intersects(SpecFrame targetFrame, double[] targetRange)
+        {
+            createSpecFrame();
+            Mapping match = targetFrame.convert( specFrame, "" );
+            if ( match != null ) {
+                double[] matchedRange = match.tran1( 2, targetRange, true );
+                if ( matchedRange[0] <= range[1] &&
+                     matchedRange[1] >= range[0] ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        protected void createSpecFrame()
+        {
+            if ( specFrame == null ) {
+                specFrame = new SpecFrame();
+                setUnits( units );
+                setSystem( system );
+            }
+        }
+
+        public void maybeDisplaySpectrum( boolean load, PlotControl control )
+        {
+            int index = globalList.getSpectrumIndex( specData );
+            if ( ! load && index == -1 ) {
+                return;
+            }
+            loadSpectrum();
+            if ( control != null ) {
+                try {
+                    globalList.addSpectrum( control, specData );
+                }
+                catch (SplatException e) {
+                    logger.log( Level.INFO, e.getMessage(), e );
+                }
+            }
+        }
+
+        public void loadSpectrum()
+        {
+            // If this spectrum is already loaded then just make sure it is
+            // still on the global list.
+            if ( specData != null ) {
+                int index = globalList.getSpectrumIndex( specData );
+                if ( index == -1 ) {
+                    globalList.add( specData );
+                }
+            }
+            else {
+                // Read the spectrum.
+                readSpectrum();
+            }
+        }
+
+        protected void readSpectrum()
+        {
+            InputStream specStr =
+                this.getClass().getResourceAsStream( "/ids" + fullName );
+            if ( specStr != null ) {
+                try {
+                    ObjectInputStream ois = new ObjectInputStream(specStr);
+                    specData = (LineIDSpecData) ois.readObject();
+                    ois.close();
+                    globalList.add( specData );
+                    createSpecFrame();
+                }
+                catch (Exception ie) {
+                    logger.log( Level.INFO, ie.getMessage(), ie );
+                }
+            }
+        }
+
         //
         //  Implement the ActionListener interface. This deserializes the
         //  stored LineIDSpecData object and makes it available on the global
@@ -287,19 +441,7 @@ public class LocalLineIDManager
         //
         public void actionPerformed( ActionEvent e )
         {
-            InputStream specStr =
-                this.getClass().getResourceAsStream( "/ids" + fullName );
-            if ( specStr != null ) {
-                try {
-                    ObjectInputStream ois = new ObjectInputStream( specStr );
-                    specData = (LineIDSpecData) ois.readObject();
-                    ois.close();
-                    globalList.add( specData );
-                }
-                catch (Exception ie) {
-                    logger.log( Level.INFO, ie.getMessage(), ie );
-                }
-            }
+            loadSpectrum();
         }
     }
 }
