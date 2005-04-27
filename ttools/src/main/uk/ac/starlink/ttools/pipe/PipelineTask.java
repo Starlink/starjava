@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import uk.ac.starlink.table.ProgressLineStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
@@ -62,6 +61,7 @@ public class PipelineTask extends TableTask {
         KeepColumnFilter.class.getName(),
         DeleteColumnFilter.class.getName(),
         ExplodeFilter.class.getName(),
+        ProgressFilter.class.getName(),
         CacheFilter.class.getName(),
         RandomFilter.class.getName(),
         SequentialFilter.class.getName(),
@@ -201,7 +201,7 @@ public class PipelineTask extends TableTask {
             table = getTableFactory().makeStarTable( inLoc_, inFmt_ );
         }
         if ( isVerbose() ) {
-            table = new ProgressLineStarTable( table, System.err );
+            pipeline_.add( 0, new ProgressFilter( System.err ) );
         }
         for ( Iterator it = pipeline_.iterator(); it.hasNext(); ) {
             ProcessingStep step = (ProcessingStep) it.next();
