@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.pipe;
+package uk.ac.starlink.ttools;
 
 /**
  * Checked exception thrown when arguments encountered on the command 

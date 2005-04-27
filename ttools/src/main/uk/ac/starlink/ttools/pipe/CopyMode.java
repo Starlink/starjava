@@ -6,6 +6,7 @@ import java.util.List;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.ttools.ArgException;
 
 /**
  * Processing mode which writes out a table.

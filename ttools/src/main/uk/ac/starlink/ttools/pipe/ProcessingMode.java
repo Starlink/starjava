@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.ArgException;
 
 /**
  * Interface defining the final element of a table processing pipeline -

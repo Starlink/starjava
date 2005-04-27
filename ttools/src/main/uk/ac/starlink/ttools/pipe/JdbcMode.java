@@ -8,6 +8,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
+import uk.ac.starlink.ttools.ArgException;
 
 /**
  * Mode for writing a table as a new table in a JDBC-connected database.

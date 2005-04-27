@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.pipe;
 
 import java.util.Iterator;
+import uk.ac.starlink.ttools.ArgException;
 
 /**
  * Defines a type of filter-like processing which can be done on a StarTable.

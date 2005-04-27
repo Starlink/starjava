@@ -13,6 +13,7 @@ import java.util.List;
 import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.ttools.ArgException;
 import uk.ac.starlink.ttools.JELUtils;
 import uk.ac.starlink.ttools.RandomJELRowReader;
 

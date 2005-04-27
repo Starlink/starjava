@@ -5,6 +5,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.ArgException;
 
 /**
  * Table filter for deleting a single column.

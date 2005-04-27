@@ -4,6 +4,7 @@ import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.ArgException;
 
 /**
  * Table filter for selecting only certain rows using a JEL expression.

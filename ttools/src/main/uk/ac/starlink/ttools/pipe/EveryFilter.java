@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.pipe;
 
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.ArgException;
 
 public class EveryFilter implements ProcessingFilter {
 

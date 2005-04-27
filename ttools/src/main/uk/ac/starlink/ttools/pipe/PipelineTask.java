@@ -14,6 +14,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.ttools.ArgException;
 import uk.ac.starlink.ttools.StreamRowStore;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;

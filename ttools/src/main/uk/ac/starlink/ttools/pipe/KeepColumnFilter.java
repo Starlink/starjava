@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.ArgException;
 
 /**
  * Table filter for selecting a number of columns and discarding the rest.

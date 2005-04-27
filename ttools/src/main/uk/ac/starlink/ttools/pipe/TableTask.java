@@ -12,6 +12,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.ttools.ArgException;
 import uk.ac.starlink.util.Loader;
 
 /**

@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.pipe;
 
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.ArgException;
 
 /**
  * Filter for picking only the first few rows of a table.

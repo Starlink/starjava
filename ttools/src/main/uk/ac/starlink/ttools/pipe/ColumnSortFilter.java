@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.ttools.ArgException;
 
 /**
  * Sort processing step which sorts on one or more column identifiers.
