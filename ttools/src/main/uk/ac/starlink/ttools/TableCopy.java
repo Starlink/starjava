@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.TableBuilder;
@@ -19,8 +20,9 @@ import uk.ac.starlink.table.TableBuilder;
 public class TableCopy {
 
     private String[] pipeArgs_;
-    private boolean verbose_;
+    private boolean debug_;
     private boolean wantHelp_;
+    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.ttools" );
 
     private TableCopy( String[] args ) throws ArgException {
 
@@ -34,13 +36,13 @@ public class TableCopy {
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-disk" ) ||
-                 arg.equals( "-debug" ) ) {
+                 arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
                 it.remove();
                 flags.add( arg );
             }
-            else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
+            else if ( arg.equals( "-debug" ) ) {
                 it.remove();
-                verbose_ = true;
+                debug_ = true;
                 flags.add( arg );
             }
             else if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
@@ -107,8 +109,8 @@ public class TableCopy {
         pipeArgs_ = (String[]) tpArgs.toArray( new String[ 0 ] );
     }
 
-    private boolean isVerbose() {
-        return verbose_;
+    private boolean isDebug() {
+        return debug_;
     }
 
     private boolean wantsHelp() {
@@ -141,13 +143,13 @@ public class TableCopy {
             String[] pipeArgs = tc.getPipeArgs();
 
             /* Echo command if necessary. */
-            if ( tc.isVerbose() ) {
-                System.err.print( "tpipe" );
+            if ( tc.isDebug() ) {
+                StringBuffer sbuf = new StringBuffer( "tpipe" );
                 for ( int i = 0; i < pipeArgs.length; i++ ) {
-                    System.err.print( " " + pipeArgs[ i ] );
+                    sbuf.append( ' ' )
+                        .append( pipeArgs[ i ] );
                 }
-                System.err.println();
-                System.err.flush();
+                logger_.info( sbuf.toString() );
             }
 
             /* Execute TablePipe. */
