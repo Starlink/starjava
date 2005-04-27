@@ -111,6 +111,7 @@ public class LineIDTree
         catch (Exception e) {
             System.out.println( "Didn't process: " + inSpec );
             System.out.println( e.getMessage() );
+            e.printStackTrace();
         }
     }
 
@@ -124,6 +125,7 @@ public class LineIDTree
         String name = inFile.substring( rootDirLength );
 
         //  Get the coordinate range.
+        specData.setRange();
         double[] range = specData.getRange();
 
         //  And the units and system of the coordinates.
