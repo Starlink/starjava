@@ -52,9 +52,9 @@ do
    else
       appArgs="$appArgs "\'$1\'
    fi
-   if [ "$1" = "-verbose" ]
+   if [ "$1" = "-debug" ]
    then
-      verbose=1
+      debug=1
    fi
    shift
 done
@@ -67,9 +67,9 @@ cmd="$starjava \
      $appArgs"
 
 #  Echo it if verbose.
-if [ $verbose ]
+if [ $debug ]
 then
-   echo >&1 "$cmd"
+   echo >&2 "$cmd"
 fi
 
 #  Execute it.
