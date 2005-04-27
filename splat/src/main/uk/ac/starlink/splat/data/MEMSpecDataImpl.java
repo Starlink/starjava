@@ -295,6 +295,13 @@ public class MEMSpecDataImpl
         if ( coords == null ) {
             createCoords();
         }
+        if ( coords.length == 1 ) {
+            //  Single point LutMaps are not allowed.
+            double[] newCoords = new double[2];
+            newCoords[0] = coords[0];
+            newCoords[1] = coords[0];
+            coords = newCoords;
+        }
         LutMap lutmap = new LutMap( coords, 1.0, 1.0 );
         Mapping simple = lutmap.simplify();
 

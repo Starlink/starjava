@@ -452,6 +452,14 @@ public class LineIDTXTSpecDataImpl
         if ( coords == null ) {
             createCoords();
         }
+
+        //  Only one value. Double up LutMap.
+        if ( coords.length == 1 ) {
+            double[] newCoords = new double[2];
+            newCoords[0] = coords[0];
+            newCoords[1] = coords[0];
+            coords = newCoords;
+        }
         LutMap lutmap = new LutMap( coords, 1.0, 1.0 );
         Mapping simple = lutmap.simplify();
 
