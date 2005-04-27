@@ -911,10 +911,12 @@ public class SpecDataComp
                 // spectrum.
                 boolean haveDataPositions =
                     ((LineIDSpecData) spectrum).haveDataPositions();
+
                 String dataUnits = from.getC( "unit(2)" );
                 if ( dataUnits == null || dataUnits.equals( "unknown" ) ) {
                     haveDataPositions = false;
                 }
+
                 if ( ! haveDataPositions ) {
                     //  Use units Frame of the current spectrum along with the
                     //  SpecFrame of the line identifiers.
@@ -944,7 +946,7 @@ public class SpecDataComp
             if ( sourceTransform ) {
                 String stdofrest = to.getC( "StdOfRest(1)" );
                 to.set( "StdOfRest(1)=Source" );
-                mapping = from.convert( to, "DATAPLOT" );
+                mapping = to.convert( from, "DATAPLOT" );
                 to.set( "StdOfRest(1)=" + stdofrest );
             }
             else {
