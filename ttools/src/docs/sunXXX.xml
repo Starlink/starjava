@@ -122,13 +122,13 @@ same ground as the STIL and TOPCAT user documents
 (<docxref doc="sun252"/> and <docxref doc="sun253"/> respectively).
 </p>
 
-<p>Currently, this package consists of three commands:
+<p>Currently, this package consists of four commands:
 <ul>
-<li><code><ref id="tpipe" plaintextref="yes">tpipe</ref></code>:
-    Generic table pipeline processing utility
-    </li>
 <li><code><ref id="tcopy" plaintextref="yes">tcopy</ref></code>:
     Table format converter
+    </li>
+<li><code><ref id="tpipe" plaintextref="yes">tpipe</ref></code>:
+    Generic table pipeline processing utility
     </li>
 <li><code><ref id="votcopy" plaintextref="yes">votcopy</ref></code>:
     VOTable encoding translator
@@ -1196,6 +1196,641 @@ commands in the package.  For each one a description of its purpose,
 a list of its command-line arguments, and some examples are given.
 </p>
 
+
+
+<subsect id="tcopy">
+<subhead><title>tcopy</title></subhead>
+
+<p><code>tcopy</code> is a table copying tool.
+It simply copies a table from one place to another, but since
+you can specify the input and output formats as desired, it works
+as a converter from any of the supported 
+<ref id="inFormats" plaintextref="yes">input formats</ref> 
+to any of the supported 
+<ref id="outFormats" plaintextref="yes">output formats</ref>.
+</p>
+
+<p><code>tcopy</code> is designed as a drop-in replacement for the old
+<code>tablecopy</code> (<code>uk.ac.starlink.table.TableCopy</code>)
+tool which was supplied with STIL and TOPCAT - it has the same
+arguments and behaviour, but is implemented on top of 
+<ref id="tpipe">tpipe</ref> and will in some cases be more efficient.
+</p>
+
+<subsubsect>
+<subhead><title>Usage</title></subhead>
+
+<p>The basic usage of <code>tcopy</code> is
+<verbatim><![CDATA[
+    tcopy [-ifmt <in-format>] [-ofmt <out-format>] [<other-flags>]
+          <in-table> [<out-table>]
+]]></verbatim>
+If you don't have the Unix scripts installed, invoke it 
+as described in <ref id="invoke"/> using the classname
+<code>uk.ac.starlink.ttools.TableCopy</code>.
+</p>
+
+<p>The most important arguments are as follows:
+<dl>
+
+<dt><code>-ifmt &lt;in-format&gt;</code></dt>
+<dd><p>Specifies the format of the input table (one of the known formats 
+    listed in <ref id="inFormats"/> - matching is case-insensitive). 
+    This flag can be used if you know what format your input table is in. 
+    If it's omitted, then an attempt will be made to detect the format 
+    of in-table  automatically, but this cannot always be done 
+    correctly, in which case the program will exit with an error
+    explaining which formats were attempted.
+    </p></dd>
+
+<dt><code>-ofmt &lt;out-format&gt;</code></dt>
+<dd><p>Specifies the format in which the output table will be written
+    (one of the ones listed in <ref id="outFormats"/> - matching is
+    case-insensitive and you can use just the first few letters).
+    If this flag is omitted, then the output filename will be examined
+    to try to guess what sort of file is required, usually by looking
+    at the extension.  If it's not obvious from the filename what
+    output format is required, the program will exit with an error.
+    </p></dd>
+
+<dt><code>&lt;in-table&gt;</code></dt>
+<dd><p>The location of the input table.  This is usually a filename or
+    a URL, and may point to a file compressed in one of the supported
+    compression formats (Unix compress, gzip or bzip2).
+    If it is equal to the special value "<code>-</code>",
+    the input table will be read from standard input.
+    In this case the input format must be given explicitly using the
+    <code>-ifmt</code> flag.
+    </p></dd>
+
+<dt><code>&lt;out-table&gt;</code></dt>
+<dd><p>The location of the output table.  This is usually a filename to
+    write to.  If omitted, or if it is equal to the special value 
+    "<code>-</code>", the output table will be written to standard output.
+    In this case the output format must be given explicitly using the
+    <code>-ofmt</code> flag.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>The following generic flags can also be used:
+<dl>
+&flag-help;
+&flag-debug;
+&flag-disk;
+&flag-verbose;
+</dl>
+
+</p>
+
+</subsubsect>
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>tcopy</code> in use:
+<dl>
+
+<dt><verbatim>
+tcopy stars.fits stars.xml
+</verbatim></dt>
+<dd><p>Copies a FITS table to a VOTable.
+    Since no input format is specified, the format is automatically 
+    detected (FITS is one of the formats for which this is possible).
+    Since no output format is specified, the <code>stars.xml</code>
+    filename is examined to make a guess at the kind of output to write:
+    the <code>.xml</code> ending is taken to mean a TABLEDATA-encoded
+    VOTable.
+    </p></dd>
+
+<dt><verbatim>
+tcopy -ifmt fits stars.fits -ofmt votable-tabledata
+</verbatim></dt>
+<dd><p>Does the same as the previous example, but the input and output
+    formats have been specified explicitly.
+    </p></dd>
+
+<dt><verbatim>
+tcopy -ofmt text http://remote.host/data/vizer.xml.gz#4 -
+</verbatim></dt>
+<dd><p>Prints the contents of a remote VOTable to the terminal in 
+    a human-readable form.  The <code>#4</code> at the end of the URL
+    indicates that the data from the fifth <code>TABLE</code> element
+    in the remote document are to be used.  The gzip compression of
+    the table is taken care of automatically.
+    </p></dd>
+
+<dt><verbatim>
+tcopy -ifmt csv -ofmt latex spec.csv
+</verbatim></dt>
+<dd><p>Converts a comma-separated values file to a LaTeX table environment.
+    </p></dd>
+
+<dt><verbatim>
+tcopy -classpath /usr/local/jars/pg73jdbc3.jar \
+      -Djdbc.drivers=org.postgresql.Driver \
+      "jdbc:postgresql://localhost/imsim#SELECT ra, dec, Imag, Kmag FROM dqc" \
+      -ofmt fits wfslist.cat
+</verbatim></dt>
+<dd><p>Writes the results of an SQL query on a PostgreSQL database
+    to a FITS table.  The classpath is augmented to include the PostgreSQL
+    driver classes, and the driver class is named using the 
+    <code>jdbc.drivers</code> system property.
+    Use of SQL is a bit fiddly, and there are other ways to perform this
+    setup than on the command line - see <ref id="jdbcConfig"/>.
+    If a username or password is required, it will be prompted for on the
+    command line.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
+
+<subsect id="tpipe">
+<subhead><title>tpipe: Table Pipeline Processor</title></subhead>
+
+<p><code>tpipe</code> is the main tool in this package
+for general purpose manipulation of tables.
+It is an extremely flexible, and can do the following things
+amongst others:
+<ul>
+<li>calculate statistics</li>
+<li>display metadata</li>
+<li>select rows in various ways, including algebraically</li>
+<li>define new columns as algebraic functions of old ones</li>
+<li>delete or rearrange columns</li>
+<li>sort rows</li>
+<li>convert between table formats</li>
+</ul>
+and combine these operations in almost any way you can think of.
+You can think of it as a supercharged table copying tool,
+or as a way to perform most of the operations that TOPCAT can perform
+on a table from the command line.
+</p>
+
+
+<subsubsect>
+<subhead><title>Usage</title></subhead>
+
+<p>Using <code>tpipe</code> is more like using a Unix pipeline than
+using a single Unix command.  You give 
+an input specifer which determines the table to be operated on, 
+some filter specifiers which determine the operations which will
+be performed on it, 
+and an output specifier which determine what should happen to the
+processed data. 
+The table is streamed through the processing filters in the order 
+in which you've given them, and the processed data are eventually 
+sent to the destination, which may be an output table file or 
+some other operation like displaying it in TOPCAT or calculating 
+the per-column statistics.  In most cases
+the processing is passed through the pipeline a row at a time, 
+meaning that the amount of memory required is small
+(though in some cases, for instance sorting, this is not possible).
+Although a similar effect can be achieved by stringing together
+several <code>tpipe</code> invocations in an actual Unix pipe, 
+with the data flowing between the commands in byte streams using
+one or other of the supported table formats, the way <code>tpipe</code>
+works makes it much more efficient to do all the work within one 
+invocation.
+</p>
+
+<p>The basic form of a <code>tpipe</code> invocation is therefore
+<verbatim><![CDATA[
+    tpipe <input-specifier> <filter-specifiers> <mode-specifier>
+          <other-flags>
+]]></verbatim>
+(though in fact these elements can appear in any order and they are
+all optional).
+If you don't have the Unix scripts installed, invoke it
+as described in <ref id="invoke"/> using the classname
+<code>uk.ac.starlink.ttools.TablePipe</code>.
+</p>
+
+<p>The different sets of arguments are described in the following subsections.
+</p>
+
+<subsubsubsect>
+<subhead><title>Input Specifier</title></subhead>
+
+<p>The input specifier determines the input table on which the
+processing will be performed.
+It has the form:
+<verbatim><![CDATA[
+    [-ifmt <in-format> [-stream]] <in-table>
+]]></verbatim>
+which is interpreted as follows:
+<dl>
+
+<dt><code><![CDATA[-ifmt <in-format>]]></code></dt>
+<dd><p><code>&lt;in-format&gt;</code> is the name of one of the input formats.
+    If the <code>-ifmt</code> flag is not used, auto format-detection
+    is used (OK for FITS and VOTables).  For other formats, such as CSV
+    or ASCII, you must name a format using this flag.
+    </p></dd>
+
+<dt><code>-stream</code></dt>
+<dd><p>This flag can be specified to ensure that the input table is read
+    as a stream.  You need the <code>-ifmt</code> flag in this case.
+    Depending on the required operations and processing mode, this may fail
+    (sometimes you need to read the input file more than once).
+    </p></dd>
+
+<dt><code><![CDATA[<in-table>]]></code></dt>
+<dd><p>Names the input table.  May be "<code>-</code>"
+     to specify standard input
+    (in which case <code>-stream</code> is implicit).
+    </p></dd>
+
+</dl>
+</p>
+
+<p>If no input specifier is given, the table to be processed is streamed
+from standard input in automatic format detection mode.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect>
+<subhead><title>Filter Specifiers</title></subhead>
+
+<p>The filter specifiers each specify a processing step which
+is performed on a table, transforming an input table to an output one.
+You can have any combination of them, and they are used in the order
+that they are given on the command line.  They are like filter-type
+commands in a Unix pipeline.  Some of them have additional
+optional or mandatory arguments.
+</p>
+
+<p>
+<dl>
+<dt><code><![CDATA[-select <expr>]]></code></dt>
+<dd><p>Include in the output table only rows for which the given expression
+    <code>&lt;expr&gt;</code> evaluates to true.
+    <code>&lt;expr&gt;</code> is an expression using the syntax described
+    in <ref id="jel"/> with a boolean-type value.
+    </p></dd>
+
+<dt><code><![CDATA[-sort [-down] [-nullsfirst] <colid-list>]]></code></dt>
+<dd><p>Sorts the table according to the columns named in
+    <code>&lt;colid-list&gt;</code>.  <code>&lt;colid-list&gt;</code>
+    is a space-separated list of column identifiers
+    (names, $identifiers or numbers, where 1 is the first column).
+    One or more columns may be specified: sorting is done on the
+    values in the first-specified field, but if they are equal the
+    tie is resolved by looking at the second-specified field, and so on.
+    If the <code>-down</code> flag is used,
+    the sort order is descending instead
+    of ascending.  If the <code>-nullsfirst</code> flag is used, blank
+    entries are considered to come at the start of the collation sequence
+    instead of the end.
+    </p></dd>
+
+<dt><code><![CDATA[-sortexpr <expr>]]></code></dt>
+<dd><p>Sorts the table according to the value of an algebraic expression.
+    The syntax of <code>&lt;expr&gt;</code> is described in <ref id="jel"/>.
+    Its value must be of a type that it makes sense to sort, for instance
+    numeric.
+    </p></dd>
+
+<dt><code><![CDATA[-every <step>]]></code></dt>
+<dd><p>Include only every <code>&lt;step&gt;</code>'th row in the result,
+    starting with the first row.
+    </p></dd>
+
+<dt><code><![CDATA[-head <nrows>]]></code></dt>
+<dd><p>Include only the first <code>&lt;nrows&gt;</code> rows of the table.
+    </p></dd>
+
+<dt><code><![CDATA[-tail <nrows>]]></code></dt>
+<dd><p>Include only the last <code>&lt;nrows&gt;</code> rows of the table.
+    </p></dd>
+
+<dt><code><![CDATA[-addcol [-after <col-id> | -before <col-id>]
+                           <col-name> <expr>]]></code></dt>
+<dd><p>Add a new column called <code>&lt;col-name&gt;</code>
+    defined by the algebraic expression
+    <code>&lt;expr&gt;</code>.
+    Expression syntax is described in <ref id="jel"/>.  By default
+    the new row appears after the last row of the table, but you
+    can position it using either the <code>-after</code> or
+    <code>-before</code> flags.  In either
+    case, identify a column using its name (if it is syntactically
+    a java identifier), or its number (the first column is 1), or
+    its $identifier (<code>$1</code> is the first column).
+    </p></dd>
+
+<dt><code><![CDATA[-keepcols <colid-list>]]></code></dt>
+<dd><p>Output table consists of only those columns named in
+    <code>&lt;colid-list&gt;</code>, in that order.
+    <code>&lt;colid-list&gt;</code> is space-separated.  Column identifier
+    syntax is as for <code>-addcol</code> flag.
+    </p></dd>
+
+<dt><code><![CDATA[-delcols <colid-list>]]></code></dt>
+<dd><p>Delete named columns.
+    <code>&lt;colid-list&gt;</code> is as for <code>-keepcols</code> flag.
+    </p></dd>
+
+<dt><code>-explode</code></dt>
+<dd><p>Turns any column which is an N-element array into N scalar columns.
+    Only works if the array size is fixed.
+    </p></dd>
+
+<dt><code>-cache</code></dt>
+<dd><p>Stores in memory or on disk a temporary copy of the table at this
+    point in the pipeline.  This can provide improvements in efficiency
+    if there is an expensive step upstream and a step which requires
+    more than one read of the data downstream.
+    </p></dd>
+
+<dt><code>-progress</code></dt>
+<dd><p>Monitors progress by displaying the number of rows processed so
+    far on the terminal (standard error).  This number is updated every
+    second or thereabouts; if all the processing is done in under a second
+    you won't see any output.  If the total number of rows in the table is
+    known, an ASCII-art progress bar is updated, otherwise just the
+    number of rows seen so far is written.
+    </p>
+
+    <p>Specifying <code>-verbose</code> has the effect of inserting a 
+    <code>-progress</code> flag at the start of the pipeline, 
+    so you can see how much progress has been made through the initial
+    input table.
+    By putting a <code>-progress</code>
+    at different points in pipeline you can monitor how
+    far different stages of the processing have progressed.
+    If you insert more than one <code>-progress</code> however, 
+    output to the terminal is going to get quite messy.
+    </p></dd>
+
+<dt><code>-random</code></dt>
+<dd><p>Only useful for debugging.
+    </p></dd>
+
+<dt><code>-sequential</code></dt>
+<dd><p>Only useful for debugging.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>If no filter specifiers are given, the input table will be sent
+directly to its destination without any modifications.
+</p>
+
+</subsubsubsect>
+
+
+<subsubsubsect>
+<subhead><title>Mode Specifier</title></subhead>
+
+<p>The mode specifier determines what happens to the processed table
+when it reaches the output end of the pipeline.  Only one of the following
+should be specified:
+<dl>
+
+<dt><code><![CDATA[-write [-ofmt <out-format>] [-o <out-table>] ]]></code></dt>
+<dd><p>A new table is written.  If the <code>-o</code> flag is specified,
+    it's written
+    to the named file, otherwise it's streamed to standard output.
+    The output format is named using the <code>-ofmt</code> flag;
+    if not supplied,
+    an attempt is made to guess the format from the destination name.
+    If neither <code>-o</code> nor <code>-ofmt</code> is specified,
+    it's written in formatted text format to standard output
+    (equivalent to <code>-o - -ofmt text</code>).
+    </p>
+    <p>If you give an unknown output format (e.g. <code>-ofmt help</code>)
+    then a list of all known formats will be printed.
+    </p></dd>
+
+<dt><code><![CDATA[-tosql <jdbc-url> [-user <username>]
+                                     [-password <password>] ]]></code></dt>
+<dd><p>A new table is written to an SQL database.  You need the appropriate
+     JDBC drivers and <code>-Djdbc.drivers</code> set as usual
+     (see <ref id="jdbcConfig"/>).
+     You can specify your SQL connection username and password or not -
+     you will be prompted on the terminal if they are required.
+     </p></dd>
+
+<dt><code>-stats</code></dt>
+<dd><p>Calculates and displays statistics
+    (mean, standard deviation, minimum, maximum
+    and number of good columns) for each column in the input table.
+    </p></dd>
+
+<dt><code>-meta</code></dt>
+<dd><p>Prints to standard output the table metadata: parameters and
+    column names.
+    </p></dd>
+
+<dt><code>-count</code></dt>
+<dd><p>Counts the number of rows and columns and writes the answers to
+    standard output.
+    </p></dd>
+
+<dt><code>-topcat</code></dt>
+<dd><p>Displays the output table directly in 
+    <webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref>.
+    If a TOPCAT instance is already running on the local host, 
+    the table will be opened in that, otherwise a new TOPCAT instance
+    will be launched for display.  The latter mode only works if the
+    TOPCAT classes are on the class path.
+    There are currently limits to the size of table that can be transmitted
+    to the application in this way - it is hoped that this can be
+    improved in future versions (Axis upgrade).
+    </p></dd>
+
+</dl>
+</p>
+
+<p>If no mode specifier is given, <code>-write</code> is assumed.
+This means that with no mode specifier, the processed table is written to 
+standard output in <code>text</code> format.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect>
+<subhead><title>Other Flags</title></subhead>
+
+<p>The following generic flags can also be issued:
+
+<dl>
+&flag-help;
+&flag-verbose;
+&flag-disk;
+&flag-debug;
+</dl>
+</p>
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>tpipe</code> in use with explanations
+of what's going on.  For simplicity these examples assume that you have the 
+<code>tpipe</code> script installed and are using a Unix-like shell;
+see <ref id="invoke"/> for an explanation of how to invoke the command
+if you just have the Java classes.
+</p>
+
+<p>The examples are arranged with one step (input, filter or destination)
+per line, to make it easier to see what's going on.
+<dl>
+
+<dt><verbatim>
+tpipe cat.fits
+</verbatim></dt>
+<dd><p>Writes a table to standard output in human-readable form.
+    Since no mode specifier is given, <code>-write</code> is assumed,
+    and output is to standard output in <code>text</code> format.
+    </p></dd>
+
+<dt><verbatim>
+tpipe -head 5 cat.fits.gz
+</verbatim></dt>
+<dd><p>Does the same as the last example, but with one processing step:
+    only the first five rows of the table are output.  In this case,
+    the input file is compressed using gzip - this is automatically 
+    detected.
+    </p></dd>
+
+<dt><verbatim>
+tpipe -ifmt csv xxx.csv \
+      -keepcols "index ra dec" \
+      -write -ofmt fits xxx.fits
+</verbatim></dt>
+<dd><p>Reads from a comma-separated values file, writes to a FITS file,
+    and discards all columns in the input table apart from INDEX, RA and DEC.
+    </p></dd>
+
+<dt><verbatim><![CDATA[
+cat tab1.vot | tpipe - -addcol IV_SUM "(IMAG+VMAG)" \
+                       -addcol IV_DIFF "(IMAG-VMAG)" \
+                       -delcols "IMAG VMAG" \
+                       -write -ofmt votable -o - \
+             > tab2.vot
+]]></verbatim></dt>
+<dd><p>Replaces two columns by their sum and difference in a VOTable.
+    The input and output are actually byte streams on standard input
+    and standard output of the <code>tpipe</code> command in this case.
+    The processing steps first add a column representing the sum,
+    then add column representing the difference, then delete the 
+    original columns.
+    </p></dd>
+
+<dt><verbatim>
+tpipe 2dfgrs_ngp.fits \
+      -disk \
+      -keepcols "SEQNUM AREA ECCENT" \
+      -sort -down AREA \
+      -head 20
+</verbatim></dt>
+<dd><p>Displays selected columns for the 20 rows with largest values in
+    the AREA column of a FITS table.  First the columns of interest 
+    are selected, then the rows are sorted into descending order by 
+    the value of the AREA column, then the first 20 rows of the resulting
+    table are selected, and the result is written to standard output.
+    Since a sort is being performed here, it's not possible to do all
+    the processing a row at a time, since all the AREA values
+    must be available for comparison during the sort.
+    Two things are done here to accommodate this fact: first the
+    column selection is done before the sort, so that it's only a 3-column
+    table which needs to be available for random access, and 
+    secondly the <code>-disk</code> flag is supplied, which means that
+    temporary disk files will be used for caching table data.
+</p></dd>
+
+<dt><verbatim>
+tpipe http://archive.org/data/survey.vot -meta
+</verbatim></dt>
+<dd><p>Outputs column and table metadata about a table.
+    In this case the table is a VOTable at the end of a URL.
+    </p></dd>
+
+<dt><verbatim>
+tpipe survey.fits -select "skyDistance(hmsToRadians(RA),dmsToRadians(DEC), \
+                                       0.6457,-0.1190) &lt; 5 * ARC_MINUTE" \
+                  -count
+</verbatim></dt>
+<dd><p>Counts the number of rows within a given 5 arcmin 
+    cone of sky in a FITS table.
+    The <code>skyDistance</code> function is an expression which
+    calcluates the distance between the position specified in a row
+    (as given by its RA and DEC columns) and a given point on the sky
+    (RA=0.6457 radians, DEC=-0.1190 radians).
+    Since <code>skyDistance</code>'s arguments and return value are in
+    radians, some conversions are required: the RA and DEC columns
+    are sexagesimal strings which are converted using the
+    <code>hmsToRadians</code> and <code>dmsToRadians</code> functions 
+    respectively.  The result is compared to a multiple of the 
+    <code>ARC_MINUTE</code> constant, which is the size of an arcminute
+    in radians.  Any rows of the input table for which this comparison
+    is true are included in the output. 
+    The functions and constants used here are described in detail 
+    in <ref id="uk.ac.starlink.ttools.func.Coords"/>.
+    </p></dd>
+
+<dt><verbatim><![CDATA[
+tpipe -ifmt ascii survey.txt \
+      -select "OBJTYPE == 3 && Z > 0.15" \
+      -keepcols "IMAG JMAG KMAG" \
+      -stats
+]]></verbatim></dt>
+<dd><p>Calculate statistics on the I, J and K magnitudes of selected
+    objects from a catalogue.  Only those rows with the given OBJTYPE
+    and in the given Z range are included.  The minimum, maximum, 
+    mean, standard deviation etc of the IMAG, JMAG and KMAG columns
+    will be written to standard output.
+    </p></dd>
+
+<dt><verbatim>
+tpipe -classpath lib/drivers/mysql-connector-java.jar \
+      -Djdbc.drivers=com.mysql.jdbc.Driver \
+      x.fits \
+      -explode \
+      -tosql jdbc:mysql://localhost/ASTRO1#TABLEX -user mbt
+</verbatim></dt>
+<dd><p>Writes a FITS table to an SQL table, converting any array columns
+    to scalar ones.
+    To make the SQL connection work properly, the classpath is augmented
+    to include the path of the MySQL JDBC driver and the
+    <code>jdbc.drivers</code> system property is set to the JDBC driver
+    class name.  The output will be written as a new table TABLEX
+    in the MySQL database called ASTRO1 on a MySQL server on the
+    local host, using the priveliges of MySQL user <code>mbt</code>.
+    If a password is required, it will be prompted for on the terminal
+    (the <code>-password</code> flag could be used to specify it instead).
+    Any existing table in ASTRO1 with the name TABLEX is overwritten.
+    The only processing done here is by the <code>-explode</code> flag,
+    which takes any columns which have fixed-size array values and
+    replaces them in the output with multiple scalar columns.
+    </p></dd>
+
+<dt><verbatim>
+tpipe USNOB.FITS -every 1000000 -stats
+</verbatim></dt>
+<dd><p>Calculates statistics on a selection of the rows in a catalogue,
+    and writes the result to the terminal.
+    In this example, every millionth row is sampled.
+</p></dd>
+
+</dl>
+</p>
+</subsubsect>
+
+</subsect>
+
+
 <subsect id="votcopy">
 <subhead><title>votcopy: VOTable Encoding Converter</title></subhead>
 
@@ -1716,637 +2351,6 @@ When fed this version, <code>votlint</code> gives no warnings.
 
 </subsect>
 
-<subsect id="tpipe">
-<subhead><title>tpipe: Table Pipeline Processor</title></subhead>
-
-<p>There is currently only one tool provided in this package for
-general purpose manipulation of tables, 
-<code>tpipe</code>.
-However, it is an extremely flexible command, which can do the 
-following things:
-<ul>
-<li>calculate statistics</li>
-<li>display metadata</li>
-<li>select rows in various ways, including algebraically</li>
-<li>define new columns as algebraic functions of old ones</li>
-<li>delete or rearrange columns</li>
-<li>sort rows</li>
-<li>convert between table formats</li>
-</ul>
-and combine these operations in almost any way you can think of.
-You can think of it as a supercharged table copying tool,
-or as a way to perform most of the operations that TOPCAT can perform
-on a table from the command line.
-</p>
-
-
-<subsubsect>
-<subhead><title>Usage</title></subhead>
-
-<p>Using <code>tpipe</code> is more like using a Unix pipeline than
-using a single Unix command.  You give 
-an input specifer which determines the table to be operated on, 
-some filter specifiers which determine the operations which will
-be performed on it, 
-and an output specifier which determine what should happen to the
-processed data. 
-The table is streamed through the processing filters in the order 
-in which you've given them, and the processed data are eventually 
-sent to the destination, which may be an output table file or 
-some other operation like displaying it in TOPCAT or calculating 
-the per-column statistics.  In most cases
-the processing is passed through the pipeline a row at a time, 
-meaning that the amount of memory required is small
-(though in some cases, for instance sorting, this is not possible).
-Although a similar effect can be achieved by stringing together
-several <code>tpipe</code> invocations in an actual Unix pipe, 
-with the data flowing between the commands in byte streams using
-one or other of the supported table formats, the way <code>tpipe</code>
-works makes it much more efficient to do all the work within one 
-invocation.
-</p>
-
-<p>The basic form of a <code>tpipe</code> invocation is therefore
-<verbatim><![CDATA[
-    tpipe <input-specifier> <filter-specifiers> <mode-specifier>
-          <other-flags>
-]]></verbatim>
-(though in fact these elements can appear in any order and they are
-all optional).
-If you don't have the Unix scripts installed, invoke it
-as described in <ref id="invoke"/> using the classname
-<code>uk.ac.starlink.ttools.TablePipe</code>.
-</p>
-
-<p>The different sets of arguments are described in the following subsections.
-</p>
-
-<subsubsubsect>
-<subhead><title>Input Specifier</title></subhead>
-
-<p>The input specifier determines the input table on which the
-processing will be performed.
-It has the form:
-<verbatim><![CDATA[
-    [-ifmt <in-format> [-stream]] <in-table>
-]]></verbatim>
-which is interpreted as follows:
-<dl>
-
-<dt><code><![CDATA[-ifmt <in-format>]]></code></dt>
-<dd><p><code>&lt;in-format&gt;</code> is the name of one of the input formats.
-    If the <code>-ifmt</code> flag is not used, auto format-detection
-    is used (OK for FITS and VOTables).  For other formats, such as CSV
-    or ASCII, you must name a format using this flag.
-    </p></dd>
-
-<dt><code>-stream</code></dt>
-<dd><p>This flag can be specified to ensure that the input table is read
-    as a stream.  You need the <code>-ifmt</code> flag in this case.
-    Depending on the required operations and processing mode, this may fail
-    (sometimes you need to read the input file more than once).
-    </p></dd>
-
-<dt><code><![CDATA[<in-table>]]></code></dt>
-<dd><p>Names the input table.  May be "<code>-</code>"
-     to specify standard input
-    (in which case <code>-stream</code> is implicit).
-    </p></dd>
-
-</dl>
-</p>
-
-<p>If no input specifier is given, the table to be processed is streamed
-from standard input in automatic format detection mode.
-</p>
-
-</subsubsubsect>
-
-<subsubsubsect>
-<subhead><title>Filter Specifiers</title></subhead>
-
-<p>The filter specifiers each specify a processing step which
-is performed on a table, transforming an input table to an output one.
-You can have any combination of them, and they are used in the order
-that they are given on the command line.  They are like filter-type
-commands in a Unix pipeline.  Some of them have additional
-optional or mandatory arguments.
-</p>
-
-<p>
-<dl>
-<dt><code><![CDATA[-select <expr>]]></code></dt>
-<dd><p>Include in the output table only rows for which the given expression
-    <code>&lt;expr&gt;</code> evaluates to true.
-    <code>&lt;expr&gt;</code> is an expression using the syntax described
-    in <ref id="jel"/> with a boolean-type value.
-    </p></dd>
-
-<dt><code><![CDATA[-sort [-down] [-nullsfirst] <colid-list>]]></code></dt>
-<dd><p>Sorts the table according to the columns named in
-    <code>&lt;colid-list&gt;</code>.  <code>&lt;colid-list&gt;</code>
-    is a space-separated list of column identifiers
-    (names, $identifiers or numbers, where 1 is the first column).
-    One or more columns may be specified: sorting is done on the
-    values in the first-specified field, but if they are equal the
-    tie is resolved by looking at the second-specified field, and so on.
-    If the <code>-down</code> flag is used,
-    the sort order is descending instead
-    of ascending.  If the <code>-nullsfirst</code> flag is used, blank
-    entries are considered to come at the start of the collation sequence
-    instead of the end.
-    </p></dd>
-
-<dt><code><![CDATA[-sortexpr <expr>]]></code></dt>
-<dd><p>Sorts the table according to the value of an algebraic expression.
-    The syntax of <code>&lt;expr&gt;</code> is described in <ref id="jel"/>.
-    Its value must be of a type that it makes sense to sort, for instance
-    numeric.
-    </p></dd>
-
-<dt><code><![CDATA[-every <step>]]></code></dt>
-<dd><p>Include only every <code>&lt;step&gt;</code>'th row in the result,
-    starting with the first row.
-    </p></dd>
-
-<dt><code><![CDATA[-head <nrows>]]></code></dt>
-<dd><p>Include only the first <code>&lt;nrows&gt;</code> rows of the table.
-    </p></dd>
-
-<dt><code><![CDATA[-tail <nrows>]]></code></dt>
-<dd><p>Include only the last <code>&lt;nrows&gt;</code> rows of the table.
-    </p></dd>
-
-<dt><code><![CDATA[-addcol [-after <col-id> | -before <col-id>]
-                           <col-name> <expr>]]></code></dt>
-<dd><p>Add a new column called <code>&lt;col-name&gt;</code>
-    defined by the algebraic expression
-    <code>&lt;expr&gt;</code>.
-    Expression syntax is described in <ref id="jel"/>.  By default
-    the new row appears after the last row of the table, but you
-    can position it using either the <code>-after</code> or
-    <code>-before</code> flags.  In either
-    case, identify a column using its name (if it is syntactically
-    a java identifier), or its number (the first column is 1), or
-    its $identifier (<code>$1</code> is the first column).
-    </p></dd>
-
-<dt><code><![CDATA[-keepcols <colid-list>]]></code></dt>
-<dd><p>Output table consists of only those columns named in
-    <code>&lt;colid-list&gt;</code>, in that order.
-    <code>&lt;colid-list&gt;</code> is space-separated.  Column identifier
-    syntax is as for <code>-addcol</code> flag.
-    </p></dd>
-
-<dt><code><![CDATA[-delcols <colid-list>]]></code></dt>
-<dd><p>Delete named columns.
-    <code>&lt;colid-list&gt;</code> is as for <code>-keepcols</code> flag.
-    </p></dd>
-
-<dt><code>-explode</code></dt>
-<dd><p>Turns any column which is an N-element array into N scalar columns.
-    Only works if the array size is fixed.
-    </p></dd>
-
-<dt><code>-cache</code></dt>
-<dd><p>Stores in memory or on disk a temporary copy of the table at this
-    point in the pipeline.  This can provide improvements in efficiency
-    if there is an expensive step upstream and a step which requires
-    more than one read of the data downstream.
-    </p></dd>
-
-<dt><code>-progress</code></dt>
-<dd><p>Monitors progress by displaying the number of rows processed so
-    far on the terminal (standard error).  This number is updated every
-    second or thereabouts; if all the processing is done in under a second
-    you won't see any output.  If the total number of rows in the table is
-    known, an ASCII-art progress bar is updated, otherwise just the
-    number of rows seen so far is written.
-    </p>
-
-    <p>Specifying <code>-verbose</code> has the effect of inserting a 
-    <code>-progress</code> flag at the start of the pipeline, 
-    so you can see how much progress has been made through the initial
-    input table.
-    By putting a <code>-progress</code>
-    at different points in pipeline you can monitor how
-    far different stages of the processing have progressed.
-    If you insert more than one <code>-progress</code> however, 
-    output to the terminal is going to get quite messy.
-    </p></dd>
-
-<dt><code>-random</code></dt>
-<dd><p>Only useful for debugging.
-    </p></dd>
-
-<dt><code>-sequential</code></dt>
-<dd><p>Only useful for debugging.
-    </p></dd>
-
-</dl>
-</p>
-
-<p>If no filter specifiers are given, the input table will be sent
-directly to its destination without any modifications.
-</p>
-
-</subsubsubsect>
-
-
-<subsubsubsect>
-<subhead><title>Mode Specifier</title></subhead>
-
-<p>The mode specifier determines what happens to the processed table
-when it reaches the output end of the pipeline.  Only one of the following
-should be specified:
-<dl>
-
-<dt><code><![CDATA[-write [-ofmt <out-format>] [-o <out-table>] ]]></code></dt>
-<dd><p>A new table is written.  If the <code>-o</code> flag is specified,
-    it's written
-    to the named file, otherwise it's streamed to standard output.
-    The output format is named using the <code>-ofmt</code> flag;
-    if not supplied,
-    an attempt is made to guess the format from the destination name.
-    If neither <code>-o</code> nor <code>-ofmt</code> is specified,
-    it's written in formatted text format to standard output
-    (equivalent to <code>-o - -ofmt text</code>).
-    </p>
-    <p>If you give an unknown output format (e.g. <code>-ofmt help</code>)
-    then a list of all known formats will be printed.
-    </p></dd>
-
-<dt><code><![CDATA[-tosql <jdbc-url> [-user <username>]
-                                     [-password <password>] ]]></code></dt>
-<dd><p>A new table is written to an SQL database.  You need the appropriate
-     JDBC drivers and <code>-Djdbc.drivers</code> set as usual
-     (see <ref id="jdbcConfig"/>).
-     You can specify your SQL connection username and password or not -
-     you will be prompted on the terminal if they are required.
-     </p></dd>
-
-<dt><code>-stats</code></dt>
-<dd><p>Calculates and displays statistics
-    (mean, standard deviation, minimum, maximum
-    and number of good columns) for each column in the input table.
-    </p></dd>
-
-<dt><code>-meta</code></dt>
-<dd><p>Prints to standard output the table metadata: parameters and
-    column names.
-    </p></dd>
-
-<dt><code>-count</code></dt>
-<dd><p>Counts the number of rows and columns and writes the answers to
-    standard output.
-    </p></dd>
-
-<dt><code>-topcat</code></dt>
-<dd><p>Displays the output table directly in 
-    <webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref>.
-    If a TOPCAT instance is already running on the local host, 
-    the table will be opened in that, otherwise a new TOPCAT instance
-    will be launched for display.  The latter mode only works if the
-    TOPCAT classes are on the class path.
-    There are currently limits to the size of table that can be transmitted
-    to the application in this way - it is hoped that this can be
-    improved in future versions (Axis upgrade).
-    </p></dd>
-
-</dl>
-</p>
-
-<p>If no mode specifier is given, <code>-write</code> is assumed.
-This means that with no mode specifier, the processed table is written to 
-standard output in <code>text</code> format.
-</p>
-
-</subsubsubsect>
-
-<subsubsubsect>
-<subhead><title>Other Flags</title></subhead>
-
-<p>The following generic flags can also be issued:
-
-<dl>
-&flag-help;
-&flag-verbose;
-&flag-disk;
-&flag-debug;
-</dl>
-</p>
-</subsubsubsect>
-
-</subsubsect>
-
-<subsubsect>
-<subhead><title>Examples</title></subhead>
-
-<p>Here are some examples of <code>tpipe</code> in use with explanations
-of what's going on.  For simplicity these examples assume that you have the 
-<code>tpipe</code> script installed and are using a Unix-like shell;
-see <ref id="invoke"/> for an explanation of how to invoke the command
-if you just have the Java classes.
-</p>
-
-<p>The examples are arranged with one step (input, filter or destination)
-per line, to make it easier to see what's going on.
-<dl>
-
-<dt><verbatim>
-tpipe cat.fits
-</verbatim></dt>
-<dd><p>Writes a table to standard output in human-readable form.
-    Since no mode specifier is given, <code>-write</code> is assumed,
-    and output is to standard output in <code>text</code> format.
-    </p></dd>
-
-<dt><verbatim>
-tpipe -head 5 cat.fits.gz
-</verbatim></dt>
-<dd><p>Does the same as the last example, but with one processing step:
-    only the first five rows of the table are output.  In this case,
-    the input file is compressed using gzip - this is automatically 
-    detected.
-    </p></dd>
-
-<dt><verbatim>
-tpipe -ifmt csv xxx.csv \
-      -keepcols "index ra dec" \
-      -write -ofmt fits xxx.fits
-</verbatim></dt>
-<dd><p>Reads from a comma-separated values file, writes to a FITS file,
-    and discards all columns in the input table apart from INDEX, RA and DEC.
-    </p></dd>
-
-<dt><verbatim><![CDATA[
-cat tab1.vot | tpipe - -addcol IV_SUM "(IMAG+VMAG)" \
-                       -addcol IV_DIFF "(IMAG-VMAG)" \
-                       -delcols "IMAG VMAG" \
-                       -write -ofmt votable -o - \
-             > tab2.vot
-]]></verbatim></dt>
-<dd><p>Replaces two columns by their sum and difference in a VOTable.
-    The input and output are actually byte streams on standard input
-    and standard output of the <code>tpipe</code> command in this case.
-    The processing steps first add a column representing the sum,
-    then add column representing the difference, then delete the 
-    original columns.
-    </p></dd>
-
-<dt><verbatim>
-tpipe 2dfgrs_ngp.fits \
-      -disk \
-      -keepcols "SEQNUM AREA ECCENT" \
-      -sort -down AREA \
-      -head 20
-</verbatim></dt>
-<dd><p>Displays selected columns for the 20 rows with largest values in
-    the AREA column of a FITS table.  First the columns of interest 
-    are selected, then the rows are sorted into descending order by 
-    the value of the AREA column, then the first 20 rows of the resulting
-    table are selected, and the result is written to standard output.
-    Since a sort is being performed here, it's not possible to do all
-    the processing a row at a time, since all the AREA values
-    must be available for comparison during the sort.
-    Two things are done here to accommodate this fact: first the
-    column selection is done before the sort, so that it's only a 3-column
-    table which needs to be available for random access, and 
-    secondly the <code>-disk</code> flag is supplied, which means that
-    temporary disk files will be used for caching table data.
-</p></dd>
-
-<dt><verbatim>
-tpipe http://archive.org/data/survey.vot -meta
-</verbatim></dt>
-<dd><p>Outputs column and table metadata about a table.
-    In this case the table is a VOTable at the end of a URL.
-    </p></dd>
-
-<dt><verbatim>
-tpipe survey.fits -select "skyDistance(hmsToRadians(RA),dmsToRadians(DEC), \
-                                       0.6457,-0.1190) &lt; 5 * ARC_MINUTE" \
-                  -count
-</verbatim></dt>
-<dd><p>Counts the number of rows within a given 5 arcmin 
-    cone of sky in a FITS table.
-    The <code>skyDistance</code> function is an expression which
-    calcluates the distance between the position specified in a row
-    (as given by its RA and DEC columns) and a given point on the sky
-    (RA=0.6457 radians, DEC=-0.1190 radians).
-    Since <code>skyDistance</code>'s arguments and return value are in
-    radians, some conversions are required: the RA and DEC columns
-    are sexagesimal strings which are converted using the
-    <code>hmsToRadians</code> and <code>dmsToRadians</code> functions 
-    respectively.  The result is compared to a multiple of the 
-    <code>ARC_MINUTE</code> constant, which is the size of an arcminute
-    in radians.  Any rows of the input table for which this comparison
-    is true are included in the output. 
-    The functions and constants used here are described in detail 
-    in <ref id="uk.ac.starlink.ttools.func.Coords"/>.
-    </p></dd>
-
-<dt><verbatim><![CDATA[
-tpipe -ifmt ascii survey.txt \
-      -select "OBJTYPE == 3 && Z > 0.15" \
-      -keepcols "IMAG JMAG KMAG" \
-      -stats
-]]></verbatim></dt>
-<dd><p>Calculate statistics on the I, J and K magnitudes of selected
-    objects from a catalogue.  Only those rows with the given OBJTYPE
-    and in the given Z range are included.  The minimum, maximum, 
-    mean, standard deviation etc of the IMAG, JMAG and KMAG columns
-    will be written to standard output.
-    </p></dd>
-
-<dt><verbatim>
-tpipe -classpath lib/drivers/mysql-connector-java.jar \
-      -Djdbc.drivers=com.mysql.jdbc.Driver \
-      x.fits \
-      -explode \
-      -tosql jdbc:mysql://localhost/ASTRO1#TABLEX -user mbt
-</verbatim></dt>
-<dd><p>Writes a FITS table to an SQL table, converting any array columns
-    to scalar ones.
-    To make the SQL connection work properly, the classpath is augmented
-    to include the path of the MySQL JDBC driver and the
-    <code>jdbc.drivers</code> system property is set to the JDBC driver
-    class name.  The output will be written as a new table TABLEX
-    in the MySQL database called ASTRO1 on a MySQL server on the
-    local host, using the priveliges of MySQL user <code>mbt</code>.
-    If a password is required, it will be prompted for on the terminal
-    (the <code>-password</code> flag could be used to specify it instead).
-    Any existing table in ASTRO1 with the name TABLEX is overwritten.
-    The only processing done here is by the <code>-explode</code> flag,
-    which takes any columns which have fixed-size array values and
-    replaces them in the output with multiple scalar columns.
-    </p></dd>
-
-<dt><verbatim>
-tpipe USNOB.FITS -every 1000000 -stats
-</verbatim></dt>
-<dd><p>Calculates statistics on a selection of the rows in a catalogue,
-    and writes the result to the terminal.
-    In this example, every millionth row is sampled.
-</p></dd>
-
-</dl>
-</p>
-</subsubsect>
-
-</subsect>
-
-<subsect id="tcopy">
-<subhead><title>tcopy</title></subhead>
-
-<p><code>tcopy</code> is a simple table copying tool.
-It simply copies a table from one place to another, but since
-you can specify the input and output formats as desired, it works
-as a converter from any of the supported 
-<ref id="inFormats" plaintextref="yes">input formats</ref> 
-to any of the supported 
-<ref id="outFormats" plaintextref="yes">output formats</ref>.
-</p>
-
-<p><code>tcopy</code> is designed as a drop-in replacement for the old
-<code>tablecopy</code> (<code>uk.ac.starlink.table.TableCopy</code>)
-tool which was supplied with STIL and TOPCAT - it has the same
-arguments and behaviour, but is implemented on top of 
-<ref id="tpipe">tpipe</ref> and will in some cases be more efficient.
-</p>
-
-<subsubsect>
-<subhead><title>Usage</title></subhead>
-
-<p>The basic usage of <code>tcopy</code> is
-<verbatim><![CDATA[
-    tcopy [-ifmt <in-format>] [-ofmt <out-format>] [<other-flags>]
-          <in-table> [<out-table>]
-]]></verbatim>
-If you don't have the Unix scripts installed, invoke it 
-as described in <ref id="invoke"/> using the classname
-<code>uk.ac.starlink.ttools.TableCopy</code>.
-</p>
-
-<p>The most important arguments are as follows:
-<dl>
-
-<dt><code>-ifmt &lt;in-format&gt;</code></dt>
-<dd><p>Specifies the format of the input table (one of the known formats 
-    listed in <ref id="inFormats"/> - matching is case-insensitive). 
-    This flag can be used if you know what format your input table is in. 
-    If it's omitted, then an attempt will be made to detect the format 
-    of in-table  automatically, but this cannot always be done 
-    correctly, in which case the program will exit with an error
-    explaining which formats were attempted.
-    </p></dd>
-
-<dt><code>-ofmt &lt;out-format&gt;</code></dt>
-<dd><p>Specifies the format in which the output table will be written
-    (one of the ones listed in <ref id="outFormats"/> - matching is
-    case-insensitive and you can use just the first few letters).
-    If this flag is omitted, then the output filename will be examined
-    to try to guess what sort of file is required, usually by looking
-    at the extension.  If it's not obvious from the filename what
-    output format is required, the program will exit with an error.
-    </p></dd>
-
-<dt><code>&lt;in-table&gt;</code></dt>
-<dd><p>The location of the input table.  This is usually a filename or
-    a URL, and may point to a file compressed in one of the supported
-    compression formats (Unix compress, gzip or bzip2).
-    If it is equal to the special value "<code>-</code>",
-    the input table will be read from standard input.
-    In this case the input format must be given explicitly using the
-    <code>-ifmt</code> flag.
-    </p></dd>
-
-<dt><code>&lt;out-table&gt;</code></dt>
-<dd><p>The location of the output table.  This is usually a filename to
-    write to.  If omitted, or if it is equal to the special value 
-    "<code>-</code>", the output table will be written to standard output.
-    In this case the output format must be given explicitly using the
-    <code>-ofmt</code> flag.
-    </p></dd>
-
-</dl>
-</p>
-
-<p>The following generic flags can also be used:
-<dl>
-&flag-help;
-&flag-debug;
-&flag-disk;
-&flag-verbose;
-</dl>
-
-</p>
-
-</subsubsect>
-
-<subsubsect>
-<subhead><title>Examples</title></subhead>
-
-<p>Here are some examples of <code>tcopy</code> in use:
-<dl>
-
-<dt><verbatim>
-tcopy stars.fits stars.xml
-</verbatim></dt>
-<dd><p>Copies a FITS table to a VOTable.
-    Since no input format is specified, the format is automatically 
-    detected (FITS is one of the formats for which this is possible).
-    Since no output format is specified, the <code>stars.xml</code>
-    filename is examined to make a guess at the kind of output to write:
-    the <code>.xml</code> ending is taken to mean a TABLEDATA-encoded
-    VOTable.
-    </p></dd>
-
-<dt><verbatim>
-tcopy -ifmt fits stars.fits -ofmt votable-tabledata
-</verbatim></dt>
-<dd><p>Does the same as the previous example, but the input and output
-    formats have been specified explicitly.
-    </p></dd>
-
-<dt><verbatim>
-tcopy -ofmt text http://remote.host/data/vizer.xml.gz#4 -
-</verbatim></dt>
-<dd><p>Prints the contents of a remote VOTable to the terminal in 
-    a human-readable form.  The <code>#4</code> at the end of the URL
-    indicates that the data from the fifth <code>TABLE</code> element
-    in the remote document are to be used.  The gzip compression of
-    the table is taken care of automatically.
-    </p></dd>
-
-<dt><verbatim>
-tcopy -ifmt csv -ofmt latex spec.csv
-</verbatim></dt>
-<dd><p>Converts a comma-separated values file to a LaTeX table environment.
-    </p></dd>
-
-<dt><verbatim>
-tcopy -classpath /usr/local/jars/pg73jdbc3.jar \
-      -Djdbc.drivers=org.postgresql.Driver \
-      "jdbc:postgresql://localhost/imsim#SELECT ra, dec, Imag, Kmag FROM dqc" \
-      -ofmt fits wfslist.cat
-</verbatim></dt>
-<dd><p>Writes the results of an SQL query on a PostgreSQL database
-    to a FITS table.  The classpath is augmented to include the PostgreSQL
-    driver classes, and the driver class is named using the 
-    <code>jdbc.drivers</code> system property.
-    Use of SQL is a bit fiddly, and there are other ways to perform this
-    setup than on the command line - see <ref id="jdbcConfig"/>.
-    If a username or password is required, it will be prompted for on the
-    command line.
-    </p></dd>
-
-</dl>
-</p>
-
-</subsubsect>
-
-</subsect>
 
 </sect>
 </appendices>
