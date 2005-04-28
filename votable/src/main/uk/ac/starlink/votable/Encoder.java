@@ -26,7 +26,10 @@ abstract class Encoder {
 
     final ValueInfo info;
     final Map attMap = new HashMap();
-    final StringBuffer content = new StringBuffer();
+    String description;
+    String values;
+    String links;
+    private String content;
 
     private final static Logger logger =
         Logger.getLogger( "uk.ac.starlink.votable" );
@@ -128,14 +131,15 @@ abstract class Encoder {
         if ( desc != null ) {
             desc = desc.trim();
             if ( desc.length() > 0 ) { 
-                content.append( "<DESCRIPTION>" )
-                       .append( VOSerializer.formatText( desc ) )
-                       .append( "</DESCRIPTION>" );
+                description = "<DESCRIPTION>"
+                            + VOSerializer.formatText( desc )
+                            + "</DESCRIPTION>";
             }
         }
 
         /* URL-type auxiliary metadata can be encoded as LINK elements. */
         if ( info instanceof ColumnInfo ) {
+            StringBuffer linksBuf = new StringBuffer();
             for ( Iterator it = ((ColumnInfo) info).getAuxData().iterator();
                   it.hasNext(); ) {
                 DescribedValue dval = (DescribedValue) it.next();
@@ -144,16 +148,17 @@ abstract class Encoder {
                     String linkName = linkInfo.getName();
                     URL linkUrl = (URL) dval.getValue();
                     if ( linkName != null && linkUrl != null ) {
-                        content.append( "<LINK" )
-                               .append( VOSerializer
-                                       .formatAttribute( "title", linkName ) )
-                               .append( VOSerializer
-                                       .formatAttribute( "href", 
-                                                         linkUrl.toString() ) )
-                               .append( "/>" );
+                        linksBuf.append( "<LINK" )
+                                .append( VOSerializer
+                                        .formatAttribute( "title", linkName ) )
+                                .append( VOSerializer
+                                        .formatAttribute( "href", 
+                                                          linkUrl.toString() ) )
+                                .append( "/>" );
                     }
                 }
             }
+            links = linksBuf.toString();
         }
     }
 
@@ -166,7 +171,20 @@ abstract class Encoder {
      *          may be empty but will not be <tt>null</tt>
      */
     public String getFieldContent() {
-        return content.toString();
+        if ( content == null ) {
+            StringBuffer contBuf = new StringBuffer();
+            if ( description != null ) {
+                contBuf.append( description );
+            }
+            if ( values != null ) {
+                contBuf.append( values );
+            }
+            if ( links != null ) {
+                contBuf.append( links );
+            }
+            content = contBuf.toString();
+        }
+        return content;
     }
 
     /**
@@ -631,12 +649,11 @@ abstract class Encoder {
 
             /* Set up bad value representation. */
             if ( nullString != null ) {
-                if ( content.length() > 0 ) {
-                    content.append( '\n' );
+                if ( values == null ) {
+                    values = "";
                 }
-                content.append( "<VALUES null='" )
-                       .append( nullString )
-                       .append( "'/>" );
+                values = ( values == null ? "" : values )
+                       + "\n<VALUES null='" + nullString + "'/>";
             }
         }
 
