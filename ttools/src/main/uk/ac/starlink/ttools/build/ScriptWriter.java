@@ -3,10 +3,14 @@ package uk.ac.starlink.ttools.build;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -15,6 +19,24 @@ import java.lang.reflect.Method;
  * the TTOOLS package. 
  * It does this by making simple substitutions to the text of a template
  * script on the basis of reflection on classes.
+ *
+ * <p>The substitutions are:
+ * <dl>
+ *
+ * <dt>@cmdname@
+ * <dd>Changed to the result of the static <tt>getCommandName()</tt> method
+ *
+ * <dt>@CMDNAME@
+ * <dd>Changed to the upper-cased version of @cmdname@
+ *
+ * <dt>@classname@
+ * <dd>Changed to the name of the class
+ *
+ * </dl>
+ * </p>
+ *
+ * @author   Mark Taylor (Starlink)
+ * @since    27 Apr 2005
  */
 public class ScriptWriter {
 
@@ -36,6 +58,7 @@ public class ScriptWriter {
             throws NoSuchMethodException, IllegalAccessException,
                    InvocationTargetException {
         className_ = clazz.getName();
+        clazz.getDeclaredMethod( "main", new Class[] { String[].class } );
         cmdName_ = (String)
                    clazz.getDeclaredMethod( "getCommandName", new Class[ 0 ] )
                         .invoke( null, new Object[ 0 ] );
@@ -43,17 +66,17 @@ public class ScriptWriter {
 
     /**
      * Writes the invocation script for this writer's command.
-     * It is written to a file named after the command's name in the
-     * current directory.
+     * The script is written to a file named <tt>cmdname</tt> in
+     * a given directory.
+     *
+     * @param  template  template script 
+     * @param  dir       destination directory
      */
-    private void write() throws IOException {
+    private void write( File template, File dir ) throws IOException {
         BufferedReader in = 
-            new BufferedReader( 
-                new InputStreamReader( getClass()
-                                      .getResource( "template.script" )
-                                      .openStream() ) );
+            new BufferedReader( new FileReader( template ) );
         Writer out =
-            new BufferedWriter( new FileWriter( new File( cmdName_ ) ) );
+            new BufferedWriter( new FileWriter( new File( dir, cmdName_ ) ) );
         out.write( "\n#\n#  THIS SCRIPT AUTOMATICALLY FROM A TEMPLATE" 
                     + "\n#  BY " + getClass().getName() + "\n#\n" );
         for ( String line; ( line = in.readLine() ) != null; ) {
@@ -76,8 +99,31 @@ public class ScriptWriter {
     public static void main( String[] args )
             throws IOException, NoSuchMethodException, ClassNotFoundException,
                    IllegalAccessException, InvocationTargetException {
-        for ( int i = 0; i < args.length; i++ ) {
-            new ScriptWriter( Class.forName( args[ i ] ) ).write();
+        String usage = "Usage: ScriptWriter -dir <dir> -template <template> "
+                     + "<classname> ...";
+        List argList = new ArrayList( Arrays.asList( args ) );
+        File dir = null;
+        File template = null;
+        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+            String arg = (String) it.next();
+            if ( arg.equals( "-dir" ) ) {
+                it.remove();
+                dir = new File( (String) it.next() );
+                it.remove();
+            }
+            else if ( arg.equals( "-template" ) ) {
+                it.remove();
+                template = new File( (String) it.next() );
+                it.remove();
+            }
+        }
+        if ( dir == null || template == null ) {
+            System.err.println( usage );
+            System.exit( 1 );
+        }
+        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+            Class clazz = Class.forName( (String) it.next() );
+            new ScriptWriter( clazz ).write( template, dir );
         }
     }
 }

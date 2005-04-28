@@ -443,10 +443,10 @@
      !   which provide the functions. -->
     <mkdir dir="${build.scripts}"/>
     <java classname="uk.ac.starlink.ttools.build.ScriptWriter" 
-          fork="yes"
-          dir="${build.scripts}"
           failonerror="yes">
       <classpath refid="tests-classpath"/>
+      <arg value="-dir"/><arg value="${build.scripts}"/>
+      <arg value="-template"/><arg value="${script.dir}/script.template"/>
       <arg value="uk.ac.starlink.ttools.TableCopy"/>
       <arg value="uk.ac.starlink.ttools.TablePipe"/>
       <arg value="uk.ac.starlink.ttools.VotCopy"/>
@@ -589,7 +589,7 @@
 
     <!-- Copy any startup scripts etc. -->
     <copy todir="${dist.bin.pkg}">
-      <fileset dir="${script.dir}/" />
+      <fileset dir="${script.dir}" excludes="*.template"/>
       <fileset dir="${build.scripts}/" />
     </copy>
 
