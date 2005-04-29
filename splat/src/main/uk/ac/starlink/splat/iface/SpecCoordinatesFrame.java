@@ -49,6 +49,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
@@ -68,7 +69,7 @@ public class SpecCoordinatesFrame
     /**
      * Reference to global list of spectra and plots.
      */
-    private static GlobalSpecPlotList globalList = 
+    private static GlobalSpecPlotList globalList =
         GlobalSpecPlotList.getInstance();
 
     /**
@@ -594,9 +595,9 @@ public class SpecCoordinatesFrame
         sourceVel = new JTextField();
         gbl.add( label, false );
         gbl.add( sourceVel, true );
-        sourceVel.setToolTipText( "The velocity of source in the" +
-                                  " source rest frame (km/s)" );
-
+        sourceVel.setToolTipText( "The relativistic velocity of source" +
+                                  " in the source rest frame (km/s or" + 
+                                  " redshift with trailing 'z')" );
         gbl.eatSpare();
 
         return panel;
@@ -743,7 +744,25 @@ public class SpecCoordinatesFrame
 
         value = sourceVel.getText();
         if ( isValid( value ) ) {
-            buffer.append( ",SourceVel=" + value );
+            int index = value.indexOf( 'z' );
+            if ( index != -1 ) {
+                //  Redshift convert to relativistic velocity in km/s.
+                try {
+                    double redshift =
+                        Double.parseDouble( value.substring( 0, index ) );
+                    double velocity = MathUtils.redshiftToVelocity( redshift );
+                    //  m/s to km/s, plus velocity is away not towards
+                    buffer.append( ",SourceVel=" + velocity * -0.001 );
+                }
+                catch (NumberFormatException e) {
+                    // Do nothing much.
+                    System.out.println( e.getMessage() );
+                }
+
+            }
+            else {
+                buffer.append( ",SourceVel=" + value );
+            }
         }
 
         value = dateObs.getText();
@@ -764,7 +783,7 @@ public class SpecCoordinatesFrame
     /**
      * Convert a spectrum to a different coordinate system. The new system is
      * specified as a set of AST attributes.
-     * 
+     *
      * @param spec the spectrum to convert
      * @param attributes the AST attributes describing the new system
      *                   (for example: "system=WAVE,unit(1)=Angstrom").
@@ -814,7 +833,7 @@ public class SpecCoordinatesFrame
     /**
      * Set the coordinate system attributes of a spectrum. The system is
      * specified as a set of AST attributes.
-     * 
+     *
      * @param spec the spectrum to set
      * @param attributes the AST attributes describing the system
      *                   (for example: "system=WAVE,unit=Angstrom").
