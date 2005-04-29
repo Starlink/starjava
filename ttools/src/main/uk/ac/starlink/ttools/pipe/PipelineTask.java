@@ -265,22 +265,29 @@ public class PipelineTask extends TableTask {
             help.append( "      " + getUsageFragment( filters_[ i ] ) + "\n" );
         }
 
-        help.append( "\n   Auto-detected in-formats:\n" );
-        for ( Iterator it = getTableFactory().getDefaultBuilders().iterator();
-              it.hasNext(); ) {
-            help.append( "      " )
-                .append( ((TableBuilder) it.next())
-                        .getFormatName().toLowerCase() )
-                .append( '\n' );
+        /* I think we'll skip information about input formats here - 
+         * it makes the help too verbose. */
+        if ( false ) {
+            help.append( "\n   Auto-detected in-formats:\n" );
+            for ( Iterator it = getTableFactory().getDefaultBuilders()
+                                                .iterator();
+                  it.hasNext(); ) {
+                help.append( "      " )
+                    .append( ((TableBuilder) it.next())
+                            .getFormatName().toLowerCase() )
+                    .append( '\n' );
+            }
+
+            help.append( "\n   Known in-formats:\n" );
+            for ( Iterator it = getTableFactory().getKnownFormats().iterator();
+                  it.hasNext(); ) {
+                help.append( "      " )
+                    .append( ((String) it.next()).toLowerCase() )
+                    .append( '\n' );
+            }
         }
 
-        help.append( "\n   Known in-formats:\n" );
-        for ( Iterator it = getTableFactory().getKnownFormats().iterator();
-              it.hasNext(); ) {
-            help.append( "      " )
-                .append( ((String) it.next()).toLowerCase() )
-                .append( '\n' );
-        }
+        /* Return the help string. */
         return help.toString();
     }
 
