@@ -27,8 +27,7 @@ import uk.ac.starlink.splat.ast.ASTChannel;
 /**
  * A type of EditableSpecData that draws a string at a "spectral"
  * position. The expected use of these facilities is for identifying
- * line positions, (TODO: as a vertical bar marker, plus ) as a string
- * (TODO: at some orientation and scale).
+ * line positions, (TODO: as a vertical bar marker) as a string.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -282,17 +281,13 @@ public class LineIDSpecData
         //  finally put them along the given limits.
         double[] xypos = new double[xPos.length * 2];
         double[] ypos = yPos;
-        if ( ! haveDataPositions() ) {
-            if ( specData != null ) {
-                ypos = specData.getYData();
-            }
-            else {
-                ypos = null;
-            }
+        if ( specData != null ) {
+            ypos = specData.getYData();
         }
         if ( ypos != null ) {
+
             if ( specData == null ) {
-                // Our data positions.
+                // Our data positions, i.e. haveDataPositions and no specData.
                 for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
                     xypos[i] = xPos[j];
                     if ( ypos[j] == BAD ) {
@@ -304,8 +299,8 @@ public class LineIDSpecData
                 }
             }
             else if ( specDataMapping == null ) {
-                // Not matching coordinates.
-
+                // Not matching coordinates. So spectra all in same
+                // coordinates and data units, or it goes wrong (tough).
                 int[] bound;
                 for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
                     
