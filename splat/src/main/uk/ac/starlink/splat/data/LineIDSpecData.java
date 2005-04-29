@@ -43,16 +43,39 @@ public class LineIDSpecData
     protected transient SpecData specData = null;
 
     /**
+     * Reference to a Mapping that transforms coordinates and data value
+     * (i.e. a DATAPLOT-like mapping) from the associated SpecData to this
+     * spectrum.
+     */
+    protected transient Mapping specDataMapping = null;
+
+    /**
      * Serialised form of the data labels, usually null.
      */
     protected String[] serializedLabels = null;
+
+    /**
+     * Whether to prefix the short name to the labels.
+     */
+    private boolean prefixShortName = false;
 
     /**
      * Serialization version ID string.
      */
     static final long serialVersionUID = -332954044517171663L;
 
-    /** TODO: Undoable support */
+    /**
+     * Current up vector.
+     */
+    private float[] upVector = vertical;
+
+    /**
+     * Up vectors for drawing text;
+     */
+    private static float[] vertical = new float[] { 1.0F, 0.0F };
+    private static float[] horizontal = new float[] { 0.0F, 1.0F };
+
+    /* TODO: Undoable support */
 
     /**
      * Constructor, takes a LineIDSpecDataImpl.
@@ -67,25 +90,18 @@ public class LineIDSpecData
     }
 
     /**
-     * Constructor, takes a LineIDSpecDataImpl and a SpecData
-     * instance. The SpecData instance is used to supply the relative
-     * positions of the labels.
-     */
-    public LineIDSpecData( LineIDSpecDataImpl lineIDImpl,
-                           SpecData specData )
-        throws SplatException
-    {
-        this( lineIDImpl );
-        setSpecData( specData );
-    }
-
-    /**
      * Set the SpecData used to defined the relative positioning for
      * the labels.
+     * <P>
+     * The Mapping transforms positions from the given SpecData to our
+     * spectrum. This is used so that the coordinate of a label can be mapped
+     * into the specData and the data value of that spectrum used to position
+     * the label.
      */
-    public void setSpecData( SpecData specData )
+    public void setSpecData( SpecData specData, Mapping mapping )
     {
         this.specData = specData;
+        this.specDataMapping = mapping;
     }
 
     /**
@@ -125,6 +141,35 @@ public class LineIDSpecData
     {
         if ( impl != null && impl instanceof LineIDSpecDataImpl ) {
             ((LineIDSpecDataImpl)impl).setLabel( index, label );
+        }
+    }
+
+    /**
+     * Set whether to prefix the short name to the labels.
+     */
+    public void setPrefixShortName( boolean prefixShortName )
+    {
+        this.prefixShortName = prefixShortName;
+    }
+
+    /**
+     * Get whether we're prefixing the short name to the labels.
+     */
+    public boolean isPrefixShortName()
+    {
+        return prefixShortName;
+    }
+
+    /**
+     * Set whether to draw labels horizontally.
+     */
+    public void setDrawHorizontal( boolean drawHorizontal )
+    {
+        if ( drawHorizontal ) {
+            upVector = horizontal;
+        }
+        else {
+            upVector = vertical;
         }
     }
 
@@ -183,47 +228,53 @@ public class LineIDSpecData
         fullRange[3] = 1.0;
     }
 
-    /**
-     * Draw the "spectrum". In this case it means draw the line id
-     * strings.
-     */
-    public void drawSpec( Grf grf, Plot plot, double[] limits,
-                          boolean physical )
+    //
+    // Draw the "spectrum". In this case it means draw the line id
+    // strings.
+    //
+    public void drawSpec( Grf grf, Plot plot, double[] clipLimits,
+                          boolean physical, double[] fullLimits )
     {
         //  Set up clip region if needed.
         Rectangle cliprect = null;
-        if ( limits != null ) {
-            double[][] clippos = null;
+        if ( clipLimits != null ) {
+            double[][] tmp = null;
             if ( physical ) {
-                clippos = astJ.astTran2( plot, limits, false );
-                cliprect =
-                    new Rectangle( (int) clippos[0][0],
-                                   (int) clippos[1][1],
-                                   (int) ( clippos[0][1] - clippos[0][0] ),
-                                   (int) ( clippos[1][0] - clippos[1][1] ) );
+                tmp = astJ.astTran2( plot, clipLimits, false );
+                cliprect = new Rectangle( (int) tmp[0][0],
+                                          (int) tmp[1][1],
+                                          (int) (tmp[0][1]-tmp[0][0]),
+                                          (int) (tmp[1][0]-tmp[1][1]));
             }
             else {
-                cliprect = new Rectangle( (int) limits[0], (int) limits[3],
-                                          (int) ( limits[2] - limits[0] ),
-                                          (int) ( limits[1] - limits[3] ) );
+                cliprect = new Rectangle( (int) clipLimits[0],
+                                          (int) clipLimits[3],
+                                          (int) (clipLimits[2]-clipLimits[0]),
+                                          (int) (clipLimits[1]-clipLimits[3]));
 
-                clippos = astJ.astTran2( plot, limits, true );
+                tmp = astJ.astTran2( plot, clipLimits, true );
 
                 //  Transform limits to physical for positioning of labels.
-                limits[0] = clippos[0][0];
-                limits[1] = clippos[1][0];
-                limits[2] = clippos[0][1];
-                limits[3] = clippos[1][1];
+                clipLimits[0] = tmp[0][0];
+                clipLimits[1] = tmp[1][0];
+                clipLimits[2] = tmp[0][1];
+                clipLimits[3] = tmp[1][1];
             }
         }
         else {
-            // Cannot have null limits. Use the graphics limits instead?
-            limits = new double[4];
+            // Cannot have null limits. Use the full limits which are in
+            // graphics coordinates.
+            double[][] tmp = astJ.astTran2( plot, fullLimits, true );
+            clipLimits = new double[4];
+            clipLimits[0] = tmp[0][0];
+            clipLimits[1] = tmp[1][0];
+            clipLimits[2] = tmp[0][1];
+            clipLimits[3] = tmp[1][1];
         }
 
         //  Get all labels.
         String[] labels = getLabels();
-        double yshift = 0.1 * ( limits[3] - limits[1] );
+        double yshift = 0.1 * ( clipLimits[3] - clipLimits[1] );
 
         //  Need to generate positions for placing the labels. The
         //  various schemes for this are use any positions read from
@@ -240,20 +291,77 @@ public class LineIDSpecData
             }
         }
         if ( ypos != null ) {
-            for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
-                xypos[i] = xPos[j];
-                if ( ypos[j] == BAD ) {
-                    xypos[i + 1] = limits[1] + yshift;
+            if ( specData == null ) {
+                // Our data positions.
+                for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
+                    xypos[i] = xPos[j];
+                    if ( ypos[j] == BAD ) {
+                        xypos[i + 1] = clipLimits[1] + yshift;
+                    }
+                    else {
+                        xypos[i + 1] = ypos[j] + yshift;
+                    }
                 }
-                else {
-                    xypos[i + 1] = ypos[j] + yshift;
+            }
+            else if ( specDataMapping == null ) {
+                // Not matching coordinates.
+
+                int[] bound;
+                for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
+                    
+                    //  Find nearest coordinate in other spectrum.
+                    bound = specData.bound( xPos[j] );
+                    xypos[i] = xPos[j];
+
+                    //  Record data position. 
+                    if ( ypos[bound[0]] == BAD ) {
+                        xypos[i + 1] = clipLimits[1] + yshift;
+                    }
+                    else {
+                        xypos[i + 1] = ypos[bound[0]] + yshift;
+                    }
+                }
+            }
+            else {
+                // Data positions from another spectrum. Need care to match
+                // coordinates and data values.
+                double[] inpos = new double[2];
+                double[][] tmp = null;
+                int[] bound;
+                for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
+                    
+                    //  Need index of a coordinate of specData near to our
+                    //  coordinate. So transform our coordinate to world
+                    //  coordinates of the target spectrum, if we're using one.
+                    inpos[0] = xPos[j];
+                    inpos[1] = fullLimits[1];
+                    tmp = astJ.astTran2( specDataMapping, inpos, true );
+
+                    //  Find the nearest pair of coordinates to this position.
+                    bound = specData.bound( inpos[0] );
+
+                    //  Pick a data value of one of these coordinates and
+                    //  transform that into our units.
+                    inpos[0] = tmp[0][0];
+                    inpos[1] = ypos[bound[0]];
+                    tmp = astJ.astTran2( specDataMapping, inpos, false );
+                    
+                    //  Record position of label.
+                    xypos[i] = xPos[j];
+                    if ( tmp[1][0] == BAD ) {
+                        xypos[i + 1] = clipLimits[1] + yshift;
+                    }
+                    else {
+                        xypos[i + 1] = tmp[1][0] + yshift;
+                    }
                 }
             }
         }
         else {
+            // Generate data positions relative to the limits.
             for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
                 xypos[i] = xPos[j];
-                xypos[i + 1] = limits[1] + yshift; // or limits[3]?
+                xypos[i + 1] = clipLimits[1] + yshift; // or clipLimits[3]?
             }
         }
 
@@ -267,15 +375,22 @@ public class LineIDSpecData
         DefaultGrfState oldState = setGrfAttributes( defaultGrf, false );
         defaultGrf.setClipRegion( cliprect );
 
-        float[] up = new float[2];
-        up[0] = 1.0F;
-        up[1] = 0.0F;
         double[] pos = new double[2];
 
-        for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
-            pos[0] = xypos[j];
-            pos[1] = xypos[j+1];
-            plot.text( labels[i], pos, up, "CC" );
+        if ( prefixShortName ) {
+            String prefix = shortName + ":";
+            for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
+                pos[0] = xypos[j];
+                pos[1] = xypos[j+1];
+                plot.text( prefix + labels[i], pos, upVector, "CC" );
+            }
+        }
+        else {
+            for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
+                pos[0] = xypos[j];
+                pos[1] = xypos[j+1];
+                plot.text( labels[i], pos, upVector, "CC" );
+            }
         }
         resetGrfAttributes( defaultGrf, oldState, false );
         defaultGrf.setClipRegion( null );
