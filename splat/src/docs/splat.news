@@ -49,6 +49,11 @@
    Line identifiers are now available in the webstart version of SPLAT.
 
 
+   Line identifiers that fall within range of a spectrum can now be 
+   automatically loaded. Other changes allow the positioning to follow
+   a spectrum, have the short name shown as a prefix and horizontal
+   orientation.
+
 1 Starlink SPLAT now a tool for the Virtual Observatory
 
    In this release Starlink SPLAT has been enhanced to access prototype

@@ -1034,11 +1034,11 @@ public class DivaPlot
         catch (Exception e) {
             // Trap all Exceptions and continue so we can recover
             // when we try to repaint.
+            logger.info( "Failed to draw spectra" );
             if ( e.getMessage() != null ) {
                 logger.info( e.getMessage() );
             }
             else {
-                logger.info( "Failed to draw spectra" );
                 e.printStackTrace();
             }
             if ( wasScaled && !xyScaled ) {
@@ -1048,6 +1048,7 @@ public class DivaPlot
         }
         catch (Throwable t) {
             // Trap all errors too (like OutOfMemory).
+            logger.info( "Failed to draw spectra" );
             logger.info( t.getMessage() );
             if ( wasScaled && !xyScaled ) {
                 xyScaled = true;
