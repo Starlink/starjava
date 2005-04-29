@@ -679,8 +679,8 @@ public abstract class ValueParser {
                 case 1:
                     break;
                 default:
-                    warning( "Multi-character string in character scalar" +
-                             " - all but first character ignored!" );
+                    warning( "Characters after first in char scalar ignored" +
+                             " (missing arraysize?)" );
             }
             if ( ascii_ && leng > 0 && text.charAt( 0 ) > 0x7f ) {
                 error( "Non-ascii character in 'char' data" );
