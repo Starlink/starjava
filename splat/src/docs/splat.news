@@ -54,6 +54,10 @@
    a spectrum, have the short name shown as a prefix and horizontal
    orientation.
 
+   Spectral coordinates can now have the source velocity specified 
+   as a redshift. The spectral editing tools now include relativistic
+   velocities in their template functions.
+
 1 Starlink SPLAT now a tool for the Virtual Observatory
 
    In this release Starlink SPLAT has been enhanced to access prototype
