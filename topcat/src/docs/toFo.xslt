@@ -683,6 +683,9 @@
       <xsl:when test="$doc='sun253'">
         <xsl:text>SUN/253</xsl:text>
       </xsl:when>
+      <xsl:when test="$doc='sun256'">
+        <xsl:text>SUN/256</xsl:text>
+      </xsl:when>
       <xsl:otherwise>
         <xsl:message terminate="yes">
           <xsl:text>Unknown document ID </xsl:text>
