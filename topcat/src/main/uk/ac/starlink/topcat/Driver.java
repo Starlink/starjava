@@ -29,6 +29,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.URLDataSource;
+import uk.ac.starlink.votable.VOElementFactory;
 
 /**
  * Main class for invoking the TOPCAT application from scratch.
@@ -170,6 +171,9 @@ public class Driver {
             cmdname = null;
         }
         Loader.tweakGuiForMac();
+
+        /* Use sloppy interpretation of VOTables. */
+        VOElementFactory.STRICT_DEFAULT = false;
 
         /* Prepare basic usage message. */
         if ( cmdname == null ) {
