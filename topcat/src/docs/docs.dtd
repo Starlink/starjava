@@ -8,6 +8,20 @@
                             | var | label | img
                            )*">
 
+  <!-- %simplephrase; is used in some cases where the Starlink General
+   !   (but not Programcode) DTD has span content instead.  Since the
+   !   span model is (similar to) simplephrase, this would be easy to
+   !   reconcile - either modify the general DTD to allow simplephrase
+   !   content as well as span, or just wrap a span around the content
+   !   of elements following this DTD which have content more complicated
+   !   than CDATA. -->
+  <!ENTITY % simplephrase "( #PCDATA
+                             | em | strong | code 
+                             | m | sub | sup
+                             | webref | docxref | javadoc | ref
+                             | var | label | img
+                           )*">
+
   <!ELEMENT sun ( docinfo?, docbody )>
   <!ELEMENT docinfo ( title?, 
                       authorlist?,
@@ -16,7 +30,7 @@
                       history?,
                       docdate?,
                       contactlist? )>
-  <!ELEMENT title ( #PCDATA )>
+  <!ELEMENT title %simplephrase;>
   <!ELEMENT authorlist ( author* )>
   <!ELEMENT softwareversion ( #PCDATA )>
   <!ELEMENT docnumber ( #PCDATA )>
@@ -74,20 +88,20 @@
   <!ELEMENT figureimage EMPTY>
   <!ATTLIST figureimage src CDATA #REQUIRED>
 
-  <!ELEMENT ref ( #PCDATA )>
+  <!ELEMENT ref %simplephrase;>
   <!ATTLIST ref id IDREF #REQUIRED
                 plaintextref ( yes | no ) #IMPLIED>
 
-  <!ELEMENT webref ( #PCDATA )>
+  <!ELEMENT webref %simplephrase;>
   <!ATTLIST webref url CDATA #REQUIRED
                    plaintextref ( yes | no ) #IMPLIED>
 
-  <!ELEMENT docxref ( #PCDATA )>
+  <!ELEMENT docxref %simplephrase;>
   <!ATTLIST docxref doc CDATA #REQUIRED
                     loc CDATA #IMPLIED
                     plaintextref ( yes | no ) #IMPLIED>
 
-  <!ELEMENT javadoc ( #PCDATA )>
+  <!ELEMENT javadoc %simplephrase;>
   <!ATTLIST javadoc class CDATA #REQUIRED
                     member CDATA #IMPLIED
                     docset CDATA #IMPLIED
