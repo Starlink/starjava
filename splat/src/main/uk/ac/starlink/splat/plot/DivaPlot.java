@@ -888,7 +888,7 @@ public class DivaPlot
             }
         }
         if ( spectra.count() > 0 ) {
-            spectra.drawSpec( mainGrf, mainPlot, limits );
+            spectra.drawSpec( mainGrf, mainPlot, limits, baseBox );
         }
     }
 
