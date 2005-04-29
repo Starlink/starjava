@@ -1770,13 +1770,16 @@ public class SpecData
      *
      * @param grf Grf object that can be drawn into using AST primitives.
      * @param plot reference to Plot defining transformation from physical
-     *      coordinates into graphics coordinates.
-     * @param limits limits of the region to draw used to clip graphics.
-     *        These can be in physical or graphics coordinates.
+     *             coordinates into graphics coordinates.
+     * @param clipLimits limits of the region to draw used to clip graphics.
+     *                   These can be in physical or graphics coordinates.
      * @param physical whether limits are physical or graphical.
+     * @param fullLimits full limits of drawing area in graphics coordinates. 
+     *                   May be used for positioning when clipping limits are
+     *                   not used.
      */
-    public void drawSpec( Grf grf, Plot plot, double[] limits,
-                          boolean physical )
+    public void drawSpec( Grf grf, Plot plot, double[] clipLimits,
+                          boolean physical, double[] fullLimits )
     {
         //  Get a list of positions suitable for transforming.
         //  Note BAD value is same for graphics (AST, Grf) and data,
@@ -1849,9 +1852,9 @@ public class SpecData
 
         //  Do the same for the clip region.
         Rectangle cliprect = null;
-        if ( limits != null ) {
+        if ( clipLimits != null ) {
             if ( physical ) {
-                double[][] clippos = astJ.astTran2( plot, limits, false );
+                double[][] clippos = astJ.astTran2( plot, clipLimits, false );
                 cliprect =
                     new Rectangle( (int) clippos[0][0],
                                    (int) clippos[1][1],
@@ -1859,9 +1862,10 @@ public class SpecData
                                    (int) ( clippos[1][0] - clippos[1][1] ) );
             }
             else {
-                cliprect = new Rectangle( (int) limits[0], (int) limits[3],
-                                          (int) ( limits[2] - limits[0] ),
-                                          (int) ( limits[1] - limits[3] ) );
+                cliprect = new Rectangle((int) clipLimits[0], 
+                                         (int) clipLimits[3],
+                                         (int) (clipLimits[2]-clipLimits[0]),
+                                         (int) (clipLimits[1]-clipLimits[3]));
             }
         }
 
@@ -2164,7 +2168,7 @@ public class SpecData
      *
      * @param xg X graphics coordinate
      * @param plot AST plot needed to transform graphics position into
-     *      physical coordinates
+     *             physical coordinates
      * @return array of two Strings, the formatted wavelength and data values
      */
     public String[] formatLookup( int xg, Plot plot )
