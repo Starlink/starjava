@@ -210,6 +210,23 @@ public class FuncTest extends TestCase {
         assertEquals( Maths.PI / 2.0, 
                       Coords.skyDistance( -1, 0.0, -1, Maths.PI / 2.0 ), TINY );
 
+        double ra1 = 0.1;
+        double dec1 = 1.2;
+        double ra2 = 0.2;
+        double dec2 = 1.3;
+        assertEquals( Coords.skyDistance( ra1, dec1, ra2, dec2 ),
+                      Coords.skyDistance( ra2, dec2, ra1, dec1 ) );
+        assertEquals( Coords.skyDistanceDegrees( ra1, dec1, ra2, dec2 ),
+                      Coords.skyDistanceDegrees( ra2, dec2, ra1, dec1 ) );
+        assertEquals(
+            Coords.radiansToDegrees( Coords.skyDistance( ra1, dec1,
+                                                         ra2, dec2 ) ),
+            Coords.skyDistanceDegrees( Coords.radiansToDegrees( ra1 ),
+                                       Coords.radiansToDegrees( dec1 ),
+                                       Coords.radiansToDegrees( ra2 ),
+                                       Coords.radiansToDegrees( dec2 ) ),
+            TINY );
+
         assertEquals( Maths.PI / 4.0, Coords.hmsToRadians( "03:00:00.0" ) );
         assertEquals( -Maths.PI / 4.0, Coords.hmsToRadians( "-03: 0:0" ) );
         assertEquals( Coords.hmsToRadians( "0 0 1" ),
