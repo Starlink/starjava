@@ -10,20 +10,18 @@
   <!-- Define external URLs. -->
   <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.4.2/docs/">
 
-  <!-- Standard flag definitions -->
+  <!-- Standard flag definitions. -->
   <!ENTITY flag-help '
-     <dt><code>-h</code></dt>
-     <dt><code>-help</code></dt>
+     <dt><code>-h[elp]</code></dt>
      <dd><p>Prints a usage message and exits.
          </p></dd>'>
   <!ENTITY flag-verbose '
-     <dt><code>-v</code></dt>
-     <dt><code>-verbose</code></dt>
+     <dt><code>-v[erbose]</code></dt>
      <dd><p>May cause more information about progress to be written as
-         the command runs
+         the command runs.
          </p></dd>'>
   <!ENTITY flag-disk '
-     <dt>-disk</dt> 
+     <dt><code>-disk</code></dt> 
      <dd><p>Encourages the command to use temporary files on disk for caching
          large amounts of data rather than doing it in memory.
          This is a good flag to try if you are getting
@@ -32,13 +30,18 @@
          property <code>-Dstartable.storage=disk</code>.
          </p></dd>'>
    <!ENTITY flag-debug '
-     <dt>-debug</dt>
+     <dt><code>-debug</code></dt>
      <dd><p>Causes any error messages, which are usually made brief, to
          be accompanied by a stack trace.  If you are reporting a bug
          (or debugging the code yourself), then you should use this flag
          to get the most information about what has gone wrong.
          </p></dd>'>
 
+  <!-- Short descriptions for each command. -->
+  <!ENTITY tcopy-purpose 'Table Format Converter'>
+  <!ENTITY tpipe-purpose 'Generic Table Pipeline Utility'>
+  <!ENTITY votcopy-purpose 'VOTable Encoding Translator'>
+  <!ENTITY votlint-purpose 'VOTable Validity Checker'>
   
 ]>
 
@@ -110,7 +113,7 @@ This document describes the initial, beta, release of the package.
 <sect>
 <subhead><title>Introduction</title></subhead>
 
-<p>STILTS provides some of command-line applications which can
+<p>STILTS provides a number of command-line applications which can
 be used for manipulating tabular data.
 Conceptually it sits between, and uses many of the same classes as, 
 the packages 
@@ -126,17 +129,17 @@ same ground as the STIL and TOPCAT user documents
 
 <p>Currently, this package consists of four commands:
 <ul>
-<li><code><ref id="tcopy" plaintextref="yes">tcopy</ref></code>:
-    Table format converter
+<li><ref id="tcopy" plaintextref="yes"><code>tcopy</code></ref>:
+    &tcopy-purpose;
     </li>
-<li><code><ref id="tpipe" plaintextref="yes">tpipe</ref></code>:
-    Generic table pipeline processing utility
+<li><ref id="tpipe" plaintextref="yes"><code>tpipe</code></ref>:
+    &tpipe-purpose;
     </li>
-<li><code><ref id="votcopy" plaintextref="yes">votcopy</ref></code>:
-    VOTable encoding translator
+<li><ref id="votcopy" plaintextref="yes"><code>votcopy</code></ref>:
+    &votcopy-purpose;
     </li>
-<li><code><ref id="votlint" plaintextref="yes">votlint</ref></code>:
-    VOTable checking utility
+<li><ref id="votlint" plaintextref="yes"><code>votlint</code></ref>:
+    &votlint-purpose;
     </li>
 </ul>
 It is expected that more will be introduced in the future,
@@ -151,9 +154,9 @@ here are a few possibilities:
 
 <dt>In conjunction with TOPCAT</dt>
 <dd><p>you can identify a set of processing steps using TOPCAT's interactive
-    graphical facilities, and construct a script based on STILTS which
-    can perform the same steps on many similar tables without further
-    user intervention.
+    graphical facilities, and construct a script using the commands
+    provided here which can perform the same steps on many 
+    similar tables without further user intervention.
     </p></dd>
 
 <dt>Format conversion</dt>
@@ -191,15 +194,19 @@ All user comments are most welcome.
 <subhead><title>Invocation</title></subhead>
 
 <p>There are two ways of invoking the commands in this package.
-If you have a full Starjava installation on a Unix-like operating
-system, the easiest way is to use the scripts <code>tpipe</code>,
-<code>votlint</code> etc installed in the 
-<code>starjava/bin</code> directory.  The form of invocation in
-this case is:
+If you're using a Unix-like operating system and have downloaded
+the package in a form which includes the shell scripts,
+the easiest way is to use the scripts <code>tpipe</code>,
+<code>votlint</code> etc.  These will either be in the same location
+as the <code>stilts.jar</code> file or in <code>starjava/bin</code>
+The form of invocation in this case is:
 <verbatim><![CDATA[
     <command-name> <java-args> <application-args>
 ]]></verbatim>
-A simple example would be:
+(the <code>java</code> should be on your path).
+</p>
+
+<p>A simple example would be:
 <verbatim>
     votcopy -f binary t1.xml t2.xml
 </verbatim>
@@ -214,8 +221,8 @@ command descriptions below use this form for convenience.
 </p>
 
 <p>If you don't have a Unix-like shell available however, or if you
-don't have the full Starjava installation, you will need to invoke
-java directly with the appropriate classes on your path.
+don't have the STILTS shell scripts, you will need to invoke
+Java directly with the appropriate classes on your classpath.
 The general form of an invocation command in this case will depend on
 your system, but will probably look like:
 <verbatim><![CDATA[
@@ -252,7 +259,7 @@ this means that they may or may not continue to work if you
 move them from their original location.
 </p>
 
-<p>Under certain circumstances the tools may need additional classes,
+<p>Under certain circumstances the tools might need additional classes,
 for instance:
 <ul>
 <li>JDBC drivers (see <ref id="jdbcConfig"/>)</li>
@@ -271,7 +278,7 @@ for instance:
 <p>In most cases it is not necessary to specify any additional 
 arguments to the Java runtime, but it can be useful in certain
 circumstances.  The two main kinds of options you might want to
-specify directly to java are these:
+specify directly to Java are these:
 
 <dl>
 
@@ -282,9 +289,9 @@ specify directly to java are these:
     in <ref id="sysProperties"/>.  You can set them from the 
     command line using a flag of the form <code>-Dname=value</code>.
     So for instance to ensure that temporary files are written to
-    the /usr/tmp directory, you could use the flag
+    the <code>/home/scratch</code> directory, you could use the flag
     <verbatim>
-        -Djava.io.tmpdir=/usr/tmp
+        -Djava.io.tmpdir=/home/scratch
     </verbatim>
     </p></dd>
 
@@ -294,19 +301,20 @@ specify directly to java are these:
     If one of the tools fails with a message that says 
     something about an <code>OutOfMemoryError</code> then this has
     proved too small for the job in hand.  You can increase the 
-    heap memory with the <code>-Xmx</code>flag.  To set the heap 
-    memory size to 256 Mbyte, use the flag
+    heap memory with the <code>-Xmx</code> flag.  To set the heap 
+    memory size to 256 megabytes, use the flag
     <verbatim>
         -Xmx256M
     </verbatim>
-    (don't forget the 'M' for megabyte).  You probably don't want to
-    specify a heap size larger than the physical memory of the machine
-    you're running on.
+    (don't forget the 'M' for megabyte).  You will probably find
+    performance is poor if you specify a heap size larger than 
+    the physical memory of the machine you're running on.
     </p>
 
-    <p>Note however that in some cases forcing STILTS to use disk files
-    rather than memory for temporary storage is a better idea - this
-    is done by specifying the <code>-disk</code> flag on most of the
+    <p>Note however that encouraging STILTS to use disk files
+    rather than memory for temporary storage is often a
+    better idea than boosting the heap memory - 
+    this is done by specifying the <code>-disk</code> flag on most of the
     tools, or possibly <code>-Dstartable.storage=disk</code>.
     </p></dd>
 
@@ -324,13 +332,13 @@ you probably don't need me to tell you about it.
 <subhead><title>Command Classname</title></subhead>
 
 <p>Each command in the package is defined at the top level with a
-single class in the package uk.ac.starlink.ttools.
-For instance <code>tpipe</code> is defined in 
+single class in the namespace <code>uk.ac.starlink.ttools</code>.
+For instance <code>tpipe</code> is defined by the class
 <code>uk.ac.starlink.ttools.TablePipe</code>,
 and if you don't have the <code>tpipe</code> script you can 
 run it using
 <verbatim>
-    java -classpath some/where/stilts.jar uk.ac.starlink.ttools.tpipe
+    java -classpath some/where/stilts.jar uk.ac.starlink.ttools.TablePipe
 </verbatim>
 The classname of each command is listed with its description in
 <ref id="cmdUsage"/>.
@@ -381,7 +389,7 @@ on the command line is equivalent to having the following in your
 <dl>
 
 <dt><code>java.io.tmpdir</code></dt>
-<dd><p>The directory in which TOPCAT will write any temporary files it needs.
+<dd><p>The directory in which STILTS will write any temporary files it needs.
     This is usually only done if the <code>-disk</code> flag has been
     specified (see <ref id="appArgs"/>).
     </p></dd>
@@ -407,7 +415,7 @@ on the command line is equivalent to having the following in your
 <dt><code>startable.storage</code></dt>
 <dd><p>Can be set to determine the default storage policy.
     Setting it to "<code>disk</code>" has basically the same effect as
-    supplying the "<code>-disk</code>" argument on the TOPCAT command line
+    supplying the "<code>-disk</code>" argument on the command line
     (see <ref id="appArgs"/>).
     </p></dd>
 
@@ -455,10 +463,10 @@ described in more detail on
 </ul>
 Installing the driver consists of two steps:
 <ol>
-<li>Set the <code>jdbc.drivers</code> system property to the name of the
-    driver class as described in <ref id="jvmClasspath"/></li>
 <li>Ensure that the classpath you are using includes this driver class
-    as described in <ref id="sysProperties"/></li>
+    as described in <ref id="jvmClasspath"/></li>
+<li>Set the <code>jdbc.drivers</code> system property to the name of the
+    driver class as described in <ref id="sysProperties"/></li>
 </ol>
 </p>
 
@@ -466,6 +474,40 @@ Installing the driver consists of two steps:
 <webref url="&URL.J2SE_DOCS;guide/jdbc/">JDBC</webref> system.
 See <docxref doc="sun252" loc="jdbcConfig"/> for information
 about JDBC drivers known to work with STIL.
+</p>
+
+<p>Here is an example of using <ref id="tcopy">tcopy</ref> 
+to write the results
+of an SQL query on a table in a MySQL database as a VOTable:
+<verbatim><![CDATA[
+    tcopy -classpath /usr/local/jars/mysql-connector-java.jar \
+          -Djdbc.drivers=com.mysql.jdbc.Driver \
+          "jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
+          -ofmt votable gsc.vot
+]]></verbatim>
+or invoking Java directly:
+<verbatim><![CDATA[
+    java -classpath stilts.jar:/usr/local/jars/mysql-connect-java.jar \
+         -Djdbc.drivers=com.mysql.jdbc.Driver \
+         uk.ac.starlink.ttools.TableCopy \
+         "jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
+         -ofmt votable gsc.vot
+]]></verbatim>
+In the latter case you have to exercise some care to get the arguments
+in the right order (see <ref id="invoke"/>).
+</p>
+
+<p>Alternatively, you can set some of this up beforehand to make the
+invocation easier.  If you set your CLASSPATH environment variable
+to include the driver jar file (and the STILTS classes if you're 
+invoking Java directly rather than using the scripts), and if you
+put the line
+<verbatim>
+    jdbc.drivers=com.mysql.jdbc.Driver
+</verbatim>
+in the <code>.starjava.properties</code> file in your home directory,
+then you could avoid having to give the <code>-classpath</code> and 
+<code>-Djdbc.drivers</code> flags respectively.
 </p>
 
 </subsect>
@@ -476,8 +518,12 @@ about JDBC drivers known to work with STIL.
 <sect>
 <subhead><title>Table Formats</title></subhead>
 
-<p>STILTS has no native format for table storage, it can process
-data in a number of formats.  It has its own model of what a table
+<p>The generic commands in STILTS 
+(currently <ref id="tpipe"><code>tpipe</code></ref> and
+           <ref id="tcopy"><code>tcopy</code></ref>)
+have no native format for table storage, they can process
+data in a number of formats equally well.  
+STIL has its own model of what a table
 consists of, which is basically:
 <ul>
 <li>Some per-table metadata (parameters)</li>
@@ -505,17 +551,18 @@ the <docxref doc="sun252">STIL documentation</docxref> for details.
 
 <p>Some of the tools in this package ask you to specify the format
 of input tables using the <code>-f</code> or <code>-ifmt</code> flag.
-The following list gives the values usually allowed for this:
+The following list gives the values usually allowed for this
+(matching is case-insensitive):
 <dl>
 
-<dt>fits</dt>
+<dt><code>fits</code></dt>
 <dd><p>FITS format - FITS binary or ASCII tables can be read.
     By default the first table HDU in the file will used, but this can
     be altered by supplying the HDU index after a '#' sign, 
     so "table.fits#3" means the third HDU extension.
     </p></dd>
 
-<dt>votable</dt>
+<dt><code>votable</code></dt>
 <dd><p>VOTable format - any legal, and many illegal 1.0 or 1.1 format 
     VOTable document can be read.
     By default the first <code>TABLE</code> element is used,
@@ -524,24 +571,24 @@ The following list gives the values usually allowed for this:
     so "table.xml#4" means the fifth <code>TABLE</code> element in the document.
     </p></dd>
 
-<dt>ascii</dt>
+<dt><code>ascii</code></dt>
 <dd><p>Plain text file with one row per column 
     in which columns are separated by whitespace.
     </p></dd>
 
-<dt>csv</dt>
+<dt><code>csv</code></dt>
 <dd><p>Comma-Separated Values format, 
     using approximately the convensions used by MS Excel.
     </p></dd>
 
-<dt>wdc</dt>
+<dt><code>wdc</code></dt>
 <dd><p>World Datacentre Format (experimental).
     </p></dd>
 
 </dl>
-For more details on these formats, see <docxref doc="sun252" loc="inFormats"/>.
+For more details on these formats, see the descriptions in 
+<docxref doc="sun252" loc="tableBuilders"/>.
 </p>
-
 
 <p>In some cases (when using VOTable or FITS format tables) the 
 tools can detect the table format automatically, and no explicit 
@@ -563,70 +610,73 @@ The following list gives the values usually allowed for this;
 in some cases as you can see there are several variants of a given format.
 You can abbreviate these names, and the first match in the list below
 will be used, so for instance specifying <code>votable</code> is equivalent
-to specifying <code>votable-tabledata</code>.
+to specifying <code>votable-tabledata</code> and <code>fits</code> 
+is equivalent to <code>fits-plus</code>.
+Matching is case-insensitive.
 
 <dl>
 
-<dt>fits-plus</dt>
+<dt><code>fits-plus</code></dt>
 <dd><p>FITS file; primary HDU contains a VOTable representation
     of the metadata, first extension contains a FITS binary table
     (behaves the same as <strong>fits-basic</strong> for most purposes)</p></dd>
 
-<dt>fits-basic</dt>
+<dt><code>fits-basic</code></dt>
 <dd><p>FITS file; primary HDU is data-less, first extension
     contains a FITS binary table</p></dd>
 
-<dt>votable-tabledata</dt>
+<dt><code>votable-tabledata</code></dt>
 <dd><p>VOTable document with TABLEDATA (pure XML) encoding</p></dd>
 
-<dt>votable-binary-inline</dt>
+<dt><code>votable-binary-inline</code></dt>
 <dd><p>VOTable document with BINARY-encoded data inline within a 
     <code>STREAM</code> element</p></dd>
 
-<dt>votable-binary-href</dt>
+<dt><code>votable-binary-href</code></dt>
 <dd><p>VOTable document with BINARY-encoded data in a separate file
     (only if not writing to a stream)</p></dd>
 
-<dt>votable-fits-href</dt>
+<dt><code>votable-fits-href</code></dt>
 <dd><p>VOTable document with FITS-encoded data in a separate file
     (only if not writing to a stream)</p></dd>
 
-<dt>votable-fits-inline</dt>
+<dt><code>votable-fits-inline</code></dt>
 <dd><p>VOTable document with FITS-encoded data inline within a 
     <code>STREAM</code> element</p></dd>
 
-<dt>ascii</dt>
+<dt><code>ascii</code></dt>
 <dd><p>Simple space-separated ASCII file format</p></dd>
 
-<dt>text</dt>
+<dt><code>text</code></dt>
 <dd><p>Human-readable plain text (with headers and column boundaries marked
     out)</p></dd>
 
-<dt>csv</dt>
+<dt><code>csv</code></dt>
 <dd><p>Comma-Separated Value format</p></dd>
 
-<dt>html</dt>
+<dt><code>html</code></dt>
 <dd><p>Standalone HTML document containing a <code>TABLE</code> element</p></dd>
 
-<dt>html-element</dt>
+<dt><code>html-element</code></dt>
 <dd><p>HTML <code>TABLE</code> element</p></dd>
 
-<dt>latex</dt>
+<dt><code>latex</code></dt>
 <dd><p>LaTeX <code>tabular</code> environment</p></dd>
 
-<dt>latex-document</dt>
+<dt><code>latex-document</code></dt>
 <dd><p>LaTeX standalone document containing a <code>tabular</code>
     environment</p></dd>
    
-<dt>mirage</dt>
+<dt><code>mirage</code></dt>
 <dd><p>Mirage input format</p></dd>
 
 </dl>
+For more details on these formats, see the descriptions in 
+<docxref doc="sun252" loc="starTableWriters"/>.
 </p>
 
-<p>In some cases the tools may guess what output format you want,
-perhaps by looking at the extension of the output filename you have
-specified.
+<p>In some cases the tools may guess what output format you want
+by looking at the extension of the output filename you have specified.
 </p>
 
 </subsect>
@@ -706,7 +756,7 @@ You can do this in two ways:
     identifier of the column may always be used to refer to it;
     this is a useful fallback if the column name isn't suitable for
     some reason (for instance it contains spaces or is not unique).
-    This is just a "&column.id.char;" sign followed by the colum index -
+    This is just a "&column.id.char;" sign followed by the column index -
     the first column is &column.id.char;1.
     </p></dd>
 
@@ -758,8 +808,7 @@ work with null values:
     string "<code>NULL_</code>"
     (use upper case) to the column name or &column.id.char;ID.  This
     will yield a boolean value which is true if the column contains
-    a blank or a floating point NaN (not-a-number) value,
-    and false otherwise.
+    a blank, and false otherwise.
     </p></dd>
 
 <dt>Returning null</dt>
@@ -782,9 +831,9 @@ So for instance the following expression:
 <verbatim>
    Vmag == -99 ? NULL : Vmag
 </verbatim>
-can be used to define a new column which has the same value as the Vmag
-column for most values, but if Vmag has the "magic" value -99 the new
-column will contain a blank.
+can be used to define a new column which has the same value as the 
+<code>Vmag</code> column for most values, but if <code>Vmag</code> 
+has the "magic" value -99 the new column will contain a blank.
 The opposite trick (substituting a blank value with a magic one) can
 be done like this:
 <verbatim>
@@ -812,7 +861,7 @@ The common ones are:
   </dl>
 </p></dd>
 
-<dt>Logical</dt>
+<dt>Boolean</dt>
 <dd><p>
   <dl>
   <dt><code>!</code> (not)</dt>
@@ -888,8 +937,10 @@ with their arguments and short descriptions.
 <subsect id="jelExamples">
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples for synthetic columns
-(using <code>tpipe -addcol</code>):
+<p>Here are some examples for defining new columns;
+the expressions below could appear as the <code>&lt;expr&gt;</code> in a
+<code>tpipe</code> <code>-addcol</code> or <code>-sortexpr</code>
+<ref id="tpipeFilters">filter specifier</ref>.
 <dl>
 
 <dt>Average</dt>
@@ -963,7 +1014,8 @@ with their arguments and short descriptions.
 </dl>
 
 and here are some examples of boolean expressions that could be used
-for row selection (using <code>tpipe -select</code>):
+for row selection (appearing in a <code>tpipe</code> <code>-select</code>
+filter specifier)
 
 <dl>
 <dt>Within a numeric range</dt>
@@ -981,7 +1033,7 @@ for row selection (using <code>tpipe -select</code>):
 <dd><p><verbatim>
     index &lt;= 100
 </verbatim>
-(though you could use <code>tpipe -head 1000</code> instead)</p></dd>
+(though you could use <code>tpipe -head 100</code> instead)</p></dd>
 
 <dt>Every tenth row</dt>
 <dd><p><verbatim>
@@ -1024,7 +1076,7 @@ own risk!
 <subhead><title>Expression evaluation</title></subhead>
 
 <p>This note provides a bit more detail for Java programmers on what
-is going on here; only read on if you want to understand how the use
+is going on here; it describes how the use
 of functions in STILTS algebraic expressions relates to normal Java
 code.
 </p>
@@ -1068,8 +1120,8 @@ hence <code>NAME.substring(3)</code> instead of <code>substring(NAME,3)</code>.
 If you know what you're doing, feel free to go ahead and do this.
 However, most of the instance methods you're likely to want to use
 have equivalents in the normal functions listed in the previous section,
-so unless you're a Java programmer or feeling adventurous, you are
-probably best off ignoring this feature.
+so unless you're a Java programmer or feeling adventurous,
+you may be best off ignoring this feature.
 </p>
 
 </subsubsect>
@@ -1107,14 +1159,14 @@ be incomprehensible to non-specialists.
 <li>Make this class available on the application's classpath at runtime
     as described in <ref id="jvmClasspath"/></li>
 <li>Specify the class's name to the application, as the value of the
-    <code>jel.classes</code> or <code>jel.classes.activation</code>
-    system properties (colon-separated if there are several)
+    <code>jel.classes</code>
+    system property (colon-separated if there are several)
     as described in <ref id="sysProperties"/></li>
 </ol>
 </p>
 
 <p>Any public static methods defined in the classes thus specified
-will then available for use.
+will then be available for use.
 They should be defined to take and return the relevant primitive or
 Object types for the function required.
 For instance a class written as follows would define a three-value average:
@@ -1134,7 +1186,8 @@ three existing columns.
 Exactly how you would build this is dependent on your system,
 but it might involve doing something like the following:
 <ol>
-<li>Writing a file called "AuxFuncs.java" containing the above code</li>
+<li>Writing a file called <code>AuxFuncs.java</code> 
+    containing the above code</li>
 <li>Compiling it using a command like "<code>javac AuxFuncs.java</code>"</li>
 <li>Running tpipe using the flags
     "<code>tpipe -Djel.classes=AuxFuncs -classpath .</code>"</li>
@@ -1201,7 +1254,7 @@ a list of its command-line arguments, and some examples are given.
 
 
 <subsect id="tcopy">
-<subhead><title>tcopy</title></subhead>
+<subhead><title>tcopy: &tcopy-purpose;</title></subhead>
 
 <p><code>tcopy</code> is a table copying tool.
 It simply copies a table from one place to another, but since
@@ -1215,8 +1268,9 @@ to any of the supported
 <p><code>tcopy</code> is designed as a drop-in replacement for the old
 <code>tablecopy</code> (<code>uk.ac.starlink.table.TableCopy</code>)
 tool which was supplied with STIL and TOPCAT - it has the same
-arguments and behaviour, but is implemented on top of 
-<ref id="tpipe">tpipe</ref> and will in some cases be more efficient.
+arguments and behaviour as <code>tablecopy</code>, 
+but is implemented on top of <ref id="tpipe"><code>tpipe</code></ref> 
+and will in some cases be more efficient.
 </p>
 
 <subsubsect>
@@ -1240,8 +1294,9 @@ as described in <ref id="invoke"/> using the classname
     listed in <ref id="inFormats"/> - matching is case-insensitive). 
     This flag can be used if you know what format your input table is in. 
     If it's omitted, then an attempt will be made to detect the format 
-    of in-table  automatically, but this cannot always be done 
-    correctly, in which case the program will exit with an error
+    of <code>&lt;in-table&gt;</code>  automatically, 
+    but this cannot always be done correctly, 
+    in which case the program will exit with an error
     explaining which formats were attempted.
     </p></dd>
 
@@ -1307,7 +1362,7 @@ tcopy stars.fits stars.xml
     </p></dd>
 
 <dt><verbatim>
-tcopy -ifmt fits stars.fits -ofmt votable-tabledata
+tcopy -ifmt fits stars.fits -ofmt votable
 </verbatim></dt>
 <dd><p>Does the same as the previous example, but the input and output
     formats have been specified explicitly.
@@ -1337,12 +1392,13 @@ tcopy -classpath /usr/local/jars/pg73jdbc3.jar \
 </verbatim></dt>
 <dd><p>Writes the results of an SQL query on a PostgreSQL database
     to a FITS table.  The classpath is augmented to include the PostgreSQL
-    driver classes, and the driver class is named using the 
+    driver class, and the driver class is named using the 
     <code>jdbc.drivers</code> system property.
-    Use of SQL is a bit fiddly, and there are other ways to perform this
-    setup than on the command line - see <ref id="jdbcConfig"/>.
     If a username or password is required, it will be prompted for on the
     command line.
+    As you can see, using SQL from Java is a bit fiddly, 
+    and there are other ways to perform this
+    setup than on the command line - see <ref id="jdbcConfig"/>.
     </p></dd>
 
 </dl>
@@ -1354,11 +1410,11 @@ tcopy -classpath /usr/local/jars/pg73jdbc3.jar \
 
 
 <subsect id="tpipe">
-<subhead><title>tpipe: Table Pipeline Processor</title></subhead>
+<subhead><title>tpipe: &tpipe-purpose;</title></subhead>
 
 <p><code>tpipe</code> is the main tool in this package
 for general purpose manipulation of tables.
-It is an extremely flexible, and can do the following things
+It is extremely flexible, and can do the following things
 amongst others:
 <ul>
 <li>calculate statistics</li>
@@ -1384,7 +1440,7 @@ using a single Unix command.  You give
 an input specifer which determines the table to be operated on, 
 some filter specifiers which determine the operations which will
 be performed on it, 
-and an output specifier which determine what should happen to the
+and an output specifier which determines what should happen to the
 processed data. 
 The table is streamed through the processing filters in the order 
 in which you've given them, and the processed data are eventually 
@@ -1394,8 +1450,9 @@ the per-column statistics.  In most cases
 the processing is passed through the pipeline a row at a time, 
 meaning that the amount of memory required is small
 (though in some cases, for instance sorting, this is not possible).
-Although a similar effect can be achieved by stringing together
-several <code>tpipe</code> invocations in an actual Unix pipe, 
+Although a similar effect could be achieved by stringing together
+several single-operation <code>tpipe</code> invocations in an 
+actual Unix pipe, 
 with the data flowing between the commands in byte streams using
 one or other of the supported table formats, the way <code>tpipe</code>
 works makes it much more efficient to do all the work within one 
@@ -1404,8 +1461,7 @@ invocation.
 
 <p>The basic form of a <code>tpipe</code> invocation is therefore
 <verbatim><![CDATA[
-    tpipe <input-specifier> <filter-specifiers> <mode-specifier>
-          <other-flags>
+    tpipe <input-specifier> <filter-specifiers> <mode-specifier> <other-flags>
 ]]></verbatim>
 (though in fact these elements can appear in any order and they are
 all optional).
@@ -1415,6 +1471,11 @@ as described in <ref id="invoke"/> using the classname
 </p>
 
 <p>The different sets of arguments are described in the following subsections.
+There are many different flags, some with supplementary arguments,
+which may look daunting.  However, if you make an error in specifying
+them, <code>tpipe</code> will try to print a message which explains
+what has gone wrong, so with a little bit of trial and error it 
+should be possible to make it do what you want.
 </p>
 
 <subsubsubsect>
@@ -1430,17 +1491,27 @@ which is interpreted as follows:
 <dl>
 
 <dt><code><![CDATA[-ifmt <in-format>]]></code></dt>
-<dd><p><code>&lt;in-format&gt;</code> is the name of one of the input formats.
+<dd><p><code>&lt;in-format&gt;</code> is the name of one of the input formats
+    described in <ref id="inFormats"/>.
     If the <code>-ifmt</code> flag is not used, auto format-detection
     is used (OK for FITS and VOTables).  For other formats, such as CSV
     or ASCII, you must name a format using this flag.
+    </p>
+ 
+    <p>If you give an unknown format (e.g. <code>-ifmt help</code>) a list
+    of the formats that are known will be printed.
     </p></dd>
 
 <dt><code>-stream</code></dt>
 <dd><p>This flag can be specified to ensure that the input table is read
     as a stream.  You need the <code>-ifmt</code> flag in this case.
     Depending on the required operations and processing mode, this may fail
-    (sometimes you need to read the input file more than once).
+    (sometimes you need to read the input file more than once) - if so
+    specifying <code>-cache</code> near the start of the filter specifiers
+    may help.
+    It is not normally necessary to specify this flag - in most cases
+    the data will be streamed automatically if that is the best thing
+    to do.
     </p></dd>
 
 <dt><code><![CDATA[<in-table>]]></code></dt>
@@ -1452,13 +1523,9 @@ which is interpreted as follows:
 </dl>
 </p>
 
-<p>If no input specifier is given, the table to be processed is streamed
-from standard input in automatic format detection mode.
-</p>
-
 </subsubsubsect>
 
-<subsubsubsect>
+<subsubsubsect id="tpipeFilters">
 <subhead><title>Filter Specifiers</title></subhead>
 
 <p>The filter specifiers each specify a processing step which
@@ -1482,7 +1549,7 @@ optional or mandatory arguments.
 <dd><p>Sorts the table according to the columns named in
     <code>&lt;colid-list&gt;</code>.  <code>&lt;colid-list&gt;</code>
     is a space-separated list of column identifiers
-    (names, $identifiers or numbers, where 1 is the first column).
+    (names, &column.id.char;IDs or numbers, where 1 is the first column).
     One or more columns may be specified: sorting is done on the
     values in the first-specified field, but if they are equal the
     tie is resolved by looking at the second-specified field, and so on.
@@ -1522,21 +1589,29 @@ optional or mandatory arguments.
     the new row appears after the last row of the table, but you
     can position it using either the <code>-after</code> or
     <code>-before</code> flags.  In either
-    case, identify a column using its name (if it is syntactically
-    a java identifier), or its number (the first column is 1), or
-    its $identifier (<code>$1</code> is the first column).
+    case, a <code>&lt;col-id&gt;</code> is either the column's name 
+    (if it is syntactically a Java identifier),
+    or its number (the first column is 1), or its &column.id.char;ID 
+    (<code>&column.id.char;1</code> is the first column).
     </p></dd>
 
 <dt><code><![CDATA[-keepcols <colid-list>]]></code></dt>
 <dd><p>Output table consists of only those columns named in
     <code>&lt;colid-list&gt;</code>, in that order.
-    <code>&lt;colid-list&gt;</code> is space-separated.  Column identifier
-    syntax is as for <code>-addcol</code> flag.
+    <code>&lt;colid-list&gt;</code> is space-separated.  
+    <code>col-id</code> is either the column's name 
+    (if it is syntactically a Java identifier) or its number 
+    (the first column is 1) or its &column.id.char;ID
+    (<code>&column.id.char;1</code> is the first column).
     </p></dd>
 
 <dt><code><![CDATA[-delcols <colid-list>]]></code></dt>
 <dd><p>Delete named columns.
-    <code>&lt;colid-list&gt;</code> is as for <code>-keepcols</code> flag.
+    <code>&lt;colid-list&gt;</code> is a space-separated list of 
+    identifiers which are either a column's name 
+    (if it is syntactically a Java identifier) or its number 
+    (the first column is 1) or its &column.id.char;ID
+    (<code>&column.id.char;1</code> is the first column).
     </p></dd>
 
 <dt><code>-explode</code></dt>
@@ -1549,6 +1624,8 @@ optional or mandatory arguments.
     point in the pipeline.  This can provide improvements in efficiency
     if there is an expensive step upstream and a step which requires
     more than one read of the data downstream.
+    If you see an error like "Can't re-read data from stream" then
+    adding this flag near the start of the filters might help.
     </p></dd>
 
 <dt><code>-progress</code></dt>
@@ -1572,11 +1649,13 @@ optional or mandatory arguments.
     </p></dd>
 
 <dt><code>-random</code></dt>
-<dd><p>Only useful for debugging.
+<dd><p>Ensures that steps downstream see the table as random access.
+    Only useful for debugging.
     </p></dd>
 
 <dt><code>-sequential</code></dt>
-<dd><p>Only useful for debugging.
+<dd><p>Ensures that steps downstream see the table as sequential access.
+    Only useful for debugging.
     </p></dd>
 
 </dl>
@@ -1599,10 +1678,11 @@ should be specified:
 
 <dt><code><![CDATA[-write [-ofmt <out-format>] [-o <out-table>] ]]></code></dt>
 <dd><p>A new table is written.  If the <code>-o</code> flag is specified,
-    it's written
-    to the named file, otherwise it's streamed to standard output.
-    The output format is named using the <code>-ofmt</code> flag;
-    if not supplied,
+    output is <code>&lt;out-table&gt;</code>;
+    otherwise, or if <code>&lt;out-table&gt;</code> has the special
+    value "<code>-</code>", it's streamed to standard output.
+    The output format is named using the <code>-ofmt</code> flag
+    (see <ref id="outFormats"/>); if not supplied,
     an attempt is made to guess the format from the destination name.
     If neither <code>-o</code> nor <code>-ofmt</code> is specified,
     it's written in formatted text format to standard output
@@ -1640,7 +1720,8 @@ should be specified:
 <dt><code>-topcat</code></dt>
 <dd><p>Displays the output table directly in 
     <webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref>.
-    If a TOPCAT instance is already running on the local host, 
+    If a TOPCAT instance (version 1.6 or later) 
+    is already running on the local host, 
     the table will be opened in that, otherwise a new TOPCAT instance
     will be launched for display.  The latter mode only works if the
     TOPCAT classes are on the class path.
@@ -1747,9 +1828,11 @@ tpipe 2dfgrs_ngp.fits \
     must be available for comparison during the sort.
     Two things are done here to accommodate this fact: first the
     column selection is done before the sort, so that it's only a 3-column
-    table which needs to be available for random access, and 
-    secondly the <code>-disk</code> flag is supplied, which means that
-    temporary disk files will be used for caching table data.
+    table which needs to be available for random access,
+    reducing the temporary storage required.
+    Secondly the <code>-disk</code> flag is supplied, which means that
+    temporary disk files rather than memory 
+    will be used for caching table data.
 </p></dd>
 
 <dt><verbatim>
@@ -1767,7 +1850,7 @@ tpipe survey.fits -select "skyDistance(hmsToRadians(RA),dmsToRadians(DEC), \
 <dd><p>Counts the number of rows within a given 5 arcmin 
     cone of sky in a FITS table.
     The <code>skyDistance</code> function is an expression which
-    calcluates the distance between the position specified in a row
+    calculates the distance between the position specified in a row
     (as given by its RA and DEC columns) and a given point on the sky
     (RA=0.6457 radians, DEC=-0.1190 radians).
     Since <code>skyDistance</code>'s arguments and return value are in
@@ -1802,7 +1885,7 @@ tpipe -classpath lib/drivers/mysql-connector-java.jar \
       -explode \
       -tosql jdbc:mysql://localhost/ASTRO1#TABLEX -user mbt
 </verbatim></dt>
-<dd><p>Writes a FITS table to an SQL table, converting any array columns
+<dd><p>Writes a FITS table to an SQL table, converting array-valued columns
     to scalar ones.
     To make the SQL connection work properly, the classpath is augmented
     to include the path of the MySQL JDBC driver and the
@@ -1834,17 +1917,18 @@ tpipe USNOB.FITS -every 1000000 -stats
 
 
 <subsect id="votcopy">
-<subhead><title>votcopy: VOTable Encoding Converter</title></subhead>
+<subhead><title>votcopy: &votcopy-purpose;</title></subhead>
 
 <p>The VOTable standard provides for three basic encodings
 of the actual data within each table: TABLEDATA, BINARY and FITS.
 TABLEDATA is a pure-XML encoding, which is easy for humans
 to read and write.
-However, it is verbose and not very efficient for transmission,
-for which reason the more compact BINARY format is defined.
+However, it is verbose and not very efficient for transmission
+and processing,
+for which reason the more compact BINARY format has been defined.
 FITS format shares the advantages of BINARY, but is more likely to
 be used where a VOTable is providing metadata 'decoration' for
-existing FITS data.
+an existing FITS table.
 In addition, the BINARY and FITS encodings may carry their data 
 either inline 
 (as base64-encoded text content of a <code>STREAM</code> element)
@@ -1855,8 +1939,8 @@ or externally
 <p>These different formats have their different advantages and
 disadvantages.  Since, to some extent, programmers are humans too,
 much existing VOTable software deals in TABLEDATA format even though
-it's not necessarily the most efficient way to proceed.
-Conversely, you may wish to examine the contents of a BINARY-encoded 
+it may not be the most efficient way to proceed.
+Conversely, you might wish to examine the contents of a BINARY-encoded 
 table without use of any software more specialised than a text editor.
 So there are times when it is desirable to convert from one of
 these encodings to another.
@@ -1868,7 +1952,7 @@ making a minimum of other changes to the VOTable document.
 The processing may result in some changes to lexical details 
 such as whitespace in start tags, but the element structure is not
 modified.  Unlike <code><ref id="tpipe">tpipe</ref></code> it does not impose 
-STIL's model of what constitutes a table on the data in between
+STIL's model of what constitutes a table on the data between
 reading it in and writing it out, so subtleties dependent on
 the exact structure of the VOTable document will not be mangled.  
 The only important changes should be the contents of
@@ -1898,7 +1982,7 @@ compression formats (gzip, Unix compress and bzip2).
 <p>The flags, which may be given in any order, are as follows:
 <dl>
 
-<dt><code>-f[ormat] [tabledata|binary|fits|none]</code></dt>
+<dt><code>-f[ormat] tabledata|binary|fits|none</code></dt>
 <dd><p>Determines the encoding format of the table data in the output
     document.  If <code>none</code> is selected, then the tables will
     be data-less (contain no <code>DATA</code> element), leaving only
@@ -1922,7 +2006,8 @@ compression formats (gzip, Unix compress and bzip2).
 <dt><code>-base &lt;name&gt;</code></dt>
 <dd><p>Determines the name of external output files written when the
     <code>-href</code> flag is specified.  Normally these are given
-    names based on the output file.  But if <code>-base &lt;name&gt;</code>
+    names based on the name of the output file.  
+    But if <code>-base &lt;name&gt;</code>
     is given, then these will given a name based on <code>&lt;name&gt;</code>.
     The <code>-base</code> flag is compulsory if <code>-href</code> is
     given and no output file is specified (output is to standard out),
@@ -1934,6 +2019,9 @@ compression formats (gzip, Unix compress and bzip2).
     prior to being written out.  Usually this doesn't
     provide any benefit, but under some circumstances it is necessary
     when the output is in FITS format.
+    If you attempt to run <code>votcopy</code> without the 
+    <code>-cache</code> flag when it is required,
+    an error message will tell you so.
     </p></dd>
 
 <dt><code>-disk</code></dt>
@@ -1962,7 +2050,7 @@ compression formats (gzip, Unix compress and bzip2).
 <subsubsect>
 <subhead><title>Examples</title></subhead>
 
-<p>Normal use of votcopy is pretty straightforward.
+<p>Normal use of <code>votcopy</code> is pretty straightforward.
 We give here a couple of examples of its input and output.
 </p>
 
@@ -2004,7 +2092,7 @@ two <code>TABLE</code> elements,
 the <code>RESOURCE</code> element of the second one being nested
 in the <code>RESOURCE</code> of the first.  
 Processing this document using a generic table tool such as 
-<code><ref id="tpipe">tpipe</ref></code> would lose this structure.
+<code>tpipe</code> or <code>tcopy</code> would lose this structure.
 </p>
 
 <p>To convert the data encoding to BINARY format, we simply execute
@@ -2065,7 +2153,7 @@ this time.  Executing:
 <verbatim>
     votcopy -f fits -href cat.vot fcat.vot
 </verbatim>
-gives the result
+results in the error message:
 <verbatim>
     Can't stream, table requires multiple reads for metadata
     Try -cache option
@@ -2076,7 +2164,7 @@ this can't be done in a single stream which is how
 <code>votcopy</code> usually works.
 So we follow the offered advice and use the <code>-cache</code> flag:
 <verbatim>
-    votcopy -f fits -href cat.vot fcat.vot
+    votcopy -f fits -href cat.vot fcat.vot -cache
 </verbatim>
 which writes the following to the file <code>fcat.vot</code>:
 <verbatim><![CDATA[
@@ -2094,7 +2182,7 @@ which writes the following to the file <code>fcat.vot</code>:
     </DATA>
     ...
 ]]></verbatim>
-(the unchanged parts of the document are skipped here for brevity).
+(the unchanged parts of the document have been skipped here for brevity).
 The actual data are written in two additional files in the same
 directory as the output file, <code>fcat-1.fits</code> and 
 <code>fcat-2.fits</code>.  These filenames are based on the 
@@ -2110,7 +2198,7 @@ if required.
 </subsect>
 
 <subsect id="votlint">
-<subhead><title>votlint: VOTable Validity Checker</title></subhead>
+<subhead><title>votlint: &votlint-purpose;</title></subhead>
 
 <p>The VOTable standard, while not hugely complicated, has a number
 of subtleties and it's not difficult to produce VOTable documents
@@ -2144,7 +2232,8 @@ It is meant for use in two main scenarios:
 of course goes a long way towards checking a VOTable document for errors
 (though it's clear that many VOTable authors don't even go this far),
 but it by no means does the whole job, simply because the schema/DTD
-languages don't have the facilities to understand the data structure
+specification languages don't have the facilities 
+to understand the data structure
 of a VOTable document.  For instance the VOTable schema 
 will allow any plain text content in a <code>TD</code> element, but whether
 this makes sense in a VOTable depends on the <code>datatype</code>
@@ -2158,15 +2247,21 @@ and giving its location in the document.  What you do with this
 information is then up to you.
 </p>
 
-<p>Usage is very straightforward.  If a non-flag argument is given it is
+<p>Using <code>votlint</code> is very straightforward.  
+If a non-flag argument is given it is
 assumed to be the location (filename or URL) of a VOTable document.
 Otherwise, the document will be read from standard input.
 Error and warning messages will be written on standard error.
 Each message is prefixed with the location at which the error was
-found (usually the line and column are shown, though this is
+found (if possible the line and column are shown, though this is
 dependent on your JVM's default XML parser).
 The processing is SAX-based, so arbitrarily long tables can
 be processed without heavy memory use.
+</p>
+
+<p><code>votlint</code> can't guarantee to pick up every possible
+error in a VOTable document, but it ought to pick up many of the
+most serious errors that are typically made in authoring VOTables.
 </p>
 
 <subsubsect>
@@ -2191,7 +2286,7 @@ compression formats (gzip, Unix compress and bzip2).
 <p>The flags, which may be given in any order, are as follows:
 <dl>
 
-<dt>-novalid</dt>
+<dt><code>-novalid</code></dt>
 <dd><p>Prevents validation against the VOTable DTD.
     Normally, as well as <code>votlint</code>'s own checks on the
     submitted document, it is validated against an appropriate version
@@ -2202,13 +2297,14 @@ compression formats (gzip, Unix compress and bzip2).
     of spurious errors.
     Specifying the <code>-novalid</code> flag prevents this validation
     step so that only <code>votlint</code>'s checks are performed.
-    In this case some, but by no means all violations of the VOTable
+    In this case a few, but by no means all violations of the VOTable
     standard concerning document structure will be picked up.
     </p></dd>
 
-<dt>-version &lt;vers&gt;</dt>
+<dt><code>-version &lt;vers&gt;</code></dt>
 <dd><p>Selects the VOTable version which the input table is supposed to
-    exemplify.  Currently <code>&lt;vers&gt;</code> can be "1.0" or "1.1".
+    exemplify.  Currently <code>&lt;vers&gt;</code> can be 
+    <code>1.0</code> or <code>1.1</code>.
     The version may be noted within the document using the
     <code>version</code> attribute of the document's 
     <code>VOTABLE</code> element; if it is and it conflicts with the
@@ -2230,11 +2326,11 @@ compression formats (gzip, Unix compress and bzip2).
 <code>-novalid</code> flag is supplied, that it validates against the
 1.0 or 1.1 (as appropriate) DTD.  Although VOTable 1.1 is properly
 defined against an XML Schema rather than a DTD, in conjunction with
-the other checks done, the DTD validation is pretty comprehensive
-even for V1.1.  Some of the DTD validity checks are also done by
-votlint internally, so that some validity-type errors may give rise
-to more than one warning.  In general, the program errs on the side
-of verbosity.
+the other checks done, the DTD validation turns out to be pretty comprehensive.
+Some of the DTD validity checks are also done by
+<code>votlint</code> internally, so that some validity-type 
+errors may give rise to more than one warning.  
+In general, the program errs on the side of verbosity.
 </p>
 
 <p>In addition to these checks, the following checks are carried out,
@@ -2261,19 +2357,22 @@ and lead to ERROR reports if violations are found:
 
 <p>Additionally, the following conditions, which are not actually 
 forbidden by the VOTable standard, will generate WARNING reports.
-Some of these may be generated by harmless constructions, but it is
-wise at least to take a look at the constructions which caused them:
+Some of these may result from harmless constructions, but it is
+wise at least to take a look at the input which caused them:
 <ul>
 <li>Wrong number of <code>TD</code> elements in row of <code>TABLEDATA</code>
     table</li>
 <li>Mismatch between VOTable and FITS column metadata for
     FITS data encoding</li>
-<li><code>TABLE</code> with no <code>FIELD</code>s.</li>
+<li><code>TABLE</code> with no <code>FIELD</code> eleements</li>
 <li>Use of deprecated attributes</li>
 <li><code>FIELD</code> or <code>PARAM</code> elements with
     <code>datatype</code> of either
     <code>char</code> or <code>unicodeChar</code>
-    and undeclared <code>arraysize</code></li>
+    and undeclared <code>arraysize</code> -
+    this is a common error which can result in 
+    ignoring all but the first character in <code>TD</code> elements from
+    a column</li>
 <li><code>ref</code> attributes which reference other elements by 
     <code>ID</code> where the reference makes no, or questionable sense
     (e.g. <code>FIELDref</code> references <code>FIELD</code> in a 
@@ -2291,60 +2390,66 @@ wise at least to take a look at the constructions which caused them:
 a (very short) imperfect VOTable document.  If the document looks like
 this:
 <verbatim><![CDATA[
-    <VOTABLE version="1.1">
-      <RESOURCE>
-        <TABLE nrows="2">
-          <FIELD name="Identifier" datatype="char"/>
-          <FIELD name="RA" datatype="double"/>
-          <FIELD name="Dec" datatype="double"/>
-          <DESCRIPTION>A very small table</DESCRIPTION>
-          <DATA>
-            <TABLEDATA>
-              <TR>
-                <TD>Fomalhaut</TD>
-                <TD>344.48</TD>
-                <TD>-29.618</TD>
-                <TD>HD 216956</TD>
-              </TR>
-            </TABLEDATA> 
-          </DATA> 
-        </TABLE>
-      </RESOURCE>
-    </VOTABLE>
+  <VOTABLE version="1.1">
+   <RESOURCE>
+    <TABLE nrows="2">
+     <FIELD name="Identifier" datatype="char"/>
+     <FIELD name="RA" datatype="double"/>
+     <FIELD name="Dec" datatype="double"/>
+     <DESCRIPTION>A very small table</DESCRIPTION>
+     <DATA>
+      <TABLEDATA>
+       <TR>
+        <TD>Fomalhaut</TD>
+        <TD>344.48</TD>
+        <TD>-29.618</TD>
+        <TD>HD 216956</TD>
+       </TR>
+      </TABLEDATA> 
+     </DATA> 
+    </TABLE>
+   </RESOURCE>
+  </VOTABLE>
 ]]></verbatim>
 then the output of a <code>votlint</code> run looks like this:
 <verbatim><![CDATA[
-    INFO (l.4): No arraysize for character, FIELD implies single character
-    ERROR (l.7): Element "TABLE" does not allow "DESCRIPTION" here.
-    WARNING (l.11): Multi-character string in character scalar
-                    - all but first character ignored!
-    WARNING (l.15): Wrong number of TDs in row (expecting 3 found 4)
-    ERROR (l.18): Row count (1) not equal to nrows attribute (2)
+  INFO (l.4): No arraysize for character, FIELD implies single character
+  ERROR (l.7): Element "TABLE" does not allow "DESCRIPTION" here.
+  WARNING (l.11): Characters after first in char scalar ignored (missing arraysize?)
+  WARNING (l.15): Wrong number of TDs in row (expecting 3 found 4)
+  ERROR (l.18): Row count (1) not equal to nrows attribute (2)
 ]]></verbatim>
+Note the warning at line 11 has resulted from the same error as the
+one at line 4 - because the <code>FIELD</code> element has no
+<code>arraysize</code> attribute, <code>arraysize="1"</code> 
+(single character) is assumed,
+while the author almost certainly intended <code>arraysize="*"</code>
+(unknown length string).
 </p>
 
 <p>By examining these warnings you can see what needs to be done to
 fix this table up.  Here is what it should look like:
 <verbatim><![CDATA[
-    <VOTABLE version="1.1">
-      <RESOURCE>
-        <TABLE nrows="1">
-          <DESCRIPTION>A very small table</DESCRIPTION>
-          <FIELD name="Identifier" datatype="char" arraysize="*"/>
-          <FIELD name="RA" datatype="double"/>
-          <FIELD name="Dec" datatype="double"/>
-          <DATA>
-            <TABLEDATA>
-              <TR>
-                <TD>Fomalhaut</TD>
-                <TD>344.48</TD>
-                <TD>-29.618</TD>
-              </TR>
-            </TABLEDATA>
-          </DATA>
-        </TABLE>
-      </RESOURCE>
-    </VOTABLE>
+  <VOTABLE version="1.1">
+   <RESOURCE>
+    <TABLE nrows="1">                                <!-- change row count -->
+     <DESCRIPTION>A very small table</DESCRIPTION>   <!-- move DESCRIPTION -->
+     <FIELD name="Identifier" datatype="char" 
+                              arraysize="*"/>        <!-- add arraysize -->
+     <FIELD name="RA" datatype="double"/>
+     <FIELD name="Dec" datatype="double"/>
+     <DATA>
+      <TABLEDATA>
+       <TR>
+        <TD>Fomalhaut</TD>
+        <TD>344.48</TD>
+        <TD>-29.618</TD>
+       </TR>                                         <!-- remove extra TD -->
+      </TABLEDATA>
+     </DATA>
+    </TABLE>
+   </RESOURCE>
+  </VOTABLE>
 ]]></verbatim>
 When fed this version, <code>votlint</code> gives no warnings.
 </p>
