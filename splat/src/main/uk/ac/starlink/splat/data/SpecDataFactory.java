@@ -30,6 +30,7 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.datanode.nodes.IconFactory;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.ndx.Ndx;
+import uk.ac.starlink.splat.iface.LocalLineIDManager;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
@@ -37,7 +38,6 @@ import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TemporaryFileDataSource;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
-import uk.ac.starlink.splat.iface.LocalLineIDManager;
 import uk.ac.starlink.votable.VOTableBuilder;
 
 /**
@@ -461,6 +461,8 @@ public class SpecDataFactory
         SpecData specData = null;
         if ( impl instanceof LineIDTXTSpecDataImpl ) {
             specData = new LineIDSpecData( (LineIDTXTSpecDataImpl) impl );
+            LocalLineIDManager.getInstance()
+                .addSpectrum( (LineIDSpecData) specData );
         }
         else {
             if ( isRemote ) {
@@ -675,8 +677,10 @@ public class SpecDataFactory
     {
         // Check the actual type to see if this needs special handling.
         if ( specData instanceof LineIDSpecData ) {
-            return new LineIDSpecData
+            LineIDSpecData newSpecData = new LineIDSpecData
                 ( new LineIDMEMSpecDataImpl( shortname, specData ) );
+            LocalLineIDManager.getInstance().addSpectrum( newSpecData );
+            return newSpecData;
         }
         else {
             return new EditableSpecData
