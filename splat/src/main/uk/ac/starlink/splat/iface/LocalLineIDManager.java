@@ -162,6 +162,7 @@ public class LocalLineIDManager
             JMenu lineIDMenu = new JMenu( "Line identifiers" );
             targetMenu.add( lineIDMenu );
             buildMenus( lineIDMenu );
+            addChooser( lineIDMenu );
         }
     }
 
@@ -212,6 +213,15 @@ public class LocalLineIDManager
             props.setName( name );
             item.setAction( props );
         }
+    }
+
+    /**
+     * Add an option to the menus for choosing from a list of names, rather
+     * than specifying one-by-one.
+     */
+    protected void addChooser( JMenu lineIDMenu )
+    {
+        lineIDMenu.add( new JMenuItem( new LineIDChooser() ) );
     }
 
     /**
@@ -389,8 +399,8 @@ public class LocalLineIDManager
             Mapping match = targetFrame.convert( specFrame, "" );
             if ( match != null ) {
                 double[] matchedRange = match.tran1( 2, targetRange, true );
-                if ( Math.min(matchedRange[0],matchedRange[1]) <= range[1] &&
-                     Math.max(matchedRange[0],matchedRange[1]) >= range[0] ) {
+                if ( range[0] <= Math.max(matchedRange[0],matchedRange[1]) &&
+                     range[1] >= Math.min(matchedRange[0],matchedRange[1]) ) {
                     return true;
                 }
             }
@@ -523,6 +533,45 @@ public class LocalLineIDManager
         public void actionPerformed( ActionEvent e )
         {
             loadSpectrum();
+        }
+    }
+
+    //
+    // Class for controlling a dialog showing the full list allowing multiple
+    // selections.
+    //
+    protected class LineIDChooser
+        extends AbstractAction
+    {
+        public LineIDChooser()
+        {
+            super( "Multiple selection..." );
+        }
+
+        /**
+         * Show a dialog of all the known line identifiers. The user can
+         * select a range of these to load.
+         */
+        public void showDialog()
+        {
+            Object[] selection = 
+                SelectListDialog.showDialog( browser, "Line identifiers",
+                                             "Choose line identifiers", 
+                                             propsList.toArray() );
+            if ( selection != null ) {
+                for ( int i = 0; i < selection.length; i++ ) {
+                    ((LineProps)selection[i]).loadSpectrum();
+                }
+            }
+        }
+        
+        //
+        //  Implement the ActionListener interface. This pops up a dialog for
+        //  choosing a set of spectra,
+        //
+        public void actionPerformed( ActionEvent e )
+        {
+            showDialog();
         }
     }
 }
