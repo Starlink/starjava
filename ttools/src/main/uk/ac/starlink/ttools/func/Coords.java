@@ -244,6 +244,24 @@ public class Coords {
     }
 
     /**
+     * Calculates the separation (distance around a great circle) of
+     * two points on the sky in degrees.
+     *
+     * @param  ra1   right ascension of point 1 in degrees
+     * @param  dec1  declination of point 1 in degrees
+     * @param  ra2   right ascension of point 2 in degrees
+     * @param  dec2  declination of point 2 in degrees
+     * @return  angular distance between point 1 and point 2 in degrees
+     */
+    public static double skyDistanceDegrees( double ra1, double dec1,
+                                             double ra2, double dec2 ) {
+        return Math.toDegrees( skyDistance( Math.toRadians( ra1 ),
+                                            Math.toRadians( dec1 ),
+                                            Math.toRadians( ra2 ),
+                                            Math.toRadians( dec2 ) ) );
+    }
+
+    /**
      * Converts hours to radians.
      *
      * @param  hours   angle in hours
