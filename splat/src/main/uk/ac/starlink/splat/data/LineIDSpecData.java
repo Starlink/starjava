@@ -252,9 +252,9 @@ public class LineIDSpecData
                                           (int) (clipLimits[2]-clipLimits[0]),
                                           (int) (clipLimits[1]-clipLimits[3]));
 
-                tmp = astJ.astTran2( plot, clipLimits, true );
-
                 //  Transform limits to physical for positioning of labels.
+                tmp = astJ.astTran2( plot, clipLimits, true );
+                clipLimits = new double[4];
                 clipLimits[0] = tmp[0][0];
                 clipLimits[1] = tmp[1][0];
                 clipLimits[2] = tmp[0][1];
@@ -334,17 +334,17 @@ public class LineIDSpecData
                     //  coordinate. So transform our coordinate to world
                     //  coordinates of the target spectrum, if we're using one.
                     inpos[0] = xPos[j];
-                    inpos[1] = fullLimits[1];
-                    tmp = astJ.astTran2( specDataMapping, inpos, true );
+                    inpos[1] = clipLimits[1];
+                    tmp = astJ.astTran2( specDataMapping, inpos, false );
 
                     //  Find the nearest pair of coordinates to this position.
-                    bound = specData.bound( inpos[0] );
+                    bound = specData.bound( tmp[0][0] );
 
                     //  Pick a data value of one of these coordinates and
                     //  transform that into our units.
                     inpos[0] = tmp[0][0];
                     inpos[1] = ypos[bound[0]];
-                    tmp = astJ.astTran2( specDataMapping, inpos, false );
+                    tmp = astJ.astTran2( specDataMapping, inpos, true );
                     
                     //  Record position of label.
                     xypos[i] = xPos[j];
