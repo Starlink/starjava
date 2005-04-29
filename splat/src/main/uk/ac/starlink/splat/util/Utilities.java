@@ -7,7 +7,6 @@
  */
 package uk.ac.starlink.splat.util;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -237,41 +236,6 @@ public class Utilities
         System.out.println( "Used memory = " + ( rt.totalMemory() -
                                                  rt.freeMemory() ) );
         System.out.println( "Total memory = " + rt.totalMemory() );
-    }
-
-//
-// Spectral colouring routines.
-//
-    private static java.util.Random generator = null;
-    /**
-     *  Get a random colour from a set of a given size.
-     *
-     *  @param res number of expected colours in rainbow (i.e. number
-     *             you want to select from).
-     */
-    public static Color getRandomColour( float res )
-    {
-        if ( generator == null ) {
-            generator = new java.util.Random();
-        }
-        float h = generator.nextFloat() * res;
-        return Color.getHSBColor( h, 1.0F, 1.0F );
-    }
-
-    /**
-     *  Get a rainbow colour as an RGB integer from a set of a given
-     *  size.
-     *
-     *  @param res number of expected colours in rainbow (i.e. number
-     *             you want to select from).
-     */
-    public static int getRandomRGB( float res )
-    {
-        if ( generator == null ) {
-            generator = new java.util.Random();
-        }
-        float h = generator.nextFloat() * res;
-        return Color.HSBtoRGB( h, 1.0F, 1.0F );
     }
 
 //
