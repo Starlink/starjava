@@ -119,6 +119,23 @@ public class SpecDataComp
     private boolean regenerateMappings = true;
 
     /**
+     * Whether line identifier spectra should track the position of the
+     * current spectrum.
+     */
+    private boolean trackerLineIDs = false;
+
+    /**
+     * Whether line identifier spectra should prefix the short name to their
+     * labels.
+     */
+    private boolean prefixLineIDs = false;
+
+    /**
+     * Whether line identifiers should be draw horizontally.
+     */
+    private boolean drawHorizontalLineIDs = false;
+
+    /**
      *  Create a SpecDataComp instance.
      */
     public SpecDataComp()
@@ -196,6 +213,48 @@ public class SpecDataComp
     public boolean isDataUnitsMatching()
     {
         return dataUnitsMatching;
+    }
+
+    /**
+     */
+    public void setTrackerLineIDs( boolean trackerLineIDs )
+    {
+        this.trackerLineIDs = trackerLineIDs;
+    }
+
+    /**
+     */
+    public boolean isTrackerLineIDs()
+    {
+        return trackerLineIDs;
+    }
+
+    /**
+     */
+    public void setPrefixLineIDs( boolean prefixLineIDs )
+    {
+        this.prefixLineIDs = prefixLineIDs;
+    }
+
+    /**
+     */
+    public boolean isPrefixLineIDs()
+    {
+        return prefixLineIDs;
+    }
+
+    /**
+     */
+    public void setDrawHorizontalLineIDs( boolean drawHorizontalLineIDs )
+    {
+        this.drawHorizontalLineIDs = drawHorizontalLineIDs;
+    }
+
+    /**
+     */
+    public boolean isDrawHorizontalLineIDs()
+    {
+        return drawHorizontalLineIDs;
     }
 
     /**
@@ -818,8 +877,17 @@ public class SpecDataComp
 
     /**
      *  Draw all spectra using the graphics context provided.
+     *
+     *  @param grf AST graphics context
+     *  @param plot AST plot
+     *  @param clipLimits limits of area being drawn in world coordinates,
+     *                    when clipping is required. Set to null when no
+     *                    clipping applies.
+     *  @param fullLimits limits of the whole graphics component in world
+     *                    coordinates.
      */
-    public void drawSpec( Grf grf, Plot plot, double[] limits )
+    public void drawSpec( Grf grf, Plot plot, double[] clipLimits,
+                          double[] fullLimits )
         throws SplatException
     {
         if ( spectra.size() == 0 ) {
@@ -830,12 +898,16 @@ public class SpecDataComp
         //  Transform limits into graphics coordinates, if possible. These
         //  apply to all spectra.
         boolean physical = false;
-        double[] localLimits = transformLimits( plot, limits, false );
-        if ( localLimits == null ) {
+        double[] localClipLimits = transformLimits( plot, clipLimits, false );
+        if ( localClipLimits == null ) {
             //  No graphics limits, assume given limits are valid and physical.
-            localLimits = limits;
+            localClipLimits = clipLimits;
             physical = true;
         }
+
+        //  Also transform fullLimits into graphics coordinates.
+        double[] localFullLimits = transformLimits( plot, fullLimits, false );
+
         SpecData spectrum = null;
         FrameSet mapping = null;
 
@@ -856,7 +928,19 @@ public class SpecDataComp
                     localPlot = plot;
                 }
             }
-            spectrum.drawSpec( grf, localPlot, localLimits, physical );
+            if ( spectrum instanceof LineIDSpecData ) {
+                LineIDSpecData lineSpec = (LineIDSpecData) spectrum;
+                if ( trackerLineIDs ) {
+                    lineSpec.setSpecData( currentSpec, mapping );
+                }
+                else {
+                    lineSpec.setSpecData( null, null );
+                }
+                lineSpec.setPrefixShortName( prefixLineIDs );
+                lineSpec.setDrawHorizontal( drawHorizontalLineIDs );
+            }
+            spectrum.drawSpec( grf, localPlot, localClipLimits, physical,
+                               localFullLimits );
         }
     }
 
