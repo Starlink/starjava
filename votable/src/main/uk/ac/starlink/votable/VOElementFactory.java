@@ -66,12 +66,21 @@ public class VOElementFactory {
 
     /**
      * Property which determines the default strictness state.
-     * If its value is set to "true" (case-insensitively), then 
-     * {@link #isStrict} will return true unless set explicitly.
-     * Otherwise, it will return false unless set explicitly.
+     * Its value may be set to "true" or "false" case-insensitively.
+     * If unset, the default will be determined by the value of
+     * {@link #STRICT_DEFAULT}.  The return value of the 
+     * {@link #isStrict} method will be set like this unless strictness
+     * is set explicitly.
      * @see  #setStrict
      */
     public static final String STRICT_PROPERTY = "votable.strict";
+
+    /**
+     * Determines whether the default strictness state is true or false
+     * when the {@link #STRICT_PROPERTY} property has not been set.
+     * True by default.
+     */
+    public static boolean STRICT_DEFAULT = true;
 
     /**
      * Constructs a new VOElementFactory with a given storage policy.
@@ -425,8 +434,9 @@ public class VOElementFactory {
     /**
      * Indicates whether strict interpretation of the VOTable standard is
      * on by default (if it has not been set explicitly).
-     * The return value will be false, unless the system property named
-     * {@link #STRICT_PROPERTY} is set "true" (case-insensitive).
+     * The return value will be the value of the system property
+     * named {@link #STRICT_PROPERTY}, or of {@link #STRICT_DEFAULT}
+     * if that is not set.
      *
      * @return   whether VOTable strict interpretation is on by default
      * @see      #setStrict
@@ -435,7 +445,7 @@ public class VOElementFactory {
         try {
             String strictVal = System.getProperty( STRICT_PROPERTY );
             return ( strictVal == null )
-                 ? false
+                 ? STRICT_DEFAULT
                  : Boolean.valueOf( strictVal ).booleanValue();
         }
         catch ( SecurityException e ) {
