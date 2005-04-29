@@ -177,7 +177,14 @@ public class PipelineTask extends TableTask {
             throw e;
         }
         if ( inLoc_ == null && argList.size() > 0 ) {
-            inLoc_ = (String) argList.remove( 0 );
+            String arg = (String) argList.get( 0 );
+            if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
+                // unknown flag - leave it
+            }
+            else {
+                argList.remove( 0 );
+                inLoc_ = arg;
+            }
         }
     }
 
