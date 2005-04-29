@@ -57,7 +57,7 @@ public class FullXmlDoclet extends XmlDoclet {
 
     protected void startMember( MemberDoc mem, String memType, String memName )
             throws IOException {
-        out( "<dt>" + memName + "</dt>" );
+        out( "<dt><code>" + memName + "</code></dt>" );
         out( "<dd><p>" );
     }
 
