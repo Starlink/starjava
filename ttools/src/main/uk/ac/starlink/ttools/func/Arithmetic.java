@@ -59,7 +59,7 @@ public class Arithmetic {
     }
 
     /**
-     * Returns the absolute value of an <code>int</code> value.
+     * Returns the absolute value of an integer value.
      * If the argument is not negative, the argument is returned.
      * If the argument is negative, the negation of the argument is returned.
      *
@@ -78,7 +78,7 @@ public class Arithmetic {
     }
 
     /**
-     * Returns the absolute value of a <code>double</code> value.
+     * Returns the absolute value of a floating point value.
      * If the argument is not negative, the argument is returned.
      * If the argument is negative, the negation of the argument is returned.
      *
@@ -90,7 +90,7 @@ public class Arithmetic {
     }
 
     /**
-     * Returns the greater of two <code>int</code> values.
+     * Returns the greater of two integer values.
      * If the arguments have the same value, the result is that same value.
      *
      * @param   a   an argument.
@@ -102,7 +102,7 @@ public class Arithmetic {
     }
 
     /**
-     * Returns the greater of two <code>double</code> values.
+     * Returns the greater of two floating point values.
      * If the arguments have the same value, the result is that same
      * value. If either value is blank, then the result is blank.
      *
@@ -115,7 +115,7 @@ public class Arithmetic {
     }
 
     /**
-     * Returns the smaller of two <code>int</code> values.
+     * Returns the smaller of two integer values.
      * If the arguments have the same value, the result is that same value.
      *
      * @param   a   an argument.
@@ -127,7 +127,7 @@ public class Arithmetic {
     }
 
     /**
-     * Returns the smaller of two <code>double</code> values. 
+     * Returns the smaller of two floating point values. 
      * If the arguments have the same value, the result is that same value.
      * If either value is blank, then the result is blank.
      *

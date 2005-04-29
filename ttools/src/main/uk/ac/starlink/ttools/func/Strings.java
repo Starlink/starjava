@@ -230,7 +230,7 @@ public class Strings {
     }
 
     /**
-     * Replaces the first occurrences of a regular expression in a string with
+     * Replaces the first occurrence of a regular expression in a string with
      * a different substring value.
      *
      * @example  
@@ -337,7 +337,7 @@ public class Strings {
     }
 
     /**
-     * Trims whitespace from either end of a string.
+     * Trims whitespace from both ends of a string.
      *
      * @example  <code>trim("  some text  ") = "some text"</code>
      * @example  <code>trim("some     text") = "some     text"</code>
