@@ -142,45 +142,49 @@ public class PlotControlFrame
     /**
      *  Main menubar and various menus.
      */
-    protected JMenuBar menuBar = new JMenuBar();
-    protected JMenu fileMenu = new JMenu();
-    protected JMenu helpMenu = new JMenu();
-    protected JMenuItem drawMenu = new JMenuItem();
-    protected JMenu analysisMenu = new JMenu();
-    protected JMenu optionsMenu = new JMenu();
-    protected JMenu editMenu = new JMenu();
+    protected JCheckBoxMenuItem autoFitPercentiles = null;
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem dataUnitsMatching = null;
+    protected JCheckBoxMenuItem errorbarAutoRanging = null;
+    protected JCheckBoxMenuItem horizontalLineIDs = null;
+    protected JCheckBoxMenuItem prefixLineIDs = null;
+    protected JCheckBoxMenuItem showShortNames = null;
     protected JCheckBoxMenuItem showVisibleOnly = null;
-    protected PlotGraphicsClipMenuItem clipGraphics = null;
+    protected JCheckBoxMenuItem trackerLineIDs = null;
+    protected JMenu analysisMenu = new JMenu();
+    protected JMenu editMenu = new JMenu();
+    protected JMenu fileMenu = new JMenu();
+    protected JMenu helpMenu = new JMenu();
+    protected JMenu lineOptionsMenu = new JMenu();
+    protected JMenu optionsMenu = new JMenu();
+    protected JMenuBar menuBar = new JMenuBar();
+    protected JMenuItem drawMenu = new JMenuItem();
     protected JMenuItem loadAllLineIDs = null;
     protected JMenuItem loadLoadedLineIDs = null;
-    protected JCheckBoxMenuItem errorbarAutoRanging = null;
-    protected JCheckBoxMenuItem autoFitPercentiles = null;
-    protected JCheckBoxMenuItem showShortNames = null;
     protected JMenuItem removeCurrent = null;
+    protected PlotGraphicsClipMenuItem clipGraphics = null;
 
     /**
      *  Toolbar and contents.
      */
-    protected JToolBar toolBar = new JToolBar();
-    protected JPanel toolBarContainer = new JPanel();
     protected JButton configButton = new JButton();
-    protected JButton viewCutterButton = new JButton();
+    protected JButton deblendButton = new JButton();
     protected JButton filterButton = new JButton();
-    protected JButton unitsButton = new JButton();
-    protected JButton regionCutterButton = new JButton();
     protected JButton fitHeightButton = new JButton();
     protected JButton fitWidthButton = new JButton();
     protected JButton helpButton = new JButton();
+    protected JButton interpButton = new JButton();
     protected JButton lineFitButton = new JButton();
     protected JButton pannerButton = new JButton();
     protected JButton polyFitButton = new JButton();
-    protected JButton interpButton = new JButton();
-    protected JButton deblendButton = new JButton();
     protected JButton printButton = new JButton();
-    protected JButton printPostscriptButton = new JButton();
     protected JButton printJPEGButton = new JButton();
+    protected JButton printPostscriptButton = new JButton();
+    protected JButton regionCutterButton = new JButton();
+    protected JButton unitsButton = new JButton();
+    protected JButton viewCutterButton = new JButton();
+    protected JPanel toolBarContainer = new JPanel();
+    protected JToolBar toolBar = new JToolBar();
 
     /**
      * File chooser used for postscript files.
@@ -563,17 +567,7 @@ public class PlotControlFrame
         state = prefs.getBoolean( "PlotControlFrame_clipgraphics", false );
         clipGraphics.setSelected( state );
 
-        //  Load line identifiers into the plot. This comes in two flavours
-        //  load all line identifiers and only those that are already
-        //  available in the global list.
-        loadAllLineIDs = new JMenuItem( "Load all matching line identifiers" );
-        optionsMenu.add( loadAllLineIDs );
-        loadAllLineIDs.addActionListener( this );
-
-        loadLoadedLineIDs = new JMenuItem
-            ( "Load all matching pre-loaded line identifiers" );
-        optionsMenu.add( loadLoadedLineIDs );
-        loadLoadedLineIDs.addActionListener( this );
+        setupLineOptionsMenu();
 
         //  Include spacing for error bars in the auto ranging.
         errorbarAutoRanging = new JCheckBoxMenuItem("Error bar auto-ranging");
@@ -604,16 +598,58 @@ public class PlotControlFrame
     }
 
     /**
+     * Set up the line identifier options menu.
+     */
+    protected void setupLineOptionsMenu()
+    {
+        lineOptionsMenu.setText( "Line identifiers" );
+        optionsMenu.add( lineOptionsMenu );
+
+        //  Load line identifiers into the plot. This comes in two flavours
+        //  load all line identifiers and only those that are already
+        //  available in the global list.
+        loadAllLineIDs = new JMenuItem( "Load all matching line identifiers" );
+        lineOptionsMenu.add( loadAllLineIDs );
+        loadAllLineIDs.addActionListener( this );
+
+        loadLoadedLineIDs = new JMenuItem
+            ( "Load all matching pre-loaded line identifiers" );
+        lineOptionsMenu.add( loadLoadedLineIDs );
+        loadLoadedLineIDs.addActionListener( this );
+
+        //  Make labels track the position of the current spectrum.
+        trackerLineIDs =
+            new JCheckBoxMenuItem( "Positions track current spectrum" );
+        lineOptionsMenu.add( trackerLineIDs );
+        trackerLineIDs.addItemListener( this );
+        boolean state = prefs.getBoolean( "PlotControlFrame_trackerlineids",
+                                          false );
+        trackerLineIDs.setSelected( state );
+
+        //  Prefix labels with the short name.
+        prefixLineIDs = new JCheckBoxMenuItem( "Prefix name to labels" );
+        lineOptionsMenu.add( prefixLineIDs );
+        prefixLineIDs.addItemListener( this );
+        state = prefs.getBoolean( "PlotControlFrame_prefixlineids", false );
+        prefixLineIDs.setSelected( state );
+
+        //  Draw labels horizontally
+        horizontalLineIDs = new JCheckBoxMenuItem( "Draw horizontal labels" );
+        lineOptionsMenu.add( horizontalLineIDs );
+        horizontalLineIDs.addItemListener( this );
+        state = prefs.getBoolean("PlotControlFrame_horizontallineids", false);
+        horizontalLineIDs.setSelected( state );
+    }
+
+    /**
      * Configure the Graphics menu.
      */
     protected void setupGraphicsMenu()
     {
         DrawActions drawActions = plot.getPlot().getDrawActions();
-        AstFigureStore store =
-            new AstFigureStore( (AstPlotSource) plot.getPlot(),
-                                Utilities.getApplicationName(),
-                                "FigureStore.xml",
-                                "drawnfigures" );
+        AstFigureStore store = new AstFigureStore
+            ( (AstPlotSource) plot.getPlot(), Utilities.getApplicationName(),
+              "FigureStore.xml", "drawnfigures" );
         drawActions.setFigureStore( store );
         menuBar.add( new DrawGraphicsMenu( drawActions ) );
     }
@@ -1484,16 +1520,42 @@ public class PlotControlFrame
             plot.updatePlot();
             return;
         }
+
         if ( source.equals( autoFitPercentiles ) ) {
             boolean state = autoFitPercentiles.isSelected();
             prefs.putBoolean( "PlotControlFrame_autofitpercentiles", state );
             plot.setAutoFitPercentiles( state );
             return;
         }
+
         if ( source.equals( showShortNames ) ) {
             boolean state = showShortNames.isSelected();
             prefs.putBoolean( "PlotControlFrame_showshortnames", state );
             LineRenderer.setShowShortNames( state );
+            return;
+        }
+
+        if ( source.equals( trackerLineIDs ) ) {
+            boolean state = trackerLineIDs.isSelected();
+            prefs.putBoolean( "PlotControlFrame_trackerlineids", state );
+            specDataComp.setTrackerLineIDs( state );
+            plot.updatePlot();
+            return;
+        }
+
+        if ( source.equals( prefixLineIDs ) ) {
+            boolean state = prefixLineIDs.isSelected();
+            prefs.putBoolean( "PlotControlFrame_prefixlineids", state );
+            specDataComp.setPrefixLineIDs( state );
+            plot.updatePlot();
+            return;
+        }
+
+        if ( source.equals( horizontalLineIDs ) ) {
+            boolean state = horizontalLineIDs.isSelected();
+            prefs.putBoolean( "PlotControlFrame_horizontallineids", state );
+            specDataComp.setDrawHorizontalLineIDs( state );
+            plot.updatePlot();
             return;
         }
     }
