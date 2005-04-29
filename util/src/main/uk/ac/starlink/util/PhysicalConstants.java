@@ -117,7 +117,7 @@ public class PhysicalConstants
     public static final double MASS_OF_EARTH = 5.972E24;
 
     /** Mass of Jupiter - Kg */
-    public static final double MASS_OF_JUPITER = 318.0 * MASSOFEARTH;
+    public static final double MASS_OF_JUPITER = 318.0 * MASS_OF_EARTH;
 
     /** Solar constant - kW.m^-1 */
     public static final double SOLAR_CONSTANT = 1.37;
