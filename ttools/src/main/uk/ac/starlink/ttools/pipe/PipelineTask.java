@@ -14,6 +14,7 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.ArgException;
+import uk.ac.starlink.ttools.StreamRereadException;
 import uk.ac.starlink.ttools.StreamRowStore;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
@@ -249,7 +250,14 @@ public class PipelineTask extends TableTask {
     }
 
     public void execute() throws IOException {
-        mode_.process( getInputTable() );
+        try {
+            mode_.process( getInputTable() );
+        }
+        catch ( StreamRereadException e ) {
+            String msg = e.getMessage() + " - try -cache flag upstream?";
+            throw (StreamRereadException) new StreamRereadException( msg )
+                                         .initCause( e );
+        }
     }
 
     public String getHelp() {
