@@ -109,6 +109,19 @@ public class LocalLineIDManager
     }
 
     /**
+     * Add a line identifier spectrum. Used when spectra not in the main
+     * repository are added.
+     * 
+     * @param specData the new line identifier spectrum.
+     */
+    public void addSpectrum( LineIDSpecData specData )
+        throws SplatException
+    {
+        LineProps props = new LineProps( specData );
+        propsList.add( props );
+    }
+
+    /**
      * The local identifiers are stored in a special jar file which should be
      * on the CLASSPATH. We need these in a jar file so that they can be
      * downloaded for webstart, but once in a jar file it's difficult to get
@@ -306,6 +319,12 @@ public class LocalLineIDManager
             process( description );
         }
 
+        public LineProps( LineIDSpecData specData )
+            throws SplatException
+        {
+            process( specData );
+        }
+
         private void process( String description )
             throws SplatException
         {
@@ -320,6 +339,19 @@ public class LocalLineIDManager
                 throw new SplatException( "Description file is corrupt" );
             }
         }
+
+        private void process( LineIDSpecData specData )
+        {
+            external = true;
+            this.specData = specData;
+            setFullName( specData.getFullName() );
+            setName( specData.getShortName() );
+            setRange( specData.getRange() );
+            FrameSet frameSet = specData.getFrameSet();
+            setSystemAndUnits( frameSet.getC( "System(1)" ), 
+                               frameSet.getC( "unit(1)" ) );
+        }
+        
 
         public void setName( String name )
         {
@@ -358,6 +390,12 @@ public class LocalLineIDManager
                 logger.log( Level.INFO, e.getMessage(), e );
                 range[1] = 0.0;
             }
+        }
+
+        public void setRange( double[] range )
+        {
+            this.range[0] = range[0];
+            this.range[1] = range[1];
         }
 
         public void setSystemAndUnits( String system, String units )
