@@ -2808,8 +2808,11 @@ important bits of its functionality:
     (GNU) for algebraic expression evaluation</li>
 <li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
     (Ptolemy) for plotting</li>
+<li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
+            >PixTools</webref>
+    (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
 <li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
-    (Sloan Digital Sky Survey) for celestial sphere row matching</li>
+    (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
 <li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
@@ -3236,6 +3239,7 @@ introduced since the last version:
 <dt>Version 1.6</dt>
 <dd><p><ul>
     <li>SOAP services</li>
+    <li>HEALPix</li>
  </ul></p></dd>
 
 </dl>
