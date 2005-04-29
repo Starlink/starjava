@@ -71,6 +71,7 @@ import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
+import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
@@ -1041,7 +1042,7 @@ public class SplatBrowser
         int size = globalList.specCount();
         int rgb;
         for ( int i = 0; i < size; i++ ) {
-            rgb = Utilities.getRandomRGB( (float) size );
+            rgb = MathUtils.getRandomRGB( (float) size );
             globalList.setKnownNumberProperty(
                              (SpecData) globalList.getSpectrum( i ),
                              SpecData.LINE_COLOUR,
@@ -1669,7 +1670,7 @@ public class SplatBrowser
             for ( int i = 0; i < moreSpectra.length; i++ ) {
                 if ( colourAsLoaded ) {
                     moreSpectra[i].setLineColour
-                        ( Utilities.getRandomRGB( COLOUR_SAMPLE ) );
+                        ( MathUtils.getRandomRGB( COLOUR_SAMPLE ) );
                 }
                 globalList.add( moreSpectra[i] );
             }
@@ -1677,7 +1678,7 @@ public class SplatBrowser
         else {
             if ( colourAsLoaded ) {
                 spectrum.setLineColour
-                    ( Utilities.getRandomRGB( COLOUR_SAMPLE ) );
+                    ( MathUtils.getRandomRGB( COLOUR_SAMPLE ) );
             }
             globalList.add( spectrum );
         }

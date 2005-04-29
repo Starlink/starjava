@@ -36,7 +36,6 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
-
 /**
  * Modify or generate a new system of coordinates for a
  * spectrum. Various options are available, including a linear
@@ -81,16 +80,16 @@ public class CoordinateGenerator
     // Known expression templates.
     static final String[][] templates = {
         { "Redshift (z)", "coord*(z+1)",
-                      "z", "0.0" },
+                          "z", "0.0" },
         { "Redshift (v km/s)", "coord*(1.0+v/c)",
                                "c", "299792.458",
                                "v", "0.0" },
         { "Blueshift (z)", "coord/(z+1)",
-                       "z", "0.0" },
+                           "z", "0.0" },
         { "Blueshift (v km/s)", "coord/(1.0+v/c)",
                                 "c", "299792.458",
                                 "v", "0.0" },
-         { "Log (natural)", "log(coord)" },
+        { "Log (natural)", "log(coord)" },
         { "Log (base 10)", "log10(coord)" },
     };
 
