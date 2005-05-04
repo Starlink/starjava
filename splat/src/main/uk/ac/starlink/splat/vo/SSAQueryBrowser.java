@@ -601,8 +601,20 @@ public class SSAQueryBrowser
                 progressPanel.logMessage( "Querying: " +
                                           ssaQuery.getDescription() );
                 starTable = factory.makeStarTable( url );
-                ssaQuery.setStarTable( starTable );
-                progressPanel.logMessage( "Done" );
+
+                //  Check parameter QUERY_STATUS, this should be set to OK
+                //  when the query
+                String queryOK = starTable
+                    .getParameterByName( "QUERY_STATUS" )
+                    .getValueAsString( 100 );
+                if ( "OK".equalsIgnoreCase( queryOK ) ) {
+                    ssaQuery.setStarTable( starTable );
+                    progressPanel.logMessage( "Done" );
+                }
+                else {
+                    //  Some problem with the service.
+                    progressPanel.logMessage( "Query failed: " + queryOK );
+                }
 
                 //  Dump query results as VOTables.
                 //uk.ac.starlink.table.StarTableOutput sto =
