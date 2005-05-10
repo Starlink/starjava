@@ -466,9 +466,15 @@ public class PolyFitFrame
             fitter = new PolynomialFitter( getDegree(), newX, newY, weights );
         }
 
-        //  Create the positions and display them as a spectrum in the
-        //  plot.
+        //  Create the positions.
         double[] fitY = fitter.evalYDataArray( oldX );
+
+        //  Check for extreme outliers. These happen when the fit isn't
+        //  realistic. We arbitrarily make these some multiple of the 
+        //  limits of the spectrum we're fitting.
+        clipYData( fitY, currentSpectrum.getRange() );
+
+        //  And finally display these as a new spectrum.
         String name = "Polynomial Fit: " + (++fitCounter);
         displayFit( name, currentSpectrum, fitY, null );
 
@@ -592,6 +598,25 @@ public class PolyFitFrame
             catch (Exception e) {
                 // Do nothing.
                 e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Clip a data values array for extreme outliers. This is a bit arbitrary
+     * and just looks for values that are 10 times the range. Outliers like
+     * these result from a very bad fit, especially when extrapolating.
+     */
+    private void clipYData( double[] data, double[] limits )
+    {
+        int size = data.length;
+        double range = 10.0 * Math.abs( limits[3] - limits[2] );
+        double low = limits[2] - range;
+        double high = limits[3] + range;
+
+        for ( int i = 0; i < size; i++ ) {
+            if ( data[i] < low || data[i] > high ) {
+                data[i] = SpecData.BAD;
             }
         }
     }
