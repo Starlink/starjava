@@ -538,7 +538,7 @@ public class DeblendFrame
         if ( ranges.length == 0 ) {
             ranges = new int[2];
             ranges[0] = 0;
-            ranges[1] = specXData.length;
+            ranges[1] = specXData.length - 1;
         }
 
         // Determine the background to be used. This can be another spectrum
@@ -655,8 +655,8 @@ public class DeblendFrame
             n = 0;
             for ( int i = 0; i < ranges.length; i += 2 ) {
                 low = ranges[i];
-                high = Math.min( ranges[i+1], specXData.length );
-                for ( int j = low; j < high; j++ ) {
+                high = Math.min( ranges[i+1], specXData.length - 1 );
+                for ( int j = low; j <= high; j++ ) {
                     if ( specXData[j] != SpecData.BAD &&
                          specYData[j] != SpecData.BAD &&
                          backYData[j] != SpecData.BAD ) {
@@ -673,8 +673,8 @@ public class DeblendFrame
 
                 for ( int i = 0; i < ranges.length; i += 2 ) {
                     low = ranges[i];
-                    high = Math.min( ranges[i+1], specXData.length );
-                    for ( int j = low; j < high; j++ ) {
+                    high = Math.min( ranges[i+1], specXData.length - 1 );
+                    for ( int j = low; j <= high; j++ ) {
                         if ( specXData[j] != SpecData.BAD &&
                              specYData[j] != SpecData.BAD &&
                              backYData[j] != SpecData.BAD ) {
@@ -695,8 +695,8 @@ public class DeblendFrame
             n = 0;
             for ( int i = 0; i < ranges.length; i += 2 ) {
                 low = ranges[i];
-                high = Math.min( ranges[i+1], specXData.length );
-                for ( int j = low; j < high; j++ ) {
+                high = Math.min( ranges[i+1], specXData.length - 1 );
+                for ( int j = low; j <= high; j++ ) {
                     if ( specXData[j] != SpecData.BAD &&
                          specYData[j] != SpecData.BAD &&
                          backYData[j] != SpecData.BAD ) {
@@ -711,8 +711,8 @@ public class DeblendFrame
                 n = 0;
                 for ( int i = 0; i < ranges.length; i += 2 ) {
                     low = ranges[i];
-                    high = Math.min( ranges[i+1], specXData.length );
-                    for ( int j = low; j < high; j++ ) {
+                    high = Math.min( ranges[i+1], specXData.length - 1 );
+                    for ( int j = low; j <= high; j++ ) {
                         if ( specXData[j] != SpecData.BAD &&
                              specYData[j] != SpecData.BAD &&
                              backYData[j] != SpecData.BAD ) {
@@ -733,8 +733,8 @@ public class DeblendFrame
             n = 0;
             for ( int i = 0; i < ranges.length; i += 2 ) {
                 low = ranges[i];
-                high = Math.min( ranges[i+1], specXData.length );
-                for ( int j = low; j < high; j++ ) {
+                high = Math.min( ranges[i+1], specXData.length - 1 );
+                for ( int j = low; j <= high; j++ ) {
                     if ( specXData[j] != SpecData.BAD &&
                          specYData[j] != SpecData.BAD ) {
                         n++;
@@ -748,8 +748,8 @@ public class DeblendFrame
                 n = 0;
                 for ( int i = 0; i < ranges.length; i += 2 ) {
                     low = ranges[i];
-                    high = Math.min( ranges[i+1], specXData.length );
-                    for ( int j = low; j < high; j++ ) {
+                    high = Math.min( ranges[i+1], specXData.length - 1 );
+                    for ( int j = low; j <= high; j++ ) {
                         if ( specXData[j] != SpecData.BAD &&
                              specYData[j] != SpecData.BAD ) {
 
@@ -769,8 +769,8 @@ public class DeblendFrame
             n = 0;
             for ( int i = 0; i < ranges.length; i += 2 ) {
                 low = ranges[i];
-                high = Math.min( ranges[i+1], specXData.length );
-                for ( int j = low; j < high; j++ ) {
+                high = Math.min( ranges[i+1], specXData.length - 1 );
+                for ( int j = low; j <= high; j++ ) {
                     if ( specXData[j] != SpecData.BAD &&
                          specYData[j] != SpecData.BAD ) {
                         n++;
@@ -783,8 +783,8 @@ public class DeblendFrame
                 n = 0;
                 for ( int i = 0; i < ranges.length; i += 2 ) {
                     low = ranges[i];
-                    high = Math.min( ranges[i+1], specXData.length );
-                    for ( int j = low; j < high; j++ ) {
+                    high = Math.min( ranges[i+1], specXData.length - 1 );
+                    for ( int j = low; j <= high; j++ ) {
                         if ( specXData[j] != SpecData.BAD &&
                              specYData[j] != SpecData.BAD ) {
 
