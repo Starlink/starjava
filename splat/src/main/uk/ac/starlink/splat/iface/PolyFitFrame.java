@@ -413,8 +413,8 @@ public class PolyFitFrame
         int n = 0;
         for ( int i = 0; i < ranges.length; i += 2 ) {
             int low = ranges[i];
-            int high = Math.min( ranges[i+1], oldX.length );
-            for ( int j = low; j < high; j++ ) {
+            int high = Math.min( ranges[i+1], oldX.length - 1 );
+            for ( int j = low; j <= high; j++ ) {
                 if ( oldX[j] != SpecData.BAD && oldY[j] != SpecData.BAD ) {
                     n++;
                 }
@@ -431,8 +431,9 @@ public class PolyFitFrame
         n = 0;
         if ( weights == null ) {
             for ( int i = 0; i < ranges.length; i += 2 ) {
-                for ( int j = ranges[i];
-                  j < Math.min(ranges[i+1], oldX.length); j++ ) {
+                int low = ranges[i];
+                int high = Math.min( ranges[i+1], oldX.length - 1 );
+                for ( int j = low; j <= high; j++ ) {
                     if ( oldX[j] != SpecData.BAD && oldY[j] != SpecData.BAD ) {
                         newX[n] = oldX[j];
                         newY[n] = oldY[j];
@@ -443,8 +444,9 @@ public class PolyFitFrame
         }
         else {
             for ( int i = 0; i < ranges.length; i += 2 ) {
-                for ( int j = ranges[i];
-                  j < Math.min(ranges[i+1], oldX.length); j++ ) {
+               int low = ranges[i];
+               int high = Math.min( ranges[i+1], oldX.length - 1 );
+               for ( int j = low; j <= high; j++ ) {
                     if ( oldX[j] != SpecData.BAD && oldY[j] != SpecData.BAD ) {
                         newX[n] = oldX[j];
                         newY[n] = oldY[j];
