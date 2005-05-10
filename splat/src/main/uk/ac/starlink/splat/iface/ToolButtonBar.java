@@ -19,9 +19,9 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JToolBar;
 import javax.swing.JToolBar;
 
 import org.tigris.toolbar.toolbutton.PopupToolBoxButton;
@@ -122,6 +122,19 @@ public class ToolButtonBar
         updateToolBar();
     }
 
+    /**
+     * Add glue component to the toolbar. Everything added after this will be
+     * right/bottom justified.
+     */
+    public void addGlue()
+    {
+        ComponentAction action = new ComponentAction( Box.createGlue() );
+
+        //  Note no room made for it to be displayed.
+        add( action );
+        display--;
+    }
+
     //  Create a toolbar for the current state and add it to the container.
     private void createToolBar( String name, int orientation )
     {
@@ -187,6 +200,9 @@ public class ToolButtonBar
             if ( a == null ) {
                 toolBar.addSeparator();
             }
+            else if ( a instanceof ComponentAction ) {
+                toolBar.add( ((ComponentAction)a).getComponent() );
+            }
             else {
                 toolBar.add( a );
             }
@@ -196,8 +212,12 @@ public class ToolButtonBar
         if ( display < actions.size() ) {
             int subitems = actions.size() - display;
             Action[] subActions = new Action[subitems];
+            Action thisAction;
             for ( int j = 0, i = display; j < subitems; j++, i++ ) {
-                subActions[j] = (Action) actions.get( i );
+                thisAction = (Action) actions.get( i );
+                if ( ! ( thisAction instanceof ComponentAction ) ) {
+                    subActions[j] = thisAction;
+                }
             }
             JButton button = buildPopupToolBoxButton( subActions );
             toolBar.add( button );
@@ -238,4 +258,23 @@ public class ToolButtonBar
         }
     }
 
+    //  Action for a Component of some kind (glue).
+    class ComponentAction
+        extends AbstractAction
+    {
+        private Component component = null;
+        public ComponentAction( Component component )
+        {
+            super( "Component" );
+            this.component = component;
+        }
+        public void actionPerformed( ActionEvent e )
+        {
+            //  Do nothing.
+        }
+        public Component getComponent()
+        {
+            return component;
+        }
+    }
 }
