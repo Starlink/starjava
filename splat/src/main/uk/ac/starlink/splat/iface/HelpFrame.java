@@ -13,6 +13,7 @@ import java.awt.Component;
 import java.net.URL;
 
 import javax.help.HelpSetException;
+import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -74,9 +75,16 @@ public class HelpFrame
 
         //  Need to add to the toolbar by hand.
         if ( toolBar != null ) {
-            Component c = menu.getMenuComponent( menu.getItemCount() - 1 );
-            if ( c!= null && c instanceof JMenuItem ) {
-                toolBar.add( ((JMenuItem)c).getAction() );
+            try {
+                Component c = menu.getMenuComponent( menu.getItemCount() - 2 );
+                if ( c!= null && c instanceof JMenuItem ) {
+                    Action action = ((JMenuItem)c).getAction();
+                    toolBar.add( action );
+                    action.putValue( Action.SHORT_DESCRIPTION, "Help on window" );
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
             }
         }
         return menu;
