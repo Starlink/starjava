@@ -34,7 +34,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JToolBar;
 
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.gui.AstFigureStore;
@@ -165,26 +164,9 @@ public class PlotControlFrame
     protected PlotGraphicsClipMenuItem clipGraphics = null;
 
     /**
-     *  Toolbar and contents.
+     *  Toolbar.
      */
-    protected JButton configButton = new JButton();
-    protected JButton deblendButton = new JButton();
-    protected JButton filterButton = new JButton();
-    protected JButton fitHeightButton = new JButton();
-    protected JButton fitWidthButton = new JButton();
-    protected JButton helpButton = new JButton();
-    protected JButton interpButton = new JButton();
-    protected JButton lineFitButton = new JButton();
-    protected JButton pannerButton = new JButton();
-    protected JButton polyFitButton = new JButton();
-    protected JButton printButton = new JButton();
-    protected JButton printJPEGButton = new JButton();
-    protected JButton printPostscriptButton = new JButton();
-    protected JButton regionCutterButton = new JButton();
-    protected JButton unitsButton = new JButton();
-    protected JButton viewCutterButton = new JButton();
-    protected JPanel toolBarContainer = new JPanel();
-    protected JToolBar toolBar = new JToolBar();
+    protected ToolButtonBar toolBar = null;
 
     /**
      * File chooser used for postscript files.
@@ -278,7 +260,6 @@ public class PlotControlFrame
         setTitle( Utilities.getTitle( title ) );
         setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         getContentPane().add( plot, BorderLayout.CENTER );
-        getContentPane().add( toolBarContainer, BorderLayout.NORTH );
         configureMenus();
 
         Utilities.setFrameSize( (JFrame) this, 0, 0, prefs,
@@ -306,10 +287,8 @@ public class PlotControlFrame
         //  Add the menuBar.
         setJMenuBar( menuBar );
 
-        //  Add the toolbar to a container. Need extra component for
-        //  sensible float behaviour.
-        toolBarContainer.setLayout( new BorderLayout() );
-        toolBarContainer.add( toolBar );
+        //  Add the toolbar to a container.
+        toolBar = new ToolButtonBar( getContentPane() );
 
         //  Add the File menu.
         setupFileMenu();
@@ -356,60 +335,62 @@ public class PlotControlFrame
             ImageHolder.class.getResource( "panner.gif" ) );
 
         //  Add action to print figure.
-        PrintAction printAction  = new PrintAction( "Print", printImage );
+        PrintAction printAction  = 
+            new PrintAction( "Print", printImage,
+                             "Print display to local printer or file" );
         fileMenu.add( printAction );
-        printButton = toolBar.add( printAction );
-        printButton.setToolTipText( "Print display to local printer or file" );
+        toolBar.add( printAction );
 
         //  Add action to print figure to postscript file.
         PrintPostscriptAction printPostscriptAction  =
             new PrintPostscriptAction( "Print to postscript",
-                                       printPostscriptImage );
+                                       printPostscriptImage,
+                                       "Print display to postscript file" );
         fileMenu.add( printPostscriptAction );
-        printPostscriptButton = toolBar.add( printPostscriptAction );
-        printPostscriptButton.setToolTipText
-            ( "Print display to postscript file" );
+        toolBar.add( printPostscriptAction );
 
         //  Add action to print figure to a JPEG.
         PrintJPEGAction printJPEGAction  =
-            new PrintJPEGAction( "Print to JPEG", printJPEGImage );
+            new PrintJPEGAction( "Print to JPEG", printJPEGImage,
+                                 "Print display to a JPEG file" );
         fileMenu.add( printJPEGAction );
-        printJPEGButton = toolBar.add( printJPEGAction );
-        printJPEGButton.setToolTipText( "Print display to a JPEG file" );
+        toolBar.add( printJPEGAction );
 
         //  Add action to fit plot to window width.
-        FitWidthAction fitWidthAction  = new FitWidthAction( "Fit width",
-                                                             fitWidthImage );
+        FitWidthAction fitWidthAction  = 
+            new FitWidthAction( "Fit width",
+                                fitWidthImage,
+                                "Scale spectrum to fit visible width" );
         fileMenu.add( fitWidthAction );
-        fitWidthButton = toolBar.add( fitWidthAction );
-        fitWidthButton.setToolTipText( "Scale spectrum to fit visible width" );
+        toolBar.add( fitWidthAction );
 
         //  Add action to fit plot to window height.
-        FitHeightAction fitHeightAction  = new FitHeightAction("Fit height",
-							       fitHeightImage);
+        FitHeightAction fitHeightAction = 
+            new FitHeightAction( "Fit height",
+                                 fitHeightImage,
+                                 "Scale spectrum to fit visible height" );
         fileMenu.add( fitHeightAction );
-        fitHeightButton = toolBar.add( fitHeightAction );
-        fitHeightButton.setToolTipText(
-                        "Scale spectrum to fit visible height" );
+        toolBar.add( fitHeightAction );
 
         //  Add action to enable the panner.
-        PannerAction pannerAction  = new PannerAction( "Show panner",
-                                                       pannerImage );
+        PannerAction pannerAction  = 
+            new PannerAction( "Show panner",
+                              pannerImage,
+                "Show panner window for controlling scroll position " );
         fileMenu.add( pannerAction );
-        pannerButton = toolBar.add( pannerAction );
-        pannerButton.setToolTipText(
-                     "Show panner window for controlling scroll position " );
+        toolBar.add( pannerAction );
 
         //  Add action to configure plot.
-        ConfigAction configAction  = new ConfigAction( "Configure",
-                                                       configImage );
+        ConfigAction configAction  = 
+            new ConfigAction( "Configure",
+                              configImage,
+                              "Configure plot presentation attributes" );
         fileMenu.add( configAction );
-        configButton = toolBar.add( configAction );
-        configButton.setToolTipText(
-                     "Configure plot presentation attributes" );
+        toolBar.add( configAction );
 
         //  Add an action to close the window.
-        CloseAction closeAction = new CloseAction( "Close", closeImage );
+        CloseAction closeAction = new CloseAction( "Close", closeImage,
+                                                   "Close window" );
         fileMenu.add( closeAction );
     }
 
@@ -441,69 +422,63 @@ public class PlotControlFrame
         //  Add action to enable to cut out the current view of
         //  current spectrum.
         ViewCutterAction viewCutterAction =
-            new ViewCutterAction( "Cut out view", cutterImage );
+            new ViewCutterAction( "Cut out view", cutterImage,
+                "Cut out what you can see of the current spectrum" );
         analysisMenu.add( viewCutterAction );
-        viewCutterButton = toolBar.add( viewCutterAction );
-        viewCutterButton.setToolTipText(
-                     "Cut out what you can see of the current spectrum" );
+        toolBar.add( viewCutterAction );
 
         //  Add action start the cutter tool.
         RegionCutterAction regionCutterAction =
             new RegionCutterAction( "Cut regions from spectrum",
-                                    regionCutterImage );
+                                    regionCutterImage,
+                "Cut out selected regions of the current spectrum" );
         analysisMenu.add( regionCutterAction );
-        regionCutterButton = toolBar.add( regionCutterAction );
-        regionCutterButton.setToolTipText(
-                     "Cut out selected regions of the current spectrum" );
+        toolBar.add( regionCutterAction );
 
         //  Add the fit polynomial to background item.
-        PolyFitAction polyFitAction = new PolyFitAction( "Fit polynomial",
-                                                         backImage );
+        PolyFitAction polyFitAction = 
+            new PolyFitAction( "Fit polynomial",
+                               backImage,
+                               "Fit parts of spectrum using a polynomial" );
         analysisMenu.add( polyFitAction );
-        polyFitButton = toolBar.add( polyFitAction );
-        polyFitButton.setToolTipText(
-                      "Fit parts of spectrum using a polynomial" );
+        toolBar.add( polyFitAction );
 
         //  Add the generate from interpolated line item.
         GenFromInterpAction interpAction =
             new GenFromInterpAction( "Spectrum from interpolation",
-                                     interpImage );
+                                     interpImage,
+                "Generate a spectrum from an interpolated line" );
         analysisMenu.add( interpAction );
-        interpButton = toolBar.add( interpAction );
-        interpButton.setToolTipText(
-                     "Generate a spectrum from an interpolated line" );
+        toolBar.add( interpAction );
 
         //  Add the deblend lines action.
         if ( showDeblend ) {
             DeblendAction deblendAction =
-                new DeblendAction( "Deblend lines", deblendImage );
+                new DeblendAction( "Deblend lines", deblendImage,
+                                   "Fit components to a blend of lines" );
             analysisMenu.add( deblendAction );
-            deblendButton = toolBar.add( deblendAction );
-            deblendButton.setToolTipText
-                ( "Fit components to a blend of lines" );
+            toolBar.add( deblendAction );
         }
 
         //  Add the measure and fit spectral lines action.
-        LineFitAction lineFitAction = new LineFitAction( "Fit lines",
-                                                         lineImage );
+        LineFitAction lineFitAction = 
+            new LineFitAction( "Fit lines",
+                               lineImage,
+                "Fit spectral lines using a variety of functions" );
         analysisMenu.add( lineFitAction );
-        lineFitButton = toolBar.add( lineFitAction );
-        lineFitButton.setToolTipText(
-                      "Fit spectral lines using a variety of functions" );
+        toolBar.add( lineFitAction );
 
         FilterAction filterAction =
-            new FilterAction( "Filter spectrum", filterImage );
+            new FilterAction( "Filter spectrum", filterImage,
+                              "Apply a filter to the current spectrum" );
         analysisMenu.add( filterAction );
-        filterButton = toolBar.add( filterAction );
-        filterButton.setToolTipText(
-                     "Apply a filter to the current spectrum" );
+        toolBar.add( filterAction );
 
         UnitsAction unitsAction =
-            new UnitsAction( "Change units", unitsImage );
+            new UnitsAction( "Change units", unitsImage,
+                             "Change the units of the current spectrum" );
         analysisMenu.add( unitsAction );
-        unitsButton = toolBar.add( unitsAction );
-        unitsButton.setToolTipText(
-                    "Change the units of the current spectrum" );
+        toolBar.add( unitsAction );
     }
 
     /**
@@ -659,8 +634,8 @@ public class PlotControlFrame
      */
     protected void setupHelpMenu()
     {
-        HelpFrame.createHelpMenu( "plot-window", "Help on window",
-                                  menuBar, toolBar );
+        HelpFrame.createButtonHelpMenu( "plot-window", "Help on window",
+                                        menuBar, toolBar );
     }
 
     /**
@@ -1238,10 +1213,13 @@ public class PlotControlFrame
      */
     protected class CloseAction extends AbstractAction
     {
-        public CloseAction( String name, Icon icon ) {
+        public CloseAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             closeWindow();
         }
     }
@@ -1251,10 +1229,13 @@ public class PlotControlFrame
      */
     protected class PrintAction extends AbstractAction
     {
-        public PrintAction( String name, Icon icon ) {
+        public PrintAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             printDisplay();
         }
     }
@@ -1264,10 +1245,13 @@ public class PlotControlFrame
      */
     protected class PrintPostscriptAction extends AbstractAction
     {
-        public PrintPostscriptAction( String name, Icon icon ) {
+        public PrintPostscriptAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             printPostscriptDisplay();
         }
     }
@@ -1277,10 +1261,13 @@ public class PlotControlFrame
      */
     protected class PrintJPEGAction extends AbstractAction
     {
-        public PrintJPEGAction( String name, Icon icon ) {
+        public PrintJPEGAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             printJPEGDisplay();
         }
     }
@@ -1290,10 +1277,13 @@ public class PlotControlFrame
      */
     protected class FitWidthAction extends AbstractAction
     {
-        public FitWidthAction( String name, Icon icon ) {
+        public FitWidthAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             fitToWidth();
         }
     }
@@ -1303,10 +1293,13 @@ public class PlotControlFrame
      */
     protected class FitHeightAction extends AbstractAction
     {
-        public FitHeightAction( String name, Icon icon ) {
+        public FitHeightAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             fitToHeight();
         }
     }
@@ -1316,8 +1309,10 @@ public class PlotControlFrame
      */
     protected class ConfigAction extends AbstractAction
     {
-        public ConfigAction( String name, Icon icon ) {
+        public ConfigAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
         public void actionPerformed( ActionEvent ae ) {
             configPlot();
@@ -1329,10 +1324,13 @@ public class PlotControlFrame
      */
     protected class PannerAction extends AbstractAction
     {
-        public PannerAction( String name, Icon icon ) {
+        public PannerAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             showPanner();
         }
     }
@@ -1342,10 +1340,13 @@ public class PlotControlFrame
      */
     protected class ViewCutterAction extends AbstractAction
     {
-        public ViewCutterAction( String name, Icon icon ) {
+        public ViewCutterAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             cutView();
         }
     }
@@ -1355,10 +1356,13 @@ public class PlotControlFrame
      */
     protected class RegionCutterAction extends AbstractAction
     {
-        public RegionCutterAction( String name, Icon icon ) {
+        public RegionCutterAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             showCutter();
         }
     }
@@ -1368,10 +1372,13 @@ public class PlotControlFrame
      */
     protected class FilterAction extends AbstractAction
     {
-        public FilterAction( String name, Icon icon ) {
+        public FilterAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             showFilter();
         }
     }
@@ -1381,10 +1388,13 @@ public class PlotControlFrame
      */
     protected class UnitsAction extends AbstractAction
     {
-        public UnitsAction( String name, Icon icon ) {
+        public UnitsAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             showUnits();
         }
     }
@@ -1394,10 +1404,13 @@ public class PlotControlFrame
      */
     protected class PolyFitAction extends AbstractAction
     {
-        public PolyFitAction( String name, Icon icon ) {
+        public PolyFitAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             polyFit();
         }
     }
@@ -1407,10 +1420,13 @@ public class PlotControlFrame
      */
     protected class GenFromInterpAction extends AbstractAction
     {
-        public GenFromInterpAction( String name, Icon icon ) {
+        public GenFromInterpAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             interpolate();
         }
     }
@@ -1420,10 +1436,13 @@ public class PlotControlFrame
      */
     protected class DeblendAction extends AbstractAction
     {
-        public DeblendAction( String name, Icon icon ) {
+        public DeblendAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             deblend();
         }
     }
@@ -1433,10 +1452,13 @@ public class PlotControlFrame
      */
     protected class LineFitAction extends AbstractAction
     {
-        public LineFitAction( String name, Icon icon ) {
+        public LineFitAction( String name, Icon icon, String help ) 
+        {
             super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             lineFit();
         }
     }
