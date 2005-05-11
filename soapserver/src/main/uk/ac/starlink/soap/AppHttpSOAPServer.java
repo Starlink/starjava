@@ -168,11 +168,17 @@ public class AppHttpSOAPServer
         // Deploy any SOAP services using the client mechanism, this makes
         // sure that the connection is working and makes sure that the correct
         // initialisations are performed. A problem with this is that Axis
-        // wants to use any proxy server information, so we need to disable it
-        // and then make certain that we re-enable it.
-        String proxyHost = System.getProperty( "http.proxyHost" );
-        if ( proxyHost != null ) {
-            System.setProperty( "http.proxyHost", "" );
+        // wants to use any proxy server information, so we need to make sure
+        // that localhost is not proxied (note: used to do this by setting
+        // http.proxyHost to blank, but that value is cached by Axis for all
+        // subsequent sessions).
+        String nonProxyHosts = System.getProperty( "http.nonProxyHosts" );
+        if ( nonProxyHosts == null || nonProxyHosts.equals( "" ) ) {
+            System.setProperty( "http.nonProxyHosts", "localhost" );
+        }
+        else if ( nonProxyHosts.indexOf( "localhost" ) == -1 ) {
+            System.setProperty( "http.nonProxyHosts", 
+                                nonProxyHosts + "|localhost" );
         }
         try {
             String endpoint =
@@ -196,9 +202,6 @@ public class AppHttpSOAPServer
         }
         catch (Exception e) {
             e.printStackTrace();
-        }
-        if ( proxyHost != null ) {
-            System.setProperty( "http.proxyHost", proxyHost );
         }
     }
 
