@@ -127,6 +127,11 @@ public class PlotControlFrame
     protected PlotUnitsFrame unitsFrame = null;
 
     /**
+     * The flip and translate frame.
+     */
+    protected FlipFrame flipFrame = null;
+
+    /**
      *  The global list of spectra and plots.
      */
     private static GlobalSpecPlotList globalList =
@@ -418,6 +423,8 @@ public class PlotControlFrame
             new ImageIcon( ImageHolder.class.getResource( "filter.gif" ) );
         ImageIcon unitsImage =
             new ImageIcon( ImageHolder.class.getResource( "units.gif" ) );
+        ImageIcon flipImage =
+            new ImageIcon( ImageHolder.class.getResource( "flip.gif" ) );
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.
@@ -479,6 +486,12 @@ public class PlotControlFrame
                              "Change the units of the current spectrum" );
         analysisMenu.add( unitsAction );
         toolBar.add( unitsAction );
+
+        FlipAction flipAction =
+            new FlipAction( "Flip compare", flipImage,
+                            "Flip and/or translate current spectrum" );
+        analysisMenu.add( flipAction );
+        toolBar.add( flipAction );
     }
 
     /**
@@ -1108,13 +1121,52 @@ public class PlotControlFrame
     }
 
     /**
-     *  Close the filter window.
+     *  Close the units window.
      */
     protected void closeUnits()
     {
         if ( unitsFrame != null ) {
             unitsFrame.dispose();
             unitsFrame = null;
+        }
+    }
+
+    /**
+     *  Activate the flip window.
+     */
+    public void showFlip()
+    {
+        if ( flipFrame == null ) {
+            flipFrame = new FlipFrame( getPlot() );
+            //  We'd like to know if the window is closed.
+            flipFrame.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        flipClosed();
+                    }
+                });
+        }
+	else {
+            Utilities.raiseFrame( flipFrame );
+        }
+    }
+
+    /**
+     * Flip window is closed.
+     */
+    protected void flipClosed()
+    {
+        // Nullify if method for closing switches to dispose.
+        // flipFrame = null;
+    }
+
+    /**
+     *  Close the flip window.
+     */
+    protected void closeFlip()
+    {
+        if ( flipFrame != null ) {
+            flipFrame.dispose();
+            flipFrame = null;
         }
     }
 
@@ -1154,6 +1206,7 @@ public class PlotControlFrame
         closeCutter();
         closeFilter();
         closeUnits();
+        closeFlip();
         plot.release();
     }
 
@@ -1396,6 +1449,22 @@ public class PlotControlFrame
         public void actionPerformed( ActionEvent ae ) 
         {
             showUnits();
+        }
+    }
+
+    /**
+     *  Inner class defining Action for flipping spectrum.
+     */
+    protected class FlipAction extends AbstractAction
+    {
+        public FlipAction( String name, Icon icon, String help ) 
+        {
+            super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
+        }
+        public void actionPerformed( ActionEvent ae ) 
+        {
+            showFlip();
         }
     }
 

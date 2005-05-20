@@ -2072,7 +2072,6 @@ public class SplatBrowser
             for ( int i = indices.length - 1; i >= 0; i-- ) {
                 globalList.removeSpectrum( indices[i] );
             }
-            //uk.ac.starlink.splat.util.Utilities.fullGC( false );
 
             //  Make the first spectrum the selected one. Needed to
             //  progate changes to all listeners (even when now empty).
