@@ -44,8 +44,10 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.EditableSpecData;
@@ -54,6 +56,7 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
@@ -84,6 +87,11 @@ public class FlipFrame
     protected JCheckBox flipBox = null;
 
     /**
+     * Is translation to be interpreted as a redshift?
+     */
+    protected JCheckBox redshiftBox = null;
+
+    /**
      * User translation.
      */
     protected JSpinner spinnerTran = null;
@@ -99,7 +107,7 @@ public class FlipFrame
     protected DecimalField spinnerIncr = null;
 
     /**
-     *  The global list of spectra and plots.
+     * The global list of spectra and plots.
      */
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
@@ -109,7 +117,7 @@ public class FlipFrame
     protected JPanel contentPane = null;
 
     /**
-     *  Menubar and various menus and items that it contains.
+     * Menubar and various menus and items that it contains.
      */
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
@@ -118,7 +126,7 @@ public class FlipFrame
     protected JMenuItem helpMenuAbout = new JMenuItem();
 
     /**
-     *  The PlotControl that is displaying the current spectrum.
+     * The PlotControl that is displaying the current spectrum.
      */
     protected PlotControl plot = null;
 
@@ -183,6 +191,7 @@ public class FlipFrame
         //  If current spectrum should be flipped.
         flipBox = new JCheckBox( "Flip" );
         flipBox.setSelected( true );
+        flipBox.setToolTipText( "Flip copy left to right" );
         gbl1.add( flipBox, false );
 
         //  Grab button. This creates the copy, which may be flipped.
@@ -212,7 +221,12 @@ public class FlipFrame
         GridBagLayouter gbl2 = new GridBagLayouter( transPanel,
                                                     GridBagLayouter.SCHEME3 );
 
-        //  Just offset and increment for now (redshift...).
+        //  Offset, increment and redshift.
+        redshiftBox = new JCheckBox( "Redshift" );
+        redshiftBox.setSelected( false );
+        redshiftBox.setToolTipText( "Interpret offset as a redshift" );
+        gbl2.add( redshiftBox, true );
+
         JLabel incrLabel = new JLabel( "Increment:" );
         gbl2.add( incrLabel, false );
 
@@ -285,7 +299,7 @@ public class FlipFrame
     {
         setTitle( Utilities.getTitle( "Flip/translate spectrum" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 400, 250 ) );
+        setSize( new Dimension( 400, 280 ) );
         setVisible( true );
     }
 
@@ -334,7 +348,7 @@ public class FlipFrame
             centre = view[0] + 0.5 * ( view[2] - view[0] );
             offset = 2.0 * centre;
         }
-        flipTransform( scale, offset, comparisonSpectrum );
+        flipTransform( scale, offset, comparisonSpectrum, false );
 
         //  Add this to our plot and make it the selected spectrum.
         try {
@@ -358,33 +372,71 @@ public class FlipFrame
 
     /**
      * Apply a scale and offset transformation to a given spectrum, or to the
-     * current spectrum if the given spectrum is null.
+     * current spectrum if the given spectrum is null. If redshift is true
+     * then the offset is interpreted as a redshift to be applied (and the
+     * scale is ignored).
      */
-    private void flipTransform( double scale, double offset, 
-                                EditableSpecData spectrum  )
+    private void flipTransform( double scale, double offset,
+                                EditableSpecData spectrum, boolean redshift  )
     {
+        //  If no spectrum has been given then we need to access the currently
+        //  selected one.
+        if ( spectrum == null ) {
+            spectrum = getSelectedSpectrum();
+        }
+
+        //  Recover the stored properties, such as the original FrameSet
+        //  (need this to avoid adding redundant frames and mappings) and
+        //  Frame (defines coordinate system).
+        StoredProperties storedProperties = getStoredProperties( spectrum );
+        FrameSet frameSet = storedProperties.getFrameSet();
+        Frame frame = storedProperties.getFrame();
+
+        //  Store the offset so we can set the offset widget to the right
+        //  value for this spectrum next time it is selected.
+        storedProperties.setOffset( offset );
+
         //  Create a WinMap for the linear transformation.
         double[] ina = new double[1];
         double[] inb = new double[1];
         double[] outa = new double[1];
         double[] outb = new double[1];
-        ina[0] = 0.0;
-        inb[0] = 1.0;
-        outa[0] = ina[0] * scale + offset;
-        outb[0] = inb[0] * scale + offset;
-        WinMap winMap = new WinMap( 1, ina, inb, outa, outb );
-
-        //  Modify the original comparison spectrum FrameSet (possibly
-        //  modified for any initial transform) to our new values by adding
-        //  the WinMap.
-        if ( spectrum == null ) {
-            spectrum = getSelectedSpectrum();
+        boolean simple = true;
+        if ( redshift ) {
+            //  Pick out first axis from FrameSet, this should be a SpecFrame,
+            //  otherwise we don't care about units, systems etc. and will
+            //  assume everything just works as a wavelength.
+            int iaxes[] = { 1 };
+            Frame picked = frameSet.pickAxes( 1, iaxes, null );
+            if ( picked instanceof SpecFrame ) {
+                if ( redshiftSpecFrameSet( frameSet, offset ) ) {
+                    simple = false;
+                }
+                else {
+                    //  Failed.
+                    return;
+                }
+            }
+            else {
+                //  Redshift is offset value so times wavelength by (z+1).
+                ina[0] = 0.0;
+                inb[0] = 1.0;
+                outa[0] = ina[0] * ( offset + 1 );
+                outb[0] = inb[0] * ( offset + 1 );
+            }
         }
-        StoredProperties storedProperties = getStoredProperties( spectrum );
-        storedProperties.setOffset( offset );
-        FrameSet frameSet = storedProperties.getFrameSet();
-        Frame frame = storedProperties.getFrame();
-        frameSet.addFrame( FrameSet.AST__CURRENT, winMap, frame );
+        else {
+            ina[0] = 0.0;
+            inb[0] = 1.0;
+            outa[0] = ina[0] * scale + offset;
+            outb[0] = inb[0] * scale + offset;
+        }
+        if ( simple ) {
+            WinMap winMap = new WinMap( 1, ina, inb, outa, outb );
+
+            //  Add mapping and original Frame to FrameSet.
+            frameSet.addFrame( FrameSet.AST__CURRENT, winMap, frame );
+        }
 
         //  Make changes propagate.
         try {
@@ -399,8 +451,56 @@ public class FlipFrame
     }
 
     /**
-     *  Update the spectra available for translation. Only EditableSpecData
-     *  instances are allowed and only those in the plot.
+     * Transform the spectral coordinates of a FrameSet by a redshift factor.
+     *
+     * To deal with all occasions (nearly) we must let AST work this out. The
+     * way to do this is by setting the observer reference frame to be the
+     * Source and add a source velocity equivalent to the redshift. We then
+     * move the reference frame back to some solar system frame...
+     * The problems with this approach are when the reference frame is
+     * already at the Source... In that case I think we would need to
+     * construct a mapping for all possible spectral coordinate systems and
+     * units, a non-trivial task.
+     */
+    protected boolean redshiftSpecFrameSet( FrameSet frameSet,
+                                            double redshift )
+    {
+        Frame current = frameSet.getFrame( FrameSet.AST__CURRENT );
+
+        String stdofrest = current.getC( "StdOfRest" );
+        if ( stdofrest.equals( "SOURCE" ) ) {
+            //  We're stuffed.
+            JOptionPane.showMessageDialog
+                ( this, "Cannot redshift", "Cannot redshift when the" +
+                  " spectral standard of rest is already set to 'Source'",
+                  JOptionPane.ERROR_MESSAGE );
+            return false;
+        }
+
+        //  Change standard of rest to "Source" and set the velocity, without
+        //  causing a remap to the FrameSet.
+        double initialVelocity = current.getD( "SourceVel" );
+        current.setC( "StdOfRest", "Source" );
+        double redshiftVelocity = 
+            0.001 * MathUtils.redshiftToVelocity( redshift ); // Km/s
+        current.setD( "SourceVel", redshiftVelocity );
+
+        //uk.ac.starlink.splat.ast.ASTChannel.astWrite( frameSet );
+
+        //  Now apply the redshift by moving the frameSet back to the original
+        //  reference frame, this should cause a remapping.
+        frameSet.setC( "StdOfRest", stdofrest );
+
+        //uk.ac.starlink.splat.ast.ASTChannel.astWrite( frameSet );
+
+        //  Restore any original source velocity, without causing a remap.
+        current.setD( "SourceVel", initialVelocity );
+        return true;
+    }
+
+    /**
+     * Update the spectra available for translation. Only EditableSpecData
+     * instances are allowed and only those in the plot.
      */
     protected void updateNames()
     {
@@ -467,7 +567,7 @@ public class FlipFrame
     protected void applyOffset()
     {
         double offset = ((Double)spinnerTran.getValue()).doubleValue();
-        flipTransform( 1.0, offset, null );
+        flipTransform( 1.0, offset, null, redshiftBox.isSelected() );
     }
 
     /**
@@ -497,7 +597,7 @@ public class FlipFrame
     }
 
     /**
-     *  Close the window. Delete any ranges that are shown.
+     * Close the window. Delete any ranges that are shown.
      */
     protected void closeWindowEvent()
     {
@@ -576,8 +676,8 @@ public class FlipFrame
     }
 
     //
-    //  Sent when a plot property is changed, assume this means that a
-    //  spectrum has been added or removed, so update the list.
+    // Sent when a plot property is changed, assume this means that a
+    // spectrum has been added or removed, so update the list.
     //
     public void plotChanged( PlotChangedEvent e )
     {
@@ -595,7 +695,7 @@ public class FlipFrame
     }
 
     //
-    //  ItemListener for changes to the selected spectrum.
+    // ItemListener for changes to the selected spectrum.
     //
     public void itemStateChanged( ItemEvent e )
     {
@@ -607,7 +707,7 @@ public class FlipFrame
     }
 
     //
-    //  ActionListener for changes to spinner increment.
+    // ActionListener for changes to spinner increment.
     //
     public void actionPerformed( ActionEvent e )
     {
@@ -615,8 +715,8 @@ public class FlipFrame
     }
 
     //
-    //  Internal class for storing original properties of any spectra that we
-    //  change.
+    // Internal class for storing original properties of any spectra that we
+    // change.
     //
     protected class StoredProperties
     {
