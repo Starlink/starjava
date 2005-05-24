@@ -265,7 +265,7 @@ public abstract class JELRowReader extends DVMap {
 
         /* See if it corresponds to a null indicator. */
         int inul = getNullColumnIndex( name );
-        if ( inul > 0 ) {
+        if ( inul >= 0 ) {
             return new Long( inul );
         }
 
