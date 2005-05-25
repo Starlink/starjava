@@ -48,9 +48,11 @@
   <mapID target="line-fit-window"            url="sun243.htx/node36.html"/>
   <mapID target="line-fit-saving-window"     url="sun243.htx/node37.html"/>
   <mapID target="filter-window"              url="sun243.htx/node38.html"/>
+  <mapID target="simpleunits-window"         url="sun243.htx/node39.html"/>
+  <mapID target="flipper-window"             url="sun243.htx/node40.html"/>
 
-  <mapID target="data-formats"               url="sun243.htx/node39.html"/>
-  <mapID target="command-line"               url="sun243.htx/node41.html"
-  <mapID target="acknowledgements"           url="sun243.htx/node42.html"/>
+  <mapID target="data-formats"               url="sun243.htx/node41.html"/>
+  <mapID target="command-line"               url="sun243.htx/node43.html"
+  <mapID target="acknowledgements"           url="sun243.htx/node44.html"/>
 
 </map>

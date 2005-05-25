@@ -6,121 +6,119 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Handling 2 and 3D data</TITLE>
-<META NAME="description" CONTENT="Handling 2 and 3D data">
+<TITLE>Flip or shift or redshift a spectrum</TITLE>
+<META NAME="description" CONTENT="Flip or shift or redshift a spectrum">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
 <LINK REL="previous" HREF="node39.html">
-<LINK REL="up" HREF="node39.html">
+<LINK REL="up" HREF="node7.html">
 <LINK REL="next" HREF="node41.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html500"
+<A NAME="tex2html505"
  HREF="node41.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html498"
- HREF="node39.html">
+<A NAME="tex2html503"
+ HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html494"
+<A NAME="tex2html499"
  HREF="node39.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
- ALT="101"></A>
+ ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html501"
- HREF="node41.html">Command-line control and tools</A>
+<B> Next:</B> <A NAME="tex2html506"
+ HREF="node41.html">Supported data formats</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html499"
- HREF="node39.html">Supported data formats</A>
+<B>Up:</B> <A NAME="tex2html504"
+ HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html495"
- HREF="node39.html">Supported data formats</A>
+<B> Previous:</B> <A NAME="tex2html500"
+ HREF="node39.html">Quick change of coordinate or data units window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H2><A NAME="SECTION00051000000000000000">
-Handling 2 and 3D data</A>
+<H2><A NAME="SECTION000419000000000000000">
+Flip or shift or redshift a spectrum</A>
 </H2>
 
 <P>
-If you have images or cubes that contain data that you want to view as spectra
-in some fashion, then <I>SPLAT-VO</I> will attempt to do this for you. There are three
-fundamental modes for doing this:
+This window allows you to do three related jobs.
 
-<UL><LI>by collapsing images into a single <TT>spectrum</TT> by adding together
-all values that lie perpendicular to the dispersion axis (so the spectrum runs
-along this axis, what a good spectral displaying tool should do),
+<UL><LI>Create and optionally flip a copy of the current spectrum.
 
-<P>
+<LI>Shift an editable spectrum.
 
-<LI>by expanding images and cubes into a spectrum for each line running
-along the dispersion axis,
-
-<P>
-
-<LI>by vectorizing the whole data into a single line (created by joining
-everything line-by-line).
-
-<P>
+<LI>Redshift an editable spectrum.
 
 </UL>
 
 <P>
-The default is to collapse. When collapsing cubes you have the option of which
-axis to step along selecting image planes, this is known as the
-<TT>select</TT> axis. To determine which option is used to handle your cubes or
-images you can either set values on the command-line, along with your spectra,
-or choose options in the open file dialogue. A command line that uses axis 3 as
-the dispersion axis and steps along axis 2 when choosing image planes might
-look like:
-<BLOCKQUOTE>
-<PRE>
- % splat --ndaction collapse --dispax 3 --selectax 2 &lt;spectral_cube&gt; &amp;
-</PRE>
-</BLOCKQUOTE>
-or in shorthand:
-<BLOCKQUOTE>
-<PRE>
- % splat -n c -d 3 -s 2 &lt;spectral_cube&gt; &amp;
-</PRE>
-</BLOCKQUOTE>
-If you don't choose a dispersion axis <I>SPLAT-VO</I> will make a good intelligent
-guess about this and step along the first axis that isn't the dispersion axis.
+Flipping and shifting a spectrum allows you to assess the symmetry of a
+line. Shifting alone to determine how well spectra are aligned and redshifting
+to transform a spectrum or set of line identifiers to guess or confirm the
+redshift.
 
 <P>
+The transformation is applied to the spectrum shown in the
+<B>Spectrum:</B> drop-down menu. Initially this will show any editable
+spectra displayed in the associated plot (line identifiers are usually
+editable). If you want an editable copy of the current spectrum just press the
+<B>Copy</B> button.
+
+<P>
+One subtlety is that the offset value is either a redshift or a value in the
+coordinate units of the spectrum being modified, depending on whether the
+z<B>Redshift</B> checkbox is selected, or not. The coordinate units of
+the spectrum may not be the same as those of the current spectrum in the plot,
+which can lead to surprising results.
+
+<P>
+When applying a redshift it is assumed that the spectrum being modified has a
+wavelength coordinate system, of some kind, unless it has a proper coordinate
+system defined. In this latter case the only restriction is that you cannot
+have a standard of rest set to `Source' (as a transformation to and from
+Source is used to determine the redshift transform). In this latter case use
+the coordinate system toolbox to transform to another rest frame first.
+
+<P>
+The <B>Reset</B> button returns a spectrum to an offset of zero.
+
+<P>
+
 <BR> <HR>
-<A NAME="tex2html500"
+<A NAME="tex2html505"
  HREF="node41.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html498"
- HREF="node39.html">
+<A NAME="tex2html503"
+ HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html494"
+<A NAME="tex2html499"
  HREF="node39.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
- ALT="101"></A>
+ ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html501"
- HREF="node41.html">Command-line control and tools</A>
+<B> Next:</B> <A NAME="tex2html506"
+ HREF="node41.html">Supported data formats</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html499"
- HREF="node39.html">Supported data formats</A>
+<B>Up:</B> <A NAME="tex2html504"
+ HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html495"
- HREF="node39.html">Supported data formats</A>
+<B> Previous:</B> <A NAME="tex2html500"
+ HREF="node39.html">Quick change of coordinate or data units window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>24 February 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>24 May 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

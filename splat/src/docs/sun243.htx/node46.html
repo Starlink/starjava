@@ -6,137 +6,228 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Release 2.1</TITLE>
-<META NAME="description" CONTENT="Release 2.1">
+<TITLE>This release (3.2)</TITLE>
+<META NAME="description" CONTENT="This release (3.2)">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
+<LINK REL="next" HREF="node47.html">
 <LINK REL="previous" HREF="node45.html">
-<LINK REL="up" HREF="node43.html">
+<LINK REL="up" HREF="node45.html">
 <LINK REL="next" HREF="node47.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html561"
+<A NAME="tex2html567"
  HREF="node47.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html559"
- HREF="node43.html">
+<A NAME="tex2html565"
+ HREF="node45.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html555"
+<A NAME="tex2html559"
  HREF="node45.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
- ALT="101"></A>
+ ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html562"
- HREF="node47.html">About this document ...</A>
+<B> Next:</B> <A NAME="tex2html568"
+ HREF="node47.html">Release 2.2</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html560"
- HREF="node43.html">Changes</A>
+<B>Up:</B> <A NAME="tex2html566"
+ HREF="node45.html">Changes</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html556"
- HREF="node45.html">Release 2.2</A>
+<B> Previous:</B> <A NAME="tex2html560"
+ HREF="node45.html">Changes</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H2><A NAME="SECTION00083000000000000000">
-Release 2.1</A>
+<H2><A NAME="SECTION00081000000000000000">
+This release (3.2)</A>
 </H2>
 
 <P>
-This is a new release of SPLAT which is now part of the Starlink
-Java Collection and is now released under the GPL.
+Starlink SPLAT is now a tool for the Virtual Observatory and has been
+renamed to <I>SPLAT-VO</I>.
 
 <P>
-The most significant visible changes to SPLAT are:
-
-<UL><LI>Tables support. You can now read and write spectra in tables of
-    various kinds, for instance FITS (binary and ASCII), VOTable and various
-    text formats.
-
-<P>
-
-<LI>Component browser. <I>SPLAT-VO</I> now incorporates a Treeview-like
-    component browser so you can select FITS file extensions (tables and
-    spectra) and NDF components.
+In this release Starlink <I>SPLAT-VO</I> has been enhanced to access prototype
+spectral data servers (so called SSAP servers) that are being registered on
+the evolving virtual observatory. Using <I>SPLAT-VO</I> it is now possible to make
+queries about a region on the sky and retrieve, display and compare any
+spectra that are available.
 
 <P>
-
-<LI>Log axes. You can now draw either axis using log spacing. <I>SPLAT-VO</I>
-    also supports AST escaped text sequences for super and subscripting.
+Comparisons of such spectra are made possible by improvements to the
+Starlink AST library which can transform coordinates between various
+spectral systems (wavelength, frequency, energy and velocity) and between a
+growing number of flux systems (currently flux per unit frequency and per
+unit wavelength). This allows you to view various spectral from differing
+energy domains as a spectral energy distribution.
 
 <P>
+Other changes of note in this release:
 
-<LI>Plot annotations. You can now add arbitrary text and shapes to a
-    plot.
+<UL><LI>Spectra can now be drawn using point markers of various kinds.
 
 <P>
 
-<LI>Interactive background estimation. <I>SPLAT-VO</I> now offers the ability to
-    draw interpolated spline-like backgrounds for your spectra.
+<LI>A new tool for setting the data units of spectra has been introduced.
 
 <P>
 
-<LI>Better printing facilities. Printing to postscript is now a separate,
-    always available, option.
+<LI>A new tool for transforming spectra by a redshift or by a flip and or
+      translation has been introduced.
 
 <P>
 
-<LI>You can now divide a spectrum by its background to normalize
-    absorption spectra.
+<LI>The grid drawn around the spectra can now be forced to stay within
+      the visible region of the plot window. This makes it easier to view
+      the spectral data values and coordinates, but at a performance cost.
+      Switch on the option <B>Only display grid axes in visible area</B> 
+      to see this in action.
 
 <P>
 
-<LI>Line deblending. SPLAT now has a command-line script for deblending
-    lines using Gaussian, Lorentzian or Voigt profiles. This may become part
-    of a proper toolbox in some future release. See the:
-    <BLOCKQUOTE>
-       <TT>$SPLAT_DIR/deblend</TT>
-    </BLOCKQUOTE>
-    script header for how to use this command.
+<LI>Log spacing can now be switched on from a plot (rather than by finding
+      the plot configuration window).
+
+<P>
+
+<LI>Support for data units in the line identifier and simple text formats
+      has been added.
+
+<P>
+
+<LI>Support for line identifiers to match against spectra that have data
+      units has been added.
+
+<P>
+
+<LI>SED example data can now be loaded from the main <B>Options</B> 
+      menu.
+
+<P>
+
+<LI>The data and coordinate units of the current spectrum in a plot
+      can now be modified to preset values quickly.
+
+<P>
+
+<LI>Several new smoothing filters have been introduced - Hanning, Hamming,
+      Welch and Barlett.
+
+<P>
+
+<LI>Line identifiers are now available in the webstart version of <I>SPLAT-VO</I>.
+
+<P>
+
+<LI>Line identifiers that fall within range of a spectrum can now be
+      automatically loaded. Other changes allow the positioning to follow
+      a spectrum, have the short name shown as a prefix and use horizontal
+      orientation for the labels.
+
+<P>
+
+<LI>Spectral coordinates can now have the source velocity specified
+      as a redshift. The spectral editing tools now include relativistic
+      velocities in their template functions.
+
+<P>
+
+<LI>The motion tracker in plot windows can now report the coordinates
+      under the pointer. The default continues to be to report the nearest
+      coordinate and data value of the current spectrum.
+
+<P>
+
+<LI>The scale factors used when drawing spectra are now related to
+      graphics size. Previously they where related to the spectrum
+      coordinates. This makes it easy to control the plot when displaying
+      spectra with very different coordinates (like those downloaded from
+      the VO), but will cause existing spectra to be re-scaled when new
+      spectra are added to a plot.
+
+<P>
+
+<LI>If should now be much faster when re-drawing many spectra that are
+      being matching using their spectral coordinates and data units.
+
+<P>
+
+<LI>The handling of errors when plotting spectra with hugely differing
+      coordinates should be improved.
+
+<P>
+
+<LI>A long standing problem with graphics corruption between plots has
+      been fixed. (When the current spectrum was shared between plots
+      some drawing changes effected all plots).
+
+<P>
+
+<LI>A bug that meant that the postscript output of a plot was always
+      written to the default directory has been fixed.
+
+<P>
+
+<LI>Serialised spectra stacks now include full coordinate information.
+
+<P>
+
+<LI>Spectra can now be transformed to and from different data units
+      (<I>Jy</I> to <I>W</I>/m<SUP>2</SUP>/<I>Hz</I> or 
+<!-- MATH
+ $erg/cm^{2}/s/Angstrom$
+ -->
+<I>erg</I>/cm<SUP>2</SUP>/<I>s</I>/Angstrom <I>etc.</I>).
+
+<P>
+
+<LI>The system look and feel is now the platform default. Mac OS X tweaks
+      are enabled on that platform.
+
+<P>
+
+<LI>Data units are supported when editing and creating new spectra
+     (polynomial and line fits).
 
 <P>
 
 </UL>
-Other changes include, selection of the columns used from a table, text files
-may now just contain a single column, many new options for configuring the
-interface, the plot window now retains its size, and the restriction that all
-spectra should have monotonic coordinates has been removed (you can plot
-these, but the results may be unpredictable).
 
 <P>
 <BR> <HR>
-<A NAME="tex2html561"
+<A NAME="tex2html567"
  HREF="node47.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html559"
- HREF="node43.html">
+<A NAME="tex2html565"
+ HREF="node45.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html555"
+<A NAME="tex2html559"
  HREF="node45.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
- ALT="101"></A>
+ ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html562"
- HREF="node47.html">About this document ...</A>
+<B> Next:</B> <A NAME="tex2html568"
+ HREF="node47.html">Release 2.2</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html560"
- HREF="node43.html">Changes</A>
+<B>Up:</B> <A NAME="tex2html566"
+ HREF="node45.html">Changes</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html556"
- HREF="node45.html">Release 2.2</A>
+<B> Previous:</B> <A NAME="tex2html560"
+ HREF="node45.html">Changes</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>24 February 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>24 May 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

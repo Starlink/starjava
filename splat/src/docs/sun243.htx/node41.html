@@ -6,185 +6,195 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Command-line control and tools</TITLE>
-<META NAME="description" CONTENT="Command-line control and tools">
+<TITLE>Supported data formats</TITLE>
+<META NAME="description" CONTENT="Supported data formats">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
-<LINK REL="next" HREF="node42.html">
-<LINK REL="previous" HREF="node39.html">
+<LINK REL="next" HREF="node43.html">
+<LINK REL="previous" HREF="node7.html">
 <LINK REL="up" HREF="sun243.html">
 <LINK REL="next" HREF="node42.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html510"
+<A NAME="tex2html515"
  HREF="node42.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html508"
+<A NAME="tex2html513"
  HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html502"
+<A NAME="tex2html507"
  HREF="node40.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
- ALT="101"></A>
+ ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html511"
- HREF="node42.html">Acknowledgements</A>
+<B> Next:</B> <A NAME="tex2html516"
+ HREF="node42.html">Handling 2 and 3D data</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html509"
+<B>Up:</B> <A NAME="tex2html514"
  HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html503"
- HREF="node40.html">Handling 2 and 3D data</A>
+<B> Previous:</B> <A NAME="tex2html508"
+ HREF="node40.html">Flip or shift or redshift a spectrum</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H1><A NAME="SECTION00060000000000000000">
-Command-line control and tools</A>
+<H1><A NAME="SECTION00050000000000000000"></A><A NAME="xref_data_formats"></A>
+<BR>
+Supported data formats
 </H1>
 
 <P>
-<B><FONT SIZE="+1">Remote control</FONT></B>
+<I>SPLAT-VO</I> can read and write spectra stored in a wide variety of formats, either
+stored as 1D spectra or as columns in tables. 1D spectral formats supported
+are Starlink NDF &amp; NDX, FITS and simple TEXT files. Table formats supported
+are FITS (binary and ascii), VOTable and more complex TEXT files. The 1D data
+formats currently have the best coordinate system support, so are recommended
+when a choice can be made. Some support is available for 2 and 3D data, see
+later).
 
 <P>
-The most useful of the remote control scripts are the commands:
-
-<UL><LI><TT>splatdisp</TT>
-
-<LI><TT>splatdispmany</TT>
-
-</UL>
-<TT>splatdisp</TT> takes the name of a spectrum and displays it.
-If a plot identifier is given after the spectrum name (this is the
-<TT>n</TT> in any names like <TT>&lt;plotn&gt;</TT> that you see) then you
-can add a spectrum to an existing plot.
-
-<P>
-<TT>splatdispmany</TT> takes a list of spectra and displays them all in a
-new plot, much like giving a list of spectra on the command-line when
-starting <I>SPLAT-VO</I>. The obvious uses of these commands are to have very
-basic remote control from any scripts that require display facilities.
-
-<P>
-Both of these commands are available as a standard part of <I>SPLAT-VO</I> <I>i.e.</I> you can just type in their names, just like the <TT>splat</TT>
-command. Command-line usage instructions
-are available either by typing in the command name, or by inspecting
-the comments in the file. This is true of all the following commands too.
-
-<P>
-More sophisticated control of how the spectrum, once plotted, can be
-displayed is provided by the following scripts:
-
-<UL><LI><TT>$SPLAT_DIR/zoomandcentre</TT>
-
-<LI><TT>$SPLAT_DIR/setcolour</TT>
-
-<LI><TT>$SPLAT_DIR/setproperty</TT>
-
-</UL>
-<TT>zoomandcentre</TT> changes the zoom factor of the wavelength axis
-and optionally centres it on a given wavelength.
-
-<P>
-<TT>setcolour</TT> allows you to change the display colour of a spectrum.
-
-<P>
-<TT>setproperty</TT> is quite similar to <TT>setcolour</TT> but it
-also allows you to set the line thickness, type and style, as well as
-whether to display error bars.
-
-<P>
-<B><FONT SIZE="+1">Plugins</FONT></B>
-
-<P>
-The one useful example plugin (<I>i.e.</I> code that is loaded into <I>SPLAT-VO</I> when it starts up) provides the ability to name a list of spectra in a
-directory that should be automatically loaded when <I>SPLAT-VO</I> starts up
-in that directory (this includes a special indicator to load all
-spectra).
-
-<P>
-To use this you need to do the following:
+Normally <I>SPLAT-VO</I> differentiates these types using a preset list of file
+extensions, for instance NDFs can only be stored in container files that have
+the extension <TT>.sdf</TT>, FITS files usually have one of the extensions
+<TT>.fits</TT> or <TT>.fit</TT> and TEXT files <TT>.txt</TT> or <TT>.lis</TT>
+and NDX format spectra, when stored on disk, will have extension
+<TT>.xml</TT>. However, you can choose a specific format when opening a file
+using the <B>File-&gt;Open</B> dialogue, so you can ask that a TEXT file
+is opened as a table, this allows you to select the columns. Alternatively you
+can specify a type for all the spectra opened on the command-line using the
+<code>--type</code> argument. Valid values for <code>--type</code> are:
 <BLOCKQUOTE>
 <PRE>
- % setenv SPLAT_PLUGINS $SPLAT_DIR/example_plugin3.bsh
+  fits
+  hds
+  text
+  hdx
+  table
+  line ids
 </PRE>
 </BLOCKQUOTE>
-Now when <I>SPLAT-VO</I> starts it will look for a file
-<TT>.splat_autoloads</TT>  in the current directory and if found
-it will read the lines (each of which are
-assumed to contain a file name) from it to construct a list of spectra
-to display. If the file only has one line ``*'' then all the NDFs are
-automatically loaded. If you'd like other types of spectra to be
-automatically loaded take a copy of <TT>example_plugin3.bsh</TT> and
-modify the <TT>FILE_PATTERN</TT> definition line. Now re-define
-<TT>SPLAT_PLUGINS</TT> to point at your copy.
+You free to truncate these values as long as they remain unique (so
+<code>--type line</code> will work for line identifiers).
 
 <P>
-<B><FONT SIZE="+1">Command-line <I>SPLAT-VO</I></FONT></B>
+Currently line identifier catalogues represent a special case and currently
+may have a single format - TEXT based in files with extension <TT>.ids</TT>.
 
 <P>
-<TT>$SPLAT_DIR</TT> also contains several command-line scripts that
-only make use of <I>SPLAT-VO</I> classes, so don't need <I>SPLAT-VO</I> to be running. These
-are:
+1D spectra stored in TEXT files must have the format of one, two or three
+columns of data, separated by whitespace (that is spaces or tabs). Any
+comments in the file must be indicated by a hash sign, blank lines are also
+allowed. The three columns should have the following values:
+<BLOCKQUOTE>
+<PRE>
+  [wavelength] count [error-in-count]
+</PRE>
+</BLOCKQUOTE>
+The wavelength and error columns being optional (if you don't have a
+wavelength column a simple row index is used, note you cannot have errors
+without wavelengths) . If you choose to open a TEXT file as a table you can
+select which columns should be used for these values, and the following rules
+apply:
 
-<UL><LI><TT>$SPLAT_DIR/fitgauss</TT>
+<UL><LI>Each table row is represented by a single text line
 
-<LI><TT>$SPLAT_DIR/fitgauss2</TT>
+<LI>Anything after a `#' character on a line is ignored (except for optional
+      heading line)
 
-<LI><TT>$SPLAT_DIR/linepositions</TT>
+<LI>Blank lines are ignored
+
+<LI>Within a line, fields are separated by one or more whitespace characters
+      (space or tab)
+
+<LI>A field is either a sequence of non-whitespace characters or a sequence
+      of characters between two matching quote characters (single (') or double (")
+      quotes) - spaces are therefore allowed in quoted fields.
+
+<LI>In a quoted field any character preceded by a backslash is interpreted
+      literally, so it is possible to insert quotes into a quoted string
+
+<LI>An empty string (two adjacent quotes) represents a null element
+
+<LI>All lines must contain exactly the same number of fields
+
+<LI>An optional heading line may be included: if the last comment line (line
+      starting with a `#' before the first data line) contains the same number of
+      fields as the columns in the table, these fields are interpreted as the
+      headings (names) of the columns
 
 </UL>
-which as you might expect fit gaussians to lines and just locate
-accurate line positions from a initial list. Just run the commands
-without any arguments to get usage instructions. Look at the script
-headers for more details.
 
 <P>
-A one-off command that is currently only available as a script, but may become
-available as part of a proper toolbox is:
+The format of line identification catalogues is like that of simple TEXT
+spectral files, except the second column contains a string that identifies the
+line (with no spaces, <I>i.e.</I> <TT>H-alpha</TT> not <TT>H alpha</TT>). It is also
+possible to define the system of the coordinate values in a header section,
+see the <I>SPLAT-VO</I> built-in catalogues for examples of this.
 
-<UL><LI><TT>$SPLAT_DIR/deblend</TT>
+<P>
+NDFs stored within container files can be accessed, but only by entering the
+full HDS path on the command-line or in the <B>File-&gt;Open</B> dialogue.
+FITS extensions may also be open in this fashion (by appending the extension
+number in square brackets).
 
+<P>
+An alternative to specifying the component information is to use the component
+browser window <IMG
+ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
+ SRC="browse.gif"
+ ALT="2741">, to see the contents of FITS and NDF files and
+choose the component to display directly.
+
+<P>
+Internally all these formats are stored as double precision
+coordinates and data values. <I>SPLAT-VO</I> only requires that
+<I>coordinates increase or decrease monotonically</I>
+when performing any analyses.
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"></A>
+
+<UL>
+<LI><A NAME="tex2html517"
+ HREF="node42.html">Handling 2 and 3D data</A>
 </UL>
-This fits a blend of spectral lines using a multi-component model, based on
-any of the three spectral line profiles supported by <I>SPLAT-VO</I> (Gaussian,
-Lorentz, Voigt). See the contents of this file for instructions on how to use
-it.
-
-<P>
+<!--End of Table of Child-Links-->
 <BR> <HR>
-<A NAME="tex2html510"
+<A NAME="tex2html515"
  HREF="node42.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html508"
+<A NAME="tex2html513"
  HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html502"
+<A NAME="tex2html507"
  HREF="node40.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
- ALT="101"></A>
+ ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html511"
- HREF="node42.html">Acknowledgements</A>
+<B> Next:</B> <A NAME="tex2html516"
+ HREF="node42.html">Handling 2 and 3D data</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html509"
+<B>Up:</B> <A NAME="tex2html514"
  HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html503"
- HREF="node40.html">Handling 2 and 3D data</A>
+<B> Previous:</B> <A NAME="tex2html508"
+ HREF="node40.html">Flip or shift or redshift a spectrum</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>24 February 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>24 May 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

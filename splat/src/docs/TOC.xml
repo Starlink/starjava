@@ -43,6 +43,8 @@
       <tocitem target="line-fit-saving-window" text="Save spectral line measurements"/>
    </tocitem>        
    <tocitem target="filter-window" text="Filter spectrum window" />
+   <tocitem target="simpleunits-window" text="Change units window" />
+   <tocitem target="flipper-window" text="Flip, shift or redshift window" />
    <tocitem target="data-formats" text="Supported data formats"/>
 
    <tocitem target="command-line" text="Command-line utilities" />

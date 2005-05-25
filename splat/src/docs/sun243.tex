@@ -27,9 +27,9 @@ Research Councils}
 % Variable part - replace [xxx] as appropriate.
 \newcommand{\stardocnumber}    {243.6}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {24 February 2005}
+\newcommand{\stardocdate}      {24 May 2005}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.1}
+\newcommand{\stardocversion}   {3.2}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -203,6 +203,7 @@ spectra that can also interact with the Virtual Observatory.
 % UI elements.
 \newcommand{\menuitem}[1]{\textbf{#1}}
 \newcommand{\submenuitem}[2]{\latexhtml{\textbf{#1$\rightarrow$#2}}{\textbf{#1->#2}}}
+\newcommand{\subsubmenuitem}[3]{\latexhtml{\textbf{#1$\rightarrow$#2$\rightarrow$#3}}{\textbf{#1->#2->#3}}}
 \newcommand{\labelitem}[1]{\textbf{#1}}
 
 % typed text.
@@ -385,7 +386,7 @@ produce a spectral energy distribution.
 This is an important feature for supporting the heterogeneous data supplied
 in the Virtual Observatory.
 
-% Not advertising this yet. May be big changes ahead.
+% Not advertising this yet. Maybe big changes ahead.
 %Finally \SPLAT\ is extensible by the use of plugin code and
 %command-line scripts, and can be remotely controlled through
 %SOAP messages and a socket-based mechanism.
@@ -947,10 +948,15 @@ the display area.\\
  lists, or you can type in a decimal value (which should be greater
  than equal to one) and press \hitext{<Return>}.
 
-  The \labelitem{:log} controls determine if either of the axes are drawing
-  using log spacing (this is not possible if either axis spans the value
-  zero). Finer control of the log spacing and labelling can obtained using the
-  plot configuration window.
+ The \labelitem{:log} controls determine if either of the axes are drawing
+ using log spacing (this is not possible if either axis spans the value
+ zero). Finer control of the log spacing and labelling can obtained using the
+ plot configuration window.
+
+ The \labelitem{Track free} checkbox determines what values are shown in the
+ continuous coordinate readouts. When unchecked (the default) the values
+ shown are the nearest ones of the current spectrum to the pointer position.
+ When checked the readouts show the coordinates under the pointer.
 
 \end{quote}
 
@@ -1044,6 +1050,13 @@ the display area.\\
   using any of the known line shapes and denoising using wavelet
   transformations.
 
+  \item[\inline{units}] Show the toolbox for selecting new coordinates or
+  data units for the current spectrum (and therefore plot).
+
+  \item[\inline{flip}] Show the toolbox for flipping, shifting or redshifting
+  editable spectra shown in the plot. Also allows you create an editable copy
+  of the current spectrum.
+
  \end{itemize}
 
  The \menuitem{Options} menu contains several control items whose values are
@@ -1076,6 +1089,49 @@ the display area.\\
   If your data units are not understood as fluxes it may still be possible to
   align them (dimensionally obvious unit conversions are possible for instance
   mK and K will be aligned correctly, as will eV and keV).
+
+  \item \submenuitem{Options}{Only display grid axes in visible area}
+  Normally the labelled axes displaying the spectral and data coordinates are
+  drawn to the full size of the display surface of the plot. This is the
+  quickest mode as it reduces the need for re-drawing. If you select this
+  option the axes will be only drawn within the the visible part of the plot,
+  which makes it easier to see the coordinate labels, but means that the axes
+  need to be re-drawn continually when scrolling.
+
+  \item \submenuitem{Options}{Only display spectra within axes}
+  Select this option if you only want spectra (including line identifiers) to
+  be drawn within the bounds of the axes. When combined with the previous
+  option to only display axes in the visible area this will potentially slow
+  down scroll operations a lot, so the default is off.
+
+  \item \subsubmenuitem{Options}{Line identifiers}{Load all matching line identifiers}
+  If you select this option then all line identifiers known to \SPLAT\
+  (including any that you have opened yourself), and whose coordinate ranges
+  fall within that of the plot, will be loaded into the global list and
+  displayed in the plot. Note that this will not work if the spectra displayed
+  in the plot do not have defined spectral coordinates.
+
+  \item \subsubmenuitem{Options}{Line identifiers}{Load all matching pre-loaded line identifiers}
+  If you select this option then all line identifiers already loaded into the
+  global list, and whose coordinate ranges fall within that of the plot, will
+  be displayed in the plot. Note that this will not work if the spectra
+  displayed in the plot do not have defined spectral coordinates.
+
+  \item \subsubmenuitem{Options}{Line identifiers}{Positions track current spectrum}
+  If you select this option then line identifiers that do not have data
+  positions (this is typically true) will be positioned above the current
+  spectrum, rather than displayed in a line along the bottom of the plot.
+
+  \item \subsubmenuitem{Options}{Line identifiers}{Prefix name to labels}
+  If you select this item then the short name of each line identifier spectrum
+  displayed in the plot will be prefixed to the label. This allows you to
+  discriminate between crowded labels. Note that the short name of a line
+  identifier can be modified in the main window, once it is loaded into the
+  global list.
+
+  \item \subsubmenuitem{Options}{Line identifiers}{Draw horizontal labels}
+  Select this option if you want line identifier labels drawn horizontally
+  rather than vertically.
 
   \item \submenuitem{Options}{Error bar auto-ranging}. When auto-ranging a
   spectrum that has associated errors the limits do not include the extent of
@@ -1215,8 +1271,8 @@ number of arcminutes to search about the position. Once you have identified
 the region to search press the \labelitem{Go} button to contact the current
 list of SSAP servers. To make these queries it may be necessary for you to
 tell \SPLAT\ about your local web-proxy server (this is the same as that you
-use in your Internet browser), select the 
-\submenuitem{Options}{Configure proxy...} item to do this. 
+use in your Internet browser), select the
+\submenuitem{Options}{Configure proxy...} item to do this.
 
 The list of servers available is shown in the \labelitem{Servers} menu. To not
 query a server de-select it from this list (note that in the future the list
@@ -1265,10 +1321,10 @@ Support for spectral coordinates is provided by the Starlink AST library
 \textit{Representations of spectral coordinates in FITS}
 (Greisen,
 Valdes, Calabretta \& Allen).
-AST also provides the flux and data value conversion utilities used by 
-\SPLAT\ which is based on interpreting the units strings system described 
+AST also provides the flux and data value conversion utilities used by
+\SPLAT\ which is based on interpreting the units strings system described
 in FITS-WCS paper I \textit{Representation of World Coordinate in FITS}
-by Greisen \& Calabretta. 
+by Greisen \& Calabretta.
 Conversion between fluxes is currently restricted to flux per unit wavelength
 and flux per unit frequency is provided and does not require any "dimensional
 analysis" information to be present, just correctly formed units strings.
@@ -1350,7 +1406,7 @@ images that you could combine into a movie of some kind.
   itself without constraints to the plot. This is essentially the same
   as just adding a spectrum to a plot using the browser window controls
   (\ie\ the data limits of the plot are produced by combinating the
-  data limits of any pre-plotted spectra and the one added, these are 
+  data limits of any pre-plotted spectra and the one added, these are
   all scaled to fit).
  \end{itemize}
 
@@ -1578,13 +1634,15 @@ documentation (\xref{SUN/211}{sun211}{ss:specframes}).
 \newpage
 \subsection{The data units window}
 
-This window allows you to inspect and set the units of the data values of your
-spectra. Currently the only use made of these values in \SPLAT\ is when
-displaying more than one spectrum in a plot window. In that case you can
-request that the data values of all the spectra are transformed into the same
-system, so you can compare values in Janskys with those in other flux per unit
-frequency and per unit wavelength systems. For instance all the following
-systems are understood as fluxes and can be intercompared:
+This window allows you to inspect, set or convert the units of the data
+values of your spectra.
+
+Currently the only use made of these values in \SPLAT\ is when displaying more
+than one spectrum in a plot window. In that case you can request that the data
+values of all the spectra are transformed into the same system, so you can
+compare values in Janskys with those in other flux per unit frequency and per
+unit wavelength systems. For instance all the following systems are understood
+as fluxes and can be intercompared:
 \begin{quote}
 \begin{tabular}{ll}
 \verb+Jy+                  & ($Jansky$)                                \\
@@ -1600,7 +1658,6 @@ When reading unit strings like \verb+W/m^2/Hz+ you should say Watts per metre
 squared per Hertz, which is actually mathematically the same as the
 expressions shown in to the right in parentheses
 (\hitext{$W*m^{-2}*Hz^{-1}$} in this case).
-
 
 In addition to flux systems dimensionally similar ones can also be used and
 transformed between in a plot, things like temperature. \SPLAT\ understands
@@ -2492,6 +2549,55 @@ The various options are:
         spectrum.
 \end{itemize}
 
+\subsection{Quick change of coordinate or data units window}
+
+This window allows you to change the coordinate or data units of the current
+spectrum to a limited number of preset values. You can only change units when
+the current spectrum already has a correctly set coordinate system or data
+units.
+
+If you need to set the coordinates or data units you must use the two
+toolboxes available in the main window. These also offer considerably more
+flexibility, particularly when setting spectral coordinates.
+
+If you do not want to change the units of an axis, just leave the value set at
+"Unknown".
+
+\subsection{Flip or shift or redshift a spectrum}
+
+This window allows you to do three related jobs.
+\begin{itemize}
+\item Create and optionally flip a copy of the current spectrum.
+\item Shift an editable spectrum.
+\item Redshift an editable spectrum.
+\end{itemize}
+
+Flipping and shifting a spectrum allows you to assess the symmetry of a
+line. Shifting alone to determine how well spectra are aligned and redshifting
+to transform a spectrum or set of line identifiers to guess or confirm the
+redshift.
+
+The transformation is applied to the spectrum shown in the
+\labelitem{Spectrum:} drop-down menu. Initially this will show any editable
+spectra displayed in the associated plot (line identifiers are usually
+editable). If you want an editable copy of the current spectrum just press the
+\labelitem{Copy} button.
+
+One subtlety is that the offset value is either a redshift or a value in the
+coordinate units of the spectrum being modified, depending on whether the
+z\labelitem{Redshift} checkbox is selected, or not. The coordinate units of
+the spectrum may not be the same as those of the current spectrum in the plot,
+which can lead to surprising results.
+
+When applying a redshift it is assumed that the spectrum being modified has a
+wavelength coordinate system, of some kind, unless it has a proper coordinate
+system defined. In this latter case the only restriction is that you cannot
+have a standard of rest set to `Source' (as a transformation to and from
+Source is used to determine the redshift transform). In this latter case use
+the coordinate system toolbox to transform to another rest frame first.
+
+The \labelitem{Reset} button returns a spectrum to an offset of zero.
+
 \newpage
 \section{Supported data formats\xlabel{data_formats}}
 
@@ -2776,7 +2882,7 @@ Niemeyer (\htmladdnormallink{http://www.beanshell.org}
 
 \section{Changes}
 
-\subsection{This release (3.0)}
+\subsection{This release (3.2)}
 
 Starlink SPLAT is now a tool for the Virtual Observatory and has been
 renamed to \SPLAT.
@@ -2796,12 +2902,83 @@ energy domains as a spectral energy distribution.
 
 Other changes of note in this release:
 \begin{itemize}
-\item spectra can now be drawn using point markers of various kinds.
+\item Spectra can now be drawn using point markers of various kinds.
 
-\item log spacing can now be switched on from a plot (rather than by finding
+\item A new tool for setting the data units of spectra has been introduced.
+
+\item A new tool for transforming spectra by a redshift or by a flip and or
+      translation has been introduced.
+
+\item The grid drawn around the spectra can now be forced to stay within
+      the visible region of the plot window. This makes it easier to view
+      the spectral data values and coordinates, but at a performance cost.
+      Switch on the option \labelitem{Only display grid axes in visible area} 
+      to see this in action.
+
+\item Log spacing can now be switched on from a plot (rather than by finding
       the plot configuration window).
 
-\item a new tool for setting the data units of spectra has been introduced.
+\item Support for data units in the line identifier and simple text formats
+      has been added.
+
+\item Support for line identifiers to match against spectra that have data
+      units has been added.
+
+\item SED example data can now be loaded from the main \labelitem{Options} 
+      menu.
+
+\item The data and coordinate units of the current spectrum in a plot
+      can now be modified to preset values quickly.
+
+\item Several new smoothing filters have been introduced - Hanning, Hamming,
+      Welch and Barlett.
+
+\item Line identifiers are now available in the webstart version of \SPLAT.
+
+\item Line identifiers that fall within range of a spectrum can now be
+      automatically loaded. Other changes allow the positioning to follow
+      a spectrum, have the short name shown as a prefix and use horizontal
+      orientation for the labels.
+
+\item Spectral coordinates can now have the source velocity specified
+      as a redshift. The spectral editing tools now include relativistic
+      velocities in their template functions.
+
+\item The motion tracker in plot windows can now report the coordinates
+      under the pointer. The default continues to be to report the nearest
+      coordinate and data value of the current spectrum.
+
+\item The scale factors used when drawing spectra are now related to
+      graphics size. Previously they where related to the spectrum
+      coordinates. This makes it easy to control the plot when displaying
+      spectra with very different coordinates (like those downloaded from
+      the VO), but will cause existing spectra to be re-scaled when new
+      spectra are added to a plot.
+
+\item If should now be much faster when re-drawing many spectra that are
+      being matching using their spectral coordinates and data units.
+
+\item The handling of errors when plotting spectra with hugely differing
+      coordinates should be improved.
+
+\item A long standing problem with graphics corruption between plots has
+      been fixed. (When the current spectrum was shared between plots
+      some drawing changes effected all plots).
+
+\item A bug that meant that the postscript output of a plot was always
+      written to the default directory has been fixed.
+
+\item Serialised spectra stacks now include full coordinate information.
+
+\item Spectra can now be transformed to and from different data units
+      ($Jy$ to $W/m^{2}/Hz$ or $erg/cm^{2}/s/Angstrom$ \etc).
+
+\item The system look and feel is now the platform default. Mac OS X tweaks
+      are enabled on that platform.
+
+\item Data units are supported when editing and creating new spectra
+     (polynomial and line fits).
+
 \end{itemize}
 
 
