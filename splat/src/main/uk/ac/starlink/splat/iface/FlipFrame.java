@@ -485,13 +485,9 @@ public class FlipFrame
             0.001 * MathUtils.redshiftToVelocity( redshift ); // Km/s
         current.setD( "SourceVel", redshiftVelocity );
 
-        //uk.ac.starlink.splat.ast.ASTChannel.astWrite( frameSet );
-
         //  Now apply the redshift by moving the frameSet back to the original
         //  reference frame, this should cause a remapping.
         frameSet.setC( "StdOfRest", stdofrest );
-
-        //uk.ac.starlink.splat.ast.ASTChannel.astWrite( frameSet );
 
         //  Restore any original source velocity, without causing a remap.
         current.setD( "SourceVel", initialVelocity );
