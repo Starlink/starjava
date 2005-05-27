@@ -107,6 +107,11 @@ public class FlipFrame
     protected DecimalField spinnerIncr = null;
 
     /**
+     * Flip coordinate.
+     */
+    protected DecimalField flipCentre = null;
+
+    /**
      * The global list of spectra and plots.
      */
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
@@ -192,15 +197,32 @@ public class FlipFrame
         flipBox = new JCheckBox( "Flip" );
         flipBox.setSelected( true );
         flipBox.setToolTipText( "Flip copy left to right" );
+        flipBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    flipCentre.setEnabled( flipBox.isSelected() );
+                }
+            });
         gbl1.add( flipBox, false );
 
+        //  Coordinate of flip.
+        JLabel flipCentreLabel = new JLabel( "Flip centre:" );
+        gbl1.add( flipCentreLabel, false );
+
+        DecimalFormat decimalFormat = new DecimalFormat();
+        flipCentre = new DecimalField( 0.0, 5, decimalFormat );
+        flipCentre.setToolTipText( "Coordinate of flip centre, " + 
+                                       "zero for visible centre of plot, " +
+                                       "units of current spectrum" );
+        gbl1.add( flipCentre, true );
+
         //  Grab button. This creates the copy, which may be flipped.
-        CopyAction copyAction = new CopyAction( "Copy" );
+        CopyAction copyAction = new CopyAction( "Create copy" );
         JButton copyButton = new JButton( copyAction );
         copyButton.setToolTipText( "Press to create a copy of the current " +
                                    "spectrum in the associated plot" );
+        gbl1.add( Box.createGlue(), false );
         gbl1.add( copyButton, false );
-        gbl1.eatLine();
+        gbl1.add( Box.createGlue(), true );
 
         //  Add controls for choosing the spectrum.
         JLabel availableSpectraLabel = new JLabel( "Spectrum:" );
@@ -230,7 +252,7 @@ public class FlipFrame
         JLabel incrLabel = new JLabel( "Increment:" );
         gbl2.add( incrLabel, false );
 
-        DecimalFormat decimalFormat = new DecimalFormat();
+        decimalFormat = new DecimalFormat();
         spinnerIncr = new DecimalField( 10.0, 5, decimalFormat );
         spinnerIncr.addActionListener( this );
         spinnerIncr.setToolTipText( "Increment used for spinner controls" );
@@ -299,7 +321,7 @@ public class FlipFrame
     {
         setTitle( Utilities.getTitle( "Flip/translate spectrum" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 400, 280 ) );
+        setSize( new Dimension( 400, 300 ) );
         setVisible( true );
     }
 
@@ -344,8 +366,12 @@ public class FlipFrame
         double centre = 0.0;
         if ( flipped ) {
             scale = -1.0;
-            double[] view = plot.getViewCoordinates();
-            centre = view[0] + 0.5 * ( view[2] - view[0] );
+            centre = flipCentre.getDoubleValue();
+            if ( centre == 0.0 ) {
+                //  Use centre of visible plot.
+                double[] view = plot.getViewCoordinates();
+                centre = view[0] + 0.5 * ( view[2] - view[0] );
+            }
             offset = 2.0 * centre;
         }
         flipTransform( scale, offset, comparisonSpectrum, false );
