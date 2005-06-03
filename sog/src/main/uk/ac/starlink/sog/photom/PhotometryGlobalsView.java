@@ -14,20 +14,17 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 
 /**
  * Create a page of controls for setting the global measurements
@@ -58,7 +55,7 @@ public class PhotometryGlobalsView
 
     /** Zero point value */
     private DecimalField zeroPoint = 
-        new DecimalField( 50.0, 10, new DecimalFormat() );
+        new DecimalField( 50.0, 10, new ScientificFormat() );
 
     /** Centroid positions */
     private JCheckBox centroid = new JCheckBox();
