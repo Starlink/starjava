@@ -26,7 +26,6 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
 import uk.ac.starlink.util.gui.GridBagLayouter;
@@ -96,12 +95,12 @@ public class AxisNumLabControls extends JPanel
     /**
      * Spinner for controlling the position of the X numbers.
      */
-    protected JSpinner xGapSpinner = null;
+    protected ScientificSpinner xGapSpinner = null;
 
     /**
      * Spinner for controlling the position of the Y numbers.
      */
-    protected JSpinner yGapSpinner = null;
+    protected ScientificSpinner yGapSpinner = null;
 
    /**
      * X Spinner model.
@@ -215,14 +214,14 @@ public class AxisNumLabControls extends JPanel
         });
 
         //  New gaps.
-        xGapSpinner = new JSpinner( xSpinnerModel );
+        xGapSpinner = new ScientificSpinner( xSpinnerModel );
         xGapSpinner.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchXGap();
                 }
             });
 
-        yGapSpinner = new JSpinner( ySpinnerModel );
+        yGapSpinner = new ScientificSpinner( ySpinnerModel );
         yGapSpinner.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchYGap();

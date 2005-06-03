@@ -1,15 +1,12 @@
 package uk.ac.starlink.ast.gui;
 
-import java.text.DecimalFormat;
 import java.text.ParseException;
-
 import javax.swing.JTextField;
 
 /**
  * DecimalField extends JTextField to force the entry of valid decimal
  * (i.e. floating point and integer) numbers. The representation and
- * exact format of the numbers is locale specific and is defined by a
- * DecimalFormat object.
+ * exact format of the numbers is defined by a ScientificFormat object.
  *
  * @since $Date$
  * @since 26-OCT-2000
@@ -22,36 +19,36 @@ public class DecimalField extends JTextField
      * Reference to object that describes the locale specific number
      * format.
      */
-    protected DecimalFormat decimalFormat;
+    protected ScientificFormat scientificFormat;
 
     /**
      * Create an instance, requires the initial value (as a double),
-     * the number of columns to show and a DecimalFormat object to use
+     * the number of columns to show and a ScientificFormat object to use
      * when checking and formatting the accepted values. Uses a
      * DecimalDocument to check that any typed values are valid for
      * this format.
      */
     public DecimalField( double value, int columns,
-                         DecimalFormat format )
+                         ScientificFormat format )
     {
         super( columns );
         setDocument( new DecimalDocument( format ) );
-        decimalFormat = format;
+        scientificFormat = format;
         setDoubleValue( value );
     }
 
     /**
      * Create an instance, requires the initial value (as an int),
-     * the number of columns to show and a DecimalFormat object to use
+     * the number of columns to show and a ScientificFormat object to use
      * when checking and formatting the accepted values. Uses a
      * DecimalDocument to check that any typed values are valid for
      * this format.
      */
-    public DecimalField( int value, int columns, DecimalFormat format )
+    public DecimalField( int value, int columns, ScientificFormat format )
     {
         super( columns );
         setDocument( new DecimalDocument( format ) );
-        decimalFormat = format;
+        scientificFormat = format;
         setIntValue( value );
     }
 
@@ -63,7 +60,7 @@ public class DecimalField extends JTextField
     {
         double retVal = 0.0;
         try {
-            retVal = decimalFormat.parse( getText() ).doubleValue();
+            retVal = scientificFormat.parse( getText() ).doubleValue();
         } 
         catch ( ParseException e ) {
             // Return default value.
@@ -79,7 +76,7 @@ public class DecimalField extends JTextField
     {
         int retVal = 0;
         try {
-            retVal = decimalFormat.parse( getText() ).intValue();
+            retVal = scientificFormat.parse( getText() ).intValue();
         } 
         catch ( ParseException e ) {
             // Return default value.
@@ -92,7 +89,7 @@ public class DecimalField extends JTextField
      */
     public void setDoubleValue( double value )
     {
-        setText( decimalFormat.format( value ) );
+        setText( scientificFormat.format( value ) );
     }
 
     /**
@@ -100,6 +97,6 @@ public class DecimalField extends JTextField
      */
     public void setIntValue( int value )
     {
-        setText( decimalFormat.format( value ) );
+        setText( scientificFormat.format( value ) );
     }
 }

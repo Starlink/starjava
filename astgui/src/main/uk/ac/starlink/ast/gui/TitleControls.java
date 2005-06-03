@@ -25,7 +25,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
 import uk.ac.starlink.util.gui.SelectTextField;
@@ -66,7 +65,7 @@ public class TitleControls extends JPanel
     /**
      * Spinner for controlling title gap.
      */
-    protected JSpinner gapSpinner = null;
+    protected ScientificSpinner gapSpinner = null;
 
     /**
      * Spinner model.
@@ -139,7 +138,7 @@ public class TitleControls extends JPanel
         textField.getDocument().addDocumentListener( this );
 
         //  New gaps.
-        gapSpinner = new JSpinner( spinnerModel );
+        gapSpinner = new ScientificSpinner( spinnerModel );
         gapSpinner.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchGap();

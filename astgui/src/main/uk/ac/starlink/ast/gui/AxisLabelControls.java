@@ -27,7 +27,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
-import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
 import uk.ac.starlink.util.gui.SelectTextField;
@@ -79,12 +78,12 @@ public class AxisLabelControls extends JPanel
     /**
      * Spinner for controlling the position of the X label.
      */
-    protected JSpinner xGapSpinner = null;
+    protected ScientificSpinner xGapSpinner = null;
 
     /**
      * Spinner for controlling the position of the Y label.
      */
-    protected JSpinner yGapSpinner = null;
+    protected ScientificSpinner yGapSpinner = null;
 
    /**
      * X gap spinner model.
@@ -223,14 +222,14 @@ public class AxisLabelControls extends JPanel
             });
 
         //  New gaps.
-        xGapSpinner = new JSpinner( xSpinnerModel );
+        xGapSpinner = new ScientificSpinner( xSpinnerModel );
         xGapSpinner.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchXGap();
                 }
             });
 
-        yGapSpinner = new JSpinner( ySpinnerModel );
+        yGapSpinner = new ScientificSpinner( ySpinnerModel );
         yGapSpinner.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchYGap();

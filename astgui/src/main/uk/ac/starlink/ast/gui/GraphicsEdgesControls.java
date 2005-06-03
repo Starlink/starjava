@@ -21,7 +21,6 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
 import uk.ac.starlink.util.gui.GridBagLayouter;
@@ -54,12 +53,12 @@ public class GraphicsEdgesControls extends JPanel
     /**
      * Spinner for controlling the space reserved for X labelling on left.
      */
-    protected JSpinner xLeft = null;
+    protected ScientificSpinner xLeft = null;
 
     /**
      * Spinner for controlling the space reserved for X labelling on right.
      */
-    protected JSpinner xRight = null;
+    protected ScientificSpinner xRight = null;
 
     /**
      * Spinner model for X left fraction.
@@ -82,13 +81,13 @@ public class GraphicsEdgesControls extends JPanel
     /**
      * Spinner for controlling the space reserved for Y labelling at the top.
      */
-    protected JSpinner yTop = null;
+    protected ScientificSpinner yTop = null;
 
     /**
      * Spinner for controlling the space reserved for Y labelling at the
      * bottom.
      */
-    protected JSpinner yBottom = null;
+    protected ScientificSpinner yBottom = null;
 
     /**
      * Spinner model for Y top fraction.
@@ -140,14 +139,14 @@ public class GraphicsEdgesControls extends JPanel
             });
 
         //  Set X fractions.
-        xLeft = new JSpinner( xLeftModel );
+        xLeft = new ScientificSpinner( xLeftModel );
         xLeft.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchXLeft();
                 }
             });
 
-        xRight = new JSpinner( xRightModel );
+        xRight = new ScientificSpinner( xRightModel );
         xRight.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchXRight();
@@ -155,14 +154,14 @@ public class GraphicsEdgesControls extends JPanel
             });
 
         //  Set Y fractions.
-        yTop = new JSpinner( yTopModel );
+        yTop = new ScientificSpinner( yTopModel );
         yTop.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchYTop();
                 }
             });
 
-        yBottom = new JSpinner( yBottomModel );
+        yBottom = new ScientificSpinner( yBottomModel );
         yBottom.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchYBottom();

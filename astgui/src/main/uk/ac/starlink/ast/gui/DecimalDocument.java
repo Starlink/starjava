@@ -1,7 +1,6 @@
 package uk.ac.starlink.ast.gui;
 
 import java.awt.Toolkit;
-import java.text.DecimalFormat;
 import java.text.ParseException;
 
 import javax.swing.text.AttributeSet;
@@ -12,30 +11,30 @@ import javax.swing.text.PlainDocument;
  *
  * DecimalDocument extends PlainDocument to so that any associated
  * components will only accept valid floating or integer words. The
- * actual format of the representation (locale specific) is defined by
- * a DecimalFormat object.
+ * actual format of the representation is defined by a ScientificFormat
+ * object.
  *
  * @since $Date$
  * @since 26-OCT-2000
  * @author Peter W. Draper
  * @version $Id$
  */
-public class DecimalDocument extends PlainDocument 
+public class DecimalDocument extends PlainDocument
 {
-    private DecimalFormat format;
+    private ScientificFormat format;
 
-    public DecimalDocument( DecimalFormat format ) 
+    public DecimalDocument( ScientificFormat format )
     {
         this.format = format;
     }
 
-    public DecimalFormat getFormat() 
+    public ScientificFormat getFormat()
     {
         return format;
     }
 
-    public void insertString(int offs, String str, AttributeSet a) 
-        throws BadLocationException 
+    public void insertString(int offs, String str, AttributeSet a)
+        throws BadLocationException
     {
         //  Add a trailing zero so that "+", "-" and "." may be
         //  entered as the first character. This is in fact the only
@@ -54,8 +53,8 @@ public class DecimalDocument extends PlainDocument
         }
     }
 
-    public void remove( int offs, int len ) 
-        throws BadLocationException 
+    public void remove( int offs, int len )
+        throws BadLocationException
     {
         String currentText = getText( 0, getLength() );
         String beforeOffset = currentText.substring( 0, offs );

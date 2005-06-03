@@ -12,7 +12,6 @@ package uk.ac.starlink.ast.gui;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 
 import javax.swing.AbstractSpinnerModel;
 import javax.swing.Box;
@@ -21,7 +20,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -80,14 +78,14 @@ public class TickControls extends JPanel
     /**
      * Entry for ratio gap between major ticks for log X axis.
      */
-    protected JSpinner xLogGap = null;
+    protected ScientificSpinner xLogGap = null;
     protected SpinnerNumberModel xLogGapModel =
         new SpinnerNumberModel( 0, 0, 10, 1 );
 
     /**
      * Entry for the gap between major ticks on the Y axis.
      */
-    protected JSpinner yLogGap = null;
+    protected ScientificSpinner yLogGap = null;
     protected SpinnerNumberModel yLogGapModel =
         new SpinnerNumberModel( 0, 0, 10, 1 );
 
@@ -104,7 +102,7 @@ public class TickControls extends JPanel
     /**
      * Spinner for controlling the length of X axis major tick marks.
      */
-    protected JSpinner xMajorLength = null;
+    protected ScientificSpinner xMajorLength = null;
 
     /**
      * Spinner model for length of X axis major tick marks.
@@ -118,7 +116,7 @@ public class TickControls extends JPanel
     /**
      * Spinner for controlling the length of Y axis major tick marks.
      */
-    protected JSpinner yMajorLength = null;
+    protected ScientificSpinner yMajorLength = null;
 
     /**
      * Spinner model for length of Y axis major tick marks.
@@ -132,7 +130,7 @@ public class TickControls extends JPanel
     /**
      * Spinner for controlling the length of X axis minor tick marks.
      */
-    protected JSpinner xMinorLength = null;
+    protected ScientificSpinner xMinorLength = null;
 
     /**
      * Spinner model for length of X axis minor tick marks.
@@ -146,7 +144,7 @@ public class TickControls extends JPanel
     /**
      * Spinner for controlling the length of Y axis minor tick marks.
      */
-    protected JSpinner yMinorLength = null;
+    protected ScientificSpinner yMinorLength = null;
 
     /**
      * Spinner model for length of X axis minor tick marks.
@@ -243,13 +241,13 @@ public class TickControls extends JPanel
             });
 
         //  Major gap spacing for log axes. A ratio.
-        xLogGap = new JSpinner( xLogGapModel );
+        xLogGap = new ScientificSpinner( xLogGapModel );
         xLogGap.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchXLogGap();
                 }
             });
-        yLogGap = new JSpinner( yLogGapModel );
+        yLogGap = new ScientificSpinner( yLogGapModel );
         yLogGap.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchYLogGap();
@@ -274,13 +272,13 @@ public class TickControls extends JPanel
             });
 
         //  Length of major ticks.
-        xMajorLength = new JSpinner( xMajorLengthModel );
+        xMajorLength = new ScientificSpinner( xMajorLengthModel );
         xMajorLength.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchXMajorLength();
                 }
             });
-        yMajorLength = new JSpinner( yMajorLengthModel );
+        yMajorLength = new ScientificSpinner( yMajorLengthModel );
         yMajorLength.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchYMajorLength();
@@ -288,13 +286,13 @@ public class TickControls extends JPanel
             });
 
         //  Length of minor ticks.
-        xMinorLength = new JSpinner( xMinorLengthModel );
+        xMinorLength = new ScientificSpinner( xMinorLengthModel );
         xMinorLength.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchXMinorLength();
                 }
             });
-        yMinorLength = new JSpinner( yMinorLengthModel );
+        yMinorLength = new ScientificSpinner( yMinorLengthModel );
         yMinorLength.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     matchYMinorLength();
