@@ -76,6 +76,11 @@
   <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
+  <!-- Web proxy configuration, you will usually override these in
+   !   ~/.stardev.properties or .properties -->
+  <property name="http.proxyPort" value="8080"/>
+  <property name="http.proxyHost" value=""/>
+
   <!--
    !  ================
    !  Local Properties
@@ -85,7 +90,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT"/>
   <property name="name" value="splat"/>
-  <property name="version" value="3.1"/>
+  <property name="version" value="3.2"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -1205,6 +1210,8 @@
     <!-- Run up SPLAT from the local build, enable for remote JPDA debugging-->
     <java classname="uk.ac.starlink.splat.SplatMain" fork="true">
       <classpath refid="tests-classpath"/>
+      <sysproperty key="http.proxyHost" value="${http.proxyHost}"/>
+      <sysproperty key="http.proxyPort" value="${http.proxyPort}"/>
       <jvmarg value="-mx128m"/>
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xnoagent"/>
@@ -1223,6 +1230,8 @@
 
     <java classname="uk.ac.starlink.splat.SplatMain" fork="true">
       <classpath refid="tests-classpath"/>
+      <sysproperty key="http.proxyHost" value="${http.proxyHost}"/>
+      <sysproperty key="http.proxyPort" value="${http.proxyPort}"/>
       <jvmarg value="-Dsplat.development=${splat.development}"/>
       <jvmarg value="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"/>
       <jvmarg value="-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"/>
@@ -1239,6 +1248,8 @@
 
     <java classname="${runclass}" fork="true">
       <classpath refid="tests-classpath"/>
+      <sysproperty key="http.proxyHost" value="${http.proxyHost}"/>
+      <sysproperty key="http.proxyPort" value="${http.proxyPort}"/>
       <arg value="${runclass.args1}"/>
       <arg value="${runclass.args2}"/>
     </java>

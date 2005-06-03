@@ -12,7 +12,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.text.DecimalFormat;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -40,6 +39,7 @@ import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 
 /**
  * Interface to perform simple mathematical operations one a spectrum.
@@ -153,8 +153,8 @@ public class SimpleUnaryMaths
         //  Create the field for accepting a decimal.
         JPanel constantPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JLabel constantLabel = new JLabel( "Constant:" );
-        DecimalFormat decimalFormat = new DecimalFormat();
-        constantField = new DecimalField( 1.0, 5, decimalFormat );
+        ScientificFormat scientificFormat = new ScientificFormat();
+        constantField = new DecimalField( 1.0, 5, scientificFormat );
         constantField.setToolTipText( "Constant to add/subtract/multiply"
                                       + " or divide spectrum" );
         constantPanel.add( constantLabel );

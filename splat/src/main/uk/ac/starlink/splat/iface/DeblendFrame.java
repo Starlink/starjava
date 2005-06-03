@@ -12,7 +12,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -45,6 +44,7 @@ import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.util.gui.GridBagLayouter;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 
 /**
  * Provides a toolbox for fitting blends of spectral lines using a variety of
@@ -254,7 +254,7 @@ public class DeblendFrame
         backgroundValueLabel.setText( "Background value:" );
         backgroundValue.addItem( new Integer( 1 ) );
         backgroundValue.addItem( new Integer( 0 ) );
-        DecimalFormat format = new DecimalFormat();
+        ScientificFormat format = new ScientificFormat();
         DecimalComboBoxEditor editor = new DecimalComboBoxEditor( format );
         backgroundValue.setEditor( editor );
         backgroundValue.setEditable( true );

@@ -14,7 +14,6 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 import java.text.ParseException;
 
 import javax.swing.BorderFactory;
@@ -27,6 +26,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 
 /**
  * Create a dialog for obtaining a single decimal number. Use the
@@ -42,8 +42,8 @@ public class DecimalDialog
     /** The DecimalField */
     protected DecimalField decimalField = null;
 
-    /** The DecimalFormat */
-    protected DecimalFormat decimalFormat = null;
+    /** The ScientificFormat */
+    protected ScientificFormat decimalFormat = null;
 
     /** The accepted value, null if not accepted */
     protected String value = null;
@@ -54,7 +54,7 @@ public class DecimalDialog
      * @param component a parent component for the dialog, may be null
      * @param title the title for the dialog window
      * @param labelText description of the value that is to be obtained
-     * @param format DecimalFormat instance for formatting numbers
+     * @param format ScientificFormat instance for formatting numbers
      * @param initialValue the initial value to show in the text area
      *
      * @return the accepted value, or null if cancelled or the value
@@ -63,7 +63,7 @@ public class DecimalDialog
     public static Number showDialog( Component component,
                                      String title,
                                      String labelText,
-                                     DecimalFormat format,
+                                     ScientificFormat format,
                                      Number initialValue )
     {
         //  Create a dialog window
@@ -80,7 +80,7 @@ public class DecimalDialog
      * the "showDialog" method.
      */
     private DecimalDialog( Frame frame, String title, String labelText,
-                           Number initialValue, DecimalFormat format )
+                           Number initialValue, ScientificFormat format )
     {
         super( frame, title, true );
 

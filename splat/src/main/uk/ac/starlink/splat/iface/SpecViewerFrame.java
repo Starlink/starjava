@@ -31,11 +31,11 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.text.DecimalFormat;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.gui.AstCellEditor;
 import uk.ac.starlink.ast.gui.AstDouble;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
@@ -497,8 +497,8 @@ public class SpecViewerFrame
     /** Number of rows added by default */
     protected Integer defaultRows = new Integer( 1 );
 
-    /** DecimalFormat used to parse numbers */
-    protected DecimalFormat defaultDecimalFormat = new DecimalFormat();
+    /** ScientificFormat used to parse numbers */
+    protected ScientificFormat defaultFormat = new ScientificFormat();
 
     /**
      * Insert a number of new rows into the spectrum.
@@ -510,8 +510,7 @@ public class SpecViewerFrame
             Number number =
                 DecimalDialog.showDialog( this, "Add new rows",
                                           "Number of rows to create",
-                                          defaultDecimalFormat,
-                                          defaultRows );
+                                          defaultFormat, defaultRows );
             if ( number != null ) {
                 int nrows = number.intValue();
 

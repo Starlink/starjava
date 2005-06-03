@@ -55,6 +55,7 @@ import jsky.util.gui.ProgressPanel;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
+import uk.ac.starlink.splat.iface.ToolButtonBar;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SplatBrowser;
@@ -74,8 +75,8 @@ import uk.ac.starlink.util.gui.ProxySetupFrame;
 import uk.ac.starlink.votable.VOTableBuilder;
 
 /**
- * Display a page of controls for querying an SSA server and display the
- * results of that query. The spectra returned from that query can then be
+ * Display a page of controls for querying a list of  SSA servers and
+ * displaying the results of those queries. The spectra returned can then be
  * selected and displayed in the main SPLAT browser.
  *
  * @author Peter W. Draper
@@ -92,8 +93,7 @@ public class SSAQueryBrowser
     private SSAServerList serverList = null;
 
     /**
-     * The instance of SPLAT we're associated with. XXX should abstract this
-     * into an interface.
+     * The instance of SPLAT we're associated with.
      */
     private SplatBrowser browser = null;
 
@@ -106,14 +106,8 @@ public class SSAQueryBrowser
     /** Content pane of frame */
     protected JPanel contentPane = null;
 
-    /** Panel for action buttons */
-    protected JPanel actionBarContainer = null;
-
-    /** Menubar */
-    protected JMenuBar menuBar = null;
-
-    /** The file menu */
-    protected JMenu fileMenu = null;
+    /** Centre panel */
+    protected JPanel centrePanel = null;
 
     /** Object name */
     protected JTextField nameField = null;
@@ -129,12 +123,6 @@ public class SSAQueryBrowser
 
     /** Make the query to all known servers */
     protected JButton goButton = null;
-
-    /** Server list menu */
-    protected JMenu serverMenu = null;
-
-    /** Name resolver menu */
-    protected JMenu resolverMenu = null;
 
     /** Central RA */
     protected JTextField raField = null;
@@ -160,11 +148,11 @@ public class SSAQueryBrowser
     /** The current name resolver */
     protected SkycatCatalog resolverCatalogue = null;
 
-    /** The options menu */
-    protected JMenu optionsMenu = null;
-
     /** The proxy server dialog */
     protected ProxySetupFrame proxyWindow = null;
+
+    /** The SSA servers window */
+    protected SSAServerFrame serverWindow = null;
 
     /** Make sure the proxy environment is setup */
     static {
@@ -179,75 +167,74 @@ public class SSAQueryBrowser
         this.serverList = serverList;
         this.browser = browser;
         initUI();
-        initMenus();
+        initMenusAndToolbar();
         initFrame();
     }
 
     /**
-     * Initialise frame properties (disposal, title, menus etc.).
+     * Create and display the UI components.
      */
-    private void initFrame()
+    private void initUI()
     {
-        setTitle( Utilities.getTitle( "Query VO for Spectra" ) );
-        setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        contentPane.add( actionBarContainer, BorderLayout.SOUTH );
-        setSize( new Dimension( 550, 500 ) );
-        setVisible( true );
+        contentPane = (JPanel) getContentPane();
+        contentPane.setLayout( new BorderLayout() );
+        centrePanel = new JPanel( new BorderLayout() );
+        contentPane.add( centrePanel, BorderLayout.CENTER );
+
+        initQueryComponents();
+        initResultsComponent();
+        setDefaultNameServers();
     }
 
     /**
      * Initialise the menu bar, action bar and related actions.
      */
-    private void initMenus()
+    private void initMenusAndToolbar()
     {
         //  Add the menuBar.
-        menuBar = new JMenuBar();
+        JMenuBar menuBar = new JMenuBar();
         setJMenuBar( menuBar );
 
+        //  Create the toolbar.
+        ToolButtonBar toolBar = new ToolButtonBar( contentPane );
+
         //  Get icons.
-        ImageIcon closeImage = new ImageIcon(
-            ImageHolder.class.getResource( "close.gif" ) );
-        ImageIcon helpImage = new ImageIcon(
-            ImageHolder.class.getResource( "help.gif" ) );
+        ImageIcon closeImage = 
+            new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
+        ImageIcon helpImage = 
+            new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
+        ImageIcon ssaImage = 
+            new ImageIcon( ImageHolder.class.getResource( "ssapservers.gif" ) );
 
         //  Create the File menu.
-        fileMenu = new JMenu( "File" );
+        JMenu fileMenu = new JMenu( "File" );
         menuBar.add( fileMenu );
 
         //  Create the options menu.
-        optionsMenu = new JMenu( "Options" );
+        JMenu optionsMenu = new JMenu( "Options" );
         menuBar.add( optionsMenu );
 
-        ProxyAction proxyAction = new ProxyAction( "Configure proxy..." );
+        ProxyAction proxyAction = 
+            new ProxyAction( "Configure connection proxy..." );
         optionsMenu.add( proxyAction );
+
+        //  Add item to control the use of SSA servers.
+        ServerAction serverAction = 
+            new ServerAction( "Configure SSAP servers...", ssaImage,
+                              "Configure SSAP servers" );
+        optionsMenu.add( serverAction );
+        toolBar.add( serverAction );
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
         fileMenu.add( closeAction );
         JButton closeButton = new JButton( closeAction );
-        actionBarContainer = new JPanel();
+        JPanel actionBarContainer = new JPanel();
         actionBarContainer.add( closeButton );
         closeButton.setToolTipText( "Close window" );
 
-        //  Create a menu containing all the known SSA servers.
-        serverMenu = new JMenu( "Servers" );
-        menuBar.add( serverMenu );
-
-        //  Populate this with the servers as a list of selectable menu
-        //  items.
-        Iterator i = serverList.getIterator();
-        JCheckBoxMenuItem jcmi = null;
-        while ( i.hasNext() ) {
-            SSAServer server = (SSAServer) i.next();
-            jcmi = new JCheckBoxMenuItem();
-            serverMenu.add( jcmi );
-            jcmi.setState( true );
-            jcmi.setAction( new ServerAction( server.getDescription(),
-                                              server ) );
-        }
-
         //  Create a menu containing all the name resolvers.
-        resolverMenu = new JMenu( "Resolver" );
+        JMenu resolverMenu = new JMenu( "Resolver" );
         menuBar.add( resolverMenu );
 
         ButtonGroup bg = new ButtonGroup();
@@ -265,26 +252,28 @@ public class SSAQueryBrowser
         resolverCatalogue = simbadCatalogue;
 
         //  Create the Help menu.
-        HelpFrame.createHelpMenu( "ssa-window", "Help on window",
-                                  menuBar, null );
+        HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window",
+                                        menuBar, toolBar );
+
+        //  ActionBar goes at bottom.
+        contentPane.add( actionBarContainer, BorderLayout.SOUTH );
     }
 
     /**
-     * Create and display the UI components.
+     * Initialise frame properties (disposal, title, menus etc.).
      */
-    private void initUI()
+    private void initFrame()
     {
-        contentPane = (JPanel) getContentPane();
-        contentPane.setLayout( new BorderLayout() );
-        initQueryComponents();
-
-        initResultsComponent();
-
-        setDefaultNameServers();
+        setTitle( Utilities.getTitle( "Query VO for Spectra" ) );
+        setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
+        setSize( new Dimension( 550, 500 ) );
+        setVisible( true );
     }
 
+
     /**
-     * Populate the NORTH part of window with the basic query components.
+     * Populate the north part of center window with the basic query
+     * components.
      */
     private void initQueryComponents()
     {
@@ -294,7 +283,7 @@ public class SSAQueryBrowser
 
         GridBagLayouter layouter =
             new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME3 );
-        contentPane.add( queryPanel, BorderLayout.NORTH );
+        centrePanel.add( queryPanel, BorderLayout.NORTH );
 
         //  Object name. Arrange for a resolver to look up the coordinates of
         //  the object name, when return or the lookup button are pressed.
@@ -375,7 +364,7 @@ public class SSAQueryBrowser
         displayAllButton.addActionListener( this );
 
         resultsPanel.add( controlPanel, BorderLayout.SOUTH );
-        contentPane.add( resultsPanel, BorderLayout.CENTER );
+        centrePanel.add( resultsPanel, BorderLayout.CENTER );
     }
 
 
@@ -927,7 +916,7 @@ public class SSAQueryBrowser
     /**
      * Set the proxy server and port.
      */
-    protected void showProxy()
+    protected void showProxyDialog()
     {
         if ( proxyWindow == null ) {
             ProxySetupFrame.restore( null );
@@ -942,6 +931,17 @@ public class SSAQueryBrowser
     protected void closeWindowEvent()
     {
         this.dispose();
+    }
+
+    /**
+     * Configure the SSA servers.
+     */
+    protected void showServerWindow()
+    {
+        if ( serverWindow == null ) {
+            serverWindow = new SSAServerFrame( serverList );
+        }
+        serverWindow.setVisible( true );
     }
 
     /**
@@ -1017,26 +1017,6 @@ public class SSAQueryBrowser
     }
 
     //
-    //  Action for switching servers active state on and off.
-    //
-    class ServerAction
-        extends AbstractAction
-    {
-        SSAServer server = null;
-        public ServerAction( String name, SSAServer server)
-        {
-            super( name );
-            this.server = server;
-        }
-
-        public void actionPerformed( ActionEvent e )
-        {
-            JCheckBoxMenuItem cb = (JCheckBoxMenuItem) e.getSource();
-            server.setActive( cb.getState() );
-        }
-    }
-
-    //
     //  Action for switching name resolvers.
     //
     class ResolverAction
@@ -1066,7 +1046,24 @@ public class SSAQueryBrowser
         }
         public void actionPerformed( ActionEvent ae )
         {
-            showProxy();
+            showProxyDialog();
+        }
+    }
+
+    //
+    //  Action to display the SSA server configuration window.
+    //
+    protected class ServerAction
+        extends AbstractAction
+    {
+        public ServerAction( String name, Icon icon, String help )
+        {
+            super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            showServerWindow();
         }
     }
 }

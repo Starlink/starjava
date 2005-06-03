@@ -9,7 +9,6 @@ package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
-import java.text.DecimalFormat;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -30,6 +29,7 @@ import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.MathMap;
 import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
@@ -176,13 +176,13 @@ public class CoordinateGenerator
             ( "Result is transformation of indices (start at 0)");
 
         JLabel scaleLabel = new JLabel( "Scale Factor:   " );
-        DecimalFormat decimalFormat = new DecimalFormat();
-        scale = new DecimalField( 1.0, 5, decimalFormat );
+        ScientificFormat scientificFormat = new ScientificFormat();
+        scale = new DecimalField( 1.0, 5, scientificFormat );
         scale.setToolTipText( "Amount to scale coordinates or indices" );
 
         JLabel offsetLabel = new JLabel( "Offset:   " );
-        decimalFormat = new DecimalFormat();
-        offset = new DecimalField( 0.0, 5, decimalFormat );
+        scientificFormat = new ScientificFormat();
+        offset = new DecimalField( 0.0, 5, scientificFormat );
 
         offset.setToolTipText( "Offset for new coordinates" );
 

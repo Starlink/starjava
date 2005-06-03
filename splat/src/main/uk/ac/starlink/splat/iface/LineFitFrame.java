@@ -41,6 +41,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -311,7 +312,7 @@ public class LineFitFrame
         backgroundValueLabel.setText( "Background value:" );
         backgroundValue.addItem( new Integer( 1 ) );
         backgroundValue.addItem( new Integer( 0 ) );
-        DecimalFormat format = new DecimalFormat();
+        ScientificFormat format = new ScientificFormat();
         DecimalComboBoxEditor editor = new DecimalComboBoxEditor( format );
         backgroundValue.setEditor( editor );
         backgroundValue.setEditable( true );

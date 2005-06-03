@@ -14,7 +14,6 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
-import java.text.DecimalFormat;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -35,7 +34,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
@@ -45,6 +43,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
+import uk.ac.starlink.ast.gui.ScientificSpinner;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
@@ -146,7 +146,7 @@ public class SpecFilterFrame
     /**
      * Wavelet percent
      */
-    protected JSpinner waveletPercent = null;
+    protected ScientificSpinner waveletPercent = null;
 
     /**
      * Create an instance.
@@ -296,8 +296,8 @@ public class SpecFilterFrame
         //  Just need to get the window size and whether to use any
         //  regions or not.
         JLabel widthLabel = new JLabel( "Window width:   " );
-        DecimalFormat decimalFormat = new DecimalFormat();
-        averageWidth = new DecimalField( 5, 5, decimalFormat );
+        ScientificFormat scientificFormat = new ScientificFormat();
+        averageWidth = new DecimalField( 5, 5, scientificFormat );
         averageWidth.setToolTipText( "Width of region to average over" );
 
         panel.add( widthLabel );
@@ -316,8 +316,8 @@ public class SpecFilterFrame
         //  Just need to get the window size and whether to use any
         //  regions or not.
         JLabel widthLabel = new JLabel( "Window width:   " );
-        DecimalFormat decimalFormat = new DecimalFormat();
-        medianWidth = new DecimalField( 5, 5, decimalFormat );
+        ScientificFormat scientificFormat = new ScientificFormat();
+        medianWidth = new DecimalField( 5, 5, scientificFormat );
         medianWidth.setToolTipText( "Width of region to median over" );
 
         panel.add( widthLabel );
@@ -442,8 +442,8 @@ public class SpecFilterFrame
 
 
         JLabel widthLabel = new JLabel( "Profile evaluation width:   " );
-        DecimalFormat decimalFormat = new DecimalFormat();
-        profileWidth = new DecimalField( 50.0, 5, decimalFormat );
+        ScientificFormat scientificFormat = new ScientificFormat();
+        profileWidth = new DecimalField( 50.0, 5, scientificFormat );
         profileWidth.setToolTipText( "Width used to evaluate profile " +
                                      "(should be at least several widths)" );
 
@@ -451,16 +451,16 @@ public class SpecFilterFrame
         gbl.add( profileWidth, true );
 
         gWidthLabel = new JLabel( "Gaussian FWHM/width:   " );
-        decimalFormat = new DecimalFormat();
-        gWidth = new DecimalField( 5, 5, decimalFormat );
+        scientificFormat = new ScientificFormat();
+        gWidth = new DecimalField( 5, 5, scientificFormat );
         gWidth.setToolTipText( "FWHM of gaussian or gaussian width" );
 
         gbl.add( gWidthLabel, false );
         gbl.add( gWidth, true );
 
         lWidthLabel = new JLabel( "Lorentzian width:   " );
-        decimalFormat = new DecimalFormat();
-        lWidth = new DecimalField( 5, 5, decimalFormat );
+        scientificFormat = new ScientificFormat();
+        lWidth = new DecimalField( 5, 5, scientificFormat );
         lWidth.setToolTipText( "The Lorentzian width" );
 
         gbl.add( lWidthLabel, false );
@@ -487,9 +487,9 @@ public class SpecFilterFrame
                                    " coefficients");
 
         JLabel percentLabel = new JLabel( "Threshold (percent):   " );
-        DecimalFormat decimalFormat = new DecimalFormat();
-        waveletPercent =
-            new JSpinner( new SpinnerNumberModel( 50, 0.0, 100.0, 1.0 ) );
+        ScientificFormat scientificFormat = new ScientificFormat();
+        waveletPercent = new ScientificSpinner
+            ( new SpinnerNumberModel( 50, 0.0, 100.0, 1.0 ) );
         waveletPercent.setToolTipText( "Percentage of signal to remove" );
 
         gbl.add( waveletLabel, false );

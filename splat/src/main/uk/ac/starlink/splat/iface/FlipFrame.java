@@ -15,8 +15,6 @@ import java.awt.event.ItemListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import java.text.DecimalFormat;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,7 +37,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -50,6 +47,8 @@ import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
+import uk.ac.starlink.ast.gui.ScientificSpinner;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -94,7 +93,7 @@ public class FlipFrame
     /**
      * User translation.
      */
-    protected JSpinner spinnerTran = null;
+    protected ScientificSpinner spinnerTran = null;
 
     /**
      * And the model.
@@ -208,8 +207,8 @@ public class FlipFrame
         JLabel flipCentreLabel = new JLabel( "Flip centre:" );
         gbl1.add( flipCentreLabel, false );
 
-        DecimalFormat decimalFormat = new DecimalFormat();
-        flipCentre = new DecimalField( 0.0, 5, decimalFormat );
+        ScientificFormat scientificFormat = new ScientificFormat();
+        flipCentre = new DecimalField( 0.0, 5, scientificFormat );
         flipCentre.setToolTipText( "Coordinate of flip centre, " + 
                                        "zero for visible centre of plot, " +
                                        "units of current spectrum" );
@@ -252,8 +251,8 @@ public class FlipFrame
         JLabel incrLabel = new JLabel( "Increment:" );
         gbl2.add( incrLabel, false );
 
-        decimalFormat = new DecimalFormat();
-        spinnerIncr = new DecimalField( 10.0, 5, decimalFormat );
+        scientificFormat = new ScientificFormat();
+        spinnerIncr = new DecimalField( 10.0, 5, scientificFormat );
         spinnerIncr.addActionListener( this );
         spinnerIncr.setToolTipText( "Increment used for spinner controls" );
         gbl2.add( spinnerIncr, true );
@@ -261,11 +260,10 @@ public class FlipFrame
         JLabel spinnerLabel = new JLabel( "Offset:" );
         gbl2.add( spinnerLabel, false );
 
-        spinnerModel = new SpinnerNumberModel( 0.0,
-                                               -Double.MAX_VALUE,
-                                               Double.MAX_VALUE,
-                                               10.0 );
-        spinnerTran = new JSpinner( spinnerModel );
+        spinnerModel = new SpinnerNumberModel( 0.0, -Double.MAX_VALUE,
+                                               Double.MAX_VALUE, 10.0 );
+        spinnerTran = new ScientificSpinner( spinnerModel );
+
         spinnerTran.addChangeListener( this );
         spinnerTran.setToolTipText("Offset of spectrum from initial position");
         gbl2.add( spinnerTran, true );

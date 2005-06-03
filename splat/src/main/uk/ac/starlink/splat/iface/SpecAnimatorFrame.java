@@ -12,7 +12,6 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.text.DecimalFormat;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -41,6 +40,7 @@ import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
 
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlot;
@@ -280,9 +280,9 @@ public class SpecAnimatorFrame
         // number.
         JLabel delayLabel = new JLabel( "Delay:" );
 
-        DecimalFormat decimalFormat = new DecimalFormat();
+        ScientificFormat scientificFormat = new ScientificFormat();
         double delay = prefs.getDouble( "SpecAnimator_delay", 1.0 );
-        delayField = new DecimalField( delay, 5, decimalFormat );
+        delayField = new DecimalField( delay, 5, scientificFormat );
         delayField.setToolTipText( "Delay before displaying the next " +
                                    "spectrum (seconds, press return to" +
                                    " apply immediately)" );

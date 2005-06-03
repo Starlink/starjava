@@ -26,7 +26,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -58,6 +57,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
+import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
@@ -2412,7 +2412,7 @@ public class SplatBrowser
         Number number =
             DecimalDialog.showDialog( this, "Create new spectrum",
                                       "Number of rows in spectrum",
-                                      new DecimalFormat(),
+                                      new ScientificFormat(),
                                       new Integer( 100 ) );
         if ( number != null ) {
             int nrows = number.intValue();

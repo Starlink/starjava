@@ -7,12 +7,11 @@
  */
 package uk.ac.starlink.splat.iface;
 
-import java.text.DecimalFormat;
-
 import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 
 /**
  * DecimalComboBoxEditor extends BasicComboBoxEditor to provide a
@@ -23,13 +22,12 @@ import uk.ac.starlink.ast.gui.DecimalField;
  * something like:
  * <pre>
  *    JComboBox box = new JComboBox();
- *    DecimalFormat format = new DecimalFormat();
+ *    ScientificFormat format = new ScientificFormat();
  *    DecimalComboBoxEditor editor = new DecimalComboBoxEditor(format);
  *    box.setEditor( editor );
  *    box.setEditable( true );
  * </pre>
- * Control of the exact formatting (and locale) is done by the 
- * DecimalFormat object.
+ * Control of the exact formatting is done by the ScientificFormat object.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -39,7 +37,7 @@ import uk.ac.starlink.ast.gui.DecimalField;
 public class DecimalComboBoxEditor 
     extends BasicComboBoxEditor 
 {
-    public DecimalComboBoxEditor( DecimalFormat format ) {
+    public DecimalComboBoxEditor( ScientificFormat format ) {
         super();
         editor = new BorderlessDecimalField( 0, 9, format );
     }
@@ -48,7 +46,7 @@ public class DecimalComboBoxEditor
     static class BorderlessDecimalField extends DecimalField 
     {
         public BorderlessDecimalField( double value , int width,
-                                       DecimalFormat format ) 
+                                       ScientificFormat format ) 
         {
             super(value, width, format );
         }

@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.text.DecimalFormat;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -17,6 +16,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 
 /**
  * Creates a compound component that displays a label, floating
@@ -76,9 +76,9 @@ public class LabelFloatJSlider extends JPanel
 
         // Add the text field.  It initially displays "0" and needs
         // to be at least 10 columns wide.
-        DecimalFormat decimalFormat = new DecimalFormat();
-        //decimalFormat.setMaximumFractionDigits( 6 );
-        valueField = new DecimalField( 0, 10, decimalFormat ); 
+        ScientificFormat scientificFormat = new ScientificFormat();
+        //scientificFormat.setMaximumFractionDigits( 6 );
+        valueField = new DecimalField( 0, 10, scientificFormat ); 
         valueField.setDoubleValue( model.getDoubleValue() );
         valueField.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent e ) {

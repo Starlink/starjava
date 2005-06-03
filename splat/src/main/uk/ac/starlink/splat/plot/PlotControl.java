@@ -33,7 +33,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.Vector;
 
 import javax.print.PrintService;
@@ -69,6 +68,7 @@ import uk.ac.starlink.ast.gui.GraphicsEdges;
 import uk.ac.starlink.ast.gui.GraphicsHints;
 import uk.ac.starlink.ast.gui.PlotConfiguration;
 import uk.ac.starlink.ast.gui.PlotController;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.diva.DragRegion;
 import uk.ac.starlink.diva.FigureChangedEvent;
 import uk.ac.starlink.diva.FigureListener;
@@ -627,9 +627,9 @@ public class PlotControl
         //  The input to these fields should only be decimals and can
         //  be editted.
         DecimalComboBoxEditor xEditor =
-            new DecimalComboBoxEditor( new DecimalFormat() );
+            new DecimalComboBoxEditor( new ScientificFormat() );
         DecimalComboBoxEditor yEditor =
-            new DecimalComboBoxEditor( new DecimalFormat() );
+            new DecimalComboBoxEditor( new ScientificFormat() );
         xScale.setEditor( xEditor );
         yScale.setEditor( yEditor );
         xScale.setEditable( true );
