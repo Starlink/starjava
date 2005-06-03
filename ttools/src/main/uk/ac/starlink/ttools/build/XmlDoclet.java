@@ -122,15 +122,4 @@ public abstract class XmlDoclet extends MemberDoclet {
         return pWrap( text );
     }
 
-    /**
-     * Wraps text in XML 'p' tags.
-     *
-     * @param   text  HTML-style text
-     * @return  XML-style text
-     */
-    public static String paraise( String text ) {
-        text = text.replaceAll( "<p>", "</p><p>" );
-        return "<p>" + text + "</p>";
-    }
-
 }

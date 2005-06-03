@@ -46,7 +46,7 @@ public class FullXmlDoclet extends XmlDoclet {
     protected void startClass( ClassDoc clazz ) throws IOException {
         out( "<subsubsect id='" + clazz.qualifiedName() + "'>" );
         out( "<subhead><title>" + clazz.name() + "</title></subhead>" );
-        out( "<p>" + clazz.commentText() + "</p>" );
+        out( doctorText( clazz.commentText() ) );
         out( "<p><dl>" );
     }
 
@@ -58,7 +58,7 @@ public class FullXmlDoclet extends XmlDoclet {
     protected void startMember( MemberDoc mem, String memType, String memName )
             throws IOException {
         out( "<dt><code>" + memName + "</code></dt>" );
-        out( "<dd><p>" );
+        out( "<dd>" );
     }
 
     protected void endMember() throws IOException {
@@ -66,7 +66,11 @@ public class FullXmlDoclet extends XmlDoclet {
     }
 
     protected void outDescription( String desc ) throws IOException {
-        out( desc.replaceAll( "<p>", "</p><p>" ) );
+ 
+        /* Remove the final </p> since we will close the para at the end of
+         * the member (to permit any parameters to be output in the same
+         * paragraph). */
+        out( doctorText( desc ).replaceFirst( "</p> *\\Z", "" ) );
     }
 
     protected void outParameters( Parameter[] params, String[] comments )
