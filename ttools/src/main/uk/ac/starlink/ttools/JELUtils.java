@@ -14,6 +14,7 @@ import uk.ac.starlink.ttools.func.Conversions;
 import uk.ac.starlink.ttools.func.Coords;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Strings;
+import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -68,6 +69,7 @@ public class JELUtils {
                 Coords.class,
                 Maths.class,
                 Strings.class,
+                Times.class,
             } ) );
 
             /* Add classes specified by a system property. */
