@@ -16,7 +16,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.text.DecimalFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -30,6 +29,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 
 /**
  * This class provides any JPEG utilities used in FROG. At present
@@ -258,8 +258,8 @@ public class JPEGUtility
                 ( "Scale plot graphics to fit the width and height" );
 
             //  Offer size of output JPEG in pixels.
-            DecimalFormat decimalFormat = new DecimalFormat();
-            xSize = new DecimalField( 0, 10, decimalFormat );
+            ScientificFormat scientificFormat = new ScientificFormat();
+            xSize = new DecimalField( 0, 10, scientificFormat );
             xSize.setIntValue( component.getWidth() );
 
             gbc.fill = GridBagConstraints.NONE;
@@ -276,8 +276,8 @@ public class JPEGUtility
             xSize.setToolTipText( "Width, in pixels, of the "+
                                   "output image (default is actual size" );
 
-            decimalFormat = new DecimalFormat();
-            ySize = new DecimalField( 0, 10, decimalFormat );
+            scientificFormat = new ScientificFormat();
+            ySize = new DecimalField( 0, 10, scientificFormat );
             ySize.setIntValue( component.getHeight() );
 
             gbc.fill = GridBagConstraints.NONE;

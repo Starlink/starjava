@@ -1055,6 +1055,13 @@
    !</java>
    !-->
   </target>
+  <target name="testui"
+          depends="compile-tests">
+    <!-- Run up FROG from the local build -->
+    <java classname="uk.ac.starlink.frog.FrogMain" fork="true">
+      <classpath refid="tests-classpath"/>
+    </java>
+  </target>
 
   <!--
    ! Get a DTD for this build file. Documentation suggests may be incomplete!
