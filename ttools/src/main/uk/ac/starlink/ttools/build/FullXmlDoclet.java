@@ -4,6 +4,7 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.MemberDoc;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.Type;
 import java.io.IOException;
 
 /**
@@ -62,7 +63,7 @@ public class FullXmlDoclet extends XmlDoclet {
     }
 
     protected void endMember() throws IOException {
-        out( "</p></dd>" );
+        out( "</ul></p></dd>" );
     }
 
     protected void outDescription( String desc ) throws IOException {
@@ -70,13 +71,12 @@ public class FullXmlDoclet extends XmlDoclet {
         /* Remove the final </p> since we will close the para at the end of
          * the member (to permit any parameters to be output in the same
          * paragraph). */
-        out( doctorText( desc ).replaceFirst( "</p> *\\Z", "" ) );
+        out( doctorText( desc ).replaceFirst( "</p> *\\Z", "<ul>" ) );
     }
 
     protected void outParameters( Parameter[] params, String[] comments )
             throws IOException {
         if ( params.length > 0 ) {
-            out( "<ul>" );
             for ( int i = 0; i < params.length; i++ ) {
                 Parameter param = params[ i ];
                 StringBuffer buf = new StringBuffer();
@@ -92,8 +92,19 @@ public class FullXmlDoclet extends XmlDoclet {
                 buf.append( "</li>" );
                 out( buf.toString() );
             }
-            out( "</ul>" );
         }
+    }
+
+    protected void outReturn( Type rtype, String rdesc ) throws IOException {
+        StringBuffer buf = new StringBuffer();
+        buf.append( "<li>return value <em>(" )
+           .append( typeString( rtype ) )
+           .append( ")</em>" );
+        if ( rdesc != null ) {
+            buf.append( ": " + rdesc );
+        }
+        buf.append( "</li>" );
+        out( buf.toString() );
     }
 
 }

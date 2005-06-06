@@ -118,6 +118,15 @@ public abstract class MemberDoclet {
             throws IOException;
 
     /**
+     * Output return value for the current method.
+     *
+     * @param   rtype  type of return value
+     * @param   rdesc  text of return value description (may be null)
+     */
+    protected abstract void outReturn( Type rtype, String rdesc )
+            throws IOException;
+
+    /**
      * Output examples of the current documentandum (presumably a method).
      *
      * @param  examples  array of strings each representing an example
@@ -277,6 +286,10 @@ public abstract class MemberDoclet {
         startMember( method, "Function", method.name() + paramList );
         outDescription( method.commentText() );
         outParameters( params, comments );
+        if ( ! isVoid ) {
+            outReturn( rtype, retdesc );
+        }
+
         if ( ! isVoid ) {
             if ( retdesc != null ) {
                 outItem( "Return Value (" + typeString( rtype ) + ")",
