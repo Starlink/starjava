@@ -139,6 +139,15 @@ public class HtmlDoclet extends MemberDoclet {
         out( "</dl></dd></dl>" );
     }
 
+    protected void outReturn( Type rtype, String rdesc ) throws IOException {
+        if ( rdesc != null ) {
+            outItem( "Return Value (" + typeString( rtype ) + ")", rdesc );
+        }
+        else {
+            outItem( "Return Type", typeString( rtype ) );
+        }
+    }
+
     protected void outDescription( String descrip ) throws IOException {
         out( new String[] {
             "<dl>",
