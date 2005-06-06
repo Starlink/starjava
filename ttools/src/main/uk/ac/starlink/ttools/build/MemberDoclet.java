@@ -289,16 +289,6 @@ public abstract class MemberDoclet {
         if ( ! isVoid ) {
             outReturn( rtype, retdesc );
         }
-
-        if ( ! isVoid ) {
-            if ( retdesc != null ) {
-                outItem( "Return Value (" + typeString( rtype ) + ")",
-                         retdesc );
-            }
-            else {
-                outItem( "Return Type", typeString( rtype ) );
-            }
-        }
         if ( examples.length > 0 ) {
             outExamples( examples );
         }
