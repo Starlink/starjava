@@ -110,17 +110,21 @@ public class Times {
         Matcher matcher = ISO_REGEX.matcher( isoDate );
         if ( matcher.matches() ) {
             try {
+                String[] groups = new String[ 6 ];
                 int ng = matcher.groupCount();
-                String[] groups = new String[ ng ];
-                for ( int i = 0; i < matcher.groupCount(); i++ ) {
+                for ( int i = 0; i < ng; i++ ) {
                     groups[ i ] = matcher.group( i + 1 );
                 }
-                int year =  ng > 0 ? Integer.parseInt( groups[ 0 ] ) : 0;
-                int month = ng > 1 ? Integer.parseInt( groups[ 1 ] ) - 1 : 0;
-                int dom =   ng > 2 ? Integer.parseInt( groups[ 2 ] ) : 0;
-                int hour =  ng > 3 ? Integer.parseInt( groups[ 3 ] ) : 0;
-                int min  =  ng > 4 ? Integer.parseInt( groups[ 4 ] ) : 0;
-                double sec = ng > 5 ? Double.parseDouble( groups[ 5 ] ) : 0.0;
+                int year = Integer.parseInt( groups[ 0 ] );
+                int month = Integer.parseInt( groups[ 1 ] ) - 1;
+                int dom = Integer.parseInt( groups[ 2 ] );
+                int hour = 
+                    groups[ 3 ] == null ? 0 : Integer.parseInt( groups[ 3 ] );
+                int min =
+                    groups[ 4 ] == null ? 0 : Integer.parseInt( groups[ 4 ] );
+                double sec = 
+                    groups[ 5 ] == null ? 0.0 
+                                        : Double.parseDouble( groups[ 5 ] );
                 return dateToMjd( year, month, dom, hour, min, sec );
             }
             catch ( NumberFormatException e ) {
@@ -151,12 +155,9 @@ public class Times {
                                     int hour, int min, double sec ) {
         Calendar cal = getKit().calendar_;
         cal.clear();
-        int intSec = (int) sec;
-        cal.set( year, month, day, hour, min, intSec );
-        int millis = (int) Math.round( ( sec - intSec ) * 1000.0 );
-        if ( millis > 0 ) {
-            cal.set( Calendar.MILLISECOND, millis );
-        }
+        int intMillis = (int) Math.round( sec * 1000.0 );
+        cal.set( year, month, day, hour, min, intMillis / 1000 );
+        cal.set( Calendar.MILLISECOND, intMillis % 1000 );
         return unixMillisToMjd( cal.getTimeInMillis() );
     }
 
@@ -233,7 +234,7 @@ public class Times {
      * @param   mjd  modified Julian day
      * @return  year AD
      */
-    public static int mjdYear( double mjd ) {
+    static int mjdYear( double mjd ) {
         return getField( mjd, Calendar.YEAR );
     }
 
@@ -243,7 +244,7 @@ public class Times {
      * @param   mjd  modified Julian day
      * @return  zero-based month - 0 is January, 11 is December
      */
-    public static int mjdMonth( double mjd ) {
+    static int mjdMonth( double mjd ) {
         return getField( mjd, Calendar.MONTH );
     }
 
@@ -253,7 +254,7 @@ public class Times {
      * @param   mjd  modified Julian day
      * @return  day of the month - the first day in each month is 1
      */
-    public static int mjdDayOfMonth( double mjd ) {
+    static int mjdDayOfMonth( double mjd ) {
         return getField( mjd, Calendar.DAY_OF_MONTH );
     }
 
@@ -263,7 +264,7 @@ public class Times {
      * @param   mjd  modified Julian day
      * @return  hour (0-23)
      */
-    public static int mjdHour( double mjd ) {
+    static int mjdHour( double mjd ) {
         return getField( mjd, Calendar.HOUR_OF_DAY );
     }
 
@@ -273,7 +274,7 @@ public class Times {
      * @param   mjd  modified Julian day
      * @return  minute (0-59)
      */
-    public static int mjdMinute( double mjd ) {
+    static int mjdMinute( double mjd ) {
         return getField( mjd, Calendar.MINUTE );
     }
 
@@ -283,7 +284,7 @@ public class Times {
      * @param   mjd  modified Julian day
      * @return  seconds  (0&lt;=sec&lt;60)
      */
-    public static double mjdSecond( double mjd ) {
+    static double mjdSecond( double mjd ) {
         double minutes = mjd * 60.0 * 24.0;
         double minFrac = minutes - Math.floor( minutes );
         return minFrac * 60.0;
