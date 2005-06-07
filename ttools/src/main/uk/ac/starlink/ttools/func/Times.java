@@ -313,7 +313,12 @@ public class Times {
      * @return  formatted string
      */
     private static String formatMjd( double mjd, DateFormat format ) {
-        return format.format( new Date( mjdToUnixMillis( mjd ) ) );
+        if ( Double.isNaN( mjd ) || Double.isInfinite( mjd ) ) {
+            return null;
+        }
+        else {
+            return format.format( new Date( mjdToUnixMillis( mjd ) ) );
+        }
     }
 
     /**

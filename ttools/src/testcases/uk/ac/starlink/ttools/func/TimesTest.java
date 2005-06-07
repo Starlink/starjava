@@ -64,6 +64,20 @@ public class TimesTest extends TestCase {
         }
     }
 
+    public void testBlanks() {
+        assertNull( Times.mjdToIso( Double.NaN ) );
+        assertNull( Times.mjdToDate( Double.NaN ) );
+        assertNull( Times.mjdToTime( Double.NaN ) );
+        assertTrue( Double.isNaN( Times.isoToMjd( "" ) ) );
+        assertTrue( Double.isNaN( Times.isoToMjd( null ) ) );
+        try {
+            Times.isoToMjd( "not-an-iso8601-epoch" );
+            fail();
+        }
+        catch ( IllegalArgumentException e ) {
+        }
+    }
+
     private static double rnd() {
         return RANDOM.nextDouble();
     }
