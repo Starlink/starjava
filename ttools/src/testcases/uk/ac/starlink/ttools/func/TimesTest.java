@@ -78,6 +78,25 @@ public class TimesTest extends TestCase {
         }
     }
 
+    public void testExamples() {
+        assertEquals( 53303.75, Times.isoToMjd("2004-10-25T18:00:00") );
+        assertEquals( 40587.0, Times.isoToMjd( "1970-01-01" ) );
+
+        assertEquals( Times.dateToMjd( 1999, 11, 31, 23, 59, 59.0 ), 
+                      51543.999988,
+                          0.000001 );
+        assertEquals( Times.dateToMjd( 1999, 11, 31 ), 51543.0 );
+
+        assertEquals( "2005-06-30T17:30:00", Times.mjdToIso( 53551.72917 ) );
+        assertEquals( "2005-06-30", Times.mjdToDate( 53551.72917 ) );
+        assertEquals( "17:30:00", Times.mjdToTime( 53551.72917 ) );
+
+        assertEquals( "Tue 10 Oct, 95", 
+                      Times.formatMjd( 50000.3, "EEE dd MMM, yy" ) );
+        assertEquals( "time 2:57:41.760", 
+                      Times.formatMjd( 50000.1234, "'time 'H:mm:ss.SSS" ) );
+    }
+
     private static double rnd() {
         return RANDOM.nextDouble();
     }

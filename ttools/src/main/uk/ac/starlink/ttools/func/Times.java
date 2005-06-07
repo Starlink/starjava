@@ -100,6 +100,9 @@ public class Times {
      * "<code>1968-01-14</code>", and
      * "<code>2112-05-25 16:45Z</code>".
      *
+     * @example   <code>isoToMjd("2004-10-25T18:00:00") = 53303.75</code>
+     * @example   <code>isoToMjd("1970-01-01") = 40587.0</code>
+     * 
      * @param  isoDate  date in ISO 8601 format
      * @return  modified Julian day corresponding to <code>isoDate</code>
      */
@@ -143,6 +146,8 @@ public class Times {
     /**
      * Converts a calendar date and time to Modified Julian Day.
      *
+     * @example  <code>dateToMjd(1999, 11, 31, 23, 59, 59.) = 51543.99998</code>
+     *
      * @param   year    year AD
      * @param   month   zero-based index of month; January is 0, December is 11
      * @param   day     day of month (the first day is 1)
@@ -164,6 +169,8 @@ public class Times {
     /**
      * Converts a calendar date to Modified Julian Day.
      *
+     * @example  <code>dateToMjd(1999, 11, 31) = 51543.0</code>
+     *
      * @param   year    year AD
      * @param   month   zero-based index of month; January is 0, December is 11
      * @param   day     day of month (the first day is 1)
@@ -181,6 +188,8 @@ public class Times {
      * Converts a Modified Julian Day value to an ISO 8601-format date-time
      * string.  The output format is <code>yyyy-mm-ddThh:mm:ss</code>.
      *
+     * @example  <code>mjdToIso(53551.72917) = "2005-06-30T17:30:00"</code>
+     *
      * @param   mjd  modified Julian day
      * @return  ISO 8601 format date corresponding to <code>mjd</code>
      */
@@ -192,6 +201,8 @@ public class Times {
      * Converts a Modified Julian Day value to an ISO 8601-format date
      * string.  The output format is <code>yyyy-mm-dd</code>.
      *
+     * @example  <code>mjdToDate(53551.72917) = "2005-06-30"</code>
+     *
      * @param   mjd  modified Julian day
      * @return  ISO 8601 format date corresponding to <code>mjd</code>
      */
@@ -202,6 +213,8 @@ public class Times {
     /**
      * Converts a Modified Julian Day value to an ISO 8601-format time-only
      * string.  The output format is <code>hh:mm:ss</code>.
+     *
+     * @example  <code>mjdToTime(53551.72917) = "17:30:00"</code>
      *
      * @param   mjd  modified Julian day
      * @return  ISO 8601 format time corresponding to <code>mjd</code>
@@ -215,9 +228,14 @@ public class Times {
      * date format.
      * The format is as defined by the 
      * <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html"
-     *    ><code>java.util.SimpleDateFormat</code></a> class.
+     *    ><code>java.text.SimpleDateFormat</code></a> class.
      * The default output corresponds to the string
      * "<code>yyyy-MM-dd'T'HH:mm:ss</code>"
+     *
+     * @example   <code>formatMjd(50000.3, "EEE dd, MMM, yy") 
+     *                  = "Tue 10 Oct, 95"</code>
+     * @example   <code>formatMjd(50000.1234, "'time 'H:mm:ss.SSS")
+     *                  = "time 2:57:41.760"</code>
      *
      * @param   mjd   modified Julian day
      * @param   format   formatting patttern
