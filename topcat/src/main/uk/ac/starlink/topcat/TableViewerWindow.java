@@ -110,6 +110,24 @@ public class TableViewerWindow extends TopcatViewWindow
          * change of table shape). */
         viewModel.addTableModelListener( this );
         columnModel.addColumnModelListener( this );
+
+        /* Print action - this is just a dummy, but people have asked 
+         * why there is no print action here. */
+        Action printAct = new BasicAction( "Print", ResourceIcon.PRINT, 
+                                           "Table printing information" ) {
+            Object msg = new String[] {
+                "There is no option to print the table out directly.",
+                "However, you can save it in a format suitable for printing",
+                "(ascii, text, HTML or LaTeX)",
+                "using the Save option in the Control Window",
+                "and print out the resulting file separately.",
+            };
+            public void actionPerformed( ActionEvent evt ) {
+                JOptionPane.showMessageDialog(
+                     TableViewerWindow.this, msg, "Printing Tables",
+                     JOptionPane.INFORMATION_MESSAGE );
+            }
+        };
     
         /* Actions for new subsets from the row selection. */
         includeAct = new ViewerAction( "Subset From Selected Rows",
@@ -194,6 +212,9 @@ public class TableViewerWindow extends TopcatViewWindow
         getToolBar().add( includeAct );
         getToolBar().add( excludeAct );
         getToolBar().addSeparator();
+
+        /* Add print action to the File menu. */
+        getFileMenu().insert( printAct, 1 );
 
         /* Add a subsets menu. */
         JMenu subsetMenu = new JMenu( "Subsets" );
