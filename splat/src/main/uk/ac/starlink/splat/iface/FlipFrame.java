@@ -50,6 +50,7 @@ import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.ast.gui.ScientificSpinner;
 import uk.ac.starlink.splat.data.EditableSpecData;
+import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
@@ -433,7 +434,8 @@ public class FlipFrame
             int iaxes[] = { 1 };
             Frame picked = frameSet.pickAxes( 1, iaxes, null );
             if ( picked instanceof SpecFrame ) {
-                if ( redshiftSpecFrameSet( frameSet, offset ) ) {
+                boolean islineid = ( spectrum instanceof LineIDSpecData );
+                if ( redshiftSpecFrameSet( frameSet, islineid, offset ) ) {
                     simple = false;
                 }
                 else {
@@ -484,21 +486,31 @@ public class FlipFrame
      * The problems with this approach are when the reference frame is
      * already at the Source... In that case I think we would need to
      * construct a mapping for all possible spectral coordinate systems and
-     * units, a non-trivial task.
+     * units, a non-trivial task. Assume a fix for line identifiers, which we
+     * know are at "source.
      */
-    protected boolean redshiftSpecFrameSet( FrameSet frameSet,
+    protected boolean redshiftSpecFrameSet( FrameSet frameSet, 
+                                            boolean islineid,
                                             double redshift )
     {
         Frame current = frameSet.getFrame( FrameSet.AST__CURRENT );
 
-        String stdofrest = current.getC( "StdOfRest" );
-        if ( stdofrest.equals( "SOURCE" ) ) {
-            //  We're stuffed.
-            JOptionPane.showMessageDialog
-                ( this, "Cannot redshift", "Cannot redshift when the" +
-                  " spectral standard of rest is already set to 'Source'",
-                  JOptionPane.ERROR_MESSAGE );
-            return false;
+        String stdOfRest = current.getC( "StdOfRest" );
+        boolean stdOfRestFudged = false;
+        if ( stdOfRest.equalsIgnoreCase( "Source" ) ) {
+            //  We're stuffed, unless this is a line identifier.
+            if ( islineid ) {
+                //  Line identifier.
+                stdOfRestFudged = true;
+                stdOfRest = "Heliocentric";
+            }
+            else {
+                JOptionPane.showMessageDialog
+                    ( this, "Cannot redshift when the" +
+                      " spectral standard of rest is already set to 'Source'",
+                      "Cannot redshift", JOptionPane.ERROR_MESSAGE );
+                return false;
+            }
         }
 
         //  Change standard of rest to "Source" and set the velocity, without
@@ -511,10 +523,16 @@ public class FlipFrame
 
         //  Now apply the redshift by moving the frameSet back to the original
         //  reference frame, this should cause a remapping.
-        frameSet.setC( "StdOfRest", stdofrest );
+        frameSet.setC( "StdOfRest", stdOfRest );
 
         //  Restore any original source velocity, without causing a remap.
         current.setD( "SourceVel", initialVelocity );
+        
+        //  If line identifier, we were always at "Source".
+        if ( stdOfRestFudged ) {
+            frameSet.setC( "StdOfRest", "Source" );
+        }
+
         return true;
     }
 
