@@ -210,8 +210,8 @@ public class FlipFrame
         ScientificFormat scientificFormat = new ScientificFormat();
         flipCentre = new DecimalField( 0.0, 5, scientificFormat );
         flipCentre.setToolTipText( "Coordinate of flip centre, " + 
-                                       "zero for visible centre of plot, " +
-                                       "units of current spectrum" );
+                                   "zero for visible centre of plot, " +
+                                   "units of current spectrum" );
         gbl1.add( flipCentre, true );
 
         //  Grab button. This creates the copy, which may be flipped.
