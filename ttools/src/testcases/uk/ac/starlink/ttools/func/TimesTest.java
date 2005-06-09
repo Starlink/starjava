@@ -59,7 +59,7 @@ public class TimesTest extends TestCase {
             double mjd = 1e5 * rnd();
             mjDate palMjd = pal.Djcal( mjd );
             assertEquals( (int) mjd, Times.dateToMjd( palMjd.getYear(), 
-                                                      palMjd.getMonth() - 1, 
+                                                      palMjd.getMonth(),
                                                       palMjd.getDay() ) );
         }
     }
@@ -82,10 +82,10 @@ public class TimesTest extends TestCase {
         assertEquals( 53303.75, Times.isoToMjd("2004-10-25T18:00:00") );
         assertEquals( 40587.0, Times.isoToMjd( "1970-01-01" ) );
 
-        assertEquals( Times.dateToMjd( 1999, 11, 31, 23, 59, 59.0 ), 
+        assertEquals( Times.dateToMjd( 1999, 12, 31, 23, 59, 59.0 ), 
                       51543.999988,
                           0.000001 );
-        assertEquals( Times.dateToMjd( 1999, 11, 31 ), 51543.0 );
+        assertEquals( Times.dateToMjd( 1999, 12, 31 ), 51543.0 );
 
         assertEquals( "2005-06-30T17:30:00", Times.mjdToIso( 53551.72917 ) );
         assertEquals( "2005-06-30", Times.mjdToDate( 53551.72917 ) );

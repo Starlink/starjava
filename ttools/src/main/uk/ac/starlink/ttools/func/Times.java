@@ -119,7 +119,7 @@ public class Times {
                     groups[ i ] = matcher.group( i + 1 );
                 }
                 int year = Integer.parseInt( groups[ 0 ] );
-                int month = Integer.parseInt( groups[ 1 ] ) - 1;
+                int month = Integer.parseInt( groups[ 1 ] );
                 int dom = Integer.parseInt( groups[ 2 ] );
                 int hour = 
                     groups[ 3 ] == null ? 0 : Integer.parseInt( groups[ 3 ] );
@@ -146,10 +146,10 @@ public class Times {
     /**
      * Converts a calendar date and time to Modified Julian Day.
      *
-     * @example  <code>dateToMjd(1999, 11, 31, 23, 59, 59.) = 51543.99998</code>
+     * @example  <code>dateToMjd(1999, 12, 31, 23, 59, 59.) = 51543.99998</code>
      *
      * @param   year    year AD
-     * @param   month   zero-based index of month; January is 0, December is 11
+     * @param   month   index of month; January is 1, December is 12
      * @param   day     day of month (the first day is 1)
      * @param   hour    hour (0-23)
      * @param   min     minute (0-59)
@@ -161,7 +161,7 @@ public class Times {
         Calendar cal = getKit().calendar_;
         cal.clear();
         int intMillis = (int) Math.round( sec * 1000.0 );
-        cal.set( year, month, day, hour, min, intMillis / 1000 );
+        cal.set( year, month - 1, day, hour, min, intMillis / 1000 );
         cal.set( Calendar.MILLISECOND, intMillis % 1000 );
         return unixMillisToMjd( cal.getTimeInMillis() );
     }
@@ -169,10 +169,10 @@ public class Times {
     /**
      * Converts a calendar date to Modified Julian Day.
      *
-     * @example  <code>dateToMjd(1999, 11, 31) = 51543.0</code>
+     * @example  <code>dateToMjd(1999, 12, 31) = 51543.0</code>
      *
      * @param   year    year AD
-     * @param   month   zero-based index of month; January is 0, December is 11
+     * @param   month   index of month; January is 1, December is 12
      * @param   day     day of month (the first day is 1)
      * @return  modified Julian day corresponding to 00:00:00 of the date
      *          specified by the arguments
@@ -180,7 +180,7 @@ public class Times {
     public static double dateToMjd( int year, int month, int day ) {
         Calendar cal = getKit().calendar_;
         cal.clear();
-        cal.set( year, month, day );
+        cal.set( year, month - 1, day );
         return unixMillisToMjd( cal.getTimeInMillis() );
     }
 
@@ -260,10 +260,10 @@ public class Times {
      * Returns the month part of a modified Julian day value.
      *
      * @param   mjd  modified Julian day
-     * @return  zero-based month - 0 is January, 11 is December
+     * @return  month index - 1 is January, 12 is December
      */
     static int mjdMonth( double mjd ) {
-        return getField( mjd, Calendar.MONTH );
+        return getField( mjd, Calendar.MONTH ) + 1;
     }
 
     /**
