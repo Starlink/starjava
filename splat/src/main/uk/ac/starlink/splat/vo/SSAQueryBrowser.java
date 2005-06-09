@@ -594,7 +594,6 @@ public class SSAQueryBrowser
                 URL url = ssaQuery.getQueryURL();
                 progressPanel.logMessage( "Querying: " +
                                           ssaQuery.getDescription() );
-                System.out.println( "Full query: " + url );
                 starTable = factory.makeStarTable( url );
 
                 //  Check parameter QUERY_STATUS, this should be set to OK

@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.us_vo.www.SimpleResource;
 
@@ -38,7 +39,7 @@ import uk.ac.starlink.table.BeanStarTable;
 public class SSAServerList
 {
     private HashMap serverList = new HashMap();
-    private static String configFile = "SSAPServerList.xml";
+    private static String configFile = "SSAPServerListV2.xml";
     private static String defaultFile = "serverlist.xml";
 
     public SSAServerList()
@@ -177,7 +178,8 @@ public class SSAServerList
     {
         //  Locate the description file. This may exist in the user's
         //  application specific directory or, the first time, as part of the
-        //  application resources.
+        //  application resources. 
+        //  User file first.
         File backingStore = Utilities.getConfigFile( configFile );
         InputStream inputStream = null;
         boolean needSave = false;
@@ -189,25 +191,34 @@ public class SSAServerList
                 e.printStackTrace();
             }
         }
-        if ( inputStream == null ) {
-            //  Look for the built-in version with the default list.
-            inputStream =
-                SSAServerList.class.getResourceAsStream( defaultFile );
+        boolean restored = false;
+        if ( inputStream != null ) {
+            restored = restoreServers( inputStream );
+            try {
+                inputStream.close();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        //  If the restore of the user file failed, or it doesn't exist use
+        //  the system default version.
+        if ( ! restored ) {
+            inputStream = SSAServerList.class.getResourceAsStream(defaultFile);
+            if ( inputStream == null ) {
+                // That's bad. Need to complain.
+                throw new SplatException( "Internal error: Failed to find" +
+                                          " the builtin SSAP server listing" );
+            }
             needSave = true;
-        }
-
-        if ( inputStream == null ) {
-            // That's bad. Need to complain.
-            throw new SplatException( "Failed to find a SSAP server listing" );
-        }
-
-        restoreServers( inputStream );
-
-        try {
-            inputStream.close();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+            restoreServers( inputStream );
+            try {
+                inputStream.close();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         // Save the current state back to disk if we're using the default list.
@@ -215,7 +226,6 @@ public class SSAServerList
             saveServers();
         }
     }
-
 
     /**
      * Add a series of servers stored in an XML file. The format of this file
@@ -256,11 +266,12 @@ public class SSAServerList
     /**
      * Read an InputStream that contains a list of servers to restore.
      */
-    protected void restoreServers( InputStream inputStream )
+    protected boolean restoreServers( InputStream inputStream )
         throws SplatException
     {
         XMLDecoder decoder = new XMLDecoder( inputStream );
         SimpleResource server = null;
+        boolean ok = true;
         while ( true ) {
             try {
                 server = (SimpleResource) decoder.readObject();
@@ -269,8 +280,16 @@ public class SSAServerList
             catch( ArrayIndexOutOfBoundsException e ) {
                 break; // End of list.
             }
+            catch ( NoSuchElementException e ) {
+                System.out.println( "Failed to read server list " +
+                                    " (old-style or invalid):  '" +
+                                    e.getMessage() + "'"  );
+                ok = false;
+                break;
+            }
         }
         decoder.close();
+        return ok;
     }
 
 

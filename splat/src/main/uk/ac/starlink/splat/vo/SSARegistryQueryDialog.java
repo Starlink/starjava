@@ -156,7 +156,6 @@ public class SSARegistryQueryDialog
         }
         protected void tableLoaded( StarTable table )
         {
-            System.out.println( "tableLoaded: " + table );
             table_ = table;
         }
     }
