@@ -14,6 +14,8 @@ import java.net.MalformedURLException;
 import jsky.coords.DMS;
 import jsky.coords.HMS;
 
+import org.us_vo.www.SimpleResource;
+
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -34,7 +36,7 @@ import uk.ac.starlink.table.StarTable;
 public class SSAQuery
 {
     /** The SSA Service base URL */
-    private URL baseURL = null;
+    private String baseURL = null;
 
     /** The SSA Service description (not used as part of query) */
     private String description = null;
@@ -57,7 +59,7 @@ public class SSAQuery
     /**
      * Create an instance with the given base URL for an SSA service.
      */
-    public SSAQuery( URL baseURL )
+    public SSAQuery( String baseURL )
     {
         this.baseURL = baseURL;
     }
@@ -65,10 +67,10 @@ public class SSAQuery
     /**
      * Create an instance with the given SSA service.
      */
-    public SSAQuery( SSAServer server )
+    public SSAQuery( SimpleResource server )
     {
-        this.baseURL = server.getBaseURL();
-        this.description = server.getDescription();
+        this.baseURL = server.getServiceURL();
+        this.description = server.getShortName();
     }
 
     /**
@@ -154,15 +156,13 @@ public class SSAQuery
     public URL getQueryURL()
         throws MalformedURLException
     {
-        //  Convert URL to string and append a ? if needed. Note that some
-        //  baseURLs may have an embedded ?, in which case we need to use 
-        //  & to append the pos argument.
-        String base = baseURL.toExternalForm();
-        StringBuffer buffer = new StringBuffer( base );
-        if ( base.indexOf( '?' ) == -1 ) {
+        //  Note that some baseURLs may have an embedded ?, in which case we
+        //  need to use & to append the pos argument.
+        StringBuffer buffer = new StringBuffer( baseURL );
+        if ( baseURL.indexOf( '?' ) == -1 ) {
             buffer.append( "?" );
         }
-        else if ( ! base.endsWith( "?" ) ) {
+        else if ( ! baseURL.endsWith( "?" ) ) {
             buffer.append( "&" );
         }
 

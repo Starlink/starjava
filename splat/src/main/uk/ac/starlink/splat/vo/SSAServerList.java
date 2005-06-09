@@ -7,44 +7,37 @@
  */
 package uk.ac.starlink.splat.vo;
 
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
+import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import org.us_vo.www.SimpleResource;
 
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.util.SourceReader;
+
+import uk.ac.starlink.table.BeanStarTable;
 
 /**
- * Container for a list of possible Simple Spectral Access Protocol
- * servers that can be used. In time this should be derived from a
- * query to a Registry.
+ * Container for a list of possible Simple Spectral Access Protocol (SSAP)
+ * servers that can be used. Each server is represented by a
+ * {@link SimpleResource}. The primary source of these should be a query to a
+ * VO registry.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
 public class SSAServerList
 {
-    private ArrayList serverList = new ArrayList();
+    private HashMap serverList = new HashMap();
     private static String configFile = "SSAPServerList.xml";
     private static String defaultFile = "serverlist.xml";
 
@@ -63,7 +56,6 @@ public class SSAServerList
      * @throws MalFormedURLException is the URL is invalid.
      */
     public void addServer( String description, String baseURL )
-        throws MalformedURLException
     {
         addServer( description, baseURL, true );
     }
@@ -79,41 +71,53 @@ public class SSAServerList
      */
     protected void addServer( String description, String baseURL,
                               boolean save )
-        throws MalformedURLException
     {
-        addServer( new SSAServer( description, baseURL ), save );
+        SimpleResource sr = new SimpleResource();
+        sr.setShortName( description );
+        sr.setServiceURL( baseURL );
+        addServer( sr, save );
     }
-
 
     /**
      * Add an SSA server to the known list.
      *
-     * @param server an instance of {@link SSAServer}.
-     *
-     * @throws MalFormedURLException is the URL is invalid.
+     * @param server an instance of SimpleResource.
      */
-    public void addServer( SSAServer server )
-        throws MalformedURLException
+    public void addServer( SimpleResource server )
     {
         addServer( server, true );
     }
 
     /**
-     * Add an SSA server to the known list.
+     * Add an SSA server resource to the known list.
      *
-     * @param server an instance of {@link SSAServer}.
+     * @param server an instance of SimpleResource.
      * @param save if true then the backing store of servers should be updated.
-     *
-     * @throws MalFormedURLException is the URL is invalid.
      */
-    protected void addServer( SSAServer server, boolean save )
-        throws MalformedURLException
+    protected void addServer( SimpleResource server, boolean save )
     {
-        serverList.add( server );
+        serverList.put( server.getShortName(), server );
         if ( save ) {
-            saveServers();
+            try {
+                saveServers();
+            }
+            catch (SplatException e) {
+                //  Do nothing, it's not fatal.
+            }
         }
     }
+
+    /**
+     * Remove an SSA server from the known list, if already present.
+     *
+     * @param server an instance of SimpleResource.
+     */
+    public void removeServer( SimpleResource server )
+    {
+        serverList.remove( server.getShortName() );
+    }
+
+
 
     /**
      * Return an Iterator over the known servers. The objects iterated over
@@ -121,30 +125,52 @@ public class SSAServerList
      */
     public Iterator getIterator()
     {
-        return serverList.iterator();
+        return serverList.values().iterator();
     }
 
     /**
-     * Retrieve a server description. Returns null if not found.
+     * Clear the server list.
      */
-    public SSAServer matchDescription( String description )
+    public void clear()
     {
-        Iterator i = getIterator();
-        SSAServer server = null;
-        while ( i.hasNext() ) {
-            server = (SSAServer) i.next();
-            if ( description.equals( server.getDescription() )) {
-                return server;
-            }
-        }
-        return null;
+        serverList.clear();
     }
 
     /**
-     * Initialise the known servers as we don't have Registry access
-     * yet. These are kept in a resource file along with SPLAT. The format of
-     * this file is XML with root element <serverlist> containing only
-     * elements <server> with attributes "description" and "baseurl".
+     * Return the list as an array of {@link SimpleResource} in instance of
+     * {@link BeanStarTable}. This can be used to populate a
+     * {@link StarJTable}. Note once obtained no further modifications of the
+     * table will be made, so the caller should arrange to synchronize as
+     * necessary.
+     */
+    public BeanStarTable getBeanStarTable()
+    {
+        BeanStarTable table = null;
+        try {
+            table = new BeanStarTable( SimpleResource.class );
+            table.setData( getData() );
+        }
+        catch ( java.beans.IntrospectionException e ) {
+            //  Do nothing...
+        }
+        return table;
+    }
+
+    /**
+     * Return an array of {@link SimpleResource} instances that describe the
+     * current list of servers.
+     */
+    public SimpleResource[] getData()
+    {
+        SimpleResource[] sra = new SimpleResource[serverList.size()];
+        sra = (SimpleResource[]) serverList.values().toArray( sra );
+        return sra;
+    }
+
+    /**
+     * Initialise the known servers which are kept in a resource file along
+     * with SPLAT. The format of this file is determined by the
+     * {@link XMLEncode} form produced for a {@link SimpleResource}.
      */
     protected void restoreKnownServers()
         throws SplatException
@@ -164,7 +190,7 @@ public class SSAServerList
             }
         }
         if ( inputStream == null ) {
-            //  Look for the built-in version.
+            //  Look for the built-in version with the default list.
             inputStream =
                 SSAServerList.class.getResourceAsStream( defaultFile );
             needSave = true;
@@ -175,37 +201,7 @@ public class SSAServerList
             throw new SplatException( "Failed to find a SSAP server listing" );
         }
 
-        //  Read the stream into a DOM.
-        StreamSource saxSource = new StreamSource( inputStream );
-        Document document = null;
-        try {
-            document = (Document) new SourceReader().getDOM( saxSource );
-        }
-        catch ( Exception e ) {
-            document = null;
-            throw new SplatException( e );
-        }
-
-        //  And extract the <server> tags, with attributes description and
-        //  baseurl.
-        Element rootElement = document.getDocumentElement();
-        NodeList nodeList = rootElement.getChildNodes();
-        Element element;
-        String description;
-        String baseURL;
-        for ( int i = 0; i < nodeList.getLength(); i++ ) {
-            if ( nodeList.item( i ) instanceof Element ) {
-                element = (Element) nodeList.item( i );
-                description = element.getAttribute( "description" );
-                baseURL = element.getAttribute( "baseurl" );
-                try {
-                    addServer( description, baseURL, false );
-                }
-                catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        restoreServers( inputStream );
 
         try {
             inputStream.close();
@@ -214,84 +210,115 @@ public class SSAServerList
             e.printStackTrace();
         }
 
-        // Save the current state back to disk if we're using the resource
-        // file.
+        // Save the current state back to disk if we're using the default list.
         if ( needSave ) {
             saveServers();
         }
     }
+
+
+    /**
+     * Add a series of servers stored in an XML file. The format of this file
+     * is the same as that of the backing store version.
+     */
+    public void restoreServers( File inputFile )
+        throws SplatException
+    {
+        InputStream inputStream = null;
+        boolean needSave = false;
+        if ( inputFile.canRead() ) {
+            try {
+                inputStream = new FileInputStream( inputFile );
+            }
+            catch (FileNotFoundException e) {
+                throw new SplatException( e );
+            }
+        }
+        else {
+            throw new SplatException( "Server listing file '" + inputFile +
+                                      "' does not exist" );
+        }
+
+        // Read the stream.
+        try {
+            restoreServers( inputStream );
+            inputStream.close();
+        }
+        catch (Exception e) {
+            throw new SplatException( e );
+        }
+
+        // Save the current state to backing store.
+        saveServers();
+    }
+
+
+    /**
+     * Read an InputStream that contains a list of servers to restore.
+     */
+    protected void restoreServers( InputStream inputStream )
+        throws SplatException
+    {
+        XMLDecoder decoder = new XMLDecoder( inputStream );
+        SimpleResource server = null;
+        while ( true ) {
+            try {
+                server = (SimpleResource) decoder.readObject();
+                serverList.put( server.getShortName(), server );
+            }
+            catch( ArrayIndexOutOfBoundsException e ) {
+                break; // End of list.
+            }
+        }
+        decoder.close();
+    }
+
 
     /**
      * Save the current list of servers to the backing store configuration
      * file.
      */
     protected void saveServers()
+        throws SplatException
     {
-        File backingStore = Utilities.getConfigFile( configFile );
-        FileOutputStream outputStream = null;
+        saveServers( Utilities.getConfigFile( configFile ) );
+    }
+
+    /**
+     * Save the current list of servers to a named file.
+     */
+    public void saveServers( File file )
+        throws SplatException
+    {
+        OutputStream outputStream = null;
         try {
-            outputStream = new FileOutputStream( backingStore );
+            outputStream = new FileOutputStream( file );
         }
-        catch ( Exception e ) {
-            e.printStackTrace();
-            return;
+        catch (FileNotFoundException e) {
+            throw new SplatException( e );
         }
-
-        //  Create a DOM from the serverList.
-        Document document = null;
-        try {
-            DocumentBuilder builder =
-                DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            document = builder.newDocument();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-
-        
-        Element rootElement = document.createElement( "serverlist" );
-        document.appendChild( rootElement );
-
-        Iterator i = serverList.iterator();
-        SSAServer server = null;
-        Element element = null;
-        while ( i.hasNext() ) {
-            server = (SSAServer) i.next();
-            element = document.createElement( "server" );
-            element.setAttribute( "description", server.getDescription() );
-            element.setAttribute( "baseurl", server.getBaseURL().toString() );
-            rootElement.appendChild( element );
-        }
-
-        StreamResult out = new StreamResult( outputStream );
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer t = null;
-        try {
-            t = tf.newTransformer();
-        }
-        catch (TransformerConfigurationException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        //?? User can type in funny characters??
-        t.setOutputProperty( OutputKeys.ENCODING, "ISO-8859-1" );
-        t.setOutputProperty( OutputKeys.INDENT, "yes" );
-        t.setOutputProperty( OutputKeys.STANDALONE, "yes" );
-
-        try {
-            t.transform( new DOMSource( document ), out );
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        saveServers( outputStream );
         try {
             outputStream.close();
         }
-        catch (Exception e) {
-            e.printStackTrace();
+        catch (IOException e) {
+            throw new SplatException( e );
         }
+    }
+
+    /**
+     * Write the current server list to an OutputStream.
+     */
+    protected void saveServers( OutputStream outputStream )
+        throws SplatException
+    {
+        XMLEncoder encoder = new XMLEncoder( outputStream );
+        Iterator i = serverList.values().iterator();
+        SimpleResource server = null;
+        while ( i.hasNext() ) {
+            server = (SimpleResource) i.next();
+            encoder.writeObject( server );
+        }
+        encoder.close();
     }
 }
