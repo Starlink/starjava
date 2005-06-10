@@ -57,10 +57,10 @@ import org.us_vo.www.SimpleResource;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
-import uk.ac.starlink.splat.iface.ToolButtonBar;
-import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
+import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SplatBrowser;
+import uk.ac.starlink.splat.iface.ToolButtonBar;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.Utilities;
@@ -201,11 +201,11 @@ public class SSAQueryBrowser
         ToolButtonBar toolBar = new ToolButtonBar( contentPane );
 
         //  Get icons.
-        ImageIcon closeImage = 
+        ImageIcon closeImage =
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
-        ImageIcon helpImage = 
+        ImageIcon helpImage =
             new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
-        ImageIcon ssaImage = 
+        ImageIcon ssaImage =
             new ImageIcon( ImageHolder.class.getResource( "ssapservers.gif" ) );
 
         //  Create the File menu.
@@ -216,12 +216,12 @@ public class SSAQueryBrowser
         JMenu optionsMenu = new JMenu( "Options" );
         menuBar.add( optionsMenu );
 
-        ProxyAction proxyAction = 
+        ProxyAction proxyAction =
             new ProxyAction( "Configure connection proxy..." );
         optionsMenu.add( proxyAction );
 
         //  Add item to control the use of SSA servers.
-        ServerAction serverAction = 
+        ServerAction serverAction =
             new ServerAction( "Configure SSAP servers...", ssaImage,
                               "Configure SSAP servers" );
         optionsMenu.add( serverAction );
@@ -486,11 +486,6 @@ public class SSAQueryBrowser
             SSAQuery ssaQuery = new SSAQuery( server );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
-
-            //  SPLAT only likes FITS? Can handle VOTables, but not the SED
-            //  form.
-            //ssaQuery.setFormat( "application/fits" );
-
             queryList.add( ssaQuery );
         }
 
@@ -598,7 +593,7 @@ public class SSAQueryBrowser
 
                 //  Check parameter QUERY_STATUS, this should be set to OK
                 //  when the query
-                String queryOK = null; 
+                String queryOK = null;
                 try {
                     queryOK = starTable
                         .getParameterByName( "QUERY_STATUS" )
@@ -721,14 +716,10 @@ public class SSAQueryBrowser
             return;
         }
 
-        int nspec = specList.size();
-        SpectrumIO.Props[] props = new SpectrumIO.Props[nspec];
-        for ( int k = 0; k < nspec; k++ ) {
-            props[k] = (SpectrumIO.Props) specList.get( k );
-        }
-
         //  And load and display...
-        browser.threadLoadSpectra( props );
+        SpectrumIO.Props[] propList = new SpectrumIO.Props[specList.size()];
+        specList.toArray( propList );
+        browser.threadLoadSpectra( propList );
         browser.toFront();
     }
 
@@ -910,22 +901,27 @@ public class SSAQueryBrowser
     private int mimeToSPLATType( String type )
     {
         int stype = SpecDataFactory.DEFAULT;
-        if ( type.equals( "application/fits" ) ) {
+        String simpleType = type.toLowerCase();
+        if ( simpleType.equals( "application/fits" ) ) {
             //  FITS format, is that image or table?
             stype = SpecDataFactory.FITS;
         }
-        else if ( type.equals( "spectrum/fits" ) ) {
+        else if ( simpleType.equals( "spectrum/fits" ) ) {
             //  FITS format, is that image or table? Don't know who
             //  thought this was a mime-type?
             stype = SpecDataFactory.FITS;
         }
-        else if ( type.equals( "text/plain" ) ) {
+        else if ( simpleType.equals( "text/plain" ) ) {
             //  ASCII table of some kind.
             stype = SpecDataFactory.TABLE;
         }
-        else if ( type.equals( "application/x-votable+xml" ) ) {
+        else if ( simpleType.equals( "application/x-votable+xml" ) ) {
             // VOTable spectrum.
             stype = SpecDataFactory.TABLE;
+        }
+        else if ( simpleType.equals( "spectrum/votable" ) ) {
+            // VOTable spectrum or SED (from SDSS?)...
+            stype = SpecDataFactory.SED;
         }
         return stype;
     }
