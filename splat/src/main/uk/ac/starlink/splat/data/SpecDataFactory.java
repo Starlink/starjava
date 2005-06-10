@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.net.MalformedURLException;
 
@@ -38,6 +39,10 @@ import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TemporaryFileDataSource;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.votable.TableElement;
+import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOElementFactory;
+import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableBuilder;
 
 /**
@@ -71,23 +76,26 @@ public class SpecDataFactory
     /** The type should be determined only using file name rules */
     public final static int DEFAULT = 0;
 
-    /** The file is a FITS file. */
+    /** FITS source. */
     public final static int FITS = 1;
 
-    /** The file is a HDS file. */
+    /** HDS file. */
     public final static int HDS = 2;
 
-    /** The file is a TEXT file. */
+    /** TEXT file. */
     public final static int TEXT = 3;
 
-    /** The file is an HDX file. */
+    /** HDX source. */
     public final static int HDX = 4;
 
-    /** The file is a table. */
+    /** Table of unknown type. */
     public final static int TABLE = 5;
 
-    /** The file is an line identifier file. */
+    /** Line identifier file. */
     public final static int IDS = 6;
+
+    /** VOTable SED source, XXX not yet a proper type */
+    public final static int SED = 7;
 
     /**
      * Short descriptions of each type.
@@ -1034,5 +1042,63 @@ public class SpecDataFactory
             }
         }
         return results;
+    }
+
+    /**
+     * Process a SED (IVOA spectral data model) XML file and extract all the
+     * spectra that it contains.
+     * 
+     * @param specspec the SED specification, assumed to be a VOTable, can be
+     *                 remote or local.
+     * @return an array of SpecData instances, one for each spectrum located.
+     */
+    public SpecData[] expandSED( String specspec )
+        throws SplatException
+    {
+        ArrayList specList = new ArrayList();
+
+        //  Access the VOTable.
+        VOElement root = null;
+        try {
+            root = new VOElementFactory().makeVOElement( specspec );
+        }
+        catch (Exception e) {
+            throw new SplatException( "Failed to open SED VOTable", e );
+        }
+
+        //  First element should be a RESOURCE.
+        VOElement[] resource = root.getChildren();
+        String tagName = null;
+        String utype = null;
+        SpecData specData = null;
+        VOStarTable table = null;
+        for ( int i = 0; i < resource.length; i++ ) {
+            tagName = resource[i].getTagName();
+            if ( "RESOURCE".equals( tagName ) ) {
+
+                //  Look for the TABLEs and check if any have utype
+                //  "sed:Segment" these are the spectra.
+                VOElement child[] = resource[i].getChildren();
+                for ( int j = 0; j < child.length; j++ ) {
+                    tagName = child[j].getTagName();
+                    if ( "TABLE".equals( tagName ) ) {
+                        utype = child[j].getAttribute( "utype" );
+                        if ( "sed:Segment".equals( utype ) ) {
+                            try {
+                                table = new VOStarTable( (TableElement) child[j] );
+                                specData = new SpecData( new TableSpecDataImpl(table) );
+                                specList.add( specData );
+                            }
+                            catch (Exception e) {
+                                throw new SplatException( e );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        SpecData[] spectra = new SpecData[specList.size()];
+        specList.toArray( spectra );
+        return spectra;
     }
 }
