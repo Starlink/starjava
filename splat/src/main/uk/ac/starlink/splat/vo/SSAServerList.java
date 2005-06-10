@@ -122,7 +122,7 @@ public class SSAServerList
 
     /**
      * Return an Iterator over the known servers. The objects iterated over
-     * are instances of {@link SSAServer}.
+     * are instances of {@link SimpleResource}.
      */
     public Iterator getIterator()
     {
