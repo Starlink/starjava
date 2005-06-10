@@ -1589,15 +1589,24 @@ public class SplatBrowser
     public void tryAddSpectrum( String name, int usertype )
         throws SplatException
     {
-        SpecData spectrum = specDataFactory.get( name, usertype );
-        addSpectrum( spectrum );
+        if ( usertype == SpecDataFactory.SED ) {
+            //  Could be a source of several spectra.
+            SpecData spectra[] = specDataFactory.expandSED( name );
+            for ( int i = 0; i < spectra.length; i++ ) {
+                addSpectrum( spectra[i] );
+            }
+        }
+        else {
+            SpecData spectrum = specDataFactory.get( name, usertype );
+            addSpectrum( spectrum );
+        }
     }
 
     /**
      * Add a new spectrum, with a possibly pre-defined set of characteristics
      * as defined in a {@link SpectrumIO.Props} instance.  If successful this
-     * becomes the current spectrum. If an error occurs a {@link
-     * SplatException} is thrown.
+     * becomes the current spectrum. If an error occurs a {@link SplatException} 
+     * is thrown.
      *
      *  @param props a container class for the spectrum properties, including
      *               the specification (i.e. file name etc.) of the spectrum
@@ -1605,10 +1614,20 @@ public class SplatBrowser
     public void tryAddSpectrum( SpectrumIO.Props props )
         throws SplatException
     {
-        SpecData spectrum = specDataFactory.get( props.getSpectrum(),
-                                                 props.getType() );
-        addSpectrum( spectrum );
-        props.apply( spectrum );
+        if ( props.getType() == SpecDataFactory.SED ) {
+            //  Could be a source of several spectra.
+            SpecData spectra[] = specDataFactory.expandSED( props.getSpectrum() );
+            for ( int i = 0; i < spectra.length; i++ ) {
+                addSpectrum( spectra[i] );
+                props.apply( spectra[i] );
+            }
+        }
+        else {
+            SpecData spectrum = specDataFactory.get( props.getSpectrum(),
+                                                     props.getType() );
+            addSpectrum( spectrum );
+            props.apply( spectrum );
+        }
     }
 
     /**
@@ -1650,7 +1669,7 @@ public class SplatBrowser
 
         //  2D spectra may need reprocessing by collapsing or expanding into
         //  many spectra. This is performed here. If any of ndAction, dispAxis
-        //  or selectAxis are null they defaults will be used.
+        //  or selectAxis are null then defaults will be used.
         SpecData[] moreSpectra = null;
         try {
             moreSpectra = specDataFactory.reprocessTo1D
