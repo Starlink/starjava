@@ -63,6 +63,12 @@ public class UnitUtilities
             result = "erg/cm^2/s/Angstrom";
         }
 
+        //  SDSS says:!
+        if ( "10^(-17)ergcm^(-2)s^(-1)Angstrom(-1)".equals( result ) ||
+             "10^(-17) erg cm^(-2) s^(-1) Angstrom(-1)".equals( result ) ) {
+            result = "10E-17 erg/cm^2/s/Angstrom";
+        }
+
         return result;
     }
 
