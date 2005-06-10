@@ -202,9 +202,9 @@ public class SpectrumIO
 
 
     /**
-     * Get the next spectrum to load. Returns null when none left.
+     * Get properties of the next spectrum to load. Returns null when none left.
      */
-    protected synchronized Props getSpectrum()
+    protected synchronized Props getSpectrumProps()
     {
         try {
             lastSpectrum = (Props) queue.remove( 0 );
@@ -307,7 +307,7 @@ public class SpectrumIO
         // Add all spectra to the browser until the queue is empty.
         while( ! queue.isEmpty() ) {
             try {
-                browser.tryAddSpectrum( getSpectrum() );
+                browser.tryAddSpectrum( getSpectrumProps() );
                 validFiles++;
             }
             catch (SplatException e) {
@@ -561,7 +561,7 @@ public class SpectrumIO
             this.coordColumn = coordColumn;
         }
 
-        public String geErrorColumn()
+        public String getErrorColumn()
         {
             return errorColumn;
         }
@@ -569,6 +569,13 @@ public class SpectrumIO
         public void setErrorColumn( String errorColumn )
         {
             this.errorColumn = errorColumn;
+        }
+
+        //  Create a copy of this object.
+        public Props copy()
+        {
+            return new Props( spectrum, type, shortName, dataUnits, coordUnits, 
+                              dataColumn, coordColumn, errorColumn );
         }
 
         /**
