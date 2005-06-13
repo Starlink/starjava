@@ -4,12 +4,18 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.CompilationException;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.ttools.RandomJELRowReader;
 import uk.ac.starlink.util.TestCase;
 
 public class JELTest extends TestCase {
+
+    static {
+        Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
+    }
 
     public JELTest( String name ) {
         super( name );
