@@ -451,7 +451,7 @@ public class Driver {
             "6dfgs_mini.xml.bz2",
             // "863sub.fits",
             // "vizier.xml.gz#6",
-            "cover.xml",
+            "messier.xml",
             // "tables.fit.gz#2",
         };
         int ntab = demoNames.length;

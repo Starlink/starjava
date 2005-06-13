@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TOPCAT"/>
   <property name="name" value="topcat"/>
-  <property name="version" value="1.5"/>
+  <property name="version" value="1.6pre"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.topcat"/>
@@ -518,9 +518,9 @@
 
     <copy todir="${build.demo}">
       <fileset dir="${src.demo}/fits" includes="863sub.fits"/>
-      <fileset dir="${src.demo}/votable" includes="cover.xml,vizier.xml.gz"/>
+      <fileset dir="${src.demo}/votable" includes="messier.xml,vizier.xml.gz"/>
     </copy>
-    <echo append="true" file="${demo.list}" message="cover.xml&#xA;"/>
+    <echo append="true" file="${demo.list}" message="messier.xml&#xA;"/>
     <echo append="true" file="${demo.list}" message="vizier.xml.gz&#xA;"/>
     <echo append="true" file="${demo.list}" message="863sub.fits&#xA;"/>
 
@@ -531,7 +531,7 @@
     <tar destfile="${build.demo}/demo.tar.bz2"
          compression="bzip2">
       <tarfileset dir="${src.etc}">
-        <include name="demo/votable/cover.xml"/>
+        <include name="demo/votable/messier.xml"/>
         <include name="demo/fits/tables.fit"/>
         <include name="demo/others/**"/>
       </tarfileset>

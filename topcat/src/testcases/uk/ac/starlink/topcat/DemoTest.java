@@ -28,7 +28,7 @@ public class DemoTest extends TestCase {
         // assertEquals( 13, demoTables[ ix ].getColumnCount() );
         // assertEquals( 120L, demoTables[ ix++ ].getRowCount() );
 
-        assertEquals( 9, demoTables[ ix ].getColumnCount() );
+        assertEquals( 10, demoTables[ ix ].getColumnCount() );
         assertEquals( 20L, demoTables[ ix++ ].getRowCount() );
 
         // assertEquals( 3, demoTables[ ix ].getColumnCount() );
