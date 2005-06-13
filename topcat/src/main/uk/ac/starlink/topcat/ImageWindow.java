@@ -56,7 +56,7 @@ public class ImageWindow extends AuxWindow {
         scroller.setBackground( Color.WHITE );
         main.setPreferredSize( new Dimension( 240, 240 ) );
         main.add( scroller, BorderLayout.CENTER );
-        addHelp( "viewers" );
+        addHelp( "imageViewers" );
         pack();
         setVisible( true );
     }
