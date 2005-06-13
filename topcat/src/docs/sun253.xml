@@ -48,6 +48,7 @@
   <!ENTITY FIG.SyntheticSubsetQueryWindow 
            '&figs;SyntheticSubsetQueryWindow.gif'>
   <!ENTITY FIG.MethodWindow '&figs;MethodWindow.gif'>
+  <!ENTITY FIG.HtmlWindow '&figs;HtmlWindow.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -71,7 +72,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>May 2005</docdate>
+<docdate>June 2005</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -3237,10 +3238,54 @@ introduced since the last version:
 </dd>
 
 <dt>Version 1.6</dt>
-<dd><p><ul>
-    <li>SOAP services</li>
-    <li>HEALPix</li>
- </ul></p></dd>
+<dd><p><dl>
+
+  <dt>Activation Actions</dt>
+  <dd><p>Some more activation functionality has been added:
+    <ul>
+      <li>New <label>View URL as Web Page</label> option introduced in 
+          Activation Window</li>
+      <li>New <label>System</label> class of activation functions containing
+          <code>exec</code> functions which execute commands on the local
+          operating system</li>
+      <li>New <label>Browsers</label> class of activation functions for 
+          displaying URLs in web browsers (external or basic fallback one)</li>
+    </ul>
+  </p></dd>
+
+  <dt>Algebraic Functions</dt>
+  <dd><p>New <label>Times</label> class added containing functions for
+      converting between Modified Julian Day and ISO 8601 format epochs.
+      </p></dd>
+
+  <dt>Sky Matching</dt>
+  <dd><p>The default sky matching algorithm now uses HEALPix rather than
+      HTM for assigning sky pixels to RA,Dec positions.  This gives much
+      faster sky matches in most cases, and uses somewhat less memory 
+      so can be used on larger tables.  It may also have fixed a bug
+      which missed out some possible matches.
+      </p></dd>
+
+  <dt>SOAP Services</dt>
+  <dd><p>TOPCAT now acts as a SOAP server; SOAP requests can now be made
+      to a running instance of TOPCAT to get it to display tables by 
+      location or by sending XML for a VOTable direct.  Because of 
+      limitations in Axis, this latter method won't work for arbitrarily
+      large tables.
+      </p></dd>
+
+  <dt>Minor changes</dt>
+  <dd><p>
+    <ul>
+      <li>Added (dummy) <label>Print</label> option to Data Window.
+          This just presents a message to the effect that you should save
+          to a printable format.</li>
+      <li>Fixed a bug which gave errors when expressions contained a 
+          <code>NULL_</code> test on the first column of a table.</li>
+    </ul>
+  </p></dd>
+
+</dl></p></dd>
 
 </dl>
 </p>
@@ -5885,23 +5930,35 @@ in the control window will indicate the action you have configured.
     display it in an image viewer window.
     </p></dd>
 
-<dt>Display Named Image</dt>
+<dt>View URL as Image</dt>
 <dd><p>This option is suitable if one of the columns in your table 
     gives the location (filename or URL) of an image file.
     The image may be in FITS, GIF, JPEG or PNG format, optionally 
     compressed using gzip, Unix compress, or bzip2 format.
     Select the column which contains the location, and activating a 
     row will pop up an image viewer to display it.
+    See <ref id="imageViewers"/> for more information about image viewers.
     </p></dd>
 
-<dt>Display Named Spectrum</dt>
+<dt>View URL as Spectrum</dt>
 <dd><p>This option is suitable if one of the columns in your table
     gives the location (filename or URL) of a spectrum file.
     The spectrum may be in FITS or text format, optionally compressed.
-    Select the column which contains the location, an activating a
+    Select the column which contains the location, and activating a
     row will try to pop up a spectrum viewer to display it.
-    Note this may not be possible if some components are not installed
-    (see <ref id="viewers"/>).
+    Note this may not be possible if some components are not installed -
+    see <ref id="spectrumViewers"/> for information about spectrum viewers.
+    </p></dd>
+
+<dt>View URL as Web Page</dt>
+<dd><p>This option is suitable if one of the columns in your table
+    gives the location (filename or URL) of a web page; this should
+    normally be in HTML or plain text, but depending on what browser
+    you use other kinds of document may be supported.
+    Select the column which contains the location and the browser
+    which you would like to use for display, and activating a row
+    will try to pop up a browser window to display it.
+    See <ref id="documentViewers"/> for more information about browsers.
     </p></dd>
 
 <dt>Execute Custom Code</dt>
@@ -5930,12 +5987,25 @@ in the control window will indicate the action you have configured.
 </dl>
 </p>
 
-<subsubsect id="viewers">
-<subhead><title>Viewer Applications</title></subhead>
+<p>As the above list shows, most of the activation actions you can
+define result in a viewer window of some kind popping up.
+Exactly what kind of viewer is used depends on how TOPCAT is set up
+and in some cases on your choices.  More details of the viewer
+programs available are given in the following subsections.
+If these don't do what you want, you can use the 
+<label>Execute Custom Code</label> option, perhaps in conjunction with
+<ref id="jelExtend">user-defined</ref> functions or the 
+<code>System</code> <code>exec()</code> functions
+described in <ref id="activationJel"/>, to invoke your own.
+</p>
 
-<p>As described above, most of the activation actions you can define
-result in a viewer window popping up to display an image or spectrum.
-Exactly what kind of viewer is shown depends on how TOPCAT is set up.
+<subsubsect id="imageViewers">
+<subhead><title>Image Viewer Applications</title></subhead>
+
+<p>If you choose the <label>Display Cutout Image</label> or
+<label>View URL as Image</label> option in the 
+<ref id="ActivationQueryWindow">Activation Window</ref>,
+then activating a row will display an image in an image viewer.
 </p>
 
 <p>The default image viewer is 
@@ -5946,11 +6016,7 @@ For this to work JAI, otherwise known as
 <webref plaintextref="yes" url="http://java.sun.com/products/java-media/jai/"
         >Java Advanced Imaging</webref> must be installed.
 JAI is a free component available from Sun, but not a part of the Java 2
-Standard Edition by default.
-If JAI or the SoG classes themselves are absent, a fallback viewer
-which just displays the given image in a basic graphics window 
-with no manipulation facilities is used.
-The two possibilities are displayed below:
+Standard Edition by default.  In operation, SoG looks like this:
 </p>
 
 <figure>
@@ -5958,10 +6024,26 @@ The two possibilities are displayed below:
 <figureimage src="&FIG.SoG;"/>
 </figure>
 
+<p>If JAI or the SoG classes themselves are absent, a fallback viewer
+which just displays the given image in a basic graphics window 
+with no manipulation facilities is used.
+The fallback image viewer looks like this:
+</p>
+
 <figure>
 <caption><px>Fallback Image Viewer</px></caption>
 <figureimage src="&FIG.ImageWindow;"/>
 </figure>
+
+</subsubsect>
+
+<subsubsect id="spectrumViewers">
+<subhead><title>Spectrum Viewers</title></subhead>
+
+<p>If you choose the <label>View URL as Spectrum</label> option in
+the <ref id="ActivationQueryWindow">Activation Window</ref>,
+then activating a row will display a spectrum in a spectrum viewer.
+</p>
 
 <p>The default spectrum viewer is 
 <webref plaintextref="yes" url="http://www.starlink.ac.uk/splat/"
@@ -5982,6 +6064,47 @@ An example of SPLAT display of multiple spectra is shown below.
 <caption><px>SPLAT Spectrum Viewer</px></caption>
 <figureimage src="&FIG.Splat;"/>
 </figure>
+
+<p>Full documentation for SPLAT is available on-line within the program,
+or in <docxref doc="sun243"/>.
+</p>
+
+</subsubsect>
+
+<subsubsect id="documentViewers">
+<subhead><title>Web Browsers</title></subhead>
+
+<p>If you choose the <label>View URL as Web Page</label> option in
+the <label>Activation Window</label>,
+then activating a row will display the web page whose URL 
+is in one of the columns in a web browser.
+You are given the option of what browser you would like to use in this case.
+</p>
+
+<p>The default <label>basic browser</label> option uses a simple
+browser which can view HTML or plain text pages and has forward and
+back buttons which work as you'd expect.  In many cases this is fine
+for viewing HTML pages, and it is available regardless of the system
+that you are running TOPCAT on.  It looks like this:
+</p>
+
+<figure>
+<caption><px>Basic HTML browser</px></caption>
+<figureimage src="&FIG.HtmlWindow;"/>
+</figure>
+
+<p>In some circumstances, it's possible to use your normal web browser
+for web page display instead.  
+The list of browsers currently includes Firefox, Mozilla
+and Netscape as well as the basic one.  Selecting these will generally
+only work if (1) the browser you select is installed and on your path, 
+(2) you're on some Unix-like operating system,
+(3) the browser is already running when the action is invoked.
+In this case, the selected URL should be displayed in an existing
+browser window rather than opening a new one.
+Doing it this way has the advantage that your browser can probably 
+display many types of document (perhaps using plugins) as well as HTML.
+</p>
 
 </subsubsect>
 
