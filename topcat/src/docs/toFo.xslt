@@ -677,6 +677,9 @@
     <xsl:param name="doc"/>
     <xsl:param name="loc"/>
     <xsl:choose>
+      <xsl:when test="$doc='sun243'">
+        <xsl:text>SUN/243</xsl:text>
+      </xsl:when>
       <xsl:when test="$doc='sun252'">
         <xsl:text>SUN/252</xsl:text>
       </xsl:when>
