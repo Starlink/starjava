@@ -5,11 +5,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import gnu.jel.CompilationException;
 import gnu.jel.Library;
 import gnu.jel.DVMap;
 import java.util.Date;
 import java.util.Hashtable;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
+import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Image;
 import uk.ac.starlink.topcat.func.Mgc;
 import uk.ac.starlink.topcat.func.Output;
@@ -57,8 +59,31 @@ public class TopcatJELUtils extends JELUtils {
         Class[] dotClasses = new Class[ 0 ];
         DVMap resolver = rowReader;
         Hashtable cnmap = null;
-        return new Library( staticLib, dynamicLib, dotClasses,
-                            resolver, cnmap );
+        Library lib = new Library( staticLib, dynamicLib, dotClasses,
+                                   resolver, cnmap );
+
+        if ( activation ) {
+            /* Mark the System.exec methods as dynamic.  This is a bit obscure;
+             * its purpose is to make sure that they get evaluated at run time
+             * not compilation time even if their arguments are constant.
+             * You can't do very useful things with constant arguments, but
+             * you might have them while you're experimenting, and it is
+             * surprising to see the expression be evaluated when you type
+             * the expression in rather than when the activation takes place.
+             * For this reason, all the activation methods should probably
+             * be so marked, but JEL doesn't make that very easy. */
+            try {
+                for ( int i = 1; i <= 4; i++ ) {
+                    Class[] argClasses = new Class[ i ];
+                    Arrays.fill( argClasses, String.class );
+                    lib.markStateDependent( "exec", argClasses );
+                }
+            }
+            catch ( CompilationException e ) {
+                throw (AssertionError) new AssertionError().initCause( e );
+            }
+        }
+        return lib;
     }
 
     /**
@@ -76,6 +101,7 @@ public class TopcatJELUtils extends JELUtils {
              * rely on. */
             List classList = new ArrayList();
             classList.add( Output.class );
+            classList.add( uk.ac.starlink.topcat.func.System.class );
             classList.add( Image.class );
             classList.add( Spectrum.class );
             classList.add( BasicImageDisplay.class );
@@ -85,6 +111,7 @@ public class TopcatJELUtils extends JELUtils {
             if ( TopcatUtils.canSplat() ) {
                 classList.add( Splat.class );
             }
+            classList.add( Browsers.class );
             classList.add( Mgc.class );
             classList.add( Sdss.class );
             classList.add( SuperCosmos.class );

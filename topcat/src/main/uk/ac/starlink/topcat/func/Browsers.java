@@ -1,0 +1,145 @@
+// The doc comments in this class are processed to produce user-visible
+// documentation as part of the package build process.  For this reason
+// care should be taken to make the doc comment style comprehensible,
+// consistent, concise, and not over-technical.
+
+package uk.ac.starlink.topcat.func;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import uk.ac.starlink.topcat.HtmlWindow;
+
+/**
+ * Displays URLs in web browsers.
+ *
+ * @author   Mark Taylor (Starlink)
+ * @since    9 Jun 2005
+ */
+public class Browsers {
+
+    private static HtmlWindow htmlWindow_;
+
+    /**
+     * Private constructor prevents instantiation.
+     */
+    private Browsers() {
+    }
+
+    /**
+     * Displays a URL in a basic HTML viewer.
+     * This is only likely to work for HTML, text or RTF data.
+     * The browser can follow hyperlinks and has simple forward/back
+     * buttons, but lacks the sophistication of a proper WWW browser
+     * application.
+     *
+     * @param  url  location of the document to display
+     * @return  short log message
+     */
+    public static String displayUrl( String url ) {
+        if ( url == null || url.trim().length() == 0 ) {
+            return null;
+        }
+        URL url1 = null;
+        try {
+            File f = new File( url );
+            if ( f.exists() ) {
+                url1 = f.toURI().toURL();
+            }
+        }
+        catch ( IOException e ) {
+            // not a file
+        }
+        if ( url1 == null ) {
+            try {
+                url1 = new URL( url );
+            }
+            catch ( MalformedURLException e ) {
+                return "Bad URL: " + url;
+            }
+        }
+        try {
+            getHtmlWindow().setURL( url1 );
+            return url;
+        }
+        catch ( IOException e ) {
+            String msg = e.getMessage();
+            if ( e == null ) {
+                msg = e.toString();
+            }
+            return msg + ": " + url;
+        }
+    }
+
+    /**
+     * Displays a URL in a Mozilla web browser.
+     * Probably only works on Unix-like operating systems, and only if
+     * Mozilla is already running.
+     *
+     * @param   url   location of the document to display
+     * @return  short log message
+     */
+    public static String mozilla( String url ) {
+        return mozalike( "mozilla", url );
+    }
+
+    /**
+     * Displays a URL in a Firefox web browser.
+     * Probably only works on Unix-like operating systems, and only
+     * if Firefox is already running.
+     *
+     * @param   url   location of the document to display
+     * @return  short log message
+     */
+    public static String firefox( String url ) {
+        return mozalike( "firefox", url );
+    }
+
+    /**
+     * Displays a URL in a Netscape web browser.
+     * Probably only works on Unix-like operating systems, and only
+     * if Netscape is already running.
+     *
+     * @param   url   location of the document to display
+     * @return  short log message
+     */
+    public static String netscape( String url ) {
+        return mozalike( "netscape", url );
+    }
+
+    /** 
+     * Displays a URL in a web browser from the Mozilla family;
+     * it must support flags of the type 
+     * "<code>-remote openURL(</code><em>url</em><code>)</code>".
+     * Probably only works on Unix-like operating systems, and only
+     * if the browser is already running.
+     *
+     * @param   cmd  name or path of the browser command
+     * @param   url  location of the document to display
+     * @return  short log message
+     */
+    public static String mozalike( String cmd, String url ) {
+        if ( url == null || url.trim().length() == 0 ) {
+            return null;
+        }
+        String[] argv = { cmd, "-remote", "openURL(" + url + ")", };
+        return uk.ac.starlink.topcat.func.System
+              .execute( Executor.createExecutor( argv ) );
+    }
+
+    /**
+     * Returns a basic HTML viewer window.
+     *
+     * @return  html window
+     */
+    private static HtmlWindow getHtmlWindow() {
+        if ( htmlWindow_ == null ) {
+            htmlWindow_ = new HtmlWindow( null );
+        }
+        if ( ! htmlWindow_.isShowing() ) {
+            htmlWindow_.setVisible( true );
+        }
+        return htmlWindow_;
+    }
+}
