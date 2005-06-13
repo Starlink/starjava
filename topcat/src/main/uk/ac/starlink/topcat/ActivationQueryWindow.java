@@ -14,8 +14,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -31,8 +35,10 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.TableColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Image;
 import uk.ac.starlink.topcat.func.Spectrum;
+import uk.ac.starlink.ttools.JELRowReader;
 
 /**
  * A dialogue window which queries the user for a new activation action
@@ -62,6 +68,7 @@ public class ActivationQueryWindow extends QueryWindow {
             new CutoutActivatorFactory(),
             new ImageActivatorFactory(),
             new SpectrumActivatorFactory(),
+            new BrowserActivatorFactory(),
             new JELActivatorFactory(),
         };
 
@@ -288,6 +295,76 @@ public class ActivationQueryWindow extends QueryWindow {
     }
 
     /**
+     * Factory implementation for activators that display a URL in a 
+     * general purpose web browser.
+     */
+    private class BrowserActivatorFactory extends ColumnActivatorFactory {
+        final JComboBox browserChooser_;
+        final String MOZILLA = "mozilla";
+        final String NETSCAPE = "netscape";
+        final String FIREFOX = "firefox";
+        final String BASIC_BROWSER = "basic browser";
+
+        BrowserActivatorFactory() {
+            super( "Web Page" );
+            browserChooser_ = new JComboBox();
+            browserChooser_.addItem( BASIC_BROWSER );
+            browserChooser_.addItem( MOZILLA );
+            browserChooser_.addItem( NETSCAPE );
+            browserChooser_.addItem( FIREFOX );
+            JLabel browserLabel = new JLabel( "Browser Type: " );
+            List eList = new ArrayList( Arrays.asList( enablables_ ) );
+            eList.add( browserLabel );
+            eList.add( browserChooser_ );
+            enablables_ = (Component[]) eList.toArray( new Component[ 0 ] );
+            Box browserBox = Box.createHorizontalBox();
+            browserBox.add( browserLabel );
+            browserBox.add( browserChooser_ );
+            queryPanel_.add( Box.createVerticalStrut( 5 ) );
+            queryPanel_.add( browserBox );
+        }
+
+        Activator makeActivator( TableColumn tcol ) {
+            Object browser = browserChooser_.getSelectedItem();
+            if ( BASIC_BROWSER.equals( browser ) ) {
+                return new ColumnActivator( "displayUrl", tcol ) {
+                    String activateValue( Object val ) {
+                        return val == null 
+                             ? null
+                             : Browsers.displayUrl( val.toString() );
+                    }
+                };
+            }
+            else if ( MOZILLA.equals( browser ) ) {
+                return createMozalikeActivator( "mozilla", tcol );
+            }
+            else if ( NETSCAPE.equals( browser ) ) {
+                return createMozalikeActivator( "netscape", tcol );
+            }
+            else if ( FIREFOX.equals( browser ) ) {
+                return createMozalikeActivator( "firefox", tcol );
+            }
+            return null;
+        }
+
+        private Activator createMozalikeActivator( final String cmdname, 
+                                                   TableColumn tcol ) {
+            return new ColumnActivator( "document", tcol ) {
+                String activateValue( Object val ) {
+                    return val == null
+                         ? null
+                         : Browsers.mozalike( cmdname, val.toString() );
+                }
+                public String toString() {
+                    String colName = tcModel_.getDataModel()
+                                             .getColumnInfo( icol_ ).getName();
+                    return cmdname + "( " + colName + " )";
+                }
+            };
+        }
+    }
+
+    /**
      * Factory implementation for selecting a cutout service.
      */
     private class CutoutActivatorFactory extends ActivatorFactory {
@@ -316,7 +393,7 @@ public class ActivationQueryWindow extends QueryWindow {
         JComboBox colSelector_;
 
         ColumnActivatorFactory( String descrip ) {
-            super( "Display Named " + descrip );
+            super( "View URL as " + descrip );
             colSelector_ = new RestrictedColumnComboBoxModel( tcModel_
                                                              .getColumnModel(),
                                                               true ) {
@@ -331,11 +408,12 @@ public class ActivationQueryWindow extends QueryWindow {
             colSelector_.setSelectedIndex( 0 );
             JLabel colLabel = new JLabel( descrip + " Location column: " );
             enablables_ = new Component[] { colLabel, colSelector_, };
-            Box box = Box.createHorizontalBox();
-            box.add( colLabel );
-            box.add( colSelector_ );
-            box.add( Box.createHorizontalGlue() );
-            queryPanel_.add( box );
+            Box colBox = Box.createHorizontalBox();
+            colBox.add( colLabel );
+            colBox.add( colSelector_ );
+            queryPanel_.setLayout( new BoxLayout( queryPanel_,
+                                                  BoxLayout.Y_AXIS ) );
+            queryPanel_.add( colBox );
         }
 
         boolean isPossible() {
@@ -468,4 +546,5 @@ public class ActivationQueryWindow extends QueryWindow {
             return funcName_ + "( " + colName + " )";
         }
     }
+
 }
