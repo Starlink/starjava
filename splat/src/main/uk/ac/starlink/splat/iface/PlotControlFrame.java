@@ -27,6 +27,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -177,6 +178,11 @@ public class PlotControlFrame
      * File chooser used for postscript files.
      */
     protected BasicFileChooser postscriptChooser = null;
+
+    /**
+     * Checkbox controlling the type of postscript saved.
+     */
+    protected JCheckBox epsBox = null;
 
     /**
      * Show deblend tools, removed once development is complete.
@@ -340,7 +346,7 @@ public class PlotControlFrame
             ImageHolder.class.getResource( "panner.gif" ) );
 
         //  Add action to print figure.
-        PrintAction printAction  = 
+        PrintAction printAction  =
             new PrintAction( "Print", printImage,
                              "Print display to local printer or file" );
         fileMenu.add( printAction );
@@ -350,7 +356,7 @@ public class PlotControlFrame
         PrintPostscriptAction printPostscriptAction  =
             new PrintPostscriptAction( "Print to postscript",
                                        printPostscriptImage,
-                                       "Print display to postscript file" );
+                                       "Print display to a postscript file" );
         fileMenu.add( printPostscriptAction );
         toolBar.add( printPostscriptAction );
 
@@ -362,7 +368,7 @@ public class PlotControlFrame
         toolBar.add( printJPEGAction );
 
         //  Add action to fit plot to window width.
-        FitWidthAction fitWidthAction  = 
+        FitWidthAction fitWidthAction  =
             new FitWidthAction( "Fit width",
                                 fitWidthImage,
                                 "Scale spectrum to fit visible width" );
@@ -370,7 +376,7 @@ public class PlotControlFrame
         toolBar.add( fitWidthAction );
 
         //  Add action to fit plot to window height.
-        FitHeightAction fitHeightAction = 
+        FitHeightAction fitHeightAction =
             new FitHeightAction( "Fit height",
                                  fitHeightImage,
                                  "Scale spectrum to fit visible height" );
@@ -378,7 +384,7 @@ public class PlotControlFrame
         toolBar.add( fitHeightAction );
 
         //  Add action to enable the panner.
-        PannerAction pannerAction  = 
+        PannerAction pannerAction  =
             new PannerAction( "Show panner",
                               pannerImage,
                 "Show panner window for controlling scroll position " );
@@ -386,7 +392,7 @@ public class PlotControlFrame
         toolBar.add( pannerAction );
 
         //  Add action to configure plot.
-        ConfigAction configAction  = 
+        ConfigAction configAction  =
             new ConfigAction( "Configure",
                               configImage,
                               "Configure plot presentation attributes" );
@@ -443,7 +449,7 @@ public class PlotControlFrame
         toolBar.add( regionCutterAction );
 
         //  Add the fit polynomial to background item.
-        PolyFitAction polyFitAction = 
+        PolyFitAction polyFitAction =
             new PolyFitAction( "Fit polynomial",
                                backImage,
                                "Fit parts of spectrum using a polynomial" );
@@ -468,7 +474,7 @@ public class PlotControlFrame
         }
 
         //  Add the measure and fit spectral lines action.
-        LineFitAction lineFitAction = 
+        LineFitAction lineFitAction =
             new LineFitAction( "Fit lines",
                                lineImage,
                 "Fit spectral lines using a variety of functions" );
@@ -674,12 +680,18 @@ public class PlotControlFrame
         if ( postscriptChooser == null ) {
             postscriptChooser = new BasicFileChooser( false );
             postscriptChooser.setSelectedFile( new File( "out.ps" ) );
+
+            JPanel extraControls = new JPanel();
+            epsBox = new JCheckBox( "Encapsulated" );
+            epsBox.setToolTipText("Select to save as encapsulated postscript");
+            extraControls.add( epsBox );
+            postscriptChooser.setAccessory( extraControls );
         }
         int result = postscriptChooser.showSaveDialog( this );
         if ( result == postscriptChooser.APPROVE_OPTION ) {
             File file = postscriptChooser.getSelectedFile();
             try {
-                plot.printPostscript( file.getPath() );
+                plot.printPostscript( epsBox.isSelected(), file.getPath() );
             }
             catch (SplatException e) {
                 JOptionPane.showMessageDialog ( this, e.getMessage(),
@@ -1266,12 +1278,12 @@ public class PlotControlFrame
      */
     protected class CloseAction extends AbstractAction
     {
-        public CloseAction( String name, Icon icon, String help ) 
+        public CloseAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             closeWindow();
         }
@@ -1282,12 +1294,12 @@ public class PlotControlFrame
      */
     protected class PrintAction extends AbstractAction
     {
-        public PrintAction( String name, Icon icon, String help ) 
+        public PrintAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             printDisplay();
         }
@@ -1298,12 +1310,12 @@ public class PlotControlFrame
      */
     protected class PrintPostscriptAction extends AbstractAction
     {
-        public PrintPostscriptAction( String name, Icon icon, String help ) 
+        public PrintPostscriptAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             printPostscriptDisplay();
         }
@@ -1314,12 +1326,12 @@ public class PlotControlFrame
      */
     protected class PrintJPEGAction extends AbstractAction
     {
-        public PrintJPEGAction( String name, Icon icon, String help ) 
+        public PrintJPEGAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             printJPEGDisplay();
         }
@@ -1330,12 +1342,12 @@ public class PlotControlFrame
      */
     protected class FitWidthAction extends AbstractAction
     {
-        public FitWidthAction( String name, Icon icon, String help ) 
+        public FitWidthAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             fitToWidth();
         }
@@ -1346,12 +1358,12 @@ public class PlotControlFrame
      */
     protected class FitHeightAction extends AbstractAction
     {
-        public FitHeightAction( String name, Icon icon, String help ) 
+        public FitHeightAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             fitToHeight();
         }
@@ -1362,7 +1374,7 @@ public class PlotControlFrame
      */
     protected class ConfigAction extends AbstractAction
     {
-        public ConfigAction( String name, Icon icon, String help ) 
+        public ConfigAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
@@ -1377,12 +1389,12 @@ public class PlotControlFrame
      */
     protected class PannerAction extends AbstractAction
     {
-        public PannerAction( String name, Icon icon, String help ) 
+        public PannerAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             showPanner();
         }
@@ -1393,12 +1405,12 @@ public class PlotControlFrame
      */
     protected class ViewCutterAction extends AbstractAction
     {
-        public ViewCutterAction( String name, Icon icon, String help ) 
+        public ViewCutterAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             cutView();
         }
@@ -1409,12 +1421,12 @@ public class PlotControlFrame
      */
     protected class RegionCutterAction extends AbstractAction
     {
-        public RegionCutterAction( String name, Icon icon, String help ) 
+        public RegionCutterAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             showCutter();
         }
@@ -1425,12 +1437,12 @@ public class PlotControlFrame
      */
     protected class FilterAction extends AbstractAction
     {
-        public FilterAction( String name, Icon icon, String help ) 
+        public FilterAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             showFilter();
         }
@@ -1441,12 +1453,12 @@ public class PlotControlFrame
      */
     protected class UnitsAction extends AbstractAction
     {
-        public UnitsAction( String name, Icon icon, String help ) 
+        public UnitsAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             showUnits();
         }
@@ -1457,12 +1469,12 @@ public class PlotControlFrame
      */
     protected class FlipAction extends AbstractAction
     {
-        public FlipAction( String name, Icon icon, String help ) 
+        public FlipAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             showFlip();
         }
@@ -1473,12 +1485,12 @@ public class PlotControlFrame
      */
     protected class PolyFitAction extends AbstractAction
     {
-        public PolyFitAction( String name, Icon icon, String help ) 
+        public PolyFitAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             polyFit();
         }
@@ -1489,12 +1501,12 @@ public class PlotControlFrame
      */
     protected class GenFromInterpAction extends AbstractAction
     {
-        public GenFromInterpAction( String name, Icon icon, String help ) 
+        public GenFromInterpAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             interpolate();
         }
@@ -1505,12 +1517,12 @@ public class PlotControlFrame
      */
     protected class DeblendAction extends AbstractAction
     {
-        public DeblendAction( String name, Icon icon, String help ) 
+        public DeblendAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             deblend();
         }
@@ -1521,12 +1533,12 @@ public class PlotControlFrame
      */
     protected class LineFitAction extends AbstractAction
     {
-        public LineFitAction( String name, Icon icon, String help ) 
+        public LineFitAction( String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             lineFit();
         }

@@ -29,8 +29,10 @@ import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Vector;
@@ -58,6 +60,8 @@ import javax.swing.JTextField;
 import javax.swing.JViewport;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import org.jibble.epsgraphics.EpsGraphics2D;
 
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.SpecFrame;
@@ -567,14 +571,14 @@ public class PlotControl
             new ImageIcon( ImageHolder.class.getResource( "minus.gif" ) );
 
         xIncr.setIcon( plusImage );
-        xIncr.setToolTipText( "Increase X scale by 1 about centre of view " );
+        xIncr.setToolTipText( "Increase X scale by 1 about centre of view" );
         xDecr.setIcon( minusImage );
-        xDecr.setToolTipText( "Decrease X scale by 1 about centre of view " );
+        xDecr.setToolTipText( "Decrease X scale by 1 about centre of view" );
 
         yIncr.setIcon( plusImage );
-        yIncr.setToolTipText( "Increase Y scale by 1 about centre of view " );
+        yIncr.setToolTipText( "Increase Y scale by 1 about centre of view" );
         yDecr.setIcon( minusImage );
-        yDecr.setToolTipText( "Decrease Y scale by 1 about centre of view " );
+        yDecr.setToolTipText( "Decrease Y scale by 1 about centre of view" );
 
         //  Add this makes the size matching look better.
         xScale.setBorder( BorderFactory.createEtchedBorder() );
@@ -990,32 +994,53 @@ public class PlotControl
     /**
      * Print to a postscript file.
      */
-    public void printPostscript( String fileName )
+    public void printPostscript( boolean eps, String fileName )
         throws SplatException
     {
-        PrintService[] services = getPostscriptPrintServices( fileName );
-        if ( services.length != 0 ) {
+        if ( eps ) {
             try {
-                PrinterJob pj = PrinterJob.getPrinterJob();
-                pj.setPrintService( services[0] );
-                pj.setPrintable( plot );
-                makePageSet();
-                if ( pj.printDialog( pageSet ) ) {
-                    pj.print( pageSet );
-                    ((StreamPrintService)services[0]).dispose();
-                    ((StreamPrintService)services[0]).getOutputStream().close();
-                }
+                BufferedOutputStream ostrm = 
+                    new BufferedOutputStream( new FileOutputStream(fileName) );
+                Rectangle bounds = plot.getBounds();
+                EpsGraphics2D g2 = 
+                    new EpsGraphics2D( name, ostrm, 
+                                       bounds.x, bounds.y, 
+                                       bounds.x + bounds.width,
+                                       bounds.y + bounds.height );
+                plot.print( g2 );
+                g2.close();
             }
-            catch ( PrinterException e ) {
-                throw new SplatException( e );
-            }
-            catch ( IOException e ) {
+            catch (Exception e) {
                 throw new SplatException( e );
             }
         }
         else {
-            // Report there are no printers available.
-            throw new SplatException( "Sorry no printers are available" );
+            PrintService[] services = getPostscriptPrintServices( fileName );
+            if ( services.length != 0 ) {
+                try {
+                    PrinterJob pj = PrinterJob.getPrinterJob();
+                    pj.setPrintService( services[0] );
+                    pj.setPrintable( plot );
+                    makePageSet();
+                    if ( pj.printDialog( pageSet ) ) {
+                        pj.print( pageSet );
+                        StreamPrintService sps =
+                            (StreamPrintService) services[0];
+                        sps.dispose();
+                        sps.getOutputStream().close();
+                    }
+                }
+                catch ( PrinterException e ) {
+                    throw new SplatException( e );
+                }
+                catch ( IOException e ) {
+                    throw new SplatException( e );
+                }
+            }
+            else {
+                // Report there are no printers available.
+                throw new SplatException( "Sorry no printers are available" );
+            }
         }
     }
 
@@ -1030,7 +1055,7 @@ public class PlotControl
 
             // No actual print services are available (i.e. no valid local
             // printers), then fall back to the postscript option.
-            printPostscript( "out.ps" );
+            printPostscript( false, "out.ps" );
             return;
         }
         try {
@@ -1215,10 +1240,10 @@ public class PlotControl
 
 
     /**
-     * Load and display line identifiers that match the current spectrum. 
+     * Load and display line identifiers that match the current spectrum.
      * The identifiers loaded can be restricted to just those available in the
      * global list, otherwise all known identifiers will be queried.
-     * 
+     *
      * @param all if true then all known identifiers will be searched for
      *            matches and loaded, otherwise just those already available
      *            in the global list will be displayed.

@@ -29,6 +29,8 @@
         Switch on the option "Only display grid axes in visible area" to
         see this in action.
 
+      - Postscript output can now be created in encapsulated form.
+
       - Log spacing can now be switched on from a plot (rather than by finding
         the plot configuration window).
 

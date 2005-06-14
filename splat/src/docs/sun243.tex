@@ -974,18 +974,18 @@ the display area.\\
   the current aspect ratio of the display area, so if you're zoomed by a large
   factor then you'll get an output page that has a very small height. If you
   want a printout of just the visible part then cut it out and display it in a
-  new plot first. Postscript output from this dialogue isn't encapsulated but is
-  known to be convertible by the \hitext{pstoespi} program. The next figure is
-  an example of this output. Note that if you're looking at a paper copy of
-  this document you're looking at the postscript output and if you're looking
-  at the on-line help it shows a scaled JPEG for on-line copies (see item
-  after next).
+  new plot first. Postscript output from this dialogue isn't encapsulated.
+  The next figure is an example of this output. Note that if you're looking at
+  a paper copy of this document you're looking at the postscript output and if
+  you're looking at the on-line help it shows a scaled JPEG for on-line copies
+  (see item after next).
 
   \clippedmainfigure{printoutput}
 
   \item[\inline{postscriptprint}] Same as the print option, except, this only
   offers to write a postscript file and doesn't rely on having any printers
-  installed on the local machine.
+  installed on the local machine. The output can be in encapsulated form 
+  for inclusion in other documents.
 
   \item[\inline{jpeg}] Make a JPEG image version of the display area. Again
   the file produced fits the output graphic using the current aspect ratio of
@@ -2914,6 +2914,8 @@ Other changes of note in this release:
       the spectral data values and coordinates, but at a performance cost.
       Switch on the option \labelitem{Only display grid axes in visible area} 
       to see this in action.
+
+\item Postscript output can now be created in encapsulated form.
 
 \item Log spacing can now be switched on from a plot (rather than by finding
       the plot configuration window).
