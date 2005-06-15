@@ -496,7 +496,7 @@
    !-->
   <target name="build-lineids"
           depends="build"
-          description="Create the distributable line identifier jar file" >
+          description="-> create the distributable line identifier jar file" >
 
     <!-- Make the mirror tree with the pre-processed spectra -->
     <java classname="uk.ac.starlink.splat.util.LineIDTree">
