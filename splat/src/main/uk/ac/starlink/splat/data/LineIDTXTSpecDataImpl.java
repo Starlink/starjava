@@ -296,7 +296,20 @@ public class LineIDTXTSpecDataImpl
                 }
             }
         }
-        catch ( Exception e ) {
+        catch (NumberFormatException ne) {
+            if ( haveDataPositions ) {
+                throw new SplatException( "Error reading line identifiers"+
+                                          " from file: " + file + ", failed" +
+                                          " to read a valid number : " + 
+                                          ne.getMessage() + 
+                                          " (expected three columns)", ne );
+            }
+            throw new SplatException( "Error reading line identifiers"+
+                                      " from file: " + file + ", failed" +
+                                      " to read a valid number : \n" + 
+                                      ne.getMessage(), ne );
+        }
+        catch (Exception e) {
             try {
                 r.close();
                 f.close();
