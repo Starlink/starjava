@@ -73,7 +73,7 @@ public class SSAServerFrame
     protected RegistryTable registryTable = null;
 
     /**
-     * File chooser used for reading and writing text files.
+     * File chooser for storing and restoring server lists.
      */
     protected BasicFileChooser fileChooser = null;
 
