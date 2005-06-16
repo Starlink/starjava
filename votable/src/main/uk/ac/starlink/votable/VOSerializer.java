@@ -23,9 +23,14 @@ import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.Base64OutputStream;
 
 /**
- * Class which knows how to serialize a table's fields and data to a
- * VOTable DATA element.
- * Obtain an instance of this class using the {@link #makeSerializer}
+ * Class which knows how to serialize a table's fields and data to 
+ * VOTable elements.  For writing a full VOTable document
+ * which contains a single table the {@link VOTableWriter} 
+ * class may be more convenient, but 
+ * this class can be used in a more flexible way, by writing only
+ * the elements which are required.
+ *
+ * <p>Obtain an instance of this class using the {@link #makeSerializer}
  * method.
  *
  * @author   Mark Taylor (Starlink)
@@ -102,6 +107,28 @@ public abstract class VOSerializer {
                                                String href,
                                                DataOutput streamout )
             throws IOException;
+
+    /**
+     * Writes this serializer's table as a complete TABLE element.
+     * If this serializer's format is binary (non-XML) the bytes
+     * will get written base64-encoded into a STREAM element.
+     * 
+     * @param   writer  destination stream
+     */
+    public void writeInlineTableElement( BufferedWriter writer )
+            throws IOException {
+         writePreDataXML( writer );
+         writeInlineDataElement( writer );
+         writePostDataXML( writer );
+    }
+
+    public void writeHrefTableElement( BufferedWriter xmlwriter, String href,
+                                       DataOutput streamout )
+            throws IOException {
+        writePreDataXML( xmlwriter );
+        writeHrefDataElement( xmlwriter, href, streamout );
+        writePostDataXML( xmlwriter );
+    }
 
     /**
      * Writes any PARAM and INFO elements associated with this serializer's
@@ -195,6 +222,52 @@ public abstract class VOSerializer {
             writer.write( "</DESCRIPTION>" );
             writer.newLine();
         }
+    }
+
+    /**
+     * Outputs the TABLE element start tag and all of its content before
+     * the DATA element.
+     *
+     * @param   writer  output stream
+     */
+    void writePreDataXML( BufferedWriter writer ) throws IOException {
+
+        /* Output TABLE element start tag. */
+        writer.write( "<TABLE" );
+
+        /* Write table name if we have one. */
+        String tname = table.getName();
+        if ( tname != null && tname.trim().length() > 0 ) {
+            writer.write( formatAttribute( "name", tname.trim() ) );
+        }
+
+        /* Write the number of rows if we know it. */
+        long nrow = table.getRowCount();
+        if ( nrow > 0 ) {
+            writer.write( formatAttribute( "nrows", Long.toString( nrow ) ) );
+        }
+        writer.write( ">" );
+        writer.newLine();
+
+        /* Output a DESCRIPTION element if we have something suitable. */
+        writeDescription( writer );
+
+        /* Output table parameters as PARAM elements. */
+        writeParams( writer );
+
+        /* Output FIELD headers. */
+        writeFields( writer );
+    }
+
+    /**
+     * Outputs any content of the TABLE element following the DATA element
+     * and the TABLE end tag.
+     *
+     * @param  writer  output stream
+     */
+    void writePostDataXML( BufferedWriter writer ) throws IOException {
+        writer.write( "</TABLE>" );
+        writer.newLine();
     }
 
 
@@ -473,6 +546,7 @@ public abstract class VOSerializer {
             writer.write( "</TABLEDATA>" );
             writer.newLine();
             writer.write( "</DATA>" );
+            writer.newLine();
             writer.flush();
         }
 
@@ -540,6 +614,7 @@ public abstract class VOSerializer {
             writer.write( "</" + tagname + ">" );
             writer.newLine();
             writer.write( "</DATA>" );
+            writer.newLine();
         }
 
         public void writeHrefDataElement( BufferedWriter xmlwriter, String href,
@@ -561,6 +636,7 @@ public abstract class VOSerializer {
             xmlwriter.write( "</" + tagname + ">" );
             xmlwriter.newLine();
             xmlwriter.write( "</DATA>" );
+            xmlwriter.newLine();
 
             /* Write the bulk data to the output stream. */
             streamData( streamout );

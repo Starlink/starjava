@@ -151,7 +151,8 @@ public class VOTableWriter implements StarTableWriter {
             VOSerializer.makeSerializer( dataFormat, startab );
 
         /* Output preamble. */
-        writePreDataXML( serializer, writer );
+        writePreTableXML( serializer, writer );
+        serializer.writePreDataXML( writer );
 
         /* Now write the DATA element. */
         /* First Treat the case where we write data inline. */
@@ -228,7 +229,8 @@ public class VOTableWriter implements StarTableWriter {
         }
 
         /* Write postamble. */
-        writePostDataXML( serializer, writer );
+        serializer.writePostDataXML( writer );
+        writePostTableXML( serializer, writer );
 
         /* Tidy up. */
         writer.flush();
@@ -244,21 +246,24 @@ public class VOTableWriter implements StarTableWriter {
             throws IOException {
         VOSerializer serializer =
             VOSerializer.makeSerializer( dataFormat, startab );
-        writePreDataXML( serializer, writer );
-        serializer.writeInlineDataElement( writer );
-        writePostDataXML( serializer, writer );
+        writePreTableXML( serializer, writer );
+        serializer.writeInlineTableElement( writer );
+        writePostTableXML( serializer, writer );
         writer.flush();
     }
 
     /**
-     * Outputs all the text required before the DATA element.
+     * Outputs all the text required before the TABLE element.
+     * This method can be overridden to alter the behaviour of the
+     * writer if required.
      *
      * @param  serializer   object which knows how to serialize the table
      * @param  writer       destination stream
+     * @see    #writePostTableXML
      */
-    private void writePreDataXML( VOSerializer serializer, 
-                                  BufferedWriter writer ) throws IOException {
-        StarTable startab = serializer.getTable();
+    protected void writePreTableXML( VOSerializer serializer, 
+                                     BufferedWriter writer )
+            throws IOException {
 
         /* Output XML declaration if required. */
         if ( xmlDeclaration != null && xmlDeclaration.length() > 0 ) {
@@ -314,51 +319,22 @@ public class VOTableWriter implements StarTableWriter {
         /* Output RESOURCE element start tag. */
         writer.write( "<RESOURCE>" );
         writer.newLine();
-
-        /* Output TABLE element start tag. */
-        writer.write( "<TABLE" );
-
-        /* Write the table name if we have one. */
-        String tname = startab.getName();
-        if ( tname != null && tname.trim().length() > 0 ) {
-            writer.write( serializer.formatAttribute( "name", tname.trim() ) );
-        }
-
-        /* Write the number of rows if we know it (VOTable 1.1 only). */
-        if ( votableVersion.matches( "1.[1-9].*" ) ) {
-            long nrow = startab.getRowCount();
-            if ( nrow > 0 ) {
-                writer.write( serializer
-                             .formatAttribute( "nrows",
-                                               Long.toString( nrow ) ) );
-            }
-        }
-        writer.write( ">" );
-        writer.newLine();
-
-        /* Output a DESCRIPTION element if we have something suitable. */
-        serializer.writeDescription( writer );
-
-        /* Output table parameters as PARAM elements. */
-        serializer.writeParams( writer );
-
-        /* Output FIELD headers as determined by this object. */
-        serializer.writeFields( writer );
     }
 
     /**
-     * Outputs all the text required after the DATA element.
+     * Outputs all the text required after the TABLE element in the
+     * output table document.  This method can be overridden to alter
+     * the behaviour of this writer if required.
      *
      * @param  serializer   object which knows how to serialize the table
      * @param  writer       destination stream
+     * @see    #writePreTableXML
      */
-    private void writePostDataXML( VOSerializer serializer, 
-                                   BufferedWriter writer ) throws IOException {
+    protected void writePostTableXML( VOSerializer serializer, 
+                                      BufferedWriter writer )
+            throws IOException {
 
         /* Close the open elements. */
-        writer.newLine();
-        writer.write( "</TABLE>" );
-        writer.newLine();
         writer.write( "</RESOURCE>" );
         writer.newLine();
         writer.write( "</VOTABLE>" );
