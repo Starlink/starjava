@@ -52,8 +52,8 @@ public class VOStarTable extends AbstractStarTable {
 
     private TableElement votable;
     private TabularData tdata;
-    private List params;
     private ColumnInfo[] colinfos;
+    private boolean doneParams;
 
     /* Table parameters. */
     private final static ValueInfo ucdInfo = new DefaultValueInfo(
@@ -218,8 +218,8 @@ public class VOStarTable extends AbstractStarTable {
     public List getParameters() {
 
         /* Lazily construct parameter list. */
-        if ( params == null ) {
-            params = new ArrayList();
+        if ( ! doneParams ) {
+            List params = new ArrayList();
 
             /* DESCRIPTION child. */
             String description = votable.getDescription();
@@ -289,8 +289,16 @@ public class VOStarTable extends AbstractStarTable {
                 params.add( new DescribedValue( getValueInfo( pels[ i ] ),
                                                 pels[ i ].getObject() ) );
             }
+
+            /* Append this list to the superclass list. */
+            synchronized ( this ) {
+                if ( ! doneParams ) {
+                    super.getParameters().addAll( params );
+                    doneParams = true;
+                }
+            }
         }
-        return params;
+        return super.getParameters();
     }
 
     public List getColumnAuxDataInfos() {

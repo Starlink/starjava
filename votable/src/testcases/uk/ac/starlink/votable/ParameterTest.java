@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.List;
 import junit.framework.TestCase;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
 
 public class ParameterTest extends TestCase implements TableSink {
@@ -24,10 +26,10 @@ public class ParameterTest extends TestCase implements TableSink {
     }
 
     public void testRead() throws IOException {
-        checkParams( new VOTableBuilder()
-                    .makeStarTable( votsrc, false, policy ) );
-        checkParams( new VOTableBuilder()
-                    .makeStarTable( votsrc, true, policy ) );
+        checkReadParams( new VOTableBuilder()
+                        .makeStarTable( votsrc, false, policy ) );
+        checkReadParams( new VOTableBuilder()
+                        .makeStarTable( votsrc, true, policy ) );
     }
 
     public void testDOM() throws IOException, SAXException {
@@ -36,7 +38,9 @@ public class ParameterTest extends TestCase implements TableSink {
         TableElement vot = (TableElement) 
                            top.getElementsByTagName( "TABLE" ).item( 0 );
         StarTable st = new VOStarTable( vot );
-        checkParams( st );
+        checkReadParams( st );
+        checkWriteParams( st );
+        checkWriteParams( new VOStarTable( vot ) );
     }
 
     public void testStream() throws IOException {
@@ -46,7 +50,7 @@ public class ParameterTest extends TestCase implements TableSink {
         assertTrue( gotMeta && gotRows && gotEnd );
     }
 
-    private void checkParams( StarTable table ) {
+    private void checkReadParams( StarTable table ) {
         List params = table.getParameters();
         assertEquals( 3, params.size() );
         DescribedValue param0 = (DescribedValue) params.get( 0 );
@@ -60,11 +64,18 @@ public class ParameterTest extends TestCase implements TableSink {
         assertEquals( "Mark Taylor", param2.getValue() );
     }
 
+    private void checkWriteParams( StarTable table ) {
+        ValueInfo hatInfo = new DefaultValueInfo( "Hat", String.class );
+        DescribedValue hatParam = new DescribedValue( hatInfo, "Panama" );
+        table.setParameter( hatParam );
+        assertEquals( "Panama", table.getParameterByName( "Hat" ).getValue() );
+    }
+
     /*
      * TableSink implementation.
      */
     public void acceptMetadata( StarTable meta ) {
-        checkParams( meta );
+        checkReadParams( meta );
         gotMeta = true;
     }
     public void acceptRow( Object[] row ) {
