@@ -16,7 +16,10 @@ import jsky.coords.HMS;
 
 import org.us_vo.www.SimpleResource;
 
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Construct a URL query for contacting an SSA server. Also hold various
@@ -32,7 +35,7 @@ import uk.ac.starlink.table.StarTable;
  *
  * @author Peter W. Draper
  * @version $Id$
- */      
+ */
 public class SSAQuery
 {
     /** The SSA Service base URL */
@@ -117,7 +120,7 @@ public class SSAQuery
 
     /**
      * Set the description of the service, just some human readable format
-     * String. 
+     * String.
      */
     public void setDescription( String description )
     {
@@ -138,6 +141,13 @@ public class SSAQuery
     public void setStarTable( StarTable starTable )
     {
         this.starTable = starTable;
+
+        //  Add a parameter to describe the service (used when restoring
+        //  associated query).
+        ValueInfo shortNameInfo =
+            new DefaultValueInfo( "ShortName", String.class,
+                                  "Short description of the SSAP service" );
+        starTable.setParameter( new DescribedValue( shortNameInfo, getDescription() ) );
     }
 
     /**
@@ -166,7 +176,7 @@ public class SSAQuery
             buffer.append( "&" );
         }
 
-        // Servers may have a case sensitivity issue! 
+        // Servers may have a case sensitivity issue!
         // INES requires uppercase.
         buffer.append( "POS=" + queryRA + "," + queryDec );
         if ( queryFormat != null ) {
