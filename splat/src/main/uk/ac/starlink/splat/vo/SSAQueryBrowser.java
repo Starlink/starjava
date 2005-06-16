@@ -9,11 +9,14 @@ package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.Point;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -63,8 +66,10 @@ import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.ToolButtonBar;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -72,9 +77,18 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.ProxySetup;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
+import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.TableElement;
+import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOElementFactory;
+import uk.ac.starlink.votable.VOSerializer;
+import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableBuilder;
+import uk.ac.starlink.votable.VOTableWriter;
 
 /**
  * Display a page of controls for querying a list of  SSA servers and
@@ -98,6 +112,9 @@ public class SSAQueryBrowser
      * The instance of SPLAT we're associated with.
      */
     private SplatBrowser browser = null;
+
+    /** File chooser used for saving and restoring queries. */
+    protected BasicFileChooser fileChooser = null;
 
     /** ProgressPanel used when downloading query responses */
     private ProgressPanel progressPanel = null;
@@ -199,10 +216,15 @@ public class SSAQueryBrowser
 
         //  Create the toolbar.
         ToolButtonBar toolBar = new ToolButtonBar( contentPane );
+        JPanel actionBarContainer = new JPanel();
 
         //  Get icons.
         ImageIcon closeImage =
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
+        ImageIcon saveImage =
+            new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
+        ImageIcon readImage =
+            new ImageIcon( ImageHolder.class.getResource( "openfile.gif" ) );
         ImageIcon helpImage =
             new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
         ImageIcon ssaImage =
@@ -212,28 +234,45 @@ public class SSAQueryBrowser
         JMenu fileMenu = new JMenu( "File" );
         menuBar.add( fileMenu );
 
+        //  Add options to save and restore the query result.
+        LocalAction saveAction = new LocalAction( LocalAction.SAVE,
+                                                  "Save query results", saveImage,
+                                                  "Save results of query to disk file" );
+
+        fileMenu.add( saveAction );
+        JButton saveButton = new JButton( saveAction );
+        actionBarContainer.add( saveButton );
+
+        LocalAction readAction = new LocalAction( LocalAction.READ,
+                                                  "Read query results", readImage,
+                                                  "Read results of query to disk file" );
+        fileMenu.add( readAction );
+        JButton readButton = new JButton( readAction );
+        actionBarContainer.add( readButton );
+
+        //  Add an action to close the window.
+        LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
+                                                   "Close", closeImage,
+                                                   "Close window" );
+        fileMenu.add( closeAction );
+        JButton closeButton = new JButton( closeAction );
+        actionBarContainer.add( closeButton );
+
         //  Create the options menu.
         JMenu optionsMenu = new JMenu( "Options" );
         menuBar.add( optionsMenu );
 
-        ProxyAction proxyAction =
-            new ProxyAction( "Configure connection proxy..." );
+        LocalAction proxyAction = new LocalAction( LocalAction.PROXY,
+                                                   "Configure connection proxy..." );
         optionsMenu.add( proxyAction );
 
         //  Add item to control the use of SSA servers.
-        ServerAction serverAction =
-            new ServerAction( "Configure SSAP servers...", ssaImage,
-                              "Configure SSAP servers" );
+        LocalAction serverAction = new LocalAction( LocalAction.SERVER,
+                                                    "Configure SSAP servers...",
+                                                    ssaImage,
+                                                    "Configure SSAP servers" );
         optionsMenu.add( serverAction );
         toolBar.add( serverAction );
-
-        //  Add an action to close the window.
-        CloseAction closeAction = new CloseAction( "Close", closeImage );
-        fileMenu.add( closeAction );
-        JButton closeButton = new JButton( closeAction );
-        JPanel actionBarContainer = new JPanel();
-        actionBarContainer.add( closeButton );
-        closeButton.setToolTipText( "Close window" );
 
         //  Create a menu containing all the name resolvers.
         JMenu resolverMenu = new JMenu( "Resolver" );
@@ -640,7 +679,9 @@ public class SSAQueryBrowser
     }
 
     /**
-     * Display the results of the queries to the SSA servers.
+     * Display the results of the queries to the SSA servers. The results can
+     * be either a list of SSAQuery instances, or the StarTables themselves
+     * (usually these are from a disk-file restoration, not a live query).
      */
     protected void makeResultsDisplay( ArrayList tableList )
     {
@@ -652,18 +693,36 @@ public class SSAQueryBrowser
         resultsPane.removeAll();
         starJTables.clear();
 
-        Iterator i = tableList.iterator();
+        DescribedValue dValue = null;
         JScrollPane scrollPane = null;
+        Object next = null;
         SSAQuery ssaQuery = null;
-        StarTable starTable = null;
         StarJTable table = null;
+        StarTable starTable = null;
+        String shortName = null;
+
+        Iterator i = tableList.iterator();
         while ( i.hasNext() ) {
-            ssaQuery = (SSAQuery) i.next();
-            starTable = ssaQuery.getStarTable();
+            next = i.next();
+            if ( next instanceof SSAQuery ) {
+                ssaQuery = (SSAQuery) next;
+                starTable = ssaQuery.getStarTable();
+                shortName = ssaQuery.getDescription();
+            }
+            else {
+                starTable = (StarTable) next;
+                dValue = starTable.getParameterByName( "ShortName" );
+                if ( dValue == null ) {
+                    shortName = starTable.getName();
+                }
+                else {
+                    shortName = (String)dValue.getValue();
+                }
+            }
             if ( starTable != null ) {
                 table = new StarJTable( starTable, true );
                 scrollPane = new JScrollPane( table );
-                resultsPane.addTab( ssaQuery.getDescription(), scrollPane );
+                resultsPane.addTab( shortName, scrollPane );
                 starJTables.add( table );
 
                 //  Set widths of columns.
@@ -732,7 +791,7 @@ public class SSAQueryBrowser
      * Can return the selected spectra, if requested, otherwise all spectra
      * are returned or if a row value other than -1 is given just one row.
      */
-    private void extractSpectraFromTable( StarJTable table,
+    private void extractSpectraFromTable( StarJTable starJTable,
                                           ArrayList specList,
                                           boolean selected,
                                           int row )
@@ -742,7 +801,7 @@ public class SSAQueryBrowser
         //  Check for a selection if required, otherwise we're using the given
         //  row.
         if ( selected && row == -1 ) {
-            selection = table.getSelectedRows();
+            selection = starJTable.getSelectedRows();
         }
         else if ( row != -1 ) {
             selection = new int[1];
@@ -751,7 +810,7 @@ public class SSAQueryBrowser
 
         // Only do this if we're processing all rows or we have a selection.
         if ( selection == null || selection.length > 0 ) {
-            StarTable starTable = table.getStarTable();
+            StarTable starTable = starJTable.getStarTable();
 
             //  Check for a column that contains links to the actual data
             //  (XXX these could be XML links to data within this
@@ -927,6 +986,181 @@ public class SSAQueryBrowser
     }
 
     /**
+     *  Restore a set of previous query results that have been written to a
+     *  VOTable. The file name is obtained interactively.
+     */
+    public void readQueryFromFile()
+    {
+        initFileChooser();
+        int result = fileChooser.showOpenDialog( this );
+        if ( result == fileChooser.APPROVE_OPTION ) {
+            File file = fileChooser.getSelectedFile();
+            try {
+                readQuery( file );
+            }
+            catch (SplatException e) {
+                new ExceptionDialog( this, e );
+            }
+        }
+    }
+
+    /**
+     *  Restore a set of query results from a File. The File should have the
+     *  results written previously as a VOTable, with a RESOURCE containing
+     *  the various query results as TABLEs.
+     */
+    protected void readQuery( File file )
+        throws SplatException
+    {
+        VOElement rootElement = null;
+        try {
+            rootElement = new VOElementFactory().makeVOElement( file );
+        }
+        catch (Exception e) {
+            throw new SplatException( "Failed to open query results file", e );
+        }
+
+        //  First element should be a RESOURCE.
+        VOElement[] resource = rootElement.getChildren();
+        VOStarTable table = null;
+        ArrayList tableList = new ArrayList();
+        String tagName = null;
+        for ( int i = 0; i < resource.length; i++ ) {
+            tagName = resource[i].getTagName();
+            if ( "RESOURCE".equals( tagName ) ) {
+
+                //  Look for the TABLEs.
+                VOElement child[] = resource[i].getChildren();
+                for ( int j = 0; j < child.length; j++ ) {
+                    tagName = child[j].getTagName();
+                    if ( "TABLE".equals( tagName ) ) {
+                        try {
+                            table = new VOStarTable( (TableElement) child[j] );
+                        }
+                        catch (IOException e) {
+                            throw new SplatException( "Failed to read query result", e );
+                        }
+                        tableList.add( table );
+                    }
+                }
+            }
+        }
+        if ( tableList.size() > 0 ) {
+            makeResultsDisplay( tableList );
+        }
+        else {
+            throw new SplatException( "No query results found" );
+        }
+    }
+
+    /**
+     *  Interactively get a file name and save current query results to it as
+     *  a VOTable.
+     */
+    public void saveQueryToFile()
+    {
+        if ( starJTables == null || starJTables.size() == 0 ) {
+            JOptionPane.showMessageDialog( this,
+                                           "There are no queries to save",
+                                           "No queries", JOptionPane.ERROR_MESSAGE );
+            return;
+        }
+
+        initFileChooser();
+        int result = fileChooser.showSaveDialog( this );
+        if ( result == fileChooser.APPROVE_OPTION ) {
+            File file = fileChooser.getSelectedFile();
+            try {
+                saveQuery( file );
+            }
+            catch (SplatException e) {
+                new ExceptionDialog( this, e );
+            }
+        }
+    }
+
+    /**
+     *  Save current query to a File, writing the results as a VOTable.
+     */
+    protected void saveQuery( File file )
+        throws SplatException
+    {
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter( new FileWriter( file ) );
+        }
+        catch (IOException e) {
+            throw new SplatException( e );
+        }
+        saveQuery( writer );
+        try {
+            writer.close();
+        }
+        catch (IOException e) {
+            throw new SplatException( e );
+        }
+    }
+
+    /**
+     *  Save current query results to a BufferedWriter. The resulting document is a
+     *  VOTable with a RESOURCE that contains a TABLE for each set of query results.
+     */
+    protected void saveQuery( BufferedWriter writer )
+        throws SplatException
+    {
+        String xmlDec = VOTableWriter.DEFAULT_XML_DECLARATION;
+        try {
+            writer.write( xmlDec );
+            writer.newLine();
+            writer.write( "<VOTABLE version='1.1'>" );
+            writer.newLine();
+            writer.write( "<RESOURCE>" );
+            writer.newLine();
+
+            StarJTable starJTable = null;
+            StarTable table = null;
+            VOSerializer serializer = null;
+            Iterator i = starJTables.iterator();
+            while ( i.hasNext() ) {
+                starJTable = (StarJTable) i.next();
+                table = starJTable.getStarTable();
+                serializer = VOSerializer.makeSerializer( DataFormat.TABLEDATA, table );
+
+                //  Write <TABLE> element.
+                serializer.writeInlineTableElement( writer );
+            }
+            writer.write( "</RESOURCE>" );
+            writer.newLine();
+            writer.write( "</VOTABLE>" );
+            writer.newLine();
+            writer.close();
+        }
+        catch (IOException e) {
+                throw new SplatException( "Failed to save queries", e );
+        }
+    }
+
+    /**
+     * Initialise the file chooser to have the necessary filters.
+     */
+    protected void initFileChooser()
+    {
+        if ( fileChooser == null ) {
+            fileChooser = new BasicFileChooser( false );
+            fileChooser.setMultiSelectionEnabled( false );
+
+            //  Add a filter for XML files.
+            BasicFileFilter xmlFileFilter =
+                new BasicFileFilter( "xml", "XML files" );
+            fileChooser.addChoosableFileFilter( xmlFileFilter );
+
+            //  But allow all files as well.
+            fileChooser.addChoosableFileFilter
+                ( fileChooser.getAcceptAllFileFilter() );
+        }
+    }
+
+    /**
      * Set the proxy server and port.
      */
     protected void showProxyDialog()
@@ -955,21 +1189,6 @@ public class SSAQueryBrowser
             serverWindow = new SSAServerFrame( serverList );
         }
         serverWindow.setVisible( true );
-    }
-
-    /**
-     * Inner class defining Action for closing window.
-     */
-    protected class CloseAction extends AbstractAction
-    {
-        public CloseAction( String name, Icon icon )
-        {
-            super( name, icon );
-        }
-        public void actionPerformed( ActionEvent ae )
-        {
-            closeWindowEvent();
-        }
     }
 
     public static void main( String[] args )
@@ -1048,36 +1267,60 @@ public class SSAQueryBrowser
     }
 
     //
-    //  Action to display the proxy dialog.
+    // LocalAction to encapsulate all trivial local Actions into one class.
     //
-    protected class ProxyAction
+    class LocalAction
         extends AbstractAction
     {
-        public ProxyAction( String name )
+        //  Types of action.
+        public static final int PROXY = 0;
+        public static final int SERVER = 1;
+        public static final int SAVE = 2;
+        public static final int READ = 3;
+        public static final int CLOSE = 4;
+
+        //  The type of this instance.
+        private int actionType = PROXY;
+
+        public LocalAction( int actionType, String name )
         {
             super( name );
+            this.actionType = actionType;
         }
-        public void actionPerformed( ActionEvent ae )
-        {
-            showProxyDialog();
-        }
-    }
 
-    //
-    //  Action to display the SSA server configuration window.
-    //
-    protected class ServerAction
-        extends AbstractAction
-    {
-        public ServerAction( String name, Icon icon, String help )
+        public LocalAction( int actionType, String name, Icon icon, String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+            this.actionType = actionType;
         }
+
+
         public void actionPerformed( ActionEvent ae )
         {
-            showServerWindow();
+            switch ( actionType )
+            {
+                case PROXY: {
+                    showProxyDialog();
+                    break;
+                }
+                case SERVER: {
+                    showServerWindow();
+                    break;
+                }
+                case SAVE: {
+                    saveQueryToFile();
+                    break;
+                }
+                case READ: {
+                    readQueryFromFile();
+                    break;
+                }
+                case CLOSE: {
+                    closeWindowEvent();
+                    break;
+                }
+            }
         }
     }
 }
-
