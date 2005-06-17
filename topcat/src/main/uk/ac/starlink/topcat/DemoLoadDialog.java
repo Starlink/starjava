@@ -28,17 +28,9 @@ import uk.ac.starlink.table.gui.TableLoadDialog;
  */
 public class DemoLoadDialog extends TreeTableLoadDialog {
 
-    private DataNode rootNode_;
     private boolean initialized_;
     private final static Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.topcat" );
-
-    /**
-     * Constructor. 
-     */
-    public DemoLoadDialog() {
-        rootNode_ = getDemoNode();
-    }
 
     public String getName() {
         return "Browse Demo Data";
@@ -57,7 +49,8 @@ public class DemoLoadDialog extends TreeTableLoadDialog {
                                    TableConsumer eater ) {
         if ( ! initialized_ ) {
             clear();
-            setRoot( rootNode_ );
+            setRoot( getDemoNode() );
+            initialized_ = true;
         }
         return super.showLoadDialog( parent, factory, formatModel, eater );
     }
