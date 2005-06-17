@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -182,7 +184,7 @@ public class Driver {
         String pre = "Usage: " + cmdname;
         String pad = pre.replaceAll( ".", " " );
         String usage = 
-              pre + " [-help] [-demo] [-disk] [-noserv]\n" 
+              pre + " [-help] [-verbose] [-demo] [-disk] [-noserv]\n" 
             + pad + " [-tree] [-file] [-sql] [-cone] [-siap] [-registry]\n"
             + pad + " [[-f <format>] table ...]";
 
@@ -193,12 +195,17 @@ public class Driver {
         List argList = new ArrayList( Arrays.asList( args ) );
         List loaderList = new ArrayList();
         boolean demo = false;
+        int verbosity = 0;
         boolean soapServe = true;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
-            if ( arg.startsWith( "-h" ) ) {
+            if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
                 System.out.println( getHelp( cmdname ) );
                 return;
+            }
+            else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
+                it.remove();
+                verbosity++;
             }
             else if ( arg.equals( "-demo" ) ) {
                 it.remove();
@@ -246,6 +253,14 @@ public class Driver {
             }
         }
         extraLoaders = (String[]) loaderList.toArray( new String[ 0 ] );
+
+        /* Configure logging. */
+        configureLogging( verbosity );
+        int verbInt = Math.max( Level.ALL.intValue(),
+                                Level.WARNING.intValue() 
+                                - verbosity * ( Level.WARNING.intValue() -
+                                                Level.INFO.intValue() ) );
+        
 
         /* Assemble pairs of (tables name, handler name) to be loaded. */
         List names = new ArrayList();
@@ -587,5 +602,35 @@ public class Driver {
 
         /* Return. */
         return "\n" + buf.toString() + "\n";
+    }
+
+    /**
+     * Sets up the logging system.
+     *
+     * @param  verbosity  number of levels greater than default to set
+     */
+    private static void configureLogging( int verbosity ) {
+
+        /* Add a custom log handler. */
+        Logger rootLogger = Logger.getLogger( "" );
+        rootLogger.addHandler( LogHandler.getInstance() );
+
+        /* Work out the logging level to which the requested verbosity 
+         * corresponds. */
+        int verbInt = Math.max( Level.ALL.intValue(),
+                                Level.WARNING.intValue()
+                                - verbosity * ( Level.WARNING.intValue() -
+                                                Level.INFO.intValue() ) );
+        Level verbLevel = Level.parse( Integer.toString( verbInt ) );
+
+        /* Get the root logger's console handler.  By default it has one
+         * of these; if it doesn't then some custom logging is in place
+         * and we won't mess about with it. */
+        Handler[] rootHandlers = rootLogger.getHandlers();
+        if ( rootHandlers.length > 0 &&
+             rootHandlers[ 0 ] instanceof ConsoleHandler ) {
+            rootHandlers[ 0 ].setLevel( verbLevel );
+            rootHandlers[ 0 ].setFormatter( new LineFormatter() );
+        }
     }
 }
