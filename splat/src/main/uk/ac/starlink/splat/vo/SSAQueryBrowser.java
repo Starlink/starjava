@@ -228,7 +228,7 @@ public class SSAQueryBrowser
         ImageIcon helpImage =
             new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
         ImageIcon ssaImage =
-            new ImageIcon( ImageHolder.class.getResource( "ssapservers.gif" ) );
+            new ImageIcon( ImageHolder.class.getResource("ssapservers.gif") );
 
         //  Create the File menu.
         JMenu fileMenu = new JMenu( "File" );
@@ -236,16 +236,21 @@ public class SSAQueryBrowser
 
         //  Add options to save and restore the query result.
         LocalAction saveAction = new LocalAction( LocalAction.SAVE,
-                                                  "Save query results", saveImage,
-                                                  "Save results of query to disk file" );
+                                                  "Save query results", 
+                                                  saveImage,
+                                                  "Save results of query " +
+                                                  "to disk file" );
 
         fileMenu.add( saveAction );
         JButton saveButton = new JButton( saveAction );
         actionBarContainer.add( saveButton );
 
         LocalAction readAction = new LocalAction( LocalAction.READ,
-                                                  "Read query results", readImage,
-                                                  "Read results of query to disk file" );
+                                                  "Restore query results", 
+                                                  readImage,
+                                                  "Read results of a " +
+                                                  "previous query back " +
+                                                  "from disk file" );
         fileMenu.add( readAction );
         JButton readButton = new JButton( readAction );
         actionBarContainer.add( readButton );
@@ -263,14 +268,15 @@ public class SSAQueryBrowser
         menuBar.add( optionsMenu );
 
         LocalAction proxyAction = new LocalAction( LocalAction.PROXY,
-                                                   "Configure connection proxy..." );
+                                                   "Configure connection " +
+                                                   "proxy..." );
         optionsMenu.add( proxyAction );
 
         //  Add item to control the use of SSA servers.
-        LocalAction serverAction = new LocalAction( LocalAction.SERVER,
-                                                    "Configure SSAP servers...",
-                                                    ssaImage,
-                                                    "Configure SSAP servers" );
+        LocalAction serverAction = new LocalAction(LocalAction.SERVER,
+                                                   "Configure SSAP servers...",
+                                                   ssaImage,
+                                                   "Configure SSAP servers" );
         optionsMenu.add( serverAction );
         toolBar.add( serverAction );
 
@@ -825,21 +831,24 @@ public class SSAQueryBrowser
             String ucd;
             for( int k = 0; k < ncol; k++ ) {
                 colInfo = starTable.getColumnInfo( k );
-                ucd = colInfo.getUCD().toLowerCase();
-                if ( ucd.equals( "data_link" ) ) {
-                    linkcol = k;
-                }
-                if ( ucd.equals( "vox:spectrum_format" ) ) {
-                    typecol = k;
-                }
-                if ( ucd.equals( "vox:image_title" ) ) {
-                    namecol = k;
-                }
-                if ( ucd.equals( "vox:spectrum_axes" ) ) {
-                    axescol = k;
-                }
-                if ( ucd.equals( "vox:spectrum_units" ) ) {
-                    unitscol = k;
+                ucd = colInfo.getUCD();
+                if ( ucd != null ) {
+                    ucd = ucd.toLowerCase();
+                    if ( ucd.equals( "data_link" ) ) {
+                        linkcol = k;
+                    }
+                    if ( ucd.equals( "vox:spectrum_format" ) ) {
+                        typecol = k;
+                    }
+                    if ( ucd.equals( "vox:image_title" ) ) {
+                        namecol = k;
+                    }
+                    if ( ucd.equals( "vox:spectrum_axes" ) ) {
+                        axescol = k;
+                    }
+                    if ( ucd.equals( "vox:spectrum_units" ) ) {
+                        unitscol = k;
+                    }
                 }
             }
 
