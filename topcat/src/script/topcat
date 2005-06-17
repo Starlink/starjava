@@ -83,6 +83,8 @@ esac
 
 #  Run topcat
 
+STARJAVA_DEFAULT_LOGGING="true"
+export STARJAVA_DEFAULT_LOGGING
 cmd="$starjava \
         $javaArgs \
         -enableassertions \
