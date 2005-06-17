@@ -89,5 +89,4 @@ public class MathUtils
         float h = generator.nextFloat() * res;
         return Color.HSBtoRGB( h, 1.0F, 1.0F );
     }
-
 }
