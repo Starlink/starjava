@@ -132,6 +132,7 @@ public class ControlWindow extends AuxWindow
     private final Action mirageAct;
     private final Action removeAct;
     private final Action concatAct;
+    private final Action logAct;
     private final Action[] matchActs;
     private final ShowAction[] showActs;
 
@@ -196,6 +197,8 @@ public class ControlWindow extends AuxWindow
         concatAct = new ControlAction( "Concatenate Tables",
                                        ResourceIcon.CONCAT,
                                        "Join tables by concatenating them" );
+        logAct = new ControlAction( "View Log", ResourceIcon.LOG,
+                                    "Display the log of events" );
         readAct.setEnabled( canRead );
 
         dupAct = new ExportAction( "Duplicate Table", ResourceIcon.COPY,
@@ -307,6 +310,8 @@ public class ControlWindow extends AuxWindow
         if ( MirageHandler.isMirageAvailable() ) {
             fileMenu.insert( mirageAct, fileMenuPos++ );
         }
+        fileMenu.insertSeparator( fileMenuPos++ );
+        fileMenu.insert( logAct, fileMenuPos++ );
         fileMenu.insertSeparator( fileMenuPos++ );
 
         /* Add a menu for the table views. */
@@ -736,6 +741,9 @@ public class ControlWindow extends AuxWindow
             }
             else if ( this == concatAct ) {
                 getConcatWindow().makeVisible();
+            }
+            else if ( this == logAct ) {
+                LogHandler.getInstance().showWindow( ControlWindow.this );
             }
             else {
                 throw new AssertionError();
