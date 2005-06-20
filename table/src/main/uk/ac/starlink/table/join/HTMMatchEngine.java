@@ -1,7 +1,7 @@
 package uk.ac.starlink.table.join;
 
+import edu.jhu.htm.core.Domain;
 import edu.jhu.htm.core.HTMException;
-import edu.jhu.htm.core.HTMindex;
 import edu.jhu.htm.core.HTMindexImp;
 import edu.jhu.htm.core.HTMrange;
 import edu.jhu.htm.core.HTMrangeIterator;
@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class HTMMatchEngine extends SkyMatchEngine {
 
-    private HTMindex htm_;
+    private HTMindexImp htm_;
     private double arcminSep_;
 
     /**
@@ -75,7 +75,20 @@ public class HTMMatchEngine extends SkyMatchEngine {
             Circle zone = new Circle( ((Number) radec[ 0 ]).doubleValue(),
                                       ((Number) radec[ 1 ]).doubleValue(),
                                       arcminSep_ );
-            HTMrange range = htm_.intersect( zone.getDomain() );
+
+            /* Get the intersection as a range of HTM pixels.
+             * The more obvious 
+             *      range = htm_.intersect( zone.getDomain() );
+             * is flawed, since it can return pixel IDs which refer to 
+             * pixels at different HTM levels (i.e. of different sizes).
+             * By doing it as below (on advice from Wil O'Mullane) we
+             * ensure that all the pixels are at the HTM's natural level. */
+            Domain domain = zone.getDomain();
+            domain.setOlevel( htm_.maxlevel_ );
+            HTMrange range = new HTMrange();
+            domain.intersect( htm_, range, false );
+
+            /* Accumulate a list of the pixel IDs. */
             List binList = new ArrayList();
             try {
                 for ( Iterator it = new HTMrangeIterator( range, false );
