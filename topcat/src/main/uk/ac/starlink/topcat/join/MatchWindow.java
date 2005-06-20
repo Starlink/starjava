@@ -397,7 +397,6 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         };
         return new MatchEngine[] {
             new HEALPixMatchEngine( someAngle ),
-            htmEngine,
             new SphericalPolarMatchEngine( someLength ),
             new EqualsMatchEngine(),
             new IsotropicCartesianMatchEngine( 1, someLength, false ),
@@ -408,6 +407,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             new AnisotropicCartesianMatchEngine( someLengths4 ),
             skyPlus1Engine,
             skyPlus2Engine,
+            htmEngine,
         };
     }
 
