@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 /**
  * Functions for conversion of time values between various forms.
- * The two main forms used here are Modified Julian Day (MJD) and
+ * The two main forms used here are Modified Julian Date (MJD) and
  * the string format and underlying calendar model described by
  * ISO 8601.  MJD is a continuous measure in days since
  * midnight at the start of 17 November 1858.
@@ -56,7 +56,7 @@ public class Times {
                             ")?" +
                          "Z?)?" );
 
-    /** Date of the Unix epoch as a Modified Julian Day. */
+    /** Date of the Unix epoch as a Modified Julian Date. */
     private final static double MJD_EPOCH = 40587.0;
 
     /** Number of milliseconds per day. */
@@ -82,7 +82,7 @@ public class Times {
     }
 
     /**
-     * Converts an ISO8601 date string to Modified Julian Day.
+     * Converts an ISO8601 date string to Modified Julian Date.
      * The basic format of the <code>isoDate</code> argument is
      * <code>yyyy-mm-ddThh:mm:ss.s</code>, though some deviations
      * from this form are permitted:
@@ -104,7 +104,7 @@ public class Times {
      * @example   <code>isoToMjd("1970-01-01") = 40587.0</code>
      * 
      * @param  isoDate  date in ISO 8601 format
-     * @return  modified Julian day corresponding to <code>isoDate</code>
+     * @return  modified Julian date corresponding to <code>isoDate</code>
      */
     public static double isoToMjd( String isoDate ) {
         if ( isoDate == null || isoDate.trim().length() == 0 ) {
@@ -144,7 +144,7 @@ public class Times {
     }
 
     /**
-     * Converts a calendar date and time to Modified Julian Day.
+     * Converts a calendar date and time to Modified Julian Date.
      *
      * @example  <code>dateToMjd(1999, 12, 31, 23, 59, 59.) = 51543.99998</code>
      *
@@ -154,7 +154,7 @@ public class Times {
      * @param   hour    hour (0-23)
      * @param   min     minute (0-59)
      * @param   sec     second (0&lt;=sec&lt;60)
-     * @return  modified Julian day corresponding to arguments
+     * @return  modified Julian date corresponding to arguments
      */
     public static double dateToMjd( int year, int month, int day, 
                                     int hour, int min, double sec ) {
@@ -167,14 +167,14 @@ public class Times {
     }
 
     /**
-     * Converts a calendar date to Modified Julian Day.
+     * Converts a calendar date to Modified Julian Date.
      *
      * @example  <code>dateToMjd(1999, 12, 31) = 51543.0</code>
      *
      * @param   year    year AD
      * @param   month   index of month; January is 1, December is 12
      * @param   day     day of month (the first day is 1)
-     * @return  modified Julian day corresponding to 00:00:00 of the date
+     * @return  modified Julian date corresponding to 00:00:00 of the date
      *          specified by the arguments
      */
     public static double dateToMjd( int year, int month, int day ) {
@@ -185,12 +185,12 @@ public class Times {
     }
 
     /**
-     * Converts a Modified Julian Day value to an ISO 8601-format date-time
+     * Converts a Modified Julian Date value to an ISO 8601-format date-time
      * string.  The output format is <code>yyyy-mm-ddThh:mm:ss</code>.
      *
      * @example  <code>mjdToIso(53551.72917) = "2005-06-30T17:30:00"</code>
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @return  ISO 8601 format date corresponding to <code>mjd</code>
      */
     public static String mjdToIso( double mjd ) {
@@ -198,12 +198,12 @@ public class Times {
     }
 
     /**
-     * Converts a Modified Julian Day value to an ISO 8601-format date
+     * Converts a Modified Julian Date value to an ISO 8601-format date
      * string.  The output format is <code>yyyy-mm-dd</code>.
      *
      * @example  <code>mjdToDate(53551.72917) = "2005-06-30"</code>
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @return  ISO 8601 format date corresponding to <code>mjd</code>
      */
     public static String mjdToDate( double mjd ) {
@@ -211,12 +211,12 @@ public class Times {
     }
 
     /**
-     * Converts a Modified Julian Day value to an ISO 8601-format time-only
+     * Converts a Modified Julian Date value to an ISO 8601-format time-only
      * string.  The output format is <code>hh:mm:ss</code>.
      *
      * @example  <code>mjdToTime(53551.72917) = "17:30:00"</code>
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @return  ISO 8601 format time corresponding to <code>mjd</code>
      */
     public static String mjdToTime( double mjd ) {
@@ -224,7 +224,7 @@ public class Times {
     }
 
     /**
-     * Converts a Modified Julian Day value to a date using a customisable
+     * Converts a Modified Julian Date value to a date using a customisable
      * date format.
      * The format is as defined by the 
      * <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html"
@@ -237,7 +237,7 @@ public class Times {
      * @example   <code>formatMjd(50000.1234, "'time 'H:mm:ss.SSS")
      *                  = "time 2:57:41.760"</code>
      *
-     * @param   mjd   modified Julian day
+     * @param   mjd   modified Julian date
      * @param   format   formatting patttern
      * @return  custom formatted time corresponding to <code>mjd</code>
      * @see     java.text.SimpleDateFormat
@@ -247,9 +247,9 @@ public class Times {
     }
 
     /**
-     * Returns the year part of a modified Julian day value.
+     * Returns the year part of a modified Julian date value.
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @return  year AD
      */
     static int mjdYear( double mjd ) {
@@ -257,9 +257,9 @@ public class Times {
     }
 
     /**
-     * Returns the month part of a modified Julian day value.
+     * Returns the month part of a modified Julian date value.
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @return  month index - 1 is January, 12 is December
      */
     static int mjdMonth( double mjd ) {
@@ -267,9 +267,9 @@ public class Times {
     }
 
     /**
-     * Returns the day of the month part of a modified Julian day value.
+     * Returns the day of the month part of a modified Julian date value.
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @return  day of the month - the first day in each month is 1
      */
     static int mjdDayOfMonth( double mjd ) {
@@ -277,9 +277,9 @@ public class Times {
     }
 
     /**
-     * Returns the hour part of a modified Julian day value.
+     * Returns the hour part of a modified Julian date value.
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @return  hour (0-23)
      */
     static int mjdHour( double mjd ) {
@@ -287,9 +287,9 @@ public class Times {
     }
 
     /**
-     * Returns the minute part of a modified Julian day value.
+     * Returns the minute part of a modified Julian date value.
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @return  minute (0-59)
      */
     static int mjdMinute( double mjd ) {
@@ -297,9 +297,9 @@ public class Times {
     }
 
     /**
-     * Returns the seconds part of a modified Julian day value.
+     * Returns the seconds part of a modified Julian date value.
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @return  seconds  (0&lt;=sec&lt;60)
      */
     static double mjdSecond( double mjd ) {
@@ -312,7 +312,7 @@ public class Times {
      * Returns an integer given by one of the defined calendar fields
      * for an MJD.
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @param   field  one of the field constants defined in 
      *          {@link java.util.Calendar}
      * @return  value of <code>field</code> for <code>mjd</code>
@@ -326,7 +326,7 @@ public class Times {
     /**
      * Formats an MJD using a given date formatting object.
      *
-     * @param  mjd  modified Julian day
+     * @param  mjd  modified Julian date
      * @param  format   format object
      * @return  formatted string
      */
@@ -341,20 +341,20 @@ public class Times {
 
     /**
      * Converts from milliseconds since the Unix epoch (1970-01-01T00:00:00)
-     * to a modified Julian day value
+     * to a modified Julian date value
      *
      * @param   unixMillis  milliseconds since the Unix epoch
-     * @return  modified Julian day
+     * @return  modified Julian date
      */
     private static double unixMillisToMjd( long unixMillis ) {
         return ((double) unixMillis) / MILLIS_PER_DAY + MJD_EPOCH;
     }
 
     /**
-     * Converts from modified Julian day to milliseconds since the Unix
+     * Converts from modified Julian date to milliseconds since the Unix
      * epoch (1970-01-01T00:00:00).
      *
-     * @param   mjd  modified Julian day
+     * @param   mjd  modified Julian date
      * @return  milliseconds since the Unix epoch
      */
     private static long mjdToUnixMillis( double mjd ) {
