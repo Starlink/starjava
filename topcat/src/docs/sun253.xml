@@ -5664,6 +5664,15 @@ in terms of a metric on that space to count as a match.
     on the sky and have similar luminosities and redshifts.
     </p></dd>
 
+<dt>HTM</dt>
+<dd><p>Performs sky matching in just the same way as the <label>Sky</label>
+    option above, but using a different algorithm (pixelisation of the
+    celestial sphere is performed using the Hierarchical Triangular Mesh
+    rather than the HEALPix scheme).  The results in both cases 
+    should be identical, but HTM is much slower.  Hence, this option
+    is only useful for debugging.
+    </p></dd>
+
 </dl>
 </p>
 
