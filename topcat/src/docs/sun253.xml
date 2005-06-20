@@ -2826,7 +2826,8 @@ important bits of its functionality:
             >PixTools</webref>
     (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
 <li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
-    (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching</li>
+    (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
+    (now deprecated within TOPCAT)</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
 <li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
@@ -3275,8 +3276,10 @@ introduced since the last version:
   <dd><p>The default sky matching algorithm now uses HEALPix rather than
       HTM for assigning sky pixels to RA,Dec positions.  This gives much
       faster sky matches in most cases, and uses somewhat less memory 
-      so can be used on larger tables.  It may also have fixed a bug
-      which missed out some possible matches.
+      so can be used on larger tables.  It has also fixed a bug
+      which missed out some possible matches.  HTM-based matching 
+      is currently still provided as an option, but this is mainly
+      for debugging purposes and may be withdrawn in the future.
       </p></dd>
 
   <dt>Logging</dt>
@@ -5670,7 +5673,7 @@ in terms of a metric on that space to count as a match.
     celestial sphere is performed using the Hierarchical Triangular Mesh
     rather than the HEALPix scheme).  The results in both cases 
     should be identical, but HTM is much slower.  Hence, this option
-    is only useful for debugging.
+    is only useful for debugging.  It may be withdrawn in future releases.
     </p></dd>
 
 </dl>
