@@ -25,7 +25,7 @@ import javax.vecmath.Vector3d;
  */
 public class HEALPixMatchEngine extends SkyMatchEngine {
 
-    private int nside_;
+    private long nside_;
     private double separation_;
     private final PixTools pixTools_;
     private static Logger logger_ =
@@ -55,12 +55,8 @@ public class HEALPixMatchEngine extends SkyMatchEngine {
          * details of the match being done.  Any value is correct, the
          * size is just a tuning parameter. */
         double pixelSize = 2 * separation;
-        int nring = (int) ( Math.PI / pixelSize );
-        nside_ = ( nring + 1 ) / 4;
-        if ( nside_ > 8192 ) {
-            nside_ = 8192;
-            logger_.info( "HEALPix using minimum pixel size (10arcsec)" );
-        }
+        double pixelSizeArcSec = pixelSize * ( 180. * 60 * 60 / Math.PI );
+        nside_ = new PixTools().GetNSide( pixelSizeArcSec );
     }
 
     public Object[] getBins( Object[] radec ) {
