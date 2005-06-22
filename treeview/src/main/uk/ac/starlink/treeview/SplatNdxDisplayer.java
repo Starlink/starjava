@@ -54,9 +54,6 @@ public class SplatNdxDisplayer extends NdxDisplayer {
 
             //  Create the browser.
             browser = new SplatBrowser( embedded );
-
-            //  But iconize this so that we see only the plots.
-            browser.setExtendedState( browser.ICONIFIED );
         }
         browser.setVisible( true );
         return browser;
