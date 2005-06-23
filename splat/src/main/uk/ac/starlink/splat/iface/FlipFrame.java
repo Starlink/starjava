@@ -15,10 +15,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.File;
+import java.io.FileWriter;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -29,6 +35,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -37,6 +44,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -58,6 +67,7 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.PhysicalConstants;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
@@ -71,70 +81,51 @@ public class FlipFrame
     extends JFrame
     implements ActionListener, ChangeListener, PlotListener, ItemListener
 {
-    /**
-     * List of spectra and properties that we have modified.
-     */
+
+    /** UI preferences. */
+    protected static Preferences prefs =
+        Preferences.userNodeForPackage( FlipFrame.class );
+
+    /** List of spectra and properties that we have modified. */
     protected Map storedPropertiesMap = new HashMap();
 
-    /**
-     * JComboBox that displays the list of available spectra.
-     */
+    /** JComboBox that displays the list of available spectra. */
     protected JComboBox availableSpectra = new JComboBox();
 
-    /**
-     * Flip state.
-     */
+    /** Flip state. */
     protected JCheckBox flipBox = null;
 
-    /**
-     * Is translation to be interpreted as a redshift?
-     */
+    /** Is translation to be interpreted as a redshift? */
     protected JCheckBox redshiftBox = null;
 
-    /**
-     * User translation.
-     */
+    /** User translation control. */
     protected ScientificSpinner spinnerTran = null;
 
-    /**
-     * And the model.
-     */
+    /** And the model. */
     protected SpinnerNumberModel spinnerModel = null;
 
-    /**
-     * Spinner increment.
-     */
+    /** Spinner increment. */
     protected DecimalField spinnerIncr = null;
 
-    /**
-     * Flip coordinate.
-     */
+    /** Flip coordinate. */
     protected DecimalField flipCentre = null;
 
-    /**
-     * The global list of spectra and plots.
-     */
+    /** The global list of spectra and plots. */
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
-    /**
-     * Content pane of frame.
-     */
+    /** Content pane of frame. */
     protected JPanel contentPane = null;
 
-    /**
-     * Menubar and various menus and items that it contains.
-     */
-    protected JMenuBar menuBar = new JMenuBar();
-    protected JMenu fileMenu = new JMenu();
-    protected JMenuItem closeFileMenu = new JMenuItem();
-    protected JMenu helpMenu = new JMenu();
-    protected JMenuItem helpMenuAbout = new JMenuItem();
-
-    /**
-     * The PlotControl that is displaying the current spectrum.
-     */
+    /** The PlotControl that is displaying the current spectrum. */
     protected PlotControl plot = null;
 
+    /** Menu item retaining state of SPEFO changes */
+    protected JCheckBoxMenuItem spefoBox = null;
+
+    /** Simple text area for SPEFO values. */
+    protected JTextArea spefoArea = null;
+    protected JTextArea spefoNotes = null;
+    
     /**
      * Create an instance.
      */
@@ -177,7 +168,7 @@ public class FlipFrame
      */
     protected void initUI()
     {
-        //  Panel for centre of contentPane.
+        //  Panel for top of contentPane.
         JPanel topPanel = new JPanel( new BorderLayout() );
         contentPane.add( topPanel, BorderLayout.NORTH );
         GridBagLayouter gbl0 = new GridBagLayouter( topPanel,
@@ -216,7 +207,8 @@ public class FlipFrame
         gbl1.add( flipCentre, true );
 
         //  Grab button. This creates the copy, which may be flipped.
-        CopyAction copyAction = new CopyAction( "Create copy" );
+        LocalAction copyAction = new LocalAction( LocalAction.COPY, 
+                                                  "Create copy" );
         JButton copyButton = new JButton( copyAction );
         copyButton.setToolTipText( "Press to create a copy of the current " +
                                    "spectrum in the associated plot" );
@@ -240,7 +232,7 @@ public class FlipFrame
         //  Translation controls.
         JPanel transPanel = new JPanel();
         transPanel.setBorder(BorderFactory.createTitledBorder("Translation:"));
-        GridBagLayouter gbl2 = new GridBagLayouter( transPanel,
+        GridBagLayouter gbl2 = new GridBagLayouter( transPanel, 
                                                     GridBagLayouter.SCHEME3 );
 
         //  Offset, increment and redshift.
@@ -274,6 +266,7 @@ public class FlipFrame
         gbl0.add( transPanel, true );
 
         //  Add the menuBar.
+        JMenuBar menuBar = new JMenuBar();
         setJMenuBar( menuBar );
 
         //  Get icons for menus and action bar.
@@ -282,15 +275,17 @@ public class FlipFrame
         ImageIcon resetImage =
             new ImageIcon( ImageHolder.class.getResource( "reset.gif" ) );
 
-        //  Menubar.
-        fileMenu.setText( "File" );
+        //  File menu.
+        JMenu fileMenu = new JMenu( "File" );
         menuBar.add( fileMenu );
 
         //  Action bar for buttons.
         JPanel actionBar = new JPanel();
 
         //  Add an action to reset the spectrum to the default transform.
-        ResetAction resetAction = new ResetAction( "Reset", resetImage );
+        LocalAction resetAction = new LocalAction( LocalAction.RESET, 
+                                                   "Reset",
+                                                   resetImage );
         fileMenu.add( resetAction );
         JButton resetButton = new JButton( resetAction );
         actionBar.add( Box.createGlue() );
@@ -298,7 +293,9 @@ public class FlipFrame
         resetButton.setToolTipText( "Reset spectrum to default offset" );
 
         //  Add an action to close the window.
-        CloseAction closeAction = new CloseAction( "Close", closeImage );
+        LocalAction closeAction = new LocalAction( LocalAction.CLOSE, 
+                                                   "Close",
+                                                   closeImage );
         fileMenu.add( closeAction );
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
@@ -307,6 +304,19 @@ public class FlipFrame
 
         actionBar.add( Box.createGlue() );
         contentPane.add( actionBar, BorderLayout.SOUTH );
+
+        //  Options menu.
+        JMenu optionsMenu = new JMenu( "Options" );
+        menuBar.add( optionsMenu );
+
+        //  Switch on the SPEFO additions.
+        LocalAction spefoAction = new LocalAction( LocalAction.SPEFO,
+                                                   "SPEFO options" );
+        spefoBox = new JCheckBoxMenuItem( spefoAction );
+        optionsMenu.add( spefoBox );
+        boolean state = prefs.getBoolean( "FlipFrame_SPEFO", false );
+        spefoBox.setSelected( state );
+        makeSpefoChanges();
 
         //  Add the help menu.
         HelpFrame.createHelpMenu( "flipper-window", "Help on window",
@@ -320,7 +330,12 @@ public class FlipFrame
     {
         setTitle( Utilities.getTitle( "Flip/translate spectrum" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 400, 300 ) );
+        if ( spefoBox.isSelected() ) {
+            setSize( new Dimension( 400, 550 ) );
+        }
+        else {
+            setSize( new Dimension( 400, 300 ) );
+        }
         setVisible( true );
     }
 
@@ -606,6 +621,22 @@ public class FlipFrame
     {
         double offset = ((Double)spinnerTran.getValue()).doubleValue();
         flipTransform( 1.0, offset, null, redshiftBox.isSelected() );
+
+        if ( spefoBox.isSelected() ) {
+            spefoArea.selectAll();
+            spefoArea.cut();
+
+            // Display the SPEFO values. For flipped spectrum the
+            // offset is halved and we'd like an RV measurement. Note this
+            // assumes coordinates are wavelength...
+            offset *= 0.5;
+            spefoArea.append( "  Corrected offset = " + offset + "\n" );
+            double centre = flipCentre.getDoubleValue();
+            if ( centre != 0.0 ) {
+                double rv = PhysicalConstants.SPEED_OF_LIGHT * offset / centre;
+                spefoArea.append( "  RV = " + rv + "\n" );
+            }
+        }
     }
 
     /**
@@ -635,60 +666,78 @@ public class FlipFrame
     }
 
     /**
+     * Make SPEFO-like changes to interface ala Petr Skoda.
+     */
+    protected void makeSpefoChanges()
+    {
+        boolean display = spefoBox.isSelected();
+        prefs.putBoolean( "FlipFrame_SPEFO", display );
+        if ( display && spefoArea == null ) {
+            JPanel spefoPanel = new JPanel();
+            spefoPanel.setBorder(BorderFactory.createTitledBorder("SPEFO:"));
+            GridBagLayouter gbl = 
+                new GridBagLayouter( spefoPanel, GridBagLayouter.SCHEME4 );
+
+            //  Need display that shows additional values.
+            spefoArea = new JTextArea( 2, 30 );
+            spefoArea.setBorder(BorderFactory.createTitledBorder("Values:"));
+            spefoArea.setEditable( false );
+            JScrollPane scrollPane = new JScrollPane( spefoArea );
+            gbl.add( scrollPane, true );
+
+            //  An area for notes.
+            spefoNotes = new JTextArea( 4, 30 );
+            spefoNotes.setBorder(BorderFactory.createTitledBorder("Notes:"));
+            spefoArea.setEditable( true );
+            scrollPane = new JScrollPane( spefoNotes );
+            gbl.add( scrollPane, true );
+
+            //  Button for saving to the log file.
+            LocalAction spefoSaveAction = 
+                new LocalAction( LocalAction.SPEFOSAVE, 
+                                 "Save to SPEFO.log file" );
+            JButton spefoSave = new JButton( spefoSaveAction );
+            gbl.add( spefoSave, false );
+            gbl.eatLine();
+            
+            contentPane.add( spefoPanel, BorderLayout.CENTER );
+        }
+    }
+
+    /**
+     * Append the contents of the SPEFO areas to the file SPEFO.log.
+     */
+    protected void spefoSave()
+    {
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter( new FileWriter( "SPEFO.log", true ) );
+            SpecData spec = plot.getCurrentSpectrum();
+
+            writer.write( "Spectrum: " + spec.getShortName() + "\n" );
+            writer.write( "  Centre = " + flipCentre.getDoubleValue() + "\n" );
+            spefoArea.write( writer );
+            writer.write( "\n" );
+            writer.write( "  Notes: " + "\n" );
+            spefoNotes.write( writer );
+            writer.write( "\n" );
+            writer.close();
+        }
+        catch (IOException e) {
+            JOptionPane.showMessageDialog( this, e.getMessage(),
+                                           "Failed writing SPEFO log",
+                                           JOptionPane.ERROR_MESSAGE );
+        }
+    }
+
+
+    /**
      * Close the window. Delete any ranges that are shown.
      */
     protected void closeWindowEvent()
     {
         globalList.removePlotListener( this );
         this.dispose();
-    }
-
-    /**
-     * Inner class defining Action for closing window.
-     */
-    protected class CloseAction
-        extends AbstractAction
-    {
-        public CloseAction( String name, Icon icon )
-        {
-            super( name, icon );
-        }
-        public void actionPerformed( ActionEvent ae )
-        {
-            closeWindowEvent();
-        }
-    }
-
-    /**
-     * Inner class defining Action for reseting offset to default.
-     */
-    protected class ResetAction
-        extends AbstractAction
-    {
-        public ResetAction( String name, Icon icon )
-        {
-            super( name, icon );
-        }
-        public void actionPerformed( ActionEvent ae )
-        {
-            resetSelectedSpectrum();
-        }
-    }
-
-    /**
-     * Make a copy of the current spectrum and apply flip.
-     */
-    protected class CopyAction
-        extends AbstractAction
-    {
-        public CopyAction( String name )
-        {
-            super( name, null );
-        }
-        public void actionPerformed( ActionEvent ae )
-        {
-            copyFlipCurrentSpectrum();
-        }
     }
 
     //
@@ -784,6 +833,71 @@ public class FlipFrame
         public double getOffset()
         {
             return offset;
+        }
+    }
+
+
+    /**
+     * Inner class defining all local Actions.
+     */
+    protected class LocalAction
+        extends AbstractAction
+    {
+        
+        //  Types of action.
+        public static final int CLOSE = 0;
+        public static final int RESET = 1;
+        public static final int COPY = 2;
+        public static final int SPEFO = 3;
+        public static final int SPEFOSAVE = 4;
+
+        //  The type of this instance.
+        private int actionType = CLOSE;
+
+        public LocalAction( int actionType, String name )
+        {
+            super( name );
+            this.actionType = actionType;
+        }
+
+        public LocalAction( int actionType, String name, Icon icon )
+        {
+            super( name, icon );
+            this.actionType = actionType;
+        }
+
+        public LocalAction( int actionType, String name, Icon icon, 
+                            String help )
+        {
+            this( actionType, name, icon );
+            putValue( SHORT_DESCRIPTION, help );
+        }
+
+        public void actionPerformed( ActionEvent ae )
+        {
+            switch ( actionType )
+            {
+               case CLOSE: {
+                   closeWindowEvent();
+                   break;
+               }
+               case RESET: {
+                   resetSelectedSpectrum();
+                   break;
+               }
+               case COPY: {
+                   copyFlipCurrentSpectrum();
+                   break;
+               }
+               case SPEFO: {
+                   makeSpefoChanges();
+                   break;
+               }
+               case SPEFOSAVE: {
+                   spefoSave();
+                   break;
+               }
+            }
         }
     }
 }
