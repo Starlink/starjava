@@ -88,7 +88,7 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="SPLAT"/>
+  <property name="Name" value="SPLAT-VO"/>
   <property name="name" value="splat"/>
   <property name="version" value="3.2"/>
 
@@ -652,12 +652,12 @@
     <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
           codebase="${webstart.codebase}">
       <information>
-         <title>Starlink SPLAT - A Spectral Analysis Tool</title>
+         <title>Starlink SPLAT-VO - A Spectral Analysis Tool</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon kind="splash" href="splat_splash.gif"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>Starlink SPLAT - Webstart edition</description>
+         <description>Starlink SPLAT-VO - Webstart edition</description>
          <offline_allowed/>
        </information>
        <security>
@@ -677,12 +677,12 @@
      <jnlp toFile="${dist.lib}/${name}-parts.jnlp" href="${name}-parts.jnlp"
           codebase="${webstart.codebase}">
       <information>
-         <title>Starlink SPLAT - A Spectral Analysis Tool</title>
+         <title>Starlink SPLAT-VO - A Spectral Analysis Tool</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon kind="splash" href="splat_splash.gif"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink SPLAT - Webstart edition"</description>
+         <description>"Starlink SPLAT-VO - Webstart edition"</description>
          <offline_allowed/>
        </information>
        <security>
