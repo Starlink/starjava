@@ -40,6 +40,7 @@ import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.DivaPlotGraphicsPane;
+import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.AsciiFileParser;
 import uk.ac.starlink.util.gui.BasicFileChooser;
@@ -68,44 +69,26 @@ public class XGraphicsRangesView
     extends JPanel
     implements SelectionListener
 {
-    /**
-     * The DivaPlot that we are working with.
-     */
+    /** The DivaPlot that we are working with. */
     protected DivaPlot plot = null;
 
-    /**
-     * The JList containing the region descriptions.
-     */
+    /** The JList containing the region descriptions. */
     protected JTable table = new JTable();
 
-    /**
-     * The selection model used by the JTable.
-     */
+    /** The selection model used by the JTable. */
     protected ListSelectionModel selectionModel = null;
 
-    /**
-     * GraphicsPane that contains all the figures.
-     */
+    /** GraphicsPane that contains all the figures. */
     protected DivaPlotGraphicsPane pane = null;
 
-    /**
-     * The colour of any figures that are created.
-     */
+    /** The colour of any figures that are created. */
     protected Color colour = Color.green;
 
-    /**
-     * Whether XRangeFigures are free to transform.
-     */
+    /** Whether XRangeFigures are free to transform. */
     protected boolean constrain = true;
 
-    /**
-     * Create all visual components.
-     */
-    protected TitledBorder title =
-        BorderFactory.createTitledBorder( "Coordinate ranges:" );
-    protected JScrollPane scroller = new JScrollPane();
+    /** Model for table. */
     protected XGraphicsRangesModel model = null;
-    protected JPanel actionBar = new JPanel();
 
     /**
      * Create an instance.
@@ -113,7 +96,7 @@ public class XGraphicsRangesView
     public XGraphicsRangesView( DivaPlot plot )
     {
         setPlot( plot );
-        initUI();
+        initUI( null );
     }
 
     /**
@@ -124,13 +107,28 @@ public class XGraphicsRangesView
      * @param constrain whether the figure moves just X and show a full range
      *      in Y or not.
      */
-    public XGraphicsRangesView( DivaPlot plot, Color colour,
+    public XGraphicsRangesView( DivaPlot plot, Color colour, 
                                 boolean constrain )
+    {
+        this( plot, colour, constrain, null );
+    }
+
+    /**
+     * Create an instance with a given colour and constained property and
+     * XGraphicsRangesModel instance.
+     *
+     * @param plot the DivaPlot that we're drawing into.
+     * @param colour the colour that any figures should be drawn using.
+     * @param constrain whether the figure moves just X and show a full range
+     *      in Y or not.
+     */
+    public XGraphicsRangesView( DivaPlot plot, Color colour,
+                                boolean constrain, XGraphicsRangesModel model )
     {
         setPlot( plot );
         setColour( colour );
         setConstrain( constrain );
-        initUI();
+        initUI( model );
     }
 
     /**
@@ -150,16 +148,20 @@ public class XGraphicsRangesView
     /**
      * Initialise the various user interface components.
      */
-    protected void initUI()
+    protected void initUI( XGraphicsRangesModel model )
     {
         setLayout( new BorderLayout() );
 
         //  Set up the actionBar.
+        JPanel actionBar = new JPanel();
         actionBar.setLayout( new BoxLayout( actionBar, BoxLayout.X_AXIS ) );
         actionBar.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
 
         //  Set the model of ranges used by the JTable.
-        model = new XGraphicsRangesModel( plot );
+        if ( model == null ) {
+            model = new XGraphicsRangesModel( plot );
+        }
+        this.model = model;
         table.setModel( model );
 
         //  Add a sensible cell renderer for numbers. Also define the
@@ -210,9 +212,9 @@ public class XGraphicsRangesView
         actionBar.add( Box.createGlue() );
 
         //  Add components.
-        setBorder( title );
+        setBorder( BorderFactory.createTitledBorder( "Coordinate ranges:" ) );
+        JScrollPane scroller = new JScrollPane( table );
         add( scroller, BorderLayout.CENTER );
-        scroller.getViewport().add( table, null );
         add( actionBar, BorderLayout.SOUTH );
     }
 
@@ -336,6 +338,44 @@ public class XGraphicsRangesView
             }
         }
         return ranges;
+    }
+
+    /**
+     * Return an array of indices that map the ranges of the regions into
+     * indices of a data array (that contains the spectral coordinates).
+     *
+     * @param selected whether to just use the selected ranges.
+     * @param merge whether to merge ranges so that overlapping ranges are
+     *              considered as one range.
+     * @param specCoords coordinates of the spectrum, that are to be matched
+     *                   against the ranges (typically getXData of a SpecData).
+     * @return pairs of indices in specCoords that cover the
+     *         ranges. Returned as null if none exist.
+     */
+    public int[] extractRanges( boolean selected, boolean merge, 
+                                double[] specCoords )
+    {
+        double[] worldRanges = getRanges( selected );
+        if ( worldRanges != null && worldRanges.length != 0 ) {
+            if ( merge ) {
+                worldRanges = Sort.sortAndMerge( worldRanges );
+            }
+            int[] arrayRanges = new int[worldRanges.length];
+            int temp;
+            for ( int i = 0; i < arrayRanges.length; i+=2 ) {
+                arrayRanges[i] = Sort.lookup( specCoords, worldRanges[i] );
+                arrayRanges[i+1] = Sort.lookup( specCoords, worldRanges[i+1] );
+
+                //  Check ordering, these can be reversed.
+                if ( arrayRanges[i] > arrayRanges[i+1] ) {
+                    temp = arrayRanges[i];
+                    arrayRanges[i] = arrayRanges[i+1];
+                    arrayRanges[i+1] = temp;
+                }
+            }
+            return arrayRanges;
+        }
+        return null;
     }
 
     /**
