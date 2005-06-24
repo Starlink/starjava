@@ -8,21 +8,30 @@
 
 package uk.ac.starlink.splat.iface;
 
-import java.awt.event.ActionEvent;
-import java.awt.Dimension;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
 import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
-import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.Utilities;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
+import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.util.Statistics;
+import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.gui.GridBagLayouter;
+
 
 /**
  * Interactively display the statistics of a region of the current
@@ -39,19 +48,28 @@ public class StatsFrame
     protected JPanel contentPane = null;
 
     /** The PlotControl that is displaying the current spectrum */
-    protected PlotControl plot = null;
+    protected PlotControl control = null;
 
     /** The global list of spectra and plots */
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
+    /** Text area for results of all statistics fits. */
+    protected JTextArea statsResults = null;
+
+    /** Ranges of data. */
+    protected StatsRangesView rangeList = null;
+
+    /** Level of full stats reported */
+    protected JCheckBoxMenuItem fullStatsBox = null;
+
     /**
      * Create an instance.
      */
-    public StatsFrame( PlotControl plot )
+    public StatsFrame( PlotControl control )
     {
         contentPane = (JPanel) getContentPane();
         contentPane.setLayout( new BorderLayout() );
-        setPlot( plot );
+        setPlotControl( control );
         initUI();
         initFrame();
     }
@@ -63,18 +81,18 @@ public class StatsFrame
      */
     public PlotControl getPlot()
     {
-        return plot;
+        return control;
     }
 
     /**
      * Set the PlotControlFrame that has the spectrum that we are to
      * process.
      *
-     * @param plot the PlotControl reference.
+     * @param control the PlotControl reference.
      */
-    public void setPlot( PlotControl plot )
+    public void setPlotControl( PlotControl control )
     {
-        this.plot = plot;
+        this.control = control;
     }
 
     /**
@@ -90,12 +108,51 @@ public class StatsFrame
         JMenu fileMenu = new JMenu( "File" );
         menuBar.add( fileMenu );
 
+        //  Options.
+        JMenu optionsMenu = new JMenu( "Options" );
+        menuBar.add( optionsMenu );
+
         //  Action bar for buttons.
         JPanel actionBar = new JPanel();
 
         //  Images.
         ImageIcon closeImage =
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
+        ImageIcon statsImage =
+            new ImageIcon( ImageHolder.class.getResource( "sigma.gif" ) );
+
+
+        //  Statistics on the selected ranges.
+        LocalAction selectedAction = 
+            new LocalAction( LocalAction.SELECTEDSTATS, 
+                             "Selected stats", statsImage,
+                             "Statistics for selected ranges" );
+        fileMenu.add( selectedAction );
+        JButton selectedButton = new JButton( selectedAction );
+        actionBar.add( Box.createGlue() );
+        actionBar.add( selectedButton );
+
+        //  Statistics on all ranges.
+        LocalAction allAction = 
+            new LocalAction( LocalAction.ALLSTATS, 
+                             "All stats", statsImage,
+                             "Statistics for all ranges" );
+        fileMenu.add( allAction );
+        JButton allButton = new JButton( allAction );
+        actionBar.add( Box.createGlue() );
+        actionBar.add( allButton );
+
+        //  Statistics on the full current spectrum.
+        LocalAction wholeAction = 
+            new LocalAction( LocalAction.WHOLESTATS, "Whole stats", statsImage,
+                             "Statistics for whole spectrum" );
+        fileMenu.add( wholeAction );
+        JButton wholeButton = new JButton( wholeAction );
+        actionBar.add( Box.createGlue() );
+        actionBar.add( wholeButton );
+        
+        actionBar.add( Box.createGlue() );
+        contentPane.add( actionBar, BorderLayout.SOUTH );
 
         //  Add an action to close the window.
         LocalAction closeAction = new LocalAction( LocalAction.CLOSE, 
@@ -105,13 +162,31 @@ public class StatsFrame
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
-        
-        actionBar.add( Box.createGlue() );
-        contentPane.add( actionBar, BorderLayout.SOUTH );
+
+        //  Option to control quantity of stats shown.
+        fullStatsBox = new JCheckBoxMenuItem( "Show extra stats" );
+        optionsMenu.add( fullStatsBox );
 
         //  Add the help menu.
         HelpFrame.createHelpMenu( "stats-window", "Help on window",
                                   menuBar, null );
+
+        //  Central region.
+        JPanel centre = new JPanel();
+        GridBagLayouter layouter =
+            new GridBagLayouter( centre, GridBagLayouter.SCHEME4 );
+        contentPane.add( centre, BorderLayout.CENTER );
+
+        //  The ranges.
+        StatsRangesModel model = new StatsRangesModel( control );
+        rangeList = new StatsRangesView( control, model );
+        layouter.add( rangeList, true );
+
+        //  Text pane to show report on statistics. Use this so that 
+        //  previous reports can be reviewed.
+        statsResults = new JTextArea();
+        JScrollPane scrollPane = new JScrollPane( statsResults );
+        layouter.add( scrollPane, true );
     }
 
     /**
@@ -121,8 +196,97 @@ public class StatsFrame
     {
         setTitle( Utilities.getTitle( "Region statistics" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 400, 300 ) );
+        setSize( new Dimension( 650, 500 ) );
         setVisible( true );
+    }
+
+    /**
+     * Calculate statistics and update interface.
+     */
+    public void calcStats( int type )
+    {
+        SpecData currentSpectrum = control.getCurrentSpectrum();
+        double[] yData = currentSpectrum.getYData();
+        if ( type == LocalAction.SELECTEDSTATS || 
+             type == LocalAction.ALLSTATS ) {
+
+            double[] xData = currentSpectrum.getXData();
+            int[] ranges = 
+                rangeList.extractRanges( type == LocalAction.SELECTEDSTATS, 
+                                         true, xData );
+            if ( ranges == null || ranges.length == 0 ) {
+                //  No ranges... nothing to do.
+                return;
+            }
+            
+            //  Test for presence of BAD values in the data.
+            int count = 0;
+            for ( int i = 0; i < ranges.length; i += 2 ) {
+                int low = ranges[i];
+                int high = Math.min( ranges[i+1], yData.length - 1 );
+                for ( int j = low; j <= high; j++ ) {
+                    if ( yData[j] != SpecData.BAD ) count++;
+                }
+            }
+            
+            //  Now allocate the necessary memory and copy in the data.
+            double[] cleanData = new double[count];
+            count = 0;
+            for ( int i = 0; i < ranges.length; i += 2 ) {
+                int low = ranges[i];
+                int high = Math.min( ranges[i+1], yData.length - 1 );
+                for ( int j = low; j <= high; j++ ) {
+                    if ( yData[j] != SpecData.BAD ) {
+                        cleanData[count++] = yData[j];
+                    }
+                }
+            }
+
+            Statistics stats = new Statistics( cleanData );
+            StringBuffer buffer = new StringBuffer();
+            buffer.append( "Statistics of " + currentSpectrum.getShortName() +
+                           " over ranges: \n" );
+            double[] coordRanges = 
+                rangeList.getRanges( type == LocalAction.SELECTEDSTATS );
+            for ( int i = 0; i < coordRanges.length; i += 2 ) {
+                buffer.append( "  -->" + coordRanges[i] + 
+                               " : " + coordRanges[i+1] + "\n" );
+            }
+            buffer.append( "\n" );
+            reportStats( buffer.toString(), stats );
+        }
+        else if ( type == LocalAction.WHOLESTATS ) {
+            //  Remove all BAD values, if needed.
+            int count = 0;
+            for ( int i = 0; i < yData.length; i++ ) {
+                if ( yData[i] != SpecData.BAD ) count++;
+            }
+
+            //  Don't make a clean copy if there are no BAD values.
+            if ( count != yData.length ) {
+                double[] cleanData = new double[count];
+                count = 0;
+                for ( int i = 0; i < yData.length; i++ ) {
+                    if ( yData[i] != SpecData.BAD ) {
+                        cleanData[count++] = yData[i];
+                    }
+                }
+                yData = cleanData;
+            }
+            Statistics stats = new Statistics( yData );
+            String desc = 
+                "Statistics of " + currentSpectrum.getShortName() + ":\n";
+            reportStats( desc, stats );
+        }
+    }
+
+    /**
+     * Add a named report to the text area.
+     */
+    public void reportStats( String description, Statistics stats )
+    {
+        statsResults.append( description );
+        statsResults.append( stats.getStats( fullStatsBox.isSelected() ) );
     }
 
     /**
@@ -130,6 +294,7 @@ public class StatsFrame
      */
     protected void closeWindowEvent()
     {
+        rangeList.deleteAllRanges();
         this.dispose();
     }
 
@@ -142,6 +307,9 @@ public class StatsFrame
         
         //  Types of action.
         public static final int CLOSE = 0;
+        public static final int WHOLESTATS = 1;
+        public static final int SELECTEDSTATS = 2;
+        public static final int ALLSTATS = 3;
 
         //  The type of this instance.
         private int actionType = CLOSE;
@@ -150,6 +318,13 @@ public class StatsFrame
         {
             super( name, icon );
             this.actionType = actionType;
+        }
+
+        public LocalAction( int actionType, String name, String help )
+        {
+            super( name );
+            this.actionType = actionType;
+            putValue( SHORT_DESCRIPTION, help );
         }
 
         public LocalAction( int actionType, String name, Icon icon, 
@@ -165,6 +340,18 @@ public class StatsFrame
             {
                case CLOSE: {
                    closeWindowEvent();
+                   break;
+               }
+               case WHOLESTATS: {
+                   calcStats( WHOLESTATS );
+                   break;
+               }
+               case SELECTEDSTATS: {
+                   calcStats( SELECTEDSTATS );
+                   break;
+               }
+               case ALLSTATS: {
+                   calcStats( ALLSTATS );
                    break;
                }
             }

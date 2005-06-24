@@ -133,6 +133,11 @@ public class PlotControlFrame
     protected FlipFrame flipFrame = null;
 
     /**
+     * The statistics frame.
+     */
+    protected StatsFrame statsFrame = null;
+
+    /**
      *  The global list of spectra and plots.
      */
     private static GlobalSpecPlotList globalList =
@@ -431,6 +436,8 @@ public class PlotControlFrame
             new ImageIcon( ImageHolder.class.getResource( "units.gif" ) );
         ImageIcon flipImage =
             new ImageIcon( ImageHolder.class.getResource( "flip.gif" ) );
+        ImageIcon statsImage =
+            new ImageIcon( ImageHolder.class.getResource( "sigma.gif" ) );
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.
@@ -498,6 +505,12 @@ public class PlotControlFrame
                             "Flip and/or translate current spectrum" );
         analysisMenu.add( flipAction );
         toolBar.add( flipAction );
+
+        StatsAction statsAction =
+            new StatsAction( "Region statistics", statsImage,
+                             "Get statistics on regions of spectrum" );
+        analysisMenu.add( statsAction );
+        toolBar.add( statsAction );
     }
 
     /**
@@ -1183,6 +1196,46 @@ public class PlotControlFrame
     }
 
     /**
+     *  Activate the stats window.
+     */
+    public void showStats()
+    {
+        if ( statsFrame == null ) {
+            statsFrame = new StatsFrame( getPlot() );
+            //  We'd like to know if the window is closed.
+            statsFrame.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        statsClosed();
+                    }
+                });
+        }
+	else {
+            Utilities.raiseFrame( statsFrame );
+        }
+    }
+
+    /**
+     * Stats window is closed.
+     */
+    protected void statsClosed()
+    {
+        // Nullify if method for closing switches to dispose.
+        // statsFrame = null;
+    }
+
+    /**
+     *  Close the stats window.
+     */
+    protected void closeStats()
+    {
+        if ( statsFrame != null ) {
+            statsFrame.dispose();
+            statsFrame = null;
+        }
+    }
+
+
+    /**
      * Set the main cursor to indicate waiting for some action to
      * complete and lock the interface by trapping all mouse events.
      */
@@ -1219,6 +1272,7 @@ public class PlotControlFrame
         closeFilter();
         closeUnits();
         closeFlip();
+        closeStats();
         plot.release();
     }
 
@@ -1477,6 +1531,22 @@ public class PlotControlFrame
         public void actionPerformed( ActionEvent ae )
         {
             showFlip();
+        }
+    }
+
+    /**
+     *  Inner class defining stats action.
+     */
+    protected class StatsAction extends AbstractAction
+    {
+        public StatsAction( String name, Icon icon, String help )
+        {
+            super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            showStats();
         }
     }
 

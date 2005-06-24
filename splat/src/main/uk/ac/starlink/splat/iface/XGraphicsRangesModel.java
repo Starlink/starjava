@@ -39,7 +39,7 @@ public class XGraphicsRangesModel
      * The plot that displays the figures we're describing. Used to give
      * better control over the formatting.
      */
-    private DivaPlot plot = null;
+    protected DivaPlot plot = null;
 
     /**
      * Create an instance of this class.
@@ -50,7 +50,7 @@ public class XGraphicsRangesModel
     }
 
     /**
-     * List of the range objects that we've looking at.
+     * List of the range objects that we're looking at.
      */
     protected ArrayList rangeObjects = new ArrayList();
 
