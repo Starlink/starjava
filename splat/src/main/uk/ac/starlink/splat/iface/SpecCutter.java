@@ -27,7 +27,7 @@ public class SpecCutter
 {
     /**
      * Count of all spectra created. Used to generate unique names for
-     * new spectra. 
+     * new spectra.
      */
     private static int count = 0;
 
@@ -78,7 +78,8 @@ public class SpecCutter
             globalList.add( newSpectrum );
             return newSpectrum;
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -115,7 +116,8 @@ public class SpecCutter
                                                      cleanRanges );
             globalList.add( newSpectrum );
             return newSpectrum;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -152,7 +154,8 @@ public class SpecCutter
                                                        cleanRanges );
             globalList.add( newSpectrum );
             return newSpectrum;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -168,5 +171,4 @@ public class SpecCutter
     {
         return "Cut " + (++count) + " of " + spectrum.getShortName();
     }
-
 }

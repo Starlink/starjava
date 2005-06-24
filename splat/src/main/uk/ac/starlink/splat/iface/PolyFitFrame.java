@@ -403,7 +403,7 @@ public class PolyFitFrame
         double[] oldY = currentSpectrum.getYData();
         double[] oldErr = currentSpectrum.getYDataErrors();
 
-        int[] ranges = extractRanges( selected, oldX );
+        int[] ranges = rangeList.extractRanges( selected, true, oldX );
         if ( ranges.length == 0 ) {
             return; // No ranges, so nothing to do.
         }
@@ -751,38 +751,6 @@ public class PolyFitFrame
                 fitResults.append( "\t: " + coeffs[i] + "\n" );
             }
         }
-    }
-
-    /**
-     * Return an array of indices that map the ranges of the fit
-     * regions into indices of the spectrum.
-     *
-     * @param selected whether to just return the ranges selected.
-     * @param oldX coordinates of the spectrum.
-     * @return pairs of indices in oldX that cover the graphics
-     *         ranges. Returned as null if none exist.
-     */
-    protected int[] extractRanges( boolean selected, double[] oldX )
-    {
-        double[] worldRanges = rangeList.getRanges( selected );
-        if ( worldRanges != null ) {
-            int[] arrayRanges = new int[worldRanges.length];
-            for ( int i = 0; i < worldRanges.length; i++ ) {
-                arrayRanges[i] = Sort.lookup( oldX, worldRanges[i] );
-            }
-
-            //  Check ordering, these can be reversed.
-            int temp;
-            for ( int i = 0; i < worldRanges.length; i+=2 ) {
-                if ( arrayRanges[i] > arrayRanges[i+1] ) {
-                    temp = arrayRanges[i];
-                    arrayRanges[i] = arrayRanges[i+1];
-                    arrayRanges[i+1] = temp;
-                }
-            }
-            return arrayRanges;
-        }
-        return null;
     }
 
     /**

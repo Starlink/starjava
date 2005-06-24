@@ -534,7 +534,7 @@ public class DeblendFrame
         }
 
         // If no ranges are defined, then we use the whole spectrum.
-        int[] ranges = extractLineRanges( specXData );
+        int[] ranges = rangeList.extractRanges( false, false, specXData );
         if ( ranges.length == 0 ) {
             ranges = new int[2];
             ranges[0] = 0;
@@ -933,29 +933,6 @@ public class DeblendFrame
             //  Do nothing.
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Return an array of indices that map the ranges of the fit
-     * regions into indices of the spectrum
-     */
-    protected int[] extractLineRanges( double[] oldX )
-    {
-        double[] worldLines = rangeList.getRanges( false );
-        int[] arrayLines = new int[worldLines.length];
-        for ( int i = 0, j = 0; i < arrayLines.length; i += 2 ) {
-            arrayLines[i] = Sort.lookup( oldX, worldLines[i] );
-            arrayLines[i+1] = Sort.lookup( oldX, worldLines[i+1] );
-
-            //  Check ordering, these can be reversed (sky coordinates).
-            int temp;
-            if ( arrayLines[i] > arrayLines[i+1] ) {
-                temp = arrayLines[i];
-                arrayLines[i] = arrayLines[i+1];
-                arrayLines[i+1] = temp;
-            }
-        }
-        return arrayLines;
     }
 
     /**
