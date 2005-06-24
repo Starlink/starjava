@@ -37,7 +37,16 @@ public class Statistics
      */
     public void setData( double[] data )
     {
+        bin1D.clear();
         bin1D.addAllOfFromTo( new DoubleArrayList( data ), 0, data.length-1 );
+    }
+
+    /**
+     * Get the number of values.
+     */
+    public int getNumberValues()
+    {
+        return bin1D.size();
     }
 
     /**
@@ -96,6 +105,56 @@ public class Statistics
         return bin1D.standardDeviation();
     }
 
+    public String toString()
+    {
+        return super.toString() + ":\n" + 
+            "Maximum = " + getMaximum() + ", " +
+            "Minimum = " + getMinimum() + ", " +
+            "Sum = "     + getSum()     + ", " +
+            "Median = "  + getMedian()  + ", " +
+            "Mode = "    + getMode()    + ", " +
+            "Mean = "    + getMean()    + ", " +
+            "Std = "     + getStandardDeviation();
+    }
+
+    /**
+     * Get the a single String result with the statistics. Can include a lot
+     * of extra measurements if extra is set to true.
+     * See {@link DynamicBin1D}.
+     */
+    public String getStats( boolean extra )
+    {
+        StringBuffer buf = new StringBuffer();
+
+        buf.append( "  Mean = " + getMean() + "\n" );
+        buf.append( "  Standard deviation = " + getStandardDeviation() +"\n");
+        buf.append( "  Median = " + getMedian() + "\n" );
+        buf.append( "  Mode (quick) = " + getMode() + "\n" );
+        buf.append( "  Sum = " + getSum() + "\n" );
+        buf.append( "  Minimum = " + getMinimum() + "\n" );
+        buf.append( "  Maximum = " + getMaximum() + "\n" );
+        buf.append( "  Number of data points = " + bin1D.size() + "\n" );
+        if ( extra ) {
+            buf.append( "  Sum of squares = " + bin1D.sumOfSquares() + "\n" );
+            buf.append( "  RMS = " + bin1D.rms() + "\n" );
+            buf.append( "  Variance = " + bin1D.variance() + "\n" );
+            buf.append( "  Standard error = " + bin1D.standardError() + "\n" );
+            buf.append( "  25%, 75% quantiles = " + 
+                        bin1D.quantile( 0.25 ) + ", " + 
+                        bin1D.quantile( 0.75 ) + "\n");
+            int maxOrder = bin1D.getMaxOrderForSumOfPowers();
+            if ( maxOrder > 2 ) {
+                if ( maxOrder >= 3 ) {
+                    buf.append( "  Skew = " + bin1D.skew() + "\n" );
+                }
+                if ( maxOrder >= 4 ) {
+                    buf.append( "  Kurtosis = " + bin1D.kurtosis() + "\n" );
+                }
+            }
+        }
+        buf.append( "\n" );
+        return buf.toString();
+    }
 
     public static void main( String[] args ) 
     {
@@ -107,14 +166,6 @@ public class Statistics
         Statistics stats = new Statistics( values );
         
         System.out.println( "Statistics of values from 1 to 101" );
-        System.out.println( 
-                           "Maximum = " + stats.getMaximum() + "\n" +
-                           "Minimum = " + stats.getMinimum() + "\n" +
-                           "Sum = " + stats.getSum() + "\n" +
-                           "Median = " + stats.getMedian() + "\n" +
-                           "Mode = " + stats.getMode() + "\n" +
-                           "Mean = " + stats.getMean() + "\n" +
-                           "Std = " + stats.getStandardDeviation()
-                           );
+        System.out.println( stats.toString() ); 
     }
 }
