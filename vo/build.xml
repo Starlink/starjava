@@ -540,12 +540,17 @@
     </jar>
 
     <jar destfile="${dist.lib.pkg}/nvo-registry.jar"
-         basedir="${build.classes}"
-         includes="org/us_vo/www/** net/ivoa/www/**"/>
+         basedir="${build.classes}">
+      <include name="org/us_vo/www/**"/>
+      <include name="org/openarchives/**"/>
+      <include name="org/purl/**"/>
+      <include name="net/ivoa/www/**"/>
+    </jar>
 
     <jar destfile="${dist.lib.pkg}/sesame.jar"
-         basedir="${build.classes}"
-         includes="Sesame_pkg/**"/>
+         basedir="${build.classes}">
+      <include name="Sesame_pkg/**"/>
+    </jar>
 
     <!-- Sign all jar files -->
     <signjar alias="${webstart.alias}"
