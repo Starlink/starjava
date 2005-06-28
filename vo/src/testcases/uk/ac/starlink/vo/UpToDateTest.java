@@ -31,8 +31,8 @@ public class UpToDateTest extends TestCase {
         URL remoteURL = new URL( remoteName );
         String[] localLines = getLines( localURL );
         String[] remoteLines = getLines( remoteURL );
-        String msg = "Cached copy of registry WSDL is out of date; " +
-                     "replace src/wsdl/registry.wsdl with " + REG_WSDL;
+        String msg = "Cached copy of WSDL file is out of date; " +
+                     "replace src/wsdl/" + localName + " with " + remoteName;
         assertArrayEquals( msg, localLines, remoteLines );
     }
 
