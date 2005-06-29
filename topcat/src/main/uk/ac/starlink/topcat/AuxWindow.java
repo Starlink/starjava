@@ -14,8 +14,6 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.logging.Logger;
 import javax.help.BadIDException;
@@ -39,7 +37,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
-import uk.ac.starlink.table.StarTable;
 
 /**
  * Provides a common superclass for windows popped up by TOPCAT.
@@ -66,16 +63,12 @@ public class AuxWindow extends JFrame {
     private Action exitAct;
     private Action helpAct;
 
-    private static String[] about;
-    private static String version;
-    private static String stilVersion;
     private static final Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
     private static final Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat" );
     private static final Icon LOGO =
         new ImageIcon( ResourceIcon.STAR_LOGO.getImage()
                       .getScaledInstance( -1, 34, Image.SCALE_SMOOTH ) );
-    public static final String VERSION_RESOURCE = "version-string";
     private static HelpSet hset;
 
     /**
@@ -320,105 +313,6 @@ public class AuxWindow extends JFrame {
     }
 
     /**
-     * Returns the "About" message.  It's an array of strings, one per line.
-     *
-     * @return  informational message about TOPCAT
-     */
-    private static String[] getAbout() {
-        if ( about == null ) {
-            about = new String[] {
-                "TOPCAT",
-                "Tool for OPerations on Catalogues And Tables",
-                "TOPCAT Version " + getVersion(),
-                "STIL Version " + getSTILVersion(),
-                "SPLAT: " + ( TopcatUtils.canSplat() ? "available" : "absent" ),
-                "SoG: " + ( TopcatUtils.canSog() ? "available" : "absent" ),
-                "Copyright " + '\u00a9' + 
-                " Central Laboratory of the Research Councils",
-                "Authors: Mark Taylor (Starlink)",
-                "WWW: http://www.starlink.ac.uk/topcat/",
-            };
-        }
-        return about;
-    }
-
-    /**
-     * Returns the version string for this copy of TOPCAT.
-     *
-     * @return  version number only
-     */
-    public static String getVersion() {
-        if ( version == null ) {
-            InputStream strm = null;
-            try {
-                strm = AuxWindow.class.getResourceAsStream( VERSION_RESOURCE );
-                if ( strm != null ) {
-                    StringBuffer sbuf = new StringBuffer();
-                    for ( int b; ( b = strm.read() ) > 0; ) {
-                        sbuf.append( (char) b );
-                    }
-                    version = sbuf.toString().trim();
-                }
-            }
-            catch ( IOException e ) {
-            }
-            finally {
-                if ( strm != null ) {
-                    try {
-                        strm.close();
-                    }
-                    catch ( IOException e ) {
-                    }
-                }
-            }
-            if ( version == null ) {
-                logger.warning( "Couldn't load version string from " 
-                              + VERSION_RESOURCE );
-                version = "?";
-            }
-        }
-        return version;
-    }
-
-    /**
-     * Returns the version string for the version of STIL being used here.
-     *
-     * @return  STIL version number
-     */
-    public static String getSTILVersion() {
-        if ( stilVersion == null ) {
-            InputStream strm = null;
-            try {
-                strm = StarTable.class.getResourceAsStream( "stil.version" );
-                if ( strm != null ) {
-                    StringBuffer sbuf = new StringBuffer();
-                    for ( int b; ( b = strm.read() ) > 0; ) {
-                        sbuf.append( (char) b );
-                    }
-                    stilVersion = sbuf.toString().trim();
-                }
-            }
-            catch ( IOException e ) {
-            }
-            finally {
-                if ( strm != null ) {
-                    try {
-                        strm.close();
-                    }
-                    catch ( IOException e ) {
-                    }
-                }
-            }
-            if ( version == null ) {
-                logger.warning( "Couldn't load version string from "
-                              + "uk/ac/starlink/table/stil.version" );
-                stilVersion = "?";
-            }
-        }
-        return stilVersion;
-    }
-
-    /**
      * It beeps.
      */
     public static void beep() {
@@ -555,7 +449,8 @@ public class AuxWindow extends JFrame {
                 ControlWindow.getInstance().makeVisible();
             }
             else if ( this == aboutAct ) {
-                JOptionPane.showMessageDialog( AuxWindow.this, getAbout(),
+                JOptionPane.showMessageDialog( AuxWindow.this, 
+                                               TopcatUtils.getAbout(),
                                                "About TOPCAT",
                                                JOptionPane.INFORMATION_MESSAGE,
                                                ResourceIcon.TOPCAT_LOGO );

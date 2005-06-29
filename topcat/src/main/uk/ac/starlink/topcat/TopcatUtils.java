@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -7,6 +9,7 @@ import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 
@@ -23,11 +26,15 @@ public class TopcatUtils {
     private static Boolean canSplat_;
     private static Boolean canExec_;
     private static Boolean canJel_;
+    private static String[] about_;
+    private static String version_;
+    private static String stilVersion_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     public static String DEMO_LOCATION = "uk/ac/starlink/topcat/demo";
     public static String DEMO_TABLE = "6dfgs_mini.xml.bz2";
     public static String DEMO_NODES = "demo_list";
+    public static final String VERSION_RESOURCE = "version-string";
 
     /**
      * Column auxiliary metadata key identifying the uniqe column identifier
@@ -216,6 +223,29 @@ public class TopcatUtils {
     }
 
     /**
+     * Returns some lines of text describing this copy of the software
+     * including its version and versions of some important components.
+     *
+     * @return   lines of About text
+     */
+    public static String[] getAbout() {
+        if ( about_ == null ) {
+            about_ = new String[] {
+                "This is TOPCAT - Tool for OPerations on Catalogues And Tables",
+                "",
+                "TOPCAT Version " + getVersion(),
+                "STIL Version " + getSTILVersion(),
+                "SPLAT: " + ( canSplat() ? "available" : "absent" ),
+                "SoG: " + ( canSog() ? "available" : "absent" ),
+                "",
+                "Authors: Mark Taylor (Starlink)",
+                "WWW: http://www.starlink.ac.uk/topcat/",
+            };
+        }
+        return about_;
+    }
+
+    /**
      * Indicates whether there are enough classes to make SoG work at runtime.
      *
      * @return  true iff it's safe to use a SoG-based viewer
@@ -245,6 +275,11 @@ public class TopcatUtils {
         return canSog_.booleanValue();
     }
 
+    /**
+     * Indicates whether there are enough classes to make SoG work at runtime.
+     *
+     * @return  true iff it's safe to use a SoG-based viewer
+     */
     public static boolean canSplat() {
         if ( canSplat_ == null ) {
             synchronized ( TopcatUtils.class ) {
@@ -322,4 +357,79 @@ public class TopcatUtils {
         return canJel_.booleanValue();
     }
 
+    /**
+     * Returns the version string for this copy of TOPCAT.
+     *
+     * @return  version number only
+     */
+    public static String getVersion() {
+        if ( version_ == null ) {
+            InputStream strm = null;
+            try {
+                strm = AuxWindow.class.getResourceAsStream( VERSION_RESOURCE );
+                if ( strm != null ) {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( int b; ( b = strm.read() ) > 0; ) {
+                        sbuf.append( (char) b );
+                    }
+                    version_ = sbuf.toString().trim();
+                }
+            }
+            catch ( IOException e ) {
+            }
+            finally {
+                if ( strm != null ) {
+                    try {
+                        strm.close();
+                    }
+                    catch ( IOException e ) {
+                    }
+                }
+            }
+            if ( version_ == null ) {
+                logger_.warning( "Couldn't load version string from "
+                               + VERSION_RESOURCE );
+                version_ = "?";
+            }
+        }
+        return version_;
+    }
+
+    /**
+     * Returns the version string for the version of STIL being used here.
+     *
+     * @return  STIL version number
+     */
+    public static String getSTILVersion() {
+        if ( stilVersion_ == null ) {
+            InputStream strm = null;
+            try {
+                strm = StarTable.class.getResourceAsStream( "stil.version" );
+                if ( strm != null ) { 
+                    StringBuffer sbuf = new StringBuffer(); 
+                    for ( int b; ( b = strm.read() ) > 0; ) {
+                        sbuf.append( (char) b );
+                    }
+                    stilVersion_ = sbuf.toString().trim();
+                }
+            }
+            catch ( IOException e ) {
+            }
+            finally {
+                if ( strm != null ) {
+                    try {
+                        strm.close();
+                    }
+                    catch ( IOException e ) {
+                    }
+                }
+            }
+            if ( version_ == null ) {
+                logger_.warning( "Couldn't load version string from "
+                               + "uk/ac/starlink/table/stil.version" );
+                stilVersion_ = "?";
+            }
+        }
+        return stilVersion_;
+    }
 }
