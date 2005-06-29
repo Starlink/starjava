@@ -240,6 +240,9 @@
     <!-- VOTable -->
     <pathelement location="${star.jar.dir}/votable/votable.jar"/>
 
+    <!-- VO -->
+    <pathelement location="${star.jar.dir}/vo/vo.jar"/>
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -268,6 +271,7 @@
     <pathelement location="${star.build.dir}/astgui/lib/astgui/astgui.jar"/>
     <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
     <pathelement location="${star.build.dir}/votable/lib/votable/votable.jar"/>
+    <pathelement location="${star.build.dir}/vo/lib/vo/vo.jar"/>
   </extclasspath>
 
   <!-- Local third party jars. Normally these will be kept in their
