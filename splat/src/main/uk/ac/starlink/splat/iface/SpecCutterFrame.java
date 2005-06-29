@@ -16,6 +16,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -33,9 +34,6 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.util.AsciiFileParser;
-import uk.ac.starlink.util.gui.BasicFileChooser;
-import uk.ac.starlink.util.gui.BasicFileFilter;
 
 /**
  * Provides a toolbox with number of ways to cut out or remove parts
@@ -82,11 +80,6 @@ public class SpecCutterFrame
      *  Reference to GlobalSpecPlotList object.
      */
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
-
-    /**
-     * File chooser used for reading ranges from text files.
-     */
-    protected BasicFileChooser fileChooser = null;
 
     /**
      * The SpecCutter instance.
@@ -172,7 +165,7 @@ public class SpecCutterFrame
         menuBar.add( fileMenu );
 
         //  Add action to do read a list of ranges from disk file.
-        ReadAction readAction = new ReadAction( "Read ranges", readImage );
+        Action readAction = rangeList.getReadAction("Read ranges", readImage);
         fileMenu.add( readAction );
 
         //  Add action to cut out all regions.
@@ -336,83 +329,17 @@ public class SpecCutterFrame
     }
 
     /**
-     * Initiate a file selection dialog and choose a file that
-     * contains a list of ranges.
-     */
-    public void getRangesFromFile()
-    {
-        initFileChooser();
-        int result = fileChooser.showOpenDialog( this );
-        if ( result == fileChooser.APPROVE_OPTION ) {
-            File file = fileChooser.getSelectedFile();
-            readRangesFromFile( file );
-        }
-    }
-
-    /**
-     * Initialise the file chooser to have the necessary filters.
-     */
-    protected void initFileChooser()
-    {
-        if ( fileChooser == null ) {
-            fileChooser = new BasicFileChooser( false );
-            fileChooser.setMultiSelectionEnabled( false );
-
-            //  Add a filter for text files.
-            BasicFileFilter textFileFilter =
-                new BasicFileFilter( "txt", "TEXT files" );
-            fileChooser.addChoosableFileFilter( textFileFilter );
-
-            //  But allow all files as well.
-            fileChooser.addChoosableFileFilter
-                ( fileChooser.getAcceptAllFileFilter() );
-        }
-    }
-
-    /**
-     * Read a set of ranges from a file. These are added to the
-     * existing ranges. The file should be simple and have two
-     * fields, separated by whitespace or commas. Comments are
-     * indicated by lines starting with a hash (#) and are ignored.
-     *
-     * @param file reference to the file.
-     */
-    public void readRangesFromFile( File file )
-    {
-        //  Check file exists.
-        if ( ! file.exists() && file.canRead() && file.isFile() ) {
-            return;
-        }
-        AsciiFileParser parser = new AsciiFileParser( file );
-        if ( parser.getNFields() != 2 ) {
-            JOptionPane.showMessageDialog( this,
-               "The format of ranges file requires just two fields + (" +
-               parser.getNFields() +" were found)",
-               "Error reading " + file.getName(),
-               JOptionPane.ERROR_MESSAGE);
-        }
-
-        int nrows = parser.getNRows();
-        double[] range = new double[2];
-        for( int i = 0; i < nrows; i++ ) {
-            for ( int j = 0; j < 2; j++ ) {
-                range[j] = parser.getDoubleField( i, j );
-            }
-
-            //  Create the new range.
-            rangeList.createRange( range );
-        }
-    }
-
-    /**
      * Cut action. Cuts out all ranges.
      */
-    protected class CutAction extends AbstractAction
+    protected class CutAction 
+        extends AbstractAction
     {
-        public CutAction( String name, Icon icon ) {
+        public CutAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             cut( false );
         }
     }
@@ -420,12 +347,15 @@ public class SpecCutterFrame
     /**
      * Cut selected action. Performs cut of only selected ranges.
      */
-    protected class CutSelectedAction extends AbstractAction
+    protected class CutSelectedAction 
+        extends AbstractAction
     {
-        public CutSelectedAction( String name, Icon icon ) {
+        public CutSelectedAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             cut( true );
         }
     }
@@ -433,12 +363,15 @@ public class SpecCutterFrame
     /**
      * Remove action. Removes all ranges.
      */
-    protected class RemoveAction extends AbstractAction
+    protected class RemoveAction 
+        extends AbstractAction
     {
-        public RemoveAction( String name, Icon icon ) {
+        public RemoveAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             remove( false );
         }
     }
@@ -446,12 +379,15 @@ public class SpecCutterFrame
     /**
      * Remove selected action. Performs remove of selected ranges.
      */
-    protected class RemoveSelectedAction extends AbstractAction
+    protected class RemoveSelectedAction 
+        extends AbstractAction
     {
-        public RemoveSelectedAction( String name, Icon icon ) {
+        public RemoveSelectedAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             remove( true );
         }
     }
@@ -460,12 +396,15 @@ public class SpecCutterFrame
      * Inner class defining Action for closing window and keeping the
      * cuts.
      */
-    protected class CloseAction extends AbstractAction
+    protected class CloseAction 
+        extends AbstractAction
     {
-        public CloseAction( String name, Icon icon ) {
+        public CloseAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             closeWindowEvent();
         }
     }
@@ -473,27 +412,16 @@ public class SpecCutterFrame
     /**
      * Inner class defining action for resetting all values.
      */
-    protected class ResetAction extends AbstractAction
+    protected class ResetAction 
+        extends AbstractAction
     {
-        public ResetAction( String name, Icon icon ) {
+        public ResetAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             resetActionEvent();
         }
     }
-
-    /**
-     * Read ranges from file action.
-     */
-    protected class ReadAction extends AbstractAction
-    {
-        public ReadAction( String name, Icon icon ) {
-            super( name, icon );
-        }
-        public void actionPerformed( ActionEvent ae ) {
-            getRangesFromFile();
-        }
-    }
-
 }
