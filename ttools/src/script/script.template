@@ -49,6 +49,10 @@ do
    if echo $1 | grep -- '^-[XD]' >/dev/null
    then
       javaArgs="$javaArgs "\'$1\'
+   elif [ "$1" = "-classpath" -a -n "$2" ]
+   then
+      shift
+      export CLASSPATH="$1"
    else
       appArgs="$appArgs "\'$1\'
    fi
