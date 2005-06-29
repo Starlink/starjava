@@ -1200,55 +1200,6 @@ but it might involve doing something like the following:
 
 </sect>
 
-<sect>
-<subhead><title>Release Notes</title></subhead>
-
-<p>This is STILTS, Starlink Tables Infrastructure Library Tool Set.
-It is a collection of non-graphical utilites for general 
-purpose table and VOTable manipulation developed by 
-<webref url="http://www.starlink.ac.uk/">Starlink</webref>.
-
-<dl>
-<dt>Author</dt>
-<dd><p>Mark Taylor (Starlink, Bristol University)</p></dd>
-
-<dt>Email</dt>
-<dd><p><webref url="mailto:m.b.taylor@bristol.ac.uk"
-                          >m.b.taylor@bristol.ac.uk</webref></p></dd>
-
-<dt>WWW</dt>
-<dd><p><webref url="http://www.starlink.ac.uk/stilts/"
-                   >http://www.starlink.ac.uk/stilts/</webref></p></dd>
-</dl>
-
-User comments, suggestions, requests and bug reports to the above address
-are welcomed.
-</p>
-
-<subsect>
-<subhead><title>Version History</title></subhead>
-
-<p>Releases to date have been as follows:
-<dl>
-
-<dt>Version 0.1b (29 April 2005)</dt>
-<dd><p>First public release
-    </p></dd>
-
-<dt>Version 0.2b (30 June 2005)</dt>
-<dd><p>
-  <ul>
-  <li>Added Times func class for MJD-ISO8601 time conversions</li>
-  <li>Fixed bug when doing NULL_ test expressions on first column in table.</li>
-  </ul>
-</p></dd>
-
-</dl>
-</p>
-</subsect>
-
-</sect>
-
 <appendices>
 
 <sect id="cmdUsage">
@@ -2466,8 +2417,57 @@ When fed this version, <code>votlint</code> gives no warnings.
 
 </subsect>
 
+</sect>
+
+<sect>
+<subhead><title>Release Notes</title></subhead>
+
+<p>This is STILTS, Starlink Tables Infrastructure Library Tool Set.
+It is a collection of non-graphical utilites for general 
+purpose table and VOTable manipulation developed by 
+<webref url="http://www.starlink.ac.uk/">Starlink</webref>.
+
+<dl>
+<dt>Author</dt>
+<dd><p>Mark Taylor (Starlink, Bristol University)</p></dd>
+
+<dt>Email</dt>
+<dd><p><webref url="mailto:m.b.taylor@bristol.ac.uk"
+                          >m.b.taylor@bristol.ac.uk</webref></p></dd>
+
+<dt>WWW</dt>
+<dd><p><webref url="http://www.starlink.ac.uk/stilts/"
+                   >http://www.starlink.ac.uk/stilts/</webref></p></dd>
+</dl>
+
+User comments, suggestions, requests and bug reports to the above address
+are welcomed.
+</p>
+
+<subsect>
+<subhead><title>Version History</title></subhead>
+
+<p>Releases to date have been as follows:
+<dl>
+
+<dt>Version 0.1b (29 April 2005)</dt>
+<dd><p>First public release
+    </p></dd>
+
+<dt>Version 0.2b (30 June 2005)</dt>
+<dd><p>
+  <ul>
+  <li>Added Times func class for MJD-ISO8601 time conversions</li>
+  <li>Fixed bug when doing NULL_ test expressions on first column in table.</li>
+  </ul>
+</p></dd>
+
+</dl>
+</p>
+</subsect>
 
 </sect>
+
 </appendices>
 
 </docbody>
