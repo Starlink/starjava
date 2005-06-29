@@ -102,7 +102,7 @@ public class ConcatStarTable extends WrapperStarTable {
                     rseq_.close();
                 }
                 if ( tabIt_.hasNext() ) {
-                    rseq_ = ((StarTable) tabIt_).getRowSequence();
+                    rseq_ = ((StarTable) tabIt_.next()).getRowSequence();
                 }
                 else {
                     return false;
