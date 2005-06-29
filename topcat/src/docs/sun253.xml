@@ -2862,469 +2862,6 @@ comments (apologies for any missed out):
 
 </sect>
 
-
-<sect id="release">
-<subhead><title>Release Notes</title></subhead>
-
-<p>This is TOPCAT, Tool for OPerations on Catalogues And Tables.
-It is a general purpose viewer and editor for astronomical tabular
-data developed by <webref url="http://www.starlink.ac.uk/">Starlink</webref>.
-<dl>
-<dt>Author</dt>
-<dd><p>Mark Taylor (Starlink, Bristol University)</p></dd>
-
-<dt>Email</dt>
-<dd><p><webref url="mailto:m.b.taylor@bristol.ac.uk"
-                          >m.b.taylor@bristol.ac.uk</webref></p></dd>
-
-<dt>WWW</dt>
-<dd><p><webref url="http://www.starlink.ac.uk/topcat/"/></p></dd>
-
-</dl>
-User comments, suggestions, requests and bug reports to the above address
-are welcomed.
-</p>
-
-<subsect id="versions">
-<subhead><title>Version History</title></subhead>
-
-<p>Releases to date have been as follows:
-<dl>
-
-<dt>Version 0.3b (4 June 2003)</dt>
-<dd><p>First public release
-</p></dd>
-
-<dt>Version 0.4b (8 July 2003)</dt>
-<dd><p>
-<ul>
-<li>Row subset count column in subsets window.</li>
-<li>Fixed and improved broken Parameter window.</li>
-<li>Fixed output of table name and parameters.</li>
-<li>Output to LaTeX <code>tabular</code> environment now available.</li>
-<li>SQL access buttons now greyed out when no JDBC drivers are present.</li>
-<li>UCD selection now available from New Synthetic Column dialogue.</li>
-<li>Column metadata display made more logical and flexible.</li>
-<li>Column cardinality now calculated in Stats window.</li>
-<li>Sythetic column expressions and most other column metadata now
-    editable.</li>
-<li>Null value support in evaluated expressions.</li>
-<li>Integral example data provided.</li>
-<li>Hierarchical browser for tables available in load dialogue.</li>
-</ul>
-</p></dd>
-
-<dt>Version 0.4-1b (10 July 2003)</dt>
-<dd><p>
-<ul>
-<li>Fixed a VOTable output bug (not escaping XML special characters).</li>
-<li>Fixed a serious FITS output bug.</li>
-<li>Improved bad value handling for FITS tables.</li>
-</ul>
-</p></dd>
-
-<dt>Version 0.5b (20 October 2003)</dt>
-<dd><p>
-<ul>
-<li>Can now read plain text format tables.</li>
-<li>FITS files of arbitrary size can now be read
-    (they are not loaded into memory).</li>
-<li>TOPCAT can now run without errors in a secure environment
-    (e.g. as an unsigned jar file under WebStart).  Of course some actions
-    such as Save Table are unavailable in this context.</li>
-<li>Files compressed with Unix <code>compress</code> now work
-    (as well as gzip and bzip2).</li>
-<li>Added hierarchy browser to load dialog.</li>
-<li>Added integral demo data (accessible from load dialog).</li>
-<li>Can now drag tables from
-    <webref url="http://www.starlink.ac.uk/treeview/">Treeview</webref>
-    into TOPCAT load dialog (or load button).</li>
-<li>Some bugfixes.</li>
-</ul>
-</p></dd>
-
-<dt>Version 0.5-1 (18 November 2003)</dt>
-<dd><p>
-<ul>
-<li>Rewrite of FITS binary table access for big efficiency improvements.</li>
-<li>It's now possible to plug in user-defined algebraic methods at runtime.</li>
-<li>Improved unit testing leads to some bugfixes.</li>
-</ul>
-</p></dd>
-
-<dt>Version 1.1-0 (21 April 2004)</dt>
-<dd><p>
-<ul>
-<li>User interface redesigned - now based around Control Window 
-    not table browser (much easier to work with multiple tables).</li>
-<li>Extensive facilities for table joining by matching rows between 
-    multiple tables or within a single one.</li>
-<li>Documentation much improved and available on- or off-line as 
-    <docxref doc="sun253"/>.</li>
-<li>Self-contained table access library 
-    <webref url="http://www.starlink.ac.uk/stil/">STIL</webref> now provided
-    as a separate product.</li>
-<li>Tables can be concatenated.</li>
-<li>Better top-level control over window proliferation.</li>
-<li>Columns can now be hidden/revealed not just deleted.</li>
-<li>Additional output formats/variants supported:
-    <ul>
-    <li>VOTable using BINARY or FITS encoding, inline or by reference</li>
-    <li>Machine-readable plain ASCII stream</li>
-    <li>HTML &lt;TABLE&gt; element or document</li>
-    </ul>
-</li>
-<li>Hybrid DOM/SAX parsing of VOTables for improved efficiency/memory usage.</li>
-<li>New flag <code>-demo</code> starts up with demo data.</li>
-<li>Miscellaneous efficiency improvements and bug fixes.</li>
-</ul>
-</p></dd>
-
-<dt>Version 1.1-3 (5 May 2004)</dt>
-<dd><p>
-<ul>
-<li>Functions provided for radians&lt;-&gt;sexagesimal conversion</li>
-</ul>
-</p></dd>
-
-<dt>Version 1.3 (20 October 2004)</dt>
-<dd><p>This version has introduced many improvements in scalability,
-efficiency and functionality.  TOPCAT is now quite happy with tables
-of a million rows or more (and hundreds of columns) even on systems 
-with quite modest memory/CPU resources.
-The main improvements are as follows:
-<dl>
-
-<dt>Plotting</dt>
-<dd><p>
-    <ul>
-    <li>Plotting is much faster and can handle many more points</li>
-    <li>Subsets can be selected from plot window by tracing out a 
-        non-rectangular region</li>
-    <li>You have more choice over plotting symbols
-        (including semi-transparent ones)</li>
-    <li>Finally X or Y axes can be flipped!</li>
-    <li>Export to encapsulated PostScript is of improved quality
-        (though for many points file sizes can get large)</li>
-    <li>Export to GIF format is available</li>
-    <li>Regression lines can be plotted and coefficients displayed
-        (experimental capability - could be improved)</li>
-    </ul>
-    </p></dd>
-
-<dt>Table Formats</dt>
-<dd><p>
-    <ul>
-    <li>"<code>-disk</code>" flag allows use of disk backing storage for
-        large tables</li>
-    <li>New 'FITS-plus' format stores rich table/column metadata in a
-        FITS file</li>
-    <li>VOTable handler now fully VOTable 1.1 and 1.0 compatible</li>
-    <li>VOTable parsing now works with Java 5.0 platform</li>
-    <li>Comma-Separated Value format now supported for input and output</li>
-    <li>ASCII input handler rewritten to cope with much larger tables</li>
-    <li>ASCII handler now understands d/D as exponent letter as well as e/E</li>
-    <li>ASCII handler now uses Short/Float not Integer/Double where 
-        appropriate to save memory</li>
-    <li>ASCII format fixed bug for -0 degrees/hours in sexagesimal
-        angles</li>
-    <li>Null handling improved for FITS &amp; VOTable formats</li>
-    <li>FITS files store column descriptions in TCOMMx headers</li>
-    <li>Better error messages for unparsable tables</li>
-    </ul>
-    </p></dd>
-
-<dt>Table Joins</dt>
-<dd><p>
-    <ul>
-    <li>Various efficiency improvements and reductions in memory 
-        requirements</li>
-    <li>In cases of multiple possible matches, the closest is now chosen
-        rather than picking one at random</li>
-    <li>Pair match now adds column containing score for each match
-        (distance between points)</li>
-    <li>Units can be selected RA/Dec columns and match errors 
-        (so it doesn't need to be all in radians)</li>
-    <li>New match types suitable for multivariate matching 
-        (anistropic Cartesian, Sky+X, Sky+XY)</li>
-    </ul>
-    </p></dd>
-
-<dt>Data/Metadata Manipulation</dt>
-<dd><p>
-    <ul>
-    <li>Can add/remove table parameters</li>
-    <li>One-step column replacement dialogue from data or column 
-        windows</li>
-    <li>Synthetic column expressions now written out to column
-        descriptions</li>
-    </ul>
-    </p></dd>
-
-<dt>GUI Navigation and Display</dt>
-<dd><p>
-    <ul>
-    <li>Improved rendering of numbers in tables (esp. Floats)</li>
-    <li>Better detection of displayed table column widths</li>
-    <li>New Control Window option on File menus</li>
-    <li>Better window resizing for some dialogue boxes</li>
-    <li>Less confusing error messages in many places</li>
-    </ul>
-    </p></dd>
-
-<dt>Algebraic Expressions</dt>
-<dd><p>
-    <ul>
-    <li>All available functions are now fully documented in help document
-        and interactive Method Window</li>
-    <li>Many new trig, coordinate, type conversion, string manipulation 
-        functions</li>
-    <li>Big performance improvements for null values</li>
-    </ul>
-    </p></dd>
-
-<dt>Activation Actions</dt>
-<dd><p>
-    <ul>
-    <li>Clicking a point in the plot highlights the corresponding row in the
-        data window and vice versa</li>
-    <li>Row selection can trigger display sky cutout region display</li>
-    <li>Row selection can trigger user-defined actions on activation</li>
-    </ul>
-    </p></dd>
-
-</dl>
-</p>
-
-<p>In addition, the following incompatibilities and changes have been
-introduced since the last version:
-<ul>
-<li>The input format for tables can now be specified in the load window
-    (via a selection box) or on the command line
-    (using the "<code>-f</code>" flag).  FITS files and VOTables can
-    still be identified automatically (i.e. it's not necessary to 
-    specify format in this case) but ASCII tables cannot:
-    you <em>must</em> now specify the format when loading ASCII tables.
-    This change allows better error messages and support for 
-    more text-like formats.</li>
-<li>Algebraic expressions referencing row subsets now use the 
-    underscore character ("_") rather than the hash character ("#")
-    to indicate a subset ID.</li>
-<li>Classes containing user-supplied functions for algebraic expressions
-    are now specified using the properties "<code>jel.classes</code>"
-    and "<code>jel.classes.activation</code>", 
-    not "<code>gnu.jel.static.classes</code>".</li>
-<li>The default output format for FITS tables is now the so-called
-    "FITS-plus" format, which has a BINTABLE in its first extension 
-    as before, but the text of a VOTable stored in its primary HDU.  
-    This can store more metadata for TOPCAT, but should behave just
-    the same for other FITS-compatible applications.
-    The old behaviour can be restored if desired by specifying "FITS-basic" 
-    format.</li>
-</ul>
-</p></dd>
-
-<dt>Version 1.3-1 (10 November 2004)</dt>
-<dd><p>Minor changes:
-<ul>
-<li>2MASS cutout servers now available from Activation Window</li>
-<li>Added Starlink logo to all windows</li>
-</ul>
-</p></dd>
-
-<dt>Version 1.3-2 (6 Dec 2004)</dt>
-<dd><p>Bug fix:
-<ul>
-<li>Error in parsing empty VOTable TD elements fixed.</li>
-</ul>
-</p></dd>
-
-<dt>Version 1.4 (4 Feb 2005)</dt>
-<dd><p><dl>
-
-    <dt>Load Dialogues</dt>
-    <dd><p>The graphical table load dialogue has been overhauled, and now
-        has two main new features.  First, it has been rewritten so that
-        the GUI does not freeze during a long load; it is still currently
-        not possible to interact with other TOPCAT windows while a load is
-        taking place, but you can now cancel a load that is in progress.
-        </p>
-
-        <p>Secondly, the provision of load dialogues has been modularised,
-        and a number of new dialogues provided.  The new ones are:
-        <ul>
-        <li><ref id="ConeSearchDialog">Cone Search</ref></li>
-        <li>MySpace Browser</li>
-        <li>Registry Query</li>
-        <li>SIAP Query</li>
-        </ul>
-        If the required classes are present, you can acquire tables from 
-        these external sources as well as the traditional methods of loading
-        from disk etc.  New command line flags corresponding to each 
-        of these have been added to ensure that they are present and
-        make them prominent in the load dialogue. 
-        Furthermore it is possible to plug in additional load dialogues at
-        runtime using the <code>startable.load.dialogs</code> system property.
-        </p>
-
-        <p>The appearance of the <ref id="LoadQueryWindow">Load Window</ref>
-        has changed; now only the <label>File Browser</label> button
-        is visible along with the <label>Location</label> field in the
-        body of the window, but the <label>DataSources</label> menu
-        can be used to display other available table import dialogues.
-        </p></dd>
-
-
-    <dt>Packaging</dt>
-    <dd><p>The program can now be obtained in two standalone forms:
-        <code>topcat-full.jar</code> and <code>topcat-lite.jar</code>.
-        The former is much larger than before (11 Mbyte), 
-        since it contains a number
-        of classes to support custom load dialogues such as the MySpace
-        browser and web service interaction, as well as the SoG classes.
-        The latter contains only the classes for the core functionality,
-        and is much smaller (3 Mbyte).
-        </p></dd>
-
-    <dt>Explode Array Column action</dt>
-    <dd><p>There is now a new button in the 
-        <ref id="ColumnInfoWindow">Columns Window</ref> which replaces an
-        array-valued column with a scalar column for each of its elements.
-        </p></dd>
-
-    <dt>Paste'n'Load</dt>
-    <dd><p>You can now load a table by pasting its filename or URL as
-        text into the table list in the Control Window (using the X selection
-        on X-windows - not sure if or how this works on other platforms).
-        </p></dd>
-
-    <dt>Help message</dt>
-    <dd><p>The result of <code>topcat -help</code> is now more comprehensive,
-        describing briefly what each option does and listing system
-        properties as well as arguments/flags proper.
-        </p></dd>
-
-    </dl></p></dd>
-
-<dt>Version 1.4-1 (8 February 2005)</dt>
-<dd><p>
-    <ul>
-    <li>Added Search Column item to Data Window column popup menu</li>
-    </ul>
-    </p></dd>
-
-<dt>Version 1.5 (17 March 2005)</dt>
-<dd>
-<p><dl>
-  <dt>File Access</dt>
-  <dd><p>Load dialogues have changed again somewhat, and save 
-      dialogues as well.
-      The default file browser in both cases is now a
-      <em>Filestore Browser</em>,
-      which is very much like the standard file browser, but can browse files
-      in remote filesystems as well; currently supported are files in 
-      AstroGrid's 
-      <webref url="http://www.astrogrid.org/maven/docs/HEAD/mySpace/"
-              >MySpace</webref>
-      or on an 
-      <webref url="http://www.sdsc.edu/srb/">SRB</webref>
-      (Storage Resource Broker) server.
-      You can now save files to these remote locations as well as
-      load from them.
-      </p>
-
-      <p>In addition, the save dialogue now displays the current row
-      subset and sort order - this makes it easier to see and/or
-      change the details of the table you're about to save.
-      </p>
-  </dd>
-
-  <dt>BugFixes</dt>
-  <dd><p>A few more minor changes have been made.
-    <ul>
-      <li>Error display dialogue boxes have been improved in some places</li>
-      <li>Various bugs relating to JDBC database access have been fixed</li>
-      <li>Some minor issues relating to VOTables with single-character
-          columns have been addressed</li>
-    </ul>
-  </p></dd>
-</dl></p>
-</dd>
-
-<dt>Version 1.6</dt>
-<dd><p><dl>
-
-  <dt>Activation Actions</dt>
-  <dd><p>Some more activation functionality has been added:
-    <ul>
-      <li>New <label>View URL as Web Page</label> option introduced in 
-          Activation Window</li>
-      <li>New <label>System</label> class of activation functions containing
-          <code>exec</code> functions which execute commands on the local
-          operating system</li>
-      <li>New <label>Browsers</label> class of activation functions for 
-          displaying URLs in web browsers (external or basic fallback one)</li>
-    </ul>
-  </p></dd>
-
-  <dt>Algebraic Functions</dt>
-  <dd><p>New <label>Times</label> class added containing functions for
-      converting between Modified Julian Day and ISO 8601 format epochs.
-      </p></dd>
-
-  <dt>Sky Matching</dt>
-  <dd><p>The default sky matching algorithm now uses HEALPix rather than
-      HTM for assigning sky pixels to RA,Dec positions.  This gives much
-      faster sky matches in most cases, and uses somewhat less memory 
-      so can be used on larger tables.  It has also fixed a bug
-      which missed out some possible matches.  HTM-based matching 
-      is currently still provided as an option, but this is mainly
-      for debugging purposes and may be withdrawn in the future.
-      </p></dd>
-
-  <dt>Logging</dt>
-  <dd><p>The message logging has been tidied up.  The main observable
-      consequence of this is that fewer untidy messages are written to
-      the console when TOPCAT is run from a standalone jar file
-      rather than a full starjava installation.
-      By specifying the new <code>-verbose</code> (or <code>-v</code>) 
-      flag one or more times you can get those messages back.
-      The messages (in fact all logging messages at any level) 
-      can also be viewed from the GUI by using the new
-      <label>File</label>|<label>Show Log</label> menu option from the
-      Control Window.
-      </p></dd>
-
-  <dt>SOAP Services</dt>
-  <dd><p>TOPCAT now acts as a SOAP server; SOAP requests can now be made
-      to a running instance of TOPCAT to get it to display tables by 
-      location or by sending XML for a VOTable direct.  Because of 
-      limitations in Axis, this latter method won't work for arbitrarily
-      large tables.
-      </p></dd>
-
-  <dt>Minor changes</dt>
-  <dd><p>
-    <ul>
-      <li>Added (dummy) <label>Print</label> option to Data Window.
-          This just presents a message to the effect that you should save
-          to a printable format.</li>
-      <li>Fixed a bug which gave errors when expressions contained a 
-          <code>NULL_</code> test on the first column of a table.</li>
-      <li>Modified one of the demo tables to contain a column with URLs
-          in it.</li>
-    </ul>
-  </p></dd>
-
-</dl></p></dd>
-
-</dl>
-</p>
-
-</subsect>
-
-</sect>
-
 <appendices>
 
 <sect id="windows">
@@ -6704,6 +6241,468 @@ a FITS binary table:
 
 </ul>
 </p>
+
+</sect>
+
+<sect id="release">
+<subhead><title>Release Notes</title></subhead>
+
+<p>This is TOPCAT, Tool for OPerations on Catalogues And Tables.
+It is a general purpose viewer and editor for astronomical tabular
+data developed by <webref url="http://www.starlink.ac.uk/">Starlink</webref>.
+<dl>
+<dt>Author</dt>
+<dd><p>Mark Taylor (Starlink, Bristol University)</p></dd>
+
+<dt>Email</dt>
+<dd><p><webref url="mailto:m.b.taylor@bristol.ac.uk"
+                          >m.b.taylor@bristol.ac.uk</webref></p></dd>
+
+<dt>WWW</dt>
+<dd><p><webref url="http://www.starlink.ac.uk/topcat/"/></p></dd>
+
+</dl>
+User comments, suggestions, requests and bug reports to the above address
+are welcomed.
+</p>
+
+<subsect id="versions">
+<subhead><title>Version History</title></subhead>
+
+<p>Releases to date have been as follows:
+<dl>
+
+<dt>Version 0.3b (4 June 2003)</dt>
+<dd><p>First public release
+</p></dd>
+
+<dt>Version 0.4b (8 July 2003)</dt>
+<dd><p>
+<ul>
+<li>Row subset count column in subsets window.</li>
+<li>Fixed and improved broken Parameter window.</li>
+<li>Fixed output of table name and parameters.</li>
+<li>Output to LaTeX <code>tabular</code> environment now available.</li>
+<li>SQL access buttons now greyed out when no JDBC drivers are present.</li>
+<li>UCD selection now available from New Synthetic Column dialogue.</li>
+<li>Column metadata display made more logical and flexible.</li>
+<li>Column cardinality now calculated in Stats window.</li>
+<li>Sythetic column expressions and most other column metadata now
+    editable.</li>
+<li>Null value support in evaluated expressions.</li>
+<li>Integral example data provided.</li>
+<li>Hierarchical browser for tables available in load dialogue.</li>
+</ul>
+</p></dd>
+
+<dt>Version 0.4-1b (10 July 2003)</dt>
+<dd><p>
+<ul>
+<li>Fixed a VOTable output bug (not escaping XML special characters).</li>
+<li>Fixed a serious FITS output bug.</li>
+<li>Improved bad value handling for FITS tables.</li>
+</ul>
+</p></dd>
+
+<dt>Version 0.5b (20 October 2003)</dt>
+<dd><p>
+<ul>
+<li>Can now read plain text format tables.</li>
+<li>FITS files of arbitrary size can now be read
+    (they are not loaded into memory).</li>
+<li>TOPCAT can now run without errors in a secure environment
+    (e.g. as an unsigned jar file under WebStart).  Of course some actions
+    such as Save Table are unavailable in this context.</li>
+<li>Files compressed with Unix <code>compress</code> now work
+    (as well as gzip and bzip2).</li>
+<li>Added hierarchy browser to load dialog.</li>
+<li>Added integral demo data (accessible from load dialog).</li>
+<li>Can now drag tables from
+    <webref url="http://www.starlink.ac.uk/treeview/">Treeview</webref>
+    into TOPCAT load dialog (or load button).</li>
+<li>Some bugfixes.</li>
+</ul>
+</p></dd>
+
+<dt>Version 0.5-1 (18 November 2003)</dt>
+<dd><p>
+<ul>
+<li>Rewrite of FITS binary table access for big efficiency improvements.</li>
+<li>It's now possible to plug in user-defined algebraic methods at runtime.</li>
+<li>Improved unit testing leads to some bugfixes.</li>
+</ul>
+</p></dd>
+
+<dt>Version 1.1-0 (21 April 2004)</dt>
+<dd><p>
+<ul>
+<li>User interface redesigned - now based around Control Window 
+    not table browser (much easier to work with multiple tables).</li>
+<li>Extensive facilities for table joining by matching rows between 
+    multiple tables or within a single one.</li>
+<li>Documentation much improved and available on- or off-line as 
+    <docxref doc="sun253"/>.</li>
+<li>Self-contained table access library 
+    <webref url="http://www.starlink.ac.uk/stil/">STIL</webref> now provided
+    as a separate product.</li>
+<li>Tables can be concatenated.</li>
+<li>Better top-level control over window proliferation.</li>
+<li>Columns can now be hidden/revealed not just deleted.</li>
+<li>Additional output formats/variants supported:
+    <ul>
+    <li>VOTable using BINARY or FITS encoding, inline or by reference</li>
+    <li>Machine-readable plain ASCII stream</li>
+    <li>HTML &lt;TABLE&gt; element or document</li>
+    </ul>
+</li>
+<li>Hybrid DOM/SAX parsing of VOTables for improved efficiency/memory usage.</li>
+<li>New flag <code>-demo</code> starts up with demo data.</li>
+<li>Miscellaneous efficiency improvements and bug fixes.</li>
+</ul>
+</p></dd>
+
+<dt>Version 1.1-3 (5 May 2004)</dt>
+<dd><p>
+<ul>
+<li>Functions provided for radians&lt;-&gt;sexagesimal conversion</li>
+</ul>
+</p></dd>
+
+<dt>Version 1.3 (20 October 2004)</dt>
+<dd><p>This version has introduced many improvements in scalability,
+efficiency and functionality.  TOPCAT is now quite happy with tables
+of a million rows or more (and hundreds of columns) even on systems 
+with quite modest memory/CPU resources.
+The main improvements are as follows:
+<dl>
+
+<dt>Plotting</dt>
+<dd><p>
+    <ul>
+    <li>Plotting is much faster and can handle many more points</li>
+    <li>Subsets can be selected from plot window by tracing out a 
+        non-rectangular region</li>
+    <li>You have more choice over plotting symbols
+        (including semi-transparent ones)</li>
+    <li>Finally X or Y axes can be flipped!</li>
+    <li>Export to encapsulated PostScript is of improved quality
+        (though for many points file sizes can get large)</li>
+    <li>Export to GIF format is available</li>
+    <li>Regression lines can be plotted and coefficients displayed
+        (experimental capability - could be improved)</li>
+    </ul>
+    </p></dd>
+
+<dt>Table Formats</dt>
+<dd><p>
+    <ul>
+    <li>"<code>-disk</code>" flag allows use of disk backing storage for
+        large tables</li>
+    <li>New 'FITS-plus' format stores rich table/column metadata in a
+        FITS file</li>
+    <li>VOTable handler now fully VOTable 1.1 and 1.0 compatible</li>
+    <li>VOTable parsing now works with Java 5.0 platform</li>
+    <li>Comma-Separated Value format now supported for input and output</li>
+    <li>ASCII input handler rewritten to cope with much larger tables</li>
+    <li>ASCII handler now understands d/D as exponent letter as well as e/E</li>
+    <li>ASCII handler now uses Short/Float not Integer/Double where 
+        appropriate to save memory</li>
+    <li>ASCII format fixed bug for -0 degrees/hours in sexagesimal
+        angles</li>
+    <li>Null handling improved for FITS &amp; VOTable formats</li>
+    <li>FITS files store column descriptions in TCOMMx headers</li>
+    <li>Better error messages for unparsable tables</li>
+    </ul>
+    </p></dd>
+
+<dt>Table Joins</dt>
+<dd><p>
+    <ul>
+    <li>Various efficiency improvements and reductions in memory 
+        requirements</li>
+    <li>In cases of multiple possible matches, the closest is now chosen
+        rather than picking one at random</li>
+    <li>Pair match now adds column containing score for each match
+        (distance between points)</li>
+    <li>Units can be selected RA/Dec columns and match errors 
+        (so it doesn't need to be all in radians)</li>
+    <li>New match types suitable for multivariate matching 
+        (anistropic Cartesian, Sky+X, Sky+XY)</li>
+    </ul>
+    </p></dd>
+
+<dt>Data/Metadata Manipulation</dt>
+<dd><p>
+    <ul>
+    <li>Can add/remove table parameters</li>
+    <li>One-step column replacement dialogue from data or column 
+        windows</li>
+    <li>Synthetic column expressions now written out to column
+        descriptions</li>
+    </ul>
+    </p></dd>
+
+<dt>GUI Navigation and Display</dt>
+<dd><p>
+    <ul>
+    <li>Improved rendering of numbers in tables (esp. Floats)</li>
+    <li>Better detection of displayed table column widths</li>
+    <li>New Control Window option on File menus</li>
+    <li>Better window resizing for some dialogue boxes</li>
+    <li>Less confusing error messages in many places</li>
+    </ul>
+    </p></dd>
+
+<dt>Algebraic Expressions</dt>
+<dd><p>
+    <ul>
+    <li>All available functions are now fully documented in help document
+        and interactive Method Window</li>
+    <li>Many new trig, coordinate, type conversion, string manipulation 
+        functions</li>
+    <li>Big performance improvements for null values</li>
+    </ul>
+    </p></dd>
+
+<dt>Activation Actions</dt>
+<dd><p>
+    <ul>
+    <li>Clicking a point in the plot highlights the corresponding row in the
+        data window and vice versa</li>
+    <li>Row selection can trigger display sky cutout region display</li>
+    <li>Row selection can trigger user-defined actions on activation</li>
+    </ul>
+    </p></dd>
+
+</dl>
+</p>
+
+<p>In addition, the following incompatibilities and changes have been
+introduced since the last version:
+<ul>
+<li>The input format for tables can now be specified in the load window
+    (via a selection box) or on the command line
+    (using the "<code>-f</code>" flag).  FITS files and VOTables can
+    still be identified automatically (i.e. it's not necessary to 
+    specify format in this case) but ASCII tables cannot:
+    you <em>must</em> now specify the format when loading ASCII tables.
+    This change allows better error messages and support for 
+    more text-like formats.</li>
+<li>Algebraic expressions referencing row subsets now use the 
+    underscore character ("_") rather than the hash character ("#")
+    to indicate a subset ID.</li>
+<li>Classes containing user-supplied functions for algebraic expressions
+    are now specified using the properties "<code>jel.classes</code>"
+    and "<code>jel.classes.activation</code>", 
+    not "<code>gnu.jel.static.classes</code>".</li>
+<li>The default output format for FITS tables is now the so-called
+    "FITS-plus" format, which has a BINTABLE in its first extension 
+    as before, but the text of a VOTable stored in its primary HDU.  
+    This can store more metadata for TOPCAT, but should behave just
+    the same for other FITS-compatible applications.
+    The old behaviour can be restored if desired by specifying "FITS-basic" 
+    format.</li>
+</ul>
+</p></dd>
+
+<dt>Version 1.3-1 (10 November 2004)</dt>
+<dd><p>Minor changes:
+<ul>
+<li>2MASS cutout servers now available from Activation Window</li>
+<li>Added Starlink logo to all windows</li>
+</ul>
+</p></dd>
+
+<dt>Version 1.3-2 (6 Dec 2004)</dt>
+<dd><p>Bug fix:
+<ul>
+<li>Error in parsing empty VOTable TD elements fixed.</li>
+</ul>
+</p></dd>
+
+<dt>Version 1.4 (4 Feb 2005)</dt>
+<dd><p><dl>
+
+    <dt>Load Dialogues</dt>
+    <dd><p>The graphical table load dialogue has been overhauled, and now
+        has two main new features.  First, it has been rewritten so that
+        the GUI does not freeze during a long load; it is still currently
+        not possible to interact with other TOPCAT windows while a load is
+        taking place, but you can now cancel a load that is in progress.
+        </p>
+
+        <p>Secondly, the provision of load dialogues has been modularised,
+        and a number of new dialogues provided.  The new ones are:
+        <ul>
+        <li><ref id="ConeSearchDialog">Cone Search</ref></li>
+        <li>MySpace Browser</li>
+        <li>Registry Query</li>
+        <li>SIAP Query</li>
+        </ul>
+        If the required classes are present, you can acquire tables from 
+        these external sources as well as the traditional methods of loading
+        from disk etc.  New command line flags corresponding to each 
+        of these have been added to ensure that they are present and
+        make them prominent in the load dialogue. 
+        Furthermore it is possible to plug in additional load dialogues at
+        runtime using the <code>startable.load.dialogs</code> system property.
+        </p>
+
+        <p>The appearance of the <ref id="LoadQueryWindow">Load Window</ref>
+        has changed; now only the <label>File Browser</label> button
+        is visible along with the <label>Location</label> field in the
+        body of the window, but the <label>DataSources</label> menu
+        can be used to display other available table import dialogues.
+        </p></dd>
+
+
+    <dt>Packaging</dt>
+    <dd><p>The program can now be obtained in two standalone forms:
+        <code>topcat-full.jar</code> and <code>topcat-lite.jar</code>.
+        The former is much larger than before (11 Mbyte), 
+        since it contains a number
+        of classes to support custom load dialogues such as the MySpace
+        browser and web service interaction, as well as the SoG classes.
+        The latter contains only the classes for the core functionality,
+        and is much smaller (3 Mbyte).
+        </p></dd>
+
+    <dt>Explode Array Column action</dt>
+    <dd><p>There is now a new button in the 
+        <ref id="ColumnInfoWindow">Columns Window</ref> which replaces an
+        array-valued column with a scalar column for each of its elements.
+        </p></dd>
+
+    <dt>Paste'n'Load</dt>
+    <dd><p>You can now load a table by pasting its filename or URL as
+        text into the table list in the Control Window (using the X selection
+        on X-windows - not sure if or how this works on other platforms).
+        </p></dd>
+
+    <dt>Help message</dt>
+    <dd><p>The result of <code>topcat -help</code> is now more comprehensive,
+        describing briefly what each option does and listing system
+        properties as well as arguments/flags proper.
+        </p></dd>
+
+    </dl></p></dd>
+
+<dt>Version 1.4-1 (8 February 2005)</dt>
+<dd><p>
+    <ul>
+    <li>Added Search Column item to Data Window column popup menu</li>
+    </ul>
+    </p></dd>
+
+<dt>Version 1.5 (17 March 2005)</dt>
+<dd>
+<p><dl>
+  <dt>File Access</dt>
+  <dd><p>Load dialogues have changed again somewhat, and save 
+      dialogues as well.
+      The default file browser in both cases is now a
+      <em>Filestore Browser</em>,
+      which is very much like the standard file browser, but can browse files
+      in remote filesystems as well; currently supported are files in 
+      AstroGrid's 
+      <webref url="http://www.astrogrid.org/maven/docs/HEAD/mySpace/"
+              >MySpace</webref>
+      or on an 
+      <webref url="http://www.sdsc.edu/srb/">SRB</webref>
+      (Storage Resource Broker) server.
+      You can now save files to these remote locations as well as
+      load from them.
+      </p>
+
+      <p>In addition, the save dialogue now displays the current row
+      subset and sort order - this makes it easier to see and/or
+      change the details of the table you're about to save.
+      </p>
+  </dd>
+
+  <dt>BugFixes</dt>
+  <dd><p>A few more minor changes have been made.
+    <ul>
+      <li>Error display dialogue boxes have been improved in some places</li>
+      <li>Various bugs relating to JDBC database access have been fixed</li>
+      <li>Some minor issues relating to VOTables with single-character
+          columns have been addressed</li>
+    </ul>
+  </p></dd>
+</dl></p>
+</dd>
+
+<dt>Version 1.6 (30 June 2005)</dt>
+<dd><p><dl>
+
+  <dt>Activation Actions</dt>
+  <dd><p>Some more activation functionality has been added:
+    <ul>
+      <li>New <label>View URL as Web Page</label> option introduced in 
+          Activation Window</li>
+      <li>New <label>System</label> class of activation functions containing
+          <code>exec</code> functions which execute commands on the local
+          operating system</li>
+      <li>New <label>Browsers</label> class of activation functions for 
+          displaying URLs in web browsers (external or basic fallback one)</li>
+    </ul>
+  </p></dd>
+
+  <dt>Algebraic Functions</dt>
+  <dd><p>New <label>Times</label> class added containing functions for
+      converting between Modified Julian Day and ISO 8601 format epochs.
+      </p></dd>
+
+  <dt>Sky Matching</dt>
+  <dd><p>The default sky matching algorithm now uses HEALPix rather than
+      HTM for assigning sky pixels to RA,Dec positions.  This gives much
+      faster sky matches in most cases, and uses somewhat less memory 
+      so can be used on larger tables.  It has also fixed a bug
+      which missed out some possible matches.  HTM-based matching 
+      is currently still provided as an option, but this is mainly
+      for debugging purposes and may be withdrawn in the future.
+      </p></dd>
+
+  <dt>Logging</dt>
+  <dd><p>The message logging has been tidied up.  The main observable
+      consequence of this is that fewer untidy messages are written to
+      the console when TOPCAT is run from a standalone jar file
+      rather than a full starjava installation.
+      By specifying the new <code>-verbose</code> (or <code>-v</code>) 
+      flag one or more times you can get those messages back.
+      The messages (in fact all logging messages at any level) 
+      can also be viewed from the GUI by using the new
+      <label>File</label>|<label>Show Log</label> menu option from the
+      Control Window.
+      </p></dd>
+
+  <dt>SOAP Services</dt>
+  <dd><p>TOPCAT now acts as a SOAP server; SOAP requests can now be made
+      to a running instance of TOPCAT to get it to display tables by 
+      location or by sending XML for a VOTable direct.  Because of 
+      limitations in Axis, this latter method won't work for arbitrarily
+      large tables.
+      </p></dd>
+
+  <dt>Minor changes</dt>
+  <dd><p>
+    <ul>
+      <li>Added (dummy) <label>Print</label> option to Data Window.
+          This just presents a message to the effect that you should save
+          to a printable format.</li>
+      <li>Fixed a bug which gave errors when expressions contained a 
+          <code>NULL_</code> test on the first column of a table.</li>
+      <li>Modified one of the demo tables to contain a column with URLs
+          in it.</li>
+    </ul>
+  </p></dd>
+
+</dl></p></dd>
+
+</dl>
+</p>
+
+</subsect>
 
 </sect>
 
