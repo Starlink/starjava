@@ -21,6 +21,7 @@ class TreeClientConnection extends Connection {
 
     private final TreeClient tc_;
     private final Branch root_;
+    private boolean finished_;
 
     /**
      * Constructor.
@@ -45,6 +46,7 @@ class TreeClientConnection extends Connection {
     }
 
     public void logOut() throws IOException {
+        finished_ = true;
         try {
             tc_.logout();
         }
@@ -55,9 +57,24 @@ class TreeClientConnection extends Connection {
     }
 
     public boolean isConnected() {
-        SecurityToken token = tc_.getToken();
-        return token == null ? false
-                             : token.isValid();
+        if ( finished_ ) {
+            return false;
+        }
+        else {
+            try {
+                SecurityToken token = tc_.getToken();
+                return token == null ? false
+                                     : token.isValid();
+            }
+
+            /* This is a workaround for what I presume is a bug in TreeClient;
+             * getToken() seems to throw an UnsupportedOperationException.
+             * Prior to a logout, the connection ought still to be live,
+             * so in this case we just return true and hope for the best. */
+            catch ( UnsupportedOperationException e ) {
+                return true;
+            }
+        }
     }
 
     public Branch getRoot() {
