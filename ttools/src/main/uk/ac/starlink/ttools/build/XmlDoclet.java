@@ -121,7 +121,7 @@ public abstract class XmlDoclet extends MemberDoclet {
      * @return  XML-type text
      */
     public static String doctorText( String text ) {
-        text = text.replaceAll( "<a href=", "<webref url=" )
+        text = text.replaceAll( "<a href=", "<webref plaintextref='yes' url=" )
                    .replaceAll( "</a>", "</webref>" );
         return pWrap( text );
     }
