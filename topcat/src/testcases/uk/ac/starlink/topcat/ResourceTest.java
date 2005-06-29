@@ -23,7 +23,7 @@ public class ResourceTest extends TestCase {
     }
 
     public void testVersionString() {
-        String version = AuxWindow.getVersion();
+        String version = TopcatUtils.getVersion();
         assertTrue( version.matches( "^[0-9].*" ) );
     }
 
