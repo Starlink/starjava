@@ -61,7 +61,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>29 April 2005</docdate>
+<docdate>30 June 2005</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -1234,6 +1234,14 @@ are welcomed.
 <dt>Version 0.1b (29 April 2005)</dt>
 <dd><p>First public release
     </p></dd>
+
+<dt>Version 0.2b (30 June 2005)</dt>
+<dd><p>
+  <ul>
+  <li>Added Times func class for MJD-ISO8601 time conversions</li>
+  <li>Fixed bug when doing NULL_ test expressions on first column in table.</li>
+  </ul>
+</p></dd>
 
 </dl>
 </p>
