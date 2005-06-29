@@ -12,10 +12,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -51,9 +51,6 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.WaveletFilter;
-import uk.ac.starlink.util.AsciiFileParser;
-import uk.ac.starlink.util.gui.BasicFileChooser;
-import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
@@ -128,11 +125,6 @@ public class SpecFilterFrame
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
-     * File chooser used for reading ranges from text files.
-     */
-    protected BasicFileChooser fileChooser = null;
-
-    /**
      * Global list of spectral view (used for selecting a spectrum as
      * a kernel).
      */
@@ -203,8 +195,6 @@ public class SpecFilterFrame
         //  Get icons.
         ImageIcon closeImage = new ImageIcon(
             ImageHolder.class.getResource( "close.gif" ) );
-        ImageIcon readImage = new ImageIcon(
-            ImageHolder.class.getResource( "read.gif" ) );
         ImageIcon resetImage = new ImageIcon(
             ImageHolder.class.getResource( "reset.gif" ) );
         ImageIcon filterImage = new ImageIcon(
@@ -215,10 +205,6 @@ public class SpecFilterFrame
         //  Create the File menu.
         fileMenu.setText( "File" );
         menuBar.add( fileMenu );
-
-        //  Add action to do read a list of ranges from disk file.
-        ReadAction readAction = new ReadAction( "Read ranges", readImage );
-        fileMenu.add( readAction );
 
         //  Add action to filter all regions.
         FilterAction filterAction =
@@ -350,7 +336,7 @@ public class SpecFilterFrame
         GridBagLayouter gbl = new GridBagLayouter( panel );
 
         //  Need a profile type and some parameters. Gaussian needs a
-        //  width as does Lorentz. Voigt needs two widths. 
+        //  width as does Lorentz. Voigt needs two widths.
         //  Hanning, Hamming. Welch and Barlett need neither.
 
         JLabel typeLabel = new JLabel( "Type of profile:" );
@@ -546,6 +532,14 @@ public class SpecFilterFrame
 
         rangeList = new XGraphicsRangesView( plot.getPlot() );
         panel.add( rangeList, BorderLayout.CENTER );
+
+        //  Add action to do read a list of ranges from disk file.
+        Icon readImage = 
+            new ImageIcon( ImageHolder.class.getResource( "read.gif" ) );
+        Action readAction = rangeList.getReadAction("Read ranges", readImage);
+        JMenuItem readItem = new JMenuItem( readAction );
+        fileMenu.add( readItem, 0 );
+
         return panel;
     }
 
@@ -592,10 +586,10 @@ public class SpecFilterFrame
             break;
             case 3: {
                 // Wavelet.
-                double percent = 
+                double percent =
                     ((Double)waveletPercent.getValue()).doubleValue();
                 newSpec =
-                    filter.waveletFilter( currentSpectrum, 
+                    filter.waveletFilter( currentSpectrum,
                                           (String)waveletBox.getSelectedItem(),
                                           percent, ranges, include );
             }
@@ -709,9 +703,9 @@ public class SpecFilterFrame
             lWidthLabel.setEnabled( false );
         }
         else {
-            if ( hanningProfile.isSelected() || 
+            if ( hanningProfile.isSelected() ||
                  hammingProfile.isSelected() ||
-                 welchProfile.isSelected() || 
+                 welchProfile.isSelected() ||
                  bartlettProfile.isSelected() ) {
                 gWidth.setEnabled( false );
                 gWidthLabel.setEnabled( false );
@@ -767,83 +761,17 @@ public class SpecFilterFrame
     }
 
     /**
-     * Initiate a file selection dialog and choose a file that
-     * contains a list of ranges.
-     */
-    public void getRangesFromFile()
-    {
-        initFileChooser();
-        int result = fileChooser.showOpenDialog( this );
-        if ( result == fileChooser.APPROVE_OPTION ) {
-            File file = fileChooser.getSelectedFile();
-            readRangesFromFile( file );
-        }
-    }
-
-    /**
-     * Initialise the file chooser to have the necessary filters.
-     */
-    protected void initFileChooser()
-    {
-        if ( fileChooser == null ) {
-            fileChooser = new BasicFileChooser( false );
-            fileChooser.setMultiSelectionEnabled( false );
-
-            //  Add a filter for text files.
-            BasicFileFilter textFileFilter =
-                new BasicFileFilter( "txt", "TEXT files" );
-            fileChooser.addChoosableFileFilter( textFileFilter );
-
-            //  But allow all files as well.
-            fileChooser.addChoosableFileFilter
-                ( fileChooser.getAcceptAllFileFilter() );
-        }
-    }
-
-    /**
-     * Read a set of ranges from a file. These are added to the
-     * existing ranges. The file should be simple and have two
-     * fields, separated by whitespace or commas. Comments are
-     * indicated by lines starting with a hash (#) and are ignored.
-     *
-     * @param file reference to the file.
-     */
-    public void readRangesFromFile( File file )
-    {
-        //  Check file exists.
-        if ( ! file.exists() && file.canRead() && file.isFile() ) {
-            return;
-        }
-        AsciiFileParser parser = new AsciiFileParser( file );
-        if ( parser.getNFields() != 2 ) {
-            JOptionPane.showMessageDialog( this,
-               "The format of ranges file requires just two fields + (" +
-               parser.getNFields() +" were found)",
-               "Error reading " + file.getName(),
-               JOptionPane.ERROR_MESSAGE);
-        }
-
-        int nrows = parser.getNRows();
-        double[] range = new double[2];
-        for( int i = 0; i < nrows; i++ ) {
-            for ( int j = 0; j < 2; j++ ) {
-                range[j] = parser.getDoubleField( i, j );
-            }
-
-            //  Create the new range.
-            rangeList.createRange( range );
-        }
-    }
-
-    /**
      * Filter action.
      */
-    protected class FilterAction extends AbstractAction
+    protected class FilterAction
+        extends AbstractAction
     {
-        public FilterAction( String name, Icon icon ) {
+        public FilterAction( String name, Icon icon )
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae )
+        {
             filter( false );
         }
     }
@@ -852,12 +780,15 @@ public class SpecFilterFrame
      * Inner class defining Action for closing window and keeping the
      * results.
      */
-    protected class CloseAction extends AbstractAction
+    protected class CloseAction
+        extends AbstractAction
     {
-        public CloseAction( String name, Icon icon ) {
+        public CloseAction( String name, Icon icon )
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae )
+        {
             closeWindowEvent();
         }
     }
@@ -865,27 +796,16 @@ public class SpecFilterFrame
     /**
      * Inner class defining action for resetting all values.
      */
-    protected class ResetAction extends AbstractAction
+    protected class ResetAction
+        extends AbstractAction
     {
-        public ResetAction( String name, Icon icon ) {
+        public ResetAction( String name, Icon icon )
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae )
+        {
             resetActionEvent();
         }
     }
-
-    /**
-     * Read ranges from file action.
-     */
-    protected class ReadAction extends AbstractAction
-    {
-        public ReadAction( String name, Icon icon ) {
-            super( name, icon );
-        }
-        public void actionPerformed( ActionEvent ae ) {
-            getRangesFromFile();
-        }
-    }
-
 }
