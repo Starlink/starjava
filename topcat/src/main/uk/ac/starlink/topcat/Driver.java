@@ -184,7 +184,8 @@ public class Driver {
         String pre = "Usage: " + cmdname;
         String pad = pre.replaceAll( ".", " " );
         String usage = 
-              pre + " [-help] [-verbose] [-demo] [-disk] [-noserv]\n" 
+              pre + " [-help] [-version] [-verbose] [-demo]"
+                  + " [-disk] [-noserv]\n" 
             + pad + " [-tree] [-file] [-sql] [-cone] [-siap] [-registry]\n"
             + pad + " [[-f <format>] table ...]";
 
@@ -201,6 +202,16 @@ public class Driver {
             String arg = (String) it.next();
             if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
                 System.out.println( getHelp( cmdname ) );
+                return;
+            }
+            else if ( arg.equals( "-version" ) ) {
+                it.remove();
+                String[] about = TopcatUtils.getAbout();
+                System.out.println();
+                for ( int i = 0; i < about.length; i++ ) {
+                    System.out.println( "    " + about[ i ] );
+                }
+                System.out.println();
                 return;
             }
             else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
@@ -531,6 +542,31 @@ public class Driver {
            .append( cmdname )
            .append( " <flags> [[-f <format>] <table> ...]" );
 
+        /* General flags. */
+        buf.append( p1 + "General flags:" )
+           .append( p2 + "-help      print this message and exit" )
+           .append( p2 + "-version   print component versions etc and exit" )
+           .append( p2 + "-verbose   increase verbosity of reports to console" )
+           .append( p2 + "-demo      start with demo data" )
+           .append( p2 + "-disk      use disk backing store for large tables" ) 
+           .append( p2 + "-noserv    don't start SOAP services" );
+
+        /* Load dialogues. */
+        buf.append( p1 + "Optional load dialogue flags:" )
+           .append( p2 + "-tree      hierarchy browser" )
+           .append( p2 + "-file      basic file browser" )
+           .append( p2 + "-sql       SQL query on relational database" )
+           .append( p2 + "-cone      cone search dialogue" )
+           .append( p2 + "-registry  VO registry query" )
+           .append( p2 + "-siap      Simple Image Access Protocol queries" );
+
+        /* Java flags. */
+        buf.append( p1 + "Useful Java flags:" )
+           .append( p2 )
+           .append( "-classpath jar1:jar2..  specify additional classes" )
+           .append( p2 )
+           .append( "-XmxnnnM                use nnn megabytes of memory" );
+
         /* Auto-detected formats. */
         buf.append( p1 + "Auto-detected formats: " )
            .append( p2 );
@@ -554,25 +590,9 @@ public class Driver {
             }
         }
 
-        /* General flags. */
-        buf.append( p1 + "General flags:" )
-           .append( p2 + "-help      print this message" )
-           .append( p2 + "-demo      start with demo data" )
-           .append( p2 + "-disk      use disk backing store for large tables" ) 
-           .append( p2 + "-noserv    don't start SOAP services" );
-
-        /* Load dialogues. */
-        buf.append( p1 + "Optional load dialogues" )
-           .append( p2 + "-tree      hierarchy browser" )
-           .append( p2 + "-file      basic file browser" )
-           .append( p2 + "-sql       SQL query on relational database" )
-           .append( p2 + "-cone      cone search dialogue" )
-           .append( p2 + "-registry  VO registry query" )
-           .append( p2 + "-siap      Simple Image Access Protocol queries" );
-
         /* System properties. */
         buf.append( p1 + "Useful system properties " 
-                       + "(-Dname=value - lists are colon-separated)" )
+                       + "(-Dname=value - lists are colon-separated):" )
            .append( p2 )
            .append( "java.io.tmpdir          temporary filespace directory" )
            .append( p2 )
@@ -592,13 +612,6 @@ public class Driver {
            .append( "startable.writers       custom table output handlers" )
            .append( p2 )
            .append( "startable.storage       default storage policy" );
-
-        /* Java flags. */
-        buf.append( p1 + "Useful Java flags" )
-           .append( p2 )
-           .append( "-classpath jar1:jar2..  specify additional classes" )
-           .append( p2 )
-           .append( "-XmxnnnM                use nnn megabytes of memory" );
 
         /* Return. */
         return "\n" + buf.toString() + "\n";
