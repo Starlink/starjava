@@ -8,7 +8,6 @@
   <!-- Define automatically generated text entities. -->
   <!ENTITY general.runtime.method.docs SYSTEM "general-javadocs.xml">
   <!ENTITY activation.runtime.method.docs SYSTEM "activation-javadocs.xml">
-  <!ENTITY tablecopy.usage SYSTEM "tablecopy.usage">
   <!ENTITY topcat.usage SYSTEM "topcat.usage">
 
   <!-- Define some character constants. -->
@@ -73,7 +72,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>June 2005</docdate>
+<docdate>30 June 2005</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -185,11 +184,9 @@ the modified table(s) to a new location.
 </p>
 
 <p>The main body of this document explains these ideas and capabilities
-in more detail; 
+in more detail, and 
 <ref id="windows"/> gives a full description of all the windows which
-form the application, and
-<ref id="tablecopy"/> describes a little command-line utility 
-called <label>tablecopy</label> which can copy tables between formats.
+form the application.
 While the program is running, this document is available via the
 online help system - clicking the <label>Help</label> (&IMG.HELP;)
 toolbar button in any window will pop up a help browser open at
@@ -568,8 +565,8 @@ be the result of an SQL query on a database.
 <p>Since you can load a table from one format and save it in a different
 one, TOPCAT can be used to convert a table from one format to another.
 If this is all you want to do however, you may find it more 
-convenient to use the command line utility 
-<ref id="tablecopy" plaintextref="yes">tablecopy</ref>.
+convenient to use the <code>tcopy</code> command line utility in the 
+<webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref> package.
 </p>
 
 <p>The format handling is extensible, so new formats can
@@ -2301,6 +2298,12 @@ The meaning of the flags is as follows:
     message and exit straight away.
     </p></dd>
 
+<dt>-version</dt>
+<dd><p>If the <code>-version</code> flag is given, TOPCAT will print
+    a summary of its version and the versions and availability of some 
+    its components, and exit straight away.
+    </p></dd>
+
 <dt>-demo</dt>
 <dd><p>The <code>-demo</code> flag causes the program to start up with
     a few demonstration tables loaded in.  You can use these to play
@@ -2789,76 +2792,6 @@ home directory.
 
 
 </subsect>
-
-</sect>
-
-<sect>
-<subhead><title>Acknowledgements</title></subhead>
-
-<p>TOPCAT and the table-handling classes on which it relies 
-(<webref url="http://www.starlink.ac.uk/stil/">STIL</webref>) 
-have mostly been written by
-<webref url="http://www.star.bristol.ac.uk/~mbt/">Mark Taylor</webref> in the
-<webref url="http://www.star.bristol.ac.uk/"
-        >Bristol University Astrophysics Group</webref>
-for the <webref url="http://www.starlink.ac.uk/">Starlink</webref> project.
-</p>
-
-<p>Inspiration for many of its features has been taken from the
-following pre-existing tools:
-<ul>
-<li><webref url="http://cm.bell-labs.com/who/tkh/mirage/index.html"
-            >Mirage</webref>
-    (Bell labs)</li>
-<li><webref url="http://vo.iucaa.ernet.in/~voi/voplot.htm">VOPlot</webref>
-    (VO-India)</li>
-</ul>
-</p>
-
-<p>Apart from Java itself, the following external libraries provide
-important bits of its functionality:
-<ul>
-<li><webref url="http://galaxy.fzu.cz/JEL/">JEL</webref>
-    (GNU) for algebraic expression evaluation</li>
-<li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
-    (Ptolemy) for plotting</li>
-<li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
-            >PixTools</webref>
-    (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
-<li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
-    (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
-    (now deprecated within TOPCAT)</li>
-<li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
-    (Jibble) for encapsulated postscript output</li>
-<li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
-    (Acme) for GIF output</li>
-<li><webref url="http://skyservice.pha.jhu.edu/develop/vo/ivoafits/">IVOA FITS Package</webref>
-    (Sloan Digital Sky Survey) for simple (non-SoG) display of FITS images</li>
-</ul>
-</p>
-
-<p>The following users, testers and programmers have supplied useful
-comments (apologies for any missed out):
-<ul>
-<li>Malcolm Currie (Starlink, RAL)</li>
-<li>David Giaretta (Starlink, RAL)</li>
-<li>Clive Page (AstroGrid, Leicester)</li>
-<li>Clive Davenhall (Royal Observatory Edinburgh)</li>
-<li>Tim Jenness (JACH)</li>
-<li>Mike Read (ROE)</li>
-<li>Peter Draper (Starlink, Durham)</li>
-<li>Alasdair Allan (Starlink, Exeter)</li>
-<li>Roy Platon (RAL)</li>
-<li>Norman Gray (Starlink, Glasgow)</li>
-<li>Jonathan Irwin (Cambridge)</li>
-<li>Mark Allen (Strasbourg)</li>
-<li>Francois Ochsenbein (Strasbourg)</li>
-<li>Bob Mann (Edinburgh/Strasbourg)</li>
-<li>David Mills (Bristol)</li>
-<li>Douglas Morgan (Bristol)</li>
-<li>James Price (Bristol)</li>
-</ul>
-</p>
 
 </sect>
 
@@ -6106,150 +6039,13 @@ you expected.  Sorry.
 
 </sect>
 
-<sect id="tablecopy">
-<subhead><title>Tablecopy</title></subhead>
-
-<p>By loading a table in one format and saving it to another
-it is possible to use TOPCAT to convert tabular data between
-supported 
-<ref id="inFormats">input</ref> and 
-<ref id="outFormats">output</ref> formats.
-</p>
-
-<p>However, if this is all that you want to do, there is a a
-more convenient way of doing it from the command line.  This
-avoids the overhead of starting up the GUI, prevents you having to
-point and click, and may also make more efficient use of memory.
-</p>
-
-<p>Tables can be copied between formats using the '<code>tablecopy</code>'
-command.  If you have the full Unix installation this can be invoked
-using the <code>bin/tablecopy</code> shell script.
-Alternatively, it can be invoked from the jar file by doing
-<verbatim>
-   java -classpath topcat.jar  uk.ac.starlink.table.TableCopy [args]
-</verbatim>
-(the <code>topcat-full.jar</code>, <code>topcat-lite.jar</code>
-or <code>tablecopy.jar</code> jarfiles
-can be used instead if those are what you have).
-All the commments about classpaths and arguments to Java itself
-described in the section on 
-<ref id="invoke" plaintextref="yes">Invoking TOPCAT</ref>
-apply here as well.
-</p>
-
-<p>The command is straightforward to use.  Typing
-<verbatim>
-    tablecopy -help
-</verbatim>
-(or 
-<code>java -classpath topcat.jar uk.ac.starlink.table.TableCopy -help</code>)
-produces the following usage message:
-<verbatim>&tablecopy.usage;</verbatim>
-</p>
-
-<p>The flags and arguments have the following meaning:
-<dl>
-
-<dt>-disk</dt>
-<dd><p>Causes temporary files to be used for backing store when table data
-    must be stored.  Use this flag if you're getting an OutOfMemoryError
-    otherwise.
-    </p></dd>
-
-<dt>-debug</dt>
-<dd><p>Causes some logging and error reporting to be more verbose than
-    usual.
-    </p></dd>
-
-<dt>-verbose</dt>
-<dd><p>Causes progress to be reported on standard error during table reading,
-    and possibly some additional logging messages.
-    </p></dd>
-
-<dt>-help</dt>
-<dd><p>Prints a usage message to standard output.
-    </p></dd>
-
-<dt>-ifmt <em>in-format</em></dt>
-<dd><p>Specifies the input format to be used
-    (one of the known in-formats listed above - matching is case-insensitive).
-    This flag can be used if you know what format your input table is in.
-    If it's omitted, then
-    an attempt will be made to detect the format of <em>in-table</em>
-    automatically, but this cannot always be done correctly, in which
-    case the program will exit with an error explaining which formats
-    were attempted.
-    </p></dd>
-
-<dt>-ofmt <em>out-format</em></dt>
-<dd><p>Specifies the output format to be used
-    (one of the known out-formats listed above - matching is case-insensitive).
-    This flag can be used to determine what format to write to.
-    If it's omitted, then the output filename will be examined to try
-    to guess what sort of file is required (e.g. by looking at the extension).
-    If it doesn't look like any particular known type, the program will
-    exit with an error.
-    </p></dd>
-
-<dt><em>in-table</em></dt>
-<dd><p>Location of the input table.  This is typically a filename or URL.
-    </p></dd>
-
-<dt><em>out-table</em></dt>
-<dd><p>Location of the output table.  This is typically a filename to
-    write to.  In some cases it can be the special string "-" to indicate
-    output to the standard output stream.
-    </p></dd>
-
-</dl>
-</p>
-
-<p>Here are some examples of use:
-<ul>
-<li>Copy a FITS table to a VOTable:
-    <verbatim>
-    tablecopy stars.fits stars.xml
-    </verbatim>
-</li>
-
-<li>Copy a Comma-Separated Value format table to a VOTable with 
-    the data base64-encoded inline in BINARY format:
-    <verbatim>
-    tablecopy -ifmt csv -ofmt votable-binary stars.csv stars.vot
-    </verbatim>
-</li>
-
-<li>Print the contents of the fifth TABLE element in a VOTable
-    document to the screen:
-    <verbatim>
-    tablecopy -ofmt text vizier.xml#4 -
-    </verbatim>
-</li>
-
-<li>Write the results of an SQL query on a MySQL database to
-a FITS binary table:
-    <verbatim>
-    java -Djdbc.drivers=com.mysql.jdbc.Driver
-         -classpath topcat.jar:mysql-connector-java-3.0.6-stable-bin.jar
-         uk.ac.starlink.table.TableCopy
-         -ofmt fits
-         "jdbc:mysql://localhost/astro1#SELECT ra, dec, Imag, Kmag FROM dqc"
-         wfslist.cat
-    </verbatim>
-</li>
-
-</ul>
-</p>
-
-</sect>
-
 <sect id="release">
 <subhead><title>Release Notes</title></subhead>
 
 <p>This is TOPCAT, Tool for OPerations on Catalogues And Tables.
 It is a general purpose viewer and editor for astronomical tabular
-data developed by <webref url="http://www.starlink.ac.uk/">Starlink</webref>.
+data developed within the UK
+<webref url="http://www.starlink.ac.uk/">Starlink</webref> project.
 <dl>
 <dt>Author</dt>
 <dd><p>Mark Taylor (Starlink, Bristol University)</p></dd>
@@ -6260,11 +6056,105 @@ data developed by <webref url="http://www.starlink.ac.uk/">Starlink</webref>.
 
 <dt>WWW</dt>
 <dd><p><webref url="http://www.starlink.ac.uk/topcat/"/></p></dd>
-
 </dl>
 User comments, suggestions, requests and bug reports to the above address
 are welcomed.
 </p>
+
+<p>Related software products are
+<dl>
+<dt><webref url="http://www.starlink.ac.uk/stil/">STIL</webref></dt>
+<dd><p>The Starlink Tables Infrastructure Library, which provides the
+    table handling classes on which TOPCAT is based.
+    </p></dd>
+
+<dt><webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref></dt>
+<dd><p>The STIL Tool Set, which provides some command-line tools based
+    on STIL.  The intention is that this should be a non-graphical
+    counterpart to TOPCAT, providing many of the same facilities
+    (matching, row selection, format conversion etc) but in a 
+    form which can be incorporated into scripts, web services, etc.
+    The current release only contains a few of these features however.
+    </p></dd>
+</dl>
+</p>
+
+<p>The Starlink project under which TOPCAT and friends have been 
+developed has been shut down as of July 2005.
+At the time of writing, this means that there is currently no
+provision for continued support and development of the software.
+The author is currently pursuing possibilities for further funding,
+but it's not yet clear whether or how these will work out.
+Probably at least a minimal level of support will continue to be
+available, one way or another. 
+The email address above may or may not continue to be active; 
+check the 
+<webref url="http://www.starlink.ac.uk/topcat/" plaintextref="yes"
+        >TOPCAT</webref> web page for news in the future.
+</p>
+
+<subsect>
+<subhead><title>Acknowledgements</title></subhead>
+
+<p>Inspiration for many of TOPCAT's features has been taken from the
+following pre-existing tools:
+<ul>
+<li><webref url="http://cm.bell-labs.com/who/tkh/mirage/index.html"
+            >Mirage</webref>
+    (Bell labs)</li>
+<li><webref url="http://vo.iucaa.ernet.in/~voi/voplot.htm">VOPlot</webref>
+    (VO-India)</li>
+</ul>
+</p>
+
+<p>Apart from the excellent Java 2 Standard Edition itself, 
+the following external libraries provide important parts of TOPCAT's
+functionality:
+<ul>
+<li><webref url="http://galaxy.fzu.cz/JEL/">JEL</webref>
+    (GNU) for algebraic expression evaluation</li>
+<li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
+            >PixTools</webref>
+    (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
+<li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
+    (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
+    (now deprecated within TOPCAT)</li>
+<li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
+    (Ptolemy) for axis plotting</li>
+<li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
+    (Jibble) for encapsulated postscript output</li>
+<li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
+    (Acme) for GIF output</li>
+<li><webref url="http://skyservice.pha.jhu.edu/develop/vo/ivoafits/"
+            >IVOA FITS Package</webref>
+    (Sloan Digital Sky Survey) for simple (non-SoG) display of FITS images</li>
+</ul>
+</p>
+
+<p>The following users, testers and programmers have supplied useful
+comments (apologies for any missed out):
+<ul>
+<li>Malcolm Currie (Starlink, RAL)</li>
+<li>David Giaretta (Starlink, RAL)</li>
+<li>Clive Page (AstroGrid, Leicester)</li>
+<li>Clive Davenhall (Royal Observatory Edinburgh)</li>
+<li>Tim Jenness (JACH)</li>
+<li>Mike Read (ROE)</li>
+<li>Peter Draper (Starlink, Durham)</li>
+<li>Alasdair Allan (Starlink, Exeter)</li>
+<li>Roy Platon (RAL)</li>
+<li>Norman Gray (Starlink, Glasgow)</li>
+<li>Jonathan Irwin (Cambridge)</li>
+<li>Mark Allen (Strasbourg)</li>
+<li>Francois Ochsenbein (Strasbourg)</li>
+<li>Bob Mann (Edinburgh/Strasbourg)</li>
+<li>David Mills (Bristol)</li>
+<li>Douglas Morgan (Bristol)</li>
+<li>James Price (Bristol)</li>
+</ul>
+</p>
+
+</subsect>
 
 <subsect id="versions">
 <subhead><title>Version History</title></subhead>
@@ -6684,9 +6574,20 @@ introduced since the last version:
       large tables.
       </p></dd>
 
+  <dt>Documentation changes</dt>
+  <dd><p>The <code>tablecopy</code> tool is no longer covered in this
+      document; it is replaced by the <code>tcopy</code> tool in 
+      the separate
+      <webref url="http://www.starlink.ac.uk/stilts/" plaintextref="yes"
+              >STILTS</webref> package.
+      There has also been some reorganisation of this document, mainly
+      in the appendices.
+      </p></dd>
+
   <dt>Minor changes</dt>
   <dd><p>
     <ul>
+      <li>Added <code>-version</code> flag</li>
       <li>Added (dummy) <label>Print</label> option to Data Window.
           This just presents a message to the effect that you should save
           to a printable format.</li>
