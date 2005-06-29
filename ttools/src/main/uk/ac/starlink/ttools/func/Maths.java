@@ -100,7 +100,7 @@ public class Maths {
      * Euler's number <em>e</em> raised to a power.
      *
      * @param   x   the exponent to raise <em>e</em> to.
-     * @return  the value <em>e</em><sup><code>x</code></sup>,
+     * @return  the value <em>e</em><sup>x</sup>,
      *          where <em>e</em> is the base of the natural logarithms.
      */
     public static double exp(double x) {
