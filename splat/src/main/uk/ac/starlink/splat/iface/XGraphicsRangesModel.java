@@ -9,6 +9,7 @@
 package uk.ac.starlink.splat.iface;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -174,6 +175,15 @@ public class XGraphicsRangesModel
     {
         rangeObjects.add( xRange );
         fireTableRowsInserted( getRowCount() - 1, getRowCount() - 1 );
+    }
+
+    /**
+     * Get an Iterator over all the XGraphicsRange instances known to this
+     * model instance.
+     */
+    public Iterator rangeIterator()
+    {
+        return rangeObjects.iterator();
     }
 
     /**
