@@ -8,12 +8,20 @@
 
 package uk.ac.starlink.splat.iface;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -22,6 +30,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -115,9 +124,32 @@ public class StatsFrame
 
         //  Text pane to show report on statistics. Use this so that 
         //  previous reports can be reviewed.
+        JPanel statsPanel = new JPanel();
+        statsPanel.setBorder
+            ( BorderFactory.createTitledBorder( "Full stats log:" ) );
+        GridBagLayouter gbl = 
+            new GridBagLayouter( statsPanel, GridBagLayouter.SCHEME4 );
+        
         statsResults = new JTextArea();
         JScrollPane scrollPane = new JScrollPane( statsResults );
-        layouter.add( scrollPane, true );
+        gbl.add( scrollPane, true );
+
+        //  Button for saving to the log file.
+        LocalAction saveAction = new LocalAction
+            ( LocalAction.LOGSTATS, "Save to log file",
+              "Append log window contents to SPLATStats.log file" );
+        JButton saveButton = new JButton( saveAction );
+        gbl.add( saveButton, false );
+
+        //  Button for clearing log area.
+        LocalAction clearAction = 
+            new LocalAction( LocalAction.CLEARSTATS, "Clear log",
+                             "Clear log window of all content" );
+        JButton clearButton = new JButton( clearAction );
+        gbl.add( clearButton, false );
+        gbl.eatLine();
+
+        layouter.add( statsPanel, true );
 
         //  Menubar and toolbars.
         JMenuBar menuBar = new JMenuBar();
@@ -180,9 +212,9 @@ public class StatsFrame
         Action readAction = rangeList.getReadAction( "Read ranges", 
                                                      readImage );
         fileMenu.add( readAction );
-        Action saveAction = rangeList.getWriteAction( "Save ranges", 
-                                                      saveImage );
-        fileMenu.add( saveAction );
+        Action writeAction = rangeList.getWriteAction( "Save ranges", 
+                                                       saveImage );
+        fileMenu.add( writeAction );
 
 
         //  Add an action to close the window.
@@ -304,6 +336,36 @@ public class StatsFrame
     }
 
     /**
+     * Save the contents of the stats log to a disk file.
+     */
+    protected void saveStats()
+    {
+        BufferedWriter writer = null;
+        try {
+            writer = 
+                new BufferedWriter( new FileWriter( "SPLATstats.log", true ) );
+            statsResults.write( writer );
+            writer.write( "\n" );
+            writer.close();
+        }
+        catch (IOException e) {
+            JOptionPane.showMessageDialog( this, e.getMessage(),
+                                           "Failed writing SPEFO log",
+                                           JOptionPane.ERROR_MESSAGE );
+        }
+
+    }
+
+    /**
+     * Clear the stats log region.
+     */
+    protected void clearStats()
+    {
+        statsResults.selectAll();
+        statsResults.cut();
+    }
+
+    /**
      * Close the window. Delete any local resources.
      */
     protected void closeWindowEvent()
@@ -324,6 +386,8 @@ public class StatsFrame
         public static final int WHOLESTATS = 1;
         public static final int SELECTEDSTATS = 2;
         public static final int ALLSTATS = 3;
+        public static final int LOGSTATS = 4;
+        public static final int CLEARSTATS = 5;
 
         //  The type of this instance.
         private int actionType = CLOSE;
@@ -366,6 +430,14 @@ public class StatsFrame
                }
                case ALLSTATS: {
                    calcStats( ALLSTATS );
+                   break;
+               }
+               case LOGSTATS: {
+                   saveStats();
+                   break;
+               }
+               case CLEARSTATS: {
+                   clearStats();
                    break;
                }
             }

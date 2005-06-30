@@ -18,6 +18,9 @@
 
       - Spectra can now be drawn using point markers of various kinds.
 
+      - A new tool for obtaining statistics about a spectrum, or regions of a
+        spectrum has been introduced.
+
       - A new tool for setting the data units of spectra has been introduced.
 
       - A new tool for transforming spectra by a redshift or by a flip and or

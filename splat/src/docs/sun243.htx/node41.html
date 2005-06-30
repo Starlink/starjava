@@ -6,195 +6,190 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Supported data formats</TITLE>
-<META NAME="description" CONTENT="Supported data formats">
+<TITLE>Region statistics window</TITLE>
+<META NAME="description" CONTENT="Region statistics window">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
-<LINK REL="next" HREF="node43.html">
-<LINK REL="previous" HREF="node7.html">
-<LINK REL="up" HREF="sun243.html">
+<LINK REL="previous" HREF="node40.html">
+<LINK REL="up" HREF="node7.html">
 <LINK REL="next" HREF="node42.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html515"
+<A NAME="tex2html517"
  HREF="node42.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html513"
- HREF="sun243.html">
+<A NAME="tex2html515"
+ HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html507"
+<A NAME="tex2html511"
  HREF="node40.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html516"
- HREF="node42.html">Handling 2 and 3D data</A>
+<B> Next:</B> <A NAME="tex2html518"
+ HREF="node42.html">Supported data formats</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html514"
- HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
+<B>Up:</B> <A NAME="tex2html516"
+ HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html508"
+<B> Previous:</B> <A NAME="tex2html512"
  HREF="node40.html">Flip or shift or redshift a spectrum</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H1><A NAME="SECTION00050000000000000000"></A><A NAME="xref_data_formats"></A>
-<BR>
-Supported data formats
-</H1>
+<H2><A NAME="SECTION000420000000000000000">
+Region statistics window</A>
+</H2>
 
 <P>
-<I>SPLAT-VO</I> can read and write spectra stored in a wide variety of formats, either
-stored as 1D spectra or as columns in tables. 1D spectral formats supported
-are Starlink NDF &amp; NDX, FITS and simple TEXT files. Table formats supported
-are FITS (binary and ascii), VOTable and more complex TEXT files. The 1D data
-formats currently have the best coordinate system support, so are recommended
-when a choice can be made. Some support is available for 2 and 3D data, see
-later).
+Using this window you can get simple constantly updated statistics on regions
+of the current spectrum, or fuller statistics for the whole spectrum, or
+collections of regions.
 
 <P>
-Normally <I>SPLAT-VO</I> differentiates these types using a preset list of file
-extensions, for instance NDFs can only be stored in container files that have
-the extension <TT>.sdf</TT>, FITS files usually have one of the extensions
-<TT>.fits</TT> or <TT>.fit</TT> and TEXT files <TT>.txt</TT> or <TT>.lis</TT>
-and NDX format spectra, when stored on disk, will have extension
-<TT>.xml</TT>. However, you can choose a specific format when opening a file
-using the <B>File-&gt;Open</B> dialogue, so you can ask that a TEXT file
-is opened as a table, this allows you to select the columns. Alternatively you
-can specify a type for all the spectra opened on the command-line using the
-<code>--type</code> argument. Valid values for <code>--type</code> are:
-<BLOCKQUOTE>
-<PRE>
-  fits
-  hds
-  text
-  hdx
-  table
-  line ids
-</PRE>
-</BLOCKQUOTE>
-You free to truncate these values as long as they remain unique (so
-<code>--type line</code> will work for line identifiers).
+Constantly updated statistics for regions are:
 
-<P>
-Currently line identifier catalogues represent a special case and currently
-may have a single format - TEXT based in files with extension <TT>.ids</TT>.
+<UL><LI>Mean
 
-<P>
-1D spectra stored in TEXT files must have the format of one, two or three
-columns of data, separated by whitespace (that is spaces or tabs). Any
-comments in the file must be indicated by a hash sign, blank lines are also
-allowed. The three columns should have the following values:
-<BLOCKQUOTE>
-<PRE>
-  [wavelength] count [error-in-count]
-</PRE>
-</BLOCKQUOTE>
-The wavelength and error columns being optional (if you don't have a
-wavelength column a simple row index is used, note you cannot have errors
-without wavelengths) . If you choose to open a TEXT file as a table you can
-select which columns should be used for these values, and the following rules
-apply:
+<LI>Standard deviation
 
-<UL><LI>Each table row is represented by a single text line
+<LI>Minimum
 
-<LI>Anything after a `#' character on a line is ignored (except for optional
-      heading line)
-
-<LI>Blank lines are ignored
-
-<LI>Within a line, fields are separated by one or more whitespace characters
-      (space or tab)
-
-<LI>A field is either a sequence of non-whitespace characters or a sequence
-      of characters between two matching quote characters (single (') or double (")
-      quotes) - spaces are therefore allowed in quoted fields.
-
-<LI>In a quoted field any character preceded by a backslash is interpreted
-      literally, so it is possible to insert quotes into a quoted string
-
-<LI>An empty string (two adjacent quotes) represents a null element
-
-<LI>All lines must contain exactly the same number of fields
-
-<LI>An optional heading line may be included: if the last comment line (line
-      starting with a `#' before the first data line) contains the same number of
-      fields as the columns in the table, these fields are interpreted as the
-      headings (names) of the columns
+<LI>Maximum
 
 </UL>
 
 <P>
-The format of line identification catalogues is like that of simple TEXT
-spectral files, except the second column contains a string that identifies the
-line (with no spaces, <I>i.e.</I> <TT>H-alpha</TT> not <TT>H alpha</TT>). It is also
-possible to define the system of the coordinate values in a header section,
-see the <I>SPLAT-VO</I> built-in catalogues for examples of this.
+When you use the buttons along the bottom of the window these are extended to
+also include:
 
-<P>
-NDFs stored within container files can be accessed, but only by entering the
-full HDS path on the command-line or in the <B>File-&gt;Open</B> dialogue.
-FITS extensions may also be open in this fashion (by appending the extension
-number in square brackets).
+<UL><LI>Median
 
-<P>
-An alternative to specifying the component information is to use the component
-browser window <IMG
- WIDTH="24" HEIGHT="24" ALIGN="CENTER"
- SRC="browse.gif"
- ALT="2739">, to see the contents of FITS and NDF files and
-choose the component to display directly.
+<LI>Mode
 
-<P>
-Internally all these formats are stored as double precision
-coordinates and data values. <I>SPLAT-VO</I> only requires that
-<I>coordinates increase or decrease monotonically</I>
-when performing any analyses.
+<LI>Sum
 
-<P>
-<BR><HR>
-<!--Table of Child-Links-->
-<A NAME="CHILD_LINKS"></A>
+<LI>Number of data points
 
-<UL>
-<LI><A NAME="tex2html517"
- HREF="node42.html">Handling 2 and 3D data</A>
 </UL>
-<!--End of Table of Child-Links-->
+Note that the Mode is determined as 
+<!-- MATH
+ $3*Median-2*Mean$
+ -->
+3*Median-2*Mean, not from a
+distribution, so will not be correct for highly skewed distributions.
+
+<P>
+Finally if you select the <B>Options-&gt;Show extra stats</B> menu item
+you can also see:
+
+<UL><LI>Sum of squares
+
+<LI>RMS (square root of the mean square)
+
+<LI>Variance
+
+<LI>Standard error
+
+<LI>25% and 75% quantiles
+
+<LI>Skew
+
+<LI>Kurtosis
+
+</UL>
+
+<P>
+To get statistics for the whole of the current spectrum just press the 
+<B>Whole stats</B> button. If you want statistics for parts of the
+spectrum you will need to define the coordinate ranges you want to use (see
+the next part), and then press the <B>Selected stats</B> button to get
+statistics for the selected regions combined together (if none are selected
+then all regions are used), or <B>All stats</B> to get statistics for all
+the regions combined together.
+
+<P>
+<B><FONT SIZE="+1">Coordinate ranges</FONT></B>
+<BLOCKQUOTE>
+This part of the window is used to define the regions of the spectra
+that you want to see statistics for. Once defined you will see simple,
+continuously updated, statistics. You can also get fuller statistics using the
+<B>Selected stats</B> and <B>All stats</B> buttons.
+
+<P>
+To add a region press the <B>Add</B> button and then drag out a
+region in the display area of the plot window. This should result in
+the creation of a green rectangular figure.
+
+<P>
+You can interact with the figure, moving it side-to-side and resizing it. To
+do this point at the figure and press the left mouse button. This `selects'
+the figure and adds <TT>grips</TT> to its exterior. Note that it also becomes
+the selected row in the <B>Coordinate ranges:</B> table. To move the
+figure just drag it and to resize it drag a grip (the little black
+squares). The associated coordinate range in the table updates with these
+changes.
+
+<P>
+To add a second range just press <B>Add</B> and repeat. The ranges can be
+overlapped or not.
+
+<P>
+To fine tune the ranges you can edit the values in the ranges table, just
+point at the coordinate you want to change and double click the left mouse
+button. This should enable the text editing cursor. Just make the
+modifications you want and press <TT>&lt;Return&gt;</TT> to make the changes
+permanent. (Note: if your spectra have sky coordinates shown for the X axis,
+then you should use the same format for your edits).
+
+<P>
+To read a set of ranges from a disk file choose the 
+<B>File-&gt;Read ranges</B> menu item. 
+The format of the input file is simple. It should have at least two fields
+separated by whitespace or commas. Comments are indicated by lines starting
+with a hash (#) and are ignored. You can also save the ranges and simple
+statistics to disk file using (<B>File-&gt;Save ranges</B>). It is also
+possible to append the contents of the <B>Full stats log:</B> region to
+the file <TT>SPLATStats.log</TT> by pressing the <B>Save to log file</B>
+button.
+</BLOCKQUOTE>
+
+<P>
+
 <BR> <HR>
-<A NAME="tex2html515"
+<A NAME="tex2html517"
  HREF="node42.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html513"
- HREF="sun243.html">
+<A NAME="tex2html515"
+ HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html507"
+<A NAME="tex2html511"
  HREF="node40.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html516"
- HREF="node42.html">Handling 2 and 3D data</A>
+<B> Next:</B> <A NAME="tex2html518"
+ HREF="node42.html">Supported data formats</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html514"
- HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
+<B>Up:</B> <A NAME="tex2html516"
+ HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html508"
+<B> Previous:</B> <A NAME="tex2html512"
  HREF="node40.html">Flip or shift or redshift a spectrum</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>24 May 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>30 June 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

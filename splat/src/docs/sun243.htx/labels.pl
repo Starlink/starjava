@@ -63,7 +63,7 @@ $external_labels{$key} = "$URL/" . q|node8.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_data_formats/;
-$external_labels{$key} = "$URL/" . q|node41.html|; 
+$external_labels{$key} = "$URL/" . q|node42.html|; 
 $noresave{$key} = "$nosave";
 
 1;
