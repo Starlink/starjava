@@ -89,7 +89,35 @@ public class XGraphicsRange
     protected boolean constrain = true;
 
     /**
-     * Create a range interactively.
+     * Create a range interactively or non-interactively.
+     *
+     * @param plot DivaPlot that is to display the range.
+     * @param model XGraphicsRangesModel model that arranges to have the
+     *              properties of the range displayed (may be null).
+     * @param colour the colour of any figures.
+     * @param constrain whether figures are fixed to move only in X and have
+     *                  initial size of the full Y dimension of plot.
+     * @param range a pair of doubles containing the range (in physical
+     *              coordinates) to be used. Set null if the figure is to be
+     *              created interactively.
+     */
+    public XGraphicsRange( DivaPlot plot, XGraphicsRangesModel model,
+                           Color colour, boolean constrain, double[] range )
+    {
+        this( plot, model, colour, constrain );
+        if ( range == null ) {
+            startInteraction();
+        }
+        else {
+            createFromRange( range );
+        }
+    }
+
+    /**
+     * Create a range, without any coordinates. Needed for subclasses that
+     * want to create ranges, but need to defer the side-effects of creation
+     * until the scope returns to their constructor. Must be followed by a
+     * call to {@link createFromRange} or {@link startInteraction}.
      *
      * @param plot DivaPlot that is to display the range.
      * @param model XGraphicsRangesModel model that arranges to have the
@@ -98,36 +126,13 @@ public class XGraphicsRange
      * @param constrain whether figures are fixed to move only in X and have
      *                  initial size of the full Y dimension of plot.
      */
-    public XGraphicsRange( DivaPlot plot, XGraphicsRangesModel model,
-                           Color colour, boolean constrain )
+    protected XGraphicsRange( DivaPlot plot, XGraphicsRangesModel model,
+                              Color colour, boolean constrain )
     {
         setPlot( plot );
         this.model = model;
         this.colour = colour;
         this.constrain = constrain;
-        startInteraction();
-    }
-
-    /**
-     * Create a range non-interactively.
-     *
-     * @param plot DivaPlot that is to display the range.
-     * @param model XGraphicsRangesModel model that arranges to have the
-     *      properties of the range displayed (may be null).
-     * @param colour the colour of any figures.
-     * @param constrain whether figures are contrained to move only in X and
-     *      have initial size of the full Y dimension.
-     * @param range a pair of doubles containing the range (on physical
-     *      coordinates) to be used.
-     */
-    public XGraphicsRange( DivaPlot plot, XGraphicsRangesModel model,
-                           Color colour, boolean constrain, double[] range )
-    {
-        setPlot( plot );
-        this.model = model;
-        this.colour = colour;
-        this.constrain = constrain;
-        createFromRange( range );
     }
 
     /**
@@ -241,7 +246,7 @@ public class XGraphicsRange
      */
     protected void createFromRange( double[] range )
     {
-        Rectangle2D.Double figLimits =
+        Rectangle2D.Double figLimits = 
             new Rectangle2D.Double( 0.0, 0.0, 1.0, 1.0 );
         boolean old = constrain;
         constrain = true;
