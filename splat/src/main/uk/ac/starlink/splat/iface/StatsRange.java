@@ -33,7 +33,7 @@ public class StatsRange
     protected Statistics stats = new Statistics( new double[] {0.0} );
 
     /**
-     * Create a range interactively.
+     * Create a range interactively or non-interactively.
      *
      * @param control PlotControl that is to display the range.
      * @param model StatsRangesModel model that arranges to have the
@@ -41,31 +41,24 @@ public class StatsRange
      * @param colour the colour of any figures.
      * @param constrain whether figures are fixed to move only in X and have
      *                  initial size of the full Y dimension of plot.
-     */
-    public StatsRange( PlotControl control, StatsRangesModel model,
-                       Color colour, boolean constrain )
-    {
-        super( control.getPlot(), model, colour, constrain );
-        setControl( control );
-    }
-
-    /**
-     * Create a range non-interactively.
-     *
-     * @param control PlotControl that is to display the range.
-     * @param model StatsRangesModel model that arranges to have the
-     *              properties of the range displayed (may be null).
-     * @param colour the colour of any figures.
-     * @param constrain whether figures are contrained to move only in X and
-     *                  have initial size of the full Y dimension.
-     * @param range a pair of doubles containing the range (on physical
-     *      coordinates) to be used.
+     * @param range a pair of doubles containing the range (in physical
+     *              coordinates) to be used. Set null if the figure is to be
+     *              created interactively.
      */
     public StatsRange( PlotControl control, StatsRangesModel model,
                        Color colour, boolean constrain, double[] range )
     {
-        super( control.getPlot(), model, colour, constrain, range );
+        super( control.getPlot(), model, colour, constrain );
         setControl( control );
+        
+        //  Do this after construction to avoid problems with initialization
+        //  order.
+        if ( range == null ) {
+            startInteraction();
+        }
+        else {
+            createFromRange( range );
+        }
     }
 
     /**
