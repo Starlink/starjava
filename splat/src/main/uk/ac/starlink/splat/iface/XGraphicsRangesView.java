@@ -270,7 +270,7 @@ public class XGraphicsRangesView
     protected void createRange()
     {
         XGraphicsRange xRange = new XGraphicsRange( plot, model, colour,
-                                                    constrain );
+                                                    constrain, null );
     }
 
     /**
