@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -100,7 +101,25 @@ public class StatsFrame
      */
     protected void initUI()
     {
-        //  Menubar.
+
+        //  Central region.
+        JPanel centre = new JPanel();
+        GridBagLayouter layouter =
+            new GridBagLayouter( centre, GridBagLayouter.SCHEME4 );
+        contentPane.add( centre, BorderLayout.CENTER );
+
+        //  The ranges.
+        StatsRangesModel model = new StatsRangesModel( control );
+        rangeList = new StatsRangesView( control, model );
+        layouter.add( rangeList, true );
+
+        //  Text pane to show report on statistics. Use this so that 
+        //  previous reports can be reviewed.
+        statsResults = new JTextArea();
+        JScrollPane scrollPane = new JScrollPane( statsResults );
+        layouter.add( scrollPane, true );
+
+        //  Menubar and toolbars.
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar( menuBar );
         
@@ -120,7 +139,10 @@ public class StatsFrame
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         ImageIcon statsImage =
             new ImageIcon( ImageHolder.class.getResource( "sigma.gif" ) );
-
+        ImageIcon readImage =
+            new ImageIcon( ImageHolder.class.getResource( "read.gif" ) );
+        ImageIcon saveImage =
+            new ImageIcon( ImageHolder.class.getResource( "save.gif" ) );
 
         //  Statistics on the selected ranges.
         LocalAction selectedAction = 
@@ -154,6 +176,15 @@ public class StatsFrame
         actionBar.add( Box.createGlue() );
         contentPane.add( actionBar, BorderLayout.SOUTH );
 
+        //  Read and write ranges to disk file.
+        Action readAction = rangeList.getReadAction( "Read ranges", 
+                                                     readImage );
+        fileMenu.add( readAction );
+        Action saveAction = rangeList.getWriteAction( "Save ranges", 
+                                                      saveImage );
+        fileMenu.add( saveAction );
+
+
         //  Add an action to close the window.
         LocalAction closeAction = new LocalAction( LocalAction.CLOSE, 
                                                    "Close", closeImage,
@@ -170,23 +201,6 @@ public class StatsFrame
         //  Add the help menu.
         HelpFrame.createHelpMenu( "stats-window", "Help on window",
                                   menuBar, null );
-
-        //  Central region.
-        JPanel centre = new JPanel();
-        GridBagLayouter layouter =
-            new GridBagLayouter( centre, GridBagLayouter.SCHEME4 );
-        contentPane.add( centre, BorderLayout.CENTER );
-
-        //  The ranges.
-        StatsRangesModel model = new StatsRangesModel( control );
-        rangeList = new StatsRangesView( control, model );
-        layouter.add( rangeList, true );
-
-        //  Text pane to show report on statistics. Use this so that 
-        //  previous reports can be reviewed.
-        statsResults = new JTextArea();
-        JScrollPane scrollPane = new JScrollPane( statsResults );
-        layouter.add( scrollPane, true );
     }
 
     /**
