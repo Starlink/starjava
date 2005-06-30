@@ -8,11 +8,22 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Color;
+
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+
+import java.util.Iterator;
+
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.TableColumnModel;
+
 import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.util.AsciiFileParser;
 
 /**
  * StatsRangesView extends XGraphicsRangesView for use with the
@@ -62,7 +73,7 @@ public class StatsRangesView
     protected void createRange()
     {
         StatsRange xRange = new StatsRange( control, (StatsRangesModel) model, 
-                                            colour, constrain );
+                                            colour, constrain, null );
     }
 
     /**
@@ -92,39 +103,42 @@ public class StatsRangesView
 
     /**
      * Read a set of ranges from a file. These are added to the existing
-     * ranges. The file should be simple and have two fields, separated by
-     * whitespace or commas. Comments are indicated by lines starting with a
-     * hash (#) and are ignored.
+     * ranges. The file should be simple and have at least two fields,
+     * separated by whitespace or commas. Comments are indicated by lines
+     * starting with a hash (#) and are ignored.
      *
      * @param file reference to the file.
      */
     public void readRangesFromFile( File file )
     {
-//  Need to do?
-//         //  Check file exists.
-//         if ( ! file.exists() && file.canRead() && file.isFile() ) {
-//             return;
-//         }
-//         AsciiFileParser parser = new AsciiFileParser( file );
-//         if ( parser.getNFields() != 2 ) {
-//             JOptionPane.showMessageDialog
-//                 ( this,
-//                 "The format of ranges file requires just two fields + (" +
-//                 parser.getNFields() + " were found)",
-//                 "Error reading " + file.getName(),
-//                 JOptionPane.ERROR_MESSAGE );
-//         }
-//
-//         int nrows = parser.getNRows();
-//         double[] range = new double[2];
-//         for ( int i = 0; i < nrows; i++ ) {
-//             for ( int j = 0; j < 2; j++ ) {
-//                 range[j] = parser.getDoubleField( i, j );
-//             }
-//
-//             //  Create the new range.
-//             createRange( range );
-//         }
+        //  Check file exists. Note this is more or-less a copy of the method
+        //  from the superclass so we can losen the constraint requiring only
+        //  two fields.
+        if ( ! file.exists() && file.canRead() && file.isFile() ) {
+            return;
+        }
+        AsciiFileParser parser = new AsciiFileParser( file );
+        if ( parser.getNFields() < 2 ) {
+            JOptionPane.showMessageDialog
+                ( this,
+                  "The format of ranges file requires at least two fields (" +
+                  parser.getNFields() + " were found)",
+                  "Error reading " + file.getName(),
+                  JOptionPane.ERROR_MESSAGE );
+            return;
+        }
+
+        int nrows = parser.getNRows();
+        double[] range = new double[2];
+        for ( int i = 0; i < nrows; i++ ) {
+            for ( int j = 0; j < 2; j++ ) {
+                range[j] = parser.getDoubleField( i, j );
+            }
+
+            //  Create the new range. Ignores any statistical parts these will
+            //  be re-generated.
+            createRange( range );
+        }
     }
 
     /**
@@ -134,44 +148,53 @@ public class StatsRangesView
      */
     public void writeRangesToFile( File file )
     {
-//  Need to do?
-//         //  Get a BufferedWriter to write the file line-by-line.
-//         FileOutputStream f = null;
-//         BufferedWriter r = null;
-//         try {
-//             f = new FileOutputStream( file );
-//             r = new BufferedWriter( new OutputStreamWriter( f ) );
-//         }
-//         catch ( Exception e ) {
-//             e.printStackTrace();
-//             return;
-//         }
+        //  Get a BufferedWriter to write the file line-by-line.
+        FileOutputStream f = null;
+        BufferedWriter r = null;
+        try {
+            f = new FileOutputStream( file );
+            r = new BufferedWriter( new OutputStreamWriter( f ) );
+        }
+        catch ( Exception e ) {
+            e.printStackTrace();
+            return;
+        }
 
-//         // Add a header to the file.
-//         try {
-//             r.write( "# File created by "+ Utilities.getReleaseName() +"\n" );
-//         }
-//         catch ( Exception e ) {
-//             e.printStackTrace();
-//         }
+        // Add a header to the file.
+        try {
+            r.write( "# File created by "+ Utilities.getReleaseName() +"\n" );
+        }
+        catch ( Exception e ) {
+            e.printStackTrace();
+        }
 
-//         // Now write the data.
-//         double[] ranges = getRanges( false );
-//         for ( int i = 0; i < ranges.length; i += 2 ) {
-//             try {
-//                 r.write( ranges[i] + " " + ranges[i + 1] + "\n" );
-//             }
-//             catch ( Exception e ) {
-//                 e.printStackTrace();
-//             }
-//         }
-//         try {
-//             r.newLine();
-//             r.close();
-//             f.close();
-//         }
-//         catch ( Exception e ) {
-//             //  Do nothing.
-//         }
+        // Now write the data.
+        if ( model instanceof StatsRangesModel ) {
+            
+        }
+
+        Iterator i = model.rangeIterator();
+        StatsRange s = null;
+        double[] range = null;
+        while ( i.hasNext() ) {
+            s = (StatsRange) i.next();
+            range = s.getRange();
+            try {
+                r.write( range[0] + " " + range[1] + " " +
+                         s.getMean() + " " + s.getStandardDeviation() + " " +
+                         s.getMin() + " " + s.getMax() + "\n" );
+            }
+            catch ( Exception e ) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            r.newLine();
+            r.close();
+            f.close();
+        }
+        catch ( Exception e ) {
+            //  Do nothing.
+        }
     }
 }
