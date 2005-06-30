@@ -200,6 +200,7 @@ public class ControlWindow extends AuxWindow
         logAct = new ControlAction( "View Log", ResourceIcon.LOG,
                                     "Display the log of events" );
         readAct.setEnabled( canRead );
+        logAct.setEnabled( LogHandler.getInstance() != null );
 
         dupAct = new ExportAction( "Duplicate Table", ResourceIcon.COPY,
                                    "Create a duplicate of the current table" );

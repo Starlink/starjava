@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import java.util.logging.MemoryHandler;
 import java.util.logging.SimpleFormatter;
 import javax.swing.Action;
@@ -48,7 +49,9 @@ public class LogHandler extends MemoryHandler {
     private Document doc_;
     private LogWindow logWindow_;
 
+    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
     private static LogHandler instance_;
+    private static boolean configureFailed_;
 
     /**
      * Private constructor.
@@ -76,13 +79,22 @@ public class LogHandler extends MemoryHandler {
 
     /**
      * Returns the sole instance of this class.
+     * A null result may be returned if the Security Manager will not 
+     * permit logging configuration to be performed.
      *
      * @return   singleton handler
      */
     public static LogHandler getInstance() {
-        if ( instance_ == null ) {
-            DocHandler target = new DocHandler();
-            instance_ = new LogHandler( target );
+        if ( instance_ == null && ! configureFailed_ ) {
+            try {
+                DocHandler target = new DocHandler();
+                instance_ = new LogHandler( target );
+            }
+            catch ( SecurityException e ) {
+                logger_.info( "Logging configuration failed" +
+                              " - security exception" );
+                configureFailed_ = true;
+            }
         }
         return instance_;
     }

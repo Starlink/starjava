@@ -624,26 +624,45 @@ public class Driver {
      */
     private static void configureLogging( int verbosity ) {
 
-        /* Add a custom log handler. */
-        Logger rootLogger = Logger.getLogger( "" );
-        rootLogger.addHandler( LogHandler.getInstance() );
+        /* Try to acquire a custom log handler - may fail for security
+         * reasons. */
+        LogHandler customHandler = LogHandler.getInstance();
+	if ( customHandler == null ) {
+            return;
+        }
+        try {
 
-        /* Work out the logging level to which the requested verbosity 
-         * corresponds. */
-        int verbInt = Math.max( Level.ALL.intValue(),
-                                Level.WARNING.intValue()
-                                - verbosity * ( Level.WARNING.intValue() -
-                                                Level.INFO.intValue() ) );
-        Level verbLevel = Level.parse( Integer.toString( verbInt ) );
+            /* Add a custom log handler. */
+            Logger rootLogger = Logger.getLogger( "" );
+            rootLogger.addHandler( customHandler );
 
-        /* Get the root logger's console handler.  By default it has one
-         * of these; if it doesn't then some custom logging is in place
-         * and we won't mess about with it. */
-        Handler[] rootHandlers = rootLogger.getHandlers();
-        if ( rootHandlers.length > 0 &&
-             rootHandlers[ 0 ] instanceof ConsoleHandler ) {
-            rootHandlers[ 0 ].setLevel( verbLevel );
-            rootHandlers[ 0 ].setFormatter( new LineFormatter() );
+            /* Work out the logging level to which the requested verbosity 
+             * corresponds. */
+            int verbInt = Math.max( Level.ALL.intValue(),
+                                    Level.WARNING.intValue()
+                                    - verbosity * 
+                                      ( Level.WARNING.intValue() -
+                                        Level.INFO.intValue() ) );
+            Level verbLevel = Level.parse( Integer.toString( verbInt ) );
+
+            /* Get the root logger's console handler.  By default
+             * it has one of these; if it doesn't then some custom 
+             * logging is in place and we won't mess about with it. */
+            Handler[] rootHandlers = rootLogger.getHandlers();
+            if ( rootHandlers.length > 0 &&
+                 rootHandlers[ 0 ] instanceof ConsoleHandler ) {
+                rootHandlers[ 0 ].setLevel( verbLevel );
+                rootHandlers[ 0 ].setFormatter( new LineFormatter() );
+            }
+        }
+
+        /* I don't think this should happen, since the earlier test should
+         * already have failed if we don't have permission to muck about
+         * with logging configuration.  However, I don't fully understand
+         * the logging security model, so maybe it could. */
+        catch ( SecurityException e ) {
+            logger.warning( "Logging configuration failed" +
+                            " - security exception" );
         }
     }
 }
