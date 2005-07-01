@@ -577,6 +577,7 @@
     <!-- Build AstException C source -->
     <exec executable="${perl}"
           output="${src.jni}/AstException.c"
+          logError="yes"
           failonerror="yes">
       <arg file="${src.perl}/AstException.pl"/>
       <arg value="-c"/>
@@ -586,6 +587,7 @@
     <!-- Build AstException Java source -->
     <exec executable="${perl}" 
           output="${java.dir}/${package.path}/AstException.java"
+          logError="yes"
           failonerror="yes">
       <arg file="${src.perl}/AstException.pl"/>
       <arg value="-java"/>
@@ -595,6 +597,7 @@
     <!-- Build miscellaneous Java sources -->
     <exec executable="${perl}"
           output="${java.dir}/${package.path}/UinterpCalculator.java"
+          logError="yes"
           failonerror="yes">
       <arg file="${src.perl}/UinterpCalculator.pl"/> 
     </exec>
@@ -611,6 +614,7 @@
     <echo message="Generating ${pj.class}.java"/>
     <exec executable="${perl}"
           output="${java.dir}/${package.path}/${pj.class}.java"
+          logError="yes"
           failonerror="yes">
       <arg value="-I${src.perl}"/>
       <arg file="${src.perl}/${pj.class}.pl"/>
