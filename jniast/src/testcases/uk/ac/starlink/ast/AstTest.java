@@ -792,7 +792,7 @@ public class AstTest extends TestCase {
         int ast__air = WcsMap.AST__AIR;
         AstObject.getAstConstantD( "AST__BAD" );
 
-        Matcher matcher = Pattern.compile( "AST V([23])\\.([0-9]+)-([0-9]+); " +
+        Matcher matcher = Pattern.compile( "AST V([234])\\.([0-9]+)-([0-9]+); "+
                                            "JNIAST native V3\\.5-0; " +
                                            "JNIAST java V3\\.5-0" )
                                  .matcher( AstObject.reportVersions() );
