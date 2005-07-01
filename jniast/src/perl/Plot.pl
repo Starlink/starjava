@@ -452,6 +452,15 @@ makeGetAttrib( @args );
 makeSetAttrib( @args );
 
 @args = (
+   name => ( $aName = "clip" ),
+   type => 'int',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
    name => ( $aName = "clipOp" ),
    type => 'boolean',
    purpose => AttPurpose( $aName ),

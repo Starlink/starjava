@@ -379,13 +379,14 @@ public class Plot extends FrameSet {
      * This function defines regions of a Plot which are to be clipped.
      * Any subsequent graphical output created using the Plot will then
      * be visible only within the unclipped regions of the plotting
-     * area.
+     * area. See also the Clip attribute.
      * <h4>Notes</h4>
      * <br> - Only one clipping Frame may be active at a time. This function
      * will deactivate any previously-established clipping Frame before
      * setting up new clipping limits.
      * <br> - The clipping produced by this function is in addition to that
-     * which always occurs at the edges of the plotting area
+     * specified by the Clip attribute which occurs at the edges of the 
+     * plotting area
      * established when the Plot is created (see astPlot). The
      * underlying graphics system may also impose further clipping.
      * <br> - When testing a graphical position for clipping, it is first
@@ -768,6 +769,58 @@ public class Plot extends FrameSet {
      */
     public void setBorder( boolean border ) {
        setB( "Border", border );
+    }
+
+    /**
+     * Get 
+     * clip lines and/or markers at the Plot boundary.  
+     * This attribute controls whether curves and markers are clipped at the 
+     * boundary of the graphics box specified when the Plot was created. A 
+     * value of 3 implies both markers and curves are clipped at the Plot
+     * boundary. A value of 2 implies markers are clipped, but not curves. A 
+     * value of 1 implies curves are clipped, but not markers. A value of
+     * zero implies neither curves nor markers are clipped. The default
+     * value is 1. Note, this attributes controls only the clipping
+     * performed internally within AST. The underlying graphics system may
+     * also apply clipping. In such cases, removing clipping using this
+     * attribute does not guarantee that no clipping will be visible in the 
+     * final plot.
+     * <p>
+     * The astClip function
+     * can be used to establish generalised clipping within arbitrary
+     * regions of the Plot.
+     * 
+     *
+     * @return  this object's Clip attribute
+     */
+    public int getClip() {
+        return getI( "Clip" );
+    }
+
+    /**
+     * Set 
+     * clip lines and/or markers at the Plot boundary.  
+     * This attribute controls whether curves and markers are clipped at the 
+     * boundary of the graphics box specified when the Plot was created. A 
+     * value of 3 implies both markers and curves are clipped at the Plot
+     * boundary. A value of 2 implies markers are clipped, but not curves. A 
+     * value of 1 implies curves are clipped, but not markers. A value of
+     * zero implies neither curves nor markers are clipped. The default
+     * value is 1. Note, this attributes controls only the clipping
+     * performed internally within AST. The underlying graphics system may
+     * also apply clipping. In such cases, removing clipping using this
+     * attribute does not guarantee that no clipping will be visible in the 
+     * final plot.
+     * <p>
+     * The astClip function
+     * can be used to establish generalised clipping within arbitrary
+     * regions of the Plot.
+     * 
+     *
+     * @param  clip   the Clip attribute of this object
+     */
+    public void setClip( int clip ) {
+       setI( "Clip", clip );
     }
 
     /**

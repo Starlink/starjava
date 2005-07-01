@@ -70,6 +70,7 @@ f     AST_CLIP) to limit the extent of any plotting you perform, and
 *     Plot also has the following attributes:
 *
 *     - Border: Draw a border around valid regions of a Plot?
+*     - Clip: Clip lines and/or markers at the Plot boundary?
 *     - ClipOp: Combine Plot clipping limits using a boolean OR?
 *     - Colour(element): Colour index for a Plot element
 *     - DrawAxes(axis): Draw axes for a Plot?
@@ -526,6 +527,16 @@ f     - Title: The Plot title drawn using AST_GRID
 *     8-NOV-2004 (DSB):
 *        - In Norm1, try more alternative "other axis" values before
 *        accepting that a tick mark value cannot be normalised.
+*     2-FEB-2005 (DSB):
+*        - Avoid using astStore to allocate more storage than is supplied
+*        in the "data" pointer. This can cause access violations since 
+*        astStore will then read beyond the end of the "data" area.
+*     15-MAR-2005 (DSB):
+*        - Modified GridLines to use appropriate algorithm for choosing
+*        start of grid lines in cases where one axis has logarithmic tick 
+*        spacing and the other has linear tick spacing.
+*     21-MAR-2005 (DSB):
+*        - Added the Clip attribute.
 *class--
 */
 
@@ -1393,6 +1404,7 @@ static int Crv_ink;
 static int Crv_nbrk;
 static int Crv_nent = 0;
 static int Crv_out;
+static int Crv_clip;
 static void (*Crv_map)( int, double *, double *, double *, const char *, const char * );
 
 /* The lower and upper bounds of the graphics coordinates enclosing all
@@ -1500,6 +1512,11 @@ static int GetClipOp( AstPlot * );
 static int TestClipOp( AstPlot * );
 static void ClearClipOp( AstPlot * );
 static void SetClipOp( AstPlot *, int );
+
+static int GetClip( AstPlot * );
+static int TestClip( AstPlot * );
+static void ClearClip( AstPlot * );
+static void SetClip( AstPlot *, int );
 
 static int GetGrf( AstPlot * );
 static int TestGrf( AstPlot * );
@@ -1655,9 +1672,10 @@ static CurveData **DrawGrid( AstPlot *, TickInfo **, int, const char *, const ch
 static TickInfo **CleanGrid( TickInfo ** );
 static TickInfo **GridLines( AstPlot *, double *, double *, int *, const char *, const char * );
 static TickInfo *TickMarks( AstPlot *, int, double *, double *, int *, const char *, const char * );
-static char **CheckLabels2( AstFrame *, int, double *, int, char **, double );
+static char **CheckLabels2( AstPlot *, AstFrame *, int, double *, int, char **, double );
 static char *FindWord( char *, const char *, const char ** );
 static char *GrfItem( int, const char * );
+static const char *FormatValue( AstPlot *, AstFrame *, int, double );
 static const char *JustMB( AstPlot *, int, const char *, float *, float *, float, float, const char *, float, float, float, float, float *, float *, const char *, const char * );
 static double **MakeGrid( AstPlot *, AstFrame *, AstMapping *, int, double, double, double, double, int, AstPointSet **, AstPointSet**, int, const char *, const char * );
 static double GetTicks( AstPlot *, int, double *, double **, int *, int *, int, int *, double *, const char *, const char * );
@@ -1669,15 +1687,15 @@ static int Border( AstPlot * );
 static int Boundary( AstPlot *, const char *, const char * );
 static int BoxCheck( float *, float *, float *, float * );
 static int CGAttrWrapper( AstPlot *, int, double, double *, int );
-static int CGScalesWrapper( AstPlot *, float *, float * );
+static int CGCapWrapper( AstPlot *, int, int );
 static int CGFlushWrapper( AstPlot * );
 static int CGLineWrapper( AstPlot *, int, const float *, const float * );
 static int CGMarkWrapper( AstPlot *, int, const float *, const float *, int );
-static int CGCapWrapper( AstPlot *, int, int );
 static int CGQchWrapper( AstPlot *, float *, float * );
+static int CGScalesWrapper( AstPlot *, float *, float * );
 static int CGTextWrapper( AstPlot *, const char *, float, float, const char *, float, float );
 static int CGTxExtWrapper( AstPlot *, const char *, float, float, const char *, float, float, float *, float * );
-static int CheckLabels( AstFrame *, int, double *, int, int, char **, double );
+static int CheckLabels( AstPlot *, AstFrame *, int, double *, int, int, char **, double );
 static int ChrLen( const char * );
 static int Compare_LL( const void *, const void * );
 static int Compared( const void *, const void * );
@@ -1686,11 +1704,12 @@ static int Cross( float, float, float, float, float, float, float, float );
 static int CvBrk( AstPlot *, int, double *, double *, double * );
 static int EdgeCrossings( AstPlot *, int, int, double, double *, double **, const char *, const char * );
 static int EdgeLabels( AstPlot *, int, TickInfo **, CurveData **, const char *, const char * );
+static int FindDPTZ( AstFrame *, int, const char *, const char *, int *, int * );
 static int FindMajTicks( AstMapping *, AstFrame *, int, double, double, double , double *, int, double *, double ** );
 static int FindMajTicks2( int, double, double, int, double *, double ** );
-static int FindDPTZ( AstFrame *, int, const char *, const char *, int *, int * );
 static int FindString( int, const char *[], const char *, const char *, const char *, const char * );
 static int FullForm( const char *, const char *, const char *, const char *, const char * );
+static int GCap( AstPlot *, int, int );
 static int GVec( AstPlot *, AstMapping *, double *, int, double, AstPointSet **, AstPointSet **, double *, double *, double *, double *, int *, const char *, const char *);
 static int GetUseColour( AstPlot *, int );
 static int GetUseFont( AstPlot *, int );
@@ -1700,6 +1719,7 @@ static int IdFind( int, int *, int * );
 static int Inside( int, float *, float *, float, float);
 static int IsASkyFrame( AstObject * );
 static int Overlap( AstPlot *, int, int, const char *, float, float, const char *, float, float, float **, const char *, const char *);
+static int PopGat( AstPlot *, float *, const char *, const char * );
 static int TestUseColour( AstPlot *, int );
 static int TestUseFont( AstPlot *, int );
 static int TestUseSize( AstPlot *, int );
@@ -1726,12 +1746,11 @@ static void DrawText( AstPlot *, int, int, const char *, float, float, const cha
 static void DrawTicks( AstPlot *, TickInfo **, int, double *, double *, const char *, const char * );
 static void Dump( AstObject *, AstChannel * );
 static void GAttr( AstPlot *, int, double, double *, int, const char *, const char * );
-static void GScales( AstPlot *, float *, float *, const char *, const char *  );
 static void GFlush( AstPlot *, const char *, const char * );
 static void GLine( AstPlot *, int, const float *, const float *, const char *, const char * );
 static void GMark( AstPlot *, int, const float *, const float *, int, const char *, const char * );
 static void GQch( AstPlot *, float *, float *, const char *, const char *  );
-static int GCap( AstPlot *, int, int );
+static void GScales( AstPlot *, float *, float *, const char *, const char *  );
 static void GText( AstPlot *, const char *, float, float, const char *, float, float, const char *, const char * );
 static void GTxExt( AstPlot *, const char *, float , float, const char *, float, float, float *, float *, const char *, const char * );
 static void GenCurve( AstPlot *, AstMapping * );
@@ -1755,9 +1774,8 @@ static void Norm1( AstMapping *, int, int, double *, double, double );
 static void Opoly( AstPlot *, const char *, const char * );
 static void PlotLabels( AstPlot *, int, AstFrame *, int, LabelList *, char *, int, float **, const char *, const char *);
 static void PolyCurve( AstPlot *, int, int, int, const double * );
-static void PushGat( AstPlot *, float, const char *, const char * );
-static int PopGat( AstPlot *, float *, const char *, const char * );
 static void PurgeCdata( CurveData * );
+static void PushGat( AstPlot *, float, const char *, const char * );
 static void RemoveFrame( AstFrameSet *, int );
 static void RightVector( AstPlot *, float *, float *, float *, float *, const char *, const char * );
 static void Text( AstPlot *, const char *, const double [], const float [2], const char *);
@@ -1998,6 +2016,50 @@ astMAKE_GET(Plot,Border,int,1,(this->border == -1 ? 1 : this->border))
 
 MAKE_SET2(Plot,UsedBorder,int,uborder,( value ? 1 : 0 ))
 MAKE_GET2(Plot,UsedBorder,int,1,this->uborder)
+
+/* Clip */
+/* ---- */
+/*
+*att++
+*  Name:
+*     Clip
+
+*  Purpose:
+*     Clip lines and/or markers at the Plot boundary?
+
+*  Type:
+*     Public attribute.
+
+*  Synopsis:
+*     Integer.
+
+*  Description:
+*     This attribute controls whether curves and markers are clipped at the 
+*     boundary of the graphics box specified when the Plot was created. A 
+*     value of 3 implies both markers and curves are clipped at the Plot
+*     boundary. A value of 2 implies markers are clipped, but not curves. A 
+*     value of 1 implies curves are clipped, but not markers. A value of
+*     zero implies neither curves nor markers are clipped. The default
+*     value is 1. Note, this attributes controls only the clipping
+*     performed internally within AST. The underlying graphics system may
+*     also apply clipping. In such cases, removing clipping using this
+*     attribute does not guarantee that no clipping will be visible in the 
+*     final plot.
+*
+c     The astClip function
+f     The AST_CLIP routine
+*     can be used to establish generalised clipping within arbitrary
+*     regions of the Plot.
+
+*  Applicability:
+*     Plot
+*        All Plots have this attribute.
+*att--
+*/
+astMAKE_CLEAR(Plot,Clip,clip,-1)
+astMAKE_GET(Plot,Clip,int,0,(this->clip == -1 ? 1 : this->clip))
+astMAKE_TEST(Plot,Clip,( this->clip != -1 ))
+astMAKE_SET(Plot,Clip,int,clip,((value>=0&&value<=3)?value:(astError( AST__ATTIN, "astSetClip(Plot): Invalid value %d supplied for Clip attribute", value ), this->clip)))
 
 /* ClipOp */
 /* ------ */
@@ -3998,6 +4060,7 @@ static void AxPlot( AstPlot *this, int axis, const double *start, double length,
       Crv_ybrk = cdata->ybrk;
       Crv_vxbrk = cdata->vxbrk;
       Crv_vybrk = cdata->vybrk;
+      Crv_clip = astGetClip( this ) & 1;
 
 /* Set up a list of points spread evenly over the curve. */
       for( i = 0; i < CRV_NPNT; i++ ){
@@ -5301,8 +5364,9 @@ static int CGScalesWrapper( AstPlot *this, float *alpha, float *beta ) {
    return ( (AstGScalesFun) this->grffun[ AST__GSCALES ])( alpha, beta );
 }
 
-static int CheckLabels( AstFrame *frame, int axis, double *ticks, int nticks, 
-                        int force, char **list, double refval ){
+static int CheckLabels( AstPlot *this, AstFrame *frame, int axis, 
+                        double *ticks, int nticks, int force, char **list, 
+                        double refval ){
 /*
 *  Name:
 *     CheckLabels
@@ -5315,8 +5379,8 @@ static int CheckLabels( AstFrame *frame, int axis, double *ticks, int nticks,
 
 *  Synopsis:
 *     #include "plot.h"
-*     int CheckLabels( AstFrame *frame, int axis, double *ticks, int nticks, 
-*                      int force, char **list, double refval )
+*     int CheckLabels( AstPlot *this, AstFrame *frame, int axis, double *ticks,
+*                      int nticks, int force, char **list, double refval )
 
 *  Class Membership:
 *     Plot member function.
@@ -5330,6 +5394,8 @@ static int CheckLabels( AstFrame *frame, int axis, double *ticks, int nticks,
 *     that adjacent labels are all different and the labels are returned.
 
 *  Parameters:
+*     this
+*        Pointer to the Plot.
 *     frame
 *        Pointer to the Frame.
 *     axis
@@ -5386,7 +5452,7 @@ static int CheckLabels( AstFrame *frame, int axis, double *ticks, int nticks,
    val[ axis ] = ticks[ 0 ];
    val[ 1 - axis ] = refval;
    astNorm( frame, val );
-   label = astFormat( frame, axis, val[ axis ] );
+   label = FormatValue( this, frame, axis, val[ axis ] );
 
 /* Allocate memory holding a copy of the formatted value, and store a
    pointer to this copy in the list of labels. */
@@ -5402,7 +5468,7 @@ static int CheckLabels( AstFrame *frame, int axis, double *ticks, int nticks,
       val[ axis ] = ticks[ i ];
       val[ 1 - axis ] = refval;
       astNorm( frame, val );
-      label = astFormat( frame, axis, val[ axis ] );
+      label = FormatValue( this, frame, axis, val[ axis ] );
       if( label ){
 
 /* Unless checks have been supressed, compare this label with the previous 
@@ -5438,8 +5504,9 @@ static int CheckLabels( AstFrame *frame, int axis, double *ticks, int nticks,
 
 }
 
-static char **CheckLabels2( AstFrame *frame, int axis, double *ticks, int nticks, 
-                            char **old_list, double refval ){
+static char **CheckLabels2( AstPlot *this, AstFrame *frame, int axis, 
+                            double *ticks, int nticks, char **old_list, 
+                            double refval ){
 /*
 *  Name:
 *     CheckLabels2
@@ -5452,8 +5519,9 @@ static char **CheckLabels2( AstFrame *frame, int axis, double *ticks, int nticks
 
 *  Synopsis:
 *     #include "plot.h"
-*     char **CheckLabels2( AstFrame *frame, int axis, double *ticks, 
-*                          int nticks, char **old_list, double refval )
+*     char **CheckLabels2( AstPlot *this, AstFrame *frame, int axis, 
+*                          double *ticks, int nticks, char **old_list, 
+*                          double refval )
 
 *  Class Membership:
 *     Plot member function.
@@ -5471,6 +5539,8 @@ static char **CheckLabels2( AstFrame *frame, int axis, double *ticks, int nticks
 *     adjacent labels.
 
 *  Parameters:
+*     this
+*        Pointer to the Plot.
 *     frame
 *        Pointer to the Frame.
 *     axis
@@ -5530,7 +5600,7 @@ static char **CheckLabels2( AstFrame *frame, int axis, double *ticks, int nticks
          val[ axis ] = ticks[ i ];
          val[ 1 - axis ] = refval;
          astNorm( frame, val );
-         label = astFormat( frame, axis, val[ axis ] );
+         label = FormatValue( this, frame, axis, val[ axis ] );
          if( label ){
 
 /* Get the length of the new label. */
@@ -6139,10 +6209,15 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
    } else if ( !strcmp( attrib, "border" ) ) {
       astClearBorder( this );
 
-/* OuClipOp. */
+/* ClipOp. */
 /* ------- */
    } else if ( !strcmp( attrib, "clipop" ) ) {
       astClearClipOp( this );
+
+/* Clip. */
+/* ----- */
+   } else if ( !strcmp( attrib, "clip" ) ) {
+      astClearClip( this );
 
 /* Grf. */
 /* ---- */
@@ -6275,7 +6350,7 @@ c     This function defines regions of a Plot which are to be clipped.
 f     This routine defines regions of a Plot which are to be clipped.
 *     Any subsequent graphical output created using the Plot will then
 *     be visible only within the unclipped regions of the plotting
-*     area.
+*     area. See also the Clip attribute.
 
 *  Parameters:
 c     this
@@ -6322,7 +6397,8 @@ f     - Only one clipping Frame may be active at a time. This routine
 *     setting up new clipping limits.
 c     - The clipping produced by this function is in addition to that
 f     - The clipping produced by this routine is in addition to that
-*     which always occurs at the edges of the plotting area
+*     specified by the Clip attribute which occurs at the edges of the 
+*     plotting area
 c     established when the Plot is created (see astPlot). The
 f     established when the Plot is created (see AST_PLOT). The
 *     underlying graphics system may also impose further clipping.
@@ -6860,6 +6936,8 @@ static void Crv( AstPlot *this, double *d, double *x, double *y, int skipbad,
 *        A pointer to a function which can be called to map "n" distances 
 *        along the curve (supplied in "dd") into graphics coordinates 
 *        (stored in "xx" and "yy"). See function "Map1" as an example.
+*     Crv_clip = int (Read)
+*        Should lines be clipped at the edge of the plotting area?
 
 *  Notes:
 *     - The CRV_TRACE conditional compilation blocks in this function
@@ -6963,7 +7041,7 @@ static void Crv( AstPlot *this, double *d, double *x, double *y, int skipbad,
       last_x = *x;
       last_y = *y;
       all_bad = ( *x < Crv_xlo || *x > Crv_xhi || 
-                  *y < Crv_ylo || *y > Crv_yhi );
+                  *y < Crv_ylo || *y > Crv_yhi ) && Crv_clip;
    } else {
       last_ok = 0;
       all_bad = 1;
@@ -7005,8 +7083,8 @@ static void Crv( AstPlot *this, double *d, double *x, double *y, int skipbad,
 
 /* If the point is within the plotting area, set the "all_bad" flag to
    indicate that at least 1 point is within the plotting area. */
-         if( *px >= Crv_xlo && *px <= Crv_xhi &&
-             *py >= Crv_ylo && *py <= Crv_yhi ) all_bad = 0;
+         if( !Crv_clip || ( *px >= Crv_xlo && *px <= Crv_xhi &&
+                            *py >= Crv_ylo && *py <= Crv_yhi ) ) all_bad = 0;
 
 /* If the point marking the start of the segment was also good, find and 
    store the increments and squared length for the segment, incrementing 
@@ -7461,9 +7539,10 @@ static void CrvLine( AstPlot *this, double xa, double ya, double xb, double yb,
 *  Description:
 *     This functions draws a straight line from (xa,ya) to (xb,yb), breaking 
 *     the line at the edges of the plotting area defined by Crv_xlo, Crv_xhi,
-*     Crv_ylo and Crv_yhi. If the line does not start at the end of the 
-*     previous line plotted by this function, then information describing
-*     the break in the curve is stored in external arrays.
+*     Crv_ylo and Crv_yhi if Crv_clip is non-zero. If the line does not start 
+*     at the end of the previous line plotted by this function, then 
+*     information describing the break in the curve is stored in external 
+*     arrays.
 
 *  Parameters:
 *     xa
@@ -7485,6 +7564,8 @@ static void CrvLine( AstPlot *this, double xa, double ya, double xb, double yb,
 *     Crv_ink = int (Read)
 *        If zero then no line is drawn even if the line intersects the
 *        plotting space, but break information (etc) is still returned.
+*     Crv_clip = double (Read)
+*        Clip lines at boundary of plotting space?
 *     Crv_xlo = double (Read)
 *        Lower x limit of the plotting space.
 *     Crv_xhi = double (Read)
@@ -7572,8 +7653,10 @@ static void CrvLine( AstPlot *this, double xa, double ya, double xb, double yb,
 /* If either end is outside the zone, replace the given coordinates with
    the end coordinates of the section of the line which lies within the
    zone. */
-   if( xa < Crv_xlo || xa > Crv_xhi || xb < Crv_xlo || xb > Crv_xhi ||
-       ya < Crv_ylo || ya > Crv_yhi || yb < Crv_ylo || yb > Crv_yhi ){
+   if( Crv_clip && ( xa < Crv_xlo || xa > Crv_xhi || 
+                     xb < Crv_xlo || xb > Crv_xhi ||
+                     ya < Crv_ylo || ya > Crv_yhi ||  
+                     yb < Crv_ylo || yb > Crv_yhi ) ){
 
 /* Find the distance from point B towards point A at which the
    line cuts the two x bounds of the zone (distance at point B is
@@ -8002,6 +8085,7 @@ static void CurvePlot( AstPlot *this, const double *start, const double *finish,
       Crv_ybrk = cdata->ybrk;
       Crv_vxbrk = cdata->vxbrk;
       Crv_vybrk = cdata->vybrk;
+      Crv_clip = astGetClip( this ) & 1;
 
 /* Set up a list of points spread evenly over the curve. */
       for( i = 0; i < CRV_NPNT; i++ ){
@@ -11788,6 +11872,134 @@ static char *FindWord( char *ptr, const char *d, const char **p ) {
    return ret;
 }
 
+
+static const char *FormatValue( AstPlot *this, AstFrame *frm, int axis, 
+                                double value ) {
+/*
+*  Name:
+*     FormatValue
+
+*  Purpose:
+*     Format a coordinate value for a Frame axis.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "timeframe.h"
+*     const char *FormatValue( AstPlot *this, AstFrame *frm, int axis, 
+*                              double value )
+
+*  Class Membership:
+*     Plot member function 
+
+*  Description:
+*     This function provides the same functionality as the Frame
+*     astFormat method, with the addition that long formatted values (such
+*     as the date/time format produced by the TimeFrame class) are split 
+*     if possible onto two line sby inclusion of Plot escape sequences.
+
+*  Parameters:
+*     this
+*        Pointer to the Plot.
+*     frm
+*        Pointer to the Frame.
+*     axis
+*        The number of the axis (zero-based) for which formatting is to be
+*        performed.
+*     value
+*        The coordinate value to be formatted, in radians.
+
+*  Returned Value:
+*     A pointer to a null-terminated string containing the formatted value.
+
+*  Notes:
+*     -  A NULL pointer will be returned if this function is invoked with the
+*     global error status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   char *d;    
+   const char *result;    
+   int i;
+   int id;
+   int idmin;
+   int imin;
+   int l;
+   int lead_spaces;
+   int linelen;
+   int naft;
+   int nbef;
+   static char buf[ 200 ];
+
+/* Check the global error status. */
+   if ( !astOK ) return NULL;
+
+/* Format the value using the astFormat method. */
+   result = astFormat( frm, axis, value );
+
+/* Do nothing more if the formatted value already contains graphical
+   escape sequences, or if graphical escapes sequences are not being
+   interpreted. */
+   if( result && astGetEscape( this ) && !HasEscapes( result ) ) {
+
+/* Find a space close to the centre of the formatted string. */
+      l = strlen( result );
+      idmin = 2*l;
+      imin = -1;
+      for( i = 0; i < l; i++ ) {
+         if( isspace( result[ i ] ) ) {
+            id = abs( i - l/2 );
+            if( id < idmin ) {
+               idmin = id;
+               imin = i;
+            }
+         }
+      }
+
+/* Do nothing if no spaces were found */
+      if( imin != -1 ) {
+
+/* How many characters before and after the space? */
+         nbef = imin;
+         naft = l - imin - 1;         
+
+/* Find the length of the longer line (top or bottom). */
+         linelen = ( nbef > naft ) ? nbef : naft;
+
+/* Copy the top line into the buffer, centering it by padding with spaces. */
+         for( i = 0; i < linelen; i++ ) buf[ i ] = ' ';
+         lead_spaces = ( linelen - nbef )/2;
+         for( i = 0; i < nbef; i++ ) buf[ i + lead_spaces ] = result[ i ];
+
+/* Add an escape sequence which moves the pen down 1 character height. */
+         d = buf + linelen;
+         d += sprintf( d, "%%v100+" );
+
+/* Add an escape sequence which moves the pen backwards 1 line length (this 
+   is approximate). */         
+         d += sprintf( d, "%%<%d+", (int) ( 60.0*linelen + 0.5 ) );
+
+/* Copy the bottom line into the buffer, centering it by padding with spaces. */
+         for( i = 0; i < linelen; i++ ) d[ i ] = ' ';
+         lead_spaces = ( linelen - naft )/2;
+         for( i = 0; i < naft; i++ ) d[ i + lead_spaces ] = result[ i + nbef + 1 ];
+
+/* Terminate it. */
+         d[ linelen ] = 0;         
+
+/* Return a pointer to the buffer. */
+         result = buf;         
+      }
+   }
+
+/* If an error occurred, clear the returned value. */
+   if ( !astOK ) result = NULL;
+
+/* Return the result. */
+   return result;
+}
+
 static AstFrameSet *Fset2D( AstFrameSet *fset, int ifrm ) {
 /*
 *  Name:
@@ -12391,6 +12603,7 @@ f        The global status.
       Crv_ybrk = Curve_data.ybrk;
       Crv_vxbrk = Curve_data.vxbrk;
       Crv_vybrk = Curve_data.vybrk;
+      Crv_clip = astGetClip( this ) & 1;
 
 /* Set up a list of points spread evenly over the curve. */
       for( i = 0; i < CRV_NPNT; i++ ){
@@ -13222,6 +13435,15 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
          result = buff;
       }
 
+/* Clip. */
+/* ----- */
+   } else if ( !strcmp( attrib, "clip" ) ) {
+      ival = astGetClip( this );
+      if ( astOK ) {
+         (void) sprintf( buff, "%d", ival );
+         result = buff;
+      }
+
 /* Grf. */
 /* ---- */
    } else if ( !strcmp( attrib, "grf" ) ) {
@@ -13848,10 +14070,13 @@ static double GetTicks( AstPlot *this, int axis, double *cen, double **ticks,
    double maxv;              /* Max axis value */
    double minv;              /* Min axis value */
    double new_used_gap;      /* New value for the used gap size */
+   double old_used_gap;      /* Old value for the used gap size */
    double test_gap;          /* Trial gap size */
    double used_cen;          /* Used value of cen */
    double used_gap;          /* The used gap size */
    int findcen;              /* Find a new centre value? */
+   int gap_too_small;        /* Test gap too small? */
+   int gap_too_large;        /* Test gap too large? */
    int i;                    /* Axis index */
    int ihi;                  /* Highest tick mark index */
    int ilo;                  /* Lowest tick mark index */
@@ -14145,6 +14370,10 @@ static double GetTicks( AstPlot *this, int axis, double *cen, double **ticks,
          test_gap = defgaps[ axis ];
          used_gap = 0.0;
 
+/* Initialise flags saying the test gap is too large or too small */
+         gap_too_large = 0;
+         gap_too_small = 0;
+
 /* Loop round until a gap size is found which gives an acceptable number
    of tick marks. Upto 10 gap sizes are tried. */
          for( i = 0; i < 10 && astOK; i++ ){
@@ -14159,6 +14388,7 @@ static double GetTicks( AstPlot *this, int axis, double *cen, double **ticks,
    otherwise we just retain the values created from the previous run with
    this gap size. */
             if( new_used_gap != used_gap ) {
+               old_used_gap = used_gap;
                used_gap = new_used_gap;
                if( *ticks ) *ticks = astFree( *ticks );
                if( cen ) *cen = cen0;
@@ -14175,16 +14405,44 @@ static double GetTicks( AstPlot *this, int axis, double *cen, double **ticks,
    gap was too large to produce any ticks, try using half the gap size. */
             if( *nmajor == 0 ) {
                test_gap *= 0.5;
+               gap_too_large = 1;
+               gap_too_small = 0;
 
-/* If there were some ticks, but not enough, decrease the gap size in
-   proportion to the shortfall. */
+/* If there were some ticks, but not enough... */
             } else if( *nmajor < mintick ){
-               test_gap *= (double)( *nmajor )/(double)( mintick );
 
-/* If there were too many ticks, increase the gap size in proportion to the 
-   excess. */
+/* If the previous test gap produced too many ticks, use the current gap
+   size. */
+               if( gap_too_small ) {
+                  break;
+
+/* Otherwise, decrease the gap size in proportion to the shortfall. */
+               } else {
+                  test_gap *= (double)( *nmajor )/(double)( mintick );
+                  gap_too_large = 1;
+                  gap_too_small = 0;
+               }
+
+/* If there were too many ticks... */
             } else if( *nmajor > maxticks ){
-               test_gap *= (double)( *nmajor )/(double)( maxticks );
+
+/* If the previous test gap produced too few ticks, use the previous gap
+   size. */
+               if( gap_too_large ) {
+                  used_gap = old_used_gap;
+                  if( *ticks ) *ticks = astFree( *ticks );
+                  if( cen ) *cen = cen0;
+                  *nmajor = FindMajTicks( map, frame, axis, *refval, width[ 1-axis ], 
+                                          used_gap, cen, ngood[ axis ], 
+                                          ptr[ axis ], ticks );
+                  break;
+
+/* Otherwise, increase the gap size in proportion to the excess. */
+               } else {
+                  test_gap *= (double)( *nmajor )/(double)( maxticks );
+                  gap_too_small = 1;
+                  gap_too_large = 0;
+               }
 
 /* If the number of ticks is acceptable, break out of the loop early.*/
             } else {
@@ -15478,6 +15736,7 @@ f        The global status.
    double labelat[ 2 ];    /* Axis values at which tick marks are put */
    int axis;               /* Physical axis index */
    int border;             /* Draw a border? */
+   int clip;               /* Original Clip attribute value */
    int dounits[2];         /* Include Units in each axis label? */
    int drawgrid;           /* Is a grid of lines to be drawn? */
    int clredge;            /* Clear the Edge attributes before returning? */
@@ -15528,6 +15787,14 @@ f        The global status.
                 "Frame of the supplied %s is invalid - this number should "
                 "be 2.", method, class, naxes, class );
    } 
+
+/* Ensure that all lines are clipped at the plot boundary.*/
+   if( astTestClip( this ) ) {
+      clip = astGetClip( this );
+      astSetClip( this, 1 );
+   } else {      
+      clip = -1;
+   }
 
 /* If the protected attribute "Ink" is set to zero, then the plot
    is drawn in "invisble ink" (i.e. all the calculations needed to
@@ -15725,6 +15992,9 @@ f        The global status.
 /* Restore the original value of the flag which says whether graphical 
    escape sequences should be incldued in any returned text strings. */
    astEscapes( escs );
+
+/* Restore the original value of the Clip attribute. */
+   if( clip != -1 ) astSetClip( this, clip );
 
 /* Copy the total bounding box to the box which is returned by
    astBoundingBox. */
@@ -16007,13 +16277,15 @@ static TickInfo **GridLines( AstPlot *this, double *cen, double *gap,
 /* Check that the pointers can be used. */
             if( astOK ) {
 
-/* The section starts one gap below the first tick. Limit it to the
-   displayed range of the axis. */
-               starts[ 0 ] = MIN( top, MAX( bot, ticks[ 0 ]/gap[ 1 - j ] ) );
-
-/* The section ends one gap above the first tick. Limit it to the
-   displayed range of the axis. */
-               end = MIN( top, MAX( bot, ticks[ nticks - 1 ]*gap[ 1 - j ] ) );
+/* The section starts one gap below the first tick, and ends one gap above 
+   the first tick. Limit both to the displayed range of the axis. */
+               if( logticks[ 1 - j ] ) {
+                  starts[ 0 ] = MIN( top, MAX( bot, ticks[ 0 ]/gap[ 1 - j ] ) );
+                  end = MIN( top, MAX( bot, ticks[ nticks - 1 ]*gap[ 1 - j ] ) );
+               } else {
+                  starts[ 0 ] = MIN( top, MAX( bot, ticks[ 0 ] - gap[ 1 - j ] ) );
+                  end = MIN( top, MAX( bot, ticks[ nticks - 1 ] + gap[ 1 - j ] ) );
+               }
 
 /* Store the length of the section. */
                lengths[ 0 ] = end - starts[ 0 ];
@@ -16822,6 +17094,10 @@ void astInitPlotVtab_(  AstPlotVtab *vtab, const char *name ) {
    vtab->SetClipOp = SetClipOp;
    vtab->GetClipOp = GetClipOp;
    vtab->TestClipOp = TestClipOp;
+   vtab->ClearClip = ClearClip;
+   vtab->SetClip = SetClip;
+   vtab->GetClip = GetClip;
+   vtab->TestClip = TestClip;
    vtab->ClearGrf = ClearGrf;
    vtab->SetGrf = SetGrf;
    vtab->GetGrf = GetGrf;
@@ -18290,6 +18566,7 @@ static void LinePlot( AstPlot *this, double xa, double ya, double xb,
    Crv_ybrk = cdata->ybrk;
    Crv_vxbrk = cdata->vxbrk;
    Crv_vybrk = cdata->vybrk;
+   Crv_clip = astGetClip( this ) & 1;
 
 /* Create a set of evenly spaced values between 0.0 and 1.0. These are the
    offsets the edge of the plotting zone at which the mapping is tested. */
@@ -19298,11 +19575,14 @@ f     - If any marker position is clipped (see AST_CLIP), then the
    double **ptr2;          /* Pointer to graphics positions */
    double *xpd;            /* Pointer to next double precision x value */ 
    double *ypd;            /* Pointer to next double precision y value */ 
+   double xx;              /* X axis value */
+   double yy;              /* Y axis value */
    float *x;               /* Pointer to single precision x values */ 
    float *xpf;             /* Pointer to next single precision x value */ 
    float *y;               /* Pointer to single precision y values */ 
    float *ypf;             /* Pointer to next single precision y value */ 
    int axis;               /* Axis index */
+   int clip;               /* Clips marks at plot boundary? */
    int i;                  /* Loop count */
    int naxes;              /* No. of axes in the base Frame */
    int nn;                 /* Number of good marker positions */
@@ -19385,13 +19665,20 @@ f     - If any marker position is clipped (see AST_CLIP), then the
       ypd = ptr2[ 1 ];
    
 /* Convert the double precision values to single precision, rejecting
-   any bad marker positions. */
+   any bad marker positions. If clipping is switched on, also clip any
+   markers with centres outside the plotting area. */
+      clip = astGetClip( this ) & 2;
       nn = 0;
       for( i = 0; i < nmark; i++ ){
          if( *xpd != AST__BAD && *ypd != AST__BAD ){
-            nn++;
-            *(xpf++) = (float) *(xpd++);
-            *(ypf++) = (float) *(ypd++);
+            xx = *(xpd++);
+            yy = *(ypd++);
+            if( !clip || ( xx >= this->xlo && xx <= this->xhi &&
+                           yy >= this->ylo && yy <= this->yhi ) ) {
+               nn++;
+               *(xpf++) = (float) xx;
+               *(ypf++) = (float) yy;
+            }
          } else {
             xpd++;
             ypd++;
@@ -20504,6 +20791,7 @@ f        The global status.
       Crv_xhi = this->xhi;
       Crv_ylo = this->ylo;
       Crv_yhi = this->yhi;
+      Crv_clip = astGetClip( this ) & 1;
 
 /* Set up a list of points spread evenly over each curve segment. */
       for( i = 0; i < CRV_NPNT; i++ ){
@@ -21090,6 +21378,13 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
         ( 1 == astSscanf( setting, "clipop= %d %n", &ival, &nc ) )
         && ( nc >= len ) ) {
       astSetClipOp( this, ival );
+
+/* Clip. */
+/* ----- */
+   } else if ( nc = 0,
+        ( 1 == astSscanf( setting, "clip= %d %n", &ival, &nc ) )
+        && ( nc >= len ) ) {
+      astSetClip( this, ival );
 
 /* Grf. */
 /* ---- */
@@ -21901,6 +22196,11 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
    } else if ( !strcmp( attrib, "clipop" ) ) {
       result = astTestClipOp( this );
 
+/* Clip. */
+/* ----- */
+   } else if ( !strcmp( attrib, "clip" ) ) {
+      result = astTestClip( this );
+
 /* Grf. */
 /* ---- */
    } else if ( !strcmp( attrib, "grf" ) ) {
@@ -22526,7 +22826,8 @@ static void TextLabels( AstPlot *this, int edgeticks, int dounits[2],
             units = astGetUnit( this, axis );
             if( units && units[0] ){
                ulen = ChrLen( units );
-               new_text = astStore( NULL, (void *) text, tlen + ulen + 4 );
+               new_text = astMalloc( tlen + ulen + 4 );
+               if( new_text ) memcpy( new_text, text, tlen );
                
                text = new_text + tlen;
 
@@ -23234,7 +23535,7 @@ static TickInfo *TickMarks( AstPlot *this, int axis, double *cen, double *gap,
 /* Not all subclasses of Frame support this format specifier, so format a 
    test value, and see if it has two fields, the first of which is "10".
    If not, we cannot use log labels so re-instate the original format. */
-      nf = astFields( frame, axis, "%&g", astFormat( frame, axis, 1.0E4 ),
+      nf = astFields( frame, axis, "%&g", FormatValue( this, frame, axis, 1.0E4 ),
                       MAXFLD, fields, nc, &junk );
       if( nf != 2 || nc[ 0 ] != 2 || strncmp( fields[ 0 ], "10", 2 ) ) {
          if( old_format ) {
@@ -23282,11 +23583,11 @@ static TickInfo *TickMarks( AstPlot *this, int axis, double *cen, double *gap,
    in order not to foil the users choice of format. That is, "ok" is set
    non-zero by the call to CheckLabels, even if some identical adjacent
    labels are found. */
-      ok = CheckLabels( frame, axis, ticks, nmajor, 1, labels, refval );
+      ok = CheckLabels( this, frame, axis, ticks, nmajor, 1, labels, refval );
 
 /* Note the format used. */
       fmt = astGetFormat( frame, axis );
-      used_fmt = (char *) astStore( used_fmt, (void *) fmt, strlen( fmt ) + 1 );
+      if( fmt ) used_fmt = (char *) astStore( used_fmt, (void *) fmt, strlen( fmt ) + 1 );
 
 /* If no precision has been specified for the axis, we need to find a
    Digits value which gives different labels, but without using any more 
@@ -23298,7 +23599,7 @@ static TickInfo *TickMarks( AstPlot *this, int axis, double *cen, double *gap,
       labels = (char **) astMalloc( sizeof(char *)*(size_t)nmajor );
 
 /* Produce these default labels. */
-      CheckLabels( frame, axis, ticks, nmajor, 1, labels, refval );
+      CheckLabels( this, frame, axis, ticks, nmajor, 1, labels, refval );
 
 /* The first task is to decide what the smallest usable number of digits 
    is. Starting at the default number of digits used above to produce the
@@ -23315,7 +23616,7 @@ static TickInfo *TickMarks( AstPlot *this, int axis, double *cen, double *gap,
    and compares them with the old labels in "labels". If any of the new labels
    are longer than the corresponding old labels, then a null pointer is
    returned. Otherwise, a pointer is returned to the new set of labels. */
-         newlabels = CheckLabels2( frame, axis, ticks, nmajor, oldlabels, refval );
+         newlabels = CheckLabels2( this, frame, axis, ticks, nmajor, oldlabels, refval );
 
 /* Free the old labels unless they are the orignal labels (which are
    needed below). */
@@ -23352,7 +23653,7 @@ static TickInfo *TickMarks( AstPlot *this, int axis, double *cen, double *gap,
    in all adjacent labels being different. Note the format used (we know 
    the Format attribute is currently unset, but the default Format string
    reflects the current value of the Digits attribute). */
-         if( CheckLabels( frame, axis, ticks, nmajor, 0, labels, refval ) ) {
+         if( CheckLabels( this, frame, axis, ticks, nmajor, 0, labels, refval ) ) {
             ok = 1;
             fmt = astGetFormat( frame, axis );
             used_fmt = (char *) astStore( NULL, (void *) fmt, strlen( fmt ) + 1 );
@@ -23522,6 +23823,8 @@ static void TraceBorder( AstPlot *this, double **ptr1, double **ptr2, int dim, i
    int lbad;          /* Was the previous cell corner bad? */
    int lost;          /* Has the curve been lost? */
    int ncell;         /* No. of cells in the fine grid */
+   int npass;         /* No. of passes through loop */
+   int npass_lim;     /* Maximum number of passes through loop to make */
    int test_edge;     /* Edge to test for a crossing */
 
 /* Check the global error status. */
@@ -23762,13 +24065,16 @@ static void TraceBorder( AstPlot *this, double **ptr1, double **ptr2, int dim, i
       ed = ed0;
 
 /* We now follow the curve until it crosses one of the edges of the grid, or 
-   is lost. */
+   is lost. Loops in the border may cause an infinte loop so abort after
+   half the cells in the grid have been checked. */
+      npass = 0;
+      npass_lim = 0.5*ncell*ncell;
       lost = 0;
-      while( !lost ){
+      while( !lost && npass++ < npass_lim ){
+         k = j*dim + i;
 
 /* Store pointers to the graphics and physical coordinates at the four corners 
    of the current cell. */
-         k = j*dim + i;
          gx[ 0 ] = ptr1[ 0 ] + k;
          gy[ 0 ] = ptr1[ 1 ] + k; 
          px[ 0 ] = ptr2[ 0 ] + k;
@@ -25652,6 +25958,16 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
    ival = set ? GetClipOp( this ) : astGetClipOp( this );
    astWriteInt( channel, "ClpOp", set, 0, ival, "Clip using logical OR?" );
 
+/* Clip. */
+/* ----- */
+   set = TestClip( this );
+   ival = set ? GetClip( this ) : astGetClip( this );
+   astWriteInt( channel, "Clip", set, 0, ival, 
+                ((ival == 0)?"Do not clip at plot edges": 
+                ((ival == 1)?"Clip curves at plot edges": 
+                ((ival == 2)?"Clip markers at plot edges":
+                             "Clip markers and curves at plot edges"))));
+
 /* DrawTitle. */
 /* --------- */
    set = TestDrawTitle( this );
@@ -26466,6 +26782,12 @@ AstPlot *astInitPlot_( void *mem, size_t size, int init, AstPlotVtab *vtab,
    be used. */
       new->invisible = -1;
 
+/* By default clip markers but not curves at the boundary of the plotting
+   area. This was the only behaviour available prior to the introduction of
+   the Clip attribute, and is chosen as the default to maintain backwards
+   compatibility. */
+      new->clip = -1;
+
 /* Is clipping to be done using a logical OR operation between the axes? 
    Store a value of -1 to indicate that no value has yet been set. This will 
    cause a default value of 0 (no, i.e. a logical AND) to be used. */
@@ -26798,6 +27120,11 @@ AstPlot *astLoadPlot_( void *mem, size_t size,
 /* ------- */
       new->clipop = astReadInt( channel, "clpop", -1 );
       if ( TestClipOp( new ) ) SetClipOp( new, new->clipop );
+
+/* Clip. */
+/* ----- */
+      new->clip = astReadInt( channel, "clip", -1 );
+      if ( TestClip( new ) ) SetClip( new, new->clip );
 
 /* DrawTitle. */
 /* --------- */
