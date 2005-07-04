@@ -125,6 +125,12 @@ f     The SkyFrame class does not define any new routines beyond those
 *        Added astResolvePoints method.
 *     2-DEC-2004 (DSB):
 *        Added System "J2000"
+*     27-JAN-2005 (DSB):
+*        Fix memory leaks in astLoadSkyFrame_ and Match.
+*     7-APR-2005 (DSB):
+*        Allow SkyRefIs to be set to "Ignored".
+*     12-MAY-2005 (DSB):
+*        Override astNormBox method.
 *class--
 */
 
@@ -143,8 +149,10 @@ f     The SkyFrame class does not define any new routines beyond those
 #define BAD_REF 0
 #define POLE_REF 1
 #define ORIGIN_REF 2
+#define IGNORED_REF 3
 #define POLE_STRING "Pole"
 #define ORIGIN_STRING "Origin"
+#define IGNORED_STRING "Ignored"
 
 /*
 *
@@ -522,6 +530,7 @@ int astTest##attr##_( AstSkyFrame *this, int axis ) { \
 #include "sphmap.h"              /* Cartesian<->Spherical transformations */
 #include "skyframe.h"            /* Interface definition for this class */
 #include "slalib.h"              /* SLALIB library interface */
+#include "wcsmap.h"              /* Factors of PI */
 
 /* Error code definitions. */
 /* ----------------------- */
@@ -537,6 +546,26 @@ int astTest##attr##_( AstSkyFrame *this, int axis ) { \
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+
+/* Type Definitions. */
+/* ================= */
+
+/* Cached Line structure. */
+/* ---------------------- */
+/* This structure contains information describing a line segment within a
+   SkyFrame. It differs from the AstLineDef defined in frame.h because
+   positions are represented by 3D (x,y,z) cartesian coords rather than
+   2D (long,lat) coords. */
+
+typedef struct SkyLineDef {
+   AstFrame *frame;            /* Pointer to Frame in which the line is defined */
+   double length;              /* Line length */
+   double start[3];            /* Unit vector defining start of line */
+   double end[3];              /* Unit vector defining end of line */
+   double dir[3];              /* Unit vector defining line direction */
+   double q[3];                /* Unit vector perpendicular to line */
+} SkyLineDef;
+
 
 /* Module Variables. */
 /* ================= */
@@ -609,6 +638,7 @@ static double GetEpoch( AstFrame * );
 static double GetEquinox( AstSkyFrame * );
 static double GetTop( AstFrame *, int );
 static double Offset2( AstFrame *, const double[2], double, double, double[2] );
+static int GetActiveUnit( AstFrame * );
 static int GetAsTime( AstSkyFrame *, int );
 static int GetDirection( AstFrame *, int );
 static int GetLatAxis( AstSkyFrame * );
@@ -618,6 +648,7 @@ static int IsEquatorial( AstSystemType );
 static int MakeSkyMapping( AstSkyFrame *, AstSkyFrame *, AstSystemType, AstMapping ** );
 static int Match( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame ** );
 static int SubFrame( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame ** );
+static int TestActiveUnit( AstFrame * );
 static int TestAsTime( AstSkyFrame *, int );
 static int TestAttrib( AstObject *, const char * );
 static int TestEquinox( AstSkyFrame * );
@@ -633,6 +664,7 @@ static void Copy( const AstObject *, AstObject * );
 static void Delete( AstObject * );
 static void Dump( AstObject *, AstChannel * );
 static void Norm( AstFrame *, double[] );
+static void NormBox( AstFrame *, double[], double[], AstMapping * );
 static void Offset( AstFrame *, const double[], const double[], double, double[] );
 static void Overlay( AstFrame *, const int *, AstFrame * );
 static void Resolve( AstFrame *, const double [], const double [], const double [], double [], double *, double * );
@@ -645,6 +677,12 @@ static void SetNegLon( AstSkyFrame *, int );
 static void SetProjection( AstSkyFrame *, const char * );
 static void Shapp( double, double *, double *, double, double * );
 static void Shcal( double, double, double, double *, double * );
+static AstLineDef *LineDef( AstFrame *, const double[2], const double[2] );
+static int LineCrossing( AstFrame *, AstLineDef *, AstLineDef *, double ** );
+static int LineContains( AstFrame *, AstLineDef *, int, double * );
+static int LineIncludes( SkyLineDef *, double[3] );
+static void LineOffset( AstFrame *, AstLineDef *, double, double, double[2] );
+static void VerifyMSMAttrs( AstSkyFrame *, AstSkyFrame *, int, const char *, const char * );
 
 static double GetSkyRef( AstSkyFrame *, int );
 static int TestSkyRef( AstSkyFrame *, int );
@@ -1229,6 +1267,40 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
    return result;
 }
 
+static int GetActiveUnit( AstFrame *this_frame ) {
+/*
+*  Name:
+*     GetActiveUnit
+
+*  Purpose:
+*     Obtain the value of the ActiveUnit flag for a SkyFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "skyframe.h"
+*     int GetActiveUnit( AstFrame *this_frame ) 
+
+*  Class Membership:
+*     SkyFrame member function (over-rides the astGetActiveUnit protected
+*     method inherited from the Frame class).
+
+*  Description:
+*    This function returns the value of the ActiveUnit flag for a
+*    SkyFrame, which is always 0.
+
+*  Parameters:
+*     this
+*        Pointer to the SkyFrame.
+
+*  Returned Value:
+*     The value to use for the ActiveUnit flag (0).
+
+*/
+   return 0;
+}
+
 static int GetAsTime( AstSkyFrame *this, int axis ) {
 /*
 *  Name:
@@ -1501,6 +1573,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
       if ( astOK ) {
          if( ival == POLE_REF ){
             result = POLE_STRING;
+         } else if( ival == IGNORED_REF ){
+            result = IGNORED_STRING;
          } else {
             result = ORIGIN_STRING;
          }
@@ -2239,7 +2313,8 @@ static const char *GetLabel( AstFrame *this, int axis ) {
          }
 
 /* If the SkyRef attribute has a set value, append " offset" to the label. */
-         if( astTestSkyRef( this, 0 ) || astTestSkyRef( this, 1 ) ) {
+         if( astGetSkyRefIs( this ) != IGNORED_REF && 
+             ( astTestSkyRef( this, 0 ) || astTestSkyRef( this, 1 ) ) ) {
             sprintf( buff, "%s offset", result );
             result = buff;
          }
@@ -2549,8 +2624,10 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 		      (int) system );
          }
 
-/* If the SkyRef attribute had a set value, prepend "D" to the Symbol. */
-         if( astTestSkyRef( this, 0 ) || astTestSkyRef( this, 1 ) ){
+/* If the SkyRef attribute had a set value, prepend "D" (for "delta") to the 
+   Symbol. */
+         if( astGetSkyRefIs( this ) != IGNORED_REF && 
+             ( astTestSkyRef( this, 0 ) || astTestSkyRef( this, 1 ) ) ) {
             sprintf( buff, "D%s", result );
             result = buff;
          }
@@ -2760,8 +2837,9 @@ static const char *GetTitle( AstFrame *this_frame ) {
       system = astGetSystem( this );
 
 /* See if an offset coordinate system is being used.*/
-      offset = astTestSkyRef( this, 0 ) || astTestSkyRef( this, 1 );
-
+      offset = ( astTestSkyRef( this, 0 ) || astTestSkyRef( this, 1 ) )
+               && ( astGetSkyRefIs( this ) != IGNORED_REF );
+      
 /* Use this to determine if the word "coordinates" or "offsets" should be
    used.*/
       word = offset ? "offsets" : "coordinates";
@@ -2778,32 +2856,41 @@ static const char *GetTitle( AstFrame *this_frame ) {
 /* --------------------------- */
 /* Display the Equinox and Epoch values. */
 	 case AST__FK4:
-	    pos = sprintf( buff,
-		           "FK4 equatorial %s; mean equinox B%s; ", word,
-		           astFmtDecimalYr( slaEpb( equinox ), 9 ) );
-            pos += sprintf( buff + pos,
-                            "epoch B%s", astFmtDecimalYr( slaEpb( epoch ), 9 ) );
+	    pos = sprintf( buff, "FK4 equatorial %s", word );
+            if( astTestEquinox( this ) || astGetUseDefs( this ) ) {
+   	       pos += sprintf( buff + pos, "; mean equinox B%s", 
+		               astFmtDecimalYr( slaEpb( equinox ), 9 ) );
+            }
+            if( astTestEpoch( this ) || astGetUseDefs( this ) ) {
+               pos += sprintf( buff + pos,
+                               "; epoch B%s", astFmtDecimalYr( slaEpb( epoch ), 9 ) );
+            }
 	    break;
 
 /* FK4 coordinates with no E-terms of aberration. */
 /* ---------------------------------------------- */
 /* Display the Equinox and Epoch values. */
 	 case AST__FK4_NO_E:
-	    pos = sprintf( buff,
-			   "FK4 equatorial %s; no E-terms; mean "
-			   "equinox B%s; ", word,
-                           astFmtDecimalYr( slaEpb( equinox ), 9 ) );
-            pos += sprintf( buff + pos,
-                            "epoch B%s", astFmtDecimalYr( slaEpb( epoch ), 9 ) );
+	    pos = sprintf( buff, "FK4 equatorial %s; no E-terms", word );
+            if( astTestEquinox( this ) || astGetUseDefs( this ) ) {
+   	       pos += sprintf( buff + pos, "; mean equinox B%s", 
+		               astFmtDecimalYr( slaEpb( equinox ), 9 ) );
+            }
+            if( astTestEpoch( this ) || astGetUseDefs( this ) ) {
+               pos += sprintf( buff + pos,
+                               "; epoch B%s", astFmtDecimalYr( slaEpb( epoch ), 9 ) );
+            }
 	    break;
 
 /* FK5 equatorial coordinates. */
 /* --------------------------- */
 /* Display only the Equinox value. */
 	 case AST__FK5:
-	    pos = sprintf( buff,
-                           "FK5 equatorial %s; mean equinox J%s", word,
-                           astFmtDecimalYr( slaEpj( equinox ), 9 ) );
+	    pos = sprintf( buff, "FK5 equatorial %s", word );
+            if( astTestEquinox( this ) || astGetUseDefs( this ) ) {
+   	       pos += sprintf( buff + pos, "; mean equinox J%s", 
+		               astFmtDecimalYr( slaEpj( equinox ), 9 ) );
+            }
 	    break;
 
 /* J2000 equatorial coordinates. */
@@ -2828,26 +2915,29 @@ static const char *GetTitle( AstFrame *this_frame ) {
 	 case AST__GAPPT:
 	    pos = sprintf( buff,
                            "Geocentric apparent equatorial %s; "
-                           "epoch J%s", word, astFmtDecimalYr( slaEpj( epoch ), 9 ) );
+                           "; epoch J%s", word, astFmtDecimalYr( slaEpj( epoch ), 9 ) );
 	    break;
 
 /* Ecliptic coordinates. */
 /* --------------------- */
 /* Display only the Equinox value. */
 	 case AST__ECLIPTIC:
-	    pos = sprintf( buff,
-                           "Ecliptic %s; mean equinox J%s", word,
-                           astFmtDecimalYr( slaEpj( equinox ), 9 ) );
+	    pos = sprintf( buff, "Ecliptic %s", word );
+            if( astTestEquinox( this ) || astGetUseDefs( this ) ) {
+   	       pos += sprintf( buff + pos, "; mean equinox J%s", 
+		               astFmtDecimalYr( slaEpj( equinox ), 9 ) );
+            }
 	    break;
 
 /* Helio-ecliptic coordinates. */
 /* --------------------------- */
 /* Display only the Epoch value (equinox is fixed). */
 	 case AST__HELIOECLIPTIC:
-	    pos = sprintf( buff,
-                           "Helio-ecliptic %s; mean equinox J2000,"
-                           " epoch J%s", word,
-                           astFmtDecimalYr( slaEpj( epoch ), 9 ) );
+	    pos = sprintf( buff, "Helio-ecliptic %s; mean equinox J2000", word );
+            if( astTestEpoch( this ) || astGetUseDefs( this ) ) {
+   	       pos += sprintf( buff + pos, "; epoch J%s", 
+		               astFmtDecimalYr( slaEpj( epoch ), 9 ) );
+            }
 	    break;
 
 /* Galactic coordinates. */
@@ -3179,6 +3269,7 @@ void astInitSkyFrameVtab_(  AstSkyFrameVtab *vtab, const char *name ) {
    frame->Angle = Angle;
    frame->Distance = Distance;
    frame->Norm = Norm;
+   frame->NormBox = NormBox;
    frame->Resolve = Resolve;
    frame->ResolvePoints = ResolvePoints;
    frame->Offset = Offset;
@@ -3186,6 +3277,12 @@ void astInitSkyFrameVtab_(  AstSkyFrameVtab *vtab, const char *name ) {
    frame->ValidateSystem = ValidateSystem;
    frame->SystemString = SystemString;
    frame->SystemCode = SystemCode;
+   frame->LineDef = LineDef;
+   frame->LineContains = LineContains;
+   frame->LineCrossing = LineCrossing;
+   frame->LineOffset = LineOffset;
+   frame->GetActiveUnit = GetActiveUnit;
+   frame->TestActiveUnit = TestActiveUnit;
 
 /* Store pointers to inherited methods that will be invoked explicitly
    by this class. */
@@ -3263,6 +3360,549 @@ static int IsEquatorial( AstSystemType system ) {
    return result;
 }
 
+static int LineContains( AstFrame *this, AstLineDef *l, int def, double *point ) {
+/*
+*  Name:
+*     LineContains
+
+*  Purpose:
+*     Determine if a line contains a point.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "skyframe.h"
+*     int LineContains( AstFrame *this, AstLineDef *l, int def, double *point )
+
+*  Class Membership:
+*     SkyFrame member function (over-rides the protected astLineContains
+*     method inherited from the Frame class).
+
+*  Description:
+*     This function determines if the supplied point is on the supplied
+*     line within the supplied Frame. The start point of the line is 
+*     considered to be within the line, but the end point is not. The tests 
+*     are that the point of closest approach of the line to the point should 
+*     be between the start and end, and that the distance from the point to 
+*     the point of closest aproach should be less than 1.0E-7 of the length 
+*     of the line.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame.
+*     l
+*        Pointer to the structure defining the line. 
+*     def
+*        Should be set non-zero if the "point" array was created by a
+*        call to astLineCrossing (in which case it may contain extra
+*        information following the axis values),and zero otherwise.
+*     point
+*        Point to an array containing the axis values of the point to be 
+*        tested, possibly followed by extra cached information (see "def").
+
+*  Returned Value:
+*     A non-zero value is returned if the line contains the point. 
+
+*  Notes:
+*     - The pointer supplied for "l" should have been created using the 
+*     astLineDef method. These structures contained cached information about 
+*     the lines which improve the efficiency of this method when many 
+*     repeated calls are made. An error will be reported if the structure 
+*     does not refer to the Frame specified by "this".
+*     - Zero will be returned if this function is invoked with the global 
+*     error status set, or if it should fail for any reason.
+*-
+*/
+
+/* Local Variables: */
+   SkyLineDef *sl;               /* SkyLine information */
+   const int *perm;              /* Pointer to axis permutation array */
+   double *b;                    /* Pointer to Cartesian coords array */
+   double bb[3];                 /* Buffer for Cartesian coords */
+   double p1[2];                 /* Buffer for Spherical coords */
+   double t1, t2;
+   int result;                   /* Returned value */
+
+/* Initialise */
+   result =0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Check that the line refers to the supplied Frame. */
+   if( l->frame != this ) {
+      astError( AST__INTER, "astLineContains(%s): The supplied line does "
+                "not relate to the supplied %s (AST internal programming "
+                "error).", astGetClass( this ), astGetClass( this ) );
+
+/* Check the axis values are good */
+   } else if( point[ 0 ] != AST__BAD && point[ 1 ] != AST__BAD ){
+
+/* Get a pointer to an array holding the corresponding Cartesian coords. */
+      if( def ) {
+         b = point + 2;
+
+      } else {
+         perm = astGetPerm( this );
+         if ( perm ) {
+            p1[ perm[ 0 ] ] = point[ 0 ];
+            p1[ perm[ 1 ] ] = point[ 1 ];
+            slaDcs2c( p1[ 0 ], p1[ 1 ], bb );
+            b = bb;
+         } else {
+            b = NULL;
+         }
+      }
+
+/* Recast the supplied AstLineDef into a SkyLineDef to get the different
+   structure (we know from the above check on the Frame that it is safe to
+   do this). */
+      sl = (SkyLineDef *) l;
+
+/* Check that the point of closest approach of the line to the point is
+   within the limits of the line. */
+      if( LineIncludes( sl, b ) ){
+
+/* Check that the point is 90 degrees away from the pole of the great
+   circle containing the line. */
+        t1 = slaDvdv( sl->dir, b );
+        t2 = 1.0E-7*sl->length;
+        if( t2 < 1.0E-10 ) t2 = 1.0E-10;
+        if( fabs( t1 ) <= t2 ) result = 1;
+     }
+   }
+
+/* Return the result. */
+   return result;
+}
+
+static int LineCrossing( AstFrame *this, AstLineDef *l1, AstLineDef *l2, 
+                         double **cross ) {
+/*
+*  Name:
+*     LineCrossing
+
+*  Purpose:
+*     Determine if two lines cross.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "skyframe.h"
+*     int LineCrossing( AstFrame *this, AstLineDef *l1, AstLineDef *l2, 
+*                       double **cross ) 
+
+*  Class Membership:
+*     SkyFrame member function (over-rides the protected astLineCrossing
+*     method inherited from the Frame class).
+
+*  Description:
+*     This function determines if the two suplied line segments cross,
+*     and if so returns the axis values at the point where they cross.
+*     A flag is also returned indicating if the crossing point occurs
+*     within the length of both line segments, or outside one or both of
+*     the line segments.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame.
+*     l1
+*        Pointer to the structure defining the first line. 
+*     l2
+*        Pointer to the structure defining the second line. 
+*     cross
+*        Pointer to a location at which to put a pointer to a dynamically
+*        alocated array containing the axis values at the crossing. If
+*        NULL is supplied no such array is returned. Otherwise, the returned 
+*        array should be freed using astFree when no longer needed. If the 
+*        lines are parallel (i.e. do not cross) then AST__BAD is returned for 
+*        all axis values. Note usable axis values are returned even if the 
+*        lines cross outside the segment defined by the start and end points 
+*        of the lines. The order of axes in the returned array will take
+*        account of the current axis permutation array if appropriate. Note, 
+*        sub-classes such as SkyFrame may append extra values to the end
+*        of the basic frame axis values. A NULL pointer is returned if an
+*        error occurs.
+
+*  Returned Value:
+*     A non-zero value is returned if the lines cross at a point which is
+*     within the [start,end) segment of both lines. If the crossing point
+*     is outside this segment on either line, or if the lines are parallel,
+*     zero is returned. Note, the start point is considered to be inside
+*     the length of the segment, but the end point is outside.
+
+*  Notes:
+*     - The pointers supplied for "l1" and "l2" should have been created
+*     using the astLineDef method. These structures contained cached
+*     information about the lines which improve the efficiency of this method
+*     when many repeated calls are made. An error will be reported if
+*     either structure does not refer to the Frame specified by "this".
+*     - Zero will be returned if this function is invoked with the global 
+*     error status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   SkyLineDef *sl1;              /* SkyLine information for line 1 */
+   SkyLineDef *sl2;              /* SkyLine information for line 2 */
+   const int *perm;              /* Pointer to axis permutation array */
+   double *crossing;             /* Pointer to returned array */
+   double *b;                    /* Pointer to Cartesian coords */
+   double len;                   /* Vector length */
+   double p[ 2 ];                /* Temporary (lon,lat) pair */
+   double temp[ 3 ];             /* Temporary vector */
+   int result;                   /* Returned value */
+
+/* Initialise */
+   result = 0;
+   if( cross ) *cross = NULL;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Allocate returned array (2 elements for the lon and lat values, plus 3
+   for the corresponding (x,y,z) coords). */
+   crossing = astMalloc( sizeof(double)*5 );
+
+/* Check that both lines refer to the supplied Frame. */
+   if( l1->frame != this ) {
+      astError( AST__INTER, "astLineCrossing(%s): First supplied line does "
+                "not relate to the supplied %s (AST internal programming "
+                "error).", astGetClass( this ), astGetClass( this ) );
+
+   } else if( l2->frame != this ) {
+      astError( AST__INTER, "astLineCrossing(%s): Second supplied line does "
+                "not relate to the supplied %s (AST internal programming "
+                "error).", astGetClass( this ), astGetClass( this ) );
+
+/* Recast the supplied AstLineDefs into a SkyLineDefs to get the different
+   structure (we know from the above check on the Frame that it is safe to
+   do this). */
+   } else if( crossing ){
+      sl1 = (SkyLineDef *) l1;
+      sl2 = (SkyLineDef *) l2;
+
+/* Point of intersection of the two great circles is perpendicular to the
+   pole vectors of both great circles. Put the Cartesian coords in elements
+   2 to 4 of the returned array. */
+      slaDvxv( sl1->dir, sl2->dir, temp );
+      b = crossing + 2;
+      slaDvn( temp, b, &len );
+
+/* See if this point is within the length of both arcs. If so return it. */
+      if( LineIncludes( sl2, b ) && LineIncludes( sl1, b ) ) {
+         result = 1;
+
+/* If not, see if the negated b vector is within the length of both arcs.
+   If so return it. Otherwise, we return zero. */
+      } else {
+         b[ 0 ] *= -1.0;
+         b[ 1 ] *= -1.0;
+         b[ 2 ] *= -1.0;
+         if( LineIncludes( sl2, b ) && LineIncludes( sl1, b ) ) result = 1;
+      }
+
+/* Store the spherical coords in elements 0 and 1 of the returned array. */
+      slaDcc2s( b, p, p + 1 );
+
+/* Permute the spherical axis value into the order used by the SkyFrame. */
+      perm = astGetPerm( this );
+      if( perm ){
+         crossing[ 0 ] = p[ perm[ 0 ] ];
+         crossing[ 1 ] = p[ perm[ 1 ] ];
+      }
+   }
+
+/* If an error occurred, return 0. */
+   if( !astOK ) {
+      result = 0;
+      crossing = astFree( crossing );
+   }
+
+/* Return the array */
+   if( cross ) {
+      *cross = crossing;
+   } else {
+      crossing = astFree( crossing );
+   }
+
+/* Return the result. */
+   return result;
+}
+
+static AstLineDef *LineDef( AstFrame *this, const double start[2], 
+                            const double end[2] ) {
+/*
+*  Name:
+*     LineDef
+
+*  Purpose:
+*     Creates a structure describing a line segment in a 2D Frame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "skyframe.h"
+*     AstLineDef *LineDef( AstFrame *this, const double start[2], 
+*                          const double end[2] ) 
+
+*  Class Membership:
+*     SkyFrame member function (over-rides the protected astLineDef
+*     method inherited from the Frame class).
+
+*  Description:
+*     This function creates a structure containing information describing a
+*     given line segment within the supplied 2D Frame. This may include
+*     information which allows other methods such as astLineCrossing to
+*     function more efficiently. Thus the returned structure acts as a
+*     cache to store intermediate values used by these other methods.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame. Must have 2 axes.
+*     start
+*        An array of 2 doubles marking the start of the line segment.
+*     end
+*        An array of 2 doubles marking the end of the line segment.
+
+*  Returned Value:
+*     Pointer to the memory structure containing the description of the
+*     line. This structure should be freed using astFree when no longer
+*     needed. A NULL pointer is returned (without error) if any of the
+*     supplied axis values are AST__BAD.
+
+*  Notes:
+*     - A null pointer will be returned if this function is invoked
+*     with the global error status set, or if it should fail for any
+*     reason.
+*/
+
+/* Local Variables: */
+   SkyLineDef *result;           /* Returned value */
+   const int *perm;              /* Axis permutation array */
+   double len;                   /* Permuted point1 coordinates */
+   double p1[ 2 ];               /* Permuted point1 coordinates */
+   double p2[ 2 ];               /* Permuted point2 coordinates */
+   double temp[3];               /* Cartesian coords at offset position */
+   
+/* Initialise */
+   result = NULL;
+
+/* Check the global error status. */
+   if ( !astOK ) return NULL;
+
+/* Check the axis values are good */
+   if( start[ 0 ] != AST__BAD && start[ 1 ] != AST__BAD && 
+       end[ 0 ] != AST__BAD && end[ 1 ] != AST__BAD ) {
+
+/* Allocate memory for the returned structure. */
+      result = astMalloc( sizeof( SkyLineDef ) );
+
+/* Obtain a pointer to the SkyFrame's axis permutation array. */
+      perm = astGetPerm( this );
+      if ( perm ) {
+
+/* Apply the axis permutation array to obtain the coordinates of the two 
+   input points in the required (longitude,latitude) order. */
+         p1[ perm[ 0 ] ] = start[ 0 ];
+         p1[ perm[ 1 ] ] = start[ 1 ];
+         p2[ perm[ 0 ] ] = end[ 0 ];
+         p2[ perm[ 1 ] ] = end[ 1 ];
+
+/* Convert each point into a 3-vector of unit length and store in the
+   returned structure. */
+         slaDcs2c( p1[ 0 ], p1[ 1 ], result->start );
+         slaDcs2c( p2[ 0 ], p2[ 1 ], result->end );
+
+/* Calculate the great circle distance between the points in radians and
+   store in the result structure. */
+         result->length = acos( slaDvdv( result->start, result->end ) );
+
+/* Find a unit vector representing the pole of the system in which the
+   equator is given by the great circle. This is such that going the
+   short way from the start to the end, the pole is to the left of the 
+   line. If the line has zero length, or 180 degrees length, the pole is
+   undefined, so we use an arbitrary value. */
+         if( result->length == 0.0 || result->length > pi - 5.0E-11 ) {
+            slaDcs2c( p1[ 0 ] + 0.01, p1[ 1 ] + 0.01, temp );
+            slaDvxv( result->start, temp, result->q );
+         } else {
+            slaDvxv( result->start, result->end, result->q );
+         }
+         slaDvn( result->q, result->dir, &len );
+
+/* Also store a point which is 90 degrees along the great circle from the
+   start. */
+         slaDvxv( result->dir, result->start, result->q );
+
+/* Store a pointer to the defining SkyFrame. */
+         result->frame = this;
+      }
+   }
+
+/* Free the returned pointer if an error occurred. */
+   if( !astOK ) result = astFree( result );
+
+/* Return a pointer to the output structure. */
+   return (AstLineDef *) result;
+}
+
+static int LineIncludes( SkyLineDef *l, double point[3] ) {
+/*
+*  Name:
+*     LineIncludes
+
+*  Purpose:
+*     Determine if a line includes a point which is known to be in the
+*     great circle.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "skyframe.h"
+*     int LineIncludes( SkyLineDef *l, double point[3] ) 
+
+*  Class Membership:
+*     SkyFrame member function (over-rides the protected astLineIncludes
+*     method inherited from the Frame class).
+
+*  Description:
+*     The supplied point is assumed to be a point on the great circle of 
+*     which the supplied line is a segment. This function returns true if 
+*     "point" is within the bounds of the segment (the end point of the
+*     line is assumed * not to be part of the segment).
+
+*  Parameters:
+*     l
+*        Pointer to the structure defining the line. 
+*     point
+*        An array holding the Cartesian coords of the point to be tested.
+
+*  Returned Value:
+*     A non-zero value is returned if the line includes the point. 
+
+*  Notes:
+*     - Zero will be returned if this function is invoked with the global 
+*     error status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   double t1, t2, t3;
+
+/* Check the global error status. */
+   if ( !astOK ) return 0;
+
+/* Get the unsigned distance of the point from the start of the line in
+   the range 0 - 180 degs. Check it is less than the line length. Then
+   check that the point is not more than 90 degs away from the quarter 
+   point. */
+   t1 = slaDvdv( l->start, point );
+   t2 = acos( t1 );
+   t3 = slaDvdv( l->q, point );   
+   return ( ((l->length > 0) ? t2 < l->length : t2 == 0.0 ) && t3 >= -1.0E-8 );
+}
+
+static void LineOffset( AstFrame *this, AstLineDef *line, double par, 
+                        double prp, double point[2] ){
+/*
+*  Name:
+*     LineOffset
+
+*  Purpose:
+*     Find a position close to a line.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "skyframe.h"
+*     void LineOffset( AstFrame *this, AstLineDef *line, double par, 
+*                      double prp, double point[2] )
+
+*  Class Membership:
+*     SkyFrame member function (over-rides the protected astLineOffset
+*     method inherited from the Frame class).
+
+*  Description:
+*     This function returns a position formed by moving a given distance along
+*     the supplied line, and then a given distance away from the supplied line.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame.
+*     line
+*        Pointer to the structure defining the line. 
+*     par
+*        The distance to move along the line from the start towards the end.
+*     prp
+*        The distance to move at right angles to the line. Positive
+*        values result in movement to the left of the line, as seen from
+*        the outside when moving from start towards the end.
+
+*  Notes:
+*     - The pointer supplied for "line" should have been created using the 
+*     astLineDef method. This structure contains cached information about the 
+*     line which improves the efficiency of this method when many repeated 
+*     calls are made. An error will be reported if the structure does not 
+*     refer to the Frame specified by "this".
+*-
+*/
+
+/* Local Variables; */
+    SkyLineDef *sl;
+    const int *perm;
+    double c;
+    double nx;
+    double ny;
+    double nz;
+    double p[2];
+    double s;
+    double v[3];
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Check that the line refers to the supplied Frame. */
+   if( line->frame != this ) {
+      astError( AST__INTER, "astLineOffset(%s): The supplied line does "
+                "not relate to the supplied %s (AST internal programming "
+                "error).", astGetClass( this ), astGetClass( this ) );
+
+/* This implementation uses spherical geometry. */
+   } else {
+
+/* Get a pointer to the SkyLineDef structure. */ 
+       sl = (SkyLineDef *) line;
+
+/* Move a distance par from start to end. */
+       c = cos( par );
+       s = sin( par );
+       nx = c * sl->start[ 0 ] + s * sl->q[ 0 ];
+       ny = c * sl->start[ 1 ] + s * sl->q[ 1 ];
+       nz = c * sl->start[ 2 ] + s * sl->q[ 2 ];
+
+/* Move a distance prp from this point towards the pole point. */
+       c = cos( prp );
+       s = sin( prp );
+       v[ 0 ] = c * nx + s * sl->dir[ 0 ];
+       v[ 1 ] = c * ny + s * sl->dir[ 1 ];
+       v[ 2 ] = c * nz + s * sl->dir[ 2 ];
+
+/* Convert to lon/lat */
+      slaDcc2s( v, p, p + 1 );
+
+/* Permute the spherical axis value into the order used by the SkyFrame. */
+      perm = astGetPerm( this );
+      if( perm ){
+         point[ 0 ] = p[ perm[ 0 ] ];
+         point[ 1 ] = p[ perm[ 1 ] ];
+      }
+   }
+}
+
 static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
                            AstSystemType align_sys, AstMapping **map ) {
 /*
@@ -3321,7 +3961,9 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
    AstMapping *tmap2;            /* Temporary Mapping */
    AstMapping *tmap;             /* Temporary Mapping */
    AstSlaMap *slamap;            /* Pointer to SlaMap */
+   AstSystemType result_system;  /* Code to identify result coordinate system */
    AstSystemType system;         /* Code to identify coordinate system */
+   AstSystemType target_system;  /* Code to identify target coordinate system */
    double args[ MAX_ARGS ];      /* Conversion argument array */
    double epoch;                 /* Epoch as Modified Julian Date */
    double epoch_B;               /* Besselian epoch as decimal years */
@@ -3330,8 +3972,14 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
    double equinox_B;             /* Besselian equinox as decimal years */
    double equinox_J;             /* Julian equinox as decimal years */
    double result_epoch;          /* Result frame Epoch */
+   double result_equinox;        /* Result frame Epoch */
    double target_epoch;          /* Target frame Epoch */
+   double target_equinox;        /* Target frame Epoch */
    int match;                    /* Mapping can be generated? */
+   int step1;                    /* Convert target to FK5 J2000? */
+   int step2;                    /* Convert FK5 J2000 to align sys? */
+   int step3;                    /* Convert align sys to FK5 J2000? */
+   int step4;                    /* Convert FK5 J2000 to result? */
 
 /* Check the global error status. */
    if ( !astOK ) return 0;
@@ -3347,23 +3995,78 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
    equinox_B = 0.0;
    equinox_J = 0.0;
 
+/* Get the two epoch values. */
+   result_epoch = astGetEpoch( result );
+   target_epoch = astGetEpoch( target );
+   
+/* Get the two equinox values. */
+   result_equinox = astGetEquinox( result );
+   target_equinox = astGetEquinox( target );
+   
+/* Get the two system values. */
+   result_system = astGetSystem( result );
+   target_system = astGetSystem( target );
+   
 /* If both systems are unknown, assume they are the same. Return a UnitMap.
    We need to do this, otherwise a simple change of Title (for instance)
    will result in a FrameSet whose current Frame has System=AST__UNKNOWN 
    loosing its integrity. */
-   if( astGetSystem( target ) == AST__UNKNOWN && 
-       astGetSystem( result ) == AST__UNKNOWN ) {
+   if( target_system == AST__UNKNOWN && result_system == AST__UNKNOWN ) {
       *map = (AstMapping *) astUnitMap( 2, "" );
       return 1;
    }
 
-/* If the epochs are the same, or if the alignment system is FK5, we do 
-   not need to transform between intermediate FK5 system and the alignment 
-   system. */
-   result_epoch = astGetEpoch( result );
-   target_epoch = astGetEpoch( target );
-   if( result_epoch == target_epoch ||
-       align_sys == AST__FK5 ) align_sys = AST__BADSYSTEM;
+/* The total Mapping is divided into two parts in series; the first part
+   converts from the target SkyFrame to the alignment system, using the 
+   Epoch and Equinox of the target Frame, the second part converts from 
+   the alignment system to the result SkyFrame, using the Epoch and Equinox 
+   of the result Frame. Each of these parts has an arbitrary input and an 
+   output system, and therefore could be implemented using a collection
+   of NxN conversions. To reduce the complexity, each part is implement 
+   by converting from the input system to FK5 J2000, and then from FK5 
+   J2000 to the output system. This scheme required only N conversions 
+   rather than NxN. Thus overall the total Mapping is made up of 4 steps
+   in series. Some of these steps may be ommitted if they are effectively
+   a UnitMap. Determine which steps need to be included. Assume all need
+   to be done to begin with. */
+   step1 = 1;
+   step2 = 1;
+   step3 = 1;
+   step4 = 1;
+
+/* If the target system is the same as the alignment system, neither of the 
+   first 2 steps need be done. */
+   if( target_system == align_sys ) {
+      step1 = 0;
+      step2 = 0;
+   }
+
+/* If the result system is the same as the alignment system, neither of the 
+   last 2 steps need be done. */
+   if( result_system == align_sys ) {
+      step3 = 0;
+      step4 = 0;
+   }
+
+/* If the two epochs are the same, or if the alignment system is FK5 J2000,
+   steps 2 and 3 are not needed. */
+   if( step2 && step3 ) {   
+      if( align_sys == AST__FK5 || result_epoch == target_epoch ) {
+         step2 = 0;
+         step3 = 0;
+      }
+   }
+
+/* None are needed if the target and result SkyFrames have the same
+   System, Epoch and Equinox. */
+   if(  result_system == target_system &&
+        result_epoch == target_epoch &&
+        result_equinox == target_equinox ) {
+      step1 = 0;
+      step2 = 0;
+      step3 = 0;
+      step4 = 0;
+   }        
 
 /* Create an initial (null) SlaMap. */
    slamap = astSlaMap( 0, "" );
@@ -3406,10 +4109,10 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 
 /* Obtain the sky coordinate system, equinox, epoch, etc, of the target
    SkyFrame. */
-   system = astGetSystem( target );
-   equinox = astGetEquinox( target );
+   system = target_system;
+   equinox = target_equinox;
    epoch = target_epoch;
-   if ( astOK ) {
+   if( astOK && step1 ) {
 
 /* Convert the equinox and epoch values (stored as Modified Julian
    Dates) into the equivalent Besselian and Julian epochs (as decimal
@@ -3427,6 +4130,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
    equinox to B1950.0, with rigorous handling of the E-terms of
    aberration. Then convert directly to FK5 J2000.0 coordinates. */
       if ( system == AST__FK4 ) {
+         VerifyMSMAttrs( target, result, 1, "Equinox Epoch", "astMatch" );
          if ( equinox_B != 1950.0 ) {
             TRANSFORM_1( "SUBET", equinox_B )
             TRANSFORM_2( "PREBN", equinox_B, 1950.0 )
@@ -3439,6 +4143,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* This is the same as above, except that we do not need to subtract
    the E-terms initially as they are already absent. */
       } else if ( system == AST__FK4_NO_E ) {
+         VerifyMSMAttrs( target, result, 1, "Equinox Epoch", "astMatch" );
          if ( equinox_B != 1950.0 ) {
             TRANSFORM_2( "PREBN", equinox_B, 1950.0 )
          }
@@ -3450,6 +4155,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* We simply need to apply a precession correction for the change of
    equinox.  Omit even this if the equinox is already J2000.0. */
       } else if ( system == AST__FK5 ) {
+         VerifyMSMAttrs( target, result, 1, "Equinox", "astMatch" );
          if ( equinox_J != 2000.0 ) {
             TRANSFORM_2( "PREC", equinox_J, 2000.0 );
          }
@@ -3458,6 +4164,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* ----------- */
 /* Convert from J2000 to ICRS, then from ICRS to FK5. */
       } else if ( system == AST__J2000 ) {
+         VerifyMSMAttrs( target, result, 1, "Epoch", "astMatch" );
          TRANSFORM_0( "J2000H" )
          TRANSFORM_1( "HFK5Z", epoch_J );
 
@@ -3465,17 +4172,20 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* ------------------------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( system == AST__GAPPT ) {
+         VerifyMSMAttrs( target, result, 1, "Epoch", "astMatch" );
          TRANSFORM_2( "AMP", epoch, 2000.0 )
 
 /* From ecliptic coordinates. */
 /* -------------------------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( system == AST__ECLIPTIC ) {
+         VerifyMSMAttrs( target, result, 1, "Equinox", "astMatch" );
          TRANSFORM_1( "ECLEQ", equinox )
 
 /* From helio-ecliptic coordinates. */
 /* -------------------------------- */
       } else if ( system == AST__HELIOECLIPTIC ) {
+         VerifyMSMAttrs( target, result, 1, "Epoch", "astMatch" );
          TRANSFORM_1( "HEEQ", epoch )
 
 /* From galactic coordinates. */
@@ -3488,6 +4198,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* ---------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( system == AST__ICRS ) {
+         VerifyMSMAttrs( target, result, 1, "Epoch", "astMatch" );
          TRANSFORM_1( "HFK5Z", epoch_J );
 
 /* From supergalactic coordinates. */
@@ -3510,7 +4221,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* ============================================================ */
 /* In this second phase, we convert to the system given by the align_sys
    argument (if required), still using the properties of the target Frame. */
-   if ( astOK && match && align_sys != AST__BADSYSTEM ) {
+   if ( astOK && match && step2 ) {
 
 /* Align in FK4. */
 /* --------------- */
@@ -3519,6 +4230,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
    precession model to bring the equinox to that required, with
    rigorous handling of the E-terms of aberration. */
       if ( align_sys == AST__FK4 ) {
+         VerifyMSMAttrs( target, result, 1, "Equinox Epoch", "astMatch" );
          TRANSFORM_1( "FK54Z", epoch_B )
          if ( equinox_B != 1950.0 ) {
             TRANSFORM_1( "SUBET", 1950.0 )
@@ -3531,6 +4243,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* This is the same as above, except that we do not need to add the
    E-terms at the end. */
       } else if ( align_sys == AST__FK4_NO_E ) {
+         VerifyMSMAttrs( target, result, 1, "Equinox Epoch", "astMatch" );
          TRANSFORM_1( "FK54Z", epoch_B )
          TRANSFORM_1( "SUBET", 1950.0 )
          if ( equinox_B != 1950.0 ) {
@@ -3542,6 +4255,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* We simply need to apply a precession correction for the change of
    equinox.  Omit even this if the required equinox is J2000.0. */
       } else if ( align_sys == AST__FK5 ) {
+         VerifyMSMAttrs( target, result, 1, "Equinox", "astMatch" );
          if ( equinox_J != 2000.0 ) {
             TRANSFORM_2( "PREC", 2000.0, equinox_J )
          }
@@ -3550,6 +4264,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* --------------- */
 /* Mov from FK5 to ICRS, and from ICRS to J2000. */
       } else if ( align_sys == AST__J2000 ) {
+         VerifyMSMAttrs( target, result, 1, "Epoch", "astMatch" );
          TRANSFORM_1( "FK5HZ", epoch_J )
          TRANSFORM_0( "HJ2000" )
 
@@ -3557,17 +4272,20 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* ------------------------------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( align_sys == AST__GAPPT ) {
+         VerifyMSMAttrs( target, result, 1, "Epoch", "astMatch" );
          TRANSFORM_2( "MAP", 2000.0, epoch )
 
 /* Align in ecliptic coordinates. */
 /* -------------------------------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( align_sys == AST__ECLIPTIC ) {
+         VerifyMSMAttrs( target, result, 1, "Equinox", "astMatch" );
          TRANSFORM_1( "EQECL", equinox )
 
 /* Align in helio-ecliptic coordinates. */
 /* ------------------------------------ */
       } else if ( align_sys == AST__HELIOECLIPTIC ) {
+         VerifyMSMAttrs( target, result, 1, "Epoch", "astMatch" );
          TRANSFORM_1( "EQHE", epoch )
 
 /* Align in galactic coordinates. */
@@ -3580,6 +4298,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* -------------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( align_sys == AST__ICRS ) {
+         VerifyMSMAttrs( target, result, 1, "Epoch", "astMatch" );
          TRANSFORM_1( "FK5HZ", epoch_J )
 
 /* Align in supergalactic coordinates. */
@@ -3605,8 +4324,8 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 
 /* Obtain the sky coordinate system, equinox, epoch, etc, of the result
    SkyFrame. */
-   system = astGetSystem( result );
-   equinox = astGetEquinox( result );
+   system = result_system;
+   equinox = result_equinox;
    epoch = result_epoch;
 
 /* Convert the equinox and epoch values (stored as Modified Julian
@@ -3620,7 +4339,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
    }
 
 /* Check we need to do the conversion. */
-   if ( astOK && match && align_sys != AST__BADSYSTEM ) {
+   if ( astOK && match && step3 ) {
 
 /* Formulate the conversion... */
 
@@ -3630,6 +4349,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
    equinox to B1950.0, with rigorous handling of the E-terms of
    aberration. Then convert directly to FK5 J2000.0 coordinates. */
       if ( align_sys == AST__FK4 ) {
+         VerifyMSMAttrs( target, result, 3, "Equinox Epoch", "astMatch" );
          if ( equinox_B != 1950.0 ) {
             TRANSFORM_1( "SUBET", equinox_B )
             TRANSFORM_2( "PREBN", equinox_B, 1950.0 )
@@ -3642,6 +4362,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* This is the same as above, except that we do not need to subtract
    the E-terms initially as they are already absent. */
       } else if ( align_sys == AST__FK4_NO_E ) {
+         VerifyMSMAttrs( target, result, 3, "Equinox Epoch", "astMatch" );
          if ( equinox_B != 1950.0 ) {
             TRANSFORM_2( "PREBN", equinox_B, 1950.0 )
          }
@@ -3653,6 +4374,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* We simply need to apply a precession correction for the change of
    equinox.  Omit even this if the equinox is already J2000.0. */
       } else if ( align_sys == AST__FK5 ) {
+         VerifyMSMAttrs( target, result, 3, "Equinox", "astMatch" );
          if ( equinox_J != 2000.0 ) {
             TRANSFORM_2( "PREC", equinox_J, 2000.0 );
          }
@@ -3661,17 +4383,20 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* ------------------------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( align_sys == AST__GAPPT ) {
+         VerifyMSMAttrs( target, result, 3, "Epoch", "astMatch" );
          TRANSFORM_2( "AMP", epoch, 2000.0 )
 
 /* From ecliptic coordinates. */
 /* -------------------------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( align_sys == AST__ECLIPTIC ) {
+         VerifyMSMAttrs( target, result, 3, "Equinox", "astMatch" );
          TRANSFORM_1( "ECLEQ", equinox )
 
 /* From helio-ecliptic coordinates. */
 /* -------------------------------- */
       } else if ( align_sys == AST__HELIOECLIPTIC ) {
+         VerifyMSMAttrs( target, result, 3, "Epoch", "astMatch" );
          TRANSFORM_1( "HEEQ", epoch )
 
 /* From galactic coordinates. */
@@ -3684,12 +4409,14 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* ---------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( align_sys == AST__ICRS ) {
+         VerifyMSMAttrs( target, result, 3, "Epoch", "astMatch" );
          TRANSFORM_1( "HFK5Z", epoch_J )
 
 /* From J2000. */
 /* ----------- */
 /* From J2000 to ICRS, and from ICRS to FK5. */
       } else if ( align_sys == AST__J2000 ) {
+         VerifyMSMAttrs( target, result, 3, "Epoch", "astMatch" );
          TRANSFORM_0( "J2000H" )
          TRANSFORM_1( "HFK5Z", epoch_J )
 
@@ -3713,7 +4440,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* ======================================= */
 /* In this fourth and final phase, we convert to the result coordinate
    system from the intermediate FK5 J2000 sky coordinates generated above. */
-   if ( astOK && match ) {
+   if ( astOK && match && step4 ) {
 
 /* To FK4. */
 /* ------- */
@@ -3722,6 +4449,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
    precession model to bring the equinox to that required, with
    rigorous handling of the E-terms of aberration. */
       if ( system == AST__FK4 ) {
+         VerifyMSMAttrs( target, result, 3, "Equinox Epoch", "astMatch" );
          TRANSFORM_1( "FK54Z", epoch_B )
          if ( equinox_B != 1950.0 ) {
             TRANSFORM_1( "SUBET", 1950.0 )
@@ -3734,6 +4462,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* This is the same as above, except that we do not need to add the
    E-terms at the end. */
       } else if ( system == AST__FK4_NO_E ) {
+         VerifyMSMAttrs( target, result, 3, "Equinox Epoch", "astMatch" );
          TRANSFORM_1( "FK54Z", epoch_B )
          TRANSFORM_1( "SUBET", 1950.0 )
          if ( equinox_B != 1950.0 ) {
@@ -3745,6 +4474,7 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* We simply need to apply a precession correction for the change of
    equinox.  Omit even this if the required equinox is J2000.0. */
       } else if ( system == AST__FK5 ) {
+         VerifyMSMAttrs( target, result, 3, "Equinox", "astMatch" );
          if ( equinox_J != 2000.0 ) {
             TRANSFORM_2( "PREC", 2000.0, equinox_J )
          }
@@ -3753,17 +4483,20 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* ----------------------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( system == AST__GAPPT ) {
+         VerifyMSMAttrs( target, result, 3, "Epoch", "astMatch" );
          TRANSFORM_2( "MAP", 2000.0, epoch )
 
 /* To ecliptic coordinates. */
 /* ------------------------ */
 /* This conversion is supported directly by SLALIB. */
       } else if ( system == AST__ECLIPTIC ) {
+         VerifyMSMAttrs( target, result, 3, "Equinox", "astMatch" );
          TRANSFORM_1( "EQECL", equinox )
 
 /* To helio-ecliptic coordinates. */
 /* ------------------------------ */
       } else if ( system == AST__HELIOECLIPTIC ) {
+         VerifyMSMAttrs( target, result, 3, "Epoch", "astMatch" );
          TRANSFORM_1( "EQHE", epoch )
 
 /* To galactic coordinates. */
@@ -3776,12 +4509,14 @@ static int MakeSkyMapping( AstSkyFrame *target, AstSkyFrame *result,
 /* -------- */
 /* This conversion is supported directly by SLALIB. */
       } else if ( system == AST__ICRS ) {
+         VerifyMSMAttrs( target, result, 3, "Epoch", "astMatch" );
          TRANSFORM_1( "FK5HZ", epoch_J )
 
 /* To J2000. */
 /* --------- */
 /* From FK5 to ICRS, then from ICRS to J2000. */
       } else if ( system == AST__J2000 ) {
+         VerifyMSMAttrs( target, result, 3, "Epoch", "astMatch" );
          TRANSFORM_1( "FK5HZ", epoch_J )
          TRANSFORM_0( "HJ2000" )
 
@@ -4074,17 +4809,17 @@ static int Match( AstFrame *template_frame, AstFrame *target,
    Frames which effects the required coordinate conversion. */
       match = astSubFrame( target, template, 2, *target_axes, *template_axes,
                            map, result );
+   }
 
 /* If an error occurred, or conversion to the result Frame's
    coordinate system was not possible, then free all memory, annul the
    returned objects, and reset the returned value. */
-      if ( !astOK || !match ) {
-         *template_axes = astFree( *template_axes );
-         *target_axes = astFree( *target_axes );
-         if( *map ) *map = astAnnul( *map );
-         if( *result ) *result = astAnnul( *result );
-         match = 0;
-      }
+   if ( !astOK || !match ) {
+      *template_axes = astFree( *template_axes );
+      *target_axes = astFree( *target_axes );
+      if( *map ) *map = astAnnul( *map );
+      if( *result ) *result = astAnnul( *result );
+      match = 0;
    }
 
 /* Return the result. */
@@ -4224,6 +4959,151 @@ static void Norm( AstFrame *this_frame, double value[] ) {
       v[ 1 ] = sky_lat;
       value[ 0 ] = v[ perm[ 0 ] ];
       value[ 1 ] = v[ perm[ 1 ] ];
+   }
+}
+
+static void NormBox( AstFrame *this_frame, double lbnd[], double ubnd[],
+                     AstMapping *reg ) {
+/*
+*  Name:
+*     NormBox
+
+*  Purpose:
+*     Extend a box to include effect of any singularities in the Frame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "skyframe.h"
+*     void astNormBox( AstFrame *this, double lbnd[], double ubnd[],
+*                      AstMapping *reg )
+
+*  Class Membership:
+*     SkyFrame member function (over-rides the astNormBox method inherited
+*     from the Frame class).
+
+*  Description:
+*     This function modifies a supplied box to include the effect of any
+*     singularities in the co-ordinate system represented by the Frame.
+*     For a normal Cartesian coordinate system, the box will be returned
+*     unchanged. Other classes of Frame may do other things. For instance,
+*     a SkyFrame will check to see if the box contains either the north
+*     or south pole and extend the box appropriately.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame.
+*     lbnd
+*        An array of double, with one element for each Frame axis
+*        (Naxes attribute). Initially, this should contain a set of
+*        lower axis bounds for the box. They will be modified on exit
+*        to include the effect of any singularities within the box.
+*     ubnd
+*        An array of double, with one element for each Frame axis
+*        (Naxes attribute). Initially, this should contain a set of
+*        upper axis bounds for the box. They will be modified on exit
+*        to include the effect of any singularities within the box.
+*     reg
+*        A Mapping which should be used to test if any singular points are
+*        inside or outside the box. The Mapping should leave an input
+*        position unchanged if the point is inside the box, and should
+*        set all bad if the point is outside the box.
+*/
+
+/* Local Variables: */
+   AstSkyFrame *this;            /* Pointer to the SkyFrame structure */
+   const int *perm;              /* Axis permutation array */
+   double lb[ 2 ];               /* Permuted lower bounds */
+   double t;                     /* Temporary storage */
+   double t2;                    /* Temporary storage */
+   double ub[ 2 ];               /* Permuted upper bounds */
+   double x[2];                  /* 1st axis values at poles */
+   double xo[2];                 /* Tested 1st axis values at poles */
+   double y[2];                  /* 2nd axis values at poles */
+   double yo[2];                 /* Tested 2nd axis values at poles */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the SkyFrame structure. */
+   this = (AstSkyFrame *) this_frame;
+
+/* Obtain a pointer to the SkyFrame's axis permutation array. */
+   perm = astGetPerm( this );
+   if( perm ) {
+
+/* Obtain the sky longitude and latitude limits, allowing for any axis
+   permutation. */
+      lb[ perm[ 0 ] ] = lbnd[ 0 ];
+      lb[ perm[ 1 ] ] = lbnd[ 1 ];
+      ub[ perm[ 0 ] ] = ubnd[ 0 ];
+      ub[ perm[ 1 ] ] = ubnd[ 1 ];
+
+/* Use the supplied Mapping to test if box includes either pole. */
+      if( perm[ 0 ] == 0 ) {
+         x[ 0 ] = 0.0;
+         y[ 0 ] = AST__DPIBY2;
+         x[ 1 ] = 0.0;
+         y[ 1 ] = -AST__DPIBY2;
+      } else {
+         x[ 0 ] = AST__DPIBY2;
+         y[ 0 ] = 0.0;
+         x[ 1 ] = -AST__DPIBY2;
+         y[ 1 ] = 0.0;
+      }
+      astTran2( reg, 2, x, y, 1, xo, yo );
+
+/* If the box includes the north pole... */
+      if( xo[ 0 ] != AST__BAD ) {
+
+/* Find the lowest latitude after normalisation. */
+         if( ub[ 1 ] != AST__BAD &&  lb[ 1 ] != AST__BAD ){
+            t = slaDrange( ub[ 1 ] );
+            t2 = slaDrange( lb[ 1 ] );
+            if( t2 < t ) t = t2;         
+         } else {
+            t = AST__BAD;
+         }
+
+/* Set the lower returned limit to this value and the upper returned limit
+   to +90 degs */
+         lb[ 1 ] = t;
+         ub[ 1 ] = AST__DPIBY2;
+
+/* Set the longitude range to 0 to 2PI */
+         lb[ 0 ] = 0;
+         ub[ 0 ] = 2*AST__DPI;
+
+      }         
+
+/* If the box includes the south pole... */
+      if( xo[ 1 ] != AST__BAD ) {
+
+/* Find the highest latitude after normalisation. */
+         if( ub[ 1 ] != AST__BAD &&  lb[ 1 ] != AST__BAD ){
+            t = slaDrange( ub[ 1 ] );
+            t2 = slaDrange( lb[ 1 ] );
+            if( t2 > t ) t = t2;         
+         } else {
+            t = AST__BAD;
+         }
+
+/* Set the upper returned limit to this value and the lower returned limit
+   to -90 degs */
+         lb[ 1 ] = -AST__DPIBY2;
+         ub[ 1 ] = t;
+
+/* Set the longitude range to 0 to 2PI */
+         lb[ 0 ] = 0;
+         ub[ 0 ] = 2*AST__DPI;
+      }         
+
+/* Return the modified limits. */
+      lbnd[ 0 ] = lb[ perm[ 0 ] ];
+      lbnd[ 1 ] = lb[ perm[ 1 ] ];
+      ubnd[ 0 ] = ub[ perm[ 0 ] ];
+      ubnd[ 1 ] = ub[ perm[ 1 ] ];
    }
 }
 
@@ -4459,8 +5339,8 @@ static AstMapping *OffsetMap( AstSkyFrame *this ){
 
 /* Return a UnitMap if the offset coordinate system is not defined, or if
    the AlignOffset attribute has a non-zero value. */
-   if( astGetAlignOffset( this ) || ( !astTestSkyRef( this, 0 ) && 
-                                      !astTestSkyRef( this, 1 ) ) ) {
+   if( astGetAlignOffset( this ) || astGetSkyRefIs( this ) == IGNORED_REF || 
+       ( !astTestSkyRef( this, 0 ) && !astTestSkyRef( this, 1 ) ) ) {
       result = (AstMapping *) astUnitMap( 2, "" );
 
 /* Otherwise... */
@@ -5164,7 +6044,10 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
 *     These values will be signed (positive values are in the same sense as 
 *     movement from point 1 to point 2. The second axis will hold the lengths 
 *     of the vector components perpendicular to the basis vector. These
-*     values will always be positive.
+*     values will be signed only if the Frame is 2-dimensional, in which
+*     case a positive value indicates that rotation from the basis vector 
+*     to the tested vector is in the same sense as rotation from the first 
+*     to the second axis of the Frame.
 
 *  Notes:
 *     - The number of coordinate values per point in the input
@@ -5192,6 +6075,7 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
    double p1[ 2 ];               /* Permuted coordinates for point1 */
    double p2[ 2 ];               /* Permuted coordinates for point2 */
    double p3[ 2 ];               /* Permuted coordinates for point3 */
+   double sign;                  /* Sign for perpendicular distances */
    double v1[ 3 ];               /* 3-vector for p1 */
    double v2[ 3 ];               /* 3-vector for p2 */
    double v3[ 3 ];               /* 3-vector for p3 */
@@ -5276,6 +6160,10 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
 
 /* Obtain a pointer to the SkyFrame's axis permutation array. */
    perm = astGetPerm( this );
+
+/* If the axes have been swapped we need to swap the sign of the returned
+   perpendicular distances. */
+   sign = ( perm[ 0 ] == 0 ) ? -1.0 : 1.0;
 
 /* Check pointers can be used safely */
    if( astOK ) {
@@ -5369,7 +6257,7 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
 /* The dot product of v4 and v3 is the cos of the perpendicular distance,
    d2, whilst the dot product of n1 and v3 is the sin of the perpendicular
    distance. Use these to get the perpendicular distance. */
-                  *d2 = fabs( atan2( slaDvdv( v3, n1 ), slaDvdv( v3, v4 ) ) );
+                  *d2 = sign*atan2( slaDvdv( v3, n1 ), slaDvdv( v3, v4 ) );
                }
             }
          }
@@ -5630,6 +6518,9 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 
       } else if( astChrMatch( setting + offset, ORIGIN_STRING ) ) {
          astSetSkyRefIs( this, ORIGIN_REF );
+
+      } else if( astChrMatch( setting + offset, IGNORED_STRING ) ) {
+         astSetSkyRefIs( this, IGNORED_REF );
 
       } else if( astOK ) {
          astError( AST__OPT, "astSet(%s): option '%s' is unknown in '%s'.",
@@ -6182,6 +7073,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
    int match;                    /* Coordinate conversion is possible? */
    int perm[ 2 ];                /* Permutation array for axis swap */
    int result_swap;              /* Swap result SkyFrame coordinates? */
+   int set_usedefs;              /* Set the returned UseDefs attribute zero?*/
    int target_axis;              /* Target SkyFrame axis index */
    int target_swap;              /* Swap target SkyFrame coordinates? */
 
@@ -6205,6 +7097,22 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
         ( ( ( target_axes[ 0 ] == 0 ) && ( target_axes[ 1 ] == 1 ) ) ||
           ( ( target_axes[ 0 ] == 1 ) && ( target_axes[ 1 ] == 0 ) ) ) ) {
 
+/* If a template has not been supplied, or is the same object as the
+   target, we are simply extracting axes from the supplied SkyFrame. In 
+   this case we temporarily force the UseDefs attribute to 1 so that (for 
+   instance) the astPickAxes method can function correctly. E.g. if you 
+   have a SkyFrame with no set Epoch and UseDefs set zero,  and you try to 
+   swap the axes, the attempt would fail because MakeSkyMapping would be 
+   unable to determine the Mapping from original to swapped SkyFrame, 
+   because of the lack of an Epoch value. */
+      set_usedefs = 0;
+      if( !template || template == target_frame ) {
+         if( !astGetUseDefs( target ) ) {
+            astClearUseDefs( target );
+            set_usedefs = 1;
+         }
+      }
+
 /* Form the result from a copy of the target and then permute its axes
    into the order required. */
       *result = astCopy( target );
@@ -6227,6 +7135,12 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
    coordinate conversion is possible. */
       match = ( MakeSkyMapping( target, (AstSkyFrame *) *result, 
                                 align_sys, map ) != 0 );
+
+/* If required, re-instate the original zero value of UseDefs. */
+      if( set_usedefs ) {
+         astSetUseDefs( target, 0 );
+         astSetUseDefs( *result, 0 );
+      }
 
 /* If a Mapping has been obtained, it will expect coordinate values to be
    supplied in (longitude,latitude) pairs. Test whether we need to swap the
@@ -6341,6 +7255,9 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 /* Delete the temporary copy of the target SkyFrame. */
       temp = astDelete( temp );
    }
+
+/* Ensure the returned Frame does not have active units. */
+   astSetActiveUnit( *result, 0 );
 
 /* If an error occurred or no match was found, annul the returned
    objects and reset the returned result. */
@@ -6557,6 +7474,40 @@ static const char *SystemString( AstFrame *this, AstSystemType system ) {
 
 /* Return the result pointer. */
    return result;
+}
+
+static int TestActiveUnit( AstFrame *this_frame ) {
+/*
+*  Name:
+*     TestActiveUnit
+
+*  Purpose:
+*     Test the ActiveUnit flag for a SkyFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "skyframe.h"
+*     int TestActiveUnit( AstFrame *this_frame ) 
+
+*  Class Membership:
+*     SkyFrame member function (over-rides the astTestActiveUnit protected
+*     method inherited from the Frame class).
+
+*  Description:
+*    This function test the value of the ActiveUnit flag for a SkyFrame, 
+*    which is always "unset". 
+
+*  Parameters:
+*     this
+*        Pointer to the SkyFrame.
+
+*  Returned Value:
+*     The result of the test (0).
+
+*/
+   return 0;
 }
 
 static int TestAsTime( AstSkyFrame *this, int axis ) {
@@ -6938,6 +7889,160 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
    return result;
 }
 
+static void VerifyMSMAttrs( AstSkyFrame *target, AstSkyFrame *result, 
+                            int which, const char *attrs, const char *method ) {
+/*
+*  Name:
+*     VerifyMSMAttrs
+
+*  Purpose:
+*     Verify that usable attribute values are available.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "skyframe.h"
+*      void VerifyMSMAttrs( AstSkyFrame *target, AstSkyFrame *result, 
+*                           int which, const char *attrs, const char *method )
+
+*  Class Membership:
+*     SkyFrame member function 
+
+*  Description:
+*     This function tests each attribute listed in "attrs". It returns
+*     without action if 1) an explicit value has been set for each attribute
+*     in the SkyFrame indicated by "which" or 2) the UseDefs attribute of the 
+*     "which" SkyFrame is non-zero.
+*
+*     If UseDefs is zero (indicating that default values should not be
+*     used for attributes), and any of the named attributes does not have
+*     an explicitly set value, then an error is reported.
+*
+*     The displayed error message assumes that tjis function was called
+*     as part of the process of producing a Mapping from "target" to "result".
+
+*  Parameters:
+*     target
+*        Pointer to the target SkyFrame. 
+*     result
+*        Pointer to the result SkyFrame. 
+*     which
+*        If 2, both the target and result SkyFrames are checked for the 
+*        supplied attributes. If less than 2, only the target SkyFrame is
+*        checked. If greater than 2, only the result SkyFrame is checked.
+*     attrs
+*        A string holding a space separated list of attribute names.
+*     method
+*        A string holding the name of the calling method for use in error
+*        messages.
+
+*/
+
+/* Local Variables: */
+   const char *a;
+   const char *p;
+   const char *desc;
+   int len;
+   int set1;
+   int set2;
+   int state;
+   int usedef1;
+   int usedef2;
+
+/* Check inherited status */
+   if( !astOK ) return;
+
+/* Get the UseDefs attributes of the two SkyFrames. */
+   usedef1 = astGetUseDefs( target );
+   usedef2 = astGetUseDefs( result );
+
+/* If both SkyFrames have a non-zero value for its UseDefs attribute, then
+   all attributes are assumed to have usable values, since the defaults 
+   will be used if no explicit value has been set. So we only need to do
+   any checks if UseDefs is zero for either SkyFrame. */
+   if( !usedef1 || !usedef2 ) {   
+
+/* Loop round the "attrs" string identifying the start and length of each
+   non-blank word in the string. */
+      state = 0;
+      p = attrs;
+      while( 1 ) {
+         if( state == 0 ) {
+            if( !isspace( *p ) ) {
+               a = p;
+               len = 1;
+               state = 1;
+            }
+         } else {
+            if( isspace( *p ) || !*p ) {
+   
+/* The end of a word has just been reached. Compare it to each known
+   attribute value. Get a flag indicating if the attribute has a set
+   value, and a string describing the attribute.*/
+               if( len > 0 ) {
+
+                  if( !strncmp( "Equinox", a, len ) ) {
+                     set1 = astTestEquinox( target );
+                     set2 = astTestEquinox( result );
+                     desc = "reference equinox";
+
+                  } else if( !strncmp( "Epoch", a, len ) ) {
+                     set1 = astTestEpoch( target );
+                     set2 = astTestEpoch( result );
+                     desc = "epoch of observation";
+
+                  } else {
+                     astError( AST__INTER, "VerifyMSMAttrs(SkyFrame): "
+                               "Unknown attribute name \"%.*s\" supplied (AST "
+                               "internal programming error).", len, a );
+                  }
+
+/* If the attribute is not set in the target but should be, report an
+   error. */
+                  if( !usedef1 && !set1 && which < 3 ) {
+                     astClearTitle( target );
+                     astClearTitle( result );
+                     astError( AST__NOVAL, "%s(%s): Cannot convert "
+                               "celestial coordinates from %s to %s.", 
+                               method, astGetClass( target ), 
+                               astGetC( target, "Title" ), 
+                               astGetC( result, "Title" ) );
+                     astError( AST__NOVAL, "No value has been set for "
+                               "the \"%.*s\" attribute (%s) in the input %s.",
+                               len, a, desc, astGetClass( target ) );
+                     break;
+                  }
+
+/* If the attribute is not set in the result but should be, report an
+   error. */
+                  if( !usedef2 && !set2 && which > 1 ) {
+                     astClearTitle( target );
+                     astClearTitle( result );
+                     astError( AST__NOVAL, "%s(%s): Cannot convert "
+                               "celestial coordinates from %s to %s.", 
+                               method, astGetClass( result ), 
+                               astGetC( target, "Title" ), 
+                               astGetC( result, "Title" ) );
+                     astError( AST__NOVAL, "No value has been set for "
+                               "the \"%.*s\" attribute (%s) in the output %s.",
+                               len, a, desc, astGetClass( result ) );
+                     break;
+                  }
+
+/* Continue the word search algorithm. */
+               }
+               len = 0;
+               state = 0;
+            } else {
+               len++;
+            }
+         }
+         if( !*(p++) ) break;
+      }
+   }
+}
+
 /* Functions which access class attributes. */
 /* ---------------------------------------- */
 /*
@@ -7274,8 +8379,8 @@ astMAKE_TEST(SkyFrame,Projection,( this->projection != NULL ))
 *     SkyRefP attributes are used. These three attributes together allow
 *     a SkyFrame to represent offsets relative to some specified origin
 *     or pole within the coordinate system specified by the System attribute, 
-*     rather than absolute axis values. SkyRefIs can take either of the 
-*     case-insensitive values "Origin" or "Pole". 
+*     rather than absolute axis values. SkyRefIs can take one of the 
+*     case-insensitive values "Origin", "Pole" or "Ignored". 
 *
 *     If SkyRefIs is set to "Origin" (the default), then the coordinate system
 *     represented by the SkyFrame is modified to put the origin of longitude
@@ -7284,6 +8389,10 @@ astMAKE_TEST(SkyFrame,Projection,( this->projection != NULL ))
 *     If SkyRefIs is set to "Pole", then the coordinate system represented 
 *     by the SkyFrame is modified to put the north pole at the position 
 *     specified by the SkyRef attribute. 
+*
+*     If SkyRefIs is set to "Ignored", then any value set for the SkyRef
+*     attribute is ignored, and the SkyFrame represents the coordinate
+*     system specified by the System attribute directly without any rotation.
 
 *  Applicability:
 *     SkyFrame
@@ -7647,6 +8756,10 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
    if( ival == POLE_REF ) {
       astWriteString( channel, "SRefIs", set, 0, POLE_STRING,
                       "Rotated to put pole at ref. pos." );
+
+   } else if( ival == IGNORED_REF ) {
+      astWriteString( channel, "SRefIs", set, 0, IGNORED_STRING,
+                      "Not rotated (ref. pos. is ignored)" );
 
    } else {
       astWriteString( channel, "SRefIs", set, 0, ORIGIN_STRING,
@@ -8020,17 +9133,20 @@ AstSkyFrame *astLoadSkyFrame_( void *mem, size_t size,
 /* SkyRefIs. */
 /* --------- */
       sval = astReadString( channel, "srefis", " " );
-      if( astOK ){
+      if( sval ){
          new->skyrefis = BAD_REF;
          if( astChrMatch( sval, POLE_STRING ) ) {
             new->skyrefis = POLE_REF;
          } else if( astChrMatch( sval, ORIGIN_STRING ) ) {
             new->skyrefis = ORIGIN_REF;
+         } else if( astChrMatch( sval, IGNORED_STRING ) ) {
+            new->skyrefis = IGNORED_REF;
          } else if( !astChrMatch( sval, " " ) && astOK ){
 	    astError( AST__INTER, "astRead(SkyFrame): Corrupt SkyFrame contains "
 		      "invalid SkyRefIs attribute value (%d).", sval );
          }
          if( TestSkyRefIs( new ) ) SetSkyRefIs( new, new->skyrefis );
+         sval = astFree( sval );
       }
 
 /* SkyRef. */

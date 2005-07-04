@@ -107,6 +107,18 @@ f     The CmpFrame class does not define any new routines beyond those
 *        Over-ride the astSimplify and astTransform methods.
 *     8-SEP-2004 (DSB):
 *        Over-ride astResolvePoints method.
+*     21-JAN-2005 (DSB):
+*        Over-ride the astGetActiveUnit and astSetActiveUnit methods.
+*     23-FEB-2005 (DSB):
+*        Modify GetDomain to avoid over-writing the static "buff" array
+*        if called recursively.
+*     29-MAR-2005 (DSB):
+*        Override astSetEpoch and astClearEpoch by implementations which
+*        propagate the changed epoch value to the component Frames.
+*     5-APR-2005 (DSB):
+*        Correct error checking in Clear/Get/Set/TestAttrib.
+*     12-MAY-2005 (DSB):
+*        Override astNormBox method.
 *class--
 */
 
@@ -498,17 +510,22 @@ static AstCmpFrameVtab class_vtab; /* Virtual function table */
 static int class_init = 0;       /* Virtual function table initialised? */
 
 /* Pointers to parent class methods which are extended by this class. */
-static AstSystemType (* parent_getsystem)( AstFrame * );
 static AstSystemType (* parent_getalignsystem)( AstFrame * );
+static AstSystemType (* parent_getsystem)( AstFrame * );
+static const char *(* parent_getattrib)( AstObject *, const char * );
 static const char *(* parent_getdomain)( AstFrame * );
 static const char *(* parent_gettitle)( AstFrame * );
-static double (* parent_getepoch)( AstFrame * );
 static double (* parent_angle)( AstFrame *, const double[], const double[], const double[] );
-static const char *(* parent_getattrib)( AstObject *, const char * );
+static double (* parent_getepoch)( AstFrame * );
+static int (* parent_getactiveunit)( AstFrame * );
+static int (* parent_getusedefs)( AstObject * );
 static int (* parent_testattrib)( AstObject *, const char * );
 static void (* parent_clearattrib)( AstObject *, const char * );
-static void (* parent_setattrib)( AstObject *, const char * );
+static void (* parent_clearepoch)( AstFrame * );
 static void (* parent_overlay)( AstFrame *, const int *, AstFrame * );
+static void (* parent_setactiveunit)( AstFrame *, int );
+static void (* parent_setattrib)( AstObject *, const char * );
+static void (* parent_setepoch)( AstFrame *, double );
 
 /* Pointer to axis index array accessed by "qsort". */
 static int *qsort_axes;
@@ -548,6 +565,8 @@ static double Angle( AstFrame *, const double[], const double[], const double[] 
 static double Distance( AstFrame *, const double[], const double[] );
 static double Gap( AstFrame *, int, double, int * );
 static double GetEpoch( AstFrame * );
+static void ClearEpoch( AstFrame * );
+static void SetEpoch( AstFrame *, double );
 static int Fields( AstFrame *, int, const char *, const char *, int, char **, int *, double * );
 static int GenAxisSelection( int, int, int [] );
 static int GetDirection( AstFrame *, int );
@@ -581,6 +600,7 @@ static void Decompose( AstMapping *, AstMapping **, AstMapping **, int *, int *,
 static void Delete( AstObject * );
 static void Dump( AstObject *, AstChannel * );
 static void Norm( AstFrame *, double [] );
+static void NormBox( AstFrame *, double[], double[], AstMapping * );
 static void Offset( AstFrame *, const double [], const double [], double, double [] );
 static void PartitionSelection( int, const int [], const int [], int, int, int [], int );
 static void PermAxes( AstFrame *, const int[] );
@@ -588,6 +608,8 @@ static void PrimaryFrame( AstFrame *, int, AstFrame **, int * );
 static void RenumberAxes( int, int [] );
 static void Resolve( AstFrame *, const double [], const double [], const double [], double [], double *, double * );
 static void SetAxis( AstFrame *, int, AstAxis * );
+static int GetActiveUnit( AstFrame * );
+static void SetActiveUnit( AstFrame *, int );
 static void SetDirection( AstFrame *, int, int );
 static void SetFormat( AstFrame *, int, const char * );
 static void SetLabel( AstFrame *, int, const char * );
@@ -596,6 +618,7 @@ static void SetMinAxes( AstFrame *, int );
 static void SetSymbol( AstFrame *, int, const char * );
 static void SetUnit( AstFrame *, int, const char * );
 static void Overlay( AstFrame *, const int *, AstFrame * );
+static int GetUseDefs( AstObject * );
 
 static const char *GetAttrib( AstObject *, const char * );
 static int TestAttrib( AstObject *, const char * );
@@ -971,8 +994,10 @@ static double Angle( AstFrame *this_frame, const double a[],
       PrimaryFrame( this_frame, axis, &pframe, &paxis );
       if( strcmp( astGetClass( pframe ), "Frame" ) ) {
          iscart = 0;
+         pframe = astAnnul( pframe );
          break;
       }
+      pframe = astAnnul( pframe );
    }
 
 /* If the CmpFrame describes a Cartesian coordinate system, we can use the 
@@ -1128,34 +1153,35 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Find the primary Frame containing the specified axis. */
             astPrimaryFrame( this, axis - 1, &pfrm, &paxis );
+            if( astOK ) {
 
 /* Create a new attribute with the same name but with the axis index
    appropriate to the primary Frame. */
-            sprintf( buf2, "%s(%d)", buf1, paxis + 1 );
+               sprintf( buf2, "%s(%d)", buf1, paxis + 1 );
 
 /* Attempt to access the attribute. */
-            astClearAttrib( pfrm, buf2 );
+               astClearAttrib( pfrm, buf2 );
 
 /* Indicate success. */
-            if( astOK ) {
-               ok = 1;
-
-/* Otherwise clear the status value, and try again without any axis index. */
-            } else {               
-               astClearStatus;
-               astClearAttrib( pfrm, buf1 );
-
-/* Indicate success, or clear the status value. */
                if( astOK ) {
                   ok = 1;
-               } else {
-                  astClearStatus;
-               }
-            }
 
+/* Otherwise clear the status value, and try again without any axis index. */
+               } else {               
+                  astClearStatus;
+                  astClearAttrib( pfrm, buf1 );
+
+/* Indicate success, or clear the status value. */
+                  if( astOK ) {
+                     ok = 1;
+                  } else {
+                     astClearStatus;
+                  }
+               }
 
 /* Free the primary frame pointer. */
-            pfrm = astAnnul( pfrm );
+               pfrm = astAnnul( pfrm );
+            }
 
 /* If the attribute is not qualified by an axis index, try accessing it
    using the primary Frame of each axis in turn. */
@@ -1194,6 +1220,52 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
                 "called \"%s\".", astGetClass( this ), attrib );
    }
 
+}
+
+static void ClearEpoch( AstFrame *this_frame ) {
+/*
+*  Name:
+*     ClearEpoch
+
+*  Purpose:
+*     Clear the value of the Epoch attribute for a CmpFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     void ClearEpoch( AstFrame *this )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astClearEpoch method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function clears the Epoch value in the component Frames as
+*     well as this CmpFrame.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* Invoke the parent method to clear the CmpFrame epoch. */
+   (*parent_clearepoch)( this_frame );
+
+/* Now clear the Epoch attribute in the two component Frames. */
+   astClearEpoch( this->frame1 );
+   astClearEpoch( this->frame2 );
 }
 
 static void ClearMaxAxes( AstFrame *this_frame ) {
@@ -1937,8 +2009,6 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
    this may change in the future. */
    if( 0 ) {
 
-
-
 /* If the attribute is not a CmpFrame specific attribute... */
    } else if( astOK ) {
 
@@ -1970,34 +2040,35 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Find the primary Frame containing the specified axis. */
             astPrimaryFrame( this, axis - 1, &pfrm, &paxis );
+            if( astOK ) {
 
 /* Create a new attribute with the same name but with the axis index
    appropriate to the primary Frame. */
-            sprintf( buf2, "%s(%d)", buf1, paxis + 1 );
+               sprintf( buf2, "%s(%d)", buf1, paxis + 1 );
 
 /* Attempt to access the attribute. */
-            result = astGetAttrib( pfrm, buf2 );
-
+               result = astGetAttrib( pfrm, buf2 );
+   
 /* Indicate success. */
-            if( astOK ) {
-               ok = 1;
-
-/* Otherwise clear the status value, and try again without any axis index. */
-            } else {               
-               astClearStatus;
-               result = astGetAttrib( pfrm, buf1 );
-
-/* Indicate success, or clear the status value. */
                if( astOK ) {
                   ok = 1;
-               } else {
+   
+/* Otherwise clear the status value, and try again without any axis index. */
+               } else {               
                   astClearStatus;
+                  result = astGetAttrib( pfrm, buf1 );
+   
+/* Indicate success, or clear the status value. */
+                  if( astOK ) {
+                     ok = 1;
+                  } else {
+                     astClearStatus;
+                  }
                }
-            }
-
-
+   
 /* Free the primary frame pointer. */
-            pfrm = astAnnul( pfrm );
+               pfrm = astAnnul( pfrm );
+            }
 
 /* If the attribute is not qualified by an axis index, try accessing it
    using the primary Frame of each axis in turn. */
@@ -2245,9 +2316,10 @@ static const char *GetDomain( AstFrame *this_frame ) {
 
 /* Local Variables: */
    AstCmpFrame *this;            /* Pointer to CmpFrame structure */
-   const char *dom1;             /* Pointer to first sub domain */
-   const char *dom2;             /* Pointer to second sub domain */
+   char *dom1;                   /* Pointer to first sub domain */
+   char *dom2;                   /* Pointer to second sub domain */
    const char *result;           /* Pointer value to return */
+   const char *t;                /* Temporary pointer */
    static char buff[ 100 ];      /* Buffer for returned domain name */
 
 /* Initialise. */
@@ -2266,14 +2338,28 @@ static const char *GetDomain( AstFrame *this_frame ) {
 
 /* Otherwise, provide a pointer to a suitable default string. */
    } else {
-      dom1 = astGetDomain( this->frame1 );
-      dom2 = astGetDomain( this->frame2 );
-      if( strlen( dom1 ) > 0 || strlen( dom2 ) > 0 ) {
-         sprintf( (char *) buff, "%s-%s", dom1, dom2 );
-         result = buff;         
-      } else {
-         result = "CMP";
+
+/* Get the Domain value for the two component Frames and store new
+   copies of them. This is necessary because the component Frames may
+   themselves be CmpFrames, resulting in this function being called
+   recursively and so causing the static "buff" array to be used in
+   multiple contexts. */
+      t = astGetDomain( this->frame1 );
+      dom1 = t ? astStore( NULL, t, strlen(t) + 1 ) : NULL;
+      t = astGetDomain( this->frame2 );
+      dom2 = t ? astStore( NULL, t, strlen(t) + 1 ) : NULL;
+
+      if( dom2 ) {
+         if( strlen( dom1 ) > 0 || strlen( dom2 ) > 0 ) {
+            sprintf( (char *) buff, "%s-%s", dom1, dom2 );
+            result = buff;         
+         } else {
+            result = "CMP";
+         }
       }
+
+      dom1 = astFree( dom1 );
+      dom2 = astFree( dom2 );
    }
 
 /* Return the result. */
@@ -2463,17 +2549,17 @@ static double GetEpoch( AstFrame *this_frame ) {
 /* Otherwise, if the Epoch value is set in the first component Frame,
    return it. */
    } else if( astTestEpoch( this->frame1 ) ){
-      result = (*parent_getepoch)( this->frame1 );
+      result = astGetEpoch( this->frame1 );
 
 /* Otherwise, if the Epoch value is set in the second component Frame,
    return it. */
    } else if( astTestEpoch( this->frame2 ) ){
-      result = (*parent_getepoch)( this->frame2 );
+      result = astGetEpoch( this->frame2 );
 
 /* Otherwise, return the default Epoch value from the first component
    Frame. */
    } else {
-      result = (*parent_getepoch)( this->frame1 );
+      result = astGetEpoch( this->frame1 );
    }
 
 /* Return the result. */
@@ -2753,6 +2839,66 @@ static const char *GetTitle( AstFrame *this_frame ) {
 #undef BUFF_LEN
 }
 
+static int GetUseDefs( AstObject *this_object ) {
+/*
+*  Name:
+*     GetUseDefs
+
+*  Purpose:
+*     Get a value for the UseDefs attribute of a CmpFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     int GetUseDefs( AstCmpFrame *this )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astGetUseDefs method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function returns a value for the UseDefs attribute of a
+*     CmpFrame.  
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+
+*  Returned Value:
+*     The UseDefs attribute value.
+
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+   int result;                   /* Result value to return */
+
+/* Initialise. */
+   result = 1;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_object;
+
+/* If an UseDefs attribute value has been set, invoke the parent method
+   to obtain it. */
+   if ( astTestUseDefs( this ) ) {
+      result = (*parent_getusedefs)( this_object );
+
+/* Otherwise, use the UseDefs value in the first component Frame as the
+   default. */
+   } else {
+      result = (*parent_getusedefs)( (AstObject *) this->frame1 );
+   }
+
+/* Return the result. */
+   return result;
+}
+
 static int GoodPerm( int ncoord_in, const int inperm[],
                      int ncoord_out, const int outperm[] ) {
 /*
@@ -2918,6 +3064,9 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
    parent_testattrib = object->TestAttrib;
    object->TestAttrib = TestAttrib;
 
+   parent_getusedefs = object->GetUseDefs;
+   object->GetUseDefs = GetUseDefs;
+
    mapping->Simplify = Simplify;
    mapping->Transform = Transform;
 
@@ -2930,6 +3079,12 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
    parent_getepoch = frame->GetEpoch;
    frame->GetEpoch = GetEpoch;
 
+   parent_setepoch = frame->SetEpoch;
+   frame->SetEpoch = SetEpoch;
+
+   parent_clearepoch = frame->ClearEpoch;
+   frame->ClearEpoch = ClearEpoch;
+
    parent_angle = frame->Angle;
    frame->Angle = Angle;
 
@@ -2941,6 +3096,12 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
 
    parent_overlay = frame->Overlay;
    frame->Overlay = Overlay;
+
+   parent_setactiveunit = frame->SetActiveUnit;
+   frame->SetActiveUnit = SetActiveUnit;
+
+   parent_getactiveunit = frame->GetActiveUnit;
+   frame->GetActiveUnit = GetActiveUnit;
 
 /* Store replacement pointers for methods which will be over-ridden by
    new member functions implemented here. */
@@ -2970,6 +3131,7 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
    frame->IsUnitFrame = IsUnitFrame;
    frame->Match = Match;
    frame->Norm = Norm;
+   frame->NormBox = NormBox;
    frame->Offset = Offset;
    frame->PermAxes = PermAxes;
    frame->PrimaryFrame = PrimaryFrame;
@@ -3460,6 +3622,171 @@ static void Norm( AstFrame *this_frame, double value[] ) {
 
 /* Free the memory used for the permuted coordinates. */
    v = astFree( v );
+}
+
+static void NormBox( AstFrame *this_frame, double lbnd[], double ubnd[],
+                     AstMapping *reg ) {
+/*
+*  Name:
+*     NormBox
+
+*  Purpose:
+*     Extend a box to include effect of any singularities in the Frame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     void astNormBox( AstFrame *this, double lbnd[], double ubnd[],
+*                      AstMapping *reg )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astNormBox method inherited
+*     from the Frame class).
+
+*  Description:
+*     This function modifies a supplied box to include the effect of any
+*     singularities in the co-ordinate system represented by the Frame.
+*     For a normal Cartesian coordinate system, the box will be returned
+*     unchanged. Other classes of Frame may do other things. For instance,
+*     a SkyFrame will check to see if the box contains either the north
+*     or south pole and extend the box appropriately.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame.
+*     lbnd
+*        An array of double, with one element for each Frame axis
+*        (Naxes attribute). Initially, this should contain a set of
+*        lower axis bounds for the box. They will be modified on exit
+*        to include the effect of any singularities within the box.
+*     ubnd
+*        An array of double, with one element for each Frame axis
+*        (Naxes attribute). Initially, this should contain a set of
+*        upper axis bounds for the box. They will be modified on exit
+*        to include the effect of any singularities within the box.
+*     reg
+*        A Mapping which should be used to test if any singular points are
+*        inside or outside the box. The Mapping should leave an input
+*        position unchanged if the point is inside the box, and should
+*        set all bad if the point is outside the box.
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;
+   AstCmpMap *m1;
+   AstCmpMap *m2;
+   AstCmpMap *m3;
+   AstCmpMap *m4;
+   AstCmpMap *m5;
+   AstCmpMap *m6;
+   AstPermMap *pm1;
+   AstPermMap *pm2;
+   AstPermMap *pm3;
+   const int *perm;  
+   double *vl;       
+   double *vu;       
+   int *inperm;
+   int axis;         
+   int naxes1;       
+   int naxes;        
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* Obtain a pointer to the CmpFrame's axis permutation array. */
+   perm = astGetPerm( this );
+
+/* Obtain the number of axes in the CmpFrame and in the first
+   component Frame. */
+   naxes = astGetNaxes( this );
+   naxes1 = astGetNaxes( this->frame1 );
+
+/* Allocate memory to hold the permuted coordinates. */
+   vl = astMalloc( sizeof( double ) * (size_t) naxes );
+   vu = astMalloc( sizeof( double ) * (size_t) naxes );
+   inperm = astMalloc( sizeof( int ) * (size_t) naxes );
+   if( inperm ) {
+
+/* Permute the coordinates using the CmpFrame's axis permutation array
+   to put them into the order required internally (i.e. by the two
+   component Frames). */
+      for ( axis = 0; axis < naxes; axis++ ) {
+         vl[ perm[ axis ] ] = lbnd[ axis ];
+         vu[ perm[ axis ] ] = ubnd[ axis ];
+      }
+
+/* Create a PermMap with a forward transformation which reorders a position 
+   which uses internal axis ordering into a position which uses external axis 
+   ordering. */
+      pm1 = astPermMap( naxes, NULL, naxes, perm, NULL, "" );
+
+/* Put it in front of the supplied Mapping. The combination transforms an
+   input internal position into an output external position.  */
+      m1 = astCmpMap( pm1, reg, 1, "" );
+
+/* Invert it and add it to the end. This combination now transforms an
+   input internal position into an output internal position.  */
+      astInvert( pm1 );
+      m2 = astCmpMap( m1, pm1, 1, "" );
+
+/* Create a PermMap with a forward transformation which copies the lower
+   naxes1 inputs to the same outputs, and supplies AST__BAD for the other
+   outputs. */
+      for( axis = 0; axis < naxes1; axis++ ) inperm[ axis ] = axis;
+      pm2 = astPermMap( naxes1, inperm, naxes, NULL, NULL, "" );
+
+/* Put it in front of the Mapping created above, then invert it and add
+   it at the end. */
+      m3 = astCmpMap( pm2, m2, 1, "" );
+      astInvert( pm2 );
+      m4 = astCmpMap( m3, pm2, 1, "" );
+
+/* Invoke the astNormBox method of the first component Frame, passing the
+   relevant (permuted) coordinate values for normalisation. */
+      astNormBox( this->frame1, vl, vu, m4 );
+
+/* Create a PermMap with a forward transformation which copies the upper
+   inputs to the same outputs, and supplied AST__BAD for the other
+   outputs. */
+      for( axis = 0; axis < naxes - naxes1; axis++ ) inperm[ axis ] = naxes1 + axis;
+      pm3 = astPermMap( naxes1, inperm, naxes, NULL, NULL, "" );
+
+/* Put it in front of the Mapping created above, then invert it and add
+   it at the end. */
+      m5 = astCmpMap( pm3, m2, 1, "" );
+      astInvert( pm3 );
+      m6 = astCmpMap( m5, pm3, 1, "" );
+
+/* Invoke the astNormBox method of the seond component Frame, passing the
+   relevant (permuted) coordinate values for normalisation. */
+      astNormBox( this->frame2, vl + naxes1, vu + naxes1, m6 );
+
+/* Copy the normalised values back into the original coordinate array,
+   un-permuting them in the process. */
+      for ( axis = 0; axis < naxes; axis++ ) {
+         lbnd[ axis ] = vl[ perm[ axis ] ];
+         ubnd[ axis ] = vu[ perm[ axis ] ];
+      }
+
+/* Free resources. */
+      pm1 = astAnnul( pm1 );
+      pm2 = astAnnul( pm2 );
+      pm3 = astAnnul( pm3 );
+      m1 = astAnnul( m1 );
+      m2 = astAnnul( m2 );
+      m3 = astAnnul( m3 );
+      m4 = astAnnul( m4 );
+      m5 = astAnnul( m5 );
+      m6 = astAnnul( m6 );
+   }
+   inperm = astFree( inperm );
+   vl = astFree( vl );
+   vu = astFree( vu );
 }
 
 static void Offset( AstFrame *this_frame, const double point1[],
@@ -5582,6 +5909,105 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
    return result;
 }
 
+static void SetActiveUnit( AstFrame *this_frame, int value ){
+/*
+*  Name:
+*     SetActiveUnit
+
+*  Purpose:
+*     Specify how the Unit attribute should be used.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     void SetActiveUnit( AstFrame *this, int value )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astSetActiveUnit method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function sets the current value of the ActiveUnit flag for a 
+*     CmpFrame, which controls how the Frame behaves when it is used (by 
+*     astFindFrame) as a template to match another (target) Frame, or is 
+*     used as the "to" Frame by astConvert. It determines if the Mapping 
+*     between the template and target Frames should take differences in 
+*     axis units into account. 
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+*     value
+*        The new value to use.
+*/
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Invoke the parent method to set the ActiveUnitFlag for the CmpFrame,
+   then set the same value for the component Frames. */
+   (*parent_setactiveunit)( this_frame, value );
+   astSetActiveUnit( ((AstCmpFrame *)this_frame)->frame1, value );
+   astSetActiveUnit( ((AstCmpFrame *)this_frame)->frame2, value );
+}
+
+static int GetActiveUnit( AstFrame *this_frame ){
+/*
+*  Name:
+*     GetActiveUnit
+
+*  Purpose:
+*     Determines how the Unit attribute will be used.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     int GetActiveUnit( AstFrame *this_frame )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astGetActiveUnit method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function returns the current value of the ActiveUnit flag for a 
+*     CmpFrame. See the description of the astSetActiveUnit function
+*     for a description of the ActiveUnit flag.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+
+*  Returned Value:
+*     The current value of the ActiveUnit flag.
+
+*/
+
+/* Local Variables; */
+   int result;      /* The ActiveUnit flag for the CmpFrame */
+
+/* Check the global error status. */
+   if ( !astOK ) return 0;
+
+/* If the ActiveUnit value has been set for the CmpFrame use the parent
+   implementation to get its value. */
+   if( astTestActiveUnit( this_frame ) ) {
+      result = (*parent_getactiveunit)( this_frame );
+
+/* Otherwise, the default is determined by the component Frames. If both
+   components have active units, the default for the CmpFrame is "on" */
+   } else {
+      result = astGetActiveUnit( ((AstCmpFrame *)this_frame)->frame1 ) || 
+               astGetActiveUnit( ((AstCmpFrame *)this_frame)->frame2 );
+   }
+
+/* Return the result */
+   return result;
+}
+
 static void SetAttrib( AstObject *this_object, const char *setting ) {
 /*
 *  Name:
@@ -5693,34 +6119,36 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 
 /* Find the primary Frame containing the specified axis. */
             astPrimaryFrame( this, axis - 1, &pfrm, &paxis );
+            if( astOK ) {
 
 /* Create a new setting with the same name but with the axis index
    appropriate to the primary Frame. */
-            sprintf( buf2, "%s(%d)=%s", buf1, paxis + 1, setting+value );
-
+               sprintf( buf2, "%s(%d)=%s", buf1, paxis + 1, setting+value );
+   
 /* Attempt to access the attribute. */
-            astSetAttrib( pfrm, buf2 );
-
-/* Indicate success. */
-            if( astOK ) {
-               ok = 1;
-
-/* Otherwise clear the status value, and try again without any axis index. */
-            } else {               
-               astClearStatus;
-               sprintf( buf2, "%s=%s", buf1, setting+value );
                astSetAttrib( pfrm, buf2 );
-
-/* Indicate success, or clear the status value. */
+   
+/* Indicate success. */
                if( astOK ) {
                   ok = 1;
-               } else {
+   
+/* Otherwise clear the status value, and try again without any axis index. */
+               } else {               
                   astClearStatus;
+                  sprintf( buf2, "%s=%s", buf1, setting+value );
+                  astSetAttrib( pfrm, buf2 );
+   
+/* Indicate success, or clear the status value. */
+                  if( astOK ) {
+                     ok = 1;
+                  } else {
+                     astClearStatus;
+                  }
                }
-            }
-
+   
 /* Free the primary frame pointer. */
-            pfrm = astAnnul( pfrm );
+               pfrm = astAnnul( pfrm );
+            }
 
 /* If the attribute is not qualified by an axis index, try accessing it
    using the primary Frame of each axis in turn. */
@@ -5821,6 +6249,54 @@ static void SetAxis( AstFrame *this_frame, int axis, AstAxis *newaxis ) {
          astSetAxis( this->frame2, axis - naxes1, newaxis );
       }
    }
+}
+
+static void SetEpoch( AstFrame *this_frame, double val ) {
+/*
+*  Name:
+*     SetEpoch
+
+*  Purpose:
+*     Set the value of the Epoch attribute for a CmpFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     void SetEpoch( AstFrame *this, double val )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astSetEpoch method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function sets the Epoch value in the component Frames as
+*     well as this CmpFrame.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+*     val
+*        New Epoch value.
+
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* Invoke the parent method to set the CmpFrame epoch. */
+   (*parent_setepoch)( this_frame, val );
+
+/* Now set the Epoch attribute in the two component Frames. */
+   astSetEpoch( this->frame1, val );
+   astSetEpoch( this->frame2, val );
 }
 
 static void SetMaxAxes( AstFrame *this_frame, int maxaxes ) {
@@ -6741,34 +7217,35 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Find the primary Frame containing the specified axis. */
             astPrimaryFrame( this, axis - 1, &pfrm, &paxis );
+            if( astOK ) {
 
 /* Create a new attribute with the same name but with the axis index
    appropriate to the primary Frame. */
-            sprintf( buf2, "%s(%d)", buf1, paxis + 1 );
+               sprintf( buf2, "%s(%d)", buf1, paxis + 1 );
 
 /* Attempt to access the attribute. */
-            result = astTestAttrib( pfrm, buf2 );
+               result = astTestAttrib( pfrm, buf2 );
 
 /* Indicate success. */
-            if( astOK ) {
-               ok = 1;
-
-/* Otherwise clear the status value, and try again without any axis index. */
-            } else {               
-               astClearStatus;
-               result = astTestAttrib( pfrm, buf1 );
-
-/* Indicate success, or clear the status value. */
                if( astOK ) {
                   ok = 1;
-               } else {
-                  astClearStatus;
-               }
-            }
 
+/* Otherwise clear the status value, and try again without any axis index. */
+               } else {               
+                  astClearStatus;
+                  result = astTestAttrib( pfrm, buf1 );
+
+/* Indicate success, or clear the status value. */
+                  if( astOK ) {
+                     ok = 1;
+                  } else {
+                     astClearStatus;
+                  }
+               }
 
 /* Free the primary frame pointer. */
-            pfrm = astAnnul( pfrm );
+               pfrm = astAnnul( pfrm );
+            }
 
 /* If the attribute is not qualified by an axis index, try accessing it
    using the primary Frame of each axis in turn. */
@@ -7036,6 +7513,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
    transformation maps from external axis indices to internal axis 
    indices. */
       pmap = astPermMap( naxes, inperm, naxes, outperm, NULL, "" );
+      outperm = astFree( outperm );
 
 /* Combine this PermMap with the CmpMap created above, adding it in the
    forward direction at the start and in the inverse direction at the end. */

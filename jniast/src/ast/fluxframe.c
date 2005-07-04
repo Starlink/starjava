@@ -32,10 +32,9 @@ f     AST_FLUXFRAME
 *     - SpecVal: The spectral position at which the flux values are measured.
 
 *  Functions:
-c     In addition to those functions applicable to all Frames, the
-c     following functions may also be applied to all FluxFrames:
-f     In addition to those routines applicable to all Frames, the
-f     following routines may also be applied to all FluxFrames:
+c     The FluxFrame class does not define any new functions beyond those
+f     The FluxFrame class does not define any new routines beyond those
+*     which are applicable to all Frames.
 
 *  Copyright:
 *     <COPYRIGHT_STATEMENT>
@@ -1079,7 +1078,6 @@ static AstSpecFrame *GetSpecFrame( AstFluxFrame *this ) {
 
 /* Local Variables: */
    AstSpecFrame *result;           /* Pointer value to return */
-   AstSystemType sys;              /* FluxFrame System */
 
 /* Initialise. */
    result = NULL;
@@ -4086,7 +4084,7 @@ f        SPECFRM. The value supplied for the SPECVAL
 *        A value of AST__BAD may be supplied if the spectral position is
 *        unknown, but this may result in it not being possible for the
 c        astConvert
-*        AST_CONVERT 
+f        AST_CONVERT 
 *        function to determine a Mapping between the new FluxFrame and
 *        some other FluxFrame.
 c     specfrm

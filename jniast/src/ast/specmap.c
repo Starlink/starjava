@@ -55,8 +55,8 @@ c     following function may also be applied to all SpecMaps:
 f     In addition to those routines applicable to all Mappings, the
 f     following routine may also be applied to all SpecMaps:
 *
-c     - astSpecAdd: Add a celestial coordinate conversion to an SpecMap
-f     - AST_SPECADD: Add a celestial coordinate conversion to an SpecMap
+c     - astSpecAdd: Add a spectral coordinate conversion to an SpecMap
+f     - AST_SPECADD: Add a spectral coordinate conversion to an SpecMap
 
 *  Copyright:
 *     <COPYRIGHT_STATEMENT>
@@ -2393,6 +2393,9 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
 /* Get a pointer to the SpecMap structure. */
    map = (AstSpecMap *) this;
 
+/* Return 1.0 if the SpecMap has no conversions. */
+   if( map->ncvt == 0 ) return 1.0;
+
 /* Store the type of the first conversion.*/
    cvt = map->cvttype[ 0 ];
 
@@ -2527,7 +2530,7 @@ f        A character string which identifies the
 *        those available.
 c     args
 f     ARGS( * ) = DOUBLE PRECISION (Given)
-*        An array containing argument values for the celestial
+*        An array containing argument values for the spectral
 *        coordinate conversion. The number of arguments required, and
 *        hence the number of array elements used, depends on the
 *        conversion specified (see the "Available Conversions"
@@ -2572,7 +2575,7 @@ f     these arguments should be given, via the ARGS array, in the
 *     - "WNTOFR": Convert wave number to frequency.
 *     - "FRTOWN": Convert frequency to wave number.
 *     - "WVTOFR": Convert wavelength (vacuum) to frequency.
-*     - "FRTOWV": Convert fFrequency to wavelength (vacuum).
+*     - "FRTOWV": Convert frequency to wavelength (vacuum).
 *     - "AWTOFR": Convert wavelength (air) to frequency.
 *     - "FRTOAW": Convert frequency to wavelength (air).
 *     - "VRTOVL": Convert radio to relativistic velocity.

@@ -136,6 +136,11 @@ f     - AST_TRANN: Transform N-dimensional coordinates
 *     6-DEC-2004 (DSB):
 *        Remove the second derivative estimate from the astRate function
 *        since CmpMap has trouble calculating it.
+*     17-DEC-2004 (DSB):
+*        Added astMapSplit
+*     22-APR-2005 (DSB):
+*        Modified SpecialBounds to handle cases where some irrelevant
+*        output always produces bad values (e.g. a PermMap may do this).
 *class--
 */
 
@@ -158,6 +163,7 @@ f     - AST_TRANN: Transform N-dimensional coordinates
 #include "mapping.h"             /* Interface definition for this class */
 #include "cmpmap.h"              /* Compund Mappings */
 #include "unitmap.h"             /* Unit Mappings */
+#include "permmap.h"             /* Axis permutations */
 
 /* Error code definitions. */
 /* ----------------------- */
@@ -263,6 +269,7 @@ static double NewVertex( const MapData *, int, double, double [], double [], int
 static double Random( long int * );
 static double Rate( AstMapping *, double *, int, int );
 static double UphillSimplex( const MapData *, double, int, const double [], double [], double *, int * );
+static int *MapSplit( AstMapping *, int, int *, AstMapping ** );
 static int Equal( AstObject *, AstObject * );
 static int GetInvert( AstMapping * );
 static int GetNin( AstMapping * );
@@ -349,7 +356,7 @@ static void Sinc( double, const double [], int, double * );
 static void SincCos( double, const double [], int, double * );
 static void SincGauss( double, const double [], int, double * );
 static void SincSinc( double, const double [], int, double * );
-static void SpecialBounds( const MapData *, double *, double *, double [], double [] );
+static int SpecialBounds( const MapData *, double *, double *, double [], double [] );
 static void Tran1( AstMapping *, int, const double [], int, double [] );
 static void Tran2( AstMapping *, int, const double [], const double [], int, double [], double [] );
 static void TranN( AstMapping *, int, int, int, const double *, int, int, int, double * );
@@ -2206,6 +2213,7 @@ void astInitMappingVtab_(  AstMappingVtab *vtab, const char *name ) {
    vtab->MapBox = MapBox;
    vtab->MapList = MapList;
    vtab->MapMerge = MapMerge;
+   vtab->MapSplit = MapSplit;
    vtab->Rate = Rate;
    vtab->ReportPoints = ReportPoints;
    vtab->ResampleB = ResampleB;
@@ -6344,6 +6352,7 @@ static void MapBox( AstMapping *this,
    int coord;                    /* Loop counter for coordinates. */
    int nin;                      /* Effective number of input coordinates */
    int nout;                     /* Effective number of output coordinates */
+   int refine;                   /* Can bounds be refined? */
 
 /* Check the global error status. */
    if ( !astOK ) return;
@@ -6418,11 +6427,15 @@ static void MapBox( AstMapping *this,
 /* First examine a set of special input points to obtain an initial
    estimate of the required output bounds. Do this only so long as the
    number of points involved is not excessive. */
-         if ( nin <= 12 ) SpecialBounds( &mapdata, &lbnd, &ubnd, x_l, x_u );
+         if ( nin <= 12 ) {
+            refine = SpecialBounds( &mapdata, &lbnd, &ubnd, x_l, x_u );
+         } else {
+            refine = 1;
+         }
 
 /* Then attempt to refine this estimate using a global search
    algorithm. */
-         GlobalBounds( &mapdata, &lbnd, &ubnd, x_l, x_u );
+         if( refine ) GlobalBounds( &mapdata, &lbnd, &ubnd, x_l, x_u );
 
 /* If an error occurred, generate a contextual error message. */
          if ( !astOK ) {
@@ -6874,6 +6887,167 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    do not explicitly provide their own simplification method. Return
    -1 to indicate that no simplification is provided. */
    return -1;
+}
+
+static int *MapSplit( AstMapping *this, int nin, int *in, AstMapping **map ){
+/*
+*+
+*  Name:
+*     astMapSplit
+
+*  Purpose:
+*     Create a Mapping representing a subset of the inputs of an existing
+*     Mapping.
+
+*  Type:
+*     Protected virtual function.
+
+*  Synopsis:
+*     #include "mapping.h"
+*     int *astMapSplit( AstMapping *this, int nin, int *in, AstMapping **map )
+
+*  Class Membership:
+*     Mapping method.
+
+*  Description:
+*     This function creates a new Mapping by picking specified inputs from 
+*     an existing Mapping. This is only possible if the specified inputs
+*     correspond to some subset of the Mapping outputs. That is, there
+*     must exist a subset of the Mapping outputs for which each output
+*     depends only on the selected Mapping inputs, and not on any of the
+*     inputs which have not been selected. If this condition is not met
+*     by the supplied Mapping, then a NULL Mapping is returned.
+
+*  Parameters:
+*     this
+*        Pointer to the Mapping to be split (the Mapping is not
+*        actually modified by this function).
+*     nin
+*        The number of inputs to pick from "this".
+*     in
+*        Pointer to an array of indices (zero based) for the inputs which
+*        are to be picked. This array should have "nin" elements. If "Nin"
+*        is the number of inputs of the supplied Mapping, then each element 
+*        should have a value in the range zero to Nin-1.
+*     map
+*        Address of a location at which to return a pointer to the new
+*        Mapping. This Mapping will have "nin" inputs (the number of
+*        outputs may be differetn to "nin"). A NULL pointer will be
+*        returned if the supplied Mapping has no subset of outputs which 
+*        depend only on the selected inputs.
+
+*  Returned Value:
+*     A pointer to a dynamically allocated array of ints. The number of
+*     elements in this array will equal the number of outputs for the 
+*     returned Mapping. Each element will hold the index of the
+*     corresponding output in the supplied Mapping. The array should be
+*     freed using astFree when no longer needed. A NULL pointer will
+*     be returned if no output Mapping can be created.
+
+*  Notes:
+*     - If this function is invoked with the global error status set,
+*     or if it should fail for any reason, then NULL values will be
+*     returned as the function value and for the "map" pointer.
+*- 
+*/
+
+/* Local Variables: */
+   AstCmpMap *rmap;           /* Unsimplified result mapping */
+   AstPermMap *pm;            /* PermMap which rearranges the inputs */
+   int *outperm;              /* PermMap output axis permutation array */   
+   int *result;               /* Pointer to returned array */
+   int iin;                   /* Input index */
+   int iout;                  /* Output index */
+   int nout;                  /* No of outputs */
+   int ok;                    /* Can the supplied "in" array be used? */
+   int perm;                  /* Are the inputs permuted? */
+
+/* Initialise */
+   result = NULL;
+   *map = NULL;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Since we are dealing with a basic Mapping, we can only create the
+   required output Mapping if all inputs are being selected. */
+   if( nin == astGetNin( this ) ) {
+
+/* The inputs may have been selected in a different order to that in
+   which they occur in the supplied Mapping. We therefore create a
+   PermMap which rearranges the inputs into the order they have in the
+   supplied Mapping. The supplied "in" array can act as the PermMap's
+   "inperm" array. Allocate memory for the "outperm" array. */
+      outperm = astMalloc( sizeof(int)*(size_t) nin );
+      if( astOK ) {
+
+/* Store the input index for each output in the outperm array and check that 
+   each input has been selected once and only once. Also set a flag
+   indicating if a PermMap is needed. */
+         perm = 0;
+         ok = 1;
+         for( iout = 0; iout < nin; iout++ ) outperm[ iout ] = -1;
+         for( iin = 0; iin < nin; iin++ ) {
+            iout = in[ iin ];
+            if( outperm[ iout ] != -1 ) {
+               ok = 0;
+               break;
+            } else {
+               outperm[ iout ] = iin;
+            }
+         }
+         for( iout = 0; iout < nin; iout++ ) {
+            if( outperm[ iout ] == -1 ) {
+               ok = 0;
+               break;
+            } else if( outperm[ iout ] != iout ) {
+               perm = 1;
+            }
+         }
+         if( ok ) {
+
+/* Allocate the array to hold the returned output indices. */
+            nout = astGetNout( this );
+            result = astMalloc( sizeof(int)*(size_t) nout );
+            if( astOK ) {
+
+/* The outputs are copied from the supplied Mapping. */
+               for( iout = 0; iout < nout; iout++ ) result[ iout ] = iout;
+
+/* If the inputs are to be permuted, create the PermMap. */
+               if( perm ) {
+                  pm = astPermMap( nin, in, nin, outperm, NULL, "" );
+
+/* The returned Mapping is a series CmpMap containing this PermMap
+   followed by the supplied Mapping. */
+                  rmap = astCmpMap( pm, this, 1, "" );
+                  *map = astSimplify( rmap );
+                  rmap = astAnnul( rmap );
+
+/* Annul the PermMap pointer. */
+                  pm = astAnnul( pm );
+
+/* If no input permutation is needed, the resturned Mapping is just the
+   supplied Mapping. */
+               } else {
+                  *map = astClone( this );
+               }
+            }
+         }
+
+/* Free resources. */
+         outperm = astFree( outperm );
+      }
+   }
+
+/* Free resources if an error has occurred. */
+   if( !astOK ) {
+      result = astFree( result );
+      *map = astAnnul( *map );
+   }
+
+/* Return the list of output indices. */
+   return result;
 }
 
 static double MaxD( double a, double b ) {
@@ -7365,6 +7539,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
          ixy = 0;
          rms = 0.1*sp - 1;
          fitted = 0;
+         fitok = 1;
          while( rms < 0.2*sp && ixy < MXY && ( !fitted || fitok ) ) {
             fit = FitPN( this, at, ax1, ax2, x0, h0, &rms );
             if( fit ) {
@@ -10868,8 +11043,8 @@ f     function is invoked with STATUS set to an error value, or if it
    return result;   
 }
 
-static void SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
-                           double xl[], double xu[] ) {
+static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
+                          double xl[], double xu[] ) {
 /*
 *  Name:
 *     SpecialBounds
@@ -10882,8 +11057,8 @@ static void SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 
 *  Synopsis:
 *     #include "mapping.h"
-*     void SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
-*                         double xl[], double xu[] );
+*     int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
+*                        double xl[], double xu[] );
 
 *  Class Membership:
 *     Mapping member function.
@@ -10932,6 +11107,10 @@ static void SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 *        necessarily unique) input point at which the upper output
 *        bound is reached. This array is not altered if an improved
 *        estimate of the upper bound cannot be found.
+
+*  Returned:
+*     A flag indicating if the returned values can be refined.
+
 */
 
 /* Local Variables: */
@@ -10939,7 +11118,11 @@ static void SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
    AstPointSet *pset_out;        /* PointSet for output coordinates */
    double **ptr_in;              /* Pointer to input coordinates */
    double **ptr_out;             /* Pointer to output coordinates */
+   double *sxl;                  /* Secondary xl values */
+   double *sxu;                  /* Secondary xu values */
    double f;                     /* Output coordinate value */
+   double slbnd;                 /* Secondary lbnd value */
+   double subnd;                 /* Secondary lbnd value */
    int *limit;                   /* Workspace for lower/upper limit flags */
    int bad;                      /* Output coordinate bad? */
    int coord;                    /* Loop counter for coordinates */
@@ -10949,7 +11132,11 @@ static void SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
    int npoint;                   /* Number of points */
    int origin;                   /* Origin lies within bounds? */
    int point;                    /* Loop counter for points */
-   
+   int result;                   /* Returned flag */
+
+/* Initialise */
+   result = 1;
+
 /* Initialise variables to avoid "used of uninitialised variable"
    messages from dumb compilers. */
    pset_out = NULL;
@@ -10975,6 +11162,14 @@ static void SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
       }
    }
    if ( origin ) npoint++;
+
+/* Initialise secondary bounds to be the supplied primary bounds */
+   slbnd = *lbnd;
+   subnd = *ubnd;
+
+/* Create workspace for ssecondary xl xu values */
+   sxl = astMalloc( sizeof(double)*(size_t) ncoord );
+   sxu = astMalloc( sizeof(double)*(size_t) ncoord );
 
 /* Create a PointSet to hold the coordinates and obtain a pointer to
    its coordinate values. Also allocate workspace for calculating the
@@ -11078,8 +11273,8 @@ static void SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 
 /* If so, we ignore the point. Otherwise, extract the required
    coordinate. */
+            f = ptr_out[ mapdata->coord ][ point ];
             if ( !bad ) {
-               f = ptr_out[ mapdata->coord ][ point ];
 
 /* Use this to update the lower and upper bounds we are seeking. If
    either bound is updated, also store the coordinates of the
@@ -11096,15 +11291,53 @@ static void SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
                      xu[ coord ] = ptr_in[ coord ][ point ];
                   }
                }
+
+/* If this point has a bad coord value, it may still be useful if the
+   required coord value is not bad. In this case, extract the required
+   coordinate. */
+            } else if ( f != AST__BAD ) {
+
+/* Use this to update secondary lower and upper bounds we are seeking.
+   These will be returned if no primary values are found via the previous
+   code block. */
+               if ( ( slbnd == AST__BAD ) || ( f < slbnd ) ) {
+                  slbnd = f;
+                  for ( coord = 0; coord < ncoord; coord++ ) {
+                     sxl[ coord ] = ptr_in[ coord ][ point ];
+                  }
+               }
+               if ( ( subnd == AST__BAD ) || ( f > subnd ) ) {
+                  subnd = f;
+                  for ( coord = 0; coord < ncoord; coord++ ) {
+                     sxu[ coord ] = ptr_in[ coord ][ point ];
+                  }
+               }
             }
+         }
+
+/* If no primary values could be found, use secondary values. */
+         if( *lbnd == AST__BAD && *ubnd == AST__BAD ) {
+            *lbnd = slbnd;
+            *ubnd = subnd;
+            for ( coord = 0; coord < ncoord; coord++ ) {
+               xu[ coord ] = sxu[ coord ];
+               xl[ coord ] = sxl[ coord ];
+            }
+            result = ( slbnd == AST__BAD || subnd == AST__BAD );
          }
       }
    }
+
+/* Free workspace */
+   sxl = astFree( sxl );
+   sxu = astFree( sxu );
 
 /* Annul the temporary PointSets and free the workspace. */
    pset_in = astAnnul( pset_in );
    pset_out = astAnnul( pset_out );
    limit = astFree( limit );
+
+   return result;
 }
 
 static int TestAttrib( AstObject *this_object, const char *attrib ) {
@@ -11577,6 +11810,15 @@ f     be reversed.
       in_ptr = (const double **) astMalloc( sizeof( const double * ) *
                                             (size_t) ncoord_in );
       out_ptr = astMalloc( sizeof( double * ) * (size_t) ncoord_out );
+
+
+#ifdef DEBUG
+      { int i, ns;
+        ns = ncoord_out*outdim;
+        for( i = 0; i < ns; i++ ) out[ i ] = 0.0;
+      }
+#endif
+
 
 /* Initialise the input data pointers to locate the coordinate data in
    the "in" array. */
@@ -13572,6 +13814,11 @@ int astMapList_( AstMapping *this, int series, int invert, int *nmap,
    if ( !astOK ) return 0;
    return (**astMEMBER(this,Mapping,MapList))( this, series, invert,
                                         nmap, map_list, invert_list );
+}
+int *astMapSplit_( AstMapping *this, int nin, int *in, AstMapping **map ){
+   if( map ) *map = NULL;
+   if ( !astOK ) return NULL;
+   return (**astMEMBER(this,Mapping,MapSplit))( this, nin, in, map );
 }
 int astMapMerge_( AstMapping *this, int where, int series, int *nmap,
                   AstMapping ***map_list, int **invert_list ) {

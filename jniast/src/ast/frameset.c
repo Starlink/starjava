@@ -190,6 +190,8 @@ f     - AST_REMOVEFRAME: Remove a Frame from a FrameSet
 *       long time ago!
 *     8-SEP-2004 (DSB):
 *       Override astResolvePoints.
+*     12-MAY-2005 (DSB):
+*        Override astNormBox method.
 *class--
 */
 
@@ -719,6 +721,7 @@ static int integrity_lost = 0;   /* Current Frame modified? */
 
 /* Pointers to parent class methods which are extended by this class. */
 static void (* parent_clear)( AstObject *, const char * );
+static int (* parent_getusedefs)( AstObject * );
 static void (* parent_vset)( AstObject *, const char *, va_list );
 
 /* Prototypes for Private Member Functions. */
@@ -755,9 +758,14 @@ static const char *SystemString( AstFrame *, AstSystemType );
 static void CheckPerm( AstFrame *, const int *, const char * );
 static void Resolve( AstFrame *, const double [], const double [], const double [], double [], double *, double * );
 static void ValidateAxisSelection( AstFrame *, int, const int *, const char * );
+static AstLineDef *LineDef( AstFrame *, const double[2], const double[2] );
+static int LineCrossing( AstFrame *, AstLineDef *, AstLineDef *, double ** );
+static int LineContains( AstFrame *, AstLineDef *, int, double * );
+static void LineOffset( AstFrame *, AstLineDef *, double, double, double[2] );
 
 static double Distance( AstFrame *, const double[], const double[] );
 static double Gap( AstFrame *, int, double, int * );
+static int *MapSplit( AstMapping *, int, int *, AstMapping ** );
 static int Fields( AstFrame *, int, const char *, const char *, int, char **, int *, double * );
 static int ForceCopy( AstFrameSet *, int );
 static int GetBase( AstFrameSet * );
@@ -822,6 +830,7 @@ static void Copy( const AstObject *, AstObject * );
 static void Delete( AstObject * );
 static void Dump( AstObject *, AstChannel * );
 static void Norm( AstFrame *, double[] );
+static void NormBox( AstFrame *, double[], double[], AstMapping * );
 static void Offset( AstFrame *, const double[], const double[], double, double[] );
 static void Overlay( AstFrame *, const int *, AstFrame * );
 static void PermAxes( AstFrame *, const int[] );
@@ -866,6 +875,8 @@ static double GetEpoch( AstFrame * );
 static int TestEpoch( AstFrame * );
 static void ClearEpoch( AstFrame * );
 static void SetEpoch( AstFrame *, double );
+
+static int GetUseDefs( AstObject * );
 
 static AstSystemType GetSystem( AstFrame * );
 static int TestSystem( AstFrame * );
@@ -4380,6 +4391,68 @@ static int GetTranInverse( AstMapping *this_mapping ) {
    return result;
 }
 
+static int GetUseDefs( AstObject *this_object ) {
+/*
+*  Name:
+*     GetUseDefs
+
+*  Purpose:
+*     Get the value of the UseDefs attribute for a FrameSet.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "frameset.h"
+*     int GetUseDefs( AstObject *this_object ) {
+
+*  Class Membership:
+*     FrameSet member function (over-rides the protected astGetUseDefs
+*     method inherited from the Frame class).
+
+*  Description:
+*     This function returns the value of the UseDefs attribute for a FrameSet, 
+*     supplying a suitable default.
+
+*  Parameters:
+*     this
+*        Pointer to the FrameSet.
+
+*  Returned Value:
+*     - The USeDefs value.
+*/
+
+/* Local Variables: */
+   AstFrame *fr;                 /* Pointer to current Frame */
+   AstFrameSet *this;            /* Pointer to the FrameSet structure */
+   int result;                   /* Value to return */
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */   
+   if ( !astOK ) return result;
+
+/* Obtain a pointer to the FrameSet structure. */
+   this = (AstFrameSet *) this_object;
+
+/* If the UseDefs value for the FrameSet has been set explicitly, use the
+   Get method inherited from the parent Frame class to get its value> */
+   if( astTestUseDefs( this ) ) {
+      result = (*parent_getusedefs)( this_object );
+
+/* Otherwise, supply a default value equal to the UseDefs value of the
+   current Frame. */   
+   } else {
+      fr = astGetFrame( this, AST__CURRENT );
+      result = astGetUseDefs( fr );
+      fr = astAnnul( fr );
+   }
+
+/* Return the result. */
+   return result;
+}
+
 void astInitFrameSetVtab_(  AstFrameSetVtab *vtab, const char *name ) {
 /*
 *+
@@ -4460,8 +4533,12 @@ void astInitFrameSetVtab_(  AstFrameSetVtab *vtab, const char *name ) {
 
    parent_clear = object->Clear;
    object->Clear = Clear;
+
    parent_vset = object->VSet;
    object->VSet = VSet;
+
+   parent_getusedefs = object->GetUseDefs;
+   object->GetUseDefs = GetUseDefs;
 
 /* Store replacement pointers for methods which will be over-ridden by
    new member functions implemented here. */
@@ -4473,6 +4550,8 @@ void astInitFrameSetVtab_(  AstFrameSetVtab *vtab, const char *name ) {
    object->SetAttrib = SetAttrib;
    object->TestAttrib = TestAttrib;
 
+   object->GetUseDefs = GetUseDefs;
+
    mapping->GetNin = GetNin;
    mapping->GetNout = GetNout;
    mapping->GetTranForward = GetTranForward;
@@ -4480,6 +4559,7 @@ void astInitFrameSetVtab_(  AstFrameSetVtab *vtab, const char *name ) {
    mapping->ReportPoints = ReportPoints;
    mapping->Simplify = Simplify;
    mapping->Transform = Transform;
+   mapping->MapSplit = MapSplit;
 
    frame->Abbrev = Abbrev;
    frame->Angle = Angle;
@@ -4526,6 +4606,7 @@ void astInitFrameSetVtab_(  AstFrameSetVtab *vtab, const char *name ) {
    frame->IsUnitFrame = IsUnitFrame;
    frame->Match = Match;
    frame->Norm = Norm;
+   frame->NormBox = NormBox;
    frame->Offset = Offset;
    frame->Offset2 = Offset2;
    frame->Overlay = Overlay;
@@ -4568,6 +4649,10 @@ void astInitFrameSetVtab_(  AstFrameSetVtab *vtab, const char *name ) {
    frame->ValidateAxis = ValidateAxis;
    frame->ValidateAxisSelection = ValidateAxisSelection;
    frame->ValidateSystem = ValidateSystem;
+   frame->LineDef = LineDef;
+   frame->LineContains = LineContains;
+   frame->LineCrossing = LineCrossing;
+   frame->LineOffset = LineOffset;
 
    frame->GetActiveUnit = GetActiveUnit;
    frame->SetActiveUnit = SetActiveUnit;
@@ -4622,7 +4707,7 @@ static int IsUnitFrame( AstFrame *this_frame ){
 *     int IsUnitFrame( AstFrame *this )
 
 *  Class Membership:
-*     Region member function (over-rides the protected astIsUnitFrame
+*     FrameSet member function (over-rides the protected astIsUnitFrame
 *     method inherited from the Frame class).
 
 *  Description:
@@ -4668,6 +4753,363 @@ static int IsUnitFrame( AstFrame *this_frame ){
    if ( !astOK ) result = 0;
 
 /* Return the result. */
+   return result;
+}
+
+static int LineContains( AstFrame *this_frame, AstLineDef *l, int def, double *point ) {
+/*
+*  Name:
+*     LineContains
+
+*  Purpose:
+*     Determine if a line contains a point.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "frameset.h"
+*     int LineContains( AstFrame *this, AstLineDef *l, int def, double *point )
+
+*  Class Membership:
+*     FrameSet member function (over-rides the protected astLineContains
+*     method inherited from the Frame class).
+
+*  Description:
+*     This function determines if the supplied point is on the supplied
+*     line within the supplied Frame.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame.
+*     l
+*        Pointer to the structure defining the line. 
+*     def
+*        Should be set non-zero if the "point" array was created by a
+*        call to astLineCrossing (in which case it may contain extra
+*        information following the axis values),and zero otherwise.
+*     point
+*        Point to an array containing the axis values of the point to be 
+*        tested, possibly followed by extra cached information (see "def").
+
+*  Returned Value:
+*     A non-zero value is returned if the line contains the point. 
+
+*  Notes:
+*     - The pointer supplied for "l" should have been created using the 
+*     astLineDef method. These structures contained cached information about 
+*     the lines which improve the efficiency of this method when many 
+*     repeated calls are made. An error will be reported if the structure 
+*     does not refer to the Frame specified by "this".
+*     - Zero will be returned if this function is invoked with the global 
+*     error status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstFrame *fr;                 /* Pointer to current Frame */
+   int result;                   /* Returned value */
+
+/* Initialise */
+   result =0;
+
+/* Obtain a pointer to the FrameSet's current Frame and then invoke the
+   method. Annul the Frame pointer afterwards. */
+   fr = astGetFrame( (AstFrameSet *) this_frame, AST__CURRENT );
+   result = astLineContains( fr, l, def, point );
+   fr = astAnnul( fr );
+
+/* Return the result. */
+   return result;
+}
+
+static int LineCrossing( AstFrame *this_frame, AstLineDef *l1, AstLineDef *l2, 
+                         double **cross ) {
+/*
+*  Name:
+*     LineCrossing
+
+*  Purpose:
+*     Determine if two lines cross.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "frameset.h"
+*     int LineCrossing( AstFrame *this, AstLineDef *l1, AstLineDef *l2, 
+*                       double **cross )
+
+*  Class Membership:
+*     FrameSet member function (over-rides the protected astLineCrossing
+*     method inherited from the Frame class).
+
+*  Description:
+*     This function determines if the two suplied line segments cross,
+*     and if so returns the axis values at the point where they cross.
+*     A flag is also returned indicating if the crossing point occurs
+*     within the length of both line segments, or outside one or both of
+*     the line segments.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame.
+*     l1
+*        Pointer to the structure defining the first line. 
+*     l2
+*        Pointer to the structure defining the second line. 
+*     cross
+*        Pointer to a location at which to put a pointer to a dynamically
+*        alocated array containing the axis values at the crossing. If
+*        NULL is supplied no such array is returned. Otherwise, the returned 
+*        array should be freed using astFree when no longer needed. If the 
+*        lines are parallel (i.e. do not cross) then AST__BAD is returned for 
+*        all axis values. Note usable axis values are returned even if the 
+*        lines cross outside the segment defined by the start and end points 
+*        of the lines. The order of axes in the returned array will take
+*        account of the current axis permutation array if appropriate. Note, 
+*        sub-classes such as SkyFrame may append extra values to the end
+*        of the basic frame axis values. A NULL pointer is returned if an
+*        error occurs.
+
+*  Returned Value:
+*     A non-zero value is returned if the lines cross at a point which is
+*     within the [start,end) segment of both lines. If the crossing point
+*     is outside this segment on either line, or if the lines are parallel,
+*     zero is returned. Note, the start point is considered to be inside
+*     the length of the segment, but the end point is outside.
+
+*  Notes:
+*     - The pointers supplied for "l1" and "l2" should have been created
+*     using the astLineDef method. These structures contained cached
+*     information about the lines which improve the efficiency of this method
+*     when many repeated calls are made. An error will be reported if
+*     either structure does not refer to the Frame specified by "this".
+*     - Zero will be returned if this function is invoked with the global 
+*     error status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstFrame *fr;                 /* Pointer to current Frame */
+   int result;                   /* Returned value */
+
+/* Initialise */
+   result =0;
+
+/* Obtain a pointer to the FrameSet's current Frame and then invoke the
+   method. Annul the Frame pointer afterwards. */
+   fr = astGetFrame( (AstFrameSet *) this_frame, AST__CURRENT );
+   result = astLineCrossing( fr, l1, l2, cross );
+   fr = astAnnul( fr );
+
+/* Return the result. */
+   return result;
+}
+
+static AstLineDef *LineDef( AstFrame *this_frame, const double start[2], 
+                            const double end[2] ) {
+/*
+*  Name:
+*     LineDef
+
+*  Purpose:
+*     Creates a structure describing a line segment in a 2D Frame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "frameset.h"
+*     AstLineDef *LineDef( AstFrame *this, const double start[2], 
+*                             const double end[2] ) 
+
+*  Class Membership:
+*     FrameSet member function (over-rides the protected astLineDef
+*     method inherited from the Frame class).
+
+*  Description:
+*     This function creates a structure containing information describing a
+*     given line segment within the supplied 2D Frame. This may include
+*     information which allows other methods such as astLineCrossing to
+*     function more efficiently. Thus the returned structure acts as a
+*     cache to store intermediate values used by these other methods.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame. Must have 2 axes.
+*     start
+*        An array of 2 doubles marking the start of the line segment.
+*     end
+*        An array of 2 doubles marking the end of the line segment.
+
+*  Returned Value:
+*     Pointer to the memory structure containing the description of the
+*     line. This structure should be freed using astFree when no longer
+*     needed. A NULL pointer is returned (without error) if any of the
+*     supplied axis values are AST__BAD.
+
+*  Notes:
+*     - A null pointer will be returned if this function is invoked
+*     with the global error status set, or if it should fail for any
+*     reason.
+*/
+
+/* Local Variables: */
+   AstFrame *fr;                 /* Pointer to current Frame */
+   AstLineDef *result;           /* Returned value */
+
+/* Initialise */
+   result = NULL;
+
+/* Obtain a pointer to the FrameSet's current Frame and then invoke the
+   method. Annul the Frame pointer afterwards. */
+   fr = astGetFrame( (AstFrameSet *) this_frame, AST__CURRENT );
+   result = astLineDef( fr, start, end );
+   fr = astAnnul( fr );
+
+/* Return the result. */
+   return result;
+}
+
+static void LineOffset( AstFrame *this_frame, AstLineDef *line, double par, 
+                        double prp, double point[2] ){
+/*
+*  Name:
+*     LineOffset
+
+*  Purpose:
+*     Find a position close to a line.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "frame.h"
+*     void LineOffset( AstFrame *this, AstLineDef *line, double par, 
+*                      double prp, double point[2] )
+
+*  Class Membership:
+*     FrameSet member function (over-rides the protected astLineOffset
+*     method inherited from the Frame class).
+
+*  Description:
+*     This function returns a position formed by moving a given distance along
+*     the supplied line, and then a given distance away from the supplied line.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame.
+*     line
+*        Pointer to the structure defining the line. 
+*     par
+*        The distance to move along the line from the start towards the end.
+*     prp
+*        The distance to move at right angles to the line. Positive
+*        values result in movement to the left of the line, as seen from
+*        the outside when moving from start towards the end.
+
+*  Notes:
+*     - The pointer supplied for "line" should have been created using the 
+*     astLineDef method. This structure contains cached information about the 
+*     line which improves the efficiency of this method when many repeated 
+*     calls are made. An error will be reported if the structure does not 
+*     refer to the Frame specified by "this".
+*/
+
+
+/* Local Variables: */
+   AstFrame *fr;                 /* Pointer to current Frame */
+
+/* Obtain a pointer to the FrameSet's current Frame and then invoke the
+   method. Annul the Frame pointer afterwards. */
+   fr = astGetFrame( (AstFrameSet *) this_frame, AST__CURRENT );
+   astLineOffset( fr, line, par, prp, point );
+   fr = astAnnul( fr );
+}
+
+static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map ){
+/*
+*  Name:
+*     MapSplit
+
+*  Purpose:
+*     Create a Mapping representing a subset of the inputs of an existing
+*     FrameSet.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "frameset.h"
+*     int *MapSplit( AstMapping *this, int nin, int *in, AstMapping **map )
+
+*  Class Membership:
+*     FrameSet method (over-rides the protected astMapSplit method
+*     inherited from the Mapping class).
+
+*  Description:
+*     This function creates a new Mapping by picking specified inputs from 
+*     an existing FrameSet. This is only possible if the specified inputs
+*     correspond to some subset of the FrameSet outputs. That is, there
+*     must exist a subset of the FrameSet outputs for which each output
+*     depends only on the selected FrameSet inputs, and not on any of the
+*     inputs which have not been selected. If this condition is not met
+*     by the supplied FrameSet, then a NULL Mapping is returned.
+
+*  Parameters:
+*     this
+*        Pointer to the FrameSet to be split (the FrameSet is not actually 
+*        modified by this function).
+*     nin
+*        The number of inputs to pick from "this".
+*     in
+*        Pointer to an array of indices (zero based) for the inputs which
+*        are to be picked. This array should have "nin" elements. If "Nin"
+*        is the number of inputs of the supplied FrameSet, then each element 
+*        should have a value in the range zero to Nin-1.
+*     map
+*        Address of a location at which to return a pointer to the new
+*        Mapping. This Mapping will have "nin" inputs (the number of
+*        outputs may be different to "nin"). A NULL pointer will be
+*        returned if the supplied FrameSet has no subset of outputs which 
+*        depend only on the selected inputs.
+
+*  Returned Value:
+*     A pointer to a dynamically allocated array of ints. The number of
+*     elements in this array will equal the number of outputs for the 
+*     returned Mapping. Each element will hold the index of the
+*     corresponding output in the supplied FrameSet. The array should be
+*     freed using astFree when no longer needed. A NULL pointer will
+*     be returned if no output Mapping can be created.
+
+*  Notes:
+*     - If this function is invoked with the global error status set,
+*     or if it should fail for any reason, then NULL values will be
+*     returned as the function value and for the "map" pointer.
+*/
+
+/* Local Variables: */
+   AstMapping *bcmap;   /* Base->current Mapping */
+   int *result;         /* Returned pointer */
+
+/* Initialise */
+   result = NULL;
+   *map = NULL;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Get the Mapping from base to current Frame and try to split it. */
+   bcmap = astGetMapping( (AstFrameSet *) this_map, AST__BASE, AST__CURRENT );
+   result = astMapSplit( bcmap, nin, in, map );
+   bcmap = astAnnul( bcmap );
+
+/* Free returned resources if an error has occurred. */
+   if( !astOK ) {
+      result = astFree( result );
+      *map = astAnnul( *map );
+   }
+
+/* Return the list of output indices. */
    return result;
 }
 
@@ -4869,6 +5311,73 @@ static void Norm( AstFrame *this_frame, double value[] ) {
    pointer afterwards. */
    fr = astGetFrame( this, AST__CURRENT );
    astNorm( fr, value );
+   fr = astAnnul( fr );
+}
+
+static void NormBox( AstFrame *this_frame, double lbnd[], double ubnd[],
+                     AstMapping *reg ) {
+/*
+*  Name:
+*     NormBox
+
+*  Purpose:
+*     Extend a box to include effect of any singularities in the Frame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "frameset.h"
+*     void astNormBox( AstFrame *this, double lbnd[], double ubnd[],
+*                      AstMapping *reg )
+
+*  Class Membership:
+*     FrameSet member function (over-rides the astNormBox method inherited
+*     from the Frame class).
+
+*  Description:
+*     This function modifies a supplied box to include the effect of any
+*     singularities in the co-ordinate system represented by the Frame.
+*     For a normal Cartesian coordinate system, the box will be returned
+*     unchanged. Other classes of Frame may do other things. For instance,
+*     a SkyFrame will check to see if the box contains either the north
+*     or south pole and extend the box appropriately.
+
+*  Parameters:
+*     this
+*        Pointer to the Frame.
+*     lbnd
+*        An array of double, with one element for each Frame axis
+*        (Naxes attribute). Initially, this should contain a set of
+*        lower axis bounds for the box. They will be modified on exit
+*        to include the effect of any singularities within the box.
+*     ubnd
+*        An array of double, with one element for each Frame axis
+*        (Naxes attribute). Initially, this should contain a set of
+*        upper axis bounds for the box. They will be modified on exit
+*        to include the effect of any singularities within the box.
+*     reg
+*        A Mapping which should be used to test if any singular points are
+*        inside or outside the box. The Mapping should leave an input
+*        position unchanged if the point is inside the box, and should
+*        set all bad if the point is outside the box.
+*/
+
+/* Local Variables: */
+   AstFrame *fr;                 /* Pointer to the current Frame */
+   AstFrameSet *this;            /* Pointer to the FrameSet structure */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the FrameSet structure. */
+   this = (AstFrameSet *) this_frame;
+
+/* Obtain a pointer to the FrameSet's current Frame and invoke this
+   Frame's astNormBox method to obtain the new values. Annul the Frame
+   pointer afterwards. */
+   fr = astGetFrame( this, AST__CURRENT );
+   astNormBox( fr, lbnd, ubnd, reg );
    fr = astAnnul( fr );
 }
 
@@ -5958,7 +6467,7 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
 *     Private function.
 
 *  Synopsis:
-*     #include "frame.h"
+*     #include "frameset.h"
 *     AstPointSet *astResolvePoints( AstFrame *this, const double point1[], 
 *                                    const double point2[], AstPointSet *in,
 *                                    AstPointSet *out )

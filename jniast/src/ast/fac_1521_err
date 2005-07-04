@@ -117,3 +117,9 @@ FACILITY AST
 415,BADOC,Invalid parameters for offset sky coordinate system
 416,MPGER,error getting a named value from a KeyMap
 417,MPIND,invalid integer index supplied for a KeyMap entry
+418,REGCN,region cannot be re-centred
+419,NOVAL,attribute has no usable value
+420,INCTS,incompatible time scales
+421,TIMIN,invalid TimeMap
+422,STCKEY,cannot use supplied AstroCoords info
+423,STCIND,invalid AstroCoords index
