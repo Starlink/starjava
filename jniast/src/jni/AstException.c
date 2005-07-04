@@ -147,6 +147,12 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstException_getErrConst(
       else TRY_CONST(AST__BADOC)
       else TRY_CONST(AST__MPGER)
       else TRY_CONST(AST__MPIND)
+      else TRY_CONST(AST__REGCN)
+      else TRY_CONST(AST__NOVAL)
+      else TRY_CONST(AST__INCTS)
+      else TRY_CONST(AST__TIMIN)
+      else TRY_CONST(AST__STCKEY)
+      else TRY_CONST(AST__STCIND)
    }
    if ( ! success ) printf( "no such constant %s\n", ident );
    (*env)->ReleaseStringUTFChars( env, jIdent, ident );
@@ -289,6 +295,12 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_AstException_getErrName(
       TRY_CONST(AST__BADOC)
       TRY_CONST(AST__MPGER)
       TRY_CONST(AST__MPIND)
+      TRY_CONST(AST__REGCN)
+      TRY_CONST(AST__NOVAL)
+      TRY_CONST(AST__INCTS)
+      TRY_CONST(AST__TIMIN)
+      TRY_CONST(AST__STCKEY)
+      TRY_CONST(AST__STCIND)
    }
    return result ? (*env)->NewStringUTF( env, result ) : NULL;
 }
