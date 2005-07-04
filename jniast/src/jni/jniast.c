@@ -541,6 +541,9 @@ const double *jniastCopyDoubleArray( JNIEnv *env, jdoubleArray jArr,
    if ( ! (*env)->ExceptionCheck( env ) ) {
       nel = jArr ? (*env)->GetArrayLength( env, jArr )
                  : 0;
+      if ( nel > bufsiz ) {
+          nel = bufsiz;
+      }
       buf = jniastMalloc( env, bufsiz * sizeof( double ) );
       if ( buf ) {
          for ( i = 0; i < bufsiz; i++ ) {
