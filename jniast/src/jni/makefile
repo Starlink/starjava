@@ -108,6 +108,8 @@ C_ROUTINES = \
    SpecFrame.c \
    SpecMap.c \
    SphMap.c \
+   TimeFrame.c \
+   TimeMap.c \
    TranMap.c \
    UnitMap.c \
    WcsMap.c \

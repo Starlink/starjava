@@ -69,6 +69,8 @@ typedef union {
    AstSpecFrame *SpecFrame;  /* Pointer to C AstSpecFrame struct */
    AstSpecMap *SpecMap;      /* Pointer to C AstSpecMap struct */
    AstSphMap *SphMap;        /* Pointer to C AstSphMap struct */
+   AstTimeFrame *TimeFrame;  /* Pointer to C AstTimeFrame struct */
+   AstTimeMap *TimeMap;      /* Pointer to C AstTimeMap struct */
    AstTranMap *TranMap;      /* Pointer to C AstTranMap struct */
    AstUnitMap *UnitMap;      /* Pointer to C AstUnitMap struct */
    AstWcsMap *WcsMap;        /* Pointer to C AstWcsMap struct */

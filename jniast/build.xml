@@ -550,6 +550,14 @@
       <param name="pj.cfile" value="sphmap.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="TimeFrame"/>
+      <param name="pj.cfile" value="timeframe.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="TimeMap"/>
+      <param name="pj.cfile" value="timemap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="TranMap"/>
       <param name="pj.cfile" value="tranmap.c"/>
     </antcall>
@@ -791,6 +799,8 @@
       <class name="${package.name}.SpecFrame"/>
       <class name="${package.name}.SpecMap"/>
       <class name="${package.name}.SphMap"/>
+      <class name="${package.name}.TimeFrame"/>
+      <class name="${package.name}.TimeMap"/>
       <class name="${package.name}.TranMap"/>
       <class name="${package.name}.UnitMap"/>
       <class name="${package.name}.WcsMap"/>
