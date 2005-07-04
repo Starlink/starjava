@@ -62,17 +62,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SpecMap_specAdd(
        * as astSpecMap might attempt to read, rather than one matching 
        * the size of the supplied array, since an overread would likely be
        * catastrophic (coredump). */
-      if ( jArgs == NULL ) {
-          args = NULL;
-      }
-      else {
-         args = jniastMalloc( env, SPECADD_MAX_ARGS * sizeof( double ) );
-         ncopy = (*env)->GetArrayLength( env, jArgs );
-         if ( ncopy > SPECADD_MAX_ARGS ) {
-            ncopy = SPECADD_MAX_ARGS;
-         }
-         (*env)->GetDoubleArrayRegion( env, jArgs, 0, ncopy, args );
-      }
+      args = jniastCopyDoubleArray( env, jArgs, SPECADD_MAX_ARGS );
 
       /* Call the AST function to do the work. */
       ASTCALL(
@@ -81,7 +71,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SpecMap_specAdd(
 
       /* Release resources. */
       jniastReleaseUTF( env, jCvt, cvt );
-      free( args );
+      ALWAYS(
+         free( args );
+      )
    }
 }
 

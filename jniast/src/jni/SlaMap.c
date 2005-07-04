@@ -53,13 +53,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SlaMap_add(
 
    if ( jniastCheckNotNull( env, jCvt ) ) {
       cvt = jniastGetUTF( env, jCvt );
-      if ( jArgs != NULL ) {
-         args = (const double *) 
-                (*env)->GetDoubleArrayElements( env, jArgs, NULL );
-      }
-      else {
-         args = NULL;
-      }
+      args = jniastCopyDoubleArray( env, jArgs, 16 );
 
       ASTCALL(
          astSlaAdd( pointer.SlaMap, cvt, args );
@@ -67,10 +61,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SlaMap_add(
 
       jniastReleaseUTF( env, jCvt, cvt );
       ALWAYS(
-         if ( args != NULL ) {
-            (*env)->ReleaseDoubleArrayElements( env, jArgs, (jdouble *) args, 
-                                                JNI_ABORT );
-         }
+         free( args );
       )
    }
 }
