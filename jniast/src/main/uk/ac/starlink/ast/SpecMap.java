@@ -122,7 +122,7 @@ public class SpecMap extends Mapping {
      * <br> - "WNTOFR": Convert wave number to frequency.
      * <br> - "FRTOWN": Convert frequency to wave number.
      * <br> - "WVTOFR": Convert wavelength (vacuum) to frequency.
-     * <br> - "FRTOWV": Convert fFrequency to wavelength (vacuum).
+     * <br> - "FRTOWV": Convert frequency to wavelength (vacuum).
      * <br> - "AWTOFR": Convert wavelength (air) to frequency.
      * <br> - "FRTOAW": Convert frequency to wavelength (air).
      * <br> - "VRTOVL": Convert radio to relativistic velocity.
@@ -203,7 +203,7 @@ public class SpecMap extends Mapping {
      * those available.
      * 
      * @param   args
-     * An array containing argument values for the celestial
+     * An array containing argument values for the spectral
      * coordinate conversion. The number of arguments required, and
      * hence the number of array elements used, depends on the
      * conversion specified (see the "Available Conversions"

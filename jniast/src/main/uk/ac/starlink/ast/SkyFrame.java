@@ -398,8 +398,8 @@ public class SkyFrame extends Frame {
      * SkyRefP attributes are used. These three attributes together allow
      * a SkyFrame to represent offsets relative to some specified origin
      * or pole within the coordinate system specified by the System attribute, 
-     * rather than absolute axis values. SkyRefIs can take either of the 
-     * case-insensitive values "Origin" or "Pole". 
+     * rather than absolute axis values. SkyRefIs can take one of the 
+     * case-insensitive values "Origin", "Pole" or "Ignored". 
      * <p>
      * If SkyRefIs is set to "Origin" (the default), then the coordinate system
      * represented by the SkyFrame is modified to put the origin of longitude
@@ -408,6 +408,10 @@ public class SkyFrame extends Frame {
      * If SkyRefIs is set to "Pole", then the coordinate system represented 
      * by the SkyFrame is modified to put the north pole at the position 
      * specified by the SkyRef attribute. 
+     * <p>
+     * If SkyRefIs is set to "Ignored", then any value set for the SkyRef
+     * attribute is ignored, and the SkyFrame represents the coordinate
+     * system specified by the System attribute directly without any rotation.
      * 
      *
      * @return  this object's SkyRefIs attribute
@@ -423,8 +427,8 @@ public class SkyFrame extends Frame {
      * SkyRefP attributes are used. These three attributes together allow
      * a SkyFrame to represent offsets relative to some specified origin
      * or pole within the coordinate system specified by the System attribute, 
-     * rather than absolute axis values. SkyRefIs can take either of the 
-     * case-insensitive values "Origin" or "Pole". 
+     * rather than absolute axis values. SkyRefIs can take one of the 
+     * case-insensitive values "Origin", "Pole" or "Ignored". 
      * <p>
      * If SkyRefIs is set to "Origin" (the default), then the coordinate system
      * represented by the SkyFrame is modified to put the origin of longitude
@@ -433,6 +437,10 @@ public class SkyFrame extends Frame {
      * If SkyRefIs is set to "Pole", then the coordinate system represented 
      * by the SkyFrame is modified to put the north pole at the position 
      * specified by the SkyRef attribute. 
+     * <p>
+     * If SkyRefIs is set to "Ignored", then any value set for the SkyRef
+     * attribute is ignored, and the SkyFrame represents the coordinate
+     * system specified by the System attribute directly without any rotation.
      * 
      *
      * @param  skyRefIs   the SkyRefIs attribute of this object

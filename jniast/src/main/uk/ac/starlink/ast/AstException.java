@@ -1159,4 +1159,58 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__MPIND" );
        }
    }
+   /** Status constant for error "region cannot be re-centred" */
+   public static final int AST__REGCN;
+   static {
+       try { AST__REGCN = getErrConst( "AST__REGCN" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__REGCN" );
+       }
+   }
+   /** Status constant for error "attribute has no usable value" */
+   public static final int AST__NOVAL;
+   static {
+       try { AST__NOVAL = getErrConst( "AST__NOVAL" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__NOVAL" );
+       }
+   }
+   /** Status constant for error "incompatible time scales" */
+   public static final int AST__INCTS;
+   static {
+       try { AST__INCTS = getErrConst( "AST__INCTS" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__INCTS" );
+       }
+   }
+   /** Status constant for error "invalid TimeMap" */
+   public static final int AST__TIMIN;
+   static {
+       try { AST__TIMIN = getErrConst( "AST__TIMIN" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__TIMIN" );
+       }
+   }
+   /** Status constant for error "cannot use supplied AstroCoords info" */
+   public static final int AST__STCKEY;
+   static {
+       try { AST__STCKEY = getErrConst( "AST__STCKEY" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__STCKEY" );
+       }
+   }
+   /** Status constant for error "invalid AstroCoords index" */
+   public static final int AST__STCIND;
+   static {
+       try { AST__STCIND = getErrConst( "AST__STCIND" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__STCIND" );
+       }
+   }
 }

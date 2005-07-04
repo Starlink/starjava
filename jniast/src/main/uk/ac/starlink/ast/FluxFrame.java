@@ -33,7 +33,6 @@ public class FluxFrame extends Frame {
      * A value of AST__BAD may be supplied if the spectral position is
      * unknown, but this may result in it not being possible for the
      * astConvert
-     * AST_CONVERT 
      * function to determine a Mapping between the new FluxFrame and
      * some other FluxFrame.
      * 

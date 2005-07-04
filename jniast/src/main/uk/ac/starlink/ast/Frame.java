@@ -777,28 +777,30 @@ public class Frame extends Mapping {
      * Specify how the Unit attribute should be used.   
      * This function
      * sets the current value of the ActiveUnit flag for a Frame, which
-     * controls how the Frame
-     * behaves when it is used (by astFindFrame) as a template to match
-     * another (target) Frame, or is used as the "to" Frame by astConvert.
-     * It determines if the Mapping between the template and target Frames
-     * should take differences in axis units into account. The default value
-     * for simple Frames is zero, which preserves the behaviour of versions
-     * of AST prior to version 2.0.
+     * controls how the Frame behaves when it is used (by 
+     * astFindFrame or astConvert) 
+     * to match another Frame. If the ActiveUnit flag is set in both
+     * template and target Frames then the returned Mapping takes into account 
+     * any differences in axis units. The default value for simple Frames is 
+     * zero, which preserves the behaviour of versions of AST prior to 
+     * version 2.0.
      * <p>
-     * If the ActiveUnit flag of the template Frame is zero, then the
-     * Mapping will ignore any difference in the Unit attributes of
+     * If the ActiveUnit flag of either Frame is 
+     * zero,
+     * then the Mapping will ignore any difference in the Unit attributes of
      * corresponding template and target axes. In this mode, the Unit
      * attributes are purely descriptive commentary for the benefit of
      * human readers and do not influence the Mappings between Frames.
      * This is the behaviour which all Frames had in older version of AST,
      * prior to the introduction of this attribute.
      * <p>
-     * If the ActiveUnit flag of the template Frame is non-zero, then the
-     * Mapping from template to target will take account of any difference
-     * in the axis Unit attributes, where-ever possible. For instance, if
-     * corresponding target and template axes have Unit strings of "km" and
-     * "m", then the FrameSet class will use a ZoomMap to connect them
-     * which introduces a scaling of 1000. If no Mapping can be found
+     * If the ActiveUnit flag of both Frames is 
+     * non-zero,
+     * then the Mapping from template to target will take account of any 
+     * difference in the axis Unit attributes, where-ever possible. For 
+     * instance, if corresponding target and template axes have Unit strings of 
+     * "km" and "m", then the FrameSet class will use a ZoomMap to connect 
+     * them which introduces a scaling of 1000. If no Mapping can be found
      * between the corresponding units string, then an error is reported.
      * In this mode, it is assumed that values of the Unit attribute conform
      * to the syntax for units strings described in the FITS WCS Paper I
@@ -810,6 +812,11 @@ public class Frame extends Mapping {
      * will then not be possible (except to units which depend only on the
      * same unknown units - thus "flops" can be transformed to "Mflops"
      * even though "flops" is not a standard FITS unit symbol).
+     * <p>
+     * A range of common non-standard variations of unit names and multiplier 
+     * prefixes are also allowed, such as adding an "s" to the end of Angstrom, 
+     * using a lower case "a" at the start of "angstrom", "micron" instead of 
+     * "um", "sec" instead of "s", etc.
      * <p>
      * If the ActiveUnit flag is non-zero, setting a new Unit value for an
      * axis may also change its Label and Symbol attributes. For instance, if
@@ -1031,7 +1038,8 @@ public class Frame extends Mapping {
      * <dt>SpecFrame</dt><dd>
      *    The default AlignSystem attribute for a SpecFrame is "Wave"
      *    (wavelength).
-     * <p>
+     * <dt>TimeFrame</dt><dd>
+     *    The default AlignSystem attribute for a TimeFrame is "MJD".
      * </dl>
      * 
      *
@@ -1079,7 +1087,8 @@ public class Frame extends Mapping {
      * <dt>SpecFrame</dt><dd>
      *    The default AlignSystem attribute for a SpecFrame is "Wave"
      *    (wavelength).
-     * <p>
+     * <dt>TimeFrame</dt><dd>
+     *    The default AlignSystem attribute for a TimeFrame is "MJD".
      * </dl>
      * 
      *
@@ -1200,6 +1209,9 @@ public class Frame extends Mapping {
      *    The default Digits value used by the Plot class when drawing
      *    annotated axis labels is the smallest value which results in all 
      *    adjacent labels being distinct.
+     * <dt>TimeFrame</dt><dd>
+     *    The Digits attribute is ignored when a TimeFrame formats a value
+     *    as a date and time string (see the Format attribute).
      * </dl>
      * 
      *
@@ -1239,6 +1251,9 @@ public class Frame extends Mapping {
      *    The default Digits value used by the Plot class when drawing
      *    annotated axis labels is the smallest value which results in all 
      *    adjacent labels being distinct.
+     * <dt>TimeFrame</dt><dd>
+     *    The Digits attribute is ignored when a TimeFrame formats a value
+     *    as a date and time string (see the Format attribute).
      * </dl>
      * 
      *
@@ -1278,6 +1293,9 @@ public class Frame extends Mapping {
      *    The default Digits value used by the Plot class when drawing
      *    annotated axis labels is the smallest value which results in all 
      *    adjacent labels being distinct.
+     * <dt>TimeFrame</dt><dd>
+     *    The Digits attribute is ignored when a TimeFrame formats a value
+     *    as a date and time string (see the Format attribute).
      * </dl>
      * 
      *
@@ -1329,6 +1347,9 @@ public class Frame extends Mapping {
      *    The default Digits value used by the Plot class when drawing
      *    annotated axis labels is the smallest value which results in all 
      *    adjacent labels being distinct.
+     * <dt>TimeFrame</dt><dd>
+     *    The Digits attribute is ignored when a TimeFrame formats a value
+     *    as a date and time string (see the Format attribute).
      * </dl>
      * 
      *
@@ -1500,6 +1521,15 @@ public class Frame extends Mapping {
      * <dt>SpecFrame</dt><dd>
      *    The SpecFrame class re-defines the default Domain value to be
      *    "SPECTRUM".
+     * <dt>FluxFrame</dt><dd>
+     *    The FluxFrame class re-defines the default Domain value to be
+     *    "FLUX".
+     * <dt>SpecFluxFrame</dt><dd>
+     *    The FluxFrame class re-defines the default Domain value to be
+     *    "SPECTRUM-FLUX".
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class re-defines the default Domain value to be
+     *    "TIME".
      * <p>
      * </dl>
      * 
@@ -1546,6 +1576,15 @@ public class Frame extends Mapping {
      * <dt>SpecFrame</dt><dd>
      *    The SpecFrame class re-defines the default Domain value to be
      *    "SPECTRUM".
+     * <dt>FluxFrame</dt><dd>
+     *    The FluxFrame class re-defines the default Domain value to be
+     *    "FLUX".
+     * <dt>SpecFluxFrame</dt><dd>
+     *    The FluxFrame class re-defines the default Domain value to be
+     *    "SPECTRUM-FLUX".
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class re-defines the default Domain value to be
+     *    "TIME".
      * <p>
      * </dl>
      * 
@@ -1597,7 +1636,8 @@ public class Frame extends Mapping {
      * <p>
      * <br> - Gregorian Date and Time: Any calendar date (as above) but with
      * a fraction of a day expressed as hours, minutes and seconds
-     * ("1996-Oct-2 12:13:56.985" for example).
+     * ("1996-Oct-2 12:13:56.985" for example). The date and time can be 
+     * separated by a space or by a "T" (as used by ISO8601 format).
      * <h4>Output Format</h4>
      * When enquiring Epoch values, the format used is the "Year"
      * format described under "Input Formats". This is a value in
@@ -1621,7 +1661,9 @@ public class Frame extends Mapping {
      *    been set in the second component Frame then the Epoch value from the
      *    second component Frame is used as the default for the CmpFrame.
      *    Otherwise, the default Epoch value from the first component
-     *    Frame is used as the default for the CmpFrame.
+     *    Frame is used as the default for the CmpFrame. When the Epoch
+     *    attribute of a CmpFrame is set or cleared, it is also set or
+     *    cleared in the two component Frames. 
      * <dt>FrameSet</dt><dd>
      *    The Epoch attribute of a FrameSet is the same as that of its current
      *    Frame (as specified by the Current attribute).
@@ -1650,6 +1692,17 @@ public class Frame extends Mapping {
      * <p>
      *    See the description of the System attribute for details of which
      *    qualifying attributes apply to each celestial coordinate system.
+     * <dt>TimeFrame</dt><dd>
+     *    A TimeFrame describes a general time axis and so cannot be completely 
+     *    characterised by a single Epoch value. For this reason the TimeFrame 
+     *    class makes no use of the Epoch attribute. However, user code can 
+     *    still make use of the attribute if necessary to represent a "typical" 
+     *    time spanned by the TimeFrame. The default Epoch value for a TimeFrame
+     *    will be the TDB equivalent of the current value of the TimeFrame's 
+     *    TimeOrigin attribute. If no value has been set for TimeOrigin,
+     *    then the default Epoch value is J2000.0.
+     * <p>
+     * 
      * </dl>
      * 
      *
@@ -1700,7 +1753,8 @@ public class Frame extends Mapping {
      * <p>
      * <br> - Gregorian Date and Time: Any calendar date (as above) but with
      * a fraction of a day expressed as hours, minutes and seconds
-     * ("1996-Oct-2 12:13:56.985" for example).
+     * ("1996-Oct-2 12:13:56.985" for example). The date and time can be 
+     * separated by a space or by a "T" (as used by ISO8601 format).
      * <h4>Output Format</h4>
      * When enquiring Epoch values, the format used is the "Year"
      * format described under "Input Formats". This is a value in
@@ -1724,7 +1778,9 @@ public class Frame extends Mapping {
      *    been set in the second component Frame then the Epoch value from the
      *    second component Frame is used as the default for the CmpFrame.
      *    Otherwise, the default Epoch value from the first component
-     *    Frame is used as the default for the CmpFrame.
+     *    Frame is used as the default for the CmpFrame. When the Epoch
+     *    attribute of a CmpFrame is set or cleared, it is also set or
+     *    cleared in the two component Frames. 
      * <dt>FrameSet</dt><dd>
      *    The Epoch attribute of a FrameSet is the same as that of its current
      *    Frame (as specified by the Current attribute).
@@ -1753,6 +1809,17 @@ public class Frame extends Mapping {
      * <p>
      *    See the description of the System attribute for details of which
      *    qualifying attributes apply to each celestial coordinate system.
+     * <dt>TimeFrame</dt><dd>
+     *    A TimeFrame describes a general time axis and so cannot be completely 
+     *    characterised by a single Epoch value. For this reason the TimeFrame 
+     *    class makes no use of the Epoch attribute. However, user code can 
+     *    still make use of the attribute if necessary to represent a "typical" 
+     *    time spanned by the TimeFrame. The default Epoch value for a TimeFrame
+     *    will be the TDB equivalent of the current value of the TimeFrame's 
+     *    TimeOrigin attribute. If no value has been set for TimeOrigin,
+     *    then the default Epoch value is J2000.0.
+     * <p>
+     * 
      * </dl>
      * 
      *
@@ -1761,6 +1828,124 @@ public class Frame extends Mapping {
     public void setEpoch( double epoch ) {
        setD( "Epoch", epoch );
     }
+
+   /**
+    * Set 
+     * epoch of observation. 
+     * This attribute is used to qualify the coordinate systems described by
+     * a Frame, by giving the moment in time when the coordinates are known
+     * to be correct. Often, this will be the date of observation, and is
+     * important in cases where coordinates systems move with respect to each
+     * other over the course of time.
+     * <p>
+     * The Epoch attribute is stored as a Modified Julian Date, but
+     * when setting its value it may be given in a variety of
+     * formats. See the "Input Formats" section (below) for details.
+     * <h4>Input Formats</h4>
+     * The formats accepted when setting an Epoch value are listed
+     * below. They are all case-insensitive and are generally tolerant
+     * of extra white space and alternative field delimiters:
+     * <p>
+     * <br> - Besselian Epoch: Expressed in decimal years, with or without
+     * decimal places ("B1950" or "B1976.13" for example).
+     * <p>
+     * <br> - Julian Epoch: Expressed in decimal years, with or without
+     * decimal places ("J2000" or "J2100.9" for example).
+     * <p>
+     * <br> - Year: Decimal years, with or without decimal places ("1996.8"
+     * for example).  Such values are interpreted as a Besselian epoch
+     * (see above) if less than 1984.0 and as a Julian epoch otherwise.
+     * <p>
+     * <br> - Julian Date: With or without decimal places ("JD 2454321.9" for
+     * example).
+     * <p>
+     * <br> - Modified Julian Date: With or without decimal places
+     * ("MJD 54321.4" for example).
+     * <p>
+     * <br> - Gregorian Calendar Date: With the month expressed either as an
+     * integer or a 3-character abbreviation, and with optional decimal
+     * places to represent a fraction of a day ("1996-10-2" or
+     * "1996-Oct-2.6" for example). If no fractional part of a day is
+     * given, the time refers to the start of the day (zero hours).
+     * <p>
+     * <br> - Gregorian Date and Time: Any calendar date (as above) but with
+     * a fraction of a day expressed as hours, minutes and seconds
+     * ("1996-Oct-2 12:13:56.985" for example). The date and time can be 
+     * separated by a space or by a "T" (as used by ISO8601 format).
+     * <h4>Output Format</h4>
+     * When enquiring Epoch values, the format used is the "Year"
+     * format described under "Input Formats". This is a value in
+     * decimal years which will be a Besselian epoch if less than
+     * 1984.0 and a Julian epoch otherwise.  By omitting any character
+     * prefix, this format allows the Epoch value to be obtained as
+     * either a character string or a floating point value.
+     * 
+     * <h4>Class Applicability</h4>
+     * <dl>
+     * <dt>Frame</dt><dd>
+     *    All Frames have this attribute. The basic Frame class provides
+     *    a default of J2000.0 (Julian) but makes no use of the Epoch value.
+     *    This is because the Frame class does not distinguish between
+     *    different Cartesian coordinate systems (see the System attribute).
+     * <dt>CmpFrame</dt><dd>
+     *    The default Epoch value for a CmpFrame is selected as follows;
+     *    if the Epoch attribute has been set in the first component Frame
+     *    then the Epoch value from the first component Frame is used as
+     *    the default for the CmpFrame. Otherwise, if the Epoch attribute has
+     *    been set in the second component Frame then the Epoch value from the
+     *    second component Frame is used as the default for the CmpFrame.
+     *    Otherwise, the default Epoch value from the first component
+     *    Frame is used as the default for the CmpFrame. When the Epoch
+     *    attribute of a CmpFrame is set or cleared, it is also set or
+     *    cleared in the two component Frames. 
+     * <dt>FrameSet</dt><dd>
+     *    The Epoch attribute of a FrameSet is the same as that of its current
+     *    Frame (as specified by the Current attribute).
+     * <dt>SkyFrame</dt><dd>
+     *    The coordinates of sources within a SkyFrame can changed with time
+     *    for various reasons, including: (i) changing aberration of light
+     *    caused by the observer's velocity (e.g. due to the Earth's motion
+     *    around the Sun), (ii) changing gravitational deflection by the Sun
+     *    due to changes in the observer's position with time, (iii) fictitious
+     *    motion due to rotation of non-inertial coordinate systems (e.g. the
+     *    old FK4 system), and (iv) proper motion of the source itself (although
+     *    this last effect is not handled by the SkyFrame class because it
+     *    affects individual sources rather than the coordinate system as
+     *    a whole).
+     * <p>
+     *    The default Epoch value in a SkyFrame is B1950.0 (Besselian) for the
+     *    old FK4-based coordinate systems (see the System attribute) and
+     *    J2000.0 (Julian) for all others.
+     * <p>
+     *    Care must be taken to distinguish the Epoch value, which relates to
+     *    motion (or apparent motion) of the source, from the superficially
+     *    similar Equinox value. The latter is used to qualify a coordinate
+     *    system which is itself in motion in a (notionally) predictable way
+     *    as a result of being referred to a slowly moving reference plane
+     *    (e.g. the equator).
+     * <p>
+     *    See the description of the System attribute for details of which
+     *    qualifying attributes apply to each celestial coordinate system.
+     * <dt>TimeFrame</dt><dd>
+     *    A TimeFrame describes a general time axis and so cannot be completely 
+     *    characterised by a single Epoch value. For this reason the TimeFrame 
+     *    class makes no use of the Epoch attribute. However, user code can 
+     *    still make use of the attribute if necessary to represent a "typical" 
+     *    time spanned by the TimeFrame. The default Epoch value for a TimeFrame
+     *    will be the TDB equivalent of the current value of the TimeFrame's 
+     *    TimeOrigin attribute. If no value has been set for TimeOrigin,
+     *    then the default Epoch value is J2000.0.
+     * <p>
+     * 
+     * </dl>
+     * 
+    *
+    * @param  epoch  formatted string giving the Epoch 
+    *          attribute of this object
+    */
+   public void setEpoch( String epoch ) {
+      setC( "Epoch", epoch );
+   }
 
     /**
      * Get 
@@ -1836,6 +2021,40 @@ public class Frame extends Mapping {
      * several characters make conflicting requests (e.g. if both "i"
      * and "b" appear), then the character occurring last takes
      * precedence, except that "d" and "h" always override "t".
+     * <p>
+     * If the format string starts with a percentage sign (%), then the 
+     * whole format string is assumed to conform to the syntax defined by
+     * the Frame class, and the axis values is formated as a decimal
+     * radians value.
+     * <h4>TimeFrame Formats</h4>
+     * The Format string supplied for a TimeFrame should either use the
+     * syntax defined by the base Frame class (i.e. a C "printf" format
+     * string), or the extended "iso" syntax described below (the default
+     * value is inherited from the Frame class):
+     * <p>
+     * <br> - C "printf" syntax: If the Format string is a C "printf" format
+     * description such as "%1.7G", the TimeFrame axis value will be
+     * formatted without change as a floating point value using this format.
+     * The formatted string will thus represent an offset from the zero point 
+     * specified by the TimeFrame's TimeOrigin attribute, measured in
+     * units given by the TimeFrame's Unit attribute.
+     * <p>
+     * <br> - "iso" syntax: This is used to format a TimeFrame axis value as a
+     * Gregorian date followed by an optional time of day. If the Format
+     * value commences with the string "iso" then the TimeFrame axis value
+     * will be converted to an absolute MJD, including the addition of the 
+     * current TimeOrigin value, and then formatted as a Gregorian date 
+     * using the format "yyyy-mm-dd". Optionally, the Format value may
+     * include an integer precision following the "iso" specification (e.g. 
+     * "iso.2"), in which case the time of day will be appended to the 
+     * formatted date (if no time of day is included, the date field is
+     * rounded to the nearest day). The integer value in the Format string 
+     * indicates the number of decimal places to use in the seconds field. For 
+     * instance, a Format value of "iso.0" produces a time of day of the form 
+     * "hh:mm:ss", and a Format value of "iso.2" produces a time of day of the 
+     * form "hh:mm:ss.ss". The date and time fields will be separated by a 
+     * space. The value of the Digits attribute is ignored when using this 
+     * "iso" format. 
      * <h4>Notes</h4>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
@@ -1865,6 +2084,11 @@ public class Frame extends Mapping {
      *    of its current Frame (as specified by the Current
      *    attribute). Note that the syntax of the Format string is also
      *    determined by the current Frame.
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class extends the syntax of the Format string to 
+     *    allow the formatting of TimeFrame axis values as Gregorian calendar
+     *    dates and times. The syntax of TimeFrame Format strings is described 
+     *    (below) in the "TimeFrame Formats" section.
      * <p>
      * </dl>
      * 
@@ -1961,6 +2185,40 @@ public class Frame extends Mapping {
      * several characters make conflicting requests (e.g. if both "i"
      * and "b" appear), then the character occurring last takes
      * precedence, except that "d" and "h" always override "t".
+     * <p>
+     * If the format string starts with a percentage sign (%), then the 
+     * whole format string is assumed to conform to the syntax defined by
+     * the Frame class, and the axis values is formated as a decimal
+     * radians value.
+     * <h4>TimeFrame Formats</h4>
+     * The Format string supplied for a TimeFrame should either use the
+     * syntax defined by the base Frame class (i.e. a C "printf" format
+     * string), or the extended "iso" syntax described below (the default
+     * value is inherited from the Frame class):
+     * <p>
+     * <br> - C "printf" syntax: If the Format string is a C "printf" format
+     * description such as "%1.7G", the TimeFrame axis value will be
+     * formatted without change as a floating point value using this format.
+     * The formatted string will thus represent an offset from the zero point 
+     * specified by the TimeFrame's TimeOrigin attribute, measured in
+     * units given by the TimeFrame's Unit attribute.
+     * <p>
+     * <br> - "iso" syntax: This is used to format a TimeFrame axis value as a
+     * Gregorian date followed by an optional time of day. If the Format
+     * value commences with the string "iso" then the TimeFrame axis value
+     * will be converted to an absolute MJD, including the addition of the 
+     * current TimeOrigin value, and then formatted as a Gregorian date 
+     * using the format "yyyy-mm-dd". Optionally, the Format value may
+     * include an integer precision following the "iso" specification (e.g. 
+     * "iso.2"), in which case the time of day will be appended to the 
+     * formatted date (if no time of day is included, the date field is
+     * rounded to the nearest day). The integer value in the Format string 
+     * indicates the number of decimal places to use in the seconds field. For 
+     * instance, a Format value of "iso.0" produces a time of day of the form 
+     * "hh:mm:ss", and a Format value of "iso.2" produces a time of day of the 
+     * form "hh:mm:ss.ss". The date and time fields will be separated by a 
+     * space. The value of the Digits attribute is ignored when using this 
+     * "iso" format. 
      * <h4>Notes</h4>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
@@ -1990,6 +2248,11 @@ public class Frame extends Mapping {
      *    of its current Frame (as specified by the Current
      *    attribute). Note that the syntax of the Format string is also
      *    determined by the current Frame.
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class extends the syntax of the Format string to 
+     *    allow the formatting of TimeFrame axis values as Gregorian calendar
+     *    dates and times. The syntax of TimeFrame Format strings is described 
+     *    (below) in the "TimeFrame Formats" section.
      * <p>
      * </dl>
      * 
@@ -2037,6 +2300,9 @@ public class Frame extends Mapping {
      *    (e.g. to "Right ascension" or "Galactic latitude") as
      *    appropriate for the particular celestial coordinate system
      *    being represented.
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class re-defines the default Label value as
+     *    appropriate for the particular time system being represented.
      * <dt>FrameSet</dt><dd>
      *    The Label attribute of a FrameSet axis is the same as that of
      *    its current Frame (as specified by the Current attribute).
@@ -2086,6 +2352,9 @@ public class Frame extends Mapping {
      *    (e.g. to "Right ascension" or "Galactic latitude") as
      *    appropriate for the particular celestial coordinate system
      *    being represented.
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class re-defines the default Label value as
+     *    appropriate for the particular time system being represented.
      * <dt>FrameSet</dt><dd>
      *    The Label attribute of a FrameSet axis is the same as that of
      *    its current Frame (as specified by the Current attribute).
@@ -2550,6 +2819,9 @@ public class Frame extends Mapping {
      *    The SkyFrame class re-defines the default Symbol value
      *    (e.g. to "RA" or "Dec") as appropriate for the particular
      *    celestial coordinate system being represented.
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class re-defines the default Symbol value as
+     *    appropriate for the particular time system being represented.
      * <dt>FrameSet</dt><dd>
      *    The Symbol attribute of a FrameSet axis is the same as that
      *    of its current Frame (as specified by the Current attribute).
@@ -2604,6 +2876,9 @@ public class Frame extends Mapping {
      *    The SkyFrame class re-defines the default Symbol value
      *    (e.g. to "RA" or "Dec") as appropriate for the particular
      *    celestial coordinate system being represented.
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class re-defines the default Symbol value as
+     *    appropriate for the particular time system being represented.
      * <dt>FrameSet</dt><dd>
      *    The Symbol attribute of a FrameSet axis is the same as that
      *    of its current Frame (as specified by the Current attribute).
@@ -2753,7 +3028,7 @@ public class Frame extends Mapping {
      *    - "AWAV" or "AIRWAVE": Wave-length in air (Angstrom)
      *    - "VRAD" or "VRADIO": Radio velocity (km/s)
      *    - "VOPT" or "VOPTICAL": Optical velocity (km/s)
-     *    - "ZOPT" or "REDSHIFT": Reshift (dimensionless)
+     *    - "ZOPT" or "REDSHIFT": Redshift (dimensionless)
      *    - "BETA": Beta factor (dimensionless)
      *    - "VELO" or "VREL": Apparent radial ("relativistic") velocity (km/s)
      * <p>
@@ -2764,12 +3039,45 @@ public class Frame extends Mapping {
      *    a SpecFrame will result in the SpecFrame being re-mapped within
      *    its enclosing FrameSet in order to reflect the change in units
      *    (see astSetActiveUnit function for further information).
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class supports the following System values and
+     *    associated coordinate systems (the default is "MJD"):
+     * <p>
+     *    - "MJD": Modified Julian Date (d)
+     *    - "JD": Julian Date (d)
+     *    - "JEPOCH": Julian epoch (yr)
+     *    - "BEPOCH": Besselian (yr)
+     * <p>
+     *    The default value for the Unit attribute for each system is shown
+     *    in parentheses. Strictly, these systems should not allow changes
+     *    to be made to the units. For instance, the usual definition of
+     *    "MJD" and "JD" include the statement that the values will be in
+     *    units of days. However, AST does allow the use of other units
+     *    with all the above supported systems (except BEPOCH), on the 
+     *    understanding that conversion to the "correct" units involves 
+     *    nothing more than a simple scaling (1 yr = 365.25 d, 1 d = 24 h, 
+     *    1 h = 60 min, 1 min = 60 s). Besselian epoch values are defined
+     *    in terms of tropical years of 365.2422 days, rather than the
+     *    usual Julian year of 365.25 days. Therefore, to avoid any
+     *    confusion, the Unit attribute is automatically cleared to "yr" when 
+     *    a System value of BEPOCH System is selected, and an error is
+     *    reported if any attempt is subsequently made to change the Unit 
+     *    attribute.
+     * <p>
+     *    Note that the default value for the ActiveUnit flag
+     *    is non-zero
+     *    for a TimeFrame, meaning that changes to the Unit attribute for
+     *    a TimeFrame will result in the TimeFrame being re-mapped within
+     *    its enclosing FrameSet in order to reflect the change in units
+     *    (see astSetActiveUnit function for further information).
      * <dt>FluxFrame</dt><dd>
      *    The FluxFrame class supports the following System values and
      *    associated systems for measuring observed value:
      * <p>
-     *    - "FLXDN": Flux density in frequency units (W/m^2/Hz)
-     *    - "FLXDNW": Flux density in wavelength units (W/m^2/Angstrom)
+     *    - "FLXDN": Flux per unit frequency (W/m^2/Hz)
+     *    - "FLXDNW": Flux per unit wavelength (W/m^2/Angstrom)
+     *    - "SFCBR": Surface brightness in frequency units (W/m^2/Hz/arcmin**2)
+     *    - "SFCBRW": Surface brightness in wavelength units (W/m^2/Angstrom/arcmin**2)
      * <p>
      *    The above lists specified the default units for each System. If an 
      *    explicit value is set for the Unit attribute but no value is set 
@@ -2911,7 +3219,7 @@ public class Frame extends Mapping {
      *    - "AWAV" or "AIRWAVE": Wave-length in air (Angstrom)
      *    - "VRAD" or "VRADIO": Radio velocity (km/s)
      *    - "VOPT" or "VOPTICAL": Optical velocity (km/s)
-     *    - "ZOPT" or "REDSHIFT": Reshift (dimensionless)
+     *    - "ZOPT" or "REDSHIFT": Redshift (dimensionless)
      *    - "BETA": Beta factor (dimensionless)
      *    - "VELO" or "VREL": Apparent radial ("relativistic") velocity (km/s)
      * <p>
@@ -2922,12 +3230,45 @@ public class Frame extends Mapping {
      *    a SpecFrame will result in the SpecFrame being re-mapped within
      *    its enclosing FrameSet in order to reflect the change in units
      *    (see astSetActiveUnit function for further information).
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class supports the following System values and
+     *    associated coordinate systems (the default is "MJD"):
+     * <p>
+     *    - "MJD": Modified Julian Date (d)
+     *    - "JD": Julian Date (d)
+     *    - "JEPOCH": Julian epoch (yr)
+     *    - "BEPOCH": Besselian (yr)
+     * <p>
+     *    The default value for the Unit attribute for each system is shown
+     *    in parentheses. Strictly, these systems should not allow changes
+     *    to be made to the units. For instance, the usual definition of
+     *    "MJD" and "JD" include the statement that the values will be in
+     *    units of days. However, AST does allow the use of other units
+     *    with all the above supported systems (except BEPOCH), on the 
+     *    understanding that conversion to the "correct" units involves 
+     *    nothing more than a simple scaling (1 yr = 365.25 d, 1 d = 24 h, 
+     *    1 h = 60 min, 1 min = 60 s). Besselian epoch values are defined
+     *    in terms of tropical years of 365.2422 days, rather than the
+     *    usual Julian year of 365.25 days. Therefore, to avoid any
+     *    confusion, the Unit attribute is automatically cleared to "yr" when 
+     *    a System value of BEPOCH System is selected, and an error is
+     *    reported if any attempt is subsequently made to change the Unit 
+     *    attribute.
+     * <p>
+     *    Note that the default value for the ActiveUnit flag
+     *    is non-zero
+     *    for a TimeFrame, meaning that changes to the Unit attribute for
+     *    a TimeFrame will result in the TimeFrame being re-mapped within
+     *    its enclosing FrameSet in order to reflect the change in units
+     *    (see astSetActiveUnit function for further information).
      * <dt>FluxFrame</dt><dd>
      *    The FluxFrame class supports the following System values and
      *    associated systems for measuring observed value:
      * <p>
-     *    - "FLXDN": Flux density in frequency units (W/m^2/Hz)
-     *    - "FLXDNW": Flux density in wavelength units (W/m^2/Angstrom)
+     *    - "FLXDN": Flux per unit frequency (W/m^2/Hz)
+     *    - "FLXDNW": Flux per unit wavelength (W/m^2/Angstrom)
+     *    - "SFCBR": Surface brightness in frequency units (W/m^2/Hz/arcmin**2)
+     *    - "SFCBRW": Surface brightness in wavelength units (W/m^2/Angstrom/arcmin**2)
      * <p>
      *    The above lists specified the default units for each System. If an 
      *    explicit value is set for the Unit attribute but no value is set 
@@ -2955,7 +3296,7 @@ public class Frame extends Mapping {
      * "Galactic Coordinates".
      * <p>
      * If a Title value has not been set for a Frame, then a suitable
-     * default is supplied.
+     * default is supplied, depending on the class of the Frame.
      * <h4>Notes</h4>
      * <br> - A Frame's Title is intended purely for interpretation by human
      * readers and not by software.
@@ -2965,11 +3306,6 @@ public class Frame extends Mapping {
      *    The default supplied by the Frame class is "<n>-d coordinate
      *    system", where <n> is the number of Frame axes (Naxes
      *    attribute).
-     * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class re-defines the default Title value
-     *    (e.g. to "FK5 equatorial coordinates, mean equinox J2000.0")
-     *    as appropriate to the particular celestial coordinate system
-     *    being represented.
      * <dt>CmpFrame</dt><dd>
      *    The CmpFrame class re-defines the default Title value to be
      *    "<n>-d compound coordinate system", where <n> is the number
@@ -2996,7 +3332,7 @@ public class Frame extends Mapping {
      * "Galactic Coordinates".
      * <p>
      * If a Title value has not been set for a Frame, then a suitable
-     * default is supplied.
+     * default is supplied, depending on the class of the Frame.
      * <h4>Notes</h4>
      * <br> - A Frame's Title is intended purely for interpretation by human
      * readers and not by software.
@@ -3006,11 +3342,6 @@ public class Frame extends Mapping {
      *    The default supplied by the Frame class is "<n>-d coordinate
      *    system", where <n> is the number of Frame axes (Naxes
      *    attribute).
-     * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class re-defines the default Title value
-     *    (e.g. to "FK5 equatorial coordinates, mean equinox J2000.0")
-     *    as appropriate to the particular celestial coordinate system
-     *    being represented.
      * <dt>CmpFrame</dt><dd>
      *    The CmpFrame class re-defines the default Title value to be
      *    "<n>-d compound coordinate system", where <n> is the number
@@ -3131,7 +3462,13 @@ public class Frame extends Mapping {
      * <dt>SpecFrame</dt><dd>
      *    The SpecFrame class re-defines the default Unit value so that it
      *    is appropriate for the current System value. See the System
-     *    attribute for details.
+     *    attribute for details. An error will be reported if an attempt
+     *    is made to use an inappropriate Unit.
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class re-defines the default Unit value so that it
+     *    is appropriate for the current System value. See the System
+     *    attribute for details. An error will be reported if an attempt
+     *    is made to use an inappropriate Unit (e.g. "km").
      * <dt>FrameSet</dt><dd>
      *    The Unit attribute of a FrameSet axis is the same as that of
      *    its current Frame (as specified by the Current attribute).
@@ -3179,7 +3516,13 @@ public class Frame extends Mapping {
      * <dt>SpecFrame</dt><dd>
      *    The SpecFrame class re-defines the default Unit value so that it
      *    is appropriate for the current System value. See the System
-     *    attribute for details.
+     *    attribute for details. An error will be reported if an attempt
+     *    is made to use an inappropriate Unit.
+     * <dt>TimeFrame</dt><dd>
+     *    The TimeFrame class re-defines the default Unit value so that it
+     *    is appropriate for the current System value. See the System
+     *    attribute for details. An error will be reported if an attempt
+     *    is made to use an inappropriate Unit (e.g. "km").
      * <dt>FrameSet</dt><dd>
      *    The Unit attribute of a FrameSet axis is the same as that of
      *    its current Frame (as specified by the Current attribute).
