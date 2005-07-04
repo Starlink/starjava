@@ -499,6 +499,68 @@ jobject jniastCheckNotNull( JNIEnv *env, jobject jObject ) {
 }
 
 
+/*
+*+
+*  Name:
+*     jniastCopyDoubleArray
+
+*  Purpose:
+*     Copy the data from a java double[] array into a fixed buffer.
+
+*  Description:
+*     Allocates a fixed sized buffer of doubles, and copies the 
+*     contents of a jdouble array into it.  The point of this is that
+*     sometimes you need to pass an array to AST without knowing 
+*     how long it is; if it's not long enough, AST may try to dereference
+*     beyond the end and dump core.  This will only happen if the user
+*     supplies a java array which is too short, but nevertheless,
+*     we want to defend against a core dump if we possibly can.
+
+*  Arguments:
+*     env = JNIEnv *
+*        Pointer to the JNI interface.
+*     jArr = jdoubleArray
+*        Array whose contents are to be copied.  NULL is a legal value;
+*        it will be treated the same as a zero-length array.
+*     int bufsiz
+*        Number of elements in the returned buffer.
+
+*  Return value:
+*     A newly-allocated buffer of doubles, of size bufsiz.  Elements
+*     beyond the last one contained in the supplied input array will
+*     be filled with 0.0.  This must be freed by the caller.
+*-
+*/
+const double *jniastCopyDoubleArray( JNIEnv *env, jdoubleArray jArr,
+                                     int bufsiz ) {
+   const double *buf;
+   const jdouble *jbuf;
+   jsize nel;
+   int i;
+
+   if ( ! (*env)->ExceptionCheck( env ) ) {
+      nel = jArr ? (*env)->GetArrayLength( env, jArr )
+                 : 0;
+      buf = jniastMalloc( env, bufsiz * sizeof( double ) );
+      if ( buf ) {
+         for ( i = 0; i < bufsiz; i++ ) {
+            buf[ i ] = 0.0;
+         }
+      }
+      if ( nel > 0 ) {
+         jbuf = jniastMalloc( env, nel * sizeof( jdouble ) );
+         if ( jbuf ) {
+            (*env)->GetDoubleArrayRegion( env, jArr, 0, nel, jbuf );
+            for ( i = 0; i < nel; i++ ) {
+               buf[ i ] = (double) jbuf[ i ];
+            }
+            free( jbuf );
+         }
+      }
+   }
+   return buf;
+}
+
 char *jniastEscapePercents( JNIEnv *env, const char *buf ) {
 /*
 *+
