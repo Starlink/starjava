@@ -65,12 +65,6 @@ public class TreeviewTest extends TestCase {
         else {
             args = arg.split( "\\s+" );
         }
-
-        /* Work out AST major version. */
-        if ( AstObject.reportVersions().startsWith( "AST V3" ) ) {
-            DEMOTXT_FILE += ".3";
-            DEMOPATH_FILE += ".3";
-        }
     }
 
     public void testTextMode() throws IOException {
