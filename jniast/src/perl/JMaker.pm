@@ -213,6 +213,7 @@ sub makeSetAttrib {
    my( $varname ) = $args{ 'varname' } || $name;
    my( $purpose ) = $args{ 'purpose' };
    my( $descrip ) = $args{ 'descrip' };
+   my( $stringtoo ) = $args{ 'stringtoo' };
    my( $applic ) = $args{ 'applic' } 
                  ? "<h4>Class Applicability</h4>\n" . $args{ 'applic' }
                  : "";
@@ -236,6 +237,20 @@ sub makeSetAttrib {
     }
 
 __EOT__
+   if ( $stringtoo ) {
+      print <<"__EOT__";
+   /**
+    * Set $startText. $moreText
+    *
+    * \@param  $varname  formatted string giving the $Name 
+    *          attribute of this object
+    */
+   public void set$Name( String $varname ) {
+      setC( "$Name", $varname );
+   }
+
+__EOT__
+   }
 }
 
 sub makeGetAttrib {

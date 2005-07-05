@@ -438,6 +438,7 @@ makeSetAttrib( @args );
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),
    applic => AttApplic( $aName ),
+   stringtoo => 1,
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
