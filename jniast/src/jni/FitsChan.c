@@ -293,6 +293,104 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_putCards(
 }
 
 
+#define MAKE_SETFITS_REAL(Xtype,Xjtype,Xappend,Xjtypesig) \
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_setFits__Ljava_lang_String_2##Xjtypesig##Ljava_lang_String_2Z( \
+   JNIEnv *env,          /* Interface pointer */ \
+   jobject this,         /* Instance object */ \
+   jstring jName,        /* FITS header name */ \
+   Xjtype value,         /* Value for card */ \
+   jstring jComment,     /* Comment for card */ \
+   jboolean overwrite    /* Overwrite flag */ \
+) { \
+   AstPointer pointer = jniastGetPointerField( env, this ); \
+   const char *name; \
+   const char *comment; \
+ \
+   if ( jniastCheckNotNull( env, jName ) ) { \
+      name = jniastGetUTF( env, jName ); \
+      comment = jComment ? jniastGetUTF( env, jComment ) : NULL; \
+ \
+      ASTCALL( \
+         astSetFits##Xappend( pointer.FitsChan, name, value, \
+                              comment, overwrite == JNI_TRUE ); \
+      ) \
+ \
+      jniastReleaseUTF( env, jName, name ); \
+      jniastReleaseUTF( env, jComment, comment ); \
+   } \
+}
+MAKE_SETFITS_REAL(double,jdouble,F,D)
+MAKE_SETFITS_REAL(int,jint,I,I)
+MAKE_SETFITS_REAL(int,jboolean,L,Z)
+#undef MAKE_SETFITS_REAL
+
+#define MAKE_SETFITS_COMPLEX(Xtype,Xjtype,Xappend,Xjtypesig) \
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_setFits__Ljava_lang_String_2##Xjtypesig##Xjtypesig##Ljava_lang_String_2Z( \
+   JNIEnv *env,          /* Interface pointer */ \
+   jobject this,         /* Instance object */ \
+   jstring jName,        /* FITS header name */ \
+   Xjtype rval,          /* Real part of value */ \
+   Xjtype ival,          /* Imaginary part of value */ \
+   jstring jComment,     /* Comment for card */ \
+   jboolean overwrite    /* Overwrite flag */ \
+) { \
+   AstPointer pointer = jniastGetPointerField( env, this ); \
+   const char *name; \
+   const char *comment; \
+   Xtype value[ 2 ] = { (Xtype) rval, (Xtype) ival }; \
+ \
+   if ( jniastCheckNotNull( env, jName ) ) { \
+      name = jniastGetUTF( env, jName ); \
+      comment = jComment ? jniastGetUTF( env, jComment ) : NULL; \
+ \
+      ASTCALL( \
+         astSetFits##Xappend( pointer.FitsChan, name, value, \
+                              comment, overwrite == JNI_TRUE ); \
+      ) \
+ \
+      jniastReleaseUTF( env, jName, name ); \
+      jniastReleaseUTF( env, jComment, comment ); \
+   } \
+}
+MAKE_SETFITS_COMPLEX(double,jdouble,CF,D)
+MAKE_SETFITS_COMPLEX(int,jint,CI,I)
+#undef MAKE_SETFITS_COMPLEX
+
+#define MAKE_SETFITS_STRING(Xappend,Xjappend) \
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_setFits##Xjappend( \
+   JNIEnv *env,          /* Interface pointer */ \
+   jobject this,         /* Instance object */ \
+   jstring jName,        /* FITS header name */ \
+   jstring jValue,       /* Value for card */ \
+   jstring jComment,     /* Comment for card */ \
+   jboolean overwrite    /* Overwrite flag */ \
+) { \
+   AstPointer pointer = jniastGetPointerField( env, this ); \
+   const char *name; \
+   const char *value; \
+   const char *comment; \
+ \
+   if ( jniastCheckNotNull( env, jName ) && \
+        jniastCheckNotNull( env, jValue ) ) { \
+      name = jniastGetUTF( env, jName ); \
+      value = jniastGetUTF( env, jValue ); \
+      comment = jComment ? jniastGetUTF( env, jComment ) : NULL; \
+ \
+      ASTCALL( \
+         astSetFits##Xappend( pointer.FitsChan, name, value, \
+                              comment, overwrite == JNI_TRUE ); \
+      ) \
+ \
+      jniastReleaseUTF( env, jName, name ); \
+      jniastReleaseUTF( env, jValue, value ); \
+      jniastReleaseUTF( env, jComment, comment ); \
+   } \
+}
+MAKE_SETFITS_STRING(S,__Ljava_lang_String_2Ljava_lang_String_2Ljava_lang_String_2Z)
+MAKE_SETFITS_STRING(CN,Continue)
+#undef MAKE_SETFITS_STRING
+
+
 /* Static functions. */
 
 static void initializeIDs( JNIEnv *env ) {

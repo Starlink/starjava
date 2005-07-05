@@ -195,7 +195,201 @@ public class FitsChan extends Channel {
      */
     public native void write( AstObject obj );
 
+    /**
+     * Stores a double complex value for a named keyword within this
+     * FitsChan at the current card position.
+     * The supplied keyword can either over-write an existing keyword
+     * value, or can be inserted as a new header card.
+     *
+     * @param  name  FITS keyword name - may be a complete FITS header card,
+     *               in which case the keyword is extracted from it.
+     *               No more than 80 characters are read
+     * @param  rval  real part of the value
+     * @param  ival  imaginary part of the value
+     * @param  comment  comment associated with the keyword.
+     *                  If <tt>null</tt> or a blank string is supplied,
+     *                  then any comment present in <tt>name</tt> is used.
+     *                  If <code>name</code> contains no comment, then
+     *                  any existing coment in the card being overwritten
+     *                  is retained.  Otherwise, no comment is stored.
+     * @param overwrite If true, the new card overwrites the current card,
+     *                  and the <code>Card</code> attribute is incremented.
+     *                  If false, then new card is inserted in front of the
+     *                  current card, and the current card is left unchanged.
+     *                  In either case, if the current card on entry 
+     *                  points to end-of-file, the new card is appended
+     *                  to the end of the list.
+     */
+    public native void setFits( String name, double rval, double ival,
+                                String comment, boolean overwrite  );
+
+    /**
+     * Stores an integer complex value for a named keyword within this
+     * FitsChan at the current card position.
+     * The supplied keyword can either over-write an existing keyword
+     * value, or can be inserted as a new header card.
+     *
+     * @param  name  FITS keyword name - may be a complete FITS header card,
+     *               in which case the keyword is extracted from it.
+     *               No more than 80 characters are read
+     * @param  rval  real part of the value
+     * @param  ival  imaginary part of the value
+     * @param  comment  comment associated with the keyword.
+     *                  If <tt>null</tt> or a blank string is supplied,
+     *                  then any comment present in <tt>name</tt> is used.
+     *                  If <code>name</code> contains no comment, then
+     *                  any existing coment in the card being overwritten
+     *                  is retained.  Otherwise, no comment is stored.
+     * @param overwrite If true, the new card overwrites the current card,
+     *                  and the <code>Card</code> attribute is incremented.
+     *                  If false, then new card is inserted in front of the
+     *                  current card, and the current card is left unchanged.
+     *                  In either case, if the current card on entry 
+     *                  points to end-of-file, the new card is appended
+     *                  to the end of the list.
+     */
+    public native void setFits( String name, int rval, int ival, 
+                                String comment, boolean overwrite );
+
+    /**
+     * Stores a double value for a named keyword within this
+     * FitsChan at the current card position.
+     * The supplied keyword can either over-write an existing keyword
+     * value, or can be inserted as a new header card.
+     *
+     * @param  name  FITS keyword name - may be a complete FITS header card,
+     *               in which case the keyword is extracted from it.
+     *               No more than 80 characters are read
+     * @param  value   value
+     * @param  comment  comment associated with the keyword.
+     *                  If <tt>null</tt> or a blank string is supplied,
+     *                  then any comment present in <tt>name</tt> is used.
+     *                  If <code>name</code> contains no comment, then
+     *                  any existing coment in the card being overwritten
+     *                  is retained.  Otherwise, no comment is stored.
+     * @param overwrite If true, the new card overwrites the current card,
+     *                  and the <code>Card</code> attribute is incremented.
+     *                  If false, then new card is inserted in front of the
+     *                  current card, and the current card is left unchanged.
+     *                  In either case, if the current card on entry 
+     *                  points to end-of-file, the new card is appended
+     *                  to the end of the list.
+     */
+    public native void setFits( String name, double value,
+                                String comment, boolean overwrite );
+
+    /**
+     * Stores an integer value for a named keyword within this
+     * FitsChan at the current card position.
+     * The supplied keyword can either over-write an existing keyword
+     * value, or can be inserted as a new header card.
+     *
+     * @param  name  FITS keyword name - may be a complete FITS header card,
+     *               in which case the keyword is extracted from it.
+     *               No more than 80 characters are read
+     * @param  value   value
+     * @param  comment  comment associated with the keyword.
+     *                  If <tt>null</tt> or a blank string is supplied,
+     *                  then any comment present in <tt>name</tt> is used.
+     *                  If <code>name</code> contains no comment, then
+     *                  any existing coment in the card being overwritten
+     *                  is retained.  Otherwise, no comment is stored.
+     * @param overwrite If true, the new card overwrites the current card,
+     *                  and the <code>Card</code> attribute is incremented.
+     *                  If false, then new card is inserted in front of the
+     *                  current card, and the current card is left unchanged.
+     *                  In either case, if the current card on entry 
+     *                  points to end-of-file, the new card is appended
+     *                  to the end of the list.
+     */
+    public native void setFits( String name, int value,
+                                String comment, boolean overwrite );
+
+    /**
+     * Stores a boolean value for a named keyword within this
+     * FitsChan at the current card position.
+     * The supplied keyword can either over-write an existing keyword
+     * value, or can be inserted as a new header card.
+     *
+     * @param  name  FITS keyword name - may be a complete FITS header card,
+     *               in which case the keyword is extracted from it.
+     *               No more than 80 characters are read
+     * @param  value   value
+     * @param  comment  comment associated with the keyword.
+     *                  If <tt>null</tt> or a blank string is supplied,
+     *                  then any comment present in <tt>name</tt> is used.
+     *                  If <code>name</code> contains no comment, then
+     *                  any existing coment in the card being overwritten
+     *                  is retained.  Otherwise, no comment is stored.
+     * @param overwrite If true, the new card overwrites the current card,
+     *                  and the <code>Card</code> attribute is incremented.
+     *                  If false, then new card is inserted in front of the
+     *                  current card, and the current card is left unchanged.
+     *                  In either case, if the current card on entry 
+     *                  points to end-of-file, the new card is appended
+     *                  to the end of the list.
+     */
+    public native void setFits( String name, boolean value,
+                                String comment, boolean overwrite );
+
+    /**
+     * Stores a String value for a named keyword within this
+     * FitsChan at the current card position.
+     * The supplied keyword can either over-write an existing keyword
+     * value, or can be inserted as a new header card.
+     *
+     * @param  name  FITS keyword name - may be a complete FITS header card,
+     *               in which case the keyword is extracted from it.
+     *               No more than 80 characters are read
+     * @param  value   value
+     * @param  comment  comment associated with the keyword.
+     *                  If <tt>null</tt> or a blank string is supplied,
+     *                  then any comment present in <tt>name</tt> is used.
+     *                  If <code>name</code> contains no comment, then
+     *                  any existing coment in the card being overwritten
+     *                  is retained.  Otherwise, no comment is stored.
+     * @param overwrite If true, the new card overwrites the current card,
+     *                  and the <code>Card</code> attribute is incremented.
+     *                  If false, then new card is inserted in front of the
+     *                  current card, and the current card is left unchanged.
+     *                  In either case, if the current card on entry 
+     *                  points to end-of-file, the new card is appended
+     *                  to the end of the list.
+     */
+    public native void setFits( String name, String value,
+                                String comment, boolean overwrite );
+
+    /**
+     * Stores a CONTINUE type value for a named keyword
+     * FitsChan at the current card position.
+     * These are treated like string values, but are encoded without
+     * an equals sign.
+     * The supplied keyword can either over-write an existing keyword
+     * value, or can be inserted as a new header card.
+     *
+     * @param  name  FITS keyword name - may be a complete FITS header card,
+     *               in which case the keyword is extracted from it.
+     *               No more than 80 characters are read
+     * @param  value   value
+     * @param  comment  comment associated with the keyword.
+     *                  If <tt>null</tt> or a blank string is supplied,
+     *                  then any comment present in <tt>name</tt> is used.
+     *                  If <code>name</code> contains no comment, then
+     *                  any existing coment in the card being overwritten
+     *                  is retained.  Otherwise, no comment is stored.
+     * @param overwrite If true, the new card overwrites the current card,
+     *                  and the <code>Card</code> attribute is incremented.
+     *                  If false, then new card is inserted in front of the
+     *                  current card, and the current card is left unchanged.
+     *                  In either case, if the current card on entry 
+     *                  points to end-of-file, the new card is appended
+     *                  to the end of the list.
+     */
+    public native void setFitsContinue( String name, String value,
+                                        String comment, boolean overwrite );
+
 __EOT__
+
 
 makeNativeMethod(
    name => ( $fName = "delFits" ),
