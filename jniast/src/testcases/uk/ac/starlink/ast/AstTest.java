@@ -621,6 +621,54 @@ public class AstTest extends TestCase {
         assertEquals( 1.0, rmap.tran1( 1, new double[] { 109. }, true )[ 0 ] );
     }
 
+    public void testTimeMap() {
+        TimeMap tmap = new TimeMap();
+        assertEquals( tmap, new TimeMap( 0 ) );
+        TimeMap tmap2 = new TimeMap();
+        tmap2.timeAdd( "MJDTOMJD", new double[] { 101., 100., } );
+        assertArrayEquals( new double[] { 100., 200. },
+                           tmap.tran1( 2, new double[] { 100., 200. }, true ) );
+        assertArrayEquals( new double[] { 101., 201. },
+                           tmap2.tran1( 2, new double[] { 100., 200. }, true ));
+        try {
+            tmap.timeAdd( "NOTACONVERSION", null );
+            fail();
+        }
+        catch ( AstException e ) {
+            assertEquals( AstException.AST__TIMIN, e.getStatus() );
+        }
+
+        /* What happens if we supply an array that's too short? */
+        tmap.timeAdd( "BEPTOMJD", null );
+        tmap.timeAdd( "MJDTOJD", new double[] { 0. } );
+    }
+
+    public void testTimeFrame() {
+        TimeFrame tfrm = new TimeFrame();
+        assertEquals( "TAI", tfrm.getTimeScale() );
+        tfrm.setTimeScale( "LAST" );
+        assertEquals( "LAST", tfrm.getTimeScale() );
+        try {
+            tfrm.setTimeScale( "TeaTime" );
+            fail();
+        }
+        catch ( AstException e ) {
+            assertEquals( AstException.AST__ATTIN, e.getStatus() );
+        }
+        tfrm = new TimeFrame();
+        assertEquals( "MJD", tfrm.getSystem() );
+        assertEquals( "d", tfrm.getUnit( 1 ) );
+        tfrm.setSystem( "JEPOCH" );
+        assertEquals( "JEPOCH", tfrm.getSystem() );
+        assertEquals( "yr", tfrm.getUnit( 1 ) );
+        tfrm.setTimeOrigin( "1970-JAN-01T00:00:00" );
+        assertEquals( 1970.0, tfrm.getTimeOrigin() );
+        tfrm.setUnit( 1, "s" );
+        assertEquals( "s", tfrm.getUnit( 1 ) );
+        assertEquals( (double) System.currentTimeMillis() * 1e-3,
+                      tfrm.currentTime(), 60.0 );
+    }
+
     public void testTranMap() {
         MathMap fmap = new MathMap( 1, 1, new String[] { "f=i*2.0" },
                                           new String[] { "i" } );
@@ -792,9 +840,9 @@ public class AstTest extends TestCase {
         int ast__air = WcsMap.AST__AIR;
         AstObject.getAstConstantD( "AST__BAD" );
 
-        Matcher matcher = Pattern.compile( "AST V([234])\\.([0-9]+)-([0-9]+); "+
-                                           "JNIAST native V3\\.5-0; " +
-                                           "JNIAST java V3\\.5-0" )
+        Matcher matcher = Pattern.compile( "AST V([2-9])\\.([0-9]+)-([0-9]+); "+
+                                           "JNIAST native V3\\.7-0; " +
+                                           "JNIAST java V3\\.7-0" )
                                  .matcher( AstObject.reportVersions() );
         assertTrue( AstObject.reportVersions(), matcher.matches() );
         int astMajor = Integer.parseInt( matcher.group( 1 ) );
@@ -803,8 +851,8 @@ public class AstTest extends TestCase {
         System.out.println( AstObject.reportVersions() );
         assertTrue( "Checking AST version: " + AstObject.reportVersions(),
                     ( astMajor > 3 ) ||
-                    ( astMajor == 3 && astMinor > 5 ) ||
-                    ( astMajor == 3 && astMinor == 5 && astRelease >= 4 ) );
+                    ( astMajor == 3 && astMinor > 7 ) ||
+                    ( astMajor == 3 && astMinor == 7 && astRelease >= 0 ) );
 
         String absentConstName = "ABSENT_CONSTANT";
         try {

@@ -173,3 +173,17 @@ XxxMap, is added to AST.
       ones and the new native library jars.  Get these compiled
       for all the supported systems (ant buld-native on all supported
       systems).
+
+  13. You may want to upgrade the version of JNIAST.  The JNIAST version
+      currently tracks the version number of AST (the JNIAST version 
+      number is the earliest version of AST which JNIAST requires to run).
+      This is currently rather a mess; you need to change version numbers
+      in the source files 
+          jniast/build.xml
+          jniast/src/jni/jniast.h
+          jniast/src/perl/AstObject.pl
+          jniast/src/testcases/uk/ac/starlink/ast/AstTest.java
+      then run ant build-source to regenerate
+          jniast/src/main/uk/ac/starlink/ast/AstObject.java
+
+
