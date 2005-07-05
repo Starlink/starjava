@@ -82,3 +82,7 @@ Partial change log:
    them in the src/ tree ready for checkin if you're happy with them.
    These targets should be invoked (and the results checked in) when
    the true source files on which they depend are altered.
+
+5-JUL-2005:
+   Tagged jniast-3-7.  This contains all the features up to and including
+   AST V3.7, *except* the STC-related ones (Region and friends).
