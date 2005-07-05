@@ -49,7 +49,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SlaMap_add(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    const char *cvt;
-   const double *args;
+   double *args;
 
    if ( jniastCheckNotNull( env, jCvt ) ) {
       cvt = jniastGetUTF( env, jCvt );

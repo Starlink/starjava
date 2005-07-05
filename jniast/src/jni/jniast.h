@@ -108,7 +108,7 @@ void jniastSetPointerField( JNIEnv *env, jobject object, AstPointer pointer );
 int jniastCheckArrayLength( JNIEnv *env, jarray jArray, int minel );
 jobject jniastCheckNotNull( JNIEnv *env, jobject jObject );
 jobject jniastMakeObject( JNIEnv *env, AstObject *objptr );
-const double *jniastCopyDoubleArray( JNIEnv *env, jdoubleArray jArr, int bsiz );
+double *jniastCopyDoubleArray( JNIEnv *env, jdoubleArray jArr, int bsiz );
 int jniastGetNaxes( JNIEnv *env, AstFrame *frame );
 char *jniastEscapePercents( JNIEnv *env, const char *buf );
 void *jniastMalloc( JNIEnv *env, size_t size );

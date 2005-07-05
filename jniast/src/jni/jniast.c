@@ -531,10 +531,9 @@ jobject jniastCheckNotNull( JNIEnv *env, jobject jObject ) {
 *     be filled with 0.0.  This must be freed by the caller.
 *-
 */
-const double *jniastCopyDoubleArray( JNIEnv *env, jdoubleArray jArr,
-                                     int bufsiz ) {
-   const double *buf;
-   const jdouble *jbuf;
+double *jniastCopyDoubleArray( JNIEnv *env, jdoubleArray jArr, int bufsiz ) {
+   double *buf;
+   jdouble *jbuf;
    jsize nel;
    int i;
 

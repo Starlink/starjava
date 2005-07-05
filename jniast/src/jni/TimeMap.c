@@ -48,7 +48,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_TimeMap_timeAdd(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    const char *cvt;
-   const double *args;
+   double *args;
    if ( jniastCheckNotNull( env, jCvt ) ) {
       cvt = jniastGetUTF( env, jCvt );
       args = jniastCopyDoubleArray( env, jArgs, 16 );
