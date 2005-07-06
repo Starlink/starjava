@@ -13,7 +13,8 @@
 
 <h1>
 Axis System Integration Guide</h1>
-<i>1.1 Version</i>
+<i>1.2 Version</i>
+<br><i>Feedback: <a href="mailto:axis-dev@ws.apache.org">axis-dev@ws.apache.org</a></i>
 <h3>
 Table of Contents</h3>
 <a href="#Introduction">Introduction</a>
@@ -33,8 +34,8 @@ Table of Contents</h3>
 <h2>
 <a NAME="Introduction"></a>Introduction</h2>
 The primary purpose of this guide is
-to present how AXIS can be integrated into an existing web application
-server, such as Tomcat or WebSphere, for example.&nbsp; AXIS has a number
+to present how Axis can be integrated into an existing web application
+server, such as Tomcat or WebSphere, for example.&nbsp; Axis has a number
 of Pluggable APIs that are necessary for such an integration.
 <p>
 The reader may find useful background information in the
@@ -42,7 +43,7 @@ The reader may find useful background information in the
 
 <h2>
 <a NAME="Pluggable APIs"></a>Pluggable APIs</h2>
-The following are the points that are pluggable in order to integrate AXIS
+The following are the points that are pluggable in order to integrate Axis
 into a web application server.
 The first subsection details a number of pluggable components in general.
 More details are provided for other components in the remaining
@@ -51,7 +52,7 @@ subsections.
 <h3>
 <a NAME="Components"></a>Components</h3>
 This section describes in general how to plug specializations
-of various components into AXIS.
+of various components into Axis.
 
 <h4>
 General Strategy
@@ -60,7 +61,7 @@ To override the default behavior for a pluggable component:
 <ul>
 <li>Develop implementation of components interface</li>
 <br>&nbsp;
-<li>Define the implementation class to AXIS by either creating
+<li>Define the implementation class to Axis by either creating
 a service definition file (prefered)
 or by setting a system property.
 <ul>
@@ -111,7 +112,7 @@ To override the default behavior for the Java Compiler:
 <code>org.apache.axis.components.compiler.Jikes</code></li>
 <br>&nbsp;
 <li>Since <code>org.apache.axis.components.compiler.Jikes</code>
-is packaged with AXIS, all that needs to be done is to ensure
+is packaged with Axis, all that needs to be done is to ensure
 that the service definition file is loadable by a class loader.
 </li>
 </ul>
@@ -196,7 +197,7 @@ Reference
 <!--
 <h3>
 <a NAME="System Management Plug"></a>System Management</h3>
-What points are necessary to manage AXIS?
+What points are necessary to manage Axis?
 <ul>
 <li>
 Justification/Rationale - why is this plug point necessary?&nbsp; Spec
@@ -232,7 +233,7 @@ Example</li>
 -->
 
 <h3><a NAME="Logging/Tracing Plug"></a>Logging/Tracing</h3>
-AXIS logging and tracing is based on the Logging component of the
+Axis logging and tracing is based on the Logging component of the
 <a href="http://jakarta.apache.org/commons/index.html">Jakarta Commons</a>
 project, or the Jakarta Commons Logging (JCL) SPI.
 The JCL provides a Log interface with thin-wrapper implementations for
@@ -245,7 +246,7 @@ The interface maps closely to Log4J and LogKit.
 
 <h4>Justification/Rationale</h4>
 A pluggable logging/trace facility enables
-AXIS to direct logging/trace messages to a host web application server's
+Axis to direct logging/trace messages to a host web application server's
 logging facility.
 A central logging facility with a single point of configuration/control
 is superior to distinct logging mechanisms for each of a multitude of
@@ -357,9 +358,9 @@ for the following toolkits, in order of preference:
 
 <h3>
 <a NAME="Configuration Plug"></a>Configuration</h3>
-<br>The internal data model used by AXIS is based on
-an AXIS specific data model: Web Services Deployment Descriptor (WSDD).
-AXIS initially obtains the WSDD information for a
+<br>The internal data model used by Axis is based on
+an Axis specific data model: Web Services Deployment Descriptor (WSDD).
+Axis initially obtains the WSDD information for a
 service from an instance of <code>org.apache.axis.EngineConfiguration</code>.
 
 <p>The EngineConfiguration is provided by an implementation of
@@ -374,17 +375,17 @@ configurations.
 <li>
 Justification/Rationale</li>
 <br>While the default behaviour is sufficient for general use of
-AXIS, integrating AXIS into an existing application server may
+Axis, integrating Axis into an existing application server may
 require an alternate deployment model.
 A customized implementation of the EngineConfigurationFactory
-would map from the hosts deployment model to AXIS's internal
+would map from the hosts deployment model to Axis's internal
 deployment model.
 <br>&nbsp;
 
 <li>
 Mechanism</li>
 <br>The relevant sequence of instructions used to obtain
-configuration information and initialize AXIS is as follows:
+configuration information and initialize Axis is as follows:
 <ul>
 <br>
 <code>EngineConfigurationFactory factory = EngineConfigurationFactoryFinder(someContext);</code>
@@ -396,7 +397,7 @@ configuration information and initialize AXIS is as follows:
 <br>The details may vary (server versus client, whether other factories are involved, etc).
 Regardless, the point is that integration code is responsible for
 calling <code>EngineConfigurationFactoryFinder(someContext)</code>
-and ensuring that the results are handed to AXIS.&nbsp;
+and ensuring that the results are handed to Axis.&nbsp;
 <code>someContext</code> is key to how the factory finder
 locates the appropariate implementation of
 EngineConfigurationFactory to be used, if any.
@@ -533,11 +534,11 @@ Guide</a> for current information on Handlers.
 
 <h3>
 <a NAME="Internationalization Plug"></a>Internationalization</h3>
-AXIS supports internationalization by providing
-both a property file of the strings used in AXIS,
+Axis supports internationalization by providing
+both a property file of the strings used in Axis,
 and an extension mechanism that facilitates
-accessing internal AXIS messages and extending the messages
-available to integration code based on existing AXIS code.
+accessing internal Axis messages and extending the messages
+available to integration code based on existing Axis code.
 
 <h4>
 <a NAME="Translation"></a>Translation</h4>
@@ -548,9 +549,9 @@ Justification/Rationale</li>
 
 <br>
 In order for readers of languages other than English
-to be comfortable with AXIS,
-we provide a mechanism for the strings used in AXIS to be translated.
-We do not provide any translations in AXIS;
+to be comfortable with Axis,
+we provide a mechanism for the strings used in Axis to be translated.
+We do not provide any translations in Axis;
 we merely provide a means by which translators
 can easily plug in their translations.
 <br>&nbsp;
@@ -558,13 +559,13 @@ can easily plug in their translations.
 <li>
 Mechanism</li>
 <br>
-AXIS provides english messages in the
+Axis provides english messages in the
 Java resource named
 org.apache.axis.i18n.resource.properties
 (in the source tree, the file is named
 xml-axis/java/src/org/apache/axis/i18n/resource.properties).
 
-<p>AXIS makes use of the Java internationalization mechanism -
+<p>Axis makes use of the Java internationalization mechanism -
 i.e., a java.util.ResourceBundle backed by a properties file -
 and the java.text.MessageFormat class to substitute
 parameters into the message text.
@@ -592,13 +593,13 @@ the number of the variable, starting at 0.
 <p>For example: <code>myMsg00=My {0} is {1}.</code>
 
 <p>Translation requires creating an
-alternate version of the property file provided by AXIS
+alternate version of the property file provided by Axis
 for a target language.
 The JavaDoc for <code>java.utils.ResourceBundle</code>
 provides details on how to identify different property
 files for different locales.
 
-<p>For details on using AXIS's internationalization tools,
+<p>For details on using Axis's internationalization tools,
 see the <a href="developers-guide.html">Developer's Guide</a>.
 <br>&nbsp;
 
@@ -608,26 +609,26 @@ Default behavior</li>
 <br>The default behavior, meaning what happens when a translated file doesn't
 exist for a given locale, is to fall back on the English-language properties
 file.&nbsp; If that file doesn't exist (unlikely unless something is seriously
-wrong), AXIS will throw an exception with an English-language reason message.
+wrong), Axis will throw an exception with an English-language reason message.
 <br>&nbsp;
 </ul>
 
 <h4>
 <a NAME="Extending Message Files"></a>Extending Message Files</h4>
-AXIS provides a Message file extension mechanism
-that allows AXIS-based code to use AXIS message keys,
+Axis provides a Message file extension mechanism
+that allows Axis-based code to use Axis message keys,
 as well as new message keys unique to the extended code.
 
 <ul>
 <li>
 Justification/Rationale</li>
 <br>
-AXIS provides pluggable interfaces for
-various AXIS entities, including EngineConfigurationFactory's,
+Axis provides pluggable interfaces for
+various Axis entities, including EngineConfigurationFactory's,
 Provides, and Handlers.
-AXIS also provides a variety of implementations
+Axis also provides a variety of implementations
 of these entities.
-It is convenient to use AXIS source code for
+It is convenient to use Axis source code for
 such implementations as starting points for developing
 extentions and customizations that fulfill the unique needs
 of the end user.
@@ -635,10 +636,10 @@ of the end user.
 
 <li>
 Procedure</li>
-<br>To extend the AXIS message file:
+<br>To extend the Axis message file:
 <br>&nbsp;
 <ul>
-<li>Copy the AXIS source file
+<li>Copy the Axis source file
 <code>java/src/org/apache/axis/i18n/Messages.java</code>
 to your project/package, say
 <code>my/project/package/path/Messages.java</code>.
@@ -660,7 +661,7 @@ copied Messages package name.
 Add new message key/value pairs to this file.
 </li>
 <br>&nbsp;
-<li>As you copy AXIS source files over to your project,
+<li>As you copy Axis source files over to your project,
 change the <code>import org.apache.axis.i18n.Messages</code>
 statement to <code>import my.project.package.path.Messages</code>.
 </li>
@@ -701,7 +702,7 @@ the <code>parent</code> attribute of the
 <code>Messages</code> class copied to your extensions directory.
 <p>Unless changed, the default behavior, meaning what happens when a key
 isn't defined in the new properties file,
-is to fall back to the AXIS properties file
+is to fall back to the Axis properties file
 (org.apache.axis.i18n.resource.properties).
 <br>&nbsp;
 </ul>
@@ -709,7 +710,7 @@ is to fall back to the AXIS properties file
 
 <h3>
 <a NAME="Performance Monitoring Plug"></a>Performance Monitoring</h3>
-AXIS does not yet include specific Performance Monitoring Plugs.
+Axis does not yet include specific Performance Monitoring Plugs.
 <!--
 <ul>
 <li>
@@ -747,7 +748,7 @@ Example</li>
 
 <h3>
 <a NAME="Encoding Plug"></a>Encoding</h3>
-AXIS does not yet include an Encoding Plug.
+Axis does not yet include an Encoding Plug.
 <!--
 How can a system integrator plug in other encoding mechanisms such as SOAP
 1.2 or optimized XML-based encoding?
@@ -787,13 +788,13 @@ Example</li>
 
 <h3>
 <a NAME="WSDL plug"></a>WSDL Parser and Code Generator Framework</h3>
-WSDL2Java is AXIS's tool to generate Java artifacts from WSDL.&nbsp; This
-tool is extensible.&nbsp; If users of AXIS wish to extend AXIS, then they
+WSDL2Java is Axis's tool to generate Java artifacts from WSDL.&nbsp; This
+tool is extensible.&nbsp; If users of Axis wish to extend Axis, then they
 may also need to extend or change the generated artifacts.&nbsp; For example,
-if AXIS is inserted into some product which has an existing deployment
-model that's different than AXIS's deployment model, then that product's
+if Axis is inserted into some product which has an existing deployment
+model that's different than Axis's deployment model, then that product's
 version of WSDL2Java will be required to generate deployment descriptors
-other than AXIS's deploy.wsdd.
+other than Axis's deploy.wsdd.
 <p>What follows immediately is a description of the framework.&nbsp; If
 you would rather dive down into the dirt of <a href="#WSDL Examples">examples</a>,
 you could learn a good deal just from them.&nbsp; Then you could come back

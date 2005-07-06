@@ -22,7 +22,7 @@
           </td>
           <td>
             <!-- PROJECT LOGO -->
-            <a href="http://jakarta.apache.org/ant/">
+            <a href="http://ant.apache.org/">
               <img src="../../images/ant_logo_large.gif" align="right" alt="Apache Ant" border="0"/>
             </a>
           </td>
@@ -46,49 +46,24 @@
       </td></tr>
 
       <tr><td><blockquote>
-        Call a target foreach entry in a set of parameters based on a fileset.
- <p>
- <i>For Axis development; there is no support or stability associated 
-  with this task</i> 
-  <pre>
-    &lt;target name=&quot;target1&quot;&gt;
-      &lt;foreach target=&quot;target2&quot;&gt;
-        &lt;param name=&quot;param1&quot;&gt;
-            &lt;fileset refid=&quot;fset1&quot;/&gt;
-        &lt;/param&gt;
-        &lt;param name=&quot;param2&quot;&gt;
-          &lt;item value=&quot;jar&quot; /&gt;
-          &lt;item value=&quot;zip&quot; /&gt;
-        &lt;/param&gt;
-       &lt;/foreach&gt;
-    &lt;/target&gt;
-
-    &lt;target name=&quot;target2&quot;&gt;
-      &lt;echo message=&quot;prop is ${param1}.${param2}&quot; /&gt;
-    &lt;/target&gt;  
- </pre>
- <br>
- Really this just a wrapper around "AntCall"
- <br>
- Added a "type" attribute that works precisely like its equivalent
- in <code>ExecuteOn</code>.  It allows the user
- to specify whether directories, files, or both directories and files
- from the filesets are included as entries in the parameter set.
+        Call a target foreach entry in a set of parameters based on a fileset. <p> <i>For Axis development; there is no support or stability associated with this task</i> <pre> &lt;target name=&quot;target1&quot;&gt; &lt;foreach target=&quot;target2&quot;&gt; &lt;param name=&quot;param1&quot;&gt; &lt;fileset refid=&quot;fset1&quot;/&gt; &lt;/param&gt; &lt;param name=&quot;param2&quot;&gt; &lt;item value=&quot;jar&quot; /&gt; &lt;item value=&quot;zip&quot; /&gt; &lt;/param&gt; &lt;/foreach&gt; &lt;/target&gt; &lt;target name=&quot;target2&quot;&gt; &lt;echo message=&quot;prop is ${param1}.${param2}&quot; /&gt; &lt;/target&gt; </pre> <br> Really this just a wrapper around "AntCall" <br> Added a "type" attribute that works precisely like its equivalent in <code>ExecuteOn</code>. It allows the user to specify whether directories, files, or both directories and files from the filesets are included as entries in the parameter set.
       </blockquote></td></tr>
 
     </table>
     <!-- End Description -->
 
+ <!-- Ignore -->
+
+
+
     <!-- Start Attributes -->
     <table border="0" cellspacing="0" cellpadding="2" width="100%">
       <tr><td>&nbsp;</td></tr>
-
       <tr><td bgcolor="#525D76">
         <font color="#ffffff" face="arial,helvetica.sanserif">
           <a name="attributes">
           <strong>Parameters</strong></a></font>
       </td></tr>
-
       <tr><td><blockquote>
         <table>
           <tr>
@@ -101,19 +76,26 @@
         <td bgcolor="#cccccc" valign="top" align="left">
           <font color="#000000" size="-1" face="arial,helvetica,sanserif"><b>Type</b></font>
         </td>
+        <td bgcolor="#cccccc" valign="top" align="left">
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif"><b>Requirement</b></font>
+        </td>
           </tr>
-    <!-- Attribute -->
+    <!-- Attribute Group -->    
+    
+    <!-- Attribute Group -->    
+        <!-- Attribute -->
     <tr>
         <td bgcolor="#eeeeee" valign="top" align="left">
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">fork</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">
-          If true, forks the ant invocation.
-        </font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">If true, forks the ant invocation.</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">boolean</font>
+        </td>
+        <td bgcolor="#eeeeee" valign="top" align="left" rowspan="5">
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">Optional</font>
         </td>
     </tr>
     <!-- Attribute -->
@@ -122,10 +104,7 @@
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">inheritall</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">
-          If true, pass all properties to the new Ant project.
- Defaults to true.
-        </font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">If true, pass all properties to the new Ant project. Defaults to true.</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">boolean</font>
@@ -137,10 +116,7 @@
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">inheritrefs</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">
-          If true, pass all references to the new Ant project.
- Defaults to false
-        </font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">If true, pass all references to the new Ant project. Defaults to false</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">boolean</font>
@@ -152,12 +128,10 @@
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">target</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">
-          Target to execute, required.
-        </font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">Target to execute, required.</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">java.lang.String</font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">String</font>
         </td>
     </tr>
     <!-- Attribute -->
@@ -166,15 +140,13 @@
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">verbose</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">
-          Enable verbose output when signing
- ; optional: default false
-        </font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">Enable verbose output when signing ; optional: default false</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">boolean</font>
         </td>
     </tr>
+
 
         </table>
       </blockquote></td></tr>
@@ -202,10 +174,8 @@
       </td></tr>
       <tr><td><blockquote>
         
-<short-description><![CDATA[No description.]]></short-description>
-<description>
-          
-        </description>
+ <!-- Ignore -->
+ <!-- Ignore -->
 
       </blockquote></td></tr>
     </table>
