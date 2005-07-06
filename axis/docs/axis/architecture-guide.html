@@ -13,9 +13,7 @@
 
 <h1>
 Axis Architecture Guide</h1>
-<font face="Lucida Sans"><font color="#CC0000"><font size=+3>Under construction
-....</font></font></font>
-<br><i>1.1 Version</i>
+<br><i>1.2 Version</i>
 <br><i>Feedback: <a href="mailto:axis-dev@ws.apache.org">axis-dev@ws.apache.org</a></i>
 <h3>
 Contents</h3>
@@ -321,13 +319,12 @@ During deserialization, a parse tree is constructed consisting of instances
 of the above classes in parent-child relationships as shown below.
 <br><img SRC="images/messagetree.jpg">
 <h3><a name="D13n"></a>Deserialization</h3>
-The class mainly responsible for XML parsing, i.e. deserialization, is
-DeserializationContextImpl ('DCI') which inherits most of its methods from the
-DeserializationContext interface.
-DCI manages the construction of the parse tree and
-maintains a stack of SAX handlers, a reference to the MessageElement that
-is currently being deserialized, a stack of namespace mappings, a mapping from IDs to elements, a set of type mappings for deserialization (see 
-<a href="#Encoding Subsystem">Encoding Subsystem</a>) and a SAX event recorder.
+The class mainly responsible for XML parsing, i.e. deserialization, is DeserializationContext 
+('DC'). DC manages the construction of the parse tree and maintains a stack of 
+SAX handlers, a reference to the MessageElement that is currently being deserialized, 
+a stack of namespace mappings, a mapping from IDs to elements, a set of type mappings 
+for deserialization (see <a href="#Encoding Subsystem">Encoding Subsystem</a>) 
+and a SAX event recorder. 
 <p>Elements that we scan over, or ones for which we don't have a particular
 deserializer, are recorded - in other words, the SAX events are placed into
 a queue which may be 'played back' at a later time to any SAX ContentHandler.
@@ -345,22 +342,19 @@ EnvelopeHandler which represents the fact that parsing of the SOAP envelope
 has not yet started.
 The EnvelopeHandler is constructed with a reference to an EnvelopeBuilder,
 which is the SAX handler responsible for parsing the SOAP envelope.
-<p>During parsing, DCI receives the events from the
-SAX parser and notifies either the SAX handler on the top of its handler
-stack, the SAX event recorder, or both.
-<p>On the start of an element, DCI calls the SAX handler
-on the top of its handler stack for onStartChild. This method returns a
-SAX handler to be used to parse the child, which DCI
-pushes on its SAX handler stack and calls for startElement.
-startElement, amongst other things, typically creates a new MessageElement
-of the appropriate class and calls DCI
-for pushNewElement.
-The latter action creates the parent-child relationships of the parse tree.
-<p>On the end of an element, DCI pops the top SAX handler
-from its handler stack and calls it for endElement. It then drives SAX
-handler which is now on the top of the handler stack for onEndChild.
-Finally, it sets the MessageElement that is currently being deserialized to
-the parent of the current one.
+<p>During parsing, DC receives the events from the SAX parser and notifies either 
+  the SAX handler on the top of its handler stack, the SAX event recorder, or 
+  both. 
+<p>On the start of an element, DC calls the SAX handler on the top of its handler 
+  stack for onStartChild. This method returns a SAX handler to be used to parse 
+  the child, which DC pushes on its SAX handler stack and calls for startElement. 
+  startElement, amongst other things, typically creates a new MessageElement of 
+  the appropriate class and calls DC for pushNewElement. The latter action creates 
+  the parent-child relationships of the parse tree. 
+<p>On the end of an element, DC pops the top SAX handler from its handler stack 
+  and calls it for endElement. It then drives SAX handler which is now on the 
+  top of the handler stack for onEndChild. Finally, it sets the MessageElement 
+  that is currently being deserialized to the parent of the current one. 
 <p>Elements which are not defined by SOAP are treated using a SOAPHandler
 as a SAX event handler and a MessageElement as a node in the parse tree.
 <h2><a NAME="Encoding Subsystem"></a>Encoding Subsystem</h2>

@@ -22,7 +22,7 @@
           </td>
           <td>
             <!-- PROJECT LOGO -->
-            <a href="http://jakarta.apache.org/ant/">
+            <a href="http://ant.apache.org/">
               <img src="../../images/ant_logo_large.gif" align="right" alt="Apache Ant" border="0"/>
             </a>
           </td>
@@ -46,27 +46,24 @@
       </td></tr>
 
       <tr><td><blockquote>
-        Ant task for starting / stopping servers and running junit in the middle.
- Based on the Cactus org.apache.commons.cactus.ant package, heavily munged
- and cruftily dumped into one file.
- <p>
- <i>For Axis development; there is no support or stability associated 
-  with this task</i>
+        Ant task for starting / stopping servers and running junit in the middle. Based on the Cactus org.apache.commons.cactus.ant package, heavily munged and cruftily dumped into one file. <p> <i>For Axis development; there is no support or stability associated with this task</i>
       </blockquote></td></tr>
 
     </table>
     <!-- End Description -->
 
+ <!-- Ignore -->
+
+
+
     <!-- Start Attributes -->
     <table border="0" cellspacing="0" cellpadding="2" width="100%">
       <tr><td>&nbsp;</td></tr>
-
       <tr><td bgcolor="#525D76">
         <font color="#ffffff" face="arial,helvetica.sanserif">
           <a name="attributes">
           <strong>Parameters</strong></a></font>
       </td></tr>
-
       <tr><td><blockquote>
         <table>
           <tr>
@@ -79,19 +76,26 @@
         <td bgcolor="#cccccc" valign="top" align="left">
           <font color="#000000" size="-1" face="arial,helvetica,sanserif"><b>Type</b></font>
         </td>
+        <td bgcolor="#cccccc" valign="top" align="left">
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif"><b>Requirement</b></font>
+        </td>
           </tr>
-    <!-- Attribute -->
+    <!-- Attribute Group -->    
+    
+    <!-- Attribute Group -->    
+        <!-- Attribute -->
     <tr>
         <td bgcolor="#eeeeee" valign="top" align="left">
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">httpservertarget</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">
-          Sets the target to call to start server 2.
-        </font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">Sets the target to call to start server 2.</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">java.lang.String</font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">String</font>
+        </td>
+        <td bgcolor="#eeeeee" valign="top" align="left" rowspan="5">
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">Optional</font>
         </td>
     </tr>
     <!-- Attribute -->
@@ -100,13 +104,10 @@
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">httpstoptarget</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">
-          Sets the stop target.  This is the target which does
- a HTTP admin shutdown on the simple server.
-        </font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">Sets the stop target.  This is the target which does a HTTP admin shutdown on the simple server.</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">java.lang.String</font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">String</font>
         </td>
     </tr>
     <!-- Attribute -->
@@ -115,12 +116,10 @@
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">tcpservertarget</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">
-          Sets the target to call to start server 1.
-        </font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">Sets the target to call to start server 1.</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">java.lang.String</font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">String</font>
         </td>
     </tr>
     <!-- Attribute -->
@@ -129,12 +128,10 @@
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">testtarget</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">
-          Sets the target to call to run the tests.
-        </font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">Sets the target to call to run the tests.</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">java.lang.String</font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">String</font>
         </td>
     </tr>
     <!-- Attribute -->
@@ -143,14 +140,13 @@
           <font color="#000000" size="-1" face="arial,helvetica,sanserif">url</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">
-          Sets the target URL (just http://host:port)
-        </font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">Sets the target URL (just http://host:port)</font>
         </td>
         <td bgcolor="#eeeeee" valign="top" align="left">
-          <font color="#000000" size="-1" face="arial,helvetica,sanserif">java.lang.String</font>
+          <font color="#000000" size="-1" face="arial,helvetica,sanserif">String</font>
         </td>
     </tr>
+
 
         </table>
       </blockquote></td></tr>

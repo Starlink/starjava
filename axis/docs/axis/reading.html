@@ -13,19 +13,18 @@
 
 <h1>Recommended Reading</h1>
 
-Here are things you can read to understand and use Axis better. Remember, 
+Here are things you can read to understand and use Axis better. Remember,
 you also have access to all the source if you really want to find out how
-things work (or why they don't). 
+things work (or why they don't).
 
 <a name="axis">
 <h2>Axis installation, use and internals</h2>
 </a>
 <ol>
-
 <li>
     <a href="http://www.pankaj-k.net/axis4tag/">
     Web Services with JAX-RPC and Apache Axis.</a><br>
-    by Pankaj Kumar. 
+    by Pankaj Kumar.
     Starting with a 10000 ft. view of Web Services, prior technologies, current and emerging
     standards, it quickly gets into the nitty-gritties of using JAX-RPC and Apache Axis
     for writing and executing programs. Has a nice coverage of different invocation styles -
@@ -45,15 +44,15 @@ things work (or why they don't).
     Enabling SOAPMonitor in Axis 1.0</a>.<br>
     Dennis Sosnoski on how to turn the SOAP monitor on and off, and use it to log your
     application.
-    
+
 <li><a href="http://macromedia.com/support/jrun/extend/using_web_services/">
 Axis in JRrun</a><br>
  Macromedia authored coverage of using Axis from inside JRun.
 
 <li><a href="http://www-106.ibm.com/developerworks/webservices/library/ws-eight/">
 Ask the magic eight ball</a><br>
- Example of using an Axis service with various 
-caller platforms/languages.       
+ Example of using an Axis service with various
+caller platforms/languages.
 
 <li>
   <a href="http://www.fawcette.com/javapro/2003_02/online/WSDL_kjones_02_27_03/">
@@ -70,8 +69,23 @@ caller platforms/languages.
   Kevin Jones looks at the document and wrapped styles of WSDL2Java
   bindings.
 </li>
-  
- </ol>
+
+
+<li>
+    <a name="ws-sec" href="http://www.j2ee-security.net/book/sample-chap/">Web Services Security with Axis</a><br/>
+    This sample chapter from <a href="http://www.j2ee-security.net/"><i>J2EE Security for Servlets,
+    EJBs and Web Services</i></a> book explains use of username/password based authentication,
+    SSL and Servlet security mechanisms for securing the transport and
+    WS-Security for securing the messages with Apache Axis. To illustrate use of handlers for
+    enforcing security, it describes the implementation of a bare-bones WS-Security mechanism
+    using <a href="http://www.xmltrustcenter.org/developer/verisign/tsik/index.htm">
+    VeriSign's TSIK</a> and JAX-RPC handlers. You can also
+    <a href="http://www.j2ee-security.net/book/viewsource.php">view</a> or
+    <a href="http://www.j2ee-security.net/book/dnldsrc/">download</a> the complete sources
+    discussed in the chapter.
+</li>
+
+</ol>
 
 
 
@@ -84,15 +98,15 @@ caller platforms/languages.
     <a href="http://www.w3.org/TR/SOAP/">
     SOAP Version 1.1
     </a><br>
-    Remember that SOAP1.1 is not an official W3C standard. 
+    Remember that SOAP1.1 is not an official W3C standard.
 </li>
 <li>
     <a href="http://www.w3.org/TR/soap12-part0/">
     SOAP Version 1.2 Part 0: Primer
     </a><br>
-    This and the follow-on sections cover what the W3C think SOAP 
-    is and how it should be used. 
-    
+    This and the follow-on sections cover what the W3C think SOAP
+    is and how it should be used.
+
 </li>
 <li>
     <a href="http://www.w3.org/TR/wsdl">
@@ -111,18 +125,18 @@ caller platforms/languages.
     SOAP with Attachments API for Java (SAAJ)
     </a><br>
     SAAJ enables developers to produce and consume messages conforming to
-    the SOAP 1.1 specification and SOAP with Attachments note. 
+    the SOAP 1.1 specification and SOAP with Attachments note.
 </li>
 <li>
-    <a href="http://java.sun.com/xml/jaxrpc/index.html">    
+    <a href="http://java.sun.com/xml/jaxrpc/index.html">
     Java API for XML-Based RPC (JAX-RPC)
     </a><br>
-    The public API for Web Services in Java. 
+    The public API for Web Services in Java.
     JAX-RPC enables Java technology developers to develop SOAP based
     interoperable and portable web services. JAX-RPC provides the core API
     for developing and deploying web services on the Java platform.
 </li>
- 
+
 <li>
     <a href="http://www.w3.org/TR/xmlschema-0/">
     XML Schema Part 0: Primer
@@ -130,11 +144,11 @@ caller platforms/languages.
     The W3C XML Schema, (WXS) is one of the two sets of datatype SOAP
     supports, the other being the SOAP Section 5 datatypes that predate
     WXS. Complicated as it is, it is useful to have a vague understanding
-    of this specification. 
+    of this specification.
 </li>
 
 <li>
-    <a href="http://java.sun.com/xml/jaxm/index.html">    
+    <a href="http://java.sun.com/xml/jaxm/index.html">
     Java API for XML Messaging (JAXM)
     </a><br>
     JAXM enables applications to send and receive document oriented XML
@@ -142,7 +156,7 @@ caller platforms/languages.
     Protocol (SOAP) 1.1 with Attachments messaging so that developers can
     focus on building, sending, receiving, and decomposing messages for
     their applications instead of programming low level XML communications
-    routines. 
+    routines.
 </li>
 
 </ol>
@@ -163,55 +177,55 @@ caller platforms/languages.
     </a><br>
     Quick intro to WSDL by the eponymous Sam Ruby.
 </li>
-<li> 
+<li>
     <a href="http://www.ociweb.com/javasig/knowledgebase/2002Sep/">
     Axis - an open source web service toolkit for Java</a><br>
     by Mark Volkmann, Partner, Object Computing, Inc. A very good introduction
-    to SOAP and Axis. Highly Recommended.  
-    
+    to SOAP and Axis. Highly Recommended.
+
 <li>
     <a href="http://www.iseran.com/Steve/papers/when_web_services_go_bad.html">
     When Web Services Go Bad
     </a><br>
     Steve Loughran tries to scare people.
-    A painful demonstration how deployment and system management are 
+    A painful demonstration how deployment and system management are
     trouble spots in a production service, followed by an espousal of a
     deployment-centric development process. Remember, it doesn't have to
     be that bad.
-    
+
 </li>
 <li>
     <a href="http://servlet.java.sun.com/javaone/sf2002/conf/sessions/index.en.jsp">
     JavaOne 2002, Web Services Today and Tomorrow </a><br>
-    (Java Developer connection login required) 
-</li>    
+    (Java Developer connection login required)
+</li>
 
 <li>
     <a href="http://java.sun.com/webservices/docs/1.0/tutorial/doc/JAXRPC.html">
     The Java Web Services Tutorial: Java API for XML-based RPC </a><br>
-    This is part of Sun's guide to their Java Web Services Developer Pack. 
-    The examples are all based on their JWSDP, but as Axis also implements 
-    JAX-RPC, they may all port to Axis.    
-    
-</li>    
+    This is part of Sun's guide to their Java Web Services Developer Pack.
+    The examples are all based on their JWSDP, but as Axis also implements
+    JAX-RPC, they may all port to Axis.
+
+</li>
 
 
 <li>
     <a href="http://java.sun.com/blueprints/webservices/using/webservbp.html">
     Using Web Services Effectively.</a><br>
-    
-    Blissfully ignoring issues such as versioning, robustness and security and 
-    all the other details a production Web Service needs, instead pushing EJB as 
-    the only way to process requests, this is Sun's guide to 
-    using web services in Java. It also assumes Java is at both ends, so manages 
-    to skirt round the interop problem.  
-    
-</li>    
+
+    Blissfully ignoring issues such as versioning, robustness and security and
+    all the other details a production Web Service needs, instead pushing EJB as
+    the only way to process requests, this is Sun's guide to
+    using web services in Java. It also assumes Java is at both ends, so manages
+    to skirt round the interop problem.
+
+</li>
 
 <li>
     <a href="http://www.hpl.hp.com/techreports/2002/HPL-2002-274.html">
     Making Web Services that Work</a><br>
-    
+
     A practical but suspiciously code free paper on how to get web
     services into production. As well as coverage of topics such as
     interop, versioning, security, this (57 page) paper looks at the
@@ -221,8 +235,8 @@ caller platforms/languages.
     Happyaxis.jsp is the canonical example of this. The author, Steve
     Loughran also looks a bit at what the component model of a federated
     web service world would really be like.
-    
-</li>    
+
+</li>
 
 
 
@@ -244,7 +258,7 @@ caller platforms/languages.
     The Wondrous Curse of Interoperability
     </a><br>
     Steve Loughran on interop challenges (especially between .NET and Axis),
-    and how to test for them. 
+    and how to test for them.
 </li>
 </ol>
 
@@ -254,7 +268,7 @@ caller platforms/languages.
 <ol>
 <li>
     <a href="http://www.extreme.indiana.edu/xgws/papers/sc00_paper/index.html">
-    Requirements for and Evaluation of RMI Protocols for Scientific Computing    
+    Requirements for and Evaluation of RMI Protocols for Scientific Computing
     </a>
 </li>
 <li>
@@ -265,12 +279,12 @@ caller platforms/languages.
 </li>
 <li>
     <a href="http://www.extreme.indiana.edu/xgws/papers/soap-hpdc2002/soap-hpdc2002.pdf">
-    Investigating the Limits of SOAP Performance for Scientific Computing    
+    Investigating the Limits of SOAP Performance for Scientific Computing
     </a>
 </li>
 <li>
     <a href="http://www.w3.org/TR/webarch/">
-    Architectural Principles of the World Wide Web        
+    Architectural Principles of the World Wide Web
     </a><br>
     The W3C architects say how things should be done.
 </li>
@@ -281,7 +295,6 @@ caller platforms/languages.
 </a>
 
 <ol>
-
 <li><i><a href="http://www.wrox.com/books/1861007531.htm">
 Beginning Java Web Services</a></i><br>
 Meeraj Kunnumpurath et al, Wrox Press, September 2002.<br>
@@ -290,36 +303,36 @@ Meeraj Kunnumpurath et al, Wrox Press, September 2002.<br>
     sample chapter</a> shows how to install Axis with Tomcat 4.0: we do not believe
     that their approach is the best. It is easier to drop jaxrpc.jar and
     saaj.jar into the CATALINA_HOME/common/lib dir than it is to add all
-    axis jars to the classpath by hand. The book is based on Axis Beta-3.   
+    axis jars to the classpath by hand. The book is based on Axis Beta-3.
 
 <li>
     <a href="http://manning.com/antbook">
-    <i>Java development with Ant</i> 
+    <i>Java development with Ant</i>
     </a><br>
     by Erik Hatcher and Steve Loughran, Manning Press, July 2002. <br>
-    A book on Ant development which covers Web Service development with Axis, 
+    A book on Ant development which covers Web Service development with Axis,
     along with other topics relevant to Java developers using Ant. The Web Service
     chapter, <A href="http://www.manning.com/hatcher/chap15.pdf">
-    chapter 15</A>, is free to download, and was the birthplace of 
+    chapter 15</A>, is free to download, and was the birthplace of
     happyaxis.jar. <br>
     The book is based on Axis Beta-2; the web site contains updated
-    documentation where appropriate.  
-    
+    documentation where appropriate.
+
 </li>
-    
+
 <li>
 <A href="http://www.wrox.com/books/toc/1861007159_toc.htm">
 <i>AXIS: Next Generation Java SOAP</i><br>
 </A>
-    by Romin Irani and S Jeelani Bashna, Wrox Press, May 2002.<br> 
+    by Romin Irani and S Jeelani Bashna, Wrox Press, May 2002.<br>
     The first nothing-but-Axis book.<br>
     It is based on Beta-1. This is a reasonable book, despite is apparent thinness and
-    relative age. If it has a major weakness it believes everything works as intended, 
+    relative age. If it has a major weakness it believes everything works as intended,
     which regular Axis users will know is not quite true yet. Maybe they didn't want
     to fault missing features and other gotchas, assuming they would be fixed by the time
     the product shipped, but the effective result is that you can get into minor trouble working
-    from this book, trying to use bits that aren't there, or just don't work (yet). 
-    
+    from this book, trying to use bits that aren't there, or just don't work (yet).
+
 <li>
 <A
 href="http://sams.com/catalog/product.asp?product_id={ABC81EE6-0D9F-4BD7-99DB-84F9C983ACF7}">
@@ -330,13 +343,28 @@ Building Web Services with Java: Making Sense of XML, SOAP, WSDL and UDDI</i>
     Covering very early versions of Axis
     along with other aspects of Web Service technologies. One of the
     authors, Glen Daniels, is an Axis committer and active contributor, so
-    the quality of the Axis coverage is high. Good explanations of SOAP, UDDI, and the like. 
+    the quality of the Axis coverage is high. Good explanations of SOAP, UDDI, and the like.
+
+
+<li>
+    <a href="http://www.j2ee-security.net">
+    <i>J2EE Security for Servlets, EJBs and Web Services</i></a><br>
+    Pankaj Kumar, Prentice Hall, September 2003.<br/>
+    A book on using Java security APIs, tools and mechanisms for building secure
+    enterprise applications. The chapter on <a href="#ws-sec">Web Services Security</a>
+    uses Axis-1.1RC1
+    for illustrations. Besides Web Services, it covers security aspects of Java RMI,
+    Servlet and JSP based Web Applications and EJBs.
+</li>
+
+<!-- insert new books here -->
 
 </ol>
 
+
 Authors, publishers: we welcome additions to this section of any books which
-have some explicit coverage of Axis. Free paper/pdf copies and other forms of bribery accepted.   
-    
+have some explicit coverage of Axis. Free paper/pdf copies and other forms of bribery accepted.
+
 <a name="external">
 <h2>External Sites covering Web Services</h2>
 <ol>
@@ -345,11 +373,25 @@ have some explicit coverage of Axis. Free paper/pdf copies and other forms of br
 
 IBM developerWorks Web Services corner</a><br>
 There are lots of interesting articles on Web Services here, many of which are
-Axis related. There is also a  
+Axis related. There is also a
 <a href="http://www-106.ibm.com/developerworks/webservices/library/ws-spec.html">
-listing of</a> 
+listing of</a>
  "all current open standards and specifications that define the Web services family of protocols",
- though Soap with Attachments is mysteriously absent. 
- 
+ though Soap with Attachments is mysteriously absent.
+
 </li>
-</ol>    
+
+<li>
+    <a href="http://msdn.microsoft.com/webservices/">MSDN Web
+    Services</a><br>
+    These are the microsoft pages; little Axis coverage but plenty on 
+    Web Service specifications.
+</li>
+
+<li><a href="http://webservices.xml.com/">WebServices.xml.com</a>
+
+The O'Reilly site is always up to date, interesting and useful. It
+doesn't advocate a single technology (REST, SOAP, RDF...), or a single
+product. As such, it retains its independence and value. 
+
+</ol>
