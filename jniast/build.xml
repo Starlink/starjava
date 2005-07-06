@@ -450,6 +450,10 @@
       <param name="pj.cfile" value="object.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="Box"/>
+      <param name="pj.cfile" value="box.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="CmpFrame"/>
       <param name="pj.cfile" value="cmpframe.c"/>
     </antcall>
@@ -520,6 +524,10 @@
     <antcall target="perl_to_java">
       <param name="pj.class" value="RateMap"/>
       <param name="pj.cfile" value="ratemap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="Region"/>
+      <param name="pj.cfile" value="region.c"/>
     </antcall>
     <antcall target="perl_to_java">
       <param name="pj.class" value="ShiftMap"/>
@@ -772,6 +780,7 @@
     <javah classpath="${build.classes}" destdir="${build.jni}" verbose="yes">
       <class name="${package.name}.AstException"/>
       <class name="${package.name}.AstObject"/>
+      <class name="${package.name}.Box"/>
       <class name="${package.name}.Channel"/>
       <class name="${package.name}.CmpFrame"/>
       <class name="${package.name}.CmpMap"/>
@@ -792,6 +801,7 @@
       <class name="${package.name}.Plot"/>
       <class name="${package.name}.PolyMap"/>
       <class name="${package.name}.RateMap"/>
+      <class name="${package.name}.Region"/>
       <class name="${package.name}.ShiftMap"/>
       <class name="${package.name}.SkyFrame"/>
       <class name="${package.name}.SlaMap"/>

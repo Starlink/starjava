@@ -41,6 +41,7 @@
 typedef union {
    void *ptr;                /* Generic pointer */
    jlong jlong;              /* Java value as in 'private long pointer' */
+   AstBox *Box;              /* Pointer to C Box struct */
    AstChannel *Channel;      /* Pointer to C AstChannel struct */
    AstCmpFrame *CmpFrame;    /* Pointer to C AstCmpFrame struct */
    AstCmpMap *CmpMap;        /* Pointer to C AstCmpMap struct */
@@ -62,6 +63,7 @@ typedef union {
    AstPlot *Plot;            /* Pointer to C AstPlot struct */
    AstPolyMap *PolyMap;      /* Pointer to C AstPolyMap struct */
    AstRateMap *RateMap;      /* Pointer to C AstRateMap struct */
+   AstRegion *Region;        /* Pointer to C AstRegion struct */
    AstShiftMap *ShiftMap;    /* Pointer to C AstGrismMap struct */
    AstSkyFrame *SkyFrame;    /* Pointer to C AstSkyFrame struct */
    AstSlaMap *SlaMap;        /* Pointer to C AstSlaMap struct */

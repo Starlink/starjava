@@ -81,6 +81,7 @@ C_ROUTINES = \
    err_jniast.c \
    AstException.c \
    AstObject.c \
+   Box.c \
    Channel.c \
    CmpFrame.c \
    CmpMap.c \
@@ -101,6 +102,7 @@ C_ROUTINES = \
    Plot.c \
    PolyMap.c \
    RateMap.c \
+   Region.c \
    SkyFrame.c \
    SlaMap.c \
    ShiftMap.c \
