@@ -90,8 +90,11 @@
 
     /** scan a directory for jars */    
     public File[] scanDir(String dir) throws IOException 
-        { 
-        return scanDir(new File(dir)); 
+        {
+        if(dir==null) {
+            return NO_FILES;
+        }
+        return scanDir(new File(dir));
         }
         
     public File[] scanDir(File dir) throws IOException {

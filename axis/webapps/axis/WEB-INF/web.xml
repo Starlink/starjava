@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
-<!DOCTYPE web-app
-    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN"
-    "http://java.sun.com/j2ee/dtds/web-app_2.2.dtd">
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web
+Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">
 
 <web-app>
   <display-name>Apache-Axis</display-name>
+    
+    <listener>
+        <listener-class>org.apache.axis.transport.http.AxisHTTPSessionListener</listener-class>
+    </listener>
+    
   <servlet>
     <servlet-name>AxisServlet</servlet-name>
     <display-name>Apache-Axis Servlet</display-name>
@@ -64,6 +68,11 @@
   </servlet-mapping>
  -->
 
+    <session-config>
+        <!-- Default to 5 minute session timeouts -->
+        <session-timeout>5</session-timeout>
+    </session-config>
+
     <!-- currently the W3C havent settled on a media type for WSDL;
     http://www.w3.org/TR/2003/WD-wsdl12-20030303/#ietf-draft
     for now we go with the basic 'it's XML' response -->
@@ -79,8 +88,8 @@
   </mime-mapping>
 
   <welcome-file-list id="WelcomeFileList">
-    <welcome-file>index.html</welcome-file>
     <welcome-file>index.jsp</welcome-file>
+    <welcome-file>index.html</welcome-file>
     <welcome-file>index.jws</welcome-file>
   </welcome-file-list>
 
