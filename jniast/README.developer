@@ -125,14 +125,14 @@ XxxMap, is added to AST.
 
    1. Copy the xxxmap.c file from the AST sources to jniast/src/ast/
 
-   2. Write a new file juniast/src/perl/XxxMap.pl.  This is probably
+   2. Write a new file jniast/src/perl/XxxMap.pl.  This is probably
       going to contain a makeNativeConstructor() call and several
       makeNativeMethod() and makeGetAttrib()/makeSetAttrib() calls,
       along with some boilerplate (and possibly some custom) print'ed
       output.  How to do this is not well documented I'm afraid, 
       you'll have to use one of the existing ones as a template.
 
-   3. Add the perl invocation and javah invocations in the build.xml
+   3. Add the perl invocation and javah invocations in build.xml
       (follow the pattern for existing classes, e.g. grep for LutMap
       and copy).
 
@@ -149,7 +149,7 @@ XxxMap, is added to AST.
       look at this to see what the prototypes are for the C functions
       you need to write.
 
-   7. Add an entry for AstTimeMap in jniast/src/jni/jniast.h.
+   7. Add an entry for AstXxxMap in jniast/src/jni/jniast.h.
 
    8. Write a new file jinast/src/jni/XxxMap.c.  Crib from an existing
       C file in src/jni/.  And read the JNI specification first.
