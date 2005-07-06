@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+<article>
+  <title>Testing (again)</title>
+
+  <authorblurb>
+    <para><author><lineage>Steve Loughran</lineage></author></para>
+  </authorblurb>
+
+  <sect1>
+    <title>Where we are today?</title>
+
+    <para>We are now at the second revision of the Axis test framework. The
+    original design had all classes in a package under java/test, built them
+    in one big &lt;javac&gt; and then executed them. While it ran the tests,
+    it was not that flexible. It was hard to run individual tests, and it
+    was hard to maintain. A major effort by Matt Siebert refactored the test
+    process to address these.</para>
+
+    <para>The revision attempted to address this with a modular design, based
+    on separate Ant build files for each test package, using common XML entity
+    references to share build file fragments between the files. This gave us
+    isolated builds of each subcomponents, the ability to build and run tests
+    on their own, and the flexiblity to have very different build processes
+    for each of the tests.</para>
+
+    <para>The many build files compile the source, all of java/test/*.java
+    into build/classes, putting them into the hierarchy build/classes/test.
+    Test packages which have special dependencies can make their builds
+    conditional, so only those tests for which we have support get compiled
+    down. This architecture makes it easy to add a new test package, without
+    having to edit shared build files.</para>
+
+    <para>We have a separation between "unit tests" and
+    "functional" tests; the latter includes the interop and attachment
+    tests. There are separate targets in build test to build them, as the
+    choice of which tests to execute is primarily driven by the compilation
+    process. Nearly all the tests in the class tree will get executed, so to
+    select which tests to run, you control which tests get built. This is a
+    simple way of letting the test package-specific build files control which
+    test to run.</para>
+
+    <sect2>
+      <title>The Tests</title>
+
+      <para>The many build files compile the source, all of java/test/*.java
+      into build/classes, putting them into the hierarchy build/classes/test.
+      Test packages which have special dependencies can make their builds
+      conditional, so only those tests for which we have support get compiled
+      down.</para>
+
+      <para>We have a separation between "unit tests" and
+      "functional" tests; the latter includes the interop and
+      attachment tests. There are separate targets in build test to build
+      them, as the choice of which tests to execute is primarily driven by the
+      compilation process. Nearly all the tests in the class tree will get
+      executed, so to select which tests to run, you control which tests get
+      built. This is a simple way of letting the test package-specific build
+      files control which test to run.</para>
+    </sect2>
+
+    <sect2>
+      <title>WSDL</title>
+
+      <para>A core component of many of the tests is generating Java source
+      from WSDL files, both local test case WSDL and remote interop WSDL. The
+      latter introduces a requirement to be on line, and on-line through a
+      transparent firewall -we dont look after proxy settings enough to run
+      behind a firewall whose sole net access is via a proxy 80. This is
+      somewhat ironic, given that such a facility is the selling point of the
+      transport-stack-atop-port-80 that is the SOAP and WS-* specification
+      suite.</para>
+
+      <para>As well as lacking off-line support for generating WSDL, we cant
+      (obviously) run the interop tests without a network connection. This
+      means that when a remote interop server goes down, the build fails.</para>
+    </sect2>
+
+    <sect2>
+      <title>Execution</title>
+
+      <para>After compiling all the code down, we run the tests. This is done
+      by batch JUnit execution of all the test suites in all the packages with
+      a PackageTests.class class in their package (i.e. all of
+      build/classes/**/PackageTests.class).</para>
+
+      <para>Functional tests are all of **/FunctionalTests.class and
+      **/*TestCase.class; the latter are those test cases which are
+      auto-created by the Wsdl2Java routine, often with manual editing to make
+      the test complete.</para>
+
+      <para>When the tests need a functional servlet engine to host the web
+      services, we bring up the simple axis server; a minimal implementation
+      of the servlet API that omits the production-quality aspects of a web
+      server, including JSP support. The &lt;runaxisfunctionaltests&gt; task
+      starts and stops the server, using an execution process borrowed from
+      Cactus: we supply the task with the target names of the start and stop
+      targets, and the task executes them before and after running all the
+      functional tests.</para>
+    </sect2>
+
+    <sect2>
+      <title>Result Processing</title>
+
+      <para>In a Gump build, the build stops after the first failure, and the
+      team notified. The property <varname>test.functional.fail</varname> sets
+      the <symbol>haltonfailure</symbol> attribute of the &lt;junit&gt;
+      task; set it to true and the test suite runs all tests before
+      completing. Either way, the <symbol>create-test-report</symbol> target
+      will, if Xalan or other XSLT engine is present, convert the XML reports
+      of the test run into an HTML report, package by package.</para>
+
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>What do we want from a test suite?</title>
+
+
+    <sect2>
+      <title>Basic Improvements to the current status quo</title>
+
+
+      <itemizedlist>
+        <listitem>
+          <para>All the tests to pass :)</para>
+        </listitem>
+
+        <listitem>
+          <para>Faster tests</para>
+        </listitem>
+
+        <listitem>
+          <para>Scalability: easy to add new tests</para>
+        </listitem>
+
+        <listitem>
+          <para>Offline support, and robustness against unavailable interop
+          servers.</para>
+        </listitem>
+      </itemizedlist>
+    </sect2>
+
+    <sect2>
+      <title>Functional testing on production app servers</title>
+
+      <para>If we look at a lot of bugreps they are related to config and
+      operations on app servers. "Weblogic doesnt save
+      server-config.wsdd", "SunOne server has the wrong
+      classpath", "Jboss.net won't compile .JWS pages that import
+      javax.servlet.*", etc, etc. We need to run more tests on production
+      systems, rather than wait for user feedback after we ship. Now everybody
+      runs their apps on some such systems, so we have implicit testing, but
+      it is not part of the daily Gump or any other regular, controlled test
+      process.</para>
+
+      <para>We could modify the test system so that instead of starting the
+      SimpleAxisServer servlet routine, we can deploy to a local web server or
+      app server. This would verify that the core test suite runs on different
+      systems.</para>
+    </sect2>
+
+    <sect2>
+      <title>Test more than SOAP</title>
+
+      <para>We need more tests to validate the configuration; extending the
+      httpunit tests to have more tests of not-quite-SOAP requests. What
+      happens when the server gets less than they were promised? What about
+      more than promised? near-infinite recursive XML? xsd:import statements
+      in the XML? What happens when a client starts parsing from a socket that
+      doesnt close its connection, or lies about the amount it is sending?</para>
+
+      <para>These are the security and robustness categories we aren't
+      testing for today.</para>
+    </sect2>
+
+    <sect2>
+      <title>Automated invocation of compliance test suites: JAX-RPC TCK, WS-I
+      Basic</title>
+
+      <para>We have one test suite, JAX-RPC, that is only available under
+      restricted conditions. We need someone with access to the test suite to
+      run it.</para>
+    </sect2>
+
+    <sect2>
+      <title>Understandig that Interop servers are regularly unavailable</title>
+
+      <para>If Axis depends on everyone's interop server to be present,
+      then we have a global build system that breaks every time somebody in
+      their machine off -"the light switch in belgium problem". This
+      is too brittle. We need to cache the external WSDL in CVS, then probe
+      the servers to see if that has changed, downloading it only if it is
+      different. It would be nice to only regenerate the java proxy classes
+      from the WSDL when such a change has occurred.</para>
+    </sect2>
+
+    <sect2>
+      <title>Load testing</title>
+
+      <para>What happens to the system under load? This is very dependent upon
+      the app server; having tests running on the production server is a first
+      step to this. Traditional load testing has N clients each making M
+      requests, for N*M simultaneous requests. The facilities for individuals
+      to perform aggressive load tests are limited, but there is strength in
+      numbers; many Axis developers could have their test systems sychronised
+      to test an externally visible server together. This co-ordination could
+      be though a P2P infrastructure, such as JXTA or Chord, but as we are not
+      trying to design a stealth DDoS system, we could do it client-server
+      with a (separate) SOAP service choreographing the clients.</para>
+
+      <para>This would seem to be a long term project.</para>
+    </sect2>
+
+    <sect2>
+      <title>Performance testing</title>
+
+      <para>This is related to load testing, but doesnt need as many clients.
+      We need to know how long it takes for actions to be executed, and we
+      need to log this over time so that major regressions can get picked up.
+      If on the daily run one test takes 50% longer than usual, it is
+      immediately obvious that one of the day's changes caused the
+      problem. If the performance of the system doesn't get looked at till the
+      next version goes into RC phase, performance slippages get missed, and
+      even institutionalised.</para>
+    </sect2>
+
+    <sect2>
+      <title>Coverage Analysis</title>
+
+      <para>We should be able to use quilt
+      (<ulink url="http://quilt.sourceforge.net/">http://quilt.sourceforge.net/</ulink>)
+      to do this today. As with performance tests, tracking coverage changes
+      over time is informative; it shows whether things are improving or
+      getting worse.</para>
+    </sect2>
+
+    <sect2>
+      <title>Local interop testing with non-Axis clients and servers</title>
+
+      <para>We already have some examples of .net client tests against axis,
+      with an Ant build but sadly no automatic .NUnit test case generation. We
+      can also build axis clients against .Net and other servers, where we can
+      create JUnit stubs for ease of test generation. If such tests were part
+      of the main test suite, then suitably equipped systems could run our own
+      interop tests. These would be an extension of the SoapBuilders main
+      suite. Here we"d want to verify that fixes worked and continued to
+      work (e.g. the .NET1.0 empty array bugfix). We can also add stuff that
+      isn't in the SoapBuilders: Cookie Sessions, Http Header sessions,
+      is-date-in-the-right-TZ-at-the-far-end tests, and so on.</para>
+
+      <para>There are logistical/tactical and strategic arguments against
+      doing this. Logistical: even for the example of one client platform is
+      daunting; we don't want to expose a .NET server to the internet for
+      anyone to hit it, so the tests will only run on localhost when
+      localhost=windows, which excludes the Gump builds.</para>
+
+      <para>The strategic argument is that the combinatorial explosion of
+      local interop testing against multiple clients and servers is too big;
+      that is what the SoapBuilders are for. Either we focus on one or two key
+      platforms to interop test against -.net and MSSTK, or we raise the
+      problem back to SoapBuilders.</para>
+
+      <para>What would we want from SoapBuilders, to help our regression and
+      interop problems? I'd argue for extra tests, above and beyond the
+      formal "rounds", wherever someone has an interop issue. We
+      should be able to announce that we have a problem and the URL of a test
+      endpoint, and everyone can add it to the things we can test against.
+      Similarly, other platforms should not just fix things, they should
+      provide means for outsiders to test the system.</para>
+
+      <para>Glen Daniels has proposed a pattern-matching server that waits for
+      expected wire traces, and generates preprogrammed responses, simulating
+      part of the behaviour of a foreign server. This has the advantage of
+      being standalone, but with the disadvantage of not being as thorough as
+      a live test. You also have the challenge of keeping the datasets up to
+      date.</para>
+    </sect2>
+
+    <sect2>
+      <title>Wiretrace logging in the test case results</title>
+
+      <para>This is just an extra little feature for diagnosis: can we record
+      the wire traces of sent and received messages, and whenever we get a
+      test failure, save the results to the JUnit log for an easier
+      post-mortem. Just a thought :)</para>
+
+      <para></para>
+    </sect2>
+
+    <sect2>
+      <title>Ease of learning, installation, use</title>
+
+      <para>We are an open source project where anyone can download the
+      source, build it and run the tests. Therefore the test framework must be
+      easy to run, easy to work with, and easy to maintain by people other
+      than the original authors. We also want to keep effort minimised by
+      re-using as much as possible of other OSS projects.</para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Options</title>
+
+    <para>Here are some of the things we can do</para>
+
+    <sect2>
+      <title>Nothing</title>
+
+      <para>Leave things as they are. Maybe move to Ant1.6 alpha builds to get
+      better memory management, the faster build.xml parser and the refactored
+      .NET tasks, or just up to 1.5.3/1.5.4 to get the memory leak fix.</para>
+
+      <para>Costs: nothing at first; a gradual increase in longer term costs.</para>
+
+    </sect2>
+
+    <sect2>
+      <title>Improve build.xml reuse</title>
+
+      <para>We don't necessarily need a separate build file in every test
+      package. Instead we can have a properties file in there that sets well
+      known properties</para>
+
+      <programlisting>package=test/example
+conditions=httpunit.present
+online=false
+needsserver=true
+functional=true</programlisting>
+
+      <para>This can be read in by something (ant or custom java) and used to
+      control the build. Reading it into pure ant (i.e. without writing our
+      own task) would be tricky as condition expressions are tricky. An XML
+      description might be better, and could be XSLT'd into the build
+      files.</para>
+
+    </sect2>
+
+    <sect2>
+      <title>Caching WSDL Generation</title>
+
+      <para>This is a trick we can do with any of these.</para>
+
+      <para>Write a new &lt;axis-importwsdl&gt; task that implements
+      dependency awareness around the inner generation process. We could go
+      one step further and integrate dependency logic into the generation
+      process, but as that is more fundamental, I am a bit leery of that.
+      </para>
+
+      <orderedlist>
+        <listitem>
+          <para>caches the results of the fetch.</para>
+        </listitem>
+
+        <listitem>
+          <para>uses the if-modified-since tag to conditionally retrieve
+          content</para>
+        </listitem>
+
+        <listitem>
+          <para>even if content is returned, compares it byte-for-byte against
+          the cached copy</para>
+        </listitem>
+
+        <listitem>
+          <para>only imports the wsdl if the wsdl file is newer than a
+          timestamp marker file in the generated dir (and a force option is
+          false)</para>
+        </listitem>
+
+        <listitem>
+          <para>if the server is unreachable, but the cached copy is present,
+          don't fail the build, just set a property saying the server isn't
+          there and continue with the WSDL generation.</para>
+        </listitem>
+
+        <listitem>
+          <para>if the server is unreachable and the cached copy isn't there,
+          only fail the build if some attribute is set, otherwise a
+          wsdlnotpresent property is set</para>
+
+          <para>We could do this over a fairly convoluted set of ant 1.6
+          tasks, but only if the httptasks in the Ant sandbox were pulled in for
+          more graceful handling of missing servers. Pulling it in to one Axis
+          task gives us more control, ant1.5 support and wouldn't be that
+          hard to implement.</para>
+        </listitem>
+      </orderedlist>
+    </sect2>
+
+    <sect2>
+      <title>Write our own test harness</title>
+
+      <para>This deserves a mention: could we do our own complete test
+      harness? Why? is the reponse. What would that add?</para>
+
+      <para>In theory, having our own hosting app would let us run tests
+      differently from core JUnit, doing more SOAP related things like post
+      XML and expect responses.</para>
+
+    </sect2>
+
+    <sect2>
+      <title>Return to being JUnit-centric</title>
+
+      <para>The advantage of an ant-centric test system is that we can use Ant
+      to build stuff during testing. The disadvantage is in complexity and
+      time in running the tests. Is there a better compromise? Maybe. </para>
+
+      <para>It is possible to run Ant from inside JUnit. This is how Ant runs
+      its many self tests; by invoking Ant from JUnit itself. If we
+      put JUnit in charge, then those tests that do need a complex Ant-based
+      test system can call Ant to aid it, the rest run straight from JUnit.</para>
+
+      <para>We may be able to take advantage of this by categorising tests
+      into various patterns that we can build and run differently.</para>
+
+
+      <orderedlist>
+        <listitem>
+          <para>Pure unit tests that compile and run without needing any
+          server at all</para>
+        </listitem>
+
+        <listitem>
+          <para>WSDL-importing tests that need to import WSDL and generate
+          code before the tests run</para>
+        </listitem>
+
+        <listitem>
+          <para>Local functional tests that run against an instance of the
+          Axis running on a servlet engine</para>
+        </listitem>
+
+        <listitem>
+          <para>Local functional tests that only run on a full J2EE app server</para>
+        </listitem>
+
+        <listitem>
+          <para>Remote interop tests</para>
+        </listitem>
+      </orderedlist>
+
+      <para>Clearly this stuff is not 100% exclusive: a lot of the local
+      functional tests generate WSDL first, as do all the interop tests. And
+      there are other flags which will include/exclude test items: the
+      presence/absence of needed libraries, such as attachment support, and an
+      online/offline flag to distinguish tests that need a full internet
+      connection, from those that don't. All the interop tests are online, but
+      so are a few of the others.</para>
+
+      <para>In a JUnit-centric world, first the local unit tests would get
+      built and run, all in in a couple of big &lt;javac&gt; and
+      &lt;junit&gt; task. Then the WSDL import process can take place, using
+      something like the new dependency-aware wsdl import task proposed
+      earlier. </para>
+    </sect2>
+  </sect1>
+</article>
