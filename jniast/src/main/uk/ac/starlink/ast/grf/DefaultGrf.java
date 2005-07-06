@@ -262,7 +262,7 @@ public class DefaultGrf
     /**
      * Remove and return all graphics in a given context. Returns the complete
      * context, if found, otherwise a null is returned. The returned context
-     * maybe reestablished using the {@link reAdd} method (although the
+     * maybe reestablished using the {@link #reAdd} method (although the
      * Z-order will now be different).
      */
     public Object remove( String key )
@@ -278,7 +278,7 @@ public class DefaultGrf
 
     /**
      * Re-add a removed context. The context must have been returned by the
-     * {@link remove} method.
+     * {@link #remove} method.
      */
     public void reAdd( String key, Object context )
     {
