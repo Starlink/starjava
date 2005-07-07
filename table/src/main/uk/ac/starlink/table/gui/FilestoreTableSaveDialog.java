@@ -84,6 +84,7 @@ class FilestoreTableSaveDialog implements TableSaveDialog {
 
         popup.pack();
         popup.setLocationRelativeTo( parent );
+        chooser_.refreshList();
         chooser_.setEnabled( true );
         popup_ = popup;
         popup_.show();

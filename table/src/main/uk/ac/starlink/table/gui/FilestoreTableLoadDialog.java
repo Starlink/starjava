@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import javax.swing.BorderFactory;
@@ -89,6 +90,13 @@ public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
             formatSelector_.setEnabled( enabled );
         }
         super.setEnabled( enabled );
+    }
+
+    public boolean showLoadDialog( Component parent, StarTableFactory factory,
+                                   ComboBoxModel formatModel,
+                                   TableConsumer consumer ) {
+        chooser_.refreshList();
+        return super.showLoadDialog( parent, factory, formatModel, consumer );
     }
 
 }
