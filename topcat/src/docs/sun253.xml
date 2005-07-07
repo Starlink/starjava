@@ -6600,6 +6600,16 @@ introduced since the last version:
 
 </dl></p></dd>
 
+<dt>Version 1.6-1 (7 July 2005)</dt>
+<dd><p>Bugfixes:
+<ul>
+<li>Work around AstroGrid/Sun bug which prevented loading short VOTables 
+    from MySpace.</li>
+<li>Ensure that filestore browsers are kept up to date when dialogues are
+    displayed.</li>
+</ul>
+</p></dd>
+
 </dl>
 </p>
 
