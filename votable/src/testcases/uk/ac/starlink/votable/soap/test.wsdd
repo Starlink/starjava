@@ -6,6 +6,11 @@
   <handler name="loghandler"
            type="java:org.apache.axis.handlers.LogHandler"/>
 
+  <!-- Without this, there seems to be trouble at Axis 1.2. -->
+  <globalConfiguration>
+    <parameter name="sendMultiRefs" value="false"/>
+  </globalConfiguration>
+
   <service name="VotableTest" provider="java:RPC" streaming="on">
 
     <!-- <requestFlow><handler type="loghandler"/></requestFlow>   -->
