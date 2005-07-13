@@ -777,7 +777,7 @@ public class ASTJ
                 for ( i = 1; i < axis; i++ ) {
                     iaxes[ i - 1 ] = i;
                 }
-                Frame part1 = astRef.pickAxes( i, iaxes, null );
+                Frame part1 = astRef.pickAxes( i - 1, iaxes, null );
                 newFrame = new CmpFrame( part1, result );
                 if ( axis < nax ) {
                     // Not at top, more needed to get to end.
