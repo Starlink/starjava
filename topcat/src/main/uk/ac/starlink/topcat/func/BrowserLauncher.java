@@ -1,4 +1,10 @@
-package edu.stanford.ejalbert;
+// package edu.stanford.ejalbert;
+//
+// This class taken from http://browserlauncher.sourceforge.net/
+// and renamed with a couple of tweaks for convenience.  
+// Original version is BrowserLauncher 1.4b1.
+
+package uk.ac.starlink.topcat.func;
 
 import java.io.File;
 import java.io.FileNotFoundException;
