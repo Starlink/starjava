@@ -83,6 +83,7 @@ C_ROUTINES = \
    AstObject.c \
    Box.c \
    Channel.c \
+   Circle.c \
    CmpFrame.c \
    CmpMap.c \
    DSBSpecFrame.c \

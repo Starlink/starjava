@@ -43,6 +43,7 @@ typedef union {
    jlong jlong;              /* Java value as in 'private long pointer' */
    AstBox *Box;              /* Pointer to C Box struct */
    AstChannel *Channel;      /* Pointer to C AstChannel struct */
+   AstCircle *Circle;        /* Pointer to C AstCircle struct */
    AstCmpFrame *CmpFrame;    /* Pointer to C AstCmpFrame struct */
    AstCmpMap *CmpMap;        /* Pointer to C AstCmpMap struct */
    AstDSBSpecFrame *DSBSpecFrame; /* Pointer to C AstDSBSpecFrame struct */
