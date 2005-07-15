@@ -205,9 +205,9 @@ public class BrowserLauncher {
      */
     static {
         loadedWithoutErrors = true;
-        String osName = System.getProperty("os.name");
+        String osName = java.lang.System.getProperty("os.name");
         if (osName.startsWith("Mac OS")) {
-            String mrjVersion = System.getProperty("mrj.version");
+            String mrjVersion = java.lang.System.getProperty("mrj.version");
             String majorMRJVersion = mrjVersion.substring(0, 3);
             try {
                 double version = Double.valueOf(majorMRJVersion).doubleValue();
