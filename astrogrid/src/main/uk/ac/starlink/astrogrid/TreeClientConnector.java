@@ -27,9 +27,6 @@ import uk.ac.starlink.util.Loader;
  */
 public class TreeClientConnector implements Connector {
 
-    /** Name of system property containing default user id. */
-    public static final String USER_PROPERTY = "user.name";
-
     /** Name of system property containing default community id. */
     public static final String COMMUNITY_PROPERTY =
         "org.astrogrid.community.ident";
@@ -59,7 +56,6 @@ public class TreeClientConnector implements Connector {
         REGISTRY_KEY.setRequired( true );
         try {
             Loader.loadProperties();
-            USER_KEY.setDefault( System.getProperty( USER_PROPERTY ) );
             COMMUNITY_KEY.setDefault( System
                                      .getProperty( COMMUNITY_PROPERTY ) );
             REGISTRY_KEY.setDefault( System
