@@ -71,7 +71,7 @@ public class AstObject {
     }
 
     /** Bad coordinate value. */
-    public static double AST__BAD = getAstConstantD( "AST__BAD" );
+    public static final double AST__BAD = getAstConstantD( "AST__BAD" );
 
     /**
      * Dummy constructor.  This constructor does not create a valid
