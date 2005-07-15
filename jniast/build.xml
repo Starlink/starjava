@@ -474,6 +474,10 @@
       <param name="pj.cfile" value="dsbspecframe.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="Ellipse"/>
+      <param name="pj.cfile" value="ellipse.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="FitsChan"/>
       <param name="pj.cfile" value="fitschan.c"/>
     </antcall>
@@ -795,6 +799,7 @@
       <class name="${package.name}.CmpMap"/>
       <class name="${package.name}.CmpRegion"/>
       <class name="${package.name}.DSBSpecFrame"/>
+      <class name="${package.name}.Ellipse"/>
       <class name="${package.name}.FitsChan"/>
       <class name="${package.name}.FluxFrame"/>
       <class name="${package.name}.Frame"/>

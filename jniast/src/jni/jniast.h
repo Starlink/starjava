@@ -48,6 +48,7 @@ typedef union {
    AstCmpMap *CmpMap;        /* Pointer to C AstCmpMap struct */
    AstCmpRegion *CmpRegion;  /* Pointer to C AstCmpRegion struct */
    AstDSBSpecFrame *DSBSpecFrame; /* Pointer to C AstDSBSpecFrame struct */
+   AstEllipse *Ellipse;      /* Pointer to C AstEllipse struct */
    AstFitsChan *FitsChan;    /* Pointer to C AstFitsChan struct */
    AstFluxFrame *FluxFrame;  /* Pointer to C FluxFrame struct */
    AstFrame *Frame;          /* Pointer to C AstFrame struct */
