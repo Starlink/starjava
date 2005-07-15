@@ -125,6 +125,10 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
       else TRY_CONST( AST__OBJECTTYPE )
       else TRY_CONST( AST__BADTYPE )
 
+      /* Combination types used in CmpRegion (and elsewhere?). */
+      else TRY_CONST( AST__AND )
+      else TRY_CONST( AST__OR )
+
       /* GRF attribute types. */
       else TRY_CONST( GRF__STYLE )
       else TRY_CONST( GRF__WIDTH )

@@ -86,6 +86,7 @@ C_ROUTINES = \
    Circle.c \
    CmpFrame.c \
    CmpMap.c \
+   CmpRegion.c \
    DSBSpecFrame.c \
    FitsChan.c \
    FluxFrame.c \

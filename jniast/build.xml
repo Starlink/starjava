@@ -466,6 +466,10 @@
       <param name="pj.cfile" value="cmpmap.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="CmpRegion"/>
+      <param name="pj.cfile" value="cmpregion.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="DSBSpecFrame"/>
       <param name="pj.cfile" value="dsbspecframe.c"/>
     </antcall>
@@ -789,6 +793,7 @@
       <class name="${package.name}.Circle"/>
       <class name="${package.name}.CmpFrame"/>
       <class name="${package.name}.CmpMap"/>
+      <class name="${package.name}.CmpRegion"/>
       <class name="${package.name}.DSBSpecFrame"/>
       <class name="${package.name}.FitsChan"/>
       <class name="${package.name}.FluxFrame"/>
