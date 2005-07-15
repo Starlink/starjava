@@ -304,11 +304,13 @@ public class ActivationQueryWindow extends QueryWindow {
         final String NETSCAPE = "netscape";
         final String FIREFOX = "firefox";
         final String BASIC_BROWSER = "basic browser";
+        final String SYSTEM_BROWSER = "system browser";
 
         BrowserActivatorFactory() {
             super( "Web Page" );
             browserChooser_ = new JComboBox();
             browserChooser_.addItem( BASIC_BROWSER );
+            browserChooser_.addItem( SYSTEM_BROWSER );
             browserChooser_.addItem( MOZILLA );
             browserChooser_.addItem( NETSCAPE );
             browserChooser_.addItem( FIREFOX );
@@ -327,11 +329,20 @@ public class ActivationQueryWindow extends QueryWindow {
         Activator makeActivator( TableColumn tcol ) {
             Object browser = browserChooser_.getSelectedItem();
             if ( BASIC_BROWSER.equals( browser ) ) {
-                return new ColumnActivator( "displayUrl", tcol ) {
+                return new ColumnActivator( "basicBrowser", tcol ) {
                     String activateValue( Object val ) {
                         return val == null 
                              ? null
-                             : Browsers.displayUrl( val.toString() );
+                             : Browsers.basicBrowser( val.toString() );
+                    }
+                };
+            }
+            else if ( SYSTEM_BROWSER.equals( browser ) ) {
+                return new ColumnActivator( "systemBrowser", tcol ) {
+                    String activateValue( Object val ) {
+                        return val == null
+                             ? null
+                             : Browsers.systemBrowser( val.toString() );
                     }
                 };
             }

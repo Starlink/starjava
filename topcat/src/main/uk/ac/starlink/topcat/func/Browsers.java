@@ -37,7 +37,7 @@ public class Browsers {
      * @param  url  location of the document to display
      * @return  short log message
      */
-    public static String displayUrl( String url ) {
+    public static String basicBrowser( String url ) {
         if ( url == null || url.trim().length() == 0 ) {
             return null;
         }
@@ -61,6 +61,28 @@ public class Browsers {
         }
         try {
             getHtmlWindow().setURL( url1 );
+            return url;
+        }
+        catch ( IOException e ) {
+            String msg = e.getMessage();
+            if ( e == null ) {
+                msg = e.toString();
+            }
+            return msg + ": " + url;
+        }
+    }
+
+    /**
+     * Attempts to display a URL in the system's default web browser.
+     * Exactly what couts as the default web browser is system dependent,
+     * as is whether this function will work properly.
+     *
+     * @param  url  location of the document to display
+     * @return  short log message
+     */
+    public static String systemBrowser( String url ) {
+        try {
+            BrowserLauncher.openURL( url );
             return url;
         }
         catch ( IOException e ) {
