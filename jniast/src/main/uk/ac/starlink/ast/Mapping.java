@@ -812,6 +812,11 @@ public class Mapping extends AstObject {
      * (i.e. the number of dimensions of the space in which the
      * input points reside).
      * 
+     * @param   in
+     * An <code>ncoord_in</code>-element array of 
+     *             <code>npoint</code>-element arrays.  These give the 
+     *             coordinates of the transformed points.
+     *          
      * @param   forward
      * A non-zero value indicates that the Mapping's forward
      * coordinate transformation is to be applied, while a zero
@@ -825,9 +830,9 @@ public class Mapping extends AstObject {
      * as "ncoord_in".
      * 
      * @return  
-     *          an array of <code>ncoord_out</code> arrays,
-     *          each containing <code>npoint</code> elements.
-     *          These give the coordinates of the transformed points.
+     *          an <code>ncoord_out</code>-element array of 
+     *          <code>npoint</code>-element arrays.
+     *          These give the coordinates of the points to transform. 
      *       
      * @throws  AstException  if an error occurred in the AST library
      */

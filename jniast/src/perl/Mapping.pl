@@ -595,9 +595,9 @@ makeNativeMethod(
    return => {
       type => 'double[][]',
       descrip => q{
-         an array of <code>ncoord_out</code> arrays,
-         each containing <code>npoint</code> elements.
-         These give the coordinates of the transformed points.
+         an <code>ncoord_out</code>-element array of 
+         <code>npoint</code>-element arrays.
+         These give the coordinates of the points to transform. 
       },
    },
    params => [
@@ -614,7 +614,11 @@ makeNativeMethod(
       {
          name => ( $aName = "in" ),
          type => 'double[][]',
-         descrip => ArgDescrip( $fName, $aName ),
+         descrip => q{
+            An <code>ncoord_in</code>-element array of 
+            <code>npoint</code>-element arrays.  These give the 
+            coordinates of the transformed points.
+         },
       },
       {
          name => ( $aName = "forward" ),
