@@ -56,7 +56,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Circle_construct(
             jniastThrowIllegalArgumentException( env, "Unknown form %d", form );
             return;
       }
-      int psize = 0;
+      psize = 0;
       if ( jniastCheckArrayLength( env, jCentre, naxes ) &&
            jniastCheckArrayLength( env, jPoint, psize ) ) {
          centre = (*env)->GetDoubleArrayElements( env, jCentre, NULL );
