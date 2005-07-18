@@ -151,7 +151,7 @@ XxxMap, is added to AST.
 
    7. Add an entry for AstXxxMap in jniast/src/jni/jniast.h.
 
-   8. Write a new file jinast/src/jni/XxxMap.c.  Crib from an existing
+   8. Write a new file jniast/src/jni/XxxMap.c.  Crib from an existing
       C file in src/jni/.  And read the JNI specification first.
       #include "uk_ac_starlink_ast_XxxMap.h" and make sure you 
       include functions matching each prototype in it.
