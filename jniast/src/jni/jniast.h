@@ -55,6 +55,7 @@ typedef union {
    AstFrameSet *FrameSet;    /* Pointer to C AstFrameSet struct */
    AstGrismMap *GrismMap;    /* Pointer to C AstGrismMap struct */
    AstIntraMap *IntraMap;    /* Pointer to C AstIntraMap struct */
+   AstInterval *Interval;    /* Pointer to C AstInterval struct */
    AstKeyMap *KeyMap;        /* Pointer to C AstKeyMap struct */
    AstLutMap *LutMap;        /* Pointer to C AstLutMap struct */
    AstMapping *Mapping;      /* Pointer to C AstMapping struct */
@@ -67,7 +68,7 @@ typedef union {
    AstPolyMap *PolyMap;      /* Pointer to C AstPolyMap struct */
    AstRateMap *RateMap;      /* Pointer to C AstRateMap struct */
    AstRegion *Region;        /* Pointer to C AstRegion struct */
-   AstShiftMap *ShiftMap;    /* Pointer to C AstGrismMap struct */
+   AstShiftMap *ShiftMap;    /* Pointer to C AstShiftMap struct */
    AstSkyFrame *SkyFrame;    /* Pointer to C AstSkyFrame struct */
    AstSlaMap *SlaMap;        /* Pointer to C AstSlaMap struct */
    AstSpecFluxFrame *SpecFluxFrame; /* Pointer to C AstSpecFluxFrame struct */

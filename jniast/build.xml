@@ -498,6 +498,10 @@
       <param name="pj.cfile" value="grismmap.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="Interval"/>
+      <param name="pj.cfile" value="interval.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="KeyMap"/>
       <param name="pj.cfile" value="keymap.c"/>
     </antcall>
@@ -805,6 +809,7 @@
       <class name="${package.name}.Frame"/>
       <class name="${package.name}.FrameSet"/>
       <class name="${package.name}.GrismMap"/>
+      <class name="${package.name}.Interval"/>
       <class name="${package.name}.IntraMap"/>
       <class name="${package.name}.KeyMap"/>
       <class name="${package.name}.LutMap"/>
