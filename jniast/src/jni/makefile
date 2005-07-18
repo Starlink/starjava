@@ -101,6 +101,7 @@ C_ROUTINES = \
    Mapping.c \
    MathMap.c \
    MatrixMap.c \
+   NullRegion.c \
    PcdMap.c \
    PermMap.c \
    Plot.c \

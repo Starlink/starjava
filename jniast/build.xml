@@ -522,6 +522,10 @@
       <param name="pj.cfile" value="matrixmap.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="NullRegion"/>
+      <param name="pj.cfile" value="nullregion.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="PcdMap"/>
       <param name="pj.cfile" value="pcdmap.c"/>
     </antcall>
@@ -816,6 +820,7 @@
       <class name="${package.name}.Mapping"/>
       <class name="${package.name}.MathMap"/>
       <class name="${package.name}.MatrixMap"/>
+      <class name="${package.name}.NullRegion"/>
       <class name="${package.name}.PcdMap"/>
       <class name="${package.name}.PermMap"/>
       <class name="${package.name}.Plot"/>

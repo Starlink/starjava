@@ -61,6 +61,7 @@ typedef union {
    AstMapping *Mapping;      /* Pointer to C AstMapping struct */
    AstMathMap *MathMap;      /* Pointer to C AstMathMap struct */
    AstMatrixMap *MatrixMap;  /* Pointer to C AstMatrixMap struct */
+   AstNullRegion *NullRegion;/* Pointer to C AstNullRegion struct */
    AstObject *AstObject;     /* Pointer to C AstObject struct */
    AstPcdMap *PcdMap;        /* Pointer to C AstPcdMap struct */
    AstPermMap *PermMap;      /* Pointer to C AstPermMap struct */
