@@ -550,6 +550,10 @@
       <param name="pj.cfile" value="pointlist.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="Prism"/>
+      <param name="pj.cfile" value="prism.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="RateMap"/>
       <param name="pj.cfile" value="ratemap.c"/>
     </antcall>
@@ -835,6 +839,7 @@
       <class name="${package.name}.Polygon"/>
       <class name="${package.name}.PolyMap"/>
       <class name="${package.name}.PointList"/>
+      <class name="${package.name}.Prism"/>
       <class name="${package.name}.RateMap"/>
       <class name="${package.name}.Region"/>
       <class name="${package.name}.ShiftMap"/>

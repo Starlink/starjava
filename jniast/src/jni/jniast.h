@@ -69,6 +69,7 @@ typedef union {
    AstPolygon *Polygon;      /* Pointer to C AstPolygon struct */
    AstPolyMap *PolyMap;      /* Pointer to C AstPolyMap struct */
    AstPointList *PointList;  /* Pointer to C AstPointList struct */
+   AstPrism *Prism;          /* Pointer to C AstPrism struct */
    AstRateMap *RateMap;      /* Pointer to C AstRateMap struct */
    AstRegion *Region;        /* Pointer to C AstRegion struct */
    AstShiftMap *ShiftMap;    /* Pointer to C AstShiftMap struct */

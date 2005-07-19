@@ -108,6 +108,7 @@ C_ROUTINES = \
    PointList.c \
    Polygon.c \
    PolyMap.c \
+   Prism.c \
    RateMap.c \
    Region.c \
    SkyFrame.c \
