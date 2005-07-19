@@ -44,6 +44,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.EventListenerList;
 
 import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.Plot;
@@ -415,7 +416,7 @@ public class DivaPlot
     }
 
     /**
-     * Get whether or not the MouseMotionTracker is reporting the current 
+     * Get whether or not the MouseMotionTracker is reporting the current
      * graphics position, or the nearest position of the current spectrum.
      */
     public boolean isTrackFreely()
@@ -929,7 +930,7 @@ public class DivaPlot
         //  under that circumstance we do not draw the more expensive spectra,
         //  unless the graphics are clipped, in which case we have no choice.
         //  When clipped we avoid drawing the graphics overlay, unless the
-        //  plot has been scaled (not doing so causes a dr-draw runaway as the
+        //  plot has been scaled (not doing so causes a re-draw runaway as the
         //  figure seems to be permanently dirty).
         try {
             if ( xyScaled || visibleOnly ) {
@@ -951,6 +952,11 @@ public class DivaPlot
                     }
                 }
 
+                //  Get the AST FrameSet to use and check if this contains a
+                //  DSBSpecFrame, we handle those differently.
+                FrameSet astref = astJ.getRef();
+                boolean isDSB = astJ.isFirstAxisDSBSpecFrame();
+
                 //  Create a Plot for the graphics, this is matched to the
                 //  component size or it's visible area and is how we get an
                 //  apparent rescale of drawing. So that we get linear axis 1
@@ -958,13 +964,14 @@ public class DivaPlot
                 //  frame (so that the mapping from graphics to physical is
                 //  linear). We also add any AST plotting configuration
                 //  options.
-                FrameSet astref = astJ.getRef();
                 int current = astref.getCurrent();
                 int base = astref.getBase();
                 astref.setBase( current );
+                String options = isDSB ? plotConfig.getAst( true ) : 
+                                         plotConfig.getAst();
                 createPlot( astref, graphicsEdges.getXLeft(),
                             graphicsEdges.getXRight(), graphicsEdges.getYTop(),
-                            graphicsEdges.getYBottom(), plotConfig.getAst() );
+                            graphicsEdges.getYBottom(), options );
                 astref.setBase( base );
 
                 //  The Plot must use our Grf implementation.
@@ -999,6 +1006,44 @@ public class DivaPlot
                 mainGrf.establishContext( "GRID" );
                 mainPlot.grid();
 
+                //  If DSBSpecFrame, want to also draw the other side band
+                //  coordinates along the unused X axis (usually top).
+                if ( isDSB ) {
+
+                    //  Create a new mainPlot that uses the world coordinates
+                    //  of the other band. Note we get the second pass Plot
+                    //  configuration from the plotConfig (the grid drawn
+                    //  already should have been drawn using the first pass
+                    //  state).
+                    Plot mainMainPlot = mainPlot;
+                    String sideband = astref.getC( "SideBand" );
+                    setSideBandBaseBox( astref, sideband );
+                    astref.setBase( current );
+                    createPlot( astref, graphicsEdges.getXLeft(),
+                                graphicsEdges.getXRight(), 
+                                graphicsEdges.getYTop(),
+                                graphicsEdges.getYBottom(),
+                                plotConfig.getAst( false ) );
+                    astref.setBase( base );
+                    unsetSideBandBaseBox();
+
+                    //  Switch the sideband and draw the grid.
+                    if ( "USB".equals( sideband ) ) {
+                        astref.setC( "SideBand", "LSB" );
+                    }
+                    else {
+                        astref.setC( "SideBand", "USB" );
+                    }
+
+                    //  This Plot shares the mainGrf with the real mainPlot.
+                    mainPlot.setGrf( mainGrf );
+                    mainPlot.grid();
+
+                    //  Restore the original mainPlot and continue.
+                    mainPlot = mainMainPlot;
+                    astref.setC( "SideBand", sideband );
+                }
+                    
                 //  Draw the spectra, if required.
                 if ( xyScaled ) {
                     mainGrf.establishContext( "SPECTRA" );
@@ -1056,6 +1101,69 @@ public class DivaPlot
             }
         }
         return ok;
+    }
+
+
+    /** Variable to save existing baseBox values when switching side bands */
+    private double[] sbandBaseBox = new double[4];
+    private double[] sbandVisibleBaseBox = new double[4];
+
+    /**
+     * Transform the existing baseBox to the coordinates of the other band
+     * when using a DSBSpecFrame.
+     */
+    private void setSideBandBaseBox( FrameSet astref, String sideband )
+    {
+        //  Save existing baseBoxes.
+        double[] tmp = sbandBaseBox;
+        sbandBaseBox = baseBox;
+        baseBox = tmp;
+
+        tmp = sbandVisibleBaseBox;
+        sbandVisibleBaseBox = visibleBaseBox;
+        visibleBaseBox = tmp;
+
+        //  Extract the Frame containing the DSBSpecFrame and make a
+        //  copy. Then switch copy to other sideband, and get the mapping
+        //  between them.
+        Frame f1 = astref.getFrame( FrameSet.AST__CURRENT );
+        Frame f2 = (Frame) f1.copy();
+        if ( "USB".equals( sideband ) ) {
+            f2.setC( "SideBand", "LSB" );
+        }
+        else {
+            f2.setC( "SideBand", "USB" );
+        }
+        Mapping map = f1.convert( f2, "" );
+
+        //  Transform existing baseBox values into new sideband.
+        double[] xin = new double[2];
+        double[] yin = new double[2];
+        xin[0] = sbandBaseBox[0];
+        xin[1] = sbandBaseBox[2];
+        yin[0] = sbandBaseBox[1];
+        yin[1] = sbandBaseBox[3];
+        
+        double[][] trn = map.tran2( 2, xin, yin, true );
+        
+        baseBox[0] = trn[0][0];
+        baseBox[1] = sbandBaseBox[1];
+        baseBox[2] = trn[0][1];
+        baseBox[3] = sbandBaseBox[3];
+    }
+
+    /**
+     * Restore saved baseBoxes from the last call to setSideBandBaseBox.
+     */
+    private void unsetSideBandBaseBox()
+    {
+        double[] tmp = baseBox;
+        baseBox = sbandBaseBox;
+        sbandBaseBox = tmp;
+
+        tmp = visibleBaseBox;
+        visibleBaseBox = sbandVisibleBaseBox;
+        sbandVisibleBaseBox = tmp;
     }
 
     /**
@@ -1404,8 +1512,8 @@ public class DivaPlot
         double[] gtmp = new double[2];
         gtmp[0] = x;
         gtmp[1] = y;
-        double[][] ptmp = transform( gtmp, true ); 
-        
+        double[][] ptmp = transform( gtmp, true );
+
         //  Format.
         String result[] = new String[2];
         result[0] = mainPlot.format( 1, ptmp[0][0] );
