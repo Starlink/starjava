@@ -19,6 +19,7 @@ import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.CmpFrame;
 import uk.ac.starlink.ast.CmpMap;
+import uk.ac.starlink.ast.DSBSpecFrame;
 import uk.ac.starlink.ast.FluxFrame;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
@@ -66,9 +67,9 @@ public class ASTJ
     }
 
     //
-    //  =============
-    //  Static method
-    //  =============
+    //  ================
+    //  Static variables
+    //  ================
     //
 
     /**
@@ -97,6 +98,18 @@ public class ASTJ
      */
     protected static final double EPSILON = 2.2204460492503131e-16;
 
+    /**
+     * Whether the first axis of the current FrameSet is a SpecFrame.
+     */
+    protected boolean isSpecFrameSet = false;
+    protected boolean isSpecFrame = false;
+
+    /**
+     * Whether the first axis of the current FrameSet is a DSBSpecFrame.
+     */
+    protected boolean isDSBSpecFrameSet = false;
+    protected boolean isDSBSpecFrame = false;
+
 
     //  ====================
     //  Class public methods
@@ -110,6 +123,8 @@ public class ASTJ
     public void setRef( FrameSet astRef )
     {
         this.astRef = astRef;
+        isSpecFrameSet = false;
+        isDSBSpecFrameSet = false;
     }
 
     /**
@@ -119,6 +134,50 @@ public class ASTJ
     {
         return astRef;
     }
+
+    /**
+     * Return if the an axis of the current FrameSet is of a given Class.
+     */
+    public boolean isAxisClass( int axis, Class clazz )
+    {
+        int iaxes[] = new int[1];
+        iaxes[0] = axis;
+        Frame picked = astRef.pickAxes( 1, iaxes, null );
+        return clazz.isInstance( picked );
+    }
+
+    /**
+     * Return if the first axis of the current FrameSet is a SpecFrame.
+     * Cached request, so should be very fast after first call.
+     */
+    public boolean isFirstAxisSpecFrame()
+    {
+        if ( ! isSpecFrameSet ) {
+            int iaxes[] = new int[1];
+            iaxes[0] = 1;
+            Frame picked = astRef.pickAxes( 1, iaxes, null );
+            isSpecFrame =  (picked instanceof SpecFrame);
+            isSpecFrameSet = true;
+        }
+        return isSpecFrame;
+    }
+
+    /**
+     * Return if the first axis of the current FrameSet is a DSBSpecFrame.
+     * Cached request, so should be very fast after first call.
+     */
+    public boolean isFirstAxisDSBSpecFrame()
+    {
+        if ( ! isDSBSpecFrameSet ) {
+            int iaxes[] = new int[1];
+            iaxes[0] = 1;
+            Frame picked = astRef.pickAxes( 1, iaxes, null );
+            isDSBSpecFrame =  (picked instanceof DSBSpecFrame);
+            isDSBSpecFrameSet = true;
+        }
+        return isDSBSpecFrame;
+    }
+
 
     /**
      *  Create an AST frame and return a reference to it.
