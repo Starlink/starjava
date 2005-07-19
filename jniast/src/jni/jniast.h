@@ -66,6 +66,7 @@ typedef union {
    AstPcdMap *PcdMap;        /* Pointer to C AstPcdMap struct */
    AstPermMap *PermMap;      /* Pointer to C AstPermMap struct */
    AstPlot *Plot;            /* Pointer to C AstPlot struct */
+   AstPolygon *Polygon;      /* Pointer to C AstPolygon struct */
    AstPolyMap *PolyMap;      /* Pointer to C AstPolyMap struct */
    AstPointList *PointList;  /* Pointer to C AstPointList struct */
    AstRateMap *RateMap;      /* Pointer to C AstRateMap struct */

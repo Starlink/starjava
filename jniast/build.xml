@@ -538,6 +538,10 @@
       <param name="pj.cfile" value="plot.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="Polygon"/>
+      <param name="pj.cfile" value="polygon.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="PolyMap"/>
       <param name="pj.cfile" value="polymap.c"/>
     </antcall>
@@ -828,6 +832,7 @@
       <class name="${package.name}.PcdMap"/>
       <class name="${package.name}.PermMap"/>
       <class name="${package.name}.Plot"/>
+      <class name="${package.name}.Polygon"/>
       <class name="${package.name}.PolyMap"/>
       <class name="${package.name}.PointList"/>
       <class name="${package.name}.RateMap"/>
