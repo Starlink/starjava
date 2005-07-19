@@ -105,6 +105,7 @@ C_ROUTINES = \
    PcdMap.c \
    PermMap.c \
    Plot.c \
+   PointList.c \
    PolyMap.c \
    RateMap.c \
    Region.c \
