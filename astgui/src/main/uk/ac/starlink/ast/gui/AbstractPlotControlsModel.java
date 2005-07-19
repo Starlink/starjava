@@ -53,6 +53,8 @@ public abstract class AbstractPlotControlsModel
 //
     protected EventListenerList listeners = new EventListenerList();
 
+    private static boolean listening = true;
+
     /**
      * Registers a listener who wants to be informed about changes.
      *
@@ -74,10 +76,11 @@ public abstract class AbstractPlotControlsModel
     }
 
     /**
-     * Send ChangeEvent event to all listeners.
+     * Send ChangeEvent event to all listeners, if listening.
      */
     protected void fireChanged()
     {
+        if ( ! AbstractPlotControlsModel.listening ) return;
         Object[] la = listeners.getListenerList();
         ChangeEvent e = null;
         for ( int i = la.length - 2; i >= 0; i -= 2 ) {
@@ -88,6 +91,23 @@ public abstract class AbstractPlotControlsModel
                 ((ChangeListener)la[i+1]).stateChanged( e );
             }
         }
+    }
+
+    /**
+     * Enable or disable the firing of all ChangeEvents in all instances of 
+     * subclasses. Used to stop temporary changes from being fired.
+     */
+    static void setListening( boolean listening )
+    {
+        AbstractPlotControlsModel.listening = listening;
+    }
+
+    /**
+     * Find out if ChangeEvents are being fired.
+     */
+    static boolean isListening()
+    {
+        return AbstractPlotControlsModel.listening;
     }
 
 //

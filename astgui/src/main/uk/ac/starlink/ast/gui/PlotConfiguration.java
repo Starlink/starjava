@@ -158,6 +158,68 @@ public class PlotConfiguration
     }
 
     /**
+     * Get the complete AST description (see {@link getAst} broken into two
+     * passes. The two passes are used so that a different set of coordinates
+     * can be drawn along the top and bottom axes, without interfering with
+     * each other.      
+     */
+    public String getAst( boolean passone )
+    {
+        // The main use of this is for drawing axes around DSBSpecFrames in
+        // SPLAT, but it's not inconceivable that this idea could be extended
+        // for more general use (with differing coordinate systems, not just
+        // an axis).
+        AbstractPlotControlsModel.setListening( false );
+
+        // In this mode we never tickAll so switch that off.
+        boolean tickAll = astTicks.getTickAll();
+        astTicks.setTickAll( false );
+
+        //  Gather state of things we might change.
+        boolean titleShown = astTitle.getShown();
+        boolean yAxisShown = astAxes.getYShown();
+        boolean yLabelShown = astAxisLabels.getYShown();
+        int xEdge = astAxisLabels.getXEdge();
+        boolean yNumbersShown = astNumberLabels.getYShown();
+
+        if ( passone ) {
+            // In this pass we don't draw the the labelling down the 
+            // second axis.
+            astAxes.setYShown( false );
+            astAxisLabels.setYShown( false );
+            astNumberLabels.setYShown( false );
+
+            //  The title is drawn, if the xEdge is BOTTOM, otherwise that
+            //  happens on the second pass.
+            if ( xEdge == AstAxisLabels.BOTTOM ) {
+                astTitle.setShown( false );
+            }
+        }
+        else {
+            //  Second pass. Switch the labelling from the top or bottom.
+            if ( xEdge == AstAxisLabels.TOP ) {
+                astTitle.setShown( false );
+                astAxisLabels.setXEdge( AstAxisLabels.BOTTOM );
+            }
+            else {
+                astAxisLabels.setXEdge( AstAxisLabels.TOP );
+            }
+        }
+        String options = getAst();
+
+        //  Put everything back.
+        astTicks.setTickAll( tickAll );
+        astTitle.setShown( titleShown );
+        astAxes.setYShown( yAxisShown );
+        astAxisLabels.setXEdge( xEdge );
+        astAxisLabels.setYShown( yLabelShown  );
+        astNumberLabels.setYShown( yNumbersShown );
+
+        AbstractPlotControlsModel.setListening( true );
+        return options;
+    }
+
+    /**
      * Add an AbstractPlotControlsModel to the list.
      */
     public void add( AbstractPlotControlsModel model )
