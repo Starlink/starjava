@@ -32,6 +32,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
@@ -98,6 +99,11 @@ public class PlotUnitsFrame
     private JComboBox coordinatesBox = null;
 
     /**
+     * Control for selecting the DSB sideband.
+     */
+    private JComboBox sideBandBox = null;
+
+    /**
      * Unknown units, could also be unrecognised.
      */
     private static final String UNKNOWN = "Unknown";
@@ -143,6 +149,17 @@ public class PlotUnitsFrame
         coordinateSystems.add( new Cdus( "Kilometres-per-sec (radio)", "km/s",
                                          "VRAD" ) );
         coordinateSystems.add( new Cdus( "Per-metre", "1/m", "WAVN" ) );
+    };
+
+    /**
+     * List of the possible sidebands for DSBSpecFrames. Only two.
+     */
+    private static Map sideBandMap = null;
+    static {
+        sideBandMap = new LinkedHashMap(); 
+        sideBandMap.put( UNKNOWN, UNKNOWN);
+        sideBandMap.put( "Lower", "LSB" );
+        sideBandMap.put( "Upper", "USB" );
     };
 
     /**
@@ -242,18 +259,27 @@ public class PlotUnitsFrame
     {
         JPanel panel = new JPanel();
         GridBagLayouter gbl = new GridBagLayouter( panel,
-                                                   GridBagLayouter.SCHEME3 );
+                                                   GridBagLayouter.SCHEME2 );
 
         coordinatesBox = new JComboBox( coordinateSystems );
         JLabel label = new JLabel( "Coordinates: " );
         gbl.add( label, false );
-        gbl.add( coordinatesBox, true );
+        gbl.add( coordinatesBox, false );
         coordinatesBox.setToolTipText( "Units of the spectral coordinates" );
+
+        sideBandBox = new JComboBox( sideBandMap.keySet().toArray() );
+        label = new JLabel( "SideBand: " );
+        gbl.add( label, false );
+        gbl.add( sideBandBox, false );
+        gbl.eatLine();
+        sideBandBox.setToolTipText
+            ( "Current sideband when display dual sideband data" );
 
         dataUnitsBox = new JComboBox( dataUnitsMap.keySet().toArray() );
         label = new JLabel( "Data units: " );
         gbl.add( label, false );
-        gbl.add( dataUnitsBox, true );
+        gbl.add( dataUnitsBox, false );
+        gbl.eatLine();
         dataUnitsBox.setToolTipText( "Units of the data values" );
 
         gbl.eatSpare();
@@ -269,7 +295,14 @@ public class PlotUnitsFrame
     protected void matchCurrentSpectrum()
     {
         SpecData spectrum = control.getCurrentSpectrum();
-        FrameSet frameSet = spectrum.getAst().getRef();
+        ASTJ astJ = spectrum.getAst();
+        FrameSet frameSet = astJ.getRef();
+        boolean isDSB = astJ.isFirstAxisDSBSpecFrame();
+        String sideband = UNKNOWN;
+        if ( isDSB ) {
+            sideband = frameSet.getC( "SideBand" );
+        }
+
         String coordUnits = frameSet.getC( "unit(1)" );
         String dataUnits = frameSet.getC( "unit(2)" );
 
@@ -297,6 +330,18 @@ public class PlotUnitsFrame
                 break;
             }
         }
+
+        entrySet = sideBandMap.entrySet();
+        i = entrySet.iterator();
+        sideBandBox.setSelectedIndex( 0 ); //  Unknown
+        while ( i.hasNext() ) {
+            entry = (Map.Entry) i.next();
+            if ( entry.getValue().equals( sideband ) ) {
+                sideBandBox.setSelectedItem( (String) entry.getKey() );
+                break;
+            }
+        }
+        sideBandBox.setEnabled( isDSB );
     }
 
     /**
@@ -312,6 +357,12 @@ public class PlotUnitsFrame
         String coordUnits = cdus.getUnits();
         String coordSystem = cdus.getSystem();
 
+        String sideBand = (String) sideBandBox.getSelectedItem();
+        sideBand = (String) sideBandMap.get( sideBand );
+        if ( ! sideBandBox.isEnabled() ) {
+            sideBand = UNKNOWN;
+        }
+
         if ( dataUnits.equals( UNKNOWN ) && 
              coordUnits.equals( UNKNOWN ) ) {
             new SplatException
@@ -322,7 +373,7 @@ public class PlotUnitsFrame
 
         //  And apply to current spectrum,
         SpecData spec = control.getCurrentSpectrum();
-        convertToUnits( spec, dataUnits, coordUnits, coordSystem );
+        convertToUnits( spec, dataUnits, coordUnits, coordSystem, sideBand );
     }
 
     /**
@@ -331,7 +382,8 @@ public class PlotUnitsFrame
      * values.
      */
     protected void convertToUnits( SpecData spec, String dataUnits,
-                                   String coordUnits, String coordSystem )
+                                   String coordUnits, String coordSystem,
+                                   String sideBand )
     {
         if ( ! dataUnits.equals( UNKNOWN ) ) {
             try {
@@ -347,6 +399,9 @@ public class PlotUnitsFrame
                 int iaxis = spec.getMostSignificantAxis();
                 String attributes = 
                     "System=" + coordSystem + ",Unit("+iaxis+")=" + coordUnits;
+                if ( ! sideBand.equals( UNKNOWN ) ) {
+                    attributes = attributes + ",SideBand=" + sideBand;
+                }
                 SpecCoordinatesFrame.convertToAttributes( spec, attributes, 
                                                           iaxis );
             }
