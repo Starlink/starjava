@@ -664,18 +664,28 @@ public class SpecCoordinatesFrame
         int[] indices = specList.getSelectedIndices();
         if ( indices.length != 0 ) {
 
-            //  Gather the current state of the interface.
+            //  Gather the current state of the interface as an AST attributes
+            //  string.
             String attributes = gatherAttributes();
 
             //  And apply to all selected spectra.
             for ( int i = 0; i < indices.length; i++ ) {
                 SpecData spec = globalList.getSpectrum( indices[i] );
+                String fullats = attributes;
+
+                // Get Units value. This is special as it can be axis
+                // dependent when the underlying spectrum has redundant axes.
+                int iaxis = spec.getMostSignificantAxis();
+                String units = (String) systemUnitsBox.getEditor().getItem();
+                if ( isValid( units ) ) {
+                    fullats = attributes +  ",Unit(" + iaxis + ")=" + units;
+                }
                 try {
                     if ( set ) {
-                        setToAttributes( spec, attributes );
+                        setToAttributes( spec, fullats, iaxis );
                     }
                     else {
-                        convertToAttributes( spec, attributes );
+                        convertToAttributes( spec, fullats, iaxis );
                     }
                 }
                 catch (SplatException e) {
@@ -687,7 +697,8 @@ public class SpecCoordinatesFrame
 
     /**
      * Gather information from interface and create a single String
-     * suitable for applying to a FrameSet.
+     * suitable for applying to a FrameSet. Does not include Unit as this is
+     * axis dependent.
      */
     protected String gatherAttributes()
     {
@@ -697,11 +708,6 @@ public class SpecCoordinatesFrame
         String value = (String) astSystems.get( selected );
         if ( isValid( value ) ) {
             buffer.append( "System=" + value );
-        }
-
-        value = (String) systemUnitsBox.getEditor().getItem();
-        if ( isValid( value ) ) {
-            buffer.append( ",Unit(1)=" + value );
         }
 
         selected = (String) stdOfRestBox.getSelectedItem();
@@ -787,10 +793,12 @@ public class SpecCoordinatesFrame
      * @param spec the spectrum to convert
      * @param attributes the AST attributes describing the new system
      *                   (for example: "system=WAVE,unit(1)=Angstrom").
+     * @param iaxis the axis that of spectral FrameSet that is the SpecFrame.
      *
      * @throws SplatException when an error occurs
      */
-    public static void convertToAttributes( SpecData spec, String attributes )
+    public static void convertToAttributes( SpecData spec, String attributes,
+                                            int iaxis  )
         throws SplatException
     {
         //  This modifies the underlying FrameSet. Not the plot version.
@@ -798,8 +806,10 @@ public class SpecCoordinatesFrame
         //  FrameSets.
         FrameSet frameSet = spec.getFrameSet();
 
-        //  Pick out first axis from FrameSet, this should be a SpecFrame.
-        int iaxes[] = { 1 };
+        //  Pick out the significant axis from FrameSet, this should be a
+        //  SpecFrame or subclass.
+        int iaxes[] = new int[1];
+        iaxes[0] = iaxis;
         Frame picked = frameSet.pickAxes( 1, iaxes, null );
 
         // Now set the values. Note we write to FrameSet not Frame as this
@@ -837,9 +847,11 @@ public class SpecCoordinatesFrame
      * @param spec the spectrum to set
      * @param attributes the AST attributes describing the system
      *                   (for example: "system=WAVE,unit=Angstrom").
+     * @param iaxis the axis that of spectral FrameSet that is the SpecFrame.
      * @throws SplatException when an error occurs.
      */
-    public static void setToAttributes( SpecData spec, String attributes )
+    public static void setToAttributes( SpecData spec, String attributes, 
+                                        int iaxis )
         throws SplatException
     {
         //  This sets the underlying FrameSet. Not the plot version.  The
@@ -850,13 +862,15 @@ public class SpecCoordinatesFrame
         // If current frame doesn't contain a SpecFrame then we need to
         // generate one.
         Frame current = frameSet.getFrame( FrameSet.AST__CURRENT );
-        int iaxes[] = { 1 };
-        Frame picked = current.pickAxes( 1, iaxes, null );
+        int iaxes[] = new int[1];
+        iaxes[0] = iaxis;
+        Frame picked = frameSet.pickAxes( 1, iaxes, null );
         if ( ! ( picked instanceof SpecFrame ) ) {
 
             // Simplest way is to get SpecData to do this work. What we use
             // here doesn't matter as it will be overwritten by later calls.
-            frameSet.set( "Label(1)=Wavelength, Unit(1)=Angstrom" );
+            frameSet.set( "Label(" + iaxis + ")=Wavelength," + 
+                          "Unit(" + iaxis + ")=Angstrom" );
             spec.initialiseAst();
         }
 
@@ -865,6 +879,7 @@ public class SpecCoordinatesFrame
         // remapped. Use a copy of the FrameSet so we can back out
         // when errors happen (these can leave the FrameSet quite
         // mixed up).
+
         FrameSet localCopy = (FrameSet) frameSet.copy();
         current = localCopy.getFrame( FrameSet.AST__CURRENT );
         try {
@@ -902,7 +917,9 @@ public class SpecCoordinatesFrame
         if ( indices.length != 0 ) {
             SpecData spec = globalList.getSpectrum( indices[0] );
             if ( spec == null ) return;
-            FrameSet frameSet = spec.getFrameSet();
+
+            //  Use the Plot FrameSet. SpecFrame on axis 1.
+            FrameSet frameSet = spec.getAst().getRef();
 
             String system = frameSet.getC( "System" );
             String unit = frameSet.getC( "Unit(1)" );
@@ -916,39 +933,42 @@ public class SpecCoordinatesFrame
             String sourcevrf = "";
             String epoch = "";
 
+            //  As using Plot FrameSet we need to look at the first axis.
             int iaxes[] = { 1 };
             Frame picked = frameSet.pickAxes( 1, iaxes, null );
             if ( picked instanceof SpecFrame ) {
-                stdofrest = frameSet.getC( "StdOfRest" );
-                geolon = frameSet.getC( "GeoLon" );
-                geolat = frameSet.getC( "GeoLat" );
-                refra = frameSet.getC( "RefRA" );
-                refdec = frameSet.getC( "RefDec" );
-                restfreq = frameSet.getC( "RestFreq" );
-                sourcevel = frameSet.getC( "SourceVel" );
-                sourcevrf = frameSet.getC( "SourceVRF" );
-                epoch = frameSet.getC( "Epoch" );
+                system = picked.getC( "System" );
+                unit = picked.getC( "Unit" );
+                stdofrest = picked.getC( "StdOfRest" );
+                geolon = picked.getC( "GeoLon" );
+                geolat = picked.getC( "GeoLat" );
+                refra = picked.getC( "RefRA" );
+                refdec = picked.getC( "RefDec" );
+                restfreq = picked.getC( "RestFreq" );
+                sourcevel = picked.getC( "SourceVel" );
+                sourcevrf = picked.getC( "SourceVRF" );
+                epoch = picked.getC( "Epoch" );
 
                 for ( int i = 1; i < indices.length; i++ ) {
                     spec = globalList.getSpectrum( indices[i] );
                     if ( spec == null ) continue;
-                    frameSet = spec.getFrameSet();
+                    frameSet = spec.getAst().getRef();
                     picked = frameSet.pickAxes( 1, iaxes, null );
                     if ( picked instanceof SpecFrame ) {
-                        system = frameSet.getC( "System" );
-                        unit = frameSet.getC( "Unit(1)" );
-                        stdofrest = checkAttr( frameSet, stdofrest,
+                        system = picked.getC( "System" );
+                        unit = picked.getC( "Unit" );
+                        stdofrest = checkAttr( picked, stdofrest,
                                                "StdOfRest" );
-                        geolon = checkAttr( frameSet, geolon, "GeoLon" );
-                        geolat = checkAttr( frameSet, geolat, "GeoLat" );
-                        refra = checkAttr( frameSet, refra, "RefRA" );
-                        refdec = checkAttr( frameSet, refdec, "RefDec" );
-                        restfreq = checkAttr( frameSet, restfreq, "RestFreq" );
-                        sourcevel = checkAttr( frameSet, sourcevel,
+                        geolon = checkAttr( picked, geolon, "GeoLon" );
+                        geolat = checkAttr( picked, geolat, "GeoLat" );
+                        refra = checkAttr( picked, refra, "RefRA" );
+                        refdec = checkAttr( picked, refdec, "RefDec" );
+                        restfreq = checkAttr( picked, restfreq, "RestFreq" );
+                        sourcevel = checkAttr( picked, sourcevel,
                                                "SourceVel" );
-                        sourcevrf = checkAttr( frameSet, sourcevrf,
+                        sourcevrf = checkAttr( picked, sourcevrf,
                                                "SourceVRF" );
-                        epoch = checkAttr( frameSet, epoch, "Epoch" );
+                        epoch = checkAttr( picked, epoch, "Epoch" );
                     }
                     else {
                         // break as nothing can be set correctly.
@@ -1042,9 +1062,9 @@ public class SpecCoordinatesFrame
         }
     }
 
-    private String checkAttr( FrameSet frameSet, String value, String attr )
+    private String checkAttr( Frame specFrame, String value, String attr )
     {
-        if ( value != null && ! value.equals( frameSet.getC( attr ) ) ) {
+        if ( value != null && ! value.equals( specFrame.getC( attr ) ) ) {
             return null;
         }
         return value;

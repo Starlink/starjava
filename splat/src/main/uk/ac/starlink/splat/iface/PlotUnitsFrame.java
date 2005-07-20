@@ -344,9 +344,11 @@ public class PlotUnitsFrame
         
         if ( ! coordUnits.equals( UNKNOWN ) ) {
             try {
+                int iaxis = spec.getMostSignificantAxis();
                 String attributes = 
-                    "system=" + coordSystem + ", " + "unit(1)=" + coordUnits;
-                SpecCoordinatesFrame.convertToAttributes( spec, attributes );
+                    "System=" + coordSystem + ",Unit("+iaxis+")=" + coordUnits;
+                SpecCoordinatesFrame.convertToAttributes( spec, attributes, 
+                                                          iaxis );
             }
             catch (SplatException e) {
                 new ExceptionDialog( this, e );
