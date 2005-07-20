@@ -1493,8 +1493,7 @@ public class SpecData
             FrameSet specref = null;
             try {
                 specref = ast.makeSpectral( sigaxis, 0, yPos.length,
-                                            getDataLabel(), 
-                                            getCurrentDataUnits(),
+                                            getDataLabel(), getDataUnits(),
                                             false );
             }
             catch (AstException e) {
@@ -1610,9 +1609,11 @@ public class SpecData
 
     /**
      * Return the most significant axis of the data held by the
-     * implemenation. This is the default axis that is used.
+     * implemenation. This is the default axis that is used when the
+     * underlying data has more than one dimension. The value returned is an
+     * AST index (starts at 1).
      */
-    protected int getMostSignificantAxis()
+    public int getMostSignificantAxis()
     {
         int sigaxis = 1;
         int dims[] = impl.getDims();
