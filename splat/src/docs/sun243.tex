@@ -22,14 +22,15 @@
 \newcommand{\stardocsource}    {sun\stardocnumber}
 \newcommand{\stardoccopyright}
 {Copyright \copyright\ 2001-2005 Council for the Central Laboratory of the
-Research Councils}
+Research Councils \& \\
+2005 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.7}
+\newcommand{\stardocnumber}    {243.8}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {30 June 2005}
+\newcommand{\stardocdate}      {20 July 2005}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.2}
+\newcommand{\stardocversion}   {3.3}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -2568,6 +2569,12 @@ flexibility, particularly when setting spectral coordinates.
 If you do not want to change the units of an axis, just leave the value set at
 "Unknown".
 
+The \labelitem{SideBand:} control is for switching between sidebands (upper
+and lower) when display spectra that are derived from a dual sideband
+instrument. This is not available when your spectra do not have this feature.
+When displaying a dual sideband spectrum the inactive sideband coordinates
+will be displayed along the unused X axis (usually the top).
+
 \newpage
 \subsection{Flip or shift or redshift a spectrum}
 
@@ -2999,7 +3006,7 @@ research, contact Petr for further details).
 
 \section{Changes}
 
-\subsection{This release (3.2)}
+\subsection{This release (3.3)}
 
 Starlink SPLAT is now a tool for the Virtual Observatory and has been
 renamed to \SPLAT.
@@ -3036,6 +3043,10 @@ Other changes of note in this release:
       to see this in action.
 
 \item Postscript output can now be created in encapsulated form.
+
+\item Dual sideband data now have the coordinates of the second sideband
+      shown along the opposing X axis of a plot. It is also possible to 
+      switch between sidebands.
 
 \item Log spacing can now be switched on from a plot (rather than by finding
       the plot configuration window).

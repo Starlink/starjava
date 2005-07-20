@@ -34,6 +34,10 @@
 
       - Postscript output can now be created in encapsulated form.
 
+      - Dual sideband data now have the coordinates of the second sideband
+        shown along the opposing X axis of a plot. It is also possible to 
+        switch between sidebands.
+
       - Log spacing can now be switched on from a plot (rather than by finding
         the plot configuration window).
 
@@ -98,4 +102,4 @@
         (polynomial and line fits).
 
 
-Peter W. Draper (p.w.draper@durham.ac.uk)          23th May 2005
+Peter W. Draper (p.w.draper@durham.ac.uk)          20th July 2005
