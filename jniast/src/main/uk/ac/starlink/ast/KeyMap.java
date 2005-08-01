@@ -370,4 +370,64 @@ public class KeyMap extends AstObject {
      */
     public native void mapPut1A( String key, AstObject[] value, String comment );
 
+    /** 
+     * Retrieve a double array.   
+     * @param   key
+     * The character string identifying the value to be retrieved. Trailing 
+     * spaces are ignored.
+     * 
+     * @return  
+     *          value stored in this map under <code>key</code> 
+     *          as a double array, or null
+     *       
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native double[] mapGet1D( String key );
+
+    /** 
+     * Retrieve an integer array.   
+     * @param   key
+     * The character string identifying the value to be retrieved. Trailing 
+     * spaces are ignored.
+     * 
+     * @return  
+     *          value stored in this map under <code>key</code> 
+     *          as an integer array, or null
+     *       
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native int[] mapGet1I( String key );
+
+    /** 
+     * Retrieve a string array.   
+     * @param   key
+     * The character string identifying the value to be retrieved. Trailing 
+     * spaces are ignored.
+     * 
+     * @param   sleng
+     * maximum length of any of the strings in the returned array;
+     *             any longer strings will be truncated
+     *          
+     * @return  
+     *          value stored in this map under <code>key</code> 
+     *          as a String array, or null
+     *       
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native String[] mapGet1C( String key, int sleng );
+
+    /** 
+     * Retrieve an array of AstObjects.   
+     * @param   key
+     * The character string identifying the value to be retrieved. Trailing 
+     * spaces are ignored.
+     * 
+     * @return  
+     *          value stored in this map under <code>key</code> 
+     *          as an AstObject array, or null
+     *       
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native AstObject[] mapGet1A( String key );
+
 }

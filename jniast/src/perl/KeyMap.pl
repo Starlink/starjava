@@ -420,5 +420,94 @@ makeNativeMethod(
    return => { type => 'void' },
 );
 
+$fName = "mapGet1<X>";
+
+makeNativeMethod(
+   name => "mapGet1D",
+   purpose => "Retrieve a double array",
+   descrip => "",
+   params => [
+      {
+         name => ( $aName = "key" ),
+         type => 'String',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+   return => { 
+      type => 'double[]',
+      descrip => q{
+         value stored in this map under <code>key</code> 
+         as a double array, or null
+      },
+   },
+);
+
+makeNativeMethod(
+   name => "mapGet1I",
+   purpose => "Retrieve an integer array",
+   descrip => "",
+   params => [
+      {
+         name => ( $aName = "key" ),
+         type => 'String',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+   return => {
+      type => 'int[]',
+      descrip => q{
+         value stored in this map under <code>key</code> 
+         as an integer array, or null
+      },
+   },
+);
+
+makeNativeMethod(
+   name => "mapGet1C",
+   purpose => "Retrieve a string array",
+   descrip => "",
+   params => [
+      {
+         name => ( $aName = "key" ),
+         type => 'String',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "sleng" ),
+         type => 'int',
+         descrip => q{
+            maximum length of any of the strings in the returned array;
+            any longer strings will be truncated
+         },
+      }
+   ],
+   return => {
+      type => 'String[]',
+      descrip => q{
+         value stored in this map under <code>key</code> 
+         as a String array, or null
+      },
+   },
+);
+
+makeNativeMethod(
+   name => "mapGet1A",
+   purpose => "Retrieve an array of AstObjects",
+   descrip => "",
+   params => [
+      {
+         name => ( $aName = "key" ),
+         type => 'String',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+   return => {
+      type => 'AstObject[]',
+      descrip => q{
+         value stored in this map under <code>key</code> 
+         as an AstObject array, or null
+      },
+   },
+);
 
 print "}\n";

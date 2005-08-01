@@ -479,4 +479,126 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapPut1A(
    }
 }
   
+#define MAKE_MAPGET1(Xletter,Xtype,Xjtype,XType) \
+ \
+JNIEXPORT Xjtype##Array JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1##Xletter( \
+   JNIEnv *env,          /* Interface pointer */ \
+   jobject this,         /* Instance object */ \
+   jstring jKey          /* Map key */ \
+) { \
+   AstPointer pointer = jniastGetPointerField( env, this ); \
+   const char *key; \
+   int size; \
+   int nval; \
+   Xjtype##Array jResult = NULL; \
+   Xtype *result; \
+ \
+   if ( jniastCheckNotNull( env, jKey ) ) { \
+      key = jniastGetUTF( env, jKey ); \
+      ASTCALL( \
+         size = astMapLength( pointer.KeyMap, key ); \
+      ) \
+      if ( ! (*env)->ExceptionCheck( env ) && \
+           size && \
+           ( jResult = (*env)->New##XType##Array( env, (jsize) size ) ) && \
+           ( result = (*env)->Get##XType##ArrayElements( env, jResult, \
+                                                         NULL ) ) ) { \
+         ASTCALL( \
+            astMapGet1##Xletter( pointer.KeyMap, key, size, &nval, result ); \
+         ) \
+         ALWAYS( \
+            (*env)->Release##XType##ArrayElements( env, jResult, result, 0 ); \
+         ) \
+      } \
+      jniastReleaseUTF( env, jKey, key ); \
+   } \
+   return jResult; \
+}
+MAKE_MAPGET1(D,double,jdouble,Double)
+MAKE_MAPGET1(I,int,jint,Int)
+#undef MAKE_MAPGET1
 
+JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1C(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jstring jKey,         /* Map key */
+   jint sleng            /* Maximum string length */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   const char *key;
+   int size;
+   int nval;
+   jobjectArray jResult = NULL;
+   char *buffer;
+   int i;
+   jstring str;
+
+   if ( jniastCheckNotNull( env, jKey ) ) {
+      key = jniastGetUTF( env, jKey );
+      ASTCALL(
+         size = astMapLength( pointer.KeyMap, key );
+      )
+      if ( ! (*env)->ExceptionCheck( env ) &&
+           size &&
+           ( jResult = (*env)->NewObjectArray( env, size, 
+                                               StringClass, NULL ) ) &&
+           ( buffer = jniastMalloc( env, ( sleng + 1 ) * size ) ) ) {
+         ASTCALL(
+            astMapGet1C( pointer.KeyMap, key, sleng + 1, size, &nval, buffer );
+         )
+         for ( i = 0; i < size; i++ ) {
+            if ( ! (*env)->ExceptionCheck( env ) ) {
+               str = (*env)->NewStringUTF( env, buffer + i * ( sleng + 1 ) );   
+               (*env)->SetObjectArrayElement( env, jResult, i, str );
+            }
+         }
+         ALWAYS(
+            free( buffer );
+         )
+      }
+      jniastReleaseUTF( env, jKey, key );
+   }
+   return jResult;
+}
+
+JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1A(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jstring jKey          /* Map key */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   const char *key;
+   int size;
+   int nval;
+   jobjectArray jResult = NULL;
+   AstObject **result;
+   jobject obj;
+   int i;
+
+   if ( jniastCheckNotNull( env, jKey ) ) {
+      key = jniastGetUTF( env, jKey );
+      ASTCALL(
+         size = astMapLength( pointer.KeyMap, key );
+      )
+      if ( ! (*env)->ExceptionCheck( env ) &&
+           size &&
+           ( jResult = (*env)->NewObjectArray( env, size, AstObjectClass, 
+                                               NULL ) ) &&
+           ( result = jniastMalloc( env, size * sizeof( AstObject * ) ) ) ) {
+         ASTCALL(
+            astMapGet1A( pointer.KeyMap, key, size, &nval, result );
+         )
+         for ( i = 0; i < size; i++ ) {
+            if ( ! (*env)->ExceptionCheck( env ) ) {
+               obj = jniastMakeObject( env, result[ i ] );
+               (*env)->SetObjectArrayElement( env, jResult, i, obj );
+            }
+         }
+         ALWAYS(
+            free( result );
+         )
+      }
+      jniastReleaseUTF( env, jKey, key );
+   }
+   return jResult;
+}
