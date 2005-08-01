@@ -92,11 +92,13 @@ typedef union {
 /* External variables. */
 jobject AstLock;
 jclass AstExceptionClass;
+jclass AstObjectClass;
 jclass DoubleClass;
 jclass DoubleArrayClass;
 jclass ErrorClass;
 jclass IntegerClass;
 jclass MappingClass;
+jclass StringClass;
 jmethodID ObjectHashCodeMethodID;
 jmethodID ObjectToStringMethodID;
 jmethodID AstExceptionConstructorID;

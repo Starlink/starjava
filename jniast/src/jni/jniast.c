@@ -33,7 +33,6 @@
 
 
 /* Static variables. */
-static jclass AstObjectClass;
 static jclass IntraMapClass = NULL;
 static jclass NoClassDefFoundErrorClass;
 static jclass NullPointerExceptionClass;
@@ -92,6 +91,8 @@ void jniastInitialize( JNIEnv *env ) {
 
    ( DoubleArrayClass = (jclass) (*env)->NewGlobalRef( env,
         (*env)->FindClass( env, "[D" ) ) ) &&
+   ( StringClass = (jclass) (*env)->NewGlobalRef( env,
+        (*env)->FindClass( env, "java/lang/String" ) ) ) &&
    ( SystemClass = (jclass) (*env)->NewGlobalRef( env,
         (*env)->FindClass( env, "java/lang/System" ) ) ) &&
    ( NullPointerExceptionClass = (jclass) (*env)->NewGlobalRef( env,
