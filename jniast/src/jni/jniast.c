@@ -747,6 +747,82 @@ void jniastThrowError( JNIEnv *env, const char *fmt, ... ) {
 }
    
 
+void jniastConstructStc( JNIEnv *env, jobject this, jobject jRegion,
+                         jobjectArray jCoords, StcConstructor constructor ) {
+/*
+*+
+*  Name:
+*     jniastConstructStc
+
+*  Purpose:
+*     Performs JNIAST object construction on an Stc subclass.
+
+*  Description:
+*     This routine does the hard work of initializing an instance of one
+*     of the Stc concrete subclasses.  Since all these classes have 
+*     identical-looking constructors, the same code can be reused.
+
+*  Arguments:
+*     env = JNIEnv *
+*        Pointer to the JNI interface.
+*     this = jobject
+*        Object reference for the Stc object to be initialized; on entry 
+*        the pointer field of this has not been initialized, on exit it 
+*        has been.
+*     jRegion = jobject
+*        Object reference for the region which is to be encapsulated
+*        by the new Stc.
+*     constructor = StcConstructor
+*        Constructor function for the specific Stc subclass in use here.
+*        This is invoked with the correct arguments to acquire the
+*        AST object pointer used to initialise the this object.
+*-
+*/
+   AstPointer pointer;
+   AstRegion *region;
+   AstKeyMap **coords;
+   int ncoords;
+   int i;
+   jobject coord;
+
+   if ( ! (*env)->ExceptionCheck( env ) &&
+        jniastCheckNotNull( env, jRegion ) ) {
+      region = jniastGetPointerField( env, jRegion ).Region;
+
+      /* Get an array of AstKeyMap pointers from the array of java KeyMap
+       * objects. */
+      if ( jCoords ) {
+         ncoords = (*env)->GetArrayLength( env, jCoords );
+         coords = jniastMalloc( env, ncoords * sizeof( AstKeyMap * ) );
+         if ( ! coords ) return;
+         for ( i = 0; i < ncoords; i++ ) {
+            if ( ! (*env)->ExceptionCheck( env ) ) {
+               coord = (*env)->GetObjectArrayElement( env, jCoords, i );
+               coords[ i ] = jniastGetPointerField( env, coord ).KeyMap;
+            }
+         }
+      }
+      else {
+         ncoords = 0;
+         coords = NULL;
+      }
+
+      /* Intialize the object pointer using the supplied specific
+       * constructor function. */
+      ASTCALL(
+         pointer.Stc = (*constructor)( region, ncoords, coords, "" );
+      )
+      jniastSetPointerField( env, this, pointer );
+
+      /* Tidy up. */
+      if ( coords ) {
+         ALWAYS(
+            free( coords );
+         )
+      }
+   }
+}
+
 
 static void throwTypedThrowable( JNIEnv *env, jclass throwclass, 
                                  const char *fmt, va_list ap ) {
@@ -804,6 +880,7 @@ static void throwTypedThrowable( JNIEnv *env, jclass throwclass,
       if ( buffer != fmt ) free( buffer );
    }
 }
+
 
 
 /* $Id$ */

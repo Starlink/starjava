@@ -79,6 +79,11 @@ typedef union {
    AstSpecFrame *SpecFrame;  /* Pointer to C AstSpecFrame struct */
    AstSpecMap *SpecMap;      /* Pointer to C AstSpecMap struct */
    AstSphMap *SphMap;        /* Pointer to C AstSphMap struct */
+   AstStc *Stc;              /* Pointer to C AstStc struct */
+   AstStcCatalogEntryLocation *StcCatalogEntryLocation; /* Pointer to C AstStcCatalogEntryLocation struct */
+   AstStcObsDataLocation *StcObsDataLocation; /* Pointer to C AstStcObsDataLocation struct */
+   AstStcResourceProfile *StcResourceProfile; /* Pointer to C AstStcResourceProfile struct */
+   AstStcSearchLocation *StcSearchLocation; /* Pointer to C AstStcSearchLocation struct */
    AstTimeFrame *TimeFrame;  /* Pointer to C AstTimeFrame struct */
    AstTimeMap *TimeMap;      /* Pointer to C AstTimeMap struct */
    AstTranMap *TranMap;      /* Pointer to C AstTranMap struct */
@@ -88,6 +93,7 @@ typedef union {
    AstZoomMap *ZoomMap;      /* Pointer to C AstZoomMap struct */
 } AstPointer;
 
+typedef AstStc *(*StcConstructor)( AstRegion *, int, AstKeyMap*[], const char * );
 
 /* External variables. */
 jobject AstLock;
@@ -124,6 +130,8 @@ double *jniastCopyDoubleArray( JNIEnv *env, jdoubleArray jArr, int bsiz );
 int jniastGetNaxes( JNIEnv *env, AstFrame *frame );
 char *jniastEscapePercents( JNIEnv *env, const char *buf );
 void *jniastMalloc( JNIEnv *env, size_t size );
+void jniastConstructStc( JNIEnv *env, jobject this, jobject jRegion,
+                         jobjectArray jCoords, StcConstructor constructor );
 void jniastTrace( JNIEnv *env, jobject obj );
 
 

@@ -232,6 +232,12 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantC(
          success = 1; \
       }
       TRY_CONST( AST__XMLNS )
+      TRY_CONST( AST__STCNAME )
+      TRY_CONST( AST__STCVALUE )
+      TRY_CONST( AST__STCERROR )
+      TRY_CONST( AST__STCRES )
+      TRY_CONST( AST__STCSIZE )
+      TRY_CONST( AST__STCPIXSZ )
 
 #undef TRY_CONST
    }

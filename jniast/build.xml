@@ -590,6 +590,26 @@
       <param name="pj.cfile" value="sphmap.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="Stc"/>
+      <param name="pj.cfile" value="stc.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="StcCatalogEntryLocation"/>
+      <param name="pj.cfile" value="stccatalogentrylocation.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="StcObsDataLocation"/>
+      <param name="pj.cfile" value="stcobsdatalocation.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="StcResourceProfile"/>
+      <param name="pj.cfile" value="stcresourceprofile.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="StcSearchLocation"/>
+      <param name="pj.cfile" value="stcsearchlocation.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="TimeFrame"/>
       <param name="pj.cfile" value="timeframe.c"/>
     </antcall>
@@ -849,6 +869,11 @@
       <class name="${package.name}.SpecFrame"/>
       <class name="${package.name}.SpecMap"/>
       <class name="${package.name}.SphMap"/>
+      <class name="${package.name}.Stc"/>
+      <class name="${package.name}.StcCatalogEntryLocation"/>
+      <class name="${package.name}.StcObsDataLocation"/>
+      <class name="${package.name}.StcResourceProfile"/>
+      <class name="${package.name}.StcSearchLocation"/>
       <class name="${package.name}.TimeFrame"/>
       <class name="${package.name}.TimeMap"/>
       <class name="${package.name}.TranMap"/>

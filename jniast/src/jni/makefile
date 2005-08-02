@@ -118,6 +118,11 @@ C_ROUTINES = \
    SpecFrame.c \
    SpecMap.c \
    SphMap.c \
+   Stc.c \
+   StcCatalogEntryLocation.c \
+   StcObsDataLocation.c \
+   StcResourceProfile.c \
+   StcSearchLocation.c \
    TimeFrame.c \
    TimeMap.c \
    TranMap.c \
