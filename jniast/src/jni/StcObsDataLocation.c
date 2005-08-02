@@ -31,5 +31,5 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_StcObsDataLocation_construct(
    jobjectArray jCoords  /* Array of KeyMaps representing AstroCoords */
 ) {
    jniastConstructStc( env, this, jRegion, jCoords,
-                       astStcObsDataLocation );
+                       (StcConstructor) astStcObsDataLocation );
 }

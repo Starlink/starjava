@@ -31,5 +31,5 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_StcResourceProfile_construct(
    jobjectArray jCoords  /* Array of KeyMaps representing AstroCoords */
 ) {
    jniastConstructStc( env, this, jRegion, jCoords,
-                       astStcResourceProfile );
+                       (StcConstructor) astStcResourceProfile );
 }
