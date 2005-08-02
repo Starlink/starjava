@@ -54,7 +54,7 @@ public abstract class Stc extends Region {
      * in the returned <code>AstroCoords</code> object 
      * will reflect the change in coordinate system.
      *
-     * @param   i  index of coords to retrieve
+     * @param   i  index of coords to retrieve.  The first index is 1.
      * @return  <code>i</code>'th coord stored
      */
     public AstroCoords getStcCoord( int i ) {
