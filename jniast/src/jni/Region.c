@@ -19,6 +19,7 @@
 */
 
 /* Header files. */
+#include <stdlib.h>
 #include "jni.h"
 #include "ast.h"
 #include "jniast.h"
@@ -144,4 +145,67 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Region_setUnc(
       )
    }
 }
+
+#define MAKE_MASKX(Xletter,Xtype,Xjtype,XJtype) \
+ \
+JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Region_mask##Xletter( \
+   JNIEnv *env,          /* Interface pointer */ \
+   jobject this,         /* Instance object */ \
+   jobject jMap,         /* Mapping */ \
+   jboolean inside,      /* Inside flag */ \
+   jint ndim,            /* Number of dimensions */ \
+   jintArray jLbnd,      /* Lower bounds */ \
+   jintArray jUbnd,      /* Upper bounds */ \
+   Xjtype##Array jIn,    /* Pixel grid */ \
+   Xjtype val            /* Mask substitution value */ \
+) { \
+   AstPointer pointer = jniastGetPointerField( env, this ); \
+   AstMapping *map; \
+   int *lbnd = NULL; \
+   int *ubnd = NULL; \
+   Xtype *in = NULL; \
+   int npix; \
+   int i; \
+   jint result; \
+ \
+   map = jMap ? jniastGetPointerField( env, jMap ).Mapping \
+              : NULL; \
+   if ( jniastCheckArrayLength( env, jLbnd, ndim ) && \
+        jniastCheckArrayLength( env, jUbnd, ndim ) && \
+        ( lbnd = (*env)->GetIntArrayElements( env, jLbnd, NULL ) ) && \
+        ( ubnd = (*env)->GetIntArrayElements( env, jUbnd, NULL ) ) ) { \
+      npix = 1; \
+      for ( i = 0; i < ndim; i++ ) { \
+         npix *= ( abs( ubnd[ i ] - lbnd[ i ] ) + 1 ); \
+      } \
+      if ( jniastCheckArrayLength( env, jIn, npix ) && \
+           ( in = (*env)->Get##XJtype##ArrayElements( env, jIn, NULL ) ) ) { \
+         ASTCALL( \
+            result = astMask##Xletter( pointer.Region, map, \
+                                       inside == JNI_TRUE, (int) ndim, \
+                                       lbnd, ubnd, in, (Xtype) val ); \
+         ) \
+         ALWAYS( \
+            (*env)->Release##XJtype##ArrayElements( env, jIn, in, 0 ); \
+         ) \
+      } \
+      ALWAYS( \
+         if ( lbnd ) { \
+            (*env)->ReleaseIntArrayElements( env, jLbnd, lbnd, JNI_ABORT ); \
+         } \
+         if ( ubnd ) { \
+            (*env)->ReleaseIntArrayElements( env, jUbnd, ubnd, JNI_ABORT ); \
+         } \
+      ) \
+   } \
+   return result; \
+}
+MAKE_MASKX(D,double,jdouble,Double)
+MAKE_MASKX(F,float,jfloat,Float)
+/* MAKE_MASKX(L,long,jlong,Long) */
+MAKE_MASKX(I,int,jint,Int)
+MAKE_MASKX(S,short,jshort,Short)
+MAKE_MASKX(B,signed char,jbyte,Byte)
+#undef MAKE_MASKX
+
 

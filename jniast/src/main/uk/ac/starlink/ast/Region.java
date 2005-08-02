@@ -235,6 +235,194 @@ public abstract class Region extends Frame {
      */
     public native int overlap( Region other );
 
+    /** 
+     * Mask a region of a data grid.   
+     * This is a set of functions for masking out regions within gridded data 
+     * (e.g. an image). The functions modifies a given data grid by
+     * assigning a specified value to all samples which are inside (or outside 
+     * if "inside" is zero) 
+     * the specified Region.
+     * <p>
+     * You should use a masking function which matches the numerical
+     * type of the data you are processing by replacing <X> in
+     * the generic function name astMask<X> by an appropriate 1- or
+     * 2-character type code. For example, if you are masking data
+     * with type "float", you should use the function astMaskF (see
+     * the "Data Type Codes" section below for the codes appropriate to
+     * other numerical types).
+     * <h4>Notes</h4>
+     * <br> - A value of zero will be returned if this function is invoked
+     * with the global error status set, or if it should fail for any
+     * reason.
+     * 
+     * @param   map
+     * Pointer to a Mapping. The forward transformation should map
+     * positions in the coordinate system of the supplied Region
+     * into pixel coordinates as defined by the 
+     * "lbnd" and "ubnd" parameters. A NULL pointer
+     * can be supplied if the coordinate system of the supplied Region 
+     * corresponds to pixel coordinates. This is equivalent to
+     * supplying a UnitMap.
+     * <p>
+     * The number of inputs for this Mapping (as given by its Nin attribute) 
+     * should match the number of axes in the supplied Region (as given
+     * by the Naxes attribute of the Region).
+     * The number of outputs for the Mapping (as given by its Nout attribute) 
+     * should match the number of
+     * grid dimensions given by the value of "ndim"
+     * below. 
+     * 
+     * @param   inside
+     * A boolean value which indicates which pixel are to be masked. If 
+     * a non-zero value 
+     * is supplied, then all grid pixels with centres inside the supplied 
+     * Region are assigned the value given by
+     * "val",
+     * and all other pixels are left unchanged. If 
+     * zero 
+     * is supplied, then all grid pixels with centres not inside the supplied 
+     * Region are assigned the value given by
+     * "val",
+     * and all other pixels are left unchanged. Note, the Negated
+     * attribute of the Region is used to determine which pixel are
+     * inside the Region and which are outside. So the inside of a Region 
+     * which has not been negated is the same as the outside of the 
+     * corresponding negated Region.
+     * <p>
+     * For types of Region such as PointList which have zero volume,
+     * pixel centres will rarely fall exactly within the Region. For
+     * this reason, the inclusion criterion is changed for zero-volume
+     * Regions so that pixels are included (or excluded) if any part of
+     * the Region passes through the pixel. For a PointList, this means
+     * that pixels are included (or excluded) if they contain at least
+     * one of the points listed in the PointList.
+     * 
+     * @param   ndim
+     * The number of dimensions in the input grid. This should be at
+     * least one.
+     * 
+     * @param   lbnd
+     * Pointer to an array of integers, with "ndim" elements,
+     * containing the coordinates of the centre of the first pixel
+     * in the input grid along each dimension.
+     * 
+     * @param   ubnd
+     * Pointer to an array of integers, with "ndim" elements,
+     * containing the coordinates of the centre of the last pixel in
+     * the input grid along each dimension.
+     * <p>
+     * Note that "lbnd" and "ubnd" together define the shape
+     * and size of the input grid, its extent along a particular
+     * (j'th) dimension being ubnd[j]-lbnd[j]+1 (assuming the
+     * index "j" to be zero-based). They also define
+     * the input grid's coordinate system, each pixel having unit
+     * extent along each dimension with integral coordinate values
+     * at its centre.
+     * 
+     * @param   in
+     * Pointer to an array, with one element for each pixel in the
+     * input grid, containing the data to be masked.  The
+     * numerical type of this array should match the 1- or
+     * 2-character type code appended to the function name (e.g. if
+     * you are using astMaskF, the type of each array element
+     * should be "float").
+     * <p>
+     * The storage order of data within this array should be such
+     * that the index of the first grid dimension varies most
+     * rapidly and that of the final dimension least rapidly
+     * (i.e. Fortran array indexing is used).
+     * <p>
+     * On exit, the samples specified by
+     * "inside" are set to the value of "val".
+     * All other samples are left unchanged.
+     * 
+     * @param   val
+     * specifies the value used to flag the masked data.
+     *             This should be an object of the wrapper class corresponding
+     *             to the array type of the <code>in</code> array.
+     *          
+     * @return  The number of pixels to which a value of 
+     * "badval" 
+     * has been assigned.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public int mask( Mapping map, boolean inside, int ndim, int[] lbnd, int[] ubnd, Object in, Number val ){
+        Class type = in.getClass().getComponentType();
+        try {
+            if ( type == byte.class ) {
+                return maskB( map, inside, ndim, lbnd, ubnd, 
+                              (byte[]) in, ((Byte) val).byteValue() );
+            }
+            else if ( type == short.class ) {
+                return maskS( map, inside, ndim, lbnd, ubnd,
+                              (short[]) in, ((Short) val).shortValue() );
+            }
+            else if ( type == int.class ) {
+                return maskI( map, inside, ndim, lbnd, ubnd,
+                              (int[]) in, ((Integer) val).intValue() );
+            }
+        //  else if ( type == long.class ) {
+        //      return maskL( map, inside, ndim, lbnd, ubnd,
+        //                    (long[]) in, ((Long) val).longValue() );
+        //  }
+            else if ( type == float.class ) {
+                return maskF( map, inside, ndim, lbnd, ubnd,
+                              (float[]) in, ((Float) val).floatValue() );
+            }
+            else if ( type == double.class ) {
+                return maskD( map, inside, ndim, lbnd, ubnd,
+                              (double[]) in, ((Double) val).doubleValue() );
+            }
+            else {
+                throw new ClassCastException( "dummy ClassCastException" );
+            }
+        }
+        catch ( ClassCastException e ) {
+            throw new IllegalArgumentException( "Bad class " + in.getClass() +
+                                                " for map 'in' param" );
+        }
+    }
+    /**
+     * Masking method specific to byte data.
+     *
+     * @see #mask
+     */
+    public native int maskB( Mapping map, boolean inside, int ndim,
+                                    int[] lbnd, int[] ubnd,
+                                    byte[] in, byte val );
+    /**
+     * Masking method specific to short data.
+     *
+     * @see #mask
+     */
+    public native int maskS( Mapping map, boolean inside, int ndim,
+                                    int[] lbnd, int[] ubnd,
+                                    short[] in, short val );
+    /**
+     * Masking method specific to int data.
+     *
+     * @see #mask
+     */
+    public native int maskI( Mapping map, boolean inside, int ndim,
+                                    int[] lbnd, int[] ubnd,
+                                    int[] in, int val );
+    /**
+     * Masking method specific to float data.
+     *
+     * @see #mask
+     */
+    public native int maskF( Mapping map, boolean inside, int ndim,
+                                    int[] lbnd, int[] ubnd,
+                                    float[] in, float val );
+    /**
+     * Masking method specific to double data.
+     *
+     * @see #mask
+     */
+    public native int maskD( Mapping map, boolean inside, int ndim,
+                                    int[] lbnd, int[] ubnd,
+                                    double[] in, double val );
 
     /** No overlap could be determined because the other region could not
      *  be mapped into the coordinate system of this one. */

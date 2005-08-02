@@ -116,6 +116,116 @@ makeNativeMethod(
    ],
 );
 
+$fName = "mask<X>";
+makeJavaMethodHeader(
+   name => "mask",
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'int', descrip => ReturnDescrip( $fName ), },
+   params => [
+      {
+         name => ( $aName = "map" ),
+         type => 'Mapping',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "inside" ),
+         type => 'boolean',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "ndim" ),
+         type => 'int',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "lbnd" ),
+         type => 'int[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "ubnd" ),
+         type => 'int[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "in" ),
+         type => 'Object',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "val" ),
+         type => 'Number',
+         descrip => q{
+            specifies the value used to flag the masked data.
+            This should be an object of the wrapper class corresponding
+            to the array type of the <code>in</code> array.
+         },
+      },
+   ],
+);
+
+print <<'__EOT__';
+{
+        Class type = in.getClass().getComponentType();
+        try {
+            if ( type == byte.class ) {
+                return maskB( map, inside, ndim, lbnd, ubnd, 
+                              (byte[]) in, ((Byte) val).byteValue() );
+            }
+            else if ( type == short.class ) {
+                return maskS( map, inside, ndim, lbnd, ubnd,
+                              (short[]) in, ((Short) val).shortValue() );
+            }
+            else if ( type == int.class ) {
+                return maskI( map, inside, ndim, lbnd, ubnd,
+                              (int[]) in, ((Integer) val).intValue() );
+            }
+        //  else if ( type == long.class ) {
+        //      return maskL( map, inside, ndim, lbnd, ubnd,
+        //                    (long[]) in, ((Long) val).longValue() );
+        //  }
+            else if ( type == float.class ) {
+                return maskF( map, inside, ndim, lbnd, ubnd,
+                              (float[]) in, ((Float) val).floatValue() );
+            }
+            else if ( type == double.class ) {
+                return maskD( map, inside, ndim, lbnd, ubnd,
+                              (double[]) in, ((Double) val).doubleValue() );
+            }
+            else {
+                throw new ClassCastException( "dummy ClassCastException" );
+            }
+        }
+        catch ( ClassCastException e ) {
+            throw new IllegalArgumentException( "Bad class " + in.getClass() +
+                                                " for map 'in' param" );
+        }
+    }
+__EOT__
+
+my( $Xtype );
+foreach $Xtype (
+   [ "B", "byte" ],
+   [ "S", "short" ],
+   [ "I", "int" ],
+ # [ "L", "long" ],
+   [ "F", "float" ],
+   [ "D", "double" ],
+) {
+   my( $Xletter, $Xjtype ) = @{$Xtype};
+   print <<__EOT__;
+    /**
+     * Masking method specific to $Xjtype data.
+     *
+     * \@see #mask
+     */
+    public native int mask$Xletter( Mapping map, boolean inside, int ndim,
+                                    int\[\] lbnd, int\[\] ubnd,
+                                    $Xjtype\[\] in, $Xjtype val );
+__EOT__
+}
+
 print <<__EOT__;
 
     /** No overlap could be determined because the other region could not
