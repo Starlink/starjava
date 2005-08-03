@@ -47,10 +47,13 @@ static void fukern1( double offset, const double params[], int flags,
 
 /* Static variables. */
 jclass InterpolatorClass = NULL;
+jclass SpreaderClass = NULL;
 jfieldID InterpolatorSchemeID = NULL;
 jfieldID InterpolatorParamsID = NULL;
 jfieldID InterpolatorUkern1erID = NULL;
 jfieldID InterpolatorUinterperID = NULL;
+jfieldID SpreaderSchemeID = NULL;
+jfieldID SpreaderParamsID = NULL;
 
 
 /* Static functions. */
@@ -77,6 +80,9 @@ static void initializeIDs( JNIEnv *env ) {
       ( InterpolatorClass = (jclass) (*env)->NewGlobalRef( env,
            (*env)->FindClass( env, 
                               PACKAGE_PATH "Mapping$Interpolator" ) ) ) &&
+      ( SpreaderClass = (jclass) (*env)->NewGlobalRef( env,
+           (*env)->FindClass( env,
+                              PACKAGE_PATH "Mapping$Spreader" ) ) ) &&
 
       /* Get Field IDs. */
       ( InterpolatorSchemeID = 
@@ -89,6 +95,10 @@ static void initializeIDs( JNIEnv *env ) {
       ( InterpolatorUinterperID = 
            (*env)->GetFieldID( env, InterpolatorClass, "uinterper",
                                "L" PACKAGE_PATH "UinterpCalculator;" ) ) &&
+      ( SpreaderSchemeID =
+           (*env)->GetFieldID( env, SpreaderClass, "scheme_", "I" ) ) &&
+      ( SpreaderParamsID =
+           (*env)->GetFieldID( env, SpreaderClass, "params_", "[D" ) ) &&
       1;
    }
 }
@@ -1112,6 +1122,182 @@ static void fukern1( double offset, const double *params, int flags,
       astSetStatus( AST__UK1ER );
    }
 }
+
+#define MAKE_REBINX(Xletter,Xtype,Xjtype,XJtype) \
+ \
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Mapping_rebin##Xletter( \
+   JNIEnv *env,          /* Interface pointer */ \
+   jobject this,         /* Instance object */ \
+   jdouble wlim,         /* Weight threshold */ \
+   jint ndim_in,         /* Dimensionality of the input grid */ \
+   jintArray jLbnd_in,   /* Lower input bounds */ \
+   jintArray jUbnd_in,   /* Upper input bounds */ \
+   Xjtype##Array jIn,    /* Input data grid */ \
+   Xjtype##Array jIn_var,/* Input variance grid */ \
+   jobject spreadObj,    /* Spreader object */ \
+   jboolean usebad,      /* Bad value flag */ \
+   jdouble tol,          /* Tolerance */ \
+   jint maxpix,          /* Initial scale size */ \
+   Xjtype badval,        /* Bad value */ \
+   jint ndim_out,        /* Dimensionality of the output grid */ \
+   jintArray jLbnd_out,  /* Lower output bounds of array */ \
+   jintArray jUbnd_out,  /* Upper output bounds of array */ \
+   jintArray jLbnd,      /* Lower output bounds for calculation */ \
+   jintArray jUbnd,      /* Upper output bounds for calculation */ \
+   Xjtype##Array jOut,   /* Output data grid */ \
+   Xjtype##Array jOut_var/* Output variance grid */ \
+) { \
+   AstPointer pointer = jniastGetPointerField( env, this ); \
+   int *lbnd = NULL; \
+   int *lbnd_in = NULL; \
+   int *lbnd_out = NULL; \
+   int *ubnd = NULL; \
+   int *ubnd_in = NULL; \
+   int *ubnd_out = NULL; \
+   Xtype *in = NULL; \
+   Xtype *out = NULL; \
+   Xtype *in_var = NULL; \
+   Xtype *out_var = NULL; \
+   int scheme; \
+   int flags; \
+   int nbad; \
+   jdoubleArray jParams; \
+   double *params; \
+   int spread; \
+ \
+   ENSURE_SAME_TYPE(Xtype,Xjtype) \
+   ENSURE_SAME_TYPE(int,jint) \
+   ENSURE_SAME_TYPE(double,jdouble) \
+ \
+   /* Ensure that we have all the field and method ID that we may require. */ \
+   initializeIDs( env ); \
+ \
+   /* Map array elements from java arrays. */ \
+   ( lbnd = (int *) (*env)->GetIntArrayElements( env, jLbnd, NULL ) ) && \
+   ( ubnd = (int *) (*env)->GetIntArrayElements( env, jUbnd, NULL ) ) && \
+   ( lbnd_in = (int *) (*env)->GetIntArrayElements( env, jLbnd_in, \
+                                                    NULL ) ) && \
+   ( ubnd_in = (int *) (*env)->GetIntArrayElements( env, jUbnd_in, \
+                                                    NULL ) ) && \
+   ( lbnd_out = (int *) (*env)->GetIntArrayElements( env, jLbnd_out, \
+                                                     NULL ) ) && \
+   ( ubnd_out = (int *) (*env)->GetIntArrayElements( env, jUbnd_out, \
+                                                     NULL ) ) && \
+   ( in = (Xtype *) (*env)->Get##XJtype##ArrayElements( env, jIn, \
+                                                        NULL ) ) && \
+   ( out = (Xtype *) (*env)->Get##XJtype##ArrayElements( env, jOut, \
+                                                         NULL ) ); \
+   if ( jIn_var != NULL && ! (*env)->ExceptionCheck( env ) ) { \
+      ( in_var = (Xtype *) \
+           (*env)->Get##XJtype##ArrayElements( env, jIn_var, NULL ) ) && \
+      ( out_var = (Xtype *) \
+           (*env)->Get##XJtype##ArrayElements( env, jOut_var, NULL ) ); \
+   } \
+ \
+   /* Check that the arrays are all long enough. */ \
+   if ( ! (*env)->ExceptionCheck( env ) ) { \
+      if ( (*env)->GetArrayLength( env, jLbnd_in ) < ndim_in || \
+           (*env)->GetArrayLength( env, jUbnd_in ) < ndim_in || \
+           (*env)->GetArrayLength( env, jLbnd ) < ndim_out || \
+           (*env)->GetArrayLength( env, jUbnd ) < ndim_out || \
+           (*env)->GetArrayLength( env, jLbnd_out ) < ndim_out || \
+           (*env)->GetArrayLength( env, jUbnd_out ) < ndim_out ) { \
+         jniastThrowIllegalArgumentException( env, "rebin" #Xletter ": " \
+                                              "bound arrays too short" ); \
+      } \
+      else { \
+         int i; \
+         int nin = 1; \
+         int nout = 1; \
+         for ( i = 0; i < ndim_in; i++ ) { \
+            nin *= ( ubnd_in[ i ] - lbnd_in[ i ] + 1 ); \
+         } \
+         for ( i = 0; i < ndim_out; i++ ) { \
+            nout *= ( ubnd_out[ i ] - lbnd_out[ i ] + 1 ); \
+         } \
+         if ( (*env)->GetArrayLength( env, jIn ) < nin || \
+              (*env)->GetArrayLength( env, jOut ) < nout || \
+              ( in_var != NULL && \
+                (*env)->GetArrayLength( env, jIn_var ) < nin ) || \
+              ( out_var != NULL && \
+                (*env)->GetArrayLength( env, jOut_var ) < nout ) ) { \
+            jniastThrowIllegalArgumentException( env, "resample" #Xletter ": " \
+                                                 "data/variance arrays " \
+                                                 "too short" ); \
+         } \
+      } \
+   } \
+ \
+   /* Interrogate the Spreader object to find out how the spreading \
+    * is going to be done. */ \
+   ( ! (*env)->ExceptionCheck( env ) ) && \
+   ( spread = (int) (*env)->GetIntField( env, spreadObj, \
+                                         SpreaderSchemeID ) ) && \
+   ( jParams = (*env)->GetObjectField( env, spreadObj, \
+                                       SpreaderParamsID ) ) && \
+   ( params =  (*env)->GetDoubleArrayElements( env, \
+                                                         jParams, NULL ) ); \
+   flags = ( usebad == JNI_TRUE ) ? AST__USEBAD : 0; \
+ \
+   /* Call the AST routine to do the work. */ \
+   ASTCALL( \
+      astRebin##Xletter( pointer.Mapping, wlim, ndim_in, lbnd_in, ubnd_in, \
+                         in, in_var, spread, params, flags, tol, maxpix, \
+                         badval, ndim_out, lbnd_out, ubnd_out, lbnd, ubnd, \
+                         out, out_var ); \
+   ) \
+ \
+   /* Release resources. */ \
+   ALWAYS( \
+      if ( lbnd ) { \
+         (*env)->ReleaseIntArrayElements( env, jLbnd, (jint *) lbnd, \
+                                          JNI_ABORT ); \
+      } \
+      if ( ubnd ) { \
+         (*env)->ReleaseIntArrayElements( env, jUbnd, (jint *) ubnd, \
+                                          JNI_ABORT ); \
+      } \
+      if ( lbnd_in ) { \
+         (*env)->ReleaseIntArrayElements( env, jLbnd_in, (jint *) lbnd_in, \
+                                          JNI_ABORT ); \
+      } \
+      if ( ubnd_in ) { \
+         (*env)->ReleaseIntArrayElements( env, jUbnd_in, (jint *) ubnd_in, \
+                                          JNI_ABORT ); \
+      } \
+      if ( lbnd_out ) { \
+         (*env)->ReleaseIntArrayElements( env, jLbnd_out, (jint *) lbnd_out, \
+                                          JNI_ABORT ); \
+      } \
+      if ( ubnd_out ) { \
+         (*env)->ReleaseIntArrayElements( env, jUbnd_out, (jint *) ubnd_out, \
+                                          JNI_ABORT ); \
+      } \
+      if ( in ) { \
+         (*env)->Release##XJtype##ArrayElements( env, jIn, (Xjtype *) in, \
+                                                 JNI_ABORT ); \
+      } \
+      if ( out ) { \
+         (*env)->Release##XJtype##ArrayElements( env, jOut, \
+                                                 (Xjtype *) out, 0 ); \
+      } \
+      if ( jIn_var != NULL ) { \
+         if ( in_var ) { \
+            (*env)->Release##XJtype##ArrayElements( env, jIn_var, \
+                                                    (Xjtype *) in_var, \
+                                                    JNI_ABORT ); \
+         } \
+         if ( out_var ) { \
+            (*env)->Release##XJtype##ArrayElements( env, jOut_var, \
+                                                    (Xjtype *) out_var, 0 ); \
+         } \
+      } \
+   ) \
+}
+MAKE_REBINX(I,int,jint,Int)
+MAKE_REBINX(F,float,jfloat,Float)
+MAKE_REBINX(D,double,jdouble,Double)
+#undef MAKE_REBINX
 
 
 /* $Id$ */

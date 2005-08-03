@@ -40,6 +40,20 @@ public class Mapping extends AstObject {
         Interpolator.linear();
 
     /**
+     * A nearest-neighbour spreader for use in the rebinning methods.
+     * Provided static for convenience.
+     */
+    public static final Spreader NEAREST_SPREADER =
+        Spreader.nearest();
+
+    /**
+     * A linear spreader for use in the rebinning methods.
+     * Provided static for convenience.
+     */
+    public static final Spreader LINEAR_SPREADER =
+        Spreader.linear();
+
+    /**
      * Dummy constructor.  This constructor does not create a valid
      * Mapping object, but is required for inheritance by Mapping's
      * subclasses.
@@ -666,6 +680,408 @@ public class Mapping extends AstObject {
         double[] out, double[] out_var );
 
     /** 
+     * Rebin a region of a data grid.   
+     * This is a set of functions for rebinning gridded data (e.g. an
+     * image) under the control of a geometrical transformation, which
+     * is specified by a Mapping.  The functions operate on a pair of
+     * data grids (input and output), each of which may have any number
+     * of dimensions. Rebinning may be restricted to a specified
+     * region of the input grid. An associated grid of error estimates
+     * associated with the input data may also be supplied (in the form
+     * of variance values), so as to produce error estimates for the
+     * rebined output data. Propagation of missing data (bad pixels)
+     * is supported.
+     * <p>
+     * You should use a rebinning function which matches the numerical
+     * type of the data you are processing by replacing <X> in
+     * the generic function name astRebin<X> by an appropriate 1- or
+     * 2-character type code. For example, if you are rebinning data
+     * with type "float", you should use the function astRebinF (see
+     * the "Data Type Codes" section below for the codes appropriate to
+     * other numerical types).
+     * <p>
+     * Rebinning of the grid of input data is performed by transforming
+     * the coordinates of the centre of each input grid element (or pixel)
+     * into the coordinate system of the output grid. The input pixel
+     * value is then divided up and assigned to the output pixels in the
+     * neighbourhood of the central output coordinates. A choice of
+     * schemes are provided for determining how each input pixel value is
+     * divided up between the output pixels. In general, each output pixel 
+     * may be assigned values from more than one input pixel. All 
+     * contributions to a given output pixel are summed to produce the
+     * final output pixel value. Output pixels can be set to the supplied
+     * bad value if they receive contributions from an insufficient number
+     * of input pixels. This is controlled by the 
+     * "wlim" parameter.
+     * <p>
+     * Input pixel coordinates are transformed into the coordinate
+     * system of the output grid using the forward transformation of the
+     * Mapping which is supplied. This means that geometrical features
+     * in the input data are subjected to the Mapping's forward
+     * transformation as they are transferred from the input to the
+     * output grid.
+     * <p>
+     * In practice, transforming the coordinates of every pixel of a
+     * large data grid can be time-consuming, especially if the Mapping
+     * involves complicated functions, such as sky projections. To
+     * improve performance, it is therefore possible to approximate
+     * non-linear Mappings by a set of linear transformations which are
+     * applied piece-wise to separate sub-regions of the data. This
+     * approximation process is applied automatically by an adaptive
+     * algorithm, under control of an accuracy criterion which
+     * expresses the maximum tolerable geometrical distortion which may
+     * be introduced, as a fraction of a pixel.
+     * <p>
+     * This algorithm first attempts to approximate the Mapping with a
+     * linear transformation applied over the whole region of the
+     * input grid which is being used. If this proves to be
+     * insufficiently accurate, the input region is sub-divided into
+     * two along its largest dimension and the process is repeated
+     * within each of the resulting sub-regions. This process of
+     * sub-division continues until a sufficiently good linear
+     * approximation is found, or the region to which it is being
+     * applied becomes too small (in which case the original Mapping is
+     * used directly).
+     * <h4>Pixel Spreading Schemes</h4>
+     * The pixel spreading scheme specifies the Point Spread Function (PSF) 
+     * applied to each input pixel value as it is copied into the output 
+     * array. It can be thought of as the inverse of the sub-pixel 
+     * interpolation schemes used by the
+     * astResample<X> 
+     * group of functions. That is, in a sub-pixel interpolation scheme the 
+     * kernel specifies the weight to assign to each input pixel when
+     * forming the weighted mean of the input pixels, whereas the kernel in a 
+     * pixel spreading scheme specifies the fraction of the input data value 
+     * which is to be assigned to each output pixel. As for interpolation, the 
+     * choice of suitable pixel spreading scheme involves stricking a balance 
+     * between schemes which tend to degrade sharp features in the data by 
+     * smoothing them, and those which attempt to preserve sharp features but 
+     * which often tend to introduce unwanted artifacts. See the
+     * astResample<X> 
+     * documentation for further discussion.
+     * <p>
+     * The following values (defined in the 
+     * "ast.h" header file)
+     * may be assigned to the 
+     * "spread" 
+     * parameter. See the 
+     * astResample<X> 
+     * documentation for details of these schemes including the use of the 
+     * "fspread" and "params" parameters:
+     * <p>
+     * <br> - AST__NEAREST
+     * <br> - AST__LINEAR
+     * <br> - AST__SINC
+     * <br> - AST__SINCSINC
+     * <br> - AST__SINCCOS
+     * <br> - AST__SINCGAUSS
+     * <p>
+     * In addition, the following schemes can be used with 
+     * astRebin<X> but not with astResample<X>:
+     * <p>
+     * <br> - AST__GAUSS: This scheme uses a kernel of the form exp(-k*x*x), with k 
+     * a positive constant determined by the full-width at half-maximum (FWHM).
+     * The FWHM should be supplied in units of output pixels by means of the 
+     * "params[1]"
+     * value and should be at least 0.1. The 
+     * "params[0]" 
+     * value should be used to specify at what point the Gaussian is truncated 
+     * to zero. This should be given as a number of output pixels on either 
+     * side of the central output point in each dimension (the nearest integer 
+     * value is used).
+     * <h4>Propagation of Missing Data</h4>
+     * Instances of missing data (bad pixels) in the output grid are
+     * identified by occurrences of the "badval" value in the "out"
+     * array. These are produced if the sum of the weights of the 
+     * contributing input pixels is less than 
+     * "wlim".
+     * <p>
+     * An input pixel is considered bad (and is consequently ignored) if 
+     * its
+     * data value is equal to "badval" and the AST__USEBAD flag is
+     * set via the "flags" parameter.
+     * <p>
+     * In addition, associated output variance estimates (if
+     * calculated) may be declared bad and flagged with the "badval"
+     * value in the "out_var" array for similar reasons.
+     * @param   wlim
+     * Gives the required number of input pixel values which must contribute
+     * to an output pixel in order for the output pixel value to be
+     * considered valid. If the sum of the input pixel weights contributing 
+     * to an output pixel is less than the supplied
+     * "wlim"
+     * value, then the output pixel value is returned set to the
+     * supplied bad value.
+     * 
+     * @param   ndim_in
+     * The number of dimensions in the input grid. This should be at
+     * least one.
+     * 
+     * @param   lbnd_in
+     * Pointer to an array of integers, with "ndim_in" elements,
+     * containing the coordinates of the centre of the first pixel
+     * in the input grid along each dimension.
+     * 
+     * @param   ubnd_in
+     * Pointer to an array of integers, with "ndim_in" elements,
+     * containing the coordinates of the centre of the last pixel in
+     * the input grid along each dimension.
+     * <p>
+     * Note that "lbnd_in" and "ubnd_in" together define the shape
+     * and size of the input grid, its extent along a particular
+     * (j'th) dimension being ubnd_in[j]-lbnd_in[j]+1 (assuming the
+     * index "j" to be zero-based). They also define
+     * the input grid's coordinate system, each pixel having unit
+     * extent along each dimension with integral coordinate values
+     * at its centre.
+     * 
+     * @param   in
+     * Pointer to an array, with one element for each pixel in the
+     * input grid, containing the input data to be rebined.  The
+     * numerical type of this array should match the 1- or
+     * 2-character type code appended to the function name (e.g. if
+     * you are using astRebinF, the type of each array element
+     * should be "float").
+     * <p>
+     * The storage order of data within this array should be such
+     * that the index of the first grid dimension varies most
+     * rapidly and that of the final dimension least rapidly
+     * (i.e. Fortran array indexing is used).
+     * 
+     * @param   in_var
+     * An optional pointer to a second array with the same size and
+     * type as the "in" array. If given, this should contain a set
+     * of non-negative values which represent estimates of the
+     * statistical variance associated with each element of the "in"
+     * array. If this array is supplied (together with the
+     * corresponding "out_var" array), then estimates of the
+     * variance of the rebined output data will be calculated.
+     * <p>
+     * If no input variance estimates are being provided, a NULL
+     * pointer should be given.
+     * 
+     * @param   spread
+     * a <code>Spreader</code> object which determines how each
+     *             input data value is divided up amongst the corresponding
+     *             output pixels
+     *          
+     * @param   usebad
+     * if true, indicates that there may be bad
+     *             pixels in the input array(s) which must be
+     *             recognised by comparing with the value given for
+     *             <code>badval</code> and propagated to the
+     *             output array(s). If
+     *             this flag is not set, all input values are treated
+     *             literally and the <code>badval</code>
+     *             value is only used for
+     *             flagging output array values.
+     *          
+     * @param   tol
+     * The maximum tolerable geometrical distortion which may be
+     * introduced as a result of approximating non-linear Mappings
+     * by a set of piece-wise linear transformations. This should be
+     * expressed as a displacement in pixels in the output grid's
+     * coordinate system.
+     * <p>
+     * If piece-wise linear approximation is not required, a value
+     * of zero may be given. This will ensure that the Mapping is
+     * used without any approximation, but may increase execution
+     * time.
+     * 
+     * @param   maxpix
+     * A value which specifies an initial scale size (in pixels) for
+     * the adaptive algorithm which approximates non-linear Mappings
+     * with piece-wise linear transformations. Normally, this should
+     * be a large value (larger than any dimension of the region of
+     * the input grid being used). In this case, a first attempt to
+     * approximate the Mapping by a linear transformation will be
+     * made over the entire input region.
+     * <p>
+     * If a smaller value is used, the input region will first be
+     * divided into sub-regions whose size does not exceed "maxpix"
+     * pixels in any dimension. Only at this point will attempts at
+     * approximation commence.
+     * <p>
+     * This value may occasionally be useful in preventing false
+     * convergence of the adaptive algorithm in cases where the
+     * Mapping appears approximately linear on large scales, but has
+     * irregularities (e.g. holes) on smaller scales. A value of,
+     * say, 50 to 100 pixels can also be employed as a safeguard in
+     * general-purpose software, since the effect on performance is
+     * minimal.
+     * <p>
+     * If too small a value is given, it will have the effect of
+     * inhibiting linear approximation altogether (equivalent to
+     * setting "tol" to zero). Although this may degrade
+     * performance, accurate results will still be obtained.
+     * 
+     * @param   badval
+     * This argument should have the same type as the elements of
+     * the "in" array. It specifies the value used to flag missing
+     * data (bad pixels) in the input and output arrays.
+     * <p>
+     * If the AST__USEBAD flag is set via the "flags" parameter,
+     * then this value is used to test for bad pixels in the "in"
+     * (and "in_var") array(s).
+     * <p>
+     * In all cases, this value is also used to flag any output
+     * elements in the "out" (and "out_var") array(s) for which
+     * rebined values could not be obtained (see the "Propagation
+     * of Missing Data" section below for details of the
+     * circumstances under which this may occur). The astRebin<X>
+     * function return value indicates whether any such values have
+     * been produced.
+     * 
+     * @param   ndim_out
+     * The number of dimensions in the output grid. This should be
+     * at least one. It need not necessarily be equal to the number
+     * of dimensions in the input grid.
+     * 
+     * @param   lbnd_out
+     * Pointer to an array of integers, with "ndim_out" elements,
+     * containing the coordinates of the centre of the first pixel
+     * in the output grid along each dimension.
+     * 
+     * @param   ubnd_out
+     * Pointer to an array of integers, with "ndim_out" elements,
+     * containing the coordinates of the centre of the last pixel in
+     * the output grid along each dimension.
+     * <p>
+     * Note that "lbnd_out" and "ubnd_out" together define the
+     * shape, size and coordinate system of the output grid in the
+     * same way as "lbnd_in" and "ubnd_in" define the shape, size
+     * and coordinate system of the input grid.
+     * 
+     * @param   lbnd
+     * Pointer to an array of integers, with "ndim_in" elements,
+     * containing the coordinates of the first pixel in the region
+     * of the input grid which is to be included in the rebined output
+     * array.
+     * 
+     * @param   ubnd
+     * Pointer to an array of integers, with "ndim_in" elements,
+     * containing the coordinates of the last pixel in the region of
+     * the input grid which is to be included in the rebined output
+     * array.
+     * <p>
+     * Note that "lbnd" and "ubnd" together define the shape and
+     * position of a (hyper-)rectangular region of the input grid
+     * which is to be included in the rebined output array. This region
+     * should lie wholly within the extent of the input grid (as
+     * defined by the "lbnd_in" and "ubnd_in" arrays). Regions of
+     * the input grid lying outside this region will not be used.
+     * 
+     * @param   out
+     * Pointer to an array, with one element for each pixel in the
+     * output grid, in which the rebined data values will be
+     * returned. The numerical type of this array should match that
+     * of the "in" array, and the data storage order should be such
+     * that the index of the first grid dimension varies most
+     * rapidly and that of the final dimension least rapidly
+     * (i.e. Fortran array indexing is used).
+     * 
+     * @param   out_var
+     * An optional pointer to an array with the same type and size
+     * as the "out" array. If given, this array will be used to
+     * return variance estimates for the rebined data values. This
+     * array will only be used if the "in_var" array has also been
+     * supplied.
+     * <p>
+     * The output variance values will be calculated on the
+     * assumption that errors on the input data values are
+     * statistically independent and that their variance estimates
+     * may simply be summed (with appropriate weighting factors)
+     * when several input pixels contribute to an output data
+     * value. If this assumption is not valid, then the output error
+     * estimates may be biased. In addition, note that the
+     * statistical errors on neighbouring output data values (as
+     * well as the estimates of those errors) may often be
+     * correlated, even if the above assumption about the input data
+     * is correct, because of the pixel spreading schemes
+     * employed.
+     * <p>
+     * If no output variance estimates are required, a NULL pointer
+     * should be given.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public void rebin( double wlim, int ndim_in, int[] lbnd_in, int[] ubnd_in, Object in, Object in_var, Mapping.Spreader spread, boolean usebad, double tol, int maxpix, Number badval, int ndim_out, int[] lbnd_out, int[] ubnd_out, int[] lbnd, int[] ubnd, Object out, Object out_var ){
+        Class type = in.getClass().getComponentType();
+        try {
+            if ( type == int.class ) {
+                rebinI( wlim, ndim_in, lbnd_in, ubnd_in, 
+                        (int[]) in, (int[]) in_var,
+                        spread, usebad, tol, maxpix, 
+                        ((Integer) badval).intValue(), ndim_out, 
+                        lbnd_out, ubnd_out, lbnd, ubnd,
+                        (int[]) out, (int[]) out_var );
+            }
+            else if ( type == float.class ) {
+                rebinF( wlim, ndim_in, lbnd_in, ubnd_in, 
+                        (float[]) in, (float[]) in_var,
+                        spread, usebad, tol, maxpix,
+                        ((Float) badval).floatValue(), ndim_out,
+                        lbnd_out, ubnd_out, lbnd, ubnd,
+                        (float[]) out, (float[]) out_var );
+            }
+            else if ( type == double.class ) {
+                rebinD( wlim, ndim_in, lbnd_in, ubnd_in,
+                        (double[]) in, (double[]) in_var,
+                        spread, usebad, tol, maxpix,
+                        ((Double) badval).doubleValue(), ndim_out,
+                        lbnd_out, ubnd_out, lbnd, ubnd,
+                        (double[]) out, (double[]) out_var );
+            }
+            else {
+                throw new ClassCastException( "Dummy class cast exception" );
+            }
+        }
+        catch ( ClassCastException e ) {
+            throw new IllegalArgumentException(
+                "in, in_var, out and out_var must all be arrays of the same "
+              + "primitive type, and badval a matching Number type" );
+        }
+    }
+   /**
+    * Rebinning method specific to int data.
+    *
+    * @see  #rebin
+    */
+   public native void rebinI(
+      double wlim, int ndim_in, int[] lbnd_in, int[] ubnd_in,
+      int[] in, int[] in_var,
+      Mapping.Spreader spread, boolean usebad, double tol, int maxpix,
+      int badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
+      int[] lbnd, int[] ubnd,
+      int[] out, int[] out_var );
+
+   /**
+    * Rebinning method specific to float data.
+    *
+    * @see  #rebin
+    */
+   public native void rebinF(
+      double wlim, int ndim_in, int[] lbnd_in, int[] ubnd_in,
+      float[] in, float[] in_var,
+      Mapping.Spreader spread, boolean usebad, double tol, int maxpix,
+      float badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
+      int[] lbnd, int[] ubnd,
+      float[] out, float[] out_var );
+
+   /**
+    * Rebinning method specific to double data.
+    *
+    * @see  #rebin
+    */
+   public native void rebinD(
+      double wlim, int ndim_in, int[] lbnd_in, int[] ubnd_in,
+      double[] in, double[] in_var,
+      Mapping.Spreader spread, boolean usebad, double tol, int maxpix,
+      double badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
+      int[] lbnd, int[] ubnd,
+      double[] out, double[] out_var );
+
+    /** 
      * Transform 1-dimensional coordinates.   
      * This function applies a Mapping to transform the coordinates of
      * a set of points in one dimension.
@@ -1283,7 +1699,7 @@ public class Mapping extends AstObject {
      */
 
     /**
-     * Controls the interpolation scheme used by <code>AstMapping</code>'s
+     * Controls the interpolation scheme used by <code>Mapping</code>'s
      * resampling methods.  This class has no public constructors, but
      * provides static factory methods which generate <code>Interpolator</code>
      * objects that can be passed to the <code>resample*</code> methods.
@@ -1500,6 +1916,174 @@ public class Mapping extends AstObject {
             Interpolator interp = new Interpolator( AST__UINTERP, null );
             interp.uinterper = uinterper;
             return interp;
+        }
+    }
+
+    /**
+     * Controls the spreading scheme used by <code>Mapping</code>'s
+     * rebinning methods.  This class has no public constructors,
+     * but provides static factory methods which generate <code>Spreader</code>
+     * objects that can be passed to the <code>rebin*</code> methods.
+     */
+    public static class Spreader {
+
+        /*
+         * Private fields written by the factory methods and read by
+         * AstMapping native code.
+         */
+        private int scheme_;
+
+        /*
+         * Used as a buffer by native code as well sa rebinX documented use.
+         */
+        private double[] params_;
+
+        /*
+         * Values of spreading scheme identifiers in C library.
+         */
+        private static final int AST__NEAREST =
+                getAstConstantI( "AST__NEAREST" );
+        private static final int AST__LINEAR =
+                getAstConstantI( "AST__LINEAR" );
+        private static final int AST__SINC =
+                getAstConstantI( "AST__SINC" );
+        private static final int AST__SINCSINC =
+                getAstConstantI( "AST__SINCSINC" );
+        private static final int AST__SINCCOS =
+                getAstConstantI( "AST__SINCCOS" );
+        private static final int AST__SINCGAUSS =
+                getAstConstantI( "AST__SINCGAUSS" );
+        private static final int AST__GAUSS =
+                getAstConstantI( "AST__GAUSS" );
+
+        /**
+         * Sole private constructor.
+         */
+        private Spreader( int scheme, double[] params ) {
+            scheme_ = scheme;
+            params_ = params;
+        }
+
+        /*
+         * Public static methods which return the various kinds of spreaders.
+         */
+
+        /**
+         * Returns a resampling spreader which samples from the
+         * nearest neighbour.
+         *
+         * @return  a nearest-neighbour resampling Spreader
+         */
+        public static Spreader nearest() {
+            return new Spreader( AST__NEAREST, null );
+        }
+
+        /**
+         * Returns a resampling spreader which samples using 
+         * linear interpolation.
+         *
+         * @return  a linear interpolation resampling Spreader
+         */
+        public static Spreader linear() {
+            return new Spreader( AST__LINEAR, null );
+        }
+
+        /**
+         * Returns a resampling spreader which uses a
+         * <code>sinc(pi*x)</code> 1-dimensional kernel.
+         *
+         * @param   npix  the number of pixels to contribute to the
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @return  a sinc-type resampling Spreader
+         */
+        public static Spreader sinc( int npix ) {
+            return new Spreader( AST__SINC,
+                                 new double[] { (double) npix } );
+        }
+
+        /**
+         * Returns a resampling spreader which uses a
+         * <code>sinc(pi*x).sinc(k*pi*x)</code> 1-dimensional kernel.
+         *
+         * @param   npix  the number of pixels to contribute to the
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @param  width  the number of pixels at which the envelope goes
+         *                to zero.  Should be at least 1.0.
+         * @return  a sinc-sinc-type resampling Spreader
+         */
+        public static Spreader sincSinc( int npix, double width ) {
+            return new Spreader( AST__SINCSINC,
+                                 new double[] { (double) npix, width } );
+        }
+
+        /**
+         * Returns a resampling spreader which uses a
+         * <code>sinc(pi*x).cos(k*pi*x)</code> 1-dimensional kernel.
+         *
+         * @param   npix  the number of pixels to contribute to the
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @param  width  the number of pixels at which the envelope goes
+         *                to zero.  Should be at least 1.0.
+         * @return  a sinc-cos-type resampling Spreader
+         */
+        public static Spreader sincCos( int npix, double width ) {
+            return new Spreader( AST__SINCCOS,
+                                 new double[] { (double) npix, width } );
+        }
+
+        /**
+         * Returns a resampling spreader which uses a
+         * <code>sinc(pi*x).exp(-k*x*x)</code> 1-dimensional kernel.
+         *
+         * @param   npix  the number of pixels to contribute to the
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @param  fwhm   the full width at half maximum of the Gaussian
+         *                envelope.  Should be at least 0.1.
+         * @return a sinc-Gauss-type resampling Spreader
+         */
+        public static Spreader sincGauss( int npix, double fwhm ) {
+            return new Spreader( AST__SINCGAUSS,
+                                 new double[] { (double) npix, fwhm } );
+        }
+
+        /**
+         * Returns a resampling spreader which uses a
+         * <code>exp(-k*x*x)</code> 1-dimensional kernel.
+         *
+         * @param   npix  the number of pixels to contribute to the
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         * @param   fwhm  the full width at half maximum of the Gaussian
+         *                envelope.  Should be at least 0.1.
+         * @return  a Gauss-type resampling Spreader
+         */
+        public static Spreader gauss( int npix, double fwhm ) {
+            return new Spreader( AST__GAUSS,
+                                 new double[] { (double) npix, fwhm } );
         }
     }
 
