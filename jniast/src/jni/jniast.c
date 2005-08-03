@@ -107,6 +107,9 @@ void jniastInitialize( JNIEnv *env ) {
         (*env)->FindClass( env, "java/lang/NoClassDefFoundError" ) ) ) &&
    ( OutOfMemoryErrorClass = (jclass) (*env)->NewGlobalRef( env,
         (*env)->FindClass( env, "java/lang/OutOfMemoryError" ) ) ) &&
+   ( UnsupportedOperationExceptionClass = (jclass) (*env)->NewGlobalRef( env,
+        (*env)->FindClass( env, 
+                           "java/lang/UnsupportedOperationException" ) ) ) &&
    ( DoubleClass = (jclass) (*env)->NewGlobalRef( env,
         (*env)->FindClass( env, "java/lang/Double" ) ) ) &&
    ( IntegerClass = (jclass) (*env)->NewGlobalRef( env,

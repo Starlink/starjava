@@ -105,6 +105,7 @@ jclass ErrorClass;
 jclass IntegerClass;
 jclass MappingClass;
 jclass StringClass;
+jclass UnsupportedOperationExceptionClass;
 jmethodID ObjectHashCodeMethodID;
 jmethodID ObjectToStringMethodID;
 jmethodID AstExceptionConstructorID;
@@ -213,6 +214,32 @@ void jniastTrace( JNIEnv *env, jobject obj );
    if ( _jniast_except != NULL ) { \
       (*env)->Throw( env, _jniast_except ); \
    } \
+}
+
+/*
+ * Macro for ensuring that two types are the same length.  Some of the
+ * JNI code relies on equivalence between a type on the java side and
+ * a type on the C side, for instance that the jdouble and double types
+ * are the same thing.  The ENSURE_SAME_TYPE macro bails out with an 
+ * UnsupportedOperationException in the case that the two specified
+ * types don't match.
+ *
+ * Using this macro as protection will have the effect that the JVM 
+ * shouldn't crash when such type mismatches occur, but of course the
+ * operation will still fail with a runtime error.  The correct way
+ * around this is some sort of config magic at build time.
+ */
+#define jniastCheckSameType(Xenv,Xtype1,Xtype2) ( \
+   ( sizeof( Xtype1 ) == sizeof( Xtype2 ) ) \
+        ? ( 1 ) \
+        : ( (*Xenv)->ThrowNew( Xenv, UnsupportedOperationExceptionClass, \
+                               "Sorry, operation is not supported on " \
+                               "this architecture since type sizes differ (" \
+                               #Xtype1 " != " #Xtype2 ")" ) \
+          & 0 ) \
+)
+#define ENSURE_SAME_TYPE(Xtype1,Xtype2) { \
+   if ( ! jniastCheckSameType( env, Xtype1, Xtype2 ) ) return; \
 }
 
 #endif  /* JNIAST_DEFINED */
