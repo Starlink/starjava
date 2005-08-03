@@ -181,10 +181,10 @@ print <<'__EOT__';
                 return maskI( map, inside, ndim, lbnd, ubnd,
                               (int[]) in, ((Integer) val).intValue() );
             }
-        //  else if ( type == long.class ) {
-        //      return maskL( map, inside, ndim, lbnd, ubnd,
-        //                    (long[]) in, ((Long) val).longValue() );
-        //  }
+            else if ( type == long.class ) {
+                return maskL( map, inside, ndim, lbnd, ubnd,
+                              (long[]) in, ((Long) val).longValue() );
+            }
             else if ( type == float.class ) {
                 return maskF( map, inside, ndim, lbnd, ubnd,
                               (float[]) in, ((Float) val).floatValue() );
@@ -209,7 +209,7 @@ foreach $Xtype (
    [ "B", "byte" ],
    [ "S", "short" ],
    [ "I", "int" ],
- # [ "L", "long" ],
+   [ "L", "long" ],
    [ "F", "float" ],
    [ "D", "double" ],
 ) {

@@ -362,10 +362,10 @@ public abstract class Region extends Frame {
                 return maskI( map, inside, ndim, lbnd, ubnd,
                               (int[]) in, ((Integer) val).intValue() );
             }
-        //  else if ( type == long.class ) {
-        //      return maskL( map, inside, ndim, lbnd, ubnd,
-        //                    (long[]) in, ((Long) val).longValue() );
-        //  }
+            else if ( type == long.class ) {
+                return maskL( map, inside, ndim, lbnd, ubnd,
+                              (long[]) in, ((Long) val).longValue() );
+            }
             else if ( type == float.class ) {
                 return maskF( map, inside, ndim, lbnd, ubnd,
                               (float[]) in, ((Float) val).floatValue() );
@@ -407,6 +407,14 @@ public abstract class Region extends Frame {
     public native int maskI( Mapping map, boolean inside, int ndim,
                                     int[] lbnd, int[] ubnd,
                                     int[] in, int val );
+    /**
+     * Masking method specific to long data.
+     *
+     * @see #mask
+     */
+    public native int maskL( Mapping map, boolean inside, int ndim,
+                                    int[] lbnd, int[] ubnd,
+                                    long[] in, long val );
     /**
      * Masking method specific to float data.
      *
