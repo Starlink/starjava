@@ -47,10 +47,10 @@ static void fukern1( double offset, const double params[], int flags,
 
 /* Static variables. */
 jclass InterpolatorClass = NULL;
-jfieldID InterpolatorSchemeID;
-jfieldID InterpolatorParamsID;
-jfieldID InterpolatorUkern1erID;
-jfieldID InterpolatorUinterperID;
+jfieldID InterpolatorSchemeID = NULL;
+jfieldID InterpolatorParamsID = NULL;
+jfieldID InterpolatorUkern1erID = NULL;
+jfieldID InterpolatorUinterperID = NULL;
 
 
 /* Static functions. */
@@ -76,7 +76,7 @@ static void initializeIDs( JNIEnv *env ) {
       /* Get global references to classes. */
       ( InterpolatorClass = (jclass) (*env)->NewGlobalRef( env,
            (*env)->FindClass( env, 
-                              PACKAGE_PATH "Mapping.Interpolator" ) ) ) &&
+                              PACKAGE_PATH "Mapping$Interpolator" ) ) ) &&
 
       /* Get Field IDs. */
       ( InterpolatorSchemeID = 
@@ -770,7 +770,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
             infoUk1->env = env; \
             infoUk1->calculator = calc; \
             infoUk1->method = (*env)->GetMethodID( env, calcClass, \
-                                                   "ukern1", "(D)V" ); \
+                                                   "ukern1", "(D)D" ); \
             break; \
          case AST__UINTERP: \
             finterp = (void (*)()) fuinterp##Xletter; \
@@ -911,7 +911,7 @@ static void fuinterp##Xletter( int ndim_in, const int *lbnd_in,  \
 *     astUinterp function in SUN/211. \
 *- \
 */ \
-   UinterpInfo##Xletter *info = (UinterpInfo##Xletter *) params; \
+   UinterpInfo##Xletter *info = *((UinterpInfo##Xletter **) (params)); \
    JNIEnv *env = info->env; \
    jobject calc = info->calculator; \
    jmethodID method = info->method; \
@@ -1102,7 +1102,7 @@ static void fukern1( double offset, const double *params, int flags,
 *     function in SUN/211.
 *-
 */
-   Ukern1Info *info = (Ukern1Info *) &params[ 1 ];
+   Ukern1Info *info = *((Ukern1Info **) (params + 1));
    JNIEnv *env = info->env;
    jobject calc = info->calculator;
    jmethodID method = info->method;
