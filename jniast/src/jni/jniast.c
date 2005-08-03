@@ -783,7 +783,7 @@ void jniastConstructStc( JNIEnv *env, jobject this, jobject jRegion,
    AstKeyMap **coords;
    int ncoords;
    int i;
-   jobject coord;
+   jobject jCoord;
 
    if ( ! (*env)->ExceptionCheck( env ) &&
         jniastCheckNotNull( env, jRegion ) ) {
@@ -797,8 +797,8 @@ void jniastConstructStc( JNIEnv *env, jobject this, jobject jRegion,
          if ( ! coords ) return;
          for ( i = 0; i < ncoords; i++ ) {
             if ( ! (*env)->ExceptionCheck( env ) ) {
-               coord = (*env)->GetObjectArrayElement( env, jCoords, i );
-               coords[ i ] = jniastGetPointerField( env, coord ).KeyMap;
+               jCoord = (*env)->GetObjectArrayElement( env, jCoords, i );
+               coords[ i ] = jniastGetPointerField( env, jCoord ).KeyMap;
             }
          }
       }
