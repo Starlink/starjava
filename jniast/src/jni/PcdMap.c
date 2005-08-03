@@ -37,6 +37,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PcdMap_construct(
    AstPointer pointer;
    const double *pcdcen = NULL;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    if ( jniastCheckArrayLength( env, jPcdcen, 2 ) ) {
       pcdcen = (const double *) 
                (*env)->GetDoubleArrayElements( env, jPcdcen, NULL );

@@ -180,6 +180,8 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_mapBox(
    int nin;
    int nout;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Validate parameters. */
    ASTCALL(
       if ( forward == JNI_TRUE ) {
@@ -258,6 +260,8 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tran1(
    double *xin = NULL;
    double *xout = NULL;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Check the input array is long enough. */
    if ( jniastCheckArrayLength( env, jXin, npoint ) ) {
 
@@ -303,6 +307,8 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranN(
    int outdim;
    double *in = NULL;
    double *out = NULL;
+
+   ENSURE_SAME_TYPE(double,jdouble)
 
    /* Perform validation of things which may cause trouble before getting
     * caught by the more exhaustive validation of the AST routine. */
@@ -362,6 +368,8 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Mapping_tran2(
    jdoubleArray jXout;
    jdoubleArray jYout;
    jobjectArray result = NULL;
+
+   ENSURE_SAME_TYPE(double,jdouble)
 
    /* Perform validation of things which may not get caught by the 
     * validation of the AST routine. */
@@ -429,6 +437,8 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranP(
    const double **ptr_in = NULL;
    double **ptr_out = NULL;
    jsize i;
+
+   ENSURE_SAME_TYPE(double,jdouble)
 
    /* Allocate pointer arrays to reference the input and output points. */
    ptr_in = jniastMalloc( env, ncoord_in * sizeof( double * ) );
@@ -512,6 +522,8 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Mapping_rate(
    int nin;
    double *at = NULL;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Validate parameters. */
    ASTCALL(
       nin = astGetI( pointer.Frame, "Nin" );
@@ -554,6 +566,8 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_linearApprox(
    int nin;
    int nout;
    int success = 0;
+
+   ENSURE_SAME_TYPE(double,jdouble)
 
    /* Get mapping characteristics. */
    ASTCALL(
@@ -671,6 +685,10 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
    jobject calc; \
    jmethodID method; \
    jclass calcClass; \
+ \
+   ENSURE_SAME_TYPE(Xtype,Xjtype) \
+   ENSURE_SAME_TYPE(int,jint) \
+   ENSURE_SAME_TYPE(double,jdouble) \
  \
    /* Ensure that we have all the field and method ID that we may require. */ \
    initializeIDs( env ); \

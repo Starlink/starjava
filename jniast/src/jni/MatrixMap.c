@@ -39,6 +39,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_MatrixMap_construct(
    const double *matrix;
    int nmin;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    nmin = (nin < nout) ? nin : nout;
    if ( ( form == 0 && jniastCheckArrayLength( env, jMatrix, nin * nout ) ) ||
         ( form == 1 && jniastCheckArrayLength( env, jMatrix, nmin ) ) ||

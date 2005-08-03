@@ -41,6 +41,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PointList_construct(
    jobject jCoords;
    int iaxis;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    unc = jUnc ? jniastGetPointerField( env, jUnc ).Region : NULL;
    if ( jniastCheckNotNull( env, jFrame ) &&
         jniastCheckNotNull( env, jPoints ) ) {

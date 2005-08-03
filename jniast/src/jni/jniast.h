@@ -233,8 +233,7 @@ void jniastTrace( JNIEnv *env, jobject obj );
    ( sizeof( Xtype1 ) == sizeof( Xtype2 ) ) \
         ? ( 1 ) \
         : ( (*Xenv)->ThrowNew( Xenv, UnsupportedOperationExceptionClass, \
-                               "Sorry, operation is not supported on " \
-                               "this architecture since type sizes differ (" \
+                               "Sorry, unsupported on this architecture (" \
                                #Xtype1 " != " #Xtype2 ")" ) \
           & 0 ) \
 )

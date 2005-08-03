@@ -56,6 +56,8 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_angle(
    int naxes;
    jdouble result;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Check our arguments look OK. */
    naxes = jniastGetNaxes( env, pointer.Frame );
    if ( jniastCheckArrayLength( env, jA, naxes ) &&
@@ -105,6 +107,8 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_axAngle(
    const double *b = NULL;
    int naxes;
    jdouble result;
+
+   ENSURE_SAME_TYPE(double,jdouble)
    
    /* Check our arguments look OK. */
    naxes = jniastGetNaxes( env, pointer.Frame );
@@ -215,6 +219,8 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_distance(
    jdouble dist;
    int naxes;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Check the arguments look OK. */
    naxes = jniastGetNaxes( env, pointer.Frame );
    if ( jniastCheckArrayLength( env, jPoint1, naxes ) &&
@@ -317,6 +323,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_norm(
    double *value = NULL;
    int naxes;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Check arguments look OK. */
    naxes = jniastGetNaxes( env, pointer.Frame );
    if ( jniastCheckArrayLength( env, jValue, naxes ) ) {
@@ -351,6 +359,8 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_offset(
    const double *point2 = NULL;
    double *point3 = NULL;
    int naxes;
+
+   ENSURE_SAME_TYPE(double,jdouble)
 
    /* Check the arguments look OK. */
    naxes = jniastGetNaxes( env, pointer.Frame );
@@ -407,6 +417,8 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_offset2(
    const double *point1 = NULL;
    double *point2 = NULL;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Check the jPoint2 array is large enough to hold the data we will
     * write into it. */
    if ( jniastCheckArrayLength( env, jPoint1, 2 ) &&
@@ -449,6 +461,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_permAxes(
    const int *perm = NULL;
    int naxes;
 
+   ENSURE_SAME_TYPE(int,jint)
+
    /* Check the arguments look OK. */
    naxes = jniastGetNaxes( env, pointer.Frame );
    if ( jniastCheckArrayLength( env, jPerm, naxes ) ) {
@@ -481,6 +495,8 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Frame_pickAxes(
    const int *axes = NULL;
    AstMapping *map;
    AstFrame *newframe;
+
+   ENSURE_SAME_TYPE(int,jint)
 
    /* Check the arguments look OK. */
    if ( jniastCheckNotNull( env, jAxes ) &&
@@ -532,6 +548,8 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_resolve(
    double *d = NULL;
    jdoubleArray jD = NULL;
    int naxes;
+
+   ENSURE_SAME_TYPE(double,jdouble)
 
    /* Check arguments. */
    naxes = jniastGetNaxes( env, pointer.Frame );

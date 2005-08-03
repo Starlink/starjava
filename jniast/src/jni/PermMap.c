@@ -41,6 +41,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PermMap_construct(
    const int *outperm = NULL;
    const double *constant;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+   ENSURE_SAME_TYPE(int,jint)
+
    if ( jniastCheckArrayLength( env, jInperm, nin ) &&
         jniastCheckArrayLength( env, jOutperm, nout ) ) {
 

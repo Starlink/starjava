@@ -541,7 +541,8 @@ double *jniastCopyDoubleArray( JNIEnv *env, jdoubleArray jArr, int bufsiz ) {
    jsize nel;
    int i;
 
-   if ( ! (*env)->ExceptionCheck( env ) ) {
+   if ( ! (*env)->ExceptionCheck( env ) &&
+        jniastCheckSameType( env, jdouble, double ) ) {
       nel = jArr ? (*env)->GetArrayLength( env, jArr )
                  : 0;
       if ( nel > bufsiz ) {

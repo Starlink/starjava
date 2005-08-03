@@ -47,6 +47,8 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_SpecFrame_getRefPos(
    double lat;
    jdoubleArray result = NULL;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Get the AstFrame object. */
    if ( jFrm == NULL ) {
       frmPointer.SkyFrame = NULL;

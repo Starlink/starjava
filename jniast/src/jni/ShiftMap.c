@@ -33,6 +33,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_ShiftMap_construct(
    const double *shift = NULL;
    int nshift;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    if ( jniastCheckNotNull( env, jShift ) ) {
       nshift = (*env)->GetArrayLength( env, jShift );
       shift = (const double *) 

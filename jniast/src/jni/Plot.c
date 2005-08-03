@@ -92,6 +92,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_construct(
    const float *graphbox = NULL;
    const double *basebox = NULL;
 
+   ENSURE_SAME_TYPE(float,jfloat)
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Ensure that method IDs etc which may be required by methods in the
     * Plot class are initialized. */
    initializeIDs( env );
@@ -189,6 +192,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_clip(
    AstFrame *frm;
    int nax;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Treat the case in which clipping is being removed specially, since
     * bounds checking would cause problems. */
    if ( (int) iframe == AST__NOFRAME ) {
@@ -237,6 +242,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_curve(
    const double *start = NULL;
    const double *finish = NULL;
    int nax;
+
+   ENSURE_SAME_TYPE(double,jdouble)
 
    nax = jniastGetNaxes( env, pointer.Frame );
    if ( jniastCheckArrayLength( env, jStart, nax ) &&
@@ -301,6 +308,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_gridLine(
    const double *start = NULL;
    int nax;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    nax = jniastGetNaxes( env, pointer.Frame );
    if ( jniastCheckArrayLength( env, jStart, nax ) ) {
       start = (const double *)
@@ -329,6 +338,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_mark(
    double *in;
    int i;
    jdoubleArray jArr;
+
+   ENSURE_SAME_TYPE(double,jdouble)
 
    in = jniastMalloc( env, nmark * ncoord * sizeof( double ) );
    if ( in != NULL && jniastCheckArrayLength( env, jIn, ncoord ) ) {
@@ -361,6 +372,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_polyCurve(
    double *in;
    int i;
    jdoubleArray jArr;
+
+   ENSURE_SAME_TYPE(double,jdouble)
 
    in = jniastMalloc( env, npoint * ncoord * sizeof( double ) );
    if ( in != NULL && jniastCheckArrayLength( env, jIn, ncoord ) ) {
@@ -398,6 +411,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_text(
    const float up[ 2 ];
    const double *pos = NULL;
    int nax;
+
+   ENSURE_SAME_TYPE(double,jdouble)
 
    nax = jniastGetNaxes( env, pointer.Frame );
    text = jniastGetUTF( env, jText );
@@ -648,7 +663,8 @@ int astGLine( int n, const float *x, const float *y ){
    jfloatArray jX;
    jfloatArray jY;
 
-   if ( ( jX = (*env)->NewFloatArray( env, (jsize) n ) ) &&
+   if ( jniastCheckSameType( env, float, jfloat ) && 
+        ( jX = (*env)->NewFloatArray( env, (jsize) n ) ) &&
         ( jY = (*env)->NewFloatArray( env, (jsize) n ) ) ) {
       (*env)->SetFloatArrayRegion( env, jX, 0, (jsize) n, (jfloat *) x );
       (*env)->SetFloatArrayRegion( env, jY, 0, (jsize) n, (jfloat *) y );
@@ -664,7 +680,8 @@ int astGMark( int n, const float *x, const float *y, int type ){
    jfloatArray jX;
    jfloatArray jY;
 
-   if ( ( jX = (*env)->NewFloatArray( env, (jsize) n ) ) &&
+   if ( jniastCheckSameType( env, float, jfloat ) &&
+        ( jX = (*env)->NewFloatArray( env, (jsize) n ) ) &&
         ( jY = (*env)->NewFloatArray( env, (jsize) n ) ) ) {
       (*env)->SetFloatArrayRegion( env, jX, 0, (jsize) n, (jfloat *) x );
       (*env)->SetFloatArrayRegion( env, jY, 0, (jsize) n, (jfloat *) y );
@@ -696,15 +713,15 @@ int astGQch( float *chv, float *chh ){
    jobject grf = CurrentInfo->grf;
    jfloatArray result;
 
-   result = (*env)->CallObjectMethod( env, grf, GrfQchMethodID );
-   if ( jniastCheckArrayLength( env, result, 2 ) ) {
-      (*env)->GetFloatArrayRegion( env, result, 0, 1, (jfloat *) chv );
-      (*env)->GetFloatArrayRegion( env, result, 1, 1, (jfloat *) chh );
-      return 1;
+   if ( jniastCheckSameType( env, float, jfloat ) ) {
+      result = (*env)->CallObjectMethod( env, grf, GrfQchMethodID );
+      if ( jniastCheckArrayLength( env, result, 2 ) ) {
+         (*env)->GetFloatArrayRegion( env, result, 0, 1, (jfloat *) chv );
+         (*env)->GetFloatArrayRegion( env, result, 1, 1, (jfloat *) chh );
+         return 1;
+      }
    }
-   else {
-      return 0;
-   }
+   return 0;
 }
 
 int astGTxExt( const char *text, float x, float y, const char *just,
@@ -717,7 +734,8 @@ int astGTxExt( const char *text, float x, float y, const char *just,
    jfloatArray jXb;
    jfloatArray jYb;
 
-   if ( ( jText = (*env)->NewStringUTF( env, text ) ) &&
+   if ( jniastCheckSameType( env, float, jfloat ) &&
+        ( jText = (*env)->NewStringUTF( env, text ) ) &&
         ( jJust = (*env)->NewStringUTF( env, just ) ) ) {
       result = (*env)->CallObjectMethod( env, grf, GrfTxExtMethodID,
                                          jText, (jfloat) x, (jfloat) y, jJust,
@@ -752,7 +770,8 @@ int astGScales( float *alpha, float *beta ) {
    jfloatArray result;
 
    result = (*env)->CallObjectMethod( env, grf, GrfScalesMethodID );
-   if ( jniastCheckArrayLength( env, result, 2 ) ) {
+   if ( jniastCheckSameType( env, float, jfloat ) &&
+        jniastCheckArrayLength( env, result, 2 ) ) {
       (*env)->GetFloatArrayRegion( env, result, 0, 1, (jfloat *) alpha );
       (*env)->GetFloatArrayRegion( env, result, 1, 1, (jfloat *) beta );
       return 1;

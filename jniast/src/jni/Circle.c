@@ -41,6 +41,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Circle_construct(
    int naxes;
    int psize;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    unc = jUnc ? jniastGetPointerField( env, jUnc ).Region : NULL;
    if ( jniastCheckNotNull( env, jFrame ) ) {
       frame = jniastGetPointerField( env, jFrame ).Frame;

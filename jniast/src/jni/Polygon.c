@@ -39,6 +39,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Polygon_construct(
    AstRegion *unc;
    double *points;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    unc = jUnc ? jniastGetPointerField( env, jUnc ).Region : NULL;
    if ( jniastCheckNotNull( env, jFrame ) &&
         jniastCheckArrayLength( env, jXcoords, npnt ) &&

@@ -43,6 +43,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_WinMap_construct(
    const double *outa = NULL;
    const double *outb = NULL;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Check that our arrays are large enough. */
    if ( jniastCheckArrayLength( env, jIna, ncoord ) &&
         jniastCheckArrayLength( env, jInb, ncoord ) &&

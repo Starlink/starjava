@@ -37,6 +37,8 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Region_getRegionBounds(
    double *ubnds;
    int naxes;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    naxes = jniastGetNaxes( env, pointer.Frame );
    if ( naxes > 0 && 
         ! (*env)->ExceptionCheck( env ) &&
@@ -168,6 +170,9 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Region_mask##Xletter( \
    int i; \
    jint result; \
  \
+   ENSURE_SAME_TYPE(Xtype,Xjtype) \
+   ENSURE_SAME_TYPE(int,jint) \
+ \
    map = jMap ? jniastGetPointerField( env, jMap ).Mapping \
               : NULL; \
    if ( jniastCheckArrayLength( env, jLbnd, ndim ) && \
@@ -179,14 +184,16 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Region_mask##Xletter( \
          npix *= ( abs( ubnd[ i ] - lbnd[ i ] ) + 1 ); \
       } \
       if ( jniastCheckArrayLength( env, jIn, npix ) && \
-           ( in = (*env)->Get##XJtype##ArrayElements( env, jIn, NULL ) ) ) { \
+           ( in = (Xtype *) \
+                  (*env)->Get##XJtype##ArrayElements( env, jIn, NULL ) ) ) { \
          ASTCALL( \
             result = astMask##Xletter( pointer.Region, map, \
                                        inside == JNI_TRUE, (int) ndim, \
                                        lbnd, ubnd, in, (Xtype) val ); \
          ) \
          ALWAYS( \
-            (*env)->Release##XJtype##ArrayElements( env, jIn, in, 0 ); \
+            (*env)->Release##XJtype##ArrayElements( env, jIn, \
+                                                    (Xjtype *) in, 0 ); \
          ) \
       } \
       ALWAYS( \
@@ -202,7 +209,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Region_mask##Xletter( \
 }
 MAKE_MASKX(D,double,jdouble,Double)
 MAKE_MASKX(F,float,jfloat,Float)
-/* MAKE_MASKX(L,long,jlong,Long) */
+MAKE_MASKX(L,long,jlong,Long)
 MAKE_MASKX(I,int,jint,Int)
 MAKE_MASKX(S,short,jshort,Short)
 MAKE_MASKX(B,signed char,jbyte,Byte)

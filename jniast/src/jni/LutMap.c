@@ -38,6 +38,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_LutMap_construct(
    const double *lut = NULL;
    int nlut;
 
+   ENSURE_SAME_TYPE(double,jdouble)
    
    if ( jniastCheckNotNull( env, jLut ) ) {
      

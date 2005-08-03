@@ -41,6 +41,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Ellipse_construct(
    double point2[ 2 ];
    AstRegion *unc;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    unc = jUnc ? jniastGetPointerField( env, jUnc ).Region : NULL;
    if ( jniastCheckNotNull( env, jFrame ) &&
         jniastCheckArrayLength( env, jCentre, 2 ) &&

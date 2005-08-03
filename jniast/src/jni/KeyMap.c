@@ -353,6 +353,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapPut1##Xletter( \
    Xtype *valEls = NULL; \
    int size; \
  \
+   ENSURE_SAME_TYPE(Xtype,Xjtype) \
+ \
    if ( jniastCheckNotNull( env, jKey ) && \
         jniastCheckNotNull( env, jValue ) ) { \
       key = jniastGetUTF( env, jKey ); \
@@ -492,6 +494,8 @@ JNIEXPORT Xjtype##Array JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1##Xletter(
    int nval; \
    Xjtype##Array jResult = NULL; \
    Xtype *result; \
+ \
+   ENSURE_SAME_TYPE(Xtype,Xjtype) \
  \
    if ( jniastCheckNotNull( env, jKey ) ) { \
       key = jniastGetUTF( env, jKey ); \

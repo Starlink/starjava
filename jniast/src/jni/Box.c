@@ -40,6 +40,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Box_construct(
    double *point2;
    int naxes;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    unc = jUnc ? jniastGetPointerField( env, jUnc ).Region : NULL;
    if ( jniastCheckNotNull( env, jFrame ) ) {
       frame = jniastGetPointerField( env, jFrame ).Frame;

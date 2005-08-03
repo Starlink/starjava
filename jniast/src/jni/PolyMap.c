@@ -40,6 +40,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PolyMap_construct(
    const double *coeff_f = NULL;
    const double *coeff_i = NULL;
 
+   ENSURE_SAME_TYPE(double,jdouble)
+
    /* Validate arguments. */
    if ( ( ncoeff_f <= 0 ||
           jniastCheckArrayLength( env, jCoeff_f, ncoeff_f * ( 2 + nin ) ) ) &&
