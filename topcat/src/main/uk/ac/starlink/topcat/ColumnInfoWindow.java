@@ -382,8 +382,12 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                 int nsel = jtab.getSelectedRowCount();
                 boolean hasSelection = nsel > 0;
                 boolean hasUniqueSelection = nsel == 1;
+                if ( hasUniqueSelection && jtab.getSelectedRow() == 0 ) {
+                    hasUniqueSelection = false;
+                    hasSelection = false;
+                }
                 boolean hasArraySelection;
-                if ( nsel == 1 ) {
+                if ( hasUniqueSelection ) {
                     StarTableColumn tcol =
                         (StarTableColumn)
                          getColumnFromRow( jtab.getSelectedRow() );
@@ -675,8 +679,10 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                 int[] selected = jtab.getSelectedRows();
                 Arrays.sort( selected );
                 for ( int i = 0; i < selected.length; i++ ) {
-                    int jrow = getColumnListIndexFromRow( selected[ i ] );
-                    columnList.setActive( jrow, active );
+                    if ( selected[ i ] > 0 ) {
+                        int jrow = getColumnListIndexFromRow( selected[ i ] );
+                        columnList.setActive( jrow, active );
+                    }
                 }
             }
             else {
