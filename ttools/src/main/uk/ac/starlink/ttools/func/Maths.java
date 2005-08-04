@@ -23,6 +23,20 @@ public class Maths {
      */
     public static final double PI = 3.14159265358979323846;
 
+    /**
+     * Evaluates to a random number in the range 0&lt;=x&lt;1.  
+     * This is different for each cell of the table.
+     * The quality of the randomness may not be particularly good.
+     */
+    /* Note: evaluation of this constant does not actually occur here
+     * (it can't, since this class cannot know what cell location it is
+     * being asked to evaluate for, and it must arrange for the same 
+     * value to be returned for the same cell location any time it is
+     * evaluated).  The token "RANDOM" is intercepted by the JELRowReader
+     * class and the value is calculated there instead.
+     */
+    public static final double RANDOM = Double.NaN;
+
     private static double LOG10_FACTOR = 1.0 / Math.log( 10.0 );
 
 

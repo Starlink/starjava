@@ -2467,6 +2467,7 @@ are welcomed.
   <ul>
   <li>Added Julian Epoch and Besselian Epoch conversion functions to 
       Times class.</li>
+  <li>Added RANDOM special function.</li>
   </ul>
 </p></dd>
 

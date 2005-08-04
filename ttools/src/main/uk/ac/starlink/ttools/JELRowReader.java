@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 
@@ -52,6 +53,12 @@ import uk.ac.starlink.table.Tables;
  *     $ID identifier (see above) returns a boolean value which is 
  *     <tt>true</tt> iff the value in that column at the current row
  *     is the <tt>null</tt> value.
+ *
+ * <dt>"RANDOM":
+ * <dd>The special token "RANDOM" evaluates to a double-precision random
+ *     number <code>0<=x<1</code> which is constant for a given row
+ *     within this reader.  The quality of the random numbers may not
+ *     be particularly good.
  * </dl>
  * 
  * @author   Mark Taylor (Starlink)
@@ -61,6 +68,7 @@ public abstract class JELRowReader extends DVMap {
     private final StarTable table_;
     private final Object[] args_;
     private boolean isNullExpression_;
+    private final long HASH_LONG = System.identityHashCode( this );
 
     /**
      * The string which, when prefixed to a column ideentifier, indicates
@@ -75,6 +83,7 @@ public abstract class JELRowReader extends DVMap {
     private static final byte INDEX_ID = (byte) 1;
     private static final byte NULL_VALUE_ID = (byte) 2;
     private static final byte NULL_EXPRESSION_ID = (byte) 3;
+    private static final byte RANDOM_ID = (byte) 4;
     
     /**
      * Constructs a new row reader for a given StarTable. 
@@ -145,6 +154,7 @@ public abstract class JELRowReader extends DVMap {
                 case INDEX_ID: return "Long";
                 case NULL_VALUE_ID: return "Object";
                 case NULL_EXPRESSION_ID: return "Byte";
+                case RANDOM_ID: return "Double";
                 default: throw new AssertionError( "Unknown special" );
             }
         }
@@ -361,6 +371,8 @@ public abstract class JELRowReader extends DVMap {
      * <li>"NULL" flags that an attempt has been made to evaluate a 
      *     primitive with no value, and thus invalidates the rest of the
      *     evaluation
+     * <li>"RANDOM" returns a random value between 0 and 1; for a given 
+     *     row index, this value is always the same for this RowReader
      * </ul>
      */
     private byte getSpecialId( String name ) {
@@ -373,6 +385,9 @@ public abstract class JELRowReader extends DVMap {
         }
         else if ( name.equals( "NULL" ) ) {
             return NULL_EXPRESSION_ID;
+        }
+        else if ( name.equals( "RANDOM" ) ) {
+            return RANDOM_ID;
         }
         return (byte) -1;
     }
@@ -414,6 +429,22 @@ public abstract class JELRowReader extends DVMap {
             case NULL_EXPRESSION_ID:
                 isNullExpression_ = true;
                 return (byte) 0;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    /**
+     * Returns the values for double-typed special variables.
+     *
+     * @param  ispecial  the identifier for the special
+     * @return  the special's value
+     */
+    public double getDoubleProperty( byte ispecial ) {
+        switch ( ispecial ) {
+            case RANDOM_ID:
+                long seed = HASH_LONG + ( getCurrentRow() * 2000000011L );
+                return new Random( seed ).nextDouble();
             default:
                 throw new AssertionError();
         }
