@@ -291,25 +291,38 @@ public class TableViewerWindow extends TopcatViewWindow
      * @param  jcol the data model column to which the menu applies
      */
     private JPopupMenu columnPopup( final int jcol ) {
+        final StarTableColumn tcol;
+        ColumnInfo colInfo;
+        String colName;
+        boolean rowHead = jcol < 0;
+        if ( ! rowHead ) {
+            tcol = (StarTableColumn) columnModel.getColumn( jcol );
+            colInfo = tcol.getColumnInfo();
+            colName = colInfo.getName();
+        }
+        else {
+            tcol = null;
+            colInfo = null;
+            colName = null;
+        }
+
         JPopupMenu popper = new JPopupMenu();
-        final StarTableColumn tcol = 
-            (StarTableColumn) columnModel.getColumn( jcol );
-        ColumnInfo colInfo = tcol.getColumnInfo();
-        String colName = colInfo.getName();
         final Component parent = this;
 
         /* Action to replace current column. */
-        Action replacecolAct =
-            new BasicAction( "Replace Column", ResourceIcon.MODIFY,
-                             "Replace " + colName + 
-                             " with new synthetic column" ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    SyntheticColumnQueryWindow
-                       .replaceColumnDialog( tcModel, tcol, parent );
-                }
-            };
-        replacecolAct.setEnabled( TopcatUtils.canJel() );
-        popper.add( replacecolAct );
+        if ( ! rowHead ) {
+            Action replacecolAct =
+                new BasicAction( "Replace Column", ResourceIcon.MODIFY,
+                                 "Replace " + colName + 
+                                 " with new synthetic column" ) {
+                    public void actionPerformed( ActionEvent evt ) {
+                        SyntheticColumnQueryWindow
+                           .replaceColumnDialog( tcModel, tcol, parent );
+                    }
+                };
+            replacecolAct.setEnabled( TopcatUtils.canJel() );
+            popper.add( replacecolAct );
+        }
 
         /* Action to append a new column here. */
         Action addcolAct = 
@@ -323,7 +336,10 @@ public class TableViewerWindow extends TopcatViewWindow
         popper.add( addcolAct );
 
         /* Actions to sort on current column. */
-        if ( jcol >= 0 ) {
+        if ( rowHead ) {
+            popper.add( tcModel.getUnsortAction() );
+        }
+        else {
             if ( Comparable.class
                            .isAssignableFrom( colInfo.getContentClass() ) ) {
                 popper.add( tcModel
@@ -334,7 +350,7 @@ public class TableViewerWindow extends TopcatViewWindow
         }
 
         /* Action to hide the current column. */
-        if ( jcol >= 0 ) {
+        if ( ! rowHead ) {
             Action hidecolAct = 
                 new BasicAction( "Hide Column", ResourceIcon.HIDE,
                                  "Hide column " + colName + " from view" ) {
@@ -346,7 +362,7 @@ public class TableViewerWindow extends TopcatViewWindow
         }
 
         /* Action to search for a string. */
-        if ( colInfo.getContentClass() == String.class ) {
+        if ( ! rowHead && colInfo.getContentClass() == String.class ) {
             Action searchAct =
                 new BasicAction( "Search Column", ResourceIcon.SEARCH,
                                  "Search for regular expression in cell" ) {
