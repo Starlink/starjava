@@ -88,14 +88,14 @@ public class StatsMode extends ProcessingMode {
         /* Unfortunately, a BeanTable returns its columns in an unhelpful
          * order (alphabetical by property/column name), so we reorder
          * the columns here. */
-        String[] columns = new String[] {
-            "column",
-            "mean",
-            "stdDev",
-            "min",
-            "max",
-            "good",
-        };
+        String columns =
+            "column " +
+            "mean " +
+            "stdDev " +
+            "min " +
+            "max " +
+            "good " +
+            "";
         statsTable = KeepColumnFilter.keepColumnTable( statsTable, columns );
         statsTable.setParameter( new DescribedValue( ROWCOUNT_INFO,
                                                      new Long( nrow ) ) );

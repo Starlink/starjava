@@ -24,12 +24,11 @@ public class KeepColumnFilter implements ProcessingFilter {
 
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
-            String colIdList = (String) argIt.next();
+            final String colIdList = (String) argIt.next();
             argIt.remove();
-            final String[] colIds = colIdList.split( "\\s+" );
             return new ProcessingStep() {
                 public StarTable wrap( StarTable base ) throws IOException {
-                    return keepColumnTable( base, colIds );
+                    return keepColumnTable( base, colIdList );
                 }
             };
         }
@@ -47,13 +46,10 @@ public class KeepColumnFilter implements ProcessingFilter {
      *         table
      * @return  new table using columns selected from <tt>table</tt>
      */
-    public static StarTable keepColumnTable( StarTable table, String[] colIds )
+    public static StarTable keepColumnTable( StarTable table, String colIdList )
             throws IOException {
-        ColumnIdentifier identifier = new ColumnIdentifier( table );
-        int[] colMap = new int[ colIds.length ];
-        for ( int i = 0; i < colIds.length; i++ ) {
-            colMap[ i ] = identifier.getColumnIndex( colIds[ i ] );
-        }
+        int[] colMap = new ColumnIdentifier( table )
+                      .getColumnIndices( colIdList );
         return new ColumnPermutedStarTable( table, colMap );
     }
 

@@ -42,8 +42,7 @@ public class ColumnSortFilter implements ProcessingFilter {
             }
         }
         if ( colidList != null ) {
-            return new ColumnSortStep( colidList.split( "\\s+" ), 
-                                       up, nullsLast );
+            return new ColumnSortStep( colidList, up, nullsLast );
         }
         else {
             throw new ArgException( "Missing column list" );
@@ -51,23 +50,20 @@ public class ColumnSortFilter implements ProcessingFilter {
     }
 
     private static class ColumnSortStep implements ProcessingStep {
-        final String[] colIds_;
+        final String colidList_;
         final boolean up_;
         final boolean nullsLast_;
 
-        ColumnSortStep( String[] colIds, boolean up, boolean nullsLast ) {
-            colIds_ = colIds;
+        ColumnSortStep( String colidList, boolean up, boolean nullsLast ) {
+            colidList_ = colidList;
             up_ = up;
             nullsLast_ = nullsLast;
         }
 
         public StarTable wrap( StarTable base ) throws IOException {
             base = Tables.randomTable( base );
-            ColumnIdentifier identifier = new ColumnIdentifier( base );
-            int[] colIndices = new int[ colIds_.length ];
-            for ( int i = 0; i < colIds_.length; i++ ) {
-                colIndices[ i ] = identifier.getColumnIndex( colIds_[ i ] );
-            }
+            int[] colIndices = new ColumnIdentifier( base )
+                              .getColumnIndices( colidList_ );
             return Tables.sortTable( base, colIndices, up_, nullsLast_ );
         }
     }
