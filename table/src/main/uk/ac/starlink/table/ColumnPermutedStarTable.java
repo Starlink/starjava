@@ -98,4 +98,42 @@ public class ColumnPermutedStarTable extends WrapperStarTable {
         return row;
     }
 
+    /**
+     * Returns a <code>ColumnPermutedStarTable</code> with selected
+     * columns deleted.
+     * This utility method simply works out a permutation map which
+     * corresponds to deletion of the columns indexed by the elements
+     * of the <code>icols</code> array and passes it to the constructor.
+     * A single column index may harmlessly be listed multiple times
+     * in the <code>icols</code> array.  It is not permitted for any
+     * element of <code>icols</code> to be less than zero or
+     * greater or equal than the number of columns in <code>baseTable</code>.
+     *
+     * @param   baseTable  table whose columns are to be deleted
+     * @param   icols   array with elements listing the column indices
+     *          which are to be removed
+     */
+    public static ColumnPermutedStarTable deleteColumns( StarTable baseTable,
+                                                         int[] icols ) {
+        int nIn = baseTable.getColumnCount();
+        boolean[] delFlags = new boolean[ nIn ];
+        for ( int i = 0; i < icols.length; i++ ) {
+            delFlags[ icols[ i ] ] = true;
+        }
+        int nOut = nIn;
+        for ( int i = 0; i < nIn; i++ ) {
+            if ( delFlags[ i ] ) {
+                nOut--;
+            }
+        }
+        int[] colMap = new int[ nOut ];
+        int j = 0;
+        for ( int i = 0; i < nIn; i++ ) {
+            if ( ! delFlags[ i ] ) {
+                colMap[ j++ ] = i;
+            }
+        }
+        assert j == nOut;
+        return new ColumnPermutedStarTable( baseTable, colMap );
+    }
 }
