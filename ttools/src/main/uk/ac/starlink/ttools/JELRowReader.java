@@ -334,8 +334,13 @@ public abstract class JELRowReader extends DVMap {
     */
    public int getColumnIndex( String name ) {
 
+        /* Blank name, unknown column. */
+        if ( name.length() == 0 ) {
+            return -1;
+        }
+
         /* Try the '$' + number format. */
-        if ( name.charAt( 0 ) == COLUMN_ID_CHAR ) {
+        else if ( name.charAt( 0 ) == COLUMN_ID_CHAR ) {
             try {
                 int icol = Integer.parseInt( name.substring( 1 ) ) - 1;
                 if ( icol >= 0 && icol < table_.getColumnCount() ) {
