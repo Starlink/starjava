@@ -35,7 +35,7 @@ public abstract class MemberDoclet {
     private final Set packages_ = new HashSet();
 
     private static final Pattern P_PATTERN = 
-        Pattern.compile( "\\s*(</*[Pp]>)?\\s*(<[Pp]>)\\s*" );
+        Pattern.compile( "\\s*(</*[Pp]>)?\\s+(<[Pp]>)\\s*" );
     private static final Map TYPE_NAMES;
     static {
         TYPE_NAMES = new HashMap();
