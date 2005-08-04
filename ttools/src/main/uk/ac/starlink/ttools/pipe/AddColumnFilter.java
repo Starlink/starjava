@@ -58,7 +58,7 @@ public class AddColumnFilter implements ProcessingFilter {
             return new AddColumnStep( expr, colinfo, posId, after );
         }
         else {
-            throw new ArgException( "Bad addcol specification" );
+            throw new ArgException( "Bad " + getName() + " specification" );
         }
     }
 
