@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.pipe;
 
 import java.io.IOException;
-import java.util.BitSet;
 import java.util.Iterator;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
@@ -27,7 +26,7 @@ public class DeleteColumnFilter implements ProcessingFilter {
         if ( argIt.hasNext() ) {
             String colIdList = (String) argIt.next();
             argIt.remove();
-            return new DeleteColumnStep( colIdList.split( "\\s+" ) );
+            return new DeleteColumnStep( colIdList );
         }
         else {
             throw new ArgException( "Missing column list" );
@@ -35,27 +34,16 @@ public class DeleteColumnFilter implements ProcessingFilter {
     }
 
     private static class DeleteColumnStep implements ProcessingStep {
-        final String[] colIds_;
+        final String colidList_;
 
-        DeleteColumnStep( String[] colIds ) {
-            colIds_ = colIds;
+        DeleteColumnStep( String colidList ) {
+            colidList_ = colidList;
         }
 
         public StarTable wrap( StarTable base ) throws IOException {
-            ColumnIdentifier identifier = new ColumnIdentifier( base );
-            BitSet keep = new BitSet();
-            keep.set( 0, base.getColumnCount() );
-            for ( int i = 0; i < colIds_.length; i++ ) {
-                keep.clear( identifier.getColumnIndex( colIds_[ i ] ) );
-            }
-            int[] colMap = new int[ keep.cardinality() ];
-            int j = 0;
-            for ( int i = keep.nextSetBit( 0 ); i >= 0; 
-                  i = keep.nextSetBit( i + 1 ) ) {
-                colMap[ j++ ] = i;
-            }
-            assert j == colMap.length;
-            return new ColumnPermutedStarTable( base, colMap );
+            int[] idels = new ColumnIdentifier( base )
+                         .getColumnIndices( colidList_ );
+            return ColumnPermutedStarTable.deleteColumns( base, idels );
         }
     }
 }
