@@ -2457,8 +2457,16 @@ are welcomed.
 <dt>Version 0.2b (30 June 2005)</dt>
 <dd><p>
   <ul>
-  <li>Added Times func class for MJD-ISO8601 time conversions</li>
+  <li>Added Times func class for MJD-ISO8601 time conversions.</li>
   <li>Fixed bug when doing NULL_ test expressions on first column in table.</li>
+  </ul>
+</p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+  <ul>
+  <li>Added Julian Epoch and Besselian Epoch conversion functions to 
+      Times class.</li>
   </ul>
 </p></dd>
 

@@ -17,22 +17,44 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import uk.ac.starlink.pal.Pal;
 
 /**
  * Functions for conversion of time values between various forms.
- * The two main forms used here are Modified Julian Date (MJD) and
- * the string format and underlying calendar model described by
- * ISO 8601.  MJD is a continuous measure in days since
- * midnight at the start of 17 November 1858.
- * ISO 8601 format is a string representation of this of the form
- * <code>yyyy-mm-ddThh:mm:ss.s</code>, where the <code>T</code> is a literal
- * character.  In both cases the time is UTC.
+ * The forms used are
+ * <dl>
+ * <dt>Modified Julian Date (MJD)</dt>
+ * <dd><p>A continuous measure in days since midnight at the start of
+ *     17 November 1858.  Based on UTC.
+ *     </p></dd>
+ * <dt>ISO 8601</dt>
+ * <dd><p>A string representation of the form 
+ *     <code>yyyy-mm-ddThh:mm:ss.s</code>, where the <code>T</code>
+ *     is a literal character (a space character may be used instead).
+ *     Based on UTC.
+ *     </p></dd> 
+ * <dt>Julian Epoch</dt>
+ * <dd><p>A continuous measure based on a Julian year of exactly 365.25 days.
+ *     For approximate purposes this resembles the fractional number
+ *     of years AD represented by the date.  Sometimes (but not here)
+ *     represented by prefixing a 'J'; J2000.0 is defined as
+ *     2000 January 1.5 in the TT timescale.
+ *     </p></dd>
+ * <dt>Besselian Epoch</dt>
+ * <dd><p>A continuous measure based on a tropical year of about 365.2422 days.
+ *     For approximate purposes this resembles the fractional number of
+ *     years AD represented by the date.  Sometimes (but not here)
+ *     represented by prefixing a 'B'.
+ *     </p></dd>
+ * </dl>
  *
  * <p>Therefore midday on the 25th of October 2004 is 
- * 53303.5 as an MJD value and 
- * <code>2004-10-25T12:00:00</code> in ISO 8601 format.
+ * <code>2004-10-25T12:00:00</code> in ISO 8601 format,
+ * 53303.5 as an MJD value,
+ * 2004.81588 as a Julian Epoch and
+ * 2004.81726 as a Besselian Epoch.
  * 
- * <p>Currently this implementation does not keep track of values to
+ * <p>Currently this implementation cannot be relied upon to
  * better than a millisecond.
  *
  * @author   Mark Taylor (Starlink)
@@ -46,6 +68,7 @@ public class Times {
     private final static String DATE_PATTERN = "yyyy-MM-dd";
     private final static String TIME_PATTERN = "HH:mm:ss";
     private final static TimeZone UTC = TimeZone.getTimeZone( "UTC" );
+    private final static Pal pal = new Pal();
 
     /** Regular expression for parsing ISO 8601 dates. */
     private final static Pattern ISO_REGEX = 
@@ -244,6 +267,74 @@ public class Times {
      */
     public static String formatMjd( double mjd, String format ) {
         return formatMjd( mjd, getFormat( format ) );
+    }
+
+    /**
+     * Converts a Modified Julian Date to Julian Epoch.
+     * For approximate purposes, the result
+     * of this routine consists of an integral part which gives the
+     * year AD and a fractional part which represents the distance
+     * through that year, so that for instance 2000.5 is approximately
+     * 1 July 2000.
+     *
+     * @example   <code>mjdToJulian(0.0) = 1858.87885</code>
+     *
+     * @param  mjd  modified Julian date
+     * @return  Julian epoch
+     */
+    public static double mjdToJulian( double mjd ) {
+        return pal.Epj( mjd );
+    }
+
+    /**
+     * Converts a Julian Epoch to Modified Julian Date.
+     * For approximate purposes, the argument
+     * of this routine consists of an integral part which gives the
+     * year AD and a fractional part which represents the distance
+     * through that year, so that for instance 2000.5 is approximately
+     * 1 July 2000.
+     *
+     * @example   <code>julianToMjd(2000.0) = 51544.5</code>
+     *
+     * @param  julianEpoch  Julian epoch
+     * @return   modified Julian date
+     */
+    public static double julianToMjd( double julianEpoch ) {
+        return pal.Epj2d( julianEpoch );
+    }
+
+    /**
+     * Converts Modified Julian Date to Besselian Epoch.
+     * For approximate purposes, the result
+     * of this routine consists of an integral part which gives the
+     * year AD and a fractional part which represents the distance
+     * through that year, so that for instance 1950.5 is approximately
+     * 1 July 1950.
+     *
+     * @example  <code>mjdToBesselian(0.0) = 1858.87711</code>
+     *
+     * @param  mjd  modified Julian date
+     * @return  Besselian epoch
+     */
+    public static double mjdToBesselian( double mjd ) {
+        return pal.Epb( mjd );
+    }
+
+    /**
+     * Converts Besselian Epoch to Modified Julian Date.
+     * For approximate purposes, the argument
+     * of this routine consists of an integral part which gives the
+     * year AD and a fractional part which represents the distance
+     * through that year, so that for instance 1950.5 is approximately
+     * 1 July 1950.
+     *
+     * @example  <code>besselianToMjd(1950.0) = 33281.92346</code>
+     *
+     * @param  besselianEpoch  Besselian epoch
+     * @return modified Julian date
+     */
+    public static double besselianToMjd( double besselianEpoch ) {
+        return pal.Epb2d( besselianEpoch );
     }
 
     /**

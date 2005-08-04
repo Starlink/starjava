@@ -78,6 +78,13 @@ public class TimesTest extends TestCase {
         }
     }
 
+    public void testEpoch() {
+        for ( double mjd = 0.; mjd < 1e5; mjd += 100. ) {
+            assertEquals( Times.mjdToJulian( mjd ),
+                          Times.mjdToBesselian( mjd ), 1e-2 );
+        }
+    }
+
     public void testExamples() {
         assertEquals( 53303.75, Times.isoToMjd("2004-10-25T18:00:00") );
         assertEquals( 40587.0, Times.isoToMjd( "1970-01-01" ) );
@@ -95,6 +102,11 @@ public class TimesTest extends TestCase {
                       Times.formatMjd( 50000.3, "EEE dd MMM, yy" ) );
         assertEquals( "time 2:57:41.760", 
                       Times.formatMjd( 50000.1234, "'time 'H:mm:ss.SSS" ) );
+
+        assertEquals( 1858.87885, Times.mjdToJulian( 0.0 ), 1e-5 );
+        assertEquals( 51544.5, Times.julianToMjd( 2000.0 ) );
+        assertEquals( 1858.87711, Times.mjdToBesselian( 0.0 ), 1e-5 );
+        assertEquals( 33281.92346, Times.besselianToMjd( 1950.0 ), 1e-5 );
     }
 
     private static double rnd() {
