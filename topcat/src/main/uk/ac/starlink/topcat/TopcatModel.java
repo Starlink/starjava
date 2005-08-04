@@ -220,8 +220,8 @@ public class TopcatModel {
         /* Create and configure some other actions. */
         newsubsetAct = new ModelAction( "New Subset Expression", null,
                                         "Define a new row subset" );
-        unsortAct = new ModelAction( "Unsort", null,
-                                     "Use Unsorted Order" );
+        unsortAct = new ModelAction( "Unsort", ResourceIcon.UNSORT,
+                                     "Use natural row order" );
         activationAct = new TopcatWindowAction( 
                            "Set Activation Action", null,
                            "Set what happens when a row/point is clicked on" );

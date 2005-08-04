@@ -93,7 +93,7 @@ public class ResourceIcon implements Icon {
         CONCAT = makeIcon( "concat4.gif" ),
 
         /* Specific actions. */
-        UNSORT = DO_WHAT,
+        UNSORT = makeIcon( "arrow_level.gif" ),
         DELETE_COLUMN = makeIcon( "ColumnDelete24.gif" ),
         VISIBLE_SUBSET = makeIcon( "spoints5.gif" ),
         BLOB_SUBSET = makeIcon( "blob2.gif" ),
