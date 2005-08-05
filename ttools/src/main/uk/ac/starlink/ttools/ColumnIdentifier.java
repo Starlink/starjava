@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.pipe;
+package uk.ac.starlink.ttools;
 
 import java.io.IOException;
 import java.util.ArrayList;

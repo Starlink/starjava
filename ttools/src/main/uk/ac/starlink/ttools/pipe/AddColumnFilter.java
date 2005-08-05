@@ -6,6 +6,7 @@ import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.ArgException;
+import uk.ac.starlink.ttools.ColumnIdentifier;
 
 /**
  * Table filter for adding a single synthetic column.
