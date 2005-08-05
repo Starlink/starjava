@@ -393,6 +393,14 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                          getColumnFromRow( jtab.getSelectedRow() );
                     int nel = getElementCount( tcol.getColumnInfo() );
                     hasArraySelection = nel > 0;
+                    WindowAction viewAct = tcModel.getViewerAction();
+                    if ( viewAct.hasWindow() ) {
+                        int viewCol = tcol.getModelIndex();
+                        TableViewerWindow tv = 
+                            (TableViewerWindow)
+                            viewAct.getWindow( ColumnInfoWindow.this );
+                        tv.scrollToColumn( viewCol );
+                    }
                 }
                 else {
                     hasArraySelection = false;

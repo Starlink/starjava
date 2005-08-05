@@ -3449,6 +3449,16 @@ will change the order of columns in the table's
 <ref id="columns">Column Set</ref> and hence the Apparent Table.
 </p>
 
+<p>If you have table with very many columns it can be difficult to
+scroll the display sideways so that a column you are interested in
+is in view.  In this case, you can go to the 
+<ref id="ColumnInfoWindow">Columns Window</ref> and click on the
+description of the column you are after in the display there.
+This will have the effect of scrolling the Data Window sideways
+so that your selected column is visible in the centre of the display
+here.
+</p>
+
 <p>The following buttons are available in the toolbar:
 <dl> 
 <dt>&IMG.INCLUDE_ROWS; Subset From Selected Rows</dt>
@@ -3788,6 +3798,16 @@ so can be changed by dragging the column headers around in the
     </p></dd>
 
 </dl>
+</p>
+
+<p>Several of these actions operate on the currently selected column
+or columns.  You can select columns by clicking on the corresponding
+row in the displayed JTable as usual.  A side effect of selecting a
+single column is that the table view in the 
+<ref id="TableViewerWindow">Data Window</ref> will be scrolled sideways
+so that the selected column is visible in (approximately) the middle of
+the screen.  This can be a boon if you are dealing with a table that
+contains a large number of columns.
 </p>
 
 </subsubsect>
@@ -6128,6 +6148,8 @@ functionality:
 <li><webref url="http://skyservice.pha.jhu.edu/develop/vo/ivoafits/"
             >IVOA FITS Package</webref>
     (Sloan Digital Sky Survey) for simple (non-SoG) display of FITS images</li>
+<li><webref url="http://browserlauncher.sourceforge.net/"
+            >BrowserLauncher</webref> for launching default web browser</li>
 </ul>
 </p>
 
@@ -6607,6 +6629,24 @@ introduced since the last version:
     from MySpace.</li>
 <li>Ensure that filestore browsers are kept up to date when dialogues are
     displayed.</li>
+</ul>
+</p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+<ul>
+<li>When you select a column in the Columns window, it now scrolls the
+    table in the Data Window so that the selected column is visible.
+    This is a boon when dealing with tables that have very many columns.</li>
+<li>Added new activation action to launch system default browser.</li>
+<li>Added Julian Epoch and Besselian Epoch conversion functions to
+    <code>Times</code> class.</li>
+<li>MySpace login no longer uses system username as default MySpace
+    username.</li>
+<li>Added <code>RANDOM</code> special function to algebraic expressions.</li>
+<li>Fixed some relatively harmless bugs to do with actions available
+    when you select the dummy "Index" column.  You can now unsort 
+    from a popup menu in the table viewer window.</li>
 </ul>
 </p></dd>
 

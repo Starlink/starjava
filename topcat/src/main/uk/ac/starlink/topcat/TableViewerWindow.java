@@ -493,6 +493,19 @@ public class TableViewerWindow extends TopcatViewWindow
         yBar.setValue( yMid - yBar.getVisibleAmount() / 2 );
     }
 
+    /**
+     * Scrolls the JTable so that the given column is visible at the
+     * left of the window.
+     *
+     * @param  viewCol  column index in the view model
+     */
+    public void scrollToColumn( int viewCol ) {
+        Rectangle viewRect = jtab.getCellRect( 0, viewCol, false );
+        int xMid = viewRect.x + viewRect.width / 2;
+        JScrollBar xBar = scrollpane.getHorizontalScrollBar();
+        xBar.setValue( xMid - xBar.getVisibleAmount() / 2 );
+    }
+
     /*
      * Implementation of TableModelListener interface.
      */
