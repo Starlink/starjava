@@ -59,6 +59,7 @@ public class PipelineTask extends TableTask {
         HeadFilter.class.getName(),
         TailFilter.class.getName(),
         AddColumnFilter.class.getName(),
+        ReplaceColumnFilter.class.getName(),
         KeepColumnFilter.class.getName(),
         DeleteColumnFilter.class.getName(),
         ExplodeColsFilter.class.getName(),

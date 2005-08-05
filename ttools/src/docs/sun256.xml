@@ -1655,9 +1655,24 @@ this document:
 <dd><p>Add a new column called <code>&lt;col-name&gt;</code>
     defined by the algebraic expression
     <code>&lt;expr&gt;</code>.
-    By default the new row appears after the last row of the table, but you
-    can position it either before or after a specified column the 
+    By default the new column appears after the last column of the table,
+    but you can position it either before or after a specified column the 
     <code>-before</code> or <code>-after</code> flags respectively.
+    </p></dd>
+
+<dt><code><![CDATA[-replacecol <col-id> <expr>]]</code></dt>
+<dd><p>Replaces the content of a column with the value of an algebraic
+    expression.  The position, name and metadata of the new column 
+    are the same as that of the replaced one (though the data type may change)
+    but the old values are discarded in favour of the result of evaluating
+    <code>&lt;expr&gt;</code>.
+    You can reference the replaced column in the expression, so for example
+    <code>-replacecol pixsize pixsize*2</code> just multiplies the values
+    in column <code>pixsize</code> by 2.
+    </p>
+    <p><code><![CDATA[-replacecol col-id expr]]></code> does much the same
+    as <code><![CDATA[-addcol -after col-id col-id expr -delcols col-id]]>,
+    though it preserves column metadata too.
     </p></dd>
 
 <dt><code><![CDATA[-keepcols <colid-list>]]></code></dt>
