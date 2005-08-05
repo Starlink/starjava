@@ -1670,8 +1670,8 @@ this document:
     <code>-replacecol pixsize pixsize*2</code> just multiplies the values
     in column <code>pixsize</code> by 2.
     </p>
-    <p><code><![CDATA[-replacecol col-id expr]]></code> does much the same
-    as <code><![CDATA[-addcol -after col-id col-id expr -delcols col-id]]>,
+    <p>"<code>-replacecol col-id expr</code>" does much the same
+    as "<code>-addcol -after col-id col-id expr -delcols col-id</code>,
     though it preserves column metadata too.
     </p></dd>
 
