@@ -5,20 +5,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.ttools.JELRowReader;
 
 /**
  * Can identify columns of a table using string identifiers.
- * Permitted identifiers are (currently) column name (if in JEL-friendly
- * format), column $ID (ditto) or column index (first column is "1").
+ * Permitted identifiers are (currently) column name (case insensitive),
+ * column index (1-based) and where requested cases simple wildcarding 
+ * expressions.
  *
  * @author   Mark Taylor (Starlink)
  * @since    2 Mar 2005
  */
 public class ColumnIdentifier {
 
-    private final JELRowReader jelly_;
     private final StarTable table_;
+    private final int ncol_;
+    private final String[] colNames_;
+    private boolean caseSensitive_;
 
     /**
      * Constructor.
@@ -27,17 +29,34 @@ public class ColumnIdentifier {
      */
     public ColumnIdentifier( StarTable table ) {
         table_ = table;
-        jelly_ = new JELRowReader( table ) {
-            protected Object getCell( int icol ) {
-                throw new UnsupportedOperationException();
+        ncol_ = table_.getColumnCount();
+        colNames_ = new String[ ncol_ ];
+        for ( int icol = 0; icol < ncol_; icol++ ) {
+            String name = table_.getColumnInfo( icol ).getName();
+            if ( name != null ) {
+                colNames_[ icol ] = name.trim();
             }
-            protected Object[] getRow() {
-                throw new UnsupportedOperationException();
-            }
-            public long getCurrentRow() { 
-                return -1L;
-            }
-        };
+        }
+    }
+
+    /**
+     * Sets whether case is significant in column names.
+     * By default it is not.
+     *
+     * @param  caseSensitive  is matching case sensitive?
+     */
+    public void setCaseSensitive( boolean caseSensitive ) {
+        caseSensitive_ = caseSensitive;
+    }
+
+    /**
+     * Determines whether case is significant in column names.
+     * By default it is not.
+     *
+     * @return   true iff matching is case sensitive
+     */
+    public boolean isCaseSensitive() {
+        return caseSensitive_;
     }
 
     /**
@@ -105,6 +124,28 @@ public class ColumnIdentifier {
     }
 
     /**
+     * Returns an array of flags, the same length as the number of
+     * columns in the table, with an element set true for each column
+     * which is specified in <code>colIdList</code>.
+     * This convenience function just works on the result of
+     * {@link #getColumnIndices}.
+     *
+     * @param   colidList  string containing a representation of a list
+     *          of columns
+     * @return  array of column inclusion flags
+     * @throws  IOException  if <tt>colid</tt> doesn't look like a 
+     *          colid-list specifier
+     */
+    public boolean[] getColumnFlags( String colIdList ) throws IOException {
+        boolean[] colFlags = new boolean[ ncol_ ];
+        int[] icols = getColumnIndices( colIdList );
+        for ( int i = 0; i < icols.length; i++ ) {
+            colFlags[ icols[ i ] ] = true;
+        }
+        return colFlags;
+    }
+
+    /**
      * Returns the column index associated with a given string.
      * If the string can't be identified as a column name, -1 is returned.
      *
@@ -114,18 +155,29 @@ public class ColumnIdentifier {
      */
     private int getScalarColumnIndex( String colid ) throws IOException {
         colid = colid.trim();
-        int ix = jelly_.getColumnIndex( colid );
-        if ( ix >= 0 ) {
-            return ix;
+        if ( colid.length() == 0 ) {
+            throw new IOException( "Blank column ID not allowed" );
         }
-        else if ( colid.matches( "[0-9]+" ) ) {
-            ix = Integer.parseInt( colid ) - 1;
-            if ( ix < 0 || ix >= table_.getColumnCount() ) {
-                throw new IOException( "Column index out of range " + colid );
+        else if ( colid.charAt( 0 ) == '-' ) {
+            throw new IOException( "Found " + colid + 
+                                   " while looking for column ID" );
+        }
+        if ( colid.matches( "[0-9]+" ) ) {
+            int ix = Integer.parseInt( colid ) - 1;
+            if ( ix < 0 || ix >= ncol_ ) {
+                throw new IOException( "Column index " + ix + " out of range "
+                                      + "0.." + ncol_ );
             }
             return ix;
         }
         else {
+            for ( int icol = 0; icol < ncol_; icol++ ) {
+                String name = colNames_[ icol ];
+                if ( isCaseSensitive() ? colid.equals( name )
+                                       : colid.equalsIgnoreCase( name ) ) {
+                    return icol;
+                }
+            }
             return -1;
         }
     }
@@ -139,10 +191,10 @@ public class ColumnIdentifier {
      * @return  array of matched column indices 
      * @throws  IllegalArgumentException   if <code>glob</code> doesn't
      *          contain any wildcard expressions
-     * @see  #globToPattern
+     * @see  #globToRegex
      */
     private int[] findMatchingColumns( String glob ) {
-        Pattern regex = globToRegex( glob );
+        Pattern regex = globToRegex( glob, isCaseSensitive() );
         if ( regex == null ) {
             throw new IllegalArgumentException( "Not a wildcard expression: "
                                               + glob );
@@ -175,10 +227,11 @@ public class ColumnIdentifier {
      * <code>null</code> will be returned.
      *
      * @param   glob  glob pattern
+     * @param   caseSensitive  whether matching should be case sensitive
      * @return   equivalent regular expression pattern, or null if 
      *           <code>glob</code> is trivial
      */
-    public static Pattern globToRegex( String glob ) {
+    public static Pattern globToRegex( String glob, boolean caseSensitive ) {
         if ( glob.indexOf( '*' ) < 0 ) {
             return null;
         }
@@ -207,7 +260,8 @@ public class ColumnIdentifier {
                 }
             }
             String regex = sbuf.toString();
-            return Pattern.compile( regex, Pattern.CASE_INSENSITIVE );
+            int flags = caseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
+            return Pattern.compile( regex, flags );
         }
     }
 }
