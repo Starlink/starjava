@@ -18,29 +18,54 @@ public class ExplodedStarTable extends WrapperStarTable {
     private final ColPointer[] pointers_;
 
     /**
-     * Constructor.
+     * Constructs a table in which specified columns are exploded. 
+     * All of the specified columns must
+     * have values which are fixed-length arrays.
+     *
+     * @param  baseTable  base table
+     * @param  colFlags   array of flags the same length as the number of
+     *         columns in <code>baseTable</code>; true elements indicate
+     *         columns in the base table which should be exploded
+     * @throws  IllegalArgumentException  if any column specified by 
+     *          <code>colFlags</code> has a type which is not
+     *          a fixed-length array
+     */
+    public ExplodedStarTable( StarTable baseTable, boolean[] colFlags ) {
+        super( baseTable );
+        baseTable_ = baseTable;
+        List colList = new ArrayList();
+        for ( int icol = 0; icol < baseTable.getColumnCount(); icol++ ) {
+            if ( colFlags[ icol ] ) {
+                ColumnInfo baseInfo = baseTable.getColumnInfo( icol );
+                String[] labels = baseInfo.isArray()
+                                ? Tables.getElementLabels( baseInfo.getShape() )
+                                : null;
+                if ( labels != null ) {
+                    for ( int j = 0; j < labels.length; j++ ) {
+                        colList.add( new ColPointer( icol, j, labels[ j ] ) );
+                    }
+                }
+                else {
+                    throw new IllegalArgumentException( 
+                        "Column cannot be exploded, not fixed-length array: " +
+                        baseInfo );
+                }
+            }
+            else {
+                colList.add( new ColPointer( icol ) );
+            }
+        }
+        pointers_ = (ColPointer[]) colList.toArray( new ColPointer[ 0 ] );
+    }
+
+    /**
+     * Constructs a table in which all fixed-length array-valued columns
+     * are exploded.
      *
      * @param  baseTable  base table
      */
     public ExplodedStarTable( StarTable baseTable ) {
-        super( baseTable );
-        baseTable_ = baseTable;
-        List colList = new ArrayList();
-        for ( int i = 0; i < baseTable.getColumnCount(); i++ ) {
-            ColumnInfo baseInfo = baseTable.getColumnInfo( i );
-            String[] labels = baseInfo.isArray()
-                            ? Tables.getElementLabels( baseInfo.getShape() )
-                            : null;
-            if ( labels == null ) {
-                colList.add( new ColPointer( i ) );
-            }
-            else {
-                for ( int j = 0; j < labels.length; j++ ) {
-                    colList.add( new ColPointer( i, j, labels[ j ] ) );
-                }
-            }
-        }
-        pointers_ = (ColPointer[]) colList.toArray( new ColPointer[ 0 ] );
+        this( baseTable, findExplodableColumns( baseTable ) );
     }
 
     public int getColumnCount() {
@@ -168,6 +193,26 @@ public class ExplodedStarTable extends WrapperStarTable {
         else {
             return clazz;
         }
+    }
+
+    /**
+     * Locates columns in a table which are suitable for explosion.
+     *
+     * @param  table  table to investigate
+     * @return   array of flags, one for each column in <code>table</code>,
+     *           each element true only if the type of the corresponding 
+     *           column is a fixed-length array
+     */
+    private static boolean[] findExplodableColumns( StarTable table ) {
+        int ncol = table.getColumnCount();
+        boolean[] colFlags = new boolean[ ncol ];
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo info = table.getColumnInfo( icol );
+            colFlags[ icol ] = 
+                info.isArray() &&
+                Tables.getElementLabels( info.getShape() ) != null;
+        }
+        return colFlags;
     }
 
     /**
