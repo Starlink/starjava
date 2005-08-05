@@ -207,7 +207,7 @@ public class ColumnIdentifier {
                 }
             }
             String regex = sbuf.toString();
-            return Pattern.compile( regex );
+            return Pattern.compile( regex, Pattern.CASE_INSENSITIVE );
         }
     }
 }
