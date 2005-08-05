@@ -684,6 +684,111 @@ by looking at the extension of the output filename you have specified.
 </sect>
 
 
+<sect>
+<subhead><title>Column Identifier Syntax</title></subhead>
+
+<p>Some of the commands require you to specify which
+column or columns in a table you want to refer to,
+for instance to move them around, delete them, sort by 
+them, etc.
+In some cases you have to specify a single column, and 
+in other cases you can specify a list of zero or more columns;
+the following subsections explains the syntax in both cases.
+</p>
+
+<subsect id="col-id">
+<subhead><title>Specifying a single column</title></subhead>
+
+<p>If an argument is specified in the help text for a 
+command with the symbol <code>&lt;col-id&gt;</code>
+it means you must give a string which identifies one of the
+existing columns in a table.
+</p>
+
+<p>There are three ways you can specify a column in this context:
+<dl>
+<dt>Column Name</dt>
+<dd><p>The name of the column may be used if it contains no spaces
+    and doesn't start with a minus character ('<code>-</code>').
+    It is usually matched case insensitively.  If multiple columns
+    have the same name, the first one that matches is selected.
+    </p></dd>
+
+<dt>Column Index</dt>
+<dd><p>The index of the column may always be used; this is a useful
+    fallback if the column name isn't suitable for some reason.
+    The first column is '1', the second is '2' and so on.
+    </p>
+    <p>Tip: if counting which column has which index is giving you a
+    headache, running <code>tpipe -meta</code> or 
+    <code>tpipe -stats</code> on the table may help.
+    </p></dd>
+</dl>
+</p>
+
+</subsect>
+
+<subsect id="colid-list">
+<subhead><title>Specifying a list of columns</title></subhead>
+
+<p>If an argument is specified in the help text for a command
+with the symbol <code>&lt;colid-list&gt;</code> it means you 
+must give a string which identifies a list of zero, one or more
+of the existing columns in a table.
+The string you specify is a separated into separate tokens by
+whitespace, which means that in most cases (e.g. from the Unix shell)
+you will have to surround it in single or double quotes to ensure
+that it is treated as a single argument and not several of them.
+</p>
+
+<p>Each token in the <code>colid-list</code> string may be one of
+the following:
+<dl>
+<dt>Column Name</dt>
+<dd><p>The name of a column may be used if it contains no spaces
+    and doesn't start with a minus character ('<code>-</code>').
+    It is usually matched case insensitively.  If multiple 
+    columns have the same name, the first one that matches is selected.
+    </p></dd>
+
+<dt>Column Index</dt>
+<dd><p>The index of the column may always be used; this is a useful
+    fallback if the column name isn't suitable for some reason.
+    The first column is '1', the second is '2' and so on.
+    </p></dd>
+
+<dt>Wildcard Expression</dt>
+<dd><p>You can use a simple form of wildcard expression which expands
+    to any columns in the table whose names match the pattern.
+    Currently, the only special character is an asterisk '<code>*</code>'
+    which matches any sequence of characters.  To match an unknown
+    sequence at the start or end of the string an asterisk must be
+    given explicitly.  Other than that, matching is usually 
+    case insensitive.  The order of the expanded list is the same
+    as the order in which the columns appear in the table.
+    </p>
+
+    <p>Thus "<code>col*</code>" will match columns named 
+    <code>col1</code>, <code>Column2</code> and <code>COL_1024</code>,
+    but not <code>decOld</code>.
+    "<code>*MAG*</code>" will match columns named
+    <code>magnitude</code>, <code>ABS_MAG_U</code> and <code>JMAG</code>.
+    "*" expands to a list of all the columns of the table in order.
+    </p></dd>
+</dl>
+</p>
+
+<p>Specifying a list which contains a given column more than once is
+not usually an error, but what effect it has depends on the 
+function you are executing.
+</p>
+
+
+</subsect>
+
+
+</sect>
+
 
 <sect id="jel">
 <subhead><title>Algebraic Expression Syntax</title></subhead>
@@ -1495,20 +1600,27 @@ commands in a Unix pipeline.  Some of them have additional
 optional or mandatory arguments.
 </p>
 
+<p>The syntax of some of these arguments is described elsewhere in
+this document:
+<ul>
+<li><code>&lt;col-id&gt;</code>: see <ref id="col-id"/></li>
+<li><code>&lt;colid-list&gt;</code>: see <ref id="colid-list"/></li>
+<li><code>&lt;expr&gt;</code>: see <ref id="jel"/></li>
+</ul>
+</p>
+
 <p>
 <dl>
 <dt><code><![CDATA[-select <expr>]]></code></dt>
 <dd><p>Include in the output table only rows for which the given expression
     <code>&lt;expr&gt;</code> evaluates to true.
-    <code>&lt;expr&gt;</code> is an expression using the syntax described
-    in <ref id="jel"/> with a boolean-type value.
+    The type to which <code>&lt;expr&gt;</code> evaluates must be 
+    boolean (true/false).
     </p></dd>
 
 <dt><code><![CDATA[-sort [-down] [-nullsfirst] <colid-list>]]></code></dt>
 <dd><p>Sorts the table according to the columns named in
-    <code>&lt;colid-list&gt;</code>.  <code>&lt;colid-list&gt;</code>
-    is a space-separated list of column identifiers
-    (names, &column.id.char;IDs or numbers, where 1 is the first column).
+    <code>&lt;colid-list&gt;</code>.
     One or more columns may be specified: sorting is done on the
     values in the first-specified field, but if they are equal the
     tie is resolved by looking at the second-specified field, and so on.
@@ -1521,9 +1633,8 @@ optional or mandatory arguments.
 
 <dt><code><![CDATA[-sortexpr <expr>]]></code></dt>
 <dd><p>Sorts the table according to the value of an algebraic expression.
-    The syntax of <code>&lt;expr&gt;</code> is described in <ref id="jel"/>.
-    Its value must be of a type that it makes sense to sort, for instance
-    numeric.
+    <code>&lt;expr&gt;</code> must evaluates to a type that it 
+    makes sense to sort, for instance numeric.
     </p></dd>
 
 <dt><code><![CDATA[-every <step>]]></code></dt>
@@ -1544,38 +1655,33 @@ optional or mandatory arguments.
 <dd><p>Add a new column called <code>&lt;col-name&gt;</code>
     defined by the algebraic expression
     <code>&lt;expr&gt;</code>.
-    Expression syntax is described in <ref id="jel"/>.  By default
-    the new row appears after the last row of the table, but you
-    can position it using either the <code>-after</code> or
-    <code>-before</code> flags.  In either
-    case, a <code>&lt;col-id&gt;</code> is either the column's name 
-    (if it is syntactically a Java identifier),
-    or its number (the first column is 1), or its &column.id.char;ID 
-    (<code>&column.id.char;1</code> is the first column).
+    By default the new row appears after the last row of the table, but you
+    can position it either before or after a specified column the 
+    <code>-before</code> or <code>-after</code> flags respectively.
     </p></dd>
 
 <dt><code><![CDATA[-keepcols <colid-list>]]></code></dt>
 <dd><p>Output table consists of only those columns named in
     <code>&lt;colid-list&gt;</code>, in that order.
-    <code>&lt;colid-list&gt;</code> is space-separated.  
-    <code>col-id</code> is either the column's name 
-    (if it is syntactically a Java identifier) or its number 
-    (the first column is 1) or its &column.id.char;ID
-    (<code>&column.id.char;1</code> is the first column).
+    The same column can be listed more than once, in which case 
+    it will appear in the output table more than once.
     </p></dd>
 
 <dt><code><![CDATA[-delcols <colid-list>]]></code></dt>
-<dd><p>Delete named columns.
-    <code>&lt;colid-list&gt;</code> is a space-separated list of 
-    identifiers which are either a column's name 
-    (if it is syntactically a Java identifier) or its number 
-    (the first column is 1) or its &column.id.char;ID
-    (<code>&column.id.char;1</code> is the first column).
+<dd><p>Delete specified columns.
+    The same column may harmlessly be specified more than once.
     </p></dd>
 
-<dt><code>-explode</code></dt>
-<dd><p>Turns any column which is an N-element array into N scalar columns.
-    Only works if the array size is fixed.
+<dt><code>-explodeall</code></dt>
+<dd><p>Replaces any column which is an N-element array with N scalar columns.
+    Only applies to columns with fixed array sizes.
+    </p></dd>
+
+<dt><code>-explodecols &lt;colid-list&gt;</code></dt>
+<dd><p>Takes a list of specified columns which represent N-element arrays
+    and replaces each one with N scalar columns.
+    Each of the columns specified by <code>&lt;colid-list&gt;</code>
+    must have a type which is a fixed-length array.
     </p></dd>
 
 <dt><code>-cache</code></dt>
@@ -2468,6 +2574,12 @@ are welcomed.
   <li>Added Julian Epoch and Besselian Epoch conversion functions to 
       Times class.</li>
   <li>Added RANDOM special function.</li>
+  <li>Added -replacecol.</li>
+  <li>Wildcards in colid-list params, SUN/256 improved to include section
+      on what &lt;col-id&gt; and &lt;colid-list&gt; mean.</li>
+  <li>Renamed the <code>-explode</code> filter in <code>tpipe</code> as
+      <code>-explodeall</code>, and introduced new filter
+      <code>-explodecols</code>.</li>
   </ul>
 </p></dd>
 
