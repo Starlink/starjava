@@ -17,7 +17,7 @@
 				<SPHERICAL coord_naxes="3"/>
 			</SpaceFrame>
 		</AstroCoordSystem>
-		<crd:AstroCoords coord_system_id="KPNO">
+		<crd:AstroCoords coord_system_id="ICRS-TT-TOPO">
 			<crd:Position3D unit="deg deg m">
 				<crd:Name>LongLatElev</crd:Name>
 				<crd:Value3>248.4056 31.9586 2158</crd:Value3>
