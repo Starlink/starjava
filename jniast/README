@@ -86,3 +86,6 @@ Partial change log:
 5-JUL-2005:
    Tagged jniast-3-7.  This contains all the features up to and including
    AST V3.7, *except* the STC-related ones (Region and friends).
+
+11-AUG-2005:
+   All features up to v4.0.
