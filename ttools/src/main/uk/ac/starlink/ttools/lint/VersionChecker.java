@@ -17,7 +17,7 @@ public class VersionChecker implements AttributeChecker {
         }
         else if ( ! version.equals( value ) ) {
             handler.warning( "Declared version (" + value + ") differs from " +
-                             " version specified to linter (" + version + ")" );
+                             "version specified to linter (" + version + ")" );
 
         }
     }
