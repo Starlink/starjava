@@ -34,6 +34,9 @@ public class LintContext {
     /** VOTABLE element version attribute value representing version 1.1. */
     public final static String V11 = "1.1"; 
 
+    /** VOTable element version values representing known versions. */
+    public final static String[] VOT_VERSIONS = new String[] { V10, V11 };
+
     /** Maximum number of identical error messages which will be logged. */
     public final static int MAX_REPEAT = 4;
 
@@ -138,6 +141,24 @@ public class LintContext {
      */
     public boolean isDebug() {
         return debug_;
+    }
+
+    /**
+     * Returns the output stream to which messages will be written.
+     *
+     * @return   output stream
+     */
+    public PrintStream getOutput() {
+        return out_;
+    }
+
+    /**
+     * Sets the output stream to which messages will be written.
+     *
+     * @param   out  output stream
+     */
+    public void setOutput( PrintStream out ) {
+        out_ = out;
     }
 
     /**
