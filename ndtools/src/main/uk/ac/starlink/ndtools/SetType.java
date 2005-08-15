@@ -12,8 +12,8 @@ import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.task.AbortException;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Sets the data type of an NDX to one of the known numerical types.
@@ -46,11 +46,19 @@ class SetType implements Task {
         return new Parameter[] { inpar, outpar, typepar };
     }
 
-    public void invoke( Environment env ) 
-            throws ParameterValueException, AbortException, IOException {
+    public void invoke( Environment env ) throws TaskException {
+        try {
+            doInvoke( env );
+        }
+        catch ( IOException e ) {
+            throw new TaskException( e );
+        }
+    }
 
-        Ndx ndx1 = inpar.ndxValue();
-        Type type = typepar.typeValue();
+    private void doInvoke( Environment env ) throws TaskException, IOException {
+
+        Ndx ndx1 = inpar.ndxValue( env );
+        Type type = typepar.typeValue( env );
         Requirements req = new Requirements( AccessMode.READ )
                           .setType( type );
 
@@ -67,6 +75,6 @@ class SetType implements Task {
         ndx2.setImage( image );
         ndx2.setVariance( variance );
         ndx2.setQuality( quality );
-        outpar.outputNdx( ndx2 );
+        outpar.outputNdx( env, ndx2 );
     }
 }

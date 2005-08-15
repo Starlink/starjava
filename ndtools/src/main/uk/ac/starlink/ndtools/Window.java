@@ -9,11 +9,11 @@ import uk.ac.starlink.array.Requirements;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.task.AbortException;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Task which provides a window on an NDX.  A new NDX is created which
@@ -49,11 +49,19 @@ class Window implements Task {
         return "in out shape";
     }
 
-    public void invoke( Environment env )
-            throws ParameterValueException, AbortException, IOException {
+    public void invoke( Environment env ) throws TaskException {
+        try {
+            doInvoke( env );
+        }
+        catch ( IOException e ) {
+            throw new ExecutionException( e );
+        }
+    }
 
-        NDShape shape = shapepar.shapeValue();
-        Ndx ndx1 = inpar.ndxValue();
+    private void doInvoke( Environment env ) throws TaskException, IOException {
+
+        NDShape shape = shapepar.shapeValue( env );
+        Ndx ndx1 = inpar.ndxValue( env );
         Requirements req = new Requirements( AccessMode.READ )
                           .setWindow( shape );
 
@@ -70,6 +78,6 @@ class Window implements Task {
         MutableNdx ndx2 = new DefaultMutableNdx( im );
         ndx2.setVariance( var );
         ndx2.setQuality( qual );
-        outpar.outputNdx( ndx2 );
+        outpar.outputNdx( env, ndx2 );
     }
 }

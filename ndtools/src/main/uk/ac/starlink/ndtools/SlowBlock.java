@@ -17,13 +17,12 @@ import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.task.AbortException;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Block averaging task.  The algorithm used is to calculate each 
@@ -60,16 +59,23 @@ class SlowBlock implements Task {
         return "in out block";
     }
 
-    public void invoke( Environment env ) 
-            throws ParameterValueException, ExecutionException, AbortException,
-            IOException {
+    public void invoke( Environment env ) throws TaskException {
+        try {
+            doInvoke( env );
+        }
+        catch ( IOException e ) {
+            throw new TaskException( e );
+        }
+    }
+
+    private void doInvoke( Environment env ) throws TaskException, IOException {
 
         /* Get the input and output NDXs, their image arrays, and shape 
          * and type. */
-        Ndx ndx1 = inpar.ndxValue();
+        Ndx ndx1 = inpar.ndxValue( env );
         MutableNdx template = new DefaultMutableNdx( ndx1 );
         template.setImage( ndx1.getImage() );
-        Ndx ndx2 = outpar.getOutputNdx( template );
+        Ndx ndx2 = outpar.getOutputNdx( env, template );
         NDArray im1 = ndx1.getImage();
         Requirements req1 = new Requirements( AccessMode.READ )
                            .setRandom( true );
@@ -84,7 +90,7 @@ class SlowBlock implements Task {
         long npix = shape.getNumPixels();
 
         /* Get the block size and set the blocking tile dimensions. */
-        int block = blockpar.intValue();
+        int block = blockpar.intValue( env );
         int gap = ( block - 1 ) / 2;
         long[] boxDims = new long[ ndim ];
         int boxpix = 1;

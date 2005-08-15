@@ -2,9 +2,10 @@ package uk.ac.starlink.ndtools;
 
 import java.util.Iterator;
 import uk.ac.starlink.array.Type;
-import uk.ac.starlink.task.AbortException;
+import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * A Parameter representing one of the primitive numeric types known by
@@ -23,19 +24,19 @@ class TypeParameter extends Parameter {
     /**
      * Returns the numeric primitive Type represented by this parameter.
      */
-    public Type typeValue() throws ParameterValueException, AbortException {
-        checkGotValue();
+    public Type typeValue( Environment env ) throws TaskException {
+        checkGotValue( env );
         return typeval;
     }
 
-    public void setValueFromString( String stringval )
-            throws ParameterValueException {
+    public void setValueFromString( Environment env, String stringval )
+            throws TaskException {
         String typename = stringval;
         for ( Iterator it = Type.allTypes().iterator(); it.hasNext(); ) {
             Type type = (Type) it.next();
             if ( typename.equalsIgnoreCase( type.toString() ) ) {
                 typeval = type;
-                super.setValueFromString( stringval );
+                super.setValueFromString( env, stringval );
             }
         }
 

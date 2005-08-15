@@ -11,12 +11,11 @@ import uk.ac.starlink.array.TypeConverter;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.task.AbortException;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Task for performing arithmetic on a constant and an NDX (e.g. multiplying
@@ -65,11 +64,10 @@ class ConstArithmetic implements Task {
         constpar.setPosition( 3 );
     }
 
-    public void invoke( Environment env )
-            throws ParameterValueException, AbortException {
+    public void invoke( Environment env ) throws TaskException {
 
-        Ndx ndx1 = inpar.ndxValue();
-        final double c = constpar.doubleValue();
+        Ndx ndx1 = inpar.ndxValue( env );
+        final double c = constpar.doubleValue( env );
 
         NDArray im;
         NDArray im1 = ndx1.getImage();
@@ -122,6 +120,6 @@ class ConstArithmetic implements Task {
         MutableNdx ndx2 = new DefaultMutableNdx( im );
         ndx2.setVariance( var );
         ndx2.setVariance( qual );
-        outpar.outputNdx( ndx2 );
+        outpar.outputNdx( env, ndx2 );
     }
 }

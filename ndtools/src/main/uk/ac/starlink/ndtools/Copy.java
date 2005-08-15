@@ -4,11 +4,10 @@ import java.io.IOException;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxIO;
-import uk.ac.starlink.task.AbortException;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Copies one NDX to another.
@@ -36,9 +35,8 @@ class Copy implements Task {
         return "in out";
     }
 
-    public void invoke( Environment env ) 
-            throws ParameterValueException, AbortException {
-        outpar.outputNdx( inpar.ndxValue() );
+    public void invoke( Environment env ) throws TaskException {
+        outpar.outputNdx( env, inpar.ndxValue( env ) );
     }
 
 }

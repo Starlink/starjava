@@ -14,12 +14,11 @@ import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.task.AbortException;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Task which determines and prints out the discrepancies between 
@@ -54,15 +53,23 @@ class Diff implements Task {
         return "ndx1 ndx2 [ndiffs]";
     }
 
-    public void invoke( Environment env )
-            throws ParameterValueException, AbortException, IOException {
+    public void invoke( Environment env ) throws TaskException {
+        try {
+            doInvoke( env );
+        }
+        catch ( IOException e ) {
+            throw new TaskException( e );
+        }
+    }
+
+    private void doInvoke( Environment env ) throws TaskException, IOException {
         PrintStream pstrm = env.getPrintStream();
 
-        Ndx ndx1 = ndx1par.ndxValue();
-        Ndx ndx2 = ndx2par.ndxValue();
-        int ndiffs = ndiffpar.intValue();
-        String name1 = ndx1par.stringValue();
-        String name2 = ndx2par.stringValue();
+        Ndx ndx1 = ndx1par.ndxValue( env );
+        Ndx ndx2 = ndx2par.ndxValue( env );
+        int ndiffs = ndiffpar.intValue( env );
+        String name1 = ndx1par.stringValue( env );
+        String name2 = ndx2par.stringValue( env );
 
         String title1 = ndx1.hasTitle() ? ndx1.getTitle() : null;
         String title2 = ndx2.hasTitle() ? ndx2.getTitle() : null;

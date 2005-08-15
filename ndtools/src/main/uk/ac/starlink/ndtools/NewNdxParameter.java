@@ -3,9 +3,10 @@ package uk.ac.starlink.ndtools;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxIO;
-import uk.ac.starlink.task.AbortException;
+import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Parameter representing a new Ndx object ready for writing.
@@ -23,13 +24,14 @@ class NewNdxParameter extends Parameter {
      * components and will be based on a given template Ndx (same
      * shape, type etc).
      *
+     * @param  env  execution environment
      * @param  template   template Ndx
      * @return  an Ndx with writable array components
      */
-    public Ndx getOutputNdx( Ndx template )
-             throws ParameterValueException, AbortException {
-        checkGotValue();
-        String loc = stringValue();
+    public Ndx getOutputNdx( Environment env, Ndx template ) 
+            throws TaskException {
+        checkGotValue( env );
+        String loc = stringValue( env );
         try {
             if ( ndxio.makeBlankNdx( loc, template ) ) {
                 Ndx outndx = ndxio.makeNdx( loc, AccessMode.WRITE );
@@ -50,13 +52,13 @@ class NewNdxParameter extends Parameter {
      * Writes out an existing (readable) Ndx object to the writable NDX
      * represented by this parameter.
      *
+     * @param   env  execution environment
      * @param   ndx  an Ndx whose content is to be copied into a new NDX
      *          represented by this parameter
      */
-    public void outputNdx( Ndx ndx )
-           throws ParameterValueException, AbortException {
-        checkGotValue();
-        String loc = stringValue();
+    public void outputNdx( Environment env, Ndx ndx ) throws TaskException {
+        checkGotValue( env );
+        String loc = stringValue( env );
         try {
             ndxio.outputNdx( loc, ndx );
         }

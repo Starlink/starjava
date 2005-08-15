@@ -17,12 +17,11 @@ import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.task.AbortException;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Task for generic combination of two NDXs to produce a third.
@@ -75,12 +74,19 @@ class Combine implements Task {
         ndx3par.setPosition( 3 );
     }
 
-    public void invoke( Environment env )
-            throws ParameterValueException, ExecutionException, AbortException,
-                   IOException {
+    public void invoke( Environment env ) throws TaskException {
+        try {
+            doInvoke( env );
+        }
+        catch ( IOException e ) {
+            throw new TaskException( e );
+        }
+    }
 
-        Ndx ndx1 = ndx1par.ndxValue();
-        Ndx ndx2 = ndx2par.ndxValue();
+    private void doInvoke( Environment env ) throws TaskException, IOException {
+
+        Ndx ndx1 = ndx1par.ndxValue( env );
+        Ndx ndx2 = ndx2par.ndxValue( env );
 
         NDArray im1 = ndx1.getImage();
         NDArray im2 = ndx2.getImage();
@@ -122,6 +128,6 @@ class Combine implements Task {
                      + " and " 
                      + ( ndx2.hasTitle() ? ndx2.getTitle() : "<unnamed>" ) );
 
-        ndx3par.outputNdx( ndx3 );
+        ndx3par.outputNdx( env, ndx3 );
     }
 }

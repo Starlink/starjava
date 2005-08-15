@@ -15,12 +15,11 @@ import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.task.AbortException;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Task for adding two NDXs.
@@ -53,11 +52,10 @@ class Add implements Task {
         return "ndx1 ndx2 ndxsum";
     }
                                 
-    public void invoke( Environment env ) 
-            throws ParameterValueException, ExecutionException, AbortException {
+    public void invoke( Environment env ) throws TaskException {
 
-        Ndx ndx1 = ndx1par.ndxValue();
-        Ndx ndx2 = ndx2par.ndxValue();
+        Ndx ndx1 = ndx1par.ndxValue( env );
+        Ndx ndx2 = ndx2par.ndxValue( env );
 
         NDArray im1 = ndx1.getImage();
         NDArray im2 = ndx2.getImage();
@@ -101,6 +99,6 @@ class Add implements Task {
                      + " and " 
                      + ( ndx2.hasTitle() ? ndx2.getTitle() : "<unnamed>" ) );
 
-        ndx3par.outputNdx( ndx3 );
+        ndx3par.outputNdx( env, ndx3 );
     }
 }

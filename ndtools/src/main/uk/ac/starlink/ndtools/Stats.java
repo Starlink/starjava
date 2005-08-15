@@ -14,11 +14,11 @@ import uk.ac.starlink.array.Requirements;
 import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.Ndxs;
-import uk.ac.starlink.task.AbortException;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Calculates and outputs statistics for an NDX. 
@@ -41,8 +41,7 @@ class Stats implements Task {
         return "in";
     }
 
-    public void invoke( Environment env ) 
-            throws ParameterValueException, AbortException, IOException {
+    public void invoke( Environment env ) throws TaskException {
         String title;
         long npix;
         StatsValues answers;
@@ -52,7 +51,7 @@ class Stats implements Task {
         try {
 
             /* Get the NDArray to work on. */
-            ndx = inpar.ndxValue();
+            ndx = inpar.ndxValue( env );
             title = ndx.hasTitle() ? ndx.getTitle() : null;
             nda = Ndxs.getMaskedImage( ndx );
             npix = nda.getShape().getNumPixels();
@@ -61,10 +60,20 @@ class Stats implements Task {
             answers = new StatsValues( nda );
         }
 
+        /* Rethrow IOExceptions. */
+        catch ( IOException e ) {
+            throw new ExecutionException( e );
+        }
+
         /* Tidy up in any case. */
         finally {
             if ( nda != null ) {
-                nda.close();
+                try {
+                    nda.close();
+                }
+                catch ( IOException e ) {
+                    // never mind
+                }
             }
         }
 
