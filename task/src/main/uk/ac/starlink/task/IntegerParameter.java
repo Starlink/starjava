@@ -13,6 +13,7 @@ public class IntegerParameter extends Parameter {
 
     public IntegerParameter( String name ) {
         super( name );
+        setUsage( "<int-value>" );
     }
 
     /**
@@ -49,14 +50,17 @@ public class IntegerParameter extends Parameter {
 
     /**
      * Returns the value of this parameter as an <tt>int</tt>.
+     *
+     * @param  env  execution environment
+     * @return   integer value
      */
-    public int intValue() throws ParameterValueException, AbortException {
-        checkGotValue();
+    public int intValue( Environment env ) throws TaskException {
+        checkGotValue( env );
         return intval;
     }
 
-    public void setValueFromString( String stringval ) 
-            throws ParameterValueException {
+    public void setValueFromString( Environment env, String stringval ) 
+            throws TaskException {
         try {
             intval = Integer.parseInt( stringval );
         }
@@ -77,6 +81,6 @@ public class IntegerParameter extends Parameter {
             throw new ParameterValueException( this, intval
                                              + " < maximum value " + max );
         }
-        super.setValueFromString( stringval );
+        super.setValueFromString( env, stringval );
     }
 }

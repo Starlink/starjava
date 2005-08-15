@@ -88,13 +88,12 @@ public class TerminalEnvironment implements Environment {
      *
      * @param   par  the parameter whose value is to be set
      */
-    public void setParameterValue( Parameter par ) 
-            throws AbortException, ParameterValueException {
-        setParameterValue( par, NUM_TRIES );
+    public void acquireValue( Parameter par ) throws TaskException {
+        acquireValue( par, NUM_TRIES );
     }
 
-    private void setParameterValue( Parameter par, int ntries )
-            throws AbortException, ParameterValueException {
+    private void acquireValue( Parameter par, int ntries )
+            throws TaskException {
 
         /* If we've run out of attempts, bail out. */
         if ( ntries <= 0 ) {
@@ -139,7 +138,7 @@ public class TerminalEnvironment implements Environment {
                         value = def;
                     }
                     else {  // recurse
-                        setParameterValue( par, ntries - 1 );
+                        acquireValue( par, ntries - 1 );
                         return;
                     }
                 }
@@ -147,17 +146,17 @@ public class TerminalEnvironment implements Environment {
             }
         }
         try {
-            par.setValueFromString( (String) valueMap.get( par ) );
+            par.setValueFromString( this, (String) valueMap.get( par ) );
         }
         catch ( ParameterValueException e ) {
             System.out.println( e.getMessage() );
             valueMap.remove( par );
-            setParameterValue( par, ntries - 1 );  // recurse
+            acquireValue( par, ntries - 1 );  // recurse
             return;
         }
     }
 
-    public void clearParameterValue( Parameter par ) {
+    public void clearValue( Parameter par ) {
         valueMap.remove( par );
     }
 

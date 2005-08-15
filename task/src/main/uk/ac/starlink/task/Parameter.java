@@ -29,20 +29,19 @@ package uk.ac.starlink.task;
  *             super( name );
  *         }
  *
- *         public void setValueFromString( String stringval )
- *                 throws ParameterValueException {
+ *         public void setValueFromString( Environment env, String stringval )
+ *                 throws TaskException {
  *             try {
  *                 intval = Integer.parseInt( stringval );
  *             }
  *             catch ( NumberFormatException e ) {
  *                 throw new ParameterValueException( this, e );
  *             }
- *             super.setValueFromString( stringval );
+ *             super.setValueFromString( env, stringval );
  *         }
  *
- *         public int intValue() 
- *                 throws ParameterValueException, AbortException {
- *             checkGotValue();
+ *         public int intValue( Environment env ) throws TaskException {
+ *             checkGotValue( env );
  *             return intval;
  *         }
  *     }
@@ -56,9 +55,9 @@ public class Parameter {
 
     private final String name;
     private String prompt;
+    private String usage = "<value>";
     private String def;
     private int pos;
-    private Environment env;
     private String stringValue;
     private boolean gotValue;
 
@@ -104,6 +103,35 @@ public class Parameter {
     }
 
     /**
+     * Sets a usage string for this parameter.  This should be terse
+     * (in particular no newline characters) and conform to the 
+     * following rules:
+     * <ul>
+     * <li>the parameter name is not included in the message
+     * <li>placeholders are enclosed in angle brackets (&lt;&gt;)
+     * <li>literals are not enclosed in angle brackets
+     * <li>a disjunction is represented using the "|" character
+     * </ul>
+     * The <code>Parameter</code> class uses the string "&lt;value&gt;"
+     * as the default usage string.
+     *
+     * @param   usage  usage string
+     */
+    public void setUsage( String usage ) {
+        this.usage = usage;
+    }
+
+    /**
+     * Returns the usage string for this parameter.
+     *
+     * @return  usage string
+     * @see   #setUsage
+     */
+    public String getUsage() {
+        return usage;
+    }
+
+    /**
      * Gets the default string value for this parameter.
      *
      * @return  the default string value
@@ -144,16 +172,6 @@ public class Parameter {
     }
 
     /**
-     * Sets the environment which is used to obtain values for this parameter.
-     * This must be set before the value can be obtained.
-     * 
-     * @param  env  the execution environment
-     */
-    public void setEnvironment( Environment env ) {
-        this.env = env;
-    }
-
-    /**
      * Sets the value of this parameter from a String.  This method is
      * called by the Environment to configure the value of this parameter.
      * It should be overridden by subclasses to set up their internal
@@ -165,11 +183,11 @@ public class Parameter {
      * implementation using <tt>super.setValueFromString</tt> once
      * it is certain that the value is legal.
      *
-     * @throws ParameterValueException   if <tt>stringval</tt> does not
-     *     represent a legal value for this parameter
+     * @param  env  execution environment
+     * @param  stringval  string representation of value
      */
-    public void setValueFromString( String stringval ) 
-            throws ParameterValueException {
+    public void setValueFromString( Environment env, String stringval ) 
+            throws TaskException {
          this.stringValue = stringval;
          setGotValue( true );
     }
@@ -181,18 +199,14 @@ public class Parameter {
      * The returned value may be <tt>null</tt> 
      * if the parameter has a null value.
      *
+     * @param   env  execution environment from which value is obtained
      * @return   the value of this parameter as a string, or <tt>null</tt>
      * @throws  AbortException  if during the course of trying to obtain
      *          a value the Environment determines that the task should
      *          not continue.
      */
-    public String stringValue() throws AbortException {
-        try {
-            checkGotValue();
-        }
-        catch ( ParameterValueException e ) {
-            throw new AssertionError( "How did that happen?" );
-        }
+    public String stringValue( Environment env ) throws TaskException {
+        checkGotValue( env );
         return stringValue;
     }
 
@@ -200,9 +214,11 @@ public class Parameter {
      * Clears the value of this parameter.  Subsequent retrievals of the
      * parameter value will trigger a request to the environment for a new
      * value.
+     *
+     * @param  env  execution environment within which value will be cleared
      */
-    public void clearValue() {
-        env.clearParameterValue( this );
+    public void clearValue( Environment env ) {
+        env.clearValue( this );
         setGotValue( false );
     }
 
@@ -221,11 +237,12 @@ public class Parameter {
     /**
      * Ensure that this object is configured with a valid value from the 
      * environment.  If not, the environment is queried so that we are.
+     *
+     * @param   env  execution environment which supplies value
      */
-    protected void checkGotValue()
-            throws AbortException, ParameterValueException {
+    protected void checkGotValue( Environment env ) throws TaskException {
         if ( ! gotValue ) {
-            env.setParameterValue( this );
+            env.acquireValue( this );
             setGotValue( true );
         }
     }

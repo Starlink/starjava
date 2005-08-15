@@ -121,24 +121,27 @@ public class TerminalInvoker {
                  * on the command line. */
                 Environment env = new TerminalEnvironment( taskargs, params );
 
-                /* Configure each parameter by telling it what environment
-                 * will provide its values. */
-                for ( int i = 0; i < params.length; i++ ) {
-                    params[ i ].setEnvironment( env );
-                }
-
                 /* The task is now properly configured; invoke it. */
                 task.invoke( env );
             }
 
             /* Catch various exceptions and deal with them appropriately. */
-            catch ( UsageException e ) {
-                String tusage = e.getUsage();
-                if ( tusage == null ) {
-                    tusage = task.getUsage();
+            catch ( ParameterValueException e ) {
+                Throwable cause = e.getCause();
+                if ( cause != null ) {
+                    if ( fulltrace ) {
+                        cause.printStackTrace( System.err );
+                    }
+                    else {
+                        System.err.println( cause.getMessage() );
+                    }
                 }
+                System.err.println( toolname + " " + taskname
+                                  + ": " + e.getMessage() );
+            }
+            catch ( UsageException e ) {
                 System.err.println( "Usage: " + toolname + " " + taskname +
-                                    " " + tusage );
+                                    " " + task.getUsage() );
                 System.exit( 1 );
             }
             catch ( ExecutionException e ) {
@@ -159,19 +162,6 @@ public class TerminalInvoker {
                 System.err.println( toolname + " " + taskname 
                                   + ": User abort" );
                 System.exit( 1 );
-            }
-            catch ( ParameterValueException e ) {
-                Throwable cause = e.getCause();
-                if ( cause != null ) {
-                    if ( fulltrace ) {
-                        cause.printStackTrace( System.err );
-                    }
-                    else {
-                        System.err.println( cause.getMessage() );
-                    }
-                }
-                System.err.println( toolname + " " + taskname
-                                  + ": " + e.getMessage() );
             }
         }
         else {

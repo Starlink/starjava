@@ -26,20 +26,15 @@ public interface Environment {
      *
      * @param   par  the Parameter whose value is to be obtained and set
      * @return  a String representing the value of the parameter
-     * @throws  AbortException   if the environment determines during the
-     *          attempt to obtain the parameter value that the task should
-     *          be aborted
-     * @throws  ParameterValueException  if no legal value can be set
      */
-    void setParameterValue( Parameter par )
-            throws AbortException, ParameterValueException;
+    void acquireValue( Parameter par ) throws TaskException;
 
     /**
      * Clears a value for a given parameter.
      *
      * @param  par  the Parameter whose value is to be cleared
      */
-    void clearParameterValue( Parameter par );
+    void clearValue( Parameter par );
 
     /**
      * Returns an output stream into which text output from a task can

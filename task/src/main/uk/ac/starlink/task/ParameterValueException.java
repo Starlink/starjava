@@ -6,7 +6,7 @@ package uk.ac.starlink.task;
  * Note each of the constructors takes the parameter in question as
  * its first argument.
  */
-public class ParameterValueException extends TaskException {
+public class ParameterValueException extends UsageException {
     public ParameterValueException( Parameter par ) {
         super( "Bad value for parameter " + par );
     }
