@@ -60,6 +60,7 @@ public class Parameter {
     private int pos;
     private String stringValue;
     private boolean gotValue;
+    private boolean nullPermitted;
 
     /**
      * Constructs a parameter with a given name.  This name should be unique
@@ -132,6 +133,27 @@ public class Parameter {
     }
 
     /**
+     * Set whether it is legal for this parameter's value to be blank.
+     * By default it is not.
+     *
+     * @param  permitted  whether null values are to be permitted for this
+     *         parameter
+     */
+    public void setNullPermitted( boolean permitted ) {
+        this.nullPermitted = permitted;
+    }
+
+    /**
+     * Determine whether it is legal for this parameter's value to be blank.
+     * By default it is not.
+     *
+     * @return   true if null values are permitted for this parameter
+     */
+    public boolean isNullPermitted() {
+        return nullPermitted;
+    }
+
+    /**
      * Gets the default string value for this parameter.
      *
      * @return  the default string value
@@ -182,12 +204,18 @@ public class Parameter {
      * Note that subclasses implementations must invoke their parent 
      * implementation using <tt>super.setValueFromString</tt> once
      * it is certain that the value is legal.
+     * <p>
+     * It is an error for the environment to call this method with
+     * <code>stringval=null</code> if {@link #isNullPermitted} returns false.
      *
      * @param  env  execution environment
      * @param  stringval  string representation of value
      */
     public void setValueFromString( Environment env, String stringval ) 
             throws TaskException {
+         if ( stringval == null && ! isNullPermitted() ) {
+             throw new NullPointerException();
+         }
          this.stringValue = stringval;
          setGotValue( true );
     }
@@ -197,6 +225,7 @@ public class Parameter {
      * The value is actually obtained by the <tt>Environment</tt> 
      * associated with this parameter.
      * The returned value may be <tt>null</tt> 
+     * only if the {@link #isNullPermitted} method returns true.
      * if the parameter has a null value.
      *
      * @param   env  execution environment from which value is obtained
@@ -207,6 +236,7 @@ public class Parameter {
      */
     public String stringValue( Environment env ) throws TaskException {
         checkGotValue( env );
+        assert stringValue != null || isNullPermitted();
         return stringValue;
     }
 
