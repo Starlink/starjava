@@ -19,6 +19,7 @@ public class BooleanParameter extends Parameter {
     public BooleanParameter( String name ) {
         super( name );
         setUsage( "true|false" );
+        setDefault( "false" );
     }
 
     /**
