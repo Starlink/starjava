@@ -158,9 +158,9 @@ public class LineInvoker {
             .append( " [-help]" )
             .append( " [-version]" )
             .append( " [-debug]" )
-            .append( " <task> <task-args>" )
+            .append( " <task-name> <task-args>" )
             .append( '\n' );
-        sbuf.append( "   Known tasks:\n" );
+        sbuf.append( "\n   Known tasks:\n" );
         String[] tasks = taskFactory_.getNickNames();
         for ( int i = 0; i < tasks.length; i++ ) {
             sbuf.append( "      " )
@@ -225,7 +225,12 @@ public class LineInvoker {
     private String getParamUsage( TableEnvironment env, Task task,
                                   String taskName, Parameter param ) {
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append( "\n   Name:\n" )
+        sbuf.append( "\nParameter information for parameter " )
+            .append( param.getName().toUpperCase() )
+            .append( " in task " )
+            .append( taskName.toUpperCase() )
+            .append( sbuf.toString().replaceAll( ".", "-" ) )
+            .append( "\n\n   Name:\n" )
             .append( "      " )
             .append( param.getName() )
             .append( "\n\n   Usage:\n" )

@@ -37,24 +37,31 @@ public class OutputModeParameter extends Parameter
         ObjectFactory modeFactory = Stilts.getModeFactory();
         String[] names = modeFactory.getNickNames();
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append( "   Available Modes:\n" );
+        sbuf.append( "   Available modes, with associated arguments:\n" );
         for ( int i = 0; i < names.length; i++ ) {
             String name = names[ i ];
             try {
                 ProcessingMode mode = (ProcessingMode)
                                       modeFactory.createObject( name );
-                sbuf.append( "      " )
+                StringBuffer line = new StringBuffer()
+                    .append( "      " )
                     .append( "mode=" )
                     .append( name );
+                String pad = line.toString().replaceAll( ".", " " );
                 Parameter[] params = mode.getAssociatedParameters();
                 for ( int j = 0; j < params.length; j++ ) {
                     Parameter param = params[ j ];
-                    sbuf.append( ' ' )
-                        .append( param.getName() )
-                        .append( '=' )
-                        .append( param.getUsage() );
+                    String word = 
+                        " " + param.getName() + "=" + param.getUsage();
+                    if ( line.length() + word.length() > 78 ) {
+                        sbuf.append( line )
+                            .append( '\n' );
+                        line = new StringBuffer( pad );
+                    }
+                    line.append( word );
                 }
-                sbuf.append( '\n' );
+                sbuf.append( line )
+                    .append( '\n' );
             }
             catch ( LoadException e ) {
                 if ( env.isDebug() ) {

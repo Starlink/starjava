@@ -27,7 +27,6 @@ public class MapperTask implements Task {
     private final InputTableParameter[] inTableParams_;
     private final TableConsumerParameter consumerParam_;
     private final Parameter[] params_;
-    private final String usage_;
 
     /**
      * Constructor.
@@ -41,39 +40,47 @@ public class MapperTask implements Task {
         mapper_ = mapper;
         nIn_ = mapper.getInCount();
         List paramList = new ArrayList();
-        StringBuffer usage = new StringBuffer();
 
         /* Input parameters. */
         inTableParams_ = new InputTableParameter[ nIn_ ];
+        if ( nIn_ == 1 ) {
+            inTableParams_[ 0 ] = new InputTableParameter( "in" );
+            inTableParams_[ 0 ].setUsage( "<table>" );
+            inTableParams_[ 0 ].setPrompt( "Location of input table" );
+            paramList.add( inTableParams_[ 0 ] );
+        }
+        else {
+            for ( int i = 0; i < nIn_; i++ ) {
+                String suffix = nIn_ == 1 ? "" : Integer.toString( i + 1 );
+                inTableParams_[ i ] = new InputTableParameter( "in" + suffix );
+                inTableParams_[ i ].setUsage( "<table" + suffix + ">" );
+                inTableParams_[ i ].setPrompt( "Location of " + getOrdinal( i )
+                                               + " input table" );
+                paramList.add( inTableParams_[ i ] );
+            }
+        }
         for ( int i = 0; i < nIn_; i++ ) {
-            String suffix = nIn_ == 1 ? "" : Integer.toString( i + 1 );
-            inTableParams_[ i ] = new InputTableParameter( "in" + suffix );
-            paramList.add( inTableParams_[ i ] );
+            inTableParams_[ i ].setPosition( i + 1 );
             addElements( paramList,
                          inTableParams_[ i ].getAssociatedParameters() );
-            usage.append( inTableParams_[ i ].getUsage() );
         }
 
         /* Processing parameters. */
         addElements( paramList, mapper.getParameters() );
-        usage.append( mapper.getUsage() );
 
         /* Output parameters. */
         if ( useOutModes ) {
             OutputModeParameter outParam = new OutputModeParameter( "mode" );
             paramList.add( outParam );
-            usage.append( outParam.getUsage() );
             consumerParam_ = outParam;
         }
         else {
             OutputTableParameter outParam = new OutputTableParameter( "out" );
             paramList.add( outParam );
             addElements( paramList, outParam.getAssociatedParameters() );
-            usage.append( outParam.getUsage() );
             consumerParam_ = outParam;
         }
         params_ = (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
-        usage_ = usage.toString();
     }
 
     public Parameter[] getParameters() {
@@ -108,6 +115,24 @@ public class MapperTask implements Task {
     private static void addElements( List list, Parameter[] params ) {
         for ( int i = 0; i < params.length; i++ ) {
             list.add( params[ i ] );
+        }
+    }
+
+    /**
+     * Returns the string representation of the ordinal number corresponding
+     * to a given integer.
+     *
+     * @param  i  number
+     * @return   ordinal
+     */
+    private static String getOrdinal( int i ) {
+        switch ( i ) {
+            case 1: return "first";
+            case 2: return "second";
+            case 3: return "third";
+            case 4: return "fourth";
+            case 5: return "fifth";
+            default: return "next";
         }
     }
 }
