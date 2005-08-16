@@ -20,6 +20,7 @@ public class InputFormatParameter extends Parameter implements ExtraParameter {
     public InputFormatParameter( String name ) {
         super( name );
         setPrompt( "Format name for input table" );
+        setNullPermitted( true );
     }
 
     public String getUsage() {
@@ -50,13 +51,14 @@ public class InputFormatParameter extends Parameter implements ExtraParameter {
 
     public void setValueFromString( Environment env, String stringval )
             throws TaskException {
-        try {
-            getTableFactory( env ).getTableBuilder( stringval );
-        }
-        catch ( TableFormatException e ) {
-            throw new ParameterValueException( this,
-                                               "Unknown format " + stringval,
-                                               e );
+        if ( stringval != null ) {
+            try {
+                getTableFactory( env ).getTableBuilder( stringval );
+            }
+            catch ( TableFormatException e ) {
+                throw new ParameterValueException(
+                    this, "Unknown format " + stringval, e );
+            }
         }
         super.setValueFromString( env, stringval );
     }

@@ -69,7 +69,7 @@ public class VotCopy implements Task {
         formatParam_.setPosition( 3 );
         formatParam_.setPrompt( "Output votable format" );
 
-        xencParam_ = new XmlEncodingParameter( "xmlenc" );
+        xencParam_ = new XmlEncodingParameter( "charset" );
 
         cacheParam_ = new BooleanParameter( "cache" );
         cacheParam_.setPrompt( "Read data into cache before copying?" );
@@ -80,6 +80,7 @@ public class VotCopy implements Task {
 
         baseParam_ = new Parameter( "base" );
         baseParam_.setPrompt( "Base location for FITS/BINARY href data" );
+        baseParam_.setNullPermitted( true );
     }
 
     public Parameter[] getParameters() {
@@ -133,8 +134,14 @@ public class VotCopy implements Task {
 
             /* Work out the output characteristics. */
             boolean inline = ! hrefParam_.booleanValue( env );
-            String base = inline ? baseParam_.stringValue( env )
-                                 : null;
+            String base;
+            if ( ! inline ) {
+                baseParam_.setNullPermitted( false );
+                base = baseParam_.stringValue( env );
+            }
+            else {
+                base = null;
+            }
 
             /* Construct a handler which can take SAX and SAX-like events and
              * turn them into XML output. */

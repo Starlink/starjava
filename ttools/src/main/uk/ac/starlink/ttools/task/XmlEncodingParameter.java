@@ -24,7 +24,7 @@ public class XmlEncodingParameter extends Parameter
     public XmlEncodingParameter( String name ) {
         super( name );
         setUsage( "<xml-encoding>" );
-        setDefault( "UTF-8" );
+        setNullPermitted( true );
     }
 
     public String getExtraUsage( TableEnvironment env ) {
@@ -54,7 +54,8 @@ public class XmlEncodingParameter extends Parameter
     public void setValueFromString( Environment env, String sval )
             throws TaskException {
         try {
-            charset_ = Charset.forName( sval );
+            charset_ = sval == null ? null
+                                    : Charset.forName( sval );
             super.setValueFromString( env, sval );
         }
         catch ( UnsupportedCharsetException e ) {

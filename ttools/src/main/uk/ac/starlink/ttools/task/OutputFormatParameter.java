@@ -16,6 +16,7 @@ public class OutputFormatParameter extends Parameter
         super( name );
         setUsage( "<out-format>" );
         setPrompt( "Format name for output table" );
+        setNullPermitted( true );
     }
 
     public String getExtraUsage( TableEnvironment env ) {

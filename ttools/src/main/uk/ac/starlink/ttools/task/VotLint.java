@@ -8,6 +8,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
+import uk.ac.starlink.task.InputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Task;
@@ -25,25 +26,26 @@ import uk.ac.starlink.util.DataSource;
  */
 public class VotLint implements Task {
 
-    private final Parameter sysidParam_;
+    private final InputStreamParameter inParam_;
     private final BooleanParameter validParam_;
     private final Parameter versionParam_;
 
     public VotLint() {
-        sysidParam_ = new Parameter( "votable" );
-        sysidParam_.setDefault( "-" );
-        sysidParam_.setPosition( 1 );
+        inParam_ = new InputStreamParameter( "votable" );
+        inParam_.setDefault( "-" );
+        inParam_.setPosition( 1 );
 
         validParam_ = new BooleanParameter( "validate" );
         validParam_.setDefault( true );
 
         versionParam_ = new ChoiceParameter( "version",
                                              LintContext.VOT_VERSIONS );
+        versionParam_.setNullPermitted( true );
     }
 
     public Parameter[] getParameters() {
         return new Parameter[] {
-            sysidParam_,
+            inParam_,
             validParam_,
             versionParam_,
         };
@@ -79,14 +81,8 @@ public class VotLint implements Task {
         }
 
         /* Get basic input stream. */
-        InputStream in;
-        String sysid = sysidParam_.stringValue( env );
-        if ( sysid == null || sysid.equals( "-" ) ) {
-            in = System.in;
-        }
-        else {
-            in = DataSource.getInputStream( sysid );
-        }
+        String sysid = inParam_.stringValue( env );
+        InputStream in = inParam_.inputStreamValue( env );
 
         /* Buffer the stream for efficiency. */
         in = new BufferedInputStream( in );

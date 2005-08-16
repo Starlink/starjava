@@ -35,6 +35,10 @@ public class ChoiceParameter extends Parameter {
 
     public void setValueFromString( Environment env, String value )
             throws TaskException {
+        if ( value == null ) {
+            super.setValueFromString( env, value );
+            return;
+        }
         for ( int i = 0; i < options_.length; i++ ) {
             if ( value.equalsIgnoreCase( options_[ i ] ) ) {
                 super.setValueFromString( env, value );

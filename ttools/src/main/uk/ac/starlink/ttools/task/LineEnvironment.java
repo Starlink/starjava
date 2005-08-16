@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.PrintStream;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 
 /**
@@ -53,12 +54,7 @@ public class LineEnvironment extends TableEnvironment {
                 return arg.value_;
             }
         }
-        if ( param.getDefault() != null ) {
-            return param.getDefault();
-        }
-        else {
-            return null;
-        }
+        return param.getDefault();
     }
 
     /**
@@ -77,7 +73,11 @@ public class LineEnvironment extends TableEnvironment {
 
     public void acquireValue( Parameter param ) throws TaskException {
         String stringVal = findValue( param );
-        if ( stringVal != null ) {
+        if ( stringVal == null && ! param.isNullPermitted() ) {
+            throw new ParameterValueException( param,
+                                               "null value not allowed" );
+        }
+        else {
             param.setValueFromString( this, stringVal );
         }
     }
