@@ -4,7 +4,8 @@ package uk.ac.starlink.ttools.task;
  * Interface which defines additional information available from a Parameter.
  * The intention is that Parameter implementations implement this
  * interface if they have more to say about usage than the one-line
- * text returned by their {@link #getUsage} method.
+ * text returned by their 
+ * {@link uk.ac.starlink.task.Parameter#getUsage} method.
  *
  * @author   Mark Taylor
  * @since    15 Aug 2005

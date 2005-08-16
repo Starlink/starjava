@@ -15,7 +15,7 @@ import uk.ac.starlink.ttools.mode.TableConsumer;
  * Task which maps one or more input tables to an output table.
  * This class provides methods to acquire the table sources and sink;
  * any actual transformation work is done by a separate 
- * {@param TableMapper} object.
+ * {@link TableMapper} object.
  *
  * @author   Mark Taylor
  * @since    15 Aug 2005
