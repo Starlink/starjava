@@ -3,8 +3,10 @@ package uk.ac.starlink.ttools.task;
 import java.io.PrintStream;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.votable.VOElementFactory;
 
 /**
  * Environment subinterface which provides additional functionality 
@@ -18,6 +20,7 @@ public abstract class TableEnvironment implements Environment {
     private StarTableFactory tfact_;
     private StarTableOutput tout_;
     private boolean debug_;
+    private Boolean isStrict_;
 
     /**
      * Returns a table factory suitable for use in this environment.
@@ -62,6 +65,29 @@ public abstract class TableEnvironment implements Environment {
     }
 
     /**
+     * Determines whether votables are to be parsed in strict mode.
+     *
+     * @return  true if VOTables will be interpreted strictly in accordance
+     *          with the standard
+     */
+    public boolean isStrictVotable() {
+        return isStrict_ == null
+             ? VOElementFactory.isStrictByDefault()
+             : isStrict_.booleanValue();
+    }
+
+    /**
+     * Sets whether votables should be parsed in strict mode.
+     *
+     * @param  true if VOTables should be interpreted strictly in accordance
+     *         with the standard
+     */
+    public void setStrictVotable( boolean strict ) {
+        isStrict_ = strict ? Boolean.TRUE
+                           : Boolean.FALSE;
+    }
+
+    /**
      * Returns a suitable table factory for a given environment.
      * If <code>env</code> is a TableEnvironement then <code>env</code>'s
      * factory is returned, otherwise a default one is returned.
@@ -87,5 +113,28 @@ public abstract class TableEnvironment implements Environment {
         return env instanceof TableEnvironment
              ? ((TableEnvironment) env).getTableOutput()
              : new StarTableOutput();
+    }
+
+    /**
+     * Returns a suitable storage policy for a given environment.
+     *
+     * @param  env  execution environment
+     * @return  storage policy
+     */
+    public static StoragePolicy getStoragePolicy( Environment env ) {
+        return getTableFactory( env ).getStoragePolicy();
+    }
+
+    /**
+     * Determines whether votables are to be parsed in strict mode.
+     *
+     * @param  env  execution environment
+     * @return  true if VOTables will be interpreted strictly in accordance
+     *          with the standard
+     */
+    public static boolean isStrictVotable( Environment env ) {
+        return env instanceof TableEnvironment
+             ? ((TableEnvironment) env).isStrictVotable()
+             : VOElementFactory.isStrictByDefault();
     }
 }
