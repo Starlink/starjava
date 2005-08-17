@@ -88,20 +88,9 @@ public class LineInvoker {
                 task = (Task) taskFactory_.createObject( taskName );
                 String[] taskArgs = (String[])
                                     argList.toArray( new String[ 0 ] );
-                if ( taskArgs.length == 0 || "help".equals( taskArgs[ 0 ] ) ) {
-                    System.out.println( "\n" + getTaskUsage( task, taskName ) );
-                }
-                else if ( taskArgs[ 0 ].startsWith( "help=" ) ) {
-                    String paramName = taskArgs[ 0 ].substring( 5 );
-                    Parameter[] params = task.getParameters();
-                    for ( int i = 0; i < params.length; i++ ) {
-                        if ( paramName
-                            .equalsIgnoreCase( params[ i ].getName() ) ) {
-                            System.out.println( getParamUsage( env, task, 
-                                                               taskName, 
-                                                               params[ i ] ) );
-                        }
-                    }
+                String helpText = helpMessage( env, task, taskName, taskArgs );
+                if ( helpText != null ) {
+                    System.out.println( "\n" + helpText );
                 }
                 else {
                     env.setArgs( taskArgs );
@@ -140,9 +129,44 @@ public class LineInvoker {
             }
         }
         else {
+            System.err.println( "\nNo such task: " + taskName );
             System.err.println( "\n" + getUsage() );
             System.exit( 1 );
         }
+    }
+
+    /**
+     * If a command line represents a request for help, appropriate help
+     * text is returned.  Otherwise, null is returned.
+     *
+     * @param   task   task
+     * @param   taskName  task nickname
+     * @param   taskArgs  argument list for task (not including task name)
+     * @return  help text, or null
+     */
+    private String helpMessage( TableEnvironment env, Task task,
+                                String taskName, String[] taskArgs ) {
+        for ( int i = 0; i < taskArgs.length; i++ ) {
+            String arg = taskArgs[ i ];
+            if ( arg.equals( "-help" ) ||
+                 arg.equals( "-h" ) ||
+                 arg.equalsIgnoreCase( "help" ) ) {
+                return getTaskUsage( task, taskName );
+            }
+            else if ( arg.toLowerCase().startsWith( "help=" ) ) {
+                String paramName = arg.substring( 5 ).trim().toLowerCase();
+                Parameter[] params = task.getParameters();
+                for ( int j = 0; j < params.length; j++ ) {
+                    Parameter param = params[ j ];
+                    if ( paramName.equals( param.getName() ) ) {
+                        return getParamUsage( env, task, taskName, param );
+                    }
+                }
+                return "No such argument: " + paramName + "\n\n" 
+                     + getTaskUsage( task, taskName );
+            }
+        }
+        return null;
     }
 
     /**
@@ -207,6 +231,9 @@ public class LineInvoker {
         }
         usage.append( line )
              .append( '\n' );
+        usage.append( pad )
+             .append( " [help=<arg-name>]" )
+             .append( '\n' );
         return usage.toString();
     }
 
@@ -225,7 +252,7 @@ public class LineInvoker {
     private String getParamUsage( TableEnvironment env, Task task,
                                   String taskName, Parameter param ) {
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append( "\nParameter information for parameter " )
+        sbuf.append( "\nHelp for parameter " )
             .append( param.getName().toUpperCase() )
             .append( " in task " )
             .append( taskName.toUpperCase() )
