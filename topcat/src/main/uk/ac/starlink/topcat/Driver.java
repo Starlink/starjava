@@ -267,10 +267,6 @@ public class Driver {
 
         /* Configure logging. */
         configureLogging( verbosity );
-        int verbInt = Math.max( Level.ALL.intValue(),
-                                Level.WARNING.intValue() 
-                                - verbosity * ( Level.WARNING.intValue() -
-                                                Level.INFO.intValue() ) );
         
 
         /* Assemble pairs of (tables name, handler name) to be loaded. */
