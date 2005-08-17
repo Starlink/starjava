@@ -146,7 +146,7 @@ public class VotCopy implements Task {
 
             /* Adjust default parameter values. */
             if ( formatParam_.formatValue( env ) == DataFormat.FITS ) {
-                cacheParam_.setDefault( "true" );
+                cacheParam_.setDefault( true );
             }
 
             /* Construct a handler which can take SAX and SAX-like events and
