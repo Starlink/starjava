@@ -26,6 +26,7 @@ public class InputTableParameter extends Parameter {
     
     public InputTableParameter( String name ) {
         super( name );
+        setUsage( "<in-table>" );
         formatParam_ = new InputFormatParameter( name + "fmt" );
         streamParam_ = new BooleanParameter( name + "stream" );
         setDefault( "-" );
@@ -41,8 +42,13 @@ public class InputTableParameter extends Parameter {
         return new Parameter[] { formatParam_, streamParam_ };
     }
 
-    public String getUsage() {
-        return "<location>";
+    /**
+     * Returns the parameter which deals with input format.
+     *
+     * @return  format parameter
+     */
+    public InputFormatParameter getFormatParameter() {
+        return formatParam_;
     }
 
     /**
