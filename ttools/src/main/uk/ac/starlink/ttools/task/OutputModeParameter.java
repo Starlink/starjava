@@ -7,8 +7,8 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.ObjectFactory;
 import uk.ac.starlink.ttools.LoadException;
 import uk.ac.starlink.ttools.Stilts;
+import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
-import uk.ac.starlink.ttools.mode.TableConsumer;
 
 /**
  * Parameter for table output mode.

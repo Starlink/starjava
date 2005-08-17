@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.ttools.mode.TableConsumer;
+import uk.ac.starlink.ttools.TableConsumer;
 
 /**
  * Defines an operation which maps zero or more tables on input to zero or

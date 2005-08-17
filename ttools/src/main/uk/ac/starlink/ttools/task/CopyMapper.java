@@ -4,7 +4,7 @@ import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.ttools.mode.TableConsumer;
+import uk.ac.starlink.ttools.TableConsumer;
 
 /**
  * Mapper which just copies the input table to the output.
@@ -20,10 +20,6 @@ public class CopyMapper implements TableMapper, TableMapping {
 
     public Parameter[] getParameters() {
         return new Parameter[ 0 ];
-    }
-
-    public String getUsage() {
-        return "";
     }
 
     public TableMapping createMapping( Environment env ) {

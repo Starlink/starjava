@@ -9,6 +9,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.ttools.TableConsumer;
 
 /**
  * Processing mode which summarises table metadata.

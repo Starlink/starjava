@@ -9,6 +9,7 @@ import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.TableConsumer;
 
 /**
  * Mode for writing a table as a new table in a JDBC-connected database.

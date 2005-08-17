@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.mode;
+package uk.ac.starlink.ttools;
 
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;

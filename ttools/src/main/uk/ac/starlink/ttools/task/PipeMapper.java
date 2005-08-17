@@ -14,7 +14,7 @@ import uk.ac.starlink.task.InputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
-import uk.ac.starlink.ttools.mode.TableConsumer;
+import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.filter.ProcessingStep;
 import uk.ac.starlink.ttools.filter.StepFactory;
 

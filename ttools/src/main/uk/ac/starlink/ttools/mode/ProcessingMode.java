@@ -4,6 +4,7 @@ import java.util.Iterator;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.TableConsumer;
 
 /**
  * Interface defining the final element of a table processing pipeline -

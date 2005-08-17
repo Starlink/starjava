@@ -13,6 +13,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.formats.TextTableWriter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.filter.KeepColumnFilter;
 
 /**

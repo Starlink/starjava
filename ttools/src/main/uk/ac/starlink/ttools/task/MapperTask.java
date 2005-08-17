@@ -9,7 +9,7 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.mode.TableConsumer;
+import uk.ac.starlink.ttools.TableConsumer;
 
 /**
  * Task which maps one or more input tables to an output table.

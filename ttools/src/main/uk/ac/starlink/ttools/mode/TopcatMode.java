@@ -14,6 +14,7 @@ import uk.ac.starlink.soap.util.RemoteUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.votable.soap.VOTableSerialization;
 
 /**
