@@ -447,7 +447,8 @@ public class VotCopyHandler
                 String msg;
                 if ( error_ instanceof StreamRereadException ) {
                     msg = "Can't stream, " +
-                          "table requires multiple reads for metadata";
+                          "table requires multiple reads for metadata - " +
+                          "try with caching";
                 }
                 else {
                     msg = error_.getMessage();
