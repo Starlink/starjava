@@ -1,0 +1,72 @@
+#!/bin/sh
+
+#+
+#  Name:
+#     stilts
+
+#  Purpose:
+#     Invokes the STILTS application on unix.
+
+#  Description:
+#     This shell script invokes the STILTS application. 
+
+#  Authors:
+#     MBT: Mark Taylor (Starlink)
+#-
+
+#  Find where this script is located.
+bindir="`dirname $0`"
+
+#  Locate the application jar file.  This is relative to this script.
+
+appjar="$bindir/../lib/ttools/ttools.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate $appjar."
+   exit 1
+fi
+
+#  Locate the java startup script.
+
+starjava="$bindir/starjava"
+if test ! -f "$starjava"; then
+   echo "Failed to locate '$bindir/starjava'."
+   exit 1
+fi
+
+#  Divide the arguments into two parts: those destined as flags for
+#  the java binary, and the rest.
+javaArgs=""
+appArgs=""
+while test "$1"
+do
+   if echo $1 | grep -- '^-[XD]' >/dev/null; then
+      javaArgs="$javaArgs "\'$1\'
+   elif [ "$1" = "-classpath" -a -n "$2" ]; then
+      shift
+      export CLASSPATH="$1"
+   else
+      appArgs="$appArgs "\'$1\'
+   fi
+   shift
+done
+
+#  Check for Cygwin and transform paths.
+case "`uname`" in
+  CYGWIN*)
+    if test -n "$CLASSPATH"; then
+       CLASSPATH=`cygpath --path --windows "${appjar}:$CLASSPATH"`
+    else
+       CLASSPATH=`cygpath --windows "${appjar}"`
+    fi
+  ;;
+  *)
+    CLASSPATH="${appjar}:${CLASSPATH}"
+  ;;
+esac
+
+cmd="$starjava \
+       $javaArgs \
+       -enableassertions \
+       -classpath \${CLASSPATH} uk.ac.starlink.ttools.Stilts \
+       $appArgs"
+eval "$cmd"
