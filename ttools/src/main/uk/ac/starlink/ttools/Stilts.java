@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools;
 
+import java.io.IOException;
+import java.io.InputStream;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.LineInvoker;
@@ -16,6 +18,8 @@ public class Stilts {
     private static ObjectFactory taskFactory_;
     private static ObjectFactory modeFactory_;
     static { init(); }
+
+    public static final String VERSION_RESOURCE = "stilts.version";
 
     /**
      * Main method.  Invoked with no arguments, a usage message will be output.
@@ -44,6 +48,36 @@ public class Stilts {
      */
     public static ObjectFactory getTaskFactory() {
         return taskFactory_;
+    }
+
+    /**
+     * Returns the version number for the STILTS package.
+     *
+     * @return  version string
+     */
+    public static String getVersion() {
+        InputStream strm = null;
+        try {
+            strm = Stilts.class.getResourceAsStream( VERSION_RESOURCE );
+            StringBuffer sbuf = new StringBuffer();
+            for ( int b; ( b = strm.read() ) > 0; ) {
+                sbuf.append( (char) b );
+            }
+            return sbuf.toString().trim();
+        }
+        catch ( IOException e ) {
+            throw new RuntimeException( "Version unknown", e );
+        }
+        finally {
+            if ( strm != null ) {
+                try {
+                    strm.close();
+                }
+                catch ( IOException e ) {
+                    // never mind
+                }
+            }
+        }
     }
 
     /**
