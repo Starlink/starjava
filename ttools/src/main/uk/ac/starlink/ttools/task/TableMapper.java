@@ -29,13 +29,6 @@ public interface TableMapper {
     Parameter[] getParameters();
 
     /**
-     * Returns a usage string fragment for this mapper.
-     *
-     * @return   usage
-     */
-    String getUsage();
-
-    /**
      * Creates a new mapping object, using a given execution environment
      * for any additional required state.
      *
