@@ -428,6 +428,10 @@
       <fileset dir="${src.dir}/resources"/>
     </copy>
 
+    <!-- Write the package version number to a file. -->
+    <echo file="${build.classes}/uk/ac/starlink/ttools/stilts.version"
+          message="${version}"/>
+
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
@@ -988,6 +992,46 @@
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
+
+    <!-- Write an XML file containing usage output for some actual
+     !   command invocations. -->
+    <java classname="uk.ac.starlink.ttools.build.OutputCapture"
+          failonerror="yes"
+          fork="no"
+          output="${build.docs}/stilts-usage.xml"
+          logerror="yes"
+          classpathref="classpath">
+      <arg value="uk.ac.starlink.ttools.Stilts"/>
+      <arg value="-help"/>
+    </java>
+    <java classname="uk.ac.starlink.ttools.build.OutputCapture"
+          failonerror="yes"
+          fork="no"
+          output="${build.docs}/tcopy-usage.xml"
+          logerror="yes"
+          classpathref="classpath">
+      <arg value="uk.ac.starlink.ttools.Stilts"/>
+      <arg value="tcopy"/>
+      <arg value="-help"/>
+    </java>
+    <java classname="uk.ac.starlink.ttools.build.OutputCapture"
+          failonerror="yes"
+          fork="no"
+          output="${build.docs}/tcopy-in-usage.xml"
+          logerror="yes"
+          classpathref="classpath">
+      <arg value="uk.ac.starlink.ttools.Stilts"/>
+      <arg value="tcopy"/>
+      <arg value="help=in"/>
+    </java>
+
+    <!-- Write XML files containing per-task usage information
+     !   for inclusion in the user document. -->
+    <java classname="uk.ac.starlink.ttools.build.UsageWriter"
+          failonerror="yes"
+          fork="yes"
+          dir="${build.docs}"
+          classpathref="classpath"/>
 
     <!-- Transform the user document XML to a single HTML document. -->
     <mkdir dir="${build.docs}/${user.doc}"/>
