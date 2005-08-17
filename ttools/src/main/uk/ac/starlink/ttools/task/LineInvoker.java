@@ -10,6 +10,7 @@ import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.LoadException;
+import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.ObjectFactory;
 
 /**
@@ -54,12 +55,13 @@ public class LineInvoker {
                      arg.equals( "-h" ) ) {
                     it.remove();
                     System.out.println( "\n" + getUsage() );
-                    System.exit( 0 );
+                    return;
                 }
                 else if ( arg.equals( "-version" ) ) {
                     it.remove();
-                    System.out.println( "\n" + getVersion() );
-                    System.exit( 0 );
+                    System.out.println( "\n" + "STILTS version " 
+                                             + Stilts.getVersion() + "\n" );
+                    return;
                 }
                 else if ( arg.equals( "-debug" ) ) {
                     it.remove();
@@ -200,11 +202,30 @@ public class LineInvoker {
      * @param   task   task object
      * @param   taskName  task nickname (the one by which it is known to
      *          the user)
+     * @return   usage string
      */
-    private String getTaskUsage( Task task, String taskName ) {
+    private static String getTaskUsage( Task task, String taskName ) {
+        String prefix = "Usage: " + taskName;
+        StringBuffer usage = new StringBuffer();
+        usage.append( getPrefixedTaskUsage( task, prefix ) );
+        String pad = prefix.replaceAll( ".", " " );
+        usage.append( pad )
+             .append( " [help=<arg-name>]" )
+             .append( '\n' );
+        return usage.toString();
+    }
+
+    /**
+     * Returns a usage string for a task, prefixed by a given string.
+     *
+     * @param   task   task object
+     * @param   prefix   string to prepend to the first line
+     * @return   usage string
+     */
+    public static String getPrefixedTaskUsage( Task task, String prefix ) {
         StringBuffer usage = new StringBuffer();
         StringBuffer line = new StringBuffer();
-        line.append( "Usage: " + taskName );
+        line.append( prefix );
         String pad = line.toString().replaceAll( ".", " " );
         Parameter[] params = task.getParameters();
         for ( int i = 0; i < params.length; i++ ) {
@@ -222,7 +243,7 @@ public class LineInvoker {
                 word.append( ']' );
             }
             word.append( param.getUsage() );
-            if ( line.length() + word.length() > 75 ) {
+            if ( line.length() + word.length() > 78 ) {
                 usage.append( line )
                      .append( '\n' );
                 line = new StringBuffer( pad );
@@ -230,9 +251,6 @@ public class LineInvoker {
             line.append( word );
         }
         usage.append( line )
-             .append( '\n' );
-        usage.append( pad )
-             .append( " [help=<arg-name>]" )
              .append( '\n' );
         return usage.toString();
     }
@@ -278,14 +296,4 @@ public class LineInvoker {
         }   
         return sbuf.toString();
     }
-
-    /**
-     * Returns version string for this package.
-     *
-     * @param  usage string
-     */
-    public static String getVersion() {
-        return "STILTS unknown version";
-    }
-    
 }
