@@ -12,21 +12,18 @@ import uk.ac.starlink.ttools.mode.CopyMode;
 public class OutputTableParameter extends Parameter
                                   implements TableConsumerParameter {
 
-    private final Parameter formatParam_;
+    private final OutputFormatParameter formatParam_;
     private TableConsumer consumer_;
 
     public OutputTableParameter( String name ) {
         super( name );
         formatParam_ = new OutputFormatParameter( name + "fmt" );
+        setUsage( "<out-table>" );
         setDefault( "-" );
     }
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] { formatParam_ };
-    }
-
-    public String getUsage() {
-        return "<location>";
+    public OutputFormatParameter getFormatParameter() {
+        return formatParam_;
     }
 
     /**

@@ -77,7 +77,7 @@ public class MapperTask implements Task {
         else {
             OutputTableParameter outParam = new OutputTableParameter( "out" );
             paramList.add( outParam );
-            addElements( paramList, outParam.getAssociatedParameters() );
+            paramList.add( outParam.getFormatParameter() );
             consumerParam_ = outParam;
         }
         params_ = (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
