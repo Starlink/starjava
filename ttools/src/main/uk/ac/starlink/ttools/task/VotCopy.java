@@ -27,6 +27,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.copy.VotCopyHandler;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.StarEntityResolver;
+import uk.ac.starlink.votable.DataFormat;
 
 /**
  * Task which Copies a VOTable XML document intact but with control over the
@@ -141,6 +142,11 @@ public class VotCopy implements Task {
             }
             else {
                 base = null;
+            }
+
+            /* Adjust default parameter values. */
+            if ( formatParam_.formatValue( env ) == DataFormat.FITS ) {
+                cacheParam_.setDefault( "true" );
             }
 
             /* Construct a handler which can take SAX and SAX-like events and
