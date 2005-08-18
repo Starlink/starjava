@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
@@ -23,6 +25,7 @@ public class LineInvoker {
 
     private final String toolName_;
     private final ObjectFactory taskFactory_;
+    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.ttools" );
 
     /**
      * Constructor.
@@ -62,6 +65,20 @@ public class LineInvoker {
                     System.out.println( "\n" + "STILTS version " 
                                              + Stilts.getVersion() + "\n" );
                     return;
+                }
+                else if ( arg.equals( "-disk" ) ) {
+                    it.remove();
+                    StoragePolicy.setDefaultPolicy( StoragePolicy.PREFER_DISK );
+                    env.getTableFactory()
+                       .setStoragePolicy( StoragePolicy.PREFER_DISK );
+                }
+                else if ( arg.equals( "-votstrict" ) ) {
+                    it.remove();
+                    env.setStrictVotable( true );
+                }
+                else if ( arg.equals( "-novotstrict" ) ) {
+                    it.remove();
+                    env.setStrictVotable( false );
                 }
                 else if ( arg.equals( "-debug" ) ) {
                     it.remove();
@@ -150,21 +167,30 @@ public class LineInvoker {
                                 String taskName, String[] taskArgs ) {
         for ( int i = 0; i < taskArgs.length; i++ ) {
             String arg = taskArgs[ i ];
+            String helpFor = null;
             if ( arg.equals( "-help" ) ||
                  arg.equals( "-h" ) ||
                  arg.equalsIgnoreCase( "help" ) ) {
                 return getTaskUsage( task, taskName );
             }
-            else if ( arg.toLowerCase().startsWith( "help=" ) ) {
-                String paramName = arg.substring( 5 ).trim().toLowerCase();
+            else if ( arg.toLowerCase().startsWith( "-help=" ) ) {
+                helpFor = arg.substring( 6 ).trim().toLowerCase();
+                if ( helpFor.startsWith( "-" ) ) {
+                    helpFor = helpFor.substring( 1 );
+                }
+            }
+            else if ( arg.startsWith( "-" ) && arg.indexOf( '=' ) < 0 ) {
+                helpFor = arg.substring( 1 ).trim().toLowerCase();
+            }
+            if ( helpFor != null ) {
                 Parameter[] params = task.getParameters();
                 for ( int j = 0; j < params.length; j++ ) {
                     Parameter param = params[ j ];
-                    if ( paramName.equals( param.getName() ) ) {
+                    if ( helpFor.equals( param.getName() ) ) {
                         return getParamUsage( env, task, taskName, param );
                     }
                 }
-                return "No such argument: " + paramName + "\n\n" 
+                return "No such argument: -" + helpFor + "\n\n" 
                      + getTaskUsage( task, taskName );
             }
         }
@@ -183,6 +209,7 @@ public class LineInvoker {
             .append( toolName_ )
             .append( " [-help]" )
             .append( " [-version]" )
+            .append( " [-disk]" )
             .append( " [-debug]" )
             .append( " <task-name> <task-args>" )
             .append( '\n' );
@@ -209,9 +236,9 @@ public class LineInvoker {
         StringBuffer usage = new StringBuffer();
         usage.append( getPrefixedTaskUsage( task, prefix ) );
         String pad = prefix.replaceAll( ".", " " );
-        usage.append( pad )
-             .append( " [help=<arg-name>]" )
-             .append( '\n' );
+     // usage.append( pad )
+     //      .append( " [-help=<arg-name>]" )
+     //      .append( '\n' );
         return usage.toString();
     }
 
@@ -223,26 +250,52 @@ public class LineInvoker {
      * @return   usage string
      */
     public static String getPrefixedTaskUsage( Task task, String prefix ) {
-        StringBuffer usage = new StringBuffer();
-        StringBuffer line = new StringBuffer();
-        line.append( prefix );
-        String pad = line.toString().replaceAll( ".", " " );
+
+        /* Assemble two lists of usage elements: one for parameters 
+         * which must be specified by name, and another for parameters
+         * which can be specified only by position. */
         Parameter[] params = task.getParameters();
+        List namedWords = new ArrayList();
+        List numberedWords = new ArrayList();
+        int iPos = 0;
         for ( int i = 0; i < params.length; i++ ) {
             StringBuffer word = new StringBuffer();
             word.append( ' ' );
             Parameter param = params[ i ];
             int pos = param.getPosition();
-            boolean byPos = pos > 0 && pos == i + 1;
+            boolean byPos = false;
+            if ( param.getPosition() > 0 ) {
+                if ( pos == ++iPos ) {
+                    byPos = true;
+                }
+                else {
+                    logger_.warning( "Parameter positions out of sync for " +
+                                     param );
+                }
+            }
             if ( byPos ) {
                 word.append( '[' );
             }
-            word.append( param.getName() )
+            word.append( '-' )
+                .append( param.getName() )
                 .append( '=' );
             if ( byPos ) {
                 word.append( ']' );
             }
             word.append( param.getUsage() );
+            (byPos ? numberedWords : namedWords).add( word.toString() );
+        }
+
+        /* Start the usage string, noting the amount of padding required
+         * at the head to accommodate the prefix on lines after the first. */
+        StringBuffer usage = new StringBuffer();
+        StringBuffer line = new StringBuffer();
+        line.append( prefix );
+        String pad = line.toString().replaceAll( ".", " " );
+
+        /* Add the named usage elements. */
+        for ( Iterator it = namedWords.iterator(); it.hasNext(); ) {
+            String word = (String) it.next();
             if ( line.length() + word.length() > 78 ) {
                 usage.append( line )
                      .append( '\n' );
@@ -252,6 +305,23 @@ public class LineInvoker {
         }
         usage.append( line )
              .append( '\n' );
+        line = new StringBuffer( pad );
+
+        /* Add the numbered usage elements. */
+        for ( Iterator it = numberedWords.iterator(); it.hasNext(); ) {
+            String word = (String) it.next();
+            if ( line.length() + word.length() > 78 ) {
+                usage.append( line )
+                     .append( '\n' );
+                line = new StringBuffer( pad );
+            }
+            line.append( word );
+        }
+        usage.append( line )
+             .append( '\n' );
+        line = new StringBuffer( pad );
+
+        /* Return the final usage string. */
         return usage.toString();
     }
 
@@ -269,20 +339,29 @@ public class LineInvoker {
      */
     private String getParamUsage( TableEnvironment env, Task task,
                                   String taskName, Parameter param ) {
+        boolean byPos = param.getPosition() > 0;
+        boolean isOptional = param.getDefault() != null 
+                          || param.isNullPermitted();
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append( "\nHelp for parameter " )
+        sbuf.append( "Help for parameter " )
             .append( param.getName().toUpperCase() )
             .append( " in task " )
             .append( taskName.toUpperCase() )
+            .append( '\n' )
             .append( sbuf.toString().replaceAll( ".", "-" ) )
-            .append( "\n\n   Name:\n" )
+            .append( "\n   Name:\n" )
             .append( "      " )
             .append( param.getName() )
             .append( "\n\n   Usage:\n" )
             .append( "      " )
+            .append( isOptional ? "[" : "" )
+            .append( byPos ? "[" : "" )
+            .append( '-' )
             .append( param.getName() )
             .append( '=' )
+            .append( byPos ? "]" : "" )
             .append( param.getUsage() )
+            .append( isOptional ? "]" : "" )
             .append( "\n\n   Description:\n" )
             .append( "      " )
             .append( param.getPrompt() )

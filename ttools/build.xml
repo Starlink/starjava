@@ -1022,7 +1022,7 @@
           classpathref="classpath">
       <arg value="uk.ac.starlink.ttools.Stilts"/>
       <arg value="tcopy"/>
-      <arg value="help=in"/>
+      <arg value="-help=in"/>
     </java>
 
     <!-- Write XML files containing per-task usage information
