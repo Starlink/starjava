@@ -10,31 +10,10 @@
   <!-- Define external URLs. -->
   <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.4.2/docs/">
 
-  <!-- Standard flag definitions. -->
-  <!ENTITY flag-help '
-     <dt><code>-h[elp]</code></dt>
-     <dd><p>Prints a usage message and exits.
-         </p></dd>'>
   <!ENTITY flag-verbose '
      <dt><code>-v[erbose]</code></dt>
      <dd><p>May cause more information about progress to be written as
          the command runs.
-         </p></dd>'>
-  <!ENTITY flag-disk '
-     <dt><code>-disk</code></dt> 
-     <dd><p>Encourages the command to use temporary files on disk for caching
-         large amounts of data rather than doing it in memory.
-         This is a good flag to try if you are getting
-         <code>OutOfMemoryError</code>s.
-         This flag is in most cases equivalent to specifying the system
-         property <code>-Dstartable.storage=disk</code>.
-         </p></dd>'>
-   <!ENTITY flag-debug '
-     <dt><code>-debug</code></dt>
-     <dd><p>Causes any error messages, which are usually made brief, to
-         be accompanied by a stack trace.  If you are reporting a bug
-         (or debugging the code yourself), then you should use this flag
-         to get the most information about what has gone wrong.
          </p></dd>'>
 
   <!-- Short descriptions for each command. -->
@@ -42,7 +21,17 @@
   <!ENTITY tpipe-purpose 'Generic Table Pipeline Utility'>
   <!ENTITY votcopy-purpose 'VOTable Encoding Translator'>
   <!ENTITY votlint-purpose 'VOTable Validity Checker'>
+
+  <!-- Summary paragraphs containing usage for each commmand. -->
+  <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
+  <!ENTITY tpipe-summary SYSTEM 'tpipe-summary.xml'>
+  <!ENTITY votcopy-summary SYSTEM 'votcopy-summary.xml'>
+  <!ENTITY votlint-summary SYSTEM 'votlint-summary.xml'>
   
+  <!-- Raw usage messages for some commands. -->
+  <!ENTITY stilts-usage SYSTEM 'stilts-usage.xml'>
+  <!ENTITY tcopy-usage SYSTEM 'tcopy-usage.xml'>
+  <!ENTITY tcopy-in-usage SYSTEM 'tcopy-in-usage.xml'>
 ]>
 
 <sun>
@@ -61,7 +50,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>30 June 2005</docdate>
+<docdate>17 August 2005</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -189,29 +178,213 @@ All user comments are most welcome.
 
 </sect>
 
+<sect id="stilts-cmd">
+<subhead><title>The <code>stilts</code> command</title></subhead>
+
+<p>All the functions available in this package can be used from
+a single command, which is usually referred to in this document 
+simply as "<code>stilts</code>".  Depending on how you have installed
+the package, you may just type "<code>stilts</code>",
+or something like
+<verbatim>
+   java -jar some/path/stilts.jar
+</verbatim>
+or
+<verbatim>
+   java -classpath topcat-lite.jar uk.ac.starlink.ttools.Stilts
+</verbatim>
+or something else - 
+this is covered in detail in <ref id="invoke"/>.
+</p>
+
+<p>In general, the form of a command is
+<verbatim><![CDATA[
+   stilts <stilts-flags> <task-name> <task-args>
+]]></verbatim>
+The forms of the parts of this command are described in the following
+subsections, and details of each of the available tasks along with
+their arguments are listed in the
+<ref id="cmdUsage" plaintextref="yes">command reference</ref> 
+at the end of this document.
+</p>
+
+<p>In addition, help is available on the commands and their arguments
+from within the application.  Typing
+<verbatim>
+   stilts -help
+</verbatim>
+results in this output:
+<verbatim>&stilts-usage;</verbatim>
+For help on the individual tasks, you can supply the <code>-help</code>
+flag after the task name, so for instance
+<verbatim>
+   stilts tcopy -help
+</verbatim>
+results in
+<verbatim>&tcopy-usage;</verbatim>
+Finally, help on each of the parameters of each task is available 
+by using the <code>help</code> parameter after the task name, for instance
+<verbatim>
+   stilts tcopy -help=in
+</verbatim>
+gives
+<verbatim>&tcopy-in-usage;</verbatim>
+</p>
+
+<subsect id="stilts-flags">
+<subhead><title>Stilts flags</title></subhead>
+
+<p>Some flags are common to all the tasks in the STILTS package,
+and these are specified after the <code>stilts</code> invocation itself
+and before the task name.  They generally have the same effect 
+regardless of which task is running.  These generic flags are as
+follows:
+<dl>
+<dt>-help</dt>
+<dd><p>Prints a usage message for the <code>stilts</code> command 
+    itself and exits.  The message contains a listing of all the
+    known tasks.
+    </p></dd>
+
+<dt>-version</dt>
+<dd><p>Prints the STILTS version number and exits.
+    </p></dd>
+
+<dt>-disk</dt>
+<dd><p>Encourages the command to use temporary files on disk for caching
+    large amounts of data rather than doing it in memory.
+    This is a good flag to try if you are getting
+    <code>OutOfMemoryError</code>s.
+    This flag is in most cases equivalent to specifying the system
+    property <code>-Dstartable.storage=disk</code>.
+    </p></dd>
+
+<dt>-debug</dt>
+<dd><p>Sets up output suitable for debugging.  The most visible consequence
+    of this is that if an error occurs then a full stacktraces is output, 
+    rather than just a user-friendly report.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>If you are submitting an error report, please include the result of
+running <code>stilts -version</code> and the output of the troublesome
+command with the <code>-debug</code> flag specified.
+</p>
+
+</subsect>
+
+<subsect id="task-name">
+<subhead><title>Task Names</title></subhead>
+
+<p>The <code>&lt;task-name&gt;</code> part of the command line is the
+name of one of the tasks listed in <ref id="cmdUsage"/> - currently 
+the available tasks are:
+<ul>
+<li><code>tcopy</code></li>
+<li><code>tpipe</code></li>
+<li><code>votcopy</code></li>
+<li><code>votlint</code></li>
+</ul>
+The task name is not case-sensitive.
+</p>
+
+</subsect>
+
+<subsect id="task-args">
+<subhead><title>Task Arguments</title></subhead>
+
+<p>The <code>&lt;task-args&gt;</code> part of the command line is a
+list of "words", each giving the value of one of the named parameters
+belonging to the task which is specified in the <code>&lt;task-name&gt;</code>
+part.  The general form of a parameter assignment is
+<verbatim><![CDATA[
+   -<param-name>=<param-value>
+]]></verbatim>
+where <code>&lt;param-name&gt;</code> is the name of one of the parameters 
+listed in the appropriate Usage section in <ref id="cmdUsage"/>;
+you can also obtain a list of the task's parameters by invoking:
+<verbatim><![CDATA[
+   stilts <task-name> -help
+]]></verbatim>
+In some cases you can leave out the "<code>-&lt;param-name&gt;=</code>" 
+part - this is indicated by that part being listed in square brackets
+in the usage message.
+</p>
+
+<p>So for instance the usage message for the <code>tcopy</code> command,
+as provided in response to the command
+<verbatim>
+   stilts tcopy -help
+</verbatim>
+is as follows:
+<verbatim>&tcopy-usage;</verbatim>
+which means that this:
+<verbatim>
+   stilts tcopy -ifmt=csv -ofmt=fits -in=cat.csv -out=cat.fits
+</verbatim>
+can equally well be written like this:
+<verbatim>
+   stilts tcopy -ifmt=csv -ofmt=fits cat.csv cat.fits
+</verbatim>
+</p>
+
+<p>Many task arguments can be omitted and they will assume
+sensible default values.  In the case above, <code>tcopy</code> is
+able to guess the output format by looking at the extension of 
+the supplied filename, so in this case you could just write
+<verbatim>
+   stilts tcopy -ifmt=csv cat.csv cat.fits
+</verbatim>
+If you omit an argument that needs to be supplied, an error will be 
+issued.
+</p>
+
+<p>To find more information about any of a task's arguments, you 
+can use the <code>-help</code> flag, like this:
+<verbatim>
+   stilts tcopy -help=ifmt
+</verbatim>
+which will give you information about <code>tcopy</code>'s <code>-ifmt</code>
+parameter, including some textual description, default values etc.
+For more detailed information than that given by the <code>-help</code>
+flag, consult the task description in <ref id="cmdUsage"/>.
+</p>
+
+<p>In some cases, the task arguments may need to contain characters
+such as spaces which may be significant to your execution environment,
+so you may need to use quote characters etc on the command line in
+the usual way for whatever shell you are using.
+</p>
+
+</subsect>
+
+</sect>
+
 
 <sect id="invoke">
 <subhead><title>Invocation</title></subhead>
 
-<p>There are two ways of invoking the commands in this package.
+<p>There are a number of ways of invoking the <code>stilts</code> command,
+depending on how you have downloaded it.
 If you're using a Unix-like operating system and have downloaded
-the package in a form which includes the shell scripts,
-the easiest way is to use the scripts <code>tpipe</code>,
-<code>votlint</code> etc.  These will either be in the same location
-as the <code>stilts.jar</code> file or in <code>starjava/bin</code>
+the full starjava installation,
+the easiest way is to use the script <code>stilts</code>,
+located in the <code>starjava/bin</code> directory.
+This is a very simple script which just invokes java with the
+right classpath and the supplied arguments.
 The form of invocation in this case is:
 <verbatim><![CDATA[
-    <command-name> <java-args> <application-args>
+   stilts <java-flags> <stilts-flags> <task-name> <task-args>
 ]]></verbatim>
-(the <code>java</code> should be on your path).
-</p>
-
-<p>A simple example would be:
+(the <code>java</code> executable should be on your path).
+A simple example would be:
 <verbatim>
-    votcopy -f binary t1.xml t2.xml
+   stilts votcopy -format=binary t1.xml t2.xml
 </verbatim>
-For convenience you can mix up java-args and application-args -
-the script will untangle them and reorder them properly.
+in this case, as often, there are no &lt;java-flags&gt; or
+&lt;stilts-flags&gt;.
 If you use the <code>-classpath</code>
 argument or have a CLASSPATH environment variable set, 
 then classpath elements thus specified will be added to the classpath
@@ -221,23 +394,52 @@ command descriptions below use this form for convenience.
 </p>
 
 <p>If you don't have a Unix-like shell available however, or if you
-don't have the STILTS shell scripts, you will need to invoke
+don't have the <code>stilts</code> shell script, you will need to invoke
 Java directly with the appropriate classes on your classpath.
-The general form of an invocation command in this case will depend on
-your system, but will probably look like:
+If you have the <code>stilts.jar</code>, in most cases you can 
+just write:
 <verbatim><![CDATA[
-    java <java-args> -classpath <command-classpath> <command-classname>
-         <application-args>
+   java <java-flags> -jar stilts.jar <stilts-flags> <task-name> <task-args>
 ]]></verbatim>
-The example above in this case would look something like:
+which in practice would look something like
 <verbatim>
-    java -classpath some/where/stilts.jar uk.ac.starlink.table.VotCopy 
-         -f binary t1.xml t2.xml
+   java -jar ~downloads/stilts.jar votcopy format=binary t1.xml t2.xml
 </verbatim>
 </p>
 
-<p>More detail is given on the parts of these command lines in the
-following subsections.
+<p>In the most general case, Java's <code>-jar</code> flag might be
+no good, for one of the following reasons:
+<ol>
+<li>You have the classes in some form other than the <code>stilts.jar</code>
+    file (such as <code>topcat-full.jar</code>)</li>
+<li>You need to specify some other classes on the classpath, which is
+    required e.g. for use with 
+    <ref id="jdbcConfig" plaintextref="yes">JDBC</ref> 
+    or if you are 
+    <ref id="jelExtend" plaintextref="yes">extending the commands</ref>
+    using your own classes at runtime</li>
+</ol>
+In this case, you will need an invocation something like this:
+<verbatim><![CDATA[
+   java <java-flags> -classpath <class-path> 
+        uk.ac.starlink.ttools.Stilts <stilts-flags> <task-name> <task-args>
+]]></verbatim>
+The example above in this case would look something like:
+<verbatim>
+   java -classpath some/where/topcat-full.jar uk.ac.starlink.ttools.Stilts 
+        votcopy format=binary t1.xml t2.xml
+</verbatim>
+</p>
+
+<p>The 
+<code>&lt;stilts-flags&gt;</code>,
+<code>&lt;task-name&gt;</code> and
+<code>&lt;task-args&gt;</code> 
+parts of these invocations are explained in <ref id="stilts-cmd"/>,
+and the 
+<code>&lt;java-flags&gt;</code> and 
+<code>&lt;class-path&gt;</code>
+parts are explained in the following subsections.
 </p>
 
 <subsect id="jvmClasspath">
@@ -268,6 +470,9 @@ for instance:
 <li>Installing I/O handlers for new table formats
     (see <docxref doc="sun252" loc="pluggableIO"/>)</li>
 </ul>
+In this case the classpath must contain a list of all the jar files in which
+the required classes can be found, separated by colons (Un*x) or
+semicolons (MS Windows).
 </p>
 
 </subsect>
@@ -291,7 +496,7 @@ specify directly to Java are these:
     So for instance to ensure that temporary files are written to
     the <code>/home/scratch</code> directory, you could use the flag
     <verbatim>
-        -Djava.io.tmpdir=/home/scratch
+   -Djava.io.tmpdir=/home/scratch
     </verbatim>
     </p></dd>
 
@@ -304,7 +509,7 @@ specify directly to Java are these:
     heap memory with the <code>-Xmx</code> flag.  To set the heap 
     memory size to 256 megabytes, use the flag
     <verbatim>
-        -Xmx256M
+   -Xmx256M
     </verbatim>
     (don't forget the 'M' for megabyte).  You will probably find
     performance is poor if you specify a heap size larger than 
@@ -314,8 +519,10 @@ specify directly to Java are these:
     <p>Note however that encouraging STILTS to use disk files
     rather than memory for temporary storage is often a
     better idea than boosting the heap memory - 
-    this is done by specifying the <code>-disk</code> flag on most of the
-    tools, or possibly <code>-Dstartable.storage=disk</code>.
+    this is done by specifying the <code>-disk</code> flag 
+    as one of the <code>&lt;stilts-flags&gt;</code>,
+    or possibly setting the system property 
+    <code>-Dstartable.storage=disk</code>.
     </p></dd>
 
 </dl>
@@ -328,39 +535,6 @@ you probably don't need me to tell you about it.
 
 </subsect>
 
-<subsect>
-<subhead><title>Command Classname</title></subhead>
-
-<p>Each command in the package is defined at the top level with a
-single class in the namespace <code>uk.ac.starlink.ttools</code>.
-For instance <code>tpipe</code> is defined by the class
-<code>uk.ac.starlink.ttools.TablePipe</code>,
-and if you don't have the <code>tpipe</code> script you can 
-run it using
-<verbatim>
-    java -classpath some/where/stilts.jar uk.ac.starlink.ttools.TablePipe
-</verbatim>
-The classname of each command is listed with its description in
-<ref id="cmdUsage"/>.
-</p>
-
-</subsect>
-
-<subsect id="appArgs">
-<subhead><title>Application Arguments</title></subhead>
-
-<p>The arguments for each application are listed with the command
-descriptions elsewhere in this document, but some of them are common
-to most or all of the commands:
-<dl>
-&flag-help;
-&flag-verbose;
-&flag-disk;
-&flag-debug;
-</dl>
-</p>
-
-</subsect>
 
 <subsect id="sysProperties">
 <subhead><title>System Properties</title></subhead>
@@ -375,13 +549,13 @@ or in a file in your home directory called
 <code>name=value</code> line.
 Thus submitting the flag
 <verbatim>
-    -Dvotable.strict=true
+   -Dvotable.strict=true
 </verbatim>
 on the command line is equivalent to having the following in your
 <code>.starjava.properties</code> file:
 <verbatim>
-    #  Force strict interpretation of the VOTable standard.
-    votable.strict=true
+   #  Force strict interpretation of the VOTable standard.
+   votable.strict=true
 </verbatim>
 </p>
 
@@ -391,7 +565,7 @@ on the command line is equivalent to having the following in your
 <dt><code>java.io.tmpdir</code></dt>
 <dd><p>The directory in which STILTS will write any temporary files it needs.
     This is usually only done if the <code>-disk</code> flag has been
-    specified (see <ref id="appArgs"/>).
+    specified (see <ref id="stilts-flags"/>).
     </p></dd>
 
 <dt><code>jdbc.drivers</code></dt>
@@ -416,7 +590,7 @@ on the command line is equivalent to having the following in your
 <dd><p>Can be set to determine the default storage policy.
     Setting it to "<code>disk</code>" has basically the same effect as
     supplying the "<code>-disk</code>" argument on the command line
-    (see <ref id="appArgs"/>).
+    (see <ref id="stilts-flags"/>).
     </p></dd>
 
 <dt><code>startable.writers</code></dt>
@@ -480,18 +654,19 @@ about JDBC drivers known to work with STIL.
 to write the results
 of an SQL query on a table in a MySQL database as a VOTable:
 <verbatim><![CDATA[
-    tcopy -classpath /usr/local/jars/mysql-connector-java.jar \
+   stilts -classpath /usr/local/jars/mysql-connector-java.jar \
           -Djdbc.drivers=com.mysql.jdbc.Driver \
+          tcopy \
           "jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
-          -ofmt votable gsc.vot
+          ofmt=votable gsc.vot
 ]]></verbatim>
 or invoking Java directly:
 <verbatim><![CDATA[
-    java -classpath stilts.jar:/usr/local/jars/mysql-connect-java.jar \
-         -Djdbc.drivers=com.mysql.jdbc.Driver \
-         uk.ac.starlink.ttools.TableCopy \
-         "jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
-         -ofmt votable gsc.vot
+   java -classpath stilts.jar:/usr/local/jars/mysql-connect-java.jar \
+        -Djdbc.drivers=com.mysql.jdbc.Driver \
+        uk.ac.starlink.ttools.TableCopy \
+        "jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
+        -ofmt=votable gsc.vot
 ]]></verbatim>
 In the latter case you have to exercise some care to get the arguments
 in the right order (see <ref id="invoke"/>).
@@ -503,7 +678,7 @@ to include the driver jar file (and the STILTS classes if you're
 invoking Java directly rather than using the scripts), and if you
 put the line
 <verbatim>
-    jdbc.drivers=com.mysql.jdbc.Driver
+   jdbc.drivers=com.mysql.jdbc.Driver
 </verbatim>
 in the <code>.starjava.properties</code> file in your home directory,
 then you could avoid having to give the <code>-classpath</code> and 
@@ -1050,70 +1225,70 @@ the expressions below could appear as the <code>&lt;expr&gt;</code> in a
 
 <dt>Average</dt>
 <dd><p><verbatim>
-    (first + second) * 0.5
+   (first + second) * 0.5
 </verbatim></p></dd>
 
 <dt>Square root</dt>
 <dd><p><verbatim>
-    sqrt(variance)
+   sqrt(variance)
 </verbatim></p></dd>
 
 <dt>Angle conversion</dt>
 <dd><p><verbatim>
-    radiansToDegrees(DEC_radians)
-    degreesToRadians(RA_degrees)
+   radiansToDegrees(DEC_radians)
+   degreesToRadians(RA_degrees)
 </verbatim></p></dd>
 
 <dt>Conversion from string to number</dt>
 <dd><p><verbatim>
-    parseInt(&column.id.char;12)
-    parseDouble(ident)
+   parseInt(&column.id.char;12)
+   parseDouble(ident)
 </verbatim></p></dd>
 
 <dt>Conversion from number to string</dt>
 <dd><p><verbatim>
-    toString(index)
+   toString(index)
 </verbatim></p></dd>
 
 <dt>Conversion between numeric types</dt>
 <dd><p><verbatim>
-     toShort(obs_type)
-     toDouble(range)
+   toShort(obs_type)
+   toDouble(range)
 </verbatim><em>or</em><verbatim>
-    (short) obs_type
-    (double) range
+   (short) obs_type
+   (double) range
 </verbatim></p></dd>
 
 <dt>Conversion from sexagesimal to radians</dt>
 <dd><p><verbatim>
-    hmsToRadians(RA1950)
-    dmsToRadians(decDeg,decMin,decSec)
+   hmsToRadians(RA1950)
+   dmsToRadians(decDeg,decMin,decSec)
 </verbatim></p></dd>
 
 <dt>Conversion from radians to sexagesimal</dt>
 <dd><p><verbatim>
-    radiansToDms(&column.id.char;3)
-    radiansToHms(RA,2)
+   radiansToDms(&column.id.char;3)
+   radiansToHms(RA,2)
 </verbatim></p></dd>
 
 <dt>Outlier clipping</dt>
 <dd><p><verbatim>
-    min(1000, max(value, 0))
+   min(1000, max(value, 0))
 </verbatim></p></dd>
 
 <dt>Converting a magic value to null</dt>
 <dd><p><verbatim>
-    jmag == 9999 ? NULL : jmag
+   jmag == 9999 ? NULL : jmag
 </verbatim></p></dd>
 
 <dt>Converting a null value to a magic one</dt>
 <dd><p><verbatim>
-    NULL_jmag ? 9999 : jmag
+   NULL_jmag ? 9999 : jmag
 </verbatim></p></dd>
 
 <dt>Taking the third scalar element from an array-valued column</dt>
 <dd><p><verbatim>
-    psfCounts[2]
+   psfCounts[2]
 </verbatim></p></dd>
 
 </dl>
@@ -1125,43 +1300,43 @@ filter specifier)
 <dl>
 <dt>Within a numeric range</dt>
 <dd><p><verbatim>
-    <![CDATA[RA > 100 && RA < 120 && Dec > 75 && Dec < 85]]>
+   <![CDATA[RA > 100 && RA < 120 && Dec > 75 && Dec < 85]]>
 </verbatim></p></dd>
 
 <dt>Within a circle</dt>
 <dd><p><verbatim>
-    &column.id.char;2*&column.id.char;2 + &column.id.char;3*&column.id.char;3 &lt; 1
-    skyDistance(ra0,dec0,degreesToRadians(RA),degreesToRadians(DEC))&lt;15*ARC_MINUTE
+   &column.id.char;2*&column.id.char;2 + &column.id.char;3*&column.id.char;3 &lt; 1
+   skyDistance(ra0,dec0,degreesToRadians(RA),degreesToRadians(DEC))&lt;15*ARC_MINUTE
 </verbatim></p></dd>
 
 <dt>First 100 rows</dt>
 <dd><p><verbatim>
-    index &lt;= 100
+   index &lt;= 100
 </verbatim>
 (though you could use <code>tpipe -head 100</code> instead)</p></dd>
 
 <dt>Every tenth row</dt>
 <dd><p><verbatim>
-    index % 10 == 0
+   index % 10 == 0
 </verbatim>
 (though you could use <code>tpipe -every 10</code> instead)</p></dd>
 
 <dt>String equality/matching</dt>
 <dd><p><verbatim>
-    equals(SECTOR, "ZZ9 Plural Z Alpha")
-    equalsIgnoreCase(SECTOR, "zz9 plural z alpha")
-    startsWith(SECTOR, "ZZ")
-    contains(ph_qual, "U")
+   equals(SECTOR, "ZZ9 Plural Z Alpha")
+   equalsIgnoreCase(SECTOR, "zz9 plural z alpha")
+   startsWith(SECTOR, "ZZ")
+   contains(ph_qual, "U")
 </verbatim></p></dd>
 
 <dt>String regular expression matching</dt>
 <dd><p><verbatim>
-    matches(SECTOR, "[XYZ] Alpha")
+   matches(SECTOR, "[XYZ] Alpha")
 </verbatim></p></dd>
 
 <dt>Test for non-blank value</dt>
 <dd><p><verbatim>
-    ! NULL_ellipticity
+   ! NULL_ellipticity
 </verbatim></p></dd>
 </dl>
 </p>
@@ -1276,15 +1451,15 @@ They should be defined to take and return the relevant primitive or
 Object types for the function required.
 For instance a class written as follows would define a three-value average:
 <verbatim>
-    public class AuxFuncs {
-        public static double average3( double x, double y, double z ) {
-            return ( x + y + z ) / 3.0;
-        }
-    }
+   public class AuxFuncs {
+       public static double average3( double x, double y, double z ) {
+           return ( x + y + z ) / 3.0;
+       }
+   }
 </verbatim>
 and the command
 <verbatim>
-    tpipe -addcol AVERAGE 'average3(&column.id.char;1,&column.id.char;2,&column.id.char;3)'
+   tpipe -addcol AVERAGE 'average3(&column.id.char;1,&column.id.char;2,&column.id.char;3)'
 </verbatim>
 would add a new column called AVERAGE giving the average of the first
 three existing columns.
@@ -1331,37 +1506,48 @@ to any of the supported
 
 <p><code>tcopy</code> is designed as a drop-in replacement for the old
 <code>tablecopy</code> (<code>uk.ac.starlink.table.TableCopy</code>)
-tool which was supplied with STIL and TOPCAT - it has the same
-arguments and behaviour as <code>tablecopy</code>, 
-but is implemented on top of <ref id="tpipe"><code>tpipe</code></ref> 
+tool which was supplied with earlier versions of STIL and TOPCAT - 
+it has the same arguments and behaviour as <code>tablecopy</code>, 
+but is implemented using the same classes as 
+<ref id="tpipe"><code>tpipe</code></ref> 
 and will in some cases be more efficient.
 </p>
 
 <subsubsect>
 <subhead><title>Usage</title></subhead>
 
-<p>The basic usage of <code>tcopy</code> is
-<verbatim><![CDATA[
-    tcopy [-ifmt <in-format>] [-ofmt <out-format>] [<other-flags>]
-          <in-table> [<out-table>]
-]]></verbatim>
-If you don't have the Unix scripts installed, invoke it 
-as described in <ref id="invoke"/> using the classname
-<code>uk.ac.starlink.ttools.TableCopy</code>.
-</p>
+&tcopy-summary;
 
-<p>The most important arguments are as follows:
+<p>
 <dl>
 
-<dt><code>-ifmt &lt;in-format&gt;</code></dt>
+<dt><code>in</code></dt>
+<dd><p>The location of the input table.  This is usually a filename or
+    a URL, and may point to a file compressed in one of the supported
+    compression formats (Unix compress, gzip or bzip2).
+    If it is omitted, or equal to the special value "<code>-</code>",
+    the input table will be read from standard input.
+    In this case the input format must be given explicitly using the
+    <code>infmt</code> parameter.
+    </p></dd>
+
+<dt><code>infmt</code></dt>
 <dd><p>Specifies the format of the input table (one of the known formats 
     listed in <ref id="inFormats"/> - matching is case-insensitive). 
     This flag can be used if you know what format your input table is in. 
     If it's omitted, then an attempt will be made to detect the format 
-    of <code>&lt;in-table&gt;</code>  automatically, 
+    of <code>in</code> automatically, 
     but this cannot always be done correctly, 
     in which case the program will exit with an error
     explaining which formats were attempted.
+    </p></dd>
+
+<dt><code>out</code></dt>
+<dd><p>The location of the output table.  This is usually a filename to
+    write to.  If omitted, or if it is equal to the special value 
+    "<code>-</code>", the output table will be written to standard output.
+    In this case the output format must be given explicitly using the
+    <code>-ofmt</code> flag.
     </p></dd>
 
 <dt><code>-ofmt &lt;out-format&gt;</code></dt>
@@ -1374,35 +1560,7 @@ as described in <ref id="invoke"/> using the classname
     output format is required, the program will exit with an error.
     </p></dd>
 
-<dt><code>&lt;in-table&gt;</code></dt>
-<dd><p>The location of the input table.  This is usually a filename or
-    a URL, and may point to a file compressed in one of the supported
-    compression formats (Unix compress, gzip or bzip2).
-    If it is equal to the special value "<code>-</code>",
-    the input table will be read from standard input.
-    In this case the input format must be given explicitly using the
-    <code>-ifmt</code> flag.
-    </p></dd>
-
-<dt><code>&lt;out-table&gt;</code></dt>
-<dd><p>The location of the output table.  This is usually a filename to
-    write to.  If omitted, or if it is equal to the special value 
-    "<code>-</code>", the output table will be written to standard output.
-    In this case the output format must be given explicitly using the
-    <code>-ofmt</code> flag.
-    </p></dd>
-
 </dl>
-</p>
-
-<p>The following generic flags can also be used:
-<dl>
-&flag-help;
-&flag-debug;
-&flag-disk;
-&flag-verbose;
-</dl>
-
 </p>
 
 </subsubsect>
@@ -1426,14 +1584,14 @@ tcopy stars.fits stars.xml
     </p></dd>
 
 <dt><verbatim>
-tcopy -ifmt fits stars.fits -ofmt votable
+tcopy stars.fits ifmt=fits ofmt=votable
 </verbatim></dt>
 <dd><p>Does the same as the previous example, but the input and output
     formats have been specified explicitly.
     </p></dd>
 
 <dt><verbatim>
-tcopy -ofmt text http://remote.host/data/vizer.xml.gz#4 -
+tcopy ofmt=text http://remote.host/data/vizer.xml.gz#4 -
 </verbatim></dt>
 <dd><p>Prints the contents of a remote VOTable to the terminal in 
     a human-readable form.  The <code>#4</code> at the end of the URL
@@ -1443,26 +1601,29 @@ tcopy -ofmt text http://remote.host/data/vizer.xml.gz#4 -
     </p></dd>
 
 <dt><verbatim>
-tcopy -ifmt csv -ofmt latex spec.csv
+tcopy ifmt=csv ofmt=latex spec.csv
 </verbatim></dt>
 <dd><p>Converts a comma-separated values file to a LaTeX table environment.
     </p></dd>
 
 <dt><verbatim>
-tcopy -classpath /usr/local/jars/pg73jdbc3.jar \
-      -Djdbc.drivers=org.postgresql.Driver \
-      "jdbc:postgresql://localhost/imsim#SELECT ra, dec, Imag, Kmag FROM dqc" \
-      -ofmt fits wfslist.cat
+stilts -classpath /usr/local/jars/pg73jdbc3.jar \
+       -Djdbc.drivers=org.postgresql.Driver \
+       tcopy "jdbc:postgresql://localhost/imsim#SELECT ra, dec, Imag FROM dqc" \
+             ofmt=fits wfslist.cat
 </verbatim></dt>
 <dd><p>Writes the results of an SQL query on a PostgreSQL database
-    to a FITS table.  The classpath is augmented to include the PostgreSQL
+    to a FITS table.  The whole command is shown here, to show that the 
+    classpath is augmented to include the PostgreSQL
     driver class, and the driver class is named using the 
     <code>jdbc.drivers</code> system property.
     If a username or password is required, it will be prompted for on the
     command line.
     As you can see, using SQL from Java is a bit fiddly, 
     and there are other ways to perform this
-    setup than on the command line - see <ref id="jdbcConfig"/>.
+    setup than on the command line - see <ref id="jdbcConfig"/>
+    and <code><ref id="tpipe">tpipe</ref></code>'s 
+    <code>tosql</code> output mode.
     </p></dd>
 
 </dl>
@@ -1498,6 +1659,10 @@ on a table from the command line.
 
 <subsubsect>
 <subhead><title>Usage</title></subhead>
+
+&tpipe-summary;
+
+
 
 <p>Using <code>tpipe</code> is more like using a Unix pipeline than
 using a single Unix command.  You give 
@@ -1834,6 +1999,7 @@ standard output in <code>text</code> format.
 </p>
 </subsubsubsect>
 
+
 </subsubsect>
 
 <subsubsect>
@@ -2042,24 +2208,9 @@ The only important changes should be the contents of
 <subsubsect>
 <subhead><title>Usage</title></subhead>
 
-<p>The basic usage of <code>votcopy</code> is
-<verbatim><![CDATA[
-    votcopy [<flags>] [<in-file> [<out-file>]]
-]]></verbatim>
-If you don't have the Unix scripts installed, invoke it 
-as described in <ref id="invoke"/> using the classname
-<code>uk.ac.starlink.ttools.VotCopy</code>.
-</p>
+&votcopy-summary;
 
-<p>If <code>&lt;out-file&gt;</code> is omitted the result is written to
-standard output, and if <code>&lt;in-file&gt;</code> is also omitted
-the document to be copied is read from standard input.
-<code>&lt;in-file&gt;</code> may be a filename or URL, and may 
-represent a VOTable compressed using one of the supported 
-compression formats (gzip, Unix compress and bzip2).
-</p>
-
-<p>The flags, which may be given in any order, are as follows:
+<p>
 <dl>
 
 <dt><code>-f[ormat] tabledata|binary|fits|none</code></dt>
@@ -2119,9 +2270,6 @@ compression formats (gzip, Unix compress and bzip2).
     include UTF-16 etc.
     </p></dd>
 
-&flag-debug;
-&flag-help;
-
 </dl>
 </p>
 
@@ -2136,36 +2284,36 @@ We give here a couple of examples of its input and output.
 
 <p>Here is an example VOTable document, <code>cat.vot</code>:
 <verbatim><![CDATA[
-    <VOTABLE>
-    <RESOURCE>
+   <VOTABLE>
+   <RESOURCE>
 
-    <TABLE name="Authors">
-    <FIELD name="AuthorName" datatype="char" arraysize="*"/>
-    <DATA>
-    <TABLEDATA>
-    <TR><TD>Charles Messier</TD></TR>
-    <TR><TD>Mark Taylor</TD></TR>
-    </TABLEDATA>
-    </DATA>
-    </TABLE>
+   <TABLE name="Authors">
+   <FIELD name="AuthorName" datatype="char" arraysize="*"/>
+   <DATA>
+   <TABLEDATA>
+   <TR><TD>Charles Messier</TD></TR>
+   <TR><TD>Mark Taylor</TD></TR>
+   </TABLEDATA>
+   </DATA>
+   </TABLE>
 
-    <RESOURCE>
-    <COOSYS equinox="J2000.0" epoch="J2000.0" system="eq_FK4"/>
-    <TABLE name="Messier Objects">
-    <FIELD name="Identifier" datatype="char" arraysize="10"/>
-    <FIELD name="RA" datatype="double" units="degrees"/>
-    <FIELD name="Dec" datatype="double" units="degrees"/>
-    <DATA>
-    <TABLEDATA>
-    <TR> <TD>M51</TD> <TD>202.43</TD> <TD>47.22</TD> </TR>
-    <TR> <TD>M97</TD> <TD>168.63</TD> <TD>55.03</TD> </TR>
-    </TABLEDATA>
-    </DATA>
-    </TABLE>
-    </RESOURCE>
+   <RESOURCE>
+   <COOSYS equinox="J2000.0" epoch="J2000.0" system="eq_FK4"/>
+   <TABLE name="Messier Objects">
+   <FIELD name="Identifier" datatype="char" arraysize="10"/>
+   <FIELD name="RA" datatype="double" units="degrees"/>
+   <FIELD name="Dec" datatype="double" units="degrees"/>
+   <DATA>
+   <TABLEDATA>
+   <TR> <TD>M51</TD> <TD>202.43</TD> <TD>47.22</TD> </TR>
+   <TR> <TD>M97</TD> <TD>168.63</TD> <TD>55.03</TD> </TR>
+   </TABLEDATA>
+   </DATA>
+   </TABLE>
+   </RESOURCE>
 
-    </RESOURCE>
-    </VOTABLE>
+   </RESOURCE>
+   </VOTABLE>
 ]]></verbatim>
 Note that it contains more structure than just a flat table: there are
 two <code>TABLE</code> elements, 
@@ -2177,50 +2325,50 @@ Processing this document using a generic table tool such as
 
 <p>To convert the data encoding to BINARY format, we simply execute
 <verbatim>
-    votcopy -f binary cat.vot
+   votcopy -f binary cat.vot
 </verbatim>
 and the output is
 <verbatim><![CDATA[
-    <?xml version="1.0"?>
-    <VOTABLE>
-    <RESOURCE>
+   <?xml version="1.0"?>
+   <VOTABLE>
+   <RESOURCE>
 
-    <TABLE name="Authors">
-    <FIELD name="AuthorName" datatype="char" arraysize="*"/>
-    <DATA>
-    <BINARY>
-    <STREAM encoding='base64'>
-    AAAAD0NoYXJsZXMgTWVzc2llcgAAAAtNYXJrIFRheWxvcg==
-    </STREAM>
-    </BINARY>
-    </DATA>
-    </TABLE>
+   <TABLE name="Authors">
+   <FIELD name="AuthorName" datatype="char" arraysize="*"/>
+   <DATA>
+   <BINARY>
+   <STREAM encoding='base64'>
+   AAAAD0NoYXJsZXMgTWVzc2llcgAAAAtNYXJrIFRheWxvcg==
+   </STREAM>
+   </BINARY>
+   </DATA>
+   </TABLE>
 
-    <RESOURCE>
-    <COOSYS equinox="J2000.0" epoch="J2000.0" system="eq_FK4"/>
-    <TABLE name="Messier Objects">
-    <FIELD name="Identifier" datatype="char" arraysize="10"/>
-    <FIELD name="RA" datatype="double" units="degrees"/>
-    <FIELD name="Dec" datatype="double" units="degrees"/>
-    <DATA>
-    <BINARY>
-    <STREAM encoding='base64'>
-    TTUxAAAAAAAAAEBpTcKPXCj2QEecKPXCj1xNOTcAAAAAAAAAQGUUKPXCj1xAS4PX
-    Cj1wpA==
-    </STREAM>
-    </BINARY>
-    </DATA>
-    </TABLE>
-    </RESOURCE>
+   <RESOURCE>
+   <COOSYS equinox="J2000.0" epoch="J2000.0" system="eq_FK4"/>
+   <TABLE name="Messier Objects">
+   <FIELD name="Identifier" datatype="char" arraysize="10"/>
+   <FIELD name="RA" datatype="double" units="degrees"/>
+   <FIELD name="Dec" datatype="double" units="degrees"/>
+   <DATA>
+   <BINARY>
+   <STREAM encoding='base64'>
+   TTUxAAAAAAAAAEBpTcKPXCj2QEecKPXCj1xNOTcAAAAAAAAAQGUUKPXCj1xAS4PX
+   Cj1wpA==
+   </STREAM>
+   </BINARY>
+   </DATA>
+   </TABLE>
+   </RESOURCE>
 
-    </RESOURCE>
-    </VOTABLE>
+   </RESOURCE>
+   </VOTABLE>
 ]]></verbatim>
 Note that both tables have been translated to BINARY format.
 The basic structure of the document is unchanged: the only differences 
 are within the <code>DATA</code> elements.  If we ran
 <verbatim>
-    votcopy -f tabledata
+   votcopy -f tabledata
 </verbatim>
 on either this output or the original input then the output would
 be identical (apart perhaps from whitespace) to the input table, 
@@ -2231,12 +2379,12 @@ since the data are originally in TABLEDATA format.
 the <code>-href</code> flag is used.  We will output in FITS format
 this time.  Executing:
 <verbatim>
-    votcopy -f fits -href cat.vot fcat.vot
+   votcopy -f fits -href cat.vot fcat.vot
 </verbatim>
 results in the error message:
 <verbatim>
-    Can't stream, table requires multiple reads for metadata
-    Try -cache option
+   Can't stream, table requires multiple reads for metadata
+   Try -cache option
 </verbatim>
 - for technical reasons (FITS output requires the input tables to
 to be read in two passes to assess the number of rows)
@@ -2244,23 +2392,23 @@ this can't be done in a single stream which is how
 <code>votcopy</code> usually works.
 So we follow the offered advice and use the <code>-cache</code> flag:
 <verbatim>
-    votcopy -f fits -href cat.vot fcat.vot -cache
+   votcopy -f fits -href cat.vot fcat.vot -cache
 </verbatim>
 which writes the following to the file <code>fcat.vot</code>:
 <verbatim><![CDATA[
-    ...
-    <DATA>
-    <FITS>
-    <STREAM href="fcat-1.fits"/>
-    </FITS>
-    </DATA>
-    ...
-    <DATA>
-    <FITS>
-    <STREAM href="fcat-2.fits"/>
-    </FITS>
-    </DATA>
-    ...
+   ...
+   <DATA>
+   <FITS>
+   <STREAM href="fcat-1.fits"/>
+   </FITS>
+   </DATA>
+   ...
+   <DATA>
+   <FITS>
+   <STREAM href="fcat-2.fits"/>
+   </FITS>
+   </DATA>
+   ...
 ]]></verbatim>
 (the unchanged parts of the document have been skipped here for brevity).
 The actual data are written in two additional files in the same
@@ -2347,21 +2495,8 @@ most serious errors that are typically made in authoring VOTables.
 <subsubsect>
 <subhead><title>Usage</title></subhead>
 
-<p>The basic usage of <code>votlint</code> is
-<verbatim><![CDATA[
-    votlint [<flags>] [<in-file>]
-]]></verbatim>
-If you don't have the Unix scripts installed, invoke it 
-as described in <ref id="invoke"/> using the classname
-<code>uk.ac.starlink.ttools.VotLint</code>.
-</p>
+&votlint-summary;
 
-<p>If <code>&lt;in-file&gt;</code> is omitted then the document to be checked
-is read from standard input.
-<code>&lt;in-file&gt;</code> may be a filename or URL, and may 
-represent a VOTable compressed using one of the supported 
-compression formats (gzip, Unix compress and bzip2).
-</p>
 
 <p>The flags, which may be given in any order, are as follows:
 <dl>
@@ -2390,9 +2525,6 @@ compression formats (gzip, Unix compress and bzip2).
     <code>VOTABLE</code> element; if it is and it conflicts with the
     version specified using this flag, a warning is issued.
     </p></dd>
-
-&flag-help;
-&flag-debug;
 
 </dl>
 </p>
@@ -2595,6 +2727,7 @@ are welcomed.
   <li>Renamed the <code>-explode</code> filter in <code>tpipe</code> as
       <code>-explodeall</code>, and introduced new filter
       <code>-explodecols</code>.</li>
+  <li>Complete rewrite of parameter system.</li>
   </ul>
 </p></dd>
 
