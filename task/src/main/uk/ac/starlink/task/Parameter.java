@@ -53,7 +53,7 @@ package uk.ac.starlink.task;
  */
 public class Parameter {
 
-    private final String name;
+    private String name;
     private String prompt;
     private String usage = "<value>";
     private String def;
@@ -79,6 +79,15 @@ public class Parameter {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Sets the name of this parameter.
+     *
+     * @param  identifying name of this parameter
+     */
+    public void setName( String name ) {
+        this.name = name;
     }
 
     /**
