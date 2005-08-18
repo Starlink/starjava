@@ -41,7 +41,7 @@ public class UsageWriter {
         outln( "]]></verbatim>" );
         outln( "If you don't have the <code>stilts</code> script installed," );
         outln( "write \"<code>java -jar stilts.jar</code>\" instead of" );
-        outln( "\"<code>stilts</code>\" - see <ref id=\"invoke\">." );
+        outln( "\"<code>stilts</code>\" - see <ref id=\"invoke\"/>." );
         outln( "The available <code>&lt;stilts-flags&gt;</code> are listed" );
         outln( "in <ref id=\"stilts-flags\"/>." );
         outln( "</p>" );
