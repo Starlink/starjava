@@ -47,7 +47,7 @@ public class UsageWriter {
         outln( "</p>" );
         outln();
         outln( "<p>Parameter values are assigned on the command line" );
-        outln( "as explained in <ref id=\"parameters\"/>." );
+        outln( "as explained in <ref id=\"task-args\"/>." );
         outln( "They are as follows:" );
         outln( "</p>" );
     }
