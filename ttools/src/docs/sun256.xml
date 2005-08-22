@@ -1985,20 +1985,6 @@ standard output in <code>text</code> format.
 
 </subsubsubsect>
 
-<subsubsubsect>
-<subhead><title>Other Flags</title></subhead>
-
-<p>The following generic flags can also be issued:
-
-<dl>
-&flag-help;
-&flag-verbose;
-&flag-disk;
-&flag-debug;
-</dl>
-</p>
-</subsubsubsect>
-
 
 </subsubsect>
 
