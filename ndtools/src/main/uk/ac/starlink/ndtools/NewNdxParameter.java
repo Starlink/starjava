@@ -1,5 +1,6 @@
 package uk.ac.starlink.ndtools;
 
+import java.io.IOException;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxIO;
@@ -49,23 +50,20 @@ class NewNdxParameter extends Parameter {
     }
 
     /**
-     * Writes out an existing (readable) Ndx object to the writable NDX
-     * represented by this parameter.
+     * Returns an object which can accept an Ndx and writes it to
+     * the location defined by this parameter.
      *
-     * @param   env  execution environment
-     * @param   ndx  an Ndx whose content is to be copied into a new NDX
-     *          represented by this parameter
+     * @param  env  execution environment
+     * @return  value of this parameter as an NdxConsumer
      */
-    public void outputNdx( Environment env, Ndx ndx ) throws TaskException {
+    public NdxConsumer ndxConsumerValue( final Environment env )
+            throws TaskException {
         checkGotValue( env );
-        String loc = stringValue( env );
-        try {
-            ndxio.outputNdx( loc, ndx );
-        }
-        catch ( Exception e ) {
-            throw new ParameterValueException(
-                this, "Failed to write NDX to " + loc, e );
-        }
+        final String loc = stringValue( env );
+        return new NdxConsumer() {
+            public void consume( Ndx ndx ) throws IOException {
+                ndxio.outputNdx( loc, ndx );
+            }
+        };
     }
- 
 }

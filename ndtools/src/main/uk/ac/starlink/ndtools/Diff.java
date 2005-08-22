@@ -15,6 +15,7 @@ import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
@@ -49,73 +50,84 @@ class Diff implements Task {
         return new Parameter[] { ndx1par, ndx2par, ndiffpar };
     }
 
-    public String getUsage() {
-        return "ndx1 ndx2 [ndiffs]";
-    }
+    public Executable createExecutable( Environment env ) throws TaskException {
+        return new Differ( ndx1par.ndxValue( env ), ndx2par.ndxValue( env ),
+                           ndiffpar.intValue( env ),
+                           ndx1par.stringValue( env ),
+                           ndx2par.stringValue( env ),
+                           env.getPrintStream() );
+    }   
 
-    public void invoke( Environment env ) throws TaskException {
-        try {
-            doInvoke( env );
-        }
-        catch ( IOException e ) {
-            throw new TaskException( e );
-        }
-    }
 
-    private void doInvoke( Environment env ) throws TaskException, IOException {
-        PrintStream pstrm = env.getPrintStream();
+    private class Differ implements Executable {
 
-        Ndx ndx1 = ndx1par.ndxValue( env );
-        Ndx ndx2 = ndx2par.ndxValue( env );
-        int ndiffs = ndiffpar.intValue( env );
-        String name1 = ndx1par.stringValue( env );
-        String name2 = ndx2par.stringValue( env );
+        final Ndx ndx1;
+        final Ndx ndx2;
+        final int ndiffs;
+        final String name1;
+        final String name2;
+        final PrintStream pstrm;
 
-        String title1 = ndx1.hasTitle() ? ndx1.getTitle() : null;
-        String title2 = ndx2.hasTitle() ? ndx2.getTitle() : null;
-        if ( title1 != null && ! title1.equals( title2 ) ||
-             title1 == null && title2 != null ) {
-            pstrm.println( "Title: \"" + title1 + "\" != \"" + title2  + "\"" );
-        }
-
-        int badbits1 = (int) ndx1.getBadBits();
-        int badbits2 = (int) ndx2.getBadBits();
-        if ( badbits1 != badbits2 ) {
-            pstrm.println( "Badbits: " + badbits1 + " != " + badbits2 );
+        public Differ( Ndx ndx1, Ndx ndx2, int ndiffs,
+                       String ndx1name, String ndx2name,
+                       PrintStream pstrm ) {
+            this.ndx1 = ndx1;
+            this.ndx2 = ndx2;
+            this.ndiffs = ndiffs;
+            this.name1 = ndx1name;
+            this.name2 = ndx2name;
+            this.pstrm = pstrm;
         }
 
-        NDArray im1 = ndx1.getImage();
-        NDArray im2 = ndx2.getImage();
-        List idiffs = compareArrays( im1, im2, ndiffs );
-        if ( idiffs.size() > 0 ) {
-            pstrm.println( "Image:" );
-            for ( Iterator it = idiffs.iterator(); it.hasNext(); ) {
-                pstrm.println( "    " + (String) it.next() );
+        public void execute() throws IOException {
+
+            String title1 = ndx1.hasTitle() ? ndx1.getTitle() : null;
+            String title2 = ndx2.hasTitle() ? ndx2.getTitle() : null;
+            if ( title1 != null && ! title1.equals( title2 ) ||
+                 title1 == null && title2 != null ) {
+                pstrm.println( "Title: \"" + title1 + "\" != \"" 
+                                           + title2  + "\"" );
             }
-        }
-        im1.close();
-        im2.close();
 
-        if ( ndx1.hasVariance() && ! ndx2.hasVariance() ) {
-            pstrm.println( "Variance: present in " + name1 
-                         + " but not " + name2 );
-        }
-        else if ( ! ndx1.hasVariance() && ndx2.hasVariance() ) {
-            pstrm.println( "Variance: present in " + name2
-                         + " but not " + name1 );
-        }
-        else if ( ndx1.hasVariance() && ndx2.hasVariance() ) {
-            NDArray var1 = ndx1.getVariance();
-            NDArray var2 = ndx2.getVariance();
-            List vdiffs = compareArrays( var1, var2, ndiffs );
-            if ( vdiffs.size() > 0 ) {
-                pstrm.println( "Variance:" );
-                for ( Iterator it = vdiffs.iterator(); it.hasNext(); ) {
+            int badbits1 = (int) ndx1.getBadBits();
+            int badbits2 = (int) ndx2.getBadBits();
+            if ( badbits1 != badbits2 ) {
+                pstrm.println( "Badbits: " + badbits1 + " != " + badbits2 );
+            }
+
+            NDArray im1 = ndx1.getImage();
+            NDArray im2 = ndx2.getImage();
+            List idiffs = compareArrays( im1, im2, ndiffs );
+            if ( idiffs.size() > 0 ) {
+                pstrm.println( "Image:" );
+                for ( Iterator it = idiffs.iterator(); it.hasNext(); ) {
                     pstrm.println( "    " + (String) it.next() );
                 }
             }
-            var1.close();
-            var2.close();
+            im1.close();
+            im2.close();
+
+            if ( ndx1.hasVariance() && ! ndx2.hasVariance() ) {
+                pstrm.println( "Variance: present in " + name1 
+                             + " but not " + name2 );
+            }
+            else if ( ! ndx1.hasVariance() && ndx2.hasVariance() ) {
+                pstrm.println( "Variance: present in " + name2
+                             + " but not " + name1 );
+            }
+            else if ( ndx1.hasVariance() && ndx2.hasVariance() ) {
+                NDArray var1 = ndx1.getVariance();
+                NDArray var2 = ndx2.getVariance();
+                List vdiffs = compareArrays( var1, var2, ndiffs );
+                if ( vdiffs.size() > 0 ) {
+                    pstrm.println( "Variance:" );
+                    for ( Iterator it = vdiffs.iterator(); it.hasNext(); ) {
+                        pstrm.println( "    " + (String) it.next() );
+                    }
+                }
+                var1.close();
+                var2.close();
+            }
         }
     }
 

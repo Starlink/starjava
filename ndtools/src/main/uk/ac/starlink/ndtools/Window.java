@@ -10,6 +10,7 @@ import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
@@ -45,39 +46,44 @@ class Window implements Task {
         return new Parameter[] { inpar, outpar, shapepar };
     }
 
-    public String getUsage() {
-        return "in out shape";
+    public Executable createExecutable( Environment env ) throws TaskException {
+        return new Windower( inpar.ndxValue( env ),
+                             outpar.ndxConsumerValue( env ),
+                             shapepar.shapeValue( env ) );
+    
     }
 
-    public void invoke( Environment env ) throws TaskException {
-        try {
-            doInvoke( env );
-        }
-        catch ( IOException e ) {
-            throw new ExecutionException( e );
-        }
-    }
+    private class Windower implements Executable {
 
-    private void doInvoke( Environment env ) throws TaskException, IOException {
+        final Ndx ndx1;
+        final NdxConsumer ndxOut;
+        final NDShape shape;
 
-        NDShape shape = shapepar.shapeValue( env );
-        Ndx ndx1 = inpar.ndxValue( env );
-        Requirements req = new Requirements( AccessMode.READ )
-                          .setWindow( shape );
-
-        NDArray im = NDArrays.toRequiredArray( ndx1.getImage(), req );
-        NDArray var = null;
-        if ( ndx1.hasVariance() ) {
-            var = NDArrays.toRequiredArray( ndx1.getVariance(), req );
-        }
-        NDArray qual = null;
-        if ( ndx1.hasQuality() ) {
-            qual = NDArrays.toRequiredArray( ndx1.getQuality(), req );
+        Windower( Ndx ndx1, NdxConsumer ndxOut, NDShape shape ) {
+            this.ndx1 = ndx1;
+            this.ndxOut = ndxOut;
+            this.shape = shape;
         }
 
-        MutableNdx ndx2 = new DefaultMutableNdx( im );
-        ndx2.setVariance( var );
-        ndx2.setQuality( qual );
-        outpar.outputNdx( env, ndx2 );
+        public void execute() throws IOException {
+
+            Requirements req = new Requirements( AccessMode.READ )
+                              .setWindow( shape );
+
+            NDArray im = NDArrays.toRequiredArray( ndx1.getImage(), req );
+            NDArray var = null;
+            if ( ndx1.hasVariance() ) {
+                var = NDArrays.toRequiredArray( ndx1.getVariance(), req );
+            }
+            NDArray qual = null;
+            if ( ndx1.hasQuality() ) {
+                qual = NDArrays.toRequiredArray( ndx1.getQuality(), req );
+            }
+
+            MutableNdx ndx2 = new DefaultMutableNdx( im );
+            ndx2.setVariance( var );
+            ndx2.setQuality( qual );
+            ndxOut.consume( ndx2 );
+        }
     }
 }

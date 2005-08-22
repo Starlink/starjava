@@ -1,5 +1,6 @@
 package uk.ac.starlink.ndtools;
 
+import java.io.IOException;
 import uk.ac.starlink.array.BadHandler;
 import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.Converter;
@@ -13,6 +14,7 @@ import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
@@ -32,10 +34,6 @@ class ConstArithmetic implements Task {
 
     public Parameter[] getParameters() {
         return new Parameter[] { inpar, outpar, constpar };
-    }
-
-    public String getUsage() {
-        return "in out const";
     }
 
     /**
@@ -64,62 +62,82 @@ class ConstArithmetic implements Task {
         constpar.setPosition( 3 );
     }
 
-    public void invoke( Environment env ) throws TaskException {
+    public Executable createExecutable( Environment env ) throws TaskException {
+        return new Wrangler( inpar.ndxValue( env ),
+                             outpar.ndxConsumerValue( env ),
+                             constpar.doubleValue( env ) );
+    }
 
-        Ndx ndx1 = inpar.ndxValue( env );
-        final double c = constpar.doubleValue( env );
+    /**
+     * Helper class which actually does the arithmetic.
+     */
+    private class Wrangler implements Executable {
 
-        NDArray im;
-        NDArray im1 = ndx1.getImage();
-        if ( iworker == null ) {
-            im = im1;
+        final Ndx ndx1;
+        final NdxConsumer ndxOut;
+        final double c;
+
+        Wrangler( Ndx ndx1, NdxConsumer ndxOut, double constval ) {
+            this.ndx1 = ndx1;
+            this.ndxOut = ndxOut;
+            this.c = constval;
         }
-        else {
-            Type itype = im1.getType();
-            BadHandler ibh = im1.getBadHandler();
-            Function ifunc = new Function() {
-                public double forward( double x ) {
-                    return iworker.doSum( x, c );
-                }
-                public double inverse( double y ) {
-                    throw new AssertionError();
-                }
-            };
-            Converter iconv = 
-                new TypeConverter( itype, ibh, itype, ibh, ifunc );
-            im = new BridgeNDArray( new ConvertArrayImpl( im1, iconv ) );
-        }
-        NDArray var = null;
-        if ( ndx1.hasVariance() ) {
-            NDArray var1 = ndx1.getVariance();
-            if ( vworker == null ) {
-                var = var1;
+
+        public void execute() throws IOException {
+
+            NDArray im;
+            NDArray im1 = ndx1.getImage();
+            if ( iworker == null ) {
+                im = im1;
             }
             else {
-                Type vtype = var1.getType();
-                BadHandler vbh = var1.getBadHandler();
-                Function vfunc = new Function() {
+                Type itype = im1.getType();
+                BadHandler ibh = im1.getBadHandler();
+                Function ifunc = new Function() {
                     public double forward( double x ) {
-                        return vworker.doSum( x, c );
+                        return iworker.doSum( x, c );
                     }
                     public double inverse( double y ) {
                         throw new AssertionError();
                     }
                 };
-                Converter vconv = 
-                    new TypeConverter( vtype, vbh, vtype, vbh, vfunc );
-                var = new BridgeNDArray( new ConvertArrayImpl( var1, vconv ) );
+                Converter iconv = 
+                    new TypeConverter( itype, ibh, itype, ibh, ifunc );
+                im = new BridgeNDArray( new ConvertArrayImpl( im1, iconv ) );
             }
-        }
+            NDArray var = null;
+            if ( ndx1.hasVariance() ) {
+                NDArray var1 = ndx1.getVariance();
+                if ( vworker == null ) {
+                    var = var1;
+                }
+                else {
+                    Type vtype = var1.getType();
+                    BadHandler vbh = var1.getBadHandler();
+                    Function vfunc = new Function() {
+                        public double forward( double x ) {
+                            return vworker.doSum( x, c );
+                        }
+                        public double inverse( double y ) {
+                            throw new AssertionError();
+                        }
+                    };
+                    Converter vconv = 
+                        new TypeConverter( vtype, vbh, vtype, vbh, vfunc );
+                    var = new BridgeNDArray( new ConvertArrayImpl( var1,
+                                                                   vconv ) );
+                }
+            }
 
-        NDArray qual = null;
-        if ( ndx1.hasQuality() ) {
-            qual = ndx1.getQuality();
-        }
+            NDArray qual = null;
+            if ( ndx1.hasQuality() ) {
+                qual = ndx1.getQuality();
+            }
 
-        MutableNdx ndx2 = new DefaultMutableNdx( im );
-        ndx2.setVariance( var );
-        ndx2.setVariance( qual );
-        outpar.outputNdx( env, ndx2 );
+            MutableNdx ndx2 = new DefaultMutableNdx( im );
+            ndx2.setVariance( var );
+            ndx2.setVariance( qual );
+            ndxOut.consume( ndx2 );
+        }
     }
 }

@@ -5,6 +5,7 @@ import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxIO;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
@@ -31,12 +32,13 @@ class Copy implements Task {
         return new Parameter[] { inpar, outpar };
     }
 
-    public String getUsage() {
-        return "in out";
+    public Executable createExecutable( Environment env ) throws TaskException {
+        final Ndx ndx = inpar.ndxValue( env );
+        final NdxConsumer ndxOut = outpar.ndxConsumerValue( env );
+        return new Executable() {
+            public void execute() throws IOException {
+                ndxOut.consume( ndx );
+            }
+        };
     }
-
-    public void invoke( Environment env ) throws TaskException {
-        outpar.outputNdx( env, inpar.ndxValue( env ) );
-    }
-
 }

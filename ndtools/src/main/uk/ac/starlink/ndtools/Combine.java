@@ -18,6 +18,7 @@ import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
@@ -38,10 +39,6 @@ class Combine implements Task {
 
     public Parameter[] getParameters() {
         return new Parameter[] { ndx1par, ndx2par, ndx3par };
-    }
-
-    public String getUsage() {
-        return "ndx1 ndx2 ndout";
     }
 
     /**
@@ -74,60 +71,76 @@ class Combine implements Task {
         ndx3par.setPosition( 3 );
     }
 
-    public void invoke( Environment env ) throws TaskException {
-        try {
-            doInvoke( env );
-        }
-        catch ( IOException e ) {
-            throw new TaskException( e );
-        }
+    public Executable createExecutable( Environment env ) throws TaskException {
+        return new CombineExecutable( ndx1par.ndxValue( env ),
+                                      ndx2par.ndxValue( env ),
+                                      ndx3par.ndxConsumerValue( env ) );
     }
 
-    private void doInvoke( Environment env ) throws TaskException, IOException {
+    /**
+     * Helper class which does the work of a combination.
+     */
+    private class CombineExecutable implements Executable {
 
-        Ndx ndx1 = ndx1par.ndxValue( env );
-        Ndx ndx2 = ndx2par.ndxValue( env );
+        final Ndx ndx1;
+        final Ndx ndx2;
+        final NdxConsumer ndxOut;
 
-        NDArray im1 = ndx1.getImage();
-        NDArray im2 = ndx2.getImage();
-        OrderedNDShape shape1 = im1.getShape();
-        OrderedNDShape shape2 = im2.getShape();
-        NDShape shape = shape1.intersection( shape2 );
-        if ( shape == null ) { 
-            throw new ExecutionException( "No overlap between shapes " + 
-                                          shape1 + " and " + shape2 );
-        }
-        Order order = shape1.getOrder();
-        Type type = im1.getType();
-        BadHandler bh = BadHandler.getHandler( type, type.defaultBadValue() );
-        Requirements req = new Requirements( AccessMode.READ )
-                          .setType( type )
-                          .setWindow( shape )
-                          .setOrder( order );
-        boolean hasVar = ndx1.hasVariance() && ndx2.hasVariance();
-
-        im1 = NDArrays.toRequiredArray( im1, req );
-        im2 = NDArrays.toRequiredArray( im2, req );
-        NDArray im3 = new BridgeNDArray(
-            new CombineArrayImpl( im1, im2, icombi, shape, type, bh ) );
-        NDArray var3;
-        if ( ndx1.hasVariance() && ndx2.hasVariance() ) {
-            NDArray var1 = NDArrays.toRequiredArray( ndx1.getVariance(), req );
-            NDArray var2 = NDArrays.toRequiredArray( ndx2.getVariance(), req );
-            var3 = new BridgeNDArray(
-                new CombineArrayImpl( var1, var2, vcombi, shape, type, bh ) );
-        }
-        else {
-            var3 = null;
+        public CombineExecutable( Ndx ndx1, Ndx ndx2, NdxConsumer ndxOut ) {
+            this.ndx1 = ndx1;
+            this.ndx2 = ndx2;
+            this.ndxOut = ndxOut;
         }
 
-        MutableNdx ndx3 = new DefaultMutableNdx( im3 );
-        ndx3.setVariance( var3 );
-        ndx3.setTitle( description + " of " 
-                     + ( ndx1.hasTitle() ? ndx1.getTitle() : "<unnamed>" )
-                     + " and " 
-                     + ( ndx2.hasTitle() ? ndx2.getTitle() : "<unnamed>" ) );
+        public void execute() throws ExecutionException, IOException {
 
-        ndx3par.outputNdx( env, ndx3 );
+            NDArray im1 = ndx1.getImage();
+            NDArray im2 = ndx2.getImage();
+            OrderedNDShape shape1 = im1.getShape();
+            OrderedNDShape shape2 = im2.getShape();
+            NDShape shape = shape1.intersection( shape2 );
+            if ( shape == null ) { 
+                throw new ExecutionException( "No overlap between shapes " + 
+                                              shape1 + " and " + shape2 );
+            }
+            Order order = shape1.getOrder();
+            Type type = im1.getType();
+            BadHandler bh =
+                BadHandler.getHandler( type, type.defaultBadValue() );
+            Requirements req = new Requirements( AccessMode.READ )
+                              .setType( type )
+                              .setWindow( shape )
+                              .setOrder( order );
+            boolean hasVar = ndx1.hasVariance() && ndx2.hasVariance();
+
+            im1 = NDArrays.toRequiredArray( im1, req );
+            im2 = NDArrays.toRequiredArray( im2, req );
+            NDArray im3 = new BridgeNDArray(
+                new CombineArrayImpl( im1, im2, icombi, shape, type, bh ) );
+            NDArray var3;
+            if ( ndx1.hasVariance() && ndx2.hasVariance() ) {
+                NDArray var1 = NDArrays.toRequiredArray( ndx1.getVariance(),
+                                                         req );
+                NDArray var2 = NDArrays.toRequiredArray( ndx2.getVariance(),
+                                                         req );
+                var3 = new BridgeNDArray(
+                    new CombineArrayImpl( var1, var2, vcombi,
+                                          shape, type, bh ) );
+            }
+            else {
+                var3 = null;
+            }
+
+            MutableNdx ndx3 = new DefaultMutableNdx( im3 );
+            ndx3.setVariance( var3 );
+            ndx3.setTitle( description + " of " 
+                         + ( ndx1.hasTitle() ? ndx1.getTitle()
+                                             : "<unnamed>" )
+                         + " and " 
+                         + ( ndx2.hasTitle() ? ndx2.getTitle()
+                                             : "<unnamed>" ) );
+
+            ndxOut.consume( ndx3 );
+        }
     }
 }

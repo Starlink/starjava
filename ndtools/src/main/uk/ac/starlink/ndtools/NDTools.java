@@ -87,7 +87,7 @@ class NDTools {
         tasks.put( "cmult", new ConstArithmetic( cMult, cMult ) );
         tasks.put( "cdiv", new ConstArithmetic( cDiv, cDiv ) );
         tasks.put( "diff", new Diff() );
-        tasks.put( "block", new SlowBlock() );
+        // tasks.put( "block", new SlowBlock() );
 
         new TerminalInvoker( "NDTools", tasks ).invoke( args );
     }

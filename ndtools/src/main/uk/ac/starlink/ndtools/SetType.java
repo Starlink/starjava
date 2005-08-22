@@ -11,6 +11,7 @@ import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.task.AbortException;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
@@ -38,43 +39,46 @@ class SetType implements Task {
         typepar.setPosition( 3 );
     }
 
-    public String getUsage() {
-        return "in out newtype";
-    }
-
     public Parameter[] getParameters() {
         return new Parameter[] { inpar, outpar, typepar };
     }
 
-    public void invoke( Environment env ) throws TaskException {
-        try {
-            doInvoke( env );
-        }
-        catch ( IOException e ) {
-            throw new TaskException( e );
-        }
+    public Executable createExecutable( Environment env ) throws TaskException {
+        return new Typer( inpar.ndxValue( env ),
+                          outpar.ndxConsumerValue( env ),
+                          typepar.typeValue( env ) );
     }
 
-    private void doInvoke( Environment env ) throws TaskException, IOException {
+    private class Typer implements Executable {
 
-        Ndx ndx1 = inpar.ndxValue( env );
-        Type type = typepar.typeValue( env );
-        Requirements req = new Requirements( AccessMode.READ )
-                          .setType( type );
+        final Ndx ndx1;
+        final NdxConsumer ndxOut;
+        final Type type;
 
-        NDArray image = NDArrays.toRequiredArray( ndx1.getImage(), req );
-        NDArray variance = null;
-        if ( ndx1.hasVariance() ) {
-            variance = NDArrays.toRequiredArray( ndx1.getVariance(), req );
+        Typer( Ndx ndx1, NdxConsumer ndxOut, Type type ) {
+            this.ndx1 = ndx1;
+            this.ndxOut = ndxOut;
+            this.type = type;
         }
-        NDArray quality = null;
-        if ( ndx1.hasQuality() ) {
-            quality = ndx1.getQuality();
+
+        public void execute() throws IOException {
+            Requirements req = new Requirements( AccessMode.READ )
+                              .setType( type );
+
+            NDArray image = NDArrays.toRequiredArray( ndx1.getImage(), req );
+            NDArray variance = null;
+            if ( ndx1.hasVariance() ) {
+                variance = NDArrays.toRequiredArray( ndx1.getVariance(), req );
+            }
+            NDArray quality = null;
+            if ( ndx1.hasQuality() ) {
+                quality = ndx1.getQuality();
+            }
+            MutableNdx ndx2 = new DefaultMutableNdx( ndx1 );
+            ndx2.setImage( image );
+            ndx2.setVariance( variance );
+            ndx2.setQuality( quality );
+            ndxOut.consume( ndx2 );
         }
-        MutableNdx ndx2 = new DefaultMutableNdx( ndx1 );
-        ndx2.setImage( image );
-        ndx2.setVariance( variance );
-        ndx2.setQuality( quality );
-        outpar.outputNdx( env, ndx2 );
     }
 }
