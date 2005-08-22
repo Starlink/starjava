@@ -23,7 +23,7 @@ public class LineEnvironment extends TableEnvironment {
      * Initializes the input data for this environment from a list of
      * words presumably got from a command line of some description.
      *
-     * @param  array of words from the command line
+     * @param  args  array of words from the command line
      */
     public void setArgs( String[] args ) {
         if ( arguments_ != null ) {

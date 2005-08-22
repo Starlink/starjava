@@ -38,8 +38,8 @@ public class KeepColumnFilter extends BasicFilter {
      * table by column ID.
      *
      * @param  table  base table
-     * @param  colIds  array of column IDs, one for each row in the output
-     *         table
+     * @param  colIdList  list of column IDs, one for each column 
+     *         in the output table
      * @return  new table using columns selected from <tt>table</tt>
      */
     public static StarTable keepColumnTable( StarTable table, String colIdList )

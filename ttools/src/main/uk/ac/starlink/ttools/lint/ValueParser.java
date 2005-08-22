@@ -25,7 +25,7 @@ public abstract class ValueParser {
      * This is presumably either the content of the <tt>value</tt> attribute
      * of a PARAM element or the contents of a TD element.
      *
-     * @param  value text
+     * @param  text  value string
      */
     public abstract void checkString( String text );
 

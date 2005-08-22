@@ -95,7 +95,7 @@ public class ElementHandler {
     /**
      * Returns the value of a named attribute.
      *
-     * @param   attribute name
+     * @param   name  attribute name
      * @return  attribute value
      */
     public String getAttribute( String name ) {

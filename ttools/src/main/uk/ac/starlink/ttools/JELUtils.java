@@ -38,7 +38,7 @@ public class JELUtils {
     /** 
      * Returns a JEL Library suitable for expression evaluation.
      * 
-     * @param    rowReader  object which can read rows from the table to
+     * @param    reader  object which can read rows from the table to
      *           be used for expression evaluation
      * @return   a JEL library
      */

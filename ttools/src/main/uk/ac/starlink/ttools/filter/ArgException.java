@@ -12,7 +12,7 @@ public class ArgException extends Exception {
     /**
      * Constructor.
      *
-     * @param   basic message
+     * @param message   basic message
      */
     public ArgException( String message ) {
         super( message );

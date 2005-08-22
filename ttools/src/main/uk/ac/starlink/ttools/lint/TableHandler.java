@@ -41,7 +41,7 @@ public class TableHandler extends ElementHandler {
      * If no working parser can be made, this method should be called
      * with <tt>parser=null</tt>.
      *
-     * @param   parser  parser for the newly added field
+     * @param   field  parser for the newly added field
      */
     public void registerField( FieldHandler field ) {
         fields_.add( field );

@@ -130,7 +130,7 @@ public class ColumnIdentifier {
      * This convenience function just works on the result of
      * {@link #getColumnIndices}.
      *
-     * @param   colidList  string containing a representation of a list
+     * @param   colIdList  string containing a representation of a list
      *          of columns
      * @return  array of column inclusion flags
      * @throws  IOException  if <tt>colid</tt> doesn't look like a 

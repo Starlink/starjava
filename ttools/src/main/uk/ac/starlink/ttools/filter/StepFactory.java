@@ -145,7 +145,7 @@ public class StepFactory {
     /**
      * Returns the singleton instance of this class.
      *
-     * @param  StepFactory instance
+     * @return  StepFactory instance
      */
     public static StepFactory getInstance() {
         if ( instance_ == null ) {

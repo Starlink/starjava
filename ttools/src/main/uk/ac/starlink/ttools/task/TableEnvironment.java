@@ -79,8 +79,8 @@ public abstract class TableEnvironment implements Environment {
     /**
      * Sets whether votables should be parsed in strict mode.
      *
-     * @param  true if VOTables should be interpreted strictly in accordance
-     *         with the standard
+     * @param  strict  true if VOTables should be interpreted 
+     *         strictly in accordance with the standard
      */
     public void setStrictVotable( boolean strict ) {
         isStrict_ = strict ? Boolean.TRUE
