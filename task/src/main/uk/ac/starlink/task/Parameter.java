@@ -84,7 +84,7 @@ public class Parameter {
     /**
      * Sets the name of this parameter.
      *
-     * @param  identifying name of this parameter
+     * @param  name  identifying name of this parameter
      */
     public void setName( String name ) {
         this.name = name;

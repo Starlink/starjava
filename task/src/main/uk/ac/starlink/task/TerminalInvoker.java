@@ -1,7 +1,13 @@
 package uk.ac.starlink.task;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -45,8 +51,8 @@ public class TerminalInvoker {
      * an exception) a message is printed to standard error and 
      * the JVM exits.
      *
-     * @param  the arguments identifying what method to call and what
-     *         arguments to pass to it
+     * @param  args  the arguments identifying what method to call and what
+     *               arguments to pass to it
      */
     public void invoke( String[] args ) throws Exception {
         String usage = "Usage: " + toolname
@@ -96,7 +102,8 @@ public class TerminalInvoker {
             for ( Iterator it = tmap.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry entry = (Map.Entry) it.next();
                 System.out.println( "   " + (String) entry.getKey() + " " +
-                                    ((Task) entry.getValue()).getUsage() );
+                                    getTaskUsage( (Task) entry.getValue() ) );
+ 
             }
             System.out.println();
             return;
@@ -122,7 +129,7 @@ public class TerminalInvoker {
                 Environment env = new TerminalEnvironment( taskargs, params );
 
                 /* The task is now properly configured; invoke it. */
-                task.invoke( env );
+                task.createExecutable( env ).execute();
             }
 
             /* Catch various exceptions and deal with them appropriately. */
@@ -141,7 +148,7 @@ public class TerminalInvoker {
             }
             catch ( UsageException e ) {
                 System.err.println( "Usage: " + toolname + " " + taskname +
-                                    " " + task.getUsage() );
+                                    " " + getTaskUsage( task ) );
                 System.exit( 1 );
             }
             catch ( ExecutionException e ) {
@@ -158,6 +165,20 @@ public class TerminalInvoker {
                                     e.getMessage() );
                 System.exit( e.getErrorCode() );
             }
+            catch ( IOException e ) {
+                Throwable cause = e.getCause();
+                if ( cause != null ) {
+                    if ( fulltrace ) {
+                        cause.printStackTrace( System.err );
+                    }
+                    else {
+                        System.err.println( cause.getMessage() );
+                    }
+                }
+                System.err.println( toolname + " " + taskname + ": " +
+                                    e.getMessage() );
+                System.exit( 1 );
+            }
             catch ( AbortException e ) {
                 System.err.println( toolname + " " + taskname 
                                   + ": User abort" );
@@ -167,6 +188,65 @@ public class TerminalInvoker {
         else {
             System.err.println( toolname + ": Unknown task.  Use -h for list" );
         }
+    }
+
+    /**
+     * Returns a usage string for a given task.  This contains only a
+     * symbolic representation of the parameter names, not the task name
+     * itself.
+     * 
+     * @param   task  task
+     * @return  usage string
+     */
+    public static String getTaskUsage( Task task ) {
+
+        /* Assemble a list of parameters in the right order, that is all
+         * the numbered ones first and all the unnumbered ones (in the
+         * order they were submitted) following. */
+        Parameter[] params = task.getParameters();
+        List numbered = new ArrayList();
+        List unNumbered = new ArrayList();
+        for ( int i = 0; i < params.length; i++ ) {
+            Parameter param = params[ i ];
+            ( param.getPosition() > 0 ? numbered : unNumbered ).add( param );
+        }
+        Collections.sort( numbered, new Comparator() {
+            public int compare( Object o1, Object o2 ) {
+                int pos1 = ((Parameter) o1).getPosition();
+                int pos2 = ((Parameter) o2).getPosition();
+                if ( pos1 < pos2 ) { 
+                    return -1;
+                }
+                else if ( pos2 < pos1 ) {
+                    return +1;
+                }
+                else {
+                    throw new IllegalArgumentException( 
+                        "Two params have same position" );
+                }
+            } 
+        } );
+        List paramList = numbered;
+        paramList.addAll( unNumbered );
+
+        /* Assemble the usage message with one element for each parameter. */
+        StringBuffer usage = new StringBuffer();
+        for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
+            Parameter param = (Parameter) it.next();
+            boolean optional = param.isNullPermitted()
+                            || param.getDefault() != null;
+            if ( optional ) {
+                usage.append( '[' );
+            }
+            usage.append( param.getName() );
+            if ( optional ) {
+                usage.append( ']' );
+            }
+            if ( it.hasNext() ) {
+                usage.append( ' ' );
+            }
+        }
+        return usage.toString();
     }
 
 }

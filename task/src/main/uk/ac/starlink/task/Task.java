@@ -17,25 +17,20 @@ public interface Task {
     Parameter[] getParameters();
 
     /**
-     * Returns a usage message for this task. 
-     * It should just contain the argument list (not the task's name)
-     * The argument list should be consistent with the parameter list
-     * returned by {@link #getParameters}; in particular it should use
-     * the same parameter names.
-     *
-     * @return   usage message
-     */
-    String getUsage();
-
-    /**
-     * Invokes the task based on the given <tt>Environment</tt> object.
+     * Creates an executable object which will do the work of this task
+     * in the given Environment.
+     * This method should do all of the parameter processing and prepare
+     * an object which just executes.  The idea is that any communication
+     * with the user related to the supplied parameter values can be
+     * done before the task starts to execute in earnest. 
+     * Consequently, the returned Executable object ought not to 
+     * make any reference to <code>env</code>, though this is not
+     * absolutely prohibited.
      *
      * @param  env  the environment in which the task will operate
-     * @throws  ExcecutionException  if a simple error message will suffice -
-     *          the object invoking this Task will typically not print
-     *          a stack trace in this case
-     * @throws  Exception  any other exception may be thrown -
-     *          a normal stacktrace will typically be displayed to the user
+     * @throws   TaskException  if no executable can be created;
+     *           this should usually be a {@link UsageException} or
+     *           some subclass
      */
-    void invoke( Environment env ) throws TaskException;
+    Executable createExecutable( Environment env ) throws TaskException;
 }

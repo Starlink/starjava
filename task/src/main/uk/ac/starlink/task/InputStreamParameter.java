@@ -46,9 +46,15 @@ public class InputStreamParameter extends Parameter {
      * @return  new, uncompressed input stream
      */
     public InputStream inputStreamValue( Environment env )
-            throws IOException, TaskException {
+            throws TaskException {
         String loc = stringValue( env );
-        return loc == null ? null
-                           : DataSource.getInputStream( stringValue( env ) );
+        try {
+            return loc == null
+                 ? null
+                 : DataSource.getInputStream( stringValue( env ) );
+        }
+        catch ( IOException e ) {
+            throw new TaskException( e.getMessage(), e );
+        }
     }
 }
