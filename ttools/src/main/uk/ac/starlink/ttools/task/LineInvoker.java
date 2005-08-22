@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
@@ -113,11 +115,15 @@ public class LineInvoker {
                 }
                 else {
                     env.setArgs( taskArgs );
-                    task.invoke( env );
+                    Executable exec = task.createExecutable( env );
                     String unused = env.getUnused();
-                    if ( unused != null ) {
-                        System.err.println( "\nWARNING: Unused arguments " 
+                    if ( unused == null ) {
+                        exec.execute();
+                    }
+                    else {
+                        System.err.println( "\nUnused arguments "
                                           + unused + "\n" );
+                        System.exit( 1 );
                     }
                 }
             }
@@ -134,6 +140,19 @@ public class LineInvoker {
                 }
                 if ( e instanceof UsageException && task != null ) {
                     System.err.println( getTaskUsage( task, taskName ) );
+                }
+                System.exit( 1 );
+            }
+            catch ( IOException e ) {
+                if ( env.isDebug() ) {
+                    e.printStackTrace( System.err );
+                }
+                else {
+                    String msg = e.getMessage();
+                    if ( msg == null ) {
+                        msg = e.toString();
+                    }
+                    System.err.println( "\n" + msg );
                 }
                 System.exit( 1 );
             }

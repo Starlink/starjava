@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
@@ -87,23 +88,18 @@ public class MapperTask implements Task {
         return params_;
     }
 
-    public String getUsage() {
-        return null;
-    }
-
-    public void invoke( Environment env ) throws TaskException {
-        StarTable[] inTables = new StarTable[ nIn_ ];
+    public Executable createExecutable( Environment env ) throws TaskException {
+        final StarTable[] inTables = new StarTable[ nIn_ ];
         for ( int i = 0; i < nIn_; i++ ) {
             inTables[ i ] = inTableParams_[ i ].tableValue( env );
         }
-        TableConsumer consumer = consumerParam_.consumerValue( env );
-        TableMapping mapping = mapper_.createMapping( env );
-        try {
-            mapping.mapTables( inTables, new TableConsumer[] { consumer } );
-        }
-        catch ( IOException e ) {
-            throw new ExecutionException( e );
-        }
+        final TableConsumer consumer = consumerParam_.consumerValue( env );
+        final TableMapping mapping = mapper_.createMapping( env );
+        return new Executable() {
+            public void execute() throws IOException {
+                mapping.mapTables( inTables, new TableConsumer[] { consumer } );
+            }
+        };
     }
 
     /**

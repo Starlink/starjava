@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.task;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
@@ -48,18 +49,13 @@ public class TableCopy implements Task {
         };
     }
 
-    public String getUsage() {
-        return null;
-    }
-
-    public void invoke( Environment env ) throws TaskException {
-        StarTable inTable = inParam_.tableValue( env );
-        TableConsumer consumer = outParam_.consumerValue( env );
-        try {
-            consumer.consume( inTable );
-        }
-        catch ( IOException e ) {
-            throw new ExecutionException( e.getMessage(), e );
-        }
+    public Executable createExecutable( Environment env ) throws TaskException {
+        final StarTable inTable = inParam_.tableValue( env );
+        final TableConsumer consumer = outParam_.consumerValue( env );
+        return new Executable() {
+            public void execute() throws IOException {
+                consumer.consume( inTable );
+            }
+        };
     }
 }

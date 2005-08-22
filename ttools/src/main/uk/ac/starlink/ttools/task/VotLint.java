@@ -7,6 +7,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.InputStreamParameter;
 import uk.ac.starlink.task.Parameter;
@@ -51,27 +52,10 @@ public class VotLint implements Task {
         };
     }
 
-    public String getUsage() {
-        return null;
-    }
-
-    public void invoke( Environment env ) throws TaskException {
-        try {
-            doInvoke( env );
-        }
-        catch ( IOException e ) {
-            throw new ExecutionException( e.getMessage(), e );
-        }
-        catch ( SAXException e ) {
-            throw new ExecutionException( e.getMessage(), e );
-        }
-    }
-
-    private void doInvoke( Environment env )
-            throws TaskException, IOException, SAXException {
+    public Executable createExecutable( Environment env ) throws TaskException {
+        String version = versionParam_.stringValue( env );
 
         /* Create a lint context. */
-        String version = versionParam_.stringValue( env );
         boolean validate = validParam_.booleanValue( env );
         final LintContext context = new LintContext( version );
         context.setValidating( validate );
@@ -84,31 +68,57 @@ public class VotLint implements Task {
         String sysid = inParam_.stringValue( env );
         InputStream in = inParam_.inputStreamValue( env );
 
-        /* Buffer the stream for efficiency. */
-        in = new BufferedInputStream( in );
+        return new VotLintExecutable( in, validate, context, sysid );
+    }
 
-        /* Interpolate the VOTable DOCTYPE declaration if required. */
-        if ( validate ) {
-            DoctypeInterpolator interp = new DoctypeInterpolator() {
-                public void message( String msg ) {
-                    context.info( msg );
-                }
-            };
-            in = interp.getStreamWithDoctype( (BufferedInputStream) in );
-            String foundVers = interp.getVotableVersion();
-            if ( foundVers != null ) {
-                if ( context.getVersion() == null ) {
-                    context.setVersion( foundVers );
-                }
-            }
+    private class VotLintExecutable implements Executable {
+
+        final InputStream in_;
+        final boolean validate_;
+        final LintContext context_;
+        final String sysid_;
+
+        VotLintExecutable( InputStream in, boolean validate, 
+                          LintContext context, String sysid ) {
+            in_ = in;
+            validate_ = validate;
+            context_ = context;
+            sysid_ = sysid;
         }
 
-        /* Turn the stream into a SAX source. */
-        InputSource sax = new InputSource( in );
-        sax.setSystemId( sysid );
+        public void execute() throws IOException, ExecutionException {
 
-        /* Perform the parse. */
-        new Linter( context ).createParser( context.isValidating() )
-                             .parse( sax );
+            /* Buffer the stream for efficiency. */
+            InputStream in = new BufferedInputStream( in_ );
+
+            /* Interpolate the VOTable DOCTYPE declaration if required. */
+            if ( validate_ ) {
+                DoctypeInterpolator interp = new DoctypeInterpolator() {
+                    public void message( String msg ) {
+                        context_.info( msg );
+                    }
+                };
+                in = interp.getStreamWithDoctype( (BufferedInputStream) in );
+                String foundVers = interp.getVotableVersion();
+                if ( foundVers != null ) {
+                    if ( context_.getVersion() == null ) {
+                        context_.setVersion( foundVers );
+                    }
+                }
+            }
+
+            /* Turn the stream into a SAX source. */
+            InputSource sax = new InputSource( in_ );
+            sax.setSystemId( sysid_ );
+
+            /* Perform the parse. */
+            try {
+                new Linter( context_ ).createParser( context_.isValidating() )
+                                      .parse( sax );
+            }
+            catch ( SAXException e ) {
+                throw new ExecutionException( e.getMessage(), e );
+            }
+        }
     }
 }

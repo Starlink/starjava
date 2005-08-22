@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.logging.Level;
@@ -18,8 +19,10 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
@@ -96,94 +99,112 @@ public class VotCopy implements Task {
         };
     }
 
-    public String getUsage() {
-        return null;
+    public Executable createExecutable( Environment env ) throws TaskException {
+        String inLoc = inParam_.stringValue( env );
+        String outLoc = outParam_.stringValue( env );
+        PrintStream pstrm = env.getPrintStream();
+        Charset xenc = xencParam_.charsetValue( env );
+        boolean inline = ! hrefParam_.booleanValue( env );
+        String base;
+        if ( ! inline ) {
+            baseParam_.setNullPermitted( false );
+            base = baseParam_.stringValue( env );
+        }
+        else {
+            base = null;
+        }
+        DataFormat format = formatParam_.formatValue( env );
+        if ( format == DataFormat.FITS ) {
+            cacheParam_.setDefault( true );
+        }
+        boolean strict = TableEnvironment.isStrictVotable( env );
+        boolean cache = cacheParam_.booleanValue( env );
+        StoragePolicy policy = TableEnvironment.getStoragePolicy( env );
+        return new VotCopier( inLoc, outLoc, pstrm, xenc, inline, base,
+                              format, strict, cache, policy );
     }
 
-    public void invoke( Environment env ) throws TaskException {
-        try {
-            doInvoke( env );
+    /**
+     * Helper class which does the work of the VOTable copy.
+     */
+    private class VotCopier implements Executable {
+
+        final String inLoc_;
+        final String outLoc_;
+        final PrintStream pstrm_;
+        final Charset xenc_;
+        final boolean inline_;
+        final String base_;
+        final DataFormat format_;
+        final boolean strict_;
+        final boolean cache_;
+        final StoragePolicy policy_;
+
+        VotCopier( String inLoc, String outLoc, PrintStream pstrm, 
+                   Charset xenc, boolean inline, String base,
+                   DataFormat format, boolean strict, boolean cache,
+                   StoragePolicy policy ) {
+            inLoc_ = inLoc;
+            outLoc_ = outLoc;
+            pstrm_ = pstrm;
+            xenc_ = xenc;
+            inline_ = inline;
+            base_ = base;
+            format_ = format;
+            strict_ = strict;
+            cache_ = cache;
+            policy_ = policy;
         }
-        catch ( IOException e ) {
-            throw new ExecutionException( e.getMessage(), e );
-        }
-        catch ( SAXException e ) {
-            throw new ExecutionException( e.getMessage(), e );
-        }
-    }
 
-    private void doInvoke( Environment env )
-            throws TaskException, IOException, SAXException {
-        InputStream in = null;
-        Writer out = null;
-        try {
-
-            /* Get input stream. */
-            String inLoc = inParam_.stringValue( env );
-            String systemId = inLoc.equals( "-" ) ? "." : inLoc;
-            in = DataSource.getInputStream( inLoc );
-            in = new BufferedInputStream( in );
-
-            /* Get output stream */
-            String outLoc = outParam_.stringValue( env );
-            OutputStream ostrm = outLoc.equals( "-" )
-                               ? (OutputStream) env.getPrintStream()
-                               : (OutputStream) new FileOutputStream( outLoc );
-            Charset xenc = xencParam_.charsetValue( env );
-            out = xenc == null ? new OutputStreamWriter( ostrm )
-                               : new OutputStreamWriter( ostrm, xenc );
-
-            /* Work out the output characteristics. */
-            boolean inline = ! hrefParam_.booleanValue( env );
-            String base;
-            if ( ! inline ) {
-                baseParam_.setNullPermitted( false );
-                base = baseParam_.stringValue( env );
-            }
-            else {
-                base = null;
-            }
-
-            /* Adjust default parameter values. */
-            if ( formatParam_.formatValue( env ) == DataFormat.FITS ) {
-                cacheParam_.setDefault( true );
-            }
-
-            /* Construct a handler which can take SAX and SAX-like events and
-             * turn them into XML output. */
-            VotCopyHandler handler =
-                new VotCopyHandler( TableEnvironment.isStrictVotable( env ),
-                                    formatParam_.formatValue( env ), inline,
-                                    base, cacheParam_.booleanValue( env ),
-                                    TableEnvironment.getStoragePolicy( env ) );
-            handler.setOutput( out );
-
-            /* Output the XML declaration. */
-            out.write( "<?xml version=\"1.0\"" );
-            if ( xenc != null ) {
-                out.write( " encoding=\"" + xenc + "\"" );
-            }
-            out.write( "?>\n" );
-
-            /* Prepare a stream of SAX events. */
-            InputSource saxsrc = new InputSource( in );
-            saxsrc.setSystemId( systemId );
-
-            /* Process the stream to perform the copy. */
-            saxCopy( saxsrc, handler );
-            out.flush();
-        }
-        finally {
+        public void execute() throws IOException, ExecutionException {
+            InputStream in = null;
+            Writer out = null;
             try {
+
+                /* Get input stream. */
+                String systemId = inLoc_.equals( "-" ) ? "." : inLoc_;
+                in = DataSource.getInputStream( inLoc_ );
+                in = new BufferedInputStream( in );
+
+                /* Get output stream */
+                OutputStream ostrm = outLoc_.equals( "-" )
+                           ? (OutputStream) pstrm_
+                           : (OutputStream) new FileOutputStream( outLoc_ );
+                out = xenc_ == null ? new OutputStreamWriter( ostrm )
+                                    : new OutputStreamWriter( ostrm, xenc_ );
+
+                /* Construct a handler which can take SAX and SAX-like
+                 * events and turn them into XML output. */
+                VotCopyHandler handler =
+                    new VotCopyHandler( strict_, format_, inline_,
+                                        base_, cache_, policy_ );
+                handler.setOutput( out );
+
+                /* Output the XML declaration. */
+                out.write( "<?xml version=\"1.0\"" );
+                if ( xenc_ != null ) {
+                    out.write( " encoding=\"" + xenc_ + "\"" );
+                }
+                out.write( "?>\n" );
+
+                /* Prepare a stream of SAX events. */
+                InputSource saxsrc = new InputSource( in );
+                saxsrc.setSystemId( systemId );
+
+                /* Process the stream to perform the copy. */
+                saxCopy( saxsrc, handler );
+                out.flush();
+            }
+            catch ( SAXException e ) {
+                throw new ExecutionException( e.getMessage(), e );
+            }
+            finally {
                 if ( in != null ) {
                     in.close();
                 }
                 if ( out != null ) {
                     out.close();
                 }
-            }
-            catch ( IOException e ) {
-                logger_.log( Level.WARNING, "Close error", e );
             }
         }
     }
