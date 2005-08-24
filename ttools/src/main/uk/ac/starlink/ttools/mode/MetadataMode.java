@@ -23,6 +23,14 @@ public class MetadataMode implements ProcessingMode {
         return new Parameter[ 0 ];
     }
 
+    public String getDescription() {
+        return new StringBuffer()
+       .append( "Prints the table metadata to standard output.\n" )
+       .append( "The name and type etc of each column is tabulated,\n" )
+       .append( "and table parameters are also shown.\n" )
+       .toString();
+    }
+
     public TableConsumer createConsumer( Environment env ) {
         final PrintStream out = env.getPrintStream();
         return new TableConsumer() {

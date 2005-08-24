@@ -31,29 +31,56 @@ public class JdbcMode implements ProcessingMode {
         protoParam_ = new Parameter( "protocol" );
         protoParam_.setPrompt( "Subprotocol for JDBC connection (e.g. mysql)" );
         protoParam_.setUsage( "<jdbc-protocol>" );
+        protoParam_.setDescription( new String[] {
+            "The driver-specific sub-protocol specifier for the JDBC",
+            "connection.",
+            "For MySQL's Connector/J driver, this is <code>mysql</code>,",
+            "and for PostgreSQL's driver it is <code>postgres</code>.",
+            "For other drivers, you may have to consult the driver",
+            "documentation.",
+        } );
 
         hostParam_ = new Parameter( "host" );
         hostParam_.setPrompt( "SQL database host" );
         hostParam_.setPrompt( "<hostname>" );
         hostParam_.setDefault( "localhost" );
+        hostParam_.setDescription( new String[] {
+            "The host which is acting as a database server.",
+            "The default is localhost.",
+        } );
 
         dbParam_ = new Parameter( "database" );
         dbParam_.setPrompt( "Name of database on database server" );
         dbParam_.setUsage( "<db-name>" );
+        dbParam_.setDescription( new String[] {
+            "The name of the database on the server into which the",
+            "new table will be written.",
+        } );
 
         tableParam_ = new Parameter( "newtable" );
         tableParam_.setPrompt( "Name of new table to write to database" );
         tableParam_.setUsage( "<table-name>" );
+        tableParam_.setDescription( new String[] {
+            "The name of the new table which will be written to the",
+            "database.",
+            "If a table by this name already exists, it may be overwritten.",
+        } );
 
         userParam_ = new Parameter( "user" ); 
         userParam_.setPrompt( "Username for SQL connection" );
         userParam_.setUsage( "<username>" );
         userParam_.setNullPermitted( true );
+        userParam_.setDescription( new String[] {
+            "User name for the SQL connection to the database.",
+        } );
 
         passwdParam_ = new Parameter( "password" );
         passwdParam_.setPrompt( "Password for SQL connection" );
         passwdParam_.setUsage( "<passwd>" );
         passwdParam_.setNullPermitted( true );
+        passwdParam_.setDescription( new String[] { 
+            "Password for the SQL connection to the database.",
+        } );
     }
 
     public Parameter[] getAssociatedParameters() {
@@ -65,6 +92,15 @@ public class JdbcMode implements ProcessingMode {
             userParam_,
             passwdParam_,
         };
+    }
+
+    public String getDescription() {
+        return new StringBuffer()
+       .append( "Writes a new table to an SQL database.\n" )
+       .append( "You need the appropriate JDBC drivers and\n" )
+       .append( "<code>-Djdcb.drivers</code> set as usual\n" )
+       .append( "(see <ref id=\"jdbcConfig\"/>).\n" )
+       .toString();
     }
 
     public TableConsumer createConsumer( Environment env )

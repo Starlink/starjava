@@ -31,6 +31,15 @@ public class StatsMode implements ProcessingMode {
         return new Parameter[ 0 ];
     }
 
+    public String getDescription() {
+        return new StringBuffer()
+       .append( "Calculates and displays univariate statistics for each\n" )
+       .append( "of the numeric columns in the table.\n" )
+       .append( "Mean, standard deviation, minimum, maximum and number of\n" )
+       .append( "good rows are shown.\n" )
+       .toString();
+    }
+
     public TableConsumer createConsumer( Environment env ) {
         final PrintStream out = env.getPrintStream();
         return new TableConsumer() {

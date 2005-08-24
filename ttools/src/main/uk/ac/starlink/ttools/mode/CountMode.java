@@ -22,6 +22,11 @@ public class CountMode implements ProcessingMode {
         return new Parameter[ 0 ];
     }
 
+    public String getDescription() {
+        return "Counts the number of rows and columns and writes the result "
+             + "to standard output.";
+    }
+
     public TableConsumer createConsumer( Environment env ) {
         final PrintStream out = env.getPrintStream();
         return new TableConsumer() {

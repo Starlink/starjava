@@ -44,6 +44,24 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
         return new Parameter[ 0 ];
     }
 
+    public String getDescription() {
+        return new StringBuffer()
+       .append( "Displays the output table directly in\n" )
+       .append( "<webref url=\"http://www.starlink.ac.uk/topcat/\"\n" )
+       .append( ">TOPCAT</webref>.\n" )
+       .append( "If a TOPCAT instance (version 1.6 or later) is already\n" )
+       .append( "running on the local host, the table will be opened in\n" )
+       .append( "that, otherwise a new TOPCAT instance will be launched\n" )
+       .append( "for display.\n" )
+       .append( "The latter mode only works if the TOPCAT classes are\n" )
+       .append( "on the class path.\n" )
+       .append( "There are currently limits to the size of table\n" )
+       .append( "that can be transmitted to the application in this way -\n" )
+       .append( "it is hoped that this can be improved in a future\n" )
+       .append( "release.\n" )
+       .toString();
+    }
+
     public TableConsumer createConsumer( Environment env ) {
         return this;
     }

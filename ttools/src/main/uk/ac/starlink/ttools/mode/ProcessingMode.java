@@ -29,4 +29,13 @@ public interface ProcessingMode {
      * @return  parameter list
      */
     Parameter[] getAssociatedParameters();
+
+    /**
+     * Returns a textual description of this processing mode.  This will
+     * be included in the user document so should be in XML.
+     *
+     * @return  textual description of this mode
+     */
+    String getDescription();
+  
 }

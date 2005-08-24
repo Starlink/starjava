@@ -8,10 +8,11 @@ import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.formats.TextTableWriter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.OutputFormatParameter;
+import uk.ac.starlink.ttools.task.OutputTableParameter;
 import uk.ac.starlink.ttools.task.TableEnvironment;
 
 /**
@@ -22,15 +23,12 @@ import uk.ac.starlink.ttools.task.TableEnvironment;
  */
 public class CopyMode implements ProcessingMode {
 
-    private final Parameter locParam_;
+    private final OutputTableParameter locParam_;
     private final Parameter formatParam_;
 
     public CopyMode() {
-        locParam_ = new Parameter( "out" );
-        locParam_.setPrompt( "Output location" );
-        locParam_.setDefault( "-" );
-
-        formatParam_ = new OutputFormatParameter( "outfmt" );
+        locParam_ = new OutputTableParameter( "out" );
+        formatParam_ = locParam_.getFormatParameter();
     }
 
     public Parameter[] getAssociatedParameters() {
@@ -38,6 +36,10 @@ public class CopyMode implements ProcessingMode {
             locParam_,
             formatParam_,
         };
+    }
+
+    public String getDescription() {
+        return "Writes a new table.";
     }
 
     public TableConsumer createConsumer( Environment env ) 
