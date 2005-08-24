@@ -71,9 +71,9 @@ public class MapperTask implements Task {
 
         /* Output parameters. */
         if ( useOutModes ) {
-            OutputModeParameter outParam = new OutputModeParameter( "mode" );
-            paramList.add( outParam );
-            consumerParam_ = outParam;
+            OutputModeParameter modeParam = new OutputModeParameter( "mode" );
+            paramList.add( modeParam );
+            consumerParam_ = modeParam;
         }
         else {
             OutputTableParameter outParam = new OutputTableParameter( "out" );
