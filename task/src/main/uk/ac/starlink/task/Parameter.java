@@ -55,6 +55,7 @@ public class Parameter {
 
     private String name;
     private String prompt;
+    private String description;
     private String usage = "<value>";
     private String def;
     private int pos;
@@ -110,6 +111,40 @@ public class Parameter {
      */
     public void setPrompt( String prompt ) {
         this.prompt = prompt;
+    }
+
+    /**
+     * Returns the textual description for this parameter.
+     *
+     * @return  description, if known
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the textual description for this parameter.
+     *
+     * @param  description  description
+     */
+    public void setDescription( String description ) {
+        this.description = description;
+    }
+
+    /**
+     * Convenience method to set the description for this parameter by 
+     * the result of joining an array of lines together.
+     *
+     * @param  descLines  lines of textual description
+     * @see  #setDescription(java.lang.String)
+     */
+    public void setDescription( String[] descLines ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < descLines.length; i++ ) {
+            sbuf.append( descLines[ i ] )
+                .append( '\n' );
+        }
+        description = sbuf.toString();
     }
 
     /**
