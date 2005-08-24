@@ -63,6 +63,10 @@ case "`uname`" in
   ;;
 esac
 
+# Prevent starjava's interference in the logging regime.
+STARJAVA_DEFAULT_LOGGING="true"
+export STARJAVA_DEFAULT_LOGGING
+
 # Execute the command.
 $starjava \
    $javaArgs \

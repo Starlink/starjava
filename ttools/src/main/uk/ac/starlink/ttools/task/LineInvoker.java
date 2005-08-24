@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
@@ -51,6 +54,7 @@ public class LineInvoker {
     public void invoke( String[] args ) {
         List argList = new ArrayList( Arrays.asList( args ) );
         LineEnvironment env = new LineEnvironment();
+        int verbosity = 0;
 
         /* Treat flags. */
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
@@ -67,6 +71,10 @@ public class LineInvoker {
                     System.out.println( "\n" + "STILTS version " 
                                              + Stilts.getVersion() + "\n" );
                     return;
+                }
+                else if ( arg.equals( "-verbose" ) ) {
+                    it.remove();
+                    verbosity++;
                 }
                 else if ( arg.equals( "-disk" ) ) {
                     it.remove();
@@ -102,6 +110,8 @@ public class LineInvoker {
             System.exit( 1 );
         }
 
+        configureLogging( verbosity );
+
         String taskName = (String) argList.remove( 0 );
         if ( taskFactory_.isRegistered( taskName ) ) {
             Task task = null;
@@ -118,11 +128,22 @@ public class LineInvoker {
                     Executable exec = task.createExecutable( env );
                     String unused = env.getUnused();
                     if ( unused == null ) {
+                        StringBuffer sbuf = new StringBuffer( taskName );
+                        Parameter[] params = task.getParameters();
+                        for ( int i = 0; i < params.length; i++ ) {
+                            Parameter param = params[ i ];
+                            sbuf.append( ' ' )
+                                .append( '-' )
+                                .append( param.getName() )
+                                .append( '=' )
+                                .append( param.stringValue( env ) );
+                        }
+                        logger_.info( sbuf.toString() );
                         exec.execute();
                     }
                     else {
                         System.err.println( "\nUnused arguments "
-                                          + unused + "\n" );
+                                          + unused + "\n\n" );
                         System.exit( 1 );
                     }
                 }
@@ -136,7 +157,7 @@ public class LineInvoker {
                     if ( msg == null ) {
                         msg = e.toString();
                     }
-                    System.err.println( "\n" + msg );
+                    System.err.println( "\n" + msg + "\n" );
                 }
                 if ( e instanceof UsageException && task != null ) {
                     System.err.println( getTaskUsage( task, taskName ) );
@@ -152,14 +173,14 @@ public class LineInvoker {
                     if ( msg == null ) {
                         msg = e.toString();
                     }
-                    System.err.println( "\n" + msg );
+                    System.err.println( "\n" + msg + "\n" );
                 }
                 System.exit( 1 );
             }
             catch ( LoadException e ) {
                 System.err.println( "Task " + taskName + " not available" );
                 if ( e.getMessage() != null ) {
-                    System.err.println( e.getMessage() );
+                    System.err.println( e.getMessage() + "\n" );
                 }
                 if ( env.isDebug() ) {
                     e.printStackTrace( System.err );
@@ -198,7 +219,9 @@ public class LineInvoker {
                     helpFor = helpFor.substring( 1 );
                 }
             }
-            else if ( arg.startsWith( "-" ) && arg.indexOf( '=' ) < 0 ) {
+            else if ( arg.startsWith( "-" ) &&
+                      arg.length() > 1 &&
+                      arg.indexOf( '=' ) < 0 ) {
                 helpFor = arg.substring( 1 ).trim().toLowerCase();
             }
             if ( helpFor != null ) {
@@ -206,7 +229,7 @@ public class LineInvoker {
                 for ( int j = 0; j < params.length; j++ ) {
                     Parameter param = params[ j ];
                     if ( helpFor.equals( param.getName() ) ) {
-                        return getParamUsage( env, task, taskName, param );
+                        return getParamHelp( env, task, taskName, param );
                     }
                 }
                 return "No such argument: -" + helpFor + "\n\n" 
@@ -225,11 +248,15 @@ public class LineInvoker {
     private String getUsage() {
         StringBuffer sbuf = new StringBuffer()
             .append( "Usage: " )
-            .append( toolName_ )
-            .append( " [-help]" )
+            .append( toolName_ );
+        String pad = sbuf.toString().replaceAll( ".", " " );
+        sbuf.append( " [-help]" )
             .append( " [-version]" )
+            .append( " [-verbose]" )
             .append( " [-disk]" )
             .append( " [-debug]" )
+            .append( '\n' )
+            .append( pad )
             .append( " <task-name> <task-args>" )
             .append( '\n' );
         sbuf.append( "\n   Known tasks:\n" );
@@ -345,7 +372,7 @@ public class LineInvoker {
     }
 
     /**
-     * Returns a usage string for a parameter of one of the tasks known
+     * Returns a help string for a parameter of one of the tasks known
      * to this application.  May include extended usage information.
      * Consider the result to be a formatted string, that is, one which
      * contains newlines to keep line lengths down to a reasonable level.
@@ -356,8 +383,8 @@ public class LineInvoker {
      * @param  param   parameter for which usage information is required
      * @return   usage message
      */
-    private String getParamUsage( TableEnvironment env, Task task,
-                                  String taskName, Parameter param ) {
+    public static String getParamHelp( TableEnvironment env, Task task,
+                                       String taskName, Parameter param ) {
         boolean byPos = param.getPosition() > 0;
         boolean isOptional = param.getDefault() != null 
                           || param.isNullPermitted();
@@ -393,5 +420,35 @@ public class LineInvoker {
                 .append( ((ExtraParameter) param).getExtraUsage( env ) );
         }   
         return sbuf.toString();
+    }
+
+    /**
+     * Sets up the logging system.
+     *
+     * @param  verbosity  number of levels greater than default to set
+     */
+    private static void configureLogging( int verbosity ) {
+
+        /* Try to acquire the root logger. */
+        Logger rootLogger = Logger.getLogger( "" );
+
+        /* Work out the logging level to which the requested verbosity
+         * corresponds. */
+        int verbInt = Math.max( Level.ALL.intValue(),
+                                Level.WARNING.intValue()
+                                - verbosity *
+                                  ( Level.WARNING.intValue() -
+                                    Level.INFO.intValue() ) );
+        Level verbLevel = Level.parse( Integer.toString( verbInt ) );
+
+        /* Get the root logger's console handler.  By default
+         * it has one of these; if it doesn't then some custom
+         * logging is in place and we won't mess about with it. */
+        Handler[] rootHandlers = rootLogger.getHandlers();
+        if ( rootHandlers.length > 0 &&
+             rootHandlers[ 0 ] instanceof ConsoleHandler ) {
+            rootHandlers[ 0 ].setLevel( verbLevel );
+            rootHandlers[ 0 ].setFormatter( new LineFormatter() );
+        }
     }
 }
