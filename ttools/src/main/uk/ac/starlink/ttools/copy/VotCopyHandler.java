@@ -407,7 +407,7 @@ public class VotCopyHandler
                     try {
                         streamStore_.acceptMetadata( meta );
                        
-                        writeDataElement( streamStore_.getStarTable() );
+                        writeDataElement( streamStore_.waitForStarTable() );
                     }
                     catch ( IOException e ) {
                         error_ = e;

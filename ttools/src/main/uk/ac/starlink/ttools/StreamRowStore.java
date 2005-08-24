@@ -3,27 +3,34 @@ package uk.ac.starlink.ttools;
 import java.io.IOException;
 import java.util.LinkedList;
 import uk.ac.starlink.table.RowSequence;
-import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.WrapperStarTable;
 
 /**
- * RowStore implementation whose returned table reads from a stream.
+ * TableSink implementation whose returned table reads from a stream.
  * The iterator got from <tt>getStarTable().getRowSequence()</tt>
  * will return the rows fed to this object's <tt>acceptRow</tt> method.
  * Some of the methods block, and the reading and writing have to be 
  * done in different threads.
  *
- * <p>The returned table is unusual in that * (for obvious reasons) it
+ * <p>The returned table is unusual in that (for obvious reasons) it
  * can only return a RowSequence once.  This violates the normal rules
  * of the StarTable interface.  Any calls beyond the first to
  * <tt>getStarTable().getRowSequence()</tt> will throw a
  * {@link StreamRereadException}.
  *
+ * <p>This serves almost the same purpose as a 
+ * {@link uk.ac.starlink.table.RowStore}, but does not quite implement
+ * that interface.  Instead of RowStore's 
+ * {@link uk.ac.starlink.table.RowStore#getStarTable} method, it provides a
+ * {@link #waitForStarTable} method.  This blocks until the metadata
+ * has been supplied, and also throws an IOException.
+ *
  * @author   Mark Taylor (Starlink)
  * @since    10 Feb 2005
  */
-public class StreamRowStore implements RowStore, RowSequence {
+public class StreamRowStore implements TableSink, RowSequence {
 
     private final LinkedList rowQueue_;
     private final int queueSize_;
@@ -62,9 +69,10 @@ public class StreamRowStore implements RowStore, RowSequence {
      */
     public synchronized void setError( IOException error ) {
         error_ = error;
+        notifyAll();
     }
 
-    public void acceptMetadata( StarTable meta ) {
+    public synchronized void acceptMetadata( StarTable meta ) {
         table_ = new WrapperStarTable( meta ) {
             RowSequence rseq_ = StreamRowStore.this;
             public boolean isRandom() {
@@ -117,19 +125,25 @@ public class StreamRowStore implements RowStore, RowSequence {
      * The <tt>getRowSequence</tt> method can only be called once;
      * any subsequent attempts to call it will result in a
      * {@link StreamRereadException}.
+     * This method will block until {@link #acceptMetadata} has been called.
      *
      * @return   one-shot streaming sequential table
      */
-    public synchronized StarTable getStarTable() {
+    public synchronized StarTable waitForStarTable() throws IOException {
         try {
-            while ( table_ == null ) {
+            while ( table_ == null && error_ == null) {
                 wait();
             }
         }
         catch ( InterruptedException e ) {
             throw new RuntimeException( "Thread interrupted", e );
         }
-        return table_;
+        if ( error_ != null ) {
+            throw error_;
+        }
+        else {
+            return table_;
+        }
     }
 
     public synchronized boolean next() throws IOException {
