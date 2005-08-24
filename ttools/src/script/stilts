@@ -33,21 +33,20 @@ if test ! -f "$starjava"; then
    exit 1
 fi
 
-#  Divide the arguments into two parts: those destined as flags for
-#  the java binary, and the rest.
+#  Pull out any arguments which look to be destined for the java binary.
 javaArgs=""
-appArgs=""
 while test "$1"
 do
    if echo $1 | grep -- '^-[XD]' >/dev/null; then
-      javaArgs="$javaArgs "\'$1\'
+      javaArgs="$javaArgs $1"
+      shift
    elif [ "$1" = "-classpath" -a -n "$2" ]; then
       shift
       export CLASSPATH="$1"
+      shift
    else
-      appArgs="$appArgs "\'$1\'
+      break
    fi
-   shift
 done
 
 #  Check for Cygwin and transform paths.
@@ -64,9 +63,10 @@ case "`uname`" in
   ;;
 esac
 
-cmd="$starjava \
-       $javaArgs \
-       -enableassertions \
-       -classpath \${CLASSPATH} uk.ac.starlink.ttools.Stilts \
-       $appArgs"
-eval "$cmd"
+# Execute the command.
+$starjava \
+   $javaArgs \
+   -enableassertions \
+   -classpath $CLASSPATH \
+   uk.ac.starlink.ttools.Stilts \
+   "$@"
