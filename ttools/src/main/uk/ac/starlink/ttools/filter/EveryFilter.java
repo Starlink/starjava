@@ -9,6 +9,13 @@ public class EveryFilter extends BasicFilter {
         super( "every", "<step>" );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Include only every <code>&lt;step&gt;</code>'th row in the",
+            "result, starting with the first row.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
             String countStr = (String) argIt.next();

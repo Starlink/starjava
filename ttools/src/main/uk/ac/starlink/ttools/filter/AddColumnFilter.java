@@ -20,6 +20,17 @@ public class AddColumnFilter extends BasicFilter {
                "[-after <col-id> | -before <col-id>] <col-name> <expr>" );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Add a new column called <code>&lt;col-name&gt;</code> defined",
+            "by the algebraic expression <code>&lt;expr&gt;</code>.",
+            "By default the new column appears after the last column",
+            "of the table, but you can position it either before or",
+            "after a specified column using the <code>-before</code>",
+            "or <code>-after</code> flags respectively",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         String posId = null;
         String colName = null;

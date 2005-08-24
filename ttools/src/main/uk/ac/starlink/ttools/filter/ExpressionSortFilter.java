@@ -36,6 +36,15 @@ public class ExpressionSortFilter extends BasicFilter {
                ( ALLOW_SUBKEYS ? "[-subkey <expr> ...] <expr>" : "<expr>" ) );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Sorts the table according to the value of an algebraic",
+            "expression.",
+            "<code>&lt;expr&gt;</code> must evaluate to a type that",
+            "it makes sense to sort, for instance numeric.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         List keyList = new LinkedList();
         while ( argIt.hasNext() ) {

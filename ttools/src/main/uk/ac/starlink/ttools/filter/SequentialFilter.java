@@ -20,6 +20,13 @@ public class SequentialFilter extends BasicFilter implements ProcessingStep {
         super( "sequential", null );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Ensures that steps downstream see the table as sequential access.",
+            "Only useful for debugging.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) {
         return this;
     }

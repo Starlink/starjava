@@ -19,6 +19,23 @@ public class ColumnSortFilter extends BasicFilter {
                "[-down] [-nullsfirst] <colid-list>" );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Sorts the table according to the columns named in",
+            "<code>&lt;colid-list&gt;</code>.",
+            "One or more columns may be specified; sorting is done on",
+            "the values in the first-specified field., but if they are",
+            "equal the ties is resolved by looking at the second-specified",
+            "field, and so on.",
+            "If the <code>-down</code> flag is used, the sort order is",
+            "descending rather than ascending.",
+            "Blank entries are usually considered to come at the end",
+            "of the collation sequence, but if the <code>-nullsfirst</code>",
+            "flag is given then they are considered to come at the start",
+            "instead.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         boolean up = true;
         boolean nullsLast = true;

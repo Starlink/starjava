@@ -22,6 +22,13 @@ public class RandomFilter extends BasicFilter implements ProcessingStep {
         super( "random", null );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Ensures that steps downstream see the table as random access.",
+            "Only useful for debugging.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) {
         return this;
     }

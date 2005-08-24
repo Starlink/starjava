@@ -15,6 +15,13 @@ public class TailFilter extends BasicFilter {
         super( "tail", "<nrows>" );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Include only the last <code>&lt;nrows&gt;</code> rows",
+            "of the table.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
             String countStr = (String) argIt.next();

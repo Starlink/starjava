@@ -22,6 +22,14 @@ public interface ProcessingFilter {
     String getUsage();
 
     /**
+     * Description for this filter.  This is currently inserted into
+     * the user document, so should be in XML format.
+     *
+     * @return  textual description of this filter
+     */
+    String getDescription();
+
+    /**
      * Creates a new ProcessingStep based on a sequence of command-line
      * arguments.  The <tt>argIt</tt> argument is an iterator over the
      * command-line arguments positioned just before any arguments

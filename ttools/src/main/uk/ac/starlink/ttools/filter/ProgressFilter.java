@@ -34,6 +34,19 @@ public class ProgressFilter extends BasicFilter implements ProcessingStep {
         pstrm_ = pstrm;
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Monitors progress by displaying the number of rows processed",
+            "so far on the terminal (standard error).",
+            "This number is updated every second or thereabouts;",
+            "if all the processing is done in under a second you may not",
+            "see any output.",
+            "If the total number of rows in the table is known,",
+            "an ASCII-art progress bar is updated, otherwise just the",
+            "number of rows seen so far is written.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) {
         return this;
     }

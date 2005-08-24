@@ -14,6 +14,21 @@ public class ReplaceColumnFilter extends BasicFilter {
         super( "replacecol", "<col-id> <expr>" );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Replaces the content of a column with the value of an",
+            "algebraic expression.",
+            "The position, name and metadata of the new column are the same",
+            "as those of the replaced one (though the data type may change)",
+            "but the old values are discarded in favour of the result of",
+            "evaluating <code>&lt;expr&gt;</code>.",
+            "You can reference the replaced column in the expression,",
+            "so for example",
+            "\"<code>replacecol pixsize pixsize*2</code>\" just multiplies",
+            "the values in column <code>pixsize</code> by 2.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         String colId = null;
         String expr = null;

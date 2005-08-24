@@ -15,6 +15,13 @@ public class HeadFilter extends BasicFilter {
         super( "head", "<nrows>" );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Include only the first <code>&lt;nrows&gt;</code> rows of",
+            "the table.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
             String countStr = (String) argIt.next();

@@ -18,6 +18,14 @@ public class ExplodeAllFilter extends BasicFilter {
         super( "explodeall", null );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Replaces any column which is an N-element array with",
+            "N scalar columns.",
+            "Only columns with fixed array sizes are affected.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) {

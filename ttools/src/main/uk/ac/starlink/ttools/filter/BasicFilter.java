@@ -30,4 +30,17 @@ public abstract class BasicFilter implements ProcessingFilter {
     public String getUsage() {
         return usage_;
     }
+
+    public String getDescription() {
+        String[] lines = getDescriptionLines();
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < lines.length; i++ ) {
+            sbuf.append( lines[ i ] )
+                .append( '\n' );
+        }
+        return sbuf.toString();
+    }
+
+    protected abstract String[] getDescriptionLines();
+
 }

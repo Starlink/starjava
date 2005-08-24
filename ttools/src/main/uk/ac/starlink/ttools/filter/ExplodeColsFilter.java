@@ -19,6 +19,17 @@ public class ExplodeColsFilter extends BasicFilter {
         super( "explodecols", "<colid-list>" );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Takes a list of specified columns which represent N-element",
+            "arrays and replaces each one with N scalar columns.",
+            "Each of the columns specified by <code>&lt;colid-list&gt;</code>",
+            "must have a type with a fixed-length array,",
+            "though not all the arrays need to have the same number",
+            "of elements.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
             final String colIdList = (String) argIt.next();

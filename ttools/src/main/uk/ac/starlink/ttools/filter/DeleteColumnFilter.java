@@ -18,6 +18,13 @@ public class DeleteColumnFilter extends BasicFilter {
         super( "delcols", "<colid-list>" );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Delete the specified columns.",
+            "The same column may harmlessly be specified more than once.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         if ( argIt.hasNext() ) {
             String colIdList = (String) argIt.next();

@@ -22,6 +22,19 @@ public class CacheFilter extends BasicFilter implements ProcessingStep {
         super( "cache", null );
     }
 
+    protected String[] getDescriptionLines() {
+        return new String[] {
+            "Stores in memory or on disk a temporary copy of the table at",
+            "this point in the pipeline.",
+            "This can provide improvements in efficiency if there is",
+            "an expensive step upstream and a step which requires",
+            "more than one read of the data downstream.",
+            "If you see an error like \"Can't re-read data from stream\"",
+            "then adding this step near the start of the filters",
+            "might help.",
+        };
+    }
+
     public ProcessingStep createStep( Iterator argIt ) {
         return this;
     }
