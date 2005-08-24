@@ -33,7 +33,7 @@ public class StepFactory {
         filterFactory_.register( "cache", pkg + "CacheFilter" );
         filterFactory_.register( "delcols", pkg + "DeleteColumnFilter" );
         filterFactory_.register( "every", pkg + "EveryFilter" );
-        filterFactory_.register( "explodecols", pkg + "ExplodeColumnFilter" );
+        filterFactory_.register( "explodecols", pkg + "ExplodeColsFilter" );
         filterFactory_.register( "explodeall", pkg + "ExplodeAllFilter" );
         filterFactory_.register( "head", pkg + "HeadFilter" );
         filterFactory_.register( "keepcols", pkg + "KeepColumnFilter" );
