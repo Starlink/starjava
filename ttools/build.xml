@@ -109,6 +109,7 @@
   <!-- Directory containing miscellaneous docs -->
   <property name="src.docs" value="${src.dir}/docs"/>
   <property name="user.doc" value="sun256"/>
+  <property name="coverimage" value="ttools.gif"/>
   <property name="docs.lib" value="${star.build.dir}/topcat/src/docs"/>
 
   <!-- Directory containing any script required to execute or setup package-->
@@ -1045,19 +1046,37 @@
 
     <!-- Transform the user document XML to a single HTML document. -->
     <mkdir dir="${build.docs}/${user.doc}"/>
+    <copy todir="${build.docs}/${user.doc}" file="${src.docs}/${coverimage}"/>
     <xslt in="${build.docs}/${user.doc}.xml"
           out="${build.docs}/${user.doc}/${user.doc}.html"
           style="${docs.lib}/toHTML1.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
+      <param name="COVERIMAGE" expression="${coverimage}"/>
     </xslt>
+
+    <!-- Transform the user document to a multi-page HTML document. -->
+    <java classpathref="classpath"
+          dir="${src.docs}"
+          classname="uk.ac.starlink.util.MultiXML"
+          failonerror="yes"
+          fork="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-style"/> <arg value="${docs.lib}/toHTML.xslt"/>
+      <arg value="-param"/> <arg value="VERSION=${version}"/>
+      <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
+      <arg value="-param"/> <arg value="COVERIMAGE=${coverimage}"/>
+      <arg value="${build.docs}/${user.doc}.xml"/>
+      <arg value="${build.docs}/${user.doc}"/>
+    </java>
 
     <!-- Transform the user document XML to a PDF document via XSL-FO. -->
     <xslt in="${build.docs}/${user.doc}.xml"
           out="${build.docs}/${user.doc}.fo"
-          style="${docs.lib}//toFo.xslt">
+          style="${docs.lib}/toFo.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
+      <param name="COVERIMAGE" expression="${coverimage}"/>
     </xslt>
     <java classname="org.apache.fop.apps.Fop"
           failonerror="yes"
@@ -1069,20 +1088,6 @@
       <arg value="-q"/>
       <arg value="-fo"/> <arg value="${build.docs}/${user.doc}.fo"/>
       <arg value="-pdf"/> <arg value="${build.docs}/${user.doc}.pdf"/>
-    </java>
-
-    <!-- Transform the user document from XML to HTML form for browsing. -->
-    <java classpathref="classpath"
-          dir="${src.docs}"
-          classname="uk.ac.starlink.util.MultiXML"
-          failonerror="yes"
-          fork="yes">
-      <sysproperty key="java.awt.headless" value="true"/>
-      <arg value="-style"/> <arg value="${docs.lib}/toHTML.xslt"/>
-      <arg value="-param"/> <arg value="VERSION=${version}"/>
-      <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
-      <arg value="${build.docs}/${user.doc}.xml"/>
-      <arg value="${build.docs}/${user.doc}"/>
     </java>
   </target>
 
