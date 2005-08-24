@@ -43,17 +43,41 @@ public class LineEnvironment extends TableEnvironment {
      * @return  string value for <tt>param</tt>
      */
     private String findValue( Parameter param ) {
-        for ( int i = 0; i < arguments_.length; i++ ) {
-            Argument arg = arguments_[ i ];
-            if ( param.getName().equals( arg.name_ ) ) {
-                arg.used_ = true;
-                return arg.value_;
+
+        /* If it's a multiparameter, concatenate all the appearances
+         * on the command line. */
+        if ( param instanceof MultiParameter ) {
+            StringBuffer val = new StringBuffer();
+            int igot = 0;
+            for ( int i = 0; i < arguments_.length; i++ ) {
+                Argument arg = arguments_[ i ];
+                if ( param.getName().equals( arg.name_ ) ||
+                     ( arg.pos_ > 0 && param.getPosition() == arg.pos_ ) ) {
+                    arg.used_ = true;
+                    if ( igot++ > 0 ) {
+                        val.append( ';' );
+                    }
+                    val.append( arg.value_ );
+                }
             }
-            else if ( arg.pos_ > 0 && param.getPosition() == arg.pos_ ) {
-                arg.used_ = true;
-                return arg.value_;
+            if ( igot > 0 ) {
+                return val.toString();
             }
         }
+
+        /* Otherwise, just take the first one. */
+        else {
+            for ( int i = 0; i < arguments_.length; i++ ) {
+                Argument arg = arguments_[ i ];
+                if ( param.getName().equals( arg.name_ ) ||
+                     ( arg.pos_ > 0 && param.getPosition() == arg.pos_ ) ) {
+                    arg.used_ = true;
+                    return arg.value_;
+                }
+            }
+        }
+
+        /* If no return so far, use the default value. */
         return param.getDefault();
     }
 
@@ -142,7 +166,7 @@ public class LineEnvironment extends TableEnvironment {
          */
         Argument( String arg ) {
             orig_ = arg;
-            if ( arg.startsWith( "-" ) ) {
+            if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 int epos = arg.indexOf( '=' );
                 if ( epos < 0 ) {
                     throw new IllegalArgumentException( "Bad flag " + arg );

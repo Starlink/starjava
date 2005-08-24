@@ -16,7 +16,8 @@ import uk.ac.starlink.ttools.filter.StepFactory;
  * @author   Mark Taylor
  * @since    17 Aug 2005
  */
-public class FilterParameter extends Parameter implements ExtraParameter {
+public class FilterParameter extends Parameter
+        implements ExtraParameter, MultiParameter {
 
     private ProcessingStep[] steps_;
 
