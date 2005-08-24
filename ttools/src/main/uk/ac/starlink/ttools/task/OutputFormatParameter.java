@@ -17,6 +17,17 @@ public class OutputFormatParameter extends Parameter
         setUsage( "<out-format>" );
         setPrompt( "Format name for output table" );
         setNullPermitted( true );
+
+        setDescription( new String[] {
+            "Specifies the format in which the output table will be written",
+            "(one of the ones in <ref id='outFormats'/> - matching is",
+            "case-insensitive and you can use just the first few letters).",
+            "If this flag is omitted, then the output filename will be",
+            "examined to try to guess what sort of file is required",
+            "usually by looking at the extension.",
+            "If it's not obvious from the filename what output format is",
+            "intended, an error will result.",
+        } );
     }
 
     public String getExtraUsage( TableEnvironment env ) {

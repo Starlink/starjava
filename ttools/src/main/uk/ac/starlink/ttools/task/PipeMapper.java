@@ -36,10 +36,39 @@ public class PipeMapper implements TableMapper {
         scriptParam_.setNullPermitted( true );
         scriptParam_.setPrompt( "File containing table filter commands" );
 
-        stepParam_ = new FilterParameter( "filter" );
-        stepParam_.setUsage( "<cmds>" );
+
+        stepParam_ = new FilterParameter( "cmd" );
+        stepParam_.setUsage( "<cmd> ..." );
         stepParam_.setNullPermitted( true );
         stepParam_.setPrompt( "Command describing a table processing step" );
+
+        scriptParam_.setDescription( new String[] {
+            "Location of a file containing table processing commands.",
+            "Each line of this file contains one of the filter commands",
+            "described in <ref id=\"filterSteps\"/>.",
+            "The sequence of commands given by the lines of this file",
+            "defines the processing pipeline which is performed on the table.",
+            "The",
+            "<code>" + scriptParam_.getName() + "</code> and",
+            "<code>" + stepParam_.getName() + "</code>",
+            "flags should not be mixed in the same invocation.",
+        } );
+
+        stepParam_.setDescription( new String[] {
+            "Text of table processing commands.",
+            "The value of this parameter is one or more of the filter commands",
+            "described in <ref id=\"filterSteps\"/>.",
+            "If more than one is given, they must be separated by",
+            "semicolon characters (\";\").",
+            "This parameter can be repeated multiple times on the same",
+            "command line to build up a list of processing steps.",
+            "The sequence of commands given in this way",
+            "defines the processing pipeline which is performed on the table.",
+            "The",
+            "<code>" + scriptParam_.getName() + "</code> and",
+            "<code>" + stepParam_.getName() + "</code>",
+            "flags should not be mixed in the same invocation.",
+        } );
     }
 
     public int getInCount() {

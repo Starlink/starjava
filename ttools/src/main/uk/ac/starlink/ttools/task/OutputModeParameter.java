@@ -27,10 +27,21 @@ public class OutputModeParameter extends Parameter
         super( name );
         setPrompt( "Output mode" );
         setDefault( "out" );
-    }
+        setUsage( "<out-mode> <mode-args>" );
 
-    public String getUsage() {
-        return "<out-mode> <mode-args>";
+        setDescription( new String[] {
+            "The mode in which the result table will be output.",
+            "The default mode is <code>out</code>, which means that it",
+            "will be written as a new table to disk or elsewhere.",
+            "However, there are other possibilities, which correspond",
+            "to uses to which a table can be put other than outputting it,",
+            "such as displaying metadata, calculating statistics,",
+            "or populating a table in an SQL database.",
+            "For some values of this parameter, additional parameters",
+            "are required to determine the exact behaviour.",
+            "Use the <code>-help=" + getName() + "</code> flag",
+            "or see <ref id=\"outModes\"/> for more information.",
+        } );
     }
 
     public String getExtraUsage( TableEnvironment env ) {
@@ -45,14 +56,14 @@ public class OutputModeParameter extends Parameter
                                       modeFactory.createObject( name );
                 StringBuffer line = new StringBuffer()
                     .append( "      " )
-                    .append( "mode=" )
+                    .append( "-mode=" )
                     .append( name );
                 String pad = line.toString().replaceAll( ".", " " );
                 Parameter[] params = mode.getAssociatedParameters();
                 for ( int j = 0; j < params.length; j++ ) {
                     Parameter param = params[ j ];
                     String word = 
-                        " " + param.getName() + "=" + param.getUsage();
+                        " -" + param.getName() + "=" + param.getUsage();
                     if ( line.length() + word.length() > 78 ) {
                         sbuf.append( line )
                             .append( '\n' );
@@ -76,7 +87,7 @@ public class OutputModeParameter extends Parameter
             }
         }
         sbuf.append( '\n' )
-            .append( new OutputFormatParameter( "outfmt" )
+            .append( new OutputFormatParameter( "ofmt" )
                     .getExtraUsage( env ) );
         return sbuf.toString();
     }

@@ -35,13 +35,47 @@ public class VotLint implements Task {
         inParam_ = new InputStreamParameter( "votable" );
         inParam_.setDefault( "-" );
         inParam_.setPosition( 1 );
+        inParam_.setPrompt( "VOTable location" );
+        inParam_.setDescription( new String[] {
+            "Location of the VOTable to be checked.",
+            "This may be a filename, URL or \"-\" (the default),", 
+            "to indicate standard input.",
+            "The input may be compressed using one of the known",
+            "compression formats (Unix compress, gzip or bzip2).",
+        } );
 
         validParam_ = new BooleanParameter( "validate" );
         validParam_.setDefault( true );
+        validParam_.setPrompt( "Validate against VOTable DTD?" );
+        validParam_.setDescription( new String[] {
+            "Whether to validate the input document agaist the VOTable DTD.",
+            "If true (the default), then as well as votlint's own checks,",
+            "it is validated against an appropriate version of the VOTable",
+            "DTD which picks up such things as the presence of",
+            "unknown elements and attributes, elements in the wrong place,",
+            "and so on.",
+            "Sometimes however, particularly when XML namespaces are",
+            "involved, the validator can get confused and may produce",
+            "a lot of spurious errors.  Setting this flag false prevents",
+            "this validation step so that only votlint's checks are",
+            "performed.",
+            "In this case many violations of the VOTable standard",
+            "concerning document structure will go unnoticed.",
+        } );
 
         versionParam_ = new ChoiceParameter( "version",
                                              LintContext.VOT_VERSIONS );
         versionParam_.setNullPermitted( true );
+        versionParam_.setPrompt( "VOTable standard version" );
+        versionParam_.setDescription( new String[] {
+            "Selects the version of the VOTable standard which the input",
+            "table is supposed to exemplify.",
+            "Currently the version can be 1.0 or 1.1.",
+            "The version may also be specified within the document",
+            "using the \"version\" attribute of the document's VOTABLE",
+            "element; if it is and it conflicts with the value specified",
+            "by this flag, a warning is issued.",
+        } );
     }
 
     public Parameter[] getParameters() {

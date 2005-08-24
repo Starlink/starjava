@@ -62,12 +62,22 @@ public class VotCopy implements Task {
         inParam_.setPrompt( "Input votable" );
         inParam_.setUsage( "<location>" );
         inParam_.setDefault( "-" );
+        inParam_.setDescription( new String[] {
+            "Location of the input VOTable.",
+            "May be a URL, filename, or \"-\" to indicate standard input.",
+            "The input table may be compressed using one of the known",
+            "compression formats (Unix compress, gzip or bzip2).",
+        } );
 
         outParam_ = new Parameter( "out" );
         outParam_.setPosition( 2 );
         outParam_.setPrompt( "Output votable" );
         outParam_.setUsage( "<location>" );
         outParam_.setDefault( "-" );
+        outParam_.setDescription( new String[] {
+            "Location of the output VOTable.",
+            "May be a filename or \"-\" to indicate standard output.",
+        } );
 
         formatParam_ = new VotFormatParameter( "format" );
         formatParam_.setPosition( 3 );
@@ -77,14 +87,46 @@ public class VotCopy implements Task {
 
         cacheParam_ = new BooleanParameter( "cache" );
         cacheParam_.setPrompt( "Read data into cache before copying?" );
+        cacheParam_.setDescription( new String[] {
+            "Determines whether the input tables are read into a cache",
+            "prior to being written out.", 
+            "The default is selected automatically depending on the input",
+            "table; so you should normally leave this flag alone.",
+        } );
 
         hrefParam_ = new BooleanParameter( "href" );
         hrefParam_.setPrompt( "Output FITS/BINARY data external to " +
                               "output document?" );
 
         baseParam_ = new Parameter( "base" );
+        baseParam_.setUsage( "<location>" );
         baseParam_.setPrompt( "Base location for FITS/BINARY href data" );
         baseParam_.setNullPermitted( true );
+
+        hrefParam_.setDescription( new String[] {
+            "In the case of BINARY or FITS encoding, this determines",
+            "wheter the STREAM elements output will contain their data",
+            "inline or externally.",
+            "If set true, the output document will be self-contained,",
+            "with STREAM data inline as base64-encoded characters.",
+            "If false, then for each TABLE in the document the binary",
+            "data will be written to a separate file and referenced",
+            "by an href attribute on the corresponding STREAM element.",
+            "The name of these files is usually determined by the name",
+            "of the main output file; but see also the <code>",
+            baseParam_.getName() + "</code> flag.",
+        } );
+        baseParam_.setDescription( new String[] {
+            "Determines the name of external output files written when the",
+            "<code>-" + hrefParam_.getName() + "</code> flag is true.",
+            "Normally these are given names based on the name of the",
+            "output file.",
+            "But if this flag is given, the names will be based on the",
+            "&lt;location&gt; string.",
+            "This flag is compulsory if <code>-href</code> is given",
+            "and no output file is specified (output is to standard out),",
+            "since in this case there is no default base name to use.",
+        } );
     }
 
     public Parameter[] getParameters() {

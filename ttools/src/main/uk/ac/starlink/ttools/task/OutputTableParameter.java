@@ -17,9 +17,16 @@ public class OutputTableParameter extends Parameter
 
     public OutputTableParameter( String name ) {
         super( name );
-        formatParam_ = new OutputFormatParameter( name + "fmt" );
+        formatParam_ = new OutputFormatParameter( "ofmt" );
         setUsage( "<out-table>" );
         setDefault( "-" );
+
+        setDescription( new String[] {
+            "The location of the output table.  This is usually a filename",
+            "to write to.",
+            "If it is equal to the special value \"-\" (the default)",
+            "the output table will be written to standard output.",
+        } );
     }
 
     public OutputFormatParameter getFormatParameter() {

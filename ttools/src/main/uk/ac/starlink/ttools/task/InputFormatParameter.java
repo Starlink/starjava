@@ -21,6 +21,17 @@ public class InputFormatParameter extends Parameter implements ExtraParameter {
         super( name );
         setPrompt( "Format name for input table" );
         setNullPermitted( true );
+
+        setDescription( new String[] {
+            "Specifies the format of the input table",
+            "(one of the known formats listed in <ref id='inFormats'/>).",
+            "This flag can be used if you know what format your input",
+            "table is in.  If it is omitted, then an attempt will be",
+            "made to detect the format of the table automatically.",
+            "This cannot always be done correctly however, in which case",
+            "the program will exit with an error explaining which",
+            "formats were attempted.",
+        } );
     }
 
     public String getUsage() {

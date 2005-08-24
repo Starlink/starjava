@@ -25,6 +25,13 @@ public class XmlEncodingParameter extends Parameter
         super( name );
         setUsage( "<xml-encoding>" );
         setNullPermitted( true );
+
+        setDescription( new String[] {
+            "Selects the Unicode encoding used for the output XML.",
+            "The available options and default are dependent on your JVM,",
+            "but the default probably corresponds to UTF-8.",
+            "Use <code>-help=" + getName() + "</code> for a full listing.",
+        } );
     }
 
     public String getExtraUsage( TableEnvironment env ) {
