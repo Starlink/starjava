@@ -27,9 +27,34 @@ public class InputTableParameter extends Parameter {
     public InputTableParameter( String name ) {
         super( name );
         setUsage( "<in-table>" );
-        formatParam_ = new InputFormatParameter( name + "fmt" );
-        streamParam_ = new BooleanParameter( name + "stream" );
+        formatParam_ = new InputFormatParameter( "ifmt" );
+        streamParam_ = new BooleanParameter( "istream" );
         setDefault( "-" );
+
+        setDescription( new String[] {
+            "The location of the input table.",
+            "This is usually a filename or URL, and may point to a file",
+            "compressed in one of the supported compression formats",
+            "(Unix compress, gzip or bzip2).",
+            "If it is omitted, or equal to the special value \"-\",",
+            "the input table will be read from standard input.",
+            "In this case the input format must be given explicitly",
+            "using the <code>" + formatParam_.getName() + "</code> parameter.",
+        } );
+
+        streamParam_.setDescription( new String[] {
+            "If set true, the <code>" + getName() + "</code> table",
+            "will be read as a stream.",
+            "It is necessary to give the ",
+            "<code>" + formatParam_.getName() + "</code> parameter",
+            "in this case.",
+            "Depending on the required operations and processing mode,",
+            "this may cause the read to fail (sometimes it is necessary",
+            "to read the input table more than once).",
+            "It is not normally useful or necessary to set this flag -",
+            "in most cases the data will be streamed automatically",
+            "if that is the best thing to do.",
+        } );
     }
 
     /**
@@ -75,7 +100,7 @@ public class InputTableParameter extends Parameter {
                 }
             }
             catch ( IOException e ) {
-                throw new ExecutionException( e );
+                throw new ExecutionException( e.getMessage(), e );
             }
         }
         return table_;
@@ -92,10 +117,14 @@ public class InputTableParameter extends Parameter {
      */
     StarTable getStreamedTable( StarTableFactory tfact, final InputStream in,
                                 String inFmt ) throws IOException {
+        if ( inFmt == null ) {
+            throw new IOException(
+                "Must specify input format for streamed table" );
+        }
         final TableBuilder tbuilder = tfact.getTableBuilder( inFmt );
         assert tbuilder != null;
         final StreamRowStore streamStore = new StreamRowStore( 1024 );
-        new Thread( "Table Streamer" ) {
+        Thread streamer = new Thread( "Table Streamer" ) {
             public void run() {
                 try {
                     tbuilder.streamStarTable( in, streamStore, null );
@@ -103,9 +132,19 @@ public class InputTableParameter extends Parameter {
                 catch ( IOException e ) {
                     streamStore.setError( e );
                 }
+                finally {
+                    try {
+                        in.close();
+                    }
+                    catch ( IOException e ) {
+                        // never mind
+                    }
+                }
             }
-        }.start();
-        return streamStore.getStarTable();
+        };
+        streamer.setDaemon( true );
+        streamer.start();
+        return streamStore.waitForStarTable();
     }
 
     /**
