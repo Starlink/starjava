@@ -58,10 +58,14 @@ public class FilterParameter extends Parameter
             try {
                 ProcessingFilter filter = (ProcessingFilter)
                                           filterFactory.createObject( fname );
+                String fusage = filter.getUsage();
                 sbuf.append( "      " )
-                    .append( fname )
-                    .append( filter.getUsage() )
-                    .append( '\n' );
+                    .append( fname );
+                if ( fusage != null ) {
+                    sbuf.append( ' ' )
+                        .append( fusage );
+                }
+                sbuf.append( '\n' );
             }
             catch ( LoadException e ) {
                 if ( env.isDebug() ) {
