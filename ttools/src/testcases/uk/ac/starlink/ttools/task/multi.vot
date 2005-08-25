@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<VOTABLE>
+<RESOURCE>
+
+<TABLE name="Authors">
+<FIELD name="AuthorName" datatype="char" arraysize="*"/>
+<DATA>
+<TABLEDATA>
+<TR><TD>Charles Messier</TD></TR>
+<TR><TD>Mark Taylor</TD></TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+
+<RESOURCE>
+<COOSYS equinox="J2000.0" epoch="J2000.0" system="eq_FK4"/>
+<TABLE name="Stars">
+<DESCRIPTION>A very small table</DESCRIPTION>
+<FIELD name="Identifier" datatype="char" arraysize="10"/>
+<FIELD name="RA" datatype="double" units="degrees"/>
+<FIELD name="Dec" datatype="double" units="degrees"/>
+<DATA>
+<TABLEDATA>
+<TR> <TD>M51</TD> <TD>202.43</TD> <TD>47.22</TD> </TR>
+<TR> <TD>M97</TD> <TD>168.63</TD> <TD>55.03</TD> </TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+</RESOURCE>
+
+</RESOURCE>
+</VOTABLE>
