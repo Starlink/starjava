@@ -29,7 +29,9 @@ public class HeadTable extends WrapperStarTable {
     }
 
     public long getRowCount() {
-        return nhead_;
+        long nbase = super.getRowCount();
+        return nbase >= 0L ? Math.min( nbase, nhead_ )
+                           : -1L;
     }
 
     public Object getCell( long irow, int icol ) throws IOException {
