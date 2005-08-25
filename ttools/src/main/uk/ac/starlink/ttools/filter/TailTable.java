@@ -31,7 +31,9 @@ public class TailTable extends WrapperStarTable {
     }
 
     public long getRowCount() {
-        return ntail_;
+        long nbase = super.getRowCount();
+        return nbase >= 0L ? Math.min( ntail_, nbase )
+                           : -1L;
     }
 
     public Object getCell( long irow, int icol ) throws IOException {
@@ -43,7 +45,7 @@ public class TailTable extends WrapperStarTable {
     }
 
     private long translateRow( long irow ) {
-        return super.getRowCount() - ntail_ + irow;
+        return super.getRowCount() - getRowCount() + irow;
     }
 
     public RowSequence getRowSequence() throws IOException {
