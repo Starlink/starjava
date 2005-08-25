@@ -107,6 +107,16 @@ public class InputTableParameter extends Parameter {
     }
 
     /**
+     * Sets the table value of this parameter directly.
+     *
+     * @param   table
+     */
+    void setValueFromTable( StarTable table ) {
+        table_ = table;
+        setGotValue( true );
+    }
+
+    /**
      * Returns a one-shot StarTable derived from an input stream.
      * This will allow only a single RowSequence to be taken from it.
      * It may fail with a TableFormatException for input formats

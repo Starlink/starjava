@@ -34,6 +34,16 @@ public class OutputTableParameter extends Parameter
     }
 
     /**
+     * Sets the value directly from a given TableConsumer.
+     *
+     * @param  consumer  table consumer  
+     */
+    public void setValueFromConsumer( TableConsumer consumer ) {
+        consumer_ = consumer;
+        setGotValue( true );
+    }
+
+    /**
      * Returns a TableConsumer which corresponds to the value of this
      * parameter.
      *

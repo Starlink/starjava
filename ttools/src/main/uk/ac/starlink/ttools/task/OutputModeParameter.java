@@ -122,4 +122,14 @@ public class OutputModeParameter extends Parameter
         checkGotValue( env );
         return consumer_;
     }
+
+    /**
+     * Sets the value directly from a given TableConsumer.
+     *
+     * @param  consumer  table consumer
+     */
+    public void setValueFromConsumer( TableConsumer consumer ) {
+        consumer_ = consumer;
+        setGotValue( true );
+    }
 }
