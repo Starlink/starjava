@@ -30,7 +30,7 @@ public class EveryTable extends WrapperStarTable {
     public long getRowCount() {
         long baseCount = super.getRowCount();
         if ( baseCount >= 0 ) {
-            return baseCount / step_;
+            return ( ( baseCount - 1 ) / step_ ) + 1;
         }
         else {
             return baseCount;
