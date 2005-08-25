@@ -107,14 +107,14 @@ public class VotLint implements Task {
 
     private class VotLintExecutable implements Executable {
 
-        final InputStream in_;
+        final InputStream baseIn_;
         final boolean validate_;
         final LintContext context_;
         final String sysid_;
 
         VotLintExecutable( InputStream in, boolean validate, 
-                          LintContext context, String sysid ) {
-            in_ = in;
+                           LintContext context, String sysid ) {
+            baseIn_ = in;
             validate_ = validate;
             context_ = context;
             sysid_ = sysid;
@@ -123,7 +123,7 @@ public class VotLint implements Task {
         public void execute() throws IOException, ExecutionException {
 
             /* Buffer the stream for efficiency. */
-            InputStream in = new BufferedInputStream( in_ );
+            InputStream in = new BufferedInputStream( baseIn_ );
 
             /* Interpolate the VOTable DOCTYPE declaration if required. */
             if ( validate_ ) {
@@ -142,7 +142,7 @@ public class VotLint implements Task {
             }
 
             /* Turn the stream into a SAX source. */
-            InputSource sax = new InputSource( in_ );
+            InputSource sax = new InputSource( in );
             sax.setSystemId( sysid_ );
 
             /* Perform the parse. */
