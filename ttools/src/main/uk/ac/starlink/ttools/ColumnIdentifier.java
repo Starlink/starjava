@@ -163,12 +163,12 @@ public class ColumnIdentifier {
                                    " while looking for column ID" );
         }
         if ( colid.matches( "[0-9]+" ) ) {
-            int ix = Integer.parseInt( colid ) - 1;
-            if ( ix < 0 || ix >= ncol_ ) {
-                throw new IOException( "Column index " + ix + " out of range "
-                                      + "0.." + ncol_ );
+            int ix1 = Integer.parseInt( colid );
+            if ( ix1 < 1 || ix1 > ncol_ ) {
+                throw new IOException( "Column index " + ix1 + " out of range "
+                                      + "1.." + ncol_ );
             }
-            return ix;
+            return ix1 - 1;
         }
         else {
             for ( int icol = 0; icol < ncol_; icol++ ) {
