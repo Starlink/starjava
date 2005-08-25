@@ -132,8 +132,12 @@ public class StepFactory {
                     .append( line )
                     .append( '\n' )
                     .append( "Usage: " )
-                    .append( cmd )
-                    .append( filter.getUsage() );
+                    .append( cmd );
+                String fusage = filter.getUsage();
+                if ( fusage != null ) {
+                    sbuf.append( ' ' )
+                        .append( fusage );
+                }
                 throw new UsageException( sbuf.toString(), e );
             }
         }
