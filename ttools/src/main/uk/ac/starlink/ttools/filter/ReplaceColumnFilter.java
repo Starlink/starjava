@@ -68,7 +68,7 @@ public class ReplaceColumnFilter extends BasicFilter {
                       .getColumnIndex( colId_ );
 
             /* Add the new column, using the same metadata as the old one. */
-            ColumnInfo cinfo = base.getColumnInfo( icol );
+            ColumnInfo cinfo = new ColumnInfo( base.getColumnInfo( icol ) );
             StarTable added;
             try {
                 added = new AddJELColumnTable( base, cinfo, expr_, icol );
