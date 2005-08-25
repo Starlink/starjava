@@ -304,7 +304,7 @@ public class Parameter {
      * @param  gotValue  true iff this object is configured with a 
      *         valid parameter value from the environment
      */
-    private void setGotValue( boolean gotValue ) {
+    protected void setGotValue( boolean gotValue ) {
         this.gotValue = gotValue;
     }
 
