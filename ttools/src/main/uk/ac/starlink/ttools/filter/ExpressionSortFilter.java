@@ -33,7 +33,8 @@ public class ExpressionSortFilter extends BasicFilter {
 
     public ExpressionSortFilter() {
         super( "sortexpr",
-               ( ALLOW_SUBKEYS ? "[-subkey <expr> ...] <expr>" : "<expr>" ) );
+               "[-down] [-nullsfirst] " 
+             + ( ALLOW_SUBKEYS ? "[-subkey <expr> ...] <expr>" : "<expr>" ) );
     }
 
     protected String[] getDescriptionLines() {
@@ -42,10 +43,18 @@ public class ExpressionSortFilter extends BasicFilter {
             "expression.",
             "<code>&lt;expr&gt;</code> must evaluate to a type that",
             "it makes sense to sort, for instance numeric.",
+            "If the <code>-down</code> flag is used, the sort order is",
+            "descending rather than ascending.",
+            "Blank entries are usually considered to come at the end",
+            "of the collation sequence, but if the <code>-nullsfirst</code>",
+            "flag is given then they are considered to come at the start",
+            "instead.",
         };
     }
 
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+        boolean up = true;
+        boolean nullsLast = true;
         List keyList = new LinkedList();
         while ( argIt.hasNext() ) {
             String arg = (String) argIt.next();
@@ -59,20 +68,33 @@ public class ExpressionSortFilter extends BasicFilter {
                     throw new ArgException( "Missing subkey expression" );
                 }
             }
+            else if ( arg.equals( "-down" ) ) {
+                argIt.remove();
+                up = false;
+            }
+            else if ( arg.equals( "-nullsfirst" ) ) {
+                argIt.remove();
+                nullsLast = false;
+            }
             else {
                 argIt.remove();
                 keyList.add( 0, arg );
                 break;
             }
         }
-        return new SortStep( (String[]) keyList.toArray( new String[ 0 ] ) );
+        return new SortStep( (String[]) keyList.toArray( new String[ 0 ] ),
+                             up, nullsLast );
     }
 
     private static class SortStep implements ProcessingStep {
         final String[] keys_;
+        final boolean up_;
+        final boolean nullsLast_;
 
-        SortStep( String[] keys ) {
+        SortStep( String[] keys, boolean up, boolean nullsLast ) {
             keys_ = keys;
+            up_ = up;
+            nullsLast_ = nullsLast;
         }
 
         public StarTable wrap( StarTable baseTable ) throws IOException {
@@ -89,7 +111,8 @@ public class ExpressionSortFilter extends BasicFilter {
             }
             Comparator keyComparator;
             try {
-                keyComparator = new RowComparator( baseTable, keys_ );
+                keyComparator = 
+                    new RowComparator( baseTable, keys_, up_, nullsLast_ );
             }
             catch ( CompilationException e ) {
                 throw (IOException) new IOException( e.getMessage() )
@@ -118,6 +141,7 @@ public class ExpressionSortFilter extends BasicFilter {
         final CompiledExpression[] compExs_;
         final int nexpr_;
         final RandomJELRowReader rowReader_;
+        boolean up_;
         boolean nullsLast_;
 
         /**
@@ -126,10 +150,18 @@ public class ExpressionSortFilter extends BasicFilter {
          * @param  table  table whose rows are to be examined
          * @param  keys   array of column identifiers; first is most
          *                significant for ordering, second next, etc
+         * @param   up  true for sorting into ascending order, false for
+         *          descending order
+         * @param   nullsLast  true if blank values should be considered
+         *          last in the collation order, false if they should
+         *          be considered first
          */
-        public RowComparator( StarTable table, String[] keys )
+        public RowComparator( StarTable table, String[] keys, boolean up,
+                              boolean nullsLast )
                 throws CompilationException {
             nexpr_ = keys.length;
+            up_ = up;
+            nullsLast_ = nullsLast;
 
             /* Prepare compiled expressions for reading the data from 
              * table rows. */
@@ -164,7 +196,7 @@ public class ExpressionSortFilter extends BasicFilter {
                         "Expression comparison error during sorting", e );
                 }
             }
-            return c;
+            return up_ ? c : -c;
         }
 
         /**
@@ -177,10 +209,10 @@ public class ExpressionSortFilter extends BasicFilter {
                 return 0;
             }
             else if ( null1 ) {
-                return nullsLast_ ? -1 : +1;
+                return nullsLast_ ? +1 : -1;
             }
             else if ( null2 ) {
-                return nullsLast_ ? +1 : -1;
+                return nullsLast_ ? -1 : +1;
             }
             else {
                 return o1.compareTo( o2 );
