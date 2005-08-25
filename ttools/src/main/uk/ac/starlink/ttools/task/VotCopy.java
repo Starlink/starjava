@@ -150,6 +150,10 @@ public class VotCopy implements Task {
         String base;
         if ( ! inline ) {
             baseParam_.setNullPermitted( false );
+            if ( outLoc != null && ! outLoc.equals( "-" ) ) {
+                baseParam_.setDefault( outLoc 
+                                      .replaceFirst( "\\.[a-zA-Z0-9]*$", "" ) );
+            }
             base = baseParam_.stringValue( env );
         }
         else {
