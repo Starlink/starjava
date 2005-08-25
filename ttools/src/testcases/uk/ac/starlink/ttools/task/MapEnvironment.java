@@ -57,6 +57,18 @@ public class MapEnvironment extends TableEnvironment {
         return new String( out_.toByteArray() );
     }
 
+    /**
+     * Returns the output written by the task so far, in an array one line
+     * per element.
+     *
+     * @return  output text
+     */
+    public String[] getOutputLines() {
+        String text = getOutputText();
+        return text.length() == 0 ? new String[ 0 ]
+                                  : text.split( "\\n" );
+    }
+
     /** 
      * Sets the value of a parameter.  A string value is OK; in some cases
      * other parameter types are catered for.
