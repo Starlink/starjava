@@ -110,7 +110,7 @@ public class LineInvoker {
             System.exit( 1 );
         }
 
-        configureLogging( verbosity );
+        configureLogging( verbosity, env.isDebug() );
 
         String taskName = (String) argList.remove( 0 );
         if ( taskFactory_.isRegistered( taskName ) ) {
@@ -448,8 +448,9 @@ public class LineInvoker {
      * Sets up the logging system.
      *
      * @param  verbosity  number of levels greater than default to set
+     * @param  debug   whether debugging mode is on
      */
-    private static void configureLogging( int verbosity ) {
+    private static void configureLogging( int verbosity, boolean debug ) {
 
         /* Try to acquire the root logger. */
         Logger rootLogger = Logger.getLogger( "" );
@@ -470,7 +471,7 @@ public class LineInvoker {
         if ( rootHandlers.length > 0 &&
              rootHandlers[ 0 ] instanceof ConsoleHandler ) {
             rootHandlers[ 0 ].setLevel( verbLevel );
-            rootHandlers[ 0 ].setFormatter( new LineFormatter() );
+            rootHandlers[ 0 ].setFormatter( new LineFormatter( debug ) );
         }
     }
 }

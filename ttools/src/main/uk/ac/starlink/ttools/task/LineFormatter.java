@@ -12,18 +12,27 @@ import java.util.logging.LogRecord;
  * @since    16 June 2005
  */
 public class LineFormatter extends Formatter {
+
+    private final boolean debug_;
+
+    public LineFormatter( boolean debug ) {
+        debug_ = debug;
+    }
+
     public String format( LogRecord record ) {
-        return new StringBuffer()
-           .append( record.getLevel().toString() )
-           .append( ": " )
-           .append( formatMessage( record ) )
-           .append( ' ' )
-           .append( '(' )
-           .append( record.getSourceClassName() )
-           .append( '.' )
-           .append( record.getSourceMethodName() )
-           .append( ')' )
-           .append( '\n' )
-           .toString();
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( record.getLevel().toString() )
+            .append( ": " )
+            .append( formatMessage( record ) );
+        if ( debug_ ) {
+            sbuf.append( ' ' )
+                .append( '(' )
+                .append( record.getSourceClassName() )
+                .append( '.' )
+                .append( record.getSourceMethodName() )
+                .append( ')' );
+        }
+        sbuf.append( '\n' );
+        return sbuf.toString();
     }
 }
