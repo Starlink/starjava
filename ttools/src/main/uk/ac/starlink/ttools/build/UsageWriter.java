@@ -86,16 +86,24 @@ public class UsageWriter {
                       .replaceAll( "<", "&lt;" )
                       .replaceAll( ">", "&gt;" );
         String descrip = param.getDescription().toString();
-        return new StringBuffer()
-            .append( "<dt><code>" )
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "<dt><code>" )
             .append( ( "-" + param.getName() + " = " + param.getUsage() )
                     .replaceAll( "<", "&lt;" )
                     .replaceAll( ">", "&gt;" ) )
             .append( "</code></dt>\n" )
             .append( "<dd><p>" )
-            .append( param.getDescription().toString() )
-            .append( "</p></dd>" )
-            .toString();
+            .append( param.getDescription().toString() );
+        String dflt = param.getDefault();
+        if ( dflt != null && dflt.length() > 0 ) {
+            sbuf.append( " [Default: <code>" )
+                .append( dflt.replaceAll( "&", "&amp;" )
+                             .replaceAll( "<", "&lt;" )
+                             .replaceAll( ">", "&gt;" ) )
+                .append( "</code>]" );
+        }
+        sbuf.append( "</p></dd>" );
+        return sbuf.toString();
     }
 
     private void out( String text ) throws IOException {
