@@ -31,7 +31,7 @@ public class PipeMapper implements TableMapper {
     private final FilterParameter stepParam_;
 
     public PipeMapper() {
-        scriptParam_ = new InputStreamParameter( "script" );
+        scriptParam_ = new FilterScriptParameter( "script" );
         scriptParam_.setUsage( "<script-file>" );
         scriptParam_.setNullPermitted( true );
         scriptParam_.setPrompt( "File containing table filter commands" );
@@ -82,7 +82,7 @@ public class PipeMapper implements TableMapper {
         };
     }
 
-    public TableMapping createMapping( Environment env ) throws UsageException {
+    public TableMapping createMapping( Environment env ) throws TaskException {
         ProcessingStep[] steps;
 
         /* See if a script has been specified. */
@@ -101,12 +101,6 @@ public class PipeMapper implements TableMapper {
             }
         }
         catch ( IOException e ) {
-            throw new UsageException( e.getMessage(), e );
-        }
-        catch ( UsageException e ) {
-            throw e;
-        }
-        catch ( TaskException e ) {
             throw new UsageException( e.getMessage(), e );
         }
         return new PipeMapping( steps );
