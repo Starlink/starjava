@@ -126,8 +126,8 @@ public class LineInvoker {
                 else {
                     env.setArgs( taskArgs );
                     Executable exec = task.createExecutable( env );
-                    String unused = env.getUnused();
-                    if ( unused == null ) {
+                    String[] unused = env.getUnused();
+                    if ( unused.length == 0 ) {
                         StringBuffer sbuf = new StringBuffer( taskName );
                         Parameter[] params = task.getParameters();
                         for ( int i = 0; i < params.length; i++ ) {
@@ -142,8 +142,8 @@ public class LineInvoker {
                         exec.execute();
                     }
                     else {
-                        System.err.println( "\nUnused arguments "
-                                          + unused + "\n\n" );
+                        System.err.println( "\n" + getUnusedWarning( unused ) );
+                        System.err.println( getTaskUsage( task, taskName ) );
                         System.exit( 1 );
                     }
                 }
@@ -419,6 +419,28 @@ public class LineInvoker {
             sbuf.append( "\n" )
                 .append( ((ExtraParameter) param).getExtraUsage( env ) );
         }   
+        return sbuf.toString();
+    }
+
+    /**
+     * Returns a warning string appropriate for the case when one or more
+     * words on the command line are never used by a task.
+     *
+     * @param  unused   unused words
+     * @return  warning lines
+     */
+    private static String getUnusedWarning( String[] unused ) {
+        StringBuffer sbuf = new StringBuffer( "Unused arguments:" );
+        for ( int i = 0; i < unused.length; i++ ) {
+            sbuf.append( ' ' )
+                .append( unused[ i ] );
+        }
+        sbuf.append( '\n' );
+        if ( unused[ 0 ].matches( "\\w+=.*" ) ) {
+            sbuf.append( "(Did you mean \"-" )
+                .append( unused[ 0 ] )
+                .append( "\"?)\n" );
+        }
         return sbuf.toString();
     }
 

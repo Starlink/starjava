@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
@@ -112,23 +114,17 @@ public class LineEnvironment extends TableEnvironment {
      * value.  Such unused words probably merit a warning, since they 
      * may for instance be misspelled versions of real parameters.
      *
-     * @return   string of unused words, or <code>null</code> if all words
-     *           were used
+     * @return   array of unused words
      */
-    public String getUnused() {
-        StringBuffer sbuf = new StringBuffer();
-        int nun = 0;
+    public String[] getUnused() {
+        List unusedList = new ArrayList();
         for ( int i = 0; i < arguments_.length; i++ ) {
             Argument arg = arguments_[ i ];
             if ( ! arg.used_ ) {
-                if ( nun++ > 0 ) {
-                    sbuf.append( ' ' );
-                }
-                sbuf.append( arg.orig_ );
+                unusedList.add( arg.orig_ );
             }
         }
-        return nun > 0 ? sbuf.toString()
-                       : null;
+        return (String[]) unusedList.toArray( new String[ 0 ] );
     }
 
     /**

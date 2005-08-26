@@ -48,8 +48,19 @@ public class FilterParameter extends Parameter
     }
 
     public String getExtraUsage( TableEnvironment env ) {
+        return getFiltersUsage( env );
+    }
+
+    /**
+     * Returns a formatted string listing available filter commands
+     * with their usage.
+     *
+     * @param   env  execution environment
+     * @return  usge string
+     */
+    public static String getFiltersUsage( TableEnvironment env ) {
         StringBuffer sbuf = new StringBuffer()
-            .append( "\n   Known filter commands:\n" );
+            .append( "   Known filter commands:\n" );
         ObjectFactory filterFactory = StepFactory.getInstance()
                                                  .getFilterFactory();
         String[] fnames = filterFactory.getNickNames();
@@ -77,7 +88,11 @@ public class FilterParameter extends Parameter
                 }
             }
         }
-        sbuf.append( "\n   commands can be separated on one line using ';'\n" );
+        sbuf.append( "\n" )
+            .append( "   Commands can be separated on one line using " )
+            .append(    "semicolons (;).\n" )
+            .append( "   Arguments containing spaces should be " )
+            .append(    "'quoted' or \"quoted\".\n" );
         return sbuf.toString();
     }
 }

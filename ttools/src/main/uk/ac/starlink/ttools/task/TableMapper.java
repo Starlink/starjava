@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.task;
 import java.util.Iterator;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.UsageException;
+import uk.ac.starlink.task.TaskException;
 
 /**
  * Interface for an operation which takes zero or more tables as input
@@ -34,5 +34,5 @@ public interface TableMapper {
      *
      * @param  env  execution environment
      */
-    TableMapping createMapping( Environment env ) throws UsageException;
+    TableMapping createMapping( Environment env ) throws TaskException;
 }
