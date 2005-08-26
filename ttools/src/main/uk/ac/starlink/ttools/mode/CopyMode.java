@@ -81,7 +81,9 @@ public class CopyMode implements ProcessingMode {
         CopyConsumer( String loc, String fmt, StarTableOutput tout )
                 throws UsageException {
             tout_ = tout;
-            if ( loc == null && fmt == null ) {
+            boolean isAuto = fmt == null
+                          || fmt.equals( StarTableOutput.AUTO_HANDLER );
+            if ( loc == null && isAuto ) {
                 handler_ = new TextTableWriter();
             }
             else {
@@ -89,7 +91,7 @@ public class CopyMode implements ProcessingMode {
                     handler_ = tout.getHandler( fmt, loc );
                 }
                 catch ( TableFormatException e ) {
-                    String msg = fmt == null 
+                    String msg = isAuto
                                ? ( "Can't guess output format for " + loc )
                                : ( "No handler for output format " + fmt );
                     throw new UsageException( msg );

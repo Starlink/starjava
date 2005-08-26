@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.task;
 
 import java.util.Iterator;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.task.Parameter;
 
 /**
@@ -16,13 +17,16 @@ public class OutputFormatParameter extends Parameter
         super( name );
         setUsage( "<out-format>" );
         setPrompt( "Format name for output table" );
-        setNullPermitted( true );
+        setDefault( StarTableOutput.AUTO_HANDLER );
+        setNullPermitted( false );
 
         setDescription( new String[] {
             "Specifies the format in which the output table will be written",
             "(one of the ones in <ref id='outFormats'/> - matching is",
             "case-insensitive and you can use just the first few letters).",
-            "If this flag is omitted, then the output filename will be",
+            "If it has the special value",
+            "<code>" + StarTableOutput.AUTO_HANDLER + "</code> (the default),",
+            "then the output filename will be",
             "examined to try to guess what sort of file is required",
             "usually by looking at the extension.",
             "If it's not obvious from the filename what output format is",
@@ -33,6 +37,9 @@ public class OutputFormatParameter extends Parameter
     public String getExtraUsage( TableEnvironment env ) {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "   Known output formats:\n" );
+        sbuf.append( "      " )
+            .append( StarTableOutput.AUTO_HANDLER )
+            .append( '\n' );
         for ( Iterator it = env.getTableOutput().getKnownFormats().iterator();
               it.hasNext(); ) {
             sbuf.append( "      " )
