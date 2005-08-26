@@ -25,7 +25,7 @@ public class ColumnSortFilter extends BasicFilter {
             "<code>&lt;colid-list&gt;</code>.",
             "One or more columns may be specified; sorting is done on",
             "the values in the first-specified field., but if they are",
-            "equal the ties is resolved by looking at the second-specified",
+            "equal the tie is resolved by looking at the second-specified",
             "field, and so on.",
             "If the <code>-down</code> flag is used, the sort order is",
             "descending rather than ascending.",
