@@ -2673,9 +2673,9 @@ described in more detail on
 Installing the driver consists of two steps:
 <ol>
 <li>Set the <code>jdbc.drivers</code> system property to the name of the
-    driver class as described in <ref id="jvmClasspath"/></li>
+    driver class as described in <ref id="jvmProperties"/></li>
 <li>Ensure that the classpath you are using includes this driver class
-    as described in <ref id="jvmProperties"/></li>
+    as described in <ref id="jvmClasspath"/></li>
 </ol>
 </p>
 
@@ -2710,6 +2710,24 @@ Other RDBMSs and drivers may or may not work - please let us know the
 results of any experiments you carry out.
 Sun maintain a list of JDBC drivers for various databases; it can be found at
 <webref url="http://servlet.java.sun.com/products/jdbc/drivers"/>.
+</p>
+
+<p>Here are a couple of command lines to start up TOPCAT using 
+databases known to work.
+<dl>
+<dt>PostgreSQL</dt>
+<dd><p><verbatim>
+   java -classpath topcat-full.jar:pg73jdbc3.jar \
+        -Djdbc.drivers=org.postgresql.Driver \
+        uk.ac.starlink.topcat.Driver
+</verbatim></p></dd>
+<dt>MySQL</dt>
+<dd><p><verbatim>
+   java -classpath topcat-full.jar:mysql-connector-java-3.0.8-bin.jar \
+        -Djdbc.drivers=com.mysql.jdbc.Driver \
+        uk.ac.starlink.topcat.Driver
+</verbatim></p></dd>
+</dl>
 </p>
 
 </subsect>
