@@ -116,20 +116,31 @@ public class StepFactory {
                     return step;
                 }
                 else {
-                    StringBuffer extraArgs = new StringBuffer();
+                    boolean containSpace = false;
+                    StringBuffer msg = new StringBuffer( "Unused arguments:" ); 
                     for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-                        extraArgs.append( ' ' )
-                                 .append( it.next() );
+                        String arg = (String) it.next();
+                        containSpace = containSpace || arg.indexOf( ' ' ) >= 0;
+                        msg.append( " '" )
+                           .append( arg )
+                           .append( "'" );
                     }
-                    throw new ArgException( "Spurious arguments:" + extraArgs );
+                    if ( ! containSpace && 
+                         line.indexOf( '\'' ) < 0 &&
+                         line.indexOf( '"' ) < 0 ) {
+                        msg.append( "\n(Hint: arguments containing spaces" )
+                           .append( " must be quoted)" );
+                    }
+                    throw new ArgException( msg.toString() );
                 }
             }
             catch ( ArgException e ) {
                 StringBuffer sbuf = new StringBuffer();
                 sbuf.append( e.getMessage() )
                     .append( '\n' )
-                    .append( "line was: " )
+                    .append( "command was: " )
                     .append( line )
+                    .append( '\n' )
                     .append( '\n' )
                     .append( "Usage: " )
                     .append( cmd );
@@ -138,12 +149,44 @@ public class StepFactory {
                     sbuf.append( ' ' )
                         .append( fusage );
                 }
-                throw new UsageException( sbuf.toString(), e );
+                throw new TaskException( sbuf.toString(), e );
             }
         }
         else {
-            throw new UsageException( "Unknown processing command " + cmd );
+            throw new TaskException( "Unknown processing command: " 
+                                   + cmd + "\n\n" + getFilterUsages() );
         }
+    }
+
+    /**
+     * Returns a formatted list of the available filter commands with
+     * their usages.
+     *
+     * @return   filter usage descriptions
+     */
+    private String getFilterUsages() {
+        StringBuffer sbuf = new StringBuffer()
+            .append( "Available commands:\n" );
+        String[] fnames = filterFactory_.getNickNames();
+        for ( int i = 0; i < fnames.length; i++ ) {
+            try {
+                String fname = fnames[ i ];
+                ProcessingFilter filter = (ProcessingFilter)
+                                          filterFactory_.createObject( fname );
+                String fusage = filter.getUsage();
+                sbuf.append( "   " )
+                    .append( fname );
+                if ( fusage != null ) {
+                    sbuf.append( ' ' )
+                        .append( fusage );
+                }
+                sbuf.append( '\n' );
+            }
+            catch ( LoadException e ) {
+                // not available
+            }
+        }
+        return sbuf.toString();
     }
 
     /**
@@ -203,7 +246,6 @@ public class StepFactory {
         }
         return (String[]) tokenList.toArray( new String[ 0 ] );
     }
-
 
     /**
      * Chops up a line of text into tokens.
