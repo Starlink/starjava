@@ -14,7 +14,14 @@ public class VotLintTest extends TableTestCase {
     private String[] getOutputLines( Map map ) throws Exception {
        MapEnvironment env = new MapEnvironment( map );
        new VotLint().createExecutable( env ).execute();
-       return env.getOutputLines();
+       String[] lines = env.getOutputLines();
+
+       /* Correct for the differences between the XML parsers used by
+        * different JVMs. */
+       for ( int i = 0; i < lines.length; i++ ) {
+           lines[ i ] = lines[ i ].replaceFirst( ", c.[0-9]+\\)", ")" );
+       }
+       return lines;
     }
 
     public void testSilent() throws Exception {
@@ -29,8 +36,6 @@ public class VotLintTest extends TableTestCase {
         String[] errors = new String[] {
             "INFO (l.4): No arraysize for character, "
                 + "FIELD implies single character",
-            "ERROR (l.7): Element \"TABLE\" does not allow "
-                + "\"DESCRIPTION\" here.",
             "WARNING (l.11): Characters after first in char scalar ignored "
                 + "(missing arraysize?)",
             "WARNING (l.15): Wrong number of TDs in row (expecting 3 found 4)",
@@ -40,14 +45,18 @@ public class VotLintTest extends TableTestCase {
         Map map = new HashMap();
         map.put( "votable",
                  getClass().getResource( "with-errors.vot" ).toString() );
-        assertArrayEquals( errors, getOutputLines( map ) );
 
-        map.put( "validate", "false" );
-        assertArrayEquals( new String[] { errors[ 0 ], errors[ 2 ],
-                                          errors[ 3 ], errors[ 4 ] },
-                           getOutputLines( map ) );
-
+        /* When validating, the details of the error messages will depend
+         * on the XML parser being used - which changes according to what
+         * JVM you're using (e.g. J2SE1.4 or 1.5).  So just check we've got
+         * the right number of errors here. */
         map.put( "validate", "true" );
+        assertEquals( 5, getOutputLines( map ).length );
+
+        /* In other cases we can check the content of the error messages
+         * themselves, since they are output by votlint itself. */
+        map.put( "validate", "false" );
+        assertEquals( 4, getOutputLines( map ).length );
         assertArrayEquals( errors, getOutputLines( map ) );
 
         map.put( "version", "1.1" );
