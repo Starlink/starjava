@@ -544,6 +544,10 @@
     </fo:block>
   </xsl:template>
 
+  <xsl:template mode="toc" match="title">
+    <xsl:apply-templates/>
+  </xsl:template>
+
   <xsl:template mode="toc" match="abstract">
     <fo:block xsl:use-attribute-sets="toc-sect">
       <xsl:text>Abstract</xsl:text>

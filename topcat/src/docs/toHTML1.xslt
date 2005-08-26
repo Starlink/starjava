@@ -358,6 +358,10 @@
     </ul>
   </xsl:template>
 
+  <xsl:template mode="toc" match="title">
+    <xsl:apply-templates/>
+  </xsl:template>
+
   <xsl:template mode="toc" match="abstract">
     <li>
       <xsl:element name="a">
@@ -478,11 +482,6 @@
 
   <xsl:template mode="nameref" match="title">
     <xsl:apply-templates mode="nameref"/>
-  </xsl:template>
-
-  <xsl:template mode="nameref" match="*">
-    what??
-    <xsl:value-of select="name(.)"/>
   </xsl:template>
 
   <xsl:template mode="nameref" match="abstract">
