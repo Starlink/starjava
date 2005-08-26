@@ -48,8 +48,9 @@ public class VotLint implements Task {
         validParam_.setDefault( true );
         validParam_.setPrompt( "Validate against VOTable DTD?" );
         validParam_.setDescription( new String[] {
-            "Whether to validate the input document agaist the VOTable DTD.",
-            "If true (the default), then as well as votlint's own checks,",
+            "Whether to validate the input document aganist the VOTable DTD.",
+            "If true (the default), then as well as",
+            "<code>votlint</code>'s own checks,",
             "it is validated against an appropriate version of the VOTable",
             "DTD which picks up such things as the presence of",
             "unknown elements and attributes, elements in the wrong place,",
@@ -57,8 +58,8 @@ public class VotLint implements Task {
             "Sometimes however, particularly when XML namespaces are",
             "involved, the validator can get confused and may produce",
             "a lot of spurious errors.  Setting this flag false prevents",
-            "this validation step so that only votlint's checks are",
-            "performed.",
+            "this validation step so that only <code>votlint</code>'s",
+            "checks are performed.",
             "In this case many violations of the VOTable standard",
             "concerning document structure will go unnoticed.",
         } );

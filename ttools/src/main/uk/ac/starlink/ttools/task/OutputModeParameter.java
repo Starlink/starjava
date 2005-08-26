@@ -29,6 +29,23 @@ public class OutputModeParameter extends Parameter
         setDefault( "out" );
         setUsage( "<out-mode> <mode-args>" );
 
+        StringBuffer sbuf = new StringBuffer();
+        String[] modeNames = Stilts.getModeFactory().getNickNames();
+        for ( int i = 0; i < modeNames.length; i++ ) {
+            sbuf.append( " <code>" )
+                .append( modeNames[ i ] )
+                .append( "</code>" );
+            switch ( modeNames.length - 1 - i ) {
+                case 0:
+                    break;
+                case 1:
+                    sbuf.append( " and" );
+                    break;
+                default:
+                    sbuf.append( ',' );
+            }
+        }
+        String modeList = sbuf.toString();
         setDescription( new String[] {
             "The mode in which the result table will be output.",
             "The default mode is <code>out</code>, which means that it",
@@ -38,7 +55,9 @@ public class OutputModeParameter extends Parameter
             "such as displaying metadata, calculating statistics,",
             "or populating a table in an SQL database.",
             "For some values of this parameter, additional parameters",
+            "(<code>&lt;mode-args&gt;</code>)",
             "are required to determine the exact behaviour.",
+            "Possible values are" + modeList + ".",
             "Use the <code>-help=" + getName() + "</code> flag",
             "or see <ref id=\"outModes\"/> for more information.",
         } );

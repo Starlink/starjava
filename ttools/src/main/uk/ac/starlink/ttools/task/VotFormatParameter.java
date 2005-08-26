@@ -36,7 +36,7 @@ public class VotFormatParameter extends Parameter {
         setDescription( new String[] {
             "Determines the encoding format of the table data in the ",
             "output document.",
-            "If \"empty\" is selected, then the tables will be",
+            "If <code>empty</code> is selected, then the tables will be",
             "data-less (will contain no DATA element), leaving only",
             "the document structure.",
             "Data-less tables are legal VOTable elements.",

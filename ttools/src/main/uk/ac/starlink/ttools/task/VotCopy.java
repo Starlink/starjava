@@ -122,8 +122,9 @@ public class VotCopy implements Task {
             "Normally these are given names based on the name of the",
             "output file.",
             "But if this flag is given, the names will be based on the",
-            "&lt;location&gt; string.",
-            "This flag is compulsory if <code>-href</code> is given",
+            "<code>&lt;location&gt;</code> string.",
+            "This flag is compulsory if",
+            "<code>" + hrefParam_.getName() + "</code> is true",
             "and no output file is specified (output is to standard out),",
             "since in this case there is no default base name to use.",
         } );
