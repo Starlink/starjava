@@ -563,6 +563,8 @@ public class Coords {
      */
     private static class SexFormat {
 
+        private boolean useSign;
+        private int sf1;
         private int dp3;
         private char[] buf;
 
@@ -571,23 +573,26 @@ public class Coords {
         private static char[] digits0 =
              new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', };
         private static char[] digitsLeading =
-             new char[] { ' ', '1', '2', '3', '4', '5', '6', '7', '8', '9', };
+             new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', };
         private static char[] digitsMinus = 
              new char[] { '-', '1', '2', '3', '4', '5', '6', '7', '8', '9', };
                               
         /**
          * Constructs a new formatter with a given number of decimal places.
          *
+         * @param useSign  whether a sign character is to be used
          * @param dp3  number of decimal places in the third field
          * @see  #getHmsFormat
          * @see  #getDmsFormat
          */
-        private SexFormat( int dp3 ) {
+        private SexFormat( boolean useSign, int dp3 ) {
+            this.useSign = useSign;
             this.dp3 = dp3;
             if ( dp3 < 0 ) {
                 throw new IllegalArgumentException();
             }
-            buf = new char[ 3 + 7 + ( ( dp3 > 0 ) ? 1 : 0 ) + dp3 ];
+            buf = new char[ ( useSign ? 1 : 0 ) + 2 + 6 + 
+                            ( ( dp3 > 0 ) ? 1 : 0 ) + dp3 ];
         }
 
         /**
@@ -609,9 +614,10 @@ public class Coords {
             }
             int f3i = (int) f3;
             int pos = 0;
-            char sgnChar = positive ? ' ' : '-';
-            buf[ pos++ ] = sgnChar;
-            buf[ pos++ ] = digitsLeading[ ( f1 / 100 ) % 10 ];
+            if ( useSign ) {
+                char sgnChar = positive ? '+' : '-';
+                buf[ pos++ ] = sgnChar;
+            }
             buf[ pos++ ] = digitsLeading[ ( f1 / 10 ) % 10 ];
             buf[ pos++ ] = digits0[ f1 % 10 ];
             buf[ pos++ ] = ':';
@@ -625,20 +631,6 @@ public class Coords {
                 for ( int i = 0; i < dp3; i++ ) {
                     f3 = f3 * 10.0;
                     buf[ pos++ ] = digits0[ ( (int) f3 ) % 10 ];
-                }
-                int p = pos;
-                while ( buf[ --p ] == '0' ) {
-                    buf[ p ] = ' ';
-                }
-                if ( buf[ p ] == '.' ) {
-                    buf[ p ] = ' ';
-                }
-            }
-            if ( sgnChar != ' ' ) {
-                for ( int p = 0;
-                      buf[ p ] == sgnChar && buf[ p + 1 ] == ' '; p++ ) {
-                    buf[ p ] = ' ';
-                    buf[ p + 1 ] = sgnChar;
                 }
             }
             return new String( buf );
@@ -656,7 +648,7 @@ public class Coords {
             if ( dp >= nf ) {
                 hmsFormats = new SexFormat[ dp + 1 ];
                 for ( int i = 0; i <= dp; i++ ) {
-                    hmsFormats[ i ] = new SexFormat( i );
+                    hmsFormats[ i ] = new SexFormat( false, i );
                 }
             }
             return hmsFormats[ dp ];
@@ -674,7 +666,7 @@ public class Coords {
             if ( dp >= nf ) {
                 dmsFormats = new SexFormat[ dp + 1 ];
                 for ( int i = 0; i <= dp; i++ ) {
-                    dmsFormats[ i ] = new SexFormat( i );
+                    dmsFormats[ i ] = new SexFormat( true, i );
                 }
             }
             return dmsFormats[ dp ];
