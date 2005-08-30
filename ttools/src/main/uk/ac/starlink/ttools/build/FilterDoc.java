@@ -32,13 +32,15 @@ public class FilterDoc {
             String name = fnames[ i ];
             ProcessingFilter filter = (ProcessingFilter)
                                       stepFact.createObject( name );
-            out_.print( "<dt><code>" + name );
+            out_.print( "<dt><verbatim>" + name );
             String usage = filter.getUsage();
+            String pad = name.replaceAll( ".", " " );
             if ( usage != null ) {
                 out_.print( " " + usage.replaceAll( "<", "&lt;" )
-                                       .replaceAll( ">", "&gt;" ) );
+                                       .replaceAll( ">", "&gt;" )
+                                       .replaceAll( "\n", "\n " + pad ) );
             }
-            out_.println( "</code></dt>" );
+            out_.println( "</verbatim></dt>" );
             out_.println( "<dd><p>" );
             String descrip = filter.getDescription();
             if ( descrip == null ) {

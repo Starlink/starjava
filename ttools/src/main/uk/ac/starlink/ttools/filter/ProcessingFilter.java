@@ -16,6 +16,7 @@ public interface ProcessingFilter {
     /**
      * Usage message for this filter.  This should contain any arguments
      * which apply to this item; the name itself should not be included.
+     * May contain newline characters to break up a long line.
      *
      * @return  usage string
      */

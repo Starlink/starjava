@@ -72,9 +72,10 @@ public class FilterParameter extends Parameter
                 String fusage = filter.getUsage();
                 sbuf.append( "      " )
                     .append( fname );
+                String pad = ( "      " + fname ).replaceAll( ".", " " );
                 if ( fusage != null ) {
                     sbuf.append( ' ' )
-                        .append( fusage );
+                        .append( fusage.replaceAll( "\n", "\n " + pad ) );
                 }
                 sbuf.append( '\n' );
             }

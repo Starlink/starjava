@@ -30,6 +30,7 @@ public class StepFactory {
         filterFactory_ = new ObjectFactory( ProcessingFilter.class );
         String pkg = "uk.ac.starlink.ttools.filter.";
         filterFactory_.register( "addcol", pkg + "AddColumnFilter" );
+        filterFactory_.register( "addskycoords", pkg + "AddSkyCoordsFilter" );
         filterFactory_.register( "cache", pkg + "CacheFilter" );
         filterFactory_.register( "delcols", pkg + "DeleteColumnFilter" );
         filterFactory_.register( "every", pkg + "EveryFilter" );
@@ -138,13 +139,16 @@ public class StepFactory {
                 StringBuffer sbuf = new StringBuffer();
                 sbuf.append( e.getMessage() )
                     .append( '\n' )
-                    .append( "command was: " )
+                    .append( '\n' )
+                    .append( "Command was: " )
                     .append( line )
                     .append( '\n' )
                     .append( '\n' )
                     .append( "Usage: " )
                     .append( cmd );
-                String fusage = filter.getUsage();
+                String pad = ( "Usage: " + cmd + " " ).replaceAll( ".", " " );
+                String fusage = filter.getUsage()
+                                      .replaceAll( "\n", "\n" + pad );
                 if ( fusage != null ) {
                     sbuf.append( ' ' )
                         .append( fusage );
