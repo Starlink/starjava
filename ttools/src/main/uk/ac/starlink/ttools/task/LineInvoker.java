@@ -473,5 +473,6 @@ public class LineInvoker {
             rootHandlers[ 0 ].setLevel( verbLevel );
             rootHandlers[ 0 ].setFormatter( new LineFormatter( debug ) );
         }
+        rootLogger.setLevel( verbLevel );
     }
 }
