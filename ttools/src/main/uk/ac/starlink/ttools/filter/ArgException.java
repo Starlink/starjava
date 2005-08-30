@@ -17,4 +17,14 @@ public class ArgException extends Exception {
     public ArgException( String message ) {
         super( message );
     }
+
+    /**
+     * Constructs an exception with a given cause.
+     * 
+     * @param  message  basic message
+     * @param  e  cause
+     */
+    public ArgException( String message, Throwable e ) {
+        super( message, e );
+    }
 }
