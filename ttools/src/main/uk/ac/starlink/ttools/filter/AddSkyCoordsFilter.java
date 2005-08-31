@@ -107,6 +107,10 @@ public class AddSkyCoordsFilter extends BasicFilter {
                 sOutCols = arg;
             }
         }
+        if ( sInSys == null || sOutSys == null ||
+             sInCols == null || sOutCols == null ) {
+            throw new ArgException( "Not enough arguments supplied" );
+        }
 
         final SkyUnits inUnits;
         final SkyUnits outUnits;
@@ -116,8 +120,8 @@ public class AddSkyCoordsFilter extends BasicFilter {
         final String inCols;
         final String[] outCols;
         try {
-            inUnits = SkyUnits.getUnitFor( sInUnit );
-            outUnits = SkyUnits.getUnitFor( sOutUnit );
+            inUnits = SkyUnits.getUnitsFor( sInUnit );
+            outUnits = SkyUnits.getUnitsFor( sOutUnit );
             inSys = SkySystem.getSystemFor( sInSys );
             outSys = SkySystem.getSystemFor( sOutSys );
             epoch = ( sEpoch == null || sEpoch.length() == 0 )
