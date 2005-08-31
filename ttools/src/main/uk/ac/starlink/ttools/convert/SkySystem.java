@@ -102,6 +102,10 @@ public abstract class SkySystem {
         };
     }
 
+    public String toString() {
+        return getName();
+    }
+
     /**
      * Returns an array of all the systems known.
      *
