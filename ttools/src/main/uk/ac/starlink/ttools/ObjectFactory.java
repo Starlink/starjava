@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Manages dynamic creation of objects from a known set of classes.
@@ -23,6 +24,9 @@ public class ObjectFactory {
     private final Class superClass_;
     private Map nameMap_ = new HashMap();
     private List nameList_ = new ArrayList();
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools" );
  
     /**
      * Constructor.  
@@ -83,6 +87,7 @@ public class ObjectFactory {
                                               + nickName );
         }
         String className = (String) nameMap_.get( nickName );
+        logger_.config( "Instantiating " + className + " for " + nickName );
         Class clazz; 
         try {
             clazz = Class.forName( className );
