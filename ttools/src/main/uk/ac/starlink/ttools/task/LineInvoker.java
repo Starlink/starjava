@@ -9,6 +9,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
@@ -16,6 +17,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
+import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.LoadException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.ObjectFactory;
@@ -408,10 +410,17 @@ public class LineInvoker {
             .append( byPos ? "]" : "" )
             .append( param.getUsage() )
             .append( isOptional ? "]" : "" )
-            .append( "\n\n   Description:\n" )
+            .append( "\n\n   Summary:\n" )
             .append( "      " )
             .append( param.getPrompt() )
-            .append( "\n\n   Default:\n" )
+            .append( "\n\n   Description:\n" );
+        try {
+            sbuf.append( new Formatter().formatXML( param.getDescription() ) );
+        }
+        catch ( SAXException e ) {
+            sbuf.append( "      ???\n" );
+        }
+        sbuf.append( "\n\n   Default:\n" )
             .append( "      " )
             .append( param.getDefault() )
             .append( "\n" );
