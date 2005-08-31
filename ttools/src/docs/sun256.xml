@@ -1842,6 +1842,18 @@ stilts tpipe -ifmt=votable \
     </p></dd>
 
 <dt><verbatim>
+stilts tpipe -cmd="addskycoords fk5 gal 'RA2000 DEC2000' 'GAL_LONG GAL_LAT'" \
+             6dfgs.fits 6dfgs+gal.fits
+</verbatim></dt>
+<dd><p>Adds columns giving galactic coordinates to a table.
+    Both input and output tables are FITS files.
+    The galactic coordinates, stored in new columns called GAL_LONG and
+    GAL_LAT, are calculated from FK5 J2000.0 coordinates
+    given in the existing columns named RA2000 and DEC2000.
+    Both input and output columns are in degrees.
+    </p></dd>
+
+<dt><verbatim>
 stilts -disk tpipe 2dfgrs_ngp.fits \
                    -cmd='keepcols "SEQNUM AREA ECCENT"' \
                    -cmd='sort -down AREA' \
