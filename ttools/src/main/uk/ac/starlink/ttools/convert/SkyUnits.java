@@ -99,9 +99,16 @@ public abstract class SkyUnits {
      * Returns a unit as specified by a name.  Name may be abbreviated.
      * Returns a suitable unit or throws an IllegalArgumentException.
      */
-    public static SkyUnits getUnitFor( String unitName ) {
+    public static SkyUnits getUnitsFor( String unitName ) {
         if ( unitName == null || unitName.length() == 0 ) {
             return DEFAULT_UNIT;
+        }
+        if ( unitName.matches( "[Ss][Ee][Xx][a-zA-Z]*[0-9]+" ) ) {
+            String digits = unitName.replaceAll( "[^0-9]*", "" );
+            int ndig = Integer.parseInt( digits );
+            int hdp = Math.max( ndig - 1, 0 );
+            int ddp = Math.max( ndig, 0 );
+            return new SexagesimalUnits( unitName, hdp, ddp );
         }
         String lname = unitName.toLowerCase();
         for ( int i = 0; i < KNOWN_UNITS.length; i++ ) {
