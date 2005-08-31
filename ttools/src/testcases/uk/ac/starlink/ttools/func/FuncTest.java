@@ -232,16 +232,16 @@ public class FuncTest extends TestCase {
         assertEquals( Coords.hmsToRadians( "0 0 1" ),
                       -Coords.hmsToRadians( "-0h0m1s" ) );
 
-        assertEquals( "   3:00:00", Coords.radiansToHms( Maths.PI / 4.0 ) );
-        assertEquals( " -12:00:00    ",
+        assertEquals( "03:00:00", Coords.radiansToHms( Maths.PI / 4.0 ) );
+        assertEquals( "12:00:00.000",
                       Coords.radiansToHms( -Maths.PI, 3 ) );
-        assertEquals( " -12:00:00.5  ", 
+        assertEquals( "12:00:00.500", 
                       Coords.radiansToHms( -Maths.PI*(1+.5000/12/60/60), 3 ) );
-        assertEquals( " -12:00:00.005", 
+        assertEquals( "12:00:00.005", 
                       Coords.radiansToHms( -Maths.PI*(1+.0050/12/60/60), 3 ) );
-        assertEquals( " -12:00:00.5  ", 
+        assertEquals( "12:00:00.500", 
                       Coords.radiansToHms( -Maths.PI*(1+.5004/12/60/60), 3 ) );
-        assertEquals( " -12:00:00.5  ", 
+        assertEquals( "12:00:00.500", 
                       Coords.radiansToHms( -Maths.PI*(1+.4996/12/60/60), 3 ) );
 
         assertEquals( Maths.PI / 4.0, Coords.dmsToRadians( "45:00:00.0" ) );
@@ -249,17 +249,21 @@ public class FuncTest extends TestCase {
         assertEquals( Coords.dmsToRadians( "0 0 1" ),
                       -Coords.dmsToRadians( "-0d0m1s" ) );
 
-        assertEquals( "  45:00:00", Coords.radiansToDms( Maths.PI / 4.0 ) );
-        assertEquals( "-180:00:00    ",
-                      Coords.radiansToDms( -Maths.PI, 3 ) );
-        assertEquals( "-180:00:00.5  ",
-                      Coords.radiansToDms( -Maths.PI*(1+.5000/180/60/60), 3 ) );
-        assertEquals( "-180:00:00.005",
-                      Coords.radiansToDms( -Maths.PI*(1+.0050/180/60/60), 3 ) );
-        assertEquals( "-180:00:00.5  ",
-                      Coords.radiansToDms( -Maths.PI*(1+.5004/180/60/60), 3 ) );
-        assertEquals( "-180:00:00.5  ",
-                      Coords.radiansToDms( -Maths.PI*(1+.4996/180/60/60), 3 ) );
+        assertEquals( "+45:00:00", Coords.radiansToDms( Maths.PI / 4.0 ) );
+        assertEquals( "-90:00:00.000",
+                      Coords.radiansToDms( -Maths.PI / 2, 3 ) );
+        assertEquals( "-45:00:00.500",
+                      Coords.radiansToDms( -Maths.PI / 4.0 
+                                           * (1+.5000/45/60/60), 3 ) );
+        assertEquals( "-45:00:00.005",
+                      Coords.radiansToDms( -Maths.PI / 4.0 
+                                           * (1+.0050/45/60/60), 3 ) );
+        assertEquals( "-45:00:00.500",
+                      Coords.radiansToDms( -Maths.PI / 4.0 
+                                           * (1+.5004/45/60/60), 3 ) );
+        assertEquals( "-45:00:00.500",
+                      Coords.radiansToDms( -Maths.PI / 4.0
+                                           * (1+.4996/45/60/60), 3 ) );
 
         double ra1950 = 2.1;
         double de1950 = 1.2;
