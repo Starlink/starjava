@@ -7,6 +7,8 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.QuickTable;
+import uk.ac.starlink.ttools.convert.SkySystem;
+import uk.ac.starlink.ttools.convert.SkyUnits;
 
 public class TablePipeTest extends TableTestCase {
 
@@ -33,7 +35,9 @@ public class TablePipeTest extends TableTestCase {
                             .setValue( "cmd", cmd );
         new TablePipe().createExecutable( env ).execute();
         StarTable result = env.getOutputTable( "mode" );
-        Tables.checkTable( result );
+        if ( result != null ) {
+            Tables.checkTable( result );
+        }
         return result;
     }
 
@@ -60,6 +64,71 @@ public class TablePipeTest extends TableTestCase {
         assertArrayEquals(
             box( new double[] { 11., 22., 33., Double.NaN, } ),
             getColData( apply( "addcol -before 1 XX 'a + b'" ), 0 ) );
+    }
+
+    public void testAddskycoords() throws Exception {
+        StarTable skyTable = new QuickTable( 3, new ColumnData[] {
+            col( "ra", new double[] { 180, 90, 23 } ),
+            col( "dec", new double[] { 45, -30, 23 } ),
+        } );
+
+        SkySystem[] systems = SkySystem.getKnownSystems();
+        SkyUnits[] units = new SkyUnits[] {
+            SkyUnits.getUnitsFor( "deg" ),
+            SkyUnits.getUnitsFor( "rad" ),
+            SkyUnits.getUnitsFor( "sex6" ),
+        };
+        for ( int i = 0; i < systems.length; i++ ) {
+            SkySystem system = systems[ i ];
+            for ( int j = 0; j < units.length; j++ ) {
+                SkyUnits unit = units[ j ];
+                String cmd = "addskycoords -inunit deg -outunit " + unit
+                           + " fk5 " + system + " 'ra dec' 'c1 c2'"
+                           + ";\n"
+                           + "addskycoords -inunit " + unit + " -outunit deg "
+                           + system + " fk5 'c1 c2' 'rax decx'";
+                StarTable xTable = process( skyTable, cmd );
+                assertArrayEquals(
+                    new String[] { "ra", "dec", "c1", "c2", "rax", "decx", },
+                    getColNames( xTable ) );
+                assertArrayEquals( getColData( skyTable, 0 ),
+                                   getColData( xTable, 0 ) );
+                assertArrayEquals( getColData( skyTable, 1 ),
+                                   getColData( xTable, 1 ) );
+                assertArrayEquals( unbox( getColData( xTable, 0 ) ),
+                                   unbox( getColData( xTable, 4 ) ), 1e-8 );
+                assertArrayEquals( unbox( getColData( xTable, 1 ) ),
+                                   unbox( getColData( xTable, 5 ) ), 1e-8 );
+            }
+        }
+
+        StarTable xTable = process( skyTable,
+            "addskycoords -inunit deg -outunit sex fk5 fk5 '1 2' 'rax decx'" );
+        assertArrayEquals(
+            new Object[] { "12:00:00.00", "06:00:00.00", "01:32:00.00", },
+            getColData( xTable, 2 ) );
+        assertArrayEquals(
+            new Object[] { "+45:00:00.0", "-30:00:00.0", "+23:00:00.0", },
+            getColData( xTable, 3 ) );
+
+        StarTable xTable0 = process( skyTable,
+            "addskycoords -inunit deg -outunit sex0 fk5 fk5 '1 2' 'rax decx'" );
+        assertArrayEquals(
+            new Object[] { "12:00:00", "06:00:00", "01:32:00", },
+            getColData( xTable0, 2 ) );
+        assertArrayEquals(
+            new Object[] { "+45:00:00", "-30:00:00", "+23:00:00", },
+            getColData( xTable0, 3 ) );
+
+        StarTable xTable3 = process( skyTable,
+            "addskycoords -inunit deg -outunit sex3 fk5 fk5 '1 2' 'rax decx'" );
+        assertArrayEquals(
+            new Object[] { "12:00:00.000", "06:00:00.000", "01:32:00.000", },
+            getColData( xTable3, 2 ) );
+        assertArrayEquals(
+            new Object[] { "+45:00:00.00", "-30:00:00.00", "+23:00:00.00", },
+            getColData( xTable3, 3 ) );
+
     }
 
     public void testCache() throws Exception {
