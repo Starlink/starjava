@@ -107,4 +107,37 @@ public class TableTestCase extends TestCase {
         return oList.toArray( (Object[]) Array.newInstance( clazz,
                                                             oList.size() ) );
     }
+
+    public static Object unbox( Object[] oArray ) {
+        int nel = oArray.length;
+        Class clazz = oArray[ 0 ].getClass();
+        if ( clazz == Double.class ) {
+            double[] pArray = new double[ nel ];
+            for ( int i = 0; i < nel; i++ ) {
+                pArray[ i ] = oArray[ i ] == null 
+                            ? Double.NaN
+                            : ((Double) oArray[ i ]).doubleValue();
+            }
+            return pArray;
+        }
+        else if ( clazz == Float.class ) {
+            float[] pArray = new float[ nel ];
+            for ( int i = 0; i < nel; i++ ) {
+                pArray[ i ] = oArray[ i ] == null
+                            ? Float.NaN
+                            : ((Float) oArray[ i ]).floatValue();
+            }
+            return pArray;
+        }
+        else if ( clazz == Integer.class ) {
+            int[] pArray = new int[ nel ];
+            for ( int i = 0; i < nel; i++ ) {
+                pArray[ i ] = ((Integer) oArray[ i ]).intValue();
+            }
+            return pArray;
+        }
+        else {
+            throw new IllegalArgumentException( "Can't unbox" );
+        }
+    }
 }
