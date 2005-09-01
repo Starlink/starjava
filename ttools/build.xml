@@ -1015,9 +1015,10 @@
       <arg value="tcopy"/>
       <arg value="-help"/>
     </java>
+    <!-- fork="yes" required below else ant confuses JAXP -->
     <java classname="uk.ac.starlink.ttools.build.OutputCapture"
           failonerror="yes"
-          fork="no"
+          fork="yes"
           output="${build.docs}/tcopy-in-usage.xml"
           logerror="yes"
           classpathref="classpath">
