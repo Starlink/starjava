@@ -14,6 +14,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -439,7 +441,7 @@ public class RowMatcher {
      * @return  set of {@link RowLink} objects which constitute possible
      *          matches
      */
-    private Set getPossibleInterLinks( int index1, int index2 )
+    public Set getPossibleInterLinks( int index1, int index2 )
             throws IOException, InterruptedException {
         int ncol = tables[ index1 ].getColumnCount();
         if ( tables[ index2 ].getColumnCount() != ncol ) {
@@ -528,8 +530,8 @@ public class RowMatcher {
      * @return  set of {@link RowLink} objects which constitute possible
      *          matches
      */
-    public Set getPossibleInterLinks( int index1, int index2,
-                                      Comparable[] min, Comparable[] max )
+    private Set getPossibleInterLinks( int index1, int index2,
+                                       Comparable[] min, Comparable[] max )
             throws IOException, InterruptedException {
         BinContents bins = new BinContents( indicator );
 
@@ -988,6 +990,40 @@ public class RowMatcher {
                                                   + " is not random access" );
             }
         }
+    }
+
+    /**
+     * Replaces a map with a sorted map.  The elements are copied from 
+     * the input map to the output one.  On exit, the input map 
+     * <code>map</code> is empty.
+     *
+     * @param  map  input map
+     * @param  msg  name of the stage to be logged in the progress indicator
+     *              (null for no logging)
+     * @return   sorted version of <code>map</code>
+     */
+    public SortedMap sortMap( Map map, String msg )
+            throws InterruptedException {
+        SortedMap sMap = new TreeMap();
+        double nEntry = (double) map.size();
+        double iEntry = 0.0;
+        boolean log = msg != null;
+        if ( log ) {
+            indicator.startStage( msg );
+        }
+        for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            it.remove();
+            sMap.put( entry.getKey(), entry.getValue() );
+            if ( log ) {
+                indicator.setLevel( ++iEntry / nEntry );
+            }
+        }
+        if ( log ) {
+            indicator.endStage();
+        }
+        assert map.size() == 0;
+        return sMap;
     }
 
     /**
