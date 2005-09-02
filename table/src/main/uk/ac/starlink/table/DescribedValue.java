@@ -88,6 +88,15 @@ public class DescribedValue {
     }
 
     /**
+     * Sets the value of this object from a string representation.
+     *
+     * @param   string representation of the new value
+     */
+    public void setValueFromString( String sval ) {
+        setValue( vinfo.unformatString( sval ) );
+    }
+
+    /**
      * Returns a string representation of this object, no longer than a
      * given maximum length.  The result indicates the object's
      * name, class, shape and value.
