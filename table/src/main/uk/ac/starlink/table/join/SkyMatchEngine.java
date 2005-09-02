@@ -25,11 +25,17 @@ public abstract class SkyMatchEngine implements MatchEngine {
     private double separation_;
     private DescribedValue sepValue_ = new SkySeparationValue();
 
+    private static final double ARC_SECOND = Math.PI / 180 / 60 / 60;
     private static final DefaultValueInfo SEP_INFO =
         new DefaultValueInfo( "Error", Double.class,
                               "Maximum separation along a great circle" );
+    private static final DefaultValueInfo SCORE_INFO =
+        new DefaultValueInfo( "Separation", Double.class,
+                              "Distance between matched objects " +
+                              "along a great circle" );
     static {
         SEP_INFO.setUnitString( "radians" );
+        SCORE_INFO.setUnitString( "arcsec" );
     }
 
     /**
@@ -90,7 +96,11 @@ public abstract class SkyMatchEngine implements MatchEngine {
         double ra1 = ((Number) radec1[ 0 ]).doubleValue();
         double ra2 = ((Number) radec2[ 0 ]).doubleValue();
         double sep = calculateSeparation( ra1, dec1, ra2, dec2 );
-        return sep <= separation_ ? sep : -1.0;
+        return sep <= separation_ ? sep / ARC_SECOND : -1.0;
+    }
+
+    public ValueInfo getMatchScoreInfo() {
+        return SCORE_INFO;
     }
 
     public ValueInfo[] getTupleInfos() {

@@ -16,9 +16,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Performs matching on the rows of one or more tables.
@@ -34,8 +36,19 @@ public class RowMatcher {
     private final MatchEngine engine;
     private final StarTable[] tables;
     private final int nTable;
+    private final Scorer scorer;
     private ProgressIndicator indicator = new NullProgressIndicator();
     private long startTime;
+
+    private static final Logger logger =
+        Logger.getLogger( "uk.ac.starlink.table.join" );
+
+    /** Null scorer object. */
+    private static final Scorer NULL_SCORER = new Scorer() {
+        public Object getObject( double score ) {
+            return null;
+        }
+    };
 
     /**
      * Constructs a new matcher with match characteristics defined by
@@ -48,6 +61,7 @@ public class RowMatcher {
         this.engine = engine;
         this.tables = tables;
         this.nTable = tables.length;
+        this.scorer = getScorer( engine.getMatchScoreInfo() );
     }
 
     /**
@@ -381,7 +395,7 @@ public class RowMatcher {
                                                            binnedRows[ j ] );
                                     if ( score >= 0 ) {
                                         pairMap.put( pair, 
-                                                     new Double( score ) );
+                                                     getScoreObject( score ) );
                                     }
                                 }
                             }
@@ -1186,6 +1200,15 @@ public class RowMatcher {
     }
 
     /**
+     * Returns an object corresponding to a <code>double</code> score 
+     * value.  This will be of a type consistent with this matcher's
+     * MatchEngine's <code>getMatchScoreInfo</code> value.
+     */
+    private Object getScoreObject( double score ) {
+        return scorer.getObject( score );
+    }
+
+    /**
      * Writes a log message to the indicator about a set of min..max 
      * limits.
      *
@@ -1244,4 +1267,70 @@ public class RowMatcher {
     private int checkedLongToInt( long lval ) {
         return Tables.checkedLongToInt( lval );
     }
+
+    /**
+     * Returns a Scorer, which can take a <code>double</code> and
+     * turn it into an Object for storage in a map.
+     * It decides how to do this based on a given <code>ValueInfo</code>:
+     * the manufactured score objects will be consistent with the
+     * info's content class.
+     *
+     * @param   determining info
+     * @return   scorer
+     */
+    private static Scorer getScorer( ValueInfo info ) {
+        if ( info == null ) {
+            return NULL_SCORER;
+        }
+        else {
+            Class clazz = info.getContentClass();
+            if ( clazz == Number.class || clazz == Double.class ) {
+                return new Scorer() {
+                    public Object getObject( double score ) {
+                        return new Double( score );
+                    }
+                };
+            }
+            else if ( clazz == Float.class ) {
+                return new Scorer() {
+                    public Object getObject( double score ) {
+                        return new Float( (float) score );
+                    }
+                };
+            }
+            else if ( clazz == Integer.class ) {
+                return new Scorer() {
+                    public Object getObject( double score ) {
+                        return new Integer( (int) score );
+                    }
+                };
+            }
+            else if ( clazz == Short.class ) {
+                return new Scorer() {
+                    public Object getObject( double score ) {
+                        return new Short( (short) score );
+                    }
+                };
+            }
+            else if ( clazz == Byte.class ) {
+                return new Scorer() {
+                    public Object getObject( double score ) {
+                        return new Byte( (byte) score );
+                    }
+                };
+            }
+            logger.warning( "Unsupported match class " + clazz.getName() +
+                            " - no match scores" );
+            return NULL_SCORER;
+        }
+    }
+
+    /**
+     * Defines an interface for objects that can take a <code>double</code>
+     * and turn it into an object.
+     */
+    private static abstract class Scorer {
+        public abstract Object getObject( double score );
+    }
+
 }

@@ -21,6 +21,16 @@ public class EqualsMatchEngine implements MatchEngine {
         return ( o1 != null && o2 != null && o1.equals( o2 ) ) ? 0.0 : -1.0; 
     }
 
+    /**
+     * The match score is uninteresting, since it's either -1 or 0.
+     * We flag this by returning <code>null</code> here.
+     *
+     * @return  null
+     */
+    public ValueInfo getMatchScoreInfo() {
+        return null;
+    }
+
     public Object[] getBins( Object[] tuple ) {
         Object obj = tuple[ 0 ];
         return obj == null ? NO_BINS : new Object[] { obj };

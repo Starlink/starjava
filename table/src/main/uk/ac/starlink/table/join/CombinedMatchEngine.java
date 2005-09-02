@@ -89,6 +89,18 @@ public class CombinedMatchEngine implements MatchEngine {
         return totalScore;
     }
 
+    /**
+     * The match score is got by adding together the scores from all
+     * the constituent matchers.  Since the metrics they employ will
+     * all be different, the resulting value is probabl meaningless.
+     * Therefore we decline to tag it with a meaning.
+     *
+     * @return  null
+     */
+    public ValueInfo getMatchScoreInfo() {
+        return null;
+    }
+
     public Object[] getBins( Object[] tuple ) {
 
         /* Work out the bin set for each region of the tuple handled by a

@@ -114,6 +114,14 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         }
     }
 
+    public ValueInfo getMatchScoreInfo() {
+        String descrip = getNormaliseScores()
+            ? "Normalised distance between matched points" +
+              "(0 is identical position, 1 is worst permissible match)"
+            : "Spatial distance between matched points";
+        return new DefaultValueInfo( "Separation", Double.class, descrip );
+    }
+
     /**
      * Returns a set of Cell objects representing the cell in which 
      * this tuple falls and somr or all of its neighbouring ones.

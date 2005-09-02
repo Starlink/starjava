@@ -42,15 +42,6 @@ public class MatchStarTables {
                               "Number of rows in internal match group" );
 
     /**
-     * Defines the characteristics of a table column which represents the
-     * match score of a given RowLink.
-     */
-    public static final ValueInfo MATCH_SCORE_INFO =
-        new DefaultValueInfo( "MatchScore", Double.class,
-                              "Proximity of rows in match (0 is closest)" );
-
-
-    /**
      * Constructs a table made out of a set of constituent tables
      * joined together.
      * The columns of the resulting table are made by appending the
@@ -69,20 +60,30 @@ public class MatchStarTables {
      * elements with a tableIndex of <i>n</i>.  If the <i>n</i>th 
      * element is null, the corresponding columns will not appear in
      * the output table.
+     * <p>
+     * The <code>matchScores</code> and <code>matchScoreInfo</code>
+     * parameters are optional.  If both are non-null, then an
+     * additional column, described by <code>matchScoreInfo</code>,
+     * will be added to the table containing the values from the
+     * <code>matchScores</code> map.  If these parameters are supplied,
+     * the values in <code>matchScores</code> should be consistent
+     * with the type defined by <code>matchScoreInfo</code>
      *
      * @param   tables  array of constituent tables
      * @param   rowLinks   set of RowLink objects which define which rows
      *          in one table are associated with which rows in the others
-     * @param   matchScores  may supply a mapping from items in the
-     *          <tt>rowLinks</tt> list to match scores - if so a
-     *          MatchScore column will be added to the resulting table
      * @param   fixActs  actions to take for deduplicating column names
      *          (array of the same length as <tt>tables</tt>)
+     * @param   matchScores  may supply a mapping from items in the
+     *          <tt>rowLinks</tt> list to match scores
+     * @param   matchScoreInfo  may supply information about the meaning
+     *          of the match scores
      */
     public static StarTable makeJoinTable( StarTable[] tables,
                                            Collection rowLinks,
+                                           JoinStarTable.FixAction[] fixActs,
                                            Map matchScores,
-                                           JoinStarTable.FixAction[] fixActs ) {
+                                           ValueInfo matchScoreInfo ) {
 
         /* Set up index map arrays for each of the constituent tables. */
         int nTable = tables.length;
@@ -97,7 +98,8 @@ public class MatchStarTables {
 
         /* Initialise an array of score values if required. */
         double[] scores;
-        if ( matchScores != null && ! matchScores.isEmpty() ) {
+        if ( matchScores != null && ! matchScores.isEmpty() &&
+             matchScoreInfo != null ) {
             scores = new double[ nRow ];
             Arrays.fill( scores, Double.NaN );
         }
@@ -119,15 +121,18 @@ public class MatchStarTables {
                 }
             }
 
-            /* If there is a score associated with this row, store it. */
-            Number score = matchScores != null 
-                         ? (Number) matchScores.get( link ) 
-                         : null;
-            if ( score != null ) {
-                double dscore = score.doubleValue();
-                if ( ! Double.isNaN( dscore ) ) {
-                    scores[ iLink ] = dscore;
-                    nScore++;
+            /* If we're scoring and there is a score associated with
+             * this row, store it. */
+            if ( scores != null ) {
+                Number score = matchScores != null 
+                             ? (Number) matchScores.get( link ) 
+                             : null;
+                if ( score != null ) {
+                    double dscore = score.doubleValue();
+                    if ( ! Double.isNaN( dscore ) ) {
+                        scores[ iLink ] = dscore;
+                        nScore++;
+                    }
                 }
             }
 
@@ -153,7 +158,7 @@ public class MatchStarTables {
         if ( nScore > 0 ) {
             ColumnStarTable scoreTable = 
                 ColumnStarTable.makeTableWithRows( nRow );
-            ColumnInfo scoreInfo = new ColumnInfo( MATCH_SCORE_INFO );
+            ColumnInfo scoreInfo = new ColumnInfo( matchScoreInfo );
             scoreTable.addColumn( ArrayColumn.makeColumn( scoreInfo, scores ) );
             subTableList.add( scoreTable );
             JoinStarTable.FixAction[] fa = fixActs;

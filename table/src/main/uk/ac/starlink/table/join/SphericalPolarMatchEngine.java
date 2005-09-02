@@ -24,6 +24,9 @@ public class SphericalPolarMatchEngine implements MatchEngine {
 
     private static final DefaultValueInfo R_INFO =
         new DefaultValueInfo( "Radius", Number.class, "Distance from Origin" );
+    private static final DefaultValueInfo SCORE_INFO =
+        new DefaultValueInfo( "Separation", Double.class,
+                              "Cartesian distance between matched points" );
     static {
         R_INFO.setNullable( false );
     }
@@ -45,6 +48,10 @@ public class SphericalPolarMatchEngine implements MatchEngine {
         polarToCartesian( tuple1, work1_ );
         polarToCartesian( tuple2, work2_ );
         return spaceEngine_.matchScore( work1_, work2_ );
+    }
+
+    public ValueInfo getMatchScoreInfo() {
+        return SCORE_INFO;
     }
 
     public Object[] getBins( Object[] tuple ) {

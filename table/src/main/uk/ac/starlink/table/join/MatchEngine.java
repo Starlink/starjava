@@ -97,6 +97,20 @@ public interface MatchEngine {
     double matchScore( Object[] tuple1, Object[] tuple2 );
 
     /**
+     * Returns a description of the value returned by the 
+     * {@link #matchScore} method.  The content class should be numeric
+     * (though need not be <code>Double</code>), and the name,
+     * description and units should be descriptive of whatever the
+     * physical significance of the value is.
+     * If the result of <code>matchScore</code> is not interesting
+     * (for instance, if it's always either 0 or -1),
+     * <code>null</code> may be returned.
+     *
+     * @return   metadata for the match score results
+     */
+    ValueInfo getMatchScoreInfo();
+
+    /**
      * Returns a set of ValueInfo objects indicating what is required for
      * the elements of each tuple.  The length of this array is the 
      * number of elements in the tuple.  Each element should at least
