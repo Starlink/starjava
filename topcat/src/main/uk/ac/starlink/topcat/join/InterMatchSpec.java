@@ -134,8 +134,8 @@ public class InterMatchSpec extends MatchSpec {
 
         /* Create a new table based on the matched lines we have identified. */
         result = MatchStarTables
-                .makeJoinTable( bases, matches, matchScores,
-                                getDefaultFixActions( nTable ) );
+                .makeJoinTable( bases, matches, getDefaultFixActions( nTable ),
+                                matchScores, engine.getMatchScoreInfo() );
         addMatchMetadata( result, getDescription(), engine, tables );
 
         /* If it makes sense to do so, record which tables appear in which
