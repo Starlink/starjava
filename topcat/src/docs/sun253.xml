@@ -2123,8 +2123,7 @@ in another.
 in the Java language.  A full discussion of how to go about this
 is beyond the scope of this document, so if you are new 
 to Java and/or programming you may need to find a friendly local 
-programmer to assist (or mail the author or Starlink's 
-<webref url="http://www.starlink.ac.uk/quick/">QUICK</webref> service).
+programmer to assist (or mail the author).
 The following explanation is aimed at Java programmers, but may not
 be incomprehensible to non-specialists.
 </p>
@@ -5854,8 +5853,7 @@ see if you can rephrase the expression in a way that the parser might
 be happier with.  If you can't work out the problem, it's time to
 consult your friendly local Java programmer (failing that, your
 friendly local C programmer may be able to help) or, by all means,
-contact the author or Starlink's 
-<webref url="http://www.starlink.ac.uk/quick/">QUICK</webref> service.
+contact the author.
 </p>
 
 <p>If you wish to add more metadata items you can edit the appropriate
