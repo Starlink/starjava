@@ -18,6 +18,7 @@
 
   <!-- Short descriptions for each command. -->
   <!ENTITY tcopy-purpose 'Table Format Converter'>
+  <!ENTITY tmatch2-purpose 'Pair Crossmatcher'>
   <!ENTITY tpipe-purpose 'Generic Table Pipeline Utility'>
   <!ENTITY votcopy-purpose 'VOTable Encoding Translator'>
   <!ENTITY votlint-purpose 'VOTable Validity Checker'>
@@ -30,6 +31,7 @@
 
   <!-- Summary paragraphs containing usage for each commmand. -->
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
+  <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
   <!ENTITY tpipe-summary SYSTEM 'tpipe-summary.xml'>
   <!ENTITY votcopy-summary SYSTEM 'votcopy-summary.xml'>
   <!ENTITY votlint-summary SYSTEM 'votlint-summary.xml'>
@@ -129,6 +131,9 @@ same ground as the STIL and TOPCAT user documents
 <li><ref id="tcopy" plaintextref="yes"><code>tcopy</code></ref>:
     &tcopy-purpose;
     </li>
+<li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
+    &tmatch2-purpose;
+    </li>
 <li><ref id="tpipe" plaintextref="yes"><code>tpipe</code></ref>:
     &tpipe-purpose;
     </li>
@@ -139,10 +144,7 @@ same ground as the STIL and TOPCAT user documents
     &votlint-purpose;
     </li>
 </ul>
-It is expected that more will be introduced in the future,
-in particular a crosssmatching tool and perhaps some more convenience
-commands which make it easier to do some of the operations 
-provided by <code>tpipe</code>.
+More tools may be introduced in the future.
 </p>
 
 <p>There are many ways you might want to use these tools;
@@ -304,6 +306,7 @@ name of one of the tasks listed in <ref id="cmdUsage"/> - currently
 the available tasks are:
 <ul>
 <li><code>tcopy</code></li>
+<li><code>tmatch2</code></li>
 <li><code>tpipe</code></li>
 <li><code>votcopy</code></li>
 <li><code>votlint</code></li>
@@ -732,8 +735,9 @@ then you could avoid having to give the <code>-classpath</code> and
 <subhead><title>Table Formats</title></subhead>
 
 <p>The generic commands in STILTS 
-(currently <ref id="tpipe"><code>tpipe</code></ref> and
-           <ref id="tcopy"><code>tcopy</code></ref>)
+(currently <ref id="tpipe"><code>tpipe</code></ref>,
+           <ref id="tcopy"><code>tcopy</code></ref>
+       and <ref id="tmatch2"><code>tmatch2</code></ref>)
 have no native format for table storage, they can process
 data in a number of formats equally well.  
 STIL has its own model of what a table
@@ -1079,7 +1083,9 @@ output modes are listed here.
 
 <p>The <code>tpipe</code> command allows you to use algebraic
 expressions when making row selections and defining new synthetic 
-columns.  In both cases you are defining an expression which
+columns.  They can also be used in defining the quantities to 
+match against in <code>tmatch2</code>.
+In both cases you are defining an expression which
 has a value in each row as a function of the values in the existing
 columns in that row.
 This is a powerful feature which permits you to manipulate and select
@@ -1107,12 +1113,11 @@ for even a novice to write useful expressions.
 of all the column values which apply
 to a given row; the function result can then be used in 
 one of <code>tpipe</code>'s commands, 
-to define the per-row value of a new column
+e.g.  to define the per-row value of a new column
 (<code>addcol</code>, <code>replacecol</code>)
 make a row selection
-(<code>select</code>)
-or define a sort order
-(<code>sortexpr</code>).
+(<code>select</code>),
+and some other places.
 If the built-in operators and functions are not sufficient,
 or it's unwieldy to express your function in one line of code,
 it is possible to add new functions by writing your own classes -
@@ -1699,6 +1704,15 @@ stilts -classpath /usr/local/jars/pg73jdbc3.jar \
 
 </subsect>
 
+<subsect id="tmatch2">
+<subhead><title><code>tmatch2</code>: &tmatch2-purpose;</title></subhead>
+
+<p><code>tmatch2</code> is a tool for crossmatching pairs of tables.
+</p>
+
+&tmatch2-summary;
+
+</subsect>
 
 <subsect id="tpipe">
 <subhead><title><code>tpipe</code>: &tpipe-purpose;</title></subhead>
