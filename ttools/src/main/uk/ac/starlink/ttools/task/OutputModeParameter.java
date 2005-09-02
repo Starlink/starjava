@@ -75,7 +75,9 @@ public class OutputModeParameter extends Parameter
                                       modeFactory.createObject( name );
                 StringBuffer line = new StringBuffer()
                     .append( "      " )
-                    .append( "-mode=" )
+                    .append( '-' )
+                    .append( getName() )
+                    .append( '=' )
                     .append( name );
                 String pad = line.toString().replaceAll( ".", " " );
                 Parameter[] params = mode.getAssociatedParameters();
