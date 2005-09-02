@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableConsumer;
 
 /**
@@ -19,5 +20,6 @@ public interface TableMapping {
      * @param  in  table sources
      * @param  out  table sinks
      */
-    void mapTables( StarTable[] in, TableConsumer[] out ) throws IOException;
+    void mapTables( StarTable[] in, TableConsumer[] out )
+            throws IOException, TaskException;
 }

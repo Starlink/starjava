@@ -48,6 +48,8 @@ public class MapperTask implements Task {
             inTableParams_[ 0 ] = new InputTableParameter( "in" );
             inTableParams_[ 0 ].setUsage( "<table>" );
             inTableParams_[ 0 ].setPrompt( "Location of input table" );
+            paramList.add( inTableParams_[ 0 ].getFormatParameter() );
+            paramList.add( inTableParams_[ 0 ].getStreamParameter() );
             paramList.add( inTableParams_[ 0 ] );
         }
         else {
@@ -57,13 +59,12 @@ public class MapperTask implements Task {
                 inTableParams_[ i ].setUsage( "<table" + suffix + ">" );
                 inTableParams_[ i ].setPrompt( "Location of " + getOrdinal( i )
                                                + " input table" );
+                paramList.add( inTableParams_[ i ].getFormatParameter() );
                 paramList.add( inTableParams_[ i ] );
             }
         }
         for ( int i = 0; i < nIn_; i++ ) {
             inTableParams_[ i ].setPosition( i + 1 );
-            addElements( paramList,
-                         inTableParams_[ i ].getAssociatedParameters() );
         }
 
         /* Processing parameters. */
@@ -96,7 +97,7 @@ public class MapperTask implements Task {
         final TableConsumer consumer = consumerParam_.consumerValue( env );
         final TableMapping mapping = mapper_.createMapping( env );
         return new Executable() {
-            public void execute() throws IOException {
+            public void execute() throws IOException, TaskException {
                 mapping.mapTables( inTables, new TableConsumer[] { consumer } );
             }
         };
