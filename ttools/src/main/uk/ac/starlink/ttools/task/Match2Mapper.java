@@ -220,7 +220,8 @@ public class Match2Mapper implements TableMapper {
             Map matchScores;
             try {
                 matchScores = matcher.findPairMatches( true, true );
-                matchScores = matcher.sortMap( matchScores );
+                matchScores = matcher.sortMap( matchScores,
+                                               "Sorting output rows" );
             }
             catch ( InterruptedException e ) {
                 throw new ExecutionException( e.getMessage(), e );  
