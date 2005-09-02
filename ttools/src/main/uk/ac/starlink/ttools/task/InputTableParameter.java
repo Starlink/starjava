@@ -27,8 +27,9 @@ public class InputTableParameter extends Parameter {
     public InputTableParameter( String name ) {
         super( name );
         setUsage( "<in-table>" );
-        formatParam_ = new InputFormatParameter( "ifmt" );
-        streamParam_ = new BooleanParameter( "istream" );
+        String suffix = name.startsWith( "in" ) ? name.substring( 2 ) : "";
+        formatParam_ = new InputFormatParameter( "ifmt" + suffix );
+        streamParam_ = new BooleanParameter( "istream" + suffix );
         setDefault( "-" );
 
         setDescription( new String[] {
@@ -58,22 +59,21 @@ public class InputTableParameter extends Parameter {
     }
 
     /**
-     * Returns parameters associated with this one, which affect the
-     * way that the input table is acquired.
-     *
-     * @return   array of parameters associated with this one
-     */
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] { formatParam_, streamParam_ };
-    }
-
-    /**
      * Returns the parameter which deals with input format.
      *
      * @return  format parameter
      */
     public InputFormatParameter getFormatParameter() {
         return formatParam_;
+    }
+
+    /**
+     * Returns the stream toggle parameter associated with this one.
+     *
+     * @return  stream parameter
+     */
+    public BooleanParameter getStreamParameter() {
+        return streamParam_;
     }
 
     /**
