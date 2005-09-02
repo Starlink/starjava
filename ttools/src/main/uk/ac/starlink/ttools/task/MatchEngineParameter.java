@@ -21,7 +21,7 @@ import uk.ac.starlink.ttools.func.Coords;
  * Parameter for acquiring a {@link uk.ac.starlink.table.join.MatchEngine}.
  *
  * @author   Mark Taylor
- * @sine     2 Sep 2005
+ * @since    2 Sep 2005
  */
 public class MatchEngineParameter extends Parameter implements ExtraParameter {
 
