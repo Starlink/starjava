@@ -14,5 +14,5 @@ public interface Executable {
     /**
      * Performs the work defined by this object.
      */
-    void execute() throws ExecutionException, IOException;
+    void execute() throws TaskException, IOException;
 }
