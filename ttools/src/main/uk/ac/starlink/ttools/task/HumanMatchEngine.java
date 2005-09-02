@@ -24,7 +24,9 @@ public class HumanMatchEngine implements MatchEngine {
     private final MatchEngine baseEngine_;
     private final ValueInfo[] tupleInfos_;
     private final DescribedValue[] matchParams_;
-    private final ValueWrapper[] wrappers_;
+    private final ValueWrapper[] tupleWrappers_;
+    private final ValueWrapper scoreWrapper_;
+    private final ValueInfo scoreInfo_;
     private final int nval_;
 
     /**
@@ -40,11 +42,11 @@ public class HumanMatchEngine implements MatchEngine {
          * and store appropriately modified tuple descriptors. */
         ValueInfo[] tinfos = baseEngine.getTupleInfos();
         nval_ = tinfos.length;
-        wrappers_ = new ValueWrapper[ nval_ ];
+        tupleWrappers_ = new ValueWrapper[ nval_ ];
         tupleInfos_ = new ValueInfo[ nval_ ];
         for ( int i = 0; i < nval_; i++ ) {
-            wrappers_[ i ] = createWrapper( tinfos[ i ] );
-            tupleInfos_[ i ] = wrappers_[ i ].wrapValueInfo( tinfos[ i ] );
+            tupleWrappers_[ i ] = createWrapper( tinfos[ i ] );
+            tupleInfos_[ i ] = tupleWrappers_[ i ].wrapValueInfo( tinfos[ i ] );
         }
 
         /* Get translators for each of this engine's match parameters,
@@ -56,6 +58,11 @@ public class HumanMatchEngine implements MatchEngine {
             matchParams_[ i ] = createWrapper( param.getInfo() )
                                .wrapDescribedValue( param );
         }
+
+        /* Get and store a wrapper for this engine's match score. */
+        ValueInfo minfo = baseEngine.getMatchScoreInfo();
+        scoreWrapper_ = createWrapper( minfo );
+        scoreInfo_ = scoreWrapper_.wrapValueInfo( minfo );
     }
 
     public DescribedValue[] getMatchParameters() {
@@ -71,8 +78,13 @@ public class HumanMatchEngine implements MatchEngine {
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        return baseEngine_.matchScore( unwrapTuple( tuple1 ),
-                                       unwrapTuple( tuple2 ) );
+        return scoreWrapper_
+              .wrapDouble( baseEngine_.matchScore( unwrapTuple( tuple1 ),
+                                                   unwrapTuple( tuple2 ) ) );
+    }
+
+    public ValueInfo getMatchScoreInfo() {
+        return scoreInfo_;
     }
 
     public boolean canBoundMatch() {
@@ -101,7 +113,7 @@ public class HumanMatchEngine implements MatchEngine {
     private Object[] unwrapTuple( Object[] wrapped ) {
         Object[] unwrapped = new Object[ nval_ ];
         for ( int i = 0; i < nval_; i++ ) {
-            unwrapped[ i ] = wrappers_[ i ].unwrapValue( wrapped[ i ] );
+            unwrapped[ i ] = tupleWrappers_[ i ].unwrapValue( wrapped[ i ] );
         }
         return unwrapped;
     }
@@ -116,7 +128,7 @@ public class HumanMatchEngine implements MatchEngine {
     private Object[] wrapTuple( Object[] unwrapped ) {
         Object[] wrapped = new Object[ nval_ ];
         for ( int i = 0; i < nval_; i++ ) {
-            wrapped[ i ] = wrappers_[ i ].wrapValue( unwrapped[ i ] );
+            wrapped[ i ] = tupleWrappers_[ i ].wrapValue( unwrapped[ i ] );
         }
         return wrapped;
     }
@@ -208,6 +220,14 @@ public class HumanMatchEngine implements MatchEngine {
         public abstract Object wrapValue( Object value );
 
         /**
+         * Converts an unwrapped double precision number to a wrapped one.
+         *
+         * @param   value  unwrapped value
+         * @return  wrapped value
+         */
+        public abstract double wrapDouble( double value );
+
+        /**
          * Converts an unwrapped ValueInfo to a wrapped one.
          *
          * @param  info  unwrapped value info
@@ -232,6 +252,9 @@ public class HumanMatchEngine implements MatchEngine {
             return value;
         }
         public Object unwrapValue( Object value ) {
+            return value;
+        }
+        public double wrapDouble( double value ) {
             return value;
         }
         public ValueInfo wrapValueInfo( ValueInfo info ) {
@@ -271,6 +294,9 @@ public class HumanMatchEngine implements MatchEngine {
             return value instanceof Number
                  ? new Double( ((Number) value).doubleValue() * factor_ )
                  : null;
+        }
+        public double wrapDouble( double value ) {
+            return value / factor_;
         }
         public ValueInfo wrapValueInfo( ValueInfo info ) {
             DefaultValueInfo vinfo = new DefaultValueInfo( info );

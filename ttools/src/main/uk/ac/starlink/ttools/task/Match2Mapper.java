@@ -232,9 +232,10 @@ public class Match2Mapper implements TableMapper {
                 JoinStarTable.FixAction.makeRenameDuplicatesAction( "_1" ),
                 JoinStarTable.FixAction.makeRenameDuplicatesAction( "_2" ),
             };
-            StarTable out =
-                MatchStarTables.makeJoinTable( inTables, matchScores.keySet(),
-                                               matchScores, fixActs );
+            ValueInfo scoreInfo = matchEngine_.getMatchScoreInfo();
+            StarTable out = MatchStarTables
+                           .makeJoinTable( inTables, matchScores.keySet(),
+                                           fixActs, matchScores, scoreInfo );
 
             /* Dispose of the resulting matched table. */
             consumers[ 0 ].consume( out );
