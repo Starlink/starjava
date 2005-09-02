@@ -166,6 +166,28 @@ public class LineInvoker {
                 }
                 System.exit( 1 );
             }
+            catch ( IllegalArgumentException e ) {
+                if ( env.isDebug() ) {
+                    e.printStackTrace( System.err );
+                }
+                else {
+                    String msg = e.getMessage();
+                    if ( msg == null ) {
+                        msg = e.toString();
+                    }
+                    System.err.println( "\n" + msg + "\n" );
+                }
+                System.exit( 1 );
+            }
+            catch ( RuntimeException e ) {
+                if ( env.isDebug() ) {
+                    e.printStackTrace();
+                }
+                else {
+                    System.err.println( "\n" + e + "\n" );
+                }
+                System.exit( 1 );
+            }
             catch ( IOException e ) {
                 if ( env.isDebug() ) {
                     e.printStackTrace( System.err );
@@ -418,12 +440,15 @@ public class LineInvoker {
             sbuf.append( new Formatter().formatXML( param.getDescription() ) );
         }
         catch ( SAXException e ) {
-            sbuf.append( "      ???\n" );
+            sbuf.append( "      ???" );
         }
-        sbuf.append( "\n\n   Default:\n" )
-            .append( "      " )
-            .append( param.getDefault() )
-            .append( "\n" );
+        sbuf.append( '\n' );
+        if ( param.getDefault() != null ||
+             param.isNullPermitted() ) {
+            sbuf.append( "\n\n   Default:\n" )
+                .append( "      " )
+                .append( param.getDefault() );
+        }
         if ( param instanceof ExtraParameter ) {
             sbuf.append( "\n" )
                 .append( ((ExtraParameter) param).getExtraUsage( env ) );
