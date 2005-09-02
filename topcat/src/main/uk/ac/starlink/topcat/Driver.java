@@ -650,6 +650,7 @@ public class Driver {
                 rootHandlers[ 0 ].setLevel( verbLevel );
                 rootHandlers[ 0 ].setFormatter( new LineFormatter() );
             }
+            rootLogger.setLevel( verbLevel );
         }
 
         /* I don't think this should happen, since the earlier test should
