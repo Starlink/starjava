@@ -80,12 +80,14 @@ public class Formatter {
                 else if ( tag.equals( "ul" ) ) {
                     result.newLine();
                     appendChildren( result, el );
-                    result.newLine();
                 }
                 else if ( tag.equals( "li" ) ) {
+                    result.newLine();
                     result.appendText( " * " );
                     result.incLevel();
+                    result.incLevel();
                     appendChildren( result, el );
+                    result.decLevel();
                     result.decLevel();
                 }
                 else if ( tag.equals( "ref" ) ) {
@@ -136,7 +138,7 @@ public class Formatter {
     private static class Result {
 
         StringBuffer sbuf_ = new StringBuffer();
-        StringBuffer line_ = new StringBuffer();
+        StringBuffer line_;
         int level_ = 2;
         int leng_ = 75;
         String pad1_ = "   ";
@@ -156,6 +158,12 @@ public class Formatter {
          * @param   words  string of words to append
          */
         void appendWords( String words ) {
+            if ( words.length() == 0 ) {
+                return;
+            }
+            boolean spaceStart = isWhitespace( words.charAt( 0 ) );
+            boolean spaceEnd = 
+                isWhitespace( words.charAt( words.length() - 1 ) );
             for ( StringTokenizer st = new StringTokenizer( words );
                   st.hasMoreTokens(); ) {
                 String word = st.nextToken();
@@ -163,10 +171,17 @@ public class Formatter {
                     newLine();
                 }
                 else if ( line_.length() > 0 && 
-                          line_.charAt( line_.length() - 1 ) != ' ' ) {
+                          spaceStart &&
+                          ! isWhitespace( line_
+                                         .charAt( line_.length() - 1 ) ) ) {
                     line_.append( ' ' );
                 }
                 line_.append( word );
+                if ( ! st.hasMoreTokens() && spaceEnd && 
+                     ! isWhitespace( line_.charAt( line_.length() - 1 ) ) ) {
+                    line_.append( ' ' );
+                }
+                spaceStart = true;
             }
         }
 
@@ -198,8 +213,10 @@ public class Formatter {
          * Adds a new line to this buffer.
          */
         void newLine() {
-            if ( line_ != null && line_.toString().trim().length() > 0 ) {
-                sbuf_.append( line_ );
+            if ( line_ != null ) {
+                if ( line_.toString().trim().length() > 0 ) {
+                    sbuf_.append( line_ );
+                }
                 sbuf_.append( '\n' );
             }
             line_ = new StringBuffer();
@@ -219,6 +236,23 @@ public class Formatter {
                 sbuf_.append( line_ );
             }
             return sbuf_.toString();
+        }
+
+        /**
+         * Determines whether a character counts as whitespace.
+         *
+         * @param   c  character
+         * @return  true iff <code>c</code> is whitespace
+         */
+        boolean isWhitespace( char c ) {
+            switch ( c ) {
+                case '\n':
+                case '\t':
+                case ' ':
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }
