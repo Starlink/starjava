@@ -16,7 +16,6 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.func.Coords;
-import uk.ac.starlink.ttools.match.HumanMatchEngine;
 
 /**
  * Parameter for acquiring a {@link uk.ac.starlink.table.join.MatchEngine}.
