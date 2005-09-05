@@ -61,8 +61,14 @@ public class HumanMatchEngine implements MatchEngine {
 
         /* Get and store a wrapper for this engine's match score. */
         ValueInfo minfo = baseEngine.getMatchScoreInfo();
-        scoreWrapper_ = createWrapper( minfo );
-        scoreInfo_ = scoreWrapper_.wrapValueInfo( minfo );
+        if ( minfo != null ) {
+            scoreWrapper_ = createWrapper( minfo );
+            scoreInfo_ = scoreWrapper_.wrapValueInfo( minfo );
+        }
+        else {
+            scoreWrapper_ = null;
+            scoreInfo_ = null;
+        }
     }
 
     public DescribedValue[] getMatchParameters() {
@@ -160,8 +166,8 @@ public class HumanMatchEngine implements MatchEngine {
      *           in a human-friendly way
      */
     private static ValueWrapper createWrapper( ValueInfo info ) {
-        String units = info.getUnitString();
-        Class clazz = info.getContentClass();
+        String units = info == null ? null : info.getUnitString();
+        Class clazz = info == null ? null : info.getContentClass();
 
         /* If it's an RA or Dec description, change radians to degrees. */
         if ( matches( info, Tables.RA_INFO ) ||
