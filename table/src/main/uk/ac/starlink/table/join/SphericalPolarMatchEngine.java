@@ -23,7 +23,8 @@ public class SphericalPolarMatchEngine implements MatchEngine {
     private final IsotropicCartesianMatchEngine spaceEngine_;
 
     private static final DefaultValueInfo R_INFO =
-        new DefaultValueInfo( "Radius", Number.class, "Distance from Origin" );
+        new DefaultValueInfo( "Distance", Number.class,
+                              "Distance along the line of sight" );
     private static final DefaultValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
                               "Cartesian distance between matched points" );
@@ -87,7 +88,7 @@ public class SphericalPolarMatchEngine implements MatchEngine {
 
 
     public String toString() {
-        return "Spherical Polar";
+        return "Sky 3D";
     }
 
     /**
