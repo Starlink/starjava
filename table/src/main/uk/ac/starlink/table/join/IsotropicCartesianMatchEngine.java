@@ -79,7 +79,7 @@ public class IsotropicCartesianMatchEngine
     private class ErrorParam extends DescribedValue {
         ErrorParam() {
             super( new DefaultValueInfo( "Error", Double.class,
-                                         "Maximum separation for match" ) );
+                                 "Maximum Cartesian separation for match" ) );
         }
         public Object getValue() {
             return new Double( getError() );
