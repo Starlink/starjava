@@ -1,12 +1,10 @@
 package uk.ac.starlink.table.join;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Describes the contents of all the bins used in a matching operation.
@@ -17,7 +15,7 @@ import java.util.Set;
  * interested in, call {@link MatchEngine#getBins}, and then
  * associate it with each of the returned bins by calling 
  * {@link #putRowInBin} on this object.
- * When you're done, you can call {@link #getRowLinks} to find all the
+ * When you're done, you can call {@link #addRowLinks} to find all the
  * distinct sets of rows that appear as bin contents.
  * Because of the declared semantics of the <tt>getBins</tt> call, 
  * what this gives you is a list of all the groups of rows which 
@@ -101,24 +99,24 @@ public class BinContents {
     }
 
     /**
-     * Returns a set of {@link RowLink} objects which represent all the
-     * distinct groups of RowRefs associated with any of the bins.
+     * Calculates a set of {@link RowLink} objects which represent all the
+     * distinct groups of RowRefs associated with any of the bins,
+     * and adds them to a given Set object.
      * Only RowLinks containing more than one entry are put in the 
      * resulting set, since the others aren't interesting.
      *
      * <p><strong>Note</strong> that this method will 
      * (for memory efficiency purposes) 
      * clear out the map; following a call to this method this 
-     * object is effecctively empty of any data.
+     * object is effectively empty of any data.
      *
-     * @return   set of <tt>RowLinks</tt>
+     * @param   links  set to which links will be added
      */
-    public Set getRowLinks() throws InterruptedException {
+    public void addRowLinks( LinkSet links ) throws InterruptedException {
         indicator_.logMessage( nrow_ + " row refs in " + 
                                map_.size() + " bins" );
         indicator_.logMessage( "(average bin occupancy " + 
                                ( (float) nrow_ / (float) map_.size() ) + ")" );
-        Set links = new HashSet();
         indicator_.startStage( "Consolidating potential match groups" );
         double nl = (double) map_.size();
         int il = 0;
@@ -129,7 +127,7 @@ public class BinContents {
             /* If there is more than one RowRef, create and store the
              * corresponding RowLink. */
             if ( value instanceof List ) {
-                links.add( new RowLink( (List) value ) );
+                links.addLink( new RowLink( (List) value ) );
             }
 
             /* If there's only one RowRef, it doesn't constitute any 
@@ -146,6 +144,5 @@ public class BinContents {
         assert map_.isEmpty();
         nrow_ = 0;
         indicator_.endStage();
-        return links;
     }
 }

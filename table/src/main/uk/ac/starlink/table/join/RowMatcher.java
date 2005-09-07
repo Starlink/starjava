@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,9 +13,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -36,19 +32,8 @@ public class RowMatcher {
     private final MatchEngine engine;
     private final StarTable[] tables;
     private final int nTable;
-    private final Scorer scorer;
     private ProgressIndicator indicator = new NullProgressIndicator();
     private long startTime;
-
-    private static final Logger logger =
-        Logger.getLogger( "uk.ac.starlink.table.join" );
-
-    /** Null scorer object. */
-    private static final Scorer NULL_SCORER = new Scorer() {
-        public Object getObject( double score ) {
-            return null;
-        }
-    };
 
     /**
      * Constructs a new matcher with match characteristics defined by
@@ -61,7 +46,6 @@ public class RowMatcher {
         this.engine = engine;
         this.tables = tables;
         this.nTable = tables.length;
-        this.scorer = getScorer( engine.getMatchScoreInfo() );
     }
 
     /**
@@ -83,6 +67,18 @@ public class RowMatcher {
     }
 
     /**
+     * Constructs a new empty LinkSet for use by this matcher.
+     * The current implementation returns one based on a SortedSet,
+     * but future implementations may provide the option of LinkSet
+     * implementations backed by disk.
+     *
+     * @return  new LinkSet
+     */
+    public LinkSet createLinkSet() {
+        return new TreeSetLinkSet();
+    }
+
+    /**
      * Returns a set of RowLink objects corresponding to a match 
      * between this matcher's two tables performed with its match engine.
      * Each element in the returned list basically corresponds to a matched 
@@ -92,20 +88,13 @@ public class RowMatcher {
      * Each input table row appears in no more than one RowLink in the
      * returned list.
      *
-     * <p>The returned value is a RowLink-&gt;Number mapping;
-     * where the value is not null, it represents the match score 
-     * corresponding to the link.
-     * Being a Map, this isn't ordered, but the natural ordering of the
-     * keys does give you a sensible ordering of rows for the output
-     * table.
-     *
      * @param  req1  whether an entry from the first table must be present
      *         in each element of the result
      * @param  req2  whether an entry from the second table must be present
      *         in each element of the result
-     * @return  {@link RowLink}-&gt;{@link java.lang.Number} mapping
+     * @return  link set
      */
-    public Map findPairMatches( boolean req1, boolean req2 )
+    public LinkSet findPairMatches( boolean req1, boolean req2 )
             throws IOException, InterruptedException {
         checkRandom();
 
@@ -117,16 +106,15 @@ public class RowMatcher {
         startMatch();
 
         /* Get the possible candidates for inter-table links. */
-        Set possibleLinks = getPossibleInterLinks( 0, 1 );
+        LinkSet links = getPossibleInterLinks( 0, 1 );
 
         /* Get all the possible inter-table pairs. */
-        Map pairScores = findInterPairs( possibleLinks, 0, 1 );
-        possibleLinks = null;
+        links = findInterPairs( links, 0, 1 );
 
         /* Make sure that no row is represented more than once
          * (this isn't necessary for the result to make sense, but it's 
          * probably what the caller is expecting). */
-        eliminateMultipleRowEntries( pairScores );
+        links = eliminateMultipleRowEntries( links );
 
         /* We now have a set of links corresponding to all the matches
          * with one entry for each of two or more of the input tables.
@@ -134,22 +122,23 @@ public class RowMatcher {
          * parts, add new singleton row links as necessary. 
          * They are added without scores, since they don't represent 
          * actual matches. */
-        Set singles = new HashSet();
-        if ( ! req1 ) {
-            singles.addAll( missingSingles( pairScores.keySet(), 0 ) );
+        LinkSet[] missing = new LinkSet[] {
+            ( req1 ? null : missingSingles( links, 0 ) ),
+            ( req2 ? null : missingSingles( links, 1 ) ),
+        };
+        for ( int i = 0; i < 2; i++ ) {
+            if ( missing[ i ] != null ) {
+                for ( Iterator it = missing[ i ].iterator(); it.hasNext(); ) {
+                    links.addLink( (RowLink) it.next() );
+                    it.remove();
+                }
+                missing[ i ] = null;
+            }
         }
-        if ( ! req2 ) {
-            singles.addAll( missingSingles( pairScores.keySet(), 1 ) );
-        }
-        for ( Iterator it = singles.iterator(); it.hasNext(); ) {
-            pairScores.put( it.next(), null );
-            it.remove();
-        }
-        assert singles.isEmpty();
 
         /* Return. */
         endMatch();
-        return pairScores;
+        return links;
     }
 
     /**
@@ -167,8 +156,8 @@ public class RowMatcher {
      *         all rows are to be used (otherwise just matched)
      * @return list of {@link RowLink}s corresponding to the selected rows
      */
-    public List findGroupMatches( boolean[] useAll ) throws IOException, 
-                                                     InterruptedException {
+    public LinkSet findGroupMatches( boolean[] useAll )
+            throws IOException, InterruptedException {
         checkRandom();
 
         /* Check we have multiple tables. */
@@ -187,14 +176,14 @@ public class RowMatcher {
         startMatch();
 
         /* Get all the possible pairs. */
-        Set pairs = findPairs( getAllPossibleLinks() );
+        LinkSet pairs = findPairs( getAllPossibleLinks() );
 
         /* Exclude any pairs which represent links between different rows
          * of the same table. */
         eliminateInternalLinks( pairs );
 
         /* Join up pairs into larger groupings. */
-        Set links = agglomerateLinks( pairs );
+        LinkSet links = agglomerateLinks( pairs );
         pairs = null;
 
         /* This could introduce more internal links - get rid of them. */
@@ -204,33 +193,33 @@ public class RowMatcher {
          * with one entry for each of two or more of the input tables.
          * In the case that we want to output some links with unmatched
          * parts, add new singleton row links as necessary. */
-        Set singles = new HashSet();
+        LinkSet[] missing = new LinkSet[ nTable ];
         for ( int i = 0; i < nTable; i++ ) {
             if ( useAll[ i ] ) {
-                singles.addAll( missingSingles( links, i ) );
+                missing[ i ] = missingSingles( links, i );
             }
         }
-        links.addAll( singles );
-        singles = null;
+        for ( int i = 0; i < nTable; i++ ) {
+            if ( missing[ i ] != null ) {
+                for ( Iterator it = missing[ i ].iterator(); it.hasNext(); ) {
+                    links.addLink( (RowLink) it.next() );
+                }
+                missing[ i ] = null;
+            }
+        }
 
         /* Now filter the links to contain only those composite rows we're
-         * interested in.  Copy or discard and remove rows as we go to
-         * save on memory. */
-        List selected = new ArrayList();
+         * interested in. */
         for ( Iterator it = links.iterator(); it.hasNext(); ) {
             RowLink link = (RowLink) it.next();
-            if ( acceptRow( link, useAll ) ) {
-                selected.add( link );
+            if ( ! acceptRow( link, useAll ) ) {
+                it.remove();
             }
-            it.remove();
         }
-
-        /* Finally sort the rows into a sensible order. */
-        Collections.sort( selected );
 
         /* Return the matched list. */
         endMatch();
-        return selected;
+        return links;
     }
 
     /**
@@ -239,10 +228,10 @@ public class RowMatcher {
      *
      * @param  includeSingles  whether to include unmatched (singleton) 
      *         row links in the returned link set
-     * @return a list of {@link RowLink} objects giving all the groups of
+     * @return a set of {@link RowLink} objects giving all the groups of
      *         matched objects in this matcher's sole table
      */
-    public List findInternalMatches( boolean includeSingles ) 
+    public LinkSet findInternalMatches( boolean includeSingles ) 
             throws IOException, InterruptedException {
         checkRandom();
 
@@ -254,28 +243,31 @@ public class RowMatcher {
         startMatch();
 
         /* Locate all the pairs. */
-        Collection links = findPairs( getAllPossibleLinks() );
+        LinkSet links = findPairs( getAllPossibleLinks() );
 
         /* Join up pairs into larger groupings. */
         links = agglomerateLinks( links );
 
         /* Add unmatched rows if required. */
         if ( includeSingles ) {
-            links.addAll( missingSingles( links, 0 ) );
+            for ( Iterator it = missingSingles( links, 0 ).iterator();
+                  it.hasNext(); ) {
+                links.addLink( (RowLink) it.next() );
+                it.remove();
+            }
         }
 
-        /* Sort and return the list. */
-        links = new ArrayList( links );
-        Collections.sort( (List) links );
+        /* Return the list. */
         endMatch();
-        return (List) links;
+        return links;
     }
 
     /**
      * Identifies all the pairs of equivalent rows in a set of RowLinks.
      * Internal matches (ones corresponding to two rows of the same table)
      * are included as well as external ones.
-     * The original set is not affected.
+     * The input set <code>possibleLinks</code> may be affected
+     * by this routine.
      * 
      * @param  possibleLinks  a set of {@link RowLink} objects which 
      *         correspond to groups of possibly matched objects according
@@ -283,14 +275,20 @@ public class RowMatcher {
      * @return  a set of RowLink objects which represent all the actual
      *          distinct row pairs from <tt>possibleLinks</tt>
      */
-    private Set findPairs( Collection possibleLinks )
+    private LinkSet findPairs( LinkSet possibleLinks )
             throws IOException, InterruptedException {
-        Set pairSet = new HashSet();
+        LinkSet pairs = createLinkSet();
         double nLink = (double) possibleLinks.size();
         int iLink = 0;
         indicator.startStage( "Locating pairs" );
         for ( Iterator it = possibleLinks.iterator(); it.hasNext(); ) {
+
+            /* Obtain the link and remove it from the input set for 
+             * memory efficiency. */
             RowLink link = (RowLink) it.next();
+            it.remove();
+
+            /* Check whether this link is non-trivial. */
             int nref = link.size();
             if ( nref > 1 ) {
 
@@ -309,11 +307,12 @@ public class RowMatcher {
                     for ( int j = 0; j < i; j++ ) {
                         RowLink pair = new RowLink( link.getRef( i ),
                                                     link.getRef( j ) );
-                        if ( ! pairSet.contains( pair ) ) {
+                        if ( ! pairs.containsLink( pair ) ) {
                             double score = engine.matchScore( binnedRows[ i ],
                                                               binnedRows[ j ] );
                             if ( score >= 0 ) {
-                                pairSet.add( pair );
+                                pair.setScore( score );
+                                pairs.addLink( pair );
                             }
                         }
                     }
@@ -322,18 +321,14 @@ public class RowMatcher {
             indicator.setLevel( ++iLink / nLink );
         }
         indicator.endStage();
-        return pairSet;
+        return pairs;
     }
 
     /**
      * Identifies all the pairs of equivalent rows from a set of RowLinks
      * between rows from two specified tables.
-     * The returned object is a {@link RowLink}-&gt;{@link java.lang.Number}
-     * map, in which the keys represent pairs of matching rows, 
-     * and the values are their match scores, as obtained from 
-     * {@link MatchEngine#matchScore}.
      *
-     * <p>The original set is not affected.
+     * <p>The input set, <code>possibleLinks</code>, may be affected.
      *
      * <p>Since links are being sought between a pair of tables, a more
      * efficient algorithm can be used than for {@link #findPairs}.
@@ -343,17 +338,23 @@ public class RowMatcher {
      *         according to the match engine's criteria
      * @param  index1  index of the first table
      * @param  index2  index of the second table
-     * @return  a RowLink-&gt;Double map
+     * @return   matched row pairs
      */
-    private Map findInterPairs( Collection possibleLinks,
-                                int index1, int index2 )
+    private LinkSet findInterPairs( LinkSet possibleLinks,
+                                    int index1, int index2 )
             throws IOException, InterruptedException {
-        Map pairMap = new HashMap();
+        LinkSet pairs = createLinkSet();
         double nLink = (double) possibleLinks.size();
         int iLink = 0;
         indicator.startStage( "Locating inter-table pairs" );
         for ( Iterator it = possibleLinks.iterator(); it.hasNext(); ) {
+
+            /* Get the next link and delete it from the input list, for
+             * memory efficiency. */
             RowLink link = (RowLink) it.next();
+            it.remove();
+
+            /* Check if we have a non-trivial link. */
             int nref = link.size();
             if ( nref > 1 ) {
 
@@ -389,13 +390,13 @@ public class RowMatcher {
                             if ( iTableI == index1 && iTableJ == index2 ||
                                  iTableI == index2 && iTableJ == index1 ) {
                                 RowLink pair = new RowLink( refI, refJ );
-                                if ( ! pairMap.containsKey( pair ) ) {
+                                if ( ! pairs.containsLink( pair ) ) {
                                     double score = 
                                         engine.matchScore( binnedRows[ i ],
                                                            binnedRows[ j ] );
                                     if ( score >= 0 ) {
-                                        pairMap.put( pair, 
-                                                     getScoreObject( score ) );
+                                        pair.setScore( score );
+                                        pairs.addLink( pair );
                                     }
                                 }
                             }
@@ -406,7 +407,7 @@ public class RowMatcher {
             indicator.setLevel( ++iLink / nLink );
         }
         indicator.endStage();
-        return pairMap;
+        return pairs;
     }
 
     /**
@@ -417,7 +418,8 @@ public class RowMatcher {
      * @return  set of {@link RowLink} objects which constitute possible
      *          matches
      */
-    private Set getAllPossibleLinks() throws IOException, InterruptedException {
+    private LinkSet getAllPossibleLinks()
+            throws IOException, InterruptedException {
         BinContents bins = new BinContents( indicator );
         long totalRows = 0;
         long nBin = 0;
@@ -443,7 +445,9 @@ public class RowMatcher {
         }
         indicator.logMessage( "Average bin count per row: " +
                               (float) ( nBin / (double) totalRows ) );
-        return bins.getRowLinks();
+        LinkSet links = createLinkSet();
+        bins.addRowLinks( links );
+        return links;
     }
 
     /**
@@ -455,7 +459,7 @@ public class RowMatcher {
      * @return  set of {@link RowLink} objects which constitute possible
      *          matches
      */
-    public Set getPossibleInterLinks( int index1, int index2 )
+    public LinkSet getPossibleInterLinks( int index1, int index2 )
             throws IOException, InterruptedException {
         int ncol = tables[ index1 ].getColumnCount();
         if ( tables[ index2 ].getColumnCount() != ncol ) {
@@ -544,8 +548,8 @@ public class RowMatcher {
      * @return  set of {@link RowLink} objects which constitute possible
      *          matches
      */
-    private Set getPossibleInterLinks( int index1, int index2,
-                                       Comparable[] min, Comparable[] max )
+    private LinkSet getPossibleInterLinks( int index1, int index2,
+                                           Comparable[] min, Comparable[] max )
             throws IOException, InterruptedException {
         BinContents bins = new BinContents( indicator );
 
@@ -610,7 +614,9 @@ public class RowMatcher {
         }
 
         /* Return the result. */
-        return bins.getRowLinks();
+        LinkSet links = createLinkSet();
+        bins.addRowLinks( links );
+        return links;
     }
 
     /**
@@ -623,10 +629,10 @@ public class RowMatcher {
      * @param   links  a mutable collection of {@link RowLink} objects 
      *          to operate on
      */
-    private void eliminateInternalLinks( Collection links )
+    private void eliminateInternalLinks( LinkSet links )
             throws InterruptedException {
         RowRef[] refs = new RowRef[ nTable ];
-        Collection replacements = new ArrayList();
+        LinkSet replacements = createLinkSet();
 
         /* Go through every link in the set. */
         indicator.startStage( "Eliminating internal links" );
@@ -664,7 +670,7 @@ public class RowMatcher {
                         }
                     }
                     RowLink repLink = new RowLink( repRefs );
-                    replacements.add( repLink );
+                    replacements.addLink( repLink );
                 }
             }
             indicator.setLevel( ++iLink / nLink );
@@ -672,7 +678,11 @@ public class RowMatcher {
         indicator.endStage();
         indicator.logMessage( "Internal links removed: " 
                             + replacements.size() );
-        links.addAll( replacements );
+        for ( Iterator it = replacements.iterator(); it.hasNext(); ) {
+            RowLink repLink = (RowLink) it.next();
+            links.addLink( repLink );
+            it.remove();
+        }
     }
 
     /**
@@ -685,7 +695,7 @@ public class RowMatcher {
      *          each RowRef in table <tt>iTable</tt> which does not appear
      *          in any of the links in <tt>links</tt>
      */
-    private Set missingSingles( Collection links, int iTable ) {
+    private LinkSet missingSingles( LinkSet links, int iTable ) {
 
         /* Find out what rowrefs for this table are present in all the links. */
         BitSet present = new BitSet();
@@ -703,10 +713,10 @@ public class RowMatcher {
         /* Construct and return a set with one new singleton RowRef for 
          * each row that is not present. */
         int nrow = checkedLongToInt( tables[ iTable ].getRowCount() );
-        Set singles = new HashSet();
+        LinkSet singles = createLinkSet();
         for ( int iRow = 0; iRow < nrow; iRow++ ) {
             if ( ! present.get( iRow ) ) {
-                singles.add( new RowLink( new RowRef( iTable, iRow ) ) );
+                singles.addLink( new RowLink( new RowRef( iTable, iRow ) ) );
             }
         }
         return singles;
@@ -750,31 +760,18 @@ public class RowMatcher {
      * contained in more than one pair.  If multiple pairs exist containing
      * the same RowRef, all but one (the one with the lowest score) 
      * are discarded.  
-     * <p>The input collection must be a 
-     * {@link RowLink}-&gt;{@link java.lang.Number} map;
-     * the keys are 2-ref <tt>RowLink</tt>s representing a matched pair, and
-     * the values give the match score, as per {@link MatchEngine#matchScore}.
+     * <p>The links in the input set should be 
+     * the keys are 2-ref <tt>RowLink</tt>s representing a matched pair,
+     * with non-blank pair scores.
      * The pairs may only contain RowRefs with a table index of 0 or 1.
+     *
+     * <p>The input set, <code>pairs</code>, may be affected by this method.
      * 
-     * @param   pairScores  map {@link RowLink}-&gt;<tt>Number</tt> objects
-     *          representing matched pairs - on exit
-     *          each RowRef will only appear in at most one RowLink in
-     *          the keys
+     * @param  pairs  set of {@link RowLink} objects representing matched pairs
+     * @return  set resembling pairs but with multiple entries discarded
      */
-    private void eliminateMultipleRowEntries( Map pairScores ) 
+    private LinkSet eliminateMultipleRowEntries( LinkSet pairs ) 
             throws InterruptedException {
-
-        /* Struct for grouping a pair of matched rows and the matching score 
-         * associated with them. */
-        class ScoredPair {
-            final RowLink pair;
-            final double score;
-            ScoredPair( RowLink pair, double score ) {
-                assert pair.size() == 2;
-                this.pair = pair;
-                this.score = score;
-            }
-        }
 
         /* Set up a map to keep track of the best score so far keyed by
          * RowRef. */
@@ -782,8 +779,8 @@ public class RowMatcher {
 
         /* We will be copying entries from the input map to an output one,
          * retaining only the best matches for each row. */
-        Map inPairs = pairScores;
-        Map outPairs = new HashMap();
+        LinkSet inPairs = pairs;
+        LinkSet outPairs = createLinkSet();
 
         /* Iterate over each entry in the input set, deleting it and 
          * selectively copying to the output set as we go. 
@@ -791,60 +788,51 @@ public class RowMatcher {
         double nPair = inPairs.size();
         int iPair = 0;
         indicator.startStage( "Eliminating multiple row references" );
-        for ( Iterator it = inPairs.entrySet().iterator(); it.hasNext(); ) {
-
-            /* Get the next pair and its score. */
-            Map.Entry entry = (Map.Entry) it.next();
-            RowLink pair = (RowLink) entry.getKey();
-            assert pair.size() == 2;
-            Number scoreNum = (Number) entry.getValue();
-            assert scoreNum != null;
-            double scoreVal = scoreNum.doubleValue();
-            ScoredPair score = new ScoredPair( pair, scoreNum.doubleValue() );
+        for ( Iterator it = inPairs.iterator(); it.hasNext(); ) {
+            RowLink pair = (RowLink) it.next();
+            it.remove();
+            double score = pair.getScore();
+            if ( pair.size() != 2 || Double.isNaN( score ) || score < 0.0 ) {
+                throw new IllegalArgumentException();
+            }
             RowRef ref1 = pair.getRef( 0 );
             RowRef ref2 = pair.getRef( 1 );
-            assert ref1.getTableIndex() == 0;
-            assert ref2.getTableIndex() == 1;
-            ScoredPair score1 = (ScoredPair) bestRowScores.get( ref1 );
-            ScoredPair score2 = (ScoredPair) bestRowScores.get( ref2 );
+            if ( ref1.getTableIndex() != 0 || ref2.getTableIndex() != 1 ) {
+                throw new IllegalArgumentException();
+            }
+            RowLink best1 = (RowLink) bestRowScores.get( ref1 );
+            RowLink best2 = (RowLink) bestRowScores.get( ref2 );
 
-            /* If neither row in this pair has been seen before, or we 
+            /* If neither row in this pair has been seen before, or we
              * have a better match this time than previous appearances,
              * copy this entry across to the output set. */
-            if ( ( score1 == null || scoreVal < score1.score ) &&
-                 ( score2 == null || scoreVal < score2.score ) ) {
+            if ( ( best1 == null || score < best1.getScore() ) &&
+                 ( best2 == null || score < best2.getScore() ) ) {
 
                 /* If a pair associated with either of these rows has been
-                 * entered before now, remove it from the output set. */
-                if ( score1 != null ) {
-                    outPairs.remove( score1.pair );
+                 * encountered before now, remove it from the output set. */
+                if ( best1 != null ) {
+                    outPairs.removeLink( best1 );
                 }
-                if ( score2 != null ) {
-                    outPairs.remove( score2.pair );
+                if ( best2 != null ) {
+                    outPairs.removeLink( best2 );
                 }
 
                 /* Copy the current pair into the output set. */
-                outPairs.put( pair, scoreNum );
-                
+                outPairs.addLink( pair );
+
                 /* Record the current pair indexed under both its constituent
                  * rows. */
-                bestRowScores.put( ref1, score );
-                bestRowScores.put( ref2, score );
+                bestRowScores.put( ref1, pair );
+                bestRowScores.put( ref2, pair );
             }
-
-            /* In any case, remove it from the input set. */
-            it.remove();
 
             /* Report on progress. */
             indicator.setLevel( ++iPair / nPair );
         }
         indicator.endStage();
-        assert inPairs.isEmpty();
-
-        /* Repopulate the supplied input set with the output set. */
-        assert pairScores == inPairs;  // so..
-        assert pairScores.isEmpty();
-        pairScores.putAll( outPairs );
+        assert inPairs.size() == 0;
+        return outPairs;
     }
 
     /**
@@ -872,7 +860,7 @@ public class RowMatcher {
      * @param   links  set of {@link RowLink} objects
      * @return  disjoint set of {@link RowLink} objects
      */
-    private Set agglomerateLinks( Collection links ) 
+    private LinkSet agglomerateLinks( LinkSet links ) 
             throws InterruptedException {
         indicator.logMessage( "Agglomerating links" );
 
@@ -896,7 +884,7 @@ public class RowMatcher {
          * as removing the corresponding RowRefs from the refMap. 
          * This both keeps track of which ones we've done and keeps
          * memory usage down. */
-        Set agglomeratedLinks = new HashSet();
+        LinkSet agglomeratedLinks = createLinkSet();
 
         /* Check for any isolated links, that is ones none of whose members
          * appear in any other links.  These can be handled more efficiently
@@ -914,7 +902,7 @@ public class RowMatcher {
             /* If it is isolated, just copy the link to the agglomerated list,
              * and remove the refs from the map. */
             if ( isolated ) {
-                agglomeratedLinks.add( link );
+                agglomeratedLinks.addLink( link );
                 for ( int i = 0; i < nref; i++ ) {
                     RowRef ref = link.getRef( i );
                     Object removed = refMap.remove( ref );
@@ -938,7 +926,7 @@ public class RowMatcher {
             RowRef ref1 = (RowRef) refMap.keySet().iterator().next();
             Set refSet = new HashSet();
             walkLinks( ref1, refMap, refSet );
-            agglomeratedLinks.add( new RowLink( refSet ) );
+            agglomeratedLinks.addLink( new RowLink( refSet ) );
         }
         indicator.endStage();
 
@@ -1004,40 +992,6 @@ public class RowMatcher {
                                                   + " is not random access" );
             }
         }
-    }
-
-    /**
-     * Replaces a map with a sorted map.  The elements are copied from 
-     * the input map to the output one.  On exit, the input map 
-     * <code>map</code> is empty.
-     *
-     * @param  map  input map
-     * @param  msg  name of the stage to be logged in the progress indicator
-     *              (null for no logging)
-     * @return   sorted version of <code>map</code>
-     */
-    public SortedMap sortMap( Map map, String msg )
-            throws InterruptedException {
-        SortedMap sMap = new TreeMap();
-        double nEntry = (double) map.size();
-        double iEntry = 0.0;
-        boolean log = msg != null;
-        if ( log ) {
-            indicator.startStage( msg );
-        }
-        for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            it.remove();
-            sMap.put( entry.getKey(), entry.getValue() );
-            if ( log ) {
-                indicator.setLevel( ++iEntry / nEntry );
-            }
-        }
-        if ( log ) {
-            indicator.endStage();
-        }
-        assert map.size() == 0;
-        return sMap;
     }
 
     /**
@@ -1200,15 +1154,6 @@ public class RowMatcher {
     }
 
     /**
-     * Returns an object corresponding to a <code>double</code> score 
-     * value.  This will be of a type consistent with this matcher's
-     * MatchEngine's <code>getMatchScoreInfo</code> value.
-     */
-    private Object getScoreObject( double score ) {
-        return scorer.getObject( score );
-    }
-
-    /**
      * Writes a log message to the indicator about a set of min..max 
      * limits.
      *
@@ -1266,71 +1211,6 @@ public class RowMatcher {
      */
     private int checkedLongToInt( long lval ) {
         return Tables.checkedLongToInt( lval );
-    }
-
-    /**
-     * Returns a Scorer, which can take a <code>double</code> and
-     * turn it into an Object for storage in a map.
-     * It decides how to do this based on a given <code>ValueInfo</code>:
-     * the manufactured score objects will be consistent with the
-     * info's content class.
-     *
-     * @param   determining info
-     * @return   scorer
-     */
-    private static Scorer getScorer( ValueInfo info ) {
-        if ( info == null ) {
-            return NULL_SCORER;
-        }
-        else {
-            Class clazz = info.getContentClass();
-            if ( clazz == Number.class || clazz == Double.class ) {
-                return new Scorer() {
-                    public Object getObject( double score ) {
-                        return new Double( score );
-                    }
-                };
-            }
-            else if ( clazz == Float.class ) {
-                return new Scorer() {
-                    public Object getObject( double score ) {
-                        return new Float( (float) score );
-                    }
-                };
-            }
-            else if ( clazz == Integer.class ) {
-                return new Scorer() {
-                    public Object getObject( double score ) {
-                        return new Integer( (int) score );
-                    }
-                };
-            }
-            else if ( clazz == Short.class ) {
-                return new Scorer() {
-                    public Object getObject( double score ) {
-                        return new Short( (short) score );
-                    }
-                };
-            }
-            else if ( clazz == Byte.class ) {
-                return new Scorer() {
-                    public Object getObject( double score ) {
-                        return new Byte( (byte) score );
-                    }
-                };
-            }
-            logger.warning( "Unsupported match class " + clazz.getName() +
-                            " - no match scores" );
-            return NULL_SCORER;
-        }
-    }
-
-    /**
-     * Defines an interface for objects that can take a <code>double</code>
-     * and turn it into an object.
-     */
-    private static abstract class Scorer {
-        public abstract Object getObject( double score );
     }
 
 }

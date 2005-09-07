@@ -61,28 +61,24 @@ public class MatchStarTables {
      * element is null, the corresponding columns will not appear in
      * the output table.
      * <p>
-     * The <code>matchScores</code> and <code>matchScoreInfo</code>
-     * parameters are optional.  If both are non-null, then an
-     * additional column, described by <code>matchScoreInfo</code>,
-     * will be added to the table containing the values from the
-     * <code>matchScores</code> map.  If these parameters are supplied,
-     * the values in <code>matchScores</code> should be consistent
-     * with the type defined by <code>matchScoreInfo</code>
+     * The <code>matchScoreInfo</code> parameter is optional. 
+     * If it is non-null, then an additional column, described by 
+     * <code>matchScoreInfo</code>, will be added to the table containing 
+     * the <code>score</code> values from the <code>RowLink</code>s in
+     * <code>links</code>.  The content class of <code>matchScoreInfo</code>
+     * should be <code>Number</code> or one of its subclasses.
      *
      * @param   tables  array of constituent tables
      * @param   rowLinks   set of RowLink objects which define which rows
      *          in one table are associated with which rows in the others
      * @param   fixActs  actions to take for deduplicating column names
      *          (array of the same length as <tt>tables</tt>)
-     * @param   matchScores  may supply a mapping from items in the
-     *          <tt>rowLinks</tt> list to match scores
      * @param   matchScoreInfo  may supply information about the meaning
-     *          of the match scores
+     *          of the link scores
      */
     public static StarTable makeJoinTable( StarTable[] tables,
-                                           Collection rowLinks,
+                                           LinkSet rowLinks,
                                            JoinStarTable.FixAction[] fixActs,
-                                           Map matchScores,
                                            ValueInfo matchScoreInfo ) {
 
         /* Set up index map arrays for each of the constituent tables. */
@@ -98,8 +94,7 @@ public class MatchStarTables {
 
         /* Initialise an array of score values if required. */
         double[] scores;
-        if ( matchScores != null && ! matchScores.isEmpty() &&
-             matchScoreInfo != null ) {
+        if ( matchScoreInfo != null ) {
             scores = new double[ nRow ];
             Arrays.fill( scores, Double.NaN );
         }
@@ -124,15 +119,10 @@ public class MatchStarTables {
             /* If we're scoring and there is a score associated with
              * this row, store it. */
             if ( scores != null ) {
-                Number score = matchScores != null 
-                             ? (Number) matchScores.get( link ) 
-                             : null;
-                if ( score != null ) {
-                    double dscore = score.doubleValue();
-                    if ( ! Double.isNaN( dscore ) ) {
-                        scores[ iLink ] = dscore;
-                        nScore++;
-                    }
+                double score = link.getScore();
+                if ( ! Double.isNaN( score ) ) {
+                    scores[ iLink ] = score;
+                    nScore++;
                 }
             }
 
@@ -203,7 +193,7 @@ public class MatchStarTables {
      *          with the table describing internal row matches
      */
     public static StarTable makeInternalMatchTable( int iTable, 
-                                                    Collection rowLinks, 
+                                                    LinkSet rowLinks, 
                                                     long rowCount ) {
         final int nrow = Tables.checkedLongToInt( rowCount );
 
@@ -289,7 +279,7 @@ public class MatchStarTables {
      *                   (<tt>width</tt>-element array, or <tt>null</tt>)
      */
     public static StarTable makeParallelMatchTable( StarTable table, int iTable,
-                                                    Collection links, int width,
+                                                    LinkSet links, int width,
                                                     int minSize, int maxSize,
                                            JoinStarTable.FixAction[] fixActs ) {
 

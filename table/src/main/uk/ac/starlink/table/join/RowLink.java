@@ -17,12 +17,20 @@ import java.util.Collection;
  * The <tt>getRef</tt> method returns <tt>RowRef</tt>s
  * in their natural order.
  *
+ * <p>As well as the <code>RowRef</code>s themselves, this object
+ * can also contain a 'score', which is an uninterpreted number.
+ * Typically this is used to record how good the match represented
+ * by a link is.  This value is not taken account of in either
+ * <code>compareTo</code>, <code>equals</code> or <code>hashCode</code>
+ * methods.
+ *
  * @author   Mark Taylor (Starlink)
  */
 public class RowLink implements Comparable {
 
     private final RowRef[] rowRefs;
     private Integer hashCode;
+    private double score = Double.NaN;
 
     /**
      * Constructs a new RowLink from a Collection of {@link RowRef} objects.
@@ -71,6 +79,25 @@ public class RowLink implements Comparable {
      */
     public int size() {
         return rowRefs.length;
+    }
+
+    /**
+     * Returns the score associated with this link.
+     * If it has not been set explicitly, it will be <code>NaN</code>.
+     *
+     * @return  score
+     */
+    public double getScore() {
+        return score;
+    }
+
+    /**
+     * Sets the score associated with this link.
+     *
+     * @param  score  new score
+     */
+    public void setScore( double score ) {
+        this.score = score;
     }
 
     /**
