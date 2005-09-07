@@ -1429,7 +1429,14 @@ Currently, if there is more than one possible match for a row in
 either of the tables being joined, the best one will be retained
 and others will be discarded. 
 The 'match score', indicating how close a successful match was, 
-is recorded in an additional column in the resulting table.
+is recorded in an additional column (the final column) in the resulting table.
+The exact value and meaning of this column depends on the kind of
+match being performed, but it typically gives the distance between
+the matched points in some sensible units;
+the smaller the value, the better the match.
+You can find out exactly what this score means by examining 
+the column's description
+in the <ref id="ColumnInfoWindow">Columns Window</ref>.
 Columns in the resulting table retain their original names
 unless that would lead to ambiguity, in which case
 a disambiguating suffix "_1" or "_2" is added to the column name.
@@ -5105,14 +5112,15 @@ in terms of a metric on that space to count as a match.
     points in around a great circle.
     </p></dd>
 
-<dt>Spherical Polar</dt>
-<dd><p>Comparison of positions in the sky taking account of radial distance.
+<dt>Sky 3D</dt>
+<dd><p>Comparison of positions in the sky taking account of 
+    distance from the observer.
     In this case you will need to specify columns giving
     Right Ascension and Declination in angular units, 
-    and radial distance in arbitrary units
+    as well as distance along the line of sight in arbitrary units
     for each table participating in the match.
-    The Error value is a maximum spatial separation of matched points
-    in the same units as the radial distance.
+    The Error value is a maximum separation in Cartesian space 
+    of matched points in the same units as the radial distance.
     </p></dd>
 
 <dt>Exact Value</dt>
@@ -5262,14 +5270,14 @@ then a Cartesian match of the two sets of X and Y values with an error of 1.0
 requiring Matched Rows Only for both tables would give you a 
 result like this:
 <verbatim>
-     X_1       Y_1         Vmag    X_2        Y_2         Bmag    MatchScore
+     X_1       Y_1         Vmag    X_2        Y_2         Bmag    Separation
      ---       ---         ----    ---        ---         ----    ----------
    1134.822    599.247     13.8   1135.201    600.100     14.6     0.933
     909.613    543.293      9.3    909.523    543.800     10.1     0.515
 </verbatim>
 while choosing All Rows for the first table would give you this:
 <verbatim>
-     X_1       Y_1         Vmag    X_2        Y_2         Bmag    MatchScore
+     X_1       Y_1         Vmag    X_2        Y_2         Bmag    Separation
      ---       ---         ----    ---        ---         ----    ----------
    1134.822    599.247     13.8   1135.201    600.100     14.6     0.933
     659.68    1046.874     17.2
@@ -5280,8 +5288,12 @@ while choosing All Rows for the first table would give you this:
 <p>A couple of other points are illustrated in this example:
 since the join would have resulted in duplicate column names, 
 the X and Y columns are renamed by appending a suffix.
-The MatchScore column which gets added is here simply the distance in 
+The Separation column which gets added is the distance in 
 Cartesian space between the points (X_1,Y_1) and (X_2,Y_2).
+The name and meaning of this column will differ according to the 
+kind of match you are doing; for instance for a Sky match it will
+be the distance in arcseconds along a great circle between 
+the matched points.
 </p>
 
 </subsubsect>
@@ -6185,6 +6197,7 @@ comments (apologies for any missed out):
 <li>Jonathan Irwin (Cambridge)</li>
 <li>Mark Allen (Strasbourg)</li>
 <li>Francois Ochsenbein (Strasbourg)</li>
+<li>Mike Watson (ROE)</li>
 <li>Bob Mann (Edinburgh/Strasbourg)</li>
 <li>David Mills (Bristol)</li>
 <li>Douglas Morgan (Bristol)</li>
@@ -6663,6 +6676,11 @@ introduced since the last version:
 <li>Fixed some relatively harmless bugs to do with actions available
     when you select the dummy "Index" column.  You can now unsort 
     from a popup menu in the table viewer window.</li>
+<li>MatchScore columns which result from performing
+    matches now contain values in more useful units, as well as
+    helpful metadata (names, units and descriptions).
+    "Spherical Polar" match type is now rebadged as the hopefully less
+    confusing "Sky 3d".</li>
 </ul>
 </p></dd>
 
