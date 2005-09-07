@@ -8,7 +8,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -17,6 +17,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
 import uk.ac.starlink.table.join.ProgressIndicator;
@@ -43,6 +44,9 @@ public class InterMatchSpec extends MatchSpec {
     private StarTable result;
     private int matchCount;
     private RowSubset[] matchSubsets;
+
+    private static final Logger logger =
+        Logger.getLogger( "uk.ac.starlink.topcat.join" );
 
     /**
      * Constructs a new InterMatchSpec.
@@ -118,24 +122,20 @@ public class InterMatchSpec extends MatchSpec {
         boolean[] useAlls = getUseAlls();
         RowMatcher matcher = new RowMatcher( engine, tables );
         matcher.setIndicator( indicator );
-        List matches;
-        Map matchScores;
-        if ( nTable == 2 ) {
-            matchScores = matcher.findPairMatches( ! useAlls[ 0 ],
-                                                   ! useAlls[ 1 ] );
-            matches = new ArrayList( matchScores.keySet() );
-            Collections.sort( matches );
-        }
-        else {
-            matches = matcher.findGroupMatches( useAlls );
-            matchScores = null;
+        LinkSet matches = nTable == 2
+                        ? matcher.findPairMatches( ! useAlls[ 0 ],
+                                                   ! useAlls[ 1 ] )
+                        : matcher.findGroupMatches( useAlls );
+        if ( ! matches.sort() ) {
+            logger.warning( "Can't sort matches - matched table rows may be "
+                          + "in an unhelpful order" );
         }
         int nrow = matches.size();
 
         /* Create a new table based on the matched lines we have identified. */
         result = MatchStarTables
                 .makeJoinTable( bases, matches, getDefaultFixActions( nTable ),
-                                matchScores, engine.getMatchScoreInfo() );
+                                engine.getMatchScoreInfo() );
         addMatchMetadata( result, getDescription(), engine, tables );
 
         /* If it makes sense to do so, record which tables appear in which

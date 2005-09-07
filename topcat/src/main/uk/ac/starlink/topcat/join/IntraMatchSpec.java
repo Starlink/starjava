@@ -7,6 +7,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -21,6 +22,7 @@ import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
 import uk.ac.starlink.table.join.ProgressIndicator;
@@ -46,6 +48,9 @@ public class IntraMatchSpec extends MatchSpec {
     private final MatchEngine engine;
     private StarTable result;
     private int matchCount;
+
+    private final static Logger logger =
+        Logger.getLogger( "uk.ac.starlink.topcat.join" );
 
     private final static String IDENTIFY = 
         "Mark Groups of Rows";
@@ -146,7 +151,11 @@ public class IntraMatchSpec extends MatchSpec {
         RowMatcher matcher = 
             new RowMatcher( engine, new StarTable[] { effTable } );
         matcher.setIndicator( indicator );
-        List matches = matcher.findInternalMatches( false );
+        LinkSet matches = matcher.findInternalMatches( false );
+        if ( ! matches.sort() ) {
+            logger.warning( "Can't sort matches - matched table rows may be "
+                          + "in an unhelpful order" );
+        }
         matchCount = matches.size();
 
         /* Construct a result table. */
@@ -168,7 +177,7 @@ public class IntraMatchSpec extends MatchSpec {
      *                  ELIMINATE_1, WIDE)
      * @return  new StarTable formed as a result of this match operation
      */
-    private StarTable makeResultTable( StarTable inTable, Collection matches,
+    private StarTable makeResultTable( StarTable inTable, LinkSet matches,
                                        String option ) {
         if ( option.equals( IDENTIFY ) ) {
             long nrow = inTable.getRowCount();
