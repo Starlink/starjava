@@ -104,7 +104,7 @@ public abstract class JoinType {
     /** Selects only rows with input from both input tables. */
     public static final JoinType _1AND2 = new JoinType( "1and2" ) {
         public String getDescription() {
-            return "An output row for each row represented in both" +
+            return "An output row for each row represented in both " +
                    "input tables";
         }
         public LinkSet processLinks( LinkSet links, int[] rowCounts ) {
@@ -212,13 +212,13 @@ public abstract class JoinType {
                     }
                 }
                 if ( noRow >= 0 && yesRow >= 0 ) {
-                    matched.set( Tables.checkedLongToInt( noRow ) );
+                    matched.set( Tables.checkedLongToInt( yesRow ) );
                 }
             }
             links = createLinkSet();
             for ( int irow = 0; irow < rowCounts[ yesTable_ ]; irow++ ) {
                 if ( ! matched.get( irow ) ) {
-                    links.addLink( new RowLink( new RowRef( noTable_,
+                    links.addLink( new RowLink( new RowRef( yesTable_,
                                                             irow ) ) );
                 }
             }
@@ -226,8 +226,8 @@ public abstract class JoinType {
         }
         public boolean[] getUsedTableFlags() {
             boolean[] flags = new boolean[ 2 ];
-            flags[ noTable_ ] = true;
-            flags[ yesTable_ ] = false;
+            flags[ noTable_ ] = false;
+            flags[ yesTable_ ] = true;
             return flags;
         }
         public boolean getUsedMatchFlag() {
