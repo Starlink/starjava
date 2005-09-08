@@ -24,6 +24,13 @@ import uk.ac.starlink.table.ValueInfo;
  * intelligence about how to determine this, are supplied by an
  * associated {@link MatchEngine} object, but the generic parts of
  * the matching algorithms are done here. 
+ *
+ * <p>Note that since the LinkSets and other objects handled by this
+ * class may be very large when large tables are being matched, 
+ * the algorithms in this class are coded carefully to use as little
+ * memory as possible.  Techniques include removing items from one
+ * collection as they are added to another.  This means that in many
+ * cases input values may be modified by the methods.
  * 
  * @author   Mark Taylor (Starlink)
  */
@@ -76,6 +83,46 @@ public class RowMatcher {
      */
     public LinkSet createLinkSet() {
         return new TreeSetLinkSet();
+    }
+
+    /**
+     * Returns a set of RowLink objects corresponding to a pairwise match
+     * between this matcher's two tables performed with its match engine.
+     * Each element in the returned list corresponds to a matched
+     * pair with one entry from each of the input tables.
+     *
+     * @param   bestOnly  whether only the best match between the two tables
+     *          is required, or whether you would like to retain every
+     *          match which fits the criteria
+     * @return  links representing rows to include in the output table
+     */
+    public LinkSet findPairMatches( boolean bestOnly )
+            throws IOException, InterruptedException {
+        checkRandom();
+
+        /* Check we have two tables. */
+        if ( nTable != 2 ) {
+            throw new IllegalStateException( "findPairMatches only makes sense"
+                                           + " for 2 tables" );
+        }
+        startMatch();
+
+        /* Get the possible candidates for inter-table links. */
+        LinkSet possibleLinks = getPossibleInterLinks( 0, 1 );
+
+        /* Get all the possible inter-table pairs. */
+        LinkSet pairs = findInterPairs( possibleLinks, 0, 1 );
+
+        /* If it has been requested, restrict the set of links to the
+         * best available matches.  That is, ensure that no row is
+         * represented  more than once in the set of matches. */
+        if ( bestOnly ) {
+            pairs = eliminateMultipleRowEntries( pairs );
+        }
+
+        /* Return. */
+        endMatch();
+        return pairs;
     }
 
     /**
@@ -761,7 +808,7 @@ public class RowMatcher {
      * the same RowRef, all but one (the one with the lowest score) 
      * are discarded.  
      * <p>The links in the input set should be 
-     * the keys are 2-ref <tt>RowLink</tt>s representing a matched pair,
+     * 2-ref <tt>RowLink</tt>s representing a matched pair,
      * with non-blank pair scores.
      * The pairs may only contain RowRefs with a table index of 0 or 1.
      *
@@ -1212,5 +1259,4 @@ public class RowMatcher {
     private int checkedLongToInt( long lval ) {
         return Tables.checkedLongToInt( lval );
     }
-
 }
