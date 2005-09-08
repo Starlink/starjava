@@ -15,6 +15,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
@@ -93,7 +94,7 @@ public class MatchStarTables {
     public static StarTable makeJoinTable( StarTable table1, StarTable table2,
                                            LinkSet pairs, JoinType joinType,
                                            boolean addGroups,
-                                           JoinStarTable.FixAction[] fixActs,
+                                           JoinFixAction[] fixActs,
                                            ValueInfo matchScoreInfo ) {
 
          /* Process the row link lists according to the chosen join type.
@@ -169,7 +170,7 @@ public class MatchStarTables {
      */
     public static StarTable makeJoinTable( StarTable[] tables,
                                            LinkSet rowLinks, boolean addGroups,
-                                           JoinStarTable.FixAction[] fixActs,
+                                           JoinFixAction[] fixActs,
                                            ValueInfo matchScoreInfo ) {
 
         /* Set up index map arrays for each of the constituent tables. */
@@ -330,15 +331,14 @@ public class MatchStarTables {
                 extraTable.addColumn( (ColumnData) it.next() );
             }
             subTableList.add( extraTable );
-            fixActList.add( JoinStarTable.FixAction.NO_ACTION );
+            fixActList.add( JoinFixAction.NO_ACTION );
         }
 
         /* Join all the subtables up to make one big one. */
         StarTable[] subTables = 
             (StarTable[]) subTableList.toArray( new StarTable[ 0 ] );
-        JoinStarTable.FixAction[] subFixes =
-            (JoinStarTable.FixAction[])
-            fixActList.toArray( new JoinStarTable.FixAction[ 0 ] );
+        JoinFixAction[] subFixes = (JoinFixAction[])
+                                   fixActList.toArray( new JoinFixAction[ 0 ] );
         JoinStarTable joined = new JoinStarTable( subTables, subFixes );
         joined.setName( "Joined" );
         return joined;
@@ -460,7 +460,7 @@ public class MatchStarTables {
     public static StarTable makeParallelMatchTable( StarTable table, int iTable,
                                                     LinkSet links, int width,
                                                     int minSize, int maxSize,
-                                           JoinStarTable.FixAction[] fixActs ) {
+                                                    JoinFixAction[] fixActs ) {
 
         /* Get rid of any links which we won't be using. */
         for ( Iterator it = links.iterator(); it.hasNext(); ) {

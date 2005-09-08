@@ -16,7 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.JoinStarTable;
+import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -140,7 +140,7 @@ public class PairMatchSpec extends MatchSpec {
 
         /* Create a new table based on the matched lines. */
         boolean addGroups = ! bestOnly;
-        JoinStarTable.FixAction[] fixActs = getDefaultFixActions( 2 );
+        JoinFixAction[] fixActs = getDefaultFixActions( 2 );
         StarTable[] useBases = (StarTable[]) bases.clone();
         for ( int i = 0; i < 2; i++ ) {
             if ( ! joinType.getUsedTableFlags()[ i ] ) {

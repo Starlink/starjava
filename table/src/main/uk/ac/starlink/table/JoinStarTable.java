@@ -49,12 +49,12 @@ public class JoinStarTable extends AbstractStarTable {
      * @param  fixCols actions to be taken in modifying column names from
      *         the originals (may be null for no action)
      */
-    public JoinStarTable( StarTable[] tables, FixAction[] fixCols ) {
+    public JoinStarTable( StarTable[] tables, JoinFixAction[] fixCols ) {
         nTab = tables.length;
         this.tables = (StarTable[]) tables.clone();
         if ( fixCols == null ) {
-            fixCols = new FixAction[ nTab ];
-            Arrays.fill( fixCols, FixAction.NO_ACTION );
+            fixCols = new JoinFixAction[ nTab ];
+            Arrays.fill( fixCols, JoinFixAction.NO_ACTION );
         }
         if ( fixCols.length != nTab ) {
             throw new IllegalArgumentException( 
@@ -264,75 +264,6 @@ public class JoinStarTable extends AbstractStarTable {
             for ( int itab = 0; itab < nTab; itab++ ) {
                 rseqs[ itab ].close();
             }
-        }
-    }
-
-    /**
-     * Class defining the possible actions for doctoring
-     * column names when joining tables.  
-     * Joining tables can cause confusion if columns with the same names
-     * exist in some of them.  An instance of this class defines 
-     * how the join should behave in this case.
-     */
-    public static class FixAction {
-
-        /** Column names should be left alone. */
-        public static final FixAction NO_ACTION = 
-            new FixAction( "No Action", null, false, false );
-
-        private final String name;
-        private final String appendage;
-        private final boolean renameDup;
-        private final boolean renameAll;
-
-        /**
-         * Private constructor.
-         */
-        private FixAction( String name, String appendage,
-                           boolean renameDup, boolean renameAll ) {
-            this.name = name;
-            this.appendage = appendage;
-            this.renameDup = renameDup;
-            this.renameAll = renameAll;
-        }
-
-        /**
-         * Returns an action indicating that column names which would be 
-         * duplicated elsewhere in the result table should be modified
-         * by appending a given string.
-         *
-         * @param  appendage  string to append to duplicate columns
-         */
-        public static FixAction makeRenameDuplicatesAction( String appendage ) {
-            return new FixAction( "Fix Duplicates: " + appendage, appendage, 
-                                  true, false );
-        }
-
-        /**
-         * Returns an action indicating that all column names should be
-         * modified by appending a given string.
-         *
-         * @param  appendage  string to append to columns
-         */
-        public static FixAction makeRenameAllAction( String appendage ) {
-            return new FixAction( "Fix All: " + appendage, appendage,
-                                  true, true );
-        }
-
-        /**
-         * Returns the, possibly modified, name of a column.
-         *
-         * @param  origName  unmodified column name
-         * @param  isDup  whether the column name would be duplicated
-         *         in the set of unmodified names
-         */
-        private String getFixedName( String origName, boolean isDup ) {
-            return renameAll || ( renameDup && isDup ) ? origName + appendage 
-                                                       : origName;
-        }
-
-        public String toString() {
-            return name;
         }
     }
 }

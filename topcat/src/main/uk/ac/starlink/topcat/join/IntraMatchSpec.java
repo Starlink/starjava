@@ -18,6 +18,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
@@ -183,9 +184,9 @@ public class IntraMatchSpec extends MatchSpec {
             long nrow = inTable.getRowCount();
             StarTable grpTable = MatchStarTables
                                 .makeInternalMatchTable( 0, matches, nrow );
-            JoinStarTable.FixAction[] fixActs = new JoinStarTable.FixAction[] {
-                JoinStarTable.FixAction.makeRenameDuplicatesAction( "_old" ),
-                JoinStarTable.FixAction.NO_ACTION,
+            JoinFixAction[] fixActs = new JoinFixAction[] {
+                JoinFixAction.makeRenameDuplicatesAction( "_old" ),
+                JoinFixAction.NO_ACTION,
             };
             return new JoinStarTable( new StarTable[] { inTable, grpTable },
                                       fixActs );

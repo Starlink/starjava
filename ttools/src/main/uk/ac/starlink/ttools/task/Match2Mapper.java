@@ -6,6 +6,7 @@ import java.io.PrintStream;
 import java.util.Map;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -226,9 +227,9 @@ public class Match2Mapper implements TableMapper {
             }
 
              /* Create a new table from the result. */
-            JoinStarTable.FixAction[] fixActs = new JoinStarTable.FixAction[] {
-                JoinStarTable.FixAction.makeRenameDuplicatesAction( "_1" ),
-                JoinStarTable.FixAction.makeRenameDuplicatesAction( "_2" ),
+            JoinFixAction[] fixActs = new JoinFixAction[] {
+                JoinFixAction.makeRenameDuplicatesAction( "_1" ),
+                JoinFixAction.makeRenameDuplicatesAction( "_2" ),
             };
             ValueInfo scoreInfo = matchEngine_.getMatchScoreInfo();
             StarTable out = MatchStarTables
