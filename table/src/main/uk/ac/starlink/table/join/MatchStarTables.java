@@ -42,7 +42,7 @@ public class MatchStarTables {
      * number of matched row objects in a given group (with the same group ID).
      */
     public static final ValueInfo GRP_SIZE_INFO =
-        new DefaultValueInfo( "GroupCount", Integer.class,
+        new DefaultValueInfo( "GroupSize", Integer.class,
                               "Number of rows in match group" );
 
     private static final Logger logger_ =
@@ -70,11 +70,15 @@ public class MatchStarTables {
      * the <code>score</code> values from the <code>RowLink</code>s in
      * <code>links</code>.  The content class of <code>matchScoreInfo</code>
      * should be <code>Number</code> or one of its subclasses.
+     * <p>
+     * This is a convenience method which calls the other
+     * <code>makeJoinTable</code> method.
      * 
      * @param  table1  first input table
      * @param  table2  second input table
-     * @param  pairs  set of links each representing a matche pair of rows
-     *         between <code>table1</code> and <code>table2</code>
+     * @param  pairs  set of links each representing a matched pair of rows
+     *         between <code>table1</code> and <code>table2</code>.
+     *         Contents of this set may be modified by this routine
      * @param  joinType  describes how the input list of matched pairs
      *         is used to generate an output sequence of rows
      * @param  addGroups  flag which indicates whether the output table
@@ -105,15 +109,13 @@ public class MatchStarTables {
           * appearance in the output table (i.e. which of their columns
           * will be required). */
          boolean[] useFlags = joinType.getUsedTableFlags();
-         List tableList = new ArrayList();
+         StarTable[] tables = new StarTable[ 2 ];
          if ( useFlags[ 0 ] ) {
-             tableList.add( table1 );
+             tables[ 0 ] = table1;
          }
          if ( useFlags[ 1 ] ) {
-             tableList.add( table2 );
+             tables[ 1 ] = table2;
          }
-         StarTable[] tables = (StarTable[])
-                              tableList.toArray( new StarTable[ 0 ] );
 
          /* If a match score column is going to be empty, make sure it's
           * not entered. */
@@ -266,12 +268,13 @@ public class MatchStarTables {
          * input tables; the N'th row of each one corresponds to the
          * N'th RowLink. */
         List subTableList = new ArrayList();
+        List fixActList = new ArrayList();
         for ( int iTable = 0; iTable < nTable; iTable++ ) {
             StarTable table = tables[ iTable ];
             if ( table != null ) {
-                StarTable subTable =
-                    new RowPermutedStarTable( table, rowIndices[ iTable ] );
-                subTableList.add( subTable );
+                subTableList.add( 
+                    new RowPermutedStarTable( table, rowIndices[ iTable ] ) );
+                fixActList.add( fixActs[ iTable ] );
             }
         }
 
@@ -327,16 +330,16 @@ public class MatchStarTables {
                 extraTable.addColumn( (ColumnData) it.next() );
             }
             subTableList.add( extraTable );
-            JoinStarTable.FixAction[] fa = fixActs;
-            fixActs = new JoinStarTable.FixAction[ nTable + 1 ];
-            System.arraycopy( fa, 0, fixActs, 0, nTable );
-            fixActs[ nTable ] = JoinStarTable.FixAction.NO_ACTION;
+            fixActList.add( JoinStarTable.FixAction.NO_ACTION );
         }
 
         /* Join all the subtables up to make one big one. */
         StarTable[] subTables = 
             (StarTable[]) subTableList.toArray( new StarTable[ 0 ] );
-        JoinStarTable joined = new JoinStarTable( subTables, fixActs );
+        JoinStarTable.FixAction[] subFixes =
+            (JoinStarTable.FixAction[])
+            fixActList.toArray( new JoinStarTable.FixAction[ 0 ] );
+        JoinStarTable joined = new JoinStarTable( subTables, subFixes );
         joined.setName( "Joined" );
         return joined;
     }
