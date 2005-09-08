@@ -134,7 +134,8 @@ public class InterMatchSpec extends MatchSpec {
 
         /* Create a new table based on the matched lines we have identified. */
         result = MatchStarTables
-                .makeJoinTable( bases, matches, getDefaultFixActions( nTable ),
+                .makeJoinTable( bases, matches, false,
+                                getDefaultFixActions( nTable ),
                                 engine.getMatchScoreInfo() );
         addMatchMetadata( result, getDescription(), engine, tables );
 
@@ -206,7 +207,7 @@ public class InterMatchSpec extends MatchSpec {
     }
 
     public String getDescription() {
-        return toString();
+        return "Multi-table match performed by TOPCAT";
     }
 
     /**
@@ -245,9 +246,10 @@ public class InterMatchSpec extends MatchSpec {
             params.add( matchParams[ i ] );
         }
         for ( int i = 0; i < effTables.length; i++ ) {
+            int i1 = i + 1;
             String id = null;
             if ( id == null ) {
-                URL url = table.getURL();
+                URL url = effTables[ i ].getURL();
                 if ( url != null ) {
                     id = url.toString();
                 }
@@ -259,7 +261,7 @@ public class InterMatchSpec extends MatchSpec {
                 id = "(virtual)";
             }
             ValueInfo idInfo =
-                new DefaultValueInfo( "Matched table " + i, String.class,
+                new DefaultValueInfo( "Matched table " + i1, String.class,
                                       "Table on which the match was done" );
             params.add( new DescribedValue( idInfo, id ) );
         }
