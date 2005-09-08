@@ -4,13 +4,16 @@ import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Map;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
+import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -18,6 +21,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.JELTable;
 import uk.ac.starlink.ttools.TableConsumer;
 
@@ -31,8 +35,11 @@ public class Match2Mapper implements TableMapper {
 
     private final MatchEngineParameter matcherParam_;
     private final WordsParameter[] tupleParams_;
-    private final ChoiceParameter selectParam_;
+    private final JoinTypeParameter joinParam_;
     private final ChoiceParameter modeParam_;
+
+    private final static Logger logger =
+        Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     public Match2Mapper() {
 
@@ -64,7 +71,7 @@ public class Match2Mapper implements TableMapper {
             } );
         }
 
-        modeParam_ = new ChoiceParameter( "mode", new String[] {
+        modeParam_ = new ChoiceParameter( "find", new String[] {
             "best", "all",
         } );
         modeParam_.setDefault( "best" );
@@ -80,35 +87,9 @@ public class Match2Mapper implements TableMapper {
             "will be represented in the output table.",
         } );
 
-        selectParam_ = new ChoiceParameter( "outrows", new String[] {
-            "all1", "all2", "1or2", "1and2", "1not2", "2not1", "1xor2",
-        } );
-        selectParam_.setDefault( "1or2" );
-        selectParam_.setPrompt( "Selection criteria for output rows" );
-        selectParam_.setDescription( new String[] {
-            "Determines which rows are included in the output table.",
-            "The matching algorithm determines which of the rows from",
-            "the first table correspond to which rows from the second.",
-            "This parameter determines what to do with that information.",
-            "Perhaps the most obvious thing is to write out a table",
-            "containing only rows which correspond to a row in both of",
-            "the two input tables.  However, you may also want to see",
-            "the unmatched rows from one or both input tables,",
-            "or rows present in one table but unmatched in the other,",
-            "or other possibilities.",
-            "The options are:",
-            "<ul>",
-            "<li><code>1and2</code>:",
-                 "An output row for each row represented in",
-                 "both input tables</li>",
-            "<li><code>1or2</code>:",
-                 "Only rows represented in both input tables</li>",
-            "<li><code>1or2</code>:",
-                 "An output row for each row represented in",
-                 "either or both of the input tables</li>",
-            "<li>.. and so on</li>",
-            "</ul>",
-        } );
+        joinParam_ = new JoinTypeParameter( "jointype" );
+        joinParam_.setDefault( "1and2" );
+        joinParam_.setPrompt( "Selection criteria for output rows" );
     }
 
     public int getInCount() {
@@ -121,7 +102,7 @@ public class Match2Mapper implements TableMapper {
             tupleParams_[ 0 ],
             tupleParams_[ 1 ],
             matcherParam_.getMatchParametersParameter(),
-            selectParam_,
+            joinParam_,
             modeParam_,
         };
     }
@@ -156,13 +137,24 @@ public class Match2Mapper implements TableMapper {
         }
 
         /* Get other parameter values. */
-        String select = selectParam_.stringValue( env );
+        JoinType join = joinParam_.joinTypeValue( env );
         String mode = modeParam_.stringValue( env );
+        boolean bestOnly;
+        if ( mode.toLowerCase().equals( "best" ) ) {
+            bestOnly = true;
+        }
+        else if ( mode.toLowerCase().equals( "all" ) ) {
+            bestOnly = false;
+        }
+        else {
+            throw new UsageException( "Unknown value of " +
+                                      modeParam_.getName() + "??" );
+        }
         PrintStream out = env.getPrintStream();
 
         /* Construct and return a mapping based on this lot. */
         return new Match2Mapping( matcher, tupleExprs[ 0 ], tupleExprs[ 1 ],
-                                  select, mode, out );
+                                  join, bestOnly, out );
     }
 
     /**
@@ -172,6 +164,8 @@ public class Match2Mapper implements TableMapper {
 
         final String[][] exprTuples_;
         final MatchEngine matchEngine_;
+        final boolean bestOnly_;
+        final JoinType join_;
         final PrintStream out_;
 
         /**
@@ -186,15 +180,17 @@ public class Match2Mapper implements TableMapper {
          *          the second input table which are used for input into the
          *          match; each element is a JEL expression evaluated in
          *          the context of the second table
-         * @param   select  output row selection type
-         * @param   mode   match mode
+         * @param   join  output row selection type
+         * @param   bestOnly   whether only the best match is to be retained
          * @param   out   output print stream
          */
         Match2Mapping( MatchEngine matchEngine, String[] exprTuple1,
-                       String[] exprTuple2, String select, String mode,
-                       PrintStream out ) {
+                       String[] exprTuple2, JoinType join,
+                       boolean bestOnly, PrintStream out ) {
             matchEngine_ = matchEngine;
             exprTuples_ = new String[][] { exprTuple1, exprTuple2 };
+            join_ = join;
+            bestOnly_ = bestOnly;
             out_ = out;
         }
 
@@ -217,11 +213,13 @@ public class Match2Mapper implements TableMapper {
             /* Do the match. */
             RowMatcher matcher = new RowMatcher( matchEngine_, subTables );
             matcher.setIndicator( new TextProgressIndicator( out_ ) );
-            Map matchScores;
+            LinkSet matches;
             try {
-                matchScores = matcher.findPairMatches( true, true );
-                matchScores = matcher.sortMap( matchScores,
-                                               "Sorting output rows" );
+                matches = matcher.findPairMatches( bestOnly_ );
+                if ( ! matches.sort() ) {
+                    logger.warning( "Implementation can't sort rows - "
+                                  + "matched table rows may not be ordered" );
+                }
             }
             catch ( InterruptedException e ) {
                 throw new ExecutionException( e.getMessage(), e );  
@@ -234,8 +232,9 @@ public class Match2Mapper implements TableMapper {
             };
             ValueInfo scoreInfo = matchEngine_.getMatchScoreInfo();
             StarTable out = MatchStarTables
-                           .makeJoinTable( inTables, matchScores.keySet(),
-                                           fixActs, matchScores, scoreInfo );
+                           .makeJoinTable( inTables[ 0 ], inTables[ 1 ],
+                                           matches, join_, ! bestOnly_,
+                                           fixActs, scoreInfo );
 
             /* Dispose of the resulting matched table. */
             consumers[ 0 ].consume( out );
