@@ -172,10 +172,15 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * @return  new MatchSpec
      */
     private MatchSpec makeMatchSpec( MatchEngine engine ) {
-        return nTable > 1 ? (MatchSpec) new InterMatchSpec( engine, nTable )
-                          : (MatchSpec) new IntraMatchSpec( engine );
+        switch( nTable ) {
+            case 1:
+                return new IntraMatchSpec( engine );
+            case 2:
+                return new PairMatchSpec( engine );
+            default:
+                return new InterMatchSpec( engine, nTable );
+        }
     }
-
 
     /**
      * Called when one of the selection controls is changed and aspects
