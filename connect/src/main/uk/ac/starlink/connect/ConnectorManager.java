@@ -11,7 +11,7 @@ import uk.ac.starlink.util.Loader;
  * the following connectors are known:
  * <ul>
  * <li>{@link uk.ac.starlink.srb.SRBConnector} (SRB)
- * <li>{@link uk.ac.starlink.astrogrid.TreeClientConnector} (MySpace V1)
+ * <li>{@link uk.ac.starlink.astrogrid.AcrConnector} (MySpace)
  * </ul>
  *
  * @author   Mark Taylor
@@ -24,8 +24,8 @@ public class ConnectorManager {
 
     /** List of classnames of known {@link Connector} implementations. */
     private static final String[] KNOWN_CONNECTORS = new String[] {
+        "uk.ac.starlink.astrogrid.AcrConnector",
         "uk.ac.starlink.srb.SRBConnector",
-        "uk.ac.starlink.astrogrid.TreeClientConnector",
     };
             
     /**     
