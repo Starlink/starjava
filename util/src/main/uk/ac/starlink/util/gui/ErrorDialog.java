@@ -116,7 +116,10 @@ public class ErrorDialog extends JDialog {
             List lines = new ArrayList( Arrays.asList( message_ ) );
             String errmsg = error_.getMessage();
             if ( errmsg != null ) {
-                lines.add( errmsg );
+                String[] msgLines = errmsg.split( "\n" );
+                for ( int i = 0; i < msgLines.length; i++ ) {
+                    lines.add( msgLines[ i ] );
+                }
             }
             if ( lines.size() == 0 ) {
                 lines.add( title_ == null ? error_.getClass().getName()
