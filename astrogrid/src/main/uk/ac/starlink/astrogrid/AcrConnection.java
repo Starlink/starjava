@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,8 +35,11 @@ class AcrConnection extends Connection {
     private final AcrBranch root_;
     private final XmlRpcClient client_;
 
-    /** Location in the user's home direcrtory of the ACR rendezvous file. */
+    /** Location in the user's home directory of the ACR rendezvous file. */
     public static String ACR_FILE = ".astrogrid-desktop";
+
+    /** Number of bytes per chunk used in HTTP streamed output. */
+    public static int HTTP_CHUNK = 1024 * 1024;
 
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.astrogrid" );
@@ -45,8 +50,7 @@ class AcrConnection extends Connection {
      * @param  connector   connector instance which dispatched this connection,
      *                     if any
      */
-    protected AcrConnection( AcrConnector connector ) 
-            throws IOException {
+    public AcrConnection( AcrConnector connector ) throws IOException {
         super( connector, new HashMap() );
         client_ = new XmlRpcClient( getServerURL() );
         String homeUri = (String) execute( "astrogrid.myspace.getHome", null );
@@ -112,6 +116,87 @@ class AcrConnection extends Connection {
      * Returns an output stream which can be used to write to a URI 
      * representing a location in MySpace (an Ivorn).
      *
+     *
+     * @param  outUri  output URI
+     * @return  output stream which will write data to the location 
+     *          represented by <code>outUri</code>
+     */
+    public OutputStream getOutputStream( String outUri )
+            throws IOException {
+
+        /* Not working, as far as I can see.  From Noel's comments it 
+         * looks like the trouble is at the client end though, so 
+         * probably fixable. */
+        if ( false ) {
+            try {
+                return getHttpOutputStream( outUri );
+            }
+            catch ( IOException e ) {
+                logger_.warning( "Failed to output using HTTP streaming " +
+                                 "try temporary file" );
+            }
+        }
+
+        /* If we've got here, we haven't managed an output stream any
+         * other way, so do it the dumb way. */
+        return getTempFileOutputStream( outUri );
+    }
+
+    /**
+     * Returns an output stream which can be used to write to a URI 
+     * doing it directly via a writable HTTP connection.
+     *
+     * @param  outUri  output URI
+     * @return  output stream which will write data to the location 
+     *          represented by <code>outUri</code>
+     */
+    private OutputStream getHttpOutputStream( String outUri )
+            throws IOException {
+
+        String outLoc =
+            (String) execute( "astrogrid.myspace.getWriteContentURL",
+                              new Object[] { outUri } );
+        URL url = new URL( outLoc );
+
+        /* Acquire and configure the HTTP connection. */
+        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+        httpConn.setAllowUserInteraction( false );
+        httpConn.setDoInput( false );
+        httpConn.setDoOutput( true );
+        httpConn.setUseCaches( false );
+        httpConn.setRequestMethod( "PUT" );
+
+        /* Attempt to configure for a streamed write.  This is only 
+         * available at Java 1.5 and above. */
+        try {
+            httpConn.getClass().getMethod( "setChunkedStreamingMode",
+                                           new Class[] { int.class } )
+                    .invoke( httpConn,
+                             new Object[] { new Integer( HTTP_CHUNK ) } );
+            logger_.config( "Streaming with chunk size " + HTTP_CHUNK 
+                          + "to remote URL " + url );
+        }
+        catch ( Throwable err ) {
+            logger_.warning( "Can't stream to output URL (requires J2SE1.5)" );
+        }
+
+        /* Make the connection and return the result. */
+        httpConn.connect();
+        return new FilterOutputStream( httpConn.getOutputStream() ) {
+            public void close() throws IOException {
+                flush();
+                super.close();
+            }
+        };
+    }
+
+
+    /**
+     * Returns an output stream which can be used to write to a URI,
+     * where the data is first written to a local temporary file. 
+     * This is not very efficient or elegant, but may be used as a fallback
+     * if something goes wrong with the HTTP method.
+     *
      * <p>The implementation of this currently leaves rather a lot to 
      * be desired; the returned stream is a FileOutputStream pointing
      * at a temporary file, and when it's closed the file contents
@@ -126,7 +211,7 @@ class AcrConnection extends Connection {
      * @return  output stream which will write data to the location 
      *          represented by <code>outUri</code>
      */
-    public OutputStream getOutputStream( final String outUri )
+    private OutputStream getTempFileOutputStream( final String outUri )
             throws IOException {
         final File file = File.createTempFile( "acr-temp", ".dat" );
         file.deleteOnExit();
