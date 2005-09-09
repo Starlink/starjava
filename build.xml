@@ -128,9 +128,6 @@
     <echo message="Executing Jetty target: ${what}"/>
     <ant dir="./jetty" target="${what}"/>
 
-    <echo message="Executing AGLIB target: ${what}"/>
-    <ant dir="./aglib" target="${what}"/>
-
     <echo message="Executing UTIL target: ${what}"/>
     <ant dir="./util" target="${what}"/>
 

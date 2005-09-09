@@ -457,7 +457,6 @@
       <classpath refid="classpath"/>
       <arg value="-o"/><arg value="${dist.lib.pkg}/topcat-lite.jar"/>
       <arg value="-x"/><arg value="array.jar"/>
-      <arg value="-x"/><arg value="aglib.jar"/>
       <arg value="-x"/><arg value="astrogrid.jar"/>
       <arg value="-x"/><arg value="axis.jar"/>
       <arg value="-x"/><arg value="hds.jar"/>
