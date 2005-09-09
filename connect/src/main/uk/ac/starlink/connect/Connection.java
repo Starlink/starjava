@@ -43,7 +43,8 @@ public abstract class Connection {
      */
     protected Connection( Connector connector, Map keys ) {
         connector_ = connector;
-        keys_ = new HashMap( keys );
+        keys_ = keys == null ? new HashMap()
+                             : new HashMap( keys );
     }
 
     /**
