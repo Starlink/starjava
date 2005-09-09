@@ -172,7 +172,7 @@ public class ConnectorAction extends AbstractAction {
                              : null;
             final JDialog dialog = createDialog( parent );
 
-            if ( ! noAuth ) {
+            if ( ! noAuth_ ) {
                 dialog.show();
             }
             else {   
