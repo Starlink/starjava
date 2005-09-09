@@ -53,6 +53,7 @@ public class ConnectorAction extends AbstractAction {
     private final JPanel entryPanel_;
     private final Map fieldMap_;
     private final Action okAction_;
+    private final boolean noAuth_;
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo.tree" );
 
@@ -86,6 +87,7 @@ public class ConnectorAction extends AbstractAction {
         GridBagLayout layer = new GridBagLayout();
         JPanel stack = new JPanel( layer );
         AuthKey[] keys = connector.getKeys();
+        noAuth_ = keys.length == 0;
         fieldMap_ = new HashMap();
         JTextField firstField = null;
         JTextField firstEmpty = null;
@@ -168,8 +170,31 @@ public class ConnectorAction extends AbstractAction {
             Component parent = src instanceof Component 
                              ? (Component) src
                              : null;
-            JDialog dialog = createDialog( parent );
-            dialog.show();
+            final JDialog dialog = createDialog( parent );
+
+            if ( ! noAuth ) {
+                dialog.show();
+            }
+            else {   
+
+                /* This rather tortuous way of doing things is to ensure that
+                 * the ok() action is invoked as soon as, but not before,
+                 * the dialogue has been posted.  Can't just make the two
+                 * calls one after the other, since show() blocks. 
+                 * Is there a less weird way of doing this?? */
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() { 
+                        dialog.show();
+                    }
+                } );
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() { 
+                        if ( noAuth_ ) {
+                            ok();
+                        }
+                    }
+                } );
+            }
         }
 
         /* Otherwise, try to log out. */
@@ -214,20 +239,29 @@ public class ConnectorAction extends AbstractAction {
         JComponent controlBox = Box.createHorizontalBox();
         controlBox.add( Box.createHorizontalGlue() );
         controlBox.add( new JButton( cancelAction ) );
-        controlBox.add( Box.createHorizontalStrut( 5 ) );
-        controlBox.add( new JButton( okAction_ ) );
+        if ( ! noAuth_ ) {
+            controlBox.add( Box.createHorizontalStrut( 5 ) );
+            controlBox.add( new JButton( okAction_ ) );
+        }
         controlBox.setBorder( gapBorder );
 
         /* Box containing a question mark image. */
-        JComponent imageBox = 
-            new JLabel( UIManager.getIcon( "OptionPane.questionIcon" ) );
+        String iconID = noAuth_ ? "OptionPane.informationIcon"
+                                : "OptionPane.questionIcon";
+        JComponent imageBox = new JLabel( UIManager.getIcon( iconID ) );
         imageBox.setBorder( gapBorder );
 
         /* Box containing the data entry fields themselves. */
         JPanel main = new JPanel( new BorderLayout() );
         JComponent entryHolder = new JPanel( new BorderLayout() );
         entryHolder.setBorder( gapBorder );
-        entryHolder.add( entryPanel_ );
+        if ( noAuth_ ) {
+            entryHolder.add( new JLabel( "Attempting " + connector_.getName() 
+                                                       + " connection ..." ) );
+        }
+        else {
+            entryHolder.add( entryPanel_ );
+        }
 
         /* Put them all together in the dialogue. */
         main.add( entryHolder, BorderLayout.CENTER );
@@ -262,7 +296,7 @@ public class ConnectorAction extends AbstractAction {
 
         /* Prepare a map of authorization key -> value pairs to describe
          * the login attempt. */
-        final Map valueMap = new HashMap();
+        Map valueMap = new HashMap();
         for ( Iterator it = fieldMap_.keySet().iterator(); it.hasNext(); ) {
             AuthKey key = (AuthKey) it.next();
             Object value;
@@ -284,6 +318,16 @@ public class ConnectorAction extends AbstractAction {
             }
             valueMap.put( key, value );
         }
+        attemptLogin( valueMap );
+    }
+
+    /**
+     * Makes an asynchronous login attempt with a given set of authorization
+     * keys.
+     *
+     * @param  authorization key-value pairs
+     */
+    private void attemptLogin( final Map authMap ) {
 
         /* Asynchronously attempt to make a connection using these values. */
         setEnabled( false );
@@ -292,7 +336,7 @@ public class ConnectorAction extends AbstractAction {
             IOException error;
             public void run() {
                 try {
-                    conn = connector_.logIn( valueMap );
+                    conn = connector_.logIn( authMap );
                 }
                 catch ( IOException e ) {
                     error = e;
