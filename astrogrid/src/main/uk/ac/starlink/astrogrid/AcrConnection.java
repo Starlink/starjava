@@ -1,12 +1,13 @@
 package uk.ac.starlink.astrogrid;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -52,6 +53,19 @@ class AcrConnection extends Connection {
      */
     public AcrConnection( AcrConnector connector ) throws IOException {
         super( connector, new HashMap() );
+        URL url;
+        try {
+            url = getServerURL();
+        }
+        catch ( FileNotFoundException e ) {
+            String msg = "The ACR is does not appear to be running (no ~/"
+                       + ACR_FILE +")\n"
+                       + "To enable MySpace access, start the Astrogrid "
+                       + "Desktop\n" 
+                       + "(http://software.astrogrid.org/jnlp/"
+                       + "astrogrid-desktop/astrogrid-desktop.jnlp)";
+            throw (IOException) new IOException( msg ).initCause( e );
+        }
         client_ = new XmlRpcClient( getServerURL() );
         String homeUri = (String) execute( "astrogrid.myspace.getHome", null );
         root_ = new AcrBranch( this, homeUri, homeUri, null );
