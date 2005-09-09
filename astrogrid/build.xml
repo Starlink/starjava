@@ -195,9 +195,6 @@
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- AstroGrid CDK -->
-    <pathelement location="${star.jar.dir}/aglib/aglib.jar"/>
-
     <!-- Table -->
     <pathelement location="${star.jar.dir}/table/table.jar"/>
 
@@ -224,8 +221,6 @@
    !-->
   <extclasspath id="built.jarpath">
 
-    <pathelement 
-       location="${star.build.dir}/aglib/lib/aglib/aglib.jar"/>
     <pathelement 
        location="${star.build.dir}/table/lib/table/table.jar"/>
     <pathelement
@@ -320,12 +315,6 @@
    !-->
   <target name="check_packages"
           unless="runonly.install">
-
-    <!-- AGLIB -->
-    <available property="aglib.present"
-               classpathref="classpath"
-               classname="org.astrogrid.store.tree.TreeClient"/>
-    <fail message="No AGLIB available" unless="aglib.present"/>
 
     <!-- Table -->
     <available property="table.present"
@@ -490,7 +479,6 @@
          <jar href="${name}/${name}.jar"/>
 
          <!-- Name any extension packages we directly depend on -->
-         <extension name="AGLIB" href="aglib.jnlp"/>
          <extension name="CONNECT" href="connect.jnlp"/>
        </resources>
 
