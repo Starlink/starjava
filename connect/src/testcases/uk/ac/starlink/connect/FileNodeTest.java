@@ -23,6 +23,11 @@ public class FileNodeTest extends TestCase {
         assertEquals( -1, branch.getName().indexOf( '/' ) );
         assertEquals( branch.toString(), dir.getCanonicalPath() );
         Set fchildren = new HashSet( Arrays.asList( dir.listFiles() ) );
+        for ( Iterator it = fchildren.iterator(); it.hasNext(); ) {
+            if ( ((File) it.next()).isHidden() ) {
+                it.remove();
+            }
+        }
         Set nchildren = new HashSet( Arrays.asList( branch.getChildren() ) );
         assertEquals( fchildren.size(), nchildren.size() );
         assertTrue( "Please run in a non-empty directory",
