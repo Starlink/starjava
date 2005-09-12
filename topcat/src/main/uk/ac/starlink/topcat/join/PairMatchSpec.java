@@ -198,7 +198,7 @@ public class PairMatchSpec extends MatchSpec {
             msg = new String[] {
                 pairCount_ + " pairs found",
                 "New table created by match: " + tcModel +
-                "(" + result_.getRowCount() + " rows)",
+                " (" + result_.getRowCount() + " rows)",
             };
         }
         JOptionPane.showMessageDialog( parent, msg, title, msgType );
