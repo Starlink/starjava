@@ -267,7 +267,6 @@ public class Driver {
 
         /* Configure logging. */
         configureLogging( verbosity );
-        
 
         /* Assemble pairs of (tables name, handler name) to be loaded. */
         List names = new ArrayList();
@@ -651,6 +650,10 @@ public class Driver {
                 rootHandlers[ 0 ].setFormatter( new LineFormatter() );
             }
             rootLogger.setLevel( verbLevel );
+
+            /* Filter out an annoying message that Axis issues. */
+            Logger.getLogger( "org.apache.axis.utils.JavaUtils" )
+                  .setLevel( Level.SEVERE );
         }
 
         /* I don't think this should happen, since the earlier test should
