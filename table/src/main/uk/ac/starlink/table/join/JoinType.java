@@ -22,14 +22,16 @@ import uk.ac.starlink.table.Tables;
 public abstract class JoinType {
 
     private final String name_;
+    private final String longName_;
 
     /**
      * Private sole constructor.
      *
      * @param  name  name
      */
-    private JoinType( String name ) {
+    private JoinType( String name, String longName ) {
         name_ = name;
+        longName_ = longName;
     }
 
     /**
@@ -87,7 +89,7 @@ public abstract class JoinType {
      * Returns the name of this type.
      */
     public String toString() {
-        return name_;
+        return longName_;
     }
 
     /**
@@ -102,7 +104,7 @@ public abstract class JoinType {
     }
 
     /** Selects only rows with input from both input tables. */
-    public static final JoinType _1AND2 = new JoinType( "1and2" ) {
+    public static final JoinType _1AND2 = new JoinType( "1and2", "1 and 2" ) {
         public String getDescription() {
             return "An output row for each row represented in both " +
                    "input tables";
@@ -119,7 +121,7 @@ public abstract class JoinType {
     };
 
     /** Selects rows with input from either or both input tables. */
-    public static final JoinType _1OR2 = new JoinType( "1or2" ) {
+    public static final JoinType _1OR2 = new JoinType( "1or2", "1 or 2" ) {
         public String getDescription() {
             return "An output row for each row represented in either or " +
                    "both of the input tables";
@@ -149,8 +151,8 @@ public abstract class JoinType {
 
     private static class AllType extends JoinType {
         final int iTable_;
-        AllType( String name, int iTable ) {
-            super( name );
+        AllType( String name, String longName, int iTable ) {
+            super( name, longName );
             iTable_ = iTable;
         }
         public String getDescription() {
@@ -175,16 +177,18 @@ public abstract class JoinType {
     };
 
     /** Selects all output rows with input from the first input table. */
-    public static final JoinType _ALL1 = new AllType( "all1", 0 );
+    public static final JoinType _ALL1 =
+        new AllType( "all1", "All from 1", 0 );
 
     /** Selects all output rows with input from the second input table. */
-    public static final JoinType _ALL2 = new AllType( "all2", 1 );
+    public static final JoinType _ALL2 =
+        new AllType( "all2", "All from 2", 1 );
 
     private static class NotType extends JoinType {
         final int yesTable_;
         final int noTable_;
-        NotType( String name, int noTable ) {
-            super( name );
+        NotType( String name, String longName, int noTable ) {
+            super( name, longName );
             noTable_ = noTable;
             yesTable_ = 1 - noTable_;
         }
@@ -239,19 +243,21 @@ public abstract class JoinType {
      * Selects only rows in the second input table which are not matched
      * by any row in the first input table.
      */
-    public static final JoinType _2NOT1 = new NotType( "2not1", 0 );
+    public static final JoinType _2NOT1 =
+        new NotType( "2not1", "2 not 1", 0 );
 
     /**
      * Selects only rows in the first input table which are not matched
      * by any row in the second input table.
      */
-    public static final JoinType _1NOT2 = new NotType( "1not2", 1 );
+    public static final JoinType _1NOT2 =
+        new NotType( "1not2", "1 not 2", 1 );
 
     /**
      * Selects only rows with input from exactly one of the two input
      * tables.
      */
-    public static final JoinType _1XOR2 = new JoinType( "1xor2" ) {
+    public static final JoinType _1XOR2 = new JoinType( "1xor2", "1 xor 2" ) {
         public String getDescription() {
             return "An output row only for rows represented in one of "
                  + "the input tables but not the other one";
