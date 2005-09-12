@@ -508,5 +508,9 @@ public class LineInvoker {
             rootHandlers[ 0 ].setFormatter( new LineFormatter( debug ) );
         }
         rootLogger.setLevel( verbLevel );
+
+        /* Filter out an annoying message that Axis issues. */
+        Logger.getLogger( "org.apache.axis.utils.JavaUtils" )
+              .setLevel( Level.SEVERE );
     }
 }
