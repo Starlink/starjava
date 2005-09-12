@@ -47,7 +47,7 @@ public interface ProcessingFilter {
      * later using this mode's usage text.
      *
      * @param  argIt  iterator over command-line arguments positioned
-     *         just after the -getName() flag
+     *         at the first one
      */
     ProcessingStep createStep( Iterator argIt ) throws ArgException;
 }

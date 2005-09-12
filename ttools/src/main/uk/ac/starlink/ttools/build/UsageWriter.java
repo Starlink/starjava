@@ -82,13 +82,13 @@ public class UsageWriter {
      * @return   XML snippet for <code>param</code>
      */
     public static String xmlItem( Parameter param ) {
-        String usage = ( "-" + param.getName() + " = " + param.getUsage() )
+        String usage = ( param.getName() + " = " + param.getUsage() )
                       .replaceAll( "<", "&lt;" )
                       .replaceAll( ">", "&gt;" );
         String descrip = param.getDescription().toString();
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "<dt><code>" )
-            .append( ( "-" + param.getName() + " = " + param.getUsage() )
+            .append( ( param.getName() + " = " + param.getUsage() )
                     .replaceAll( "<", "&lt;" )
                     .replaceAll( ">", "&gt;" ) )
             .append( "</code></dt>\n" )

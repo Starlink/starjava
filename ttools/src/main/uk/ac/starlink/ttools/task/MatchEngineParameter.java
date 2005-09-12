@@ -77,7 +77,6 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                 String name = EXAMPLES[ i ];
                 MatchEngine engine = createEngine( name );
                 line.append( "      " )
-                    .append( '-' )
                     .append( getName() )
                     .append( '=' )
                     .append( name );
@@ -224,7 +223,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         StringBuffer sbuf = new StringBuffer();
         ValueInfo[] tupleInfos = engine.getTupleInfos();
         if ( tupleInfos.length > 0 ) {
-            sbuf.append( " -values*='" );
+            sbuf.append( " values*='" );
             for ( int i = 0; i < tupleInfos.length; i++ ) {
                 if ( i > 0 ) {
                     sbuf.append( ' ' );
@@ -247,7 +246,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         StringBuffer sbuf = new StringBuffer();
         DescribedValue[] params = engine.getMatchParameters();
         if ( params.length > 0 ) {
-            sbuf.append( " -params='" );
+            sbuf.append( " params='" );
             for ( int i = 0; i < params.length; i++ ) {
                 if ( i > 0 ) {
                     sbuf.append( ' ' );

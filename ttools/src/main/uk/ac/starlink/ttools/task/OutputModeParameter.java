@@ -58,7 +58,7 @@ public class OutputModeParameter extends Parameter
             "(<code>&lt;mode-args&gt;</code>)",
             "are required to determine the exact behaviour.",
             "Possible values are" + modeList + ".",
-            "Use the <code>-help=" + getName() + "</code> flag",
+            "Use the <code>help=" + getName() + "</code> flag",
             "or see <ref id=\"outModes\"/> for more information.",
         } );
     }
@@ -75,7 +75,6 @@ public class OutputModeParameter extends Parameter
                                       modeFactory.createObject( name );
                 StringBuffer line = new StringBuffer()
                     .append( "      " )
-                    .append( '-' )
                     .append( getName() )
                     .append( '=' )
                     .append( name );
@@ -84,7 +83,7 @@ public class OutputModeParameter extends Parameter
                 for ( int j = 0; j < params.length; j++ ) {
                     Parameter param = params[ j ];
                     String word = 
-                        " -" + param.getName() + "=" + param.getUsage();
+                        " " + param.getName() + "=" + param.getUsage();
                     if ( line.length() + word.length() > 78 ) {
                         sbuf.append( line )
                             .append( '\n' );

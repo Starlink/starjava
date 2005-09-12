@@ -38,7 +38,7 @@ public class AddSkyCoordsFilter extends BasicFilter {
             "coordinate system specifiers are one of",
             SkySystem.getSystemUsage(),
             "</p>",
-            "<p>The <code>-inunits</code> and <code>-outunits</code> flags",
+            "<p>The <code>-inunit</code> and <code>-outunit</code> flags",
             "may be used to indicate the units of the existing coordinates",
             "and the units for the new coordinates respectively;",
             "use one of",

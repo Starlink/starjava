@@ -162,12 +162,9 @@ public class LineEnvironment extends TableEnvironment {
          */
         Argument( String arg ) {
             orig_ = arg;
-            if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
-                int epos = arg.indexOf( '=' );
-                if ( epos < 0 ) {
-                    throw new IllegalArgumentException( "Bad flag " + arg );
-                }
-                name_ = arg.substring( 1, epos );
+            int epos = arg.indexOf( '=' );
+            if ( epos > 0 ) {
+                name_ = arg.substring( 0, epos );
                 pos_ = -1;
                 value_ = readValue( arg.substring( epos + 1 ) );
             }

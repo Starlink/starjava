@@ -239,9 +239,9 @@ flag after the task name, so for instance
 results in
 <verbatim>&tcopy-usage;</verbatim>
 Finally, you can get help on any of the parameters of a task
-by writing <code>-help=&lt;param-name:gt;</code>, like this:
+by writing <code>help=&lt;param-name:gt;</code>, like this:
 <verbatim>
-   stilts tcopy -help=in
+   stilts tcopy help=in
 </verbatim>
 gives
 <verbatim>&tcopy-in-usage;</verbatim>
@@ -323,7 +323,7 @@ list of "words", each giving the value of one of the named parameters
 belonging to the task which is specified in the <code>&lt;task-name&gt;</code>
 part.  The general form of a parameter assignment is
 <verbatim><![CDATA[
-   -<param-name>=<param-value>
+   <param-name>=<param-value>
 ]]></verbatim>
 where <code>&lt;param-name&gt;</code> is the name of one of the parameters 
 listed in the appropriate Usage section in <ref id="cmdUsage"/>;
@@ -341,14 +341,14 @@ as provided in response to the command
 </verbatim>
 is as follows:
 <verbatim>&tcopy-usage;</verbatim>
-which means that you can leave out the "<code>-in=</code>" or 
-"<code>-out=</code>" parse when setting input/output tables, so that this:
+which means that you can leave out the "<code>in=</code>" or 
+"<code>out=</code>" parts when setting input/output tables, so that this:
 <verbatim>
-   stilts tcopy -ifmt=csv -ofmt=fits -in=cat.csv -out=cat.fits
+   stilts tcopy ifmt=csv ofmt=fits in=cat.csv out=cat.fits
 </verbatim>
 can equally well be written like this:
 <verbatim>
-   stilts tcopy -ifmt=csv -ofmt=fits cat.csv cat.fits
+   stilts tcopy ifmt=csv ofmt=fits cat.csv cat.fits
 </verbatim>
 </p>
 
@@ -357,7 +357,7 @@ sensible default values.  In the case above, <code>tcopy</code> is
 able to guess the output format by looking at the extension of 
 the supplied filename, so in this case you could just write
 <verbatim>
-   stilts tcopy -ifmt=csv cat.csv cat.fits
+   stilts tcopy ifmt=csv cat.csv cat.fits
 </verbatim>
 If you omit an argument that needs to be supplied, an error will be 
 issued.
@@ -368,14 +368,14 @@ useful thing to do.
 </p>
 
 <p>To find more information about any of a task's arguments, you 
-can use the <code>-help</code> flag, like this:
+can use the <code>help</code> parameter, like this:
 <verbatim>
-   stilts tcopy -help=ifmt
+   stilts tcopy help=ifmt
 </verbatim>
-which will give you information about <code>tcopy</code>'s <code>-ifmt</code>
+which will give you information about <code>tcopy</code>'s <code>ifmt</code>
 parameter, including some textual description, default values etc.
-For more detailed information than that given by the <code>-help</code>
-flag, consult the task description in <ref id="cmdUsage"/>.
+For more detailed information than that given by the <code>help</code>
+parameter, consult the task description in <ref id="cmdUsage"/>.
 </p>
 
 <p>In some cases, the task arguments may need to contain characters
@@ -391,8 +391,8 @@ including defaulted ones which you haven't specified explicitly,
 you can use the <code>-verbose</code> flag after the <code>stilts</code>
 command:
 <verbatim><![CDATA[
-   % stilts -verbose tcopy cat.fits cat.vot -ifmt=fits
-   INFO: tcopy -in=cat.fits -out=cat.vot -ifmt=fits -ofmt=(auto)
+   % stilts -verbose tcopy cat.fits cat.vot ifmt=fits
+   INFO: tcopy in=cat.fits out=cat.vot ifmt=fits ofmt=(auto)
 ]]></verbatim>
 </p>
 
@@ -420,7 +420,7 @@ The form of invocation in this case is:
 command itself should be on your path).
 A simple example would be:
 <verbatim>
-   stilts votcopy -format=binary t1.xml t2.xml
+   stilts votcopy format=binary t1.xml t2.xml
 </verbatim>
 in this case, as often, there are no <code>&lt;java-flags&gt;</code> or
 <code>&lt;stilts-flags&gt;</code>.
@@ -442,7 +442,7 @@ just write:
 ]]></verbatim>
 which in practice would look something like
 <verbatim>
-   java -jar /some/where/stilts.jar votcopy -format=binary t1.xml t2.xml
+   java -jar /some/where/stilts.jar votcopy format=binary t1.xml t2.xml
 </verbatim>
 </p>
 
@@ -466,7 +466,7 @@ In this case, you will need an invocation of this form:
 The example above in this case would look something like:
 <verbatim>
    java -classpath /some/where/topcat-full.jar uk.ac.starlink.ttools.Stilts 
-        votcopy -format=binary t1.xml t2.xml
+        votcopy format=binary t1.xml t2.xml
 </verbatim>
 </p>
 
@@ -699,7 +699,7 @@ of an SQL query on a table in a MySQL database as a VOTable:
           -Djdbc.drivers=com.mysql.jdbc.Driver \
           tcopy \
           "jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
-          -ofmt=votable gsc.vot
+          ofmt=votable gsc.vot
 ]]></verbatim>
 or invoking Java directly:
 <verbatim><![CDATA[
@@ -707,7 +707,7 @@ or invoking Java directly:
         -Djdbc.drivers=com.mysql.jdbc.Driver \
         uk.ac.starlink.ttools.TableCopy \
         "jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
-        -ofmt=votable gsc.vot
+        ofmt=votable gsc.vot
 ]]></verbatim>
 You have to exercise some care to get the arguments
 in the right order here - see <ref id="invoke"/>.
@@ -767,7 +767,7 @@ the <docxref doc="sun252">STIL documentation</docxref> for details.
 <subhead><title>Input Formats</title></subhead>
 
 <p>Some of the tools in this package ask you to specify the format
-of input tables using the <code>-ifmt</code> flag.
+of input tables using the <code>ifmt</code> parameter.
 The following list gives the values usually allowed for this
 (matching is case-insensitive):
 <dl>
@@ -823,7 +823,7 @@ table can't be read correctly.
 <subhead><title>Output Formats</title></subhead>
 
 <p>Some of the tools ask you to specify the format of output tables
-using the <code>-ofmt</code> flag.
+using the <code>ofmt</code> parameter.
 The following list gives the values usually allowed for this;
 in some cases as you can see there are several variants of a given format.
 You can abbreviate these names, and the first match in the list below
@@ -914,11 +914,11 @@ like using a Unix pipeline itself.
 Each processing step is specified by a command line, and these
 are applied in the order in which you've given them.
 You can either specify the list of steps in a file which you 
-name with <code>tpipe</code>'s <code>-script</code> flag,
+name with <code>tpipe</code>'s <code>script</code> parameter,
 or you can include them directly on the command line using
-the <code>-cmd</code> flag.
-<code>-cmd</code> can contain one or more steps separated by
-semicolons, and you can give <code>-cmd</code> values as many times
+the <code>cmd</code> parameter.
+<code>cmd</code> can contain one or more steps separated by
+semicolons, and you can give <code>cmd</code> values as many times
 as you like on the same command line - in either case the
 steps will be strung together in the specified order.
 </p>
@@ -947,7 +947,7 @@ this together.
 
 <p>These are the commands which can be used for table pipeline
 processing, in conjuncion with <code>tpipe</code>'s 
-<code>-cmd</code> or <code>-script</code> parameters.
+<code>cmd</code> or <code>script</code> parameters.
 </p>
 
 <p>The syntax of some of these arguments is described elsewhere in 
@@ -989,8 +989,8 @@ existing columns in a table.
     The first column is '1', the second is '2' and so on.
     </p>
     <p>Tip: if counting which column has which index is giving you a
-    headache, running <code>tpipe</code> with <code>-mode=meta</code> or 
-    <code>-mode=stats</code> on the table may help.
+    headache, running <code>tpipe</code> with <code>mode=meta</code> or 
+    <code>mode=stats</code> on the table may help.
     </p></dd>
 </dl>
 </p>
@@ -1061,7 +1061,7 @@ function you are executing.
 the <code><ref id="tpipe">tpipe</ref></code> command.
 Typically, having produced a result table by pipeline processing 
 an input one, you will write it out by specifying 
-<code>-mode=out</code> (or not using the <code>-mode</code> flag at all -
+<code>mode=out</code> (or not using the <code>mode</code> parameter at all -
 <code>out</code> is the default).  However, you can do other things
 such as calculate statistics, display metadata, etc.  In some of
 these cases, additional parameters are required.  The different 
@@ -1417,8 +1417,8 @@ the expressions below could appear as the <code>&lt;expr&gt;</code> in a
 </dl>
 
 and here are some examples of boolean expressions that could be used
-for row selection (appearing in a <code>tpipe</code> <code>-select</code>
-filter specifier)
+for row selection (appearing in a <code>tpipe</code> <code>select</code>
+command)
 
 <dl>
 <dt>Within a numeric range</dt>
@@ -1436,13 +1436,13 @@ filter specifier)
 <dd><p><verbatim>
    index &lt;= 100
 </verbatim>
-(though you could use <code>tpipe -head 100</code> instead)</p></dd>
+(though you could use <code>tpipe cmd='head 100'</code> instead)</p></dd>
 
 <dt>Every tenth row</dt>
 <dd><p><verbatim>
    index % 10 == 0
 </verbatim>
-(though you could use <code>tpipe -every 10</code> instead)</p></dd>
+(though you could use <code>tpipe cmd='every 10'</code> instead)</p></dd>
 
 <dt>String equality/matching</dt>
 <dd><p><verbatim>
@@ -1581,7 +1581,7 @@ For instance a class written as follows would define a three-value average:
 </verbatim>
 and the command
 <verbatim>
-   stilts tpipe -cmd='addcol AVERAGE "average3(&column.id.char;1,&column.id.char;2,&column.id.char;3)"'
+   stilts tpipe cmd='addcol AVERAGE "average3(&column.id.char;1,&column.id.char;2,&column.id.char;3)"'
 </verbatim>
 would add a new column called AVERAGE giving the average of the first
 three existing columns.
@@ -1655,14 +1655,14 @@ stilts tcopy stars.fits stars.xml
     </p></dd>
 
 <dt><verbatim>
-stilts tcopy stars.fits -ifmt=fits -ofmt=votable
+stilts tcopy stars.fits ifmt=fits ofmt=votable
 </verbatim></dt>
 <dd><p>Does the same as the previous example, but the input and output
     formats have been specified explicitly.
     </p></dd>
 
 <dt><verbatim>
-stilts tcopy -ofmt=text http://remote.host/data/vizer.xml.gz#4 -
+stilts tcopy ofmt=text http://remote.host/data/vizer.xml.gz#4 -
 </verbatim></dt>
 <dd><p>Prints the contents of a remote VOTable to the terminal in 
     a human-readable form.  The <code>#4</code> at the end of the URL
@@ -1672,7 +1672,7 @@ stilts tcopy -ofmt=text http://remote.host/data/vizer.xml.gz#4 -
     </p></dd>
 
 <dt><verbatim>
-stilts tcopy -ifmt=csv -ofmt=latex spec.csv
+stilts tcopy ifmt=csv ofmt=latex spec.csv
 </verbatim></dt>
 <dd><p>Converts a comma-separated values file to a LaTeX table environment,
     writing the result to standard output.
@@ -1682,7 +1682,7 @@ stilts tcopy -ifmt=csv -ofmt=latex spec.csv
 stilts -classpath /usr/local/jars/pg73jdbc3.jar \
        -Djdbc.drivers=org.postgresql.Driver \
        tcopy "jdbc:postgresql://localhost/imsim#SELECT ra, dec, Imag FROM dqc" \
-             -ofmt=fits wfslist.cat
+             ofmt=fits wfslist.cat
 </verbatim></dt>
 <dd><p>Makes an SQL query on a PostgreSQL database and writes the
     results to a FITS file.
@@ -1694,7 +1694,7 @@ stilts -classpath /usr/local/jars/pg73jdbc3.jar \
     and there are other ways to perform this
     setup than on the command line - see <ref id="jdbcConfig"/>
     and <code><ref id="tpipe">tpipe</ref></code>'s 
-    <code>-mode=tosql</code> output mode.
+    <code>mode=tosql</code> output mode.
     </p></dd>
 
 </dl>
@@ -1742,28 +1742,28 @@ and then does something with the output.  There are therefore
 three classes of things you need to tell it when it runs:
 <dl>
 <dt>Input table location</dt>
-<dd><p>Specified by the <code>-in</code>, <code>-ifmt</code> and
-    <code>-istream</code> parameters.
+<dd><p>Specified by the <code>in</code>, <code>ifmt</code> and
+    <code>istream</code> parameters.
     </p></dd>
 
 <dt>Processing steps</dt>
 <dd><p>Either provide a string giving steps as the value
-    of one or more <code>-cmd</code> parameters, or the name of a file
-    containing the steps using the <code>-script</code> parameter.
+    of one or more <code>cmd</code> parameters, or the name of a file
+    containing the steps using the <code>script</code> parameter.
     The steps that you can perform are described in 
     <ref id="filterSteps"/>.
     </p></dd>
 
 <dt>Output table destination</dt>
 <dd><p>What happens to the output table is determined by the value of
-    the <code>-mode</code> parameter.  
-    By default, <code>-mode=out</code>,
+    the <code>mode</code> parameter.  
+    By default, <code>mode=out</code>,
     in which case the table is written to a new table file in a format
-    determined by <code>-ofmt</code>.  However, you can do other things
+    determined by <code>ofmt</code>.  However, you can do other things
     with the result such as
-    calculate the per-column statistics (<code>-mode=stats</code>),
-    view only the table and column metadata (<code>-mode=meta</code>),
-    display it directly in TOPCAT (<code>-mode=topcat</code>) etc.
+    calculate the per-column statistics (<code>mode=stats</code>),
+    view only the table and column metadata (<code>mode=meta</code>),
+    display it directly in TOPCAT (<code>mode=topcat</code>) etc.
     </p></dd>
 </dl>
 </p>
@@ -1772,11 +1772,11 @@ three classes of things you need to tell it when it runs:
 processing steps acts on the table at that point in the sequence.
 Thus
 <verbatim>
-   stilts tpipe -cmd="delcols 1; delcols 1; delcols 1"
+   stilts tpipe cmd="delcols 1; delcols 1; delcols 1"
 </verbatim>
 has the same effect as
 <verbatim>
-   stilts tpipe -cmd='delcols "1 2 3"'
+   stilts tpipe cmd='delcols "1 2 3"'
 </verbatim>
 since in the first case the columns are shifted left after
 each one is deleted, so the table seen by each step has one fewer
@@ -1808,12 +1808,12 @@ if you just have the Java classes.
 stilts tpipe cat.fits
 </verbatim></dt>
 <dd><p>Writes a table to standard output in human-readable form.
-    Since no mode specifier is given, <code>-write</code> is assumed,
+    Since no mode specifier is given, <code>mode=out</code> is assumed,
     and output is to standard output in <code>text</code> format.
     </p></dd>
 
 <dt><verbatim>
-stilts tpipe -cmd='head 5' cat.fits.gz
+stilts tpipe cmd='head 5' cat.fits.gz
 </verbatim></dt>
 <dd><p>Does the same as the last example, but with one processing step:
     only the first five rows of the table are output.  In this case,
@@ -1822,14 +1822,14 @@ stilts tpipe -cmd='head 5' cat.fits.gz
     </p></dd>
 
 <dt><verbatim>
-stilts tpipe -ifmt=csv xxx.csv \
-             -cmd='keepcols "index ra dec"' \
-             -mode=out -ofmt=fits xxx.fits
+stilts tpipe ifmt=csv xxx.csv \
+             cmd='keepcols "index ra dec"' \
+             mode=out ofmt=fits xxx.fits
 </verbatim></dt>
 <dd><p>Reads from a comma-separated values file, writes to a FITS file,
     and discards all columns in the input table apart from INDEX, RA and DEC.
-    Note the quoting in the <code>-cmd</code> argument: the outer quotes
-    are so that the argument of the <code>-cmd</code> parameter itself
+    Note the quoting in the <code>cmd</code> argument: the outer quotes
+    are so that the argument of the <code>cmd</code> parameter itself
     ("<code>keepcols 'index ra dec'</code>")
     is not split up by spaces, and the inner quotes are to keep the 
     <code>colid-list</code> argument of the 
@@ -1837,16 +1837,16 @@ stilts tpipe -ifmt=csv xxx.csv \
     </p></dd>
 
 <dt><verbatim><![CDATA[
-stilts tpipe -ifmt=votable \
-             -cmd='addcol IV_SUM "(IMAG+VMAG)"' \
-             -cmd='addcol IV_DIFF "(IMAG-VMAG)"' \
-             -cmd='delcols "IMAG VMAG"' \
-             -mode=out -ofmt=votable \
+stilts tpipe ifmt=votable \
+             cmd='addcol IV_SUM "(IMAG+VMAG)"' \
+             cmd='addcol IV_DIFF "(IMAG-VMAG)"' \
+             cmd='delcols "IMAG VMAG"' \
+             mode=out ofmt=votable \
        < tab1.vot \
        > tab2.vot
 ]]></verbatim></dt>
 <dd><p>Replaces two columns by their sum and difference in a VOTable.
-    Since neither the <code>-in</code> nor <code>-out</code> parameters
+    Since neither the <code>in</code> nor <code>out</code> parameters
     have been specified, the input and output are actually byte 
     streams on standard input and standard output of the 
     <code>tpipe</code> command in this case.
@@ -1856,7 +1856,7 @@ stilts tpipe -ifmt=votable \
     </p></dd>
 
 <dt><verbatim>
-stilts tpipe -cmd="addskycoords fk5 gal 'RA2000 DEC2000' 'GAL_LONG GAL_LAT'" \
+stilts tpipe cmd="addskycoords fk5 gal 'RA2000 DEC2000' 'GAL_LONG GAL_LAT'" \
              6dfgs.fits 6dfgs+gal.fits
 </verbatim></dt>
 <dd><p>Adds columns giving galactic coordinates to a table.
@@ -1869,9 +1869,9 @@ stilts tpipe -cmd="addskycoords fk5 gal 'RA2000 DEC2000' 'GAL_LONG GAL_LAT'" \
 
 <dt><verbatim>
 stilts -disk tpipe 2dfgrs_ngp.fits \
-                   -cmd='keepcols "SEQNUM AREA ECCENT"' \
-                   -cmd='sort -down AREA' \
-                   -cmd='head 20'
+                   cmd='keepcols "SEQNUM AREA ECCENT"' \
+                   cmd='sort -down AREA' \
+                   cmd='head 20'
 </verbatim></dt>
 <dd><p>Displays selected columns for the 20 rows with largest values in
     the AREA column of a FITS table.  First the columns of interest 
@@ -1891,17 +1891,17 @@ stilts -disk tpipe 2dfgrs_ngp.fits \
 </p></dd>
 
 <dt><verbatim>
-stilts tpipe http://archive.org/data/survey.vot -mode=meta
+stilts tpipe http://archive.org/data/survey.vot mode=meta
 </verbatim></dt>
 <dd><p>Outputs column and table metadata about a table.
     In this case the table is a VOTable at the end of a URL.
     </p></dd>
 
 <dt><verbatim>
-stilts tpipe -in=survey.fits 
-             -cmd='select "skyDistance(hmsToRadians(RA),dmsToRadians(DEC), \
+stilts tpipe in=survey.fits 
+             cmd='select "skyDistance(hmsToRadians(RA),dmsToRadians(DEC), \
                                        0.6457,-0.1190) &lt; 5 * ARC_MINUTE"' \
-             -mode=count
+             mode=count
 </verbatim></dt>
 <dd><p>Counts the number of rows within a given 5 arcmin 
     cone of sky in a FITS table.
@@ -1922,10 +1922,10 @@ stilts tpipe -in=survey.fits
     </p></dd>
 
 <dt><verbatim><![CDATA[
-stilts tpipe -ifmt=ascii survey.txt \
-             -cmd="select 'OBJTYPE == 3 && Z > 0.15'" \
-             -cmd="keepcols 'IMAG JMAG KMAG'" \
-             -mode=stats
+stilts tpipe ifmt=ascii survey.txt \
+             cmd="select 'OBJTYPE == 3 && Z > 0.15'" \
+             cmd="keepcols 'IMAG JMAG KMAG'" \
+             mode=stats
 ]]></verbatim></dt>
 <dd><p>Calculate statistics on the I, J and K magnitudes of selected
     objects from a catalogue.  Only those rows with the given OBJTYPE
@@ -1937,14 +1937,14 @@ stilts tpipe -ifmt=ascii survey.txt \
 <dt><verbatim>
 stilts -classpath lib/drivers/mysql-connector-java.jar \
        -Djdbc.drivers=com.mysql.jdbc.Driver \
-       tpipe -in=x.fits \
-             -cmd="explodeall" \
-             -mode=tosql \
-             -protocol=mysql \
-             -host=localhost \
-             -database=ASTRO1 \
-             -newtable=TABLEX \
-             -user=mbt
+       tpipe in=x.fits \
+             cmd="explodeall" \
+             mode=tosql \
+             protocol=mysql \
+             host=localhost \
+             database=ASTRO1 \
+             newtable=TABLEX \
+             user=mbt
 </verbatim></dt>
 <dd><p>Writes a FITS table to an SQL table, converting array-valued columns
     to scalar ones.
@@ -1954,10 +1954,10 @@ stilts -classpath lib/drivers/mysql-connector-java.jar \
     class name.  The output will be written as a new table named TABLEX
     in the MySQL database called ASTRO1 on a MySQL server on the
     local host, using the priveliges of MySQL user <code>mbt</code>.
-    The <code>-password</code> flag can be used to specify a password
+    The <code>password</code> parameter can be used to specify a password
     if required.
     Any existing table in ASTRO1 with the name TABLEX is overwritten.
-    The only processing done here is by the <code>-explode</code> flag,
+    The only processing done here is by the <code>explode</code> command,
     which takes any columns which have fixed-size array values and
     replaces them in the output with multiple scalar columns.
     </p></dd>
@@ -1966,10 +1966,10 @@ stilts -classpath lib/drivers/mysql-connector-java.jar \
 java -classpath stilts.jar:lib/drivers/mysql-connector-java.jar
      -Djdbc.drivers=com.mysql.jdbc.Driver \
      uk.ac.starlink.ttools.Stilts \
-     tpipe -in=x.fits \
-           -cmd=explodeall \
-           -mode=out \
-           -out="jdbc:mysql://localhost/ASTRO1?user=mbt#TABLEX"
+     tpipe in=x.fits \
+           cmd=explodeall \
+           mode=out \
+           out="jdbc:mysql://localhost/ASTRO1?user=mbt#TABLEX"
 </verbatim></dt>
 <dd><p>This does exactly the same as the previous example, but achieves it
    in a slightly different way.  In the first place, java is invoked 
@@ -1978,15 +1978,15 @@ java -classpath stilts.jar:lib/drivers/mysql-connector-java.jar
    <code>-jar</code> flag in this case, because doing it that way
    would not permit access to the additional classes that contain
    the JDBC driver.
-   In the second place we use <code>-mode=out</code> rather than 
-   <code>-mode=tosql</code>.  For this we need to supply an <code>-out</code>
+   In the second place we use <code>mode=out</code> rather than 
+   <code>mode=tosql</code>.  For this we need to supply an <code>out</code>
    value which encodes the information about the SQL connection and
    table in a special URL-like format.  As you can see, this is a bit
-   arcane, which is why the <code>-mode=tosql</code> mode can be a help.
+   arcane, which is why the <code>mode=tosql</code> mode can be a help.
    </p></dd>
 
 <dt><verbatim>
-stilts tpipe USNOB.FITS -cmd='every 1000000' -mode=stats
+stilts tpipe USNOB.FITS cmd='every 1000000' mode=stats
 </verbatim></dt>
 <dd><p>Calculates statistics on a selection of the rows in a catalogue,
     and writes the result to the terminal.
@@ -2095,7 +2095,7 @@ Processing this document using a generic table tool such as
 
 <p>To convert the data encoding to BINARY format, we simply execute
 <verbatim>
-   stilts votcopy -format=binary cat.vot
+   stilts votcopy format=binary cat.vot
 </verbatim>
 and the output is
 <verbatim><![CDATA[
@@ -2138,7 +2138,7 @@ Note that both tables in the document have been translated to BINARY format.
 The basic structure of the document is unchanged: the only differences 
 are within the <code>DATA</code> elements.  If we ran
 <verbatim>
-   stilts votcopy -format=tabledata
+   stilts votcopy format=tabledata
 </verbatim>
 on either this output or the original input then the output would
 be identical (apart perhaps from whitespace) to the input table, 
@@ -2146,10 +2146,10 @@ since the data are originally in TABLEDATA format.
 </p>
 
 <p>To generate a VOTable document with the data in external files,
-the <code>-href</code> flag is used.  We will output in FITS format
+the <code>href</code> parameter is used.  We will output in FITS format
 this time.  Executing:
 <verbatim>
-   stilts votcopy -format=fits -href=true cat.vot fcat.vot
+   stilts votcopy format=fits href=true cat.vot fcat.vot
 </verbatim>
 writes the following to the file <code>fcat.vot</code>:
 <verbatim><![CDATA[
@@ -2171,7 +2171,7 @@ writes the following to the file <code>fcat.vot</code>:
 The actual data are written in two additional files in the same
 directory as the output file, <code>fcat-1.fits</code> and 
 <code>fcat-2.fits</code>.  These filenames are based on the 
-main output filename, but can be altered using the <code>-base</code>
+main output filename, but can be altered using the <code>base</code>
 flag if required.  Note this has also given you FITS binary table 
 versions of all the tables in the input VOTable document, which can be 
 operated on by normal FITS-aware software quite separately from the VOTable
@@ -2233,7 +2233,7 @@ information is then up to you.
 </p>
 
 <p>Using <code>votlint</code> is very straightforward.  
-The <code>-votable</code> argument
+The <code>votable</code> argument
 gives the location (filename or URL) of a VOTable document.
 Otherwise, the document will be read from standard input.
 Error and warning messages will be written on standard error.
@@ -2255,7 +2255,7 @@ most serious errors that are typically made in authoring VOTables.
 <subhead><title>Items Checked</title></subhead>
 
 <p>Votlint checks that the XML input is well-formed, and, unless the
-<code>-valid=false</code> flag is supplied, that it validates against the
+<code>valid=false</code> parameter is supplied, that it validates against the
 1.0 or 1.1 (as appropriate) DTD.  Although VOTable 1.1 is properly
 defined against an XML Schema rather than a DTD, in conjunction with
 the other checks done, the DTD validation turns out to be pretty comprehensive.
@@ -2478,12 +2478,12 @@ of these individuals, to whom my thanks are due:
   <li>Added Julian Epoch and Besselian Epoch conversion functions to 
       Times class.</li>
   <li>Added <code>RANDOM</code> special function.</li>
-  <li>Added <code>-replacecol</code>.</li>
+  <li>Added <code>replacecol</code>.</li>
   <li>Wildcards in colid-list params, SUN/256 improved to include section
       on what &lt;col-id&gt; and &lt;colid-list&gt; mean.</li>
-  <li>Renamed the <code>-explode</code> filter in <code>tpipe</code> as
-      <code>-explodeall</code>, and introduced new filter
-      <code>-explodecols</code>.</li>
+  <li>Renamed the <code>explode</code> filter in <code>tpipe</code> as
+      <code>explodeall</code>, and introduced new filter
+      <code>explodecols</code>.</li>
   <li>Complete rewrite of parameter system.</li>
   </ul>
 </p></dd>

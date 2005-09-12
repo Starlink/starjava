@@ -33,7 +33,7 @@ public class ModeDoc {
             String name = mnames[ i ];
             ProcessingMode mode = (ProcessingMode)
                                   modeFact.createObject( name );
-            out_.println( "<dt><code>-mode=" + name + "</code></dt>" );
+            out_.println( "<dt><code>mode=" + name + "</code></dt>" );
             out_.println( "<dd>" );
             out_.println( "<p>" + mode.getDescription() + "</p>" );
             Parameter[] params = mode.getAssociatedParameters();

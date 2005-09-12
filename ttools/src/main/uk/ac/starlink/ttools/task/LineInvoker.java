@@ -135,7 +135,6 @@ public class LineInvoker {
                         for ( int i = 0; i < params.length; i++ ) {
                             Parameter param = params[ i ];
                             sbuf.append( ' ' )
-                                .append( '-' )
                                 .append( param.getName() )
                                 .append( '=' )
                                 .append( param.stringValue( env ) );
@@ -237,16 +236,14 @@ public class LineInvoker {
                  arg.equalsIgnoreCase( "help" ) ) {
                 return getTaskUsage( task, taskName );
             }
-            else if ( arg.toLowerCase().startsWith( "-help=" ) ) {
-                helpFor = arg.substring( 6 ).trim().toLowerCase();
-                if ( helpFor.startsWith( "-" ) ) {
-                    helpFor = helpFor.substring( 1 );
-                }
+            else if ( arg.toLowerCase().startsWith( "help=" ) ) {
+                helpFor = arg.substring( 5 ).trim().toLowerCase();
             }
-            else if ( arg.startsWith( "-" ) &&
-                      arg.length() > 1 &&
-                      arg.indexOf( '=' ) < 0 ) {
-                helpFor = arg.substring( 1 ).trim().toLowerCase();
+            else if ( arg.length() > 1 && arg.endsWith( "=" ) ) {
+                helpFor = arg.substring( 0, arg.length() - 1 );
+            }
+            else if ( arg.length() > 2 && arg.endsWith( "=?" ) ) {
+                helpFor = arg.substring( 0, arg.length() - 2 );
             }
             if ( helpFor != null ) {
                 Parameter[] params = task.getParameters();
@@ -256,7 +253,7 @@ public class LineInvoker {
                         return getParamHelp( env, task, taskName, param );
                     }
                 }
-                return "No such argument: -" + helpFor + "\n\n" 
+                return "No such parameter: " + helpFor + "\n\n" 
                      + getTaskUsage( task, taskName );
             }
         }
@@ -307,7 +304,7 @@ public class LineInvoker {
         usage.append( getPrefixedTaskUsage( task, prefix ) );
         String pad = prefix.replaceAll( ".", " " );
      // usage.append( pad )
-     //      .append( " [-help=<arg-name>]" )
+     //      .append( " [help=<arg-name>]" )
      //      .append( '\n' );
         return usage.toString();
     }
@@ -346,8 +343,7 @@ public class LineInvoker {
             if ( byPos ) {
                 word.append( '[' );
             }
-            word.append( '-' )
-                .append( param.getName() )
+            word.append( param.getName() )
                 .append( '=' );
             if ( byPos ) {
                 word.append( ']' );
@@ -426,7 +422,6 @@ public class LineInvoker {
             .append( "      " )
             .append( isOptional ? "[" : "" )
             .append( byPos ? "[" : "" )
-            .append( '-' )
             .append( param.getName() )
             .append( '=' )
             .append( byPos ? "]" : "" )
@@ -470,11 +465,6 @@ public class LineInvoker {
                 .append( unused[ i ] );
         }
         sbuf.append( '\n' );
-        if ( unused[ 0 ].matches( "\\w+=.*" ) ) {
-            sbuf.append( "(Did you mean \"-" )
-                .append( unused[ 0 ] )
-                .append( "\"?)\n" );
-        }
         return sbuf.toString();
     }
 
