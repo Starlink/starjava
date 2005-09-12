@@ -230,10 +230,10 @@ public class ControlWindow extends AuxWindow
             new MatchWindowAction( "Pair Match", ResourceIcon.MATCH2,
                                    "Create new table by matching rows in " +
                                    "two existing tables", 2 ),
-            new MatchWindowAction( "Triple Match", ResourceIcon.BLANK,
+            new MatchWindowAction( "Triple Match", ResourceIcon.MATCHN,
                                    "Create new table by matching rows in " +
                                    "three existing tables", 3 ),
-            new MatchWindowAction( "Quadruple Match", ResourceIcon.BLANK,
+            new MatchWindowAction( "Quadruple Match", ResourceIcon.MATCHN,
                                    "Create new table by matching rows in " +
                                    "four existing tables", 4 ),
         };

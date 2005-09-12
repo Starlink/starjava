@@ -90,6 +90,7 @@ public class ResourceIcon implements Icon {
         FUNCTION = makeIcon( "fx2.gif" ),
         MATCH1 = makeIcon( "matchOne2.gif" ),
         MATCH2 = makeIcon( "matchTwo2.gif" ),
+        MATCHN = makeIcon( "matchN.gif" ),
         CONCAT = makeIcon( "concat4.gif" ),
 
         /* Specific actions. */
