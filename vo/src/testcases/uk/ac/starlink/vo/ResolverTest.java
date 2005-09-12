@@ -18,7 +18,6 @@ public class ResolverTest extends TestCase {
                 assertEquals( -29.622, info.getDecDegrees(), 0.001 );
             }
             catch ( ResolverException e ) {
-                       ( e.getCause() instanceof ConnectException ) );
                 if ( e.getCause() instanceof ConnectException ||
                      e.getCause() instanceof AxisFault ) {
                     String msg = e.getCause().getMessage();
