@@ -236,6 +236,9 @@ public class LineInvoker {
                  arg.equalsIgnoreCase( "help" ) ) {
                 return getTaskUsage( task, taskName );
             }
+            else if ( arg.toLowerCase().startsWith( "-help=" ) ) {
+                helpFor = arg.substring( 6 ).trim().toLowerCase();
+            }
             else if ( arg.toLowerCase().startsWith( "help=" ) ) {
                 helpFor = arg.substring( 5 ).trim().toLowerCase();
             }
