@@ -173,14 +173,14 @@ public class HumanMatchEngine implements MatchEngine {
         if ( matches( info, Tables.RA_INFO ) ||
              matches( info, Tables.DEC_INFO ) ) {
             if ( "radians".equals( units ) &&
-                 clazz == Double.class || clazz == Number.class ) {
+                 ( clazz == Double.class || clazz == Number.class ) ) {
                 return new DoubleFactorWrapper( Coords.DEGREE, "degrees" );
             }
         }
 
         /* Otherwise if it has radians, change radians to arcseconds. */
         else if ( "radians".equals( units ) &&
-                  clazz == Double.class || clazz == Number.class ) {
+                  ( clazz == Double.class || clazz == Number.class ) ) {
             return new DoubleFactorWrapper( Coords.ARC_SECOND, "arcsec" );
         }
 
