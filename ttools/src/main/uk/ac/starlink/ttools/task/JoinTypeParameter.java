@@ -20,7 +20,7 @@ public class JoinTypeParameter extends ChoiceParameter {
         JoinType[] joins = JoinType.getPairTypes();
         CHOICES = new String[ joins.length ];
         for ( int i = 0; i < joins.length; i++ ) {
-            CHOICES[ i ] = joins[ i ].toString();
+            CHOICES[ i ] = joins[ i ].getName();
         }
     }
 
@@ -68,7 +68,7 @@ public class JoinTypeParameter extends ChoiceParameter {
         String sval = stringValue( env );
         JoinType[] joins = JoinType.getPairTypes();
         for ( int i = 0; i < joins.length; i++ ) {
-            if ( joins[ i ].toString().toLowerCase().equals( sval ) ) {
+            if ( joins[ i ].getName().toLowerCase().equals( sval ) ) {
                 return joins[ i ];
             }
         }
