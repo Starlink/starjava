@@ -88,7 +88,7 @@ public class Match2Mapper implements TableMapper {
             "will be represented in the output table.",
         } );
 
-        joinParam_ = new JoinTypeParameter( "jointype" );
+        joinParam_ = new JoinTypeParameter( "join" );
         joinParam_.setDefault( "1and2" );
         joinParam_.setPrompt( "Selection criteria for output rows" );
     }
