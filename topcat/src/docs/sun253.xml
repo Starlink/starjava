@@ -626,7 +626,7 @@ extension in a given FITS file.
 If a later extension is required, this is indicated by giving the
 extension number after a '#' at the end of the table location.
 The first extension (first HDU after the primary HDU) is numbered 1.
-Thus in a compressed FITS table called "spec23.fits.gz"
+Thus in a compressed FITS table named "spec23.fits.gz"
 with one primary HDU and two BINTABLE extensions,
 you would view the first one using the name "spec23.fits.gz"
 or "spec23.fits.gz#1" and the second one using the name "spec23.fits.gz#2".
@@ -691,7 +691,7 @@ Here is an example VOTable document:
      </RESOURCE>
    </VOTABLE>
 ]]></verbatim>
-If this is available in a file called "cats.xml"
+If this is available in a file named "cats.xml"
 then open the Star Catalogue using the name "cats.xml"
 or "cats.xml#0", and the Galaxy Catalogue using the name
 "cats.xml#1".
@@ -1134,7 +1134,7 @@ Here is an example for MySQL:
    jdbc:mysql://localhost/astro1?user=mbt#newtab
 ]]></verbatim>
 which would write the current contents of the browser into a new table
-called "newtab" in the database "astro1" on the local host with the
+named "newtab" in the database "astro1" on the local host with the
 access privileges of user mbt.
 </p>
 
@@ -1295,6 +1295,7 @@ second one, so it is necessary to provide some criteria for
 deciding which (if any) row in the second table corresponds to a given
 row in the first.  In other words, some sort of <label>matching</label>
 between rows in different tables needs to take place.
+This corresponds to what is called a <em>join</em> in database technology.
 Matching rows within a single table is a useful operation
 which involves many of the same issues, so that is described here too.
 </p>
@@ -1423,6 +1424,7 @@ don't match as well...
 <li>Which tables are to be matched</li>
 <li>What the criteria are for matching rows</li>
 <li>What to do for rows that don't have exactly one match</li>
+<li>What rows to include in the output table</li>
 </ul>
 and to start the matching operation.
 Currently, if there is more than one possible match for a row in
@@ -1491,19 +1493,8 @@ During this process a number of optimisations may be applied depending
 on the details of the data and the requested match.
 </p>
 
-<p>Following this step, all the pairs are agglomerated into <em>groups</em>,
-where a group is a maximal connected graph where 
-the nodes represent table rows and
-the edges represent matched pairs.
-It follows that
-each row is either a member of exactly one group, or it has no matches.
-If a group has more than two members, then it is not guaranteed that
-the selected match criteria hold for all pairs within it.
-What happens after that is determined by the exact kind 
-of match being performed.
-</p>
-
-<p>The matching algorithm is therefore basically an <m>O(N)</m> process, 
+<p>This means that the matching algorithm is 
+basically an <m>O(N log(N))</m> process, 
 where <m>N</m> is the total number of rows in all the tables participating
 in a match.  This is good news, since the naive interpretation 
 would be <m>O(N<sup>2</sup>)</m>.  
@@ -2177,7 +2168,7 @@ the first three existing columns.
 Exactly how you would build this is dependent on your system, 
 but it might involve doing something like the following:
 <ol>
-<li>Writing a file called "AuxFuncs.java" containing the above code</li>
+<li>Writing a file named "AuxFuncs.java" containing the above code</li>
 <li>Compiling it using a command like "<code>javac AuxFuncs.java</code>"</li>
 <li>Starting up TOPCAT with the flags: 
     "<code>topcat -Djel.classes=AuxFuncs -classpath .</code>"</li>
@@ -2212,7 +2203,7 @@ it has been installed on your system; some of these are described below.
 <p>There may be some sort of short-cut icon on your desktop which
 starts up the program - in this case just clicking on it will probably work.
 Failing that you may be able to locate the
-jar file (probably called <code>topcat.jar</code>, 
+jar file (probably named <code>topcat.jar</code>, 
 <code>topcat-full.jar</code> or <code>topcat-lite.jar</code>)
 and click on that.  These files would be located in the
 <code>java/lib/topcat/</code> directory in a standard Starjava installation.
@@ -2639,7 +2630,7 @@ or if you're using the <code>java</code> command directly:
 </p>
 
 <p>Alternatively you may find it more convenient to 
-write these definitions in a file called
+write these definitions in a file named
 <code>.starjava.properties</code> in your home directory; the above
 command-line flag would be equivalent to inserting the line:
 <verbatim>
@@ -2746,7 +2737,7 @@ In each case two forms are shown: one using the <code>topcat</code>
 script, and one using the jar file directly.  In the latter case,
 the <code>java</code> command is assumed to be on the your path, and
 the jar file itself, assumed in directory <code>my/tcdir</code>, 
-might be called <code>topcat.jar</code>, 
+might be named <code>topcat.jar</code>, 
 <code>topcat-full.jar</code>, or something else, but the form 
 of the command is the same.
 
@@ -3032,7 +3023,7 @@ used provides a common look and feel.
 </p>
 
 <p>In some cases where a JTable is displayed, there will be a menu
-on the menu bar called <label>Display</label>.
+on the menu bar named <label>Display</label>.
 This permits you to select which columns are visible and which are hidden.
 Clicking on the menu will give you a list of all the available columns
 in the table, each with a checkbox by it; click the box to toggle
@@ -4628,7 +4619,7 @@ up the query, as follows:
 
 <dt>SQL Query</dt>
 <dd><p>The text of the query which will define the resulting table.
-    If you want to look at a table called XXX as it exists in the database,
+    If you want to look at a table named XXX as it exists in the database,
     you can write something like "<code>SELECT * from XXX</code>".
     In principle any SQL query on the database can be used here,
     but the details of what SQL syntax is permitted will be defined
@@ -5040,12 +5031,9 @@ of the window.  When it is completed, you will be informed by a
 popup window which indicates that a new table has been created.
 This table will be added to the list in the Control Window and can
 be examined, manipulated and saved like any other.
-The new table has an additional column added at the end which gives
-the 'match score' for each successful match: the exact meaning of
-this is dependent on the match type, but it is a non-negative 
-numerical value which broadly speaking represents the 
-"distance" between the two matched points - a smaller value 
-indicates a better match.
+In some cases, some additional columns will be added to the 
+output table which give you more information about how it
+has progressed (see <ref id="matchRowSelect"/>.
 </p>
 
 <p>The Match Window provides a set of controls which allow you
@@ -5206,7 +5194,7 @@ are correct for the number you enter.
 <subhead><title>Column Selection Boxes</title></subhead>
 
 <p>The column selection boxes allow you to select which of the
-columns in the tables you will be joining will provide the data
+columns in the input tables will provide the data
 (the coordinates which have to match).
 For each table you must select the names of the required columns;
 the ones you need to select will depend on the 
@@ -5234,22 +5222,129 @@ selectors; in most cases this means numeric ones.
 <subhead><title>Output Rows Selector Box</title></subhead>
 
 <p>When the match is complete a new table will be created which 
-contains rows composed from the rows of the input tables - each
-row will contain entries corresponding to a single match.
-The Output Rows selector box allows you to choose on what basis
-rows will be included in this output table.
-In all cases each row will refer to only one matched "object"
-(any columns in the output come from only rows in the input tables
-which match according to the specified <ref id="matchCriteria">criteria</ref>),
-but you may or may not wish to see output rows which don't have a
-contribution from each of the input tables.
-For each input table therefore, you can choose to see the
-<label>Matched Rows Only</label> or <label>All Rows</label>.
-If you have All Rows, then the columns for which a match can't be
-found in one of the tables are just left blank.
+contains rows determined by the matches which have taken place.
+The Output Rows selector box allows you to choose on what 
+basis the rows will be included in the output table as a function
+of the matches that were found.
 </p>
 
-<p>By way of example: if your input tables are these:
+<p>In all cases each row will refer to only one matched
+(or possibly unmatched) "object", so that any non-blank columns
+in a given row refer come from only rows in the input tables
+which match according to the specified <ref id="matchCriteria">criteria</ref>.
+However, you have two (somewhat interlinked) choices to make
+about which rows are produced.
+</p>
+
+<p>The <label>Match Selection</label> selector allows you to choose
+what happens when a given row in one table can be matched by 
+more than one row in the other table.  There are two choices:
+<dl>
+<dt>Best Match Only</dt>
+<dd><p>Only the best match is chosen, and the other correct but inferior
+    matches are ignored.  The best match is usually the "closest" - it
+    is the one with the lowest match score, where the definition of this
+    score is determined by the match criteria you have selected.
+    </p></dd>
+
+<dt>All Matches</dt>
+<dd><p>Any pairs which meet the match criteria are retained in
+    the output table.
+    This means that you may have data from some of the same input rows
+    appearing more than once in the output.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Join Type</label> selector allows you to choose what
+output rows result from a match in the input tables.
+<dl>
+<dt>1 and 2</dt>
+<dd><p>The output table contains only rows which have an entry from 
+    both of the input tables, so that every output row represents an
+    actual matched pair.
+    </p></dd>
+
+<dt>All from 1</dt>
+<dd><p>All of the matched rows are present in the output as for
+    <label>1 and 2</label>, but additionally the unmatched rows from
+    the first table are present with the columns from the second
+    table blank.
+    </p></dd>
+
+<dt>All from 2</dt>
+<dd><p>As for <label>All from 1</label> but the other way round.
+    </p></dd>
+
+<dt>1 or 2</dt>
+<dd><p>Every row, matched and unmatched, from both of the input 
+    tables appears in the output.
+    This is the union of rows from <label>All from 1</label> and
+    <label>All from 2</label>.
+    </p></dd>
+
+<dt>1 not 2</dt>
+<dd><p>This presents all the rows in the first table which
+    do <em>not</em> have matches in the second table.
+    Consequently, it only contains columns from the first table, since
+    all the entries from the second one would be blank in any case.
+    </p></dd>
+
+<dt>2 not 1</dt>
+<dd><p>The same as <label>1 not 2</label> but the other way round.
+    </p></dd>
+
+<dt>1 xor 2</dt>
+<dd><p>The "exclusive or" of the match - the output only contains 
+    rows from the first table which don't have matches in the second
+    table and vice versa.  It is the union of <label>1 not 2</label>
+    and <label>2 not 1</label>.
+    </p></dd>
+    
+</dl>
+</p>
+
+<p>In most cases (all the above except for <label>1 not 2</label> and
+<label>2 not 1</label>, the set of columns in the output table contains
+all the columns from the first table followed by all the columns
+from the second table.  If this causes a clash of column names,
+offending columns will be renamed with a trailing "<code>_1</code>" or 
+"<code>_2</code>".
+Depending on the details of the match however,
+some additional useful columns may be added:
+<dl>
+<dt>Match Score</dt>
+<dd><p>For rows that represent a match, a numeric value representing
+    how good the match was will usually be present.  This is typically
+    a separation in real or notional space - for instance for a 
+    <label>Sky</label> match it is the distance between the two matched
+    celestial positions in arcseconds along a great circle.  It will
+    always be greater than or equal to zero, and a smaller value 
+    represents a better match.  The name and exact meaning of this
+    column depends on the match criteria - examine its description 
+    in the <ref id="ColumnInfoWindow">Columns Window</ref> for details.
+    </p></dd>
+
+<dt>GroupSize, GroupID</dt>
+<dd><p>If you choose the <label>All Matches</label> option and some of
+    the rows match more than once, two columns named 
+    <label>GroupID</label> and <label>GroupSize</label> will be added.
+    These allow you to identify which matches are multiple.
+    In the case of rows which represent a unique match, they are blank.
+    But for rows which represent a set of multiple matches, the 
+    GroupSize value tells you how many rows participate in this match,
+    and the GroupID value is an integer which is the same for 
+    all the rows which participate in the same match.
+    So if you do a sort on the GroupID value, you'll see all the rows
+    in the first non-unique match group together,
+    followed by all the rows in the second non-unique group...
+    and after them all the unique matches.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>Here is an example.  If your input tables are these:
 <verbatim>
       X          Y         Vmag
       -          -         ----
@@ -5267,33 +5362,27 @@ and
     702.622   1004.972     19.0
 </verbatim>
 then a Cartesian match of the two sets of X and Y values with an error of 1.0
-requiring Matched Rows Only for both tables would give you a 
-result like this:
+using the <label>1 and 2</label> option would give you a result like this:
 <verbatim>
      X_1       Y_1         Vmag    X_2        Y_2         Bmag    Separation
      ---       ---         ----    ---        ---         ----    ----------
    1134.822    599.247     13.8   1135.201    600.100     14.6     0.933
     909.613    543.293      9.3    909.523    543.800     10.1     0.515
 </verbatim>
-while choosing All Rows for the first table would give you this:
+using <label>All from 1</label> would give you this:
 <verbatim>
      X_1       Y_1         Vmag    X_2        Y_2         Bmag    Separation
      ---       ---         ----    ---        ---         ----    ----------
-   1134.822    599.247     13.8   1135.201    600.100     14.6     0.933
+   1134.822    599.247     13.8    1135.201   600.100     14.6     0.933
     659.68    1046.874     17.2
-    909.613    543.293      9.3    909.523    543.800     10.1     0.515
+    909.613    543.293      9.3     909.523   543.800     10.1     0.515
 </verbatim>
-</p>
-
-<p>A couple of other points are illustrated in this example:
-since the join would have resulted in duplicate column names, 
-the X and Y columns are renamed by appending a suffix.
-The Separation column which gets added is the distance in 
-Cartesian space between the points (X_1,Y_1) and (X_2,Y_2).
-The name and meaning of this column will differ according to the 
-kind of match you are doing; for instance for a Sky match it will
-be the distance in arcseconds along a great circle between 
-the matched points.
+and <label>1 not 2</label> would give you this:
+<verbatim>
+     X         Y           Vmag
+     -         -           ----
+    659.68    1046.874     17.2
+</verbatim>
 </p>
 
 </subsubsect>
@@ -5383,25 +5472,21 @@ are these:
 
 <dt>Mark Groups of Rows</dt>
 <dd><p>The result is a table the same as the input table but with two
-    additional columns: <label>MatchID</label> and <label>MatchCount</label>.
+    additional columns: <label>GroupID</label> and <label>GroupSize</label>.
     Each group of rows which matched is assigned a unique integer,
-    recorded in the MatchId column, and the size of each group is
-    recorded in the MatchCount column.
+    recorded in the GroupId column, and the size of each group is
+    recorded in the GroupSize column.
     Rows which don't match any others (singles) have null values in
     both these columns.
     So for example by sorting the resulting table
-    on MatchID you can group rows that match next to each other;
-    or by sorting on MatchCount you can see all the pairs, followed by
+    on GroupID you can group rows that match next to each other;
+    or by sorting on GroupSize you can see all the pairs, followed by
     all the triples, ...
     </p>
     <p>You can use this information in other ways, for instance if you
     create a new <ref id="subsets">Row Subset</ref> using the expression
-    "<code>MatchID == 5</code>" you could select only those
+    "<code>GroupSize == 5</code>" you could select only those
     rows which form part of 5-object clusters.
-    </p>
-    <p>If columns called MatchID or MatchCount already exist in the
-    input table, they are renamed to MatchID_old/MatchCount_old in the
-    result table.
     </p></dd>
 
 <dt>Eliminate All Grouped Rows</dt>
@@ -5614,7 +5699,7 @@ then activating a row will display a spectrum in a spectrum viewer.
 <webref plaintextref="yes" url="http://www.starlink.ac.uk/splat/"
         >SPLAT</webref>,
 a sophisticated multi-spectrum analysis program.
-This requires the presence of a component called JNIAST, which may
+This requires the presence of a component named JNIAST, which may
 or may not have been installed with TOPCAT (it depends on some
 non-Java, i.e. platform-specific code).  
 There is currently no fallback spectrum viewer, so if JNIAST is 
@@ -6681,6 +6766,10 @@ introduced since the last version:
     helpful metadata (names, units and descriptions).
     "Spherical Polar" match type is now rebadged as the hopefully less
     confusing "Sky 3d".</li>
+<li>Substantially improved pair matching options.</li>
+<li>MySpace access re-implemented - you now need to have the 
+    Astrogrid Desktop running in order to read from or write to MySpace.</li>
+<li>Believed to work fine with Java 1.5 now.</li>
 </ul>
 </p></dd>
 
