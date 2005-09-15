@@ -706,6 +706,7 @@
          <extension name="DIVA" href="diva.jnlp"/>
          <extension name="HELP" href="help.jnlp"/>
          <extension name="TABLE" href="table.jnlp"/>
+         <extension name="VO" href="vo.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>
