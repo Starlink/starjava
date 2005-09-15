@@ -8,8 +8,10 @@
 package uk.ac.starlink.splat.data;
 
 import java.util.List;
+import java.io.IOException;
 
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.table.ArrayColumn;
@@ -65,7 +67,8 @@ public class TableSpecDataImpl
 
     /**
      * Create an object by opening a resource and reading its
-     * content.
+     * content. Note this throws a SEDSplatException, if the table is
+     * suspected of being an SED (that is it contain vector cells).
      *
      * @param tablespec the name of the resource (file plus optional fragment).
      */
@@ -74,6 +77,22 @@ public class TableSpecDataImpl
     {
         super( tablespec );
         openTable( tablespec );
+        setName( starTable );
+    }
+
+    /**
+     * Create an object by opening a resource and reading a specific row for
+     * the contents of this spectrum. Assumes the row contains vector
+     * information.
+     *
+     * @param tablespec the name of the resource (file plus optional fragment).
+     * @param row the row of values to read.
+     */
+    public TableSpecDataImpl( String tablespec, long row )
+        throws SplatException
+    {
+        super( tablespec );
+        openTable( tablespec, row );
         setName( starTable );
     }
 
@@ -271,7 +290,7 @@ public class TableSpecDataImpl
     }
 
     /**
-     * Open a table.
+     * Open a table. Throws a SEDSplatException, if the table may be an SED
      */
     protected void openTable( StarTable starTable )
         throws SplatException
@@ -281,7 +300,10 @@ public class TableSpecDataImpl
         //  is already random.
         try {
             this.starTable = Tables.randomTable( starTable );
-            readTable();
+            readTable( -1 );
+        }
+        catch (SEDSplatException e) {
+            throw e;
         }
         catch (Exception e) {
             throw new SplatException( "Failed to open table: " +
@@ -301,7 +323,28 @@ public class TableSpecDataImpl
         //  copies of the data in the columns.
         try {
             starTable = new StarTableFactory(true).makeStarTable( tablespec );
-            readTable();
+            readTable( -1 );
+        }
+        catch (Exception e) {
+            throw new SplatException("Failed to open table: " + tablespec, e);
+        }
+    }
+
+    /**
+     * Open a table and read a row of vector information to create the
+     * spectrum (part of an SED stored in a table).
+     *
+     * @param tablespec name of the table.
+     * @param row the row to read.
+     */
+    protected void openTable( String tablespec, long row )
+        throws SplatException
+    {
+        //  Table needs random access so we can size it for making local
+        //  copies of the data in the columns.
+        try {
+            starTable = new StarTableFactory(true).makeStarTable( tablespec );
+            readTable( row );
         }
         catch (Exception e) {
             throw new SplatException("Failed to open table: " + tablespec, e);
@@ -413,9 +456,11 @@ public class TableSpecDataImpl
     }
 
     /**
-     * Read in the data from the current table.
+     * Read in the data from the current table. If the row is unspecified then
+     * try to read the full table, otherwise assume the indicated row contains
+     * a series of vector cells describing the spectrum.
      */
-    protected void readTable()
+    protected void readTable( long row )
         throws SplatException
     {
         //  Access table columns and look for which to assign to the various
@@ -470,21 +515,124 @@ public class TableSpecDataImpl
         //  Find the size of the table. Limited to 2G cells.
         dims[0] = (int) starTable.getRowCount();
 
-        //  Access column data.
-        coords = new double[dims[0]];
-        readColumn( coords, coordColumn );
+        //  If dims is 1, the data could be be vector cells. Allow a test for
+        //  that, but we do the next part whenever we have a row.
+        if ( dims[0] == 1 && row == -1 ) {
+            row = 0;
+        }
+        if ( row != -1 ) {
+            coords = readCell( row, coordColumn );
+            data = readCell( row, dataColumn );
+            if ( errorColumn != -1 ) {
+                errors = readCell( row, errorColumn );
+            }
+            dims[0] = coords.length;
+        }
+        else {
 
-        data = new double[dims[0]];
-        readColumn( data, dataColumn );
+            //  Access column data, one value per cell. What about SEDs?
+            coords = new double[dims[0]];
+            readColumn( coords, coordColumn );
 
-        if ( errorColumn != -1 ) {
-            errors = new double[dims[0]];
-            readColumn( errors, errorColumn );
+            data = new double[dims[0]];
+            readColumn( data, dataColumn );
+
+            if ( errorColumn != -1 ) {
+                errors = new double[dims[0]];
+                readColumn( errors, errorColumn );
+            }
         }
 
         //  Create the AST frameset that describes the data-coordinate
         //  relationship.
         createAst();
+    }
+
+    /**
+     * Read an array of data from a vector cell. Returns the values as a
+     * double array.
+     */ 
+    protected double[] readCell( long row, int column )
+        throws SplatException
+    {
+        double[] data;
+        Object cellData = null;
+        try {
+            cellData = starTable.getCell( row, column );
+        }
+        catch (IOException e) {
+            throw new SplatException( e );
+        }
+        if ( cellData instanceof double[] ) {
+            data = (double []) cellData;
+        }
+        else if ( cellData instanceof float[] ) {
+            float[] fdata = (float []) cellData;
+            data = new double[fdata.length];
+            for ( int i = 0; i < fdata.length; i++ ) {
+                data[i] = (double) fdata[i];
+            }
+        }
+        else if ( cellData instanceof int[] ) {
+            int[] fdata = (int []) cellData;
+            data = new double[fdata.length];
+            for ( int i = 0; i < fdata.length; i++ ) {
+                data[i] = (double) fdata[i];
+            }
+        }
+        else if ( cellData instanceof long[] ) {
+            long[] fdata = (long []) cellData;
+            data = new double[fdata.length];
+            for ( int i = 0; i < fdata.length; i++ ) {
+                data[i] = (double) fdata[i];
+            }
+        }
+        else if ( cellData instanceof short[] ) {
+            short[] fdata = (short []) cellData;
+            data = new double[fdata.length];
+            for ( int i = 0; i < fdata.length; i++ ) {
+                data[i] = (double) fdata[i];
+            }
+        }
+        else if ( cellData instanceof byte[] ) {
+            byte[] fdata = (byte []) cellData;
+            data = new double[fdata.length];
+            for ( int i = 0; i < fdata.length; i++ ) {
+                data[i] = (double) fdata[i];
+            }
+        }
+        else {
+            throw new SplatException
+                ( "Vector table cell format not primitive" );
+        }
+        return data;
+    }
+
+    /**
+     * Test if a Object is really a primitive array of values.
+     */
+    protected boolean isPrimitiveArray( Object object )
+    {
+        boolean result = false;
+        if ( object instanceof double[] ) {
+            result = true;
+        }
+        else if ( object instanceof float[] ) {
+            result = true;
+        }
+        else if ( object instanceof int[] ) {
+            result = true;
+        }
+        else if ( object instanceof long[] ) {
+            result = true;
+        }
+        else if ( object instanceof short[] ) {
+            result = true;
+        }
+        else if ( object instanceof byte[] ) {
+            result = true;
+        }
+        return result;
     }
 
     /**
@@ -494,12 +642,14 @@ public class TableSpecDataImpl
     protected void readColumn( double[] data, int index )
         throws SplatException
     {
+        Object cellData = null;
         try {
             RowSequence rseq = starTable.getRowSequence();
             int i = 0;
             double v = 0.0;
             while( rseq.next() ) {
-                Number value = (Number) rseq.getCell( index );
+                cellData = rseq.getCell( index );
+                Number value = (Number) cellData;
                 v = value.doubleValue();
                 if ( v != v ) {  // Double.isNaN
                     v = SpecData.BAD;
@@ -507,6 +657,15 @@ public class TableSpecDataImpl
                 data[i++] = v;
             }
             rseq.close();
+        }
+        catch (ClassCastException e) {
+            //  Isn't a Number, is it a vector?
+            if ( isPrimitiveArray( cellData ) ) {
+                throw new SEDSplatException( dims[0], 
+                      "Table contains vector cells, assuming it is an SED" );
+            }
+            throw new SplatException
+                ( "Table column ("+ index +")contains an unknown data type" );
         }
         catch (Exception e) {
             throw new SplatException( "Failed reading table column" , e );

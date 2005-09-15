@@ -26,6 +26,7 @@ import java.util.List;
 import java.net.MalformedURLException;
 
 import uk.ac.starlink.splat.imagedata.NDFJ;
+import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
 
 import uk.ac.starlink.datanode.nodes.IconFactory;
@@ -301,7 +302,10 @@ public class SpecDataFactory
                 impl = makeLocalFileImpl( namer.getName(), namer.getFormat() );
             }
         }
-        catch (Exception e) {
+        catch (SEDSplatException se) {
+            throw se;
+        }
+        catch (Exception e ) {
             impl = null;
         }
 
@@ -371,12 +375,7 @@ public class SpecDataFactory
         throws SplatException
     {
         SpecDataImpl impl = null;
-        try {
-            impl = new FITSSpecDataImpl( specspec );
-        }
-        catch (SplatException e ) {
-            e.printStackTrace();
-        }
+        impl = new FITSSpecDataImpl( specspec );
 
         // Table, if it is an table extension, or the data array size is 0
         // (may be primary).
@@ -391,6 +390,9 @@ public class SpecDataFactory
                                                           storagePolicy );
                 impl = new TableSpecDataImpl( starTable, specspec,
                                               datsrc.getURL().toString() );
+            }
+            catch (SEDSplatException se) {
+                throw se;
             }
             catch (Exception e) {
                 throw new SplatException( "Failed to open FITS table", e );
@@ -1052,7 +1054,7 @@ public class SpecDataFactory
      *                 remote or local.
      * @return an array of SpecData instances, one for each spectrum located.
      */
-    public SpecData[] expandSED( String specspec )
+    public SpecData[] expandXMLSED( String specspec )
         throws SplatException
     {
         ArrayList specList = new ArrayList();
@@ -1101,4 +1103,29 @@ public class SpecDataFactory
         specList.toArray( spectra );
         return spectra;
     }
+
+    /**
+     * Process a SED stored in a FITS table and extract all the
+     * spectra that it contains.
+     * 
+     * @param specspec the SED FITS file containing the table.
+     * @param nspec number of spectra table contains.
+     * @return an array of SpecData instances, one for each spectrum located.
+     */
+    public SpecData[] expandFITSSED( String specspec, int nspec )
+        throws SplatException
+    {
+        ArrayList specList = new ArrayList();
+
+        SpecDataImpl impl = null;
+        for ( int i = 0; i < nspec; i++ ) {
+            impl = new TableSpecDataImpl( specspec, i );
+            specList.add( makeSpecDataFromImpl( impl, false, null ) );
+        }
+        SpecData[] spectra = new SpecData[specList.size()];
+        specList.toArray( spectra );
+        return spectra;
+    }
+
+
 }

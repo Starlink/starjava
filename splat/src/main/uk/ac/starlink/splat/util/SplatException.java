@@ -12,7 +12,7 @@ public class SplatException
 {
     public SplatException() 
     {
-        super();
+         super();
     }
     
     public SplatException( String message, Throwable cause )

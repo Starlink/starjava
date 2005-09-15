@@ -69,6 +69,7 @@ import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.RemoteServer;
+import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
 import uk.ac.starlink.splat.util.MathUtils;
@@ -1400,7 +1401,7 @@ public class SplatBrowser
     /**
      * Read and optionally display an InputStream that contains a stack of
      * spectra.
-     * 
+     *
      * @param in stream with serialized SpecList instance.
      * @param display whether to display the new spectra in a new plot.
      * @return the index of the plot created, -1 otherwise.
@@ -1590,23 +1591,40 @@ public class SplatBrowser
         throws SplatException
     {
         if ( usertype == SpecDataFactory.SED ) {
-            //  Could be a source of several spectra.
-            SpecData spectra[] = specDataFactory.expandSED( name );
+            //  Could be a source of several spectra. Only XML serialisation
+            //  understood by this route. FITS should be trapped below.
+            SpecData spectra[] = specDataFactory.expandXMLSED( name );
             for ( int i = 0; i < spectra.length; i++ ) {
                 addSpectrum( spectra[i] );
             }
         }
         else {
-            SpecData spectrum = specDataFactory.get( name, usertype );
-            addSpectrum( spectrum );
+            try {
+                SpecData spectrum = specDataFactory.get( name, usertype );
+                addSpectrum( spectrum );
+            }
+            catch (SEDSplatException e) {
+                if ( usertype == SpecDataFactory.FITS ) {
+                    //  An SED detected behind the scenes (usually a FITS
+                    //  tables with vector cells).
+                    SpecData spectra[] =
+                        specDataFactory.expandFITSSED( name, e.getRows() );
+                    for ( int i = 0; i < spectra.length; i++ ) {
+                        addSpectrum( spectra[i] );
+                    }
+                }
+                else {
+                    throw e;
+                }
+            }
         }
     }
 
     /**
      * Add a new spectrum, with a possibly pre-defined set of characteristics
      * as defined in a {@link SpectrumIO.Props} instance.  If successful this
-     * becomes the current spectrum. If an error occurs a {@link SplatException} 
-     * is thrown.
+     * becomes the current spectrum. If an error occurs a 
+     * {@link SplatException} is thrown.
      *
      *  @param props a container class for the spectrum properties, including
      *               the specification (i.e. file name etc.) of the spectrum
@@ -1616,17 +1634,35 @@ public class SplatBrowser
     {
         if ( props.getType() == SpecDataFactory.SED ) {
             //  Could be a source of several spectra.
-            SpecData spectra[] = specDataFactory.expandSED( props.getSpectrum() );
+            SpecData spectra[] = 
+                specDataFactory.expandXMLSED( props.getSpectrum() );
             for ( int i = 0; i < spectra.length; i++ ) {
                 addSpectrum( spectra[i] );
                 props.apply( spectra[i] );
             }
         }
         else {
-            SpecData spectrum = specDataFactory.get( props.getSpectrum(),
-                                                     props.getType() );
-            addSpectrum( spectrum );
-            props.apply( spectrum );
+            try {
+                SpecData spectrum = specDataFactory.get( props.getSpectrum(),
+                                                         props.getType() );
+                addSpectrum( spectrum );
+                props.apply( spectrum );
+            }
+            catch (SEDSplatException e) {
+                //  Could be a FITS table with an SED representation.
+                if ( props.getType() == SpecDataFactory.FITS ) {
+                    SpecData spectra[] = 
+                        specDataFactory.expandFITSSED( props.getSpectrum(), 
+                                                       e.getRows() );
+                    for ( int i = 0; i < spectra.length; i++ ) {
+                        addSpectrum( spectra[i] );
+                        props.apply( spectra[i] );
+                    }
+                }
+                else {
+                    throw e;
+                }
+            }
         }
     }
 
@@ -2175,7 +2211,7 @@ public class SplatBrowser
      *
      * @param lower the index of the first spectrum to display.
      * @param upper the index of the last spectrum to display.
-     * 
+     *
      * @return index of the plot if one is created, otherwise -1.
      */
     public int displayRange( int lower, int upper )
