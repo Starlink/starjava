@@ -41,6 +41,7 @@ public class StepFactory {
         filterFactory_.register( "keepcols", pkg + "KeepColumnFilter" );
         filterFactory_.register( "progress", pkg + "ProgressFilter" );
         filterFactory_.register( "random", pkg + "RandomFilter" );
+        filterFactory_.register( "tablename", pkg + "NameFilter" );
         filterFactory_.register( "replacecol", pkg + "ReplaceColumnFilter" );
         filterFactory_.register( "select", pkg + "SelectFilter" );
         filterFactory_.register( "sequential", pkg + "SequentialFilter" );
