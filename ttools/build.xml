@@ -453,6 +453,7 @@
       <arg value="-x"/><arg value="jniast.jar"/>
       <arg value="-x"/><arg value="hdx.jar"/>
       <arg value="-x"/><arg value="ndx.jar"/>
+      <arg value="-x"/><arg value="topcat.jar"/>
       <arg value="${star.lib.pkg}/ttools.jar"/>
     </java>
   </target>
