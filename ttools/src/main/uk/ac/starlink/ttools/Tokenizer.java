@@ -113,12 +113,19 @@ public class Tokenizer {
                         token = null;
                         delim = 0;
                     }
-                    else if ( delim == 0 ) {
-                        delim = chr;
-                    }
                     else {
                         token.append( chr );
                     }
+                    break;
+                case '\\':
+                    if ( i == line1.length() - 1 ) {
+                        throw new UsageException( "Backslash illegal " +
+                                                  "at end of line" );
+                    }
+                    if ( token == null ) {
+                        token = new StringBuffer();
+                    }
+                    token.append( line1.charAt( ++i ) );
                     break;
                 default:
                     if ( token == null ) {
