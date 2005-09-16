@@ -113,6 +113,9 @@ public class Tokenizer {
                         token = null;
                         delim = 0;
                     }
+                    else if ( delim == 0 ) {
+                        delim = chr;
+                    }
                     else {
                         token.append( chr );
                     }
