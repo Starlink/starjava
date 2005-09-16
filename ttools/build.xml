@@ -480,7 +480,8 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.ttools.Stilts"/>
-        <attribute name="Class-Path" value="${jar.class.path}"/>
+        <attribute name="Class-Path"
+                   value="${jar.class.path} ../topcat/topcat.jar"/>
       </manifest>
     </jar>
 
