@@ -17,7 +17,9 @@ public class AddColumnFilter extends BasicFilter {
 
     public AddColumnFilter() {
         super( "addcol", 
-               "[-after <col-id> | -before <col-id>] <col-name> <expr>" );
+               "[-after <col-id> | -before <col-id>]\n" +
+               "[-units <units>] [-ucd <ucd>] [-desc <desc>]\n" +
+               "<col-name> <expr>" );
     }
 
     protected String[] getDescriptionLines() {
@@ -27,7 +29,10 @@ public class AddColumnFilter extends BasicFilter {
             "By default the new column appears after the last column",
             "of the table, but you can position it either before or",
             "after a specified column using the <code>-before</code>",
-            "or <code>-after</code> flags respectively",
+            "or <code>-after</code> flags respectively.",
+            "The <code>-units</code>, <code>-ucd</code> and",
+            "<code>-description</code> flags can be used to define",
+            "metadata values for the new column.",
         };
     }
 
@@ -35,6 +40,9 @@ public class AddColumnFilter extends BasicFilter {
         String posId = null;
         String colName = null;
         String expr = null;
+        String units = null;
+        String ucd = null;
+        String description = null;
         boolean after = false;
         while ( argIt.hasNext() && ( colName == null || expr == null ) ) {
             String arg = (String) argIt.next();
@@ -52,6 +60,21 @@ public class AddColumnFilter extends BasicFilter {
                 posId = (String) argIt.next();
                 argIt.remove();
             }
+            else if ( arg.equals( "-units" ) && argIt.hasNext() ) {
+                argIt.remove();
+                units = (String) argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-ucd" ) && argIt.hasNext() ) {
+                argIt.remove();
+                ucd = (String) argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-description" ) && argIt.hasNext() ) {
+                argIt.remove();
+                description = (String) argIt.next();
+                argIt.remove();
+            }
             else if ( colName == null ) {
                 argIt.remove();
                 colName = arg;
@@ -63,6 +86,15 @@ public class AddColumnFilter extends BasicFilter {
         }
         if ( colName != null && expr != null ) {
             ColumnInfo colinfo = new ColumnInfo( colName );
+            if ( units != null ) {
+                colinfo.setUnitString( units );
+            }
+            if ( ucd != null ) {
+                colinfo.setUCD( ucd );
+            }
+            if ( description != null ) {
+                colinfo.setDescription( description );
+            }
             return new AddColumnStep( expr, colinfo, posId, after );
         }
         else {
