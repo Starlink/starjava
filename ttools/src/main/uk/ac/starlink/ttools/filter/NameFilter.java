@@ -7,7 +7,7 @@ import uk.ac.starlink.table.StarTable;
  * Filter which renames a table.
  *
  * @author   Mark Taylor
- * @sine     16 Sep 2005
+ * @since    16 Sep 2005
  */
 public class NameFilter extends BasicFilter {
 
