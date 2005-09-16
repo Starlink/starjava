@@ -11,17 +11,23 @@ import uk.ac.starlink.ttools.ColumnIdentifier;
 public class ReplaceColumnFilter extends BasicFilter {
 
     public ReplaceColumnFilter() {
-        super( "replacecol", "<col-id> <expr>" );
+        super( "replacecol",
+               "[-name <name>] [-units <units>] [-ucd <ucd>] " +
+               "[-desc <descrip>]\n" +
+               "<col-id> <expr>" );
     }
 
     protected String[] getDescriptionLines() {
         return new String[] {
             "Replaces the content of a column with the value of an",
             "algebraic expression.",
-            "The position, name and metadata of the new column are the same",
-            "as those of the replaced one (though the data type may change)",
-            "but the old values are discarded in favour of the result of",
+            "The old values are discarded in favour of the result of",
             "evaluating <code>&lt;expr&gt;</code>.",
+            "You can specify the metadata for the new column using the",
+            "<code>-name</code>, <code>-units</code>, <code>-ucd</code>",
+            "and <code>-desc</code> flags; for any of these items which you",
+            "do not specify, they will take the values from the column",
+            "being replaced.",
             "You can reference the replaced column in the expression,",
             "so for example",
             "\"<code>replacecol pixsize pixsize*2</code>\" just multiplies",
@@ -32,9 +38,33 @@ public class ReplaceColumnFilter extends BasicFilter {
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         String colId = null;
         String expr = null;
+        String rename = null;
+        String units = null;
+        String ucd = null;
+        String description = null;
         while ( argIt.hasNext() && ( colId == null || expr == null ) ) {
             String arg = (String) argIt.next();
-            if ( colId == null ) {
+            if ( arg.equals( "-name" ) && argIt.hasNext() ) {
+                argIt.remove();
+                rename = (String) argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-units" ) && argIt.hasNext() ) {
+                argIt.remove();
+                units = (String) argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-ucd" ) && argIt.hasNext() ) {
+                argIt.remove();
+                ucd = (String) argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-desc" ) && argIt.hasNext() ) {
+                argIt.remove();
+                description = (String) argIt.next();
+                argIt.remove();
+            }
+            else if ( colId == null ) {
                 argIt.remove();
                 colId = arg;
             }
@@ -44,7 +74,8 @@ public class ReplaceColumnFilter extends BasicFilter {
             }
         }
         if ( colId != null && expr != null ) {
-            return new ReplaceColumnStep( colId, expr );
+            return new ReplaceColumnStep( colId, expr,
+                                          rename, units, ucd, description );
         }
         else {
             throw new ArgException( "Bad " + getName() + " specification" );
@@ -55,10 +86,19 @@ public class ReplaceColumnFilter extends BasicFilter {
 
         final String colId_;
         final String expr_;
+        final String name_;
+        final String units_;
+        final String ucd_;
+        final String description_;
 
-        ReplaceColumnStep( String colId, String expr ) {
+        ReplaceColumnStep( String colId, String expr, String name, String units,
+                           String ucd, String description ) {
             colId_ = colId;
             expr_ = expr;
+            name_ = name;
+            units_ = units;
+            ucd_ = ucd;
+            description_ = description;
         }
 
         public StarTable wrap( StarTable base ) throws IOException {
@@ -69,6 +109,23 @@ public class ReplaceColumnFilter extends BasicFilter {
 
             /* Add the new column, using the same metadata as the old one. */
             ColumnInfo cinfo = new ColumnInfo( base.getColumnInfo( icol ) );
+
+            /* Modify metadata items which have been explicitly specified
+             * in the filter stage. */
+            if ( name_ != null ) {
+                cinfo.setName( name_ );
+            }
+            if ( units_ != null ) {
+                cinfo.setUnitString( units_ );
+            }
+            if ( ucd_ != null ) {
+                cinfo.setUCD( ucd_ );
+            }
+            if ( description_ != null ) {
+                cinfo.setDescription( description_ );
+            }
+
+            /* Create a table with the new column. */
             StarTable added;
             try {
                 added = new AddJELColumnTable( base, cinfo, expr_, icol );
