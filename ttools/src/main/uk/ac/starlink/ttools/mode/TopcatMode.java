@@ -90,6 +90,11 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
     private void remoteDisplay( StarTable table )
             throws ConnectException, ServiceException, IOException {
 
+        String srcName = table.getName();
+        if ( srcName == null || srcName.trim().length() == 0 ) {
+            srcName = "(streamed)";
+        }
+
         Object[] tcServ = RemoteUtilities.readContactFile( "topcat" );
         if ( tcServ == null ) {
             throw new ConnectException( "No contact file - looks like " 
@@ -111,7 +116,7 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
         call.addParameter( "location", XMLType.SOAP_STRING, ParameterMode.IN );
         call.setReturnType( XMLType.AXIS_VOID );
         try {
-            call.invoke( new Object[] { cookie, table, "streamed" } );
+            call.invoke( new Object[] { cookie, table, srcName } );
         }
         catch ( RemoteException e ) {
             Throwable e2 = e.getCause();
