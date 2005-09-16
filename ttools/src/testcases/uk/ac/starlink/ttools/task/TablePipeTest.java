@@ -64,6 +64,16 @@ public class TablePipeTest extends TableTestCase {
         assertArrayEquals(
             box( new double[] { 11., 22., 33., Double.NaN, } ),
             getColData( apply( "addcol -before 1 XX 'a + b'" ), 0 ) );
+
+        ColumnInfo sizeInfo = apply( "addcol -before 1"
+                                   + " -ucd PHYS.SIZE"
+                                   + " -desc 'Not important'"
+                                   + " -units parsec" 
+                                   + " SIZE 99.f" ).getColumnInfo( 0 );
+        assertEquals( "SIZE", sizeInfo.getName() );
+        assertEquals( "PHYS.SIZE", sizeInfo.getUCD() );
+        assertEquals( "parsec", sizeInfo.getUnitString() );
+        assertEquals( Float.class, sizeInfo.getContentClass() );
     }
 
     public void testAddskycoords() throws Exception {
@@ -243,6 +253,16 @@ public class TablePipeTest extends TableTestCase {
                       fixed.getColumnInfo( 2 ).getContentClass() );
         assertArrayEquals( box( new double[] { 9., 18., 27., Double.NaN, } ),
                            getColData( fixed, 2 ) );
+
+        ColumnInfo info = apply( "replacecol"
+                               + " -ucd UCD -units UNITS -desc DESCRIPTION"
+                               + " -name NAME"
+                               + " b '\"Message\"'" ).getColumnInfo( 1 );
+        assertEquals( "NAME", info.getName() );
+        assertEquals( "UCD", info.getUCD() );
+        assertEquals( "UNITS", info.getUnitString() );
+        assertEquals( "DESCRIPTION", info.getDescription() );
+        assertEquals( String.class, info.getContentClass() );
     }
 
     public void testSelect() throws Exception {
