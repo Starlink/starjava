@@ -18,7 +18,7 @@ public class AddColumnFilter extends BasicFilter {
     public AddColumnFilter() {
         super( "addcol", 
                "[-after <col-id> | -before <col-id>]\n" +
-               "[-units <units>] [-ucd <ucd>] [-desc <desc>]\n" +
+               "[-units <units>] [-ucd <ucd>] [-desc <description>]\n" +
                "<col-name> <expr>" );
     }
 
@@ -31,7 +31,7 @@ public class AddColumnFilter extends BasicFilter {
             "after a specified column using the <code>-before</code>",
             "or <code>-after</code> flags respectively.",
             "The <code>-units</code>, <code>-ucd</code> and",
-            "<code>-description</code> flags can be used to define",
+            "<code>-desc</code> flags can be used to define",
             "metadata values for the new column.",
         };
     }
@@ -70,7 +70,7 @@ public class AddColumnFilter extends BasicFilter {
                 ucd = (String) argIt.next();
                 argIt.remove();
             }
-            else if ( arg.equals( "-description" ) && argIt.hasNext() ) {
+            else if ( arg.equals( "-desc" ) && argIt.hasNext() ) {
                 argIt.remove();
                 description = (String) argIt.next();
                 argIt.remove();
