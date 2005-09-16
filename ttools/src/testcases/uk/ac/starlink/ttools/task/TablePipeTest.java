@@ -234,6 +234,11 @@ public class TablePipeTest extends TableTestCase {
         assertArrayEquals( getColData( inTable_, 2 ), getColData( dup, 0 ) );
     }
 
+    public void testTableName() throws Exception {
+        assertEquals( "Uns Table",
+                      apply( "tablename 'Uns Table'" ).getName() );
+    }
+
     public void testTuningOptions() throws Exception {
         assertSameData( inTable_, apply( "random" ) );
         assertSameData( inTable_, apply( "sequential" ) );
