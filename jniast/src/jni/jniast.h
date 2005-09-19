@@ -93,7 +93,7 @@ typedef union {
    AstZoomMap *ZoomMap;      /* Pointer to C AstZoomMap struct */
 } AstPointer;
 
-typedef AstStc *(*StcConstructor)( AstRegion *, int, AstKeyMap*[], const char * );
+typedef AstStc *(*StcConstructor)( AstRegion *, int, AstKeyMap*[], const char *, ... );
 
 /* External variables. */
 jobject AstLock;
