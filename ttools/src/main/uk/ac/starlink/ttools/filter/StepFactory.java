@@ -32,6 +32,7 @@ public class StepFactory {
         String pkg = "uk.ac.starlink.ttools.filter.";
         filterFactory_.register( "addcol", pkg + "AddColumnFilter" );
         filterFactory_.register( "addskycoords", pkg + "AddSkyCoordsFilter" );
+        filterFactory_.register( "badval", pkg + "BadValueFilter" );
         filterFactory_.register( "cache", pkg + "CacheFilter" );
         filterFactory_.register( "delcols", pkg + "DeleteColumnFilter" );
         filterFactory_.register( "every", pkg + "EveryFilter" );
@@ -41,12 +42,13 @@ public class StepFactory {
         filterFactory_.register( "keepcols", pkg + "KeepColumnFilter" );
         filterFactory_.register( "progress", pkg + "ProgressFilter" );
         filterFactory_.register( "random", pkg + "RandomFilter" );
-        filterFactory_.register( "tablename", pkg + "NameFilter" );
         filterFactory_.register( "replacecol", pkg + "ReplaceColumnFilter" );
+        filterFactory_.register( "replaceval", pkg + "ReplaceValueFilter" );
         filterFactory_.register( "select", pkg + "SelectFilter" );
         filterFactory_.register( "sequential", pkg + "SequentialFilter" );
         filterFactory_.register( "sort", pkg + "ColumnSortFilter" );
         filterFactory_.register( "sortexpr", pkg + "ExpressionSortFilter" );
+        filterFactory_.register( "tablename", pkg + "NameFilter" );
         filterFactory_.register( "tail", pkg + "TailFilter" );
     }
 
