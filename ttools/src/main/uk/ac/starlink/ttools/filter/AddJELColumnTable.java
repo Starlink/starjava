@@ -15,22 +15,24 @@ import uk.ac.starlink.ttools.RandomJELRowReader;
 import uk.ac.starlink.ttools.SequentialJELRowReader;
 
 /**
- * Wrapper table which adds a single column, defined by a JEL expression.
+ * Wrapper table which adds one or more columns, defined by JEL expressions.
  *
  * @author   Mark Taylor (Starlink)
  * @since    3 Mar 2005
  */
 public class AddJELColumnTable extends WrapperStarTable {
 
+    private final int nAdded_;
     private final StarTable baseTable_;
-    private final String expr_;
+    private final String[] exprs_;
     private final int[] colMap_;
     private final RandomJELRowReader randomReader_;
-    private final CompiledExpression randomCompex_;
-    private final ColumnInfo addInfo_;
+    private final CompiledExpression[] randomCompexs_;
+    private final ColumnInfo[] addInfos_;
 
     /**
-     * Constructor.
+     * Constructs a table which adds a single new column at a given
+     * column index.
      *
      * @param   baseTable   table on which this one is based
      * @param   cinfo     ColumnInfo describing the column to be added.
@@ -44,32 +46,65 @@ public class AddJELColumnTable extends WrapperStarTable {
     public AddJELColumnTable( StarTable baseTable, ColumnInfo cinfo, 
                               String expr, int ipos )
             throws CompilationException {
-        super( baseTable );
+        this( baseTable, new ColumnInfo[] { cinfo }, new String[] { expr },
+              ipos );
+    }
+
+
+    /**
+     * Constructs a table which adds a list of new columns.
+     *
+     *
+     * @param   baseTable   table on which this one is based
+     * @param   cinfos    array of ColumnInfos describing the new columns
+     *                    to be added.  Only the names have to be set; 
+     *                    other metadata items will be used if available
+     *                    apart from the contentClass, which is determined
+     *                    from the return type of the compiled expression
+     * @param   exprs   JEL expressions defining the value of the new columns
+     * @param   ipos   column index of the first new column; the others
+     *                 will follow straight after it
+     */
+    public AddJELColumnTable( StarTable baseTable, ColumnInfo[] cinfos,
+                              String[] exprs, int ipos )
+            throws CompilationException {
+        super( baseTable ); 
         baseTable_ = baseTable;
-        expr_ = expr;
+        exprs_ = (String[]) exprs.clone();
+        nAdded_ = exprs_.length;
+        if ( cinfos.length != nAdded_ ) {
+            throw new IllegalArgumentException( "How many new columns??" );
+        }
 
         /* Store a map of which column in the base table is used for each
-         * column in this table.  One of the elements is -1, which means
-         * it's the newly added column. */
-        colMap_ = new int[ baseTable.getColumnCount() + 1 ];
+         * column in this table.  The first newly-added column is -1, the 
+         * next is -2, etc. */
+        colMap_ = new int[ baseTable.getColumnCount() + nAdded_ ];
         int j = 0;
         for ( int i = 0; i < colMap_.length; i++ ) {
-            colMap_[ i ] = i == ipos ? -1
-                                     : j++;
+            int k = i - ipos;
+            colMap_[ i ] = ( k >= 0 && k < nAdded_ )
+                         ? - ( k + 1 )
+                         : j++;
         }
         assert j == baseTable.getColumnCount();
 
-        /* Compile the expression ready for random evaluation. */
+        /* Compile the expressions ready for random evaluation. */
         randomReader_ = new RandomJELRowReader( baseTable );
         Library lib = JELUtils.getLibrary( randomReader_ );
-        randomCompex_ = Evaluator.compile( expr_, lib );
+        randomCompexs_ = new CompiledExpression[ nAdded_ ];
+        addInfos_ = new ColumnInfo[ nAdded_ ];
+        for ( int i = 0; i < nAdded_; i++ ) {
+            String expr = exprs_[ i ];
+            randomCompexs_[ i ] = Evaluator.compile( expr, lib );
 
-        /* Set the content class for the new column to be that returned by
-         * the expression. */
-        Class clazz =
-            JELUtils.getWrapperType( JELUtils.getExpressionType( lib, expr ) ); 
-        addInfo_ = cinfo;
-        addInfo_.setContentClass( clazz );
+            /* Set the content class for the new column to be that
+             * returned by the expression. */
+            Class primType = JELUtils.getExpressionType( lib, expr );
+            Class clazz = JELUtils.getWrapperType( primType );
+            addInfos_[ i ] = cinfos[ i ];
+            addInfos_[ i ].setContentClass( clazz );
+        }
     }
 
     public int getColumnCount() {
@@ -79,13 +114,13 @@ public class AddJELColumnTable extends WrapperStarTable {
     public ColumnInfo getColumnInfo( int icol ) {
         int ibase = colMap_[ icol ];
         return ibase >= 0 ? super.getColumnInfo( ibase )
-                          : addInfo_;
+                          : addInfos_[ -1 - ibase ];
     }
 
     public Object getCell( long irow, int icol ) throws IOException {
         int ibase = colMap_[ icol ];
         return ibase >= 0 ? super.getCell( irow, ibase )
-                          : evaluateAtRow( irow );
+                          : evaluateAtRow( irow, -1 - ibase );
     }
 
     public Object[] getRow( long irow ) throws IOException {
@@ -96,7 +131,7 @@ public class AddJELColumnTable extends WrapperStarTable {
         for ( int icol = 0; icol < ncol; icol++ ) {
             int ibase = colMap_[ icol ];
             row[ icol ] = ibase >= 0 ? baseRow[ ibase ]
-                                     : evaluateAtRow( irow );
+                                     : evaluateAtRow( irow, -1 - ibase );
         }
         return row;
     }
@@ -104,24 +139,28 @@ public class AddJELColumnTable extends WrapperStarTable {
     public RowSequence getRowSequence() throws IOException {
         final SequentialJELRowReader seqReader =
             new SequentialJELRowReader( baseTable_ ); 
-        final CompiledExpression seqCompex;
-        try {
-            seqCompex =
-                Evaluator.compile( expr_, JELUtils.getLibrary( seqReader ) );
-        }
-        catch ( CompilationException e ) {
-            // This shouldn't really happen since we already tried to
-            // compile it in the constructor to test it.  However, just
-            // rethrow it if it does.
-            throw (IOException) new IOException( "Bad expression: " + expr_ )
-                               .initCause( e );
+        final CompiledExpression[] seqCompexs = 
+            new CompiledExpression[ nAdded_ ];
+        Library lib = JELUtils.getLibrary( seqReader );
+        for ( int i = 0; i < nAdded_; i++ ) {
+            try {
+                seqCompexs[ i ] = Evaluator.compile( exprs_[ i ], lib );
+            }
+            catch ( CompilationException e ) {
+                // This shouldn't really happen since we already tried to
+                // compile it in the constructor to test it.  However, just
+                // rethrow it if it does.
+                throw (IOException)
+                      new IOException( "Bad expression: " + exprs_[ i ] )
+                     .initCause( e );
+            }
         }
         return new WrapperRowSequence( seqReader ) {
 
             public Object getCell( int icol ) throws IOException {
                 int ibase = colMap_[ icol ];
                 return ibase >= 0 ? super.getCell( ibase )
-                                  : evaluate();
+                                  : evaluate( -1 - ibase );
             }
 
             public Object[] getRow() throws IOException {
@@ -132,17 +171,20 @@ public class AddJELColumnTable extends WrapperStarTable {
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     int ibase = colMap_[ icol ];
                     row[ icol ] = ibase >= 0 ? baseRow[ ibase ]
-                                             : evaluate();
+                                             : evaluate( -1 - ibase );
                 }
                 return row;
             }
 
             /**
              * Evaluates the JEL expression at the current row.
+             *
+             * @param  iAddcol  index of the added column (first added
+             *         column is zero, second is 1, ...)
              */
-            private Object evaluate() throws IOException {
+            private Object evaluate( int iAddcol ) throws IOException {
                 try {
-                    return seqReader.evaluate( seqCompex );
+                    return seqReader.evaluate( seqCompexs[ iAddcol ] );
                 }
                 catch ( IOException e ) {
                     throw e;
@@ -165,10 +207,13 @@ public class AddJELColumnTable extends WrapperStarTable {
      * Evaluates the JEL expression at a given row.
      *
      * @param  irow  row index
+     * @param  iAddcol  index of the added column (first added
+     *         column is zero, second is 1, ...)
      */
-    private Object evaluateAtRow( long irow ) throws IOException {
+    private Object evaluateAtRow( long irow, int iAddcol ) throws IOException {
         try {
-            return randomReader_.evaluateAtRow( randomCompex_, irow );
+            return randomReader_
+                  .evaluateAtRow( randomCompexs_[ iAddcol ], irow );
         }
         catch ( IOException e ) {
             throw e;
