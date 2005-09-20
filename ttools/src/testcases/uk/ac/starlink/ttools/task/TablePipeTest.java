@@ -141,6 +141,22 @@ public class TablePipeTest extends TableTestCase {
 
     }
 
+    public void testBadval() throws Exception {
+        assertArrayEquals( new Object[] { new Integer( 1 ),
+                                          new Integer( 2 ),
+                                          null,
+                                          new Integer( 4 ) },
+                           getColData( apply( "badval 3 *" ), 0 ) );
+
+        assertArrayEquals( new Object[] { "Mark", null, "Taylor", null },
+                           getColData( apply( "badval Beauchamp d" ), 3 ) );
+
+        assertArrayEquals(
+            new Object[] { new Float( 1f ), new Float( 2f ),
+                           null, new Float( Float.NaN ), },
+            getColData( apply( "addcol e (float)b/10; badval 3 *" ), 4 ) );
+    }
+
     public void testCache() throws Exception {
         assertSameData( inTable_, apply( "cache" ) );
     }
@@ -234,7 +250,33 @@ public class TablePipeTest extends TableTestCase {
         assertArrayEquals( getColData( inTable_, 2 ), getColData( dup, 0 ) );
     }
 
-    public void testTableName() throws Exception {
+    public void testReplaceval() throws Exception {
+        assertArrayEquals(
+           new Object[] { "Mark", "Stupendous", "Taylor", "Rex" },
+           getColData( apply( "replaceval Beauchamp Stupendous d;"
+                            + "replaceval null Rex d;" ), 3 ) );
+
+        assertArrayEquals(
+           new Object[] { "Mark", null, "Taylor", null },
+           getColData( apply( "replaceval Beauchamp null d" ), 3 ) );
+
+        assertArrayEquals(
+           box( new double[] { 10., 20., 30., Math.PI } ),
+           getColData( apply( "replaceval null " + Math.PI + " b" ), 1 ) );
+
+        assertArrayEquals(
+           box( new double[] { 10., 20., 30., 40. } ),
+           getColData( apply( "replaceval null " + Math.PI + " b;"
+                            + "replaceval " + Math.PI + " 40 b" ), 1 ) );
+
+        assertArrayEquals(
+           box( new float[] { 10f, 20f, 30f, 40f } ),
+           getColData( apply( "replacecol b (float)b;"
+                            + "replaceval null " + Math.PI + " b;"
+                            + "replaceval " + Math.PI + " 40 b" ), 1 ) );
+    }
+
+    public void testTablename() throws Exception {
         assertEquals( "Uns Table",
                       apply( "tablename 'Uns Table'" ).getName() );
     }
