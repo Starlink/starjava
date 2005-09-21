@@ -59,9 +59,11 @@ public class TextTableWriter extends StreamStarTableWriter {
         int ncol = startab.getColumnCount();
         ColumnInfo[] cinfos = new ColumnInfo[ ncol ];
         int[] cwidths = new int[ ncol ];
+        int[] maxWidths = new int[ ncol ];
         for ( int i = 0; i < ncol; i++ ) {
             cinfos[ i ] = startab.getColumnInfo( i );
             cwidths[ i ] = cinfos[ i ].getName().length();
+            maxWidths[ i ] = getMaxWidth( cinfos[ i ].getContentClass() );
         }
 
         boolean allRowsSampled = false;
@@ -75,7 +77,7 @@ public class TextTableWriter extends StreamStarTableWriter {
                 Object[] row = srseq.getRow();
                 for ( int i = 0; i < ncol; i++ ) {
                     String formatted = cinfos[ i ]
-                                      .formatValue( row[ i ], maxWidth );
+                                      .formatValue( row[ i ], maxWidths[ i ] );
                     if ( formatted.length() > cwidths[ i ] ) {
                         cwidths[ i ] = formatted.length();
                     }
@@ -100,7 +102,7 @@ public class TextTableWriter extends StreamStarTableWriter {
         }
 
         for ( int i = 0; i < ncol; i++ ) {
-            cwidths[ i ] = Math.min( maxWidth, cwidths[ i ] );
+            cwidths[ i ] = Math.min( maxWidths[ i ], cwidths[ i ] );
         }
 
         /* Get an iterator over the table data. */
@@ -282,5 +284,17 @@ public class TextTableWriter extends StreamStarTableWriter {
             buf[ i ] = (byte) str.charAt( i );
         }
         return buf;
+    }
+
+    private int getMaxWidth( Class clazz ) {
+        if ( clazz == Double.class ) {
+            return 13;
+        }
+        else if ( clazz == Float.class ) {
+            return 11;
+        }
+        else {
+            return maxWidth;
+        }
     }
 }
