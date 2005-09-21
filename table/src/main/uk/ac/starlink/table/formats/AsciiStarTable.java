@@ -37,8 +37,8 @@ import uk.ac.starlink.util.DataSource;
  * <li>Within a quoted field, any character preceded by a backslash character
  *     ("\") is treated literally.  This allows quote characters to appear
  *     within a quoted string.</li>
- * <li>An empty quoted string (two adjacent quotes) represents 
- *     the null value</li>
+ * <li>An empty quoted string (two adjacent quotes) or the string 
+ *     "<code>null</code>" (unquoted) represents the null value</li>
  * <li>All data lines must contain the same number of fields (this is the
  *     number of columns in the table)</li>
  * <li>The data type of a column is guessed according to the fields that
@@ -236,7 +236,8 @@ public class AsciiStarTable extends StreamStarTable {
                         // if not at start of line fall through to...
                     default:
                         in.unread( c );
-                        cellList.add( readToken( in ) );
+                        String tok = readToken( in );
+                        cellList.add( "null".equals( tok ) ? "" : tok );
                 }
                 startLine = false;
             }
