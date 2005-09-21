@@ -454,7 +454,7 @@
       <arg value="-x"/><arg value="hdx.jar"/>
       <arg value="-x"/><arg value="ndx.jar"/>
       <arg value="-x"/><arg value="topcat.jar"/>
-      <arg value="${star.lib.pkg}/ttools.jar"/>
+      <arg value="${star.lib.pkg}/stilts-app.jar"/>
     </java>
   </target>
 
@@ -475,14 +475,29 @@
           unless="runonly.install"
           description="-> creates the package jar file(s)">
 
+    <!-- Create the library jar file, ttools.jar. -->
     <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/${name}.jar"
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
+      </manifest>
+    </jar>
+
+    <!-- Also create a jar file which can be used to invoke the STILTS 
+     !   application.  As well as a Main-Class, this wants a reference
+     !   to the TOPCAT jar file, so that tpipe's topcat output mode can
+     !   start up TOPCAT when required.  If you try to put topcat.jar
+     !   in the Class-Path entry of the tools.jar file, it causes part
+     !   of the build (or at least the test) to blow up with recursive
+     !   classpath trouble, so this jar file contains nothing but a
+     !   manifest. -->
+    <jar destfile="${dist.lib.pkg}/stilts-app.jar" excludes="**">
+      <manifest> 
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Class-Path" value="${name}.jar ../topcat/topcat.jar"/>
         <attribute name="Main-Class" value="uk.ac.starlink.ttools.Stilts"/>
-        <attribute name="Class-Path"
-                   value="${jar.class.path} ../topcat/topcat.jar"/>
       </manifest>
     </jar>
 

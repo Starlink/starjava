@@ -19,7 +19,7 @@ bindir="`dirname $0`"
 
 #  Locate the application jar file.  This is relative to this script.
 
-appjar="$bindir/../lib/ttools/ttools.jar"
+appjar="$bindir/../lib/ttools/stilts-app.jar"
 if test ! -f "$appjar"; then
    echo "Failed to locate $appjar."
    exit 1
