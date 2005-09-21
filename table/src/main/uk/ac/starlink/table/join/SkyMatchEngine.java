@@ -210,15 +210,15 @@ public abstract class SkyMatchEngine implements MatchEngine {
      * @param   dec2 declination of point 2 in radians
      * @return  angular separation of point 1 and point 2 in radians
      */
-    private double calculateSeparation( double ra1, double dec1,
-                                        double ra2, double dec2 ) {
+    public static double calculateSeparation( double ra1, double dec1,
+                                              double ra2, double dec2 ) {
         return haversineSeparationFormula( ra1, dec1, ra2, dec2 );
     }
 
     /**
      * Law of cosines for spherical trigonometry.
      * This is ill-conditioned for small angles (the cases we are generally
-     * interested in here.  So don't use it!
+     * interested in here).  So don't use it!
      *
      * @deprecated  Ill-conditioned for small angles
      * @param   ra1  right ascension of point 1 in radians
