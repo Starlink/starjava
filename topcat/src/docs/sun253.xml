@@ -731,7 +731,8 @@ interpreted:
 <li>Within a quoted field, any character preceded by a backslash character
     ("\") is treated literally.  This allows quote characters to appear
     within a quoted string.</li>
-<li>An empty quoted string (two adjacent quotes) represents
+<li>An empty quoted string (two adjacent quotes) 
+    or the string "<code>null</code>" (unquoted) represents
     the null value</li>
 <li>All data lines must contain the same number of fields (this is the
     number of columns in the table)</li>
@@ -5096,8 +5097,35 @@ in terms of a metric on that space to count as a match.
     In this case you will need to specify columns giving
     Right Ascension and Declination
     for each table participating in the match.
-    The Error value you must fill in is the maximum separation of matched
-    points in around a great circle.
+    The Max Error value you must fill in is the 
+    maximum separation of matched points around a great circle.
+    </p></dd>
+
+<dt>Sky with Errors</dt>
+<dd><p>The matching is like that for the <label>Sky</label> option above,
+    but an error radius (positional uncertainty) can be given for each
+    row in the input tables, rather than just a single value for the whole
+    match.
+    You need to specify a single Max Error value, which gives the
+    global maximum separation applying to all matches, and for each
+    of the input tables, along with the Right Ascension and 
+    Declination columns, you also specify an Error column
+    which gives the error radius corresponding to that position.
+    Two rows are considered to match when the separation between the
+    two RA,Dec positions is smaller than <em>both</em> the 
+    Max Error value <em>and</em> the sum of the two
+    Error values for the corresponding rows.
+    If either of the per-row Error values is blank, then any separation
+    up to the Max Error is considered to match.
+    According to these rules, you might decide to set the Max Error
+    to an arbitarily large number so that only the sum of per-row Errors
+    will determine the actual match criteria.  
+    However please <em>don't</em> do this, since the Max Error also 
+    functions as a tuning parameter for the matching algorithm,
+    and ought to be reasonably close to the actual maximum acceptable
+    separation - 
+    if necessary use the <ref id="StatsWindow">Statistics Window</ref>
+    to determine the actual maximum uncertainty.
     </p></dd>
 
 <dt>Sky 3D</dt>
@@ -6770,6 +6798,9 @@ introduced since the last version:
 <li>MySpace access re-implemented - you now need to have the 
     Astrogrid Desktop running in order to read from or write to MySpace.</li>
 <li>Believed to work fine with Java 1.5 now.</li>
+<li>String "<code>null</code>" interpreted as a blank value in ASCII 
+    tables.</li>
+<li>New "Sky with Errors" match type introduced".</li>
 </ul>
 </p></dd>
 
