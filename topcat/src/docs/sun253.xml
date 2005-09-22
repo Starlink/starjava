@@ -1508,9 +1508,7 @@ match is proceeding, so you can keep an eye on this.
 </p>
 
 <p>For more detail on the matching algorithms, see the 
-javadocs for the 
-<webref url="http://www.starlink.ac.uk/stil/javadocs/uk/ac/starlink/table/join/"
-        >uk.ac.starlink.table.join</webref> package,
+javadocs for the <code>uk.ac.starlink.table.join</code> package,
 or contact the author.
 </p>
 
