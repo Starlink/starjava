@@ -385,23 +385,24 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         Arrays.fill( someLengths4, someLength );
         CombinedMatchEngine skyPlus1Engine = 
             new CombinedMatchEngine( new MatchEngine[] {
-                new HEALPixMatchEngine( someAngle ),
+                new HEALPixMatchEngine( someAngle, false ),
                 new AnisotropicCartesianMatchEngine( someLengths1 ),
             } );
         skyPlus1Engine.setName( "Sky + X" );
         CombinedMatchEngine skyPlus2Engine = 
             new CombinedMatchEngine( new MatchEngine[] {
-                new HEALPixMatchEngine( someAngle ),
+                new HEALPixMatchEngine( someAngle, false ),
                 new AnisotropicCartesianMatchEngine( someLengths2 ),
             } );
         skyPlus2Engine.setName( "Sky + XY" );
-        HTMMatchEngine htmEngine = new HTMMatchEngine( someAngle ) {
+        HTMMatchEngine htmEngine = new HTMMatchEngine( someAngle, false ) {
             public String toString() {
                 return "HTM";
             }
         };
         return new MatchEngine[] {
-            new HEALPixMatchEngine( someAngle ),
+            new HEALPixMatchEngine( someAngle, false ),
+            new HEALPixMatchEngine( someAngle, true ),
             new SphericalPolarMatchEngine( someLength ),
             new EqualsMatchEngine(),
             new IsotropicCartesianMatchEngine( 1, someLength, false ),
