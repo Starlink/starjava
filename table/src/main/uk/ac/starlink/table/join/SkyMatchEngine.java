@@ -14,27 +14,34 @@ import uk.ac.starlink.table.ValueInfo;
  * separate two points on the celestial sphere for them to be 
  * considered matching.
  *
- * <p>Concrete superclasses will need to implement at least the
- * {@link MatchEngine#getBins} method.
- *
  * @author   Mark Taylor (Starlink)
  * @since    15 Mar 2005
  */
 public abstract class SkyMatchEngine implements MatchEngine {
 
     private double separation_;
+    private boolean useErrors_;
     private DescribedValue sepValue_ = new SkySeparationValue();
 
     private static final double ARC_SECOND = Math.PI / 180 / 60 / 60;
     private static final DefaultValueInfo SEP_INFO =
+        new DefaultValueInfo( "Max Error", Double.class,
+                              "Maximum separation along a great circle"
+                            + " - additional constraint to per-object errors" );
+    private static final DefaultValueInfo ERR_INFO =
         new DefaultValueInfo( "Error", Double.class,
-                              "Maximum separation along a great circle" );
+                              "Per-object error radius along a great circle" );
     private static final DefaultValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
                               "Distance between matched objects " +
                               "along a great circle" );
     static {
         SEP_INFO.setUnitString( "radians" );
+        SEP_INFO.setNullable( false );
+
+        ERR_INFO.setUnitString( "radians" );
+        ERR_INFO.setNullable( true );
+
         SCORE_INFO.setUnitString( "arcsec" );
     }
 
@@ -44,9 +51,13 @@ public abstract class SkyMatchEngine implements MatchEngine {
      * distance on the celestial sphere.
      *
      * @param   separation   match radius in radians
+     * @param   useErrors   if true, per-row errors can be specified as
+     *          a third element of the tuples; otherwise only the fixed
+     *          separation value counts
      */
-    public SkyMatchEngine( double separation ) {
+    public SkyMatchEngine( double separation, boolean useErrors ) {
         setSeparation( separation );
+        setUseErrors( useErrors );
     }
 
     /**
@@ -71,40 +82,105 @@ public abstract class SkyMatchEngine implements MatchEngine {
     }
 
     /**
-     * Matches two tuples representing RA,Dec coordinates if they are
-     * within <tt>separation</tt> radians of each other on the sky.
+     * Indicates whether this engine is using per-row errors for matching.
      *
-     * @param   radec1  2-element array of Number objects giving RA &amp; dec
-     *                  of first point
-     * @param   radec2  2-element array of Number objects giving RA &amp; dec
-     *                  of second point
-     * @return  distance in radians between <tt>radec1</tt> and <tt>radec2</tt>
+     * @return  true  iff per-row error radii are in use
+     */
+    public boolean getUseErrors() {
+        return useErrors_;
+    }
+
+    /**
+     * Sets whether this engine will use per-row errors for matching.
+     *
+     * @param  use  true to use per-row errors
+     */
+    public void setUseErrors( boolean use ) {
+        useErrors_ = use;
+    }
+
+    /**
+     * Determines the match score of two tuples.
+     * If <code>useErrors</code> is true the tuples are three-element,
+     * giving RA, Dec and error radius, all as Number objects in radians.
+     * If it is false, they are two element, giving just RA and Dec.
+     *
+     * @param   tuple1  values representing first point
+     * @param   tuple2  values representing second point
+     * @return  distance in arcseconds between first and second points
      *          if they are close enough to match, otherwise -1
      */
-    public double matchScore( Object[] radec1, Object[] radec2 ) {
+    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+
+        /* Work out maximum permissible distance between points. */
+        double err = getSeparation();
+        if ( useErrors_ ) {
+            Number err1 = (Number) tuple1[ 2 ];
+            Number err2 = (Number) tuple2[ 2 ];
+            if ( ( ! Tables.isBlank( err1 ) ) &&
+                 ( ! Tables.isBlank( err2 ) ) ) {
+                err = Math.min( err, err1.doubleValue() + err2.doubleValue() );
+            }
+        }
 
         /* Cheap test which will throw out most comparisons straight away:
          * see if the separation in declination is greater than the maximum
          * acceptable separation. */
-        double dec1 = ((Number) radec1[ 1 ]).doubleValue();
-        double dec2 = ((Number) radec2[ 1 ]).doubleValue();
-        if ( Math.abs( dec1 - dec2 ) > separation_ ) {
+        double dec1 = ((Number) tuple1[ 1 ]).doubleValue();
+        double dec2 = ((Number) tuple2[ 1 ]).doubleValue();
+        if ( Math.abs( dec1 - dec2 ) > err ) {
             return -1.0;
         }
 
         /* Declinations at least are close; do a proper test. */
-        double ra1 = ((Number) radec1[ 0 ]).doubleValue();
-        double ra2 = ((Number) radec2[ 0 ]).doubleValue();
+        double ra1 = ((Number) tuple1[ 0 ]).doubleValue();
+        double ra2 = ((Number) tuple2[ 0 ]).doubleValue();
         double sep = calculateSeparation( ra1, dec1, ra2, dec2 );
-        return sep <= separation_ ? sep / ARC_SECOND : -1.0;
+        return sep <= err ? sep / ARC_SECOND : -1.0;
     }
+
+    public Object[] getBins( Object[] tuple ) {
+        if ( tuple[ 0 ] instanceof Number && tuple[ 1 ] instanceof Number ) {
+            double ra = ((Number) tuple[ 0 ]).doubleValue();
+            double dec = ((Number) tuple[ 1 ]).doubleValue();
+            double err = getSeparation();
+            if ( useErrors_ ) {
+                Number rowErr = (Number) tuple[ 2 ];
+                if ( ! Tables.isBlank( rowErr ) ) {
+                    err = Math.min( err, rowErr.doubleValue() );
+                }
+            }
+            return getBins( ra, dec, err );
+        }
+        else {
+            return NO_BINS;
+        }
+    }
+
+    /**
+     * Returns a set of keys for bins into which possible matches 
+     * for a given sky position, with a given error, might fall.
+     * The returned objects can be anything, but should have their
+     * <code>equals</code> and <code>hashCode</code> methods 
+     * implemented properly for comparison.
+     * The <code>err</code> value will not be greater than the current 
+     * result of <code>getSeparation</code>.
+     *
+     * @param   ra   right ascension of point to test (radians)
+     * @param   dec  declination of point to test (radians)
+     * @param   err  possible distance away from given location of match
+     * @see    #getBins(java.lang.Object[])
+     */
+    protected abstract Object[] getBins( double ra, double dec, double err );
 
     public ValueInfo getMatchScoreInfo() {
         return SCORE_INFO;
     }
 
     public ValueInfo[] getTupleInfos() {
-        return new ValueInfo[] { Tables.RA_INFO, Tables.DEC_INFO };
+        return getUseErrors()
+             ? new ValueInfo[] { Tables.RA_INFO, Tables.DEC_INFO, ERR_INFO }
+             : new ValueInfo[] { Tables.RA_INFO, Tables.DEC_INFO };
     }
 
     public DescribedValue[] getMatchParameters() {
@@ -112,7 +188,8 @@ public abstract class SkyMatchEngine implements MatchEngine {
     }
 
     public String toString() {
-        return "Sky";
+        return getUseErrors() ? "Sky with Errors"
+                              : "Sky";
     }
 
     public boolean canBoundMatch() {
@@ -164,8 +241,8 @@ public abstract class SkyMatchEngine implements MatchEngine {
          * Float or Double - in the weird case in which they are not,
          * null values are returned, which is quite legal and will not
          * lead to incorrect results (only perhaps less efficient). */
-        Comparable[] radecMinOut = new Comparable[ 2 ];
-        Comparable[] radecMaxOut = new Comparable[ 2 ];
+        Comparable[] radecMinOut = new Comparable[ getUseErrors() ? 3 : 2 ];
+        Comparable[] radecMaxOut = new Comparable[ getUseErrors() ? 3 : 2 ];
         if ( ! Double.isNaN( rMinOut ) ) {
             if ( radecMinIn[ 0 ] instanceof Float ) {
                 radecMinOut[ 0 ] = new Float( (float) rMinOut );

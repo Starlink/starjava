@@ -25,7 +25,6 @@ import java.util.List;
 public class HTMMatchEngine extends SkyMatchEngine {
 
     private HTMindexImp htm_;
-    private double arcminSep_;
 
     /**
      * Scaling factor which determines the size of the mesh cells used
@@ -40,14 +39,16 @@ public class HTMMatchEngine extends SkyMatchEngine {
      * distance on the celestial sphere.
      *
      * @param   separation   match radius in radians
+     * @param   useErrors   if true, per-row errors can be specified as
+     *          a third element of the tuples; otherwise only the fixed
+     *          separation value counts
      */
-    public HTMMatchEngine( double separation ) {
-        super( separation );
+    public HTMMatchEngine( double separation, boolean useErrors ) {
+        super( separation, useErrors );
     }
 
     public void setSeparation( double separation ) {
         super.setSeparation( separation );
-        arcminSep_ = Math.toDegrees( separation ) * 60.0;
 
         /* Construct an HTM index with mesh elements of a size suitable
          * for the requested resolution. */
@@ -65,44 +66,40 @@ public class HTMMatchEngine extends SkyMatchEngine {
 
     /**
      * Returns all the HTM cells which fall wholly or partially within
-     * <tt>separation</tt> radians of a given position.
+     * <tt>err</tt> radians of a given position.
      *
-     * @param  radec  2-element array of Number objects giving RA &amp; Dec
-     *         of the position to test
+     * @param  ra   right ascension
+     * @param  dec  declination
+     * @param  err  error
+     * @return  bin list
      */
-    public Object[] getBins( Object[] radec ) {
-        if ( radec[ 0 ] instanceof Number && radec[ 1 ] instanceof Number ) {
-            Circle zone = new Circle( ((Number) radec[ 0 ]).doubleValue(),
-                                      ((Number) radec[ 1 ]).doubleValue(),
-                                      arcminSep_ );
+    public Object[] getBins( double ra, double dec, double err ) {
+        double arcminErr = Math.toDegrees( err ) * 60.0;
+        Circle zone = new Circle( ra, dec, arcminErr );
 
-            /* Get the intersection as a range of HTM pixels.
-             * The more obvious 
-             *      range = htm_.intersect( zone.getDomain() );
-             * is flawed, since it can return pixel IDs which refer to 
-             * pixels at different HTM levels (i.e. of different sizes).
-             * By doing it as below (on advice from Wil O'Mullane) we
-             * ensure that all the pixels are at the HTM's natural level. */
-            Domain domain = zone.getDomain();
-            domain.setOlevel( htm_.maxlevel_ );
-            HTMrange range = new HTMrange();
-            domain.intersect( htm_, range, false );
+        /* Get the intersection as a range of HTM pixels.
+         * The more obvious 
+         *      range = htm_.intersect( zone.getDomain() );
+         * is flawed, since it can return pixel IDs which refer to 
+         * pixels at different HTM levels (i.e. of different sizes).
+         * By doing it as below (on advice from Wil O'Mullane) we
+         * ensure that all the pixels are at the HTM's natural level. */
+        Domain domain = zone.getDomain();
+        domain.setOlevel( htm_.maxlevel_ );
+        HTMrange range = new HTMrange();
+        domain.intersect( htm_, range, false );
 
-            /* Accumulate a list of the pixel IDs. */
-            List binList = new ArrayList();
-            try {
-                for ( Iterator it = new HTMrangeIterator( range, false );
-                      it.hasNext(); ) {
-                    binList.add( it.next() );
-                }
+        /* Accumulate a list of the pixel IDs. */
+        List binList = new ArrayList();
+        try {
+            for ( Iterator it = new HTMrangeIterator( range, false );
+                  it.hasNext(); ) {
+                binList.add( it.next() );
             }
-            catch ( HTMException e ) {
-                throw new RuntimeException( "Uh-oh", e );
-            }
-            return binList.toArray();
         }
-        else {
-            return NO_BINS;
+        catch ( HTMException e ) {
+            throw new RuntimeException( "Uh-oh", e );
         }
+        return binList.toArray();
     }
 }

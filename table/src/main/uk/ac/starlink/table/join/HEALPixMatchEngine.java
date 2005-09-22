@@ -26,7 +26,6 @@ import javax.vecmath.Vector3d;
 public class HEALPixMatchEngine extends SkyMatchEngine {
 
     private long nside_;
-    private double separation_;
     private final PixTools pixTools_;
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.join" );
@@ -38,10 +37,12 @@ public class HEALPixMatchEngine extends SkyMatchEngine {
      * distance on the celestial sphere.
      *
      * @param   separation  match radius in radians
+     * @param   useErrors   if true, per-row errors can be specified as
+     *          a third element of the tuples; otherwise only the fixed
+     *          separation value counts
      */
-    public HEALPixMatchEngine( double separation ) {
-        super( separation );
-        separation_ = separation;
+    public HEALPixMatchEngine( double separation, boolean useErrors ) {
+        super( separation, useErrors );
         pixTools_ = new PixTools();
     }
 
@@ -59,18 +60,10 @@ public class HEALPixMatchEngine extends SkyMatchEngine {
         nside_ = new PixTools().GetNSide( pixelSizeArcSec );
     }
 
-    public Object[] getBins( Object[] radec ) {
-        if ( radec[ 0 ] instanceof Number && radec[ 1 ] instanceof Number ) {
-            double ra = ((Number) radec[ 0 ]).doubleValue();
-            double dec = ((Number) radec[ 1 ]).doubleValue();
-            double theta = Math.PI * 0.5 - dec;
-            Vector3d vec = pixTools_.Ang2Vec( theta, ra );
-            List binList = pixTools_.query_disc( nside_, vec, separation_, 
-                                                 SCHEME, 1 );
-            return binList.toArray();
-        }
-        else {
-            return NO_BINS;
-        }
+    protected Object[] getBins( double ra, double dec, double err ) {
+        double theta = Math.PI * 0.5 - dec;
+        Vector3d vec = pixTools_.Ang2Vec( theta, ra );
+        List binList = pixTools_.query_disc( nside_, vec, err, SCHEME, 1 );
+        return binList.toArray();
     }
 }
