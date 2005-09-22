@@ -29,6 +29,9 @@ public class Coords {
     /** The size of one degree in radians. */
     public static final double DEGREE = Math.PI / 180;
 
+    /** The size of one hour of right ascension in radians. */
+    public static final double HOUR = Math.PI / 180 * 15;
+
     /** The size of one arcminute in radians. */
     public static final double ARC_MINUTE = Math.PI / 180 / 60;
 
