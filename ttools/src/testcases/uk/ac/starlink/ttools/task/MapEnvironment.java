@@ -38,6 +38,15 @@ public class MapEnvironment extends TableEnvironment {
         paramMap_ = map;
     }
 
+    /**
+     * Clone constructor.
+     *
+     * @param  env  environment to copy
+     */
+    public MapEnvironment( MapEnvironment env ) {
+        this( new HashMap( env.paramMap_ ) );
+    }
+
     public PrintStream getPrintStream() {
         return pout_;
     }
