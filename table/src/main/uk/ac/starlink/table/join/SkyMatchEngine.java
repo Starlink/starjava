@@ -25,11 +25,11 @@ public abstract class SkyMatchEngine implements MatchEngine {
 
     private static final double ARC_SECOND = Math.PI / 180 / 60 / 60;
     private static final DefaultValueInfo SEP_INFO =
-        new DefaultValueInfo( "Max Error", Double.class,
+        new DefaultValueInfo( "Max Error", Number.class,
                               "Maximum separation along a great circle"
                             + " - additional constraint to per-object errors" );
     private static final DefaultValueInfo ERR_INFO =
-        new DefaultValueInfo( "Error", Double.class,
+        new DefaultValueInfo( "Error", Number.class,
                               "Per-object error radius along a great circle" );
     private static final DefaultValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
