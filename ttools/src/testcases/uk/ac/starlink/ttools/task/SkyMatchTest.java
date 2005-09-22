@@ -72,11 +72,11 @@ public class SkyMatchTest extends TableTestCase {
                           .getRowCount() );
 
         assertEquals( 550, match2( env, t1, "ra1 dec1 known_error*1.01",
-                                        t2, "ra2 dec2 0." )
+                                        t2, "ra2 dec2 0" )
                           .getRowCount() );
 
         assertEquals( 550, match2( env, t1, "ra1 dec1 known_error*1.01",
-                                        t2, "ra2 dec2 (double)NULL" )
+                                        t2, "ra2 dec2 NULL" )
                           .getRowCount() );
     }
 
