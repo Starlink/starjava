@@ -31,7 +31,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
 
     /** Examples parameter values which are used in documentation. */
     private static final String[] EXAMPLES = new String[] {
-        "sky", "sky3d", "exact", "1d", "2d", "3d",
+        "sky", "skyerr", "sky3d", "exact", "1d", "2d", "3d",
         "2d_anisotropic", "3d_anisotropic",
         "sky+1d",
     };
@@ -181,7 +181,10 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             String cName = names[ i ];
             if ( "sky".equals( cName ) ||
                  "healpix".equals( cName ) ) {
-                component = new HEALPixMatchEngine( Coords.ARC_SECOND );
+                component = new HEALPixMatchEngine( Coords.ARC_SECOND, false );
+            }
+            else if ( "skyerr".equals( cName ) ) {
+                component = new HEALPixMatchEngine( Coords.ARC_SECOND, true );
             }
             else if ( "sky3d".equals( cName ) ) {
                 component = new SphericalPolarMatchEngine( 0. );
@@ -200,7 +203,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                     new AnisotropicCartesianMatchEngine( new double[ ndim ] );
             }
             else if ( cName.matches( "htm" ) ) {
-                component = new HTMMatchEngine( Coords.ARC_SECOND );
+                component = new HTMMatchEngine( Coords.ARC_SECOND, false );
             }
             else {
                 throw new UsageException( "Unknown matcher element: " + cName );
