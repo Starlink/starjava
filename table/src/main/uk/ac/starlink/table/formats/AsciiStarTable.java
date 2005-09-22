@@ -197,13 +197,17 @@ public class AsciiStarTable extends StreamStarTable {
             for ( boolean endLine = false; ! endLine; ) {
                 int c = in.read();
                 switch ( (char) c ) {
-                    case '\r':
-                    case '\n':
                     case END:
                         if ( cellList.size() == 0 ) {
                             return null;
                         }
                         endLine = true;
+                        break;
+                    case '\r':
+                    case '\n':
+                        if ( cellList.size() != 0 ) {
+                            endLine = true;
+                        }
                         break;
                     case '#':
                         if ( ! dataStarted_ ) {
