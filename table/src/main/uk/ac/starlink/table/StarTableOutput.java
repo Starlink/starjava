@@ -271,14 +271,14 @@ public class StarTableOutput {
              * FITS file.
              * On POSIX deleting (unlinking) a mapped file will keep its data
              * safe until it's unmapped.  On Windows, deleting it will 
-             * fail - in this case we throw an exception. */
+             * fail - in this case we log a warning. */
             if ( file.exists() ) {
                 if ( file.delete() ) {
                     logger.info( "Deleting file \"" + location + 
                                  "\" prior to overwriting" );
                 }
                 else {
-                    throw new IOException( "Can't delete \"" + location + 
+                    logger.warning( "Failed to delete \"" + location +
                                            "\" prior to overwriting" );
                 }
             }
