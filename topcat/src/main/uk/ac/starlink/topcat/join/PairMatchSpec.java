@@ -78,8 +78,10 @@ public class PairMatchSpec extends MatchSpec {
         Box rowBox = Box.createVerticalBox();
         bestSelector_ = new BestSelector();
         rowBox.add( bestSelector_ );
+        rowBox.add( Box.createVerticalStrut( 5 ) );
         joinSelector_ = new JoinSelector();
         rowBox.add( joinSelector_ );
+        rowBox.add( Box.createVerticalStrut( 5 ) );
         rowBox.setBorder( AuxWindow.makeTitledBorder( "Output Rows" ) );
         main.add( rowBox );
     }
