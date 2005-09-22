@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat;
 
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.func.Coords;
 
 /**
  * Performs unit conversions on data values based on a given ValueInfo.
@@ -39,14 +41,35 @@ public abstract class ColumnConverter {
         String units = info.getUnitString();
         Class clazz = info.getContentClass();
 
-        /* If the base info has units of radians, return converters for
-         * raw values of radians or degrees. */
-        if ( Number.class.isAssignableFrom( clazz ) &&
-             ( units != null && ( units.equalsIgnoreCase( "radian" ) ||
-                                  units.equalsIgnoreCase( "radians" ) ) ) ) {
+        /* Does the column represent a right ascension? */
+        if ( matches( info, Tables.RA_INFO ) &&
+             Number.class.isAssignableFrom( clazz ) &&
+             "radians".equalsIgnoreCase( units ) ) {
             return new ColumnConverter[] {
-                new FactorConverter( "degrees", Math.PI / 180 ),
-                new FactorConverter( "hours", Math.PI / 180 * 15 ),
+                new FactorConverter( "degrees", Coords.DEGREE ),
+                new FactorConverter( "hours", Coords.HOUR ),
+                new UnitConverter( "radians" ),
+            };
+        }
+
+        /* Does the column represent a declination? */
+        else if ( matches( info, Tables.DEC_INFO ) &&
+                  Number.class.isAssignableFrom( clazz ) &&
+                  "radians".equalsIgnoreCase( units ) ) {
+            return new ColumnConverter[] {
+                new FactorConverter( "degrees", Coords.DEGREE ),
+                new UnitConverter( "radians" ),
+            };
+        }
+
+        /* Does the column represent some other kind of angle?  If so, 
+         * it's likely an error of some kind, so make small units available. */
+        else if ( Number.class.isAssignableFrom( clazz ) &&
+                  "radians".equalsIgnoreCase( units ) ) {
+            return new ColumnConverter[] {
+                new FactorConverter( "arcsec", Coords.ARC_SECOND ),
+                new FactorConverter( "arcmin", Coords.ARC_MINUTE ),
+                new FactorConverter( "degrees", Coords.DEGREE ),
                 new UnitConverter( "radians" ),
             };
         }
@@ -56,6 +79,21 @@ public abstract class ColumnConverter {
         else {
             return new ColumnConverter[] { new UnitConverter( units ) };
         }
+    }
+
+    /** 
+     * Utility method to determine whether an info resembles another one.
+     * Currently matches name and content class.
+     *
+     * @param  info1  first info
+     * @param  info2  second info
+     * @return  true iff <code>info1</code> matches <code>info2</code>
+     */
+    private static boolean matches( ValueInfo info1, ValueInfo info2 ) {
+        return info1 != null
+            && info2 != null
+            && info1.getName().equals( info2.getName() )
+            && info1.getContentClass().equals( info2.getContentClass() );
     }
 
     /**
