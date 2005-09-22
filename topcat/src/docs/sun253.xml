@@ -6793,12 +6793,15 @@ introduced since the last version:
     "Spherical Polar" match type is now rebadged as the hopefully less
     confusing "Sky 3d".</li>
 <li>Substantially improved pair matching options.</li>
+<li>Better information available post-match - match score metadata etc.</li>
 <li>MySpace access re-implemented - you now need to have the 
     Astrogrid Desktop running in order to read from or write to MySpace.</li>
 <li>Believed to work fine with Java 1.5 now.</li>
 <li>String "<code>null</code>" interpreted as a blank value in ASCII 
     tables.</li>
 <li>New "Sky with Errors" match type introduced".</li>
+<li>Fixed bug in ASCII input handler which misidentified blank lines,
+    or DOS-format line ends, as end of file.</li>
 </ul>
 </p></dd>
 
