@@ -610,7 +610,7 @@ public class DefaultValueInfo implements ValueInfo {
                 return Float.valueOf( rep );
             }
         }
-        else if ( clazz == Double.class ) {
+        else if ( clazz == Double.class || clazz == Number.class ) {
             if ( rep.trim().length() == 0 ) {
                 return new Double( Double.NaN );
             }
