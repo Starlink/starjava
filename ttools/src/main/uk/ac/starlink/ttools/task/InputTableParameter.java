@@ -30,7 +30,6 @@ public class InputTableParameter extends Parameter {
         String suffix = name.startsWith( "in" ) ? name.substring( 2 ) : "";
         formatParam_ = new InputFormatParameter( "ifmt" + suffix );
         streamParam_ = new BooleanParameter( "istream" + suffix );
-        setDefault( "-" );
 
         setDescription( new String[] {
             "The location of the input table.",
