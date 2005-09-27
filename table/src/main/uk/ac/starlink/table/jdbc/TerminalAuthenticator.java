@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 
 /**
  * Provides JDBC authentication using the terminal; assumes that someone
- * is sitting at <tt>System.in</tt>/<tt>System.out</tt>.
+ * is sitting at <tt>System.in</tt>/<tt>System.err</tt>.
  */
 public class TerminalAuthenticator implements JDBCAuthenticator {
 
@@ -17,7 +17,7 @@ public class TerminalAuthenticator implements JDBCAuthenticator {
     public static String readUser() throws IOException {
         BufferedReader rdr = 
             new BufferedReader( new InputStreamReader( System.in ) );
-        System.out.print( "JDBC User: " );
+        System.err.print( "JDBC User: " );
         return rdr.readLine();
     }
 
@@ -36,7 +36,7 @@ public class TerminalAuthenticator implements JDBCAuthenticator {
                 if ( c == linesep0 || c < 0 ) {
                     masker.interrupt();
                     if ( c < 0 ) {
-                        System.out.println();
+                        System.err.println();
                     }
                     break;
                 }
@@ -45,7 +45,7 @@ public class TerminalAuthenticator implements JDBCAuthenticator {
         }
         catch ( IOException e ) {
             masker.interrupt();
-            System.out.println();
+            System.err.println();
             throw e;
         }
         return sbuf.toString();
@@ -58,8 +58,8 @@ public class TerminalAuthenticator implements JDBCAuthenticator {
         }
         public void run() {
             while ( ! interrupted() ) {
-                System.out.print( out );
-                System.out.flush();
+                System.err.print( out );
+                System.err.flush();
                 try {
                     this.sleep( 1 );
                 }
