@@ -1,11 +1,9 @@
 package uk.ac.starlink.ttools.mode;
 
-import java.io.IOException;
-import java.sql.SQLException;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
-import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
@@ -25,6 +23,9 @@ public class JdbcMode implements ProcessingMode {
     private final Parameter tableParam_;
     private final Parameter userParam_;
     private final Parameter passwdParam_;
+
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table.jdbc" );
 
     public JdbcMode() {
 
@@ -70,6 +71,13 @@ public class JdbcMode implements ProcessingMode {
         userParam_.setPrompt( "Username for SQL connection" );
         userParam_.setUsage( "<username>" );
         userParam_.setNullPermitted( true );
+        userParam_.setPreferExplicit( true );
+        try {
+            userParam_.setDefault( System.getProperty( "user.name" ) );
+        }
+        catch ( SecurityException e ) {
+            // no default - OK
+        }
         userParam_.setDescription( new String[] {
             "User name for the SQL connection to the database.",
         } );
@@ -78,6 +86,7 @@ public class JdbcMode implements ProcessingMode {
         passwdParam_.setPrompt( "Password for SQL connection" );
         passwdParam_.setUsage( "<passwd>" );
         passwdParam_.setNullPermitted( true );
+        passwdParam_.setPreferExplicit( true );
         passwdParam_.setDescription( new String[] { 
             "Password for the SQL connection to the database.",
         } );
@@ -113,45 +122,14 @@ public class JdbcMode implements ProcessingMode {
                    + dbParam_.stringValue( env )
                    + "#"
                    + tableParam_.stringValue( env );
-        return new JdbcConsumer( url, userParam_.stringValue( env ),
-                                      passwdParam_.stringValue( env ) );
-    }
-
-    /**
-     * Implements the table consumer which writes to a JDBC database.
-     */
-    private static class JdbcConsumer implements TableConsumer {
-
-        final String url_;
-        String user_;
-        String passwd_;
-
-        JdbcConsumer( String url, String user, String password ) {
-            url_ = url;
-            user_ = user;
-            passwd_ = password;
-        }
-
-        public void consume( StarTable table ) throws IOException {
-            JDBCAuthenticator authenticator = new JDBCAuthenticator() {
-                public String[] authenticate() throws IOException {
-                    if ( user_ == null ) {
-                        user_ = TerminalAuthenticator.readUser();
-                    }
-                    if ( passwd_ == null ) {
-                        passwd_ = TerminalAuthenticator.readPassword();
-                    }
-                    return new String[] { user_, passwd_ };
-                }
-            };
-            JDBCHandler handler = new JDBCHandler( authenticator );
-            try {
-                handler.createJDBCTable( table, url_ );
+        logger_.info( "JDBC URL: " + url );
+        final String user = userParam_.stringValue( env );
+        final String passwd = passwdParam_.stringValue( env );
+        JDBCAuthenticator auth = new JDBCAuthenticator() {
+            public String[] authenticate() {
+                return new String[] { user, passwd };
             }
-            catch ( SQLException e ) {
-                throw (IOException) new IOException( e.getMessage() )
-                                   .initCause( e );
-            }
-        }
+        };
+        return new JdbcConsumer( url, new JDBCHandler( auth ) );
     }
 }
