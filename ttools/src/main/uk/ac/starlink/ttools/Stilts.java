@@ -5,6 +5,7 @@ import java.io.InputStream;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.LineInvoker;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Top-level class for invoking tasks in the STILTS package.
@@ -27,6 +28,7 @@ public class Stilts {
      * @param   args  argument vector
      */
     public static void main( String[] args ) {
+        Loader.loadProperties();
         new LineInvoker( "stilts", taskFactory_ ).invoke( args );
     }
 
@@ -86,6 +88,7 @@ public class Stilts {
     private static void init() {
         taskFactory_ = new ObjectFactory( Task.class );
         String taskPkg = "uk.ac.starlink.ttools.task.";
+        taskFactory_.register( "tcat", taskPkg + "TableCat" );
         taskFactory_.register( "tcopy", taskPkg + "TableCopy" );
         taskFactory_.register( "tmatch2", taskPkg + "TableMatch2" );
         taskFactory_.register( "tpipe", taskPkg + "TablePipe" );
