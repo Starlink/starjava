@@ -25,7 +25,7 @@ public class LineEnvironment extends TableEnvironment {
     private int narg_;
     private int numberedArgs_;
     private boolean interactive_ = true;
-    private boolean promptUnspecified_;
+    private boolean promptAll_;
     private Set clearedParams_ = new HashSet();
 
     private static final String NULL_STRING = "";
@@ -44,6 +44,55 @@ public class LineEnvironment extends TableEnvironment {
         for ( int i = 0; i < args.length; i++ ) {
             arguments_[ i ] = new Argument( args[ i ] );
         }
+    }
+
+    /**
+     * Sets whether we are running interactively or not.  
+     * Only if this attribute is true will any attempt be made to prompt
+     * the user for responses etc.  Default is true.
+     *
+     * @param  interactive  whether we are running interactively
+     */
+    public void setInteractive( boolean interactive ) {
+        interactive_ = interactive;
+    }
+
+    /**
+     * Determines whether we are running interactively.
+     * Only if this attribute is true will any attempt be made to prompt
+     * the user for responses etc.  Default is true.
+     *
+     * @return   whether we are running interactively
+     */
+    public boolean getInteractive() {
+        return interactive_;
+    }
+
+    /**
+     * Sets whether all parameters which haven't received explicit values
+     * on the command line should be prompted for.
+     * Default is false.  Only makes sense if we're running interatively.
+     *
+     * @param  prompt  whether to prompt for everything
+     */
+    public void setPromptAll( boolean prompt ) {
+        if ( interactive_ ) {
+            promptAll_ = prompt;
+        }
+        else {
+            throw new IllegalStateException( "Not interactive" );
+        }
+    }
+
+    /**
+     * Determines whether all parameters which haven't received explicit
+     * values on the command line should be prompted for.
+     * Default is false.
+     *
+     * @return   whether to prompt for everything
+     */
+    public boolean getPromptAll() {
+        return promptAll_;
     }
 
     /**
@@ -214,7 +263,7 @@ public class LineEnvironment extends TableEnvironment {
         /* If no explicit value has been given, we may wish to prompt
          * the user. */
         else if ( interactive_ &&
-                  ( promptUnspecified_
+                  ( promptAll_
                  || ( param.getDefault() == null && ! param.isNullPermitted() )
                  || param.getPreferExplicit() ) ) {
             promptForValue( param );

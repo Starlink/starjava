@@ -92,6 +92,14 @@ public class LineInvoker {
                     it.remove();
                     env.setStrictVotable( false );
                 }
+                else if ( arg.equals( "-batch" ) ) {
+                    it.remove();
+                    env.setInteractive( false );
+                }
+                else if ( arg.equals( "-prompt" ) ) {
+                    it.remove();
+                    env.setPromptAll( true );
+                }
                 else if ( arg.equals( "-debug" ) ) {
                     it.remove();
                     env.setDebug( true );
@@ -279,6 +287,8 @@ public class LineInvoker {
             .append( " [-verbose]" )
             .append( " [-disk]" )
             .append( " [-debug]" )
+            .append( " [-prompt]" )
+            .append( " [-batch]" )
             .append( '\n' )
             .append( pad )
             .append( " <task-name> <task-args>" )
