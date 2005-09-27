@@ -38,9 +38,19 @@ public interface Environment {
 
     /**
      * Returns an output stream into which text output from a task can
-     * be written.
+     * be written.  This would correspond to standard output for a
+     * terminal-based application.
      *
      * @return  a stream for text output
      */
-    PrintStream getPrintStream();
+    PrintStream getOutputStream();
+
+    /**
+     * Returns an output stream into which error or logging output from
+     * a task can be written.  This would correspodnd to standard error
+     * for a terminal-based application.
+     *
+     * @return  a stream for error output
+     */
+    PrintStream getErrorStream();
 }

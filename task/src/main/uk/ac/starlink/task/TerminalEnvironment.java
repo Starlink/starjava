@@ -162,9 +162,19 @@ public class TerminalEnvironment implements Environment {
 
     /**
      * Returns <tt>System.out</tt>.
+     *
+     * @return   System.out
      */
-    public PrintStream getPrintStream() {
+    public PrintStream getOutputStream() {
         return System.out;
     }
 
+    /**
+     * Returns <tt>System.err</tt>.
+     *
+     * @return   System.err
+     */
+    public PrintStream getErrorStream() {
+        return System.err;
+    }
 }
