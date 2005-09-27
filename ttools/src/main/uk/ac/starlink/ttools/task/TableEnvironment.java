@@ -4,6 +4,8 @@ import java.io.PrintStream;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
+import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.votable.VOElementFactory;
@@ -19,6 +21,7 @@ public abstract class TableEnvironment implements Environment {
 
     private StarTableFactory tfact_;
     private StarTableOutput tout_;
+    private JDBCAuthenticator jdbcAuth_;
     private boolean debug_;
     private Boolean isStrict_;
 
@@ -44,6 +47,18 @@ public abstract class TableEnvironment implements Environment {
             tout_ = new StarTableOutput();
         }
         return tout_;
+    }
+
+    /**
+     * Returns a JDBC authenticator suitable for use in this environment.
+     *
+     * @return   JDBC authenticator
+     */
+    public JDBCAuthenticator getJdbcAuthenticator() {
+        if ( jdbcAuth_ == null ) {
+            jdbcAuth_ = new TerminalAuthenticator( getErrorStream() );
+        }
+        return jdbcAuth_;
     }
 
     /**
@@ -113,6 +128,20 @@ public abstract class TableEnvironment implements Environment {
         return env instanceof TableEnvironment
              ? ((TableEnvironment) env).getTableOutput()
              : new StarTableOutput();
+    }
+
+    /**
+     * Returns a suitable JDBC authenticator for a given environment.
+     * If <code>env</code> is a TableEnvironment then <code>env</code>'s
+     * authenticator is returned, otherwise a new one is returned.
+     *
+     * @param   env  execution environment
+     * @return  JDBC authenticator
+     */
+    public static JDBCAuthenticator getJdbcAuthenticator( Environment env ) {
+        return env instanceof TableEnvironment
+             ? ((TableEnvironment) env).getJdbcAuthenticator()
+             : new TerminalAuthenticator();
     }
 
     /**
