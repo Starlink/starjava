@@ -138,11 +138,14 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         /* If there are, enquire about the values to use via the 
          * params parameter. */
         else {
-            StringBuffer sbuf = new StringBuffer( "Match parameters -" );
+            StringBuffer sbuf = new StringBuffer( "Match parameters (" );
             for ( int i = 0; i < nParam; i++ ) {
-                sbuf.append( ' ' )
-                    .append( getInfoUsage( params[ i ].getInfo() ) );
+                if ( i > 0 ) {
+                    sbuf.append( ' ' );
+                }
+                sbuf.append( getInfoUsage( params[ i ].getInfo() ) );
             }
+            sbuf.append( ')' );
             paramsParam_.setPrompt( sbuf.toString() );
             paramsParam_.setRequiredWordCount( nParam );
             String[] words = paramsParam_.wordsValue( env );
@@ -231,7 +234,9 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                 if ( i > 0 ) {
                     sbuf.append( ' ' );
                 }
-                sbuf.append( getInfoUsage( tupleInfos[ i ] ) );
+                sbuf.append( '<' )
+                    .append( getInfoUsage( tupleInfos[ i ] ) )
+                    .append( '>' );
             }
             sbuf.append( '\'' );
         }
@@ -254,7 +259,9 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                 if ( i > 0 ) {
                     sbuf.append( ' ' );
                 }
-                sbuf.append( getInfoUsage( params[ i ].getInfo() ) );
+                sbuf.append( '<' )
+                    .append( getInfoUsage( params[ i ].getInfo() ) )
+                    .append( '>' );
             }
             sbuf.append( '\'' );
         }
@@ -271,14 +278,12 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      */
     private String getInfoUsage( ValueInfo info ) {
         StringBuffer sbuf = new StringBuffer()
-            .append( '<' )
             .append( info.getName().toLowerCase().replaceAll( " ", "-" ) );
         String units = info.getUnitString();
         if ( units != null ) {
             sbuf.append( '/' )
                 .append( units );
         }
-        sbuf.append( '>' );
         return sbuf.toString();
     }
 }
