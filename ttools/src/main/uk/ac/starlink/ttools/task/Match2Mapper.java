@@ -151,11 +151,11 @@ public class Match2Mapper implements TableMapper {
             throw new UsageException( "Unknown value of " +
                                       modeParam_.getName() + "??" );
         }
-        PrintStream out = env.getPrintStream();
+        PrintStream logStrm = env.getErrorStream();
 
         /* Construct and return a mapping based on this lot. */
         return new Match2Mapping( matcher, tupleExprs[ 0 ], tupleExprs[ 1 ],
-                                  join, bestOnly, out );
+                                  join, bestOnly, logStrm );
     }
 
     /**
@@ -167,7 +167,7 @@ public class Match2Mapper implements TableMapper {
         final MatchEngine matchEngine_;
         final boolean bestOnly_;
         final JoinType join_;
-        final PrintStream out_;
+        final PrintStream logStrm_;
 
         /**
          * Constructor.
@@ -183,16 +183,16 @@ public class Match2Mapper implements TableMapper {
          *          the context of the second table
          * @param   join  output row selection type
          * @param   bestOnly   whether only the best match is to be retained
-         * @param   out   output print stream
+         * @param   logStrm    print stream for logging output
          */
         Match2Mapping( MatchEngine matchEngine, String[] exprTuple1,
                        String[] exprTuple2, JoinType join,
-                       boolean bestOnly, PrintStream out ) {
+                       boolean bestOnly, PrintStream logStrm ) {
             matchEngine_ = matchEngine;
             exprTuples_ = new String[][] { exprTuple1, exprTuple2 };
             join_ = join;
             bestOnly_ = bestOnly;
-            out_ = out;
+            logStrm_ = logStrm;
         }
 
         public void mapTables( StarTable[] inTables, TableConsumer[] consumers )
@@ -213,7 +213,7 @@ public class Match2Mapper implements TableMapper {
 
             /* Do the match. */
             RowMatcher matcher = new RowMatcher( matchEngine_, subTables );
-            matcher.setIndicator( new TextProgressIndicator( out_ ) );
+            matcher.setIndicator( new TextProgressIndicator( logStrm_ ) );
             LinkSet matches;
             try {
                 matches = matcher.findPairMatches( bestOnly_ );
