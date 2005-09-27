@@ -59,8 +59,19 @@ public class CopyMode implements ProcessingMode {
     public static TableConsumer createConsumer( Environment env,
                                                 String loc, String fmt )
             throws UsageException {
-        return new CopyConsumer( loc, fmt, 
-                                 TableEnvironment.getTableOutput( env ) );
+        if ( loc.startsWith( "jdbc:" ) ) {
+            if ( fmt != null &&
+                 fmt.trim().length() > 0 &&
+                 ! fmt.trim().equalsIgnoreCase( "jdbc" ) ) {
+                throw new UsageException( "jdbc: output location does not "
+                                        + "match output format " + fmt );
+            }
+            return new JdbcConsumer( loc, env );
+        }
+        else {
+            return new CopyConsumer( loc, fmt,
+                                     TableEnvironment.getTableOutput( env ) );
+        }
     }
 
     /**
