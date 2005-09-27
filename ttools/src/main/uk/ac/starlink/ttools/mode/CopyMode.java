@@ -60,9 +60,7 @@ public class CopyMode implements ProcessingMode {
                                                 String loc, String fmt )
             throws UsageException {
         if ( loc.startsWith( "jdbc:" ) ) {
-            if ( fmt != null &&
-                 fmt.trim().length() > 0 &&
-                 ! fmt.trim().equalsIgnoreCase( "jdbc" ) ) {
+            if ( ! isAuto( fmt ) && ! fmt.trim().equalsIgnoreCase( "jdbc" ) ) {
                 throw new UsageException( "jdbc: output location does not "
                                         + "match output format " + fmt );
             }
@@ -92,8 +90,7 @@ public class CopyMode implements ProcessingMode {
         CopyConsumer( String loc, String fmt, StarTableOutput tout )
                 throws UsageException {
             tout_ = tout;
-            boolean isAuto = fmt == null
-                          || fmt.equals( StarTableOutput.AUTO_HANDLER );
+            boolean isAuto = isAuto( fmt );
             if ( loc == null && isAuto ) {
                 handler_ = new TextTableWriter();
             }
@@ -114,5 +111,18 @@ public class CopyMode implements ProcessingMode {
         public void consume( StarTable table ) throws IOException {
             handler_.writeStarTable( table, loc_, tout_ );
         }
+    }
+
+    /**
+     * Determines whether a format string has the meaning of automatic
+     * format determination.
+     *
+     * @param  fmt   format string
+     * @return   true iff format should be determined automatically
+     */
+    private static boolean isAuto( String fmt ) {
+        return fmt == null
+            || fmt.trim().length() == 0
+            || fmt.equals( StarTableOutput.AUTO_HANDLER );
     }
 }
