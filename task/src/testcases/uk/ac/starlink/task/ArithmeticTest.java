@@ -62,7 +62,7 @@ public class ArithmeticTest extends TestCase {
             final String sval2 = p2.stringValue( env );
             final double val1 = p1.doubleValue( env );
             final double val2 = p2.doubleValue( env );
-            final PrintStream out = env.getPrintStream();
+            final PrintStream out = env.getOutputStream();
             return new Executable() {
                 public void execute() {
                     out.println( "   " + sval1 + " + " + sval2 + " = "

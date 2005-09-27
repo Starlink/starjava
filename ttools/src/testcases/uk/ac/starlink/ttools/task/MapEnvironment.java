@@ -19,7 +19,9 @@ public class MapEnvironment extends TableEnvironment {
     private final Map paramMap_;
     private final Map outputTables_ = new HashMap();
     private final ByteArrayOutputStream out_ = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream err_ = new ByteArrayOutputStream();
     private final PrintStream pout_ = new PrintStream( out_ );
+    private final PrintStream perr_ = new PrintStream( err_ );
 
     /**
      * Constructs a new environment with no values.
@@ -47,8 +49,12 @@ public class MapEnvironment extends TableEnvironment {
         this( new HashMap( env.paramMap_ ) );
     }
 
-    public PrintStream getPrintStream() {
+    public PrintStream getOutputStream() {
         return pout_;
+    }
+
+    public PrintStream getErrorStream() {
+        return perr_;
     }
 
     public void clearValue( Parameter param ) {

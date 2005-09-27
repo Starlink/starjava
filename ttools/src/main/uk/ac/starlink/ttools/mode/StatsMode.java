@@ -41,7 +41,7 @@ public class StatsMode implements ProcessingMode {
     }
 
     public TableConsumer createConsumer( Environment env ) {
-        final PrintStream out = env.getPrintStream();
+        final PrintStream out = env.getOutputStream();
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 /* Create a table which contains all the statistics, and

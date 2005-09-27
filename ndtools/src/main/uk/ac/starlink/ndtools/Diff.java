@@ -55,7 +55,7 @@ class Diff implements Task {
                            ndiffpar.intValue( env ),
                            ndx1par.stringValue( env ),
                            ndx2par.stringValue( env ),
-                           env.getPrintStream() );
+                           env.getOutputStream() );
     }   
 
 

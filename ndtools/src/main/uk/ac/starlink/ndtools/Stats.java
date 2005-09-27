@@ -39,7 +39,7 @@ class Stats implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
-        return new Statter( inpar.ndxValue( env ), env.getPrintStream() );
+        return new Statter( inpar.ndxValue( env ), env.getOutputStream() );
     }
 
     private class Statter implements Executable {

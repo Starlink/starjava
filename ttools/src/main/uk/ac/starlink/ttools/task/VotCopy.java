@@ -145,7 +145,7 @@ public class VotCopy implements Task {
     public Executable createExecutable( Environment env ) throws TaskException {
         String inLoc = inParam_.stringValue( env );
         String outLoc = outParam_.stringValue( env );
-        PrintStream pstrm = env.getPrintStream();
+        PrintStream pstrm = env.getOutputStream();
         Charset xenc = xencParam_.charsetValue( env );
         boolean inline = ! hrefParam_.booleanValue( env );
         String base;

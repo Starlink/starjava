@@ -28,7 +28,7 @@ public class CountMode implements ProcessingMode {
     }
 
     public TableConsumer createConsumer( Environment env ) {
-        final PrintStream out = env.getPrintStream();
+        final PrintStream out = env.getOutputStream();
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 out.println( getSummary( table ) );

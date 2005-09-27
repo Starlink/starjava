@@ -94,7 +94,7 @@ public class VotLint implements Task {
         boolean validate = validParam_.booleanValue( env );
         final LintContext context = new LintContext( version );
         context.setValidating( validate );
-        context.setOutput( env.getPrintStream() );
+        context.setOutput( env.getOutputStream() );
         if ( env instanceof TableEnvironment ) {
             context.setDebug( ((TableEnvironment) env).isDebug() );
         }
