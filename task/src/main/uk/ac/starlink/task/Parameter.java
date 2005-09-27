@@ -62,6 +62,7 @@ public class Parameter {
     private String stringValue;
     private boolean gotValue;
     private boolean nullPermitted;
+    private boolean preferExplicit;
 
     /**
      * Constructs a parameter with a given name.  This name should be unique
@@ -195,6 +196,27 @@ public class Parameter {
      */
     public boolean isNullPermitted() {
         return nullPermitted;
+    }
+
+    /**
+     * Determine whether an explict value is generally preferred to the
+     * default value for this parameter.
+     *
+     * @return   true  if a default value should generally be avoided
+     */
+    public boolean getPreferExplicit() {
+        return preferExplicit;
+    }
+
+    /**
+     * Set whether an explicit value is generally to be solicited from 
+     * the user rather than taking the default.
+     *
+     * @param   prefer   true if you would like to encourage an explicit
+     *                   value to be set for this parameter
+     */
+    public void setPreferExplicit( boolean prefer ) {
+        preferExplicit = prefer;
     }
 
     /**
