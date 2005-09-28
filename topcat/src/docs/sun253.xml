@@ -72,7 +72,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>30 June 2005</docdate>
+<docdate>30 September 2005</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -1428,13 +1428,12 @@ don't match as well...
 <li>What rows to include in the output table</li>
 </ul>
 and to start the matching operation.
-Currently, if there is more than one possible match for a row in
-either of the tables being joined, the best one will be retained
-and others will be discarded. 
-The 'match score', indicating how close a successful match was, 
-is recorded in an additional column (the final column) in the resulting table.
-The exact value and meaning of this column depends on the kind of
-match being performed, but it typically gives the distance between
+Depending on the type of match chosen, some additional columns may be
+appended to the resulting table giving additional details on 
+how the match went.
+Usually, the 'match score' is one of these;
+The exact value and meaning of this column depends on the match,
+but it typically gives the distance between
 the matched points in some sensible units;
 the smaller the value, the better the match.
 You can find out exactly what this score means by examining 
@@ -5024,7 +5023,7 @@ more detail in <ref id="pairMatch"/>.
 versions of the tables being joined, so that any row subsets,
 hidden columns, or sorts currently in force will be reflected in the
 output.
-Progress information on the match, which may take some time,
+Progress information on the match, which may take a little while,
 is provided in the logging window and by a progress bar at the bottom
 of the window.  When it is completed, you will be informed by a
 popup window which indicates that a new table has been created.
@@ -5249,14 +5248,14 @@ selectors; in most cases this means numeric ones.
 
 <p>When the match is complete a new table will be created which 
 contains rows determined by the matches which have taken place.
-The Output Rows selector box allows you to choose on what 
+The <label>Output Rows</label> selector box allows you to choose on what 
 basis the rows will be included in the output table as a function
 of the matches that were found.
 </p>
 
 <p>In all cases each row will refer to only one matched
 (or possibly unmatched) "object", so that any non-blank columns
-in a given row refer come from only rows in the input tables
+in a given row come from only rows in the input tables
 which match according to the specified <ref id="matchCriteria">criteria</ref>.
 However, you have two (somewhat interlinked) choices to make
 about which rows are produced.
@@ -6772,38 +6771,80 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Next version</dt>
-<dd><p>
-<ul>
-<li>When you select a column in the Columns window, it now scrolls the
-    table in the Data Window so that the selected column is visible.
-    This is a boon when dealing with tables that have very many columns.</li>
-<li>Added new activation action to launch system default browser.</li>
-<li>Added Julian Epoch and Besselian Epoch conversion functions to
-    <code>Times</code> class.</li>
-<li>MySpace login no longer uses system username as default MySpace
-    username.</li>
-<li>Added <code>RANDOM</code> special function to algebraic expressions.</li>
-<li>Fixed some relatively harmless bugs to do with actions available
-    when you select the dummy "Index" column.  You can now unsort 
-    from a popup menu in the table viewer window.</li>
-<li>MatchScore columns which result from performing
-    matches now contain values in more useful units, as well as
-    helpful metadata (names, units and descriptions).
-    "Spherical Polar" match type is now rebadged as the hopefully less
-    confusing "Sky 3d".</li>
-<li>Substantially improved pair matching options.</li>
-<li>Better information available post-match - match score metadata etc.</li>
-<li>MySpace access re-implemented - you now need to have the 
-    Astrogrid Desktop running in order to read from or write to MySpace.</li>
-<li>Believed to work fine with Java 1.5 now.</li>
-<li>String "<code>null</code>" interpreted as a blank value in ASCII 
-    tables.</li>
-<li>New "Sky with Errors" match type introduced".</li>
-<li>Fixed bug in ASCII input handler which misidentified blank lines,
-    or DOS-format line ends, as end of file.</li>
-</ul>
-</p></dd>
+<dt>Version 1.7 (30 September 2005)</dt>
+<dd><p><dl>
+
+  <dt>Crossmatching</dt>
+  <dd><p>There have been major improvements in the flexibility, and 
+      minor improvements to performance, of two-table crossmatching.
+      <ul>
+      <li>New match algorithm <label>Sky with Errors</label> introduced.
+          This allows you to specify a column giving the maximum 
+          permissible match error (so it can vary per row) rather 
+          than a fixed value for the whole table.</li>
+      <li>In the case of multiple possible matches between the two tables,
+          instead of automatically giving you only the closest match, you can
+          now select whether you'd like only the closest one or all 
+          those which fit your criteria.</li>
+      <li>You can now specify which rows you want to see in the output:
+          1 and 2, 1 or 2, All from 1, All from 2, 1 not 2, 2 not 1, 1 xor 2.
+          This is pretty much all the possibilities which make sense, 
+          and in particular allows you to do 'left outer joins'
+          (1 not 2).</li>
+      <li>The <label>MatchScore</label> column which results from most matches
+          now comes (a) in sensible units where possible (e.g. arcseconds
+          not radians) and (b) with metadata which tells you what its
+          meaning and units are.</li>
+      <li>More information is available in added columns after the match;
+          as well as the match score, information about matched groups
+          is inserted where appropriate.</li>
+      <li>The "Spherical Polar" match algorithm is now rebadged as the
+          hopefully less confusing "Sky 3d".</li>
+      </ul>
+      Similar changes for 1-table and multi-table matches should follow
+      in future versions.
+      </p></dd>
+
+  <dt>MySpace Access</dt>
+  <dd><p>MySpace I/O has been re-implemented to use the ACR rather than
+      the (now deprecated) CDK classes it was using before.  As well
+      as probably being more reliable and less likely to break with 
+      future changes in MySpace server protocols, this gives the benefit
+      of single sign on.  The effect of this is that you will need to have
+      the AstroGrid desktop running on your machine before you can 
+      access MySpace from TOPCAT.
+      </p></dd>
+
+  <dt>Algebraic functions</dt>
+  <dd><p><ul>
+    <li>Added Julian Epoch and Besselian Epoch conversion functions to
+        <code>Times</code> class.</li>
+    <li>Added <code>RANDOM</code> special function.</li>
+  </ul></p></dd>
+
+  <dt>Miscellaneous</dt>
+  <dd><p><ul>
+    <li>When you select a column in the Columns window, it now scrolls the
+        table in the Data Window so that the selected column is visible.
+        This is a boon when dealing with tables that have very many
+        columns.</li>
+    <li>String "<code>null</code>" interpreted as a blank value in ASCII 
+        tables.</li>
+    <li>Added new activation action to launch system default browser.</li>
+  </ul></p></dd>
+
+  <dt>Bugfixes</dt>
+  <dd><p><ul>
+    <li>Fixed some relatively harmless bugs to do with actions available
+        when you select the dummy "Index" column.  You can now unsort 
+        from a popup menu in the table viewer window.</li>
+    <li>Believed to work fine with Java 1.5 now (there were previously
+        some issues with MySpace at Java 1.5).</li>
+    <li>Fixed bug in ASCII input handler which misidentified blank lines,
+        or DOS-format line ends, as end of file.</li>
+  </ul></p></dd>
+
+</dl></p></dd>
 
 </dl>
 </p>
