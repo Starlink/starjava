@@ -49,7 +49,9 @@ public class OutputModeParameter extends Parameter
         setDescription( new String[] {
             "The mode in which the result table will be output.",
             "The default mode is <code>out</code>, which means that it",
-            "will be written as a new table to disk or elsewhere.",
+            "will be written as a new table to disk or elsewhere,",
+            "as determined by the <code>out</code> and <code>ofmt</code>",
+            "parameters.",
             "However, there are other possibilities, which correspond",
             "to uses to which a table can be put other than outputting it,",
             "such as displaying metadata, calculating statistics,",
