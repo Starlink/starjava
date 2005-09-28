@@ -138,16 +138,7 @@ public class LineInvoker {
                     Executable exec = task.createExecutable( env );
                     String[] unused = env.getUnused();
                     if ( unused.length == 0 ) {
-                        StringBuffer sbuf = new StringBuffer( taskName );
-                        Parameter[] params = task.getParameters();
-                        for ( int i = 0; i < params.length; i++ ) {
-                            Parameter param = params[ i ];
-                            sbuf.append( ' ' )
-                                .append( param.getName() )
-                                .append( '=' )
-                                .append( param.stringValue( env ) );
-                        }
-                        logger_.info( sbuf.toString() );
+                        logParameterValues( task );
                         exec.execute();
                     }
                     else {
@@ -223,6 +214,34 @@ public class LineInvoker {
             System.err.println( "\n" + getUsage() );
             System.exit( 1 );
         }
+    }
+
+    /**
+     * Maybe writes some indication of the parameter values through the 
+     * logging system.
+     *
+     * <p>Doesn't currently work.
+     *
+     * @param  task       task
+     */
+    private void logParameterValues( Task task ) {
+
+        /* This is a nice idea, but flawed, since the parameters returned
+         * by task.getParameters() is not necessarily the same (and in
+         * fact is not necessarily either a subset or a superset) of the
+         * parameters actually used.  Doing this is not harmless either,
+         * since it may query (i.e. prompt for) parameters which are
+         * never actually used. */
+        // StringBuffer sbuf = new StringBuffer( taskName );
+        // Parameter[] params = task.getParameters();
+        // for ( int i = 0; i < params.length; i++ ) {
+        //     Parameter param = params[ i ];
+        //     sbuf.append( ' ' )
+        //         .append( param.getName() )
+        //         .append( '=' )
+        //         .append( param.stringValue( env ) );
+        // }
+        // logger_.info( sbuf.toString() );
     }
 
     /**
