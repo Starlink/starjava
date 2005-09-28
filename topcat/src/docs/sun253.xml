@@ -6791,7 +6791,7 @@ introduced since the last version:
           This is pretty much all the possibilities which make sense, 
           and in particular allows you to do 'left outer joins'
           (1 not 2).</li>
-      <li>The <label>MatchScore</label> column which results from most matches
+      <li>The match score column which results from most matches
           now comes (a) in sensible units where possible (e.g. arcseconds
           not radians) and (b) with metadata which tells you what its
           meaning and units are.</li>
