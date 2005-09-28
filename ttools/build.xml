@@ -1062,6 +1062,23 @@
           logerror="yes"
           classpathref="classpath"/>
 
+    <!-- Write XML files containing MatchEngine usage information
+     !   for inclusion in the user document. -->
+    <java classname="uk.ac.starlink.ttools.build.MatcherUsage"
+          failonerror="yes"
+          fork="yes"
+          dir="${build.docs}"
+          classpathref="classpath">
+      <arg value="sky"/>
+      <arg value="skyerr"/>
+      <arg value="sky3d"/>
+      <arg value="exact"/>
+      <arg value="1d"/>
+      <arg value="2d"/>
+      <arg value="2d_anisotropic"/>
+      <arg value="sky+1d"/>
+    </java>
+
     <!-- Transform the user document XML to a single HTML document. -->
     <mkdir dir="${build.docs}/${user.doc}"/>
     <copy todir="${build.docs}/${user.doc}" file="${src.docs}/${coverimage}"/>
