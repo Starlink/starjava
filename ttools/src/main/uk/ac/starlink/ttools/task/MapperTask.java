@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.task;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
@@ -10,8 +11,12 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.UsageException;
+import uk.ac.starlink.ttools.LoadException;
+import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.filter.ProcessingStep;
+import uk.ac.starlink.ttools.mode.ProcessingMode;
 
 /**
  * Task which maps one or more input tables to an output table.
@@ -31,6 +36,9 @@ public class MapperTask implements Task {
     private final FilterParameter outFilterParam_;
     private final TableConsumerParameter consumerParam_;
     private final Parameter[] params_;
+
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     /**
      * Constructor.
@@ -129,6 +137,7 @@ public class MapperTask implements Task {
         if ( useOutModes ) {
             OutputModeParameter modeParam = new OutputModeParameter( "omode" );
             paramList.add( modeParam );
+            addElements( paramList, getAssociatedParameters( modeParam ) );
             consumerParam_ = modeParam;
         }
         else {
@@ -142,6 +151,50 @@ public class MapperTask implements Task {
 
     public Parameter[] getParameters() {
         return params_;
+    }
+
+    /**
+     * Returns a list of parameters associated with an OutputModeParameter.
+     * These serve a documentation purpose only - the purpose is so that
+     * usage messages and other automatically generated documentation 
+     * feature an 'out' and 'ofmt' parameter which is what people who
+     * don't read documentation will be looking for, rather than an
+     * 'omode' parameter which people will look straight through.
+     *
+     * @return   parameters associated with output mode
+     */
+    private Parameter[] getAssociatedParameters( OutputModeParameter modeParam )
+            {
+        String modeName = modeParam.getDefault();
+        ProcessingMode mode;
+        try {
+            mode = (ProcessingMode)
+                   Stilts.getModeFactory().createObject( modeName );
+        }
+        catch ( LoadException e ) {
+            logger_.warning( "Can't load default output mode?? " + e );
+            return new Parameter[ 0 ];
+        }
+        Parameter[] modeParams = mode.getAssociatedParameters();
+        if ( modeParams.length != 2 ||
+             ! ( modeParams[ 0 ] instanceof OutputTableParameter ) ||
+             ! ( modeParams[ 1 ] instanceof OutputFormatParameter ) ) {
+            logger_.warning( "Output mode parameters out of sync?" );
+        }
+        Parameter outParam =
+            new OutputTableParameter( modeParams[ 0 ].getName() );
+        Parameter fmtParam =
+            new OutputFormatParameter( modeParams[ 1 ].getName() );
+        Parameter[] resultParams = new Parameter[] { outParam, fmtParam, };
+        for ( int i = 0; i < resultParams.length; i++ ) {
+            resultParams[ i ].setDescription( new String[] {
+                resultParams[ i ].getDescription(),
+                "This parameter must only be given if",
+                "<code>" + modeParam.getName() + "</code>",
+                "has its default value of \"<code>" + modeName + "</code>\".",
+            } );
+        }
+        return resultParams;
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
@@ -184,6 +237,10 @@ public class MapperTask implements Task {
             }
         };
 
+        /* Check unused arguments for things we can write helpful messages
+         * about. */
+        checkUnused( env );
+
         /* Construct and return an executable which will do all the work. */
         return new Executable() {
             public void execute() throws IOException, TaskException {
@@ -199,6 +256,27 @@ public class MapperTask implements Task {
                 mapping.mapTables( inTables, new TableConsumer[] { consumer } );
             }
         };
+    }
+
+    /**
+     * Checks the unused words in the environment in case we can write any
+     * useful messages.
+     *
+     * @param  env  execution environment
+     * @throws  TaskException   if there's trouble
+     */
+    private void checkUnused( Environment env ) throws TaskException {
+        if ( env instanceof LineEnvironment ) {
+            String[] unused = ((LineEnvironment) env).getUnused();
+            for ( int i = 0; i < unused.length; i++ ) {
+                String word = unused[ i ];
+                if ( word.startsWith( "out=" ) || word.startsWith( "ofmt=" ) ) {
+                    throw new UsageException(
+                        word + ": out and ofmt parameters can only be used " +
+                        "when omode=out" );
+                }
+            }
+        }
     }
 
     /**
