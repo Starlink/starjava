@@ -38,7 +38,6 @@ public class PipeMapper implements TableMapper {
 
 
         stepParam_ = new FilterParameter( "cmd" );
-        stepParam_.setUsage( "<cmd> ..." );
         stepParam_.setNullPermitted( true );
         stepParam_.setPrompt( "Command describing a table processing step" );
 
