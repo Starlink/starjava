@@ -27,7 +27,7 @@ public class TableCatTest extends TableTestCase {
                             .setValue( "in1", t1 )
                             .setValue( "in2", t2 );
         new TableCat().createExecutable( env ).execute();
-        StarTable out = env.getOutputTable( "out" );
+        StarTable out = env.getOutputTable( "omode" );
 
         Tables.checkTable( out );
 

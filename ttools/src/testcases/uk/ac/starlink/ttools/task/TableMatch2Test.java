@@ -108,7 +108,7 @@ public class TableMatch2Test extends TableTestCase {
                             .setValue( "join", join )
                             .setValue( "find", find );
         new TableMatch2().createExecutable( env ).execute();
-        StarTable result = env.getOutputTable( "out" );
+        StarTable result = env.getOutputTable( "omode" );
         if ( result != null ) {
             Tables.checkTable( result );
         }

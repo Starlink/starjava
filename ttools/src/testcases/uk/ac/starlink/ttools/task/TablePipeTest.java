@@ -34,7 +34,7 @@ public class TablePipeTest extends TableTestCase {
                             .setValue( "in", table )
                             .setValue( "cmd", cmd );
         new TablePipe().createExecutable( env ).execute();
-        StarTable result = env.getOutputTable( "mode" );
+        StarTable result = env.getOutputTable( "omode" );
         if ( result != null ) {
             Tables.checkTable( result );
         }

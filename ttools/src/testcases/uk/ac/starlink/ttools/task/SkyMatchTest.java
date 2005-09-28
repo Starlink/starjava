@@ -89,7 +89,7 @@ public class SkyMatchTest extends TableTestCase {
         env12.setValue( "values1", values1 );
         env12.setValue( "values2", values2 );
         new TableMatch2().createExecutable( env12 ).execute();
-        StarTable m12 = env12.getOutputTable( "out" );
+        StarTable m12 = env12.getOutputTable( "omode" );
 
         MapEnvironment env21 = new MapEnvironment( env );
         env21.setValue( "in2", table1 );
@@ -97,7 +97,7 @@ public class SkyMatchTest extends TableTestCase {
         env21.setValue( "values2", values1 );
         env21.setValue( "values1", values2 );
         new TableMatch2().createExecutable( env21 ).execute();
-        StarTable m21 = env21.getOutputTable( "out" );
+        StarTable m21 = env21.getOutputTable( "omode" );
      
         assertTrue( m21 != null );
         assertEquals( m12.getRowCount(), m21.getRowCount() );
