@@ -208,6 +208,20 @@ public class LineInvoker {
                     e.printStackTrace( System.err );
                 }
             }
+            catch ( OutOfMemoryError e ) {
+                System.err.println( "\nOut of memory" );
+                if ( env.getTableFactory().getStoragePolicy() 
+                     != StoragePolicy.PREFER_DISK ) {
+                    System.err.println( "Try \"-disk\" flag?\n" );
+                }
+                else {
+                    System.err.println( "Try increasing heap memory"
+                                      + " (-Xmx flag)\n" );
+                }
+                if ( env.isDebug() ) {
+                    e.printStackTrace( System.err );
+                }
+            }
         }
         else {
             System.err.println( "\nNo such task: " + taskName );
