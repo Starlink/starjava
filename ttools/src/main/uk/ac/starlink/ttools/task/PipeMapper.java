@@ -56,14 +56,7 @@ public class PipeMapper implements TableMapper {
 
         stepParam_.setDescription( new String[] {
             "Text of table processing commands.",
-            "The value of this parameter is one or more of the filter commands",
-            "described in <ref id=\"filterSteps\"/>.",
-            "If more than one is given, they must be separated by",
-            "semicolon characters (\";\").",
-            "This parameter can be repeated multiple times on the same",
-            "command line to build up a list of processing steps.",
-            "The sequence of commands given in this way",
-            "defines the processing pipeline which is performed on the table.",
+            stepParam_.getDescription(),
             "The",
             "<code>" + scriptParam_.getName() + "</code> and",
             "<code>" + stepParam_.getName() + "</code>",
