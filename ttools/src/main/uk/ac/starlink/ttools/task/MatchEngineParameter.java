@@ -176,7 +176,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      * @param  name   label to select match engine type
      * @return  new match engine
      */
-    private MatchEngine createEngine( String name ) throws UsageException {
+    public MatchEngine createEngine( String name ) throws UsageException {
         String[] names = name.trim().toLowerCase().split( "\\+" );
         MatchEngine[] components = new MatchEngine[ names.length ];
         for ( int i = 0; i < names.length; i++ ) {
@@ -225,7 +225,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      * @param  engine  match engine
      * @return  values usage - possibly empty, not null
      */
-    private String getValuesUsage( MatchEngine engine ) {
+    public String getValuesUsage( MatchEngine engine ) {
         StringBuffer sbuf = new StringBuffer();
         ValueInfo[] tupleInfos = engine.getTupleInfos();
         if ( tupleInfos.length > 0 ) {
@@ -250,7 +250,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      * @param  engine  match engine
      * @return  params usage - possibly empty, not null
      */
-    private String getParamsUsage( MatchEngine engine ) {
+    public String getParamsUsage( MatchEngine engine ) {
         StringBuffer sbuf = new StringBuffer();
         DescribedValue[] params = engine.getMatchParameters();
         if ( params.length > 0 ) {
