@@ -66,7 +66,7 @@ public class HumanMatchEngine implements MatchEngine {
             scoreInfo_ = scoreWrapper_.wrapValueInfo( minfo );
         }
         else {
-            scoreWrapper_ = null;
+            scoreWrapper_ = NULL_WRAPPER;
             scoreInfo_ = null;
         }
     }
