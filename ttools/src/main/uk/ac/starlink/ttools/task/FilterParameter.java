@@ -23,6 +23,19 @@ public class FilterParameter extends Parameter
 
     public FilterParameter( String name ) {
         super( name );
+        setUsage( "<cmds>" );
+        setNullPermitted( true );
+
+        setDescription( new String[] {
+            "The value of this parameter is one or more of the filter commands",
+            "described in <ref id=\"filterSteps\"/>.",
+            "If more than one is given, they must be separated by",
+            "semicolon characters (\";\").",
+            "This parameter can be repeated multiple times on the same",
+            "command line to build up a list of processing steps.",
+            "The sequence of commands given in this way",
+            "defines the processing pipeline which is performed on the table.",
+        } );
     }
 
     public void setValueFromString( Environment env, String sval )
