@@ -19,6 +19,7 @@ public class OutputTableParameter extends Parameter
         super( name );
         formatParam_ = new OutputFormatParameter( "ofmt" );
         setUsage( "<out-table>" );
+        setPrompt( "Location of output table" );
         setDefault( "-" );
 
         setDescription( new String[] {
