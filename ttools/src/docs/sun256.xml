@@ -42,6 +42,17 @@
   <!ENTITY stilts-usage SYSTEM 'stilts-usage.xml'>
   <!ENTITY tcopy-usage SYSTEM 'tcopy-usage.xml'>
   <!ENTITY tcopy-in-usage SYSTEM 'tcopy-in-usage.xml'>
+
+  <!-- Usage messages for match engines. -->
+  <!ENTITY matcher-sky-usage SYSTEM 'matcher-sky-usage.xml'>
+  <!ENTITY matcher-skyerr-usage SYSTEM 'matcher-skyerr-usage.xml'>
+  <!ENTITY matcher-sky3d-usage SYSTEM 'matcher-sky3d-usage.xml'>
+  <!ENTITY matcher-exact-usage SYSTEM 'matcher-exact-usage.xml'>
+  <!ENTITY matcher-1d-usage SYSTEM 'matcher-1d-usage.xml'>
+  <!ENTITY matcher-2d-usage SYSTEM 'matcher-2d-usage.xml'>
+  <!ENTITY matcher-2d_anisotropic-usage SYSTEM
+                                        'matcher-2d_anisotropic-usage.xml'>
+  <!ENTITY matcher-sky.1d-usage SYSTEM 'matcher-sky.1d-usage.xml'>
 ]>
 
 <sun>
@@ -106,7 +117,6 @@ on-line help is available from the tools themselves.
 </px>
 
 <px>STILTS is available under the GNU General Public Licence.
-This document describes the initial, beta, release of the package.
 </px>
 
 </abstract>
@@ -185,10 +195,7 @@ here are a few possibilities:
 </dl>
 </p>
 
-<p>This release of STILTS is beta software.
-While all the functions are believed to be working, the interface 
-(command line arguments etc) may undergo changes in the future.  
-All user comments are most welcome.
+<p>All user comments are most welcome.
 </p>
 
 </sect>
@@ -244,7 +251,7 @@ flag after the task name, so for instance
 results in
 <verbatim>&tcopy-usage;</verbatim>
 Finally, you can get help on any of the parameters of a task
-by writing <code>help=&lt;param-name:gt;</code>, like this:
+by writing <code>help=&lt;param-name&gt;</code>, like this:
 <verbatim>
    stilts tcopy help=in
 </verbatim>
@@ -291,6 +298,21 @@ follows:
 <dd><p>Sets up output suitable for debugging.  The most visible consequence
     of this is that if an error occurs then a full stacktrace is output, 
     rather than just a user-friendly report.
+    </p></dd>
+
+<dt><code>-prompt</code></dt>
+<dd><p>Most of the STILTS commands have a number of parameters which
+    will assume sensible defaults if you do not give them explicit
+    values on the command line.  If you use the <code>-prompt</code> flag,
+    then you will be prompted for every parameter you have not 
+    explicitly specified to give you an opportunity to enter a value
+    other than the default.
+    </p></dd>
+
+<dt><code>-batch</code></dt>
+<dd><p>Some parameters will prompt you for their values, even if they 
+    offer legal defaults.  If you use the <code>-batch</code> flag,
+    then you won't be prompted at all.
     </p></dd>
 
 </dl>
@@ -996,8 +1018,8 @@ existing columns in a table.
     The first column is '1', the second is '2' and so on.
     </p>
     <p>Tip: if counting which column has which index is giving you a
-    headache, running <code>tpipe</code> with <code>mode=meta</code> or 
-    <code>mode=stats</code> on the table may help.
+    headache, running <code>tpipe</code> with <code>omode=meta</code> or 
+    <code>omode=stats</code> on the table may help.
     </p></dd>
 </dl>
 </p>
@@ -1068,7 +1090,7 @@ function you are executing.
 the <code><ref id="tpipe">tpipe</ref></code> command.
 Typically, having produced a result table by pipeline processing 
 an input one, you will write it out by specifying 
-<code>mode=out</code> (or not using the <code>mode</code> parameter at all -
+<code>omode=out</code> (or not using the <code>omode</code> parameter at all -
 <code>out</code> is the default).  However, you can do other things
 such as calculate statistics, display metadata, etc.  In some of
 these cases, additional parameters are required.  The different 
@@ -1081,6 +1103,255 @@ output modes are listed here.
 
 </subsect>
 
+
+</sect>
+
+
+<sect id="match">
+<subhead><title>Crossmatching</title></subhead>
+
+<p>STILTS offers flexible and efficient facilities for crossmatching tables.
+Crossmatching is identifying different rows, which may be in the
+same or different tables, that refer to the same item.
+In an astronomical context such an item is usually, 
+though not necessarily, an astronomical source or object.
+This operation corresponds to what in database terminology 
+is called a <em>join</em>.
+</p>
+
+<p>There are various complexities to specifying such a match.
+In the first place you have to define what is the condition that
+must be satisfied for two rows to be considered matching.
+In the second place you must decide what happens if, for a given row,
+more than one match can be found.  Finally, you have to decide what
+to do having worked out what the matched rows are; the result will
+generally be presented as a new output table, but there are various
+choices about what columns and rows it will consist of.
+The following subsections discuss these options and how they are
+communicated to STILTS's matching tools.
+</p>
+
+<p>Matching can in general be a computationally intensive process.
+The algorithm used by STILTS scales as <m>O(N log(N))</m>
+except in pathological cases,
+where <m>N</m> is the total number of rows in all the tables being matched.
+No preparation (such as sorting) is required on the tables prior to
+invoking the matching operation.
+It is reasonably fast; for instance an RA, Dec positional match
+of two 10<sup>5</sup>-row catalogues takes of the order of 30 seconds
+on current (2005 laptop) hardware.  Attempting matches with large tables can 
+lead to running out of memory; the above calculation required around
+200Mb heap size (-Xmx200M).
+<!--
+   stilts -Xmx200M tmatch2 \
+      in1=2dfgrs_ngp.fits \
+      in2=2dfgrs_spectro.fits \
+      icmd1='addskycoords -inunit rad -outunit deg fk5 fk5 \
+                          "RA2000 DEC2000" "RA DEC"' \
+      icmd2='addskycoords -inunit rad -outunit deg fk5 fk5 \
+                          "RA2000 DEC2000" "RA DEC"' \
+      matcher=sky params=3 values1='RA DEC' values2='RA DEC' \
+      join=1and2 find=best \
+      ocmd='addcol RA_DIFF ra_1-ra_2; addcol DEC_DIFF dec_1-dec_2' \
+      omode=stats
+ -->
+</p>
+
+<p>In the current release of STILTS the only crossmatching task is 
+<ref id="tmatch2"><code>tmatch2</code></ref> which finds matches
+between pairs of tables, but in future versions facilities for 
+finding matches within the same table, and in more than two tables,
+will be introduced.
+</p>
+
+<subsect id="MatchEngine">
+<subhead><title>Match Criteria</title></subhead>
+
+<p>Determining whether one row represents the same item as another
+is done by comparing the values in certain of their columns to see
+if they are the same or similar.
+The most common astronomical case is to say that two rows match if
+their celestial coordinates (right ascension and declination) are
+within a certain small radius of each other on the sky.
+There are other possibilities; for instance the coordinates to compare
+may be in a Cartesian space, or have a higher (or lower) dimensionality
+than two, or the match may be exact rather than within an error radius....
+</p>
+
+<p>To determine the matching criteria, you set the values of the 
+following parameters of <code>tmatch2</code>:
+<dl>
+<dt><code>matcher</code></dt>
+<dd><p>Name of the match criteria type.
+    </p></dd>
+<dt><code>params</code></dt>
+    <dd><p>Fixed value(s) giving the parameters of the match 
+    (typically an error radius).  If more than one value is required,
+    the values should be separated by spaces.
+    </p></dd>
+<dt><code>values*</code></dt>
+    <dd><p>Expressions to be compared between rows.  This will typically
+    contain the names of one or more columns, but each element may be
+    an algebraic expression (see <ref id="jel"/>) rather than just a 
+    column name if required.
+    If more than one value is required, the values should be separated
+    by spaces.
+    There is one of these parameters for each table taking part in the 
+    match, so for <code>tmatch2</code> you must specify both 
+    <code>values1</code> and <code>values2</code>.
+    </p></dd>
+</dl>
+</p>
+
+<p>For example, suppose we wish to locate objects in two tables which are
+within 3 arcseconds of each other on the sky.  One table has columns
+RA and DEC which give coordinates in degrees, and the other has columns
+RArad and DECrad which give coordinates in radians.  These are the
+arguments which would be used to tell <code>tmatch2</code> what the match
+criteria are:
+<verbatim>
+   matcher=sky
+   params=3
+   values1='RA DEC'
+   values2='radiansToDegrees(RArad) radiansToDegrees(DECrad)'
+</verbatim>
+It is clearly important that the units of the tables to be matched
+are the same, and in geometrically sensitive cases such as matching
+on the sky, it's important that they are the units expected by the
+matcher as well.  To determine what those units are, either consult
+the roster below, or run the following command:
+<verbatim>
+   stilts tmatch2 help=matcher
+</verbatim>
+which will tell you about all the known matchers and their associated
+<code>params</code> and <code>values*</code> parameters.
+</p>
+
+<p>Here is a list of all the basic <code>matcher</code> types and the
+requirements of their associated <code>params</code> and 
+<code>values*</code> parameters.
+<dl>
+
+<dt>&matcher-sky-usage;</dt>
+<dd><p>Comparison of positions on the celestial sphere with a fixed error
+    radius.  
+    Rows are considred to match when the 
+    two <code>ra</code>, <code>dec</code> positions are within 
+    <code>max-error</code> arcseconds of each other along a great circle.
+    </p></dd>
+
+<dt>&matcher-skyerr-usage;</dt>
+<dd><p>Comparison of positions on the celestial sphere with per-row 
+    error radii.
+    Rows are considered to match when the separation between the
+    two <code>ra</code>, <code>dec</code> positions is smaller than 
+    <em>both</em> the fixed <code>max-error</code> value 
+    value <em>and</em> the sum of the two per-row <code>error</code> values.
+    If either of the <code>error</code> values is blank,
+    then any separation up to <code>max-error</code> is considered a match.
+    According to these rules, you might decide to set <code>max-error</code>
+    to an arbitarily large number so that only the sum of <code>error</code>s
+    will determine the actual match criteria.
+    However please <em>don't</em> do this, since <code>max-error</code>
+    also functions as a tuning parameter for the matching algorithm,
+    and ought to be reasonably close to the actual maximum acceptable
+    separation.
+    </p></dd>
+
+<dt>&matcher-sky3d-usage;</dt>
+<dd><p>Comparison of positions in the sky taking account of
+    distance from the observer.
+    The position in three-dimensional space is calculated for each 
+    row using the <code>ra</code>, <code>dec</code> and <code>distance</code>
+    as spherical polar coordinates, where <code>distance</code> is the
+    distance from the observer along the line of sight.
+    Rows are considered to match when their positions in this space are
+    within <code>error</code> units of each other.
+    The units of <code>error</code> are the same as those of 
+    <code>distance</code>.
+    </p></dd>
+
+<dt>&matcher-exact-usage;</dt>
+<dd><p>Comparison of arbitrary key values for exact equality.
+    Rows are considered to match only if the values in their 
+    <code>matched-value</code> columns are exactly the same.
+    These values can be strings, numbers, or anything else.
+    A blank value never matches, not even with another blank one.
+    Since the <code>params</code> parameter holds no values, 
+    it does not have to be specified.
+    </p></dd>
+
+<dt>&matcher-1d-usage;</dt>
+<dd><p>Comparison of positions in 1-dimensional Cartesian space.
+    Rows are considered to match if their <code>x</code> columns 
+    differ by no more than <code>error</code>.
+    </p></dd>
+
+<dt>&matcher-2d-usage;</dt>
+<dd><p>Comparison of positions in 2-dimensional Cartesian space.
+    Rows are considered to match if the difference in their 
+    (<code>x</code>,<code>y</code>) positions reckoned using
+    Pythagoras is less than <code>error</code>.
+    </p></dd>
+
+<dt><verbatim><![CDATA[matcher=Nd values*='<x> <y> ...'
+          params='<error>']]></verbatim></dt>
+<dd><p>Comparison of positions in N-dimensional Cartesian space.
+    As above, but specify <code>matcher=8d</code> or whatever and
+    the corresponding number of entries in the <code>values*</code> parameters.
+    </p></dd>
+
+<dt>&matcher-2d_anisotropic-usage;</dt>
+<dd><p>Comparison of positions in 2-dimensional Cartesian space using
+    an anisotropic metric.
+    Rows are considered to match if their (<code>x</code>,<code>y</code>)
+    positions fall within the error ellipse with radii 
+    <code>error-in-x</code>,<code>error-in-y</code> of each other.
+    This kind of match will typically be used for non-'spatial' spaces,
+    for instance (magnitude,redshift) space, in which the metrics along
+    different axes are not related to each other.
+    </p></dd>
+
+<dt><verbatim><![CDATA[matcher=Nd_anisotropic values*='<x> <y> ...'
+                       params='<error-in-x> <error-in-y> ...']]></verbatim></dt>
+<dd><p>Comparison of positions in N-dimensional Cartesian space using
+    an anisotropic metric.
+    As above, but specify <code>matcher=8d_anisotropic</code> or whatever
+    and the corresponding number of entries in the <code>values*</code>
+    and <code>params</code> parameters.
+    </p></dd>
+
+</dl>
+In addition to those matching criteria listed above, you can build your
+own by combining any of these.  To do this, take the two (or more)
+matchers that you want to use, and separate their names with a
+"<code>+</code>" character.  The <code>values*</code> parameters
+of the combined matcher should then hold the concatenation of the
+<code>values*</code> entries of the constituent matchers, and the
+same for the <code>params</code> parameter.
+So for instance the following can be used:
+<dl>
+
+<dt>&matcher-sky.1d-usage;</dt>
+<dd><p>Comparison of positions on the sky with an additional scalar constraint.
+    Rows are considered to match if <em>both</em>
+    their <code>ra</code>, <code>dec</code> positions are within
+    <code>max-error</code> arcseconds of each other along a great circle
+    (as for <code>matcher=sky</code>) 
+    <em>and</em>
+    their <code>x</code> values differ by no more than <code>error</code>
+    (as for <code>matcher=1d</code>).
+    </p></dd>
+
+</dl>
+This example might be used for instance to identify objects from two
+catalogues which were within a couple of arcseconds and also 0.5
+blue magnitudes of each other.
+Rolling your own matchers in this way can give you very flexible match
+constraints.
+</p>
+
+</subsect>
 
 </sect>
 
@@ -1622,10 +1893,74 @@ a list of its command-line arguments, and some examples are given.
 <subsect id="tcat">
 <subhead><title><code>tcat</code>: &tcat-purpose;</title></subhead>
 
-<p><code>tcat</code> is a tools for concatenating tables head-to-tail.
+<p><code>tcat</code> is a tool for concatenating tables one after the other.
+If you have two tables T1 and T2 which contain similar columns, and you 
+want to treat them as a single table, you can use <code>tcat</code>
+to produce a new table whose metadata (row headings etc) comes from T1
+and whose data consists of all the rows of T1 followed by all the rows
+of T2.  This will only work if the columns of the two tables to be
+joined have the same or compatible types in the same order; 
+if they do not, you must use the <code>icmd</code> parameters to 
+preprocess the input tables so that the column sequences are compatible.
+</p>
+
+<p>In the current release of STILTS, <code>tcat</code> is rather 
+rudimentary: you can only join two tables at once, you must arrange
+for the columns to be in the right order, and you may end up with
+an unhelpful error if the columns in matching positions are not of
+compatible types.  Behaviour will be improved in a future release.
 </p>
 
 &tcat-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>tcopy</code>:
+<dl>
+
+<dt><verbatim>
+stilts tcat obs1.fits obs2.fits out=combined.fits
+</verbatim></dt>
+<dd><p>Concatenates two similar observation catalogues to form a combined one.
+    In this case, both input and output tables are FITS files.
+    </p></dd>
+
+<dt><verbatim>
+stilts tcat ifmt1=ascii in1=obs1.txt ifmt2=ascii in2=ob2.txt omode=stats
+</verbatim></dt>
+<dd><p>Again two similar catalogues are joined, but in this case both
+    are in ASCII format, and instead of writing the result to an
+    output file, the resulting joined catalogue is examined to calculate
+    its statistics, which are written to standard output.
+    </p></dd>
+
+<dt><verbatim>
+stilts tcat in1=survey.vot.gz icmd1='keepcols "OBJ_ID RA2000 DEC2000"' \
+            in2=more_data.csv icmd2='keepcols "ident ra dec"' ifmt2=csv \
+            omode=topcat
+</verbatim></dt>
+<dd><p>In this case we are trying to concatenate results from two tables
+    which are quite dissimilar to each other.  In the first place,
+    one is a VOTable (no <code>ifmt1</code> parameter is required since
+    VOTables can be detected automatically), and the other is a 
+    comma-separated-values file (for which the <code>ifmt2=csv</code> 
+    parameter must be given).
+    In the second place, the column structure of the two tables may be
+    quite different.  By pre-processing the two tables using the
+    <code>icmd1</code> &amp; <code>icmd2</code> parameters, we produce
+    in each case an input table which consists of three columns of
+    compatible types: an integer identifier and floating point RA and Dec
+    coordinates.  <code>tcat</code> joins these together, to produce
+    a table which contains only these three columns, with all the rows
+    from both input tables, and sends the result directly 
+    to a new or running instance of TOPCAT.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
 
 </subsect>
 
@@ -1711,7 +2046,7 @@ stilts -classpath /usr/local/jars/pg73jdbc3.jar \
     and there are other ways to perform this
     setup than on the command line - see <ref id="jdbcConfig"/>
     and <code><ref id="tpipe">tpipe</ref></code>'s 
-    <code>mode=tosql</code> output mode.
+    <code>omode=tosql</code> output mode.
     </p></dd>
 
 </dl>
@@ -1721,10 +2056,12 @@ stilts -classpath /usr/local/jars/pg73jdbc3.jar \
 
 </subsect>
 
+
 <subsect id="tmatch2">
 <subhead><title><code>tmatch2</code>: &tmatch2-purpose;</title></subhead>
 
-<p><code>tmatch2</code> is a tool for crossmatching pairs of tables.
+<p><code>tmatch2</code> is an efficient and highly configurable 
+tool for crossmatching pairs of tables.
 </p>
 
 &tmatch2-summary;
@@ -1773,14 +2110,14 @@ three classes of things you need to tell it when it runs:
 
 <dt>Output table destination</dt>
 <dd><p>What happens to the output table is determined by the value of
-    the <code>mode</code> parameter.  
-    By default, <code>mode=out</code>,
+    the <code>omode</code> parameter.  
+    By default, <code>omode=out</code>,
     in which case the table is written to a new table file in a format
     determined by <code>ofmt</code>.  However, you can do other things
     with the result such as
-    calculate the per-column statistics (<code>mode=stats</code>),
-    view only the table and column metadata (<code>mode=meta</code>),
-    display it directly in TOPCAT (<code>mode=topcat</code>) etc.
+    calculate the per-column statistics (<code>omode=stats</code>),
+    view only the table and column metadata (<code>omode=meta</code>),
+    display it directly in TOPCAT (<code>omode=topcat</code>) etc.
     </p></dd>
 </dl>
 </p>
@@ -1825,7 +2162,7 @@ if you just have the Java classes.
 stilts tpipe cat.fits
 </verbatim></dt>
 <dd><p>Writes a table to standard output in human-readable form.
-    Since no mode specifier is given, <code>mode=out</code> is assumed,
+    Since no mode specifier is given, <code>omode=out</code> is assumed,
     and output is to standard output in <code>text</code> format.
     </p></dd>
 
@@ -1841,7 +2178,7 @@ stilts tpipe cmd='head 5' cat.fits.gz
 <dt><verbatim>
 stilts tpipe ifmt=csv xxx.csv \
              cmd='keepcols "index ra dec"' \
-             mode=out ofmt=fits xxx.fits
+             omode=out ofmt=fits xxx.fits
 </verbatim></dt>
 <dd><p>Reads from a comma-separated values file, writes to a FITS file,
     and discards all columns in the input table apart from INDEX, RA and DEC.
@@ -1858,7 +2195,7 @@ stilts tpipe ifmt=votable \
              cmd='addcol IV_SUM "(IMAG+VMAG)"' \
              cmd='addcol IV_DIFF "(IMAG-VMAG)"' \
              cmd='delcols "IMAG VMAG"' \
-             mode=out ofmt=votable \
+             omode=out ofmt=votable \
        < tab1.vot \
        > tab2.vot
 ]]></verbatim></dt>
@@ -1908,7 +2245,7 @@ stilts -disk tpipe 2dfgrs_ngp.fits \
 </p></dd>
 
 <dt><verbatim>
-stilts tpipe http://archive.org/data/survey.vot mode=meta
+stilts tpipe http://archive.org/data/survey.vot omode=meta
 </verbatim></dt>
 <dd><p>Outputs column and table metadata about a table.
     In this case the table is a VOTable at the end of a URL.
@@ -1918,7 +2255,7 @@ stilts tpipe http://archive.org/data/survey.vot mode=meta
 stilts tpipe in=survey.fits 
              cmd='select "skyDistance(hmsToRadians(RA),dmsToRadians(DEC), \
                                        0.6457,-0.1190) &lt; 5 * ARC_MINUTE"' \
-             mode=count
+             omode=count
 </verbatim></dt>
 <dd><p>Counts the number of rows within a given 5 arcmin 
     cone of sky in a FITS table.
@@ -1942,7 +2279,7 @@ stilts tpipe in=survey.fits
 stilts tpipe ifmt=ascii survey.txt \
              cmd="select 'OBJTYPE == 3 && Z > 0.15'" \
              cmd="keepcols 'IMAG JMAG KMAG'" \
-             mode=stats
+             omode=stats
 ]]></verbatim></dt>
 <dd><p>Calculate statistics on the I, J and K magnitudes of selected
     objects from a catalogue.  Only those rows with the given OBJTYPE
@@ -1956,7 +2293,7 @@ stilts -classpath lib/drivers/mysql-connector-java.jar \
        -Djdbc.drivers=com.mysql.jdbc.Driver \
        tpipe in=x.fits \
              cmd="explodeall" \
-             mode=tosql \
+             omode=tosql \
              protocol=mysql \
              host=localhost \
              database=ASTRO1 \
@@ -1985,7 +2322,7 @@ java -classpath stilts.jar:lib/drivers/mysql-connector-java.jar
      uk.ac.starlink.ttools.Stilts \
      tpipe in=x.fits \
            cmd=explodeall \
-           mode=out \
+           omode=out \
            out="jdbc:mysql://localhost/ASTRO1?user=mbt#TABLEX"
 </verbatim></dt>
 <dd><p>This does exactly the same as the previous example, but achieves it
@@ -1995,15 +2332,15 @@ java -classpath stilts.jar:lib/drivers/mysql-connector-java.jar
    <code>-jar</code> flag in this case, because doing it that way
    would not permit access to the additional classes that contain
    the JDBC driver.
-   In the second place we use <code>mode=out</code> rather than 
-   <code>mode=tosql</code>.  For this we need to supply an <code>out</code>
+   In the second place we use <code>omode=out</code> rather than 
+   <code>omode=tosql</code>.  For this we need to supply an <code>out</code>
    value which encodes the information about the SQL connection and
    table in a special URL-like format.  As you can see, this is a bit
-   arcane, which is why the <code>mode=tosql</code> mode can be a help.
+   arcane, which is why the <code>omode=tosql</code> mode can be a help.
    </p></dd>
 
 <dt><verbatim>
-stilts tpipe USNOB.FITS cmd='every 1000000' mode=stats
+stilts tpipe USNOB.FITS cmd='every 1000000' omode=stats
 </verbatim></dt>
 <dd><p>Calculates statistics on a selection of the rows in a catalogue,
     and writes the result to the terminal.
@@ -2457,14 +2794,14 @@ functionality:
 </p>
 
 <p>Many people have contributed ideas and advice to the development of
-STILTS and its related products.  The following is a list of some
-of these individuals, to whom my thanks are due:
+STILTS and its related products.  I can't list all of them here,
+but my thanks are especially due to the following:
 <ul>
 <li>Malcolm Currie (Starlink, RAL)</li>
-<li>David Giaretta (Starlink, RAL)</li>
-<li>Clive Page (AstroGrid, Leicester)</li>
 <li>Clive Davenhall (Royal Observatory Edinburgh)</li>
 <li>Peter Draper (Starlink, Durham)</li>
+<li>David Giaretta (Starlink, RAL)</li>
+<li>Clive Page (AstroGrid, Leicester)</li>
 </ul>
 </p>
 
