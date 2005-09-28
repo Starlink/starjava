@@ -8,6 +8,6 @@ package uk.ac.starlink.ttools.task;
  */
 public class TablePipe extends MapperTask {
     public TablePipe() {
-        super( new PipeMapper(), true );
+        super( new PipeMapper(), true, false, false );
     }
 }

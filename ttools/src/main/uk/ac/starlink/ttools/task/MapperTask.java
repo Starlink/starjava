@@ -11,6 +11,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableConsumer;
+import uk.ac.starlink.ttools.filter.ProcessingStep;
 
 /**
  * Task which maps one or more input tables to an output table.
@@ -26,6 +27,8 @@ public class MapperTask implements Task {
     private final TableMapper mapper_;
     private final int nIn_;
     private final InputTableParameter[] inTableParams_;
+    private final FilterParameter[] inFilterParams_;
+    private final FilterParameter outFilterParam_;
     private final TableConsumerParameter consumerParam_;
     private final Parameter[] params_;
 
@@ -37,7 +40,8 @@ public class MapperTask implements Task {
      *          {@link uk.ac.starlink.ttools.mode.CopyMode} (writing the
      *          table out) to be available
      */
-    public MapperTask( TableMapper mapper, boolean useOutModes ) {
+    public MapperTask( TableMapper mapper, boolean useOutModes,
+                       boolean useInFilters, boolean useOutFilters ) {
         mapper_ = mapper;
         nIn_ = mapper.getInCount();
         List paramList = new ArrayList();
@@ -67,12 +71,63 @@ public class MapperTask implements Task {
             inTableParams_[ i ].setPosition( i + 1 );
         }
 
+        /* Input filters. */
+        if ( useInFilters ) {
+            inFilterParams_ = new FilterParameter[ nIn_ ];
+            if ( nIn_ == 1 ) {
+                FilterParameter fp = new FilterParameter( "icmd" );
+                inFilterParams_[ 0 ] = fp;
+                fp.setPrompt( "Processing command(s) for input table" );
+                fp.setDescription( new String[] {
+                    "Commands to operate on the input table,",
+                    "before any other processing takes place.",
+                    fp.getDescription(),
+                } );
+            }
+            else {
+                for ( int i = 0; i < nIn_; i++ ) {
+                    int i1 = i + 1;
+                    FilterParameter fp = new FilterParameter( "icmd" + i1 );
+                    inFilterParams_[ i ] = fp;
+                    fp.setPrompt( "Processing command(s) for input table "
+                                + i1 );
+                    fp.setDescription( new String[] {
+                        "Commands to operate on the",
+                        getOrdinal( i1 ) + " input table, before any other",
+                        "processing takes place.", 
+                        fp.getDescription(),
+                    } );
+                }
+            }
+            for ( int i = 0; i < nIn_; i++ ) {
+                paramList.add( inFilterParams_[ i ] );
+            }
+        }
+        else {
+            inFilterParams_ = null;
+        }
+
         /* Processing parameters. */
         addElements( paramList, mapper.getParameters() );
 
+        /* Output filter. */
+        if ( useOutFilters ) {
+            outFilterParam_ = new FilterParameter( "ocmd" );
+            outFilterParam_.setPrompt( "Processing command(s) " 
+                                     + "for output table" );
+            outFilterParam_.setDescription( new String[] {
+                "Commands to operate on the output table,",
+                "after all other processing has taken place.",
+            } );
+            paramList.add( outFilterParam_ );
+        }
+        else {
+            outFilterParam_ = null;
+        }
+
         /* Output parameters. */
         if ( useOutModes ) {
-            OutputModeParameter modeParam = new OutputModeParameter( "mode" );
+            OutputModeParameter modeParam = new OutputModeParameter( "omode" );
             paramList.add( modeParam );
             consumerParam_ = modeParam;
         }
@@ -90,14 +145,57 @@ public class MapperTask implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
+
+        /* Get raw input tables. */
         final StarTable[] inTables = new StarTable[ nIn_ ];
         for ( int i = 0; i < nIn_; i++ ) {
             inTables[ i ] = inTableParams_[ i ].tableValue( env );
         }
-        final TableConsumer consumer = consumerParam_.consumerValue( env );
+
+        /* Get a sequence of pre-processing steps for each input table. */
+        final ProcessingStep[][] inSteps = new ProcessingStep[ nIn_ ][];
+        for ( int i = 0; i < nIn_; i++ ) {
+            inSteps[ i ] = inFilterParams_ != null
+                         ? inFilterParams_[ i ].stepsValue( env )
+                         : new ProcessingStep[ 0 ];
+        }
+
+        /* Get the mapping which defines the actual processing done by
+         * this task. */
         final TableMapping mapping = mapper_.createMapping( env );
+
+        /* Get a sequence of post-processing steps for the output table. */
+        final ProcessingStep[] outSteps = outFilterParam_ != null
+                                        ? outFilterParam_.stepsValue( env )
+                                        : new ProcessingStep[ 0 ];
+
+        /* Get the table consumer, which defines the output table's final
+         * destination. */
+        final TableConsumer baseConsumer = consumerParam_.consumerValue( env );
+
+        /* Consstruct a consumer which will combine the post-processing
+         * and the final disposal. */
+        final TableConsumer consumer = new TableConsumer() {
+            public void consume( StarTable table ) throws IOException {
+                for ( int i = 0; i < outSteps.length; i++ ) {
+                    table = outSteps[ i ].wrap( table );
+                }
+                baseConsumer.consume( table );
+            }
+        };
+
+        /* Construct and return an executable which will do all the work. */
         return new Executable() {
             public void execute() throws IOException, TaskException {
+
+                /* Perform any required pre-filtering of input tables. */
+                for ( int i = 0; i < nIn_; i++ ) {
+                    for ( int j = 0; j < inSteps[ i ].length; j++ ) {
+                        inTables[ i ] = inSteps[ i ][ j ].wrap( inTables[ i ] );
+                    }
+                }
+
+                /* Finally, execute the pipeline. */
                 mapping.mapTables( inTables, new TableConsumer[] { consumer } );
             }
         };

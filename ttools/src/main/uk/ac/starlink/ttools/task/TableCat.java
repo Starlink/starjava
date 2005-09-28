@@ -17,7 +17,7 @@ import uk.ac.starlink.ttools.TableConsumer;
 public class TableCat extends MapperTask {
 
     public TableCat() {
-        super( new Cat2Mapper(), false );
+        super( new Cat2Mapper(), true, true, true );
     }
 
     private static class Cat2Mapper implements TableMapper {
