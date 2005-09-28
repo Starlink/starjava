@@ -57,7 +57,7 @@ public class Match2Mapper implements TableMapper {
                 "Defines the values from table " + i1,
                 "which are used to determine whether a match has occurred.",
                 "These will typically be coordinate values such as RA and Dec",
-                "perhaps some per-row error values as well, though exactly",
+                "and perhaps some per-row error values as well, though exactly",
                 "what values are required is determined by the kind of match",
                 "as determined by",
                 "<code>" + matcherParam_.getName() + "</code>.",

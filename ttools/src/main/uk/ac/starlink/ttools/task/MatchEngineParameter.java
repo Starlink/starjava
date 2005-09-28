@@ -58,7 +58,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         paramsParam_.setPrompt( "Match parameters" );
         paramsParam_.setDescription( new String[] {
             "Determines the parameters of this match.",
-            "This is typically a tolerance such as an error radius.",
+            "This is typically one or more tolerances such as error radii.",
             "It may contain zero or more values; the values that are",
             "required depend on the match type selected by the",
             "<code>" + getName() + "</code> parameter.",

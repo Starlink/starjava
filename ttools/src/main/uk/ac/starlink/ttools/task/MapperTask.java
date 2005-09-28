@@ -126,6 +126,7 @@ public class MapperTask implements Task {
             outFilterParam_.setDescription( new String[] {
                 "Commands to operate on the output table,",
                 "after all other processing has taken place.",
+                outFilterParam_.getDescription(),
             } );
             paramList.add( outFilterParam_ );
         }
