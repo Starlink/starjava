@@ -450,7 +450,6 @@ public class LineInvoker {
         catch ( SAXException e ) {
             sbuf.append( "      ???" );
         }
-        sbuf.append( '\n' );
         if ( param.getDefault() != null ||
              param.isNullPermitted() ) {
             sbuf.append( "\n\n   Default:\n" )
@@ -458,9 +457,10 @@ public class LineInvoker {
                 .append( param.getDefault() );
         }
         if ( param instanceof ExtraParameter ) {
-            sbuf.append( "\n" )
+            sbuf.append( "\n\n" )
                 .append( ((ExtraParameter) param).getExtraUsage( env ) );
         }   
+        sbuf.append( '\n' );
         return sbuf.toString();
     }
 
