@@ -26,6 +26,8 @@ import uk.ac.starlink.ttools.func.Coords;
 public class MatchEngineParameter extends Parameter implements ExtraParameter {
 
     private final WordsParameter paramsParam_;
+    private MatchEngine matchEngine_;
+
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
@@ -40,6 +42,9 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         super( name );
 
         paramsParam_ = new WordsParameter( "params" );
+
+        setDefault( "sky" );
+        setPreferExplicit( true );
 
         setUsage( "<matcher-name>" );
         setPrompt( "Name of matching algorithm" );
@@ -118,10 +123,15 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
     public MatchEngine matchEngineValue( Environment env )
             throws TaskException {
         checkGotValue( env );
+        return matchEngine_;
+    }
+
+    public void setValueFromString( Environment env, String stringVal )
+            throws TaskException {
 
         /* Get the unconfigured engine corresponding to this parameter's
          * string value. */
-        String name = stringValue( env ).toLowerCase();
+        String name = stringVal.toLowerCase();
         MatchEngine engine = createEngine( name );
 
         /* See about the match parameter constants that the resulting
@@ -165,7 +175,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                 }
             }
         }
-        return engine;
+        matchEngine_ = engine;
     }
 
     /**
