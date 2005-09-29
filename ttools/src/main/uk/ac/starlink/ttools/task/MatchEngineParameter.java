@@ -70,6 +70,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             "If it contains multiple values, they must be separated by spaces;",
             "values which contain a space can be 'quoted' or \"quoted\".",
         } );
+        paramsParam_.setUsage( "<match-params>" );
     }
 
     public String getExtraUsage( TableEnvironment env ) {
