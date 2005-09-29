@@ -50,8 +50,7 @@
   <!ENTITY matcher-exact-usage SYSTEM 'matcher-exact-usage.xml'>
   <!ENTITY matcher-1d-usage SYSTEM 'matcher-1d-usage.xml'>
   <!ENTITY matcher-2d-usage SYSTEM 'matcher-2d-usage.xml'>
-  <!ENTITY matcher-2d_anisotropic-usage SYSTEM
-                                        'matcher-2d_anisotropic-usage.xml'>
+  <!ENTITY matcher-2d_anis-usage SYSTEM 'matcher-2d_anisotropic-usage.xml'>
   <!ENTITY matcher-sky.1d-usage SYSTEM 'matcher-sky.1d-usage.xml'>
 ]>
 
@@ -95,9 +94,10 @@ It contains both generic (format-independent) table processing tools and
 tools for processing VOTable documents.  Facilities offered include
 format conversion, 
 format validation, 
-column manipulation, 
+column calculation and rearrangement, 
 row selection,
 sorting,
+crossmatching,
 statistical calculations
 and metadata display.
 Calculations on cell data can be performed using a powerful and 
@@ -113,7 +113,7 @@ extensibility and scalability.  Where possible the tools are
 written to accept streamed data so the size of tables which can 
 be processed is not limited by available memory.
 As well as the tutorial and reference information in this document,
-on-line help is available from the tools themselves.
+detailed on-line help is available from the tools themselves.
 </px>
 
 <px>STILTS is available under the GNU General Public Licence.
@@ -138,7 +138,8 @@ same ground as the STIL and TOPCAT user documents
 (<docxref doc="sun252"/> and <docxref doc="sun253"/> respectively).
 </p>
 
-<p>Currently, this package consists of four commands:
+<p>Currently, this package consists of four commands for generic
+table manipulation:
 <ul>
 <li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
     &tcat-purpose;
@@ -152,6 +153,9 @@ same ground as the STIL and TOPCAT user documents
 <li><ref id="tpipe" plaintextref="yes"><code>tpipe</code></ref>:
     &tpipe-purpose;
     </li>
+</ul>
+and two commands specifically for operating on VOTable files:
+<ul>
 <li><ref id="votcopy" plaintextref="yes"><code>votcopy</code></ref>:
     &votcopy-purpose;
     </li>
@@ -176,13 +180,20 @@ here are a few possibilities:
 <dt>Format conversion</dt>
 <dd><p>If you have a separate table processing engine and you want to 
     be able to output the results in a somewhat different form, 
-    for instance converting it from FITS to VOTable, or from
-    TABLEDATA-encoded to BINARY-encoded VOTable, you can pass the
-    results through one of the tools here.  Since on the whole 
-    operation is streaming, the conversion can easily and
-    efficiently be done on the
-    fly, for instance as part of a web service providing a choice of
-    output formats.
+    for instance converting it from FITS to VOTable or from
+    TABLEDATA-encoded to BINARY-encoded VOTable, or to perform 
+    some more scientifically substantial operation such as 
+    changing units or coordinate systems, substituting bad values etc,
+    you can pass the results through one of the tools here.
+    Since on the whole operation is streaming, such conversion can 
+    easily and efficiently be done on the fly.
+    </p></dd>
+
+<dt>Server-side operations</dt>
+<dd><p>The tools provided here are suitable for use on servers, either
+    to generate files as part of a web service (perhaps along the 
+    lines of the <label>Format conversion</label> item above)
+    or as configurable components in a server-based workflow system.
     </p></dd>
 
 <dt>Quick look</dt>
@@ -193,9 +204,6 @@ here are a few possibilities:
     </p></dd>
 
 </dl>
-</p>
-
-<p>All user comments are most welcome.
 </p>
 
 </sect>
@@ -228,7 +236,9 @@ subsections, and details of each of the available tasks along with
 their arguments are listed in the
 <ref id="cmdUsage" plaintextref="yes">command reference</ref> 
 at the end of this document.
-In many cases, it's not complicated to use these commands.
+Some of the commands are highly configurable and have a variety of 
+parameters to define their operation.  
+In many cases however, it's not complicated to use them.
 For instance, to convert the data in a FITS table to VOTable format
 you might write:
 <verbatim><![CDATA[
@@ -288,8 +298,7 @@ follows:
 <dt><code>-disk</code></dt>
 <dd><p>Encourages the command to use temporary files on disk for caching
     large amounts of data rather than doing it in memory.
-    This is a good flag to try if you are getting
-    <code>OutOfMemoryError</code>s.
+    This is a good flag to try if you are running out of memory.
     This flag is in most cases equivalent to specifying the system
     property <code>-Dstartable.storage=disk</code>.
     </p></dd>
@@ -347,74 +356,73 @@ the available tasks are:
 <subhead><title>Task Arguments</title></subhead>
 
 <p>The <code>&lt;task-args&gt;</code> part of the command line is a
-list of "words", each giving the value of one of the named parameters
-belonging to the task which is specified in the <code>&lt;task-name&gt;</code>
-part.  The general form of a parameter assignment is
+list of parameter assignments, 
+each giving the value of one of the named parameters belonging to 
+the task which is specified in the <code>&lt;task-name&gt;</code> part.
+</p>
+
+<p>The general form of each parameter assignment is
 <verbatim><![CDATA[
    <param-name>=<param-value>
 ]]></verbatim>
-where <code>&lt;param-name&gt;</code> is the name of one of the parameters 
-listed in the appropriate Usage section in <ref id="cmdUsage"/>;
-you can also obtain a list of the task's parameters by invoking:
-<verbatim><![CDATA[
-   stilts <task-name> -help
-]]></verbatim>
-In some cases you can leave out the "<code>-&lt;param-name&gt;=</code>" 
-part - this is indicated by that part being listed in square brackets
-in the usage message.
-So for instance the usage message for the <code>tcopy</code> command,
-as provided in response to the command
-<verbatim>
-   stilts tcopy -help
-</verbatim>
-is as follows:
-<verbatim>&tcopy-usage;</verbatim>
-which means that you can leave out the "<code>in=</code>" or 
-"<code>out=</code>" parts when setting input/output tables, so that this:
-<verbatim>
-   stilts tcopy ifmt=csv ofmt=fits in=cat.csv out=cat.fits
-</verbatim>
-can equally well be written like this:
-<verbatim>
-   stilts tcopy ifmt=csv ofmt=fits cat.csv cat.fits
-</verbatim>
+If you want to set the parameter to the null value, which is legal for
+some but not all parameters, use the special string "<code>null</code>".
+In some cases you can optionally leave out the <code>&lt;param-name&gt;</code>
+part of the assignment (i.e. the parameter is positionally determined); 
+this is indicated in the task's usage description if the parameter
+is described like <code>[&lt;param-name&gt;=]&lt;param-value&gt;</code>
+rather than <code>&lt;param-name&gt;=&lt;param-value&gt;</code>.
+If the <code>&lt;param-value&gt;</code> contains spaces or other special
+characters, then in most cases, such as from the Unix shell, you will
+have to quote it somehow.  How this is done depends on your platform,
+but usually surrounding the whole value in single quotes will do the trick.
 </p>
 
-<p>Many task arguments can be omitted and they will assume
-sensible default values.  In the case above, <code>tcopy</code> is
-able to guess the output format by looking at the extension of 
-the supplied filename, so in this case you could just write
+<p>Tasks may have many parameters, and you don't have to set all of
+them explicitly on the comand line.  For a parameter which you don't
+set, two things can happen.  In many cases, it will default to some
+sensible value.  Sometimes however, you may be prompted for the value
+to use.
+In the latter case, a line like this will be written to the terminal:
 <verbatim>
-   stilts tcopy ifmt=csv cat.csv cat.fits
+   matcher - Name of matching algorithm [sky]:
 </verbatim>
-If you omit an argument that needs to be supplied, an error will be 
-issued.
-A parameter can be set to a null value by using the form
-<code>&lt;param-name&gt;=null</code>, but where a null value is
-legal, it is usually the default anyway, so this isn't usually a
-useful thing to do.
-</p>
-
-<p>To find more information about any of a task's arguments, you 
-can use the <code>help</code> parameter, like this:
-<verbatim>
-   stilts tcopy help=ifmt
-</verbatim>
-which will give you information about <code>tcopy</code>'s <code>ifmt</code>
-parameter, including some textual description, default values etc.
-For more detailed information than that given by the <code>help</code>
-parameter, consult the task description in <ref id="cmdUsage"/>.
-</p>
-
-<p>In some cases, the task arguments may need to contain characters
-such as spaces which may be significant to your execution environment,
-so you may need to use quote characters etc on the command line in
-the usual way for whatever shell you are using.
-If in doubt, for a Unix-like shell, it's usually safe to surround
-the parameter value in single quotes.
+This is prompting you for the value of the parameter named 
+<code>matcher</code>.  "Name of matching algorithm" is a short 
+description of what that parameter does.  "<code>sky</code>" is
+the default value (if there is no default, no value will appear
+in square brackets).
+At this point you can do one of four things:
+<ul>
+<li>Hit return - this will select the default value if there is one.
+    If there is no default, this is equivalent to entering 
+    "<code>null</code>".</li>
+<li>Enter a value for the parameter explicitly.
+    The special value "<code>null</code>" means the null value,
+    which is legal for some, but not all parameters.
+    If the value you enter is not legal, you will see an error 
+    message and you will be invited to try again. </li>
+<li>Enter "<code>help</code>" or a question mark "<code>?</code>".
+    This will output a message
+    giving a detailed description of the parameter
+    and prompt you again.</li>
+<li>Bail out by hitting ctrl-C or whatever is usual on your platform.</li>
+</ul>
+Under normal circumstances, most parameters which have a legal default
+value will default to it if they are not set on the command line,
+and you will only be prompted for those where there is no default or
+the program thinks there's a good chance you might not want to use it.
+You can influence this however using flags to the <code>stilts</code>
+command itself (see <ref id="stilts-flags"/>). 
+If you supply the <code>-prompt</code> flag, then you will be prompted
+for every parameter you have not explicitly set.  If you supply
+<code>-batch</code> on the other hand, you won't be prompted for 
+any parameters (and if you fail to set any without legal default
+values, the task will fail).
 </p>
 
 <p>If you want to see the actual values of the parameters for a task,
+as it runs,
 including defaulted ones which you haven't specified explicitly,
 you can use the <code>-verbose</code> flag after the <code>stilts</code>
 command:
@@ -422,6 +430,29 @@ command:
    % stilts -verbose tcopy cat.fits cat.vot ifmt=fits
    INFO: tcopy in=cat.fits out=cat.vot ifmt=fits ofmt=(auto)
 ]]></verbatim>
+</p>
+
+<p>Extensive help is available from <code>stilts</code> 
+itself about task parameters.  For a given task you can obtain
+a list of its parameters using the form:
+<verbatim><![CDATA[
+   stilts <task-name> -help
+]]></verbatim>
+To find more information about any of these parameters,
+including usage, textual description, default values etc,
+use the form
+<verbatim><![CDATA[
+   stilts <task-name> help=<param-name>
+]]></verbatim>
+As described above, the parameter help is also available if you reply
+"<code>help</code>" to a prompt for the parameter's value.
+Examples of this online help are given in <ref id="stilts-cmd"/>.
+</p>
+
+<p>For more detailed descriptions of the tasks, which includes
+explanatory comments and examples as well as the information above,
+see the full task descriptions in the
+<ref id="cmdUsage" plaintextref="yes">Command Reference</ref>.
 </p>
 
 </subsect>
@@ -1301,7 +1332,7 @@ requirements of their associated <code>params</code> and
     the corresponding number of entries in the <code>values*</code> parameters.
     </p></dd>
 
-<dt>&matcher-2d_anisotropic-usage;</dt>
+<dt>&matcher-2d_anis-usage;</dt>
 <dd><p>Comparison of positions in 2-dimensional Cartesian space using
     an anisotropic metric.
     Rows are considered to match if their (<code>x</code>,<code>y</code>)
