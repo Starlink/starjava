@@ -472,6 +472,10 @@
       <arg value="-x"/><arg value="srb.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
     </java>
+    <jar destfile="${dist.lib.pkg}/topcat-lite.jar"
+         update="yes"
+         basedir="${star.bin}"
+         includes="topcat stilts"/>
 
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
@@ -485,6 +489,10 @@
       <arg value="-x"/><arg value="gsi-classes.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
     </java>
+    <jar destfile="${dist.lib.pkg}/topcat-full.jar"
+         update="yes"
+         basedir="${star.bin}"
+         includes="topcat stilts"/>
 
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
