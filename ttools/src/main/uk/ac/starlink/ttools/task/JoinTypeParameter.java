@@ -53,10 +53,7 @@ public class JoinTypeParameter extends ChoiceParameter {
             items.toString(),
             "</ul>",
         } );
-    }
-
-    public String getUsage() {
-        return "<selection>";
+        setUsage( "<join-type>" );
     }
 
     /**
