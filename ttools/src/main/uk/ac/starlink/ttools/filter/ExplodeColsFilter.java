@@ -24,7 +24,7 @@ public class ExplodeColsFilter extends BasicFilter {
             "Takes a list of specified columns which represent N-element",
             "arrays and replaces each one with N scalar columns.",
             "Each of the columns specified by <code>&lt;colid-list&gt;</code>",
-            "must have a type with a fixed-length array,",
+            "must have a fixed-length array type,",
             "though not all the arrays need to have the same number",
             "of elements.",
         };

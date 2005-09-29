@@ -47,7 +47,6 @@ public class JdbcMode implements ProcessingMode {
         hostParam_.setDefault( "localhost" );
         hostParam_.setDescription( new String[] {
             "The host which is acting as a database server.",
-            "The default is <code>localhost</code>.",
         } );
 
         dbParam_ = new Parameter( "database" );
