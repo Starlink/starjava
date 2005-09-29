@@ -27,6 +27,7 @@ public class LineEnvironment extends TableEnvironment {
     private boolean interactive_ = true;
     private boolean promptAll_;
     private Set clearedParams_ = new HashSet();
+    private List acquiredValues_ = new ArrayList();
 
     private static final String NULL_STRING = "";
 
@@ -150,10 +151,15 @@ public class LineEnvironment extends TableEnvironment {
      * Prompts the user for the value of a parameter, and sets its
      * value from the users's input.  Should only be called if we are
      * running interactively.
+     * If the value was set successfully, the value string is returned.
+     * However, note that this is a byproduct, it is not necessary 
+     * to use this value to set the value of the parameter following 
+     * this call.
      *
      * @param   param  parameter
+     * @return   the value to which the parameter was set
      */
-    private void promptForValue( Parameter param ) throws TaskException {
+    private String promptForValue( Parameter param ) throws TaskException {
 
         /* Assemble a prompt string. */
         String name = param.getName();
@@ -165,35 +171,61 @@ public class LineEnvironment extends TableEnvironment {
                 .append( prompt );
         }
         if ( dflt != null || param.isNullPermitted() ) {
-            obuf.append( " /" )
+            obuf.append( " [" )
                 .append( dflt )
-                .append( "/" );
+                .append( "]" );
         }
         obuf.append( ": " );
         String promptLine = obuf.toString();
 
-        /* Elicit a response string from the user. */
-        String sval;
-        try {
-            PrintStream err = getErrorStream();
-            sval = name.equals( "password" )
-                 ? TerminalAuthenticator.readMaskedString( promptLine, err )
-                 : TerminalAuthenticator.readString( promptLine, err );
-        }
-        catch ( IOException e ) {
-            throw new TaskException( "Prompt for value failed" );
-        }
+        /* Try to get a sensible response. */
+        for ( int ntry = 0; ntry < 5; ntry++ ) {
 
-        /* Massage it if necessary. */
-        String stringVal = sval.length() == 0 
-                         ? param.getDefault()
-                         : readValue( sval );
-        if ( NULL_STRING.equals( stringVal ) ) {
-            stringVal = null;
-        }
+            /* Elicit a response string from the user. */
+            String sval;
+            try {
+                PrintStream err = getErrorStream();
+                sval = isHidden( param )
+                     ? TerminalAuthenticator.readMaskedString( promptLine, err )
+                     : TerminalAuthenticator.readString( promptLine, err );
+            }
+            catch ( IOException e ) {
+                throw new TaskException( "Prompt for value failed" );
+            }
 
-        /* Attempt to set the parameter's value. */
-        setValueFromString( param, stringVal );
+            /* If it's a request for help, issue help. */
+            if ( "?".equals( sval ) || "help".equalsIgnoreCase( sval ) ) {
+                getErrorStream().println();
+                getErrorStream().println( LineInvoker
+                                         .getParamHelp( this, null, param ) );
+            }
+
+            /* Otherwise, try to set the parameter value. */
+            else {
+
+                /* Massage it if necessary. */
+                String stringVal = sval.length() == 0 
+                                 ? param.getDefault()
+                                 : readValue( sval );
+                if ( NULL_STRING.equals( stringVal ) ) {
+                    stringVal = null;
+                }
+
+                /* Attempt to set the parameter's value. */
+                try {
+                    setValueFromString( param, stringVal );
+
+                    /* If successful, return. */
+                    return stringVal;
+                }
+
+                /* Otherwise, display the error and try again. */
+                catch ( TaskException e ) {
+                    getErrorStream().println( e.getMessage() + "\n" );
+                }
+            }
+        }
+        throw new ParameterValueException( param, "Too many tries" );
     }
 
     /**
@@ -256,8 +288,10 @@ public class LineEnvironment extends TableEnvironment {
         /* If an explicit value has been given, attempt to set the parameter
          * value from it. */
         if ( stringVal != null ) {
-            String sval = stringVal.equals( NULL_STRING ) ? null : stringVal;
-            setValueFromString( param, sval );
+            if ( stringVal.equals( NULL_STRING ) ) {
+                stringVal = null;
+            }
+            setValueFromString( param, stringVal );
         }
 
         /* If no explicit value has been given, we may wish to prompt
@@ -266,12 +300,19 @@ public class LineEnvironment extends TableEnvironment {
                   ( promptAll_
                  || ( param.getDefault() == null && ! param.isNullPermitted() )
                  || param.getPreferExplicit() ) ) {
-            promptForValue( param );
+            stringVal = promptForValue( param );
         }
 
         /* Otherwise, use the default. */
         else {
-            setValueFromString( param, param.getDefault() );
+            stringVal = param.getDefault();
+            setValueFromString( param, stringVal );
+        }
+
+        /* Store the value for logging purposes. */
+        String word = formatAssignment( param, stringVal );
+        if ( ! acquiredValues_.contains( word ) ) {
+            acquiredValues_.add( word );
         }
     }
 
@@ -292,6 +333,39 @@ public class LineEnvironment extends TableEnvironment {
     }
 
     /**
+     * Determines whether a parameter is "hidden", that is it's value
+     * should not be revealed to prying eyes.
+     *
+     * @param  param  param
+     * @return  true if param is hidden type
+     */
+    private boolean isHidden( Parameter param ) {
+        return param.getName().equals( "password" );
+    }
+
+    /**
+     * Returns a "name=value" type assignment word.
+     *
+     * @param  param  parameter
+     * @param  value  parameter value
+     * @return  formatted assignment string
+     */
+    private String formatAssignment( Parameter param, String value ) {
+        if ( value != null && value.indexOf( ' ' ) >= 0 ) {
+            if ( value.indexOf( '\'' ) < 0 ) {
+                value = '\'' + value + '\'';
+            }
+            else if ( value.indexOf( '"' ) < 0 ) {
+                value = '"' + value + '"';
+            }
+        }
+        if ( isHidden( param ) ) {
+            value = "*";
+        }
+        return param.getName() + "=" + value;
+    }
+
+    /**
      * Returns a string containing any words of the input argument list 
      * which were never queried by the application to find their 
      * value.  Such unused words probably merit a warning, since they 
@@ -308,6 +382,17 @@ public class LineEnvironment extends TableEnvironment {
             }
         }
         return (String[]) unusedList.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Returns an array of strings, one for each parameter assignment
+     * which was actually used (via {@link #acquireValue})
+     * for this environment.
+     *
+     * @return   array of parameter assignment strings
+     */
+    public String[] getAssignments() {
+        return (String[]) acquiredValues_.toArray( new String[ 0 ] );
     }
 
     /**
