@@ -421,9 +421,10 @@ any parameters (and if you fail to set any without legal default
 values, the task will fail).
 </p>
 
-<p>If you want to see the actual values of the parameters for a task,
+<p>If you want to see the actual values of the parameters for a task
 as it runs,
-including defaulted ones which you haven't specified explicitly,
+including prompted values and defaulted ones 
+which you haven't specified explicitly,
 you can use the <code>-verbose</code> flag after the <code>stilts</code>
 command:
 <verbatim><![CDATA[
@@ -465,18 +466,32 @@ see the full task descriptions in the
 
 <p>There are a number of ways of invoking the <code>stilts</code> command,
 depending on how you have installed the package.
-If you're using a Unix-like operating system and have downloaded
-the full starjava installation,
-the easiest way is to use the script <code>stilts</code>,
-located in the <code>starjava/bin</code> directory.
-This is a simple script which just invokes java with the
+If you're using a Unix-like operating system,
+the easiest way is to use the <code>stilts</code> script.
+If you have a full starjava installation it is in the 
+<code>starjava/bin</code> directory.
+Otherwise you can download it separately from wherever you got your
+STILTS installation in the first place, or find it 
+at the top of the <code>stilts.jar</code> or <code>topcat-*.jar</code>
+that contains your STILTS installation, so do something like
+<verbatim>
+   unzip stilts.jar stilts
+</verbatim>
+to extract it (if you don't have an <code>unzip</code> command you can do
+<code>jar xvf stilts.jar stilts; chmod +x stilts</code>).
+<code>stilts</code> is a simple shell script which just invokes java with the
 right classpath and the supplied arguments.
-The form of invocation in this case is:
+</p>
+
+<p>To run using the <code>stilts</code> script, first make sure that
+both the <code>java</code> 
+executable and the <code>stilts</code> script itself are on your path,
+and that the <code>stilts.jar</code> or <code>topcat-*.jar</code>
+jar file is in the same directory as <code>stilts</code>.
+Then the form of invocation is:
 <verbatim><![CDATA[
    stilts <java-flags> <stilts-flags> <task-name> <task-args>
 ]]></verbatim>
-(the <code>java</code> executable as well as the <code>stilts</code>
-command itself should be on your path).
 A simple example would be:
 <verbatim>
    stilts votcopy format=binary t1.xml t2.xml
@@ -491,8 +506,8 @@ The examples in the
 command descriptions below use this form for convenience.
 </p>
 
-<p>If you don't have a Unix-like shell available however, or if you
-don't have the <code>stilts</code> shell script, you will need to invoke
+<p>If you don't have a Unix-like shell available however,
+you will need to invoke
 Java directly with the appropriate classes on your classpath.
 If you have the file <code>stilts.jar</code>, in most cases you can 
 just write:
@@ -603,9 +618,8 @@ specify directly to Java are these:
 <dt>Memory size</dt>
 <dd><p>Java runs with a fixed amount of 'heap' memory; this is 
     typically 64Mb by default.  
-    If one of the tools fails with a message that says 
-    something about an <code>OutOfMemoryError</code> then this has
-    proved too small for the job in hand.  You can increase the 
+    If one of the tools fails with a message that says it's out of memory
+    then this has proved too small for the job in hand.  You can increase the 
     heap memory with the <code>-Xmx</code> flag.  To set the heap 
     memory size to 256 megabytes, use the flag
     <verbatim>
@@ -747,7 +761,8 @@ Installing the driver consists of two steps:
 <p>These steps are all standard for use of the
 <webref url="&URL.J2SE_DOCS;guide/jdbc/">JDBC</webref> system.
 See <docxref doc="sun252" loc="jdbcConfig"/> for information
-about JDBC drivers known to work with STIL.
+about JDBC drivers known to work with STIL (the short story is
+that at least MySQL and PostreSQL will work).
 </p>
 
 <p>Here is an example of using <code><ref id="tcopy">tcopy</ref></code>
@@ -840,8 +855,8 @@ The following list gives the values usually allowed for this
     </p></dd>
 
 <dt><code>votable</code></dt>
-<dd><p>VOTable format - any legal, and many illegal 1.0 or 1.1 format 
-    VOTable document can be read.
+<dd><p>VOTable format - any legal version 1.0 or 1.1 format 
+    VOTable documents, and many illegal ones, can be read.
     By default the first <code>TABLE</code> element is used,
     but this can be altered
     by supplying the 0-based index after a '<code>#</code>' sign, 
@@ -897,7 +912,7 @@ Matching is case-insensitive.
 <dt><code>fits-plus</code></dt>
 <dd><p>FITS file; primary HDU contains a VOTable representation
     of the metadata, first extension contains a FITS binary table
-    (behaves the same as <strong>fits-basic</strong> for most purposes)</p></dd>
+    (behaves the same as <code>fits-basic</code> for most purposes)</p></dd>
 
 <dt><code>fits-basic</code></dt>
 <dd><p>FITS file; primary HDU is data-less, first extension
@@ -962,52 +977,122 @@ by looking at the extension of the output filename you have specified.
 </sect>
 
 
-<sect>
+<sect id="pipes">
 <subhead><title>Table Pipelines</title></subhead>
 
-<p>The <code>tpipe</code> command allows you to perform flexible processing
-on a table, passing it from the input to the output performing
-a number of steps on it and finally doing something with the
-resulting table data.  Its operation is rather like using 
-a stream editor such as Unix's <code>sed(1)</code>, or even
-like using a Unix pipeline itself.
-Each processing step is specified by a command line, and these
-are applied in the order in which you've given them.
-You can either specify the list of steps in a file which you 
-name with <code>tpipe</code>'s <code>script</code> parameter,
-or you can include them directly on the command line using
-the <code>cmd</code> parameter.
-<code>cmd</code> can contain one or more steps separated by
-semicolons, and you can give <code>cmd</code> values as many times
-as you like on the same command line - in either case the
-steps will be strung together in the specified order.
+<p>Several of the tasks available in STILTS take one or more input tables,
+do something or other with them, and produce an output table.
+This is a pretty obvious way to go about things, and in the most
+straightforward case that's exactly what happens: you name one
+or more input tables,
+specify the processing parameters, and name an output table;
+the task then reads the input tables from disk, does the processing
+and writes the output table to disk.
 </p>
 
-<p>In most cases the table data is passed through a row at a time,
-meaning that the amount of memory required is small
-(though in some cases, for instance table sorting, this is not possible).
-Although a similar effect could be achieved by stringing together
-several single-operation table processing commands using an
-actual Unix-like pipe, with the data flowing between the commands
-in byte streams using one or other of the supported table formats,
-the way that <code>tpipe</code> works makes it much more efficient
-to do all the work within one command invocation.
+<p>However, many of the tasks in STILTS allow you to do pre-processing
+of the input tables before the main job, post-processing of the
+output table after the main job, and to decide what happens to 
+the final tabular result, without any intermediate storage of the data.  
+Examples of the kind of pre-processing
+you might want to do are to rearrange the columns so that they
+have the right units for the main task, or replace 'magic' values
+such as -999 with genuine blank values; the kind of post-processing
+you might want to do is to sort the rows in the output table or
+delete some of the columns you're not interested in.
+As for the destination of the final table, you might want to 
+write it to disk, but equally you might not want to store it anywhere,
+but only be interested in counting the number of rows, or seeing
+the minima/maxima of a few of the columns, or you might want to
+send it straight to TOPCAT or some other table viewing application
+for interactive analysis.
+</p>
+
+<p>Clearly, you could achieve the same effect by preprocessing your 
+original input tables to write intermediate files on disk, 
+running the main processing application which reads those files
+from disk and writes a new output file,
+running another application to postprocess the output file and
+write a new final output file,
+and finally doing something with this such as counting the rows in it
+or viewing it in TOPCAT.
+However, by doing it all within a single task instead,
+no intermediate results have to be stored,
+and the whole sequence can be much more efficient.
+You can think of this (if it helps) like a Unix pipeline, 
+except what is being streamed from the start to the end of the
+pipe is not bytes, but table metadata and data.
+In most cases, the table data is streamed through the pipeline a
+row at a time, meaning that the amount of memory required is small
+(though in some cases, for instance row sorting and crossmatching, 
+this is not possible).
+</p>
+
+<p>Tasks which allow this pre/post-processing, or "filtering",
+have parameters with names like "<code>cmd</code>" which you
+use to specify processing steps.
+Tasks with multiple input tables
+(<ref id="tmatch2"><code>tmatch2</code></ref>,
+ <ref id="tcat"><code>tcat</code></ref>)
+have parameters called <code>icmd1</code>, <code>icmd2</code>, ...
+for preprocessing the different input tables and
+<code>ocmd</code> for postprocessing the output table.
+<ref id="tpipe"><code>tpipe</code></ref> does nothing except
+filtering, so there is no distinction between pre- and post-processing,
+and its filter parameter is just <code>cmd</code>.
+<code>tpipe</code> additionally has a <code>script</code>
+parameter which allows you to use a text file to write the
+commands in, to prevent the command line getting too long.
+In both cases there is a parameter called <code>omode</code>
+which defines the "output mode", that is, what happens to the
+post-processed output table that comes out of the end of the pipeline.
 </p>
 
 <p><ref id="filterSteps"/> lists the processing steps available,
+and explains how to use them,
 <ref id="col-id"/> and <ref id="colid-list"/> describe the syntax
-used for specifying columns,
+used in some of these filter commands for specifying columns,
 and <ref id="outModes"/> describes the available output modes.
-See <ref id="tpipeExamples"/> for some examples putting all
-this together.
+See the examples in the
+<ref id="cmdUsage">command reference</ref>,
+and particularly 
+<ref id="tpipeExamples" plaintextref="yes">those for <code>tpipe</code></ref>,
+for some examples putting all this together.
 </p>
 
 <subsect id="filterSteps">
-<subhead><title>Processing Commands</title></subhead>
+<subhead><title>Processing Filters</title></subhead>
 
-<p>These are the commands which can be used for table pipeline
-processing, in conjuncion with <code>tpipe</code>'s 
-<code>cmd</code> or <code>script</code> parameters.
+<p>This section lists the filter commands which can be used for 
+table pipeline processing, in conjunction with <code>cmd</code>-
+or <code>script</code>-type parameters.
+</p>
+
+<p>You can string as many of these together as you like.
+On the command line, you can repeat the <code>cmd</code>
+(or <code>icmd1</code>, or <code>ocmd</code>...) parameter 
+multiple times, or use one <code>cmd</code> parameter and
+separate different filter specifiers with semicolons ("<code>;</code>).
+The effect is the same.
+</p>
+
+<p>It's important to note that each command in the sequence of
+processing steps acts on the table at that point in the sequence.
+Thus
+<verbatim>
+   stilts tpipe cmd="delcols 1; delcols 1; delcols 1"
+</verbatim>
+has the same effect as
+<verbatim>
+   stilts tpipe cmd='delcols "1 2 3"'
+</verbatim>
+since in the first case the columns are shifted left after
+each one is deleted, so the table seen by each step has one fewer
+column than the one before.
+Note also the use of quotes in the latter of the examples above,
+which is necessary so that the <code>&lt;colid-list&gt;</code>
+of the <code>delcols</code> command is interpreted as one argument not
+three separate words.
 </p>
 
 <p>The syntax of some of these arguments is described elsewhere in 
@@ -1102,7 +1187,8 @@ the following:
     but not <code>decOld</code>.
     "<code>*MAG*</code>" will match columns named
     <code>magnitude</code>, <code>ABS_MAG_U</code> and <code>JMAG</code>.
-    "*" expands to a list of all the columns of the table in order.
+    "<code>*</code>" on its own 
+    expands to a list of all the columns of the table in order.
     </p></dd>
 </dl>
 </p>
@@ -1117,15 +1203,16 @@ function you are executing.
 <subsect id="outModes">
 <subhead><title>Output Modes</title></subhead>
 
-<p>This section lists the output modes which can be used with
-the <code><ref id="tpipe">tpipe</ref></code> command.
+<p>This section lists the output modes which can be used as
+the value of the <code>omode</code> parameter of 
+<code><ref id="tpipe">tpipe</ref></code> and other commands.
 Typically, having produced a result table by pipeline processing 
 an input one, you will write it out by specifying 
 <code>omode=out</code> (or not using the <code>omode</code> parameter at all -
 <code>out</code> is the default).  However, you can do other things
 such as calculate statistics, display metadata, etc.  In some of
 these cases, additional parameters are required.  The different 
-output modes are listed here.
+output modes are listed below.
 </p>
 
 <p>
@@ -1169,7 +1256,7 @@ where <m>N</m> is the total number of rows in all the tables being matched.
 No preparation (such as sorting) is required on the tables prior to
 invoking the matching operation.
 It is reasonably fast; for instance an RA, Dec positional match
-of two 10<sup>5</sup>-row catalogues takes of the order of 30 seconds
+of two 10<sup>5</sup>-row catalogues takes of the order of 60 seconds
 on current (2005 laptop) hardware.  Attempting matches with large tables can 
 lead to running out of memory; the above calculation required around
 200Mb heap size (-Xmx200M).
@@ -2151,25 +2238,7 @@ three classes of things you need to tell it when it runs:
     display it directly in TOPCAT (<code>omode=topcat</code>) etc.
     </p></dd>
 </dl>
-</p>
-
-<p>It's important to note that each command in the sequence of
-processing steps acts on the table at that point in the sequence.
-Thus
-<verbatim>
-   stilts tpipe cmd="delcols 1; delcols 1; delcols 1"
-</verbatim>
-has the same effect as
-<verbatim>
-   stilts tpipe cmd='delcols "1 2 3"'
-</verbatim>
-since in the first case the columns are shifted left after
-each one is deleted, so the table seen by each step has one fewer
-column than the one before.
-Note also the use of quotes in the latter of the examples above,
-which is necessary so that the <code>&lt;colid-list&gt;</code>
-of the <code>delcols</code> command is interpreted as one argument not
-three separate words.
+See <ref id="pipes"/> for a more detailed explanation of these ideas.
 </p>
 
 <p>The parameters mentioned above are listed in detail in the next section.
