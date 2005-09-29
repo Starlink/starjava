@@ -9,27 +9,52 @@
 
 #  Description:
 #     This shell script invokes the STILTS application. 
+#     It's not very complicated, but performs some argument manipulation
+#     prior to invoking java with the right classpath and classname.
+#
+#     1. if a class path is specified using either the CLASSPATH
+#        environment variable or the -classpath flag to this script,
+#        it will be added to the application classpath
+#
+#     2. any initial command-line arguments which look like they are destined
+#        for java itself (starting with -D or -X) will be sent to java,
+#        and the others will be sent to the application
+
+#  Requisites:
+#     - java should be on the path.
+#
+#     - relative to the directory in which this script is installed,
+#       one of the following jar files should exist and contain the
+#       STILTS classes:
+#          ../../lib/ttools/stilts-app.jar
+#          ./topcat-full.jar
+#          ./topcat-lite.jar
+#          ./stilts.jar
 
 #  Authors:
 #     MBT: Mark Taylor (Starlink)
 #-
 
+#  Set locations of acceptable jar files (relative to this script).
+stilts_jars="\
+ ../lib/ttools/stilts-app.jar\
+ topcat-full.jar\
+ topcat-lite.jar\
+ stilts.jar\
+"
+
 #  Find where this script is located.
 bindir="`dirname $0`"
 
-#  Locate the application jar file.  This is relative to this script.
-
-appjar="$bindir/../lib/ttools/stilts-app.jar"
-if test ! -f "$appjar"; then
-   echo "Failed to locate $appjar."
-   exit 1
-fi
-
-#  Locate the java startup script.
-
-starjava="$bindir/starjava"
-if test ! -f "$starjava"; then
-   echo "Failed to locate '$bindir/starjava'."
+#  Locate the application jar file.
+for j in $stilts_jars; do
+   if test -z "$appjar" -a -f "$bindir/$j"; then
+      appjar="$bindir/$j"
+   fi
+done
+if test ! -f "$appjar"
+then
+   echo 1>&2 "Can't find stilts classes in ${bindir} - looked for:$stilts_jars"
    exit 1
 fi
 
@@ -63,14 +88,9 @@ case "`uname`" in
   ;;
 esac
 
-# Prevent starjava's interference in the logging regime.
-STARJAVA_DEFAULT_LOGGING="true"
-export STARJAVA_DEFAULT_LOGGING
-
 # Execute the command.
-$starjava \
+java \
    $javaArgs \
-   -enableassertions \
    -classpath $CLASSPATH \
    uk.ac.starlink.ttools.Stilts \
    "$@"
