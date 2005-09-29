@@ -456,6 +456,10 @@
       <arg value="-x"/><arg value="topcat.jar"/>
       <arg value="${star.lib.pkg}/stilts-app.jar"/>
     </java>
+    <jar destfile="${dist.lib.pkg}/stilts.jar"
+         update="yes"
+         basedir="${star.bin}"
+         includes="stilts"/>
   </target>
 
   <!--
