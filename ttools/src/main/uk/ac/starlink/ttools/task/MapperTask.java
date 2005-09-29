@@ -66,13 +66,25 @@ public class MapperTask implements Task {
         }
         else {
             for ( int i = 0; i < nIn_; i++ ) {
-                String suffix = nIn_ == 1 ? "" : Integer.toString( i + 1 );
-                inTableParams_[ i ] = new InputTableParameter( "in" + suffix );
-                inTableParams_[ i ].setUsage( "<table" + suffix + ">" );
-                inTableParams_[ i ].setPrompt( "Location of " + getOrdinal( i )
-                                               + " input table" );
-                paramList.add( inTableParams_[ i ].getFormatParameter() );
-                paramList.add( inTableParams_[ i ] );
+                int i1 = i + 1;
+                String ord = getOrdinal( i1 );
+                InputTableParameter inParam =
+                    new InputTableParameter( "in" + i1 );
+                inTableParams_[ i ] = inParam;
+                inParam.setUsage( "<table" + i1 + ">" );
+                inParam.setPrompt( "Location of " + ord + " input table" );
+                inParam.setDescription( inParam.getDescription()
+                                       .replaceFirst( "the input table",
+                                                      "the " + ord + 
+                                                      " input table" ) );
+                InputFormatParameter fmtParam = 
+                    inTableParams_[ i ].getFormatParameter();
+                fmtParam.setDescription( fmtParam.getDescription()
+                                        .replaceFirst( "the input table",
+                                                       "the " + ord + 
+                                                       " input table" ) );
+                paramList.add( fmtParam );
+                paramList.add( inParam );
             }
         }
         for ( int i = 0; i < nIn_; i++ ) {
