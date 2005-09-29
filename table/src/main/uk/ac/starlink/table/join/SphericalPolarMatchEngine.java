@@ -42,7 +42,7 @@ public class SphericalPolarMatchEngine implements MatchEngine {
     public SphericalPolarMatchEngine( double err ) {
         spaceEngine_ = new IsotropicCartesianMatchEngine( 3, err, false );
         ((DefaultValueInfo) spaceEngine_.errorParam_.getInfo())
-                           .setUnitString( "Units of radius" );
+                           .setUnitString( "Units of distance" );
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
