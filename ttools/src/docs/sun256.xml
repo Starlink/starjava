@@ -1250,16 +1250,16 @@ communicated to STILTS's matching tools.
 </p>
 
 <p>Matching can in general be a computationally intensive process.
-The algorithm used by STILTS scales as <m>O(N log(N))</m>
-except in pathological cases,
+The algorithm used by STILTS, except in pathological cases, 
+scales as <m>O(N log(N))</m> or thereabouts,
 where <m>N</m> is the total number of rows in all the tables being matched.
 No preparation (such as sorting) is required on the tables prior to
 invoking the matching operation.
 It is reasonably fast; for instance an RA, Dec positional match
 of two 10<sup>5</sup>-row catalogues takes of the order of 60 seconds
 on current (2005 laptop) hardware.  Attempting matches with large tables can 
-lead to running out of memory; the above calculation required around
-200Mb heap size (-Xmx200M).
+lead to running out of memory; the above calculation required a
+java heap size of around 200Mb (<code>-Xmx200M</code>).
 <!--
    stilts -Xmx200M tmatch2 \
       in1=2dfgrs_ngp.fits \
@@ -1277,7 +1277,7 @@ lead to running out of memory; the above calculation required around
 
 <p>In the current release of STILTS the only crossmatching task is 
 <ref id="tmatch2"><code>tmatch2</code></ref> which finds matches
-between pairs of tables, but in future versions facilities for 
+between pairs of tables.  In future versions however facilities for 
 finding matches within the same table, and in more than two tables,
 will be introduced.
 </p>
@@ -1290,7 +1290,7 @@ is done by comparing the values in certain of their columns to see
 if they are the same or similar.
 The most common astronomical case is to say that two rows match if
 their celestial coordinates (right ascension and declination) are
-within a certain small radius of each other on the sky.
+within a given small radius of each other on the sky.
 There are other possibilities; for instance the coordinates to compare
 may be in a Cartesian space, or have a higher (or lower) dimensionality
 than two, or the match may be exact rather than within an error radius....
@@ -1333,8 +1333,9 @@ criteria are:
    values1='RA DEC'
    values2='radiansToDegrees(RArad) radiansToDegrees(DECrad)'
 </verbatim>
-It is clearly important that the units of the tables to be matched
-are the same, and in geometrically sensitive cases such as matching
+It is clearly important that corresponding values are comparable
+(in the same units) between the tables being matched,
+and in geometrically sensitive cases such as matching
 on the sky, it's important that they are the units expected by the
 matcher as well.  To determine what those units are, either consult
 the roster below, or run the following command:
@@ -1347,7 +1348,8 @@ which will tell you about all the known matchers and their associated
 
 <p>Here is a list of all the basic <code>matcher</code> types and the
 requirements of their associated <code>params</code> and 
-<code>values*</code> parameters.
+<code>values*</code> parameters.  The units of the required values
+are given where significant.
 <dl>
 
 <dt>&matcher-sky-usage;</dt>
@@ -1364,7 +1366,7 @@ requirements of their associated <code>params</code> and
     Rows are considered to match when the separation between the
     two <code>ra</code>, <code>dec</code> positions is smaller than 
     <em>both</em> the fixed <code>max-error</code> value 
-    value <em>and</em> the sum of the two per-row <code>error</code> values.
+    <em>and</em> the sum of the two per-row <code>error</code> values.
     If either of the <code>error</code> values is blank,
     then any separation up to <code>max-error</code> is considered a match.
     According to these rules, you might decide to set <code>max-error</code>
@@ -1401,8 +1403,8 @@ requirements of their associated <code>params</code> and
 
 <dt>&matcher-1d-usage;</dt>
 <dd><p>Comparison of positions in 1-dimensional Cartesian space.
-    Rows are considered to match if their <code>x</code> columns 
-    differ by no more than <code>error</code>.
+    Rows are considered to match if their <code>x</code> column
+    values differ by no more than <code>error</code>.
     </p></dd>
 
 <dt>&matcher-2d-usage;</dt>
@@ -1415,7 +1417,8 @@ requirements of their associated <code>params</code> and
 <dt><verbatim><![CDATA[matcher=Nd values*='<x> <y> ...'
           params='<error>']]></verbatim></dt>
 <dd><p>Comparison of positions in N-dimensional Cartesian space.
-    As above, but specify <code>matcher=8d</code> or whatever and
+    As for <code>matcher=2d</code>, 
+    but specify <code>matcher=3d</code> or whatever and
     the corresponding number of entries in the <code>values*</code> parameters.
     </p></dd>
 
@@ -1423,7 +1426,7 @@ requirements of their associated <code>params</code> and
 <dd><p>Comparison of positions in 2-dimensional Cartesian space using
     an anisotropic metric.
     Rows are considered to match if their (<code>x</code>,<code>y</code>)
-    positions fall within the error ellipse with radii 
+    positions fall within an error ellipse with radii 
     <code>error-in-x</code>,<code>error-in-y</code> of each other.
     This kind of match will typically be used for non-'spatial' spaces,
     for instance (magnitude,redshift) space, in which the metrics along
@@ -1434,7 +1437,8 @@ requirements of their associated <code>params</code> and
                        params='<error-in-x> <error-in-y> ...']]></verbatim></dt>
 <dd><p>Comparison of positions in N-dimensional Cartesian space using
     an anisotropic metric.
-    As above, but specify <code>matcher=8d_anisotropic</code> or whatever
+    As <code>matcher=2d_anisotropic</code>,
+    but specify <code>matcher=3d_anisotropic</code> or whatever
     and the corresponding number of entries in the <code>values*</code>
     and <code>params</code> parameters.
     </p></dd>
@@ -1463,7 +1467,7 @@ So for instance the following can be used:
 
 </dl>
 This example might be used for instance to identify objects from two
-catalogues which were within a couple of arcseconds and also 0.5
+catalogues which are within a couple of arcseconds and also 0.5
 blue magnitudes of each other.
 Rolling your own matchers in this way can give you very flexible match
 constraints.
@@ -2095,12 +2099,15 @@ to any of the supported
 <ref id="outFormats" plaintextref="yes">output formats</ref>.
 </p>
 
-<p><code>tcopy</code> is designed as a drop-in replacement for the old
+<p><code>tcopy</code> is just a stripped-down version of
+<ref id="tpipe"><code>tpipe</code></ref> - it doesn't do anything
+that <code>tpipe</code> can't, but the usage is slightly 
+simplified.
+It is provided as a drop-in replacement for the old
 <code>tablecopy</code> (<code>uk.ac.starlink.table.TableCopy</code>)
 tool which was supplied with earlier versions of STIL and TOPCAT - 
 it has the same arguments and behaviour as <code>tablecopy</code>, 
-but is implemented using the same classes as 
-<ref id="tpipe"><code>tpipe</code></ref> 
+but is implemented somewhat differently
 and will in some cases be more efficient.
 </p>
 
@@ -2125,7 +2132,7 @@ stilts tcopy stars.fits stars.xml
     </p></dd>
 
 <dt><verbatim>
-stilts tcopy stars.fits ifmt=fits ofmt=votable
+stilts tcopy stars.fits stars.xml ifmt=fits ofmt=votable
 </verbatim></dt>
 <dd><p>Does the same as the previous example, but the input and output
     formats have been specified explicitly.
@@ -2134,7 +2141,7 @@ stilts tcopy stars.fits ifmt=fits ofmt=votable
 <dt><verbatim>
 stilts tcopy ofmt=text http://remote.host/data/vizer.xml.gz#4 -
 </verbatim></dt>
-<dd><p>Prints the contents of a remote VOTable to the terminal in 
+<dd><p>Prints the contents of a remote, compressed VOTable to the terminal in 
     a human-readable form.  The <code>#4</code> at the end of the URL
     indicates that the data from the fifth <code>TABLE</code> element
     in the remote document are to be used.  The gzip compression of
