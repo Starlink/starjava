@@ -48,8 +48,8 @@ public class OutputModeParameter extends Parameter
         String modeList = sbuf.toString();
         setDescription( new String[] {
             "The mode in which the result table will be output.",
-            "The default mode is <code>out</code>, which means that it",
-            "will be written as a new table to disk or elsewhere,",
+            "The default mode is <code>out</code>, which means that",
+            "the result will be written as a new table to disk or elsewhere,",
             "as determined by the <code>out</code> and <code>ofmt</code>",
             "parameters.",
             "However, there are other possibilities, which correspond",
