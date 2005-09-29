@@ -138,7 +138,7 @@ public class LineInvoker {
                     Executable exec = task.createExecutable( env );
                     String[] unused = env.getUnused();
                     if ( unused.length == 0 ) {
-                        logParameterValues( task );
+                        logParameterValues( taskName, env );
                         exec.execute();
                     }
                     else {
@@ -234,28 +234,17 @@ public class LineInvoker {
      * Maybe writes some indication of the parameter values through the 
      * logging system.
      *
-     * <p>Doesn't currently work.
-     *
-     * @param  task       task
+     * @param  taskName  task name
+     * @param  env  execution environment
      */
-    private void logParameterValues( Task task ) {
-
-        /* This is a nice idea, but flawed, since the parameters returned
-         * by task.getParameters() is not necessarily the same (and in
-         * fact is not necessarily either a subset or a superset) of the
-         * parameters actually used.  Doing this is not harmless either,
-         * since it may query (i.e. prompt for) parameters which are
-         * never actually used. */
-        // StringBuffer sbuf = new StringBuffer( taskName );
-        // Parameter[] params = task.getParameters();
-        // for ( int i = 0; i < params.length; i++ ) {
-        //     Parameter param = params[ i ];
-        //     sbuf.append( ' ' )
-        //         .append( param.getName() )
-        //         .append( '=' )
-        //         .append( param.stringValue( env ) );
-        // }
-        // logger_.info( sbuf.toString() );
+    private void logParameterValues( String taskName, LineEnvironment env ) {
+        StringBuffer sbuf = new StringBuffer( taskName );
+        String[] words = env.getAssignments();
+        for ( int i = 0; i < words.length; i++ ) {
+            sbuf.append( ' ' )
+                .append( words[ i ] );
+        }
+        logger_.info( sbuf.toString() );
     }
 
     /**
@@ -294,7 +283,7 @@ public class LineInvoker {
                 for ( int j = 0; j < params.length; j++ ) {
                     Parameter param = params[ j ];
                     if ( helpFor.equals( param.getName() ) ) {
-                        return getParamHelp( env, task, taskName, param );
+                        return getParamHelp( env, taskName, param );
                     }
                 }
                 return "No such parameter: " + helpFor + "\n\n" 
@@ -445,23 +434,25 @@ public class LineInvoker {
      *
      * @param  env  execution environment
      * @param  task   task 
-     * @param  taskName  task nickname
+     * @param  taskName  task nickname - may be null if heading is not required
      * @param  param   parameter for which usage information is required
      * @return   usage message
      */
-    public static String getParamHelp( TableEnvironment env, Task task,
-                                       String taskName, Parameter param ) {
+    public static String getParamHelp( TableEnvironment env, String taskName,
+                                       Parameter param ) {
         boolean byPos = param.getPosition() > 0;
         boolean isOptional = param.getDefault() != null 
                           || param.isNullPermitted();
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append( "Help for parameter " )
-            .append( param.getName().toUpperCase() )
-            .append( " in task " )
-            .append( taskName.toUpperCase() )
-            .append( '\n' )
-            .append( sbuf.toString().replaceAll( ".", "-" ) )
-            .append( "\n   Name:\n" )
+        if ( taskName != null ) {
+            sbuf.append( "Help for parameter " )
+                .append( param.getName().toUpperCase() )
+                .append( " in task " )
+                .append( taskName.toUpperCase() )
+                .append( '\n' )
+                .append( sbuf.toString().replaceAll( ".", "-" ) );
+        }
+        sbuf.append( "\n   Name:\n" )
             .append( "      " )
             .append( param.getName() )
             .append( "\n\n   Usage:\n" )
