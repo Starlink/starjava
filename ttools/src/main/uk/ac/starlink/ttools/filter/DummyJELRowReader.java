@@ -17,7 +17,7 @@ public class DummyJELRowReader extends JELRowReader {
      *
      * @param  baseTable  table whose columns this reader will be based on
      */
-    DummyJELRowReader( StarTable baseTable ) {
+    public DummyJELRowReader( StarTable baseTable ) {
         super( baseTable );
     }
 
