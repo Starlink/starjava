@@ -68,7 +68,7 @@ public class Match2Mapper implements TableMapper {
                 "'quoted' or \"quoted\".",
                 "Elements of the expression list are commonly just column",
                 "names, but may be algebraic expressions calculated from",
-                "one or more columns as explained in <ref id='jel'/>.",
+                "zero or more columns as explained in <ref id='jel'/>.",
             } );
         }
 
