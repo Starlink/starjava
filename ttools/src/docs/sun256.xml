@@ -17,6 +17,7 @@
          </p></dd>'>
 
   <!-- Short descriptions for each command. -->
+  <!ENTITY calc-purpose 'Calculator'>
   <!ENTITY tcat-purpose 'Table Concatenater'>
   <!ENTITY tcopy-purpose 'Table Format Converter'>
   <!ENTITY tmatch2-purpose 'Pair Crossmatcher'>
@@ -31,6 +32,7 @@
   <!ENTITY mode-docs SYSTEM 'mode-docs.xml'>
 
   <!-- Summary paragraphs containing usage for each commmand. -->
+  <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
@@ -138,7 +140,7 @@ same ground as the STIL and TOPCAT user documents
 (<docxref doc="sun252"/> and <docxref doc="sun253"/> respectively).
 </p>
 
-<p>Currently, this package consists of four commands for generic
+<p>Currently, this package consists of the following commands for generic
 table manipulation:
 <ul>
 <li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
@@ -154,13 +156,19 @@ table manipulation:
     &tpipe-purpose;
     </li>
 </ul>
-and two commands specifically for operating on VOTable files:
+the following commands specifically for operating on VOTable files:
 <ul>
 <li><ref id="votcopy" plaintextref="yes"><code>votcopy</code></ref>:
     &votcopy-purpose;
     </li>
 <li><ref id="votlint" plaintextref="yes"><code>votlint</code></ref>:
     &votlint-purpose;
+    </li>
+</ul>
+and the following general purpose utility:
+<ul>
+<li><ref id="calc" plaintextref="yes"><code>calc</code></ref>:
+    &calc-purpose;
     </li>
 </ul>
 More tools may be introduced in the future.
@@ -341,6 +349,7 @@ command with the <code>-debug</code> flag specified.
 name of one of the tasks listed in <ref id="cmdUsage"/> - currently 
 the available tasks are:
 <ul>
+<li><code>calc</code></li>
 <li><code>tcat</code></li>
 <li><code>tcopy</code></li>
 <li><code>tmatch2</code></li>
@@ -808,7 +817,7 @@ then you could avoid having to give the <code>-classpath</code> and
 <sect>
 <subhead><title>Table Formats</title></subhead>
 
-<p>The generic commands in STILTS 
+<p>The generic table commands in STILTS 
 (currently <ref id="tpipe"><code>tpipe</code></ref>,
            <ref id="tcopy"><code>tcopy</code></ref>,
            <ref id="tcat"><code>tcat</code></ref>
@@ -1008,17 +1017,18 @@ send it straight to TOPCAT or some other table viewing application
 for interactive analysis.
 </p>
 
-<p>Clearly, you could achieve the same effect by preprocessing your 
+<p>Clearly, you could achieve the same effect by using multiple
+applications: preprocess your 
 original input tables to write intermediate files on disk, 
-running the main processing application which reads those files
+run the main processing application which reads those files
 from disk and writes a new output file,
-running another application to postprocess the output file and
+run another application to postprocess the output file and
 write a new final output file,
-and finally doing something with this such as counting the rows in it
+and finally do something with this such as counting the rows in it
 or viewing it in TOPCAT.
 However, by doing it all within a single task instead,
 no intermediate results have to be stored,
-and the whole sequence can be much more efficient.
+and the whole sequence can be very much more efficient.
 You can think of this (if it helps) like a Unix pipeline, 
 except what is being streamed from the start to the end of the
 pipe is not bytes, but table metadata and data.
@@ -1039,7 +1049,7 @@ for preprocessing the different input tables and
 <code>ocmd</code> for postprocessing the output table.
 <ref id="tpipe"><code>tpipe</code></ref> does nothing except
 filtering, so there is no distinction between pre- and post-processing,
-and its filter parameter is just <code>cmd</code>.
+and its filter parameter is just called <code>cmd</code>.
 <code>tpipe</code> additionally has a <code>script</code>
 parameter which allows you to use a text file to write the
 commands in, to prevent the command line getting too long.
@@ -1055,8 +1065,8 @@ used in some of these filter commands for specifying columns,
 and <ref id="outModes"/> describes the available output modes.
 See the examples in the
 <ref id="cmdUsage">command reference</ref>,
-and particularly 
-<ref id="tpipeExamples" plaintextref="yes">those for <code>tpipe</code></ref>,
+and particularly the
+<ref id="tpipeExamples" plaintextref="yes"><code>tpipe</code> examples</ref>,
 for some examples putting all this together.
 </p>
 
@@ -1072,7 +1082,7 @@ or <code>script</code>-type parameters.
 On the command line, you can repeat the <code>cmd</code>
 (or <code>icmd1</code>, or <code>ocmd</code>...) parameter 
 multiple times, or use one <code>cmd</code> parameter and
-separate different filter specifiers with semicolons ("<code>;</code>).
+separate different filter specifiers with semicolons ("<code>;</code>").
 The effect is the same.
 </p>
 
@@ -1080,7 +1090,7 @@ The effect is the same.
 processing steps acts on the table at that point in the sequence.
 Thus
 <verbatim>
-   stilts tpipe cmd="delcols 1; delcols 1; delcols 1"
+   stilts tpipe cmd='delcols 1; delcols 1; delcols 1'
 </verbatim>
 has the same effect as
 <verbatim>
@@ -2012,6 +2022,49 @@ commands in the package.  For each one a description of its purpose,
 a list of its command-line arguments, and some examples are given.
 </p>
 
+<subsect id="calc">
+<subhead><title><code>calc</code>: &calc-purpose;</title></subhead>
+
+<p><code>calc</code> is a very simple utility for evaluating expressions.
+It uses the same expression evaluator as is used in <code>tpipe</code>
+and the other generic table tasks for things like creating new columns,
+so it can be used as a quick test to see what expressions work,
+or in order to evaluate expressions using the various algebraic
+functions documented in <ref id="staticMethods"/>.
+Since no table is involved, you can't refer to column names in
+the expressions.
+It takes one parameter, the expression to evaluate, and writes the
+result to the screen.
+</p>
+
+&calc-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>calc</code>:
+<dl>
+
+<dt><verbatim>
+stilts calc 1+2
+</verbatim></dt>
+<dd><p>Calculates one plus two.  Writes "3" to standard output.
+    </p></dd>
+
+<dt><verbatim>
+stilts calc 'isoToMjd("2005-12-25T00:00:00")'
+</verbatim></dt>
+<dd><p>Works out the Modified Julian Day corresponding to Christmas 2005.
+    The output is "53729.0".
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
 <subsect id="tcat">
 <subhead><title><code>tcat</code>: &tcat-purpose;</title></subhead>
 
@@ -2196,8 +2249,8 @@ tool for crossmatching pairs of tables.
 <subsect id="tpipe">
 <subhead><title><code>tpipe</code>: &tpipe-purpose;</title></subhead>
 
-<p><code>tpipe</code> is the main tool in this package
-for general purpose manipulation of tables.
+<p><code>tpipe</code> performs all kinds of general purpose manipulations
+which take one table as input.
 It is extremely flexible, and can do the following things
 amongst others:
 <ul>
@@ -2210,9 +2263,7 @@ amongst others:
 <li>convert between table formats</li>
 </ul>
 and combine these operations.
-You can think of it as a supercharged table copying tool,
-or as a way to perform many of the operations that TOPCAT can perform
-on a table from the command line.
+You can think of it as a supercharged table copying tool.
 </p>
 
 <p>The basic operation of <code>tpipe</code> is that it reads an 
@@ -2268,7 +2319,7 @@ if you just have the Java classes.
 <dt><verbatim>
 stilts tpipe cat.fits
 </verbatim></dt>
-<dd><p>Writes a table to standard output in human-readable form.
+<dd><p>Writes a FITS table to standard output in human-readable form.
     Since no mode specifier is given, <code>omode=out</code> is assumed,
     and output is to standard output in <code>text</code> format.
     </p></dd>
@@ -2291,8 +2342,9 @@ stilts tpipe ifmt=csv xxx.csv \
     and discards all columns in the input table apart from INDEX, RA and DEC.
     Note the quoting in the <code>cmd</code> argument: the outer quotes
     are so that the argument of the <code>cmd</code> parameter itself
-    ("<code>keepcols 'index ra dec'</code>")
-    is not split up by spaces, and the inner quotes are to keep the 
+    (<code>keepcols "index ra dec"</code>)
+    is not split up by spaces (to protect it from the shell), 
+    and the inner quotes are to keep the 
     <code>colid-list</code> argument of the 
     <code>keepcols</code> command together.
     </p></dd>
@@ -2317,7 +2369,8 @@ stilts tpipe ifmt=votable \
     </p></dd>
 
 <dt><verbatim>
-stilts tpipe cmd="addskycoords fk5 gal 'RA2000 DEC2000' 'GAL_LONG GAL_LAT'" \
+stilts tpipe cmd='addskycoords -inunit sex fk5 gal \
+                               "RA2000 DEC2000" "GAL_LONG GAL_LAT"' \
              6dfgs.fits 6dfgs+gal.fits
 </verbatim></dt>
 <dd><p>Adds columns giving galactic coordinates to a table.
@@ -2325,7 +2378,8 @@ stilts tpipe cmd="addskycoords fk5 gal 'RA2000 DEC2000' 'GAL_LONG GAL_LAT'" \
     The galactic coordinates, stored in new columns called GAL_LONG and
     GAL_LAT, are calculated from FK5 J2000.0 coordinates
     given in the existing columns named RA2000 and DEC2000.
-    Both input and output columns are in degrees.
+    The input (FK5) coordinates are represented as sexagesimal strings
+    (hh:mm:ss, dd:mm:ss), and the output ones are numeric degrees.
     </p></dd>
 
 <dt><verbatim>
@@ -2352,16 +2406,17 @@ stilts -disk tpipe 2dfgrs_ngp.fits \
 </p></dd>
 
 <dt><verbatim>
-stilts tpipe http://archive.org/data/survey.vot omode=meta
+stilts tpipe omode=meta http://archive.org/data/survey.vot.Z
 </verbatim></dt>
 <dd><p>Outputs column and table metadata about a table.
-    In this case the table is a VOTable at the end of a URL.
+    In this case the table is a compressed VOTable at the end of a URL.
     </p></dd>
 
 <dt><verbatim>
 stilts tpipe in=survey.fits 
              cmd='select "skyDistance(hmsToRadians(RA),dmsToRadians(DEC), \
-                                       0.6457,-0.1190) &lt; 5 * ARC_MINUTE"' \
+                                      hmsToRadians(2,28,11),dmsToRadians(-6,49,45) \
+                          &lt; 5 * ARC_MINUTE"' \
              omode=count
 </verbatim></dt>
 <dd><p>Counts the number of rows within a given 5 arcmin 
@@ -2369,23 +2424,28 @@ stilts tpipe in=survey.fits
     The <code>skyDistance</code> function is an expression which
     calculates the distance between the position specified in a row
     (as given by its RA and DEC columns) and a given point on the sky
-    (RA=0.6457 radians, DEC=-0.1190 radians).
+    (here, 02:28:11,-06:49:45).
     Since <code>skyDistance</code>'s arguments and return value are in
     radians, some conversions are required: the RA and DEC columns
     are sexagesimal strings which are converted using the
     <code>hmsToRadians</code> and <code>dmsToRadians</code> functions 
-    respectively.  The result is compared to a multiple of the 
+    respectively.  Different versions of these functions (ones which take
+    numeric arguments) are used to convert the coordinates of the fixed
+    point to radians. 
+    The result is compared to a multiple of the 
     <code>ARC_MINUTE</code> constant, which is the size of an arcminute
     in radians.  Any rows of the input table for which this comparison
     is true are included in the output. 
+    An alternative function, <code>skyDistanceDegrees</code> which works
+    in degrees, is also available.
     The functions and constants used here are described in detail 
     in <ref id="uk.ac.starlink.ttools.func.Coords"/>.
     </p></dd>
 
 <dt><verbatim><![CDATA[
 stilts tpipe ifmt=ascii survey.txt \
-             cmd="select 'OBJTYPE == 3 && Z > 0.15'" \
-             cmd="keepcols 'IMAG JMAG KMAG'" \
+             cmd='select "OBJTYPE == 3 && Z > 0.15"' \
+             cmd='keepcols "IMAG JMAG KMAG"' \
              omode=stats
 ]]></verbatim></dt>
 <dd><p>Calculate statistics on the I, J and K magnitudes of selected
@@ -2398,13 +2458,8 @@ stilts tpipe ifmt=ascii survey.txt \
 <dt><verbatim>
 stilts -classpath lib/drivers/mysql-connector-java.jar \
        -Djdbc.drivers=com.mysql.jdbc.Driver \
-       tpipe in=x.fits \
-             cmd="explodeall" \
-             omode=tosql \
-             protocol=mysql \
-             host=localhost \
-             database=ASTRO1 \
-             newtable=TABLEX \
+       tpipe in=x.fits cmd="explodeall" omode=tosql \
+             protocol=mysql host=localhost database=ASTRO1 newtable=TABLEX \
              user=mbt
 </verbatim></dt>
 <dd><p>Writes a FITS table to an SQL table, converting array-valued columns
@@ -2414,11 +2469,11 @@ stilts -classpath lib/drivers/mysql-connector-java.jar \
     <code>jdbc.drivers</code> system property is set to the JDBC driver
     class name.  The output will be written as a new table named TABLEX
     in the MySQL database called ASTRO1 on a MySQL server on the
-    local host, using the priveliges of MySQL user <code>mbt</code>.
-    The <code>password</code> parameter can be used to specify a password
-    if required.
+    local host.  The password, if required, will be prompted for,
+    as would any of the other required parameters if they had not been
+    given on the command line.
     Any existing table in ASTRO1 with the name TABLEX is overwritten.
-    The only processing done here is by the <code>explode</code> command,
+    The only processing done here is by the <code>explodeall</code> command,
     which takes any columns which have fixed-size array values and
     replaces them in the output with multiple scalar columns.
     </p></dd>
@@ -2436,7 +2491,7 @@ java -classpath stilts.jar:lib/drivers/mysql-connector-java.jar
    in a slightly different way.  In the first place, java is invoked 
    directly with the necessary flags rather than getting the 
    <code>stilts</code> script to do it.  Note that you cannot use java's
-   <code>-jar</code> flag in this case, because doing it that way
+   <code>-jar</code> flag in this case, because doing it like that
    would not permit access to the additional classes that contain
    the JDBC driver.
    In the second place we use <code>omode=out</code> rather than 
@@ -2466,7 +2521,7 @@ stilts tpipe USNOB.FITS cmd='every 1000000' omode=stats
 
 <p>The VOTable standard provides for three basic encodings
 of the actual data within each table: TABLEDATA, BINARY and FITS.
-TABLEDATA is a pure-XML encoding, which is easy for humans
+TABLEDATA is a pure-XML encoding, which is relatively easy for humans
 to read and write.
 However, it is verbose and not very efficient for transmission
 and processing,
@@ -2476,7 +2531,7 @@ be used where a VOTable is providing metadata 'decoration' for
 an existing FITS table.
 In addition, the BINARY and FITS encodings may carry their data 
 either inline 
-(as base64-encoded text content of a <code>STREAM</code> element)
+(as the base64-encoded text content of a <code>STREAM</code> element)
 or externally 
 (referenced by a <code>STREAM</code> element's <code>href</code> attribute).
 </p>
@@ -2707,7 +2762,7 @@ be processed without heavy memory use.
 
 <p><code>votlint</code> can't guarantee to pick up every possible
 error in a VOTable document, but it ought to pick up many of the
-most serious errors that are typically made in authoring VOTables.
+most serious errors that are commonly made in authoring VOTables.
 </p>
 
 &votlint-summary;
@@ -2729,10 +2784,11 @@ In general, the program errs on the side of verbosity.
 <p>In addition to these checks, the following checks are carried out,
 and lead to ERROR reports if violations are found:
 <ul>
-<li><code>TD</code> contents incompatible with <code>FIELD</code> declared
-    <code>datatype</code>/<code>arraysize</code> attributes</li>
-<li>BINARY data streams which don't match declared <code>FIELD</code>
-    metadata</li>
+<li><code>TD</code> contents incompatible
+    <code>datatype</code>/<code>arraysize</code> attributes declared
+    in <code>FIELD</code></li>
+<li>BINARY data streams which don't match metadata 
+    declared in <code>FIELD</code></li>
 <li><code>PARAM</code> values incompatible with declared 
     <code>datatype</code>/<code>arraysize</code></li>
 <li>Meaningless <code>arraysize</code> declarations</li>
@@ -2898,6 +2954,8 @@ functionality:
     (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
     (now deprecated within STILTS)</li>
 </ul>
+Thanks in particular to Nickolai Kouropatkine and Chris Stoughton 
+of Fermilab for writing the PixTools specially for use in STIL.
 </p>
 
 <p>Many people have contributed ideas and advice to the development of
@@ -2967,6 +3025,12 @@ but my thanks are especially due to the following:
             allows two tables to be glued together top-to-bottom.
             This is currently working but very rudimentary - improvements
             will be forthcoming in future releases.
+            </p></dd>
+
+        <dt>Calculator</dt>
+        <dd><p>A new utility command <code>calc</code> has been introduced,
+            which performs one-line expression evaluations from the 
+            command line.
             </p></dd>
 
         <dt>Pipeline filters</dt>
