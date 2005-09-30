@@ -1255,8 +1255,8 @@ more than one match can be found.  Finally, you have to decide what
 to do having worked out what the matched rows are; the result will
 generally be presented as a new output table, but there are various
 choices about what columns and rows it will consist of.
-The following subsections discuss these options and how they are
-communicated to STILTS's matching tools.
+Some of these issues are discussed in this section, and others
+in the reference sections on the tools themselves in <ref id="cmdUsage"/>.
 </p>
 
 <p>Matching can in general be a computationally intensive process.
@@ -1268,16 +1268,16 @@ invoking the matching operation.
 It is reasonably fast; for instance an RA, Dec positional match
 of two 10<sup>5</sup>-row catalogues takes of the order of 60 seconds
 on current (2005 laptop) hardware.  Attempting matches with large tables can 
-lead to running out of memory; the above calculation required a
+lead to running out of memory; the calculation just mentioned required a
 java heap size of around 200Mb (<code>-Xmx200M</code>).
 <!--
    stilts -Xmx200M tmatch2 \
       in1=2dfgrs_ngp.fits \
       in2=2dfgrs_spectro.fits \
       icmd1='addskycoords -inunit rad -outunit deg fk5 fk5 \
-                          "RA2000 DEC2000" "RA DEC"' \
+                          RA2000 DEC2000 RA DEC' \
       icmd2='addskycoords -inunit rad -outunit deg fk5 fk5 \
-                          "RA2000 DEC2000" "RA DEC"' \
+                          RA2000 DEC2000 RA DEC' \
       matcher=sky params=3 values1='RA DEC' values2='RA DEC' \
       join=1and2 find=best \
       ocmd='addcol RA_DIFF ra_1-ra_2; addcol DEC_DIFF dec_1-dec_2' \
@@ -2240,9 +2240,115 @@ stilts -classpath /usr/local/jars/pg73jdbc3.jar \
 
 <p><code>tmatch2</code> is an efficient and highly configurable 
 tool for crossmatching pairs of tables.
+It can match rows between tables on the basis of their relative position
+in the sky, or alternatively using many other criteria such as 
+separation in some isotropic or anisotropic Cartesian space, 
+identity of a key value, or some combination of these;
+the full range of match criteria is discussed in <ref id="MatchEngine"/>.
+You can choose whether you want to identify all the matches or
+only the closest,
+and what form the output table takes, for instance matched rows only,
+or all rows from one or both tables, or only the unmatched rows.
 </p>
 
 &tmatch2-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>tmatch2</code>
+<dl>
+
+<dt><verbatim>
+stilts tmatch2 in1=obs_v.xml in2=obs_i.xml out=obs_iv.xml \
+               matcher=sky values1="ra dec" values2="ra dec" params="2"
+</verbatim></dt>
+<dd><p>Takes two input catalogues (VOTables), one with observations in
+    the V band and the other in the I band, and performs a match
+    to find objects within 2 arcseconds of each other.
+    The result is a new table containing only rows where a match was found.
+</p></dd>
+
+<dt><verbatim>
+stilts tmatch2 survey.fits ifmt2=csv mycat.csv \
+               icmd1='addskycoords fk4 fk5 RA1950 DEC1950 RA2000 DEC2000' \
+               matcher=skyerr \
+               params=10 values1="RA2000 DEC2000 POS_ERR"  values2="RA DEC 0" \
+               join=2not1 omode=count
+</verbatim></dt>
+<dd><p>Here a comma-separated-values file is being compared with a FITS
+    catalogue representing some survey results.
+    Positions in the survey catalogue use the FK4 B1950.0 system,
+    and so a preprocessing step is inserted to create new position columns 
+    in the first input table using the FK5 J2000.0 system,
+    which is what the other input table uses.
+    The survey catalogue contains a POS_ERR column which gives the positional
+    uncertainty of its entries, so the <code>skyerr</code> matcher is
+    used, which takes account of this; the third entry in the 
+    <code>values1</code> parameter is the POS_ERR column (in arcsec).
+    Since the second input table has no positional uncertainty information,
+    0 is used as the third entry in <code>values2</code>.
+    The <code>params</code> still has to contain a value which gives the
+    maximum error for matching (i.e. &gt;= the largest value in the
+    POS_ERR column).
+    The join type is <code>2not1</code>, which means the output table
+    will only contain those entries which are in the second input table
+    but not in the first one.
+    The output table is not stored, but the number of rows it contains
+    (the number of objects represented in the CSV file but not the survey)
+    is written to the screen.
+    </p></dd>
+
+<dt><verbatim>
+stilts tmatch2 ifmt1=ascii ifmt2=ascii int1=cat1.txt in2=cat2.txt \
+               matcher=2d values1="X Y" values2="X Y" params="5" join=1and2 \
+               ocmd='addcol XDIFF X_1-X_2; addcol Y_1-Y_2' \
+               ocmd'keepcols "XDIFF YDIFF"' omode=stats
+</verbatim></dt>
+<dd><p>Two ASCII-format catalogues are matched, where rows are
+considered to match if their X,Y positions are within 5 units of
+each other in some Cartesian space.
+The result of the matching operation is a table of all the matched rows,
+containing columns called X_1, X_2, Y_1 and Y_2 (along with any others
+in the input tables) - the _1 and _2 are appended to the names to
+disambiguate them since the same column names appear in the two input tables.
+To this result are added two new columns, representing the X and Y positional
+difference between the rows from one input table and those from the other.
+The <code>keepcols</code> filter then throws all the other columns away,
+retaining only these difference columns.
+The final two-column table is not stored anywhere, 
+but (<code>omode=stats</code>) 
+statistics including mean and standard deviation 
+are calculated on its columns and displayed to the screen.
+Having done all this, you can examine the average X and Y differences
+between the two input tables for matched rows, and if they differ
+significantly from zero, you can conclude that there is a systematic
+error between the positions in the two input files.
+</p></dd>
+
+<dt><verbatim>
+stilts tmatch2 in1=mgc.fits in2=6dfgs.xml join=1and2 find=all \
+               matcher=sky+1d params='3 0.5' \
+               values1='ra dec bmag' values2='RA2000 DEC2000 B_MAG" \
+               out=pairs.fits
+</verbatim></dt>
+<dd><p>This performs a match with a matcher that combines <code>sky</code>
+    and <code>1d</code> match criteria.  This means that the only
+    rows which match are those which are
+    <em>both</em> within 3 arcsec of each other on the sky
+    <em>and</em> and within 0.5 blue magnitudes.
+    Note that for both the <code>params</code> and the 
+    <code>values1</code> and <code>values2</code> parameters,
+    the items for the <code>sky</code> matcher (RA and DEC) 
+    are listed first,
+    followed by those for the <code>1d</code> matcher (in this case,
+    blue magnitude).
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
 
 </subsect>
 
@@ -2370,7 +2476,7 @@ stilts tpipe ifmt=votable \
 
 <dt><verbatim>
 stilts tpipe cmd='addskycoords -inunit sex fk5 gal \
-                               "RA2000 DEC2000" "GAL_LONG GAL_LAT"' \
+                               RA2000 DEC2000 GAL_LONG GAL_LAT' \
              6dfgs.fits 6dfgs+gal.fits
 </verbatim></dt>
 <dd><p>Adds columns giving galactic coordinates to a table.
