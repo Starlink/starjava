@@ -395,32 +395,36 @@ public class LineInvoker {
         String pad = line.toString().replaceAll( ".", " " );
 
         /* Add the named usage elements. */
-        for ( Iterator it = namedWords.iterator(); it.hasNext(); ) {
-            String word = (String) it.next();
-            if ( line.length() + word.length() > 78 ) {
-                usage.append( line )
-                     .append( '\n' );
-                line = new StringBuffer( pad );
+        if ( namedWords.size() > 0 ) {
+            for ( Iterator it = namedWords.iterator(); it.hasNext(); ) {
+                String word = (String) it.next();
+                if ( line.length() + word.length() > 78 ) {
+                    usage.append( line )
+                         .append( '\n' );
+                    line = new StringBuffer( pad );
+                }
+                line.append( word );
             }
-            line.append( word );
+            usage.append( line )
+                 .append( '\n' );
+            line = new StringBuffer( pad );
         }
-        usage.append( line )
-             .append( '\n' );
-        line = new StringBuffer( pad );
 
         /* Add the numbered usage elements. */
-        for ( Iterator it = numberedWords.iterator(); it.hasNext(); ) {
-            String word = (String) it.next();
-            if ( line.length() + word.length() > 78 ) {
-                usage.append( line )
-                     .append( '\n' );
-                line = new StringBuffer( pad );
+        if ( numberedWords.size() > 0 ) {
+            for ( Iterator it = numberedWords.iterator(); it.hasNext(); ) {
+                String word = (String) it.next();
+                if ( line.length() + word.length() > 78 ) {
+                    usage.append( line )
+                         .append( '\n' );
+                    line = new StringBuffer( pad );
+                }
+                line.append( word );
             }
-            line.append( word );
+            usage.append( line )
+                 .append( '\n' );
+            line = new StringBuffer( pad );
         }
-        usage.append( line )
-             .append( '\n' );
-        line = new StringBuffer( pad );
 
         /* Return the final usage string. */
         return usage.toString();
