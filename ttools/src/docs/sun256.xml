@@ -254,28 +254,6 @@ you might write:
 ]]></verbatim>
 </p>
 
-<p>In addition, help is available on the commands and their arguments
-from within the application.  Typing
-<verbatim>
-   stilts -help
-</verbatim>
-results in this output:
-<verbatim>&stilts-usage;</verbatim>
-For help on the individual tasks, you can supply the <code>-help</code>
-flag after the task name, so for instance
-<verbatim>
-   stilts tcopy -help
-</verbatim>
-results in
-<verbatim>&tcopy-usage;</verbatim>
-Finally, you can get help on any of the parameters of a task
-by writing <code>help=&lt;param-name&gt;</code>, like this:
-<verbatim>
-   stilts tcopy help=in
-</verbatim>
-gives
-<verbatim>&tcopy-in-usage;</verbatim>
-</p>
 
 <subsect id="stilts-flags">
 <subhead><title>Stilts flags</title></subhead>
@@ -443,20 +421,52 @@ command:
 </p>
 
 <p>Extensive help is available from <code>stilts</code> 
-itself about task parameters.  For a given task you can obtain
-a list of its parameters using the form:
-<verbatim><![CDATA[
-   stilts <task-name> -help
-]]></verbatim>
-To find more information about any of these parameters,
-including usage, textual description, default values etc,
-use the form
-<verbatim><![CDATA[
-   stilts <task-name> help=<param-name>
-]]></verbatim>
-As described above, the parameter help is also available if you reply
-"<code>help</code>" to a prompt for the parameter's value.
-Examples of this online help are given in <ref id="stilts-cmd"/>.
+itself about task and its parameters, as described in the next section.
+</p>
+
+</subsect>
+
+<subsect>
+<subhead><title>Getting help</title></subhead>
+
+<p>As well as the command descriptions in this document
+(especially the reference section <ref id="cmdUsage"/>)
+you can get help for STILTS usage from the command itself.
+Typing
+<verbatim>
+   stilts -help
+</verbatim>
+results in this output:
+<verbatim>&stilts-usage;</verbatim>
+</p>
+
+<p>For help on the individual tasks, including their parameter lists,
+you can supply the word <code>help</code>
+after the task name, so for instance
+<verbatim>
+   stilts tcopy help
+</verbatim>
+results in
+<verbatim>&tcopy-usage;</verbatim>
+</p>
+
+<p>Finally, you can get help on any of the parameters of a task
+by writing <code>help=&lt;param-name&gt;</code>, like this:
+<verbatim>
+   stilts tcopy help=in
+</verbatim>
+gives
+<verbatim>&tcopy-in-usage;</verbatim>
+</p>
+
+<p>In some cases, as described in <ref id="task-args"/>, you will
+be prompted for the value of a parameter with a line something like this:
+<verbatim>
+   matcher - Name of matching algorithm [sky]:
+</verbatim>
+In this case, if you enter "<code>help</code>" or a question mark,
+then the parameter help entry will be printed to the screen, and 
+the prompt will be repeated.
 </p>
 
 <p>For more detailed descriptions of the tasks, which includes
@@ -3097,7 +3107,7 @@ but my thanks are especially due to the following:
   </ul>
 </p></dd>
 
-<dt>Version 1.0 (30 September 2005)</dt>
+<dt>Version 1.0b (30 September 2005)</dt>
 <dd><p>This is the first non-experimental release of STILTS, and 
     it incorporates major changes and backward incompatibilities 
     since version 0.2b.
