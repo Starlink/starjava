@@ -1,6 +1,0 @@
-This is Jetty 5.1.1.
-
-Note as of Axis 1.2.1 to view any application web services 
-you need to add "tools.jar" to the CLASSPATH so that JSP pages 
-can be compiled. These are not enabled by default (a JRE
-couldn't do this anyway).
