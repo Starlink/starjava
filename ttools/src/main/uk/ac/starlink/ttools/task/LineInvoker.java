@@ -65,7 +65,8 @@ public class LineInvoker {
                 if ( arg.equals( "-help" ) ||
                      arg.equals( "-h" ) ) {
                     it.remove();
-                    System.out.println( "\n" + getUsage() );
+                    String topic = it.hasNext() ? (String) it.next() : null;
+                    System.out.println( "\n" + getUsage( topic ) );
                     return;
                 }
                 else if ( arg.equals( "-version" ) ) {
@@ -294,6 +295,24 @@ public class LineInvoker {
     }
 
     /**
+     * Returns a usage string for a given topic, or for this invoker if
+     * the topic is unknown.
+     *
+     * @param  topic  help topic, such as a task name
+     */
+    private String getUsage( String topic ) {
+        if ( topic != null ) {
+            try {
+                Task task = (Task) taskFactory_.createObject( topic );
+                return getTaskUsage( task, topic );
+            }
+            catch ( LoadException e ) {
+            }
+        }
+        return getUsage();
+    }
+
+    /**
      * Returns a usage string for this invoker.
      *
      * @return  usage string
@@ -301,10 +320,13 @@ public class LineInvoker {
      */
     private String getUsage() {
         StringBuffer sbuf = new StringBuffer()
-            .append( "Usage: " )
-            .append( toolName_ );
-        String pad = sbuf.toString().replaceAll( ".", " " );
-        sbuf.append( " [-help]" )
+            .append( "Usage:\n" );
+        String pad1 = "   ";
+        String pad = ( pad1 + toolName_ ).replaceAll( ".", " " );
+
+        sbuf.append( pad1 )
+            .append( toolName_ )
+            .append( " [-help]" )
             .append( " [-version]" )
             .append( " [-verbose]" )
             .append( " [-disk]" )
@@ -314,8 +336,16 @@ public class LineInvoker {
             .append( '\n' )
             .append( pad )
             .append( " <task-name> <task-args>" )
+            .append( '\n' )
             .append( '\n' );
-        sbuf.append( "\n   Known tasks:\n" );
+
+        sbuf.append( pad1 )
+            .append( toolName_ )
+            .append( " <task-name> help[=<param-name>]" )
+            .append( '\n' )
+            .append( '\n' );
+
+        sbuf.append( "   Known tasks:\n" );
         String[] tasks = taskFactory_.getNickNames();
         for ( int i = 0; i < tasks.length; i++ ) {
             sbuf.append( "      " )
