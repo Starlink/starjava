@@ -88,6 +88,7 @@ public class Stilts {
     private static void init() {
         taskFactory_ = new ObjectFactory( Task.class );
         String taskPkg = "uk.ac.starlink.ttools.task.";
+        taskFactory_.register( "calc", taskPkg + "Calc" );
         taskFactory_.register( "tcat", taskPkg + "TableCat" );
         taskFactory_.register( "tcopy", taskPkg + "TableCopy" );
         taskFactory_.register( "tmatch2", taskPkg + "TableMatch2" );
