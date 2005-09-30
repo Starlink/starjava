@@ -54,6 +54,8 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             "matching using celestial or Cartesian coordinates,",
             "exact matching on the value of a string column,",
             "or other things.",
+            "A list and explanation of the available matching algorithms",
+            "is given in <ref id='MatchEngine'/>.",
             "The value supplied for this parameter determines the meanings",
             "of the values required by the ",
             "<code>" + paramsParam_.getName() + "</code>,",
