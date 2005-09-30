@@ -20,7 +20,8 @@ public class AddSkyCoordsFilter extends BasicFilter {
     public AddSkyCoordsFilter() {
         super( "addskycoords",
                "[-epoch <expr>] [-inunit deg|rad|sex] [-outunit deg|rad|sex]\n"
-             + "<insys> <outsys> <colid-list> <colname-list>" );
+             + "<insys> <outsys> "
+             + "<col-id1> <col-id2> <col-name1> <col-name2>" );
     }
 
     public String[] getDescriptionLines() {
@@ -28,10 +29,12 @@ public class AddSkyCoordsFilter extends BasicFilter {
             "Add new columns to the table representing position on the sky.",
             "The values are determined by converting a sky position",
             "whose coordinates are contained in existing columns.",
-            "<code>&lt;colid-list&gt;</code> names the two columns containing",
-            "the existing position, in the coordinate system named by",
+            "The <code>&lt;col-id&gt;</code> arguments give identifiers for",
+            "the two input coordinate columns",
+            "in the coordinate system named by",
             "<code>&lt;insys&gt;</code>, and",
-            "<code>&lt;colname-list&gt;</code> names the two new columns,",
+            "the <code>&lt;col-name&gt;</code> arguments name",
+            "the two new columns,",
             "which will be in the coordinate system named by",
             "<code>&lt;outsys&gt;</code>.",
             "The <code>&lt;insys&gt;</code> and <code>&lt;outsys&gt;</code>",
@@ -61,11 +64,14 @@ public class AddSkyCoordsFilter extends BasicFilter {
         String sOutUnit = null;
         String sInSys = null;
         String sOutSys = null;
-        String sInCols = null;
-        String sOutCols = null;
+        String sInCol1 = null;
+        String sInCol2 = null;
+        String sOutCol1 = null;
+        String sOutCol2 = null;
         while ( argIt.hasNext() && 
                 ( sInSys == null || sOutSys == null || 
-                  sInCols == null || sOutCols == null ) ) {
+                  sInCol1 == null || sInCol2 == null ||
+                  sOutCol1 == null || sOutCol2 == null ) ) {
             String arg = (String) argIt.next();
             if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 if ( arg.equals( "-epoch" ) && sEpoch == null &&
@@ -98,17 +104,26 @@ public class AddSkyCoordsFilter extends BasicFilter {
                 argIt.remove();
                 sOutSys = arg;
             }
-            else if ( sInCols == null ) {
+            else if ( sInCol1 == null ) {
                 argIt.remove();
-                sInCols = arg;
+                sInCol1 = arg;
             }
-            else if ( sOutCols == null ) {
+            else if ( sInCol2 == null ) {
                 argIt.remove();
-                sOutCols = arg;
+                sInCol2 = arg;
+            }
+            else if ( sOutCol1 == null ) {
+                argIt.remove();
+                sOutCol1 = arg;
+            }
+            else if ( sOutCol2 == null ) {
+                argIt.remove();
+                sOutCol2 = arg;
             }
         }
         if ( sInSys == null || sOutSys == null ||
-             sInCols == null || sOutCols == null ) {
+             sInCol1 == null || sInCol2 == null ||
+             sOutCol1 == null || sOutCol2 == null ) {
             throw new ArgException( "Not enough arguments supplied" );
         }
 
@@ -117,7 +132,7 @@ public class AddSkyCoordsFilter extends BasicFilter {
         final SkySystem inSys;
         final SkySystem outSys;
         final double epoch;
-        final String inCols;
+        final String[] inCols;
         final String[] outCols;
         try {
             inUnits = SkyUnits.getUnitsFor( sInUnit );
@@ -127,13 +142,8 @@ public class AddSkyCoordsFilter extends BasicFilter {
             epoch = ( sEpoch == null || sEpoch.length() == 0 )
                                ? 2000.0
                                : Double.parseDouble( sEpoch );
-            inCols = sInCols;
-            outCols = sOutCols.split( "\\s+" );
-            if ( outCols.length != 2 ) {
-                throw new ArgException(
-                    "Wrong number of output columns specified \"" + sOutCols +
-                    "\" (should be 2)" );
-            }
+            inCols = new String[] { sInCol1, sInCol2 };
+            outCols = new String[] { sOutCol1, sOutCol2 };
         }
         catch ( IllegalArgumentException e ) {
             throw new ArgException( e.getMessage(), e );
@@ -141,20 +151,13 @@ public class AddSkyCoordsFilter extends BasicFilter {
 
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
-                Class[] inTypes = inUnits.getUnitTypes();
-                int nin = inTypes.length;
-                int[] inColIndices = new ColumnIdentifier( base )
-                                    .getColumnIndices( inCols );
-                if ( inColIndices.length != nin ) {
-                    throw new IOException(
-                        "Wrong number of input columns specified \"" + inCols +
-                        "\" (should be " + nin + ")" );
-                }
-
-                for ( int i = 0; i < nin; i++ ) {
-                    ColumnInfo baseInfo =
-                        base.getColumnInfo( inColIndices[ i ] );
-                    if ( ! isCompatible( inTypes[ i ],
+                ColumnIdentifier identifier = new ColumnIdentifier( base );
+                int[] inColIndices = new int[ 2 ];
+                for ( int i = 0; i < 2; i++ ) {
+                    int inColIndex = identifier.getColumnIndex( inCols[ i ] );
+                    inColIndices[ i ] = inColIndex;
+                    ColumnInfo baseInfo = base.getColumnInfo( inColIndex );
+                    if ( ! isCompatible( inUnits.getUnitTypes()[ i ],
                                          baseInfo.getContentClass() ) ) {
                         throw new IOException(
                             "Column " + baseInfo + " not suitable for units " +

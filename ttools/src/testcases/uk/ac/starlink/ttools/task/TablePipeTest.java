@@ -93,10 +93,10 @@ public class TablePipeTest extends TableTestCase {
             for ( int j = 0; j < units.length; j++ ) {
                 SkyUnits unit = units[ j ];
                 String cmd = "addskycoords -inunit deg -outunit " + unit
-                           + " fk5 " + system + " 'ra dec' 'c1 c2'"
+                           + " fk5 " + system + " ra dec c1 c2"
                            + ";\n"
                            + "addskycoords -inunit " + unit + " -outunit deg "
-                           + system + " fk5 'c1 c2' 'rax decx'";
+                           + system + " fk5 c1 c2 rax decx";
                 StarTable xTable = process( skyTable, cmd );
                 assertArrayEquals(
                     new String[] { "ra", "dec", "c1", "c2", "rax", "decx", },
@@ -113,7 +113,7 @@ public class TablePipeTest extends TableTestCase {
         }
 
         StarTable xTable = process( skyTable,
-            "addskycoords -inunit deg -outunit sex fk5 fk5 '1 2' 'rax decx'" );
+            "addskycoords -inunit deg -outunit sex fk5 fk5 1 2 rax decx" );
         assertArrayEquals(
             new Object[] { "12:00:00.00", "06:00:00.00", "01:32:00.00", },
             getColData( xTable, 2 ) );
@@ -122,7 +122,7 @@ public class TablePipeTest extends TableTestCase {
             getColData( xTable, 3 ) );
 
         StarTable xTable0 = process( skyTable,
-            "addskycoords -inunit deg -outunit sex0 fk5 fk5 '1 2' 'rax decx'" );
+            "addskycoords -inunit deg -outunit sex0 fk5 fk5 1 2 rax decx" );
         assertArrayEquals(
             new Object[] { "12:00:00", "06:00:00", "01:32:00", },
             getColData( xTable0, 2 ) );
@@ -131,7 +131,7 @@ public class TablePipeTest extends TableTestCase {
             getColData( xTable0, 3 ) );
 
         StarTable xTable3 = process( skyTable,
-            "addskycoords -inunit deg -outunit sex3 fk5 fk5 '1 2' 'rax decx'" );
+            "addskycoords -inunit deg -outunit sex3 fk5 fk5 1 2 rax decx" );
         assertArrayEquals(
             new Object[] { "12:00:00.000", "06:00:00.000", "01:32:00.000", },
             getColData( xTable3, 2 ) );
