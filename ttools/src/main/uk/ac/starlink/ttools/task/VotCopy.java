@@ -105,7 +105,7 @@ public class VotCopy implements Task {
 
         hrefParam_.setDescription( new String[] {
             "In the case of BINARY or FITS encoding, this determines",
-            "wheter the STREAM elements output will contain their data",
+            "whether the STREAM elements output will contain their data",
             "inline or externally.",
             "If set true, the output document will be self-contained,",
             "with STREAM data inline as base64-encoded characters.",
@@ -125,7 +125,7 @@ public class VotCopy implements Task {
             "<code>&lt;location&gt;</code> string.",
             "This flag is compulsory if",
             "<code>" + hrefParam_.getName() + "</code> is true",
-            "and no output file is specified (output is to standard out),",
+            "and no <code>out=-</code> (output is to standard out),",
             "since in this case there is no default base name to use.",
         } );
     }

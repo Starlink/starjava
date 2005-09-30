@@ -59,7 +59,7 @@ public class VotLint implements Task {
             "involved, the validator can get confused and may produce",
             "a lot of spurious errors.  Setting this flag false prevents",
             "this validation step so that only <code>votlint</code>'s",
-            "checks are performed.",
+            "own checks are performed.",
             "In this case many violations of the VOTable standard",
             "concerning document structure will go unnoticed.",
         } );
