@@ -26,11 +26,11 @@ Research Councils \& \\
 2005 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.8}
+\newcommand{\stardocnumber}    {243.9}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {20 July 2005}
+\newcommand{\stardocdate}      {04 October 2005}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.3}
+\newcommand{\stardocversion}   {3.4}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -1303,7 +1303,8 @@ you will need to add them to a plot yourself (see the section on
 \htmlref{displaying more than one spectrum}{displaying_more_than_one_spectrum}).
 If you want \SPLAT\ to match the coordinate systems and fluxes of the spectra
 then remember to select the
-\submenuitem{Options}{Match coordinates and/or fluxes} item in the plot window.
+\submenuitem{Options}{Match coordinates and/or fluxes}
+item in the plot window.
 
 To view a single spectrum quickly just double click on its row. This will
 download the spectrum and display it in its own plot window.
@@ -1639,15 +1640,19 @@ documentation (\xref{SUN/211}{sun211}{ss:specframes}).
 \newpage
 \subsection{The data units window}
 
-This window allows you to inspect, set or convert the units of the data
-values of your spectra.
+This window allows you to inspect, set or convert the units of the data values
+of your spectra. 
 
-Currently the only use made of these values in \SPLAT\ is when displaying more
-than one spectrum in a plot window. In that case you can request that the data
-values of all the spectra are transformed into the same system, so you can
-compare values in Janskys with those in other flux per unit frequency and per
-unit wavelength systems. For instance all the following systems are understood
-as fluxes and can be intercompared:
+The most trivial use of these is simply to document what type of units your
+spectra are measured in. However, a more powerful use of data units can be
+made when displaying more than one spectrum in a plot.  In that case you can
+request that the data values of all the spectra are transformed into the same
+system, so you can compare values in Janskys with those in other flux per unit
+frequency and per unit wavelength systems (note to activate this option you
+must have the
+\submenuitem{Options}{Match coordinates and/or fluxes} menu item selected
+in the plot window). For instance all the following systems are understood as
+fluxes and can be intercompared:
 \begin{quote}
 \begin{tabular}{ll}
 \verb+Jy+                  & ($Jansky$)                                \\
@@ -2569,6 +2574,13 @@ flexibility, particularly when setting spectral coordinates.
 If you do not want to change the units of an axis, just leave the value set at
 "Unknown".
 
+When the plot is displaying more than one spectrum, only the current one is
+actually modified. If you want the other spectra to be drawn as if in the same
+coordinates or data units, then you must select the menu item
+\submenuitem{Options}{Match coordinates and/or fluxes}, but this will only
+work when all the displayed spectra have proper spectral coordinates and data
+units defined.
+
 The \labelitem{SideBand:} control is for switching between sidebands (upper
 and lower) when display spectra that are derived from a dual sideband
 instrument. This is not available when your spectra do not have this feature.
@@ -2669,7 +2681,7 @@ you can also see:
 \item Kurtosis
 \end{itemize}
 
-To get statistics for the whole of the current spectrum just press the 
+To get statistics for the whole of the current spectrum just press the
 \labelitem{Whole stats} button. If you want statistics for parts of the
 spectrum you will need to define the coordinate ranges you want to use (see
 the next part), and then press the \labelitem{Selected stats} button to get
@@ -2706,8 +2718,8 @@ modifications you want and press \hitext{<Return>} to make the changes
 permanent. (Note: if your spectra have sky coordinates shown for the X axis,
 then you should use the same format for your edits).
 
-To read a set of ranges from a disk file choose the 
-\submenuitem{File}{Read ranges} menu item. 
+To read a set of ranges from a disk file choose the
+\submenuitem{File}{Read ranges} menu item.
 The format of the input file is simple. It should have at least two fields
 separated by whitespace or commas. Comments are indicated by lines starting
 with a hash (\#) and are ignored. You can also save the ranges and simple
@@ -3045,7 +3057,7 @@ Other changes of note in this release:
 \item Postscript output can now be created in encapsulated form.
 
 \item Dual sideband data now have the coordinates of the second sideband
-      shown along the opposing X axis of a plot. It is also possible to 
+      shown along the opposing X axis of a plot. It is also possible to
       switch between sidebands.
 
 \item Log spacing can now be switched on from a plot (rather than by finding
