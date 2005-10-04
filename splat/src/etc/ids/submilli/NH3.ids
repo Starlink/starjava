@@ -1,9 +1,0 @@
-#BEGIN
-# name  NH3_lines
-# system FREQ
-# unit MHz
-# StdOfRest Source
-# sourcevrf Topocentric
-# sourcevel 0.0
-#END
-572498.0678 1_0_0_-_0_0_1
