@@ -66,7 +66,8 @@ class AcrConnection extends Connection {
                        + "astrogrid-desktop/astrogrid-desktop.jnlp)";
             throw (IOException) new IOException( msg ).initCause( e );
         }
-        client_ = new XmlRpcClient( getServerURL() );
+        client_ = new XmlRpcClient( url );
+        logger_.info( "xml-rpc server for ACR: \"" + url + "\"" );
         String homeUri = (String) execute( "astrogrid.myspace.getHome", null );
         root_ = new AcrBranch( this, homeUri, homeUri, null );
     }
@@ -263,11 +264,11 @@ class AcrConnection extends Connection {
                                     ACR_FILE );
             istrm = new BufferedInputStream( new FileInputStream( rvfile ) );
             StringBuffer sbuf = new StringBuffer();
-            for ( int c; ( c = istrm.read() ) >= 0 && c != '\n'; ) {
+            for ( int c; ( c = istrm.read() ) >= 0 && c != '\n'
+                                                   && c != '\r'; ) {
                 sbuf.append( (char) c );
             }
-            sbuf.append( "xmlrpc" );
-            return new URL( sbuf.toString() );
+            return new URL( sbuf.toString().trim() + "xmlrpc" );
         }
         finally {
             if ( istrm != null ) {
