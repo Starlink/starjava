@@ -202,7 +202,7 @@ public class PlotControl
 
     /**
      * The identifier of this plot (unique among plots). This is the integer
-     * value of plotCounter when the plot is created.
+     * value of plotCounter when the plot is created, or a given value.
      */
     protected int identifier = -1;
 
@@ -235,28 +235,61 @@ public class PlotControl
      * Create a PlotControl, adding spectra later.
      */
     public PlotControl()
+        throws SplatException
     {
-        try {
-            spectra = new SpecDataComp();
-            initUI();
-        }
-        catch ( Exception e ) {
-            e.printStackTrace();
-        }
+        this( null, -1 );
+    }
+
+    /**
+     * Create a PlotControl, adding spectra later. This is the only method by
+     * which the plot identifier can be defined. You should only do this if a
+     * plot that had this identifier has been closed.
+     *
+     * @param identifier a unique integer for this plot. The value must not be
+     *                   associated with an active plot.
+     */
+    public PlotControl( int identifier )
+        throws SplatException
+    {
+        this( null, identifier );
     }
 
     /**
      * Plot a list of spectra referenced in a SpecDataComp object.
      *
      * @param spectra reference to SpecDataComp object that is wrapping the
-     *      spectra to display.
+     *                spectra to display. If null a new SpecDataComp
+     *                instance will be created.
      * @exception SplatException thrown if problems reading spectra.
      */
     public PlotControl( SpecDataComp spectra )
         throws SplatException
     {
-        this.spectra = spectra;
-        initUI();
+        this( spectra, -1 );
+    }
+
+    /**
+     * Plot a list of spectra referenced in a SpecDataComp object.
+     *
+     * @param spectra reference to SpecDataComp object that is wrapping the
+     *                spectra to display. If null a new SpecDataComp
+     *                instance will be created.
+     * @param identifier a unique integer for this plot. The value must not be
+     *                   associated with an active plot. Use -1 to indicate
+     *                   that a new value should be used (this is the usual
+     *                   use).
+     * @exception SplatException thrown if problems reading spectra.
+     */
+    protected PlotControl( SpecDataComp spectra, int identifier )
+        throws SplatException
+    {
+        if ( spectra == null ) {
+            this.spectra = new SpecDataComp();
+        }
+        else {
+            this.spectra = spectra;
+        }
+        initUI( identifier );
     }
 
     /**
@@ -276,7 +309,7 @@ public class PlotControl
             System.err.println( "Spectrum '" + file + "' cannot be found" );
         }
         spectra = new SpecDataComp( source );
-        initUI();
+        initUI( -1 );
     }
 
     /**
@@ -306,7 +339,6 @@ public class PlotControl
         catch (Exception e) {
             // Ignored, not essential.
         }
-
     }
 
     /**
@@ -320,9 +352,11 @@ public class PlotControl
     /**
      * Create the UI controls.
      *
+     * @param identifier index for the plot, if -1 then the value of
+     *                   plotCounter will be used.
      * @exception SplatException Description of the Exception
      */
-    protected void initUI()
+    protected void initUI( int identifier )
         throws SplatException
     {
         //  Initialisations.
@@ -333,9 +367,20 @@ public class PlotControl
         setTransferHandler( new SpecTransferHandler() );
 
         //  Generate our name.
-        name = "<plot" + plotCounter + ">";
-        identifier = plotCounter;
-        plotCounter++;
+        if ( identifier == -1 ) {
+            this.identifier = plotCounter;
+            plotCounter++;
+        }
+        else {
+            //  Tricky point here is that we need to avoid using this
+            //  identifier again. Simplest just to make sure plotCounter is
+            //  greater than it.
+            if ( identifier >= plotCounter ) {
+                plotCounter = identifier + 1;
+            }
+            this.identifier = identifier;
+        }
+        name = "<plot" + this.identifier + ">";
 
         //  Add the control panel.
         controlPanel.setBorder( BorderFactory.createEtchedBorder() );
@@ -999,12 +1044,12 @@ public class PlotControl
     {
         if ( eps ) {
             try {
-                BufferedOutputStream ostrm = 
+                BufferedOutputStream ostrm =
                     new BufferedOutputStream( new FileOutputStream(fileName) );
                 Rectangle bounds = plot.getBounds();
-                EpsGraphics2D g2 = 
-                    new EpsGraphics2D( name, ostrm, 
-                                       bounds.x, bounds.y, 
+                EpsGraphics2D g2 =
+                    new EpsGraphics2D( name, ostrm,
+                                       bounds.x, bounds.y,
                                        bounds.x + bounds.width,
                                        bounds.y + bounds.height );
                 plot.print( g2 );

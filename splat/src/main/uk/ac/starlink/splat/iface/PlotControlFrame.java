@@ -74,11 +74,6 @@ public class PlotControlFrame
     protected PlotControl plot;
 
     /**
-     *  SpecDataComp object that contains all the displayed spectra.
-     */
-    protected SpecDataComp specDataComp;
-
-    /**
      * PlotConfigurator window for changing the Plot configuration
      * values (created when required).
      */
@@ -195,7 +190,7 @@ public class PlotControlFrame
     private boolean showDeblend = false;
 
     /**
-     *  Plot a spectrum.
+     *  Create an instance using an existing SpecDataComp.
      *
      *  @param specDataComp Active SpecDataComp reference.
      *
@@ -207,20 +202,59 @@ public class PlotControlFrame
     }
 
     /**
-     *  Create the main window.
+     *  Create instance using an existing PlotControl.
+     *
+     *  @param plotControl a PlotControl instance.
+     *
      */
-    public PlotControlFrame( String title ) throws SplatException
+    public PlotControlFrame( PlotControl plotControl )
+        throws SplatException
+    {
+        this( "PlotControlFrame", plotControl );
+    }
+
+    /**
+     *  Create the main window. Creates default PlotControls and SpecDataComp
+     *  instances.
+     */
+    public PlotControlFrame( String title )
+        throws SplatException
     {
         this( title, (SpecDataComp) null );
     }
 
     /**
+     *  Create an instance with a given title and SpecDataComp.
+     *  A new default PlotControl instance will be created.
+     *
+     *  @param specDataComp active SpecDataComp reference.
+     *
+     */
+    public PlotControlFrame( String title, SpecDataComp specDataComp )
+        throws SplatException
+    {
+        this( title, new PlotControl( specDataComp ) );
+    }
+
+    /**
      *  Plot a spectrum.
+     *
+     *  @param file  name of file containing spectrum.
+     *
+     */
+    public PlotControlFrame( String title, String file )
+        throws SplatException
+    {
+        this( title, new PlotControl( file ) );
+    }
+
+    /**
+     *  Create an instance with a given title and PlotControl.
      *
      *  @param specDataComp Active SpecDataComp reference.
      *
      */
-    public PlotControlFrame( String title, SpecDataComp specDataComp )
+    public PlotControlFrame( String title, PlotControl plotControl )
         throws SplatException
     {
         //  Development properties.
@@ -233,27 +267,7 @@ public class PlotControlFrame
             showDeblend = false;
         }
 
-        if ( specDataComp == null ) {
-            plot = new PlotControl();
-        }
-        else {
-            plot = new PlotControl( specDataComp );
-        }
-        this.specDataComp = plot.getSpecDataComp();
-        initUI( title );
-    }
-
-    /**
-     *  Plot a spectrum.
-     *
-     *  @param file  name of file containing spectrum.
-     *
-     */
-    public PlotControlFrame( String title, String file )
-        throws SplatException
-    {
-        plot = new PlotControl( file );
-        this.specDataComp = plot.getSpecDataComp();
+        this.plot = plotControl;
         initUI( title );
     }
 
@@ -1312,7 +1326,8 @@ public class PlotControlFrame
      */
     public void removeCurrentSpectrum()
     {
-        globalList.removeSpectrum( plot, specDataComp.getCurrentSpectrum() );
+        globalList
+            .removeSpectrum(plot, plot.getSpecDataComp().getCurrentSpectrum());
     }
 
     /**
@@ -1644,8 +1659,8 @@ public class PlotControlFrame
                 }
             }
 
-            specDataComp.setCoordinateMatching( state1 );
-            specDataComp.setDataUnitsMatching( state2 );
+            plot.getSpecDataComp().setCoordinateMatching( state1 );
+            plot.getSpecDataComp().setDataUnitsMatching( state2 );
 
             prefs.putBoolean( "PlotControlFrame_coordinatematch", state1 );
             prefs.putBoolean( "PlotControlFrame_dataunitsmatch", state2 );
@@ -1688,7 +1703,7 @@ public class PlotControlFrame
 
         if ( source.equals( errorbarAutoRanging ) ) {
             boolean state = errorbarAutoRanging.isSelected();
-            specDataComp.setErrorbarAutoRanging( state );
+            plot.getSpecDataComp().setErrorbarAutoRanging( state );
             prefs.putBoolean( "PlotControlFrame_errorbarautoranging", state );
             plot.updatePlot();
             return;
@@ -1711,7 +1726,7 @@ public class PlotControlFrame
         if ( source.equals( trackerLineIDs ) ) {
             boolean state = trackerLineIDs.isSelected();
             prefs.putBoolean( "PlotControlFrame_trackerlineids", state );
-            specDataComp.setTrackerLineIDs( state );
+            plot.getSpecDataComp().setTrackerLineIDs( state );
             plot.updatePlot();
             return;
         }
@@ -1719,7 +1734,7 @@ public class PlotControlFrame
         if ( source.equals( prefixLineIDs ) ) {
             boolean state = prefixLineIDs.isSelected();
             prefs.putBoolean( "PlotControlFrame_prefixlineids", state );
-            specDataComp.setPrefixLineIDs( state );
+            plot.getSpecDataComp().setPrefixLineIDs( state );
             plot.updatePlot();
             return;
         }
@@ -1727,7 +1742,7 @@ public class PlotControlFrame
         if ( source.equals( horizontalLineIDs ) ) {
             boolean state = horizontalLineIDs.isSelected();
             prefs.putBoolean( "PlotControlFrame_horizontallineids", state );
-            specDataComp.setDrawHorizontalLineIDs( state );
+            plot.getSpecDataComp().setDrawHorizontalLineIDs( state );
             plot.updatePlot();
             return;
         }

@@ -1935,17 +1935,37 @@ public class SplatBrowser
         int count = st.countTokens();
         if ( count == 0 ) return -1;
 
-        //  Access plot for our spectra.
+        //  Access an existing plot with this index.
         int plotIndex = globalList.getPlotIndex( id );
-        PlotControl plot = globalList.getPlot( plotIndex );
+        PlotControl plot = null;
 
-        //  No sensible index, so create a plot.
+        //  If no current PlotControl instance with this identifier then
+        //  create a new one.
         if ( plotIndex == -1 ) {
-            return displaySpectra( list );
+            try {
+                plot = new PlotControl( id );
+                PlotControlFrame plotControl = new PlotControlFrame( plot );
+                int index = globalList.add( plot );
+                plotControl.setTitle( Utilities.getReleaseName() + ": " +
+                                      globalList.getPlotName( index ) );
+
+                //  We'd like to know if the plot window is closed.
+                plotControl.addWindowListener( new WindowAdapter() {
+                        public void windowClosed( WindowEvent evt ) {
+                            removePlot( (PlotControlFrame) evt.getWindow() );
+                        }
+                    });
+            }
+            catch (SplatException e) {
+                new ExceptionDialog( this, "Failed to display spectra", e );
+                return -1;
+            }
+        }
+        else {
+            plot = globalList.getPlot( plotIndex );
         }
 
-        //  Attempt to open each one and keep a list of their
-        //  indices.
+        //  Attempt to open each one and keep a list of their indices.
         int[] indices = new int[count];
         int openedCount = 0;
         SpecList specList = SpecList.getInstance();
@@ -1956,7 +1976,7 @@ public class SplatBrowser
         }
         if ( openedCount == 0 ) return -1;
 
-
+        //  Display in the plot.
         SplatException lastException = null;
         SpecData spectra[] = new SpecData[openedCount];
         for ( int i = 0; i < openedCount; i++ ) {
@@ -1968,6 +1988,19 @@ public class SplatBrowser
         catch (SplatException e) {
             lastException = e;
         }
+
+        //  Get a display update, if these are the first spectra to be drawn
+        //  (Plot was created without any spectra to display, so its internal
+        //  geometry is messed up).
+        if ( plotIndex == -1 ) {
+            try {
+                plot.getPlot().updateProps( true );
+            }
+            catch (SplatException e) {
+                //  Not important.
+            }
+        }
+
         if ( lastException != null ) {
             new ExceptionDialog( this, "Failed to display spectra",
                                  lastException );
