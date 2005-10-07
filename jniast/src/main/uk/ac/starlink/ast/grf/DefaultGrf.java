@@ -215,7 +215,8 @@ public class DefaultGrf
      * A special context {@link #DEFAULT} is recognised as the default
      * context. This is the initial state and can be reused (although
      * switching back will produce a confusion in the Z-ordering of the
-     * graphics, all elements drawn to the default context will be rendered first).
+     * graphics, all elements drawn to the default context will be rendered
+     * first).
      *
      * @param key a key to associate with this context. If null then the
      *            DEFAULT context will be assumed.
@@ -262,7 +263,7 @@ public class DefaultGrf
     /**
      * Remove and return all graphics in a given context. Returns the complete
      * context, if found, otherwise a null is returned. The returned context
-     * maybe reestablished using the {@link #reAdd} method (although the
+     * maybe re-established using the {@link #reAdd} method (although the
      * Z-order will now be different).
      */
     public Object remove( String key )
@@ -843,8 +844,8 @@ public class DefaultGrf
         g2.setStroke( lineStroke( (int) gstate.getStyle(),
                                   (float) gstate.getWidth() ) );
 
-        //  Set the clipping region. If an explicit one if given then
-        //  use it's union with the graphics clip.
+        //  Set the clipping region. If an explicit one is given then
+        //  use its union with the graphics clip.
         Rectangle localClip = gstate.getClip();
         Shape oldclip = g2.getClip();
         if ( localClip != null ) {
@@ -858,16 +859,16 @@ public class DefaultGrf
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
                                                    (float)gstate.getAlpha()) );
 
-        //  Define an extent of values along the X axis that need to
-        //  be drawn. This is a guess which we use to cut down on the
-        //  number of points re-drawn when zoomed. It speeds up
-        //  rendered lines a lot (these are drawn completely to see if
-        //  they intersect the graphics clip, which can be very slow,
-        //  when thick, stroked and anti-aliased). Note some very
-        //  zoomed plots could have missing lines at the edges with
-        //  this strategy because the axis border-lines can extend
-        //  from one side of the component to the other they can be
-        //  completely rejected, so lines with a few points are always drawn.
+        //  Define an extent of values along the X axis that need to be
+        //  drawn. This is a guess which we use to cut down on the number of
+        //  points re-drawn when zoomed. It speeds up rendered lines a lot
+        //  (these are drawn completely to see if they intersect the graphics
+        //  clip, which can be very slow, when thick, stroked and
+        //  anti-aliased). Note some very zoomed plots could have missing
+        //  lines at the edges with this strategy because the axis
+        //  border-lines can extend from one side of the component to the
+        //  other they can be completely rejected, so lines with a few points
+        //  are always drawn.
         int xlower = Integer.MIN_VALUE;
         int xupper = Integer.MAX_VALUE;
         if ( globalClip != null ) {
@@ -875,8 +876,8 @@ public class DefaultGrf
             xupper = globalClip.x + globalClip.width * 2;
         }
 
-        //  Draw the line. If we encounter any breaks (that is
-        //  occurences of BAD), then need to do this in segments.
+        //  Draw the line. If we encounter any breaks (that is occurences of
+        //  BAD), then need to do this in segments.
         int x[] = new int[xPos.length];
         int y[] = new int[xPos.length];
         int j = 0;
@@ -889,9 +890,9 @@ public class DefaultGrf
                     x[j] = (int) xPos[i];
                     if ( x[j] > xlower && x[j] < xupper ) {
                         y[j] = (int) yPos[i];
-                        //  Skip "same" positions in graphics
-                        //  coords. We've already drawn that dot! This
-                        //  speeds up graphics that are very small.
+                        //  Skip "same" positions in graphics coords. We've
+                        //  already drawn that dot! This speeds up graphics
+                        //  that are very small.
                         if ( j > 0 ) {
                             if ( y[j] != y[j - 1] || x[j] != x[j - 1] ) {
                                 j++;
@@ -914,11 +915,11 @@ public class DefaultGrf
                 g2.drawPolyline( x, y, j );
             }
 
-            //  We must draw a "few" points for the sense of the
-            //  polyline to be clear (the 4 comes from watching the
-            //  SPLAT vertical hair with histogram spectrum, this just
-            //  redraws the line, plus some "damage", since the damage
-            //  region is small not all local lines are re-drawn).
+            //  We must draw a "few" points for the sense of the polyline to
+            //  be clear (the 4 comes from watching the SPLAT vertical hair
+            //  with histogram spectrum, this just redraws the line, plus some
+            //  "damage", since the damage region is small not all local lines
+            //  are re-drawn).
             if ( t < 4 ) {
                 int[] bounds = bound( (double) xlower, xPos );
                 // Pick a few extra points...
@@ -1148,26 +1149,40 @@ public class DefaultGrf
      * given coordinate.
      *
      * @param xcoord the coordinate value to bound.
-     * @param values the coordinates to check, these should be sorted
-     *               in increasing order.
+     * @param values the coordinates to check.
      *
      * @return array of two integers, the lower and upper indices.
      */
     public static int[] bound( double xcoord, double[] values )
     {
-        //  Use a binary search as values should be sorted to increase.
+        //  Use a binary search.
         int low = 0;
         int high = values.length - 1;
         int mid = 0;
+        boolean increases = ( values[low] < values[high] );
 
-        while ( low < high - 1 ) {
-            mid = ( low + high ) / 2;
-            if ( xcoord < values[mid] ) {
-                high = mid;
+        if ( increases ) { 
+            while ( low < high - 1 ) {
+                mid = ( low + high ) / 2;
+                if ( xcoord < values[mid] ) {
+                    high = mid;
+                }
+                else {
+                    low = mid;
+                }
             }
-            else {
-                low = mid;
+        }
+        else {
+            while ( low < high - 1 ) {
+                mid = ( low + high ) / 2;
+                if ( xcoord > values[mid] ) {
+                    high = mid;
+                }
+                else {
+                    low = mid;
+                }
             }
+
         }
         int bounds[] = new int[2];
         bounds[0] = low;
