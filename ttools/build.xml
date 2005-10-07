@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TTOOLS"/>
   <property name="name" value="ttools"/>
-  <property name="version" value="1.0b"/>
+  <property name="version" value="1.0-1b"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ttools"/>
@@ -510,7 +510,8 @@
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
-      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"
+                                 excludes="**/stilts.jar **/stilts-app.jar"/>
     </signjar>
 
   </target>

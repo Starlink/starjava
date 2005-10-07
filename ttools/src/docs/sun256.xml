@@ -72,7 +72,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>30 September 2005</docdate>
+<docdate>7 October 2005</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -3192,6 +3192,9 @@ but my thanks are especially due to the following:
 
     </dl></p>
 </dd>
+
+<dt>Version 1.0-1b (7 October 2005)</dt>
+<dd><p>Fixed jar file manifest bug which prevented working on Java 1.5</p></dd>
 
 </dl>
 </p>
