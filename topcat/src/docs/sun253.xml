@@ -6853,6 +6853,13 @@ introduced since the last version:
 </ul>
 </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+<ul>
+<li>Now copes with 'K'-format FITS binary table columns (64-bit integers).</li>
+</ul>
+</p></dd>
+
 </dl>
 </p>
 

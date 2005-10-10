@@ -3196,6 +3196,14 @@ but my thanks are especially due to the following:
 <dt>Version 1.0-1b (7 October 2005)</dt>
 <dd><p>Fixed jar file manifest bug which prevented working on Java 1.5</p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+<ul>
+<li>Now copes with 'K'-format FITS binary table columns (64-bit integers).</li>
+</ul>
+</p></dd>
+
+
 </dl>
 </p>
 </subsect>
