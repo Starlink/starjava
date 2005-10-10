@@ -15,6 +15,10 @@ Built on Jun 14, 2005 (09:15:57 EDT)-->
 
    </wsdl:message>
 
+   <wsdl:message name="getAvailabilityRequest">
+
+   </wsdl:message>
+
    <wsdl:message name="sesameRequest">
 
       <wsdl:part name="name" type="xsd:string"/>
@@ -38,6 +42,12 @@ Built on Jun 14, 2005 (09:15:57 EDT)-->
    <wsdl:message name="sesameResponse2">
 
       <wsdl:part name="return" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getAvailabilityResponse">
+
+      <wsdl:part name="getAvailabilityReturn" type="xsd:string"/>
 
    </wsdl:message>
 
@@ -114,6 +124,14 @@ Built on Jun 14, 2005 (09:15:57 EDT)-->
          <wsdl:input message="impl:SesameRequest" name="SesameRequest"/>
 
          <wsdl:output message="impl:SesameResponse" name="SesameResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getAvailability">
+
+         <wsdl:input message="impl:getAvailabilityRequest" name="getAvailabilityRequest"/>
+
+         <wsdl:output message="impl:getAvailabilityResponse" name="getAvailabilityResponse"/>
 
       </wsdl:operation>
 
@@ -206,6 +224,24 @@ Built on Jun 14, 2005 (09:15:57 EDT)-->
          </wsdl:input>
 
          <wsdl:output name="SesameResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Sesame" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getAvailability">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getAvailabilityRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://DefaultNamespace" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getAvailabilityResponse">
 
             <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Sesame" use="encoded"/>
 
