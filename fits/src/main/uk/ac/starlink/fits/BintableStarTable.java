@@ -335,7 +335,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             }
 
             /* Construct a data reader for this column. */
-            Matcher fmatch = Pattern.compile( "([0-9]*)([LXBIJAEDCMP])(.*)" )
+            Matcher fmatch = Pattern.compile( "([0-9]*)([LXBIJKAEDCMP])(.*)" )
                                     .matcher( tform );
             if ( fmatch.lookingAt() ) {
                 String scount = fmatch.group( 1 );
@@ -794,6 +794,68 @@ public abstract class BintableStarTable extends AbstractStarTable {
                                 int[] value = new int[ count ];
                                 for ( int i = 0; i < count; i++ ) {
                                     int val = stream.readInt();
+                                    // can't do anything with a blank
+                                    value[ i ] = val;
+                                }
+                                return value;
+                            }
+                        };
+                    }
+                }
+                return reader;
+
+            /* Long. */
+            case 'K':
+                if ( single ) {
+                    if ( isScaled ) {
+                        reader = new ColumnReader( Double.class, 8 ) {
+                            Object readValue( DataInput stream )
+                                    throws IOException {
+                                long val = stream.readLong();
+                                return ( hasBlank && val == (long) blank )
+                                            ? null
+                                            : new Double( val * scale + zero );
+                            }
+                        };
+                    }
+                    else {
+                        reader = new ColumnReader( Long.class, 8 ) {
+                            Object readValue( DataInput stream )
+                                    throws IOException {
+                                long val = stream.readLong();
+                                return ( hasBlank && val == (long) blank )
+                                            ? null
+                                            : new Long( val );
+                            }
+                        };
+                    }
+                }
+                else {
+                    if ( isScaled ) {
+                        reader = new ColumnReader( double[].class, dims,
+                                                   8 * count ) {
+                            Object readValue( DataInput stream )
+                                    throws IOException {
+                                double[] value = new double[ count ];
+                                for ( int i = 0; i < count; i++ ) {
+                                    long val = stream.readLong();
+                                    value[ i ] =
+                                        ( hasBlank && val == (long) blank )
+                                             ? Double.NaN
+                                             : val * scale + zero;
+                                }
+                                return value;
+                            }
+                        };
+                    }
+                    else {
+                        reader = new ColumnReader( long[].class, dims,
+                                                   8 * count ) {
+                            Object readValue( DataInput stream )
+                                    throws IOException {
+                                long[] value = new long[ count ];
+                                for ( int i = 0; i < count; i++ ) {
+                                    long val = stream.readLong();
                                     // can't do anything with a blank
                                     value[ i ] = val;
                                 }

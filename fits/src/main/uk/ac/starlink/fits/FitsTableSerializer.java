@@ -505,6 +505,22 @@ public class FitsTableSerializer {
                 }
             };
         }
+        else if ( clazz == Long.class ) {
+            final long badVal = blankNum == null ? Long.MIN_VALUE
+                                                 : blankNum.longValue();
+            return new ColumnWriter( 'K', 8 ) {
+                void writeValue( DataOutput stream, Object value )
+                        throws IOException {
+                    long lval = ( value != null )
+                              ? ((Number) value).longValue()
+                              : badVal;
+                    stream.writeLong( lval );
+                }
+                Number getBadNumber() {
+                    return nullableInt ? new Long( badVal ) : null;
+                }
+            };
+        }
         else if ( clazz == Float.class ) {
             return new ColumnWriter( 'E', 4 ) {
                 void writeValue( DataOutput stream, Object value )
@@ -650,6 +666,25 @@ public class FitsTableSerializer {
                     }
                     for ( ; i < nel; i++ ) {
                         stream.writeInt( PAD );
+                    }
+                }
+            };
+        }
+        else if ( clazz == long[].class ) {
+            final long PAD = 0L;
+            return new ColumnWriter( 'K', 8, shape ) {
+                void writeValue( DataOutput stream, Object value )
+                        throws IOException {
+                    int i = 0;
+                    if ( value != null ) {
+                        long[] lvals = (long[]) value;
+                        int leng = Math.min( lvals.length, nel );
+                        for ( ; i < leng; i++ ) {
+                            stream.writeLong( lvals[ i ] );
+                        }
+                    }
+                    for ( ; i < nel; i++ ) {
+                        stream.writeLong( PAD );
                     }
                 }
             };

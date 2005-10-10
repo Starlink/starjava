@@ -18,6 +18,7 @@ import uk.ac.starlink.table.StreamStarTableWriter;
  * <li>Byte
  * <li>Short
  * <li>Integer
+ * <li>Long
  * <li>Float
  * <li>Double
  * <li>Character
@@ -27,6 +28,7 @@ import uk.ac.starlink.table.StreamStarTableWriter;
  * <li>byte[]
  * <li>short[]
  * <li>int[]
+ * <li>long[]
  * <li>float[]
  * <li>double[]
  * <li>String[]

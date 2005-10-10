@@ -83,6 +83,9 @@ public class AutoStarTable extends ColumnStarTable {
                 else if ( clazz == Integer.class ) {
                     return new Integer( icol + 100 * irow );
                 }
+                else if ( clazz == Long.class ) {
+                    return new Long( icol + 1000000 * irow );
+                }
                 else if ( clazz == Float.class ) {
                     if ( irow % 10 == 4 ) {
                         return new Float( Float.NaN );
@@ -110,6 +113,7 @@ public class AutoStarTable extends ColumnStarTable {
                 else if ( clazz == byte[].class ||
                           clazz == short[].class ||
                           clazz == int[].class ||
+                          clazz == long[].class ||
                           clazz == float[].class ||
                           clazz == double[].class ) {
                     Object array = Array.newInstance( clazz.getComponentType(),

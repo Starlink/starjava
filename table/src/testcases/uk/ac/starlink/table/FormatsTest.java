@@ -84,8 +84,8 @@ public class FormatsTest extends TestCase {
             }
         } );
 
-        Class[] ptypes = { byte.class, short.class, int.class, float.class,
-                           double.class, };
+        Class[] ptypes = { byte.class, short.class, int.class, long.class,
+                           float.class, double.class, };
         for ( int i = 0; i < ptypes.length; i++ ) {
             final Class ptype = ptypes[ i ];
             ColumnInfo colinfo = new ColumnInfo( MATRIX_INFO );
@@ -100,7 +100,7 @@ public class FormatsTest extends TestCase {
             ctable.addColumn( colinfo2 );
         }
 
-        Class[] stypes = { Byte.class, Short.class, Integer.class,
+        Class[] stypes = { Byte.class, Short.class, Integer.class, Long.class,
                            Float.class, Double.class, String.class };
         for ( int i = 0; i < stypes.length; i++ ) {
             final int itype = i;
