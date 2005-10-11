@@ -13,8 +13,10 @@ import java.util.List;
 import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.JELUtils;
 import uk.ac.starlink.ttools.RandomJELRowReader;
+import uk.ac.starlink.ttools.Tokenizer;
 
 /**
  * Processing filter which sorts on one or more JEL expressions.
@@ -22,26 +24,23 @@ import uk.ac.starlink.ttools.RandomJELRowReader;
  * @author   Mark Taylor (Starlink)
  * @since    8 Mar 2005
  */
-public class ExpressionSortFilter extends BasicFilter {
+public class SortFilter extends BasicFilter {
 
-    /**
-     * Whether the -subexpr flag is allows to specify additional expressions
-     * of decreasing significance.  It works, but turn it off for now
-     * because the syntax is a bit confusing.
-     */
-    private static final boolean ALLOW_SUBKEYS = false;
-
-    public ExpressionSortFilter() {
-        super( "sortexpr",
+    public SortFilter() {
+        super( "sort",
                "[-down] [-nullsfirst] " 
-             + ( ALLOW_SUBKEYS ? "[-subkey <expr> ...] <expr>" : "<expr>" ) );
+             + "<expr-list>" );
     }
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Sorts the table according to the value of an algebraic",
-            "expression.",
-            "<code>&lt;expr&gt;</code> must evaluate to a type that",
+            "Sorts the table according to the value of one or more algebraic",
+            "expressions.",
+            "The expressions appear, as separate words (space-separated),",
+            "in <code>&lt;expr-list&gt;</code>; sorting is done on the",
+            "first expression first, but if that results in a tie then",
+            "the second one is used, and so on.",
+            "Each expression must evaluate to a type that",
             "it makes sense to sort, for instance numeric.",
             "If the <code>-down</code> flag is used, the sort order is",
             "descending rather than ascending.",
@@ -55,20 +54,10 @@ public class ExpressionSortFilter extends BasicFilter {
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
         boolean up = true;
         boolean nullsLast = true;
-        List keyList = new LinkedList();
-        while ( argIt.hasNext() ) {
+        String exprs = null;
+        while ( argIt.hasNext() && exprs == null ) {
             String arg = (String) argIt.next();
-            if ( ALLOW_SUBKEYS && arg.equals( "-subkey" ) ) {
-                argIt.remove();
-                if ( argIt.hasNext() ) {
-                    keyList.add( (String) argIt.next() );
-                    argIt.remove();
-                }
-                else {
-                    throw new ArgException( "Missing subkey expression" );
-                }
-            }
-            else if ( arg.equals( "-down" ) ) {
+            if ( arg.equals( "-down" ) ) {
                 argIt.remove();
                 up = false;
             }
@@ -76,14 +65,25 @@ public class ExpressionSortFilter extends BasicFilter {
                 argIt.remove();
                 nullsLast = false;
             }
-            else {
+            else if ( exprs == null ) {
                 argIt.remove();
-                keyList.add( 0, arg );
+                exprs = arg;
                 break;
             }
         }
-        return new SortStep( (String[]) keyList.toArray( new String[ 0 ] ),
-                             up, nullsLast );
+        if ( exprs == null ) {
+            throw new ArgException( "No <expr-list> given" );
+        }
+        try {
+            String[] keys = Tokenizer.tokenizeWords( exprs );
+            if ( keys.length == 0 ) {
+                throw new ArgException( "No sort keys given" );
+            }
+            return new SortStep( keys, up, nullsLast );
+        }
+        catch ( TaskException e ) {
+            throw new ArgException( "Bad <expr-list>: " + exprs, e );
+        }
     }
 
     private static class SortStep implements ProcessingStep {

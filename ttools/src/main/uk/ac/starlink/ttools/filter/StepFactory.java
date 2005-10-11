@@ -46,8 +46,7 @@ public class StepFactory {
         filterFactory_.register( "replaceval", pkg + "ReplaceValueFilter" );
         filterFactory_.register( "select", pkg + "SelectFilter" );
         filterFactory_.register( "sequential", pkg + "SequentialFilter" );
-        filterFactory_.register( "sort", pkg + "ColumnSortFilter" );
-        filterFactory_.register( "sortexpr", pkg + "ExpressionSortFilter" );
+        filterFactory_.register( "sort", pkg + "SortFilter" );
         filterFactory_.register( "tablename", pkg + "NameFilter" );
         filterFactory_.register( "tail", pkg + "TailFilter" );
     }
