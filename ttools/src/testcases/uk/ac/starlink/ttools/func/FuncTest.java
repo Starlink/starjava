@@ -38,6 +38,8 @@ public class FuncTest extends TestCase {
         assertEquals( 11, Arithmetic.roundDown( 11.99 ) );
         assertEquals( 12, Arithmetic.round( 11.99 ) );
         assertEquals( 4, Arithmetic.round( 4.5 ) );
+
+        assertEquals( 3.14f, Arithmetic.roundDecimal( Math.PI, 2 ) );
     }
 
     public void testConversions() {
@@ -125,6 +127,16 @@ public class FuncTest extends TestCase {
         assertEquals( "101", Conversions.toString( (long) 101 ) );
         assertEquals( "101", Conversions.toString( (float) 101 ) );
         assertEquals( "101", Conversions.toString( (double) 101 ) );
+    }
+
+    public void testFormats() {
+        assertEquals( "3.", Formats.formatDecimal( Math.PI, 0 ) );
+        assertEquals( ".0000000000", Formats.formatDecimal( 0, 10 ) );
+        assertEquals( "27.183", Formats.formatDecimal( Math.E * 10, 3 ) );
+
+        assertEquals( "99.000", Formats.formatDecimal( 99, "#.000" ) );
+        assertEquals( "+3.14",
+                      Formats.formatDecimal( Math.PI, "+0.##;-0.##" ) );
     }
  
     public void testMaths() {

@@ -3200,6 +3200,8 @@ but my thanks are especially due to the following:
 <dd><p>
 <ul>
 <li>Now copes with 'K'-format FITS binary table columns (64-bit integers).</li>
+<li><code>roundDecimal</code> and <code>formatDecimal</code> functions
+    introduced for more control over visual appearance of numeric values.</li>
 </ul>
 </p></dd>
 
