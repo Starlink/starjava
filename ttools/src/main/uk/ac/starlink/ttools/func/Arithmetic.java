@@ -54,8 +54,30 @@ public class Arithmetic {
      * @param   x   a floating point value.
      * @return   <code>x</code> rounded to the nearest integer
      */
-    public static int round(double x) {
+    public static int round( double x ) {
         return (int) Math.rint( x );
+    }
+
+    /**
+     * Rounds a value to a given number of decimal places.
+     * The result is a <code>float</code> (32-bit floating point value),
+     * so this is only suitable for relatively low-precision values.
+     * It's intended for truncating the number of apparent significant
+     * figures represented by a value which you know has been obtained
+     * by combining other values of limited precision.
+     * For more control, see the functions in the <code>Formats</code> class.
+     *
+     * @example   <code>roundDecimal(PI,2) = 3.14f</code>
+     *
+     * @param  x   a floating point value
+     * @param  dp  number of decimal places (digits after the decimal point)
+     *         to retain
+     * @return  floating point value close to <code>x</code> but with a 
+     *          limited apparent precision
+     */
+    public static float roundDecimal( double x, int dp ) {
+        double factor = Math.pow( 10, dp );
+        return (float) ( Math.rint( x * factor ) / factor );
     }
 
     /**
