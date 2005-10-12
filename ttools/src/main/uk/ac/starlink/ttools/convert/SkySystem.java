@@ -102,6 +102,18 @@ public abstract class SkySystem {
         };
     }
 
+    /**
+     * Returns names of the coordinates in this system.
+     *
+     * @return  array of coordinate names
+     */
+    public String[] getCoordinateNames() {
+        return new String[] {
+            coord1_,
+            coord2_,
+        };
+    }
+
     public String toString() {
         return getName();
     }
