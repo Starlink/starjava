@@ -2522,6 +2522,18 @@ stilts -disk tpipe 2dfgrs_ngp.fits \
 </p></dd>
 
 <dt><verbatim>
+stilts tpipe 2dfgrs_ngp.fits \
+             cmd='keepcols "SEQNUM AREA ECCENT"' \
+             cmd='sorthead -down 20 AREA'
+</verbatim></dt>
+<dd><p>Has exactly the same effect as the previous example.
+    However, the algorithm used by the <code>sorthead</code> filter is
+    in most cases faster and cheaper on memory (only 20 rows ever have
+    to be stored in this case), so this is generally a better approach
+    than combining the <code>sort</code> and <code>head</code> filters.
+    </p></dd>
+
+<dt><verbatim>
 stilts tpipe omode=meta http://archive.org/data/survey.vot.Z
 </verbatim></dt>
 <dd><p>Outputs column and table metadata about a table.
@@ -3202,6 +3214,12 @@ but my thanks are especially due to the following:
 <li>Now copes with 'K'-format FITS binary table columns (64-bit integers).</li>
 <li><code>roundDecimal</code> and <code>formatDecimal</code> functions
     introduced for more control over visual appearance of numeric values.</li>
+<li>Withdrew <code>sortexpr</code> filter - <code>sort</code> has been 
+    rewritten so that it can do all the things that were previously 
+    possible with <code>sort</code> or <code>sortexpr</code>.</li>
+<li>Introduced new <code>sorthead</code> filter, which forms a 
+    (usually) more efficent way of doing what you could previously do
+    by combining a <code>sort</code> and <code>head</code> operation.</li>
 </ul>
 </p></dd>
 

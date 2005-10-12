@@ -343,26 +343,37 @@ public class TablePipeTest extends TableTestCase {
                            getColData( process( with, "sort extra" ), 0 ) );
         assertArrayEquals( box( new int[] { 2, 1, 3, 4 } ),
                            getColData( process( with, "sort 'extra d'" ), 0 ) );
-    }
 
-    public void testSortexpr() throws Exception {
-        assertSameData( inTable_, apply( "sort $0" ) );
-        assertSameData( inTable_, apply( "sort $1" ) );
+        assertArrayEquals( box( new int[] { 1, 2, 3, 4 } ),
+                           getColData( apply( "sort ($0+1)/2" ), 0 ) );
+        assertArrayEquals( box( new int[] { 2, 1, 3, 4 } ),
+                           getColData( apply( "sort '($0+1)/2 d'" ), 0 ) );
+
         assertArrayEquals( new Object[] { "Beauchamp", "Mark", "Taylor", null },
                            getColData( apply( "sort d.charAt(2)" ), 3 ) );
 
-        assertArrayEquals(
-            box( new int[] { 1, 2, 3, 4 } ),
-            getColData( apply( "sort b" ), 0 ) );
-        assertArrayEquals(
-            box( new int[] { 4, 3, 2, 1 } ),
-            getColData( apply( "sort -down b" ), 0 ) );
-        assertArrayEquals(
-            box( new int[] { 4, 1, 2, 3 } ),
-            getColData( apply( "sort -nullsfirst b" ), 0 ) );
-        assertArrayEquals(
-            box( new int[] { 3, 2, 1, 4 } ),
-            getColData( apply( "sort -nullsfirst -down b" ), 0 ) );
+        assertSameData( inTable_, apply( "sort $0" ) );
+        assertSameData( inTable_, apply( "sort $1" ) );
+        assertSameData( inTable_, apply( "sort '$0 $1'" ) );
+    }
+
+    public void testSortHead() throws Exception {
+        workSortHead( inTable_, "", "d" );
+        workSortHead( inTable_, "-down", "a b" );
+    }
+
+    private void workSortHead( StarTable table, String flags, String keys )
+            throws Exception {
+        StarTable sorted = process( table, 
+                                    "sort " + flags + " '" + keys + "'" );
+        for ( int i = 1; i <= table.getRowCount(); i++ ) {
+            assertSameData( process( sorted, "head " + i ),
+                            process( table, "sorthead " + flags + " " + i 
+                                          + " '" + keys + "'" ) );
+            assertSameData( process( sorted, "tail " + i ),
+                            process( table, "sorthead -tail " + flags + " " + i
+                                          + " '" + keys + "'" ) );
+        }
     }
 
     public void testTail() throws Exception {
