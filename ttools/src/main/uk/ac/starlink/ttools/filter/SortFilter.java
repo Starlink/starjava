@@ -29,15 +29,16 @@ public class SortFilter extends BasicFilter {
     public SortFilter() {
         super( "sort",
                "[-down] [-nullsfirst] " 
-             + "<expr-list>" );
+             + "<key-list>" );
     }
 
     protected String[] getDescriptionLines() {
         return new String[] {
             "Sorts the table according to the value of one or more algebraic",
             "expressions.",
-            "The expressions appear, as separate words (space-separated),",
-            "in <code>&lt;expr-list&gt;</code>; sorting is done on the",
+            "The sort key expressions appear,",
+            "as separate (space-separated) words,",
+            "in <code>&lt;key-list&gt;</code>; sorting is done on the",
             "first expression first, but if that results in a tie then",
             "the second one is used, and so on.",
             "Each expression must evaluate to a type that",
@@ -68,24 +69,31 @@ public class SortFilter extends BasicFilter {
             else if ( exprs == null ) {
                 argIt.remove();
                 exprs = arg;
-                break;
             }
         }
         if ( exprs == null ) {
-            throw new ArgException( "No <expr-list> given" );
+            throw new ArgException( "No sort keys given" );
         }
+
+        /* Split the sort keys up into words. */
+        String[] keys;
         try {
-            String[] keys = Tokenizer.tokenizeWords( exprs );
+            keys = Tokenizer.tokenizeWords( exprs );
             if ( keys.length == 0 ) {
                 throw new ArgException( "No sort keys given" );
             }
-            return new SortStep( keys, up, nullsLast );
         }
         catch ( TaskException e ) {
-            throw new ArgException( "Bad <expr-list>: " + exprs, e );
+            throw new ArgException( "Bad <key-list>: " + exprs, e );
         }
+
+        /* Return the appropriate step implementation. */
+        return new SortStep( keys, up, nullsLast );
     }
 
+    /**
+     * Step implementation which sorts all rows using a random table.
+     */
     private static class SortStep implements ProcessingStep {
         final String[] keys_;
         final boolean up_;
@@ -111,11 +119,11 @@ public class SortFilter extends BasicFilter {
             }
             Comparator keyComparator;
             try {
-                keyComparator = 
-                    new RowComparator( baseTable, keys_, up_, nullsLast_ );
+                keyComparator = new RowComparator( baseTable, keys_, up_,
+                                                   nullsLast_ );
             }
             catch ( CompilationException e ) {
-                throw (IOException) new IOException( e.getMessage() )
+                throw (IOException) new IOException( "Bad sort key(s)" )
                                    .initCause( e );
             }
             try {
@@ -220,6 +228,10 @@ public class SortFilter extends BasicFilter {
         }
     }
 
+    /**
+     * Helper class defining private exception type.
+     * Used to smuggle a checked exception out of a sort comparison.
+     */
     private static class SortException extends RuntimeException {
         SortException( String msg, Throwable e ) {
             super( msg, e );
