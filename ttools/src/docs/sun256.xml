@@ -495,9 +495,10 @@ at the top of the <code>stilts.jar</code> or <code>topcat-*.jar</code>
 that contains your STILTS installation, so do something like
 <verbatim>
    unzip stilts.jar stilts
+   chmod +x stilts
 </verbatim>
-to extract it (if you don't have an <code>unzip</code> command you can do
-<code>jar xvf stilts.jar stilts; chmod +x stilts</code>).
+to extract it (if you don't have <code>unzip</code>, 
+try <code>jar xvf stilts.jar stilts</code>).
 <code>stilts</code> is a simple shell script which just invokes java with the
 right classpath and the supplied arguments.
 </p>
