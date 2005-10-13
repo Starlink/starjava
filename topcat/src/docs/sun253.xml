@@ -73,7 +73,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>30 September 2005</docdate>
+<docdate>13 October 2005</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -6890,15 +6890,16 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 1.8 (13 October 2005)</dt>
 <dd><p>
 <ul>
-<li>Now copes with 'K'-format FITS binary table columns (64-bit integers).</li>
-<li><code>roundDecimal</code> and <code>formatDecimal</code> functions
-    introduced for more control over visual appearance of numeric values.</li>
 <li>Added <label>Sky Coordinates Window</label>; it's now easy to 
     add new sky coordinate columns based on old ones in different
     coordinate systems.</li>
+<li><code>roundDecimal</code> and <code>formatDecimal</code> functions
+    introduced for more control over visual appearance of numeric values.</li>
+<li>Now copes with 'K'-format FITS binary table columns (64-bit integers).</li>
+<li>Modifications to JNLP files.</li>
 </ul>
 </p></dd>
 
