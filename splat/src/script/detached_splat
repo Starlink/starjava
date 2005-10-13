@@ -1,4 +1,0 @@
-//  Script to make SPLAT startup from splatdisp occur in a thread.
-exec( "/bin/sh -c $SPLAT_DIR/splat" );
-exit();
-
