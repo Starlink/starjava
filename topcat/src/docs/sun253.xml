@@ -44,6 +44,7 @@
   <!ENTITY FIG.ParameterQueryWindow '&figs;ParameterQueryWindow.gif'>
   <!ENTITY FIG.SyntheticColumnQueryWindow 
            '&figs;SyntheticColumnQueryWindow.gif'>
+  <!ENTITY FIG.SkyColumnQueryWindow '&figs;SkyColumnQueryWindow.gif'>
   <!ENTITY FIG.SyntheticSubsetQueryWindow 
            '&figs;SyntheticSubsetQueryWindow.gif'>
   <!ENTITY FIG.MethodWindow '&figs;MethodWindow.gif'>
@@ -511,16 +512,12 @@ whether they are currently visible is indicated by the (leftmost)
     you can see if you watch the Columns Window while you do it.
     </p></dd>
 
-<dt>Add a Synthetic Column</dt>
+<dt>Add Columns</dt>
 <dd><p>You can use the 
-    <label>New Synthetic Column</label> (&IMG.ADD;) button in the
+    <label>New Synthetic Column</label> (&IMG.ADD;)
+    or <label>New Sky Coordinate Columns</label> (&IMG.ADDSKY;) buttons in the
     Columns Window or the (right-click) popup menu in the 
-    Data Window to bring up the 
-    <ref id="SyntheticColumnQueryWindow">Synthetic Column Window</ref>,
-    which allows you to define a new column defined algebraically from
-    the values of existing columns.  The expression syntax is 
-    described in <ref id="jel"/>.  This gives you functionality a 
-    bit like that of a column-oriented spreadsheet.
+    Data Window to add new columns derived from exsiting ones.
     </p></dd>
 
 <dt>Replace a Column</dt>
@@ -3760,6 +3757,13 @@ so can be changed by dragging the column headers around in the
     column, or at the end if none is selected.
     </p></dd>
 
+<dt>&IMG.ADDSKY; Add Sky Coordinate Columns</dt>
+<dd><p>This pops up a 
+    <ref id="SkyColumnQueryWindow">Sky Coordinates Window</ref>
+    which allows you to define a pair of new sky coordinate columns based on 
+    an existing pair of sky coordinate columns.
+    </p></dd>
+
 <dt>&IMG.MODIFY; Replace Column With Synthetic</dt>
 <dd><p>If a single column is selected, then clicking this button will
     pop up a 
@@ -5993,6 +5997,39 @@ be written to the new output table.
 
 </subsect>
 
+<subsect id="SkyColumnQueryWindow">
+<subhead><title>Sky Coordinates Window</title></subhead>
+
+<figure>
+<caption><px>Sky Coordinates Window</px></caption>
+<figureimage src="&FIG.SkyColumnQueryWindow;"/>
+</figure>
+
+<p>The Sky Coordinates Window allows you to add new columns to a table, 
+representing coordinates in a chosen sky coordinate system.
+The table must already contain columns which represent sky coordinates;
+by describing the systems of the existing and of the new coordinates,
+you provide enough information to calculate the values in the new columns.
+You can activate this dialogue using the
+<label>New Sky Coordinate Columns</label> (&IMG.ADDSKY;) button
+in the <ref id="ColumnInfoWindow">Columns Window</ref>.
+</p>
+
+<p>The dialogue window has two halves; on the left you 
+give the existing columns which represent sky coordinates,
+their coordinate system (fk5, fk4, galactic, supergalactic or ecliptic)
+and the units (degrees, radians or sexagesimal) that they are in.
+Note that the columns available for selection will depend on the
+units you have selected; for degrees or radians only numeric columns
+will be selectable, while for sexagesimal (dms/hms) units only 
+string columns will be selectable.
+On the right you make the coordinate system and units selections
+as before, but enter the names of the new columns in the text fields.
+Then just hit the <label>OK</label> button, and the new columns
+will be appended at the right of the table.
+</p>
+
+</subsect>
 
 <subsect id="SyntheticSubsetQueryWindow">
 <subhead><title>Algebraic Subset Window</title></subhead>
@@ -6008,7 +6045,7 @@ to define which rows are included.  The expression must be a
 boolean one, i.e. its value is either true or false for each row of
 the table.
 You can activate this dialogue using the
-<label>Add Subset</label> button in the
+<label>Add Subset</label> (&IMG.ADD;) button in the
 <ref id="SubsetWindow">Subsets Window</ref>.
 </p>
 
@@ -6859,6 +6896,9 @@ introduced since the last version:
 <li>Now copes with 'K'-format FITS binary table columns (64-bit integers).</li>
 <li><code>roundDecimal</code> and <code>formatDecimal</code> functions
     introduced for more control over visual appearance of numeric values.</li>
+<li>Added <label>Sky Coordinates Window</label>; it's now easy to 
+    add new sky coordinate columns based on old ones in different
+    coordinate systems.</li>
 </ul>
 </p></dd>
 

@@ -49,6 +49,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
     private final ViewerTableModel viewModel;
     private final ColumnList columnList;
     private final Action addcolAct;
+    private final Action addskycolAct;
     private final Action replacecolAct;
     private final Action hidecolAct;
     private final Action revealcolAct;
@@ -340,6 +341,10 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                                           ResourceIcon.ADD,
                                           "Add a new column defined " +
                                           "algebraically from existing ones" );
+        addskycolAct = new ColumnInfoAction( "New Sky Coordinate Columns",
+                                             ResourceIcon.ADDSKY,
+                                             "Add new sky coordinate columns " +
+                                             "based on existing ones" );
         replacecolAct = new ColumnInfoAction( "Replace Column With Synthetic",
                                               ResourceIcon.MODIFY,
                                               "Replace the selected column " +
@@ -363,6 +368,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         JMenu colMenu = new JMenu( "Columns" );
         colMenu.setMnemonic( KeyEvent.VK_C );
         colMenu.add( addcolAct );
+        colMenu.add( addskycolAct );
         colMenu.add( replacecolAct );
         colMenu.add( hidecolAct );
         colMenu.add( revealcolAct );
@@ -420,6 +426,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
 
         /* Add actions to the toolbar. */
         getToolBar().add( addcolAct );
+        getToolBar().add( addskycolAct );
         getToolBar().add( replacecolAct );
         getToolBar().add( hidecolAct );
         getToolBar().add( revealcolAct );
@@ -635,6 +642,13 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                     insertPos = -1;
                 }
                 new SyntheticColumnQueryWindow( tcModel, insertPos, parent );
+            }
+
+            /* Add new sky columns: pop up a dialogue window which will
+             * result in new sky coordinate columns being added when the
+             * user OKs it. */
+            else if ( this == addskycolAct ) {
+                new SkyColumnQueryWindow( tcModel, parent );
             }
 
             /* Replace a column by another one.  This creates and pops up 

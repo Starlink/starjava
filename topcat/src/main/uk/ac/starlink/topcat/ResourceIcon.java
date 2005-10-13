@@ -114,6 +114,7 @@ public class ResourceIcon implements Icon {
         EQUATION = makeIcon( "xeq.gif" ),
         PLOT_LINES = makeIcon( "lines.gif" ),
         EXPLODE = makeIcon( "explode.gif" ),
+        ADDSKY = makeIcon( "addsky1.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),
