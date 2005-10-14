@@ -13,6 +13,8 @@ import java.util.logging.Logger;
  * An ObjectFactory keeps a list of classes with associated nicknames;
  * the idea is that you can obtain an instance of a given class by
  * supplying the nickname in question.
+ * Instead of a nickname you can use the fully qualified classname,
+ * whether or not it has previously been registered.
  * Any class registered must be a subclass of the superclass specified
  * when this factory is constructed, and must have a no-arg constructor.
  *
@@ -59,14 +61,37 @@ public class ObjectFactory {
     }
 
     /**
-     * Indicates whether this factory knows about a given nickname.
+     * Indicates whether this factory knows about a given name.
+     * This may either be a registered nickname or a fully qualified 
+     * classname for a class which is a subclass of this factory's
+     * produced class.
      *
-     * @param  nickName  nickname
-     * @return  true iff <code>nickName</code> can sensibly be passed to
+     * @param  name  name
+     * @return  true iff <code>name</code> can sensibly be passed to
      *          {@link #createObject}
      */
-    public boolean isRegistered( String nickName ) {
-        return nameMap_.containsKey( nickName );
+    public boolean isRegistered( String name ) {
+
+        /* Is it a registered nickname? */
+        if ( nameMap_.containsKey( name ) ) {
+            return true;
+        }
+
+        /* Is it a suitable fully qualified classname? */
+        else {
+            try {
+                Class clazz = Class.forName( name );
+                if ( superClass_.isAssignableFrom( clazz ) ) {
+                     nameMap_.put( name, clazz.getName() );
+                     return true;
+                }
+            }
+            catch ( Throwable th ) {
+            }
+        }
+
+        /* If neither, return false. */
+        return false;
     }
 
     /**
@@ -78,26 +103,26 @@ public class ObjectFactory {
      * is not a subtype of this factory's supertype) a RuntimeException
      * will be thrown.
      *
-     * @param  nickName  nickname of class to instantiate
+     * @param  name  classname/nickname of class to instantiate
      * @throws LoadException  if the load fails for unsurprising reasons
      */
-    public Object createObject( String nickName ) throws LoadException {
-        if ( ! isRegistered( nickName ) ) {
-            throw new IllegalArgumentException( "Unknown nickname "
-                                              + nickName );
+    public Object createObject( String name ) throws LoadException {
+        if ( ! isRegistered( name ) ) {
+            throw new IllegalArgumentException( "Unknown classname/nickname "
+                                              + name );
         }
-        String className = (String) nameMap_.get( nickName );
-        logger_.config( "Instantiating " + className + " for " + nickName );
+        String className = (String) nameMap_.get( name );
+        logger_.config( "Instantiating " + className + " for " + name );
         Class clazz; 
         try {
             clazz = Class.forName( className );
         }
         catch ( LinkageError e ) {
-            throw new LoadException( nickName + ": can't load " + className,
+            throw new LoadException( name + ": can't load " + className,
                                      e );
         }
         catch ( ClassNotFoundException e ) {
-            throw new LoadException( nickName + ": can't load " + className,
+            throw new LoadException( name + ": can't load " + className,
                                      e );
         }
         if ( ! superClass_.isAssignableFrom( clazz ) ) {
