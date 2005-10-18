@@ -483,6 +483,11 @@ public class PlotWindow extends TopcatViewWindow
         /* Render this component visible. */
         pack();
         setVisible( true );
+
+        /* Don't know why, but this seems to be necessary at Java 1.5
+         * otherwise the stackPanel appears with zero height.  Probably
+         * a 1.5 Swing bug. */
+        stackPanel.revalidate();
     }
 
     /**
