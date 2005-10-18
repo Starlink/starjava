@@ -1142,19 +1142,6 @@
              classpathref="classpath"
              source="${source.version}"/>
 
-    <!-- Construct tablecopy usage message in XML. -->
-    <property name="tablecopy.usage" value="${build.docs}/tablecopy.usage"/>
-    <echo message="&lt;![CDATA[" file="${tablecopy.usage}" append="no"/>
-    <java classname="uk.ac.starlink.table.TableCopy"
-          failonerror="yes"
-          fork="no"
-          output="${tablecopy.usage}"
-          append="yes"
-          classpathref="classpath">
-      <arg value="-help"/>
-    </java>
-    <echo message="]]&gt;" file="${tablecopy.usage}" append="yes"/>
-
     <!-- Construct topcat usage message in XML. -->
     <property name="topcat.usage" value="${build.docs}/topcat.usage"/>
     <echo message="&lt;![CDATA[" file="${topcat.usage}" append="no"/>
