@@ -5,10 +5,8 @@ import java.util.EventListener;
 /**
  * Listener interface for objects that want to notice changes in a 
  * {@link TopcatModel}.  
- * At present this is a bit overspecified, in that the only change 
- * defined is a change of the label.  Maybe some more in the future?
  * <p>
- * Note also that TopcatModel is currently a mixed bag of existing models
+ * Note that TopcatModel is currently a mixed bag of existing models
  * together with its own data.  I'm not sure whether it makes sense to
  * amalgamate these at some point.
  *
@@ -25,6 +23,9 @@ public interface TopcatListener extends EventListener {
 
     /** Code indicating that the model's parameter list has changed. */
     static final int PARAMETERS = 3;
+
+    /** Code indicating change in current RowSubset. */
+    static final int SUBSET = 4;
 
     /**
      * Invoked when the model has changed in some way.

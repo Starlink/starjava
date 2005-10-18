@@ -1256,6 +1256,9 @@ public class TopcatModel {
 
             /* Make any component displaying this model is updated. */
             fireContentsChanged( this, -1, -1 );
+
+            /* Notify registered listeners to the TopcatModel. */
+            fireModelChanged( TopcatListener.SUBSET );
         }
 
         public Object getElementAt( int index ) {
