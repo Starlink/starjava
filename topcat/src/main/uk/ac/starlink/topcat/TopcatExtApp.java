@@ -215,7 +215,7 @@ public class TopcatExtApp implements ExtApp {
         }
 
         /* Otherwise, create, add and return a new one. */
-        RowSubset rset = new BitsRowSubset( "imported" + ++subsetCount_,
+        RowSubset rset = new BitsRowSubset( "imported" + subsetCount_,
                                             included );
         tcModel.getSubsets().add( rset );
         logger_.info( "New subset " + rset.getName() + " in table " + tcModel );
