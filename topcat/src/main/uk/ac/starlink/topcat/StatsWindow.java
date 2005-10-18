@@ -149,6 +149,16 @@ public class StatsWindow extends TopcatViewWindow {
          * but it needs an initial value from somewhere. */
         subSelector.setSelectedItem( tcModel.getSelectedSubset() );
 
+        /* Add a trigger to recalculate for a different subset if the
+         * global current subset is changed. */
+        tcModel.addTopcatListener( new TopcatListener() {
+            public void modelChanged( TopcatModel model, int code ) {
+                if ( code == TopcatListener.SUBSET ) {
+                    subSelector.setSelectedItem( model.getSelectedSubset() );
+                }
+            }
+        } );
+
         /* Make the component visible. */
         pack();
         setVisible( true );

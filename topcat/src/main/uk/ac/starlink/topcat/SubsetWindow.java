@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
+import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
@@ -121,10 +122,30 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
                 invertAct.setEnabled( hasUniqueSelection );
             }
         };
-        ListSelectionModel selectionModel = jtab.getSelectionModel();
+        final ListSelectionModel selectionModel = jtab.getSelectionModel();
         selectionModel.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         selectionModel.addListSelectionListener( selList );
         selList.valueChanged( null );
+
+        /* Add a listener to highlight a subset if it's selected as the
+         * TopcatModel's current subset (this influence deliberately doesn't
+         * work the other way round). */
+        tcModel.addTopcatListener( new TopcatListener() {
+            public void modelChanged( TopcatModel model, int code ) {
+                if ( code == TopcatListener.SUBSET ) {
+                    selectionModel.setValueIsAdjusting( true );
+                    selectionModel.clearSelection();
+                    RowSubset selected = model.getSelectedSubset();
+                    ComboBoxModel tcSelModel = model.getSubsetSelectionModel();
+                    for ( int i = 0; i < tcSelModel.getSize(); i++ ) {
+                        if ( tcSelModel.getElementAt( i ) == selected ) {
+                            selectionModel.addSelectionInterval( i, i );
+                        }
+                    }
+                    selectionModel.setValueIsAdjusting( false );
+                }
+            }
+        } );
  
         /* Toolbar. */
         getToolBar().add( addAct );

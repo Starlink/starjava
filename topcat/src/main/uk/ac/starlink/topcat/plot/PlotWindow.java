@@ -75,6 +75,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TableViewerWindow;
+import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatViewWindow;
 import uk.ac.starlink.topcat.ViewerTableModel;
@@ -90,7 +91,8 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  */
 public class PlotWindow extends TopcatViewWindow 
                         implements ActionListener, ListSelectionListener,
-                                   ItemListener, SurfaceListener {
+                                   ItemListener, SurfaceListener,
+                                   TopcatListener {
 
     private final TopcatModel tcModel_;
     private final OptionsListModel subsets_;
@@ -167,6 +169,7 @@ public class PlotWindow extends TopcatViewWindow
         super( tcModel, "Table Plotter", parent );
         tcModel_ = tcModel;
         subsets_ = tcModel_.getSubsets();
+        tcModel_.addTopcatListener( this );
 
         /* Construct a panel for configuration of X and Y axes. */
         JPanel xConfig = new JPanel();
@@ -237,18 +240,8 @@ public class PlotWindow extends TopcatViewWindow
         getControlPanel().add( stackPanel );
         stack.setSelectionModel( subSelModel_ );
 
-        /* Initialise its selections so that both ALL and the apparent table's
-         * current subset if any, are plotted. */
-        subSelModel_.addSelectionInterval( 0, 0 );  // ALL
-        int nrsets = subsets_.size();
-        RowSubset currentSet = tcModel_.getSelectedSubset();
-        if ( currentSet != RowSubset.ALL ) {
-            for ( int i = 1; i < nrsets; i++ ) {
-                if ( subsets_.get( i ) == currentSet ) {
-                    subSelModel_.addSelectionInterval( i, i );
-                }
-            }
-        }
+        /* Initialise the selections. */
+        modelChanged( tcModel_, TopcatListener.SUBSET );
 
         /* Maintain a list of selected subsets updated from this model. 
          * This cannot be worked out from the model on request, since the
@@ -933,6 +926,21 @@ public class PlotWindow extends TopcatViewWindow
 
     public void surfaceChanged() {
         forceReplot();
+    }
+
+    public void modelChanged( TopcatModel model, int code ) {
+        if ( code == TopcatListener.SUBSET ) {
+            RowSubset currentSet = tcModel_.getSelectedSubset();
+            subSelModel_.setValueIsAdjusting( true );
+            subSelModel_.clearSelection();
+            int nrsets = subsets_.size();
+            for ( int i = 0; i < nrsets; i++ ) {
+                if ( subsets_.get( i ) == currentSet ) {
+                    subSelModel_.addSelectionInterval( i, i );
+                }
+            }
+            subSelModel_.setValueIsAdjusting( false );
+        }
     }
 
     /**
