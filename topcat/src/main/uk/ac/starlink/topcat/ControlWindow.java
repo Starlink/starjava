@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import cds.tools.ExtApp;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -19,6 +20,7 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -83,6 +85,7 @@ public class ControlWindow extends AuxWindow
                                       TopcatListener {
 
     private static ControlWindow instance;
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     private final JList tablesList;
     private final DefaultListModel tablesModel;
@@ -108,6 +111,7 @@ public class ControlWindow extends AuxWindow
     private TableLoadChooser loadChooser;
     private LoadQueryWindow loadWindow;
     private ConcatWindow concatWindow;
+    private ExtApp extApp;
 
     private final JTextField idField = new JTextField();
     private final JLabel indexLabel = new JLabel();
@@ -375,6 +379,19 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
+     * Returns a CDS-style ExtApp object which can be used for control
+     * of this control window instance.
+     *
+     * @return   external application object for TOPCAT
+     */
+    public ExtApp getExtApp() {
+        if ( extApp == null ) {
+            extApp = new TopcatExtApp( this );
+        }
+        return extApp;
+    }
+
+    /**
      * Adds a table to this windows list.
      * Following this, a user will be able to do TOPCATty things with
      * the table in question from this control window.
@@ -392,6 +409,7 @@ public class ControlWindow extends AuxWindow
         TopcatModel tcModel = new TopcatModel( table, location, this );
         tcModel.setLabel( shorten( location ) );
         tablesModel.addElement( tcModel );
+        logger.info( "Load new table " + tcModel + " from " + location );
         if ( select || tablesList.getSelectedValue() == null ) {
             tablesList.setSelectedValue( tcModel, true );
         }
@@ -427,7 +445,7 @@ public class ControlWindow extends AuxWindow
      * Returns the list model which keeps track of which tables are available
      * to the application.
      *
-     * @return  list model of known tables
+     * @return  list model of {@link TopcatModel} objects
      */
     public ListModel getTablesListModel() {
         return tablesModel;
