@@ -50,7 +50,6 @@ public class AddJELColumnTable extends WrapperStarTable {
               ipos );
     }
 
-
     /**
      * Constructs a table which adds a list of new columns.
      *
@@ -74,6 +73,9 @@ public class AddJELColumnTable extends WrapperStarTable {
         nAdded_ = exprs_.length;
         if ( cinfos.length != nAdded_ ) {
             throw new IllegalArgumentException( "How many new columns??" );
+        }
+        if ( ipos < 0 ) {
+            ipos = baseTable.getColumnCount();
         }
 
         /* Store a map of which column in the base table is used for each
