@@ -52,7 +52,7 @@ import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.JPEGUtilities;
+import uk.ac.starlink.splat.util.GraphicFileUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.BasicFileChooser;
@@ -352,7 +352,7 @@ public class PlotControlFrame
         ImageIcon printPostscriptImage = new ImageIcon(
             ImageHolder.class.getResource( "postscriptprint.gif" ) );
         ImageIcon printJPEGImage = new ImageIcon(
-            ImageHolder.class.getResource( "jpeg.gif" ) );
+            ImageHolder.class.getResource( "jpegpng.gif" ) );
         ImageIcon closeImage = new ImageIcon(
             ImageHolder.class.getResource( "close.gif" ) );
         ImageIcon fitWidthImage = new ImageIcon(
@@ -379,10 +379,10 @@ public class PlotControlFrame
         fileMenu.add( printPostscriptAction );
         toolBar.add( printPostscriptAction );
 
-        //  Add action to print figure to a JPEG.
+        //  Add action to print figure to a JPEG or PNG.
         PrintJPEGAction printJPEGAction  =
-            new PrintJPEGAction( "Print to JPEG", printJPEGImage,
-                                 "Print display to a JPEG file" );
+            new PrintJPEGAction( "Print to JPEG/PNG", printJPEGImage,
+                                 "Print display to a JPEG or a PNG file" );
         fileMenu.add( printJPEGAction );
         toolBar.add( printJPEGAction );
 
@@ -729,11 +729,11 @@ public class PlotControlFrame
     }
 
     /**
-     *  Print the current display to a JPEG file.
+     *  Print the current display to a JPEG or PNG file.
      */
     protected void printJPEGDisplay()
     {
-        JPEGUtilities.showJPEGChooser( plot.getPlot() );
+        GraphicFileUtilities.showGraphicChooser( plot.getPlot() );
     }
 
     /**
@@ -1391,7 +1391,7 @@ public class PlotControlFrame
     }
 
     /**
-     *  Inner class defining Action for printing to a JPEG file.
+     *  Inner class defining Action for printing to a JPEG or PNG file.
      */
     protected class PrintJPEGAction extends AbstractAction
     {

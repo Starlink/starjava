@@ -46,7 +46,7 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.util.gui.GridBagLayouter;
-import uk.ac.starlink.splat.util.JPEGUtilities;
+import uk.ac.starlink.splat.util.GraphicFileUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 
@@ -112,6 +112,11 @@ public class SpecAnimatorFrame
      */
     protected boolean loopForever = false;
 
+    /** 
+     * Type of graphics used for capture.
+     */
+    protected JCheckBox graphicTypeCheckBox = new JCheckBox();
+
     /**
      * Whether to capture animation.
      */
@@ -123,7 +128,7 @@ public class SpecAnimatorFrame
     protected boolean capturingAnimation = false;
 
     /**
-     * Field for the JPEG base names.
+     * Field for the graphics base names.
      */
     protected JTextField baseField = new JTextField();
 
@@ -243,7 +248,7 @@ public class SpecAnimatorFrame
 
         // The control panel holds the interesting components. These
         // are for the animation properties, and whether to capture to a
-        // series of JPEGs.
+        // series of JPEGs/PNGs.
         animationPanel.setBorder
             ( BorderFactory.createTitledBorder( "Animation controls" ) );
 
@@ -411,7 +416,7 @@ public class SpecAnimatorFrame
     }
 
     /**
-     * Add the capture to JPEG controls.
+     * Add the capture to JPEG/PNG controls.
      */
     protected void initCaptureControls()
     {
@@ -419,12 +424,12 @@ public class SpecAnimatorFrame
             new GridBagLayouter( capturePanel, GridBagLayouter.SCHEME3 );
 
         // Whether to capture the animation.
-        JLabel captureLabel = new JLabel( "Capture to JPEGs:" );
+        JLabel captureLabel = new JLabel( "Start capture:" );
         layouter.add( captureLabel, false );
         layouter.add( captureCheckBox, true );
 
         captureCheckBox.setToolTipText
-            ( "Capture animation to a sequence of JPEG images" );
+            ( "Capture animation to a sequence of graphics images" );
         captureCheckBox.addActionListener(
             new ActionListener()
             {
@@ -434,12 +439,24 @@ public class SpecAnimatorFrame
                 }
             } );
 
+        // Type of graphic to capture. JPEGs or PNGs.
+        JLabel graphicTypeLabel = 
+            new JLabel( "Capture to JPEG (otherwise PNG):" );
+        layouter.add( graphicTypeLabel, false );
+        layouter.add( graphicTypeCheckBox, true );
+
+        graphicTypeCheckBox.setToolTipText
+            ( "Capture to JPEG images, otherwise try PNG (optional)" );
+        graphicTypeCheckBox.setSelected( true );
+        
+
+
         //  If we're capturing then we need a base name.
-        JLabel baseLabel = new JLabel( "Basename for JPEGs:" );
+        JLabel baseLabel = new JLabel( "Basename for graphics files:" );
         layouter.add( baseLabel, false );
         layouter.add( baseField, true );
 
-        baseField.setToolTipText( "Prefix basename for JPEG sequence" );
+        baseField.setToolTipText( "Prefix basename for graphics files" );
         baseField.setText( "SPLAT" );
 
         // Initialize enabled/disabled states.
@@ -570,15 +587,20 @@ public class SpecAnimatorFrame
 
                     //  If we're capturing then do it.
                     if ( capturingAnimation ) {
+                        int type = GraphicFileUtilities.PNG;
+                        String ext = ".png";
+                        if ( graphicTypeCheckBox.isSelected() ) {
+                            type = GraphicFileUtilities.JPEG;
+                            ext = ".jpg";
+                        }
                         File outputFile =
-                            new File( baseField.getText() + newIndex +
-                                      ".jpg" );
+                            new File( baseField.getText() + newIndex + ext );
                         DivaPlot plot = animatePlot.getPlot();
                         int width = plot.getWidth();
                         int height = plot.getHeight();
-                        JPEGUtilities.printJPEG( outputFile,
-                                                 animatePlot.getPlot(),
-                                                 width, height, false );
+                        GraphicFileUtilities.printGraphics
+                            ( type, outputFile, animatePlot.getPlot(),
+                              width, height, false );
                     }
                     lastIndex = newIndex;
                 }

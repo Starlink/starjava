@@ -1,3 +1,9 @@
+   DSBSpecFrames are now handled by drawing the coordinates of the other
+   sideband at the free X axis.
+ 
+   Graphics printing now allows PNG format too.
+
+
 1 Starlink SPLAT now a tool for the Virtual Observatory
 
    In this release Starlink SPLAT has been enhanced to access prototype

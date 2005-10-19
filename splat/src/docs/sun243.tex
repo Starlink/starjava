@@ -1,4 +1,4 @@
-\documentclass[twoside,11pt]{article}
+ \documentclass[twoside,11pt]{article}
 
 % ? Specify used packages
 \usepackage{graphicx}        %  Use this one for final production.
@@ -763,8 +763,8 @@ in the following figure:
   spectra in a single plot. Use this when you want to compare spectra.
 
   \item[\inline{animate}] Open a window to control the animation of some
-  of the spectra. Using this window you can also create a JPEG sequence
-  of the animation.
+  of the spectra. Using this window you can also create a JPEG or PNG 
+  sequence of the animation.
 
   \item[\inline{table}] View and possibly modify the coordinates and
   data values of the selected spectra. This shows an editable table of
@@ -989,14 +989,15 @@ the display area.\\
   installed on the local machine. The output can be in encapsulated form
   for inclusion in other documents.
 
-  \item[\inline{jpeg}] Make a JPEG image version of the display area. Again
-  the file produced fits the output graphic using the current aspect ratio of
-  the display area. The default is to produce a JPEG with a pixel-to-pixel
-  correspondence to what you see on the screen (if it were possible to view
-  the whole of the area). Alternatively you can scale the graphic to fit some
-  dimensions that you enter, or just clip the graphic to these dimensions.
-  (Hint: if you want anti-aliased lines drawn in the JPEG select this plotting
-  option first using the plot configuration window).
+  \item[\inline{jpegpng}] Make a JPEG or PNG image version of the display
+  area. Again the file produced fits the output graphic using the current
+  aspect ratio of the display area. The default is to produce an image 
+  with a pixel-to-pixel correspondence to what you see on the screen 
+  (if it were possible to view the whole of the area). Alternatively you 
+  can scale the graphic to fit some dimensions that you enter, or just 
+  clip the graphic to these dimensions. (Hint: if you want anti-aliased 
+  lines drawn in the image select this plotting option first using the plot 
+  configuration window).
 
   \item[\inline{fitwidth}] Make spectra fit the display area width.  Use this
   to quickly return to an unzoomed coordinate state and to match the X axis
@@ -1361,7 +1362,7 @@ With careful control of the plotting options you can display into a
 plot with fixed data ranges, or see each spectrum plotted as
 autoscaled.
 
-It is also possible to use this window to generate a series of JPEG
+It is also possible to use this window to generate a series of JPEG or PNG
 images that you could combine into a movie of some kind.
 
 \subheading{Global list of spectra:}
@@ -1427,20 +1428,20 @@ images that you could combine into a movie of some kind.
 
 \subheading{Capture controls}
 \begin{quote}
- The capture controls are for creating a series of JPEG images of the
+ The capture controls are for creating a series of JPEG or PNG images of the
  plot as it displays each spectrum. To enable (after getting the
  required effect using the \labelitem{Animation controls}) just click
- on the \labelitem{Capture to JPEGs:} check box. The output file names
+ on the \labelitem{Start capture:} check box. The output file names
  will start with what name you type into the \labelitem{Basename for
- JPEGs:} entry and have an integer number appended, plus the file type
- \hitext{.jpg}. So a default sequence would be \hitext{SPLAT0.jpg},
- \hitext{SPLAT1.jpg}, \hitext{SPLAT2.jpg},... You'll then need to find
- some software to convert these into a movie. The ImageMagick
- \hitext{convert} command (when suitably configured) will convert
- these files into an MPEG or animated GIF.  \latexhtml{For reference
- the image in the on-line version of this document was created with
- the command:}{The image below was created with the command (note that
- the images where also scaled):}
+ graphics files:} entry and have an integer number appended, plus the file type
+ \hitext{.jpg} or \hitext{.png}. So a default sequence would be 
+ \hitext{SPLAT0.jpg}, \hitext{SPLAT1.jpg}, \hitext{SPLAT2.jpg},... 
+ You'll then need to find some software to convert these into a movie. 
+ The ImageMagick \hitext{convert} command (when suitably configured) 
+ will convert these files into an MPEG or animated GIF.  
+ \latexhtml{For reference the image in the on-line version of this 
+ document was created with the command:}{The image below was created 
+ with the command (note that the images were also scaled):}
  \begin{quote}
  \begin{verbatim}
   % convert -delay 50 -loop 0 SPLAT0.jpg SPLAT1.jpg SPLAT2.jpg \

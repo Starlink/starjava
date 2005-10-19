@@ -7,10 +7,6 @@
  */
 package uk.ac.starlink.splat.util;
 
-import com.sun.image.codec.jpeg.JPEGCodec;
-import com.sun.image.codec.jpeg.JPEGImageEncoder;
-import com.sun.image.codec.jpeg.JPEGEncodeParam;
-
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Frame;
@@ -19,16 +15,26 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.io.IOException;
+
+import java.util.Iterator;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
+import javax.imageio.ImageWriteParam;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -40,50 +46,57 @@ import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
- * This class provides any JPEG utilities used in SPLAT. At present
+ * This class provides any graphic file utilities used in SPLAT. At present
  * this consists of the ability to print a given JComponent to a JPEG
- * file.
+ * file or a PNG file using the standard ImageIO facilities of Java2D.
  * <p>
- * Do not rely on the jpeg codec anywhere else, as it may not be
- * present.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
-public class JPEGUtilities
+public class GraphicFileUtilities
 {
+    /** Print to JPEG files */
+    final public static int JPEG = 1;
+
+    /** Print to PNG files */
+    final public static int PNG = 2;
+
     /**
-     * Display a dialog window to choose a file for storing a JPEG.
-     * Offers the options to define the width and height and whether
+     * Display a dialog window to choose a file and print either a JPEG or PNG
+     * to it. Offers the options to define the width and height and whether
      * to fit to the choosen width and height. The default width and
      * height are defined as the size of the a given component.
      */
-    public static void showJPEGChooser( JComponent component )
+    public static void showGraphicChooser( JComponent component )
     {
-        JPEGChooser chooser = new JPEGChooser( component );
+
+        GraphicsChooser chooser = new GraphicsChooser( component );
         chooser.show();
         if ( chooser.accepted() ) {
-            printJPEG( chooser.getFile(), component,
-                       chooser.getWidth(), chooser.getHeight(),
-                       chooser.getFit() );
+            printGraphics( chooser.getFormat(), chooser.getFile(), component,
+                           chooser.getWidth(), chooser.getHeight(),
+                           chooser.getFit() );
         }
     }
 
     /**
-     * Create a JPEG file from the contents of a JComponent.
+     * Create a JPEG or PNG file from the contents of a JComponent.
      *
+     * @param format the format to print, JPEG or PNG.
      * @param outputFile the output file.
      * @param component the component to print
-     * @param width the width of the JPEG
-     * @param height the height of the JPEG
+     * @param width the width of the graphics
+     * @param height the height of the graphics
      * @param fit whether to scale the width and height of the component
      *            to fit. Normally you should pass width and height as
      *            the size of the component.
      */
-    public static void printJPEG( File outputFile,
-                                  JComponent component,
-                                  int width, int height,
-                                  boolean fit )
+    public static void printGraphics( int format,
+                                      File outputFile,
+                                      JComponent component,
+                                      int width, int height,
+                                      boolean fit )
     {
         //  Get a BufferedImage to draw graphics in.
         BufferedImage image = new BufferedImage( width, height,
@@ -101,18 +114,40 @@ public class JPEGUtilities
         component.print( g2d );
         g2d.dispose();
 
-        // JPEG-encode the image and write to file. Use perfect
-        // quality as we don't to loose anything at this stage.
+        //  And write this to the file format we need.
         try {
             OutputStream os =  new FileOutputStream( outputFile );
-            JPEGImageEncoder encoder =  JPEGCodec.createJPEGEncoder( os );
-            JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(image);
-            param.setQuality( 1.0F, true );
-            encoder.encode( image, param );
+            if ( format == JPEG ) {
+                write( image, "JPEG", os );
+            }
+            else {
+                write( image, "PNG", os );
+            }
             os.close();
         }
         catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Write a BufferedImage to an output stream. Format should be a writable
+     * format supported by the imageio facilities (currently JPEG and PNG).
+     */
+    protected static void write( BufferedImage image, String format,
+                                 OutputStream os )
+        throws SplatException
+    {
+        try {
+            boolean supported = ImageIO.write( image, format, os );
+            if ( ! supported ) {
+                throw new SplatException( "Failed to write image, " +
+                                          "no support available for "
+                                          + format + " format" );
+            }
+        }
+        catch (IOException e) {
+            throw new SplatException( "Failed to write "+format+" image", e );
         }
     }
 
@@ -143,56 +178,44 @@ public class JPEGUtilities
     // Internal class for choosing a JPEG filename and selecting from
     // a set of common options.
     //
-    static class JPEGChooser extends JDialog
+    static class GraphicsChooser
+        extends JDialog
     {
-        /**
-         * Whether exit request was OK, otherwise cancel.
-         */
+        /** Whether exit request was OK, otherwise cancel. */
         protected boolean accepted = false;
 
-        /**
-         * The dialog contentpane.
-         */
+        /** The dialog contentpane. */
         protected JPanel contentPane;
 
-        /**
-         * Accept and exit button.
-         */
+        /** Accept and exit button. */
         protected JButton okButton = new JButton();
 
-        /**
-         * Cancel and exit button.
-         */
+        /** Cancel and exit button. */
         protected JButton cancelButton = new JButton();
 
-        /**
-         * Scale graphics to fit the JPEG option.
-         */
+        /** Scale graphics to fit the image. */
         protected JCheckBox fitButton = new JCheckBox();
 
-        /**
-         * X dimension for output file.
-         */
+        /** X dimension for output file. */
         protected DecimalField xSize = null;
 
-        /**
-         * Y dimension for output file.
-         */
+        /** Y dimension for output file. */
         protected DecimalField ySize = null;
 
-        /**
-         * Name of the output file.
-         */
+        /** Name of the output file. */
         protected JTextField fileName = new JTextField();
+
+        /** The graphic file format */
+        protected JComboBox format = new JComboBox();
 
         /**
          * Construct an instance with default configuration.
          */
-        public JPEGChooser( JComponent component )
+        public GraphicsChooser( JComponent component )
         {
             super();
             setModal( true );
-            setTitle( Utilities.getTitle( "Print to JPEG image" ) );
+            setTitle( Utilities.getTitle( "Print to graphics file" ) );
             init( component );
         }
 
@@ -200,8 +223,8 @@ public class JPEGUtilities
          * Construct an instance, setting the parent, window title and
          * whether the dialog is modal.
          */
-        public JPEGChooser( JComponent component, Frame owner,
-                            String title, boolean modal)
+        public GraphicsChooser( JComponent component, Frame owner,
+                                String title, boolean modal)
         {
             super( owner, title, modal );
             init( component );
@@ -236,22 +259,27 @@ public class JPEGUtilities
             //  Configure and populate the controls for selecting
             //  size and name options.
             JPanel centrePanel = new JPanel();
-            centrePanel.setBorder
-                (BorderFactory.createTitledBorder("JPEG image properties"));
-
-            //  Choose whether to scale to fit.
-            fitButton.setSelected( false );
+            centrePanel.setBorder(BorderFactory.createTitledBorder
+                                  ("Graphics image properties"));
 
             GridBagLayouter layouter =
                 new GridBagLayouter( centrePanel, GridBagLayouter.SCHEME3 );
             layouter.setInsets( new Insets( 5, 5, 5, 5 ) );
 
-            layouter.add( new JLabel( "Scale to fit:" ), false );
+            //  Select the graphics format.
+            format.addItem( "JPEG" );
+            format.addItem( "PNG" );
+            layouter.add( "Graphic format:" , false );
+            layouter.add( format, true );
+
+            //  Choose whether to scale to fit.
+            fitButton.setSelected( false );
+            layouter.add( "Scale to fit:", false );
             layouter.add( fitButton, true );
             fitButton.setToolTipText
                 ( "Scale plot graphics to fit the width and height" );
 
-            //  Offer size of output JPEG in pixels.
+            //  Offer size of output image in pixels.
             ScientificFormat scientificFormat = new ScientificFormat();
             xSize = new DecimalField( 0, 10, scientificFormat );
             xSize.setIntValue( component.getWidth() );
@@ -271,11 +299,12 @@ public class JPEGUtilities
                                   "output image (default is actual size" );
 
             //  Get a name for the file.
-            fileName.setText( Utilities.getApplicationName() + ".jpg" );
+            fileName.setText( Utilities.getApplicationName() );
 
             layouter.add( new JLabel( "Output file:" ), false );
             layouter.add( fileName, true );
-            fileName.setToolTipText( "Name for the output JPEG file" );
+            fileName.setToolTipText
+                ( "Name for the output file (without extension)" );
             layouter.eatSpare();
 
             //  Configure and place the OK and Cancel buttons.
@@ -296,7 +325,7 @@ public class JPEGUtilities
                         closeWindow( true );
                     }
                 });
-            okButton.setToolTipText( "Press to create the JPEG" );
+            okButton.setToolTipText( "Press to create the graphics file" );
 
             cancelButton.setText( "Cancel" );
             cancelButton.addActionListener( new ActionListener() {
@@ -304,7 +333,8 @@ public class JPEGUtilities
                         closeWindow( false );
                     }
                 });
-            cancelButton.setToolTipText( "Press to cancel creation of JPEG" );
+            cancelButton.setToolTipText
+                ( "Press to cancel creation of graphics file" );
 
             //  Add main panels to contentPane.
             contentPane.add( buttonPanel, BorderLayout.SOUTH );
@@ -349,7 +379,19 @@ public class JPEGUtilities
          */
         public File getFile()
         {
-            return new File( fileName.getText() );
+            String extension = ".jpg";
+            if ( format.getSelectedIndex() == 1 ) {
+                extension = ".png";
+            }
+            return new File( fileName.getText() + extension );
+        }
+
+        /**
+         * Get the format.
+         */
+        public int getFormat()
+        {
+            return ( format.getSelectedIndex() + 1 );
         }
 
         /**
