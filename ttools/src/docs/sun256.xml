@@ -2122,8 +2122,10 @@ stilts tcat ifmt1=ascii in1=obs1.txt ifmt2=ascii in2=ob2.txt omode=stats
     </p></dd>
 
 <dt><verbatim>
-stilts tcat in1=survey.vot.gz icmd1='keepcols "OBJ_ID RA2000 DEC2000"' \
-            in2=more_data.csv icmd2='keepcols "ident ra dec"' ifmt2=csv \
+stilts tcat in1=survey.vot.gz ifmt2=csv in2=more_data.csv
+            icmd1='addskycoords fk5 galactic RA2000 DEC2000 GLON GLAT' \
+            icmd1='keepcols "OBJ_ID GLON GLAT"' \
+            icmd2='keepcols "ident gal_long gal_lat"' \
             omode=topcat
 </verbatim></dt>
 <dd><p>In this case we are trying to concatenate results from two tables
@@ -2136,8 +2138,12 @@ stilts tcat in1=survey.vot.gz icmd1='keepcols "OBJ_ID RA2000 DEC2000"' \
     quite different.  By pre-processing the two tables using the
     <code>icmd1</code> &amp; <code>icmd2</code> parameters, we produce
     in each case an input table which consists of three columns of
-    compatible types: an integer identifier and floating point RA and Dec
-    coordinates.  <code>tcat</code> joins these together, to produce
+    compatible types and meanings: an integer identifier and floating point
+    galactic longitude and latitude coordinates.
+    The second table contains such columns to start with,
+    but the first table requires an initial step to convert 
+    FK5 J2000.0 coordinates to galactic ones.
+    <code>tcat</code> joins the two doctored tables together, to produce
     a table which contains only these three columns, with all the rows
     from both input tables, and sends the result directly 
     to a new or running instance of TOPCAT.
