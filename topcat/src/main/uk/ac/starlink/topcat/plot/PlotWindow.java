@@ -583,8 +583,6 @@ public class PlotWindow extends TopcatViewWindow
      */
     private void recordVisiblePoints( PlotState state, Points points, 
                                       PlotSurface surface ) {
-        double[] xv = points.getXVector();
-        double[] yv = points.getYVector();
         int np = points.getCount();
         RowSubset[] sets = state.getSubsets();
         int nset = sets.length;
@@ -592,7 +590,9 @@ public class PlotWindow extends TopcatViewWindow
         PointRegistry plotted = new PointRegistry();
         int nVisible = 0;
         for ( int ip = 0; ip < np; ip++ ) {
-            Point point = surface.dataToGraphics( xv[ ip ], yv[ ip ], true );
+            Point point = surface.dataToGraphics( points.getCoord( ip, 0 ),
+                                                  points.getCoord( ip, 1 ),
+                                                  true );
             if ( point != null ) {
                 int xp = point.x;
                 int yp = point.y;
@@ -823,17 +823,7 @@ public class PlotWindow extends TopcatViewWindow
         int xcol = getColumnIndex( state.getXColumn() );
         int ycol = getColumnIndex( state.getYColumn() );
         StarTable dataModel = tcModel_.getDataModel();
-        int nrow = AbstractStarTable
-                  .checkedLongToInt( dataModel.getRowCount() );
-        double[] x = new double[ nrow ];
-        double[] y = new double[ nrow ];
-        RowSequence rseq = dataModel.getRowSequence();
-        for ( int irow = 0; rseq.next(); irow++ ) {
-            x[ irow ] = doubleValue( rseq.getCell( xcol ) );
-            y[ irow ] = doubleValue( rseq.getCell( ycol ) );
-        } 
-        rseq.close();
-        return new Points( x, y );
+        return Points.createPoints( dataModel, new int[] { xcol, ycol } );
     }
 
     /**
@@ -876,28 +866,6 @@ public class PlotWindow extends TopcatViewWindow
     public int getColumnIndex( TableColumn tcol ) {
         return tcol.getModelIndex();
     }
-
-    /**
-     * Returns a numeric (double) value for the given object where it
-     * can be done.
-     *
-     * @param  value  an object
-     * @return  floating point representation of <tt>value</tt>, or
-     *          NaN if it can't be done
-     */
-    private double doubleValue( Object value ) {
-        if ( value instanceof Number ) {
-            return ((Number) value).doubleValue();
-        }
-        else if ( value instanceof Date ) {
-            long milliseconds = ((Date) value).getTime();
-            return 1970.0 + milliseconds / MILLISECONDS_PER_YEAR;
-        }
-        else {
-            return Double.NaN;
-        }
-    }
-
 
     /*
      * Listener implementations to do a replot when UI selections have changed.

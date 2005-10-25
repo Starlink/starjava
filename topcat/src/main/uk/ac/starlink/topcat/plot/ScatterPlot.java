@@ -164,8 +164,6 @@ public class ScatterPlot extends JComponent implements Printable {
             RowSubset[] rsets = getState().getSubsets();
             int nrset = rsets.length;
             int np = points.getCount();
-            double[] xv = points.getXVector();
-            double[] yv = points.getYVector();
             for ( int ip = 0; ip < np; ip++ ) {
 
                 /* First see if this point will be plotted. */
@@ -175,8 +173,8 @@ public class ScatterPlot extends JComponent implements Printable {
                     use = use || rsets[ is ].isIncluded( lp );
                 }
                 if ( use ) {
-                    double xp = xv[ ip ];
-                    double yp = yv[ ip ];
+                    double xp = points.getCoord( ip, 0 );
+                    double yp = points.getCoord( ip, 1 );
                     if ( ! Double.isNaN( xp ) && 
                          ! Double.isNaN( yp ) &&
                          ! Double.isInfinite( xp ) && 
@@ -235,8 +233,6 @@ public class ScatterPlot extends JComponent implements Printable {
         /* Currently, this method updates the statSets_ member variable - 
          * it's not very good practice to have a paintComponent method
          * updating data structures. */
-        double[] xv = points.getXVector();
-        double[] yv = points.getYVector();
         int np = points.getCount();
         RowSubset[] sets = state.getSubsets();
         MarkStyle[] styles = state.getStyles();
@@ -254,8 +250,8 @@ public class ScatterPlot extends JComponent implements Printable {
             int maxr = style.getMaximumRadius();
             for ( int ip = 0; ip < np; ip++ ) {
                 if ( sets[ is ].isIncluded( (long) ip ) ) {
-                    double x = xv[ ip ];
-                    double y = yv[ ip ];
+                    double x = points.getCoord( ip, 0 );
+                    double y = points.getCoord( ip, 1 );
                     Point point = surface_.dataToGraphics( x, y, true );
                     if ( point != null ) {
                         int xp = point.x;
@@ -479,8 +475,8 @@ public class ScatterPlot extends JComponent implements Printable {
             /* Draw an active point if there is one. */
             if ( activePoint_ >= 0 ) {
                 Point p = surface_
-                      .dataToGraphics( points_.getXVector()[ activePoint_ ], 
-                                       points_.getYVector()[ activePoint_ ],
+                      .dataToGraphics( points_.getCoord( activePoint_, 0 ),
+                                       points_.getCoord( activePoint_, 1 ),
                                        true );
                 if ( p != null ) {
                     Graphics2D g = (Graphics2D) g2.create();
