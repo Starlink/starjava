@@ -197,8 +197,8 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         }
 
         /* Axes. */
-        ColumnInfo xCol = state.getXColumn().getColumnInfo();
-        ColumnInfo yCol = state.getYColumn().getColumnInfo();
+        ColumnInfo xCol = state.getColumns()[ 0 ].getColumnInfo();
+        ColumnInfo yCol = state.getColumns()[ 1 ].getColumnInfo();
         String xName = xCol.getName();
         String yName = yCol.getName();
         String xUnit = xCol.getUnitString();
@@ -215,15 +215,15 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         setYLabel( yLabel );
 
         /* Logarithmic plot flags. */
-        setXLog( state.isXLog() );
-        setYLog( state.isYLog() );
+        setXLog( state.getLogFlags()[ 0 ] );
+        setYLog( state.getLogFlags()[ 1 ] );
 
         /* Axis flip flags. */
-        setXFlip( state.isXFlip() );
-        setYFlip( state.isYFlip() );
+        setXFlip( state.getFlipFlags()[ 0 ] );
+        setYFlip( state.getFlipFlags()[ 1 ] );
 
         /* Grid flag. */
-        setGrid( state.hasGrid() );
+        setGrid( state.getGrid() );
 
         checkInvariants();
     }

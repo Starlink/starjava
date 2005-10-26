@@ -42,7 +42,7 @@ import uk.ac.starlink.topcat.RowSubset;
 public class ScatterPlot extends JComponent implements Printable {
 
     private Points points_;
-    private PlotState state_;
+    private Plot2State state_;
     private PlotSurface surface_;
     private Annotations annotations_;
     private Points lastPoints_;
@@ -117,7 +117,7 @@ public class ScatterPlot extends JComponent implements Printable {
      *
      * @param  state  plot state
      */
-    public void setState( PlotState state ) {
+    public void setState( Plot2State state ) {
         state_ = state;
         annotations_.validate();
         if ( surface_ != null ) {
@@ -130,7 +130,7 @@ public class ScatterPlot extends JComponent implements Printable {
      *
      * @return  plot state
      */
-    public PlotState getState() {
+    public Plot2State getState() {
         return state_;
     }
 
@@ -150,8 +150,8 @@ public class ScatterPlot extends JComponent implements Printable {
      * nicely.
      */
     public void rescale() {
-        boolean xlog = state_.isXLog();
-        boolean ylog = state_.isYLog();
+        boolean xlog = state_.getLogFlags()[ 0 ];
+        boolean ylog = state_.getLogFlags()[ 1 ];
         double xlo = Double.POSITIVE_INFINITY;
         double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
         double ylo = Double.POSITIVE_INFINITY;
@@ -220,7 +220,7 @@ public class ScatterPlot extends JComponent implements Printable {
      */
     private void drawData( Graphics graphics ) {
         Points points = points_;
-        PlotState state = state_;
+        Plot2State state = state_;
 
         /* Clone the graphics context and configure the clip to correspond
          * to the plotting surface. */
@@ -244,7 +244,8 @@ public class ScatterPlot extends JComponent implements Printable {
             boolean regress = regressions[ is ];
             XYStats stats = null;
             if ( regress ) {
-                stats = new XYStats( state_.isXLog(), state_.isYLog() );
+                stats = new XYStats( state_.getLogFlags()[ 0 ],
+                                     state_.getLogFlags()[ 1 ] );
                 statSets_[ is ] = stats;
             }
             int maxr = style.getMaximumRadius();

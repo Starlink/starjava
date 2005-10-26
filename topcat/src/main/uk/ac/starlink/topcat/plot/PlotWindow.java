@@ -509,8 +509,8 @@ public class PlotWindow extends TopcatViewWindow
      *                    if false, only do it if the data selection has changed
      */
     private void doReplot( boolean forcePlot, boolean forceData ) {
-        PlotState state = getPlotState();
-        PlotState lastState = plot_.getState();
+        Plot2State state = (Plot2State) getPlotState();
+        Plot2State lastState = plot_.getState();
         if ( forcePlot || ! state.equals( lastState ) ) {
 
             /* Cancel any active blob-drawing.  This is necesary since 
@@ -788,13 +788,15 @@ public class PlotWindow extends TopcatViewWindow
     public PlotState getPlotState() {
 
         /* Initialise a new PlotState object from gui components. */
-        PlotState state =
-            new PlotState( (StarTableColumn) xColBox_.getSelectedItem(),
-                           (StarTableColumn) yColBox_.getSelectedItem() );
-        state.setXLog( xLogBox_.isSelected() );
-        state.setYLog( yLogBox_.isSelected() );
-        state.setXFlip( xFlipBox_.isSelected() );
-        state.setYFlip( yFlipBox_.isSelected() );
+        Plot2State state = new Plot2State();
+        state.setColumns( new StarTableColumn[] {
+                              (StarTableColumn) xColBox_.getSelectedItem(),
+                              (StarTableColumn) yColBox_.getSelectedItem(),
+                          } );
+        state.setLogFlags( new boolean[] { xLogBox_.isSelected(),
+                                           yLogBox_.isSelected(), } );
+        state.setFlipFlags( new boolean[] { xFlipBox_.isSelected(),
+                                            yFlipBox_.isSelected() } );
         state.setGrid( gridModel_.isSelected() );
 
         /* Construct an array of the subsets that are used. */
@@ -809,7 +811,8 @@ public class PlotWindow extends TopcatViewWindow
             styles[ isel ] = markers_.getStyle( isub );
             regressions[ isel ] = regressionSelModel_.isSelectedIndex( isub );
         }
-        state.setSubsets( usedSubsets, styles, regressions );
+        state.setSubsets( usedSubsets, styles );
+        state.setRegressions( regressions );
         return state;
     }
 
@@ -820,8 +823,8 @@ public class PlotWindow extends TopcatViewWindow
      * @return points  object containing data values for <tt>state</tt>
      */
     public Points readPoints( PlotState state ) throws IOException {
-        int xcol = getColumnIndex( state.getXColumn() );
-        int ycol = getColumnIndex( state.getYColumn() );
+        int xcol = getColumnIndex( state.getColumns()[ 0 ] );
+        int ycol = getColumnIndex( state.getColumns()[ 1 ] );
         StarTable dataModel = tcModel_.getDataModel();
         return Points.createPoints( dataModel, new int[] { xcol, ycol } );
     }

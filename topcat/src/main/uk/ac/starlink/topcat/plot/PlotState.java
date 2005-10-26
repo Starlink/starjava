@@ -5,137 +5,120 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.RowSubset;
 
 /**
- * Characterises the details of a plot.
+ * Characterises the details of how a plot is to be done.
+ * This class details only the basics concerning the plot axes;
+ * it is intended to be subclassed for the specific needs of different
+ * N-dimensional plot types.
+ *
+ * @author   Mark Taylor (Starlink)
+ * @since    21 Jun 2004
  */
 public class PlotState {
 
-    private StarTableColumn xCol_;
-    private StarTableColumn yCol_;
-    private boolean xLog_;
-    private boolean yLog_;
-    private boolean xFlip_;
-    private boolean yFlip_;
+    private final int ndim_;
+    private StarTableColumn[] columns_;
+    private boolean[] logFlags_;
+    private boolean[] flipFlags_;
     private boolean grid_;
     private RowSubset[] usedSubsets_;
     private MarkStyle[] styles_;
-    private boolean[] regressions_;
 
     /**
-     * Constructs a PlotState giving the columns which it will plot.
+     * Constructor.
      *
-     * @param  xcol  X coordinate column
-     * @param  ycol  Y coordinate column
+     * @param  ndim  number of dimensions of the plot
      */
-    public PlotState( StarTableColumn xcol, StarTableColumn ycol ) {
-        xCol_ = xcol;
-        yCol_ = ycol;
+    public PlotState( int ndim ) {
+        ndim_ = ndim;
     }
 
     /**
-     * Returns the table column plotted on the X axis.
+     * Returns the dimensionality of the plot.
      *
-     * @return   X coordinate column
+     * @return   number of dimensions of the plot
      */
-    public StarTableColumn getXColumn() {
-        return xCol_;
+    public int getNdim() {
+        return ndim_;
     }
-
+    
     /**
-     * Returns the table column plotted on the Y axis.
+     * Sets the columns which will be plotted on the axes.
      *
-     * @param  Y coordinate column
+     * @param  columns  column array
      */
-    public StarTableColumn getYColumn() {
-        return yCol_;
+    public void setColumns( StarTableColumn[] columns ) {
+        if ( columns.length != ndim_ ) {
+            throw new IllegalArgumentException();
+        }
+        columns_ = columns;
     }
 
     /**
-     * Sets whether the X axis should be plotted logarithmically.
+     * Returns the columns to be plotted on the axes.
      *
-     * @param  xlog  true iff X axis should have a logarithmic scale
+     * @return  column array
      */
-    public void setXLog( boolean xlog ) {
-        xLog_ = xlog;
+    public StarTableColumn[] getColumns() {
+        return columns_;
     }
 
     /**
-     * Determines whether the X axis is plotted logarithmically.
+     * Sets flags for which axes will be plotted logarithmically.
      *
-     * @return  true iff X axis has a logarithmic scale
+     * @param   logFlags   log flags
      */
-    public boolean isXLog() {
-        return xLog_;
+    public void setLogFlags( boolean[] logFlags ) {
+        if ( logFlags.length != ndim_ ) {
+            throw new IllegalArgumentException();
+        }
+        logFlags_ = logFlags;
     }
 
     /**
-     * Sets whether the Y axis should be plotted logarithmically. 
+     * Returns flags for which axes will be plotted logarithmically.
      *
-     * @param  ylog  true iff Y axis should have a logarithmic scale
+     * @return   log flags
      */
-    public void setYLog( boolean ylog ) {
-        yLog_ = ylog;
+    public boolean[] getLogFlags() {
+        return logFlags_;
     }
 
     /**
-     * Determines whether the Y axis is plotted logarithmically.
+     * Sets flags for which axes will be plotted inverted.
      *
-     * @return  true iff the Y axis has a logarithmic scale
+     * @param   flipFlags  flip flags
      */
-    public boolean isYLog() {
-        return yLog_;
+    public void setFlipFlags( boolean[] flipFlags ) {
+        if ( flipFlags.length != ndim_ ) {
+            throw new IllegalArgumentException();
+        }
+        flipFlags_ = flipFlags;
     }
 
     /**
-     * Sets whether the X axis should be plotted reversed.
-     * 
-     * @param  xflip  true iff X axis should be flipped
-     */
-    public void setXFlip( boolean xflip ) {
-        xFlip_ = xflip;
-    }
-
-    /**
-     * Determines whether the X axis is plotted reversed.
+     * Returns flags for which axes will be plotted inverted.
      *
-     * @return  true iff X axis is flipped
+     * @return  flip flags
      */
-    public boolean isXFlip() {
-        return xFlip_;
+    public boolean[] getFlipFlags() {
+        return flipFlags_;
     }
 
     /**
-     * Sets whether the Y axis should be plotted reversed.
-     * 
-     * @param  yflip  true iff Y axis should be flipped
-     */
-    public void setYFlip( boolean yflip ) {
-        yFlip_ = yflip;
-    }
-
-    /**
-     * Determines whether the Y axis is plotted reversed.
+     * Sets whether a grid is to be plotted.
      *
-     * @return  true iff Y axis is flipped
-     */
-    public boolean isYFlip() {
-        return yFlip_;
-    }
-
-    /**
-     * Sets whether an axis grid should be plotted.
-     *
-     * @param  grid  true iff a grid should be plotted
+     * @param   grid  whether to draw a grid
      */
     public void setGrid( boolean grid ) {
         grid_ = grid;
     }
 
     /**
-     * Determines whether an axis grid will be plotted.
+     * Indicates whether a grid is to be plotted.
      *
-     * @return  true iff an axis grid is required
+     * @return   grid  whether to draw a grid
      */
-    public boolean hasGrid() {
+    public boolean getGrid() {
         return grid_;
     }
 
@@ -149,22 +132,19 @@ public class PlotState {
      * @throws IllegalArgumentException if <tt>subsets</tt> and <tt>styles</tt>
      *         do not have the same number of elements
      */
-    public void setSubsets( RowSubset[] subsets, MarkStyle[] styles,
-                            boolean[] regressions ) {
-        int nset = subsets.length;
-        if ( styles.length != nset || regressions.length != nset ) {
-            throw new IllegalArgumentException( "Unequal arrays lengths" );
+    public void setSubsets( RowSubset[] subsets, MarkStyle[] styles ) {
+        if ( subsets.length != styles.length ) {
+            throw new IllegalArgumentException();
         }
         usedSubsets_ = subsets;
         styles_ = styles;
-        regressions_ = regressions;
     }
 
     /**
      * Returns the list of row subsets which should be represented in the plot.
      * The array itself is returned, not a clone.
      *
-     * @return  array of row subsets to be plotted 
+     * @return  array of row subsets to be plotted
      *          (same length as {@link #getStyles})
      */
     public RowSubset[] getSubsets() {
@@ -172,7 +152,7 @@ public class PlotState {
     }
 
     /**
-     * Returns the list of marker styles corresponding to the subsets to 
+     * Returns the list of marker styles corresponding to the subsets to
      * be plotted.
      * The array itself is returned, not a clone.
      *
@@ -184,52 +164,15 @@ public class PlotState {
     }
 
     /**
-     * Returns an array of flags indicating whether a regression line is
-     * to be drawn for each subset.
-     * The array itself is returned, not a clone.
+     * Indicates whether the data represented by this plot is the same
+     * as that of <tt>other</tt>.
      *
-     * @return  array of regression line flags
-     *          (same length as {@link #getSubsets})
+     * @param  other  state for comparison
+     * @return  true iff the X and Y columns represent the same data
      */
-    public boolean[] getRegressions() {
-        return regressions_;
-    }
-
-    public boolean equals( Object otherObject ) {
-        if ( otherObject instanceof PlotState ) {
-            PlotState other = (PlotState) otherObject;
-            return other instanceof PlotState
-                && xCol_.equals( other.xCol_ )
-                && yCol_.equals( other.yCol_ )
-                && xLog_ == other.xLog_
-                && yLog_ == other.yLog_
-                && xFlip_ == other.xFlip_
-                && yFlip_ == other.yFlip_
-                && grid_ == other.grid_
-                && Arrays.equals( usedSubsets_, other.usedSubsets_ )
-                && Arrays.equals( styles_, other.styles_ )
-                && Arrays.equals( regressions_, other.regressions_ );
-        }
-        else {
-            return false;
-        }
-    }
-
-    public int hashCode() {
-        int code = 5;
-        code = 23 * code + ( xCol_ == null ? 99 : xCol_.hashCode() );
-        code = 23 * code + ( yCol_ == null ? 99 : yCol_.hashCode() );
-        code = 23 * code + ( xLog_ ? 0 : 1 );
-        code = 23 * code + ( yLog_ ? 0 : 1 );
-        code = 23 * code + ( xFlip_ ? 0 : 1 );
-        code = 23 * code + ( yFlip_ ? 0 : 1 );
-        code = 23 * code + ( grid_ ? 0 : 1 );
-        for ( int i = 0; i < usedSubsets_.length; i++ ) {
-            code = 23 * code + usedSubsets_[ i ].hashCode();
-            code = 23 * code + styles_[ i ].hashCode();
-            code = 23 * code + ( regressions_[ i ] ? 0 : 1 );
-        }
-        return code;
+    public boolean sameData( PlotState other ) {
+        return other != null
+            && Arrays.equals( columns_, other.columns_ );
     }
 
     /**
@@ -242,55 +185,37 @@ public class PlotState {
      */
     public boolean sameAxes( PlotState other ) {
         return sameData( other )
-            && xLog_ == other.xLog_
-            && yLog_ == other.yLog_
-            && xFlip_ == other.xFlip_
-            && yFlip_ == other.yFlip_;
+            && Arrays.equals( logFlags_, other.logFlags_ )
+            && Arrays.equals( flipFlags_, other.flipFlags_ );
     }
 
-    /**
-     * Indicates whether the data represented by this plot is the same
-     * as that of <tt>other</tt>.
-     *
-     * @param  other  state for comparison
-     * @return  true iff the X and Y columns represent the same data
-     */
-    public boolean sameData( PlotState other ) {
-        return other != null
-            && xCol_ == other.xCol_
-            && yCol_ == other.yCol_;
-    }
-
-    public String toString() {
-        StringBuffer sbuf = new StringBuffer()
-            .append( "xCol=" )
-            .append( xCol_ )
-            .append( "," )
-            .append( "yCol=" )
-            .append( yCol_ )
-            .append( "," )
-            .append( "xLog=" )
-            .append( xLog_ )
-            .append( "," )
-            .append( "yLog=" )
-            .append( yLog_ )
-            .append( "," )
-            .append( "xFlip=" )
-            .append( xFlip_ )
-            .append( "," )
-            .append( "yFlip=" )
-            .append( yFlip_ )
-            .append( "," )
-            .append( "grid=" )
-            .append( grid_ )
-            .append( "(" );
-        for ( int i = 0; i < usedSubsets_.length; i++ ) {
-            sbuf.append( usedSubsets_[ i ].getName() );
-            if ( i > 0 ) {
-                sbuf.append( "," );
-            }
+    public boolean equals( Object otherObject ) {
+        if ( ! ( otherObject instanceof PlotState ) ) {
+            return false;
         }
-        sbuf.append( ")" );
-        return sbuf.toString();
+        PlotState other = (PlotState) otherObject;
+        return ndim_ == other.ndim_ 
+            && grid_ == other.grid_
+            && Arrays.equals( columns_, other.columns_ )
+            && Arrays.equals( logFlags_, other.logFlags_ )
+            && Arrays.equals( flipFlags_, other.flipFlags_ )
+            && Arrays.equals( usedSubsets_, other.usedSubsets_ )
+            && Arrays.equals( styles_, other.styles_ );
+    }
+
+    public int hashCode() {
+        int code = 555;
+        code = 23 * code + ndim_;
+        code = 23 * code + ( grid_ ? 11 : 17 );
+        for ( int i = 0; i < ndim_; i++ ) {
+            code = 23 * code + columns_[ i ].hashCode();
+            code = 23 * code + ( logFlags_[ i ] ? 0 : 1 );
+            code = 23 * code + ( flipFlags_[ i ] ? 0 : 1 );
+        }
+        for ( int i = 0; i < usedSubsets_.length; i++ ) {
+            code = 23 * code + usedSubsets_[ i ].hashCode();
+            code = 23 * code + styles_[ i ].hashCode();
+        }
+        return code;
     }
 }
