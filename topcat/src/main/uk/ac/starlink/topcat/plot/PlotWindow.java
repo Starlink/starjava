@@ -620,7 +620,7 @@ public class PlotWindow extends TopcatViewWindow
      *
      * @param  lrow  index of row to highlight
      */
-    public void highlightRow( long lrow ) {
+    private void highlightRow( long lrow ) {
         plot_.setActivePoint( AbstractStarTable.checkedLongToInt( lrow ) );
     }
 
@@ -911,6 +911,12 @@ public class PlotWindow extends TopcatViewWindow
                 }
             }
             subSelModel_.setValueIsAdjusting( false );
+        }
+        else if ( code == TopcatListener.ROW ) {
+            long lrow = model.getHighlightedRow();
+            if ( lrow >= 0 ) {
+                highlightRow( lrow );
+            }
         }
     }
 

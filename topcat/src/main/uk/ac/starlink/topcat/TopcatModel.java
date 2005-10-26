@@ -73,6 +73,7 @@ public class TopcatModel {
     private String location;
     private String label;
     private Activator activator;
+    private long highlightedRow = -1L;
 
     private TableViewerWindow viewerWindow;
     private ParameterWindow paramWindow;
@@ -537,18 +538,25 @@ public class TopcatModel {
      * @param  lrow  index of the row to activate
      */
     public void highlightRow( long lrow ) {
-        if ( plotWindow != null ) {
-            plotWindow.highlightRow( lrow );
-        }
-        if ( viewerWindow != null ) {
-            viewerWindow.highlightRow( lrow );
-        }
+        highlightedRow = lrow;
+        fireModelChanged( TopcatListener.ROW );
         if ( activator != null ) {
             String msg = activator.activateRow( lrow );
             if ( msg != null && msg.trim().length() > 0 ) {
                 System.out.println( msg );
             }
         }
+    }
+
+    /**
+     * Returns the row which has most recently been highlighted.
+     * Normally used following a TopcatListener {@link TopcatListener#ROW}
+     * event.
+     *
+     * @return   highlighted row, or negative if none
+     */
+    public long getHighlightedRow() {
+        return highlightedRow;
     }
 
     /**

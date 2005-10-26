@@ -48,7 +48,8 @@ import uk.ac.starlink.table.gui.TableRowHeader;
  */
 public class TableViewerWindow extends TopcatViewWindow
                                implements TableModelListener, 
-                                          TableColumnModelListener {
+                                          TableColumnModelListener,
+                                          TopcatListener {
     private final TopcatModel tcModel;
     private final PlasticStarTable dataModel;
     private final ViewerTableModel viewModel;
@@ -84,6 +85,7 @@ public class TableViewerWindow extends TopcatViewWindow
         this.columnModel = tcModel.getColumnModel();
         this.subsets = tcModel.getSubsets();
         this.columnList = tcModel.getColumnList();
+        tcModel.addTopcatListener( this );
 
         /* Set up the JTable. */
         jtab = new JTable(); 
@@ -250,7 +252,7 @@ public class TableViewerWindow extends TopcatViewWindow
      * @param  lrow  index in the data model (not the view model) of the
      *               row to be highlighted
      */
-    public void highlightRow( long lrow ) {
+    private void highlightRow( long lrow ) {
 
         /* Maintain a flag to ensure that this doesn't cause a call to 
          * the topcat model's highlightRow method, which would in turn 
@@ -504,6 +506,18 @@ public class TableViewerWindow extends TopcatViewWindow
         int xMid = viewRect.x + viewRect.width / 2;
         JScrollBar xBar = scrollpane.getHorizontalScrollBar();
         xBar.setValue( xMid - xBar.getVisibleAmount() / 2 );
+    }
+
+    /*
+     * Implementation of TopcatListener interface.
+     */
+    public void modelChanged( TopcatModel model, int code ) {
+        if ( code == TopcatListener.ROW ) {
+            long lrow = model.getHighlightedRow();
+            if ( lrow >= 0 ) {
+                highlightRow( lrow );
+            }
+        }
     }
 
     /*

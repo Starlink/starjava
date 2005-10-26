@@ -27,6 +27,9 @@ public interface TopcatListener extends EventListener {
     /** Code indicating change in current RowSubset. */
     static final int SUBSET = 4;
 
+    /** Code indicating that a row has been highlighted. */
+    static final int ROW = 5;
+
     /**
      * Invoked when the model has changed in some way.
      * 
