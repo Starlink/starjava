@@ -31,6 +31,14 @@ public class TopcatEvent {
     public static final int ROW = 5;
 
     /**
+     * Code indicating that a column has been highlighted or selected in
+     * some relevant way.
+     * The datum is the relevant 
+     * {@link uk.ac.starlink.table.gui.StarTableColumn}.
+     */
+    public static final int COLUMN = 6;
+
+    /**
      * Constructor.
      *
      * @param  model  the model which generated this event

@@ -501,7 +501,7 @@ public class TableViewerWindow extends TopcatViewWindow
      *
      * @param  viewCol  column index in the view model
      */
-    public void scrollToColumn( int viewCol ) {
+    private void scrollToColumn( int viewCol ) {
         Rectangle viewRect = jtab.getCellRect( 0, viewCol, false );
         int xMid = viewRect.x + viewRect.width / 2;
         JScrollBar xBar = scrollpane.getHorizontalScrollBar();
@@ -512,10 +512,21 @@ public class TableViewerWindow extends TopcatViewWindow
      * Implementation of TopcatListener interface.
      */
     public void modelChanged( TopcatEvent evt ) {
-        if ( evt.getCode() == TopcatEvent.ROW ) {
+        int code = evt.getCode();
+        if ( code == TopcatEvent.ROW ) {
             Object datum = evt.getDatum();
             if ( datum instanceof Long ) {
                 highlightRow( ((Long) datum).longValue() );
+            }
+            else {
+                assert false;
+            }
+        }
+        else if ( code == TopcatEvent.COLUMN ) {
+            Object datum = evt.getDatum();
+            if ( datum instanceof StarTableColumn ) {
+                int viewCol = ((StarTableColumn) datum).getModelIndex();
+                scrollToColumn( viewCol );
             }
             else {
                 assert false;
