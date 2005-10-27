@@ -19,7 +19,10 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -67,6 +70,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.topcat.join.MatchWindow;
+import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -125,12 +129,6 @@ public class ControlWindow extends AuxWindow
     private final JToggleButton sortSenseButton_ = new UpDownButton();
     private final JButton activatorButton_ = new JButton();
 
-    private final Action viewerAct_;
-    private final Action paramAct_;
-    private final Action colinfoAct_;
-    private final Action statsAct_;
-    private final Action subsetAct_;
-    private final Action plotAct_;
     private final Action readAct_;
     private final Action writeAct_;
     private final Action dupAct_;
@@ -140,6 +138,7 @@ public class ControlWindow extends AuxWindow
     private final Action logAct_;
     private final Action[] matchActs_;
     private final ShowAction[] showActs_;
+    private final ModelViewAction[] viewActs_;
 
     /**
      * Constructs a new window.
@@ -213,20 +212,36 @@ public class ControlWindow extends AuxWindow
                                "Launch Mirage to display the current table" );
         mirageAct_.setEnabled( MirageHandler.isMirageAvailable() );
 
-        viewerAct_ = new ModelAction( "Table Data", ResourceIcon.VIEWER,
-                                      "Display table cell data" );
-        paramAct_ = new ModelAction( "Table Parameters", ResourceIcon.PARAMS,
-                                     "Display table metadata" );
-        colinfoAct_ = new ModelAction( "Column Info", ResourceIcon.COLUMNS,
-                                       "Display column metadata" );
-        subsetAct_ = new ModelAction( "Row Subsets", ResourceIcon.SUBSETS,
-                                      "Display row subsets" );
-        statsAct_ = new ModelAction( "Column Statistics", ResourceIcon.STATS,
-                                     "Display statistics for each column" );
-        plotAct_ = new ModelAction( "Plot", ResourceIcon.PLOT,
-                                    "Plot table columns" );
-        writeAct_ = new ModelAction( "Save Table", ResourceIcon.SAVE,
-                                     "Write out the current table" );
+        final ModelViewAction viewerAct = 
+            new ModelViewWindowAction( "Table Data", ResourceIcon.VIEWER,
+                                       "Display table cell data",
+                                       TableViewerWindow.class );
+        viewActs_ = new ModelViewAction[] {
+            viewerAct,
+            new ModelViewWindowAction( "Table Parameters", ResourceIcon.PARAMS,
+                                       "Display table metadata",
+                                       ParameterWindow.class ),
+            new ModelViewWindowAction( "Column Info", ResourceIcon.COLUMNS,
+                                       "Display column metadata",
+                                       ColumnInfoWindow.class ),
+            new ModelViewWindowAction( "Row Subsets", ResourceIcon.SUBSETS,
+                                       "Display row subsets",
+                                       SubsetWindow.class ),
+            new ModelViewWindowAction( "Column Statistics", ResourceIcon.STATS,
+                                       "Display statistics for each column",
+                                       StatsWindow.class ),
+            new ModelViewWindowAction( "Plot", ResourceIcon.PLOT,
+                                       "Plot table columns",
+                                       PlotWindow.class ),
+        };
+        writeAct_ = new ModelViewAction( "Save Table", ResourceIcon.SAVE,
+                                         "Write out the current table" ) {
+            public Window createWindow( TopcatModel tcModel ) {
+                return new SaveQueryWindow( tcModel, getTableOutput(),
+                                            getLoadChooser(),
+                                            ControlWindow.this );
+            }
+        };
 
         matchActs_ = new Action[] {
             new MatchWindowAction( "Internal Match", ResourceIcon.MATCH1,
@@ -268,15 +283,15 @@ public class ControlWindow extends AuxWindow
                     ActionEvent aevt = new ActionEvent( evt.getSource(),
                                                         evt.getID(),
                                                         "Display Table" );
-                    viewerAct_.actionPerformed( aevt );
+                    viewerAct.actionPerformed( aevt );
                 }
             }
         } );
-        Object actkey = viewerAct_.getValue( Action.NAME );
+        Object actkey = viewerAct.getValue( Action.NAME );
         tablesList_.getInputMap()
                   .put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), 
                         actkey );
-        tablesList_.getActionMap().put( actkey, viewerAct_ );
+        tablesList_.getActionMap().put( actkey, viewerAct );
 
         /* Add load/save control buttons to the toolbar. */
         JToolBar toolBar = getToolBar();
@@ -287,12 +302,9 @@ public class ControlWindow extends AuxWindow
         toolBar.addSeparator();
 
         /* Add table view buttons to the toolbar. */
-        toolBar.add( viewerAct_ );
-        toolBar.add( paramAct_ );
-        toolBar.add( colinfoAct_ );
-        toolBar.add( subsetAct_ );
-        toolBar.add( statsAct_ );
-        toolBar.add( plotAct_ );
+        for ( int i = 0; i < viewActs_.length; i++ ) {
+            toolBar.add( viewActs_[ i ] );
+        }
         toolBar.addSeparator();
 
         /* Add join/match control buttons to the toolbar. */
@@ -323,12 +335,9 @@ public class ControlWindow extends AuxWindow
         /* Add a menu for the table views. */
         JMenu viewMenu = new JMenu( "TableViews" );
         viewMenu.setMnemonic( KeyEvent.VK_V );
-        viewMenu.add( viewerAct_ );
-        viewMenu.add( paramAct_ );
-        viewMenu.add( colinfoAct_ );
-        viewMenu.add( subsetAct_ );
-        viewMenu.add( statsAct_ );
-        viewMenu.add( plotAct_ );
+        for ( int i = 0; i < viewActs_.length; i++ ) {
+            viewMenu.add( viewActs_[ i ] );
+        }
         getJMenuBar().add( viewMenu );
 
         /* Add a menu for window management. */
@@ -427,7 +436,7 @@ public class ControlWindow extends AuxWindow
      */
     public void removeTable( TopcatModel model ) {
         if ( tablesModel_.contains( model ) ) {
-            model.hideWindows();
+            setViewsVisible( model, false );
             tablesList_.clearSelection();
             tablesModel_.removeElement( model );
         }
@@ -530,6 +539,18 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
+     * Reveals or hides any existing view windows for a given table.
+     *
+     * @param  tcModel  table to affect
+     * @param  visible   true to reveal, false to hide
+     */
+    public void setViewsVisible( TopcatModel tcModel, boolean visible ) {
+        for ( int i = 0; i < viewActs_.length; i++ ) {
+            viewActs_[ i ].setViewVisible( tcModel, visible );
+        }
+    }
+
+    /**
      * Shuts down TOPCAT.  According to whether or not it is running 
      * standalone, this may invoke {@link java.lang.System#exit} itself,
      * or it may just attempt to get rid of all the windows associated
@@ -627,12 +648,9 @@ public class ControlWindow extends AuxWindow
         subsetSelector_.setEnabled( hasModel );
         sortSelector_.setEnabled( hasModel );
         sortSenseButton_.setEnabled( hasModel );
-        viewerAct_.setEnabled( hasModel );
-        paramAct_.setEnabled( hasModel );
-        colinfoAct_.setEnabled( hasModel );
-        statsAct_.setEnabled( hasModel );
-        subsetAct_.setEnabled( hasModel );
-        plotAct_.setEnabled( hasModel );
+        for ( int i = 0; i < viewActs_.length; i++ ) {
+            viewActs_[ i ].setEnabled( hasModel );
+        }
         for ( int i = 0; i < showActs_.length; i++ ) {
             ShowAction sact = showActs_[ i ];
             if ( sact.selEffect != sact.otherEffect ) {
@@ -794,45 +812,111 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
-     * Actions which correspond to actions provided by the TopcatModel objects.
+     * Class for showing a certain kind of window which applies to TopcatModels.
      */
-    private class ModelAction extends BasicAction {
+    private abstract class ModelViewAction extends BasicAction {
 
-        ModelAction( String name, Icon icon, String shortdesc ) {
+        private final Map modelWindows_ = new WeakHashMap();
+
+        /**
+         * Constructor. 
+         *
+         * @param   name  action name
+         * @param   icon  action icon
+         * @param   shortdesc  action short description
+         */
+        ModelViewAction( String name, Icon icon, String shortdesc ) {
             super( name, icon, shortdesc );
         }
 
+        /**
+         * Displays this action's window type for the currently selected
+         * table.
+         */
         public void actionPerformed( ActionEvent evt ) {
             TopcatModel tcModel = getCurrentModel();
             if ( tcModel == null ) {
-                assert false;
+                return;
             }
-            Action act;
-            if ( this == viewerAct_ ) {
-                act = tcModel.getViewerAction();
+            Window window = (Window) modelWindows_.get( tcModel );
+            if ( window == null ) {
+                window = createWindow( tcModel );
+                modelWindows_.put( tcModel, window );
             }
-            else if ( this == paramAct_ ) {
-                act = tcModel.getParameterAction();
+            window.setVisible( true );
+        }
+
+        /**
+         * Ensures that this action's window for a given table is visible
+         * or invisible, if it exists.
+         * The window will not be created specially however. 
+         *
+         * @param  tcModel  table to reveal for
+         * @param  visible  true to reveal, false to hide
+         */
+        public void setViewVisible( TopcatModel tcModel, boolean visible ) {
+            Window window = (Window) modelWindows_.get( tcModel );
+            if ( window != null ) {
+                if ( visible ) {
+                    window.setVisible( true );
+                }
+                else {
+                    window.dispose();
+                }
             }
-            else if ( this == colinfoAct_ ) {
-                act = tcModel.getColumnInfoAction();
+        }
+
+        /**
+         * Creates this action's window for a given table.
+         *
+         * @param  tcModel  table the window will apply to
+         */
+        protected abstract Window createWindow( TopcatModel tcModel );
+    }
+
+    /**
+     * ModelViewAction class for actions which pop up a TopcatViewWindow.
+     */
+    private class ModelViewWindowAction extends ModelViewAction {
+
+        TopcatViewWindow window_;
+        final Constructor constructor_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  action name
+         * @param  icon  action icon
+         * @param  shortdesc  action short description
+         * @param  winClass  TopcatViewWindow class - must have a
+         *         constructor that takes (TopcatModel,Component).
+         */
+        ModelViewWindowAction( String name, Icon icon, String shortdesc,
+                               Class winClass ) {
+            super( name, icon, shortdesc );
+            if ( ! TopcatViewWindow.class.isAssignableFrom( winClass ) ) {
+                throw new IllegalArgumentException();
             }
-            else if ( this == statsAct_ ) {
-                act = tcModel.getStatsAction();
+            try {
+                constructor_ = winClass.getConstructor( new Class[] {
+                    TopcatModel.class, Component.class,
+                } );
             }
-            else if ( this == subsetAct_ ) {
-                act = tcModel.getSubsetAction();
+            catch ( NoSuchMethodException e ) {
+                throw (IllegalArgumentException)
+                      new IllegalArgumentException( "No suitable constructor" )
+                     .initCause( e );
             }
-            else if ( this == plotAct_ ) {
-                act = tcModel.getPlotAction();
+        }
+
+        protected Window createWindow( TopcatModel tcModel ) {
+            try {
+                Object[] args = new Object[] { tcModel, ControlWindow.this };
+                return (TopcatViewWindow) constructor_.newInstance( args );
             }
-            else if ( this == writeAct_ ) {
-                act = tcModel.getSaveAction();
+            catch ( Exception e ) {
+                throw new RuntimeException( "Window creation failed???", e );
             }
-            else {
-                throw new AssertionError();
-            }
-            act.actionPerformed( evt );
         }
     }
 
@@ -871,10 +955,10 @@ public class ControlWindow extends AuxWindow
                     (TopcatModel) tablesModel_.getElementAt( i );
                 Object effect = isSelected ? selEffect : otherEffect;
                 if ( effect == WindowEffect.HIDE ) {
-                    tcModel.hideWindows();
+                    setViewsVisible( tcModel, false );
                 }
                 else if ( effect == WindowEffect.REVEAL ) {
-                    tcModel.revealWindows();
+                    setViewsVisible( tcModel, true );
                 }
             }
         }

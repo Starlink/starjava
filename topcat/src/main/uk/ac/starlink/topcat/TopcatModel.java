@@ -74,26 +74,13 @@ public class TopcatModel {
     private String label_;
     private Activator activator_;
 
-    private TableViewerWindow viewerWindow_;
-    private ParameterWindow paramWindow_;
-    private ColumnInfoWindow colinfoWindow_;
-    private StatsWindow statsWindow_;
-    private SubsetWindow subsetWindow_;
-    private PlotWindow plotWindow_;
     private ActivationQueryWindow activationWindow_;
     private SaveQueryWindow saveWindow_;
 
     private Action newsubsetAct_;
     private Action unsortAct_;
-    private TopcatWindowAction viewerAct_;
-    private TopcatWindowAction paramAct_;
-    private TopcatWindowAction colinfoAct_;
-    private TopcatWindowAction statsAct_;
-    private TopcatWindowAction subsetAct_;
-    private TopcatWindowAction plotAct_;
     private TopcatWindowAction activationAct_;
     private TopcatWindowAction saveAct_;
-    private TopcatWindowAction[] windowActions_;
 
     private static int instanceCount = 0;
 
@@ -193,29 +180,6 @@ public class TopcatModel {
         //         }
         //     }
         // }
-
-        /* Create and configure window actions. */
-        viewerAct_ = new TopcatWindowAction( 
-                           "Table browser", ResourceIcon.VIEWER,
-                           "Display table cell data" );
-        paramAct_ = new TopcatWindowAction( 
-                           "Table parameters", ResourceIcon.PARAMS,
-                           "Display table metadata" );
-        colinfoAct_ = new TopcatWindowAction(
-                           "Column metadata", ResourceIcon.COLUMNS,
-                           "Display metadata for each column" );
-        statsAct_ = new TopcatWindowAction(
-                           "Column statistics", ResourceIcon.STATS,
-                           "Display statistics for each column" );
-        subsetAct_ = new TopcatWindowAction(
-                           "Row subsets", ResourceIcon.SUBSETS,
-                           "Display row subsets" );
-        plotAct_ = new TopcatWindowAction(
-                           "Plot", ResourceIcon.PLOT,
-                           "Plot columns from this table" );
-        windowActions_ = new TopcatWindowAction[] {
-            viewerAct_, paramAct_, colinfoAct_, statsAct_, subsetAct_, plotAct_,
-        };
 
         /* Create and configure some other actions. */
         newsubsetAct_ = new ModelAction( "New Subset Expression", null,
@@ -549,66 +513,6 @@ public class TopcatModel {
     }
 
     /**
-     * Gets an action which will pop up a TableViewerWindow associated with
-     * this model.
-     * 
-     * @return   window action
-     */
-    public WindowAction getViewerAction() {
-        return viewerAct_;
-    }
-
-    /**
-     * Gets an action which will pop up a ParameterWindow associated with
-     * this model.
-     *
-     * @return  window action
-     */
-    public WindowAction getParameterAction() {
-        return paramAct_;
-    }
-
-    /**
-     * Gets an actions which will pop up a ColumnInfoWindow associated with
-     * this model.
-     *
-     * @return   window action
-     */
-    public WindowAction getColumnInfoAction() {
-        return colinfoAct_;
-    }
-
-    /**
-     * Gets an action which will pop up a StatsWindow associated with
-     * this model.
-     *
-     * @return  window action
-     */
-    public WindowAction getStatsAction() {
-        return statsAct_;
-    }
-
-    /**
-     * Gets an action which will pop up a SubsetWindow associated with
-     * this model.
-     *
-     * @return   window action
-     */
-    public WindowAction getSubsetAction() {
-        return subsetAct_;
-    }
-
-    /**
-     * Gets an action which will pop up a PlotWindow associated with
-     * this model.
-     *
-     * @return   window action
-     */
-    public WindowAction getPlotAction() {
-        return plotAct_;
-    }
-
-    /**
      * Gets an action which will pop up a window for defining a new 
      * algebraic subset for this model.
      * 
@@ -688,30 +592,6 @@ public class TopcatModel {
         }
         else {
             return name;
-        }
-    }
-
-    /**
-     * Hides any currently visible view windows associated with this model.
-     * The windows are disposed.
-     */
-    public void hideWindows() {
-        for ( int i = 0; i < windowActions_.length; i++ ) {
-            WindowAction act = windowActions_[ i ];
-            act.putValue( "VISIBLE", Boolean.FALSE );
-        }
-    }
-
-    /**
-     * Reveals any view windows associated with this window which have
-     * been instantiated but may not currently be visible.
-     */
-    public void revealWindows() {
-        for ( int i = 0; i < windowActions_.length; i++ ) {
-            TopcatWindowAction act = windowActions_[ i ];
-            if ( act.hasWindow() ) {
-                act.putValue( WindowAction.VISIBLE, Boolean.TRUE );
-            }
         }
     }
 
@@ -994,25 +874,7 @@ public class TopcatModel {
         }
 
         public boolean hasWindow() {
-            if ( this == viewerAct_ ) {
-                return viewerWindow_ != null;
-            }
-            else if ( this == paramAct_ ) {
-                return paramWindow_ != null;
-            }
-            else if ( this == colinfoAct_ ) {
-                return colinfoWindow_ != null;
-            }
-            else if ( this == statsAct_ ) {
-                return statsWindow_ != null;
-            }
-            else if ( this == subsetAct_ ) {
-                return subsetWindow_ != null;
-            }
-            else if ( this == plotAct_ ) {
-                return plotWindow_ != null;
-            }
-            else if ( this == activationAct_ ) {
+            if ( this == activationAct_ ) {
                 return activationWindow_ != null;
             }
             else if ( this == saveAct_ ) {
@@ -1025,43 +887,7 @@ public class TopcatModel {
 
         public Window getWindow( Component parent ) {
             TopcatModel tcModel = TopcatModel.this;
-            if ( this == viewerAct_ ) {
-                if ( ! hasWindow() ) {
-                    viewerWindow_ = new TableViewerWindow( tcModel, parent );
-                }
-                return viewerWindow_;
-            }
-            else if ( this == paramAct_ ) {
-                if ( ! hasWindow() ) {
-                    paramWindow_ = new ParameterWindow( tcModel, parent );
-                }
-                return paramWindow_;
-            }
-            else if ( this == colinfoAct_ ) {
-                if ( ! hasWindow() ) {
-                    colinfoWindow_ = new ColumnInfoWindow( tcModel, parent );
-                }
-                return colinfoWindow_;
-            }
-            else if ( this == statsAct_ ) {
-                if ( ! hasWindow() ) {
-                    statsWindow_ = new StatsWindow( tcModel, parent );
-                }
-                return statsWindow_;
-            }
-            else if ( this == subsetAct_ ) {
-                if ( ! hasWindow() ) {
-                    subsetWindow_ = new SubsetWindow( tcModel, parent );
-                }
-                return subsetWindow_;
-            }
-            else if ( this == plotAct_ ) {
-                if ( ! hasWindow() ) {
-                    plotWindow_ = new PlotWindow( tcModel, parent );
-                }
-                return plotWindow_;
-            }
-            else if ( this == activationAct_ ) {
+            if ( this == activationAct_ ) {
                 if ( ! hasWindow() ) {
                     activationWindow_ = 
                         new ActivationQueryWindow( tcModel, parent );

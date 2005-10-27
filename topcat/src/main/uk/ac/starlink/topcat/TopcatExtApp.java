@@ -106,7 +106,8 @@ public class TopcatExtApp implements ExtApp {
             logger_.info( "ExtApp setVisible(false) received" );
             ListModel tcList = cwin_.getTablesListModel();
             for ( int i = 0; i < tcList.getSize(); i++ ) {
-                ((TopcatModel) tcList.getElementAt( i )).hideWindows();
+                cwin_.setViewsVisible( ((TopcatModel) tcList.getElementAt( i )),
+                                       false );
             }
         }
     }
