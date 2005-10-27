@@ -56,44 +56,44 @@ import uk.ac.starlink.topcat.plot.PlotWindow;
  */
 public class TopcatModel {
 
-    private final PlasticStarTable dataModel;
-    private final ViewerTableModel viewModel;
-    private final TableColumnModel columnModel;
-    private final ColumnList columnList;
-    private final OptionsListModel subsets;
-    private final Map subsetCounts;
-    private final OptionsListModel activators;
-    private final ComboBoxModel sortSelectionModel;
-    private final ComboBoxModel subsetSelectionModel;
-    private final SortSenseModel sortSenseModel;
-    private final Collection listeners;
-    private final Map columnSelectorMap;
-    private final int id;
-    private final ControlWindow controlWindow;
-    private String location;
-    private String label;
-    private Activator activator;
+    private final PlasticStarTable dataModel_;
+    private final ViewerTableModel viewModel_;
+    private final TableColumnModel columnModel_;
+    private final ColumnList columnList_;
+    private final OptionsListModel subsets_;
+    private final Map subsetCounts_;
+    private final OptionsListModel activators_;
+    private final ComboBoxModel sortSelectionModel_;
+    private final ComboBoxModel subsetSelectionModel_;
+    private final SortSenseModel sortSenseModel_;
+    private final Collection listeners_;
+    private final Map columnSelectorMap_;
+    private final int id_;
+    private final ControlWindow controlWindow_;
+    private String location_;
+    private String label_;
+    private Activator activator_;
 
-    private TableViewerWindow viewerWindow;
-    private ParameterWindow paramWindow;
-    private ColumnInfoWindow colinfoWindow;
-    private StatsWindow statsWindow;
-    private SubsetWindow subsetWindow;
-    private PlotWindow plotWindow;
-    private ActivationQueryWindow activationWindow;
-    private SaveQueryWindow saveWindow;
+    private TableViewerWindow viewerWindow_;
+    private ParameterWindow paramWindow_;
+    private ColumnInfoWindow colinfoWindow_;
+    private StatsWindow statsWindow_;
+    private SubsetWindow subsetWindow_;
+    private PlotWindow plotWindow_;
+    private ActivationQueryWindow activationWindow_;
+    private SaveQueryWindow saveWindow_;
 
-    private Action newsubsetAct;
-    private Action unsortAct;
-    private TopcatWindowAction viewerAct;
-    private TopcatWindowAction paramAct;
-    private TopcatWindowAction colinfoAct;
-    private TopcatWindowAction statsAct;
-    private TopcatWindowAction subsetAct;
-    private TopcatWindowAction plotAct;
-    private TopcatWindowAction activationAct;
-    private TopcatWindowAction saveAct;
-    private TopcatWindowAction[] windowActions;
+    private Action newsubsetAct_;
+    private Action unsortAct_;
+    private TopcatWindowAction viewerAct_;
+    private TopcatWindowAction paramAct_;
+    private TopcatWindowAction colinfoAct_;
+    private TopcatWindowAction statsAct_;
+    private TopcatWindowAction subsetAct_;
+    private TopcatWindowAction plotAct_;
+    private TopcatWindowAction activationAct_;
+    private TopcatWindowAction saveAct_;
+    private TopcatWindowAction[] windowActions_;
 
     private static int instanceCount = 0;
 
@@ -104,7 +104,7 @@ public class TopcatModel {
      */
     public TopcatModel( StarTable startab, String location, 
                         ControlWindow controlWindow ) {
-        this.controlWindow = controlWindow;
+        controlWindow_ = controlWindow;
 
         /* Ensure that we have random access. */
         if ( ! startab.isRandom() ) {
@@ -112,70 +112,70 @@ public class TopcatModel {
         }
 
         /* Initialize the label. */
-        this.location = location;
-        label = location;
-        id = ++instanceCount;
-        if ( label == null ) {
-            label = startab.getName();
+        location_ = location;
+        label_ = location_;
+        id_ = ++instanceCount;
+        if ( label_ == null ) {
+            label_ = startab.getName();
         }
-        if ( label == null ) {
-            label = "(table)";
+        if ( label_ == null ) {
+            label_ = "(table)";
         }
 
         /* Construct a data model based on the StarTable; it is a new
          * StarTable which will also allow some additional functionality 
          * such as column addition. */
-        dataModel = new PlasticStarTable( startab );
+        dataModel_ = new PlasticStarTable( startab );
 
         /* Set up the model which defines what the table view will be. */
-        viewModel = new ViewerTableModel( dataModel );
+        viewModel_ = new ViewerTableModel( dataModel_ );
 
         /* Set up the column model and column list. */
-        columnModel = new DefaultTableColumnModel();
-        for ( int icol = 0; icol < dataModel.getColumnCount(); icol++ ) {
-            ColumnInfo cinfo = dataModel.getColumnInfo( icol );
+        columnModel_ = new DefaultTableColumnModel();
+        for ( int icol = 0; icol < dataModel_.getColumnCount(); icol++ ) {
+            ColumnInfo cinfo = dataModel_.getColumnInfo( icol );
             TableColumn tcol = new StarTableColumn( cinfo, icol );
-            columnModel.addColumn( tcol );
+            columnModel_.addColumn( tcol );
         }
-        columnList = new ColumnList( columnModel );
+        columnList_ = new ColumnList( columnModel_ );
 
         /* Set up the current sort selector. */
-        sortSelectionModel = new SortSelectionModel();
-        sortSenseModel = new SortSenseModel();
+        sortSelectionModel_ = new SortSelectionModel();
+        sortSenseModel_ = new SortSenseModel();
 
         /* Initialise subsets list. */
-        subsets = new OptionsListModel();
-        subsets.add( RowSubset.ALL );
+        subsets_ = new OptionsListModel();
+        subsets_.add( RowSubset.ALL );
 
         /* Set up the current subset selector. */
-        subsetSelectionModel = new SubsetSelectionModel();
+        subsetSelectionModel_ = new SubsetSelectionModel();
 
         /* Initialise count of subsets. */
-        subsetCounts = new HashMap();
-        subsetCounts.put( RowSubset.NONE, new Long( 0 ) );
-        subsetCounts.put( RowSubset.ALL, new Long( startab.getRowCount() ) );
+        subsetCounts_ = new HashMap();
+        subsetCounts_.put( RowSubset.NONE, new Long( 0 ) );
+        subsetCounts_.put( RowSubset.ALL, new Long( startab.getRowCount() ) );
 
         /* Add subsets for any boolean type columns. */
-        int ncol = dataModel.getColumnCount();
+        int ncol = dataModel_.getColumnCount();
         for ( int icol = 0; icol < ncol; icol++ ) {
-            final ColumnInfo cinfo = dataModel.getColumnInfo( icol );
+            final ColumnInfo cinfo = dataModel_.getColumnInfo( icol );
             if ( cinfo.getContentClass() == Boolean.class ) {
                 final int jcol = icol;
                 RowSubset yes =
-                    new BooleanColumnRowSubset( dataModel, icol);
-                subsets.add( yes );
+                    new BooleanColumnRowSubset( dataModel_, icol);
+                subsets_.add( yes );
             }
         }
 
         /* Set up a dummy row activator. */
-        activator = Activator.NOP;
+        activator_ = Activator.NOP;
 
         /* Set up a map to contain column selector models. */
-        columnSelectorMap = new HashMap();
+        columnSelectorMap_ = new HashMap();
 
         /* If there are any activation strings stored in the table, 
          * pull them out and store them. */
-        activators = new OptionsListModel();
+        activators_ = new OptionsListModel();
 
         // Don't do this for now - the string version doesn't isn't always 
         // in a suitable format.
@@ -185,51 +185,51 @@ public class TopcatModel {
         // if ( actVal != null ) {
         //     Object av = actVal.getValue();
         //     if ( av instanceof String ) {
-        //         activators.add( av );
+        //         activators_.add( av );
         //     }
         //     else if ( av instanceof String[] ) {
         //         for ( int i = 0; i < ((String[]) av).length; i++ ) {
-        //             activators.add( ((String[]) av)[ i ] );
+        //             activators_.add( ((String[]) av)[ i ] );
         //         }
         //     }
         // }
 
         /* Create and configure window actions. */
-        viewerAct = new TopcatWindowAction( 
+        viewerAct_ = new TopcatWindowAction( 
                            "Table browser", ResourceIcon.VIEWER,
                            "Display table cell data" );
-        paramAct = new TopcatWindowAction( 
+        paramAct_ = new TopcatWindowAction( 
                            "Table parameters", ResourceIcon.PARAMS,
                            "Display table metadata" );
-        colinfoAct = new TopcatWindowAction(
+        colinfoAct_ = new TopcatWindowAction(
                            "Column metadata", ResourceIcon.COLUMNS,
                            "Display metadata for each column" );
-        statsAct = new TopcatWindowAction(
+        statsAct_ = new TopcatWindowAction(
                            "Column statistics", ResourceIcon.STATS,
                            "Display statistics for each column" );
-        subsetAct = new TopcatWindowAction(
+        subsetAct_ = new TopcatWindowAction(
                            "Row subsets", ResourceIcon.SUBSETS,
                            "Display row subsets" );
-        plotAct = new TopcatWindowAction(
+        plotAct_ = new TopcatWindowAction(
                            "Plot", ResourceIcon.PLOT,
                            "Plot columns from this table" );
-        windowActions = new TopcatWindowAction[] {
-            viewerAct, paramAct, colinfoAct, statsAct, subsetAct, plotAct,
+        windowActions_ = new TopcatWindowAction[] {
+            viewerAct_, paramAct_, colinfoAct_, statsAct_, subsetAct_, plotAct_,
         };
 
         /* Create and configure some other actions. */
-        newsubsetAct = new ModelAction( "New Subset Expression", null,
-                                        "Define a new row subset" );
-        unsortAct = new ModelAction( "Unsort", ResourceIcon.UNSORT,
-                                     "Use natural row order" );
-        activationAct = new TopcatWindowAction( 
+        newsubsetAct_ = new ModelAction( "New Subset Expression", null,
+                                         "Define a new row subset" );
+        unsortAct_ = new ModelAction( "Unsort", ResourceIcon.UNSORT,
+                                      "Use natural row order" );
+        activationAct_ = new TopcatWindowAction( 
                            "Set Activation Action", null,
                            "Set what happens when a row/point is clicked on" );
-        saveAct = new TopcatWindowAction( "Save Table", ResourceIcon.SAVE,
-                                          "Write out the current table" );
+        saveAct_ = new TopcatWindowAction( "Save Table", ResourceIcon.SAVE,
+                                           "Write out the current table" );
 
         /* Set up the listeners. */
-        listeners = new ArrayList();
+        listeners_ = new ArrayList();
     }
 
     /**
@@ -240,7 +240,7 @@ public class TopcatModel {
      * @return   location
      */
     public String getLocation() {
-        return location;
+        return location_;
     }
 
     /**
@@ -250,7 +250,7 @@ public class TopcatModel {
      * @return   label
      */
     public String getLabel() {
-        return label;
+        return label_;
     }
 
     /**
@@ -262,11 +262,11 @@ public class TopcatModel {
      * @param  numeric ID
      */
     public int getID() {
-        return id;
+        return id_;
     }
 
     public String toString() {
-        return id + ": " + getLabel();
+        return id_ + ": " + getLabel();
     }
 
     /**
@@ -275,8 +275,8 @@ public class TopcatModel {
      * @param  label  new label value
      */
     public void setLabel( String label ) {
-        if ( ! equalObject( label, this.label ) ) {
-            this.label = label;
+        if ( ! equalObject( label, label_ ) ) {
+            label_ = label;
 
             /* Notify listeners. */
             fireModelChanged( TopcatEvent.LABEL, null );
@@ -289,18 +289,18 @@ public class TopcatModel {
      * @param  activator  activator to use
      */
     public void setActivator( Activator activator ) {
-        if ( ! equalObject( activator, this.activator ) ) {
-            this.activator = activator;
+        if ( ! equalObject( activator, activator_ ) ) {
+            activator_ = activator;
 
             /* Reflect the change in the bound table parameter (so it can
              * be serialized). */
-            if ( activator != null && activator != Activator.NOP ) {
-                List params = dataModel.getParameters();
-                params.remove( dataModel
+            if ( activator_ != null && activator_ != Activator.NOP ) {
+                List params = dataModel_.getParameters();
+                params.remove( dataModel_
                               .getParameterByName( TopcatUtils.ACTIVATORS_INFO
                                                   .getName() ) );
                 params.add( new DescribedValue( TopcatUtils.ACTIVATORS_INFO,
-                                                activator.toString() ) );
+                                                activator_.toString() ) );
             }
 
             /* Notify listeners. */
@@ -314,7 +314,7 @@ public class TopcatModel {
      * @return   activator
      */
     public Activator getActivator() {
-        return activator;
+        return activator_;
     }
 
     /**
@@ -326,7 +326,7 @@ public class TopcatModel {
      *          this table
      */
     public OptionsListModel getActivatorList() {
-        return activators;
+        return activators_;
     }
 
     /**
@@ -359,7 +359,7 @@ public class TopcatModel {
      * @return  the data model
      */
     public PlasticStarTable getDataModel() {
-        return dataModel;
+        return dataModel_;
     }
 
     /**
@@ -372,7 +372,7 @@ public class TopcatModel {
      * @return  the table model
      */
     public ViewerTableModel getViewModel() {
-        return viewModel;
+        return viewModel_;
     }
 
     /**
@@ -386,7 +386,7 @@ public class TopcatModel {
      * @return  the column model
      */
     public TableColumnModel getColumnModel() {
-        return columnModel;
+        return columnModel_;
     }
 
     /**
@@ -398,7 +398,7 @@ public class TopcatModel {
      * @return  the column list
      */
     public ColumnList getColumnList() {
-        return columnList;
+        return columnList_;
     }
 
     /**
@@ -408,7 +408,7 @@ public class TopcatModel {
      * @return   the RowSubset list model
      */
     public OptionsListModel getSubsets() {
-        return subsets;
+        return subsets_;
     }
 
     /**
@@ -422,7 +422,7 @@ public class TopcatModel {
      * @return  subset count map
      */
     public Map getSubsetCounts() {
-        return subsetCounts;
+        return subsetCounts_;
     }
 
     /**
@@ -435,7 +435,7 @@ public class TopcatModel {
      * @return sort selection model
      */
     public ComboBoxModel getSortSelectionModel() {
-        return sortSelectionModel;
+        return sortSelectionModel_;
     }
 
     /**
@@ -445,7 +445,7 @@ public class TopcatModel {
      * @return  sort direction model
      */
     public JToggleButton.ToggleButtonModel getSortSenseModel() {
-        return sortSenseModel;
+        return sortSenseModel_;
     }
 
     /**
@@ -458,7 +458,7 @@ public class TopcatModel {
      * @return  active row selection model
      */
     public ComboBoxModel getSubsetSelectionModel() {
-        return subsetSelectionModel;
+        return subsetSelectionModel_;
     }
 
     /**
@@ -468,7 +468,7 @@ public class TopcatModel {
      * @param  current row subset
      */
     public RowSubset getSelectedSubset() {
-        return (RowSubset) subsetSelectionModel.getSelectedItem();
+        return (RowSubset) subsetSelectionModel_.getSelectedItem();
     }
 
     /**
@@ -478,7 +478,7 @@ public class TopcatModel {
      * @param  current sort order
      */
     public SortOrder getSelectedSort() {
-        return (SortOrder) sortSelectionModel.getSelectedItem();
+        return (SortOrder) sortSelectionModel_.getSelectedItem();
     }
 
     /**
@@ -493,11 +493,11 @@ public class TopcatModel {
      *          table with the characteristics of <tt>info</tt>
      */
     public ColumnSelectorModel getColumnSelectorModel( ValueInfo info ) {
-        if ( ! columnSelectorMap.containsKey( info ) ) {
-            columnSelectorMap.put( info, 
-                                   new ColumnSelectorModel( this, info ) );
+        if ( ! columnSelectorMap_.containsKey( info ) ) {
+            columnSelectorMap_.put( info, 
+                                    new ColumnSelectorModel( this, info ) );
         }
-        return (ColumnSelectorModel) columnSelectorMap.get( info );
+        return (ColumnSelectorModel) columnSelectorMap_.get( info );
     }
 
     /**
@@ -506,7 +506,7 @@ public class TopcatModel {
      * @param  listener  listener to add
      */
     public void addTopcatListener( TopcatListener listener ) {
-        listeners.add( listener );
+        listeners_.add( listener );
     }
 
     /**
@@ -515,7 +515,7 @@ public class TopcatModel {
      * @param  listener  listener to remove
      */
     public void removeTopcatListener( TopcatListener listener ) {
-        listeners.remove( listener );
+        listeners_.remove( listener );
     }
 
     /**
@@ -528,7 +528,7 @@ public class TopcatModel {
      */
     public void fireModelChanged( int code, Object datum ) {
         TopcatEvent evt = new TopcatEvent( this, code, datum );
-        for ( Iterator it = listeners.iterator(); it.hasNext(); ) {
+        for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
             ((TopcatListener) it.next()).modelChanged( evt );
         }
     }
@@ -540,8 +540,8 @@ public class TopcatModel {
      */
     public void highlightRow( long lrow ) {
         fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
-        if ( activator != null ) {
-            String msg = activator.activateRow( lrow );
+        if ( activator_ != null ) {
+            String msg = activator_.activateRow( lrow );
             if ( msg != null && msg.trim().length() > 0 ) {
                 System.out.println( msg );
             }
@@ -555,7 +555,7 @@ public class TopcatModel {
      * @return   window action
      */
     public WindowAction getViewerAction() {
-        return viewerAct;
+        return viewerAct_;
     }
 
     /**
@@ -565,7 +565,7 @@ public class TopcatModel {
      * @return  window action
      */
     public WindowAction getParameterAction() {
-        return paramAct;
+        return paramAct_;
     }
 
     /**
@@ -575,7 +575,7 @@ public class TopcatModel {
      * @return   window action
      */
     public WindowAction getColumnInfoAction() {
-        return colinfoAct;
+        return colinfoAct_;
     }
 
     /**
@@ -585,7 +585,7 @@ public class TopcatModel {
      * @return  window action
      */
     public WindowAction getStatsAction() {
-        return statsAct;
+        return statsAct_;
     }
 
     /**
@@ -595,7 +595,7 @@ public class TopcatModel {
      * @return   window action
      */
     public WindowAction getSubsetAction() {
-        return subsetAct;
+        return subsetAct_;
     }
 
     /**
@@ -605,7 +605,7 @@ public class TopcatModel {
      * @return   window action
      */
     public WindowAction getPlotAction() {
-        return plotAct;
+        return plotAct_;
     }
 
     /**
@@ -615,7 +615,7 @@ public class TopcatModel {
      * @return  subset definition action
      */
     public Action getNewSubsetAction() {
-        return newsubsetAct;
+        return newsubsetAct_;
     }
 
     /**
@@ -625,7 +625,7 @@ public class TopcatModel {
      * @return   unsort action
      */
     public Action getUnsortAction() {
-        return unsortAct;
+        return unsortAct_;
     }
 
     /**
@@ -636,7 +636,7 @@ public class TopcatModel {
      * @return  activation configuration action
      */
     public Action getActivationAction() {
-        return activationAct;
+        return activationAct_;
     }
 
     /**
@@ -646,7 +646,7 @@ public class TopcatModel {
      * @return  save action
      */
     public Action getSaveAction() {
-        return saveAct;
+        return saveAct_;
     }
 
     /**
@@ -696,8 +696,8 @@ public class TopcatModel {
      * The windows are disposed.
      */
     public void hideWindows() {
-        for ( int i = 0; i < windowActions.length; i++ ) {
-            WindowAction act = windowActions[ i ];
+        for ( int i = 0; i < windowActions_.length; i++ ) {
+            WindowAction act = windowActions_[ i ];
             act.putValue( "VISIBLE", Boolean.FALSE );
         }
     }
@@ -707,8 +707,8 @@ public class TopcatModel {
      * been instantiated but may not currently be visible.
      */
     public void revealWindows() {
-        for ( int i = 0; i < windowActions.length; i++ ) {
-            TopcatWindowAction act = windowActions[ i ];
+        for ( int i = 0; i < windowActions_.length; i++ ) {
+            TopcatWindowAction act = windowActions_[ i ];
             if ( act.hasWindow() ) {
                 act.putValue( WindowAction.VISIBLE, Boolean.TRUE );
             }
@@ -744,25 +744,25 @@ public class TopcatModel {
 
         /* Check that we are not trying to add the column beyond the end of
          * the table. */
-        if ( colIndex > dataModel.getColumnCount() ) {
+        if ( colIndex > dataModel_.getColumnCount() ) {
             throw new IllegalArgumentException();
         }
 
         /* Add the column to the table model itself. */
-        dataModel.addColumn( col );
+        dataModel_.addColumn( col );
 
         /* Add the new column to the column model. */
-        int modelIndex = dataModel.getColumnCount() - 1;
+        int modelIndex = dataModel_.getColumnCount() - 1;
         TableColumn tc = new StarTableColumn( col.getColumnInfo(), modelIndex );
-        columnModel.addColumn( tc );
+        columnModel_.addColumn( tc );
 
         /* Move the new column to the requested position. */
         if ( colIndex >= 0 ) {
-            columnModel.moveColumn( columnModel.getColumnCount() - 1,
-                                    colIndex );
+            columnModel_.moveColumn( columnModel_.getColumnCount() - 1,
+                                     colIndex );
         }
         else {
-            colIndex = columnModel.getColumnCount() - 1;
+            colIndex = columnModel_.getColumnCount() - 1;
         }
     }
 
@@ -814,9 +814,9 @@ public class TopcatModel {
          * that the column name (headerValue) has changed; there
          * doesn't appear to be an event specifically for this.
          * (Or should I be using bound property changes??) */
-        for ( int i = 0; i < columnModel.getColumnCount(); i++ ) {
-            if ( columnModel.getColumn( i ) == tcol ) { 
-                columnModel.moveColumn( i, i );
+        for ( int i = 0; i < columnModel_.getColumnCount(); i++ ) {
+            if ( columnModel_.getColumn( i ) == tcol ) { 
+                columnModel_.moveColumn( i, i );
             }
         }
     }
@@ -827,7 +827,7 @@ public class TopcatModel {
      * @param  rset  the new row subset
      */
     public void addSubset( RowSubset rset ) {
-        subsets.add( rset );
+        subsets_.add( rset );
     }
 
     /**
@@ -836,7 +836,7 @@ public class TopcatModel {
      * @param   param new parameter to add to the table
      */
     public void addParameter( DescribedValue param ) {
-        dataModel.getParameters().add( param );
+        dataModel_.getParameters().add( param );
         fireModelChanged( TopcatEvent.PARAMETERS, null );
     }
 
@@ -848,7 +848,7 @@ public class TopcatModel {
      *          one of the table parameters in the first place
      */
     public boolean removeParameter( DescribedValue param ) {
-        if ( dataModel.getParameters().remove( param ) ) {
+        if ( dataModel_.getParameters().remove( param ) ) {
             fireModelChanged( TopcatEvent.PARAMETERS, null );
             return true;
         }
@@ -865,9 +865,9 @@ public class TopcatModel {
      */
     public void sortBy( SortOrder order, boolean ascending ) {
         if ( order != SortOrder.NONE ) {
-            sortSenseModel.setSelected( ascending );
+            sortSenseModel_.setSelected( ascending );
         }
-        sortSelectionModel.setSelectedItem( order );
+        sortSelectionModel_.setSelectedItem( order );
     }
 
     /**
@@ -876,7 +876,7 @@ public class TopcatModel {
      * @param  rset  the row subset to use
      */
     public void applySubset( RowSubset rset ) {
-        subsetSelectionModel.setSelectedItem( rset );
+        subsetSelectionModel_.setSelectedItem( rset );
     }
 
     /**
@@ -911,8 +911,8 @@ public class TopcatModel {
 
         /* Construct a list of all the elements in the given column. */
         int nrow = AbstractStarTable
-                  .checkedLongToInt( dataModel.getRowCount() );
-        ColumnData coldata = dataModel.getColumnData( icol );
+                  .checkedLongToInt( dataModel_.getRowCount() );
+        ColumnData coldata = dataModel_.getColumnData( icol );
         Item[] items = new Item[ nrow ];
         for ( int i = 0; i < nrow; i++ ) {
             Item item = new Item();
@@ -944,12 +944,12 @@ public class TopcatModel {
      *          to be showing
      */
     public StarTable getApparentStarTable() {
-        int ncol = columnModel.getColumnCount();
+        int ncol = columnModel_.getColumnCount();
         int[] colMap = new int[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
-            colMap[ icol ] = columnModel.getColumn( icol ).getModelIndex();
+            colMap[ icol ] = columnModel_.getColumn( icol ).getModelIndex();
         }
-        return new ColumnPermutedStarTable( viewModel.getSnapshot(), colMap );
+        return new ColumnPermutedStarTable( viewModel_.getSnapshot(), colMap );
     }
 
     /**
@@ -972,10 +972,10 @@ public class TopcatModel {
         public void actionPerformed( ActionEvent evt ) {
             Component parent = getEventWindow( evt );
             TopcatModel model = TopcatModel.this;
-            if ( this == newsubsetAct ) {
+            if ( this == newsubsetAct_ ) {
                 new SyntheticSubsetQueryWindow( model, parent );
             }
-            else if ( this == unsortAct ) {
+            else if ( this == unsortAct_ ) {
                 sortBy( SortOrder.NONE, false );
             }
             else {
@@ -994,29 +994,29 @@ public class TopcatModel {
         }
 
         public boolean hasWindow() {
-            if ( this == viewerAct ) {
-                return viewerWindow != null;
+            if ( this == viewerAct_ ) {
+                return viewerWindow_ != null;
             }
-            else if ( this == paramAct ) {
-                return paramWindow != null;
+            else if ( this == paramAct_ ) {
+                return paramWindow_ != null;
             }
-            else if ( this == colinfoAct ) {
-                return colinfoWindow != null;
+            else if ( this == colinfoAct_ ) {
+                return colinfoWindow_ != null;
             }
-            else if ( this == statsAct ) {
-                return statsWindow != null;
+            else if ( this == statsAct_ ) {
+                return statsWindow_ != null;
             }
-            else if ( this == subsetAct ) {
-                return subsetWindow != null;
+            else if ( this == subsetAct_ ) {
+                return subsetWindow_ != null;
             }
-            else if ( this == plotAct ) {
-                return plotWindow != null;
+            else if ( this == plotAct_ ) {
+                return plotWindow_ != null;
             }
-            else if ( this == activationAct ) {
-                return activationWindow != null;
+            else if ( this == activationAct_ ) {
+                return activationWindow_ != null;
             }
-            else if ( this == saveAct ) {
-                return saveWindow != null;
+            else if ( this == saveAct_ ) {
+                return saveWindow_ != null;
             }
             else {
                 throw new AssertionError();
@@ -1025,58 +1025,58 @@ public class TopcatModel {
 
         public Window getWindow( Component parent ) {
             TopcatModel tcModel = TopcatModel.this;
-            if ( this == viewerAct ) {
+            if ( this == viewerAct_ ) {
                 if ( ! hasWindow() ) {
-                    viewerWindow = new TableViewerWindow( tcModel, parent );
+                    viewerWindow_ = new TableViewerWindow( tcModel, parent );
                 }
-                return viewerWindow;
+                return viewerWindow_;
             }
-            else if ( this == paramAct ) {
+            else if ( this == paramAct_ ) {
                 if ( ! hasWindow() ) {
-                    paramWindow = new ParameterWindow( tcModel, parent );
+                    paramWindow_ = new ParameterWindow( tcModel, parent );
                 }
-                return paramWindow;
+                return paramWindow_;
             }
-            else if ( this == colinfoAct ) {
+            else if ( this == colinfoAct_ ) {
                 if ( ! hasWindow() ) {
-                    colinfoWindow = new ColumnInfoWindow( tcModel, parent );
+                    colinfoWindow_ = new ColumnInfoWindow( tcModel, parent );
                 }
-                return colinfoWindow;
+                return colinfoWindow_;
             }
-            else if ( this == statsAct ) {
+            else if ( this == statsAct_ ) {
                 if ( ! hasWindow() ) {
-                    statsWindow = new StatsWindow( tcModel, parent );
+                    statsWindow_ = new StatsWindow( tcModel, parent );
                 }
-                return statsWindow;
+                return statsWindow_;
             }
-            else if ( this == subsetAct ) {
+            else if ( this == subsetAct_ ) {
                 if ( ! hasWindow() ) {
-                    subsetWindow = new SubsetWindow( tcModel, parent );
+                    subsetWindow_ = new SubsetWindow( tcModel, parent );
                 }
-                return subsetWindow;
+                return subsetWindow_;
             }
-            else if ( this == plotAct ) {
+            else if ( this == plotAct_ ) {
                 if ( ! hasWindow() ) {
-                    plotWindow = new PlotWindow( tcModel, parent );
+                    plotWindow_ = new PlotWindow( tcModel, parent );
                 }
-                return plotWindow;
+                return plotWindow_;
             }
-            else if ( this == activationAct ) {
+            else if ( this == activationAct_ ) {
                 if ( ! hasWindow() ) {
-                    activationWindow = 
+                    activationWindow_ = 
                         new ActivationQueryWindow( tcModel, parent );
                 }
-                return activationWindow;
+                return activationWindow_;
             }
-            else if ( this == saveAct ) {
+            else if ( this == saveAct_ ) {
                 if ( ! hasWindow() ) {
-                    StarTableOutput sto = controlWindow.getTableOutput();
+                    StarTableOutput sto = controlWindow_.getTableOutput();
                     TableLoadChooser loadChooser = 
-                        controlWindow.getLoadChooser();
-                    saveWindow = new SaveQueryWindow( tcModel, sto, loadChooser,
-                                                      parent );
+                        controlWindow_.getLoadChooser();
+                    saveWindow_ = new SaveQueryWindow( tcModel, sto,
+                                                       loadChooser, parent );
                 }
-                return saveWindow;
+                return saveWindow_;
             }
             else {
                 throw new AssertionError();
@@ -1088,29 +1088,29 @@ public class TopcatModel {
      * ButtonModel used for storing whether sorts should go up or down.
      */
     private class SortSenseModel extends JToggleButton.ToggleButtonModel {
-        boolean lastAscending = true;
+        boolean lastAscending_ = true;
         public void setSelected( boolean ascending ) {
-            if ( ascending != lastAscending ) {
+            if ( ascending != lastAscending_ ) {
 
                 /* If the table view has a current (non-null) sort order, 
                  * reverse it in place. */
-                int[] rowMap = viewModel.getRowMap();
+                int[] rowMap = viewModel_.getRowMap();
                 if ( rowMap != null ) {
                     for ( int i = 0, j = rowMap.length - 1; i < j; i++, j-- ) {
                         int c = rowMap[ i ];
                         rowMap[ i ] = rowMap[ j ];
                         rowMap[ j ] = c;
                     }
-                    viewModel.setRowMap( rowMap );
+                    viewModel_.setRowMap( rowMap );
                 }
 
                 /* Store the changed state. */
-                lastAscending = ascending;
+                lastAscending_ = ascending;
                 fireStateChanged();
             }
         }
         public boolean isSelected() {
-            return lastAscending;
+            return lastAscending_;
         }
     }
 
@@ -1120,10 +1120,10 @@ public class TopcatModel {
      */
     private class SortSelectionModel extends RestrictedColumnComboBoxModel {
 
-        private SortOrder lastSort = SortOrder.NONE;
+        private SortOrder lastSort_ = SortOrder.NONE;
 
         SortSelectionModel() {
-            super( columnModel, true );
+            super( columnModel_, true );
         }
 
         /**
@@ -1145,7 +1145,7 @@ public class TopcatModel {
          * Returns the most recent selected sort. 
          */
         public Object getSelectedItem() {
-            return lastSort;
+            return lastSort_;
         }
 
         /**
@@ -1164,7 +1164,7 @@ public class TopcatModel {
             }
 
             /* Do nothing if the order is the same one we've just had. */
-            if ( order.equals( lastSort ) ) {
+            if ( order.equals( lastSort_ ) ) {
                 return;
             }
 
@@ -1177,7 +1177,7 @@ public class TopcatModel {
                 TableColumn tcol = order.getColumn();
                 try {
                     rowMap = getSortOrder( tcol.getModelIndex(), 
-                                           sortSenseModel.isSelected() );
+                                           sortSenseModel_.isSelected() );
                 }
                 catch ( IOException e ) {
                     Toolkit.getDefaultToolkit().beep();
@@ -1188,10 +1188,10 @@ public class TopcatModel {
             }
 
             /* Install the new sorted order in the table view model. */
-            viewModel.setOrder( rowMap );
+            viewModel_.setOrder( rowMap );
 
             /* Store the selected value. */
-            lastSort = order;
+            lastSort_ = order;
 
             /* Make sure any component displaying this model is
              * updated (this call copied from Swing source). */
@@ -1206,14 +1206,14 @@ public class TopcatModel {
     private class SubsetSelectionModel extends AbstractListModel
                                        implements ComboBoxModel, 
                                                   ListDataListener {
-        private RowSubset lastSubset = RowSubset.ALL;
+        private RowSubset lastSubset_ = RowSubset.ALL;
 
         SubsetSelectionModel() {
-            subsets.addListDataListener( this );
+            subsets_.addListDataListener( this );
         }
  
         public Object getSelectedItem() {
-            return lastSubset;
+            return lastSubset_;
         }
 
         /**
@@ -1233,23 +1233,23 @@ public class TopcatModel {
 
             /* Do nothing if the subset is the same as the currently active 
              * one. */
-            if ( rset.equals( lastSubset ) ) {
+            if ( rset.equals( lastSubset_ ) ) {
                 return;
             }
 
             /* OK, we are going to apply the subset. */
-            viewModel.setSubset( rset );
+            viewModel_.setSubset( rset );
 
             /* As a side-effect we have calculated the number of rows in 
              * the subset, so update the count model. */
-            subsetCounts.put( rset, new Long( viewModel.getRowCount() ) );
-            int irset = subsets.indexOf( rset );
+            subsetCounts_.put( rset, new Long( viewModel_.getRowCount() ) );
+            int irset = subsets_.indexOf( rset );
             if ( irset >= 0 ) {
-                subsets.fireContentsChanged( irset, irset );
+                subsets_.fireContentsChanged( irset, irset );
             }
 
             /* Store the selected value. */
-            lastSubset = rset;
+            lastSubset_ = rset;
 
             /* Make any component displaying this model is updated. */
             fireContentsChanged( this, -1, -1 );
@@ -1259,11 +1259,11 @@ public class TopcatModel {
         }
 
         public Object getElementAt( int index ) {
-            return subsets.getElementAt( index );
+            return subsets_.getElementAt( index );
         }
 
         public int getSize() {
-            return subsets.getSize();
+            return subsets_.getSize();
         }
 
         /*
