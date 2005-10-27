@@ -75,6 +75,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TableViewerWindow;
+import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatViewWindow;
@@ -241,7 +242,7 @@ public class PlotWindow1 extends TopcatViewWindow
         stack.setSelectionModel( subSelModel_ );
 
         /* Initialise the selections. */
-        modelChanged( tcModel_, TopcatListener.SUBSET );
+        modelChanged( new TopcatEvent( tcModel_, TopcatEvent.SUBSET, null ) );
 
         /* Maintain a list of selected subsets updated from this model. 
          * This cannot be worked out from the model on request, since the
@@ -899,8 +900,9 @@ public class PlotWindow1 extends TopcatViewWindow
         forceReplot();
     }
 
-    public void modelChanged( TopcatModel model, int code ) {
-        if ( code == TopcatListener.SUBSET ) {
+    public void modelChanged( TopcatEvent evt ) {
+        int code = evt.getCode();
+        if ( code == TopcatEvent.SUBSET ) {
             RowSubset currentSet = tcModel_.getSelectedSubset();
             subSelModel_.setValueIsAdjusting( true );
             subSelModel_.clearSelection();
@@ -912,11 +914,8 @@ public class PlotWindow1 extends TopcatViewWindow
             }
             subSelModel_.setValueIsAdjusting( false );
         }
-        else if ( code == TopcatListener.ROW ) {
-            long lrow = model.getHighlightedRow();
-            if ( lrow >= 0 ) {
-                highlightRow( lrow );
-            }
+        else if ( code == TopcatEvent.ROW ) {
+            highlightRow( ((Long) evt.getDatum()).longValue() );
         }
     }
 

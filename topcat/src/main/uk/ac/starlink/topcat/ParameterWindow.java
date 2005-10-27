@@ -393,8 +393,8 @@ public class ParameterWindow extends TopcatViewWindow
      * Implements TopcatListener so that the display will be updated 
      * if the table's parameter list changes.
      */
-    public void modelChanged( TopcatModel tcModel, int code ) {
-        if ( code == TopcatListener.PARAMETERS ) {
+    public void modelChanged( TopcatEvent evt ) {
+        if ( evt.getCode() == TopcatEvent.PARAMETERS ) {
             metaTableModel.fireTableDataChanged();
         }
     }

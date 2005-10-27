@@ -511,11 +511,14 @@ public class TableViewerWindow extends TopcatViewWindow
     /*
      * Implementation of TopcatListener interface.
      */
-    public void modelChanged( TopcatModel model, int code ) {
-        if ( code == TopcatListener.ROW ) {
-            long lrow = model.getHighlightedRow();
-            if ( lrow >= 0 ) {
-                highlightRow( lrow );
+    public void modelChanged( TopcatEvent evt ) {
+        if ( evt.getCode() == TopcatEvent.ROW ) {
+            Object datum = evt.getDatum();
+            if ( datum instanceof Long ) {
+                highlightRow( ((Long) datum).longValue() );
+            }
+            else {
+                assert false;
             }
         }
     }

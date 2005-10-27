@@ -49,6 +49,7 @@ import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatViewWindow;
@@ -163,7 +164,7 @@ public abstract class GraphicsWindow extends TopcatViewWindow
         getControlPanel().add( stackPanel_ );
 
         /* Initialise the selections. */
-        modelChanged( tcModel_, TopcatListener.SUBSET );
+        modelChanged( new TopcatEvent( tcModel_, TopcatEvent.SUBSET, null ) );
 
         /* Maintain a list of selected subsets updated from this model.
          * This cannot be worked out from the model on request, since the
@@ -613,8 +614,8 @@ public abstract class GraphicsWindow extends TopcatViewWindow
     /**
      * TopcatListener implementation.
      */
-    public void modelChanged( TopcatModel tcModel, int code ) {
-        if ( code == TopcatListener.SUBSET ) {
+    public void modelChanged( TopcatEvent evt ) {
+        if ( evt.getCode() == TopcatEvent.SUBSET ) {
             RowSubset currentSet = tcModel_.getSelectedSubset();
             subSelModel_.setValueIsAdjusting( true );
             subSelModel_.clearSelection();

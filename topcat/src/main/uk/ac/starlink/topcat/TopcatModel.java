@@ -73,7 +73,6 @@ public class TopcatModel {
     private String location;
     private String label;
     private Activator activator;
-    private long highlightedRow = -1L;
 
     private TableViewerWindow viewerWindow;
     private ParameterWindow paramWindow;
@@ -280,7 +279,7 @@ public class TopcatModel {
             this.label = label;
 
             /* Notify listeners. */
-            fireModelChanged( TopcatListener.LABEL );
+            fireModelChanged( TopcatEvent.LABEL, null );
         }
     }
 
@@ -305,7 +304,7 @@ public class TopcatModel {
             }
 
             /* Notify listeners. */
-            fireModelChanged( TopcatListener.ACTIVATOR );
+            fireModelChanged( TopcatEvent.ACTIVATOR, null );
         }
     }
 
@@ -524,11 +523,13 @@ public class TopcatModel {
      *
      * @param  code  item code indicating the type of change that has
      *               occurred (one of the static final constants in 
-     *               {@link TopcatListener})
+     *               {@link TopcatEvent})
+     * @param  datum additional information about the event
      */
-    public void fireModelChanged( int code ) {
+    public void fireModelChanged( int code, Object datum ) {
+        TopcatEvent evt = new TopcatEvent( this, code, datum );
         for ( Iterator it = listeners.iterator(); it.hasNext(); ) {
-            ((TopcatListener) it.next()).modelChanged( this, code );
+            ((TopcatListener) it.next()).modelChanged( evt );
         }
     }
 
@@ -538,25 +539,13 @@ public class TopcatModel {
      * @param  lrow  index of the row to activate
      */
     public void highlightRow( long lrow ) {
-        highlightedRow = lrow;
-        fireModelChanged( TopcatListener.ROW );
+        fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
         if ( activator != null ) {
             String msg = activator.activateRow( lrow );
             if ( msg != null && msg.trim().length() > 0 ) {
                 System.out.println( msg );
             }
         }
-    }
-
-    /**
-     * Returns the row which has most recently been highlighted.
-     * Normally used following a TopcatListener {@link TopcatListener#ROW}
-     * event.
-     *
-     * @return   highlighted row, or negative if none
-     */
-    public long getHighlightedRow() {
-        return highlightedRow;
     }
 
     /**
@@ -848,7 +837,7 @@ public class TopcatModel {
      */
     public void addParameter( DescribedValue param ) {
         dataModel.getParameters().add( param );
-        fireModelChanged( TopcatListener.PARAMETERS );
+        fireModelChanged( TopcatEvent.PARAMETERS, null );
     }
 
     /**
@@ -860,7 +849,7 @@ public class TopcatModel {
      */
     public boolean removeParameter( DescribedValue param ) {
         if ( dataModel.getParameters().remove( param ) ) {
-            fireModelChanged( TopcatListener.PARAMETERS );
+            fireModelChanged( TopcatEvent.PARAMETERS, null );
             return true;
         }
         else {
@@ -1266,7 +1255,7 @@ public class TopcatModel {
             fireContentsChanged( this, -1, -1 );
 
             /* Notify registered listeners to the TopcatModel. */
-            fireModelChanged( TopcatListener.SUBSET );
+            fireModelChanged( TopcatEvent.SUBSET, null );
         }
 
         public Object getElementAt( int index ) {

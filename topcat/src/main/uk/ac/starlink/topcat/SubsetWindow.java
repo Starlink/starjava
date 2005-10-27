@@ -131,12 +131,13 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
          * TopcatModel's current subset (this influence deliberately doesn't
          * work the other way round). */
         tcModel.addTopcatListener( new TopcatListener() {
-            public void modelChanged( TopcatModel model, int code ) {
-                if ( code == TopcatListener.SUBSET ) {
+            public void modelChanged( TopcatEvent evt ) {
+                if ( evt.getCode() == TopcatEvent.SUBSET ) {
                     selectionModel.setValueIsAdjusting( true );
                     selectionModel.clearSelection();
-                    RowSubset selected = model.getSelectedSubset();
-                    ComboBoxModel tcSelModel = model.getSubsetSelectionModel();
+                    RowSubset selected = tcModel.getSelectedSubset();
+                    ComboBoxModel tcSelModel = 
+                        tcModel.getSubsetSelectionModel();
                     for ( int i = 0; i < tcSelModel.getSize(); i++ ) {
                         if ( tcSelModel.getElementAt( i ) == selected ) {
                             selectionModel.addSelectionInterval( i, i );

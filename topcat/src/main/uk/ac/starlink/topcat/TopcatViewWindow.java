@@ -30,8 +30,10 @@ public class TopcatViewWindow extends AuxWindow {
         this.viewName = viewName;
         configureTitle();
         tcModel.addTopcatListener( new TopcatListener() {
-            public void modelChanged( TopcatModel tcModel, int code ) {
-                configureTitle();
+            public void modelChanged( TopcatEvent evt ) {
+                if ( evt.getCode() == TopcatEvent.LABEL ) {
+                    configureTitle();
+                }
             }
         } );
     }

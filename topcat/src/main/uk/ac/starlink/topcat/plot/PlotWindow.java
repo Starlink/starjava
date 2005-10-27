@@ -32,6 +32,7 @@ import uk.ac.starlink.topcat.CheckBoxMenu;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 
@@ -478,12 +479,16 @@ public class PlotWindow extends GraphicsWindow {
     /*
      * TopcatListener implementation.
      */
-    public void modelChanged( TopcatModel model, int code ) {
-        super.modelChanged( model, code );
-        if ( code == TopcatListener.ROW ) {
-            long lrow = model.getHighlightedRow();
-            if ( lrow >= 0 ) {
+    public void modelChanged( TopcatEvent evt ) {
+        super.modelChanged( evt );
+        if ( evt.getCode() == TopcatEvent.ROW ) {
+            Object datum = evt.getDatum();
+            if ( datum instanceof Long ) {
+                long lrow = ((Long) datum).longValue();
                 plot_.setActivePoint( Tables.checkedLongToInt( lrow ) );
+            }
+            else {
+                assert false;
             }
         }
     }

@@ -152,9 +152,10 @@ public class StatsWindow extends TopcatViewWindow {
         /* Add a trigger to recalculate for a different subset if the
          * global current subset is changed. */
         tcModel.addTopcatListener( new TopcatListener() {
-            public void modelChanged( TopcatModel model, int code ) {
-                if ( code == TopcatListener.SUBSET ) {
-                    subSelector.setSelectedItem( model.getSelectedSubset() );
+            public void modelChanged( TopcatEvent evt ) {
+                if ( evt.getCode() == TopcatEvent.SUBSET ) {
+                    subSelector.setSelectedItem( StatsWindow.this.tcModel
+                                                .getSelectedSubset() );
                 }
             }
         } );

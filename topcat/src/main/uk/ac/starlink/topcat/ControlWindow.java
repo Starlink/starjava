@@ -687,13 +687,13 @@ public class ControlWindow extends AuxWindow
         updateInfo();
     }
 
-    public void modelChanged( TopcatModel tcModel, int code ) {
-        switch ( code ) {
+    public void modelChanged( TopcatEvent evt ) {
+        switch ( evt.getCode() ) {
 
             /* Model label has changed. */
-            case TopcatListener.LABEL:
+            case TopcatEvent.LABEL:
                 updateInfo();
-                int index = tablesModel.indexOf( tcModel );
+                int index = tablesModel.indexOf( evt.getModel() );
 
                 /* If the model is represented in the list panel (presumably
                  * it is), update the list panel by firing events on the 
@@ -711,7 +711,7 @@ public class ControlWindow extends AuxWindow
                 break;
 
             /* Activator has changed. */
-            case TopcatListener.ACTIVATOR:
+            case TopcatEvent.ACTIVATOR:
                 updateInfo();
                 break;
         }
