@@ -84,61 +84,62 @@ public class ControlWindow extends AuxWindow
                                       TableColumnModelListener,
                                       TopcatListener {
 
-    private static ControlWindow instance;
-    private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
+    private static ControlWindow instance_;
+    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
-    private final JList tablesList;
-    private final DefaultListModel tablesModel;
-    private final TableModelListener tableWatcher = this;
-    private final TopcatListener topcatWatcher = this;
-    private final ListSelectionListener selectionWatcher = this;
-    private final ListDataListener tablesWatcher = this;
-    private final TableColumnModelListener columnWatcher = this;
-    private final WindowListener windowWatcher = new ControlWindowListener();
-    private final StarTableOutput taboutput = new StarTableOutput();
-    private final boolean canWrite = Driver.canWrite();
-    private final boolean canRead = Driver.canRead();
-    private final TransferHandler importTransferHandler = 
+    private final JList tablesList_;
+    private final DefaultListModel tablesModel_;
+    private final TableModelListener tableWatcher_ = this;
+    private final TopcatListener topcatWatcher_ = this;
+    private final ListSelectionListener selectionWatcher_ = this;
+    private final ListDataListener tablesWatcher_ = this;
+    private final TableColumnModelListener columnWatcher_ = this;
+    private final WindowListener windowWatcher_ = new ControlWindowListener();
+    private final StarTableOutput taboutput_ = new StarTableOutput();
+    private final boolean canWrite_ = Driver.canWrite();
+    private final boolean canRead_ = Driver.canRead();
+    private final TransferHandler importTransferHandler_ = 
         new ControlTransferHandler( true, false );
-    private final TransferHandler exportTransferHandler =
+    private final TransferHandler exportTransferHandler_ =
         new ControlTransferHandler( false, true );
-    private final TransferHandler bothTransferHandler =
+    private final TransferHandler bothTransferHandler_ =
         new ControlTransferHandler( true, true );
-    private final Window window = this;
-    private final ComboBoxModel dummyComboBoxModel = new DefaultComboBoxModel();
-    private final ButtonModel dummyButtonModel = new DefaultButtonModel();
-    private StarTableFactory tabfact = new StarTableFactory( true );
-    private TableLoadChooser loadChooser;
-    private LoadQueryWindow loadWindow;
-    private ConcatWindow concatWindow;
-    private ExtApp extApp;
+    private final Window window_ = this;
+    private final ComboBoxModel dummyComboBoxModel_ =
+        new DefaultComboBoxModel();
+    private final ButtonModel dummyButtonModel_ = new DefaultButtonModel();
+    private StarTableFactory tabfact_ = new StarTableFactory( true );
+    private TableLoadChooser loadChooser_;
+    private LoadQueryWindow loadWindow_;
+    private ConcatWindow concatWindow_;
+    private ExtApp extApp_;
 
-    private final JTextField idField = new JTextField();
-    private final JLabel indexLabel = new JLabel();
-    private final JLabel locLabel = new JLabel();
-    private final JLabel nameLabel = new JLabel();
-    private final JLabel rowsLabel = new JLabel();
-    private final JLabel colsLabel = new JLabel();
-    private final JComboBox subsetSelector = new JComboBox();
-    private final JComboBox sortSelector = new JComboBox();
-    private final JToggleButton sortSenseButton = new UpDownButton();
-    private final JButton activatorButton = new JButton();
+    private final JTextField idField_ = new JTextField();
+    private final JLabel indexLabel_ = new JLabel();
+    private final JLabel locLabel_ = new JLabel();
+    private final JLabel nameLabel_ = new JLabel();
+    private final JLabel rowsLabel_ = new JLabel();
+    private final JLabel colsLabel_ = new JLabel();
+    private final JComboBox subsetSelector_ = new JComboBox();
+    private final JComboBox sortSelector_ = new JComboBox();
+    private final JToggleButton sortSenseButton_ = new UpDownButton();
+    private final JButton activatorButton_ = new JButton();
 
-    private final Action viewerAct;
-    private final Action paramAct;
-    private final Action colinfoAct;
-    private final Action statsAct;
-    private final Action subsetAct;
-    private final Action plotAct;
-    private final Action readAct;
-    private final Action writeAct;
-    private final Action dupAct;
-    private final Action mirageAct;
-    private final Action removeAct;
-    private final Action concatAct;
-    private final Action logAct;
-    private final Action[] matchActs;
-    private final ShowAction[] showActs;
+    private final Action viewerAct_;
+    private final Action paramAct_;
+    private final Action colinfoAct_;
+    private final Action statsAct_;
+    private final Action subsetAct_;
+    private final Action plotAct_;
+    private final Action readAct_;
+    private final Action writeAct_;
+    private final Action dupAct_;
+    private final Action mirageAct_;
+    private final Action removeAct_;
+    private final Action concatAct_;
+    private final Action logAct_;
+    private final Action[] matchActs_;
+    private final ShowAction[] showActs_;
 
     /**
      * Constructs a new window.
@@ -147,38 +148,38 @@ public class ControlWindow extends AuxWindow
         super( "Starlink TOPCAT", null );
 
         /* Set up a list of the known tables. */
-        tablesModel = new DefaultListModel();
-        tablesList = new JList( tablesModel );
+        tablesModel_ = new DefaultListModel();
+        tablesList_ = new JList( tablesModel_ );
 
         /* Watch the list. */
-        tablesList.addListSelectionListener( selectionWatcher );
-        tablesModel.addListDataListener( tablesWatcher );
+        tablesList_.addListSelectionListener( selectionWatcher_ );
+        tablesModel_.addListDataListener( tablesWatcher_ );
 
         /* Watch the label field. */
-        idField.addActionListener( new ActionListener() {
+        idField_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                getCurrentModel().setLabel( idField.getText() );
+                getCurrentModel().setLabel( idField_.getText() );
             }
         } );
 
         /* Set up a panel displaying table information. */
         InfoStack info = new InfoStack();
         info.setBorder( BorderFactory.createEmptyBorder( 4, 4, 4, 4 ) );
-        info.addLine( "Label", idField );
-        info.addLine( "Location", locLabel );
-        info.addLine( "Name", nameLabel );
-        info.addLine( "Rows", rowsLabel );
-        info.addLine( "Columns", colsLabel );
-        info.addLine( "Sort Order", new Component[] { sortSenseButton,
-                                                      sortSelector } );
-        info.addLine( "Row Subset", subsetSelector );
-        info.addLine( "Activation Action", activatorButton );
-        activatorButton.setText( "           " );
+        info.addLine( "Label", idField_ );
+        info.addLine( "Location", locLabel_ );
+        info.addLine( "Name", nameLabel_ );
+        info.addLine( "Rows", rowsLabel_ );
+        info.addLine( "Columns", colsLabel_ );
+        info.addLine( "Sort Order", new Component[] { sortSenseButton_,
+                                                      sortSelector_ } );
+        info.addLine( "Row Subset", subsetSelector_ );
+        info.addLine( "Activation Action", activatorButton_ );
+        activatorButton_.setText( "           " );
         info.fillIn();
 
         /* Set up a split pane in the main panel. */
         JSplitPane splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
-        JScrollPane listScroller = new JScrollPane( tablesList );
+        JScrollPane listScroller = new JScrollPane( tablesList_ );
         JScrollPane infoScroller = new JScrollPane( info );
         listScroller.setBorder( makeTitledBorder( "Table List" ) );
         infoScroller.setBorder( makeTitledBorder( "Current Table " +
@@ -190,44 +191,44 @@ public class ControlWindow extends AuxWindow
         getMainArea().add( splitter );
 
         /* Configure drag and drop on the list panel. */
-        tablesList.setDragEnabled( true );
-        tablesList.setTransferHandler( bothTransferHandler );
+        tablesList_.setDragEnabled( true );
+        tablesList_.setTransferHandler( bothTransferHandler_ );
 
         /* Set up actions. */
-        removeAct = new ControlAction( "Discard Table", ResourceIcon.DELETE,
-                                       "Forget about the current table" );
-        readAct = new ControlAction( "Load Table", ResourceIcon.LOAD,
-                                     "Open a new table" );
-        concatAct = new ControlAction( "Concatenate Tables",
-                                       ResourceIcon.CONCAT,
-                                       "Join tables by concatenating them" );
-        logAct = new ControlAction( "View Log", ResourceIcon.LOG,
-                                    "Display the log of events" );
-        readAct.setEnabled( canRead );
-        logAct.setEnabled( LogHandler.getInstance() != null );
+        removeAct_ = new ControlAction( "Discard Table", ResourceIcon.DELETE,
+                                        "Forget about the current table" );
+        readAct_ = new ControlAction( "Load Table", ResourceIcon.LOAD,
+                                      "Open a new table" );
+        concatAct_ = new ControlAction( "Concatenate Tables",
+                                        ResourceIcon.CONCAT,
+                                        "Join tables by concatenating them" );
+        logAct_ = new ControlAction( "View Log", ResourceIcon.LOG,
+                                     "Display the log of events" );
+        readAct_.setEnabled( canRead_ );
+        logAct_.setEnabled( LogHandler.getInstance() != null );
 
-        dupAct = new ExportAction( "Duplicate Table", ResourceIcon.COPY,
-                                   "Create a duplicate of the current table" );
-        mirageAct = new ExportAction( "Export To Mirage", null,
+        dupAct_ = new ExportAction( "Duplicate Table", ResourceIcon.COPY,
+                                    "Create a duplicate of the current table" );
+        mirageAct_ = new ExportAction( "Export To Mirage", null,
                                "Launch Mirage to display the current table" );
-        mirageAct.setEnabled( MirageHandler.isMirageAvailable() );
+        mirageAct_.setEnabled( MirageHandler.isMirageAvailable() );
 
-        viewerAct = new ModelAction( "Table Data", ResourceIcon.VIEWER,
-                                     "Display table cell data" );
-        paramAct = new ModelAction( "Table Parameters", ResourceIcon.PARAMS,
-                                    "Display table metadata" );
-        colinfoAct = new ModelAction( "Column Info", ResourceIcon.COLUMNS,
-                                      "Display column metadata" );
-        subsetAct = new ModelAction( "Row Subsets", ResourceIcon.SUBSETS,
-                                     "Display row subsets" );
-        statsAct = new ModelAction( "Column Statistics", ResourceIcon.STATS,
-                                    "Display statistics for each column" );
-        plotAct = new ModelAction( "Plot", ResourceIcon.PLOT,
-                                   "Plot table columns" );
-        writeAct = new ModelAction( "Save Table", ResourceIcon.SAVE,
-                                    "Write out the current table" );
+        viewerAct_ = new ModelAction( "Table Data", ResourceIcon.VIEWER,
+                                      "Display table cell data" );
+        paramAct_ = new ModelAction( "Table Parameters", ResourceIcon.PARAMS,
+                                     "Display table metadata" );
+        colinfoAct_ = new ModelAction( "Column Info", ResourceIcon.COLUMNS,
+                                       "Display column metadata" );
+        subsetAct_ = new ModelAction( "Row Subsets", ResourceIcon.SUBSETS,
+                                      "Display row subsets" );
+        statsAct_ = new ModelAction( "Column Statistics", ResourceIcon.STATS,
+                                     "Display statistics for each column" );
+        plotAct_ = new ModelAction( "Plot", ResourceIcon.PLOT,
+                                    "Plot table columns" );
+        writeAct_ = new ModelAction( "Save Table", ResourceIcon.SAVE,
+                                     "Write out the current table" );
 
-        matchActs = new Action[] {
+        matchActs_ = new Action[] {
             new MatchWindowAction( "Internal Match", ResourceIcon.MATCH1,
                                    "Perform row matching on a single table", 
                                    1 ),
@@ -249,55 +250,55 @@ public class ControlWindow extends AuxWindow
                 addTable( table, loc, true );
             }
             public StarTableFactory getTableFactory() {
-                return tabfact;
+                return tabfact_;
             }
         };
-        tablesList.addMouseListener( pasteLoader );
+        tablesList_.addMouseListener( pasteLoader );
 
         /* Configure load button for mouse actions. */
-        JButton readButton = new JButton( readAct );
+        JButton readButton = new JButton( readAct_ );
         readButton.setText( null );
-        readButton.setTransferHandler( importTransferHandler );
+        readButton.setTransferHandler( importTransferHandler_ );
         readButton.addMouseListener( pasteLoader );
 
         /* Bind an action for double-click or Enter key on the list. */
-        tablesList.addMouseListener( new MouseAdapter() {
+        tablesList_.addMouseListener( new MouseAdapter() {
             public void mouseClicked( MouseEvent evt ) {
                 if ( evt.getClickCount() >= 2 ) {
                     ActionEvent aevt = new ActionEvent( evt.getSource(),
                                                         evt.getID(),
                                                         "Display Table" );
-                    viewerAct.actionPerformed( aevt );
+                    viewerAct_.actionPerformed( aevt );
                 }
             }
         } );
-        Object actkey = viewerAct.getValue( Action.NAME );
-        tablesList.getInputMap()
+        Object actkey = viewerAct_.getValue( Action.NAME );
+        tablesList_.getInputMap()
                   .put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), 
                         actkey );
-        tablesList.getActionMap().put( actkey, viewerAct );
+        tablesList_.getActionMap().put( actkey, viewerAct_ );
 
         /* Add load/save control buttons to the toolbar. */
         JToolBar toolBar = getToolBar();
         toolBar.setFloatable( true );
         toolBar.add( readButton );
-        configureExportSource( toolBar.add( writeAct ) );
-        configureExportSource( toolBar.add( dupAct ) );
+        configureExportSource( toolBar.add( writeAct_ ) );
+        configureExportSource( toolBar.add( dupAct_ ) );
         toolBar.addSeparator();
 
         /* Add table view buttons to the toolbar. */
-        toolBar.add( viewerAct );
-        toolBar.add( paramAct );
-        toolBar.add( colinfoAct );
-        toolBar.add( subsetAct );
-        toolBar.add( statsAct );
-        toolBar.add( plotAct );
+        toolBar.add( viewerAct_ );
+        toolBar.add( paramAct_ );
+        toolBar.add( colinfoAct_ );
+        toolBar.add( subsetAct_ );
+        toolBar.add( statsAct_ );
+        toolBar.add( plotAct_ );
         toolBar.addSeparator();
 
         /* Add join/match control buttons to the toolbar. */
-        toolBar.add( concatAct );
-        toolBar.add( matchActs[ 0 ] );
-        toolBar.add( matchActs[ 1 ] );
+        toolBar.add( concatAct_ );
+        toolBar.add( matchActs_[ 0 ] );
+        toolBar.add( matchActs_[ 1 ] );
         toolBar.addSeparator();
 
         /* Add miscellaneous actions to the toolbar. */
@@ -307,44 +308,44 @@ public class ControlWindow extends AuxWindow
         /* Add actions to the file menu. */
         JMenu fileMenu = getFileMenu();
         int fileMenuPos = 0;
-        fileMenu.insert( readAct, fileMenuPos++ );
-        fileMenu.insert( removeAct, fileMenuPos++ );
+        fileMenu.insert( readAct_, fileMenuPos++ );
+        fileMenu.insert( removeAct_, fileMenuPos++ );
         fileMenu.insertSeparator( fileMenuPos++ );
-        fileMenu.insert( writeAct, fileMenuPos++ );
-        fileMenu.insert( dupAct, fileMenuPos++ );
+        fileMenu.insert( writeAct_, fileMenuPos++ );
+        fileMenu.insert( dupAct_, fileMenuPos++ );
         if ( MirageHandler.isMirageAvailable() ) {
-            fileMenu.insert( mirageAct, fileMenuPos++ );
+            fileMenu.insert( mirageAct_, fileMenuPos++ );
         }
         fileMenu.insertSeparator( fileMenuPos++ );
-        fileMenu.insert( logAct, fileMenuPos++ );
+        fileMenu.insert( logAct_, fileMenuPos++ );
         fileMenu.insertSeparator( fileMenuPos++ );
 
         /* Add a menu for the table views. */
         JMenu viewMenu = new JMenu( "TableViews" );
         viewMenu.setMnemonic( KeyEvent.VK_V );
-        viewMenu.add( viewerAct );
-        viewMenu.add( paramAct );
-        viewMenu.add( colinfoAct );
-        viewMenu.add( subsetAct );
-        viewMenu.add( statsAct );
-        viewMenu.add( plotAct );
+        viewMenu.add( viewerAct_ );
+        viewMenu.add( paramAct_ );
+        viewMenu.add( colinfoAct_ );
+        viewMenu.add( subsetAct_ );
+        viewMenu.add( statsAct_ );
+        viewMenu.add( plotAct_ );
         getJMenuBar().add( viewMenu );
 
         /* Add a menu for window management. */
         JMenu winMenu = new JMenu( "Windows" );
         winMenu.setMnemonic( KeyEvent.VK_W );
-        showActs = makeShowActions();
-        for ( int i = 0; i < showActs.length; i++ ) {
-            winMenu.add( showActs[ i ] );
+        showActs_ = makeShowActions();
+        for ( int i = 0; i < showActs_.length; i++ ) {
+            winMenu.add( showActs_[ i ] );
         }
         getJMenuBar().add( winMenu );
 
         /* Add a menu for table joining. */
         JMenu joinMenu = new JMenu( "Joins" );
         joinMenu.setMnemonic( KeyEvent.VK_J );
-        joinMenu.add( concatAct );
-        for ( int i = 0; i < matchActs.length; i++ ) {
-            joinMenu.add( matchActs[ i ] );
+        joinMenu.add( concatAct_ );
+        for ( int i = 0; i < matchActs_.length; i++ ) {
+            joinMenu.add( matchActs_[ i ] );
         }
         getJMenuBar().add( joinMenu );
 
@@ -357,7 +358,7 @@ public class ControlWindow extends AuxWindow
         /* Make closing this window equivalent to closing the application,
          * since without it the application can't be controlled. */
         setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
-        addWindowListener( windowWatcher );
+        addWindowListener( windowWatcher_ );
 
         /* Display the window. */
         updateInfo();
@@ -372,10 +373,10 @@ public class ControlWindow extends AuxWindow
      * @return  instance of control window
      */
     public static ControlWindow getInstance() {
-        if ( instance == null ) {
-            instance = new ControlWindow();
+        if ( instance_ == null ) {
+            instance_ = new ControlWindow();
         }
-        return instance;
+        return instance_;
     }
 
     /**
@@ -385,10 +386,10 @@ public class ControlWindow extends AuxWindow
      * @return   external application object for TOPCAT
      */
     public ExtApp getExtApp() {
-        if ( extApp == null ) {
-            extApp = new TopcatExtApp( this );
+        if ( extApp_ == null ) {
+            extApp_ = new TopcatExtApp( this );
         }
-        return extApp;
+        return extApp_;
     }
 
     /**
@@ -408,10 +409,10 @@ public class ControlWindow extends AuxWindow
                                  boolean select ) {
         TopcatModel tcModel = new TopcatModel( table, location, this );
         tcModel.setLabel( shorten( location ) );
-        tablesModel.addElement( tcModel );
-        logger.info( "Load new table " + tcModel + " from " + location );
-        if ( select || tablesList.getSelectedValue() == null ) {
-            tablesList.setSelectedValue( tcModel, true );
+        tablesModel_.addElement( tcModel );
+        logger_.info( "Load new table " + tcModel + " from " + location );
+        if ( select || tablesList_.getSelectedValue() == null ) {
+            tablesList_.setSelectedValue( tcModel, true );
         }
         if ( select ) {
             makeVisible();
@@ -425,10 +426,10 @@ public class ControlWindow extends AuxWindow
      * @param  model  the table entry to remove
      */
     public void removeTable( TopcatModel model ) {
-        if ( tablesModel.contains( model ) ) {
+        if ( tablesModel_.contains( model ) ) {
             model.hideWindows();
-            tablesList.clearSelection();
-            tablesModel.removeElement( model );
+            tablesList_.clearSelection();
+            tablesModel_.removeElement( model );
         }
     }
 
@@ -438,7 +439,7 @@ public class ControlWindow extends AuxWindow
      * @return  selected model
      */
     private TopcatModel getCurrentModel() {
-        return (TopcatModel) tablesList.getSelectedValue();
+        return (TopcatModel) tablesList_.getSelectedValue();
     }
 
     /**
@@ -448,7 +449,7 @@ public class ControlWindow extends AuxWindow
      * @return  list model of {@link TopcatModel} objects
      */
     public ListModel getTablesListModel() {
-        return tablesModel;
+        return tablesModel_;
     }
 
     /**
@@ -457,15 +458,15 @@ public class ControlWindow extends AuxWindow
      * @return  a table load window
      */
     public LoadQueryWindow getLoader() {
-        if ( loadWindow == null ) {
-            loadWindow = new LoadQueryWindow( tabfact, getLoadChooser(),
-                                              this ) {
+        if ( loadWindow_ == null ) {
+            loadWindow_ = new LoadQueryWindow( tabfact_, getLoadChooser(),
+                                               this ) {
                 protected void performLoading( StarTable st, String loc ) {
                     addTable( st, loc, true );
                 }
             };
         }
-        return loadWindow;
+        return loadWindow_;
     }
 
     /**
@@ -474,10 +475,10 @@ public class ControlWindow extends AuxWindow
      * @return  concatenation window
      */
     public ConcatWindow getConcatWindow() {
-        if ( concatWindow == null ) {
-            concatWindow = new ConcatWindow( this );
+        if ( concatWindow_ == null ) {
+            concatWindow_ = new ConcatWindow( this );
         }
-        return concatWindow;
+        return concatWindow_;
     }
 
     /**
@@ -486,7 +487,7 @@ public class ControlWindow extends AuxWindow
      * @return  table factory
      */
     public StarTableFactory getTableFactory() {
-        return tabfact;
+        return tabfact_;
     }
 
     /**
@@ -495,7 +496,7 @@ public class ControlWindow extends AuxWindow
      * @return  table outputter
      */
     public StarTableOutput getTableOutput() {
-        return taboutput;
+        return taboutput_;
     }
 
     /**
@@ -504,7 +505,7 @@ public class ControlWindow extends AuxWindow
      * @param   tabfact   table factory
      */
     public void setTableFactory( StarTableFactory tabfact ) {
-        this.tabfact = tabfact;
+        tabfact_ = tabfact;
     }
 
     /**
@@ -513,10 +514,10 @@ public class ControlWindow extends AuxWindow
      * @return  load chooser dialogue
      */
     public TableLoadChooser getLoadChooser() {
-        if ( loadChooser == null ) {
-            loadChooser = new TableLoadChooser( getTableFactory() );
+        if ( loadChooser_ == null ) {
+            loadChooser_ = new TableLoadChooser( getTableFactory() );
         }
-        return loadChooser;
+        return loadChooser_;
     }
 
     /**
@@ -525,7 +526,7 @@ public class ControlWindow extends AuxWindow
      * @param  chooser  load chooser dialogue
      */
     public void setLoadChooser( TableLoadChooser chooser ) {
-        this.loadChooser = chooser;
+        loadChooser_ = chooser;
     }
 
     /**
@@ -543,14 +544,14 @@ public class ControlWindow extends AuxWindow
      */
     public boolean exit( boolean confirm ) {
         if ( ( ! confirm ) || 
-             tablesModel.getSize() == 0 ||
+             tablesModel_.getSize() == 0 ||
              confirm( "Shut down TOPCAT", "Confirm Exit" ) ) {
-            removeWindowListener( windowWatcher );
+            removeWindowListener( windowWatcher_ );
             if ( Driver.isStandalone() ) {
                 System.exit( 0 );
             }
             else {
-                for ( Enumeration en = tablesModel.elements();
+                for ( Enumeration en = tablesModel_.elements();
                       en.hasMoreElements(); ) {
                     removeTable( (TopcatModel) en.nextElement() );
                 }
@@ -584,62 +585,62 @@ public class ControlWindow extends AuxWindow
             String name = dataModel.getName();
             Activator activator = tcModel.getActivator();
 
-            idField.setText( tcModel.getLabel() );
-            indexLabel.setText( tcModel.getID() + ": " );
-            locLabel.setText( loc );
-            nameLabel.setText( loc.equals( name ) ? null : name );
-            rowsLabel.setText( totRows + 
-                               ( ( visRows == totRows ) 
-                                           ? ""
-                                           : " (" + visRows + " apparent)" ) );
-            colsLabel.setText( totCols +
-                               ( ( visCols == totCols )
-                                           ? ""
-                                           : " (" + visCols + " apparent)" ) );
+            idField_.setText( tcModel.getLabel() );
+            indexLabel_.setText( tcModel.getID() + ": " );
+            locLabel_.setText( loc );
+            nameLabel_.setText( loc.equals( name ) ? null : name );
+            rowsLabel_.setText( totRows + 
+                                ( ( visRows == totRows ) 
+                                            ? ""
+                                            : " (" + visRows + " apparent)" ) );
+            colsLabel_.setText( totCols +
+                                ( ( visCols == totCols )
+                                            ? ""
+                                            : " (" + visCols + " apparent)" ) );
 
-            sortSelector.setModel( tcModel.getSortSelectionModel() );
-            subsetSelector.setModel( tcModel.getSubsetSelectionModel() );
-            sortSenseButton.setModel( tcModel.getSortSenseModel() );
-            activatorButton.setAction( tcModel.getActivationAction() );
-            activatorButton.setText( activator.toString() );
+            sortSelector_.setModel( tcModel.getSortSelectionModel() );
+            subsetSelector_.setModel( tcModel.getSubsetSelectionModel() );
+            sortSenseButton_.setModel( tcModel.getSortSenseModel() );
+            activatorButton_.setAction( tcModel.getActivationAction() );
+            activatorButton_.setText( activator.toString() );
         }
         else {
-            idField.setText( null );
-            indexLabel.setText( "0: " );
-            locLabel.setText( null );
-            nameLabel.setText( null );
-            rowsLabel.setText( null );
-            colsLabel.setText( null );
+            idField_.setText( null );
+            indexLabel_.setText( "0: " );
+            locLabel_.setText( null );
+            nameLabel_.setText( null );
+            rowsLabel_.setText( null );
+            colsLabel_.setText( null );
 
-            sortSelector.setModel( dummyComboBoxModel );
-            subsetSelector.setModel( dummyComboBoxModel );
-            sortSenseButton.setModel( dummyButtonModel );
-            activatorButton.setModel( dummyButtonModel );
+            sortSelector_.setModel( dummyComboBoxModel_ );
+            subsetSelector_.setModel( dummyComboBoxModel_ );
+            sortSenseButton_.setModel( dummyButtonModel_ );
+            activatorButton_.setModel( dummyButtonModel_ );
         }
 
         /* Make sure that the actions which relate to a particular table model
          * are up to date. */
-        writeAct.setEnabled( hasModel && canWrite );
-        dupAct.setEnabled( hasModel );
-        mirageAct.setEnabled( hasModel );
-        removeAct.setEnabled( hasModel );
-        subsetSelector.setEnabled( hasModel );
-        sortSelector.setEnabled( hasModel );
-        sortSenseButton.setEnabled( hasModel );
-        viewerAct.setEnabled( hasModel );
-        paramAct.setEnabled( hasModel );
-        colinfoAct.setEnabled( hasModel );
-        statsAct.setEnabled( hasModel );
-        subsetAct.setEnabled( hasModel );
-        plotAct.setEnabled( hasModel );
-        for ( int i = 0; i < showActs.length; i++ ) {
-            ShowAction sact = showActs[ i ];
+        writeAct_.setEnabled( hasModel && canWrite_ );
+        dupAct_.setEnabled( hasModel );
+        mirageAct_.setEnabled( hasModel );
+        removeAct_.setEnabled( hasModel );
+        subsetSelector_.setEnabled( hasModel );
+        sortSelector_.setEnabled( hasModel );
+        sortSenseButton_.setEnabled( hasModel );
+        viewerAct_.setEnabled( hasModel );
+        paramAct_.setEnabled( hasModel );
+        colinfoAct_.setEnabled( hasModel );
+        statsAct_.setEnabled( hasModel );
+        subsetAct_.setEnabled( hasModel );
+        plotAct_.setEnabled( hasModel );
+        for ( int i = 0; i < showActs_.length; i++ ) {
+            ShowAction sact = showActs_[ i ];
             if ( sact.selEffect != sact.otherEffect ) {
                 sact.setEnabled( hasModel );
             }
         }
-        idField.setEnabled( hasModel );
-        idField.setEditable( hasModel );
+        idField_.setEnabled( hasModel );
+        idField_.setEditable( hasModel );
     }
 
     /**
@@ -647,10 +648,10 @@ public class ControlWindow extends AuxWindow
      * list of tables changes.
      */
     public void updateControls() {
-        boolean hasTables = tablesModel.getSize() > 0;
-        concatAct.setEnabled( hasTables );
-        for ( int i = 0; i < matchActs.length; i++ ) {
-            matchActs[ i ].setEnabled( hasTables );
+        boolean hasTables = tablesModel_.getSize() > 0;
+        concatAct_.setEnabled( hasTables );
+        for ( int i = 0; i < matchActs_.length; i++ ) {
+            matchActs_[ i ].setEnabled( hasTables );
         }
     }
 
@@ -661,21 +662,21 @@ public class ControlWindow extends AuxWindow
     public void valueChanged( ListSelectionEvent evt ) {
         int watchCount = 0;
         for ( int i = evt.getFirstIndex(); i <= evt.getLastIndex(); i++ ) {
-            if ( i < tablesModel.size() ) {
+            if ( i < tablesModel_.size() ) {
                 TopcatModel tcModel = (TopcatModel) 
-                                      tablesModel.getElementAt( i );
+                                      tablesModel_.getElementAt( i );
                 ViewerTableModel viewModel = tcModel.getViewModel();
                 TableColumnModel columnModel = tcModel.getColumnModel();
-                if ( tablesList.isSelectedIndex( i ) ) {
+                if ( tablesList_.isSelectedIndex( i ) ) {
                     watchCount++;
-                    tcModel.addTopcatListener( topcatWatcher );
-                    viewModel.addTableModelListener( tableWatcher );
-                    columnModel.addColumnModelListener( columnWatcher );
+                    tcModel.addTopcatListener( topcatWatcher_ );
+                    viewModel.addTableModelListener( tableWatcher_ );
+                    columnModel.addColumnModelListener( columnWatcher_ );
                 }
                 else {
-                    tcModel.removeTopcatListener( topcatWatcher );
-                    viewModel.removeTableModelListener( tableWatcher );
-                    columnModel.removeColumnModelListener( columnWatcher );
+                    tcModel.removeTopcatListener( topcatWatcher_ );
+                    viewModel.removeTableModelListener( tableWatcher_ );
+                    columnModel.removeColumnModelListener( columnWatcher_ );
                 }
             }
         }
@@ -693,7 +694,7 @@ public class ControlWindow extends AuxWindow
             /* Model label has changed. */
             case TopcatEvent.LABEL:
                 updateInfo();
-                int index = tablesModel.indexOf( evt.getModel() );
+                int index = tablesModel_.indexOf( evt.getModel() );
 
                 /* If the model is represented in the list panel (presumably
                  * it is), update the list panel by firing events on the 
@@ -703,7 +704,7 @@ public class ControlWindow extends AuxWindow
                         new ListDataEvent( this, ListDataEvent.CONTENTS_CHANGED,
                                            index, index );
                     ListDataListener[] listWatchers = 
-                        tablesModel.getListDataListeners();
+                        tablesModel_.getListDataListeners();
                     for ( int i = 0; i < listWatchers.length; i++ ) {
                         listWatchers[ i ].contentsChanged( event );
                     }
@@ -748,20 +749,20 @@ public class ControlWindow extends AuxWindow
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            if ( this == readAct ) {
+            if ( this == readAct_ ) {
                 getLoader().makeVisible();
             }
-            else if ( this == removeAct ) {
+            else if ( this == removeAct_ ) {
                 TopcatModel tcModel = getCurrentModel();
                 if ( confirm( "Remove table \"" + tcModel + "\" from list?",
                               "Confirm Remove" ) ) {
                     removeTable( tcModel );
                 }
             }
-            else if ( this == concatAct ) {
+            else if ( this == concatAct_ ) {
                 getConcatWindow().makeVisible();
             }
-            else if ( this == logAct ) {
+            else if ( this == logAct_ ) {
                 LogHandler.getInstance().showWindow( ControlWindow.this );
             }
             else {
@@ -807,25 +808,25 @@ public class ControlWindow extends AuxWindow
                 assert false;
             }
             Action act;
-            if ( this == viewerAct ) {
+            if ( this == viewerAct_ ) {
                 act = tcModel.getViewerAction();
             }
-            else if ( this == paramAct ) {
+            else if ( this == paramAct_ ) {
                 act = tcModel.getParameterAction();
             }
-            else if ( this == colinfoAct ) {
+            else if ( this == colinfoAct_ ) {
                 act = tcModel.getColumnInfoAction();
             }
-            else if ( this == statsAct ) {
+            else if ( this == statsAct_ ) {
                 act = tcModel.getStatsAction();
             }
-            else if ( this == subsetAct ) {
+            else if ( this == subsetAct_ ) {
                 act = tcModel.getSubsetAction();
             }
-            else if ( this == plotAct ) {
+            else if ( this == plotAct_ ) {
                 act = tcModel.getPlotAction();
             }
-            else if ( this == writeAct ) {
+            else if ( this == writeAct_ ) {
                 act = tcModel.getSaveAction();
             }
             else {
@@ -863,11 +864,11 @@ public class ControlWindow extends AuxWindow
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            int ntab = tablesModel.getSize();
+            int ntab = tablesModel_.getSize();
             for ( int i = 0; i < ntab; i++ ) {
-                boolean isSelected = tablesList.isSelectedIndex( i );
+                boolean isSelected = tablesList_.isSelectedIndex( i );
                 TopcatModel tcModel = 
-                    (TopcatModel) tablesModel.getElementAt( i );
+                    (TopcatModel) tablesModel_.getElementAt( i );
                 Object effect = isSelected ? selEffect : otherEffect;
                 if ( effect == WindowEffect.HIDE ) {
                     tcModel.hideWindows();
@@ -929,7 +930,7 @@ public class ControlWindow extends AuxWindow
         MouseInputAdapter dragListener = new DragListener();
         comp.addMouseMotionListener( dragListener );
         comp.addMouseListener( dragListener );
-        comp.setTransferHandler( exportTransferHandler );
+        comp.setTransferHandler( exportTransferHandler_ );
     }
 
     /**
@@ -966,16 +967,16 @@ public class ControlWindow extends AuxWindow
             TopcatModel tcModel = getCurrentModel();
             assert tcModel != null : "Action should be disabled!";
             StarTable table = tcModel.getApparentStarTable();
-            if ( this == dupAct ) {
+            if ( this == dupAct_ ) {
                 addTable( table, "Copy of " + tcModel.getID(), true );
             }
-            else if ( this == mirageAct ) {
+            else if ( this == mirageAct_ ) {
                 assert MirageHandler.isMirageAvailable();
                 try {
                     MirageHandler.invokeMirage( table, null );
                 }
                 catch ( Exception e ) {
-                    ErrorDialog.showError( window, "Mirage Error", e );
+                    ErrorDialog.showError( window_, "Mirage Error", e );
                 }
             }
         }
@@ -1002,37 +1003,37 @@ public class ControlWindow extends AuxWindow
             return ( export && getCurrentModel() != null ) ? COPY : NONE;
         }
         public boolean canImport( JComponent comp, DataFlavor[] flavs ) {
-            return imprt && tabfact.canImport( flavs );
+            return imprt && tabfact_.canImport( flavs );
         }
         public Icon getVisualRepresentation() {
             return ResourceIcon.TABLE;
         }
         protected Transferable createTransferable( JComponent comp ) {
-            return taboutput.transferStarTable( getCurrentModel()
-                                               .getApparentStarTable() );
+            return taboutput_.transferStarTable( getCurrentModel()
+                                                .getApparentStarTable() );
         }
         public boolean importData( JComponent comp, Transferable trans ) {
             StarTable table;
             try {
-                table = tabfact.makeStarTable( trans );
+                table = tabfact_.makeStarTable( trans );
                 if ( table == null ) {
                     return false;
                 }
             }
             catch ( IOException e ) {
-                ErrorDialog.showError( window, "Drop Error", e,
+                ErrorDialog.showError( window_, "Drop Error", e,
                                        "Table drop operation failed" );
                 return false;
             }
             try {
-                table = tabfact.randomTable( table );
+                table = tabfact_.randomTable( table );
                 String loc = table.getName();
                 loc = loc == null ? "dropped" : loc;
                 addTable( table, loc, true );
                 return true;
             }
             catch ( IOException e ) {
-                ErrorDialog.showError( window, "I/O Error", e,
+                ErrorDialog.showError( window_, "I/O Error", e,
                                        "Can't randomise table" );
                 return false;
             }
