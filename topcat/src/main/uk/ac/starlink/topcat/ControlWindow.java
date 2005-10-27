@@ -233,6 +233,9 @@ public class ControlWindow extends AuxWindow
             new ModelViewWindowAction( "Plot", ResourceIcon.PLOT,
                                        "Plot table columns",
                                        PlotWindow.class ),
+            new ModelViewWindowAction( "Plot1", ResourceIcon.PLOT,
+                                       "Plot table columns (old)",
+                              uk.ac.starlink.topcat.plot.PlotWindow1.class ),
         };
         writeAct_ = new ModelViewAction( "Save Table", ResourceIcon.SAVE,
                                          "Write out the current table" ) {
@@ -875,11 +878,11 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
-     * ModelViewAction class for actions which pop up a TopcatViewWindow.
+     * ModelViewAction class for actions which pop up a view window.
      */
     private class ModelViewWindowAction extends ModelViewAction {
 
-        TopcatViewWindow window_;
+        AuxWindow window_;
         final Constructor constructor_;
 
         /**
@@ -888,13 +891,13 @@ public class ControlWindow extends AuxWindow
          * @param  name  action name
          * @param  icon  action icon
          * @param  shortdesc  action short description
-         * @param  winClass  TopcatViewWindow class - must have a
+         * @param  winClass  AuxWindow subclass - must have a
          *         constructor that takes (TopcatModel,Component).
          */
         ModelViewWindowAction( String name, Icon icon, String shortdesc,
                                Class winClass ) {
             super( name, icon, shortdesc );
-            if ( ! TopcatViewWindow.class.isAssignableFrom( winClass ) ) {
+            if ( ! AuxWindow.class.isAssignableFrom( winClass ) ) {
                 throw new IllegalArgumentException();
             }
             try {
@@ -912,7 +915,7 @@ public class ControlWindow extends AuxWindow
         protected Window createWindow( TopcatModel tcModel ) {
             try {
                 Object[] args = new Object[] { tcModel, ControlWindow.this };
-                return (TopcatViewWindow) constructor_.newInstance( args );
+                return (AuxWindow) constructor_.newInstance( args );
             }
             catch ( Exception e ) {
                 throw new RuntimeException( "Window creation failed???", e );

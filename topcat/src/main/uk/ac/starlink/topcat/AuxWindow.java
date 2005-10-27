@@ -313,6 +313,29 @@ public class AuxWindow extends JFrame {
     }
 
     /**
+     * Configures this window to watch a single TopcatModel.
+     * It arranges for suitable title elements to get written in the window
+     * title and elsewhere.
+     * Only call this method once for a given window.
+     *
+     * @param  tcModel  table to watch
+     * @param  viewName   description of the type of window
+     */
+    public void labelView( final TopcatModel tcModel, final String viewName ) {
+        setTitle( "TOPCAT(" + tcModel.getID() + "): " + viewName );
+        TopcatListener labelListener = new TopcatListener() {
+            public void modelChanged( TopcatEvent evt ) {
+                if ( evt.getCode() == TopcatEvent.LABEL ) {
+                    setMainHeading( viewName + " for " + tcModel.toString() );
+                }
+            }
+        };
+        labelListener.modelChanged( new TopcatEvent( tcModel, TopcatEvent.LABEL,
+                                                     null ) );
+        tcModel.addTopcatListener( labelListener );
+    }
+
+    /**
      * It beeps.
      */
     public static void beep() {

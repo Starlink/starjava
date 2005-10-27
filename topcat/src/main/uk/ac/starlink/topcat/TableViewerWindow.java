@@ -46,7 +46,7 @@ import uk.ac.starlink.table.gui.TableRowHeader;
  * @author   Mark Taylor (Starlink)
  * @since    19 Feb 2004
  */
-public class TableViewerWindow extends TopcatViewWindow
+public class TableViewerWindow extends AuxWindow
                                implements TableModelListener, 
                                           TableColumnModelListener,
                                           TopcatListener {
@@ -78,7 +78,9 @@ public class TableViewerWindow extends TopcatViewWindow
      * @throws  IllegalArgumentException  if <tt>!startab.isRandom()</tt>
      */
     public TableViewerWindow( final TopcatModel tcModel, Component parent ) {
-        super( tcModel, "Table Browser", parent );
+        super( null, parent );
+        labelView( tcModel, "Table Browser" );
+
         this.tcModel = tcModel;
         this.dataModel = tcModel.getDataModel();
         this.viewModel = tcModel.getViewModel();

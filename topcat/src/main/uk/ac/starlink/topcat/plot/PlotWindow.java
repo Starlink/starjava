@@ -98,7 +98,7 @@ public class PlotWindow extends GraphicsWindow {
      * @param  parent   parent component (may be used for positioning)
      */
     public PlotWindow( TopcatModel tcModel, Component parent ) {
-        super( tcModel, "Table Plotter", new String[] { "X", "Y" }, parent );
+        super( tcModel, "Scatter Plot", new String[] { "X", "Y" }, parent );
         tcModel_ = tcModel;
         subsets_ = tcModel_.getSubsets();
 

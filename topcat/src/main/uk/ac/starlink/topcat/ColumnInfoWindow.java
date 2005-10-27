@@ -41,7 +41,7 @@ import uk.ac.starlink.table.gui.TableRowHeader;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class ColumnInfoWindow extends TopcatViewWindow {
+public class ColumnInfoWindow extends AuxWindow {
 
     private final TopcatModel tcModel;
     private final PlasticStarTable dataModel;
@@ -68,7 +68,9 @@ public class ColumnInfoWindow extends TopcatViewWindow {
      * @param  parent   component used for window positioning
      */
     public ColumnInfoWindow( final TopcatModel tcModel, Component parent ) {
-        super( tcModel, "Table columns", parent );
+        super( null, parent );
+        labelView( tcModel, "Table Columns" );
+
         this.tcModel = tcModel;
         this.dataModel = tcModel.getDataModel();
         this.columnModel = tcModel.getColumnModel();

@@ -41,6 +41,7 @@ import javax.swing.table.TableColumn;
 import org.jibble.epsgraphics.EpsGraphics2D;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.CheckBoxMenu;
 import uk.ac.starlink.topcat.CheckBoxStack;
@@ -52,7 +53,6 @@ import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TopcatViewWindow;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -61,7 +61,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor
  * @since    26 Oct 2005
  */
-public abstract class GraphicsWindow extends TopcatViewWindow
+public abstract class GraphicsWindow extends AuxWindow
                                      implements SurfaceListener,
                                                 TopcatListener {
 
@@ -101,7 +101,9 @@ public abstract class GraphicsWindow extends TopcatViewWindow
      */
     public GraphicsWindow( TopcatModel tcModel, String viewName, 
                            String[] axisNames, Component parent ) {
-        super( tcModel, viewName, parent );
+        super( null, parent );
+        labelView( tcModel, viewName );
+
         tcModel_ = tcModel;
         subsets_ = tcModel_.getSubsets();
         ndim_ = axisNames.length;

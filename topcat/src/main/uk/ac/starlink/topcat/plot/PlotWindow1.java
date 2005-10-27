@@ -65,6 +65,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.CheckBoxMenu;
@@ -78,7 +79,6 @@ import uk.ac.starlink.topcat.TableViewerWindow;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TopcatViewWindow;
 import uk.ac.starlink.topcat.ViewerTableModel;
 import uk.ac.starlink.topcat.WindowAction;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -90,7 +90,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class PlotWindow1 extends TopcatViewWindow 
+public class PlotWindow1 extends AuxWindow 
                         implements ActionListener, ListSelectionListener,
                                    ItemListener, SurfaceListener,
                                    TopcatListener {
@@ -167,7 +167,9 @@ public class PlotWindow1 extends TopcatViewWindow
      * @param  parent   parent component (may be used for positioning)
      */
     public PlotWindow1( TopcatModel tcModel, Component parent ) {
-        super( tcModel, "Table Plotter", parent );
+        super( null, parent );
+        labelView( tcModel, "Table Plotter" );
+
         tcModel_ = tcModel;
         subsets_ = tcModel_.getSubsets();
         tcModel_.addTopcatListener( this );

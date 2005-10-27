@@ -41,7 +41,7 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class StatsWindow extends TopcatViewWindow {
+public class StatsWindow extends AuxWindow {
 
     private TopcatModel tcModel;
     private StarTable dataModel;
@@ -66,7 +66,9 @@ public class StatsWindow extends TopcatViewWindow {
      * @param  parent   component used for window positioning
      */
     public StatsWindow( TopcatModel tcModel, Component parent ) {
-        super( tcModel, "Row statistics", parent );
+        super( null, parent );
+        labelView( tcModel, "Row Statistics" );
+
         this.tcModel = tcModel;
         this.dataModel = tcModel.getDataModel();
         this.columnModel = tcModel.getColumnModel();

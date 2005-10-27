@@ -29,7 +29,7 @@ import uk.ac.starlink.table.ColumnInfo;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
+public class SubsetWindow extends AuxWindow implements ListDataListener {
 
     private final TopcatModel tcModel;
     private final OptionsListModel subsets;
@@ -51,7 +51,9 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
      * @param  parent   component used for window positioning
      */
     public SubsetWindow( final TopcatModel tcModel, Component parent ) {
-        super( tcModel, "Row Subsets", parent );
+        super( null, parent );
+        labelView( tcModel, "Row Subsets" );
+
         this.tcModel = tcModel;
         this.subsets = tcModel.getSubsets();
         this.subsetCounts = tcModel.getSubsetCounts();

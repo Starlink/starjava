@@ -34,7 +34,7 @@ import uk.ac.starlink.table.gui.StarJTable;
  * Top-level window which displays the parameters of a table.
  * Other per-table metadata may be displayed as well.
  */
-public class ParameterWindow extends TopcatViewWindow 
+public class ParameterWindow extends AuxWindow 
                              implements TopcatListener, ListSelectionListener {
 
     private TopcatModel tcModel;
@@ -71,7 +71,9 @@ public class ParameterWindow extends TopcatViewWindow
      * @param  parent   parent component used for window positioning
      */
     public ParameterWindow( TopcatModel tcModel, Component parent ) {
-        super( tcModel, "Table Parameters", parent );
+        super( null, parent );
+        labelView( tcModel, "Table Parameters" );
+
         this.tcModel = tcModel;
         this.dataModel = tcModel.getDataModel();
         this.viewModel = tcModel.getViewModel();
