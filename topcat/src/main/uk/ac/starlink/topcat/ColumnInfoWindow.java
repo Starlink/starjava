@@ -68,9 +68,7 @@ public class ColumnInfoWindow extends AuxWindow {
      * @param  parent   component used for window positioning
      */
     public ColumnInfoWindow( final TopcatModel tcModel, Component parent ) {
-        super( null, parent );
-        labelView( tcModel, "Table Columns" );
-
+        super( tcModel, "Table Columns", parent );
         this.tcModel = tcModel;
         this.dataModel = tcModel.getDataModel();
         this.columnModel = tcModel.getColumnModel();

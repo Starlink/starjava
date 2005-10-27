@@ -131,6 +131,31 @@ public class AuxWindow extends JFrame {
     }
 
     /**
+     * Constructs an AuxWindow which will watch a given table.
+     * Its title is modified as necessary if the table's label changes.
+     * This constructor is only suitable if the window is going to watch
+     * (be a view of) a single TopcatModel throughout its life.
+     *
+     * @param  tcModel  the model owned by this window
+     * @param  viewName   name of the type of view provided by this window
+     * @param  parent   parent component, may be used for window positioning
+     */
+    public AuxWindow( final TopcatModel tcModel, final String viewName,
+                      Component parent ) {
+        this( "TOPCAT(" + tcModel.getID() + "): " + viewName, parent );
+        TopcatListener labelListener = new TopcatListener() {
+            public void modelChanged( TopcatEvent evt ) {
+                if ( evt.getCode() == TopcatEvent.LABEL ) {
+                    setMainHeading( viewName + " for " + tcModel.toString() );
+                }
+            }
+        };
+        labelListener.modelChanged( new TopcatEvent( tcModel, TopcatEvent.LABEL,
+                                                     null ) );
+        tcModel.addTopcatListener( labelListener );
+    }
+
+    /**
      * Adds standard actions to this window, in the menu and toolbar.
      * This method should generally be called by subclasses after they
      * have added any other menus and toolbar buttons specific to their
@@ -310,29 +335,6 @@ public class AuxWindow extends JFrame {
 
     public Image getIconImage() {
         return ResourceIcon.TOPCAT.getImage();
-    }
-
-    /**
-     * Configures this window to watch a single TopcatModel.
-     * It arranges for suitable title elements to get written in the window
-     * title and elsewhere.
-     * Only call this method once for a given window.
-     *
-     * @param  tcModel  table to watch
-     * @param  viewName   description of the type of window
-     */
-    public void labelView( final TopcatModel tcModel, final String viewName ) {
-        setTitle( "TOPCAT(" + tcModel.getID() + "): " + viewName );
-        TopcatListener labelListener = new TopcatListener() {
-            public void modelChanged( TopcatEvent evt ) {
-                if ( evt.getCode() == TopcatEvent.LABEL ) {
-                    setMainHeading( viewName + " for " + tcModel.toString() );
-                }
-            }
-        };
-        labelListener.modelChanged( new TopcatEvent( tcModel, TopcatEvent.LABEL,
-                                                     null ) );
-        tcModel.addTopcatListener( labelListener );
     }
 
     /**

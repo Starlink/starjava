@@ -66,9 +66,7 @@ public class StatsWindow extends AuxWindow {
      * @param  parent   component used for window positioning
      */
     public StatsWindow( TopcatModel tcModel, Component parent ) {
-        super( null, parent );
-        labelView( tcModel, "Row Statistics" );
-
+        super( tcModel, "Row Statistics", parent );
         this.tcModel = tcModel;
         this.dataModel = tcModel.getDataModel();
         this.columnModel = tcModel.getColumnModel();

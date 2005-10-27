@@ -78,9 +78,7 @@ public class TableViewerWindow extends AuxWindow
      * @throws  IllegalArgumentException  if <tt>!startab.isRandom()</tt>
      */
     public TableViewerWindow( final TopcatModel tcModel, Component parent ) {
-        super( null, parent );
-        labelView( tcModel, "Table Browser" );
-
+        super( tcModel, "Table Browser", parent );
         this.tcModel = tcModel;
         this.dataModel = tcModel.getDataModel();
         this.viewModel = tcModel.getViewModel();

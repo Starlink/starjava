@@ -101,9 +101,7 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     public GraphicsWindow( TopcatModel tcModel, String viewName, 
                            String[] axisNames, Component parent ) {
-        super( null, parent );
-        labelView( tcModel, viewName );
-
+        super( tcModel, viewName, parent );
         tcModel_ = tcModel;
         subsets_ = tcModel_.getSubsets();
         ndim_ = axisNames.length;

@@ -71,9 +71,7 @@ public class ParameterWindow extends AuxWindow
      * @param  parent   parent component used for window positioning
      */
     public ParameterWindow( TopcatModel tcModel, Component parent ) {
-        super( null, parent );
-        labelView( tcModel, "Table Parameters" );
-
+        super( tcModel, "Table Parameters", parent );
         this.tcModel = tcModel;
         this.dataModel = tcModel.getDataModel();
         this.viewModel = tcModel.getViewModel();

@@ -167,9 +167,7 @@ public class PlotWindow1 extends AuxWindow
      * @param  parent   parent component (may be used for positioning)
      */
     public PlotWindow1( TopcatModel tcModel, Component parent ) {
-        super( null, parent );
-        labelView( tcModel, "Table Plotter" );
-
+        super( tcModel, "Table Plotter", parent );
         tcModel_ = tcModel;
         subsets_ = tcModel_.getSubsets();
         tcModel_.addTopcatListener( this );

@@ -51,9 +51,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      * @param  parent   component used for window positioning
      */
     public SubsetWindow( final TopcatModel tcModel, Component parent ) {
-        super( null, parent );
-        labelView( tcModel, "Row Subsets" );
-
+        super( tcModel, "Row Subsets", parent );
         this.tcModel = tcModel;
         this.subsets = tcModel.getSubsets();
         this.subsetCounts = tcModel.getSubsetCounts();
