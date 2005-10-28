@@ -14,8 +14,37 @@ import junit.framework.TestCase;
 
 public class MarkerTest extends TestCase {
 
+    final static MarkStyleProfile[] PROFILES = new MarkStyleProfile[] {
+        MarkStyleProfile.spots( "Small spots", 3 ),
+        MarkStyleProfile.spots( "Large spots", 5 ),
+        MarkStyleProfile.openShapes( "Small open shapes", 3, Color.BLACK ),
+        MarkStyleProfile.openShapes( "Large open shapes", 5, null ),
+        MarkStyleProfile.filledShapes( "Small filled shapes", 3, Color.RED ),
+        MarkStyleProfile.filledShapes( "Large filled shapes", 5, null ),
+        MarkStyleProfile.ghosts( "Small ghosts", 2, 0.6f ),
+        MarkStyleProfile.ghosts( "Large ghosts", 5, 0.3f ),
+    };
+
     public MarkerTest( String name ) {
         super( name );
+    }
+
+    public void testProfiles() {
+        for ( int i = 0; i < PROFILES.length; i++ ) {
+            for ( int j = 0; j < 16; j++ ) {
+                MarkStyleProfile profile = PROFILES[ i ];
+                MarkStyle style = profile.getStyle( j );
+                assertEquals( style, profile.getStyle( j ) );
+                for ( int k = 0; k < 16; k++ ) {
+                    if ( k == j ) {
+                        assertEquals( style, profile.getStyle( k ) );
+                    }
+                    else {
+                        assertTrue( style != profile.getStyle( k ) );
+                    }
+                }
+            }
+        }
     }
 
     public void testMarkers() throws InterruptedException {
@@ -88,16 +117,7 @@ class MarkSamples extends JPanel {
 class ProfileSamples extends JPanel {
     final static int STEP = 16;
     final static int ITEMS = 16;
-    final static MarkStyleProfile[] PROFILES = new MarkStyleProfile[] {
-        MarkStyleProfile.spots( "Small spots", 3 ),
-        MarkStyleProfile.spots( "Large spots", 5 ),
-        MarkStyleProfile.openShapes( "Small open shapes", 3, Color.BLACK ),
-        MarkStyleProfile.openShapes( "Large open shapes", 5, null ),
-        MarkStyleProfile.filledShapes( "Small filled shapes", 3, Color.RED ),
-        MarkStyleProfile.filledShapes( "Large filled shapes", 5, null ),
-        MarkStyleProfile.ghosts( "Small ghosts", 2, 0.6f ),
-        MarkStyleProfile.ghosts( "Large ghosts", 5, 0.3f ),
-    };
+    final static MarkStyleProfile[] PROFILES = MarkerTest.PROFILES;
 
     ProfileSamples() {
         setBackground( Color.WHITE );
