@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.util.Arrays;
 import javax.swing.Icon;
 
 /**
@@ -494,8 +495,8 @@ public abstract class MarkStyle {
      * @return diamond shape
      */
     private static Shape diamond( int size ) {
-        return new Polygon( new int[] { -size, 0, size, 0 },
-                            new int[] { 0, -size, 0, size }, 4 );
+        return new TestablePolygon( new int[] { -size, 0, size, 0 },
+                                    new int[] { 0, -size, 0, size }, 4 );
     }
 
     /**
@@ -510,9 +511,34 @@ public abstract class MarkStyle {
         int c = (int) Math.round( scale * Math.sqrt( 3 ) / 2.0 ); // s.cos(30)
         int s = (int) Math.round( scale * 0.5 );                  // s.sin(30)
         int r = (int) Math.round( scale );
-        return up ? new Polygon( new int[] { -c, 0, c },
-                                 new int[] { -s, r, -s }, 3 )
-                  : new Polygon( new int[] { -c, 0, c },
-                                 new int[] { s, -r, s }, 3 );
+        return up ? new TestablePolygon( new int[] { -c, 0, c },
+                                         new int[] { -s, r, -s }, 3 )
+                  : new TestablePolygon( new int[] { -c, 0, c },
+                                         new int[] { s, -r, s }, 3 );
+    }
+
+    /**
+     * Extension of Polygon which implements <code>equals()</code> so as
+     * to spot whether two shapes are the same or not.
+     * Polygon itself uses object identity.
+     */
+    private static class TestablePolygon extends Polygon {
+        public TestablePolygon( int[] xpoints, int[] ypoints, int npoints ) {
+            super( xpoints, ypoints, npoints );
+        }
+        public boolean equals( Object other ) {
+            if ( other instanceof TestablePolygon ) {
+                TestablePolygon o = (TestablePolygon) other;
+                return npoints == o.npoints
+                    && Arrays.equals( xpoints, o.xpoints )
+                    && Arrays.equals( ypoints, o.ypoints );
+            }
+            else {
+                return false;
+            }
+        }
+        public int hashCode() {
+            return npoints + xpoints.hashCode() + ypoints.hashCode();
+        }
     }
 }
