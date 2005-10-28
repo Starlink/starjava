@@ -30,9 +30,14 @@ public class MarkerTest extends TestCase {
     }
 
     public void testProfiles() {
-        for ( int i = 0; i < PROFILES.length; i++ ) {
+        checkProfiles( PROFILES );
+        checkProfiles( PlotWindow.MARKER_PROFILES );
+    }
+
+    public void checkProfiles( MarkStyleProfile[] profiles ) {
+        for ( int i = 0; i < profiles.length; i++ ) {
             for ( int j = 0; j < 16; j++ ) {
-                MarkStyleProfile profile = PROFILES[ i ];
+                MarkStyleProfile profile = profiles[ i ];
                 MarkStyle style = profile.getStyle( j );
                 assertEquals( style, profile.getStyle( j ) );
                 for ( int k = 0; k < 16; k++ ) {
