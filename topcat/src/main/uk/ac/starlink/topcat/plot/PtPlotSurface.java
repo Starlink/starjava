@@ -36,8 +36,19 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
 
     public void setState( PlotState state ) {
         state_ = state;
-        if ( state_ != null ) {
+        if ( state_ != null && state.getValid() ) {
             configure( state_ );
+        }
+        else {
+            clearLegends();
+            setXLabel( "" );
+            setYLabel( "" );
+            setXLog( false );
+            setYLog( false );
+            setXFlip( false );
+            setYFlip( false );
+            setGrid( false );
+            checkInvariants();
         }
     }
 
