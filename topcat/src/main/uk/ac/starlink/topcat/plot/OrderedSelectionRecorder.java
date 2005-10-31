@@ -1,7 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
@@ -14,25 +13,28 @@ import javax.swing.event.ListSelectionListener;
  * @author   Mark Taylor (Starlink)
  * @since    16 Jun 2004
  */
-public class OrderedSelectionRecorder implements ListSelectionListener {
+public abstract class OrderedSelectionRecorder
+        implements ListSelectionListener {
 
-    private BitSet lastState_;
-    private ListSelectionModel model_;
+    private boolean[] lastState_;
     private List orderedSelection_;
 
     /**
      * Constructs a new recorder based on a given list selection model.
      *
-     * @param  model  the model this listener is listening to
+     * @param  initialState  flags giving initial selection state
      */
-    public OrderedSelectionRecorder( ListSelectionModel model ) {
-        model_ = model;
+    public OrderedSelectionRecorder( boolean[] initialState ) {
+        if ( initialState == null ) {
+            initialState = new boolean[ 0 ];
+        }
         orderedSelection_ = new ArrayList();
-        lastState_ = new BitSet();
-        valueChanged( new ListSelectionEvent( this, 
-                                              model_.getMinSelectionIndex(),
-                                              model_.getMaxSelectionIndex(),
-                                              false ) );
+        for ( int i = 0; i < initialState.length; i++ ) {
+            if ( initialState[ i ] ) {
+                orderedSelection_.add( new Integer( i ) );
+            }
+        }
+        lastState_ = initialState;
     }
 
     /**
@@ -52,14 +54,14 @@ public class OrderedSelectionRecorder implements ListSelectionListener {
     }
 
     public void valueChanged( ListSelectionEvent evt ) {
-        BitSet oldState = lastState_;
-        BitSet newState = getModelState();
+        boolean[] oldState = lastState_;
+        boolean[] newState = getModelState( evt.getSource() );
         lastState_ = newState;
 
         for ( int i = evt.getFirstIndex(); i <= evt.getLastIndex(); i++ ) {
             Integer item = new Integer( i );
-            boolean oldFlag = oldState.get( i );
-            boolean newFlag = newState.get( i );
+            boolean oldFlag = i < oldState.length ? oldState[ i ] : false;
+            boolean newFlag = i < newState.length ? newState[ i ] : false;
             if ( ! oldFlag && newFlag ) {
                 assert ! orderedSelection_.contains( item );
                 orderedSelection_.add( item );
@@ -75,24 +77,11 @@ public class OrderedSelectionRecorder implements ListSelectionListener {
     }
 
     /**
-     * Returns a BitSet which represents the current state of the
-     * selection model.
+     * Returns the state of the selection model given the source of a
+     * selection event.
      *
-     * @param  flag vector with a flag set for every selected item
+     * @param  source  ListSelectionEvent source object
+     * @return   mask of flags, one true for each selected item
      */
-    private BitSet getModelState() {
-        BitSet state = new BitSet();
-        int lo = model_.getMinSelectionIndex();
-        int hi = model_.getMaxSelectionIndex();
-        if ( lo < 0 ) {
-            assert hi < 0;
-            // no selections
-        }
-        else {
-            for ( int i = lo; i <= hi; i++ ) {
-                state.set( i, model_.isSelectedIndex( i ) );
-            }
-        }
-        return state;
-    }
+    protected abstract boolean[] getModelState( Object source );
 }
