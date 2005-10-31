@@ -4,54 +4,35 @@ import Acme.JPM.Encoders.GifEncoder;
 import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonModel;
-import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
-import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import org.jibble.epsgraphics.EpsGraphics2D;
-import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
-import uk.ac.starlink.topcat.CheckBoxMenu;
-import uk.ac.starlink.topcat.CheckBoxStack;
-import uk.ac.starlink.topcat.ColumnCellRenderer;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
-import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
 import uk.ac.starlink.topcat.RowSubset;
-import uk.ac.starlink.topcat.TopcatEvent;
-import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -62,18 +43,11 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @since    26 Oct 2005
  */
 public abstract class GraphicsWindow extends AuxWindow
-                                     implements SurfaceListener,
-                                                TopcatListener {
+                                     implements SurfaceListener {
 
-    private final TopcatModel tcModel_;
-    private final OptionsListModel subsets_;
     private final int ndim_;
+    private final PointSelector pointSelector_;
 
-    private final JComboBox[] colBoxes_;
-    private final JCheckBox[] logBoxes_;
-    private final JCheckBox[] flipBoxes_;
-    private final JComponent stackPanel_;
-    private final ListSelectionModel subSelModel_;
     private final OrderedSelectionRecorder subSelRecorder_;
     private final ReplotListener replotListener_;
     private final Action replotAction_;
@@ -102,77 +76,28 @@ public abstract class GraphicsWindow extends AuxWindow
     public GraphicsWindow( TopcatModel tcModel, String viewName, 
                            String[] axisNames, Component parent ) {
         super( tcModel, viewName, parent );
-        tcModel_ = tcModel;
-        subsets_ = tcModel_.getSubsets();
         ndim_ = axisNames.length;
+
+        /* Set up point selector component. */
+        pointSelector_ = new PointSelector( axisNames, tcModel );
+        getControlPanel().add( pointSelector_ );
+
+        /* Ensure that changes to the point selection trigger a replot. */
         replotListener_ = new ReplotListener();
-        tcModel_.addTopcatListener( this );
-
-        /* Prepare arrays of components for each axis in this display. */
-        colBoxes_ = new JComboBox[ ndim_ ];
-        logBoxes_ = new JCheckBox[ ndim_ ];
-        flipBoxes_ = new JCheckBox[ ndim_ ];
-
-        /* Prepare and place a component for axis selection. */
-        Box axisBox = new Box( BoxLayout.Y_AXIS );
-        getControlPanel().add( axisBox );
-
-        /* Construct and place panels for selection and configuration of
-         * each axis. */
-        for ( int i = 0; i < ndim_; i++ ) {
-            String aName = axisNames[ i ];
-            JPanel configPanel = new JPanel();
-            configPanel.setBorder( makeTitledBorder( aName + " Axis" ) );
-            if ( i > 0 ) {
-                axisBox.add( Box.createGlue() );
-            }
-            axisBox.add( configPanel );
-
-            /* Create a column selector box. */
-            colBoxes_[ i ] = makePlottableColumnComboBox();
-
-            /* If there are too few numeric columns then inform the user
-             * and bail out. */
-            if ( colBoxes_[ i ].getItemCount() < ndim_ ) {
-                JOptionPane.showMessageDialog( null, "Too few numeric columns "
-                                             + "in table", "Plot Error",
-                                               JOptionPane.ERROR_MESSAGE );
-                dispose();
-            }
-
-            /* Configure and place the column selector box. */
-            colBoxes_[ i ].setSelectedIndex( i );
-            colBoxes_[ i ].addActionListener( replotListener_ );
-            configPanel.add( colBoxes_[ i ] );
-
-            /* Add and configure a linear/log selector. */
-            logBoxes_[ i ] = new JCheckBox( "Log plot" );
-            logBoxes_[ i ].addActionListener( replotListener_ );
-            configPanel.add( logBoxes_[ i ] );
-
-            /* Add and configure an axis direction flip selector. */
-            flipBoxes_[ i ] = new JCheckBox( "Flip" );
-            flipBoxes_[ i ].addActionListener( replotListener_ );
-            configPanel.add( flipBoxes_[ i ] );
-        }
-
-        /* Make a scrollable box in the control panel for selecting subsets. */
-        CheckBoxStack stack = new CheckBoxStack( subsets_ );
-        subSelModel_ = stack.getSelectionModel();
-        stackPanel_ = new JScrollPane( stack );
-        stackPanel_.setBorder( makeTitledBorder( "Row subsets" ) );
-        getControlPanel().add( stackPanel_ );
-
-        /* Initialise the selections. */
-        modelChanged( new TopcatEvent( tcModel_, TopcatEvent.SUBSET, null ) );
+        pointSelector_.addActionListener( replotListener_ );
 
         /* Maintain a list of selected subsets updated from this model.
          * This cannot be worked out from the model on request, since the
          * order in which selections have been made is significant, and
          * is not preserved by the model. */
-        subSelRecorder_ = new OrderedSelectionRecorder( subSelModel_ );
-        subSelModel_.addListSelectionListener( replotListener_ );
-        subSelModel_.addListSelectionListener( subSelRecorder_ );
+        subSelRecorder_ = new OrderedSelectionRecorder( pointSelector_
+                                                       .getSubsetSelection() ) {
+            protected boolean[] getModelState( Object source ) {
+                return ((PointSelector) source).getSubsetSelection();
+            }
+        };
+        pointSelector_.addSubsetSelectionListener( subSelRecorder_ );
+        pointSelector_.addSubsetSelectionListener( replotListener_ );
 
          /* Actions for exporting the plot. */
         Action gifAction =
@@ -191,7 +116,7 @@ public abstract class GraphicsWindow extends AuxWindow
 
         /* Action for replotting. */
         replotAction_ = new BasicAction( "Replot", ResourceIcon.REDO,
-                                               "Redraw the plot" ) {
+                                         "Redraw the plot" ) {
             public void actionPerformed( ActionEvent evt ) {
                 doReplot( true, true );
             }
@@ -206,6 +131,14 @@ public abstract class GraphicsWindow extends AuxWindow
         ButtonModel gridModel = gridButton_.getModel();
         gridModel.setSelected( true );
         gridModel.addActionListener( replotListener_ );
+    }
+
+    public void setVisible( boolean visible ) {
+        super.setVisible( visible );
+        if ( lastState_ == null ) {
+            lastState_ = getPlotState();
+            lastState_.setValid( false );
+        }
     }
 
     /**
@@ -262,6 +195,10 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     protected abstract MarkStyle getMarkStyle( int isub );
 
+    public PointSelector getPointSelector() {
+        return pointSelector_;
+    }
+
     /**
      * Returns an object which characterises the choices the user has
      * made in the GUI to indicate the plot that s/he wants to see.
@@ -273,37 +210,36 @@ public abstract class GraphicsWindow extends AuxWindow
         /* Create a plot state as delegated to the current instance. */
         PlotState state = createPlotState();
 
-        /* Set per-column characteristics. */
-        StarTableColumn[] cols = new StarTableColumn[ ndim_ ];
-        boolean[] logFlags = new boolean[ ndim_ ];
-        boolean[] flipFlags = new boolean[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            cols[ i ] = (StarTableColumn) colBoxes_[ i ].getSelectedItem();
-            logFlags[ i ] = logBoxes_[ i ].isSelected();
-            flipFlags[ i ] = flipBoxes_[ i ].isSelected();
+        /* Can't plot, won't plot. */
+        if ( ! pointSelector_.isValid() ) {
+            state.setValid( false );
+            return state;
         }
-        state.setColumns( cols );
-        state.setLogFlags( logFlags );
-        state.setFlipFlags( flipFlags );
+
+        /* Set per-column characteristics. */
+        state.setColumns( pointSelector_.getColumns() );
+        state.setLogFlags( pointSelector_.getLogFlags() );
+        state.setFlipFlags( pointSelector_.getFlipFlags() );
 
         /* Set selected subsets and associated characteristics. */
         int[] selection = getOrderedSubsetSelection();
         int nrsets = selection.length;
         RowSubset[] usedSubsets = new RowSubset[ nrsets ];
         MarkStyle[] styles = new MarkStyle[ nrsets ];
+        OptionsListModel subsets = pointSelector_.getTable().getSubsets();
         for ( int isel = 0; isel < nrsets; isel++ ) {
             int isub = selection[ isel ];
-            usedSubsets[ isel ] = (RowSubset) subsets_.get( isub );
+            usedSubsets[ isel ] = (RowSubset) subsets.get( isub );
             styles[ isel ] = getMarkStyle( isub );
             assert state.getSubsets() == null
-                || state.getSubsets()[ isel ] == usedSubsets[ isel ];
+                || state.getSubsets()[ isel ] == usedSubsets[ isel ]
+                : isub + ": " + state.getSubsets()[ isel ] + " != "
+                              + usedSubsets[ isel ];
             assert state.getStyles() == null
-                || state.getStyles()[ isel ].equals( styles[ isel ] );
+                || state.getStyles()[ isel ].equals( styles[ isel ] )
+                : isub + ": " + state.getStyles()[ isel ] + " != "
+                              + styles[ isel ];
         }
-
-        /* This step isn't necessary since the superclass getPlotState method
-         * will fill these values in.  However currently it does an assertion
-         * test that they are the same if it is filled in here. */
         state.setSubsets( usedSubsets, styles );
 
         /* Set grid status. */
@@ -314,20 +250,10 @@ public abstract class GraphicsWindow extends AuxWindow
     }
 
     /**
-     * Returns the model which holds information about which row subsets 
-     * have been selected for display in the plot.
-     *
-     * @param  subset selection model
-     */
-    public ListSelectionModel getSubsetSelectionModel() {
-        return subSelModel_;
-    }
-
-    /**
      * Returns a list of the indices of the subsets which have been 
      * selected.  As well as being in a different form, this actually
-     * contains some information which is not given by
-     * {@link #getSubsetSelectionModel}, since it stores the order
+     * contains some information which is not given by the subset 
+     * selection model itself, since it stores the order
      * in which the subsets have been selected.  This can be reflected
      * in the plot.
      *
@@ -379,12 +305,18 @@ public abstract class GraphicsWindow extends AuxWindow
              * programming (and UI) significantly, so for now leave it
              * until it appears to be a problem. */
             if ( forceData || ! state.sameData( lastState ) ) {
-                try {
-                    points_ = readPoints( state );
+                if ( state.getValid() ) { 
+                    try {
+                        points_ = readPoints( state );
+                    }
+                    catch ( IOException e ) {
+                        logger_.log( Level.SEVERE,
+                                     "Error reading table data", e );
+                        return;
+                    }
                 }
-                catch ( IOException e ) {
-                    logger_.log( Level.SEVERE, "Error reading table data", e );
-                    return;
+                else {
+                    points_ = null;
                 }
             }
             doReplot( state, points_ );
@@ -399,62 +331,6 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     protected ReplotListener getReplotListener() {
         return replotListener_;
-    }
-
-    /**
-     * Bugfix override.
-     */
-    public void setVisible( boolean visible ) {
-
-        /* Invoke superclass method. */
-        super.setVisible( visible );
-
-        /* Don't know why, but this seems to be necessary at Java 1.5
-         * otherwise the stackPanel appears with zero height, at least
-         * the first time the window is made visible.
-         * Possibly a 1.5 Swing bug. */
-        if ( visible == true ) {
-            stackPanel_.revalidate();
-        }
-    }
-
-    /**
-     * Returns a new JComboBox from which can be selected any of the
-     * columns of the table which can be plotted.
-     * This box will be updated when new columns are added to the
-     * table model and so on.
-     *
-     * @return  combo box
-     */
-    private JComboBox makePlottableColumnComboBox() {
-
-        /* Construct a model which contains an entry for each column
-         * which contains Numbers or Dates. */
-        ComboBoxModel boxModel =
-            new RestrictedColumnComboBoxModel( tcModel_.getColumnModel(),
-                                               false ) {
-                public boolean acceptColumn( ColumnInfo cinfo ) {
-                    Class clazz = cinfo.getContentClass();
-                    return Number.class.isAssignableFrom( clazz )
-                        || Date.class.isAssignableFrom( clazz );
-                }
-            };
-
-        /* Create a new combobox. */
-        JComboBox box = new JComboBox( boxModel );
-
-        /* Give it a suitable renderer. */
-        box.setRenderer( new ColumnCellRenderer( box ) );
-        return box;
-    }
-
-    /**
-     * Ensures that a subset with a given index is selected for display.
-     *
-     * @param  index  index into subsets list
-     */
-    public void selectSubset( int index ) {
-        subSelModel_.addSelectionInterval( index, index );
     }
 
     /**
@@ -473,7 +349,8 @@ public abstract class GraphicsWindow extends AuxWindow
         for ( int i = 0; i < ndim_; i++ ) {
             icols[ i ] = getColumnIndex( state.getColumns()[ i ] );
         }
-        return Points.createPoints( tcModel_.getDataModel(), icols );
+        return Points.createPoints( pointSelector_.getTable().getDataModel(),
+                                    icols );
     }
 
     /**
@@ -487,7 +364,7 @@ public abstract class GraphicsWindow extends AuxWindow
          * down this stream. */
         JComponent plot = getPlot();
         Rectangle bounds = plot.getBounds();
-        EpsGraphics2D g2 = new EpsGraphics2D( tcModel_.getLabel(), ostrm,
+        EpsGraphics2D g2 = new EpsGraphics2D( getTitle(), ostrm,
                                               bounds.x, bounds.y,
                                               bounds.x + bounds.width,
                                               bounds.y + bounds.height );
@@ -609,24 +486,6 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     public void surfaceChanged() {
         forceReplot();
-    }
-
-    /**
-     * TopcatListener implementation.
-     */
-    public void modelChanged( TopcatEvent evt ) {
-        if ( evt.getCode() == TopcatEvent.SUBSET ) {
-            RowSubset currentSet = tcModel_.getSelectedSubset();
-            subSelModel_.setValueIsAdjusting( true );
-            subSelModel_.clearSelection();
-            int nrsets = subsets_.size();
-            for ( int i = 0; i < nrsets; i++ ) {
-                if ( subsets_.get( i ) == currentSet ) {
-                    selectSubset( i );
-                }
-            }
-            subSelModel_.setValueIsAdjusting( false );
-        }
     }
 
     /**
