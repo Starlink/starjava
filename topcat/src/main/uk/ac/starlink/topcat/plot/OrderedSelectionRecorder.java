@@ -20,21 +20,11 @@ public abstract class OrderedSelectionRecorder
     private List orderedSelection_;
 
     /**
-     * Constructs a new recorder based on a given list selection model.
-     *
-     * @param  initialState  flags giving initial selection state
+     * Constructs a new recorder with no items selected.
      */
-    public OrderedSelectionRecorder( boolean[] initialState ) {
-        if ( initialState == null ) {
-            initialState = new boolean[ 0 ];
-        }
+    public OrderedSelectionRecorder() {
+        lastState_ = new boolean[ 0 ];
         orderedSelection_ = new ArrayList();
-        for ( int i = 0; i < initialState.length; i++ ) {
-            if ( initialState[ i ] ) {
-                orderedSelection_.add( new Integer( i ) );
-            }
-        }
-        lastState_ = initialState;
     }
 
     /**
@@ -54,11 +44,20 @@ public abstract class OrderedSelectionRecorder
     }
 
     public void valueChanged( ListSelectionEvent evt ) {
-        boolean[] oldState = lastState_;
-        boolean[] newState = getModelState( evt.getSource() );
-        lastState_ = newState;
+        updateState( getModelState( evt.getSource() ) );
+    }
 
-        for ( int i = evt.getFirstIndex(); i <= evt.getLastIndex(); i++ ) {
+    /**
+     * Sets the new selection state.
+     *
+     * @param  state   mask of flags, one true for each selected item
+     */
+    public void updateState( boolean[] state ) {
+        boolean[] oldState = lastState_;
+        boolean[] newState = state;
+        lastState_ = newState;
+        for ( int i = 0; i < Math.max( oldState.length, newState.length );
+              i++ ) {
             Integer item = new Integer( i );
             boolean oldFlag = i < oldState.length ? oldState[ i ] : false;
             boolean newFlag = i < newState.length ? newState[ i ] : false;

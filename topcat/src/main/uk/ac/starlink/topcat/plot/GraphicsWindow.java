@@ -90,12 +90,12 @@ public abstract class GraphicsWindow extends AuxWindow
          * This cannot be worked out from the model on request, since the
          * order in which selections have been made is significant, and
          * is not preserved by the model. */
-        subSelRecorder_ = new OrderedSelectionRecorder( pointSelector_
-                                                       .getSubsetSelection() ) {
+        subSelRecorder_ = new OrderedSelectionRecorder() {
             protected boolean[] getModelState( Object source ) {
                 return ((PointSelector) source).getSubsetSelection();
             }
         };
+        subSelRecorder_.updateState( pointSelector_.getSubsetSelection() );
         pointSelector_.addSubsetSelectionListener( subSelRecorder_ );
         pointSelector_.addSubsetSelectionListener( replotListener_ );
 

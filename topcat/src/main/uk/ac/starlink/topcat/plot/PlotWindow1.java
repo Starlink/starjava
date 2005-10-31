@@ -248,12 +248,12 @@ public class PlotWindow1 extends AuxWindow
          * This cannot be worked out from the model on request, since the
          * order in which selections have been made is significant, and
          * is not preserved by the model. */
-        subSelRecorder_ =
-            new OrderedSelectionRecorder( getSelectionModelState() ) {
-                protected boolean[] getModelState( Object source ) {
-                    return getSelectionModelState();
-                }
-            };
+        subSelRecorder_ = new OrderedSelectionRecorder() {
+            protected boolean[] getModelState( Object source ) {
+                return getSelectionModelState();
+            }
+        };
+        subSelRecorder_.updateState( getSelectionModelState() );
         subSelModel_.addListSelectionListener( this );
         subSelModel_.addListSelectionListener( subSelRecorder_ );
 
