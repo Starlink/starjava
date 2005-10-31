@@ -27,6 +27,16 @@ public class TablesListComboBoxModel extends AbstractListModel
         tablesList.addListDataListener( this );
     }
 
+    /**
+     * If there is only one entry in the tables list, select that.
+     * Otherwise no action.
+     */
+    public void selectIfUnique() {
+        if ( tablesList.getSize() == 1 ) {
+            setSelectedItem( tablesList.getElementAt( 0 ) );
+        }
+    }
+
     public Object getSelectedItem() {
         return selected;
     }
