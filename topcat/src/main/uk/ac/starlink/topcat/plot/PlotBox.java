@@ -1656,15 +1656,16 @@ class PlotBox extends JPanel implements Printable {
         int titley = 0;
         int titlefontheight = _titleFontMetrics.getHeight();
 
-        if (_title == null) {
-            // NOTE: If the _title is null, then set it to the empty
-            // string to solve the problem where the fill button overlaps
-            // the legend if there is no title.  The fix here would
-            // be to modify the legend printing text so that it takes
-            // into account the case where there is no title by offsetting
-            // just enough for the button.
-            _title = "";
-        }
+        // Commented out - fill button is never used in TOPCAT.
+     // if (_title == null) {
+     //     // NOTE: If the _title is null, then set it to the empty
+     //     // string to solve the problem where the fill button overlaps
+     //     // the legend if there is no title.  The fix here would
+     //     // be to modify the legend printing text so that it takes
+     //     // into account the case where there is no title by offsetting
+     //     // just enough for the button.
+     //     _title = "";
+     // }
         if (_title != null || _yExp != 0) {
             titley = titlefontheight + _topPadding;
         }
