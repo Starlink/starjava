@@ -248,7 +248,12 @@ public class PlotWindow1 extends AuxWindow
          * This cannot be worked out from the model on request, since the
          * order in which selections have been made is significant, and
          * is not preserved by the model. */
-        subSelRecorder_ = new OrderedSelectionRecorder( subSelModel_ );
+        subSelRecorder_ =
+            new OrderedSelectionRecorder( getSelectionModelState() ) {
+                protected boolean[] getModelState( Object source ) {
+                    return getSelectionModelState();
+                }
+            };
         subSelModel_.addListSelectionListener( this );
         subSelModel_.addListSelectionListener( subSelRecorder_ );
 
@@ -869,6 +874,21 @@ public class PlotWindow1 extends AuxWindow
      */
     public int getColumnIndex( TableColumn tcol ) {
         return tcol.getModelIndex();
+    }
+
+    /**
+     * Returns the current state of the subset selections as a boolean array.
+     *
+     * @return   array of flags indicating which subsets are selected
+     *           for display
+     */
+    private boolean[] getSelectionModelState() {
+        int nset = subsets_.getSize();
+        boolean[] flags = new boolean[ nset ];
+        for ( int i = 0; i < nset; i++ ) {
+            flags[ i ] = subSelModel_.isSelectedIndex( i );
+        }
+        return flags;
     }
 
     /*
