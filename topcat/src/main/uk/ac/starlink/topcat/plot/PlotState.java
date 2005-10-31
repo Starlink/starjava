@@ -16,6 +16,7 @@ import uk.ac.starlink.topcat.RowSubset;
 public class PlotState {
 
     private final int ndim_;
+    private boolean valid_;
     private StarTableColumn[] columns_;
     private boolean[] logFlags_;
     private boolean[] flipFlags_;
@@ -40,7 +41,27 @@ public class PlotState {
     public int getNdim() {
         return ndim_;
     }
-    
+
+    /**
+     * Sets whether this state should be used to attempt a successful plot.
+     * If false, it is underspecified in some way.
+     *
+     * @param   valid  validity flag
+     */
+    public void setValid( boolean valid ) {
+        valid_ = valid;
+    }
+
+    /**
+     * Indicates whether this state can be used to attempt a successful plot.
+     * If false, it is underspecified in some way.
+     *
+     * @return  validity flag
+     */
+    public boolean getValid() {
+        return valid_;
+    }
+
     /**
      * Sets the columns which will be plotted on the axes.
      *
@@ -195,6 +216,7 @@ public class PlotState {
         }
         PlotState other = (PlotState) otherObject;
         return ndim_ == other.ndim_ 
+            && valid_ == other.valid_
             && grid_ == other.grid_
             && Arrays.equals( columns_, other.columns_ )
             && Arrays.equals( logFlags_, other.logFlags_ )
@@ -206,6 +228,7 @@ public class PlotState {
     public int hashCode() {
         int code = 555;
         code = 23 * code + ndim_;
+        code = 23 * code + ( valid_ ? 99 : 999 );
         code = 23 * code + ( grid_ ? 11 : 17 );
         for ( int i = 0; i < ndim_; i++ ) {
             code = 23 * code + columns_[ i ].hashCode();
