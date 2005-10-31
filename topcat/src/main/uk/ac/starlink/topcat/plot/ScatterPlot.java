@@ -150,6 +150,14 @@ public class ScatterPlot extends JComponent implements Printable {
      * nicely.
      */
     public void rescale() {
+
+        /* Test for no data case. */
+        if ( ! state_.getValid() ) {
+            surface_.setDataRange( 0., 0., 1., 1. );
+            return;
+        }
+
+        /* Plottable. */
         boolean xlog = state_.getLogFlags()[ 0 ];
         boolean ylog = state_.getLogFlags()[ 1 ];
         double xlo = Double.POSITIVE_INFINITY;
@@ -221,6 +229,9 @@ public class ScatterPlot extends JComponent implements Printable {
     private void drawData( Graphics graphics ) {
         Points points = points_;
         Plot2State state = state_;
+        if ( points_ == null || state_ == null ) {
+            return;
+        }
 
         /* Clone the graphics context and configure the clip to correspond
          * to the plotting surface. */
@@ -604,8 +615,10 @@ public class ScatterPlot extends JComponent implements Printable {
          * the wrong value (TYPE_IMAGE_BUFFER not TYPE_PRINTER).
          */
         protected void printComponent( Graphics g ) {
-            drawData( g );
-            drawAnnotations( g );
+            if ( points_ != null && state_ != null ) {
+                drawData( g );
+                drawAnnotations( g );
+            }
         }
     }
 
