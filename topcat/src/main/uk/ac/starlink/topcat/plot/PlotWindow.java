@@ -42,12 +42,8 @@ import uk.ac.starlink.topcat.TopcatModel;
  * @author   Mark Taylor (Starlink)
  * @since    21 Jun 2004
  */
-public class PlotWindow extends GraphicsWindow {
+public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
-    private final TopcatModel tcModel_;
-    private final OptionsListModel subsets_;
-    private final ListSelectionModel regressionSelModel_;
-    private final Action regressDataAction_;
     private final ScatterPlot plot_;
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
@@ -99,38 +95,7 @@ public class PlotWindow extends GraphicsWindow {
      */
     public PlotWindow( TopcatModel tcModel, Component parent ) {
         super( tcModel, "Scatter Plot", new String[] { "X", "Y" }, parent );
-        tcModel_ = tcModel;
-        subsets_ = tcModel_.getSubsets();
-
-        /* Set up a model describing which regression lines will be plotted. */
-        CheckBoxMenu regressSelMenu =
-            subsets_.makeCheckBoxMenu( "Plot Regression For Subsets ..." );
-        regressSelMenu.setIcon( ResourceIcon.PLOT_LINES );
-        regressionSelModel_ = regressSelMenu.getSelectionModel();
-        regressionSelModel_.addListSelectionListener( getReplotListener() );
-        regressionSelModel_.addListSelectionListener( 
-            new ListSelectionListener() {
-                public void valueChanged( ListSelectionEvent evt ) {
-                    /* This isn't really good enough, since there may in fact
-                     * be no regression lines plotted even though some are
-                     * selected because there are <=1 points on the current
-                     * plotting surface.  In this case it ought to be
-                     * disabled too.  But this class doesn't currently
-                     * have access to that information. */
-                    regressDataAction_.setEnabled( ! regressionSelModel_
-                                                    .isSelectionEmpty() );
-                }
-            } );
-
-        /* Action for displaying linear regression coefficients. */
-        regressDataAction_ =
-            new AbstractAction( "Display Regression Coefficients",
-                                ResourceIcon.EQUATION ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    plot_.displayRegressionCoefficients();
-                }
-            };
-        regressDataAction_.setEnabled( false );
+        tcModel.addTopcatListener( this );
 
         /* Construct the plot component.  The paint method is
          * overridden so that when the points are replotted we maintain
@@ -184,23 +149,7 @@ public class PlotWindow extends GraphicsWindow {
         mainArea.add( plotPanel, BorderLayout.CENTER );
 
         /* Set up the initial marker profile. */
-        long nRows = tcModel_.getDataModel().getRowCount();
-        if ( nRows > 20000 ) {
-            markers_ = MARKERS1;
-        }
-        else if ( nRows > 2000 ) {
-            markers_ = MARKERS2;
-        }
-        else if ( nRows > 200 ) {
-            markers_ = MARKERS3;
-        }
-        else if ( nRows > 20 ) {
-            markers_ = MARKERS4;
-        }
-        else {
-            markers_ = MARKERS5;
-        }
-        assert markers_ != null;
+        markers_ = getMarkStyleProfile( tcModel );
 
         /* Action for showing the grid. */
         JToggleButton gridButton = getGridButton();
@@ -248,14 +197,7 @@ public class PlotWindow extends GraphicsWindow {
                                               "containing only " +
                                               "currently visible points" ) {
             public void actionPerformed( ActionEvent evt ) {
-                String name = tcModel_.enquireSubsetName( PlotWindow.this );
-                if ( name != null ) {
-                    int inew = subsets_.size();
-                    RowSubset visibleSet =
-                        new BitsRowSubset( name, visibleRows_ );
-                    subsets_.add( visibleSet );
-                    selectSubset( inew );
-                }
+                addNewSubset( visibleRows_ );
             }
         };
         fromVisibleAction_.setEnabled( false );
@@ -282,19 +224,6 @@ public class PlotWindow extends GraphicsWindow {
             markerMenu.add( profileAct );
         }
         getJMenuBar().add( markerMenu );
-
-        /* Add menu for which subsets to plot. */
-        CheckBoxMenu subMenu = subsets_.makeCheckBoxMenu( "Plotted" );
-        subMenu.setSelectionModel( getSubsetSelectionModel() );
-        subMenu.setMnemonic( KeyEvent.VK_O );
-        getJMenuBar().add( subMenu );
-
-        /* Add menu for which subsets to draw regression lines of. */
-        JMenu regressionMenu = new JMenu( "Regression" );
-        regressionMenu.setMnemonic( KeyEvent.VK_R );
-        regressionMenu.add( regressSelMenu );
-        regressionMenu.add( regressDataAction_ );
-        getJMenuBar().add( regressionMenu );
 
         /* Add actions to the toolbar. */
         getToolBar().add( resizeAction );
@@ -327,6 +256,10 @@ public class PlotWindow extends GraphicsWindow {
 
         /* Create a new blank state for a 2-d plot. */
         Plot2State state = new Plot2State();
+        assert ! state.getValid();
+        if ( ! getPointSelector().isValid() ) {
+            return state;
+        }
 
         /* Collect and store the flags determining which regression lines
          * will be drawn. */
@@ -335,11 +268,15 @@ public class PlotWindow extends GraphicsWindow {
         boolean[] regressions = new boolean[ nrsets ];
         RowSubset[] usedSubsets = new RowSubset[ nrsets ];
         MarkStyle[] styles = new MarkStyle[ nrsets ];
+        OptionsListModel subsets = getPointSelector().getTable().getSubsets();
         for ( int isel = 0; isel < nrsets; isel++ ) {
             int isub = selection[ isel ];
-            usedSubsets[ isel ] = (RowSubset) subsets_.get( isub );
-            styles[ isel ] = markers_.getStyle( isub );
-            regressions[ isel ] = regressionSelModel_.isSelectedIndex( isub );
+            usedSubsets[ isel ] = (RowSubset) subsets.get( isub );
+            styles[ isel ] = getMarkStyle( isub );
+
+            // Currently, regression selection is not working -
+            // just set false here for now.
+            regressions[ isel ] = false;
         }
         state.setRegressions( regressions );
 
@@ -349,6 +286,7 @@ public class PlotWindow extends GraphicsWindow {
         state.setSubsets( usedSubsets, styles );
 
         /* Return the configured state object. */
+        state.setValid( true );
         return state;
     }
 
@@ -389,7 +327,7 @@ public class PlotWindow extends GraphicsWindow {
      * Works out which points are currently visible and stores this
      * information for possible later use.  Although this information
      * has to be calculcated by the ScatterPlot's paintComponent method,
-     * it's not really possible to use this version of the information,
+     * it's not really possible to use that version of the information,
      * since it might be done in several calls of paintComponent
      * (with different clips) and it's not clear how to amalgamate all
      * these.  So we have to do this work more than once.
@@ -406,6 +344,9 @@ public class PlotWindow extends GraphicsWindow {
      */
     private void recordVisiblePoints( PlotState state, Points points,
                                       PlotSurface surface ) {
+        if ( points == null || state == null ) {
+            return;
+        }
         int np = points.getCount();
         RowSubset[] sets = state.getSubsets();
         int nset = sets.length;
@@ -465,14 +406,30 @@ public class PlotWindow extends GraphicsWindow {
      */
     private void useBlob() {
         Shape blob = blobPanel_.getBlob();
-        String name = tcModel_.enquireSubsetName( PlotWindow.this );
-        if ( name != null ) {
-            int inew = subsets_.size();
-            RowSubset blobSet =
-                new BitsRowSubset( name,
-                                   visiblePoints_.getContainedPoints( blob ) );
-            subsets_.add( blobSet );
-            selectSubset( inew );
+        addNewSubset( visiblePoints_.getContainedPoints( blob ) );
+    }
+
+    /**
+     * Adds a new row subset to, er, at least zero of the associated 
+     * tables for this window.  The subset is based on a bit vector
+     * representing the points in this window's Points object.
+     *
+     * @param  mask  bit vector giving included points
+     */
+    private void addNewSubset( BitSet mask ) {
+        if ( mask.cardinality() > 0 ) {
+            PointSelector psel = getPointSelector();
+            TopcatModel tcModel = psel.getTable();
+            OptionsListModel subsets = tcModel.getSubsets();
+            String name = tcModel.enquireSubsetName( PlotWindow.this );
+            if ( name != null ) {
+                int inew = subsets.size();
+                subsets.add( new BitsRowSubset( name, mask ) );
+                boolean[] flags = psel.getSubsetSelection();
+                assert flags.length == inew + 1;
+                flags[ inew ] = true;
+                psel.setSubsetSelection( flags );
+            }
         }
     }
 
@@ -480,7 +437,6 @@ public class PlotWindow extends GraphicsWindow {
      * TopcatListener implementation.
      */
     public void modelChanged( TopcatEvent evt ) {
-        super.modelChanged( evt );
         if ( evt.getCode() == TopcatEvent.ROW ) {
             Object datum = evt.getDatum();
             if ( datum instanceof Long ) {
@@ -494,6 +450,31 @@ public class PlotWindow extends GraphicsWindow {
     }
 
     /**
+     * Returns a suitable marker profile for a given table.
+     *
+     * @param  tcModel  table 
+     * @return   marker style profile
+     */
+    private static MarkStyleProfile getMarkStyleProfile( TopcatModel tcModel ) {
+        long nRows = tcModel.getDataModel().getRowCount();
+        if ( nRows > 20000 ) {
+            return MARKERS1;
+        }
+        else if ( nRows > 2000 ) {
+            return MARKERS2;
+        }
+        else if ( nRows > 200 ) {
+            return MARKERS3;
+        }
+        else if ( nRows > 20 ) {
+            return MARKERS4;
+        }
+        else {
+            return MARKERS5;
+        }
+    }
+
+    /**
      * Mouse listener to handle clicks on given points.
      */
     private class PointClickListener extends MouseAdapter {
@@ -502,7 +483,7 @@ public class PlotWindow extends GraphicsWindow {
             if ( butt == MouseEvent.BUTTON1 ) {
                 int ip = visiblePoints_.getClosestPoint( evt.getPoint(), 4 );
                 if ( ip >= 0 ) {
-                    tcModel_.highlightRow( (long) ip );
+                    getPointSelector().getTable().highlightRow( (long) ip );
                 }
                 else {
                     plot_.setActivePoint( -1 );
