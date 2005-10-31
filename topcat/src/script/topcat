@@ -90,7 +90,6 @@ esac
 #  Run topcat.
 cmd="java \
         $javaArgs \
-        -enableassertions \
         -Duk.ac.starlink.topcat.cmdname=topcat \
         -classpath \${CLASSPATH} uk.ac.starlink.topcat.Driver \
         $appArgs"

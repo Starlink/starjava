@@ -91,7 +91,6 @@ esac
 # Execute the command.
 java \
    $javaArgs \
-   -enableassertions \
    -classpath $CLASSPATH \
    uk.ac.starlink.ttools.Stilts \
    "$@"
