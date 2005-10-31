@@ -819,6 +819,7 @@ public class PlotWindow1 extends AuxWindow
         }
         state.setSubsets( usedSubsets, styles );
         state.setRegressions( regressions );
+        state.setValid( true );
         return state;
     }
 
