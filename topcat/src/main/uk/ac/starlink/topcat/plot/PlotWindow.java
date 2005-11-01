@@ -93,9 +93,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
      * @param  tcModel  data model whose data the window will plot
      * @param  parent   parent component (may be used for positioning)
      */
-    public PlotWindow( TopcatModel tcModel, Component parent ) {
-        super( tcModel, "Scatter Plot", new String[] { "X", "Y" }, parent );
-        tcModel.addTopcatListener( this );
+    public PlotWindow( Component parent ) {
+        super( "Scatter Plot", new String[] { "X", "Y" }, parent );
+        getPointSelector().addTopcatListener( this );
 
         /* Construct the plot component.  The paint method is
          * overridden so that when the points are replotted we maintain
@@ -147,9 +147,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         /* Arrange the components in the top level window. */
         JPanel mainArea = getMainArea();
         mainArea.add( plotPanel, BorderLayout.CENTER );
-
-        /* Set up the initial marker profile. */
-        markers_ = getMarkStyleProfile( tcModel );
 
         /* Action for showing the grid. */
         JToggleButton gridButton = getGridButton();
@@ -249,6 +246,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected MarkStyle getMarkStyle( int isub ) {
+        if ( markers_ == null ) {
+            markers_ = getMarkStyleProfile( getPointSelector().getTable() );
+        }
         return markers_.getStyle( isub );
     }
 
@@ -456,6 +456,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
      * @return   marker style profile
      */
     private static MarkStyleProfile getMarkStyleProfile( TopcatModel tcModel ) {
+        if ( tcModel == null ) {
+            return MARKERS2;
+        }
         long nRows = tcModel.getDataModel().getRowCount();
         if ( nRows > 20000 ) {
             return MARKERS1;

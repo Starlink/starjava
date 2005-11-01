@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -67,20 +68,21 @@ public abstract class GraphicsWindow extends AuxWindow
     /**
      * Constructor.
      *
-     * @param   tcModel  topcat model
      * @param   viewName  name of the view window
      * @param   axisNames  array of labels by which each axis is known;
      *          the length of this array defines the dimensionality of the plot
      * @param   parent   parent window - may be used for positioning
      */
-    public GraphicsWindow( TopcatModel tcModel, String viewName, 
-                           String[] axisNames, Component parent ) {
-        super( tcModel, viewName, parent );
+    public GraphicsWindow( String viewName, String[] axisNames,
+                           Component parent ) {
+        super( viewName, parent );
         ndim_ = axisNames.length;
 
         /* Set up point selector component. */
-        pointSelector_ = new PointSelector( axisNames, tcModel );
-        getControlPanel().add( pointSelector_ );
+        pointSelector_ = new PointSelector( axisNames, null );
+        getControlPanel().setLayout( new BoxLayout( getControlPanel(),
+                                                    BoxLayout.X_AXIS ) );
+        getControlPanel().add( new SizeWrapper( pointSelector_ ) );
 
         /* Ensure that changes to the point selection trigger a replot. */
         replotListener_ = new ReplotListener();

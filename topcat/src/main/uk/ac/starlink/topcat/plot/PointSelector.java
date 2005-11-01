@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -9,9 +11,12 @@ import java.util.Iterator;
 import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JPanel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
@@ -30,6 +35,7 @@ import uk.ac.starlink.topcat.TablesListComboBoxModel;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Component for choosing a table, a number of columns, and a selection
@@ -48,7 +54,7 @@ public class PointSelector extends JPanel implements TopcatListener {
     private final JScrollPane subsetScroller_;
     private final ActionForwarder actionForwarder_;
     private final SelectionForwarder selectionForwarder_;
-    private final List subSelListeners_;
+    private final List topcatListeners_;
     private TopcatModel tcModel_;
     private ListSelectionModel subSelModel_;
 
@@ -62,13 +68,18 @@ public class PointSelector extends JPanel implements TopcatListener {
      *          is the one on which this selector will operate
      */
     public PointSelector( String[] axisNames, TopcatModel fixedTable ) {
+        super( new BorderLayout() );
         ndim_ = axisNames.length;
         actionForwarder_ = new ActionForwarder();
         selectionForwarder_ = new SelectionForwarder();
-        subSelListeners_ = new ArrayList();
+        topcatListeners_ = new ArrayList();
+        final JComponent controlBox = Box.createHorizontalBox();
+        add( controlBox, BorderLayout.SOUTH );
 
-        Box entryBox = new Box( BoxLayout.Y_AXIS );
-        add( entryBox );
+        final Box entryBox = new Box( BoxLayout.Y_AXIS );
+        entryBox.setBorder( AuxWindow.makeTitledBorder( "Data" ) );
+        controlBox.add( entryBox );
+        controlBox.add( Box.createHorizontalStrut( 5 ) );
 
         /* Prepare a selection box for the table. */
         TablesListComboBoxModel tablesModel = new TablesListComboBoxModel();
@@ -83,8 +94,10 @@ public class PointSelector extends JPanel implements TopcatListener {
 
         /* Place the table selection box if we don't have a fixed table. */
         if ( fixedTable == null ) {
-            JPanel tPanel = new JPanel();
-            tPanel.setBorder( AuxWindow.makeTitledBorder( "Table" ) );
+            JComponent tPanel = Box.createHorizontalBox();
+            tPanel.add( new JLabel( " Table: " ) );
+            tPanel.add( new ShrinkWrapper( tableSelector_ ) );
+            tPanel.add( Box.createHorizontalGlue() );
             entryBox.add( tPanel );
         }
  
@@ -95,8 +108,9 @@ public class PointSelector extends JPanel implements TopcatListener {
         flipBoxes_ = new JCheckBox[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
             String aName = axisNames[ i ];
-            JPanel cPanel = new JPanel();
-            cPanel.setBorder( AuxWindow.makeTitledBorder( aName + " Axis" ) );
+            JComponent cPanel = Box.createHorizontalBox();
+            cPanel.add( new JLabel( " " + aName + " Axis: " ) );
+            entryBox.add( Box.createVerticalStrut( 5 ) );
             entryBox.add( cPanel );
 
             /* Add and configure the column selector. */
@@ -104,24 +118,29 @@ public class PointSelector extends JPanel implements TopcatListener {
             colSelectors_[ i ]
                 .setRenderer( new ColumnCellRenderer( colSelectors_[ i ] ) );
             colSelectors_[ i ].addActionListener( actionForwarder_ );
-            cPanel.add( colSelectors_[ i ] );
+            cPanel.add( new ShrinkWrapper( colSelectors_[ i ] ) );
+            cPanel.add( Box.createHorizontalGlue() );
 
             /* Add and configure a linear/log selector. */
-            logBoxes_[ i ] = new JCheckBox( "Log Plot" );
+            logBoxes_[ i ] = new JCheckBox( "Log" );
             logBoxes_[ i ].addActionListener( actionForwarder_ );
+            cPanel.add( Box.createHorizontalStrut( 5 ) );
             cPanel.add( logBoxes_[ i ] );
 
             /* Add and configure an axis direction selector. */
             flipBoxes_[ i ] = new JCheckBox( "Flip" );
             flipBoxes_[ i ].addActionListener( actionForwarder_ );
+            cPanel.add( Box.createHorizontalStrut( 5 ) );
             cPanel.add( flipBoxes_[ i ] );
         }
+        entryBox.add( Box.createVerticalStrut( 5 ) );
 
         /* Make a container for the subset selector. */
-        subsetScroller_ = new JScrollPane();
+        subsetScroller_ =
+            new JScrollPane( new CheckBoxStack( new DefaultListModel() ) );
         subsetScroller_.setBorder( AuxWindow
                                   .makeTitledBorder( "Row Subsets" ) );
-        add( subsetScroller_ );
+        controlBox.add( subsetScroller_ );
 
         /* Initialise the table; either set it to the fixed value if one
          * has been specified, or set it to the intial value of the
@@ -235,12 +254,18 @@ public class PointSelector extends JPanel implements TopcatListener {
      * @return  subset selection flags
      */
     public boolean[] getSubsetSelection() {
-        int nset = getTable().getSubsets().getSize();
-        boolean[] flags = new boolean[ nset ];
-        for ( int i = 0; i < nset; i++ ) {
-            flags[ i ] = subSelModel_.isSelectedIndex( i );
+        TopcatModel tcModel = getTable();
+        if ( tcModel == null ) {
+            return new boolean[ 0 ];
         }
-        return flags;
+        else {
+            int nset = tcModel.getSubsets().getSize();
+            boolean[] flags = new boolean[ nset ];
+            for ( int i = 0; i < nset; i++ ) {
+                flags[ i ] = subSelModel_.isSelectedIndex( i );
+            }
+            return flags;
+        }
     }
 
     /**
@@ -300,6 +325,26 @@ public class PointSelector extends JPanel implements TopcatListener {
      */
     public void removeSubsetSelectionListener( ListSelectionListener listner ) {
         selectionForwarder_.remove( listner );
+    }
+
+    /**
+     * Adds a TopcatListener which will be notified when changes occur to
+     * the TopcatModel associated with this selector.
+     *
+     * @param   listener  listener to add
+     */
+    public void addTopcatListener( TopcatListener listener ) {
+        topcatListeners_.add( listener );
+    }
+    
+    /**
+     * Removes a TopcatListener which was previously added.
+     *
+     * @param  listener  listener to remove
+     * @see    #addTopcatListener
+     */
+    public void removeTopcatListener( TopcatListener listener ) {
+        topcatListeners_.remove( listener );
     }
 
     /**
@@ -402,6 +447,11 @@ public class PointSelector extends JPanel implements TopcatListener {
         int code = evt.getCode();
         if ( code == TopcatEvent.SUBSET ) {
             setDefaultSubsetSelection();
+        }
+
+        /* Forward the event to other listeners. */
+        for ( Iterator it = topcatListeners_.iterator(); it.hasNext(); ) {
+            ((TopcatListener) it.next()).modelChanged( evt );
         }
     }
 
