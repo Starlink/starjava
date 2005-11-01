@@ -82,7 +82,7 @@ public class GraphicsEdges
         clip = false;
         xLeft = 0.05;
         xRight = 0.00;
-        yTop = 0.03;
+        yTop = 0.05;
         yBottom = 0.05;
         fireChanged();
     }
