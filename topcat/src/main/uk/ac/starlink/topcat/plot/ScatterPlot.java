@@ -513,7 +513,8 @@ public class ScatterPlot extends JComponent implements Printable {
 
             /* If there is an active point which is no longer visible in
              * this plot, drop it. */
-            if ( activePoint_ >= 0 && ! isIncluded( activePoint_ ) ) {
+            if ( activePoint_ >= 0 && 
+                 ( ! state_.getValid() || ! isIncluded( activePoint_ ) ) ) {
                 activePoint_ = -1;
             }
         }
