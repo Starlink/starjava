@@ -139,6 +139,7 @@ public class ControlWindow extends AuxWindow
     private final Action[] matchActs_;
     private final ShowAction[] showActs_;
     private final ModelViewAction[] viewActs_;
+    private final Action[] graphicsActs_;
 
     /**
      * Constructs a new window.
@@ -230,12 +231,14 @@ public class ControlWindow extends AuxWindow
             new ModelViewWindowAction( "Column Statistics", ResourceIcon.STATS,
                                        "Display statistics for each column",
                                        StatsWindow.class ),
-            new ModelViewWindowAction( "Plot", ResourceIcon.PLOT,
-                                       "Plot table columns",
-                                       PlotWindow.class ),
             new ModelViewWindowAction( "Plot1", ResourceIcon.PLOT,
                                        "Plot table columns (old)",
                               uk.ac.starlink.topcat.plot.PlotWindow1.class ),
+        };
+        graphicsActs_ = new Action[] {
+            new GraphicsWindowAction( "Plot", ResourceIcon.PLOT,
+                                      "Scatter Plot",
+                                      PlotWindow.class ),
         };
         writeAct_ = new ModelViewAction( "Save Table", ResourceIcon.SAVE,
                                          "Write out the current table" ) {
@@ -310,6 +313,12 @@ public class ControlWindow extends AuxWindow
         }
         toolBar.addSeparator();
 
+        /* Add visualistaion buttons to the toolbar. */
+        for ( int i = 0; i < graphicsActs_.length; i++ ) {
+            toolBar.add( graphicsActs_[ i ] );
+        }
+        toolBar.addSeparator();
+
         /* Add join/match control buttons to the toolbar. */
         toolBar.add( concatAct_ );
         toolBar.add( matchActs_[ 0 ] );
@@ -342,6 +351,14 @@ public class ControlWindow extends AuxWindow
             viewMenu.add( viewActs_[ i ] );
         }
         getJMenuBar().add( viewMenu );
+
+        /* Add a menu for visualisation windows. */
+        JMenu graphicsMenu = new JMenu( "Graphics" );
+        viewMenu.setMnemonic( KeyEvent.VK_G );
+        for ( int i = 0; i < graphicsActs_.length; i++ ) {
+            graphicsMenu.add( graphicsActs_[ i ] );
+        }
+        getJMenuBar().add( graphicsMenu );
 
         /* Add a menu for window management. */
         JMenu winMenu = new JMenu( "Windows" );
@@ -674,6 +691,9 @@ public class ControlWindow extends AuxWindow
         for ( int i = 0; i < matchActs_.length; i++ ) {
             matchActs_[ i ].setEnabled( hasTables );
         }
+        for ( int i = 0; i < graphicsActs_.length; i++ ) {
+            graphicsActs_[ i ].setEnabled( hasTables );
+        }
     }
 
     /*
@@ -916,6 +936,50 @@ public class ControlWindow extends AuxWindow
             try {
                 Object[] args = new Object[] { tcModel, ControlWindow.this };
                 return (AuxWindow) constructor_.newInstance( args );
+            }
+            catch ( Exception e ) {
+                throw new RuntimeException( "Window creation failed???", e );
+            }
+        }
+    }
+
+    /**
+     * Action implementation for graphics windows.
+     */
+    private class GraphicsWindowAction extends BasicAction {
+        final Constructor constructor_;
+
+        /**
+         * Constructor.
+         * @param  name  action name
+         * @param  icon  action icon
+         * @param  shortdesc  action short description
+         * @param  winClass  AuxWindow subclass - must have a
+         *         constructor that takes (Component)
+         */
+        GraphicsWindowAction( String name, Icon icon, String shortdesc,
+                              Class winClass ) {
+            super( name, icon, shortdesc );
+            if ( ! AuxWindow.class.isAssignableFrom( winClass ) ) {
+                throw new IllegalArgumentException();
+            }
+            try {
+                constructor_ = winClass.getConstructor( new Class[] {
+                    Component.class,
+                } );
+            }
+            catch ( NoSuchMethodException e ) {
+                throw (IllegalArgumentException)
+                      new IllegalArgumentException( "No suitable constructor" )
+                     .initCause( e );
+            }
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            try {
+                Object[] args = new Object[] { ControlWindow.this };
+                Window window = (Window) constructor_.newInstance( args );
+                window.setVisible( true );
             }
             catch ( Exception e ) {
                 throw new RuntimeException( "Window creation failed???", e );
