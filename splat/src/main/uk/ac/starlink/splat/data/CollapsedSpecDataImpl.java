@@ -14,11 +14,6 @@ import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
 
 import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.array.NDArray;
-import uk.ac.starlink.array.BridgeNDArray;
-import uk.ac.starlink.array.OrderedNDShape;
-import uk.ac.starlink.array.ArrayArrayImpl;
-import uk.ac.starlink.array.WindowArrayImpl;
 
 /**
  * This class provides an implementation of {@link SpecDataImpl} that
@@ -125,105 +120,43 @@ public class CollapsedSpecDataImpl
                                  int index )
         throws SplatException
     {
-        //  Implementation notes:
-        //  Use NDArrays to pick out (index:index,*,*), (*,index:index,*) or
-        //  (*,*,index:index) 2D section. Index is along the picked axis held
-        //  the by SpecDims object, this cannot be the dispersion axis. The
-        //  collapse is along the other axis and onto the dispersion axis.
-
-        //  Copy int[] significant dims to long[] for NDArray API.
+        //  Extract the section.
         int[] dims = specDims.getSigDims();
-        long[] ldims = new long[dims.length];
-        for ( int i = 0; i < dims.length; i++ ) {
-            ldims[i] = (long) dims[i];
-        }
-
-        //  Create an NDArray of the current data, with the current real shape
-        //  (the significant dimensions).
+        int[] strides = specDims.getStrides( true );
         double[] d = parent.getYData();
         double[] e = parent.getYDataErrors();
-        OrderedNDShape baseShape = new OrderedNDShape( ldims, null );
 
-        // Data.
-        ArrayArrayImpl adImpl =
-            new ArrayArrayImpl( d, baseShape, new Double( SpecData.BAD ) );
-        BridgeNDArray fullDNDArray = new BridgeNDArray( adImpl );
-
-        // Errors.
-        BridgeNDArray fullENDArray = null;
-        if ( e != null ) {
-            ArrayArrayImpl aeImpl =
-                new ArrayArrayImpl( e, baseShape, new Double( SpecData.BAD ) );
-            fullENDArray = new BridgeNDArray( aeImpl );
-        }
-
-        //  Select the image section from the cube using a WindowArrayImpl.
-        //  The section is identified by making the picked axis offset equal
-        //  to the given index along that axis (plus 1) and the size of that
-        //  dimension is set to 1.
-        int picked = specDims.getSelectAxis( false );
-        long[] origin = new long[dims.length];
-        Arrays.fill( origin, 1L );
-        origin[picked] = (long) index + 1;
-        ldims[picked] = 1L;
-
-        OrderedNDShape sectionShape =
-            new OrderedNDShape( origin, ldims, baseShape.getOrder() );
-
-        //  Data.
-        WindowArrayImpl wdImpl = new WindowArrayImpl( fullDNDArray,
-                                                      sectionShape );
-        BridgeNDArray winDNDArray = new BridgeNDArray( wdImpl );
-
-        //  Errors.
-        BridgeNDArray winENDArray = null;
-        if ( e != null ) {
-            WindowArrayImpl weImpl = new WindowArrayImpl( fullENDArray,
-                                                          sectionShape );
-            winENDArray = new BridgeNDArray( weImpl );
-        }
-
-        //  Need the actual dimensions of section for collapse operation.
-        int[] wdims = new int[dims.length - 1];
-        int size = 1;
-        for ( int i = 0, j = 0; i < dims.length; i++ ) {
-            if ( i != picked ) {
-                wdims[j++] = dims[i];
-                size *= dims[i];
-            }
-        }
-
-        //  Now access the section data.
-        //  XXX look at using pixel iterators for more efficient access?
-        double[] ds = new double[size];
-        double[] es = null;
-        if ( e != null ) {
-            es = new double[size];
-        }
-        try {
-            winDNDArray.getAccess().read( ds, 0, size );
-            if ( e != null ) {
-                winENDArray.getAccess().read( es, 0, size );
-            }
-        }
-        catch (IOException io) {
-            io.printStackTrace();
-            throw new SplatException( io );
-        }
-
-        //  Collapse onto the dispersion axis. The collapsed axis is the not
-        //  picked one.
+        //  These are the retained axes.
         int collapsed = specDims.getFreeAxis( true );
         int dispax = specDims.getDispAxis( true );
+        int axis1 = ( collapsed > dispax ) ? dispax : collapsed;
+        int axis2 = ( collapsed > dispax ) ? collapsed : dispax;
+        
+        //  Set initial indices, the selected axis disappears.
+        int[] indices = new int[3];
+        indices[axis1] = 0;
+        indices[axis2] = 0;
+        int picked = specDims.getSelectAxis( true );
+        indices[picked] = index;
+        
+        //  Extract 2D section.
+        Object[] res = extractImage( dims, strides, d, e, axis1, axis2, 
+                                     indices );
+        int[] sdims = new int[2];
+        dims[0] = dims[axis1];
+        dims[1] = dims[axis2];
+
+        //  Collapse onto the dispersion axis.
         if ( dispax < collapsed ) {
-            collapse1( ds, es, wdims );
+            collapse1( (double [])res[0], (double [])res[1], dims );
         }
         else {
-            collapse2( ds, es, wdims );
+            collapse2( (double [])res[0], (double [])res[1], dims );
         }
 
         //  Create the FrameSet for this data. Note +1 for AST axes.
         FrameSet frameSet = parent.getFrameSet();
+        dispax = specDims.getDispAxis( false );
         astref = ASTJ.extract1DFrameSet( frameSet, dispax + 1 );
 
         //  Create a shortname that shows the original line position in world
@@ -231,13 +164,13 @@ public class CollapsedSpecDataImpl
         //  number of input and output coordinates and their relationship is
         //  "obvious" (i.e. watch out for PermMaps).
         int ncoord_in = frameSet.getNaxes();
-        int selectaxis = specDims.getSelectAxis( false );
+        picked = specDims.getSelectAxis( false );
         double[] in = new double[ncoord_in];
         for ( int i = 0; i < ncoord_in; i++ ) {
             if ( i == dispax ) {
                 in[i] = dims[specDims.realToSigAxis( i )] / 2;
             }
-            else if ( i == selectaxis ) {
+            else if ( i == picked ) {
                 in[i] = (double) index;
             }
             else {
@@ -247,8 +180,8 @@ public class CollapsedSpecDataImpl
         double xyt[] = frameSet.tranN( 1, ncoord_in, in, true, ncoord_in );
         frameSet.norm( xyt );
 
-        double coord = xyt[selectaxis];
-        String fcoord = frameSet.format( selectaxis + 1, coord );
+        double coord = xyt[picked];
+        String fcoord = frameSet.format( picked + 1, coord );
         this.shortName = "Collapsed (" + fcoord + "):" + shortName;
     }
 
@@ -423,4 +356,62 @@ public class CollapsedSpecDataImpl
             }
         }
     }
+
+    /**
+     * Extract a 2D section of data, plus optional errors from
+     * a cube of data.
+     */
+    protected Object[] extractImage( int[] dims, int[] strides, double[] d, 
+                                     double[] e, int axis1, int axis2, 
+                                     int[] indices )
+    {
+        Object[] results = new Object[2];
+
+        //  Allocate arrays for extracted data.
+        int size = dims[axis1] * dims[axis2];
+        System.out.println( "size = " + size );
+        double[] data = new double[size];
+        double[] errors = null;
+        if ( e != null ) {
+            errors = new double[size];
+        }
+        results[0] = data;
+        results[1] = errors;
+
+        //  Extract data.
+        int offset;
+        if ( e == null ) {
+            int k = 0;
+            for ( int i = 0; i < dims[axis2]; i++ ) {
+                indices[axis2] = i;
+                for ( int j = 0; j < dims[axis1]; j++ ) {
+                    indices[axis1] = j;
+                    offset = 0;
+                    for ( int l = 0; l < indices.length; l++ ) {
+                        offset += strides[l] * indices[l];
+                    }
+                    data[k] = d[offset];
+                    k++;
+                }
+            }
+        }
+        else {
+            int k = 0;
+            for ( int i = 0; i < dims[axis2]; i++ ) {
+                indices[axis2] = i;
+                for ( int j = 0; j < dims[axis1]; j++ ) {
+                    indices[axis1] = j;
+                    offset = 0;
+                    for ( int l = 0; l < indices.length; l++ ) {
+                        offset += strides[l] * indices[l];
+                    }
+                    data[k] = d[offset];
+                    errors[k] = e[offset];
+                    k++;
+                }
+            }
+        }
+        return results;
+    }
 }
+

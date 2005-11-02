@@ -25,6 +25,8 @@ public final class SpecDims
 {
     private SpecData specData = null;
     private int[] realDims = null;
+    private int[] realStrides = null;
+    private int[] sigStrides = null;
     private int ndims = 0;
     private int firstaxis = 0;
     private int dispax = -1;
@@ -271,5 +273,57 @@ public final class SpecDims
     public int sigToRealAxis( int sigIndex )
     {
         return getSigIndices()[sigIndex];
+    }
+
+    /**
+     * Return a set of column major (Fortran/FITS/NDF) order strides for
+     * stepping around a vectorised array of the dimensionality we're
+     * representing.
+     * <p>
+     * Once returned you can access the array element data(i,j,k) element, as
+     * in the following code segement:
+     *
+     *    int[] indices = new int[3];
+     *    indices[0] = i;
+     *    indices[1] = j;
+     *    indices[2] = k;
+     *    int offset = 0;
+     *    for ( int l = 0; l < indices.length; l++ ) {
+     *       offset += strides[l] * indices[l];
+     *    }
+     *    value = data[offset];
+     *
+     * @param exclude whether to exclude non-significant dimensions (shouldn't
+     *                matter in practice).
+     * @return the strides for each dimension in column major order.
+     *
+     */
+    public int[] getStrides( boolean exclude )
+    {
+        int[] strides = null;
+        if ( exclude ) {
+            if ( sigStrides == null ) {
+                int[] sigDims = getSigDims();
+                sigStrides = new int[sigDims.length];
+                int count = 1;
+                for ( int i = 0; i< sigDims.length; i++ ) {
+                    sigStrides[i] = count;
+                    count *= sigDims[i];
+                }
+            }
+            strides = sigStrides;
+        }
+        else {
+            if ( realStrides == null ) {
+                realStrides = new int[realDims.length];
+                int count = 1;
+                for ( int i = 0; i< realDims.length; i++ ) {
+                    realStrides[i] = count;
+                    count *= realDims[i];
+                }
+            }
+            strides = realStrides;
+        }
+        return strides;
     }
 }

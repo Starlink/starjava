@@ -13,11 +13,6 @@ import java.util.Arrays;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
 
-import uk.ac.starlink.array.ArrayArrayImpl;
-import uk.ac.starlink.array.BridgeNDArray;
-import uk.ac.starlink.array.NDArray;
-import uk.ac.starlink.array.OrderedNDShape;
-import uk.ac.starlink.array.WindowArrayImpl;
 import uk.ac.starlink.ast.FrameSet;
 
 /**
@@ -56,7 +51,7 @@ public class ExtractedSpecDataImpl
      * (defined by the SpecDims object) and is selected by the two coordinates
      * given. These should be of the other two significant axis in order.
      *
-     * @param parent the SpecData to collapse.
+     * @param parent the SpecData to extract
      */
     public ExtractedSpecDataImpl( SpecData parent, SpecDims specDims,
                                   int index1, int index2 )
@@ -88,23 +83,21 @@ public class ExtractedSpecDataImpl
                 ( "The method chosen can only extract from 2D spectra" );
         }
 
-        //  2D so get the first proper axis, the two dimensions and choose the
-        //  dispersion axis.
-        int firstax = specDims.getFirstAxis( false );
+        //  Get dimensionality and the selected dispersion axis.
         int[] dims = specDims.getSigDims();
         int dispax = specDims.getDispAxis( false );
 
-        //  Perform the extraction of the values along the first or second
-        //  dimension. The new data and error arrays become the current
-        //  values.
+        //  Define position of the extraction (index is along select axis).
+        int selectaxis = specDims.getSelectAxis( false );
+        int[] indices = new int[2];
+        indices[dispax] = 0;
+        indices[selectaxis] = index;
+
+        //  Extract the spectrum.
+        int[] strides = specDims.getStrides( false );
         double[] d = parent.getYData();
         double[] e = parent.getYDataErrors();
-        if ( dispax == firstax ) {
-            extract2D1( d, e, index, dims );
-        }
-        else {
-            extract2D2( d, e, index, dims );
-        }
+        extractSpectrum( dims, strides, d, e, dispax, indices );
 
         //  Create the FrameSet for this data. Note +1 for AST axes.
         FrameSet frameSet = parent.getFrameSet();
@@ -115,7 +108,6 @@ public class ExtractedSpecDataImpl
         //  number of input and output coordinates and their relationship is
         //  "obvious" (i.e. watch out for PermMaps).
         int ncoord_in = frameSet.getNaxes();
-        int selectaxis = specDims.getSelectAxis( false );
         double[] in = new double[ncoord_in];
         for ( int i = 0; i < ncoord_in; i++ ) {
             if ( i == dispax ) {
@@ -138,107 +130,31 @@ public class ExtractedSpecDataImpl
 
 
     /**
-     * Extract from a 3D cube.
+     * Extract a data line from a 3D cube and use that as the underlying
+     * spectrum.
      */
     public void extract3D( SpecData parent, SpecDims specDims,
                            int index1, int index2 )
         throws SplatException
     {
-        //  Implementation notes:
-        //  Use NDArrays to pick out (index1:index1,*,*), (*,index1:index1,*)
-        //  or (*,*,index1:index1) 2D section. Index1 is along the select axis
-        //  held the by SpecDims object, this cannot be the dispersion
-        //  axis.
-
-        //  Copy int[] significant dims to long[] for NDArray API.
+        //  Get dimensionality and the selected dispersion axis.
         int[] dims = specDims.getSigDims();
-        long[] ldims = new long[dims.length];
-        for ( int i = 0; i < dims.length; i++ ) {
-            ldims[i] = (long) dims[i];
-        }
+        int dispax = specDims.getDispAxis( false );
 
-        //  Create an NDArray of the current data, with the current real shape
-        //  (the significant dimensions).
+        //  Set the position to extract, these are index1 and index2 along the
+        //  select and free axes.
+        int selectaxis = specDims.getSelectAxis( false );
+        int freeaxis = specDims.getFreeAxis( false );
+        int[] indices = new int[3];
+        indices[dispax] = 0;
+        indices[selectaxis] = index1;
+        indices[freeaxis] = index2;
+
+        //  Extract the spectrum.
+        int[] strides = specDims.getStrides( false );
         double[] d = parent.getYData();
         double[] e = parent.getYDataErrors();
-        OrderedNDShape baseShape = new OrderedNDShape( ldims, null );
-
-        // Data.
-        ArrayArrayImpl adImpl =
-            new ArrayArrayImpl( d, baseShape, new Double( SpecData.BAD ) );
-        BridgeNDArray fullDNDArray = new BridgeNDArray( adImpl );
-
-        // Errors.
-        BridgeNDArray fullENDArray = null;
-        if ( e != null ) {
-            ArrayArrayImpl aeImpl =
-                new ArrayArrayImpl( e, baseShape, new Double( SpecData.BAD ) );
-            fullENDArray = new BridgeNDArray( aeImpl );
-        }
-
-        //  Select the image section from the cube using a WindowArrayImpl.
-        //  The section is identified by making the select axis offset equal
-        //  to the given index along that axis (plus 1) and the size of that
-        //  dimension is set to 1.
-        int selectaxis = specDims.getSelectAxis( false );
-        long[] origin = new long[dims.length];
-        Arrays.fill( origin, 1L );
-        origin[selectaxis] = (long) index1 + 1;
-        ldims[selectaxis] = 1L;
-
-        OrderedNDShape sectionShape =
-            new OrderedNDShape( origin, ldims, baseShape.getOrder() );
-
-        //  Data.
-        WindowArrayImpl wdImpl = new WindowArrayImpl( fullDNDArray,
-                                                      sectionShape );
-        BridgeNDArray winDNDArray = new BridgeNDArray( wdImpl );
-
-        //  Errors.
-        BridgeNDArray winENDArray = null;
-        if ( e != null ) {
-            WindowArrayImpl weImpl = new WindowArrayImpl( fullENDArray,
-                                                          sectionShape );
-            winENDArray = new BridgeNDArray( weImpl );
-        }
-
-        //  Need the actual dimensions of section for collapse operation.
-        int[] wdims = new int[dims.length - 1];
-        int size = 1;
-        for ( int i = 0, j = 0; i < dims.length; i++ ) {
-            if ( i != selectaxis ) {
-                wdims[j++] = dims[i];
-                size *= dims[i];
-            }
-        }
-
-        //  Now access the section data.
-        //  XXX look at using pixel iterators for more efficient access?
-        double[] ds = new double[size];
-        double[] es = null;
-        if ( e != null ) {
-            es = new double[size];
-        }
-        try {
-            winDNDArray.getAccess().read( ds, 0, size );
-            if ( e != null ) {
-                winENDArray.getAccess().read( es, 0, size );
-            }
-        }
-        catch (IOException io) {
-            io.printStackTrace();
-            throw new SplatException( io );
-        }
-
-        //  Now extract the spectrum.
-        int dispax = specDims.getDispAxis( false );
-        int freeaxis = specDims.getFreeAxis( false );
-        if ( dispax < freeaxis ) {
-            extract2D1( ds, es, index2, wdims );
-        }
-        else {
-            extract2D2( ds, es, index2, wdims );
-        }
+        extractSpectrum( dims, strides, d, e, dispax, indices );
 
         //  Create the FrameSet for this data. Note +1 for AST axes.
         FrameSet frameSet = parent.getFrameSet();
@@ -249,6 +165,7 @@ public class ExtractedSpecDataImpl
         //  the same number of input and output coordinates and their
         //  relationship is "obvious" (i.e. watch out for PermMaps).
         int ncoord_in = frameSet.getNaxes();
+
         double[] in = new double[ncoord_in];
         for ( int i = 0; i < ncoord_in; i++ ) {
             if ( i == dispax ) {
@@ -276,8 +193,6 @@ public class ExtractedSpecDataImpl
             this.shortName = "Extracted (" + fcoord + "," + scoord + "): " +
                              shortName;
         }
-
-
     }
 
     /**
@@ -297,77 +212,47 @@ public class ExtractedSpecDataImpl
     }
 
     /**
-     * Extract a line of data, plus optional errors from long the first
-     * dimension at the position along the second dimension. The new array and
-     * errors are set as the data values of this object.
+     * Extract a line of data, plus optional errors from along a given axis,
+     * at the position defined by the values of indices for the other
+     * dimensions. The new array and errors are set as the data values of this
+     * object.
      */
-    protected void extract2D1( double[] d, double[] e, int index, int[] dims )
+    protected void extractSpectrum( int[] dims, int[] strides, 
+                                    double[] d, double[] e, 
+                                    int axis, int[] indices )
     {
-        //  Use the given dimensions. These should exclude any redundant axes.
-        int dim1 = dims[0];
-        int dim2 = dims[1];
-
-        data = new double[dim1];
+        //  Allocate arrays for extracted data.
+        data = new double[dims[axis]];
         if ( e != null ) {
-            errors = new double[dim1];
+            errors = new double[dims[axis]];
         }
         else {
             errors = null;
         }
-        int offset = 0;
 
+        //  Extract data.
+        int offset;
         if ( e == null ) {
-            // No errors.
-            for ( int i = 0; i < dim1; i++ ) {
-                offset = dim1 * index + i;
+            for ( int i = 0; i < data.length; i++ ) {
+                offset = 0;
+                indices[axis] = i;
+                for ( int j = 0; j < indices.length; j++ ) {
+                    offset += strides[j] * indices[j];
+                }
                 data[i] = d[offset];
             }
         }
         else {
-            for ( int i = 0; i < dim1; i++ ) {
-                offset = dim1 * index + i;
+            for ( int i = 0; i < data.length; i++ ) {
+                offset = 0;
+                indices[axis] = i;
+                for ( int j = 0; j < indices.length; j++ ) {
+                    offset += strides[j] * indices[j];
+                }
                 data[i] = d[offset];
                 errors[i] = e[offset];
             }
         }
     }
-
-    /**
-     * Extract a line of data, plus optional errors from long the second
-     * dimension at the position along the first dimension. The new array and
-     * errors are set as the data values of this object.
-     *
-     * The combination uses a weighted mean.
-     */
-    protected void extract2D2( double[] d, double[] e, int index, int[] dims )
-    {
-        //  Use the given dimensions. These should exclude any redundant axes.
-        int dim1 = dims[0];
-        int dim2 = dims[1];
-
-        data = new double[dim2];
-        if ( e != null ) {
-            errors = new double[dim2];
-        }
-        else {
-            errors = null;
-        }
-
-        int offset = 0;
-
-        if ( e == null ) {
-            //  No errors.
-            for ( int j = 0; j < dim2; j++ ) {
-                offset = dim1 * j + index;
-                data[j] = d[offset];
-            }
-        }
-        else {
-            for ( int j = 0; j < dim2; j++ ) {
-                offset = dim1 * j + index;
-                data[j] = d[offset];
-                errors[j] = e[offset];
-            }
-        }
-    }
 }
+

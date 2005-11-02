@@ -745,6 +745,14 @@ public class SplatBrowser
                              "Create new spectrum", null,
                              "Create a new spectrum with unset elements" );
         editMenu.add( createSpectrumAction );
+
+        //  Remove any spectra that have no data or invalid coordinates.
+        LocalAction purgeSpectraAction = 
+            new LocalAction( LocalAction.PURGE_SPECTRA,
+                             "Purge empty spectra", null,
+                             "Remove spectra that cannot be autoranged from" +
+                             " global list" );
+        editMenu.add( purgeSpectraAction );
     }
 
     /**
@@ -2537,6 +2545,27 @@ public class SplatBrowser
         this.embedded = embedded;
     }
 
+
+    /**
+     * Remove all spectra that cannot be autoranged from the global
+     * list. These are usually extracted spectra that have invalid
+     * coordinates.
+     */
+    protected void purgeSpectra()
+    {
+        double[] range = null;
+        int size = globalList.specCount();
+
+        //  Tranverse in reverse.
+        for ( int i = size - 1; i >= 0; i-- ) {
+            range = globalList.getSpectrum( i ).getRange();
+            if ( range[0] == SpecData.BAD || range[1] == SpecData.BAD ||
+                 range[2] == SpecData.BAD || range[3] == SpecData.BAD ) {
+                globalList.removeSpectrum( i );
+            }
+        }
+    }
+
     /**
      * A request to exit the application has been received. Only do
      * this if we're not embedded. In that case just make the window
@@ -2599,7 +2628,8 @@ public class SplatBrowser
         public static final int COPY_SPECTRA = 23;
         public static final int COPYSORT_SPECTRA = 24;
         public static final int CREATE_SPECTRUM = 25;
-        public static final int EXIT = 26;
+        public static final int PURGE_SPECTRA = 26;
+        public static final int EXIT = 27;
 
         private int type = 0;
 
@@ -2749,6 +2779,11 @@ public class SplatBrowser
 
                case CREATE_SPECTRUM: {
                    createSpectrum();
+               }
+               break;
+
+               case PURGE_SPECTRA: {
+                   purgeSpectra();
                }
                break;
 
