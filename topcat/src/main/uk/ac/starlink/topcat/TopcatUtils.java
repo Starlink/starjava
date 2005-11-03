@@ -432,4 +432,19 @@ public class TopcatUtils {
         }
         return stilVersion_;
     }
+
+    /**
+     * Determines whether two objects are equal in the sense of 
+     * {@link java.lang.Object#equals}.  Unlike that method however,
+     * it returns true if both objects are <code>null</code>, and
+     * won't throw a NullPointerException.
+     *
+     * @param  o1  first object
+     * @param  o2  second object
+     * @return   true if <code>o1.equals(o2)</code> or they're both null
+     */
+    public static boolean equals( Object o1, Object o2 ) {
+        return ( o1 == null && o2 == null )
+            || ( o1 != null && o2 != null && o1.equals( o2 ) );
+    }
 }
