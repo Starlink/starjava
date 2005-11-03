@@ -222,8 +222,7 @@ public class CollapsedSpecDataImpl
             errors = null;
         }
         int[] count = new int[dim1];
-        double val = 0.0;
-        double var = 0.0;
+        double invar = 0.0;
         int index = 0;
 
         if ( e == null ) {
@@ -249,17 +248,17 @@ public class CollapsedSpecDataImpl
             }
         }
         else {
+
             for ( int j = 0; j < dim2; j++ ) {
                 for ( int i = 0; i < dim1; i++ ) {
 
                     index = dim1 * j + i;
 
-                    if ( d[index] != SpecData.BAD && e[index] != SpecData.BAD ) {
-
-                        val = d[index];
-                        var = 1.0 / ( e[index] * e[index] );
-                        data[i] += var;
-                        errors[i] += val * var;
+                    if ( d[index] != SpecData.BAD && 
+                         e[index] != SpecData.BAD ) {
+                        invar = 1.0 / ( e[index] * e[index] );
+                        data[i] += d[index] * invar;
+                        errors[i] += invar;
                         count[i]++;
                     }
                 }
@@ -301,7 +300,7 @@ public class CollapsedSpecDataImpl
         double sum1 = 0.0;
         double sum2 = 0.0;
         double val = 0.0;
-        double var = 0.0;
+        double invar = 0.0;
         int index = 0;
 
         if ( e == null ) {
@@ -313,7 +312,7 @@ public class CollapsedSpecDataImpl
                 for ( int i = 0; i < dim1; i++ ) {
 
                     //  Index into 1D vectorized arrays, note this will break
-                    //  at a 2G index (16G array).
+                    //  at a 2Gb index (16Gb array).
                     index = dim1 * j + i;
 
                     if ( d[index] != SpecData.BAD ) {
@@ -338,11 +337,12 @@ public class CollapsedSpecDataImpl
 
                     index = dim1 * j + i;
 
-                    if ( d[index] != SpecData.BAD && e[index] != SpecData.BAD ) {
+                    if ( d[index] != SpecData.BAD && 
+                         e[index] != SpecData.BAD ) {
                         val = d[index];
-                        var = 1.0 / ( e[index] * e[index] );
-                        sum1 += var;
-                        sum2 += val * var;
+                        invar = 1.0 / ( e[index] * e[index] );
+                        sum1 += invar;
+                        sum2 += val * invar;
                     }
                 }
                 if ( sum1 == 0.0 ) {
@@ -369,7 +369,6 @@ public class CollapsedSpecDataImpl
 
         //  Allocate arrays for extracted data.
         int size = dims[axis1] * dims[axis2];
-        System.out.println( "size = " + size );
         double[] data = new double[size];
         double[] errors = null;
         if ( e != null ) {
@@ -414,4 +413,3 @@ public class CollapsedSpecDataImpl
         return results;
     }
 }
-
