@@ -12,6 +12,7 @@ import java.awt.Shape;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.JComponent;
@@ -42,7 +43,8 @@ import uk.ac.starlink.topcat.RowSubset;
 public class ScatterPlot extends JComponent implements Printable {
 
     private Points points_;
-    private Plot2State state_;
+    private PlotState state_;
+    private PointSelection psel_;
     private PlotSurface surface_;
     private Annotations annotations_;
     private Points lastPoints_;
@@ -117,8 +119,9 @@ public class ScatterPlot extends JComponent implements Printable {
      *
      * @param  state  plot state
      */
-    public void setState( Plot2State state ) {
+    public void setState( PlotState state ) {
         state_ = state;
+        psel_ = state.getPointSelection();
         annotations_.validate();
         if ( surface_ != null ) {
             surface_.setState( state_ );
@@ -130,18 +133,19 @@ public class ScatterPlot extends JComponent implements Printable {
      *
      * @return  plot state
      */
-    public Plot2State getState() {
+    public PlotState getState() {
         return state_;
     }
 
     /**
-     * Sets the point at index <tt>ip</tt> of the Points object "active".
-     * It will be marked out somehow or other when plotted.
+     * Sets the points at the indices given by the <tt>ips</tt> array 
+     * of the Points object as "active".
+     * They will be marked out somehow or other when plotted.
      *
-     * @param  ip  active point index, or -1 to indicate no active point
+     * @param  ips  active point array
      */
-    public void setActivePoint( int ip ) {
-        annotations_.setActivePoint( ip );
+    public void setActivePoints( int[] ips ) {
+        annotations_.setActivePoints( ips );
     }
 
     /**
@@ -169,9 +173,10 @@ public class ScatterPlot extends JComponent implements Printable {
         int nok = 0;
         Points points = points_;
         if ( points != null ) {
-            RowSubset[] rsets = getState().getSubsets();
+            RowSubset[] rsets = psel_.getSubsets();
             int nrset = rsets.length;
             int np = points.getCount();
+            double[] coords = new double[ 2 ];
             for ( int ip = 0; ip < np; ip++ ) {
 
                 /* First see if this point will be plotted. */
@@ -181,8 +186,9 @@ public class ScatterPlot extends JComponent implements Printable {
                     use = use || rsets[ is ].isIncluded( lp );
                 }
                 if ( use ) {
-                    double xp = points.getCoord( ip, 0 );
-                    double yp = points.getCoord( ip, 1 );
+                    points.getCoords( ip, coords );
+                    double xp = coords[ 0 ];
+                    double yp = coords[ 1 ];
                     if ( ! Double.isNaN( xp ) && 
                          ! Double.isNaN( yp ) &&
                          ! Double.isInfinite( xp ) && 
@@ -228,7 +234,6 @@ public class ScatterPlot extends JComponent implements Printable {
      */
     private void drawData( Graphics graphics ) {
         Points points = points_;
-        Plot2State state = state_;
         if ( points_ == null || state_ == null ) {
             return;
         }
@@ -245,11 +250,12 @@ public class ScatterPlot extends JComponent implements Printable {
          * it's not very good practice to have a paintComponent method
          * updating data structures. */
         int np = points.getCount();
-        RowSubset[] sets = state.getSubsets();
-        MarkStyle[] styles = state.getStyles();
-        boolean[] regressions = state.getRegressions();
+        RowSubset[] sets = psel_.getSubsets();
+        MarkStyle[] styles = psel_.getStyles();
         int nset = sets.length;
+  boolean[] regressions = new boolean[ nset ];
         statSets_ = new XYStats[ nset ];
+        double[] coords = new double[ 2 ];
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = styles[ is ];
             boolean regress = regressions[ is ];
@@ -262,8 +268,9 @@ public class ScatterPlot extends JComponent implements Printable {
             int maxr = style.getMaximumRadius();
             for ( int ip = 0; ip < np; ip++ ) {
                 if ( sets[ is ].isIncluded( (long) ip ) ) {
-                    double x = points.getCoord( ip, 0 );
-                    double y = points.getCoord( ip, 1 );
+                    points.getCoords( ip, coords );
+                    double x = coords[ 0 ];
+                    double y = coords[ 1 ];
                     Point point = surface_.dataToGraphics( x, y, true );
                     if ( point != null ) {
                         int xp = point.x;
@@ -366,7 +373,7 @@ public class ScatterPlot extends JComponent implements Printable {
      * @return  true  iff point <tt>ip</tt> is included in this plot
      */
     public boolean isIncluded( int ip ) {
-        RowSubset[] sets = state_.getSubsets();
+        RowSubset[] sets = psel_.getSubsets();
         int nset = sets.length;
         for ( int is = 0; is < nset; is++ ) {
             if ( sets[ is ].isIncluded( (long) ip ) ) {
@@ -391,8 +398,8 @@ public class ScatterPlot extends JComponent implements Printable {
      * multiplots.
      */
     public void displayRegressionCoefficients() {
-        final RowSubset[] sets = state_.getSubsets();
-        boolean[] regressions = state_.getRegressions();
+        final RowSubset[] sets = psel_.getSubsets();
+  boolean[] regressions = new boolean[ sets.length ];
         TableModel tmodel = new AbstractTableModel() {
         // Don't do this - the default renderers are rubbish (represent 
         // values near zero as 0.
@@ -461,17 +468,19 @@ public class ScatterPlot extends JComponent implements Printable {
      */
     private class Annotations {
 
-        int activePoint_ = -1;
+        int[] activePoints_ = new int[ 0 ];
 
         /**
-         * Sets a single point to be marked out.
+         * Sets a number of points to be marked out.
+         * Any negative indices in the array, or ones which are not visible
+         * in the current plot, are ignored.
          *
-         * @param  ip  index of the point to be marked
+         * @param  ips  indices of the points to be marked
          */
-        void setActivePoint( int ip ) {
-            int oldActivePoint = activePoint_;
-            activePoint_ = ( ip >= 0 && isIncluded( ip ) ) ? ip : -1;
-            if ( oldActivePoint != activePoint_ ) {
+        void setActivePoints( int[] ips ) {
+            ips = dropInvisible( ips );
+            if ( ! Arrays.equals( ips, activePoints_ ) ) {
+                activePoints_ = ips;
                 repaint();
             }
         }
@@ -484,12 +493,12 @@ public class ScatterPlot extends JComponent implements Printable {
         void draw( Graphics graphics ) {
             Graphics2D g2 = (Graphics2D) graphics.create();
 
-            /* Draw an active point if there is one. */
-            if ( activePoint_ >= 0 ) {
-                Point p = surface_
-                      .dataToGraphics( points_.getCoord( activePoint_, 0 ),
-                                       points_.getCoord( activePoint_, 1 ),
-                                       true );
+            /* Draw any active points. */
+            for ( int i = 0; i < activePoints_.length; i++ ) {
+                double[] coords = new double[ 2 ];
+                points_.getCoords( activePoints_[ i ], coords );
+                Point p = surface_.dataToGraphics( coords[ 0 ], coords[ 1 ],
+                                                   true );
                 if ( p != null ) {
                     Graphics2D g = (Graphics2D) g2.create();
                     g.setColor( new Color( 0, 0, 0, 192 ) );
@@ -510,13 +519,31 @@ public class ScatterPlot extends JComponent implements Printable {
          * state of the plot.
          */
         void validate() {
+            /* If there are active points which are no longer visible in
+             * this plot, drop them. */
+            activePoints_ = state_.getValid() ? dropInvisible( activePoints_ )
+                                              : new int[ 0 ];
+        }
 
-            /* If there is an active point which is no longer visible in
-             * this plot, drop it. */
-            if ( activePoint_ >= 0 && 
-                 ( ! state_.getValid() || ! isIncluded( activePoint_ ) ) ) {
-                activePoint_ = -1;
+        /**
+         * Removes any invisible points from an array of point indices.
+         *
+         * @param  ips   point index array
+         * @return  subset of ips
+         */
+        private int[] dropInvisible( int[] ips ) {
+            List ipList = new ArrayList();
+            for ( int i = 0; i < ips.length; i++ ) {
+                int ip = ips[ i ];
+                if ( ip >= 0 && isIncluded( ip ) ) {
+                    ipList.add( new Integer( ip ) );
+                }
             }
+            ips = new int[ ipList.size() ];
+            for ( int i = 0; i < ips.length; i++ ) {
+                ips[ i ] = ((Integer) ipList.get( i )).intValue();
+            }
+            return ips;
         }
     }
 

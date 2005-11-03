@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -52,9 +53,12 @@ public class PointSelector extends JPanel implements TopcatListener {
     private final JCheckBox[] logBoxes_;
     private final JCheckBox[] flipBoxes_;
     private final JScrollPane subsetScroller_;
+    private final OrderedSelectionRecorder subSelRecorder_;
     private final ActionForwarder actionForwarder_;
     private final SelectionForwarder selectionForwarder_;
+    private final ListSelectionListener listActioner_;
     private final List topcatListeners_;
+    private MarkStyleProfile markStyles_;
     private TopcatModel tcModel_;
     private ListSelectionModel subSelModel_;
 
@@ -64,14 +68,23 @@ public class PointSelector extends JPanel implements TopcatListener {
      * then table selection will not be permitted.
      *
      * @param   axisNames  labels for the columns to choose
+     * @param   markStyles  default marker style profile
      * @param   fixedTable  optionally, the identity of a table which 
      *          is the one on which this selector will operate
      */
-    public PointSelector( String[] axisNames, TopcatModel fixedTable ) {
+    public PointSelector( String[] axisNames, MarkStyleProfile markStyles,
+                          TopcatModel fixedTable ) {
         super( new BorderLayout() );
         ndim_ = axisNames.length;
+        markStyles_ = markStyles;
         actionForwarder_ = new ActionForwarder();
         selectionForwarder_ = new SelectionForwarder();
+        listActioner_ = new ListSelectionListener() {
+            public void valueChanged( ListSelectionEvent evt ) {
+                actionForwarder_
+               .actionPerformed( new ActionEvent( this, 0, "Selection" ) );
+            }
+        };
         topcatListeners_ = new ArrayList();
         final JComponent controlBox = Box.createHorizontalBox();
         add( controlBox, BorderLayout.SOUTH );
@@ -142,6 +155,16 @@ public class PointSelector extends JPanel implements TopcatListener {
                                   .makeTitledBorder( "Row Subsets" ) );
         controlBox.add( subsetScroller_ );
 
+        /* Arrange for a record to be kept of the order in which selections
+         * are made. */
+        subSelRecorder_ = new OrderedSelectionRecorder() {
+            public boolean[] getModelState() {
+                return getSubsetSelection();
+            }
+        };
+        selectionForwarder_.add( subSelRecorder_ );
+        selectionForwarder_.add( listActioner_ );
+
         /* Initialise the table; either set it to the fixed value if one
          * has been specified, or set it to the intial value of the
          * selector, which may be necessary to initialise the state
@@ -163,9 +186,19 @@ public class PointSelector extends JPanel implements TopcatListener {
      * Constructs a selector in which the user can choose the table.
      *
      * @param   axisNames  labels for the columns to choose
+     * @param   markStyles  default marker style profile
      */
-    public PointSelector( String[] axisNames ) {
-        this( axisNames, null );
+    public PointSelector( String[] axisNames, MarkStyleProfile markStyles ) {
+        this( axisNames, markStyles, null );
+    }
+
+    /**
+     * Returns the number of axes this component will deal with.
+     * 
+     * @return  dimensionality
+     */
+    public int getNdim() {
+        return ndim_;
     }
 
     /**
@@ -248,6 +281,23 @@ public class PointSelector extends JPanel implements TopcatListener {
     }
 
     /**
+     * Sets the current selection pattern for row subsets.
+     *
+     * @param   selected  array of selection flags for subsets
+     */
+    public void setSubsetSelection( boolean[] selected ) {
+        subSelModel_.setValueIsAdjusting( true );
+        subSelModel_.clearSelection();
+        int nset = getTable().getSubsets().getSize();
+        for ( int i = 0; i < nset; i++ ) {
+            if ( selected[ i ] ) {
+                subSelModel_.addSelectionInterval( i, i );
+            }
+        }
+        subSelModel_.setValueIsAdjusting( false );
+    }
+
+    /**
      * Returns an array of flags indicating which of the row subsets have
      * been selected.
      *
@@ -269,20 +319,26 @@ public class PointSelector extends JPanel implements TopcatListener {
     }
 
     /**
-     * Sets the current selection pattern for row subsets.
+     * Returns a list of indices giving the selected subsets.
+     * This contains substantially the same information as in 
+     * {@link #getSubsetSelection}, but in a different form and with
+     * the additional information of what order the selections were
+     * made in.
      *
-     * @param   selected  array of selection flags for subsets
+     * @return  array of selected subset indices 
      */
-    public void setSubsetSelection( boolean[] selected ) {
-        subSelModel_.setValueIsAdjusting( true );
-        subSelModel_.clearSelection();
-        int nset = getTable().getSubsets().getSize();
-        for ( int i = 0; i < nset; i++ ) {
-            if ( selected[ i ] ) {
-                subSelModel_.addSelectionInterval( i, i );
-            }
-        }
-        subSelModel_.setValueIsAdjusting( false );
+    public int[] getOrderedSubsetSelection() {
+        return subSelRecorder_.getOrderedSelection();
+    }
+
+    /**
+     * Returns the marker style to use for a given subset index.
+     *
+     * @param  isub  subset index
+     * @return  marker style
+     */
+    public MarkStyle getStyle( int isub ) {
+        return markStyles_.getStyle( isub );
     }
 
     /**

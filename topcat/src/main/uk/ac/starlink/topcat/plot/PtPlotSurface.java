@@ -17,6 +17,7 @@ import uk.ac.starlink.topcat.RowSubset;
 public class PtPlotSurface extends PlotBox implements PlotSurface {
 
     private PlotState state_;
+    private PointSelection psel_;
     private SurfaceListener surfListener_;
 
     private static int PAD_PIXELS = 10;
@@ -36,6 +37,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
 
     public void setState( PlotState state ) {
         state_ = state;
+        psel_ = state != null ? state.getPointSelection() : null;
         if ( state_ != null && state.getValid() ) {
             configure( state_ );
         }
@@ -187,8 +189,8 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
      */
     protected void _drawPoint( Graphics g, int dataset,
                                long xpos, long ypos, boolean clip ) {
-        state_.getStyles()[ dataset ]
-              .drawLegendMarker( g, (int) xpos, (int) ypos );
+        psel_.getStyles()[ dataset ]
+             .drawLegendMarker( g, (int) xpos, (int) ypos );
     }
 
     /**
@@ -197,19 +199,20 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
      * @param   state  state for configuration
      */
     private void configure( PlotState state ) {
+        PointSelection psel = state.getPointSelection();
 
         /* Legend. */
         clearLegends();
-        RowSubset[] rsets = state.getSubsets();
-        MarkStyle[] styles = state.getStyles();
+        RowSubset[] rsets = psel.getSubsets();
+        MarkStyle[] styles = psel.getStyles();
         int nrset = rsets.length;
         for ( int iset = 0; iset < nrset; iset++ ) {
             addLegend( iset, rsets[ iset ].getName() );
         }
 
         /* Axes. */
-        ColumnInfo xCol = state.getColumns()[ 0 ].getColumnInfo();
-        ColumnInfo yCol = state.getColumns()[ 1 ].getColumnInfo();
+        ColumnInfo xCol = state.getAxes()[ 0 ];
+        ColumnInfo yCol = state.getAxes()[ 1 ];
         String xName = xCol.getName();
         String yName = yCol.getName();
         String xUnit = xCol.getUnitString();

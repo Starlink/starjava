@@ -1,14 +1,10 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.util.Arrays;
-import uk.ac.starlink.table.gui.StarTableColumn;
-import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.table.ColumnInfo;
 
 /**
  * Characterises the details of how a plot is to be done.
- * This class details only the basics concerning the plot axes;
- * it is intended to be subclassed for the specific needs of different
- * N-dimensional plot types.
  *
  * @author   Mark Taylor (Starlink)
  * @since    21 Jun 2004
@@ -17,12 +13,11 @@ public class PlotState {
 
     private final int ndim_;
     private boolean valid_;
-    private StarTableColumn[] columns_;
+    private ColumnInfo[] axes_;
     private boolean[] logFlags_;
     private boolean[] flipFlags_;
     private boolean grid_;
-    private RowSubset[] usedSubsets_;
-    private MarkStyle[] styles_;
+    private PointSelection pointSelection_;
 
     /**
      * Constructor.
@@ -63,24 +58,24 @@ public class PlotState {
     }
 
     /**
-     * Sets the columns which will be plotted on the axes.
+     * Sets the metadata for axes to be plotted.
      *
-     * @param  columns  column array
+     * @param  axes  axis metadata array
      */
-    public void setColumns( StarTableColumn[] columns ) {
-        if ( columns.length != ndim_ ) {
+    public void setAxes( ColumnInfo[] axes ) {
+        if ( axes.length != ndim_ ) {
             throw new IllegalArgumentException();
         }
-        columns_ = columns;
+        axes_ = axes;
     }
 
     /**
-     * Returns the columns to be plotted on the axes.
+     * Returns the metadata for the plotted axes.
      *
-     * @return  column array
+     * @return  axis metadata array
      */
-    public StarTableColumn[] getColumns() {
-        return columns_;
+    public ColumnInfo[] getAxes() {
+        return axes_;
     }
 
     /**
@@ -144,68 +139,49 @@ public class PlotState {
     }
 
     /**
-     * Sets the list of row subsets which should be represented in the plot,
-     * along with the marker style for each one.
+     * Sets the point selection object for this state.
      *
-     * @param  subsets  array of row subsets to be plotted
-     * @param  styles   array of marker styles, one for each element of
-     *                  <tt>subsets</tt>
-     * @throws IllegalArgumentException if <tt>subsets</tt> and <tt>styles</tt>
-     *         do not have the same number of elements
+     * @param   pointSelection  data selection object
      */
-    public void setSubsets( RowSubset[] subsets, MarkStyle[] styles ) {
-        if ( subsets.length != styles.length ) {
-            throw new IllegalArgumentException();
-        }
-        usedSubsets_ = subsets;
-        styles_ = styles;
+    public void setPointSelection( PointSelection pointSelection ) {
+        pointSelection_ = pointSelection;
     }
 
     /**
-     * Returns the list of row subsets which should be represented in the plot.
-     * The array itself is returned, not a clone.
+     * Returns the point selection object for this state.
      *
-     * @return  array of row subsets to be plotted
-     *          (same length as {@link #getStyles})
+     * @return  data selection object
      */
-    public RowSubset[] getSubsets() {
-        return usedSubsets_;
+    public PointSelection getPointSelection() {
+        return pointSelection_;
     }
 
     /**
-     * Returns the list of marker styles corresponding to the subsets to
-     * be plotted.
-     * The array itself is returned, not a clone.
+     * Indicates whether the data required to plot this state differs 
+     * from the data required to plot another.  Only if this method
+     * returns true can two PlotStates be used with the same Points object.
      *
-     * @return  array of marker styles
-     *          (same length as {@link #getSubsets})
-     */
-    public MarkStyle[] getStyles() {
-        return styles_;
-    }
-
-    /**
-     * Indicates whether the data represented by this plot is the same
-     * as that of <tt>other</tt>.
-     *
-     * @param  other  state for comparison
-     * @return  true iff the X and Y columns represent the same data
+     * @param   state for comparison
+     * @return  true if <code>other</code> can be used with the same Points
      */
     public boolean sameData( PlotState other ) {
         return other != null
-            && Arrays.equals( columns_, other.columns_ );
+            && ( pointSelection_ == null 
+                    ? other.pointSelection_ == null
+                    : pointSelection_.sameData( other.pointSelection_ ) );
     }
 
     /**
      * Indicates whether the axes of this plot state are the same as
-     * those of <tt>other</tt>.
+     * those for <code>other</code>, that is whether the same data
+     * range is covered.
      *
-     * @param  other  state for comparison
-     * @return  true iff the X and Y columns represent the same data and
-     *          have the same log flags between this and <tt>other</tt>
+     * @param  other  comparison object
+     * @return   true  if the axes match
      */
     public boolean sameAxes( PlotState other ) {
-        return sameData( other )
+        return other != null
+            && Arrays.equals( axes_, other.axes_ )
             && Arrays.equals( logFlags_, other.logFlags_ )
             && Arrays.equals( flipFlags_, other.flipFlags_ );
     }
@@ -215,14 +191,15 @@ public class PlotState {
             return false;
         }
         PlotState other = (PlotState) otherObject;
-        return ndim_ == other.ndim_ 
+        return ndim_ == other.ndim_
             && valid_ == other.valid_
             && grid_ == other.grid_
-            && Arrays.equals( columns_, other.columns_ )
+            && Arrays.equals( axes_, other.axes_ )
             && Arrays.equals( logFlags_, other.logFlags_ )
             && Arrays.equals( flipFlags_, other.flipFlags_ )
-            && Arrays.equals( usedSubsets_, other.usedSubsets_ )
-            && Arrays.equals( styles_, other.styles_ );
+            && ( pointSelection_ == null 
+                    ? other.pointSelection_ == null
+                    : pointSelection_.equals( other.pointSelection_ ) );
     }
 
     public int hashCode() {
@@ -231,14 +208,13 @@ public class PlotState {
         code = 23 * code + ( valid_ ? 99 : 999 );
         code = 23 * code + ( grid_ ? 11 : 17 );
         for ( int i = 0; i < ndim_; i++ ) {
-            code = 23 * code + columns_[ i ].hashCode();
-            code = 23 * code + ( logFlags_[ i ] ? 0 : 1 );
-            code = 23 * code + ( flipFlags_[ i ] ? 0 : 1 );
+            code = 23 * code + axes_[ i ].hashCode();
+            code = 23 * code + ( logFlags_[ i ] ? 1 : 2 );
+            code = 23 * code + ( flipFlags_[ i ] ? 1 : 2 );
         }
-        for ( int i = 0; i < usedSubsets_.length; i++ ) {
-            code = 23 * code + usedSubsets_[ i ].hashCode();
-            code = 23 * code + styles_[ i ].hashCode();
-        }
+        code = 23 * code + ( pointSelection_ == null 
+                                ? 0
+                                : pointSelection_.hashCode() );
         return code;
     }
 }

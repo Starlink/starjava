@@ -50,7 +50,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private final Action fromVisibleAction_;
 
     private boolean replotted_;
-    private MarkStyleProfile markers_;
     private boolean activeBlob_;
     private BitSet visibleRows_;
     private PointRegistry visiblePoints_;
@@ -95,7 +94,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
      */
     public PlotWindow( Component parent ) {
         super( "Scatter Plot", new String[] { "X", "Y" }, parent );
-        getPointSelector().addTopcatListener( this );
 
         /* Construct the plot component.  The paint method is
          * overridden so that when the points are replotted we maintain
@@ -143,6 +141,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
          * about with glassPanes. */
         plot_.getSurface().getComponent()
              .addMouseListener( new PointClickListener() );
+
+        /* Listen for topcat actions. */
+        getPointSelectors().addTopcatListener( this );
 
         /* Arrange the components in the top level window. */
         JPanel mainArea = getMainArea();
@@ -194,7 +195,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                                               "containing only " +
                                               "currently visible points" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addNewSubset( visibleRows_ );
+                addNewSubsets( visibleRows_ );
             }
         };
         fromVisibleAction_.setEnabled( false );
@@ -214,7 +215,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                                                  "Set default marker types to "
                                                  + name ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    markers_ = profile;
+  System.out.println( "no action" );
                     replot();
                 }
             };
@@ -245,51 +246,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         return plot_;
     }
 
-    protected MarkStyle getMarkStyle( int isub ) {
-        if ( markers_ == null ) {
-            markers_ = getMarkStyleProfile( getPointSelector().getTable() );
-        }
-        return markers_.getStyle( isub );
-    }
-
-    protected PlotState createPlotState() {
-
-        /* Create a new blank state for a 2-d plot. */
-        Plot2State state = new Plot2State();
-        assert ! state.getValid();
-        if ( ! getPointSelector().isValid() ) {
-            return state;
-        }
-
-        /* Collect and store the flags determining which regression lines
-         * will be drawn. */
-        int[] selection = getOrderedSubsetSelection();
-        int nrsets = selection.length;
-        boolean[] regressions = new boolean[ nrsets ];
-        RowSubset[] usedSubsets = new RowSubset[ nrsets ];
-        MarkStyle[] styles = new MarkStyle[ nrsets ];
-        OptionsListModel subsets = getPointSelector().getTable().getSubsets();
-        for ( int isel = 0; isel < nrsets; isel++ ) {
-            int isub = selection[ isel ];
-            usedSubsets[ isel ] = (RowSubset) subsets.get( isub );
-            styles[ isel ] = getMarkStyle( isub );
-
-            // Currently, regression selection is not working -
-            // just set false here for now.
-            regressions[ isel ] = false;
-        }
-        state.setRegressions( regressions );
-
-        /* This step isn't necessary since the superclass getPlotState method
-         * will fill these values in.  However currently it does an assertion
-         * test that they are the same if it is filled in here. */
-        state.setSubsets( usedSubsets, styles );
-
-        /* Return the configured state object. */
-        state.setValid( true );
-        return state;
-    }
-
     protected void doReplot( PlotState state, Points points ) {
 
         /* Cancel any active blob-drawing.  This is necesary since
@@ -302,7 +258,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         /* Send the plot component the most up to date plotting state. */
         PlotState lastState = plot_.getState();
         plot_.setPoints( points );
-        plot_.setState( (Plot2State) state );
+        plot_.setState( state );
 
         /* If the axes are different from the last time we plotted,
          * fix it so that all the points are included. */
@@ -348,14 +304,15 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
             return;
         }
         int np = points.getCount();
-        RowSubset[] sets = state.getSubsets();
+        RowSubset[] sets = state.getPointSelection().getSubsets();
         int nset = sets.length;
         BitSet visible = new BitSet();
         PointRegistry plotted = new PointRegistry();
         int nVisible = 0;
+        double[] coords = new double[ 2 ];
         for ( int ip = 0; ip < np; ip++ ) {
-            Point point = surface.dataToGraphics( points.getCoord( ip, 0 ),
-                                                  points.getCoord( ip, 1 ),
+            points.getCoords( ip, coords );
+            Point point = surface.dataToGraphics( coords[ 0 ], coords[ 1 ],
                                                   true );
             if ( point != null ) {
                 int xp = point.x;
@@ -406,29 +363,49 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
      */
     private void useBlob() {
         Shape blob = blobPanel_.getBlob();
-        addNewSubset( visiblePoints_.getContainedPoints( blob ) );
+        addNewSubsets( visiblePoints_.getContainedPoints( blob ) );
     }
 
     /**
-     * Adds a new row subset to, er, at least zero of the associated 
-     * tables for this window.  The subset is based on a bit vector
+     * Adds a new row subset to tables associated with this window as
+     * appropriate.  The subset is based on a bit vector
      * representing the points in this window's Points object.
      *
      * @param  mask  bit vector giving included points
      */
-    private void addNewSubset( BitSet mask ) {
-        if ( mask.cardinality() > 0 ) {
-            PointSelector psel = getPointSelector();
-            TopcatModel tcModel = psel.getTable();
-            OptionsListModel subsets = tcModel.getSubsets();
+    private void addNewSubsets( BitSet mask ) {
+
+        /* For the given mask, which corresponds to all the plotted points,
+         * deconvolve it into individual masks for any of the tables
+         * that our point selection is currently dealing with. */
+        PointSelection.TableMask[] tableMasks =
+            plot_.getState().getPointSelection().getTableMasks( mask );
+
+        /* Handle each of the affected tables separately. */
+        for ( int i = 0; i < tableMasks.length; i++ ) {
+            TopcatModel tcModel = tableMasks[ i ].getTable();
+            BitSet tmask = tableMasks[ i ].getMask();
+
+            /* Try adding a new subset to the table. */
             String name = tcModel.enquireSubsetName( PlotWindow.this );
             if ( name != null ) {
+                OptionsListModel subsets = tcModel.getSubsets();
                 int inew = subsets.size();
                 subsets.add( new BitsRowSubset( name, mask ) );
-                boolean[] flags = psel.getSubsetSelection();
-                assert flags.length == inew + 1;
-                flags[ inew ] = true;
-                psel.setSubsetSelection( flags );
+
+                /* Then make sure that the newly added subset is selected
+                 * in each of the point selectors. */
+                PointSelectorSet pointSelectors = getPointSelectors();
+                for ( int ips = 0; ips < pointSelectors.getSelectorCount();
+                      ips++ ) {
+                    PointSelector psel = pointSelectors.getSelector( ips );
+                    if ( psel.getTable() == tcModel ) {
+                        boolean[] flags = psel.getSubsetSelection();
+                        assert flags.length == inew + 1;
+                        flags[ inew ] = true;
+                        psel.setSubsetSelection( flags );
+                    }
+                }
             }
         }
     }
@@ -440,8 +417,15 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         if ( evt.getCode() == TopcatEvent.ROW ) {
             Object datum = evt.getDatum();
             if ( datum instanceof Long ) {
+                TopcatModel tcModel = evt.getModel();
+                PointSelection psel = plot_.getState().getPointSelection();
                 long lrow = ((Long) datum).longValue();
-                plot_.setActivePoint( Tables.checkedLongToInt( lrow ) );
+                long[] lps = psel.getPointsForRow( tcModel, lrow );
+                int[] ips = new int[ lps.length ];
+                for ( int i = 0; i < lps.length; i++ ) {
+                    ips[ i ] = Tables.checkedLongToInt( lps[ i ] );
+                }
+                plot_.setActivePoints( ips );
             }
             else {
                 assert false;
@@ -449,31 +433,24 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         }
     }
 
-    /**
-     * Returns a suitable marker profile for a given table.
-     *
-     * @param  tcModel  table 
-     * @return   marker style profile
-     */
-    private static MarkStyleProfile getMarkStyleProfile( TopcatModel tcModel ) {
-        if ( tcModel == null ) {
-            return MARKERS2;
-        }
-        long nRows = tcModel.getDataModel().getRowCount();
-        if ( nRows > 20000 ) {
+    public MarkStyleProfile getDefaultStyles( int npoint ) {
+        if ( npoint > 20000 ) {
             return MARKERS1;
         }
-        else if ( nRows > 2000 ) {
+        else if ( npoint > 2000 ) {
             return MARKERS2;
         }
-        else if ( nRows > 200 ) {
+        else if ( npoint > 200 ) {
             return MARKERS3;
         }
-        else if ( nRows > 20 ) {
+        else if ( npoint > 20 ) {
             return MARKERS4;
         }
-        else {
+        else if ( npoint >= 1 ) {
             return MARKERS5;
+        }
+        else {
+            return MARKERS2;
         }
     }
 
@@ -486,10 +463,12 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
             if ( butt == MouseEvent.BUTTON1 ) {
                 int ip = visiblePoints_.getClosestPoint( evt.getPoint(), 4 );
                 if ( ip >= 0 ) {
-                    getPointSelector().getTable().highlightRow( (long) ip );
+                    PointSelection psel = plot_.getState().getPointSelection();
+                    psel.getPointTable( ip )
+                        .highlightRow( psel.getPointRow( ip ) );
                 }
                 else {
-                    plot_.setActivePoint( -1 );
+                    plot_.setActivePoints( new int[ 0 ] );
                 }
             }
         }

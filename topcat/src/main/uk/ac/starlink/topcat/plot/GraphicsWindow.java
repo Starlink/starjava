@@ -29,6 +29,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import org.jibble.epsgraphics.EpsGraphics2D;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.OptionsListModel;
@@ -47,12 +49,13 @@ public abstract class GraphicsWindow extends AuxWindow
                                      implements SurfaceListener {
 
     private final int ndim_;
-    private final PointSelector pointSelector_;
+    private final PointSelectorSet pointSelectors_;
 
-    private final OrderedSelectionRecorder subSelRecorder_;
     private final ReplotListener replotListener_;
     private final Action replotAction_;
     private final JToggleButton gridButton_;
+    private final Action addSelectorAction_;
+    private final Action removeSelectorAction_;
 
     private Points points_;
     private JFileChooser exportSaver_;
@@ -79,27 +82,15 @@ public abstract class GraphicsWindow extends AuxWindow
         ndim_ = axisNames.length;
 
         /* Set up point selector component. */
-        pointSelector_ = new PointSelector( axisNames, null );
+        pointSelectors_ = new PointSelectorSet( axisNames, this );
         getControlPanel().setLayout( new BoxLayout( getControlPanel(),
                                                     BoxLayout.X_AXIS ) );
-        getControlPanel().add( new SizeWrapper( pointSelector_ ) );
+        getControlPanel().add( new SizeWrapper( pointSelectors_ ) );
 
         /* Ensure that changes to the point selection trigger a replot. */
         replotListener_ = new ReplotListener();
-        pointSelector_.addActionListener( replotListener_ );
-
-        /* Maintain a list of selected subsets updated from this model.
-         * This cannot be worked out from the model on request, since the
-         * order in which selections have been made is significant, and
-         * is not preserved by the model. */
-        subSelRecorder_ = new OrderedSelectionRecorder() {
-            protected boolean[] getModelState( Object source ) {
-                return ((PointSelector) source).getSubsetSelection();
-            }
-        };
-        subSelRecorder_.updateState( pointSelector_.getSubsetSelection() );
-        pointSelector_.addSubsetSelectionListener( subSelRecorder_ );
-        pointSelector_.addSubsetSelectionListener( replotListener_ );
+        pointSelectors_.addActionListener( replotListener_ );
+        pointSelectors_.addNewSelector();
 
          /* Actions for exporting the plot. */
         Action gifAction =
@@ -116,13 +107,19 @@ public abstract class GraphicsWindow extends AuxWindow
         getToolBar().add( gifAction );
         getToolBar().addSeparator();
 
-        /* Action for replotting. */
-        replotAction_ = new BasicAction( "Replot", ResourceIcon.REDO,
-                                         "Redraw the plot" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                doReplot( true, true );
-            }
-        };
+        /* Other actions. */
+        replotAction_ =
+            new GraphicsAction( "Replot", ResourceIcon.REDO,
+                                "Redraw the plot" );
+        addSelectorAction_ =
+            new GraphicsAction( "Add Dataset", ResourceIcon.ADD,
+                                "Add a new data set" );
+        removeSelectorAction_ = 
+            new GraphicsAction( "Remove Dataset", ResourceIcon.SUBTRACT,
+                                "Remove the current dataset" );
+        getToolBar().add( addSelectorAction_ );
+        getToolBar().add( removeSelectorAction_ );
+        getToolBar().addSeparator();
 
         /* Action for showing grid. */
         String gridName = "Show Grid";
@@ -141,6 +138,15 @@ public abstract class GraphicsWindow extends AuxWindow
             lastState_ = getPlotState();
             lastState_.setValid( false );
         }
+    }
+
+    /**
+     * Returns the PointSelectorSet component used by this window.
+     *
+     * @return  point selector set
+     */
+    public PointSelectorSet getPointSelectors() {
+        return pointSelectors_;
     }
 
     /**
@@ -178,28 +184,14 @@ public abstract class GraphicsWindow extends AuxWindow
     protected abstract void doReplot( PlotState state, Points points );
 
     /**
-     * Creates a new PlotState object based on the current state of this
-     * component.  The returned PlotState should be configured to contain
-     * all the information about the current state of the specifics of
-     * this GraphicsWindow subclass.  The parts which are generic to
-     * all GraphicsWindow instances will be filled in (during a 
-     * {@link #getPlotState} call) by the superclass.
+     * Returns a MarkStyleProfile which can supply markers.
+     * The <code>npoint</code> may be used as a hint for how many 
+     * points are expected to be drawn with it.
      *
-     * @return  state of this component vis-a-vis plot detail requests
+     * @param    npoint  approximate number of points - use -1 for unknown
+     * @return   marker style profile factory
      */
-    protected abstract PlotState createPlotState();
-
-    /**
-     * Returns the marker style to be used for one of the subsets.
-     *
-     * @param  isub  index into the subsets list
-     * @return   marker style to use for subset number <code>isub</code>
-     */
-    protected abstract MarkStyle getMarkStyle( int isub );
-
-    public PointSelector getPointSelector() {
-        return pointSelector_;
-    }
+    public abstract MarkStyleProfile getDefaultStyles( int npoint );
 
     /**
      * Returns an object which characterises the choices the user has
@@ -210,59 +202,34 @@ public abstract class GraphicsWindow extends AuxWindow
     public PlotState getPlotState() {
 
         /* Create a plot state as delegated to the current instance. */
-        PlotState state = createPlotState();
+        PlotState state = new PlotState( ndim_ );
 
         /* Can't plot, won't plot. */
-        if ( ! pointSelector_.isValid() ) {
+        if ( ! pointSelectors_.getMainSelector().isValid() ) {
             state.setValid( false );
             return state;
         }
 
-        /* Set per-column characteristics. */
-        state.setColumns( pointSelector_.getColumns() );
-        state.setLogFlags( pointSelector_.getLogFlags() );
-        state.setFlipFlags( pointSelector_.getFlipFlags() );
-
-        /* Set selected subsets and associated characteristics. */
-        int[] selection = getOrderedSubsetSelection();
-        int nrsets = selection.length;
-        RowSubset[] usedSubsets = new RowSubset[ nrsets ];
-        MarkStyle[] styles = new MarkStyle[ nrsets ];
-        OptionsListModel subsets = pointSelector_.getTable().getSubsets();
-        for ( int isel = 0; isel < nrsets; isel++ ) {
-            int isub = selection[ isel ];
-            usedSubsets[ isel ] = (RowSubset) subsets.get( isub );
-            styles[ isel ] = getMarkStyle( isub );
-            assert state.getSubsets() == null
-                || state.getSubsets()[ isel ] == usedSubsets[ isel ]
-                : isub + ": " + state.getSubsets()[ isel ] + " != "
-                              + usedSubsets[ isel ];
-            assert state.getStyles() == null
-                || state.getStyles()[ isel ].equals( styles[ isel ] )
-                : isub + ": " + state.getStyles()[ isel ] + " != "
-                              + styles[ isel ];
+        /* Set per-axis characteristics. */
+        StarTableColumn[] axcols =
+            pointSelectors_.getMainSelector().getColumns();
+        ColumnInfo[] axinfos = new ColumnInfo[ ndim_ ];
+        for ( int i = 0; i < ndim_; i++ ) {
+            axinfos[ i ] = axcols[ i ].getColumnInfo();
         }
-        state.setSubsets( usedSubsets, styles );
+        state.setAxes( axinfos );
+        state.setLogFlags( pointSelectors_.getMainSelector().getLogFlags() );
+        state.setFlipFlags( pointSelectors_.getMainSelector().getFlipFlags() );
+
+        /* Set point selection. */
+        state.setPointSelection( pointSelectors_.getPointSelection() );
 
         /* Set grid status. */
         state.setGrid( gridButton_.isSelected() );
 
         /* Return the configured state for use. */
+        state.setValid( true );
         return state;
-    }
-
-    /**
-     * Returns a list of the indices of the subsets which have been 
-     * selected.  As well as being in a different form, this actually
-     * contains some information which is not given by the subset 
-     * selection model itself, since it stores the order
-     * in which the subsets have been selected.  This can be reflected
-     * in the plot.
-     *
-     * @return   array of subset indices
-     */
-    public int[] getOrderedSubsetSelection() {
-        return subSelRecorder_.getOrderedSelection();
     }
 
     /**
@@ -346,13 +313,8 @@ public abstract class GraphicsWindow extends AuxWindow
      * @param  state  plot state
      * @return points  object containing data values for <tt>state</tt>
      */
-    public Points readPoints( PlotState state ) throws IOException {
-        int[] icols = new int[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            icols[ i ] = getColumnIndex( state.getColumns()[ i ] );
-        }
-        return Points.createPoints( pointSelector_.getTable().getDataModel(),
-                                    icols );
+    private Points readPoints( PlotState state ) throws IOException {
+        return state.getPointSelection().readPoints();
     }
 
     /**
@@ -560,6 +522,26 @@ public abstract class GraphicsWindow extends AuxWindow
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Miscellaneous actions.
+     */
+    private class GraphicsAction extends BasicAction {
+        GraphicsAction( String name, Icon icon, String desc ) {
+            super( name, icon, desc );
+        }
+        public void actionPerformed( ActionEvent evt ) {
+            if ( this == replotAction_ ) {
+                doReplot( true, true );
+            }
+            else if ( this == addSelectorAction_ ) {
+                pointSelectors_.addNewSelector();
+            }
+            else if ( this == removeSelectorAction_ ) {
+                pointSelectors_.removeCurrentSelector();
             }
         }
     }
