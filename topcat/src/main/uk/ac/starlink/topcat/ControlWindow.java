@@ -231,9 +231,6 @@ public class ControlWindow extends AuxWindow
             new ModelViewWindowAction( "Column Statistics", ResourceIcon.STATS,
                                        "Display statistics for each column",
                                        StatsWindow.class ),
-            new ModelViewWindowAction( "Plot1", ResourceIcon.PLOT,
-                                       "Plot table columns (old)",
-                              uk.ac.starlink.topcat.plot.PlotWindow1.class ),
         };
         graphicsActs_ = new Action[] {
             new GraphicsWindowAction( "Plot", ResourceIcon.PLOT,
