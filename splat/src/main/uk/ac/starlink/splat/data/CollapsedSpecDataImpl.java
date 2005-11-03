@@ -34,6 +34,8 @@ import uk.ac.starlink.ast.FrameSet;
 public class CollapsedSpecDataImpl
     extends MEMSpecDataImpl
 {
+    private static int localCounter = 0;
+
     /**
      * Constructor for 2D data.
      *
@@ -163,26 +165,33 @@ public class CollapsedSpecDataImpl
         //  coordinates. Assumes index is base coordinate and we have the same
         //  number of input and output coordinates and their relationship is
         //  "obvious" (i.e. watch out for PermMaps).
-        int ncoord_in = frameSet.getNaxes();
-        picked = specDims.getSelectAxis( false );
-        double[] in = new double[ncoord_in];
-        for ( int i = 0; i < ncoord_in; i++ ) {
-            if ( i == dispax ) {
-                in[i] = dims[specDims.realToSigAxis( i )] / 2;
+        try {
+            int ncoord_in = frameSet.getNaxes();
+            picked = specDims.getSelectAxis( false );
+            double[] in = new double[ncoord_in];
+            for ( int i = 0; i < ncoord_in; i++ ) {
+                if ( i == dispax ) {
+                    in[i] = dims[specDims.realToSigAxis( i )] / 2;
+                }
+                else if ( i == picked ) {
+                    in[i] = (double) index;
+                }
+                else {
+                    in[i] = 1.0;
+                }
             }
-            else if ( i == picked ) {
-                in[i] = (double) index;
-            }
-            else {
-                in[i] = 1.0;
-            }
-        }
-        double xyt[] = frameSet.tranN( 1, ncoord_in, in, true, ncoord_in );
-        frameSet.norm( xyt );
+            double xyt[] = frameSet.tranN( 1, ncoord_in, in, true, ncoord_in );
+            frameSet.norm( xyt );
 
-        double coord = xyt[picked];
-        String fcoord = frameSet.format( picked + 1, coord );
-        this.shortName = "Collapsed (" + fcoord + "):" + shortName;
+            double coord = xyt[picked];
+            String fcoord = frameSet.format( picked + 1, coord );
+            this.shortName = "Collapsed (" + fcoord + "):" + shortName;
+        }
+        catch (Exception ex) {
+            //  Failed, probably an AST-v-redundant axes issue.
+            this.shortName = "Collapsed (" + localCounter + ") :" + shortName;
+            localCounter++;
+        }
     }
 
     /**

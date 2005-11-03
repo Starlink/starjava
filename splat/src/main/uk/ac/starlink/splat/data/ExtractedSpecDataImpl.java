@@ -28,6 +28,8 @@ import uk.ac.starlink.ast.FrameSet;
 public class ExtractedSpecDataImpl
     extends MEMSpecDataImpl
 {
+    private static int localCounter = 0;
+
     /**
      * Extract a line from a 2D image. The line lies along the dispersion axis
      * (defined by the SpecDims object) and is selected by an index along the
@@ -107,25 +109,32 @@ public class ExtractedSpecDataImpl
         //  coordinates. Assumes index is base coordinate and we have the same
         //  number of input and output coordinates and their relationship is
         //  "obvious" (i.e. watch out for PermMaps).
-        int ncoord_in = frameSet.getNaxes();
-        double[] in = new double[ncoord_in];
-        for ( int i = 0; i < ncoord_in; i++ ) {
-            if ( i == dispax ) {
-                in[i] = dims[specDims.realToSigAxis( i )] / 2;
+        try {
+            int ncoord_in = frameSet.getNaxes();
+            double[] in = new double[ncoord_in];
+            for ( int i = 0; i < ncoord_in; i++ ) {
+                if ( i == dispax ) {
+                    in[i] = dims[specDims.realToSigAxis( i )] / 2;
+                }
+                else if ( i == selectaxis ) {
+                    in[i] = (double) index;
+                }
+                else {
+                    in[i] = 1.0;
+                }
             }
-            else if ( i == selectaxis ) {
-                in[i] = (double) index;
-            }
-            else {
-                in[i] = 1.0;
-            }
-        }
-        double xyt[] = frameSet.tranN( 1, ncoord_in, in, true, ncoord_in );
-        frameSet.norm( xyt );
+            double xyt[] = frameSet.tranN( 1, ncoord_in, in, true, ncoord_in );
+            frameSet.norm( xyt );
 
-        double coord = xyt[selectaxis];
-        String fcoord = frameSet.format( selectaxis + 1, coord );
-        this.shortName = "Extracted (" + fcoord + "):" + shortName;
+            double coord = xyt[selectaxis];
+            String fcoord = frameSet.format( selectaxis + 1, coord );
+            this.shortName = "Extracted (" + fcoord + "):" + shortName;
+        }
+        catch (Exception ex) {
+            //  Failed, probably an AST-v-redundant axes issue.
+            this.shortName = "Extracted (" + localCounter + ") :" + shortName;
+            localCounter++;
+        }
     }
 
 
@@ -217,8 +226,8 @@ public class ExtractedSpecDataImpl
      * dimensions. The new array and errors are set as the data values of this
      * object.
      */
-    protected void extractSpectrum( int[] dims, int[] strides, 
-                                    double[] d, double[] e, 
+    protected void extractSpectrum( int[] dims, int[] strides,
+                                    double[] d, double[] e,
                                     int axis, int[] indices )
     {
         //  Allocate arrays for extracted data.
