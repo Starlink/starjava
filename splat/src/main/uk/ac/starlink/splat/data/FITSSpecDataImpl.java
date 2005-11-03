@@ -696,34 +696,6 @@ public class FITSSpecDataImpl
         }
         chan.rewind();
 
-        //  Fixups.
-        //  Some IRAF headers contain CDELT1 and CD1_1 values. Older versions
-        //  of AST apply both these values, which we do not want to happen,
-        //  for those we need to set CDELT1 to 1.0.
-        //  Commented out as AST is fixed for next release.
-//         FitsChan realChan = chan.getFitsChan();
-//         if ( realChan.getEncoding().equals( "FITS-WCS" ) &&
-//              realChan.getCDMatrix() ) {
-//             String card = realChan.findFits( "CDELT1", false );
-//             if ( card != null ) {
-//                 try {
-//                     HeaderCard hcard = new HeaderCard( card );
-//                     String value = hcard.getValue();
-//                     String key = hcard.getKey();
-//                     String comment = hcard.getComment();
-//                     if ( comment == null ) {
-//                         comment = "Unused CDELT1 value";
-//                     }
-//                     HeaderCard ncard = new HeaderCard( key, 1.0, comment );
-//                     realChan.putFits( ncard.toString(), true );
-//                 }
-//                 catch (Exception e) {
-//                     System.out.println( "Failed to apply AST fixups" );
-//                 }
-//             }
-//             chan.rewind();
-//         }
-
         //  Now get the ASTFrameSet.
         try {
             astref = chan.read();
@@ -733,7 +705,8 @@ public class FITSSpecDataImpl
             astref = null;
         }
         if ( astref == null ) {
-            //  Read failed for some reason. Just create a dummy frameset.
+            //  Read failed for some reason, most likely no coordinates (other
+            //  than the pixel one) are defined. Just create a dummy frameset.
             astref = dummyAstSet();
         }
 
@@ -746,15 +719,16 @@ public class FITSSpecDataImpl
     }
 
     /**
-     * Create a dummy AST frameset for the current HDU. Used when
-     * FITS headers fail to describe any additional coordinates and
-     * reproduce just a 1 dimensional grid based coordinate system.
+     * Create a dummy AST frameset for the current HDU. Used when FITS headers
+     * fail to describe any additional coordinates and reproduce just an
+     * N-dimensional grid based coordinate system, where N is the
+     * dimensionality of the underlying data.
      *
      *  @return reference to dummy AST frameset.
      */
     protected FrameSet dummyAstSet()
     {
-        Frame frame = new Frame( 1 );
+        Frame frame = new Frame( getDataDims().length );
         FrameSet frameset = new FrameSet( frame );
         return frameset;
     }
@@ -762,7 +736,9 @@ public class FITSSpecDataImpl
     /**
      * Return an array of with length the number of dimensions of
      * the original data and with each element set to the size of that
-     * dimension.
+     * dimension. Note in SPLAT multidimensional data is assumed to be in
+     * column major order, so we need to reverse the order of these
+     * dimensions.
      */
     protected int[] getDataDims()
     {
@@ -770,7 +746,16 @@ public class FITSSpecDataImpl
 
             //  Query the current HDU.
             try {
-                return hdurefs[hdunum].getAxes();
+                int[] dims = hdurefs[hdunum].getAxes();
+                int ndims = dims.length;
+                if ( ndims > 1 ) {
+                    int[] reorder = new int[ndims];
+                    for ( int i = 0, j = ndims - 1; i < ndims; i++, j-- ) {
+                        reorder[i] = dims[j];
+                    }
+                    dims = reorder;
+                }
+                return dims;
             }
             catch (FitsException e) {
                 //  Just ignore and return dummy dimension.
