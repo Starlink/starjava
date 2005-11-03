@@ -70,6 +70,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.topcat.join.MatchWindow;
+import uk.ac.starlink.topcat.plot.GraphicsWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -957,7 +958,7 @@ public class ControlWindow extends AuxWindow
         GraphicsWindowAction( String name, Icon icon, String shortdesc,
                               Class winClass ) {
             super( name, icon, shortdesc );
-            if ( ! AuxWindow.class.isAssignableFrom( winClass ) ) {
+            if ( ! GraphicsWindow.class.isAssignableFrom( winClass ) ) {
                 throw new IllegalArgumentException();
             }
             try {
@@ -975,8 +976,13 @@ public class ControlWindow extends AuxWindow
         public void actionPerformed( ActionEvent evt ) {
             try {
                 Object[] args = new Object[] { ControlWindow.this };
-                Window window = (Window) constructor_.newInstance( args );
+                GraphicsWindow window = 
+                    (GraphicsWindow) constructor_.newInstance( args );
                 window.setVisible( true );
+                TopcatModel tcModel = getCurrentModel();
+                if ( tcModel != null ) {
+                    window.setMainTable( tcModel );
+                }
             }
             catch ( Exception e ) {
                 throw new RuntimeException( "Window creation failed???", e );
