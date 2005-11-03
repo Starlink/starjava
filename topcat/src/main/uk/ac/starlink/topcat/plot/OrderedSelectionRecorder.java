@@ -28,6 +28,16 @@ public abstract class OrderedSelectionRecorder
     }
 
     /**
+     * Constructs a new recorder with a given initial state.
+     *
+     * @param  state   mask of flags, one true for each selected item
+     */
+    public OrderedSelectionRecorder( boolean[] state ) {
+        this();
+        updateState( state );
+    }
+
+    /**
      * Returns a list of the currently-selected indices in the selection
      * model in the order in which they were (most recently) added to the
      * selection.
@@ -44,7 +54,7 @@ public abstract class OrderedSelectionRecorder
     }
 
     public void valueChanged( ListSelectionEvent evt ) {
-        updateState( getModelState( evt.getSource() ) );
+        updateState( getModelState() );
     }
 
     /**
@@ -79,8 +89,7 @@ public abstract class OrderedSelectionRecorder
      * Returns the state of the selection model given the source of a
      * selection event.
      *
-     * @param  source  ListSelectionEvent source object
      * @return   mask of flags, one true for each selected item
      */
-    protected abstract boolean[] getModelState( Object source );
+    protected abstract boolean[] getModelState();
 }
