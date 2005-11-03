@@ -61,7 +61,7 @@ or you can use a new plot.
  <IMG
  WIDTH="217" HEIGHT="369" ALIGN="BOTTOM" BORDER="0"
  SRC="animationwindow.gif"
- ALT="1235">
+ ALT="1236">
  
 </DIV>
 
@@ -71,7 +71,7 @@ plot with fixed data ranges, or see each spectrum plotted as
 autoscaled.
 
 <P>
-It is also possible to use this window to generate a series of JPEG
+It is also possible to use this window to generate a series of JPEG or PNG
 images that you could combine into a movie of some kind.
 
 <P>
@@ -151,18 +151,19 @@ The <B>Start</B>, <B>Pause</B> and <B>Stop</B> buttons
 <P>
 <B><FONT SIZE="+1">Capture controls</FONT></B>
 <BLOCKQUOTE>
- The capture controls are for creating a series of JPEG images of the
+ The capture controls are for creating a series of JPEG or PNG images of the
  plot as it displays each spectrum. To enable (after getting the
  required effect using the <B>Animation controls</B>) just click
- on the <B>Capture to JPEGs:</B> check box. The output file names
+ on the <B>Start capture:</B> check box. The output file names
  will start with what name you type into the <B>Basename for
- JPEGs:</B> entry and have an integer number appended, plus the file type
- <TT>.jpg</TT>. So a default sequence would be <TT>SPLAT0.jpg</TT>,
- <TT>SPLAT1.jpg</TT>, <TT>SPLAT2.jpg</TT>,... You'll then need to find
- some software to convert these into a movie. The ImageMagick
- <TT>convert</TT> command (when suitably configured) will convert
- these files into an MPEG or animated GIF.  The image below was created with the command (note that
- the images where also scaled):
+ graphics files:</B> entry and have an integer number appended, plus the file type
+ <TT>.jpg</TT> or <TT>.png</TT>. So a default sequence would be 
+ <TT>SPLAT0.jpg</TT>, <TT>SPLAT1.jpg</TT>, <TT>SPLAT2.jpg</TT>,... 
+ You'll then need to find some software to convert these into a movie. 
+ The ImageMagick <TT>convert</TT> command (when suitably configured) 
+ will convert these files into an MPEG or animated GIF.  
+ The image below was created 
+ with the command (note that the images were also scaled):
  <BLOCKQUOTE> <PRE>
  % convert -delay 50 -loop 0 SPLAT0.jpg SPLAT1.jpg SPLAT2.jpg \
        splatmovie.gif
@@ -171,7 +172,7 @@ The <B>Start</B>, <B>Pause</B> and <B>Stop</B> buttons
  <IMG
  WIDTH="459" HEIGHT="227" ALIGN="BOTTOM" BORDER="0"
  SRC="splatmovie.gif"
- ALT="1231">
+ ALT="1232">
 </BLOCKQUOTE>
 
 <P>
