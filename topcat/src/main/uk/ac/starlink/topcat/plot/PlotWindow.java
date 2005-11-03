@@ -149,10 +149,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         JPanel mainArea = getMainArea();
         mainArea.add( plotPanel, BorderLayout.CENTER );
 
-        /* Action for showing the grid. */
-        JToggleButton gridButton = getGridModel().createToolbarButton();
-        JCheckBoxMenuItem gridMenuItem = getGridModel().createMenuItem();
-
         /* Action for resizing the plot. */
         Action resizeAction = new BasicAction( "Rescale", ResourceIcon.RESIZE,
                                                "Rescale the plot to show " +
@@ -167,7 +163,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( resizeAction );
-        plotMenu.add( gridMenuItem );
+        plotMenu.add( getGridModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
 
@@ -233,7 +229,11 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
         /* Add actions to the toolbar. */
         getToolBar().add( resizeAction );
-        getToolBar().add( gridButton );
+        getToolBar().add( getGridModel().createToolbarButton() );
+        getToolBar().add( getFlipModels()[ 0 ].createToolbarButton() );
+        getToolBar().add( getFlipModels()[ 1 ].createToolbarButton() );
+        getToolBar().add( getLogModels()[ 0 ].createToolbarButton() );
+        getToolBar().add( getLogModels()[ 1 ].createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction_ );
