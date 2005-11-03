@@ -150,10 +150,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         mainArea.add( plotPanel, BorderLayout.CENTER );
 
         /* Action for showing the grid. */
-        JToggleButton gridButton = getGridButton();
-        JCheckBoxMenuItem gridMenuItem =
-            new JCheckBoxMenuItem( gridButton.getText(), gridButton.getIcon() );
-        gridMenuItem.setModel( gridButton.getModel() );
+        JToggleButton gridButton = getGridModel().createToolbarButton();
+        JCheckBoxMenuItem gridMenuItem = getGridModel().createMenuItem();
 
         /* Action for resizing the plot. */
         Action resizeAction = new BasicAction( "Rescale", ResourceIcon.RESIZE,
@@ -172,6 +170,16 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         plotMenu.add( gridMenuItem );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
+
+        /* Construct a new menu for axis operations. */
+        JMenu axisMenu = new JMenu( "Axes" );
+        axisMenu.setMnemonic( KeyEvent.VK_A );
+        axisMenu.add( getFlipModels()[ 0 ].createMenuItem() );
+        axisMenu.add( getFlipModels()[ 1 ].createMenuItem() );
+        axisMenu.addSeparator();
+        axisMenu.add( getLogModels()[ 0 ].createMenuItem() );
+        axisMenu.add( getLogModels()[ 1 ].createMenuItem() );
+        getJMenuBar().add( axisMenu );
 
         /* Construct a new menu for subset operations. */
         JMenu subsetMenu = new JMenu( "Subsets" );

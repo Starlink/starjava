@@ -5,12 +5,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ActionForwarder;
+import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatForwarder;
 import uk.ac.starlink.topcat.TopcatListener;
@@ -45,7 +51,34 @@ public class PointSelectorSet extends JPanel {
         selectorsCreated_ = 0;
         actionForwarder_ = new ActionForwarder();
         topcatForwarder_ = new TopcatForwarder();
-        add( new SizeWrapper( tabber_ ), BorderLayout.SOUTH );
+        add( new SizeWrapper( tabber_ ), BorderLayout.CENTER );
+
+        Action newSelectorAction =
+            new BasicAction( "Add Dataset", ResourceIcon.ADD,
+                             "Add a new data set" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    addNewSelector();
+                } 
+            };
+        final Action removeSelectorAction =
+            new BasicAction( "Remove Dataset", ResourceIcon.SUBTRACT,
+                             "Remove the current dataset" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    removeCurrentSelector();
+                }
+            };
+        removeSelectorAction.setEnabled( false );
+        tabber_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                removeSelectorAction.setEnabled( tabber_
+                                                .getSelectedIndex() > 0 );
+            }
+        } );
+        JToolBar toolBox = new JToolBar( JToolBar.VERTICAL );
+        toolBox.setFloatable( false );
+        toolBox.add( newSelectorAction );
+        toolBox.add( removeSelectorAction );
+        add( toolBox, BorderLayout.WEST );
     }
 
     /**
@@ -120,7 +153,9 @@ public class PointSelectorSet extends JPanel {
      * Removes the currently selected selector from this set.
      */
     public void removeCurrentSelector() {
-        removeSelector( (PointSelector) tabber_.getSelectedComponent() );
+        if ( tabber_.getSelectedIndex() != 0 ) {
+            removeSelector( (PointSelector) tabber_.getSelectedComponent() );
+        }
     }
 
     /**

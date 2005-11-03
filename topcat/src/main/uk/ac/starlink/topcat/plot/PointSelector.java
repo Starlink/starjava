@@ -50,8 +50,6 @@ public class PointSelector extends JPanel implements TopcatListener {
     private final int ndim_;
     private final JComboBox tableSelector_;
     private final JComboBox[] colSelectors_;
-    private final JCheckBox[] logBoxes_;
-    private final JCheckBox[] flipBoxes_;
     private final JScrollPane subsetScroller_;
     private final OrderedSelectionRecorder subSelRecorder_;
     private final ActionForwarder actionForwarder_;
@@ -117,8 +115,6 @@ public class PointSelector extends JPanel implements TopcatListener {
         /* Prepare and place panels for selection and configuration of each
          * axis. */
         colSelectors_ = new JComboBox[ ndim_ ];
-        logBoxes_ = new JCheckBox[ ndim_ ];
-        flipBoxes_ = new JCheckBox[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
             String aName = axisNames[ i ];
             JComponent cPanel = Box.createHorizontalBox();
@@ -133,18 +129,6 @@ public class PointSelector extends JPanel implements TopcatListener {
             colSelectors_[ i ].addActionListener( actionForwarder_ );
             cPanel.add( new ShrinkWrapper( colSelectors_[ i ] ) );
             cPanel.add( Box.createHorizontalGlue() );
-
-            /* Add and configure a linear/log selector. */
-            logBoxes_[ i ] = new JCheckBox( "Log" );
-            logBoxes_[ i ].addActionListener( actionForwarder_ );
-            cPanel.add( Box.createHorizontalStrut( 5 ) );
-            cPanel.add( logBoxes_[ i ] );
-
-            /* Add and configure an axis direction selector. */
-            flipBoxes_[ i ] = new JCheckBox( "Flip" );
-            flipBoxes_[ i ].addActionListener( actionForwarder_ );
-            cPanel.add( Box.createHorizontalStrut( 5 ) );
-            cPanel.add( flipBoxes_[ i ] );
         }
         entryBox.add( Box.createVerticalStrut( 5 ) );
 
@@ -173,7 +157,6 @@ public class PointSelector extends JPanel implements TopcatListener {
             setTable( fixedTable );
         }
         else {
-            tablesModel.selectIfUnique();
             TopcatModel tcModel =
                 (TopcatModel) tableSelector_.getSelectedItem();
             if ( tcModel != null ) {
@@ -250,34 +233,6 @@ public class PointSelector extends JPanel implements TopcatListener {
             cols[ i ] = (StarTableColumn) colSelectors_[ i ].getSelectedItem();
         }
         return cols;
-    }
-
-    /**
-     * Returns an array of flags, one for each axis, which are true for
-     * log axes or false for linear.
-     *
-     * @return   log/linear flag array
-     */
-    public boolean[] getLogFlags() {
-        boolean[] flags = new boolean[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            flags[ i ] = logBoxes_[ i ].isSelected();
-        }
-        return flags;
-    }
-
-    /**
-     * Returns an array of flags, one for each axis, which are true for
-     * inverted axes, false for normal.
-     *
-     * @return  flipped flag array
-     */
-    public boolean[] getFlipFlags() {
-        boolean[] flags = new boolean[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            flags[ i ] = flipBoxes_[ i ].isSelected();
-        }
-        return flags;
     }
 
     /**

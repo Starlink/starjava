@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonModel;
+import javax.swing.DefaultButtonModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -36,6 +37,7 @@ import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -53,9 +55,9 @@ public abstract class GraphicsWindow extends AuxWindow
 
     private final ReplotListener replotListener_;
     private final Action replotAction_;
-    private final JToggleButton gridButton_;
-    private final Action addSelectorAction_;
-    private final Action removeSelectorAction_;
+    private final ToggleButtonModel gridModel_;
+    private final ToggleButtonModel[] flipModels_;
+    private final ToggleButtonModel[] logModels_;
 
     private Points points_;
     private JFileChooser exportSaver_;
@@ -111,25 +113,30 @@ public abstract class GraphicsWindow extends AuxWindow
         replotAction_ =
             new GraphicsAction( "Replot", ResourceIcon.REDO,
                                 "Redraw the plot" );
-        addSelectorAction_ =
-            new GraphicsAction( "Add Dataset", ResourceIcon.ADD,
-                                "Add a new data set" );
-        removeSelectorAction_ = 
-            new GraphicsAction( "Remove Dataset", ResourceIcon.SUBTRACT,
-                                "Remove the current dataset" );
-        getToolBar().add( addSelectorAction_ );
-        getToolBar().add( removeSelectorAction_ );
-        getToolBar().addSeparator();
 
         /* Action for showing grid. */
-        String gridName = "Show Grid";
-        Icon gridIcon = ResourceIcon.GRID_ON;
-        String gridTip = "Select whether grid lines are displayed";
-        gridButton_ = new JToggleButton( gridIcon );
-        gridButton_.setToolTipText( gridTip );
-        ButtonModel gridModel = gridButton_.getModel();
-        gridModel.setSelected( true );
-        gridModel.addActionListener( replotListener_ );
+        gridModel_ = new ToggleButtonModel( "Show Grid", ResourceIcon.GRID_ON,
+                                            "Select whether grid lines are " +
+                                            "drawn" );
+        gridModel_.setSelected( true );
+        gridModel_.addActionListener( replotListener_ );
+
+        /* Axis flags. */
+        flipModels_ = new ToggleButtonModel[ ndim_ ];
+        logModels_ = new ToggleButtonModel[ ndim_ ];
+        for ( int i = 0; i < ndim_; i++ ) {
+            String ax = axisNames[ i ];
+            flipModels_[ i ] = new ToggleButtonModel( "Flip " + ax + " Axis",
+                null, "Reverse the sense of the " + axisNames[ i ] + " axis" );
+            logModels_[ i ] = new ToggleButtonModel( "Log " + ax + " Axis",
+                null, "Logarithmic scale for the " + axisNames[ i ] + " axis" );
+            flipModels_[ i ].addActionListener( replotAction_ );
+            logModels_[ i ].addActionListener( replotAction_ );
+        }
+        flipModels_[ 0 ].setIcon( ResourceIcon.XFLIP );
+        flipModels_[ 1 ].setIcon( ResourceIcon.YFLIP );
+        logModels_[ 0 ].setIcon( ResourceIcon.XLOG );
+        logModels_[ 1 ].setIcon( ResourceIcon.YLOG );
     }
 
     public void setVisible( boolean visible ) {
@@ -147,6 +154,28 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     public PointSelectorSet getPointSelectors() {
         return pointSelectors_;
+    }
+
+    /**
+     * Returns an array of button models representing the inversion state
+     * for each axis.  Selected state for each model indicates that that
+     * axis has been flipped.
+     *
+     * @return   button models for flip state
+     */
+    public ToggleButtonModel[] getFlipModels() {
+        return flipModels_;
+    }
+
+    /**
+     * Returns an array of button models representing the log/linear state
+     * for each axis.  Selected state for each model indicates that that
+     * axis is logarithmic, unselected means linear.
+     *
+     * @return  button models for log state
+     */
+    public ToggleButtonModel[] getLogModels() {
+        return logModels_;
     }
 
     /**
@@ -214,18 +243,22 @@ public abstract class GraphicsWindow extends AuxWindow
         StarTableColumn[] axcols =
             pointSelectors_.getMainSelector().getColumns();
         ColumnInfo[] axinfos = new ColumnInfo[ ndim_ ];
+        boolean[] flipFlags = new boolean[ ndim_ ];
+        boolean[] logFlags = new boolean[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
             axinfos[ i ] = axcols[ i ].getColumnInfo();
+            flipFlags[ i ] = flipModels_[ i ].isSelected();
+            logFlags[ i ] = logModels_[ i ].isSelected();
         }
         state.setAxes( axinfos );
-        state.setLogFlags( pointSelectors_.getMainSelector().getLogFlags() );
-        state.setFlipFlags( pointSelectors_.getMainSelector().getFlipFlags() );
+        state.setLogFlags( logFlags );
+        state.setFlipFlags( flipFlags );
 
         /* Set point selection. */
         state.setPointSelection( pointSelectors_.getPointSelection() );
 
         /* Set grid status. */
-        state.setGrid( gridButton_.isSelected() );
+        state.setGrid( gridModel_.isSelected() );
 
         /* Return the configured state for use. */
         state.setValid( true );
@@ -233,14 +266,13 @@ public abstract class GraphicsWindow extends AuxWindow
     }
 
     /**
-     * Returns the toggle button used to select whether a grid will be
-     * drawn or not.  The <code>GraphicsWindow</code> class has not placed
-     * this button.  Its model can be manipulated.
+     * Returns the button model used to select whether a grid will be
+     * drawn or not.
      *
-     * @return   grid toggle button
+     * @return   grid toggle model
      */
-    public JToggleButton getGridButton() {
-        return gridButton_;
+    public ToggleButtonModel getGridModel() {
+        return gridModel_;
     }
 
     /**
@@ -250,6 +282,15 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     public Action getReplotAction() {
         return replotAction_;
+    }
+
+    /**
+     * Sets the main table in the point selector component.
+     *
+     * @param  tcModel  new table
+     */
+    public void setMainTable( TopcatModel tcModel ) {
+        pointSelectors_.getMainSelector().setTable( tcModel );
     }
 
     /**
@@ -536,12 +577,6 @@ public abstract class GraphicsWindow extends AuxWindow
         public void actionPerformed( ActionEvent evt ) {
             if ( this == replotAction_ ) {
                 doReplot( true, true );
-            }
-            else if ( this == addSelectorAction_ ) {
-                pointSelectors_.addNewSelector();
-            }
-            else if ( this == removeSelectorAction_ ) {
-                pointSelectors_.removeCurrentSelector();
             }
         }
     }
