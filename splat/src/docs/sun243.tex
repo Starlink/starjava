@@ -26,11 +26,11 @@ Research Councils \& \\
 2005 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.9}
+\newcommand{\stardocnumber}    {243.10}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {04 October 2005}
+\newcommand{\stardocdate}      {04 November 2005}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.4}
+\newcommand{\stardocversion}   {3.4-2}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -2415,6 +2415,9 @@ hash (\#) and are ignored.
          be $\pm 1$ standard deviations wide.
    \item \hitext{Equiv}, the equivalent width of the line. This will be
          $0$ if a zero background is given or assumed.
+   \item \hitext{Flux}, the background subtracted integrated intensity 
+         of the line over the selected region. Requires a linear 
+         coordinate step.
    \item \hitext{Asym}, an asymmetry value for the line. This is a
          measure of the relative displacement of the centre of the
          line from the centre as measured by the upper and lower
@@ -2514,8 +2517,8 @@ hash (\#) and are ignored.
 # File created by SPLAT
 
 # Quick results:
-# ID    Peak    Centre  Width   Equiv   Asym
-0 -0.5199948 4101.629 8.29817 7.857605 0.10266805484985836
+# ID    Peak    Centre  Width   Equiv   Flux    Asym
+0 -0.5199948 4101.629 8.29817 7.857605 -9.345678 0.10266805484985836
 
 # Gaussian results:
 # ID    Peak    Centre  Width   Flux    Rms
