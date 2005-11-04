@@ -219,7 +219,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                                                  "Set default marker types to "
                                                  + name ) {
                 public void actionPerformed( ActionEvent evt ) {
-  System.out.println( "no action" );
+                    setStyles( profile );
                     replot();
                 }
             };
