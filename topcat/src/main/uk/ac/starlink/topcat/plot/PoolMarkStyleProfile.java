@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -82,8 +83,20 @@ public class PoolMarkStyleProfile implements MarkStyleProfile {
 
     /**
      * Resets all the symbols to be ones from the base profile.
+     * This also has the effect of returning any styles owned by this
+     * profile to the pool.
      */
     public void reset() {
-        map_.clear();
+        for ( Iterator it = map_.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            Object value = entry.getValue();
+            if ( value instanceof Integer ) {
+                int ibase = ((Integer) value).intValue();
+                assert used_.get( ibase );
+                used_.clear( ibase );
+            }
+            it.remove();
+        }
+        assert map_.isEmpty();
     }
 }

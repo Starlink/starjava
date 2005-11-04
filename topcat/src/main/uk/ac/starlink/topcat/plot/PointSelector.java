@@ -297,6 +297,15 @@ public class PointSelector extends JPanel implements TopcatListener {
     }
 
     /**
+     * Returns the mark style profile used by this selector.
+     *
+     * @return  style profile
+     */
+    public MarkStyleProfile getStyles() {
+        return markStyles_;
+    }
+
+    /**
      * Adds an action listener.  It will be notified every time something
      * interesting happens to this selector.
      *

@@ -234,8 +234,19 @@ public class PointSelectorSet extends JPanel {
      * @param  psel  selector
      */
     private void removeSelector( PointSelector psel ) {
+
+        /* Remove the selector. */
         tabber_.remove( psel );
         psel.removeActionListener( actionForwarder_ );
+
+        /* Return markers used by the selector which is no longer required
+         * to the pool. */
+        MarkStyleProfile styles = psel.getStyles();
+        if ( styles instanceof PoolMarkStyleProfile ) {
+            ((PoolMarkStyleProfile) styles).reset();
+        }
+
+        /* Notify listeners that something has happened. */
         action();
     }
 
