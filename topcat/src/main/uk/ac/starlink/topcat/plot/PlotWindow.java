@@ -61,29 +61,29 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private static final MarkStyleProfile MARKERS5;
     static final MarkStyleProfile[] MARKER_PROFILES = new MarkStyleProfile[] {
         MARKERS1 =
-        MarkStyleProfile.points( "Pixels" ),
+        MarkStyleProfiles.points( "Pixels" ),
         MARKERS2 =
-        MarkStyleProfile.spots( "Dots", 1 ),
+        MarkStyleProfiles.spots( "Dots", 1 ),
         MARKERS3 =
-        MarkStyleProfile.spots( "Spots", 2 ),
+        MarkStyleProfiles.spots( "Spots", 2 ),
         MARKERS4 =
-        MarkStyleProfile.filledShapes( "Small Coloured Shapes", 3, null ),
+        MarkStyleProfiles.filledShapes( "Small Coloured Shapes", 3, null ),
         MARKERS5 =
-        MarkStyleProfile.filledShapes( "Medium Coloured Shapes", 4, null ),
-        MarkStyleProfile.filledShapes( "Large Coloured Shapes", 5, null ),
-        MarkStyleProfile.filledShapes( "Small Black Shapes", 3, Color.black ),
-        MarkStyleProfile.filledShapes( "Medium Black Shapes", 4, Color.black ),
-        MarkStyleProfile.filledShapes( "Large Black Shapes", 5, Color.black ),
-        MarkStyleProfile.openShapes( "Small Coloured Outlines", 3, null ),
-        MarkStyleProfile.openShapes( "Medium Coloured Outlines", 4, null ),
-        MarkStyleProfile.openShapes( "Large Coloured Outlines", 5, null ),
-        MarkStyleProfile.openShapes( "Small Black Outlines", 3, Color.black ),
-        MarkStyleProfile.openShapes( "Medium Black Outlines", 4, Color.black ),
-        MarkStyleProfile.openShapes( "Large Black Outlines", 5, Color.black ),
-        MarkStyleProfile.ghosts( "Faint Transparent Pixels", 0, 0.1f ),
-        MarkStyleProfile.ghosts( "Medium Transparent Pixels", 0, 0.4f ),
-        MarkStyleProfile.ghosts( "Faint Transparent Dots", 1, 0.1f ),
-        MarkStyleProfile.ghosts( "Medium Transparent Dots", 1, 0.4f ),
+        MarkStyleProfiles.filledShapes( "Medium Coloured Shapes", 4, null ),
+        MarkStyleProfiles.filledShapes( "Large Coloured Shapes", 5, null ),
+        MarkStyleProfiles.filledShapes( "Small Black Shapes", 3, Color.black ),
+        MarkStyleProfiles.filledShapes( "Medium Black Shapes", 4, Color.black ),
+        MarkStyleProfiles.filledShapes( "Large Black Shapes", 5, Color.black ),
+        MarkStyleProfiles.openShapes( "Small Coloured Outlines", 3, null ),
+        MarkStyleProfiles.openShapes( "Medium Coloured Outlines", 4, null ),
+        MarkStyleProfiles.openShapes( "Large Coloured Outlines", 5, null ),
+        MarkStyleProfiles.openShapes( "Small Black Outlines", 3, Color.black ),
+        MarkStyleProfiles.openShapes( "Medium Black Outlines", 4, Color.black ),
+        MarkStyleProfiles.openShapes( "Large Black Outlines", 5, Color.black ),
+        MarkStyleProfiles.ghosts( "Faint Transparent Pixels", 0, 0.1f ),
+        MarkStyleProfiles.ghosts( "Medium Transparent Pixels", 0, 0.4f ),
+        MarkStyleProfiles.ghosts( "Faint Transparent Dots", 1, 0.1f ),
+        MarkStyleProfiles.ghosts( "Medium Transparent Dots", 1, 0.4f ),
     };
 
     /**
@@ -214,7 +214,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         for ( int i = 0; i < profiles.length; i++ ) {
             final MarkStyleProfile profile = profiles[ i ];
             String name = profile.getName();
-            Icon icon = profile.getIcon();
+            Icon icon = MarkStyleProfiles.getIcon( profile );
             Action profileAct = new BasicAction( name, icon,
                                                  "Set default marker types to "
                                                  + name ) {
