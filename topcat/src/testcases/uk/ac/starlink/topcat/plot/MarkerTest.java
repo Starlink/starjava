@@ -15,14 +15,14 @@ import junit.framework.TestCase;
 public class MarkerTest extends TestCase {
 
     final static MarkStyleProfile[] PROFILES = new MarkStyleProfile[] {
-        MarkStyleProfile.spots( "Small spots", 3 ),
-        MarkStyleProfile.spots( "Large spots", 5 ),
-        MarkStyleProfile.openShapes( "Small open shapes", 3, Color.BLACK ),
-        MarkStyleProfile.openShapes( "Large open shapes", 5, null ),
-        MarkStyleProfile.filledShapes( "Small filled shapes", 3, Color.RED ),
-        MarkStyleProfile.filledShapes( "Large filled shapes", 5, null ),
-        MarkStyleProfile.ghosts( "Small ghosts", 2, 0.6f ),
-        MarkStyleProfile.ghosts( "Large ghosts", 5, 0.3f ),
+        MarkStyleProfiles.spots( "Small spots", 3 ),
+        MarkStyleProfiles.spots( "Large spots", 5 ),
+        MarkStyleProfiles.openShapes( "Small open shapes", 3, Color.BLACK ),
+        MarkStyleProfiles.openShapes( "Large open shapes", 5, null ),
+        MarkStyleProfiles.filledShapes( "Small filled shapes", 3, Color.RED ),
+        MarkStyleProfiles.filledShapes( "Large filled shapes", 5, null ),
+        MarkStyleProfiles.ghosts( "Small ghosts", 2, 0.6f ),
+        MarkStyleProfiles.ghosts( "Large ghosts", 5, 0.3f ),
     };
 
     public MarkerTest( String name ) {
