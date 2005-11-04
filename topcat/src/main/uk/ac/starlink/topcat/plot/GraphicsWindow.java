@@ -22,6 +22,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonModel;
 import javax.swing.DefaultButtonModel;
 import javax.swing.Icon;
+import javax.swing.ListModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JToggleButton;
@@ -34,6 +35,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
@@ -59,6 +61,7 @@ public abstract class GraphicsWindow extends AuxWindow
     private final ToggleButtonModel[] flipModels_;
     private final ToggleButtonModel[] logModels_;
 
+    private MarkStyleProfile markers_;
     private Points points_;
     private JFileChooser exportSaver_;
     private PlotState lastState_;
@@ -84,7 +87,15 @@ public abstract class GraphicsWindow extends AuxWindow
         ndim_ = axisNames.length;
 
         /* Set up point selector component. */
-        pointSelectors_ = new PointSelectorSet( axisNames, this );
+        MarkStyleProfile profile = new MarkStyleProfile() {
+            public String getName() {
+                return markers_.getName();
+            }
+            public MarkStyle getStyle( int index ) {
+                return markers_.getStyle( index );
+            }
+        };
+        pointSelectors_ = new PointSelectorSet( axisNames, profile );
         getControlPanel().setLayout( new BoxLayout( getControlPanel(),
                                                     BoxLayout.X_AXIS ) );
         getControlPanel().add( new SizeWrapper( pointSelectors_ ) );
@@ -145,6 +156,16 @@ public abstract class GraphicsWindow extends AuxWindow
             lastState_ = getPlotState();
             lastState_.setValid( false );
         }
+
+        /* Set a suitable default marker profile. */
+        long npoint = 0;
+        ListModel tablesList = ControlWindow.getInstance().getTablesListModel();
+        for ( int i = 0; i < tablesList.getSize(); i++ ) {
+            TopcatModel tcModel = (TopcatModel) tablesList.getElementAt( i );
+            npoint += tcModel.getDataModel().getRowCount();
+        }
+        markers_ = getDefaultStyles( (int) Math.min( npoint,
+                                                     Integer.MAX_VALUE ) );
     }
 
     /**
@@ -221,6 +242,15 @@ public abstract class GraphicsWindow extends AuxWindow
      * @return   marker style profile factory
      */
     public abstract MarkStyleProfile getDefaultStyles( int npoint );
+
+    /**
+     * Sets the marker style profile to use for this window.
+     * 
+     * @param   markers  new mark style profile
+     */
+    public void setStyles( MarkStyleProfile markers ) {
+        markers_ = markers;
+    }
 
     /**
      * Returns an object which characterises the choices the user has

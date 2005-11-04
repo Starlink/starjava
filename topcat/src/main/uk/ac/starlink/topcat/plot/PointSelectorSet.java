@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -32,7 +33,8 @@ public class PointSelectorSet extends JPanel {
 
     private final JTabbedPane tabber_;
     private final String[] axisNames_;
-    private final GraphicsWindow gwin_;
+    private final MarkStyleProfile markers_;
+    private final BitSet usedMarkers_;
     private final ActionForwarder actionForwarder_;
     private final TopcatForwarder topcatForwarder_;
     private int selectorsCreated_;
@@ -42,12 +44,14 @@ public class PointSelectorSet extends JPanel {
      *
      * @param  axisNames  axis names; length defines dimensionality of 
      *         point selectors
+     * @param  markers    marker style profile
      */
-    public PointSelectorSet( String[] axisNames, GraphicsWindow gwin ) {
+    public PointSelectorSet( String[] axisNames, MarkStyleProfile markers ) {
         super( new BorderLayout() );
         tabber_ = new JTabbedPane();
         axisNames_ = axisNames;
-        gwin_ = gwin;
+        markers_ = markers;
+        usedMarkers_ = new BitSet();
         selectorsCreated_ = 0;
         actionForwarder_ = new ActionForwarder();
         topcatForwarder_ = new TopcatForwarder();
@@ -144,7 +148,10 @@ public class PointSelectorSet extends JPanel {
      */
     public void addNewSelector() {
         PointSelector psel = 
-            new PointSelector( axisNames_, gwin_.getDefaultStyles( -1 ), null );
+            new PointSelector( axisNames_,
+                               new PoolMarkStyleProfile( markers_,
+                                                         usedMarkers_ ),
+                               null );
         addSelector( psel );
         tabber_.setSelectedComponent( psel );
     }
@@ -239,17 +246,6 @@ public class PointSelectorSet extends JPanel {
     private void action() {
         actionForwarder_.actionPerformed( new ActionEvent( this, 0, 
                                                            "State change" ) );
-    }
-
-    /**
-     * Returns a default mark style profile for use with a new PointSelector.
-     * Ideally this should dispense different styles than those already
-     * used by other profiles.
-     *
-     * @return   mark style profile
-     */
-    private MarkStyleProfile getNextMarkStyles() {
-        return gwin_.getDefaultStyles( -1 );
     }
 
     /**
