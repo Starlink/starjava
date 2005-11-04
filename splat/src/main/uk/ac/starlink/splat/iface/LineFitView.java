@@ -1,9 +1,11 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    19-JAN-2001 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2001 Central Laboratory of the Research Councils
+ * Copyright (C) 2005 Particle Physics and Astronomy Research Council
+ *
+ *  History:
+ *     19-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;

@@ -879,13 +879,14 @@ public class LineFitFrame
         QuickLineFitter fitter = new QuickLineFitter( coords, data,
                                                       background,
                                                       backgroundValue );
-        double[] results = new double[6];
+        double[] results = new double[7];
         results[0] = lineIndex;
         results[1] = fitter.getPeak();
         results[2] = fitter.getCentre();
         results[3] = 0.5 * fitter.getWidth();
         results[4] = fitter.getEquivalentWidth();
-        results[5] = fitter.getAsymmetry();
+        results[5] = fitter.getFlux();
+        results[6] = fitter.getAsymmetry();
 
         boolean abs = fitter.isAbsorption();
         if ( abs ) {

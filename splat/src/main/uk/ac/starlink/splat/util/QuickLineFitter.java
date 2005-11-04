@@ -16,6 +16,8 @@ package uk.ac.starlink.splat.util;
  *   <li> width of the line (equiv to gaussian FWHM) </li>
  *
  *   <li> peak value </li>
+ * 
+ *   <li> flux/integrated intensity </li>
  *
  *   <li> equivalent width </li>
  *
@@ -43,6 +45,11 @@ public class QuickLineFitter
      * The equivalent width of the spectral line.
      */
     private double equivalentWidth = 0.0;
+
+    /**
+     * The integrated intensity of the spectral line.
+     */
+    private double flux = 0.0;
 
     /**
      * The width of the spectral line.
@@ -76,7 +83,7 @@ public class QuickLineFitter
      *              Note it is assumed these values are already
      *              subtracted from the data.
      *  @param backValue a single value used for the background. Only
-     *                   used if back is null. Set to zero it not available.
+     *                   used if back is null. Set to zero if not available.
      *                   Note if used it is assumed that this value is
      *                   subtracted from the background.
      */
@@ -108,6 +115,7 @@ public class QuickLineFitter
         boolean warned = false;
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
+        flux = 0.0;
 
         //  Create the sum of background subtracted and normalised
         //  intensities.
@@ -121,6 +129,7 @@ public class QuickLineFitter
                         min = data[i];
                     }
                     sum -= data[i] / back[i];
+                    flux += data[i];
                 }
             }
             else {
@@ -132,6 +141,7 @@ public class QuickLineFitter
                         min = data[i];
                     }
                     sum -= data[i] / backValue;
+                    flux += data[i];
                 }
             }
         }
@@ -145,6 +155,7 @@ public class QuickLineFitter
                     min = data[i];
                 }
                 sum -= data[i];
+                flux += data[i];
             }
         }
 
@@ -186,6 +197,9 @@ public class QuickLineFitter
         else {
             equivalentWidth = 0.0;
         }
+
+        // Flux is also scaled by dispersion, so depends on linear spacing.
+        flux *= scale;
     }
 
     /**
@@ -237,12 +251,13 @@ public class QuickLineFitter
     }
 
     /**
-     * Get the flux of the line fit. Not applicable to this case, so
-     * 0.0 is returned.
+     * Get the flux of the line fit. Return the integrated intensity, but
+     * clearly this is just an approximation and depends on a linear 
+     * interval between measurements for any sense.
      */
     public double getFlux()
     {
-        return 0.0;
+        return flux;
     }
 
     public String toString()
@@ -252,13 +267,13 @@ public class QuickLineFitter
             "peak = " + getPeak() + ", " +
             "width = " + getWidth() + ", " +
             "equivalent width = " + getEquivalentWidth() + ", " +
+            "flux = " + getFlux() + ", " +
             "asymmetry = " + getAsymmetry() + ", " +
             "absorption = " + isAbsorption() +
             "]";
     }
 
     /**
-     *
      * Computes data value for which area from is frac times total area.
      * Obviously a frac of 0.5 is the median.
      *
@@ -330,4 +345,3 @@ public class QuickLineFitter
         return result;
     }
 }
-

@@ -1,9 +1,11 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    14-FEB-2001 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2001 Central Laboratory of the Research Councils
+ * Copyright (C) 2005 Particle Physics and Astronomy Research Council
+ *
+ *  History:
+ *     19-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import uk.ac.starlink.ast.gui.AstDouble;
@@ -37,7 +39,7 @@ public class LineProperties
      * First index is a fit type.
      */
     public final static String[][] PROP_NAMES = {
-        {"ID", "Peak", "Centre", "Width", "Equiv", "Asym"},
+        {"ID", "Peak", "Centre", "Width", "Equiv", "Flux", "Asym"},
         {"ID", "Peak", "Centre", "Width", "Flux", "Rms"},
         {"ID", "Peak", "Centre", "Width", "Flux", "Rms"},
         {"ID", "Peak", "Centre", "Gwidth", "Lwidth", "Flux", "Rms"}
@@ -60,7 +62,7 @@ public class LineProperties
 
     protected final static int[][] WRAPPERS = {
         {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
-         AST_DOUBLE_X, DOUBLE}, 
+         AST_DOUBLE_X, DOUBLE, DOUBLE}, 
         {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
          AST_DOUBLE_Y, AST_DOUBLE_Y}, 
         {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
