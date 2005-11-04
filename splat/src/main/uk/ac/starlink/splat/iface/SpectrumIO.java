@@ -299,7 +299,8 @@ public class SpectrumIO
 
         int validFiles = 0;
         int failedFiles = 0;
-        int initialsize = queue.size();
+        int initialsize = globalList.specCount();
+        //int initialsize = queue.count();
         filesDone = 0;
         StringBuffer failures = null;
         SplatException lastException = null;
@@ -337,7 +338,7 @@ public class SpectrumIO
         //  And now display them if we can.
         if ( display && validFiles > 0 ) {
             int count = globalList.specCount();
-            browser.displayRange( count - initialsize, count -1 );
+            browser.displayRange( initialsize, count - 1 );
         }
     }
 
