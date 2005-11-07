@@ -178,6 +178,7 @@ public class HDSObjectTest extends TestCase {
         assertEquals( "REDUCED_DATA1.VARIANCE.ORIGIN", sres[ 0 ] );
         assertEquals( containerFile.getAbsolutePath(),
                       new File( sres[ 1 ] ).getAbsolutePath() );
+        System.out.println( top.toString() );
     }
 
     public void testGet() throws HDSException {

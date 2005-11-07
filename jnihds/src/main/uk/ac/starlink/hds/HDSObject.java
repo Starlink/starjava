@@ -170,6 +170,21 @@ public class HDSObject {
     public native static void
         hdsShow( String topic ) throws HDSException;
 
+
+    // Show where this object is located, slight more interesting than default.
+    public String toString() {
+        String usual = super.toString();
+        try {
+            String[] trace = new String[2];
+            hdsTrace( trace );
+            return "HDSObject, file: " + trace[1] + ", path: " + trace[0];
+        }
+        catch (HDSException e) {
+            //  Just return Object default value.
+        }
+        return usual;
+    }
+
     /**
      * Trace object path.
      *
