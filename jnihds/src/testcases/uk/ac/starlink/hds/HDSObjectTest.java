@@ -39,7 +39,7 @@ public class HDSObjectTest extends TestCase {
                                .getResourceAsStream( NDF_FILE );
             assertNotNull( "Failed to open " + NDF_FILE, istrm );
             OutputStream ostrm = new FileOutputStream( containerFile );
-            containerFile.deleteOnExit();
+            //containerFile.deleteOnExit();
 
             istrm = new BufferedInputStream( istrm );
             ostrm = new BufferedOutputStream( ostrm );
@@ -83,7 +83,7 @@ public class HDSObjectTest extends TestCase {
         String newName = "newHDS";
         File newFile = new File( System.getProperty( "java.io.tmpdir" ) 
                                + File.separatorChar + newName + ".sdf" );
-        newFile.deleteOnExit();
+        //newFile.deleteOnExit();
         long[] newD = new long[] { 10 };
         HDSObject newHDS = 
             HDSObject.hdsNew( newFile.toString(), newName, "_DOUBLE", newD );
@@ -178,7 +178,6 @@ public class HDSObjectTest extends TestCase {
         assertEquals( "REDUCED_DATA1.VARIANCE.ORIGIN", sres[ 0 ] );
         assertEquals( containerFile.getAbsolutePath(),
                       new File( sres[ 1 ] ).getAbsolutePath() );
-        System.out.println( top.toString() );
     }
 
     public void testGet() throws HDSException {
@@ -378,16 +377,12 @@ public class HDSObjectTest extends TestCase {
         // datCopy of CCDPACK extension
         String newExt = "CCDPACKCOPY";
         String oldExt = "CCDPACK";
+        assertTrue( moreObj.datThere( oldExt ) );
         assertTrue( ! moreObj.datThere( newExt ) );
-
-        moreObj.datNew( newExt, "EXTCOPY", new long[]{ 0 } );
-
+        HDSObject oldObj = moreObj.datFind( oldExt );
+        oldObj.datCopy( moreObj, newExt );
         assertTrue( moreObj.datThere( newExt ) );
-
-        HDSObject newObj = moreObj.datFind( newExt );
-        moreObj.datCopy( newObj, "ROOT" );
-        HDSObject childObj = newObj.datFind( "ROOT" );
-        assertTrue( ! newObj.datThere( "ROOT" ) );
+        
+        oldObj.datAnnul();
     }
-
 }
