@@ -6,12 +6,12 @@ import java.nio.ByteOrder;
 import uk.ac.starlink.util.Loader;
 
 /**
- * Provides a Java interface to the Starlink 
+ * Provides a Java interface to the Starlink
  * <a href="http://www.starlink.ac.uk/star/docs/sun92.htx/sun92.html">HDS</a>
  * library.  The methods provided here are all implemented using JNI
- * native code and are intended to map one-to-one to the public Fortran 
- * calls provided by HDS, using similar arguments to those calls.  
- * Other useful methods on HDS objects should be provided by 
+ * native code and are intended to map one-to-one to the public Fortran
+ * calls provided by HDS, using similar arguments to those calls.
+ * Other useful methods on HDS objects should be provided by
  * other classes which extend or contain instances of <code>HDSObject</code>.
  * For this reason there is no constructor, a factory method like
  * <code>hdsOpen</code> or <code>datFind</code> should be used instead.
@@ -24,21 +24,21 @@ import uk.ac.starlink.util.Loader;
  * The arguments of the methods declared by this class are not identical
  * with those of the corresponding Fortran HDS calls, and
  * the documentation for each of the <code>HDSObject</code> methods
- * should be checked before use.  However, the following rules in 
+ * should be checked before use.  However, the following rules in
  * general apply:
  * <ul>
- * <li>HDS calls with a LOCATOR argument turn into instance methods called on 
+ * <li>HDS calls with a LOCATOR argument turn into instance methods called on
  *     an <code>HDSObject</code> object represented by that locator.
- *     The locator itself is kept as a (private) member of the the 
+ *     The locator itself is kept as a (private) member of the the
  *     <code>HDSObject</code>, and will never be referred to by Java
  *     code.
  * <li>The STATUS argument of the HDS call is omitted; if the call in
  *     question would return a non-OK STATUS then an <code>HDSException</code>
  *     is called.  The <code>getMessage</code> method of the HDSException
- *     returns the error message generated.  All methods can therefore 
+ *     returns the error message generated.  All methods can therefore
  *     throw an {@link HDSException}.
- * <li>If the purpose of the HDS call is to return a locator, then 
- *     the return value of the method will be 
+ * <li>If the purpose of the HDS call is to return a locator, then
+ *     the return value of the method will be
  *     a new <code>HDSObject</code> object.
  * <li>If the purpose of the HDS call is to return a primitive value/array
  *     of some sort, then the return value of the method will be a
@@ -52,7 +52,7 @@ import uk.ac.starlink.util.Loader;
  * <li>All other arguments of the fortran HDS call are turned into
  *     method arguments of the corresponding type.
  * </ul>
- * Furthermore, methods are named in a predictable way from the names 
+ * Furthermore, methods are named in a predictable way from the names
  * of the corresponding Fortran calls.
  * <p>
  * Using the above rules, we see that, for instance:
@@ -68,6 +68,7 @@ import uk.ac.starlink.util.Loader;
  * This class is not complete; it is being added to as calls are required.
  *
  * @author   Mark Taylor (STARLINK)
+ * @author   Peter W. Draper (JAC, Durham University)
  * @version  $Id$
  */
 public class HDSObject {
@@ -76,13 +77,13 @@ public class HDSObject {
     /** Object representing the locator DAT__ROOT. */
     public static final HDSObject DAT__ROOT;
 
-    /** 
+    /**
      * Maximum number of characters in the name of an HDS component.
-     * The value is determined by the underlying HDS library. 
+     * The value is determined by the underlying HDS library.
      */
     public static final int DAT__SZNAM;
 
-    /** 
+    /**
      * maximum number of characters in the name of an HDS type string.
      * Note this does not include the size modifier in a '_CHAR*N' string.
      * The value is determined by the underlying HDS library.
@@ -90,7 +91,7 @@ public class HDSObject {
     public static final int DAT__SZTYP;
 
     /*
-     * Static initializer.  This loads and initialises the shared object  
+     * Static initializer.  This loads and initialises the shared object
      * implementing the native code, and sets up the values of the final
      * static members.
      */
@@ -117,61 +118,8 @@ public class HDSObject {
         }
     }
 
-    // Initialiser for shared library.
-    private native static void nativeInitialize();
-
-    /* 
-     * Package-scoped methods to get constants from HDS.  These are used to set
-     * up public final static members for the class.
-     */
-    native static int getHDSConstantI( String constName );
-    native static HDSObject getHDSConstantLoc( String constname );
-
-    /**
-     * Create container file.
-     * Creates a new container file and returns a primary locator to the
-     * top-level object.
-     *
-     * @param  file  the name of the container file to be created.  ".sdf" 
-     *               will be added an extension is not specified.
-     * @param  name  the name of the object to be created
-     * @param  type  the HDS type of the top-level object to be created
-     * @param  dims  the dimensions of the top-level object to be created
-     * @return    an HDSObject referencing the object in the new container
-     *               file.  It is a primary object.
-     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
-     * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_NEW">HDS_NEW</a>
-     */
-    public native static HDSObject
-        hdsNew( String file, String name, String type, long[] dims )
-        throws HDSException;
-
-    /** 
-     * Open container file.
-     *
-     * @param   container     the container file name
-     * @param   accessMode    the access mode "READ", "UPDATE" or "WRITE"
-     * @return                a new <code>HDSObject</code> representing 
-     *                        the newly opened container file
-     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
-     * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_OPEN">HDS_OPEN</a>
-     */
-    public native static HDSObject 
-        hdsOpen( String container, String accessMode ) throws HDSException;
-
-    /**
-     * Show HDS statistics.
-     *
-     * @param  topic  name of the topic on which to supply information.
-     *                One of "DATA", "FILES" or "LOCATORS".
-     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
-     * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_SHOW">HDS_SHOW</a>
-     */
-    public native static void
-        hdsShow( String topic ) throws HDSException;
-
-
-    // Show where this object is located, slight more interesting than default.
+    // Show where this object is located, slightly more interesting than
+    // default.
     public String toString() {
         String usual = super.toString();
         try {
@@ -185,27 +133,107 @@ public class HDSObject {
         return usual;
     }
 
+    // Initialiser for shared library.
+    private native static void nativeInitialize();
+
+    /*
+     * Package-scoped methods to get constants from HDS.  These are used to set
+     * up public final static members for the class.
+     */
+    native static int getHDSConstantI( String constName );
+    native static HDSObject getHDSConstantLoc( String constname );
+
+    /**
+     * Get HDS tuning parameter value.
+     *
+     * The routine returns the current value of an HDS tuning parameter
+     * (normally this will be its default value, or the value last specified
+     * using the {@link hdsTune} routine).
+     *
+     * @param  param Name of the tuning parameter
+     * @return the tuning parameter value
+     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
+     * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_GTUNE">HDS_GTUNE</a>
+     */
+    public native static int
+        hdsGtune( String param ) throws HDSException;
+
+    /**
+     * Create container file.
+     * Creates a new container file and returns a primary locator to the
+     * top-level object.
+     *
+     * @param  file  the name of the container file to be created.  ".sdf"
+     *               will be added an extension is not specified.
+     * @param  name  the name of the object to be created
+     * @param  type  the HDS type of the top-level object to be created
+     * @param  dims  the dimensions of the top-level object to be created
+     * @return    an HDSObject referencing the object in the new container
+     *               file.  It is a primary object.
+     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
+     * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_NEW">HDS_NEW</a>
+     */
+    public native static HDSObject
+        hdsNew( String file, String name, String type, long[] dims )
+        throws HDSException;
+
+    /**
+     * Open container file.
+     *
+     * @param   container     the container file name
+     * @param   accessMode    the access mode "READ", "UPDATE" or "WRITE"
+     * @return                a new <code>HDSObject</code> representing
+     *                        the newly opened container file
+     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
+     * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_OPEN">HDS_OPEN</a>
+     */
+    public native static HDSObject
+        hdsOpen( String container, String accessMode ) throws HDSException;
+
+    /**
+     * Show HDS statistics.
+     *
+     * @param  topic  name of the topic on which to supply information.
+     *                One of "DATA", "FILES" or "LOCATORS".
+     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
+     * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_SHOW">HDS_SHOW</a>
+     */
+    public native static void
+        hdsShow( String topic ) throws HDSException;
+
     /**
      * Trace object path.
      *
      * @param  results  a two-element String array.  On exit the first element
      *                  will be set to the object path name within the
-     *                  container file, and the second element to the 
+     *                  container file, and the second element to the
      *                  container file name.
      * @return  the number of path levels
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_TRACE">HDS_TRACE</a>
      */
-    public native int 
+    public native int
        hdsTrace( String[] results ) throws HDSException;
+
+    /**
+     * Set HDS tuning parameter.
+     *
+     * @param  param Name of the tuning parameter
+     * @param  value the value of the tuning parameter
+     *
+     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
+     * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_HDS_TUNE">HDS_TUNE</a>
+     */
+    public native static void
+        hdsTune( String param, int value ) throws HDSException;
 
     /**
      * Annul locator.
      * <p>
-     * It is not generally necessary for client code to call this method 
+     * It is not generally necessary for client code to call this method
      * (though it is permissible), since it is called by the finalizer
      * method.  The garbage collector can therefore
-     * be relied upon to annul resources which are associated with 
+     * be relied upon to annul resources which are associated with
      * unreferenced HDSObjects in due course.  Note however that there
      * is no guarantee when (or if) garbage collection will be performed,
      * so side-effects of datAnnul, such as the unmapping of mapped data,
@@ -215,15 +243,15 @@ public class HDSObject {
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_ANNUL">DAT_ANNUL</a>
      */
-    public native void 
+    public native void
         datAnnul() throws HDSException;
 
     /**
      * Get an <code>HDSObject</code> from a cell (element) of an array object.
      *
-     * @param   position      the location within the array of the cell to 
+     * @param   position      the location within the array of the cell to
      *                        retreive
-     * @return                a new <code>HDSObject</code> representing the 
+     * @return                a new <code>HDSObject</code> representing the
      *                        indicated element of the array
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_CELL">DAT_CELL</a>
@@ -247,7 +275,7 @@ public class HDSObject {
      * Recursively copy an object into a component.
      * This means that the complete object (including its components and its
      * components's components, etc.) is copied, not just the top level.
-     * 
+     *
      * @param hdsobj destination object
      * @param name component name in destination object
      *
@@ -262,25 +290,25 @@ public class HDSObject {
      * Recursively erases a component.  This means that all its lower level
      * components are deleted as well.
      *
-     * @param   name          the name of the component within this 
-     *                        <code>HDSObject</code> 
+     * @param   name          the name of the component within this
+     *                        <code>HDSObject</code>
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_ERASE">DAT_ERASE</a>
      */
-    public native void 
+    public native void
         datErase( String name ) throws HDSException;
 
     /**
      * Find named component.
      *
-     * @param   name          the name of the component within this 
-     *                        <code>HDSObject</code> 
-     * @return                a new <code>HDSObject</code> representing the 
+     * @param   name          the name of the component within this
+     *                        <code>HDSObject</code>
+     * @return                a new <code>HDSObject</code> representing the
      *                        named component
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_FIND">DAT_FIND</a>
      */
-    public native HDSObject 
+    public native HDSObject
         datFind( String name ) throws HDSException;
 
     /**
@@ -289,14 +317,14 @@ public class HDSObject {
      * @param   shape        an array giving the shape of
      *                       the HDS primitive
      * @return               an <code>Object</code> giving the contents of
-     *                       this primitive HDSObject.  If this object 
+     *                       this primitive HDSObject.  If this object
      *                       represents an HDS array primitive, the return
-     *                       value is an array, or 
+     *                       value is an array, or
      *                       array of arrays, or ... of <code>String</code>s,
      *                       according to the dimensionality of the primitive.
-     *                       If this object is a scalar primitive 
+     *                       If this object is a scalar primitive
      *                       (<code>shape</code> has dimensionality of zero)
-     *                       it will be the scalar value as a 
+     *                       it will be the scalar value as a
      *                       <code>String</code>.
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_GETx">DAT_GETx</a>
@@ -308,13 +336,13 @@ public class HDSObject {
      *
      * @param   shape         an array giving the shape of
      *                        the HDS primitive
-     * @return                an <code>Object</code> giving the contents of 
-     *                        this primitive HDSObject.  If this object 
-     *                        represents an HDS array primitive, 
-     *                        the return value is an array, or 
+     * @return                an <code>Object</code> giving the contents of
+     *                        this primitive HDSObject.  If this object
+     *                        represents an HDS array primitive,
+     *                        the return value is an array, or
      *                        array of arrays, or ... of <code>boolean</code>s,
      *                        according to the dimensionality of the primitive.
-     *                        If this object is a scalar primitive 
+     *                        If this object is a scalar primitive
      *                        (<code>shape</code> has dimensionality of zero)
      *                        it will be an <code>Boolean</code> wrapping the
      *                        value.
@@ -328,13 +356,13 @@ public class HDSObject {
      *
      * @param   shape         an array giving the shape of
      *                        the HDS primitive to return
-     * @return                an <code>Object</code> giving the contents of 
-     *                        this primitive HDSObject.  If this object 
-     *                        represents an HDS array primitive, 
-     *                        the return value is an array, or 
+     * @return                an <code>Object</code> giving the contents of
+     *                        this primitive HDSObject.  If this object
+     *                        represents an HDS array primitive,
+     *                        the return value is an array, or
      *                        array of arrays, or ... of <code>int</code>s,
      *                        according to the dimensionality of the primitive.
-     *                        If this object is a scalar primitive 
+     *                        If this object is a scalar primitive
      *                        (<code>shape</code> has dimensionality of zero)
      *                        it will be an <code>Integer</code> wrapping the
      *                        value.
@@ -348,13 +376,13 @@ public class HDSObject {
      *
      * @param   shape         an array giving the shape of
      *                        the HDS primitive to return
-     * @return                an <code>Object</code> giving the contents of 
-     *                        this primitive HDSObject.  If this object 
-     *                        represents an HDS array primitive, 
-     *                        the return value is an array, or 
+     * @return                an <code>Object</code> giving the contents of
+     *                        this primitive HDSObject.  If this object
+     *                        represents an HDS array primitive,
+     *                        the return value is an array, or
      *                        array of arrays, or ... of <code>float</code>s,
      *                        according to the dimensionality of the primitive.
-     *                        If this object is a scalar primitive 
+     *                        If this object is a scalar primitive
      *                        (<code>shape</code> has dimensionality of zero)
      *                        it will be an <code>Float</code> wrapping the
      *                        value.
@@ -368,13 +396,13 @@ public class HDSObject {
      *
      * @param   shape         an array giving the shape of
      *                        the HDS primitive to return
-     * @return                an <code>Object</code> giving the contents of 
-     *                        this primitive HDSObject.  If this object 
-     *                        represents an HDS array primitive, 
-     *                        the return value is an array, or 
+     * @return                an <code>Object</code> giving the contents of
+     *                        this primitive HDSObject.  If this object
+     *                        represents an HDS array primitive,
+     *                        the return value is an array, or
      *                        array of arrays, or ... of <code>double</code>s,
      *                        according to the dimensionality of the primitive.
-     *                        If this object is a scalar primitive 
+     *                        If this object is a scalar primitive
      *                        (<code>shape</code> has dimensionality of zero)
      *                        it will be an <code>Double</code> wrapping the
      *                        value.
@@ -387,12 +415,12 @@ public class HDSObject {
      * Read a primitive as <code>String</code> type as if it were
      * vectorised (regardless of its actual shape).
      * The length of the returned array will be the size of the entire array
-     * of this object (note: one element for each array element, not for 
+     * of this object (note: one element for each array element, not for
      * each character).  Trailing blanks in the strings will be trimmed so
      * strings may be smaller than their declared size.  This method cannot
      * be used to read arrays with more than <code>Integer.MAX_VALUE</code>
      * elements.
-     * 
+     *
      * @return                a (1-dimensional) array of <code>String</code>s,
      *                        one for each element in the primitive array.
      * @throws HDSException   if an HDS error occurs (STATUS is not SAI__OK)
@@ -401,7 +429,7 @@ public class HDSObject {
     public native String[] datGetvc() throws HDSException;
 
     /**
-     * Read a primitive as <code>boolean</code> type as if it were 
+     * Read a primitive as <code>boolean</code> type as if it were
      * vectorised (regardless of its actual shape).
      * The length of the returned array will be the size of the entire
      * array of this object.  This method cannot be used to read arrays
@@ -415,7 +443,7 @@ public class HDSObject {
     public native boolean[] datGetvl() throws HDSException;
 
     /**
-     * Read a primitive as <code>int</code> type as if it were 
+     * Read a primitive as <code>int</code> type as if it were
      * vectorised (regardless of its actual shape).
      * The length of the returned array will be the size of the entire
      * array of this object.  This method cannot be used to read arrays
@@ -429,7 +457,7 @@ public class HDSObject {
     public native int[] datGetvi() throws HDSException;
 
     /**
-     * Read a primitive as <code>float</code> type as if it were 
+     * Read a primitive as <code>float</code> type as if it were
      * vectorised (regardless of its actual shape).
      * The length of the returned array will be the size of the entire
      * array of this object.  This method cannot be used to read arrays
@@ -443,7 +471,7 @@ public class HDSObject {
     public native float[] datGetvr() throws HDSException;
 
     /**
-     * Read a primitive as <code>double</code>type as if it were 
+     * Read a primitive as <code>double</code>type as if it were
      * vectorised (regardless of its actual shape).
      * The length of the returned array will be the size of the entire
      * array of this object.  This method cannot be used to read arrays
@@ -458,10 +486,10 @@ public class HDSObject {
 
     /**
      * Read scalar primitive as <code>String</code> type.
-     * As with the underlying HDS routine, this may be used to return a 
+     * As with the underlying HDS routine, this may be used to return a
      * representation of a scalar value of any type.
      *
-     * @return                a String representation of this 
+     * @return                a String representation of this
      *                        <code>HDSObject</code>
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_GET0x">DAT_GET0C</a>
@@ -471,7 +499,7 @@ public class HDSObject {
     /**
      * Read scalar primitive as <code>boolean</code> type.
      *
-     * @return                a boolean representation of this 
+     * @return                a boolean representation of this
      *                        <code>HDSObject</code>
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_GET0x">DAT_GET0L</a>
@@ -481,7 +509,7 @@ public class HDSObject {
     /**
      * Read scalar primitive as <code>int</code> type.
      *
-     * @return                an int representation of this 
+     * @return                an int representation of this
      *                        <code>HDSObject</code>
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_GET0x">DAT_GET0I</a>
@@ -491,7 +519,7 @@ public class HDSObject {
     /**
      * Read scalar primitive as <code>float</code> type.
      *
-     * @return                a float representation of this 
+     * @return                a float representation of this
      *                        <code>HDSObject</code>
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_GET0x">DAT_GET0R</a>
@@ -501,7 +529,7 @@ public class HDSObject {
     /**
      * Read scalar primitive as <code>double</code> type.
      *
-     * @return                a String representation of this 
+     * @return                a String representation of this
      *                        <code>HDSObject</code>
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_GET0x">DAT_GET0D</a>
@@ -513,12 +541,12 @@ public class HDSObject {
      *
      * @param   index         position in list of component to return
      * @return                a new <code>HDSObject</code> representing the
-     *                        <code>index</code>'th component of this 
+     *                        <code>index</code>'th component of this
      *                        <code>HDSObject</code>
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_INDEX">DAT_INDEX</a>
      */
-    public native HDSObject 
+    public native HDSObject
         datIndex( int index ) throws HDSException;
 
     /**
@@ -528,19 +556,19 @@ public class HDSObject {
      * _UBYTE) are not currently supported (an IllegalArgumentException
      * will be thrown).
      *
-     * @param  type  an HDS type string giving the type with which to map 
+     * @param  type  an HDS type string giving the type with which to map
      *               the array; one of "_BYTE", "_WORD", "_INTEGER", "_REAL",
      *               "_DOUBLE".
      * @param  mode  a string indicating access mode; one of "READ",
      *               "WRITE", "UPDATE".
-     * @return       a java.nio direct Buffer of the appropriate type 
+     * @return       a java.nio direct Buffer of the appropriate type
      *               (IntBuffer, FloatBuffer etc) containing the data
      * @throws   HDSException  if an HDS error occurs (STATUS is not SAI__OK)
-     * @throws   UnsupportedOperationException  if the JNI implementation 
+     * @throws   UnsupportedOperationException  if the JNI implementation
      *           does not support mapping of a direct buffer
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_MAPV">DAT_MAPV</a>
      */
-    public Buffer datMapv( String type, String mode ) 
+    public Buffer datMapv( String type, String mode )
         throws HDSException {
         ByteBuffer bbuf = mapBuffer( type, mode );
         bbuf.order( ByteOrder.nativeOrder() );
@@ -568,13 +596,13 @@ public class HDSObject {
             tbuf = bbuf.asDoubleBuffer();
         }
         else {
-            throw new IllegalArgumentException( 
+            throw new IllegalArgumentException(
                 "Unsupported type \"" + type + "\"" );
         }
         return tbuf;
     }
 
-    private native ByteBuffer mapBuffer( String type, String mode ) 
+    private native ByteBuffer mapBuffer( String type, String mode )
         throws HDSException;
 
     /**
@@ -584,7 +612,7 @@ public class HDSObject {
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_NAME">DAT_NAME</a>
      */
-    public native String 
+    public native String
         datName() throws HDSException;
 
     /**
@@ -595,7 +623,7 @@ public class HDSObject {
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_NCOMP">DAT_NCOMP</a>
      */
-    public native int 
+    public native int
         datNcomp() throws HDSException;
 
     /**
@@ -620,7 +648,7 @@ public class HDSObject {
      * @return  the parent object, if one exists
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK) -
      *                        in particular if the object has no parent
-     *                        because it is at the top level in an HDS 
+     *                        because it is at the top level in an HDS
      *                        container file.
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_PAREN">DAT_PAREN</a>
      */
@@ -645,8 +673,8 @@ public class HDSObject {
      * Note there are two overloaded forms of the <code>datPrmry</code> method
      * to handle the distinct get/set semantics of the underlying routine.
      *
-     * @param primary         <code>true</code> to set the locator of this 
-     *                        <code>HDSObject</code> to primary, or 
+     * @param primary         <code>true</code> to set the locator of this
+     *                        <code>HDSObject</code> to primary, or
      *                        <code>false</code> to set it to secondary
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_PRMRY">DAT_PRMRY</a>
@@ -700,10 +728,10 @@ public class HDSObject {
     public native void datPut0d( double value ) throws HDSException;
 
     /**
-     * Write a primitive as if it were vectorised (regardless of its 
+     * Write a primitive as if it were vectorised (regardless of its
      * actual shape).
      * The array must be long enough to fill the entire object.
-     * This method cannot be used to write arrays with more than 
+     * This method cannot be used to write arrays with more than
      * <code>Integer.MAX_VALUE</code> elements.
      *
      * @param  value  an array containing the values to be written.
@@ -714,9 +742,9 @@ public class HDSObject {
     public native void datPutvc( String[] value ) throws HDSException;
 
     /**
-     * Write a primitive as if it were vectorised (regardless of its 
+     * Write a primitive as if it were vectorised (regardless of its
      * actual shape).
-     * This method cannot be used to write arrays with more than 
+     * This method cannot be used to write arrays with more than
      * <code>Integer.MAX_VALUE</code> elements.
      *
      * @param  value  an array containing the values to be written.
@@ -727,10 +755,10 @@ public class HDSObject {
     public native void datPutvl( boolean[] value ) throws HDSException;
 
     /**
-     * Write a primitive as if it were vectorised (regardless of its 
+     * Write a primitive as if it were vectorised (regardless of its
      * actual shape).
      * The array must be long enough to fill the entire object.
-     * This method cannot be used to write arrays with more than 
+     * This method cannot be used to write arrays with more than
      * <code>Integer.MAX_VALUE</code> elements.
      *
      * @param  value  an array containing the values to be written.
@@ -741,10 +769,10 @@ public class HDSObject {
     public native void datPutvi( int[] value ) throws HDSException;
 
     /**
-     * Write a primitive as if it were vectorised (regardless of its 
+     * Write a primitive as if it were vectorised (regardless of its
      * actual shape).
      * The array must be long enough to fill the entire object.
-     * This method cannot be used to write arrays with more than 
+     * This method cannot be used to write arrays with more than
      * <code>Integer.MAX_VALUE</code> elements.
      *
      * @param  value  an array containing the values to be written.
@@ -755,10 +783,10 @@ public class HDSObject {
     public native void datPutvr( float[] value ) throws HDSException;
 
     /**
-     * Write a primitive as if it were vectorised (regardless of its 
+     * Write a primitive as if it were vectorised (regardless of its
      * actual shape).
      * The array must be long enough to fill the entire object.
-     * This method cannot be used to write arrays with more than 
+     * This method cannot be used to write arrays with more than
      * <code>Integer.MAX_VALUE</code> elements.
      *
      * @param  value  an array containing the values to be written.
@@ -783,7 +811,7 @@ public class HDSObject {
      * Enquire object shape.
      *
      * @return               a new array
-     *                       representing the shape of this 
+     *                       representing the shape of this
      *                       <code>HDSObject</code>
      * @throws HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_SHAPE">DAT_SHAPE</a>
@@ -795,7 +823,7 @@ public class HDSObject {
      * Enquire object size.
      *
      * @return                the size of the object.  For an array this will
-     *                        be the product of the dimensions, for a 
+     *                        be the product of the dimensions, for a
      *                        scalar, a value of 1 is returned.
      * @throws HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_SIZE">DAT_SIZE</a>
@@ -814,7 +842,7 @@ public class HDSObject {
     //   * @throws HDSException  if an HDS error occurs (STATUS is not SAI__OK)
     //   * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_SLICE">DAT_SLICE</a>
     //   */
-    //  public native HDSObject 
+    //  public native HDSObject
     //      datSlice( long[] lbnd, long[] ubnd ) throws HDSException;
 
     /**
@@ -827,7 +855,7 @@ public class HDSObject {
      */
     public native boolean
         datState() throws HDSException;
- 
+
     /**
      * Enquire whether object is a structure.
      *
@@ -842,11 +870,11 @@ public class HDSObject {
     /**
      * Enquire if a component of a structure exists.
      *
-     * @param   name          the name of a component whose existence is 
+     * @param   name          the name of a component whose existence is
      *                        to be queried
      * @return                <code>true</code> if a component called
-     *                        <code>name</code> is 
-     *                        contained in this object, otherwise 
+     *                        <code>name</code> is
+     *                        contained in this object, otherwise
      *                        <code>false</code>
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_THERE">DAT_THERE</a>
@@ -856,16 +884,16 @@ public class HDSObject {
     /**
      * Enquire object type.
      *
-     * @return                a <code>String</code> giving one of the 
+     * @return                a <code>String</code> giving one of the
      *                        following HDS type strings:
      *                        <ul>
      *                        <li>"_BYTE"
      *                        <li>"_UBYTE"
      *                        <li>"_WORD"
      *                        <li>"_UWORD"
-     *                        <li>"_INTEGER" 
+     *                        <li>"_INTEGER"
      *                        <li>"_REAL"
-     *                        <li>"_DOUBLE" 
+     *                        <li>"_DOUBLE"
      *                        <li>"_LOGICAL"
      *                        <li>"_CHAR"
      *                        <li>"_CHAR*N", where N is the length in characters
@@ -873,7 +901,7 @@ public class HDSObject {
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_TYPE">DAT_TYPE</a>
      */
-    public native String 
+    public native String
         datType() throws HDSException;
 
     /**
@@ -887,10 +915,10 @@ public class HDSObject {
     /**
      * Enquire locator validity.
      *
-     * @return                <code>true</code> if this <code>HDSobject</code> 
-     *                        refers to a valid HDS object, <code>false</code> 
+     * @return                <code>true</code> if this <code>HDSobject</code>
+     *                        refers to a valid HDS object, <code>false</code>
      *                        otherwise.  It should normally be true unless
-     *                        the <code>datAnnul</code> method has been 
+     *                        the <code>datAnnul</code> method has been
      *                        called on it.
      * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_VALID">DAT_VALID</a>
@@ -903,8 +931,8 @@ public class HDSObject {
      * @return                a two-element array of <code>long</code>s.
      *                        The first element gives the number of the
      *                        file block in whch the object's data start
-     *                        (HDS blocks are 512 bytes long and are 
-     *                        numbered from the beginning of the file, 
+     *                        (HDS blocks are 512 bytes long and are
+     *                        numbered from the beginning of the file,
      *                        starting at block 1), and the second element
      *                        gives the zero-based byte-offset of the start
      *                        of the data within the file block.

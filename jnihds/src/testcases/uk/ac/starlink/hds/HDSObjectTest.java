@@ -58,6 +58,25 @@ public class HDSObjectTest extends TestCase {
         }
     }
 
+    public void testTuning() throws HDSException {
+
+        int defaultMapMode = HDSObject.hdsGtune( "MAP" );
+        HDSObject.hdsTune( "MAP", defaultMapMode );
+        int newMapMode = HDSObject.hdsGtune( "MAP" );
+        assertTrue( defaultMapMode == newMapMode );
+
+        //  64bit mode. Leave switched on for further tests. Should
+        //  be off by default (behaviour may change).
+        int default64BitMode = HDSObject.hdsGtune( "64BIT" );
+        System.out.println( "default 64bit mode = " + 
+                            ( ( default64BitMode == 1 ) ? "on" : "off" ) );
+        HDSObject.hdsTune( "64BIT", 1 );
+        int new64BitMode = HDSObject.hdsGtune( "64BIT" );
+        System.out.println( "test 64bit mode = " +
+                            ( ( new64BitMode == 1 ) ? "on" : "off" ) );
+        assertTrue( default64BitMode != new64BitMode );
+    }
+
     public void testConstants() throws HDSException {
         assertEquals( 15, HDSObject.getHDSConstantI( "DAT__SZNAM" ) );
         assertTrue( 15 <= HDSObject.getHDSConstantI( "DAT__SZLOC" ) );
