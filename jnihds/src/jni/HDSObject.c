@@ -19,10 +19,13 @@
 
 *  Authors:
 *     MBT: Mark Taylor (STARLINK)
+*     PWD: Peter W. Draper (JAC, Durham University)
 
 *  History:
 *     1-AUG-2001 (MBT):
 *        Initial version.
+*     8-NOV-2005 (PWD):
+*        Add dat_copy.
 
 *-
 */
@@ -863,6 +866,48 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datClone )(
 
    /* Construct and return an HDSObject using the locator. */
    return makeHDSObject( env, newLocator );
+}
+
+JNIEXPORT void JNICALL NATIVE_METHOD( datCopy )(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jobject dest,         /* Destination locator */
+   jstring jName         /* Name of destination component */
+) {
+   char loc1[ DAT__SZLOC ];
+   char loc2[ DAT__SZLOC ];
+   const char *name;
+   DECLARE_CHARACTER( fLoc1, DAT__SZLOC );
+   DECLARE_CHARACTER( fLoc2, DAT__SZLOC );
+   DECLARE_CHARACTER( fName, DAT__SZNAM );
+
+   /* Get this object's locator. */
+   getLocator( env, this, loc1 );
+   cnfExpch( loc1, fLoc1, fLoc1_length );
+
+   /* Get destination locator */
+   getLocator( env, dest, loc2 );
+   cnfExpch( loc2, fLoc2, fLoc2_length );
+
+   /* Convert name java string to C. */
+   name = (*env)->GetStringUTFChars( env, jName, NULL );
+
+   /* Convert C string to Fortran. */
+   cnfExprt( name, fName, fName_length );
+
+   /* Release string copy. */
+   (*env)->ReleaseStringUTFChars( env, jName, name );
+
+   
+   /* Call the Fortran routine to do the work. */
+   HDSCALL(
+      F77_CALL(dat_copy)( CHARACTER_ARG(fLoc1), CHARACTER_ARG(fLoc2),
+                          CHARACTER_ARG(fName),
+                          INTEGER_ARG(status)
+                          TRAIL_ARG(fLoc1) 
+                          TRAIL_ARG(fLoc2) 
+                          TRAIL_ARG(fName) );
+   )
 }
 
 

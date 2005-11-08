@@ -244,6 +244,20 @@ public class HDSObject {
         datClone() throws HDSException;
 
     /**
+     * Recursively copy an object into a component.
+     * This means that the complete object (including its components and its
+     * components's components, etc.) is copied, not just the top level.
+     * 
+     * @param hdsobj destination object
+     * @param name component name in destination object
+     *
+     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
+     * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_COPY">DAT_COPY</a>
+     */
+    public native void
+        datCopy( HDSObject hdsobj, String name ) throws HDSException;
+
+    /**
      * Erase component.
      * Recursively erases a component.  This means that all its lower level
      * components are deleted as well.

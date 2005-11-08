@@ -372,4 +372,22 @@ public class HDSObjectTest extends TestCase {
     //      HDSObject.hdsShow( "LOCATORS" );
     //  }
 
+
+    public void testCopy() throws HDSException {
+
+        // datCopy of CCDPACK extension
+        String newExt = "CCDPACKCOPY";
+        String oldExt = "CCDPACK";
+        assertTrue( ! moreObj.datThere( newExt ) );
+
+        moreObj.datNew( newExt, "EXTCOPY", new long[]{ 0 } );
+
+        assertTrue( moreObj.datThere( newExt ) );
+
+        HDSObject newObj = moreObj.datFind( newExt );
+        moreObj.datCopy( newObj, "ROOT" );
+        HDSObject childObj = newObj.datFind( "ROOT" );
+        assertTrue( ! newObj.datThere( "ROOT" ) );
+    }
+
 }
