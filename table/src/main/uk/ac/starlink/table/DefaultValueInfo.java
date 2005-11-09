@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import uk.ac.starlink.table.gui.NumericCellRenderer;
@@ -356,7 +355,7 @@ public class DefaultValueInfo implements ValueInfo {
                 cellRenderer = new NumericCellRenderer( clazz );
             }
             else if ( clazz.equals( Boolean.class ) ) {
-                cellRenderer = new JTable().getDefaultRenderer( Boolean.class );
+                cellRenderer = BooleanCellRenderer.getInstance();
             }
             else {
                 cellRenderer = new ValueInfoCellRenderer( this );
