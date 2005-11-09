@@ -39,11 +39,20 @@ public class PointSelection {
     /**
      * Constructs a new selection.
      *
+     * <p>As well as the point selectors themselves which hold almost all
+     * the required state, an additional array, <code>subsetPointers</code>
+     * is given to indicate in what order the subsets should be plotted.
+     * Each element of this array is a two-element int array; the first
+     * element is the index of the point selector, and the second element
+     * the index of the subset within that selector.
+     *
      * @param  ndim  dimensionality of the points
      * @param  selectors  array of PointSelector objects whose current state
      *         determines the points to be plotted
+     * @param  subsetPointers  pointers to subsets
      */
-    public PointSelection( int ndim, PointSelector[] selectors ) {
+    public PointSelection( int ndim, PointSelector[] selectors,
+                           int[][] subsetPointers ) {
         ndim_ = ndim;
         nTable_ = selectors.length;
         for ( int i = 0; i < nTable_; i++ ) {
@@ -55,7 +64,9 @@ public class PointSelection {
         /* Store the tables and column indices representing the data. */
         tcModels_ = new TopcatModel[ nTable_ ];
         nrows_ = new long[ nTable_ ];
+        long[] offsets = new long[ nTable_ ];
         icols_ = new int[ nTable_ ][];
+        long offset = 0L;
         for ( int itab = 0; itab < nTable_; itab++ ) {
             PointSelector psel = selectors[ itab ];
             tcModels_[ itab ] = psel.getTable();
@@ -65,6 +76,8 @@ public class PointSelection {
             for ( int idim = 0; idim < ndim_; idim++ ) {
                 icols_[ itab ][ idim ] = cols[ idim ].getModelIndex();
             }
+            offsets[ itab ] = offset;
+            offset += nrows_[ itab ];
         }
 
         /* Store a list of subsets and corresponding markers which represent
@@ -77,19 +90,15 @@ public class PointSelection {
          * method. */
         List subsetList = new ArrayList();
         List styleList = new ArrayList();
-        long offset = 0;
-        for ( int itab = 0; itab < nTable_; itab++ ) {
-            PointSelector psel = selectors[ itab ];
-            int[] isubsets = psel.getOrderedSubsetSelection();
-            long nrow = nrows_[ itab ];
-            for ( int iisub = 0; iisub < isubsets.length; iisub++ ) {
-                int isub = isubsets[ iisub ];
-                RowSubset rset =
-                    (RowSubset) tcModels_[ itab ].getSubsets().get( isub );
-                subsetList.add( new OffsetRowSubset( rset, offset, nrow ) );
-                styleList.add( psel.getStyle( isub ) );
-            }
-            offset += nrow;
+        for ( int isub = 0; isub < subsetPointers.length; isub++ ) {
+            int[] subsetPointer = subsetPointers[ isub ];
+            int itab = subsetPointer[ 0 ];
+            int itsub = subsetPointer[ 1 ];
+            RowSubset rset = (RowSubset)
+                             tcModels_[ itab ].getSubsets().get( itsub );
+            subsetList.add( new OffsetRowSubset( rset, offsets[ itab ],
+                                                 nrows_[ itab ] ) );
+            styleList.add( selectors[ itab ].getStyle( itsub ) );
         }
         subsets_ = (RowSubset[]) subsetList.toArray( new RowSubset[ 0 ] );
         styles_ = (MarkStyle[]) styleList.toArray( new MarkStyle[ 0 ] );

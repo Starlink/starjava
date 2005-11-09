@@ -5,7 +5,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -37,6 +40,7 @@ public class PointSelectorSet extends JPanel {
     private final BitSet usedMarkers_;
     private final ActionForwarder actionForwarder_;
     private final TopcatForwarder topcatForwarder_;
+    private final OrderRecorder orderRecorder_;
     private int selectorsCreated_;
 
     /**
@@ -78,6 +82,10 @@ public class PointSelectorSet extends JPanel {
                                                 .getSelectedIndex() > 0 );
             }
         } );
+
+        orderRecorder_ = new OrderRecorder();
+        addActionListener( orderRecorder_ );
+
         JToolBar toolBox = new JToolBar( JToolBar.VERTICAL );
         toolBox.setFloatable( false );
         toolBox.add( newSelectorAction );
@@ -131,7 +139,9 @@ public class PointSelectorSet extends JPanel {
         }
         PointSelector[] activeSelectors = 
             (PointSelector[]) activeList.toArray( new PointSelector[ 0 ] );
-        return new PointSelection( getNdim(), activeSelectors );
+        int[][] subsetPointers =
+            orderRecorder_.getSubsetPointers( activeSelectors );
+        return new PointSelection( getNdim(), activeSelectors, subsetPointers );
     }
 
     /**
@@ -297,5 +307,111 @@ public class PointSelectorSet extends JPanel {
              ? "Main"
              : new String( new char[] { (char)
                                         ( 'A' + selectorsCreated_ - 2 ) } );
+    }
+
+    /**
+     * Helper class which keeps track of the order in which the subsets
+     * have been selected/deselected in the various point selectors.
+     */
+    private class OrderRecorder implements ActionListener {
+
+        /**
+         * Stores a boolean[] for each PointSelector, indicating which
+         * subsets are selected.
+         */
+        final Map flagMap_ = new WeakHashMap();
+
+        /** List of Item objects giving the order of subsets chosen. */
+        final List order_ = new ArrayList();
+
+        /**
+         * Returns a structure indicating the order in which selection
+         * subsets are stored.  Each element of the return value is
+         * a two-element int array <code>(isel,isub)</code>; 
+         * the first element is the index
+         * of a point selector in the supplied <code>selectors</code> list,
+         * and the second element is the index of the subset within
+         * that selector.
+         *
+         * @param   selectors  list of selectors to enquire about
+         * @return  array giving selection order
+         */
+        int[][] getSubsetPointers( PointSelector[] selectors ) {
+            List resultList = new ArrayList();
+            for ( Iterator it = order_.iterator(); it.hasNext(); ) {
+                Item item = (Item) it.next();
+                for ( int isel = 0; isel < selectors.length; isel++ ) {
+                    if ( item.sel_ == selectors[ isel ] ) {
+                        resultList.add( new int[] { isel, item.isub_ } );
+                        break;
+                    }
+                }
+            }
+            return (int[][]) resultList.toArray( new int[ 0 ][] );
+        }
+
+        /**
+         * Checks the current state of this selector set and updates its
+         * records accordingly.
+         */
+        public void updateState() {
+            for ( int isel = 0; isel < getSelectorCount(); isel++ ) {
+                PointSelector sel = getSelector( isel );
+                boolean[] oldFlags = flagMap_.containsKey( sel )
+                                   ? (boolean[]) flagMap_.get( sel )
+                                   : new boolean[ 0 ];
+                boolean[] newFlags = sel.getSubsetSelection();
+                flagMap_.put( sel, newFlags );
+                for ( int isub = 0; isub < Math.max( oldFlags.length,
+                                                     newFlags.length );
+                      isub++ ) {
+                    boolean oldFlag = isub < oldFlags.length ? oldFlags[ isub ]
+                                                             : false;
+                    boolean newFlag = isub < newFlags.length ? newFlags[ isub ]
+                                                             : false;
+                    Item item = new Item( sel, isub );
+                    if ( ! oldFlag && newFlag ) {
+                        assert ! order_.contains( item );
+                        order_.add( item );
+                    }
+                    else if ( oldFlag && ! newFlag ) {
+                        assert order_.contains( item );
+                        order_.remove( item );
+                        assert ! order_.contains( item );
+                    }
+                    else {
+                        assert oldFlag == newFlag;
+                    }
+                }
+            }
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            updateState();
+        }
+
+        /**
+         * Helper class which defines a selected subset.
+         */
+        private class Item {
+            final PointSelector sel_;
+            final int isub_;
+            Item( PointSelector sel, int isub ) {
+                sel_ = sel;
+                isub_ = isub;
+            }
+            public boolean equals( Object other ) {
+                return other instanceof Item 
+                    && ((Item) other).sel_ == sel_
+                    && ((Item) other).isub_ == isub_;
+            }
+            public int hashCode() {
+                return sel_.hashCode() * 23 + isub_;
+            }
+            public String toString() {
+                return tabber_.getTitleAt( tabber_.indexOfComponent( sel_ ) )
+                     + ":" + isub_;
+            }
+        }
     }
 }
