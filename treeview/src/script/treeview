@@ -87,6 +87,7 @@ case "`uname`" in
     else
        CLASSPATH=`cygpath --windows "${appjar}"`
     fi
+    demodir=`cygpath --windows "${demodir}"`
   ;;
   *)
     CLASSPATH="${appjar}:${CLASSPATH}"
@@ -98,7 +99,7 @@ esac
 cmd="$starjava \
         $javaArgs \
         -Duk.ac.starlink.treeview.cmdname=treeview \
-        -Duk.ac.starlink.treeview.demodir=$demodir \
+        -Duk.ac.starlink.treeview.demodir=\${demodir} \
         -enableassertions \
         -classpath \${CLASSPATH} uk.ac.starlink.treeview.Driver \
         $appArgs"
