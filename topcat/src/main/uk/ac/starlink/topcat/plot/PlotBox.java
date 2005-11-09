@@ -2620,8 +2620,18 @@ class PlotBox extends JPanel implements Printable {
         if (graphics != null) {
             graphics.setFont(previousFont);
         }
-        return Math.max( 64, 22 + maxwidth );
-               // NOTE: subjective spacing parameter.
+
+        // Replaced the previous behaviour, which is to report a legend size
+        // based only on the size of existing labels, with new behaviour
+        // which reports the maximum size used in the history of this
+        // component.  This makes for smoother viewing in the kind of 
+        // interactive use that the component gets within TOPCAT (the plot
+        // doesn't keep getting resized).
+        // 
+        // return Math.max( 64, 22 + maxwidth );
+        //       // NOTE: subjective spacing parameter.
+        _legendWidth = Math.max( _legendWidth, 22 + maxwidth );
+        return _legendWidth;
     }
 
     // Execute all actions pending on the deferred action list.
@@ -3381,6 +3391,9 @@ class PlotBox extends JPanel implements Printable {
     /** @serial If XTicks or YTicks are given/ */
     private Vector _xticks = null, _xticklabels = null,
         _yticks = null, _yticklabels = null;
+
+    // Maximum size of the legend text box in this history of this plot.
+    private transient int _legendWidth = 0;
 
     // A button for filling the plot
     private transient JButton _fillButton = null;
