@@ -69,8 +69,43 @@ class ScalarBooleanDecoder extends BooleanDecoder {
     ScalarBooleanDecoder() {
         super( Boolean.class, SCALAR_SIZE );
     }
-    Object packageArray( Object array ) {
-        boolean[] arr = (boolean[]) array;
-        return Boolean.valueOf( arr[ 0 ] );
+    private Boolean decodeChar( char c ) {
+        switch ( c ) {
+            case 'T':
+            case 't':
+            case '1':
+                return Boolean.TRUE;
+            case 'F':
+            case 'f':
+            case '0':
+                return Boolean.FALSE;
+            case '\0':
+            case '?':
+            case ' ':
+                return null;
+            default:
+                return null;
+        }
+    }
+    public Object decodeString( String txt ) {
+        int nchar = txt.length();
+        if ( nchar == 0 ) {
+            return null;
+        }
+        else if ( nchar == 1 ) {
+            return decodeChar( txt.charAt( 0 ) );
+        }
+        else if ( txt.equalsIgnoreCase( "true" ) ) {
+            return Boolean.TRUE;
+        }
+        else if ( txt.equalsIgnoreCase( "false" ) ) {
+            return Boolean.FALSE;
+        }
+        else {
+            return null;
+        }
+    }
+    public Object decodeStream( DataInput strm ) throws IOException {
+        return decodeChar( (char) ( (char) 0x00ff & (char) strm.readByte() ) );
     }
 }
