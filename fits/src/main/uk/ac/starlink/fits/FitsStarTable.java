@@ -188,7 +188,9 @@ public class FitsStarTable extends RandomStarTable {
             if ( nrow > 0 ) {
                 Object test = null;
                 try {
-                    test = thdu.getElement( 0, icol );
+                    for ( int irow = 0; test == null && irow < nrow; irow++ ) {
+                        test = thdu.getElement( irow, icol );
+                    }
                 }
                 catch ( FitsException e ) {
                     throw (IOException) 
@@ -368,6 +370,9 @@ public class FitsStarTable extends RandomStarTable {
      *          would return an instance of
      */
     private Class packagedType( Object base, int icol ) {
+        if ( base == null ) {
+            return Object.class;
+        }
 
         Class cls = base.getClass().getComponentType();
         if ( cls != null && Array.getLength( base ) == 1 ) {
