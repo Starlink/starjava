@@ -511,8 +511,14 @@ public abstract class BintableStarTable extends AbstractStarTable {
                     reader = new ColumnReader( Boolean.class, 1 ) {
                         Object readValue( DataInput stream ) 
                                 throws IOException {
-                            return Boolean
-                                  .valueOf( stream.readByte() == (byte) 'T' );
+                            switch ( stream.readByte() ) {
+                                case (byte) 'T':
+                                    return Boolean.TRUE;
+                                case (byte) 'F':
+                                    return Boolean.FALSE;
+                                default:
+                                    return null;
+                            }
                         }
                     };
                 }

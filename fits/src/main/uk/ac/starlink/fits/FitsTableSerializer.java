@@ -445,8 +445,17 @@ public class FitsTableSerializer {
             return new ColumnWriter( 'L', 1 ) {
                 void writeValue( DataOutput stream, Object value )
                         throws IOException {
-                    boolean flag = Boolean.TRUE.equals( value );
-                    stream.writeByte( flag ? (byte) 'T' : (byte) 'F' );
+                    byte b;
+                    if ( Boolean.TRUE.equals( value ) ) {
+                        b = (byte) 'T';
+                    }
+                    else if ( Boolean.FALSE.equals( value ) ) {
+                        b = (byte) 'F';
+                    }
+                    else {
+                        b = (byte) 0;
+                    }
+                    stream.writeByte( b );
                 }
             };
         }
