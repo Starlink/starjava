@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -128,13 +129,20 @@ public class PointSelector extends JPanel implements TopcatListener {
                 .setRenderer( new ColumnCellRenderer( colSelectors_[ i ] ) );
             colSelectors_[ i ].addActionListener( actionForwarder_ );
             cPanel.add( new ShrinkWrapper( colSelectors_[ i ] ) );
+            cPanel.add( Box.createHorizontalStrut( 5 ) );
+            cPanel.add( new ComboBoxBumper( colSelectors_[ i ] ) );
             cPanel.add( Box.createHorizontalGlue() );
+            colSelectors_[ i ].setEnabled( false );
+
+            /* Without this border, the bumpers come out one pixel larger
+             * than the combo box.  I have absolutely no idea why, or why
+             * this fixes it. */
+            cPanel.setBorder( BorderFactory.createEmptyBorder( 1, 1, 1, 1 ) );
         }
         entryBox.add( Box.createVerticalStrut( 5 ) );
 
         /* Make a container for the subset selector. */
-        subsetScroller_ =
-            new JScrollPane( new CheckBoxStack( new DefaultListModel() ) );
+        subsetScroller_ = new JScrollPane( new CheckBoxStack() );
         subsetScroller_.setBorder( AuxWindow
                                   .makeTitledBorder( "Row Subsets" ) );
         controlBox.add( subsetScroller_ );
@@ -162,6 +170,14 @@ public class PointSelector extends JPanel implements TopcatListener {
             if ( tcModel != null ) {
                 configureForTable( tcModel );
             }
+        }
+    }
+
+    public void setVisible( boolean visible ) {
+        super.setVisible( visible );
+        if ( visible ) {
+            revalidate();
+            repaint();
         }
     }
 
@@ -392,6 +408,12 @@ public class PointSelector extends JPanel implements TopcatListener {
          * to listen to the right one. */
         if ( tcModel_ != null ) {
             tcModel_.removeTopcatListener( this );
+
+            /* Reset column selector models to prevent unhelpful events being
+             * triggered while we're reconfiguring. */
+            for ( int i = 0; i < ndim_; i++ ) {
+                colSelectors_[ i ].setSelectedItem( null );
+            }
         }
         tcModel_ = tcModel; 
         tcModel_.addTopcatListener( this );
@@ -429,6 +451,7 @@ public class PointSelector extends JPanel implements TopcatListener {
                     }
                 }
             );
+            colSelectors_[ i ].setEnabled( true );
         }
 
         /* Initialise the column selectors.  This isn't necesary, but it's
@@ -439,6 +462,10 @@ public class PointSelector extends JPanel implements TopcatListener {
                 colSelectors_[ i ].setSelectedIndex( i + 1 );
             }
         }
+
+        /* Repaint. */
+        revalidate();
+        repaint();
     }
 
     /**
