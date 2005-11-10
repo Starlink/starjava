@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonModel;
 import javax.swing.DefaultButtonModel;
@@ -65,6 +66,7 @@ public abstract class GraphicsWindow extends AuxWindow
     private Points points_;
     private JFileChooser exportSaver_;
     private PlotState lastState_;
+    private Box statusBox_;
 
     private static FileFilter psFilter_;
     private static FileFilter gifFilter_;
@@ -97,7 +99,7 @@ public abstract class GraphicsWindow extends AuxWindow
         };
         pointSelectors_ = new PointSelectorSet( axisNames, profile );
         getControlPanel().setLayout( new BoxLayout( getControlPanel(),
-                                                    BoxLayout.X_AXIS ) );
+                                                    BoxLayout.Y_AXIS ) );
         getControlPanel().add( new SizeWrapper( pointSelectors_ ) );
 
         /* Ensure that changes to the point selection trigger a replot. */
@@ -213,6 +215,20 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     public void forceReplot() {
         doReplot( true, false );
+    }
+
+    /**
+     * Returns a line suitable for putting status information into.
+     *
+     * @return  status  component
+     */
+    public Box getStatusBox() {
+        if ( statusBox_ == null ) {
+            statusBox_ = Box.createHorizontalBox();
+            getControlPanel().add( Box.createVerticalStrut( 2 ) );
+            getControlPanel().add( statusBox_ );
+        }
+        return statusBox_;
     }
 
     /**
