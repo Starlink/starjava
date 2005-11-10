@@ -132,8 +132,7 @@ public class PointSelectorSet extends JPanel {
         List activeList = new ArrayList();
         for ( int i = 0; i < getSelectorCount(); i++ ) {
             PointSelector psel = getSelector( i );
-            if ( psel.isValid() &&
-                 psel.getOrderedSubsetSelection().length > 0 ) {
+            if ( psel.isValid() ) {
                 activeList.add( psel );
             }
         }
