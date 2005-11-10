@@ -14,6 +14,7 @@ import javax.swing.DefaultListSelectionModel;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
@@ -59,6 +60,8 @@ public class CheckBoxStack extends JPanel
      */
     public CheckBoxStack() {
         this( new DefaultListModel() );
+        revalidate();
+        repaint();
     }
 
     /**
@@ -198,7 +201,7 @@ public class CheckBoxStack extends JPanel
 
     private int getLineHeight() {
         return entries.size() > 0 ? ((Component) entries.get( 0 )).getHeight()
-                                  : 24;
+                                  : 0;
     }
 
 }
