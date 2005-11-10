@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Shape;
@@ -12,17 +13,24 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.BitSet;
+import java.text.DecimalFormat;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.ButtonModel;
 import javax.swing.Icon;
 import javax.swing.ListSelectionModel;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.OverlayLayout;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.Tables;
@@ -48,6 +56,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
+    private final JLabel plotStatus_;
+    private final JLabel posStatus_;
 
     private boolean replotted_;
     private boolean activeBlob_;
@@ -139,8 +149,18 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
          * receive the mouse events, since it's not the deepest visible
          * component.  Doing it this way is probably easier than mucking
          * about with glassPanes. */
-        plot_.getSurface().getComponent()
-             .addMouseListener( new PointClickListener() );
+        PlotSurface surface = plot_.getSurface();
+        surface.getComponent().addMouseListener( new PointClickListener() );
+        surface.getComponent()
+               .addMouseMotionListener( new PositionReporter( surface ) {
+            protected void reportPosition( String[] coords ) {
+                String pos = " Position:";
+                if ( coords != null ) {
+                    pos += "(" + coords[ 0 ] + ", " + coords[ 1 ] + ")";
+                }
+                posStatus_.setText( pos );
+            }
+        } );;
 
         /* Listen for topcat actions. */
         getPointSelectors().addTopcatListener( this );
@@ -148,6 +168,29 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         /* Arrange the components in the top level window. */
         JPanel mainArea = getMainArea();
         mainArea.add( plotPanel, BorderLayout.CENTER );
+
+        /* Add status lines for displaying the number of points plotted 
+         * and the pointer position. */
+        plotStatus_ = new JLabel();
+        posStatus_ = new JLabel() {
+            public Dimension getMaximumSize() {
+                return new Dimension( Integer.MAX_VALUE,
+                                      super.getMaximumSize().height );
+            }
+        };
+        posStatus_.setText( " Position:" );
+        Font labelFont = plotStatus_.getFont();
+        Font monoFont =
+            new Font( "Monospaced", labelFont.getStyle(), labelFont.getSize() );
+        Border statusBorder = BorderFactory.createEtchedBorder();
+        plotStatus_.setFont( monoFont );
+        plotStatus_.setBorder( statusBorder );
+        posStatus_.setFont( monoFont );
+        posStatus_.setBorder( statusBorder );
+        getStatusBox().add( plotStatus_ );
+        getStatusBox().add( Box.createHorizontalStrut( 5 ) );
+        getStatusBox().add( posStatus_ );
+        getStatusBox().add( Box.createHorizontalGlue() );
 
         /* Action for resizing the plot. */
         Action resizeAction = new BasicAction( "Rescale", ResourceIcon.RESIZE,
@@ -287,6 +330,33 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         plot_.repaint();
     }
 
+
+    private void updateStatus( int potential, int included, int visible ) {
+        DecimalFormat format = new DecimalFormat();
+        format.setGroupingSize( 3 );
+        format.setGroupingUsed( true );
+        String[] tags = new String[] { "Potential", "Included", "Visible", };
+        int[] values = new int[] { potential, included, visible, };
+        StringBuffer status = new StringBuffer( " " );
+        int numLeng = format.format( potential ).length();
+        for ( int i = 0; i < tags.length; i++ ) {
+            if ( i > 0 ) {
+                status.append( "  " );
+            }
+            StringBuffer num = new StringBuffer( format.format( values[ i ] ) );
+            while ( num.length() < numLeng ) {
+                num.insert( 0, ' ' );
+            }
+            status.append( tags[ i ] )
+                  .append( ": " )
+                  .append( num );
+        }
+        status.append( ' ' );
+
+        /* Update the status line. */
+        plotStatus_.setText( status.toString() );
+    }
+
     /**
      * Works out which points are currently visible and stores this
      * information for possible later use.  Although this information
@@ -306,7 +376,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
      * @param  points  data points
      * @param  surface  plotting surface
      */
-    private void recordVisiblePoints( PlotState state, Points points,
+    private void recordVisiblePoints( PlotState state, final Points points,
                                       PlotSurface surface ) {
         if ( points == null || state == null ) {
             return;
@@ -314,9 +384,10 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         int np = points.getCount();
         RowSubset[] sets = state.getPointSelection().getSubsets();
         int nset = sets.length;
-        BitSet visible = new BitSet();
+        final BitSet visible = new BitSet();
         PointRegistry plotted = new PointRegistry();
         int nVisible = 0;
+        int nInvisible = 0;
         double[] coords = new double[ 2 ];
         for ( int ip = 0; ip < np; ip++ ) {
             points.getCoords( ip, coords );
@@ -335,12 +406,31 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                     }
                 }
             }
+            else {
+                for ( int is = 0; is < nset; is++ ) {
+                    if ( sets[ is ].isIncluded( ip ) ) {
+                        nInvisible++;
+                        break;
+                    }
+                }
+            }
         }
         plotted.ready();
         visiblePoints_ = plotted;
         visibleRows_ = visible;
-        fromVisibleAction_.setEnabled( nVisible > 0 );
-        blobAction_.setEnabled( nVisible > 0 );
+        final boolean someVisible = nVisible > 0;
+        final int potentialCount = points.getCount();
+        final int includedCount = visible.cardinality() + nInvisible;
+        final int visibleCount = visible.cardinality();
+        assert potentialCount >= includedCount;
+        assert includedCount >= visibleCount;
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                fromVisibleAction_.setEnabled( someVisible );
+                blobAction_.setEnabled( someVisible );
+                updateStatus( potentialCount, includedCount, visibleCount );
+            }
+        } );
     }
 
     /**
@@ -481,5 +571,4 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
             }
         }
     }
-
 }
