@@ -162,7 +162,7 @@ public class PointSelector extends JPanel implements TopcatListener {
          * selector, which may be necessary to initialise the state
          * properly via listeners. */
         if ( fixedTable != null ) {
-            setTable( fixedTable );
+            setTable( fixedTable, true );
         }
         else {
             TopcatModel tcModel =
@@ -233,9 +233,22 @@ public class PointSelector extends JPanel implements TopcatListener {
      * Sets the table to which this selector currently applies.
      *
      * @param   tcModel   table
+     * @param   init   whether to initialise the columns with sensible
+     *          starting values
      */
-    public void setTable( TopcatModel tcModel ) {
+    public void setTable( TopcatModel tcModel, boolean init ) {
         tableSelector_.setSelectedItem( tcModel );
+
+        /* Initialise the column selectors.  This isn't necesary, but it's
+         * what the old plot window used to do so may confuse people less.
+         * Possibly change this action in the future though. */
+        if ( init ) {
+            for ( int i = 0; i < ndim_; i++ ) {
+                if ( i + 1 < colSelectors_[ i ].getItemCount() ) {
+                    colSelectors_[ i ].setSelectedIndex( i + 1 );
+                }
+            }
+        }
     }
 
     /**
@@ -452,15 +465,6 @@ public class PointSelector extends JPanel implements TopcatListener {
                 }
             );
             colSelectors_[ i ].setEnabled( true );
-        }
-
-        /* Initialise the column selectors.  This isn't necesary, but it's
-         * what the old plot window used to do so may confuse people less.
-         * Possibly change this action in the future though. */
-        for ( int i = 0; i < ndim_; i++ ) {
-            if ( i + 1 < colSelectors_[ i ].getItemCount() ) {
-                colSelectors_[ i ].setSelectedIndex( i + 1 );
-            }
         }
 
         /* Repaint. */

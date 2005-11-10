@@ -336,7 +336,8 @@ public abstract class GraphicsWindow extends AuxWindow
      * @param  tcModel  new table
      */
     public void setMainTable( TopcatModel tcModel ) {
-        pointSelectors_.getMainSelector().setTable( tcModel );
+        PointSelector mainSel = pointSelectors_.getMainSelector();
+        mainSel.setTable( tcModel, true );
     }
 
     /**
