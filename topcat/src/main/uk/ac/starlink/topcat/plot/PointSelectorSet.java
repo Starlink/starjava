@@ -130,17 +130,23 @@ public class PointSelectorSet extends JPanel {
      */
     public PointSelection getPointSelection() {
         List activeList = new ArrayList();
+        List nameList = new ArrayList();
         for ( int i = 0; i < getSelectorCount(); i++ ) {
             PointSelector psel = getSelector( i );
             if ( psel.isValid() ) {
                 activeList.add( psel );
+                nameList.add( psel == getMainSelector() 
+                            ? null 
+                            : tabber_.getTitleAt( i ) );
             }
         }
         PointSelector[] activeSelectors = 
             (PointSelector[]) activeList.toArray( new PointSelector[ 0 ] );
+        String[] names = (String[]) nameList.toArray( new String[ 0 ] );
         int[][] subsetPointers =
             orderRecorder_.getSubsetPointers( activeSelectors );
-        return new PointSelection( getNdim(), activeSelectors, subsetPointers );
+        return new PointSelection( getNdim(), activeSelectors, names,
+                                   subsetPointers );
     }
 
     /**

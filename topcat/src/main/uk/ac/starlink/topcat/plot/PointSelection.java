@@ -49,9 +49,11 @@ public class PointSelection {
      * @param  ndim  dimensionality of the points
      * @param  selectors  array of PointSelector objects whose current state
      *         determines the points to be plotted
+     * @param  names   labels corresponding to the elements of the 
+     *                 <code>selectors</code> array
      * @param  subsetPointers  pointers to subsets
      */
-    public PointSelection( int ndim, PointSelector[] selectors,
+    public PointSelection( int ndim, PointSelector[] selectors, String[] names,
                            int[][] subsetPointers ) {
         ndim_ = ndim;
         nTable_ = selectors.length;
@@ -96,8 +98,12 @@ public class PointSelection {
             int itsub = subsetPointer[ 1 ];
             RowSubset rset = (RowSubset)
                              tcModels_[ itab ].getSubsets().get( itsub );
-            subsetList.add( new OffsetRowSubset( rset, offsets[ itab ],
-                                                 nrows_[ itab ] ) );
+            rset = new OffsetRowSubset( rset, offsets[ itab ], nrows_[ itab ] );
+            if ( names[ itab ] != null ) {
+                ((OffsetRowSubset) rset).setName( names[ itab ] + "." 
+                                                + rset.getName() );
+            }
+            subsetList.add( rset );
             styleList.add( selectors[ itab ].getStyle( itsub ) );
         }
         subsets_ = (RowSubset[]) subsetList.toArray( new RowSubset[ 0 ] );
