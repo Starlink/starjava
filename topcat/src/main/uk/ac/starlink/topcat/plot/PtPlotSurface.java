@@ -33,6 +33,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         surfListener_ = surfListener;
         setColor( false );
         _setPadding( 0.0 );
+        _expThreshold = 3;
     }
 
     public void setState( PlotState state ) {
@@ -138,6 +139,28 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         else {
             return null;
         }
+    }
+
+    public double[] graphicsToData( int px, int py, boolean insideOnly ) {
+        if ( insideOnly &&
+             ( px < _ulx || px > _lrx || py < _uly || py > _lry ) ) {
+            return null;
+        }
+        double dx = _xMin + ( ( px - _ulx ) / _xscale );
+        double dy = _yMin - ( ( py - _lry ) / _yscale );
+        if ( _xflip ) {
+            dx = -dx;
+        }
+        if ( _yflip ) {
+            dy = -dy;
+        }
+        if ( _xlog ) {
+            dx = Math.pow( 10., dx );
+        }
+        if ( _ylog ) {
+            dy = Math.pow( 10., dy );
+        }
+        return new double[] { dx, dy };
     }
 
     public Shape getClip() {

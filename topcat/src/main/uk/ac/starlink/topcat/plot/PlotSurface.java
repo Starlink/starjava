@@ -38,6 +38,21 @@ public interface PlotSurface {
     Point dataToGraphics( double x, double y, boolean insideOnly );
 
     /**
+     * Converts a point in graphics space to data space.
+     * If the <tt>insideOnly</tt> flag is true,  then <tt>null</tt>
+     * will be returned in place of any result which would give a point
+     * lying outside the visible plotting area.
+     *
+     * @param  px  graphics space X coordinate
+     * @param  py  graphics space Y coordinate
+     * @param  insideOnly  true to restrict non-null results to those
+     *         within the plotting surface
+     * @return a 2-element array giving x and y data space coordinates,
+     *         or <tt>null</tt>
+     */
+    double[] graphicsToData( int px, int py, boolean insideOnly );
+
+    /**
      * Returns the clip region in which points may be plotted.
      * The returned shape should be the sort which can be passed to
      * {@link java.awt.Graphics#setClip(java.awt.Shape)} - i.e. probably

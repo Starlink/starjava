@@ -53,6 +53,18 @@ class DumbPlotSurface extends JComponent implements PlotSurface {
         }
     }
 
+    public double[] graphicsToData( int px, int py, boolean insideOnly ) {
+        if ( insideOnly && ( px < 0 || px > getWidth() ||
+                             py < 0 || py > getHeight() ) ) {
+            return null;
+        }
+        else {
+            double dx = xlo_ + px * ( xhi_ - xlo_ ) / getWidth();
+            double dy = ylo_ + py * ( yhi_ - ylo_ ) / getHeight();
+            return new double[] { dx, dy };
+        }
+    }
+
     public Shape getClip() {
         return null;
     }
