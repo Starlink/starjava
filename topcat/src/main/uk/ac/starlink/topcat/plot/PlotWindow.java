@@ -275,7 +275,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
          * but implementation details mean that it's not easy to get
          * away without doing this, so if you want to change that
          * make sure you check it still works properly afterwards. */
-        if ( ! state.sameAxes( lastState ) ) {
+        if ( ! state.sameAxes( lastState ) || ! state.sameData( lastState ) ) {
             plot_.rescale();
         }
 
