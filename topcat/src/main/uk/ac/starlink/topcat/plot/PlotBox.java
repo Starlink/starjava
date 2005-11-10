@@ -2560,6 +2560,9 @@ class PlotBox extends JPanel implements Printable {
     /** @serial Indicator that size has been set. */
     protected boolean _sizeHasBeenSet = false;
 
+    /** @serial Threshold for using an exponent multiplier on axis labels. */
+    protected int _expThreshold = 3;
+
     /** @serial The document base we use to find the _filespec.
      * NOTE: Use of this variable is deprecated.  But it is made available
      * to derived classes for backward compatibility.
@@ -3073,7 +3076,7 @@ class PlotBox extends JPanel implements Printable {
         double largest = Math.max(Math.abs(_xMin), Math.abs(_xMax));
         _xExp = (int) Math.floor(Math.log(largest)*_LOG10SCALE);
         // Use the exponent only if it's larger than 1 in magnitude.
-        if (_xExp > 1 || _xExp < -1) {
+        if (_xExp > _expThreshold || _xExp < -_expThreshold) {
             double xs = 1.0/Math.pow(10.0, (double)_xExp);
             _xtickMin = _xMin*xs;
             _xtickMax = _xMax*xs;
@@ -3111,7 +3114,7 @@ class PlotBox extends JPanel implements Printable {
         double largest = Math.max(Math.abs(_yMin), Math.abs(_yMax));
         _yExp = (int) Math.floor(Math.log(largest)*_LOG10SCALE);
         // Use the exponent only if it's larger than 1 in magnitude.
-        if (_yExp > 1 || _yExp < -1) {
+        if (_yExp > _expThreshold || _yExp < -_expThreshold) {
             double ys = 1.0/Math.pow(10.0, (double)_yExp);
             _ytickMin = _yMin*ys;
             _ytickMax = _yMax*ys;
