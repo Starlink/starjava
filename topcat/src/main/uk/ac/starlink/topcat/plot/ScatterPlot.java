@@ -154,11 +154,34 @@ public class ScatterPlot extends JComponent implements Printable {
      * nicely.
      */
     public void rescale() {
+        double[] range = getFullDataRange();
+        double xlo, ylo, xhi, yhi;
+        if ( range != null ) {
+            xlo = range[ 0 ];
+            ylo = range[ 1 ];
+            xhi = range[ 2 ];
+            yhi = range[ 3 ];
+        }
+        else {
+            xlo = 0.;
+            ylo = 0.;
+            xhi = 1.;
+            yhi = 1.;
+        }
+        surface_.setDataRange( xlo, ylo, xhi, yhi );
+    }
+
+    /**
+     * Works out the range of coordinates to accommodate all the data
+     * points owned by this plot.
+     *
+     * @return   4-element array (xlo,ylo,xhi,yhi)
+     */
+    private double[] getFullDataRange() {
 
         /* Test for no data case. */
         if ( ! state_.getValid() ) {
-            surface_.setDataRange( 0., 0., 1., 1. );
-            return;
+            return null;
         }
 
         /* Plottable. */
@@ -221,8 +244,8 @@ public class ScatterPlot extends JComponent implements Printable {
             yhi = ylog ? 1e+1 : +1.0;
         }
 
-        /* Ask the plotting surface to set the new ranges accordingly. */
-        surface_.setDataRange( xlo, ylo, xhi, yhi );
+        /* Return result. */
+        return new double[] { xlo, ylo, xhi, yhi };
     }
 
     /**
