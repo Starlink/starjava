@@ -9,43 +9,26 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
-import java.awt.print.PageFormat;
-import java.awt.print.Printable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.JComponent;
-import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.OverlayLayout;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import uk.ac.starlink.topcat.RowSubset;
 
 /**
  * Component which can display a scatter plot of points.
- * The details of the plot are determined by a {@link PlotState} object
- * which indicates what the plot will look like and a {@link Points}
- * object which provides the data to plot.  Setting these values does
- * not itself trigger a change in the component, they only take effect
- * when {@link #paintComponent} is called (e.g. following a {@link #repaint}
- * call).  The X and Y ranges of the displayed plot are not specified
- * programatically; they may be changed by user interaction.
- * The drawing of axes and other decorations is done by a decoupled
- * {@link PlotSurface} object (bridge pattern).
  * 
  * @author   Mark Taylor (Starlink)
  * @since    17 Jun 2004
  */
-public class ScatterPlot extends JComponent implements Printable {
+public class ScatterPlot extends SurfacePlot {
 
-    private Points points_;
-    private PlotState state_;
-    private PointSelection psel_;
-    private PlotSurface surface_;
     private Annotations annotations_;
     private Points lastPoints_;
     private PlotState lastState_;
@@ -62,79 +45,15 @@ public class ScatterPlot extends JComponent implements Printable {
      * @param  surface  plotting surface implementation
      */
     public ScatterPlot( PlotSurface surface ) {
-        setLayout( new OverlayLayout( this ) );
-        setOpaque( false );
+        super();
         add( new ScatterDataPanel() );
         annotations_ = new Annotations();
         setSurface( surface );
     }
     
-    /**
-     * Sets the plotting surface which draws axes and other decorations
-     * that form the background to the actual plotted points.
-     *
-     * @param  surface  plotting surface implementation
-     */
-    public void setSurface( PlotSurface surface ) {
-        if ( surface_ != null ) {
-            remove( surface_.getComponent() );
-        }
-        surface_ = surface;
-        surface_.setState( state_ );
-        surface_.getComponent().setOpaque( false );
-        add( surface_.getComponent() );
-    }
-
-    /**
-     * Returns the plotting surface on which this component displays.
-     *
-     * @return   plotting surface
-     */
-    public PlotSurface getSurface() {
-        return surface_;
-    }
-
-    /**
-     * Sets the data set for this plot.  These are the points which will
-     * be plotted the next time this component is painted.
-     *
-     * @param   points  data points
-     */
-    public void setPoints( Points points ) {
-        points_ = points;
-    }
-
-    /**
-     * Returns the data set for this point.
-     * 
-     * @return  data points
-     */
-    public Points getPoints() {
-        return points_;
-    }
-
-    /**
-     * Sets the plot state for this plot.  This characterises how the
-     * plot will be done next time this component is painted.
-     *
-     * @param  state  plot state
-     */
     public void setState( PlotState state ) {
-        state_ = state;
-        psel_ = state.getPointSelection();
+        super.setState( state );
         annotations_.validate();
-        if ( surface_ != null ) {
-            surface_.setState( state_ );
-        }
-    }
-
-    /**
-     * Returns the most recently set state for this plot.
-     *
-     * @return  plot state
-     */
-    public PlotState getState() {
-        return state_;
     }
 
     /**
@@ -149,44 +68,14 @@ public class ScatterPlot extends JComponent implements Printable {
     }
 
     /**
-     * Updates the X and Y ranges of the plotting surface so that all the
-     * data points which are currently selected for plotting will fit in
-     * nicely.
-     */
-    public void rescale() {
-        double[] range = getFullDataRange();
-        double xlo, ylo, xhi, yhi;
-        if ( range != null ) {
-            xlo = range[ 0 ];
-            ylo = range[ 1 ];
-            xhi = range[ 2 ];
-            yhi = range[ 3 ];
-        }
-        else {
-            xlo = 0.;
-            ylo = 0.;
-            xhi = 1.;
-            yhi = 1.;
-        }
-        surface_.setDataRange( xlo, ylo, xhi, yhi );
-    }
-
-    /**
      * Works out the range of coordinates to accommodate all the data
      * points owned by this plot.
      *
      * @return   4-element array (xlo,ylo,xhi,yhi)
      */
-    private double[] getFullDataRange() {
-
-        /* Test for no data case. */
-        if ( ! state_.getValid() ) {
-            return null;
-        }
-
-        /* Plottable. */
-        boolean xlog = state_.getLogFlags()[ 0 ];
-        boolean ylog = state_.getLogFlags()[ 1 ];
+    public double[] getFullDataRange() {
+        boolean xlog = getState().getLogFlags()[ 0 ];
+        boolean ylog = getState().getLogFlags()[ 1 ];
         double xlo = Double.POSITIVE_INFINITY;
         double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
         double ylo = Double.POSITIVE_INFINITY;
@@ -194,9 +83,9 @@ public class ScatterPlot extends JComponent implements Printable {
 
         /* Go through all points getting max/min values. */
         int nok = 0;
-        Points points = points_;
+        Points points = getPoints();;
         if ( points != null ) {
-            RowSubset[] rsets = psel_.getSubsets();
+            RowSubset[] rsets = getPointSelection().getSubsets();
             int nrset = rsets.length;
             int np = points.getCount();
             double[] coords = new double[ 2 ];
@@ -236,16 +125,8 @@ public class ScatterPlot extends JComponent implements Printable {
             }
         }
 
-        /* Default to sensible ranges if we didn't find any good data. */
-        if ( nok == 0 ) {
-            xlo = xlog ? 1e-1 : -1.0;
-            xhi = xlog ? 1e+1 : +1.0; 
-            ylo = ylog ? 1e-1 : -1.0;
-            yhi = ylog ? 1e+1 : +1.0;
-        }
-
         /* Return result. */
-        return new double[] { xlo, ylo, xhi, yhi };
+        return nok == 0 ? null : new double[] { xlo, ylo, xhi, yhi };
     }
 
     /**
@@ -256,8 +137,10 @@ public class ScatterPlot extends JComponent implements Printable {
      * @param  graphics  graphics context
      */
     private void drawData( Graphics graphics ) {
-        Points points = points_;
-        if ( points_ == null || state_ == null ) {
+        Points points = getPoints();
+        PlotState state = getState();
+        PlotSurface surface = getSurface();
+        if ( points == null || state == null || surface == null ) {
             return;
         }
 
@@ -265,7 +148,7 @@ public class ScatterPlot extends JComponent implements Printable {
          * to the plotting surface. */
         Graphics2D g; 
         g = (Graphics2D) graphics.create();
-        g.setClip( surface_.getClip() );
+        g.setClip( getSurface().getClip() );
 
         /* Draw the points, optionally accumulating statistics for 
          * X-Y correlations if we're going to need to draw regression lines. */
@@ -273,8 +156,8 @@ public class ScatterPlot extends JComponent implements Printable {
          * it's not very good practice to have a paintComponent method
          * updating data structures. */
         int np = points.getCount();
-        RowSubset[] sets = psel_.getSubsets();
-        MarkStyle[] styles = psel_.getStyles();
+        RowSubset[] sets = getPointSelection().getSubsets();
+        MarkStyle[] styles = getPointSelection().getStyles();
         int nset = sets.length;
   boolean[] regressions = new boolean[ nset ];
         statSets_ = new XYStats[ nset ];
@@ -284,8 +167,8 @@ public class ScatterPlot extends JComponent implements Printable {
             boolean regress = regressions[ is ];
             XYStats stats = null;
             if ( regress ) {
-                stats = new XYStats( state_.getLogFlags()[ 0 ],
-                                     state_.getLogFlags()[ 1 ] );
+                stats = new XYStats( state.getLogFlags()[ 0 ],
+                                     state.getLogFlags()[ 1 ] );
                 statSets_[ is ] = stats;
             }
             int maxr = style.getMaximumRadius();
@@ -294,7 +177,7 @@ public class ScatterPlot extends JComponent implements Printable {
                     points.getCoords( ip, coords );
                     double x = coords[ 0 ];
                     double y = coords[ 1 ];
-                    Point point = surface_.dataToGraphics( x, y, true );
+                    Point point = surface.dataToGraphics( x, y, true );
                     if ( point != null ) {
                         int xp = point.x;
                         int yp = point.y;
@@ -319,10 +202,10 @@ public class ScatterPlot extends JComponent implements Printable {
             if ( stats != null ) {
                 double[] ends = stats.linearRegressionLine();
                 if ( ends != null ) {
-                    Point p1 = surface_.dataToGraphics( ends[ 0 ], ends[ 1 ],
-                                                        false );
-                    Point p2 = surface_.dataToGraphics( ends[ 2 ], ends[ 3 ],
-                                                        false );
+                    Point p1 = surface.dataToGraphics( ends[ 0 ], ends[ 1 ],
+                                                       false );
+                    Point p2 = surface.dataToGraphics( ends[ 2 ], ends[ 3 ],
+                                                       false );
                     if ( p1 != null && p2 != null ) {
                         Color styleColor = styles[ is ].getColor();
                         g.setColor( new Color( styleColor.getRed(),
@@ -347,66 +230,6 @@ public class ScatterPlot extends JComponent implements Printable {
     }
 
     /**
-     * Implements the {@link java.awt.print.Printable} interface.
-     * At time of writing, this method is not used by TOPCAT, though it 
-     * could be; in particular it is not used to implement the 
-     * export to EPS functionality.
-     * The code is mostly pinched from SPLAT.
-     */
-    public int print( Graphics g, PageFormat pf, int pageIndex ) {
-        if ( pageIndex == 0 ) {
-
-            /* Get a graphics object scaled for this component to print on. */
-            Graphics2D g2 = (Graphics2D) g.create();
-            int gap = 70;  // points
-            double pageWidth = pf.getImageableWidth() - 2.0 * gap;
-            double pageHeight = pf.getImageableHeight() - 2.0 * gap;
-            double xinset = pf.getImageableX() + gap;
-            double yinset = pf.getImageableY() + gap;
-            double compWidth = (double) getWidth();
-            double compHeight = (double) getHeight();
-            double xscale = pageWidth / compWidth;
-            double yscale = pageHeight / compHeight;
-            if ( xscale < yscale ) {
-                yscale = xscale;
-            }
-            else {
-                xscale = yscale;
-            }
-            g2.translate( xinset, yinset );
-            g2.scale( xscale, yscale );
-
-            /* Draw the plot. */
-            print( g2 );
-            return PAGE_EXISTS;
-        }
-        else {
-            return NO_SUCH_PAGE;
-        }
-    }
-
-    /**
-     * Determines whether a point with a given index is included in the
-     * current plot.  This doesn't necessarily mean it's visible, since
-     * it might fall outside the bounds of the current display area,
-     * but it means the point does conceptually form part of what is
-     * being plotted.
-     *
-     * @param  ip  index of point to check
-     * @return  true  iff point <tt>ip</tt> is included in this plot
-     */
-    public boolean isIncluded( int ip ) {
-        RowSubset[] sets = psel_.getSubsets();
-        int nset = sets.length;
-        for ( int is = 0; is < nset; is++ ) {
-            if ( sets[ is ].isIncluded( (long) ip ) ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Informs the user what the coefficients are for any regression
      * lines currently plotted.
      *
@@ -421,7 +244,7 @@ public class ScatterPlot extends JComponent implements Printable {
      * multiplots.
      */
     public void displayRegressionCoefficients() {
-        final RowSubset[] sets = psel_.getSubsets();
+        final RowSubset[] sets = getPointSelection().getSubsets();
   boolean[] regressions = new boolean[ sets.length ];
         TableModel tmodel = new AbstractTableModel() {
         // Don't do this - the default renderers are rubbish (represent 
@@ -519,9 +342,9 @@ public class ScatterPlot extends JComponent implements Printable {
             /* Draw any active points. */
             for ( int i = 0; i < activePoints_.length; i++ ) {
                 double[] coords = new double[ 2 ];
-                points_.getCoords( activePoints_[ i ], coords );
-                Point p = surface_.dataToGraphics( coords[ 0 ], coords[ 1 ],
-                                                   true );
+                getPoints().getCoords( activePoints_[ i ], coords );
+                Point p = getSurface().dataToGraphics( coords[ 0 ], coords[ 1 ],
+                                                       true );
                 if ( p != null ) {
                     Graphics2D g = (Graphics2D) g2.create();
                     g.setColor( new Color( 0, 0, 0, 192 ) );
@@ -544,8 +367,9 @@ public class ScatterPlot extends JComponent implements Printable {
         void validate() {
             /* If there are active points which are no longer visible in
              * this plot, drop them. */
-            activePoints_ = state_.getValid() ? dropInvisible( activePoints_ )
-                                              : new int[ 0 ];
+            activePoints_ = getState().getValid() 
+                          ? dropInvisible( activePoints_ )
+                          : new int[ 0 ];
         }
 
         /**
@@ -601,9 +425,9 @@ public class ScatterPlot extends JComponent implements Printable {
              * we painted, we can use the cached image. */
             int width = getBounds().width;
             int height = getBounds().height;
-            if ( state_ == lastState_ &&
-                 surface_ == lastSurface_ &&
-                 points_ == lastPoints_ &&
+            if ( getState() == lastState_ &&
+                 getSurface() == lastSurface_ &&
+                 getPoints() == lastPoints_ &&
                  width == lastWidth_ &&
                  height == lastHeight_ ) {
                 assert image_ != null;
@@ -626,16 +450,16 @@ public class ScatterPlot extends JComponent implements Printable {
                  * So we fudge it by calling the plotting surface's 
                  * <tt>paintSurface</tt> method (introduced for this purpose)
                  * here.  This is not incredibly tidy. */
-                surface_.paintSurface( ig );
+                getSurface().paintSurface( ig );
 
                 /* Plot the actual points into the cached buffer. */
                 drawData( ig );
 
                 /* Record the state which corresponds to the most recent
                  * plot into the cached buffer. */
-                lastState_ = state_;
-                lastSurface_ = surface_;
-                lastPoints_ = points_;
+                lastState_ = getState();
+                lastSurface_ = getSurface();
+                lastPoints_ = getPoints();
                 lastWidth_ = width;
                 lastHeight_ = height;
             }
@@ -666,7 +490,7 @@ public class ScatterPlot extends JComponent implements Printable {
          * the wrong value (TYPE_IMAGE_BUFFER not TYPE_PRINTER).
          */
         protected void printComponent( Graphics g ) {
-            if ( points_ != null && state_ != null ) {
+            if ( getPoints() != null && getState() != null ) {
                 drawData( g );
                 drawAnnotations( g );
             }
