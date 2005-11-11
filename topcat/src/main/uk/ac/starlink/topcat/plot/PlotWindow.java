@@ -142,7 +142,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         plotPanel.setLayout( new OverlayLayout( plotPanel ) );
         plotPanel.add( blobPanel_ );
         plotPanel.add( plot_ );
-        plotPanel.setPreferredSize( new Dimension( 500, 300 ) );
+        plotPanel.setPreferredSize( new Dimension( 500, 400 ) );
 
         /* Listen for point-clicking events on the plot. */
         /* I have to reach right in to find the plot surface component to
