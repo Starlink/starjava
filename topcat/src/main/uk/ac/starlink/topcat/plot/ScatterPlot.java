@@ -394,6 +394,26 @@ public class ScatterPlot extends SurfacePlot {
         }
     }
 
+    /**
+     * Determines whether a point with a given index is included in the
+     * current plot.  This doesn't necessarily mean it's visible, since
+     * it might fall outside the bounds of the current display area,
+     * but it means the point does conceptually form part of what is
+     * being plotted.
+     * 
+     * @param  ip  index of point to check
+     * @return  true  iff point <tt>ip</tt> is included in this plot
+     */
+    private boolean isIncluded( int ip ) {
+        RowSubset[] sets = getPointSelection().getSubsets();
+        int nset = sets.length;
+        for ( int is = 0; is < nset; is++ ) {
+            if ( sets[ is ].isIncluded( (long) ip ) ) {
+                return true;
+            }
+        } 
+        return false;
+    }
 
     /**
      * Graphical component which does the actual plotting of the points.
