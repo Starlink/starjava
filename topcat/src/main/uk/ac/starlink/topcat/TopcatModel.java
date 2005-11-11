@@ -37,7 +37,6 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.TableLoadChooser;
-import uk.ac.starlink.topcat.plot.PlotWindow;
 
 /**
  * Defines all the state for the representation of a given table as
