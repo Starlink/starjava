@@ -14,6 +14,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.BitSet;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -58,6 +59,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private final Action fromVisibleAction_;
     private final JLabel plotStatus_;
     private final JLabel posStatus_;
+    private final NumberFormat countFormat_;
 
     private boolean replotted_;
     private boolean activeBlob_;
@@ -171,6 +173,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
         /* Add status lines for displaying the number of points plotted 
          * and the pointer position. */
+        countFormat_ = new DecimalFormat();
+        ((DecimalFormat) countFormat_).setGroupingSize( 3 );
+        ((DecimalFormat) countFormat_).setGroupingUsed( true );
         plotStatus_ = new JLabel();
         posStatus_ = new JLabel() {
             public Dimension getMaximumSize() {
@@ -331,6 +336,14 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
 
+    /**
+     * Updates the plot status display line.
+     *
+     * @param   potential  number of points potentially plottable (all subsets)
+     * @param   included   number of points included (selected subsets)
+     * @param   visible    number of points visible (selected subsets and
+     *                     within surface bounds)
+     */
     private void updateStatus( int potential, int included, int visible ) {
         DecimalFormat format = new DecimalFormat();
         format.setGroupingSize( 3 );
@@ -338,12 +351,13 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         String[] tags = new String[] { "Potential", "Included", "Visible", };
         int[] values = new int[] { potential, included, visible, };
         StringBuffer status = new StringBuffer( " " );
-        int numLeng = format.format( potential ).length();
+        int numLeng = countFormat_.format( potential ).length();
         for ( int i = 0; i < tags.length; i++ ) {
             if ( i > 0 ) {
                 status.append( "  " );
             }
-            StringBuffer num = new StringBuffer( format.format( values[ i ] ) );
+            StringBuffer num = new StringBuffer()
+               .append( countFormat_.format( values[ i ] ) );
             while ( num.length() < numLeng ) {
                 num.insert( 0, ' ' );
             }
@@ -434,7 +448,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
     /**
-     * Determine whether we are currently in blob-drawing mode or not.
+     * Configure for whether we are currently in blob-drawing mode or not.
      *
      * @param  activeBlob true iff blob is being drawn
      */
