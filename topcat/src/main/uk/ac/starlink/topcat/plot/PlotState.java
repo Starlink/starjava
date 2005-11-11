@@ -1,7 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.util.Arrays;
-import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Characterises the details of how a plot is to be done.
@@ -13,7 +13,7 @@ public class PlotState {
 
     private final int ndim_;
     private boolean valid_;
-    private ColumnInfo[] axes_;
+    private ValueInfo[] axes_;
     private boolean[] logFlags_;
     private boolean[] flipFlags_;
     private boolean grid_;
@@ -62,7 +62,7 @@ public class PlotState {
      *
      * @param  axes  axis metadata array
      */
-    public void setAxes( ColumnInfo[] axes ) {
+    public void setAxes( ValueInfo[] axes ) {
         if ( axes.length != ndim_ ) {
             throw new IllegalArgumentException();
         }
@@ -74,7 +74,7 @@ public class PlotState {
      *
      * @return  axis metadata array
      */
-    public ColumnInfo[] getAxes() {
+    public ValueInfo[] getAxes() {
         return axes_;
     }
 

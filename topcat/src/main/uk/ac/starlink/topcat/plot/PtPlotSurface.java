@@ -5,7 +5,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import javax.swing.JComponent;
-import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
 
 /**
@@ -234,12 +234,12 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         }
 
         /* Axes. */
-        ColumnInfo xCol = state.getAxes()[ 0 ];
-        ColumnInfo yCol = state.getAxes()[ 1 ];
-        String xName = xCol.getName();
-        String yName = yCol.getName();
-        String xUnit = xCol.getUnitString();
-        String yUnit = yCol.getUnitString();
+        ValueInfo xInfo = state.getAxes()[ 0 ];
+        ValueInfo yInfo = state.getAxes()[ 1 ];
+        String xName = xInfo.getName();
+        String yName = yInfo.getName();
+        String xUnit = xInfo.getUnitString();
+        String yUnit = yInfo.getUnitString();
         String xLabel = xName;
         String yLabel = yName;
         if ( xUnit != null && xUnit.trim().length() > 0 ) {
