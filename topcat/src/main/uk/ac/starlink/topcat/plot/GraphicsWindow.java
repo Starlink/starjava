@@ -146,10 +146,14 @@ public abstract class GraphicsWindow extends AuxWindow
             flipModels_[ i ].addActionListener( replotAction_ );
             logModels_[ i ].addActionListener( replotAction_ );
         }
-        flipModels_[ 0 ].setIcon( ResourceIcon.XFLIP );
-        flipModels_[ 1 ].setIcon( ResourceIcon.YFLIP );
-        logModels_[ 0 ].setIcon( ResourceIcon.XLOG );
-        logModels_[ 1 ].setIcon( ResourceIcon.YLOG );
+        if ( ndim_ > 0 ) {
+            flipModels_[ 0 ].setIcon( ResourceIcon.XFLIP );
+            logModels_[ 0 ].setIcon( ResourceIcon.XLOG );
+            if ( ndim_ > 1 ) {
+                flipModels_[ 1 ].setIcon( ResourceIcon.YFLIP );
+                logModels_[ 1 ].setIcon( ResourceIcon.YLOG );
+            }
+        }
     }
 
     public void setVisible( boolean visible ) {
