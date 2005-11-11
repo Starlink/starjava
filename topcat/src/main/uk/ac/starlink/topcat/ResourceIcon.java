@@ -85,6 +85,7 @@ public class ResourceIcon implements Icon {
         COLUMNS = makeIcon( "colmeta0.gif" ),
         STATS = makeIcon( "sigma0.gif" ),
         PLOT = makeIcon( "plot0.gif" ),
+        HISTOGRAM = makeIcon( "hist0.gif" ),
         PARAMS = makeIcon( "tablemeta0.gif" ),
         VIEWER = makeIcon( "browser1.gif" ),
         SUBSETS = makeIcon( "venn2.gif" ),
