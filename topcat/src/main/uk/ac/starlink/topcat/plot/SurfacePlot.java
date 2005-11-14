@@ -141,7 +141,8 @@ public abstract class SurfacePlot extends JComponent implements Printable {
             boolean ylog = false;
             if ( state_ != null && state_.getLogFlags() != null ) {
                 xlog = state_.getLogFlags()[ 0 ];
-                ylog = state_.getNdim() > 1 && state_.getLogFlags()[ 1 ];
+                ylog = state_.getLogFlags().length > 1 &&
+                       state_.getLogFlags()[ 1 ];
             }
             xlo = xlog ? 0.1 : 0.;
             xhi = 1.;
