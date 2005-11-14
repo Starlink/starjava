@@ -272,6 +272,7 @@ public class PointSelectorSet extends JPanel {
     private void action() {
         actionForwarder_.actionPerformed( new ActionEvent( this, 0, 
                                                            "State change" ) );
+        tabber_.revalidate();
     }
 
     /**
