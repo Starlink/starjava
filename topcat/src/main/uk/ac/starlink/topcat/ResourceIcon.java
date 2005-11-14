@@ -102,6 +102,8 @@ public class ResourceIcon implements Icon {
         BLOB_SUBSET = makeIcon( "blob2.gif" ),
         BLOB_SUBSET_END = makeIcon( "ublob3b.gif" ),
         RESIZE = makeIcon( "4way3.gif" ),
+        RESIZE_X = makeIcon( "ew_arrow.gif" ),
+        RESIZE_Y = makeIcon( "ns_arrow.gif" ),
         GRID_ON = makeIcon( "gridon.gif" ),
         GRID_OFF = makeIcon( "gridoff.gif" ),
         TO_COLUMN = makeIcon( "Column.gif" ),

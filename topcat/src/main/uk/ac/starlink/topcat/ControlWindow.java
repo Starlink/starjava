@@ -71,6 +71,7 @@ import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.topcat.plot.GraphicsWindow;
+import uk.ac.starlink.topcat.plot.HistogramWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -237,6 +238,9 @@ public class ControlWindow extends AuxWindow
             new GraphicsWindowAction( "Plot", ResourceIcon.PLOT,
                                       "Scatter Plot",
                                       PlotWindow.class ),
+            new GraphicsWindowAction( "Histogram", ResourceIcon.HISTOGRAM,
+                                      "Histogram",
+                                      HistogramWindow.class ),
         };
         writeAct_ = new ModelViewAction( "Save Table", ResourceIcon.SAVE,
                                          "Write out the current table" ) {

@@ -6913,6 +6913,12 @@ introduced since the last version:
 <li>Experimental implementation of Aladin interoperability interface.</li>
 <li>Fixed java 1.5 bug in which subset checkboxes didn't appear in Plot Window.
     </li>
+<li>Loads of plotting stuff.</li>
+<li>Plotting: axes now have a threshold of 1e4 for exponent factorisation
+    on axis labels.</li>
+<li>Boolean columns now display null values distinctly from false ones.
+    Additionally, null/false distinctions are handled more carefully in
+    FITS and VOTable files.</li>
 </ul>
 </p></dd>
 
