@@ -229,7 +229,7 @@ public abstract class GraphicsWindow extends AuxWindow
     public Box getStatusBox() {
         if ( statusBox_ == null ) {
             statusBox_ = Box.createHorizontalBox();
-            getControlPanel().add( Box.createVerticalStrut( 2 ) );
+            getControlPanel().add( Box.createVerticalStrut( 5 ) );
             getControlPanel().add( statusBox_ );
         }
         return statusBox_;
