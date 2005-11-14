@@ -29,15 +29,6 @@ public class PlotState {
     }
 
     /**
-     * Returns the dimensionality of the plot.
-     *
-     * @return   number of dimensions of the plot
-     */
-    public int getNdim() {
-        return ndim_;
-    }
-
-    /**
      * Sets whether this state should be used to attempt a successful plot.
      * If false, it is underspecified in some way.
      *
@@ -63,9 +54,6 @@ public class PlotState {
      * @param  axes  axis metadata array
      */
     public void setAxes( ValueInfo[] axes ) {
-        if ( axes.length != ndim_ ) {
-            throw new IllegalArgumentException();
-        }
         axes_ = axes;
     }
 
@@ -84,9 +72,6 @@ public class PlotState {
      * @param   logFlags   log flags
      */
     public void setLogFlags( boolean[] logFlags ) {
-        if ( logFlags.length != ndim_ ) {
-            throw new IllegalArgumentException();
-        }
         logFlags_ = logFlags;
     }
 
@@ -105,9 +90,6 @@ public class PlotState {
      * @param   flipFlags  flip flags
      */
     public void setFlipFlags( boolean[] flipFlags ) {
-        if ( flipFlags.length != ndim_ ) {
-            throw new IllegalArgumentException();
-        }
         flipFlags_ = flipFlags;
     }
 
