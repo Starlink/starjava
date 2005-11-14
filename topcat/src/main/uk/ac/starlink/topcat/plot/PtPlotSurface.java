@@ -94,8 +94,12 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         int height = _lry - _uly;
         double xpad = ( xhi - xlo ) * PAD_PIXELS / width;
         double ypad = ( yhi - ylo ) * PAD_PIXELS / height;
-        setXRange( xlo - xpad, xhi + xpad );
-        setYRange( ylo - ypad, yhi + ypad );
+        if ( ! Double.isNaN( xlo ) && ! Double.isNaN( xhi ) ) {
+            setXRange( xlo - xpad, xhi + xpad );
+        }
+        if ( ! Double.isNaN( ylo ) && ! Double.isNaN( yhi ) ) {
+            setYRange( ylo - ypad, yhi + ypad );
+        }
         checkInvariants();
     }
 

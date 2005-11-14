@@ -80,6 +80,12 @@ public interface PlotSurface {
      * may be overridden by other considerations at a later date,
      * for instance some sort of zoom action initiated by the user and
      * detected by the graphical component.
+     *
+     * <p>If any of the coordinates is NaN, then the hint is to leave the
+     * corresponding axis alone.  Hence 
+     * <code>setDataRange(0 Double.NaN,10.,Double.NaN)</code>
+     * should rescale the X axis to the range 0-10, and leave the Y axis
+     * as it is.
      * 
      * @param  xlo  (approximate) lower bound of X coordinate
      * @param  ylo  (approximate) lower bound of Y coordinate
