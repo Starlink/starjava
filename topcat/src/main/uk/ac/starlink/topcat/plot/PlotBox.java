@@ -3091,7 +3091,7 @@ class PlotBox extends JPanel implements Printable {
      * Internal implementation of setYRange, so that it can be called when
      * autoranging.
      */
-    private void _setYRange(double min, double max) {
+    void _setYRange(double min, double max) {
         // If values are invalid, try for something reasonable.
         if (min > max) {
             min = -1.0;
