@@ -133,16 +133,19 @@ public class PointSelector extends JPanel implements TopcatListener {
             cPanel.add( new ComboBoxBumper( colSelectors_[ i ] ) );
             cPanel.add( Box.createHorizontalGlue() );
             colSelectors_[ i ].setEnabled( false );
-
-            /* Without this border, the bumpers come out one pixel larger
-             * than the combo box.  I have absolutely no idea why, or why
-             * this fixes it. */
-            cPanel.setBorder( BorderFactory.createEmptyBorder( 1, 1, 1, 1 ) );
         }
-        entryBox.add( Box.createVerticalStrut( 5 ) );
+        int pad = ndim_ == 1 ? colSelectors_[ 0 ].getPreferredSize().height
+                             : 5;
+        entryBox.add( Box.createVerticalStrut( pad ) );
+        entryBox.add( Box.createVerticalGlue() );
 
         /* Make a container for the subset selector. */
-        subsetScroller_ = new JScrollPane( new CheckBoxStack() );
+        subsetScroller_ = new JScrollPane( new CheckBoxStack() ) {
+            public Dimension getPreferredSize() {
+                return new Dimension( super.getPreferredSize().width,
+                                      entryBox.getPreferredSize().height );
+            }
+        };
         subsetScroller_.setBorder( AuxWindow
                                   .makeTitledBorder( "Row Subsets" ) );
         controlBox.add( subsetScroller_ );
