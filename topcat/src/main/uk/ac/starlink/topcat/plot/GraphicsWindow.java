@@ -401,15 +401,15 @@ public abstract class GraphicsWindow extends AuxWindow
      * appropriate.  The subset is based on a bit vector
      * representing the points in this window's Points object.
      *
-     * @param  mask  bit vector giving included points
+     * @param  pointsMask  bit vector giving included points
      */
-    protected void addNewSubsets( BitSet mask ) {
+    protected void addNewSubsets( BitSet pointsMask ) {
 
         /* For the given mask, which corresponds to all the plotted points,
          * deconvolve it into individual masks for any of the tables
          * that our point selection is currently dealing with. */
         PointSelection.TableMask[] tableMasks =
-            lastState_.getPointSelection().getTableMasks( mask );
+            lastState_.getPointSelection().getTableMasks( pointsMask );
 
         /* Handle each of the affected tables separately. */
         for ( int i = 0; i < tableMasks.length; i++ ) {
@@ -421,7 +421,8 @@ public abstract class GraphicsWindow extends AuxWindow
             if ( name != null ) {
                 OptionsListModel subsets = tcModel.getSubsets();
                 int inew = subsets.size();
-                subsets.add( new BitsRowSubset( name, mask ) );
+                assert tmask.length() <= tcModel.getDataModel().getRowCount();
+                subsets.add( new BitsRowSubset( name, tmask ) );
 
                 /* Then make sure that the newly added subset is selected
                  * in each of the point selectors. */
