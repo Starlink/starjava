@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.util.BitSet;
 import java.util.Iterator;
 import javax.swing.JComponent;
 import uk.ac.starlink.topcat.RowSubset;
@@ -57,14 +59,18 @@ public class Histogram extends SurfacePlot {
         boolean someData = false;
         for ( Iterator it = getBinnedData().getBinIterator(); it.hasNext(); ) {
             BinnedData.Bin bin = (BinnedData.Bin) it.next();
-            xlo = Math.min( xlo, bin.getLowBound() );
-            xhi = Math.max( xhi, bin.getHighBound() );
+            boolean included = false;
             for ( int iset = 0; iset < nset; iset++ ) {
                 int count = bin.getCount( iset );
                 if ( count > 0 ) {
-                    someData = true;
+                    included = true;
                     yhi = Math.max( yhi, count );
                 }
+            }
+            if ( included ) {
+                someData = true;
+                xlo = Math.min( xlo, bin.getLowBound() );
+                xhi = Math.max( xhi, bin.getHighBound() );
             }
         }
 
@@ -94,7 +100,6 @@ public class Histogram extends SurfacePlot {
         /* Get and check relevant state. */
         Points points = getPoints();
         PlotState state = getState();
-        boolean xflip = state.getFlipFlags()[ 0 ];
         PlotSurface surface = getSurface();
         if ( points == null || state == null || surface == null ||
              ! state.getValid() ) {
@@ -108,6 +113,7 @@ public class Histogram extends SurfacePlot {
         g.setClip( getSurface().getClip() );
 
         /* Get the plotting styles to use. */
+        boolean xflip = state.getFlipFlags()[ 0 ];
         int nset = getPointSelection().getSubsets().length;
         MarkStyle[] styles = getPointSelection().getStyles();
 
@@ -138,7 +144,7 @@ public class Histogram extends SurfacePlot {
         }
     }
 
-    public double[] getIncludedXRange() {
+    private double[] getIncludedXRange() {
         boolean xlog = getState().getLogFlags()[ 0 ];
         double xlo = Double.POSITIVE_INFINITY;
         double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
@@ -175,6 +181,129 @@ public class Histogram extends SurfacePlot {
         }
         return nok > 0 ? new double[] { xlo, xhi }
                        : new double[] { 0.0, 1.0 };
+    }
+
+    /**
+     * Returns the bounds of the plotting window in data space.
+     * The first two elements of the results are the numerically lower bounds
+     * and the second two are the numerically upper bounds.
+     * This is true even if axes are flipped.
+     *
+     * @return  4-element array (xlo,ylo,xhi,yhi)
+     */
+    private double[] getSurfaceBounds() {
+        PlotSurface surface = getSurface();
+        Rectangle container = surface.getClip().getBounds();
+        double[] lopt =
+            surface.graphicsToData( container.x, container.y + container.height,
+                                    false );
+        double[] hipt =
+            surface.graphicsToData( container.x + container.width, container.y,
+                                    false );
+        double[] bounds = 
+            new double[] { lopt[ 0 ], lopt[ 1 ], hipt[ 0 ], hipt[ 1 ] };
+        if ( getState().getFlipFlags()[ 0 ] ) {
+            assert bounds[ 2 ] <= bounds[ 0 ];
+            bounds = new double[] { bounds[ 2 ], bounds[ 1 ],
+                                    bounds[ 0 ], bounds[ 3 ] };
+        }
+        return bounds;
+    }
+
+    /**
+     * Returns a bit vector describing which of the points in the Points object
+     * most recently plotted by this histogram are covered by the currently
+     * visible data range.
+     *
+     * @return   bit set indexing Points
+     */
+    public BitSet getVisiblePoints() {
+        double[] bounds = getSurfaceBounds();
+        double xbot = bounds[ 0 ];
+        double xtop = bounds[ 2 ];
+        for ( Iterator it = getBinnedData().getBinIterator(); it.hasNext(); ) {
+            BinnedData.Bin bin = (BinnedData.Bin) it.next();
+            if ( bin.getLowBound() < xbot ) {
+                xbot = Math.max( xbot, bin.getHighBound() );
+            }
+            if ( bin.getHighBound() > xtop ) {
+                xtop = Math.min( xtop, bin.getLowBound() );
+            }
+        }
+
+        RowSubset[] rsets = getPointSelection().getSubsets();
+        int nset = rsets.length;
+        Points points = getPoints();
+        int np = points.getCount();
+        double[] coords = new double[ 1 ];
+        BitSet mask = new BitSet();
+        for ( int ip = 0; ip < np; ip++ ) {
+            points.getCoords( ip, coords );
+            double x = coords[ 0 ];
+            if ( x >= xbot && x <= xtop ) {
+                long lp = (long) ip;
+                for ( int is = 0; is < nset; is++ ) {
+                    if ( rsets[ is ].isIncluded( lp ) ) {
+                        mask.set( ip );
+                        break;
+                    }
+                }
+            }
+        }
+        return mask;
+    }
+
+    private double[] getVisibleYRange() {
+        double[] bounds = getSurfaceBounds();
+        boolean xflip = getState().getFlipFlags()[ 0 ];
+        double xbot = bounds[ 0 ];
+        double xtop = bounds[ 2 ];
+        int nset = getPointSelection().getSubsets().length;
+        boolean someData = false;
+        double ybot = Double.MAX_VALUE;
+        double ytop = Double.MIN_VALUE;
+        for ( Iterator it = getBinnedData().getBinIterator(); it.hasNext(); ) {
+            BinnedData.Bin bin = (BinnedData.Bin) it.next();
+            double xlo = bin.getLowBound();
+            double xhi = bin.getHighBound();
+            if ( xlo >= xbot && xhi <= xtop ) {
+                for ( int iset = 0; iset < nset; iset++ ) {
+                    int count = bin.getCount( iset );
+                    if ( count > 0 ) {
+                        someData = true;
+                        ytop = Math.max( ytop, count );
+                        ybot = Math.min( ybot, count );
+                    }
+                }
+            }
+        }
+        return someData ? new double[] { ybot, ytop }
+                        : new double[] { Double.NaN, Double.NaN };
+    }
+
+    /**
+     * Requests a rescale in the X and/or Y direction to fit the current data.
+     *
+     * @param   scaleX   whether to scale in X direction
+     * @param   scaleY   whether to scale in Y direction
+     */
+    public void rescale( boolean scaleX, boolean scaleY ) {
+        if ( scaleX && scaleY ) {
+            rescale();
+        }
+        else if ( scaleX ) {
+            double[] xrange = getIncludedXRange();
+            getSurface().setDataRange( xrange[ 0 ], Double.NaN,
+                                       xrange[ 1 ], Double.NaN );
+        }
+        else if ( scaleY ) {
+            double[] yrange = getVisibleYRange();
+            getSurface().setDataRange( Double.NaN, 0.0,
+                                       Double.NaN, yrange[ 1 ] );
+        }
+        else {
+            assert false : "Not much of a rescale";
+        }
     }
 
     /**
