@@ -36,7 +36,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BasicAction;
-import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.CheckBoxMenu;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -476,50 +475,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private void useBlob() {
         Shape blob = blobPanel_.getBlob();
         addNewSubsets( visiblePoints_.getContainedPoints( blob ) );
-    }
-
-    /**
-     * Adds a new row subset to tables associated with this window as
-     * appropriate.  The subset is based on a bit vector
-     * representing the points in this window's Points object.
-     *
-     * @param  mask  bit vector giving included points
-     */
-    private void addNewSubsets( BitSet mask ) {
-
-        /* For the given mask, which corresponds to all the plotted points,
-         * deconvolve it into individual masks for any of the tables
-         * that our point selection is currently dealing with. */
-        PointSelection.TableMask[] tableMasks =
-            plot_.getState().getPointSelection().getTableMasks( mask );
-
-        /* Handle each of the affected tables separately. */
-        for ( int i = 0; i < tableMasks.length; i++ ) {
-            TopcatModel tcModel = tableMasks[ i ].getTable();
-            BitSet tmask = tableMasks[ i ].getMask();
-
-            /* Try adding a new subset to the table. */
-            String name = tcModel.enquireSubsetName( PlotWindow.this );
-            if ( name != null ) {
-                OptionsListModel subsets = tcModel.getSubsets();
-                int inew = subsets.size();
-                subsets.add( new BitsRowSubset( name, mask ) );
-
-                /* Then make sure that the newly added subset is selected
-                 * in each of the point selectors. */
-                PointSelectorSet pointSelectors = getPointSelectors();
-                for ( int ips = 0; ips < pointSelectors.getSelectorCount();
-                      ips++ ) {
-                    PointSelector psel = pointSelectors.getSelector( ips );
-                    if ( psel.getTable() == tcModel ) {
-                        boolean[] flags = psel.getSubsetSelection();
-                        assert flags.length == inew + 1;
-                        flags[ inew ] = true;
-                        psel.setSubsetSelection( flags );
-                    }
-                }
-            }
-        }
     }
 
     /*

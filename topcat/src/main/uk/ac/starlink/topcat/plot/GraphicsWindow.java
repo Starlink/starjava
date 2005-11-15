@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -36,6 +37,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -392,6 +394,50 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     protected ReplotListener getReplotListener() {
         return replotListener_;
+    }
+
+    /**
+     * Adds a new row subset to tables associated with this window as
+     * appropriate.  The subset is based on a bit vector
+     * representing the points in this window's Points object.
+     *
+     * @param  mask  bit vector giving included points
+     */
+    protected void addNewSubsets( BitSet mask ) {
+
+        /* For the given mask, which corresponds to all the plotted points,
+         * deconvolve it into individual masks for any of the tables
+         * that our point selection is currently dealing with. */
+        PointSelection.TableMask[] tableMasks =
+            lastState_.getPointSelection().getTableMasks( mask );
+
+        /* Handle each of the affected tables separately. */
+        for ( int i = 0; i < tableMasks.length; i++ ) {
+            TopcatModel tcModel = tableMasks[ i ].getTable();
+            BitSet tmask = tableMasks[ i ].getMask();
+
+            /* Try adding a new subset to the table. */
+            String name = tcModel.enquireSubsetName( this );
+            if ( name != null ) {
+                OptionsListModel subsets = tcModel.getSubsets();
+                int inew = subsets.size();
+                subsets.add( new BitsRowSubset( name, mask ) );
+
+                /* Then make sure that the newly added subset is selected
+                 * in each of the point selectors. */
+                PointSelectorSet pointSelectors = getPointSelectors();
+                for ( int ips = 0; ips < pointSelectors.getSelectorCount();
+                      ips++ ) {
+                    PointSelector psel = pointSelectors.getSelector( ips );
+                    if ( psel.getTable() == tcModel ) {
+                        boolean[] flags = psel.getSubsetSelection();
+                        assert flags.length == inew + 1;
+                        flags[ inew ] = true;
+                        psel.setSubsetSelection( flags );
+                    }
+                }
+            }
+        }
     }
 
     /**
