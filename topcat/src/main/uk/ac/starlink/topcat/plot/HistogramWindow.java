@@ -145,7 +145,7 @@ public class HistogramWindow extends GraphicsWindow {
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
-        return MarkStyles.points( "Lines" );
+        return BarStyles.filled( "Filled" );
     }
 
     public PlotState getPlotState() {

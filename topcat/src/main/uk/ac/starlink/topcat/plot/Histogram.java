@@ -136,10 +136,8 @@ public class Histogram extends SurfacePlot {
                 int count = bin.getCount( iset );
                 int iyhi =
                     surface.dataToGraphics( dxmid, (double) count, false ).y;
-
-                /* Plot in the correct style. */
-                g.setColor( ((MarkStyle) styles[ iset ]).getColor() );
-                g.drawRect( ixlo, iyhi, ixhi - ixlo - 1, iylo - iyhi );
+                ((BarStyle) styles[ iset ])
+               .drawBar( g, ixlo, ixhi, iyhi, iylo, iset, nset );
             }
         }
     }
