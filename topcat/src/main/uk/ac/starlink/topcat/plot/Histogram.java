@@ -240,12 +240,14 @@ public class Histogram extends SurfacePlot {
         for ( int ip = 0; ip < np; ip++ ) {
             points.getCoords( ip, coords );
             double x = coords[ 0 ];
-            if ( x >= xbot && x <= xtop ) {
-                long lp = (long) ip;
-                for ( int is = 0; is < nset; is++ ) {
-                    if ( rsets[ is ].isIncluded( lp ) ) {
-                        mask.set( ip );
-                        break;
+            if ( ! Double.isNaN( x ) && ! Double.isInfinite( x ) ) {
+                if ( x >= xbot && x <= xtop ) {
+                    long lp = (long) ip;
+                    for ( int is = 0; is < nset; is++ ) {
+                        if ( rsets[ is ].isIncluded( lp ) ) {
+                            mask.set( ip );
+                            break;
+                        }
                     }
                 }
             }
@@ -327,10 +329,12 @@ public class Histogram extends SurfacePlot {
             long lp = (long) ip;
             points.getCoords( ip, coords );
             double x = coords[ 0 ];
-            for ( int is = 0; is < nset; is++ ) {
-                setFlags[ is ] = rsets[ is ].isIncluded( lp );
+            if ( ! Double.isNaN( x ) && ! Double.isInfinite( x ) ) {
+                for ( int is = 0; is < nset; is++ ) {
+                    setFlags[ is ] = rsets[ is ].isIncluded( lp );
+                }
+                binned.submitDatum( x, setFlags );
             }
-            binned.submitDatum( x, setFlags );
         }
         return binned;
     }
