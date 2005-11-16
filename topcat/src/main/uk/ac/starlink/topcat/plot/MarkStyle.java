@@ -18,24 +18,20 @@ import javax.swing.Icon;
  * @author   Mark Taylor (Starlink)
  * @since    16 Jun 2004
  */
-public abstract class MarkStyle implements Style {
+public abstract class MarkStyle extends DefaultStyle {
 
-    private Color color_;
-
-    /**
-     * Constructs a marker with a default colour.
-     */
-    protected MarkStyle() {
-        this( Color.BLACK );
-    }
+    private final int maxr_;
 
     /**
-     * Constructs a marker with a given colour.
+     * Constructor.
      *
-     * @param  color  colour
+     * @param   color  colour
+     * @param   otherAtts  distinguisher for this instance
+     * @param   maxr  maximum radius
      */
-    protected MarkStyle( Color color ) {
-        color_ = color;
+    protected MarkStyle( Color color, Object otherAtts, int maxr ) {
+        super( color, otherAtts );
+        maxr_ = maxr;
     }
 
     /**
@@ -45,16 +41,6 @@ public abstract class MarkStyle implements Style {
      * @param  g  graphics context
      */
     protected abstract void drawShape( Graphics g );
-
-    /**
-     * Returns the maximum radius of a marker drawn by this class.
-     * It is permissible to return a (gross) overestimate if no sensible
-     * maximum can be guaranteed.
-     *
-     * @return   maximum distance from the specified <tt>x</tt>,<tt>y</tt>
-     *           point that <tt>drawMarker</tt> might draw
-     */
-    public abstract int getMaximumRadius();
 
     /**
      * Draws this marker's shape centred at the origin suitable for display
@@ -70,6 +56,18 @@ public abstract class MarkStyle implements Style {
     }
 
     /**
+     * Returns the maximum radius of a marker drawn by this class.
+     * It is permissible to return a (gross) overestimate if no sensible
+     * maximum can be guaranteed.
+     *
+     * @return   maximum distance from the specified <tt>x</tt>,<tt>y</tt>
+     *           point that <tt>drawMarker</tt> might draw
+     */
+    public int getMaximumRadius() {
+        return maxr_;
+    }
+
+    /**
      * Draws this marker centered at a given position.  
      * This method sets the colour of the graphics context and 
      * then calls {@link #drawShape}.
@@ -80,7 +78,7 @@ public abstract class MarkStyle implements Style {
      */
     public void drawMarker( Graphics g, int x, int y ) {
          Color col = g.getColor();
-         g.setColor( color_ );
+         g.setColor( getColor() );
          g.translate( x, y );
          drawShape( g );
          g.translate( -x, -y );
@@ -98,29 +96,11 @@ public abstract class MarkStyle implements Style {
      */
     public void drawLegend( Graphics g, int x, int y ) {
         Color col = g.getColor();
-        g.setColor( color_ );
+        g.setColor( getColor() );
         g.translate( x, y );
         drawLegendShape( g );
         g.translate( -x, -y );
         g.setColor( col );
-    }
-
-    /**
-     * Returns this marker's colour.
-     *
-     * @return  colour
-     */
-    public Color getColor() {
-        return color_;
-    }
-
-    /**
-     * Sets this marker's colour.
-     *
-     * @param  color  colour
-     */
-    public void setColor( Color color ) {
-        color_ = color;
     }
 
     /**
@@ -148,27 +128,6 @@ public abstract class MarkStyle implements Style {
     }
 
     /**
-     * Checks equivalence of class and colour.
-     */
-    public boolean equals( Object o ) {
-        if ( o instanceof MarkStyle ) {
-            MarkStyle other = (MarkStyle) o;
-            return getClass().equals( other.getClass() ) 
-                && color_.equals( other.color_ );
-        }
-        else {
-            return false;
-        }
-    }
-
-    public int hashCode() {
-        int code = 5;
-        code = code * 23 + getClass().hashCode();
-        code = code * 23 + color_.hashCode();
-        return code;
-    }
-
-    /**
      * Works out an upper bound for the radius associated with a given shape.
      *
      * @param   shape  shape to assess
@@ -186,38 +145,6 @@ public abstract class MarkStyle implements Style {
     }
 
     /**
-     * Convenience implementation of MarkStyle used by some of the 
-     * factory methods in this class.  They implement the <tt>equals</tt>
-     * and <tt>hashCode</tt> methods using a single final object
-     * <tt>otherAtts</tt> which characterises everything apart from the
-     * class and colour which distinguishes an instance from another.
-     */
-    private static abstract class ConvenienceMarkStyle extends MarkStyle {
-        final Object otherAtts_;
-        final int maxr_;
-
-        ConvenienceMarkStyle( Color color, Object otherAtts, int maxr ) {
-            super( color );
-            otherAtts_ = otherAtts;
-            maxr_ = maxr;
-        }
-
-        public int getMaximumRadius() {
-            return maxr_;
-        }
-
-        public boolean equals( Object o ) {
-            return super.equals( o )
-                 ? ((ConvenienceMarkStyle) o).otherAtts_.equals( otherAtts_ )
-                 : false;
-        }
-
-        public int hashCode() {
-            return super.hashCode() * 23 + otherAtts_.hashCode();
-        }
-    }
-
-    /**
      * Returns an open circle marker style.
      *
      * @param  color  colour
@@ -227,8 +154,7 @@ public abstract class MarkStyle implements Style {
     public static MarkStyle openCircleStyle( Color color, final int size ) {
         final int off = -size;
         final int diam = size * 2;
-        return new ConvenienceMarkStyle( color, new Integer( size ), 
-                                         size + 1 ) {
+        return new MarkStyle( color, new Integer( size ), size + 1 ) {
             protected void drawShape( Graphics g ) {
                 g.drawOval( off, off, diam, diam );
             }
@@ -245,8 +171,7 @@ public abstract class MarkStyle implements Style {
     public static MarkStyle filledCircleStyle( Color color, final int size ) {
         final int off = -size;
         final int diam = size * 2;
-        return new ConvenienceMarkStyle( color, new Integer( size ), 
-                                         size + 1 ) {
+        return new MarkStyle( color, new Integer( size ), size + 1 ) {
             protected void drawShape( Graphics g ) {
                 g.fillOval( off, off, diam, diam );
 
@@ -267,8 +192,7 @@ public abstract class MarkStyle implements Style {
     public static MarkStyle openSquareStyle( Color color, final int size ) {
         final int off = -size;
         final int height = size * 2;
-        return new ConvenienceMarkStyle( color, new Integer( size ), 
-                                         size + 1 ) {
+        return new MarkStyle( color, new Integer( size ), size + 1 ) {
             protected void drawShape( Graphics g ) {
                 g.drawRect( off, off, height, height );
             }
@@ -285,8 +209,7 @@ public abstract class MarkStyle implements Style {
     public static MarkStyle filledSquareStyle( Color color, final int size ) {
         final int off = -size;
         final int height = size * 2 + 1;
-        return new ConvenienceMarkStyle( color, new Integer( size ),
-                                         size + 1 ) {
+        return new MarkStyle( color, new Integer( size ), size + 1 ) {
            protected void drawShape( Graphics g ) {
                 g.fillRect( off, off, height, height );
             }
@@ -302,8 +225,7 @@ public abstract class MarkStyle implements Style {
      */
     public static MarkStyle crossStyle( Color color, final int size ) {
         final int off = size;
-        return new ConvenienceMarkStyle( color, new Integer( size ),
-                                         size + 1 ) {
+        return new MarkStyle( color, new Integer( size ), size + 1 ) {
             protected void drawShape( Graphics g ) {
                 g.drawLine( -off, 0, off, 0 );
                 g.drawLine( 0, -off, 0, off );
@@ -320,8 +242,7 @@ public abstract class MarkStyle implements Style {
      */
     public static MarkStyle xStyle( Color color, final int size ) {
         final int off = size;
-        return new ConvenienceMarkStyle( color, new Integer( size ), 
-                                         size + 1 ) {
+        return new MarkStyle( color, new Integer( size ), size + 1 ) {
             protected void drawShape( Graphics g ) {
                 g.drawLine( -off, -off, off, off );
                 g.drawLine( off, -off, -off, off );
@@ -350,8 +271,7 @@ public abstract class MarkStyle implements Style {
     public static MarkStyle filledDiamondStyle( Color color, final int size ) {
         final int off = size;
         final Shape di = diamond( size );
-        return new ConvenienceMarkStyle( color, new Integer( size ),
-                                         size + 1 ) {
+        return new MarkStyle( color, new Integer( size ), size + 1 ) {
             protected void drawShape( Graphics g ) {
                 if ( g instanceof Graphics2D ) {
                     Graphics2D g2 = (Graphics2D) g;
@@ -402,8 +322,7 @@ public abstract class MarkStyle implements Style {
      * @return  marker style
      */
     public static MarkStyle openShapeStyle( Color color, final Shape shape ) {
-        return new ConvenienceMarkStyle( color, shape,
-                                         getMaxRadius( shape ) ) {
+        return new MarkStyle( color, shape, getMaxRadius( shape ) ) {
             protected void drawShape( Graphics g ) {
                 if ( g instanceof Graphics2D ) {
                     Graphics2D g2 = (Graphics2D) g;
@@ -425,8 +344,7 @@ public abstract class MarkStyle implements Style {
      */
     public static MarkStyle filledShapeStyle( Color color, 
                                               final Shape shape ) {
-        return new ConvenienceMarkStyle( color, shape,
-                                         getMaxRadius( shape ) ) {
+        return new MarkStyle( color, shape, getMaxRadius( shape ) ) {
             protected void drawShape( Graphics g ) {
                 if ( g instanceof Graphics2D ) {
                     Graphics2D g2 = (Graphics2D) g;
@@ -446,7 +364,7 @@ public abstract class MarkStyle implements Style {
      * @return  marker style
      */
     public static MarkStyle pointStyle( Color color ) {
-        return new ConvenienceMarkStyle( color, new Integer( 23 ), 1 ) {
+        return new MarkStyle( color, new Integer( 23 ), 1 ) {
             protected void drawShape( Graphics g ) {
                 g.drawLine( 0, 0, 0, 0 );
             }
@@ -458,7 +376,7 @@ public abstract class MarkStyle implements Style {
     }
 
     /**
-     * Returns a marker style which plots using diffferent given styles
+     * Returns a marker style which plots using different given styles
      * for normal points and legends.
      *
      * @param   normalStyle  style used for most things
@@ -467,13 +385,9 @@ public abstract class MarkStyle implements Style {
      */
     public static MarkStyle compositeMarkStyle( final MarkStyle normalStyle,
                                                 final MarkStyle legendStyle ) {
-        return new MarkStyle() {
-            public void drawMarker( Graphics g, int x, int y ) {
-                normalStyle.drawMarker( g, x, y );
-            }
-            public void drawLegend( Graphics g, int x, int y ) {
-                legendStyle.drawLegend( g, x, y );
-            }
+        return new MarkStyle( normalStyle.getColor(),
+                              normalStyle.getOtherAtts(),
+                              normalStyle.getMaximumRadius() ) {
             protected void drawShape( Graphics g ) {
                 normalStyle.drawShape( g );
             }
