@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<definitions xmlns:s1="http://www.ivoa.net/xml/VOResource/v0.10" xmlns:s6="http://www.ivoa.net/xml/SIA/v0.7" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.us-vo.org" xmlns:s3="http://www.ivoa.net/xml/VODataService/v0.5" xmlns:s2="http://www.ivoa.net/xml/VORegistry/v0.3" xmlns:s5="http://www.ivoa.net/xml/OpenSkyNode/v0.1" xmlns:s4="http://www.ivoa.net/xml/ConeSearch/v0.3" xmlns:s7="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s8="http://purl.org/dc/elements/1.1/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" targetNamespace="http://www.us-vo.org" xmlns="http://schemas.xmlsoap.org/wsdl/">
-  <types>
+<wsdl:definitions xmlns:s1="http://www.ivoa.net/xml/VOResource/v0.10" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:s6="http://www.ivoa.net/xml/SIA/v0.7" xmlns:s3="http://www.ivoa.net/xml/VODataService/v0.5" xmlns:s2="http://www.ivoa.net/xml/VORegistry/v0.3" xmlns:s5="http://www.ivoa.net/xml/OpenSkyNode/v0.1" xmlns:s4="http://www.ivoa.net/xml/ConeSearch/v0.3" xmlns:s7="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="http://www.us-vo.org" xmlns:s8="http://purl.org/dc/elements/1.1/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" targetNamespace="http://www.us-vo.org" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
     <s:schema elementFormDefault="qualified" targetNamespace="http://www.us-vo.org">
       <s:import namespace="http://www.ivoa.net/xml/VOResource/v0.10" />
       <s:import namespace="http://www.openarchives.org/OAI/2.0/oai_dc/" />
@@ -10,13 +10,13 @@
       <s:element name="DumpRegistryResponse">
         <s:complexType>
           <s:sequence>
-            <s:element minOccurs="0" maxOccurs="1" name="DumpRegistryResult" type="s0:ArrayOfSimpleResource" />
+            <s:element minOccurs="0" maxOccurs="1" name="DumpRegistryResult" type="tns:ArrayOfSimpleResource" />
           </s:sequence>
         </s:complexType>
       </s:element>
       <s:complexType name="ArrayOfSimpleResource">
         <s:sequence>
-          <s:element minOccurs="0" maxOccurs="unbounded" name="SimpleResource" nillable="true" type="s0:SimpleResource" />
+          <s:element minOccurs="0" maxOccurs="unbounded" name="SimpleResource" nillable="true" type="tns:SimpleResource" />
         </s:sequence>
       </s:complexType>
       <s:complexType name="SimpleResource">
@@ -25,7 +25,7 @@
           <s:element minOccurs="0" maxOccurs="1" name="ShortName" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="Publisher" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="Creator" type="s:string" />
-          <s:element minOccurs="0" maxOccurs="1" name="Subject" type="s0:ArrayOfString" />
+          <s:element minOccurs="0" maxOccurs="1" name="Subject" type="tns:ArrayOfString" />
           <s:element minOccurs="0" maxOccurs="1" name="Description" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="Contributor" type="s:string" />
           <s:element minOccurs="1" maxOccurs="1" name="Date" type="s:dateTime" />
@@ -37,15 +37,15 @@
           <s:element minOccurs="0" maxOccurs="1" name="ContactEmail" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="Type" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="CoverageSpatial" type="s:string" />
-          <s:element minOccurs="0" maxOccurs="1" name="CoverageSpectral" type="s0:ArrayOfString" />
+          <s:element minOccurs="0" maxOccurs="1" name="CoverageSpectral" type="tns:ArrayOfString" />
           <s:element minOccurs="0" maxOccurs="1" name="CoverageTemporal" type="s:string" />
           <s:element minOccurs="1" maxOccurs="1" name="EntrySize" type="s:double" />
           <s:element minOccurs="1" maxOccurs="1" name="MaxSR" type="s:double" />
           <s:element minOccurs="1" maxOccurs="1" name="MaxRecords" type="s:int" />
-          <s:element minOccurs="0" maxOccurs="1" name="ContentLevel" type="s0:ArrayOfString" />
+          <s:element minOccurs="0" maxOccurs="1" name="ContentLevel" type="tns:ArrayOfString" />
           <s:element minOccurs="0" maxOccurs="1" name="Facility" type="s:string" />
-          <s:element minOccurs="0" maxOccurs="1" name="Instrument" type="s0:ArrayOfString" />
-          <s:element minOccurs="0" maxOccurs="1" name="Format" type="s0:ArrayOfString" />
+          <s:element minOccurs="0" maxOccurs="1" name="Instrument" type="tns:ArrayOfString" />
+          <s:element minOccurs="0" maxOccurs="1" name="Format" type="tns:ArrayOfString" />
           <s:element minOccurs="0" maxOccurs="1" name="ServiceType" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="xml" type="s:string" />
         </s:sequence>
@@ -105,13 +105,13 @@
       <s:element name="QueryResourceResponse">
         <s:complexType>
           <s:sequence>
-            <s:element minOccurs="0" maxOccurs="1" name="QueryResourceResult" type="s0:ArrayOfDBResource" />
+            <s:element minOccurs="0" maxOccurs="1" name="QueryResourceResult" type="tns:ArrayOfDBResource" />
           </s:sequence>
         </s:complexType>
       </s:element>
       <s:complexType name="ArrayOfDBResource">
         <s:sequence>
-          <s:element minOccurs="0" maxOccurs="unbounded" name="DBResource" nillable="true" type="s0:DBResource" />
+          <s:element minOccurs="0" maxOccurs="unbounded" name="DBResource" nillable="true" type="tns:DBResource" />
         </s:sequence>
       </s:complexType>
       <s:complexType name="DBResource">
@@ -134,22 +134,22 @@
           <s:element minOccurs="0" maxOccurs="1" name="CurationContactEmail" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="CurationContactAddress" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="CurationContactPhone" type="s:string" />
-          <s:element minOccurs="0" maxOccurs="1" name="Subject" type="s0:ArrayOfString" />
+          <s:element minOccurs="0" maxOccurs="1" name="Subject" type="tns:ArrayOfString" />
           <s:element minOccurs="0" maxOccurs="1" name="Description" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="ReferenceURL" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="Type" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="Facility" type="s:string" />
-          <s:element minOccurs="0" maxOccurs="1" name="Instrument" type="s0:ArrayOfString" />
-          <s:element minOccurs="0" maxOccurs="1" name="ContentLevel" type="s0:ArrayOfString" />
+          <s:element minOccurs="0" maxOccurs="1" name="Instrument" type="tns:ArrayOfString" />
+          <s:element minOccurs="0" maxOccurs="1" name="ContentLevel" type="tns:ArrayOfString" />
           <s:element minOccurs="1" maxOccurs="1" name="ModificationDate" type="s:dateTime" />
           <s:element minOccurs="0" maxOccurs="1" name="ServiceURL" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="CoverageSpatial" type="s:string" />
-          <s:element minOccurs="0" maxOccurs="1" name="CoverageSpectral" type="s0:ArrayOfString" />
+          <s:element minOccurs="0" maxOccurs="1" name="CoverageSpectral" type="tns:ArrayOfString" />
           <s:element minOccurs="0" maxOccurs="1" name="CoverageTemporal" type="s:string" />
           <s:element minOccurs="1" maxOccurs="1" name="CoverageRegionOfRegard" type="s:double" />
           <s:element minOccurs="0" maxOccurs="1" name="ResourceType" type="s:string" />
-          <s:element minOccurs="0" maxOccurs="1" name="resourceRelations" type="s0:ArrayOfResourceRelation" />
-          <s:element minOccurs="0" maxOccurs="1" name="resourceInterfaces" type="s0:ArrayOfResourceInterface" />
+          <s:element minOccurs="0" maxOccurs="1" name="resourceRelations" type="tns:ArrayOfResourceRelation" />
+          <s:element minOccurs="0" maxOccurs="1" name="resourceInterfaces" type="tns:ArrayOfResourceInterface" />
           <s:element minOccurs="0" maxOccurs="1" name="xml" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="harvestedfrom" type="s:string" />
           <s:element minOccurs="1" maxOccurs="1" name="harvestedfromDate" type="s:dateTime" />
@@ -158,7 +158,7 @@
       </s:complexType>
       <s:complexType name="ArrayOfResourceRelation">
         <s:sequence>
-          <s:element minOccurs="0" maxOccurs="unbounded" name="ResourceRelation" nillable="true" type="s0:ResourceRelation" />
+          <s:element minOccurs="0" maxOccurs="unbounded" name="ResourceRelation" nillable="true" type="tns:ResourceRelation" />
         </s:sequence>
       </s:complexType>
       <s:complexType name="ResourceRelation">
@@ -170,7 +170,7 @@
       </s:complexType>
       <s:complexType name="ArrayOfResourceInterface">
         <s:sequence>
-          <s:element minOccurs="0" maxOccurs="unbounded" name="ResourceInterface" nillable="true" type="s0:ResourceInterface" />
+          <s:element minOccurs="0" maxOccurs="unbounded" name="ResourceInterface" nillable="true" type="tns:ResourceInterface" />
         </s:sequence>
       </s:complexType>
       <s:complexType name="ResourceInterface">
@@ -180,12 +180,12 @@
           <s:element minOccurs="0" maxOccurs="1" name="qtype" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="accessURL" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="resultType" type="s:string" />
-          <s:element minOccurs="0" maxOccurs="1" name="interfaceParams" type="s0:ArrayOfInterfaceParam" />
+          <s:element minOccurs="0" maxOccurs="1" name="interfaceParams" type="tns:ArrayOfInterfaceParam" />
         </s:sequence>
       </s:complexType>
       <s:complexType name="ArrayOfInterfaceParam">
         <s:sequence>
-          <s:element minOccurs="0" maxOccurs="unbounded" name="InterfaceParam" nillable="true" type="s0:InterfaceParam" />
+          <s:element minOccurs="0" maxOccurs="unbounded" name="InterfaceParam" nillable="true" type="tns:InterfaceParam" />
         </s:sequence>
       </s:complexType>
       <s:complexType name="InterfaceParam">
@@ -200,7 +200,7 @@
       </s:complexType>
       <s:complexType name="ServiceSimpleImageAccess">
         <s:complexContent mixed="false">
-          <s:extension base="s0:DBResource">
+          <s:extension base="tns:DBResource">
             <s:sequence>
               <s:element minOccurs="0" maxOccurs="1" name="ImageServiceType" type="s:string" />
               <s:element minOccurs="1" maxOccurs="1" name="MaxQueryRegionSizeLong" type="s:double" />
@@ -211,7 +211,7 @@
               <s:element minOccurs="1" maxOccurs="1" name="MaxImageSizeLat" type="s:int" />
               <s:element minOccurs="1" maxOccurs="1" name="MaxFileSize" type="s:long" />
               <s:element minOccurs="1" maxOccurs="1" name="MaxRecords" type="s:long" />
-              <s:element minOccurs="0" maxOccurs="1" name="Format" type="s0:ArrayOfString" />
+              <s:element minOccurs="0" maxOccurs="1" name="Format" type="tns:ArrayOfString" />
               <s:element minOccurs="0" maxOccurs="1" name="VOTableColumns" type="s:string" />
             </s:sequence>
           </s:extension>
@@ -219,7 +219,7 @@
       </s:complexType>
       <s:complexType name="ServiceCone">
         <s:complexContent mixed="false">
-          <s:extension base="s0:DBResource">
+          <s:extension base="tns:DBResource">
             <s:sequence>
               <s:element minOccurs="1" maxOccurs="1" name="MaxSearchRadius" type="s:double" />
               <s:element minOccurs="1" maxOccurs="1" name="MaxRecords" type="s:long" />
@@ -230,7 +230,7 @@
       </s:complexType>
       <s:complexType name="ServiceSkyNode">
         <s:complexContent mixed="false">
-          <s:extension base="s0:DBResource">
+          <s:extension base="tns:DBResource">
             <s:sequence>
               <s:element minOccurs="0" maxOccurs="1" name="Compliance" type="s:string" />
               <s:element minOccurs="1" maxOccurs="1" name="Latitude" type="s:double" />
@@ -252,7 +252,7 @@
       <s:element name="QueryRegistryResponse">
         <s:complexType>
           <s:sequence>
-            <s:element minOccurs="0" maxOccurs="1" name="QueryRegistryResult" type="s0:ArrayOfSimpleResource" />
+            <s:element minOccurs="0" maxOccurs="1" name="QueryRegistryResult" type="tns:ArrayOfSimpleResource" />
           </s:sequence>
         </s:complexType>
       </s:element>
@@ -277,15 +277,15 @@
       <s:element name="RevisionsResponse">
         <s:complexType>
           <s:sequence>
-            <s:element minOccurs="0" maxOccurs="1" name="RevisionsResult" type="s0:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="RevisionsResult" type="tns:ArrayOfString" />
           </s:sequence>
         </s:complexType>
       </s:element>
-      <s:element name="ArrayOfSimpleResource" nillable="true" type="s0:ArrayOfSimpleResource" />
+      <s:element name="ArrayOfSimpleResource" nillable="true" type="tns:ArrayOfSimpleResource" />
       <s:element name="ArrayOfResource" nillable="true" type="s1:ArrayOfResource" />
       <s:element name="ArrayOfOai_dcType" nillable="true" type="s7:ArrayOfOai_dcType" />
-      <s:element name="ArrayOfDBResource" nillable="true" type="s0:ArrayOfDBResource" />
-      <s:element name="ArrayOfString" nillable="true" type="s0:ArrayOfString" />
+      <s:element name="ArrayOfDBResource" nillable="true" type="tns:ArrayOfDBResource" />
+      <s:element name="ArrayOfString" nillable="true" type="tns:ArrayOfString" />
     </s:schema>
     <s:schema elementFormDefault="qualified" targetNamespace="http://www.ivoa.net/xml/VOResource/v0.10">
       <s:import namespace="http://www.us-vo.org" />
@@ -296,7 +296,7 @@
       <s:import namespace="http://www.ivoa.net/xml/SIA/v0.7" />
       <s:complexType name="ArrayOfResource">
         <s:sequence>
-          <s:element minOccurs="0" maxOccurs="unbounded" ref="s0:Resource" />
+          <s:element minOccurs="0" maxOccurs="unbounded" ref="tns:Resource" />
         </s:sequence>
       </s:complexType>
       <s:complexType name="Resource">
@@ -831,7 +831,7 @@
       <s:import namespace="http://purl.org/dc/elements/1.1/" />
       <s:complexType name="ArrayOfOai_dcType">
         <s:sequence>
-          <s:element minOccurs="0" maxOccurs="unbounded" ref="s0:oai_dcType" />
+          <s:element minOccurs="0" maxOccurs="unbounded" ref="tns:oai_dcType" />
         </s:sequence>
       </s:complexType>
       <s:complexType name="oai_dcType">
@@ -881,513 +881,513 @@
       <s:element name="publisher" type="s8:elementType" />
       <s:element name="format" type="s8:elementType" />
     </s:schema>
-  </types>
-  <message name="DumpRegistrySoapIn">
-    <part name="parameters" element="s0:DumpRegistry" />
-  </message>
-  <message name="DumpRegistrySoapOut">
-    <part name="parameters" element="s0:DumpRegistryResponse" />
-  </message>
-  <message name="DumpVOResourcesSoapIn">
-    <part name="parameters" element="s0:DumpVOResources" />
-  </message>
-  <message name="DumpVOResourcesSoapOut">
-    <part name="parameters" element="s0:DumpVOResourcesResponse" />
-  </message>
-  <message name="QueryVOResourceSoapIn">
-    <part name="parameters" element="s0:QueryVOResource" />
-  </message>
-  <message name="QueryVOResourceSoapOut">
-    <part name="parameters" element="s0:QueryVOResourceResponse" />
-  </message>
-  <message name="QueryOAIDCSoapIn">
-    <part name="parameters" element="s0:QueryOAIDC" />
-  </message>
-  <message name="QueryOAIDCSoapOut">
-    <part name="parameters" element="s0:QueryOAIDCResponse" />
-  </message>
-  <message name="QueryResourceSoapIn">
-    <part name="parameters" element="s0:QueryResource" />
-  </message>
-  <message name="QueryResourceSoapOut">
-    <part name="parameters" element="s0:QueryResourceResponse" />
-  </message>
-  <message name="QueryRegistrySoapIn">
-    <part name="parameters" element="s0:QueryRegistry" />
-  </message>
-  <message name="QueryRegistrySoapOut">
-    <part name="parameters" element="s0:QueryRegistryResponse" />
-  </message>
-  <message name="KeywordSearchSoapIn">
-    <part name="parameters" element="s0:KeywordSearch" />
-  </message>
-  <message name="KeywordSearchSoapOut">
-    <part name="parameters" element="s0:KeywordSearchResponse" />
-  </message>
-  <message name="RevisionsSoapIn">
-    <part name="parameters" element="s0:Revisions" />
-  </message>
-  <message name="RevisionsSoapOut">
-    <part name="parameters" element="s0:RevisionsResponse" />
-  </message>
-  <message name="DumpRegistryHttpGetIn" />
-  <message name="DumpRegistryHttpGetOut">
-    <part name="Body" element="s0:ArrayOfSimpleResource" />
-  </message>
-  <message name="DumpVOResourcesHttpGetIn" />
-  <message name="DumpVOResourcesHttpGetOut">
-    <part name="Body" element="s0:ArrayOfResource" />
-  </message>
-  <message name="QueryVOResourceHttpGetIn">
-    <part name="predicate" type="s:string" />
-  </message>
-  <message name="QueryVOResourceHttpGetOut">
-    <part name="Body" element="s0:ArrayOfResource" />
-  </message>
-  <message name="QueryOAIDCHttpGetIn">
-    <part name="predicate" type="s:string" />
-  </message>
-  <message name="QueryOAIDCHttpGetOut">
-    <part name="Body" element="s0:ArrayOfOai_dcType" />
-  </message>
-  <message name="QueryResourceHttpGetIn">
-    <part name="predicate" type="s:string" />
-  </message>
-  <message name="QueryResourceHttpGetOut">
-    <part name="Body" element="s0:ArrayOfDBResource" />
-  </message>
-  <message name="QueryRegistryHttpGetIn">
-    <part name="predicate" type="s:string" />
-  </message>
-  <message name="QueryRegistryHttpGetOut">
-    <part name="Body" element="s0:ArrayOfSimpleResource" />
-  </message>
-  <message name="KeywordSearchHttpGetIn">
-    <part name="keywords" type="s:string" />
-    <part name="andKeys" type="s:string" />
-  </message>
-  <message name="KeywordSearchHttpGetOut">
-    <part name="Body" element="s0:ArrayOfResource" />
-  </message>
-  <message name="RevisionsHttpGetIn" />
-  <message name="RevisionsHttpGetOut">
-    <part name="Body" element="s0:ArrayOfString" />
-  </message>
-  <message name="DumpRegistryHttpPostIn" />
-  <message name="DumpRegistryHttpPostOut">
-    <part name="Body" element="s0:ArrayOfSimpleResource" />
-  </message>
-  <message name="DumpVOResourcesHttpPostIn" />
-  <message name="DumpVOResourcesHttpPostOut">
-    <part name="Body" element="s0:ArrayOfResource" />
-  </message>
-  <message name="QueryVOResourceHttpPostIn">
-    <part name="predicate" type="s:string" />
-  </message>
-  <message name="QueryVOResourceHttpPostOut">
-    <part name="Body" element="s0:ArrayOfResource" />
-  </message>
-  <message name="QueryOAIDCHttpPostIn">
-    <part name="predicate" type="s:string" />
-  </message>
-  <message name="QueryOAIDCHttpPostOut">
-    <part name="Body" element="s0:ArrayOfOai_dcType" />
-  </message>
-  <message name="QueryResourceHttpPostIn">
-    <part name="predicate" type="s:string" />
-  </message>
-  <message name="QueryResourceHttpPostOut">
-    <part name="Body" element="s0:ArrayOfDBResource" />
-  </message>
-  <message name="QueryRegistryHttpPostIn">
-    <part name="predicate" type="s:string" />
-  </message>
-  <message name="QueryRegistryHttpPostOut">
-    <part name="Body" element="s0:ArrayOfSimpleResource" />
-  </message>
-  <message name="KeywordSearchHttpPostIn">
-    <part name="keywords" type="s:string" />
-    <part name="andKeys" type="s:string" />
-  </message>
-  <message name="KeywordSearchHttpPostOut">
-    <part name="Body" element="s0:ArrayOfResource" />
-  </message>
-  <message name="RevisionsHttpPostIn" />
-  <message name="RevisionsHttpPostOut">
-    <part name="Body" element="s0:ArrayOfString" />
-  </message>
-  <portType name="RegistrySoap">
-    <operation name="DumpRegistry">
-      <documentation>Retrieve All Records from Registry, returns SimpleResources</documentation>
-      <input message="s0:DumpRegistrySoapIn" />
-      <output message="s0:DumpRegistrySoapOut" />
-    </operation>
-    <operation name="DumpVOResources">
-      <documentation>Retrieve All VOResources from Registry</documentation>
-      <input message="s0:DumpVOResourcesSoapIn" />
-      <output message="s0:DumpVOResourcesSoapOut" />
-    </operation>
-    <operation name="QueryVOResource">
-      <documentation>Returns VOResources: Input WHERE predicate for SQL Query like e.g. 
+  </wsdl:types>
+  <wsdl:message name="DumpRegistrySoapIn">
+    <wsdl:part name="parameters" element="tns:DumpRegistry" />
+  </wsdl:message>
+  <wsdl:message name="DumpRegistrySoapOut">
+    <wsdl:part name="parameters" element="tns:DumpRegistryResponse" />
+  </wsdl:message>
+  <wsdl:message name="DumpVOResourcesSoapIn">
+    <wsdl:part name="parameters" element="tns:DumpVOResources" />
+  </wsdl:message>
+  <wsdl:message name="DumpVOResourcesSoapOut">
+    <wsdl:part name="parameters" element="tns:DumpVOResourcesResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryVOResourceSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryVOResource" />
+  </wsdl:message>
+  <wsdl:message name="QueryVOResourceSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryVOResourceResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryOAIDCSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryOAIDC" />
+  </wsdl:message>
+  <wsdl:message name="QueryOAIDCSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryOAIDCResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryResourceSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryResource" />
+  </wsdl:message>
+  <wsdl:message name="QueryResourceSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryResourceResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryRegistrySoapIn">
+    <wsdl:part name="parameters" element="tns:QueryRegistry" />
+  </wsdl:message>
+  <wsdl:message name="QueryRegistrySoapOut">
+    <wsdl:part name="parameters" element="tns:QueryRegistryResponse" />
+  </wsdl:message>
+  <wsdl:message name="KeywordSearchSoapIn">
+    <wsdl:part name="parameters" element="tns:KeywordSearch" />
+  </wsdl:message>
+  <wsdl:message name="KeywordSearchSoapOut">
+    <wsdl:part name="parameters" element="tns:KeywordSearchResponse" />
+  </wsdl:message>
+  <wsdl:message name="RevisionsSoapIn">
+    <wsdl:part name="parameters" element="tns:Revisions" />
+  </wsdl:message>
+  <wsdl:message name="RevisionsSoapOut">
+    <wsdl:part name="parameters" element="tns:RevisionsResponse" />
+  </wsdl:message>
+  <wsdl:message name="DumpRegistryHttpGetIn" />
+  <wsdl:message name="DumpRegistryHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfSimpleResource" />
+  </wsdl:message>
+  <wsdl:message name="DumpVOResourcesHttpGetIn" />
+  <wsdl:message name="DumpVOResourcesHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfResource" />
+  </wsdl:message>
+  <wsdl:message name="QueryVOResourceHttpGetIn">
+    <wsdl:part name="predicate" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="QueryVOResourceHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfResource" />
+  </wsdl:message>
+  <wsdl:message name="QueryOAIDCHttpGetIn">
+    <wsdl:part name="predicate" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="QueryOAIDCHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfOai_dcType" />
+  </wsdl:message>
+  <wsdl:message name="QueryResourceHttpGetIn">
+    <wsdl:part name="predicate" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="QueryResourceHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfDBResource" />
+  </wsdl:message>
+  <wsdl:message name="QueryRegistryHttpGetIn">
+    <wsdl:part name="predicate" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="QueryRegistryHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfSimpleResource" />
+  </wsdl:message>
+  <wsdl:message name="KeywordSearchHttpGetIn">
+    <wsdl:part name="keywords" type="s:string" />
+    <wsdl:part name="andKeys" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="KeywordSearchHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfResource" />
+  </wsdl:message>
+  <wsdl:message name="RevisionsHttpGetIn" />
+  <wsdl:message name="RevisionsHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:message name="DumpRegistryHttpPostIn" />
+  <wsdl:message name="DumpRegistryHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfSimpleResource" />
+  </wsdl:message>
+  <wsdl:message name="DumpVOResourcesHttpPostIn" />
+  <wsdl:message name="DumpVOResourcesHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfResource" />
+  </wsdl:message>
+  <wsdl:message name="QueryVOResourceHttpPostIn">
+    <wsdl:part name="predicate" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="QueryVOResourceHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfResource" />
+  </wsdl:message>
+  <wsdl:message name="QueryOAIDCHttpPostIn">
+    <wsdl:part name="predicate" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="QueryOAIDCHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfOai_dcType" />
+  </wsdl:message>
+  <wsdl:message name="QueryResourceHttpPostIn">
+    <wsdl:part name="predicate" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="QueryResourceHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfDBResource" />
+  </wsdl:message>
+  <wsdl:message name="QueryRegistryHttpPostIn">
+    <wsdl:part name="predicate" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="QueryRegistryHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfSimpleResource" />
+  </wsdl:message>
+  <wsdl:message name="KeywordSearchHttpPostIn">
+    <wsdl:part name="keywords" type="s:string" />
+    <wsdl:part name="andKeys" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="KeywordSearchHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfResource" />
+  </wsdl:message>
+  <wsdl:message name="RevisionsHttpPostIn" />
+  <wsdl:message name="RevisionsHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:portType name="RegistrySoap">
+    <wsdl:operation name="DumpRegistry">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Retrieve All Records from Registry, returns SimpleResources</documentation>
+      <wsdl:input message="tns:DumpRegistrySoapIn" />
+      <wsdl:output message="tns:DumpRegistrySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DumpVOResources">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Retrieve All VOResources from Registry</documentation>
+      <wsdl:input message="tns:DumpVOResourcesSoapIn" />
+      <wsdl:output message="tns:DumpVOResourcesSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryVOResource">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns VOResources: Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryVOResourceSoapIn" />
-      <output message="s0:QueryVOResourceSoapOut" />
-    </operation>
-    <operation name="QueryOAIDC">
-      <documentation>Returns OAI_DC: Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryVOResourceSoapIn" />
+      <wsdl:output message="tns:QueryVOResourceSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryOAIDC">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns OAI_DC: Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryOAIDCSoapIn" />
-      <output message="s0:QueryOAIDCSoapOut" />
-    </operation>
-    <operation name="QueryResource">
-      <documentation>Returns custom simplified Resources: Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryOAIDCSoapIn" />
+      <wsdl:output message="tns:QueryOAIDCSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryResource">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns custom simplified Resources: Input WHERE predicate for SQL Query like e.g. 
  ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryResourceSoapIn" />
-      <output message="s0:QueryResourceSoapOut" />
-    </operation>
-    <operation name="QueryRegistry">
-      <documentation>Returns SimpleResource (backward compatibility for DATASCOPE): Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryResourceSoapIn" />
+      <wsdl:output message="tns:QueryResourceSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryRegistry">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns SimpleResource (backward compatibility for DATASCOPE): Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryRegistrySoapIn" />
-      <output message="s0:QueryRegistrySoapOut" />
-    </operation>
-    <operation name="KeywordSearch">
-      <documentation>searches registry for keyword</documentation>
-      <input message="s0:KeywordSearchSoapIn" />
-      <output message="s0:KeywordSearchSoapOut" />
-    </operation>
-    <operation name="Revisions">
-      <documentation>returns cvs verions of classes in this service</documentation>
-      <input message="s0:RevisionsSoapIn" />
-      <output message="s0:RevisionsSoapOut" />
-    </operation>
-  </portType>
-  <portType name="RegistryHttpGet">
-    <operation name="DumpRegistry">
-      <documentation>Retrieve All Records from Registry, returns SimpleResources</documentation>
-      <input message="s0:DumpRegistryHttpGetIn" />
-      <output message="s0:DumpRegistryHttpGetOut" />
-    </operation>
-    <operation name="DumpVOResources">
-      <documentation>Retrieve All VOResources from Registry</documentation>
-      <input message="s0:DumpVOResourcesHttpGetIn" />
-      <output message="s0:DumpVOResourcesHttpGetOut" />
-    </operation>
-    <operation name="QueryVOResource">
-      <documentation>Returns VOResources: Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryRegistrySoapIn" />
+      <wsdl:output message="tns:QueryRegistrySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="KeywordSearch">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">searches registry for keyword</documentation>
+      <wsdl:input message="tns:KeywordSearchSoapIn" />
+      <wsdl:output message="tns:KeywordSearchSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Revisions">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">returns cvs verions of classes in this service</documentation>
+      <wsdl:input message="tns:RevisionsSoapIn" />
+      <wsdl:output message="tns:RevisionsSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="RegistryHttpGet">
+    <wsdl:operation name="DumpRegistry">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Retrieve All Records from Registry, returns SimpleResources</documentation>
+      <wsdl:input message="tns:DumpRegistryHttpGetIn" />
+      <wsdl:output message="tns:DumpRegistryHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DumpVOResources">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Retrieve All VOResources from Registry</documentation>
+      <wsdl:input message="tns:DumpVOResourcesHttpGetIn" />
+      <wsdl:output message="tns:DumpVOResourcesHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryVOResource">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns VOResources: Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryVOResourceHttpGetIn" />
-      <output message="s0:QueryVOResourceHttpGetOut" />
-    </operation>
-    <operation name="QueryOAIDC">
-      <documentation>Returns OAI_DC: Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryVOResourceHttpGetIn" />
+      <wsdl:output message="tns:QueryVOResourceHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryOAIDC">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns OAI_DC: Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryOAIDCHttpGetIn" />
-      <output message="s0:QueryOAIDCHttpGetOut" />
-    </operation>
-    <operation name="QueryResource">
-      <documentation>Returns custom simplified Resources: Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryOAIDCHttpGetIn" />
+      <wsdl:output message="tns:QueryOAIDCHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryResource">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns custom simplified Resources: Input WHERE predicate for SQL Query like e.g. 
  ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryResourceHttpGetIn" />
-      <output message="s0:QueryResourceHttpGetOut" />
-    </operation>
-    <operation name="QueryRegistry">
-      <documentation>Returns SimpleResource (backward compatibility for DATASCOPE): Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryResourceHttpGetIn" />
+      <wsdl:output message="tns:QueryResourceHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryRegistry">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns SimpleResource (backward compatibility for DATASCOPE): Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryRegistryHttpGetIn" />
-      <output message="s0:QueryRegistryHttpGetOut" />
-    </operation>
-    <operation name="KeywordSearch">
-      <documentation>searches registry for keyword</documentation>
-      <input message="s0:KeywordSearchHttpGetIn" />
-      <output message="s0:KeywordSearchHttpGetOut" />
-    </operation>
-    <operation name="Revisions">
-      <documentation>returns cvs verions of classes in this service</documentation>
-      <input message="s0:RevisionsHttpGetIn" />
-      <output message="s0:RevisionsHttpGetOut" />
-    </operation>
-  </portType>
-  <portType name="RegistryHttpPost">
-    <operation name="DumpRegistry">
-      <documentation>Retrieve All Records from Registry, returns SimpleResources</documentation>
-      <input message="s0:DumpRegistryHttpPostIn" />
-      <output message="s0:DumpRegistryHttpPostOut" />
-    </operation>
-    <operation name="DumpVOResources">
-      <documentation>Retrieve All VOResources from Registry</documentation>
-      <input message="s0:DumpVOResourcesHttpPostIn" />
-      <output message="s0:DumpVOResourcesHttpPostOut" />
-    </operation>
-    <operation name="QueryVOResource">
-      <documentation>Returns VOResources: Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryRegistryHttpGetIn" />
+      <wsdl:output message="tns:QueryRegistryHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="KeywordSearch">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">searches registry for keyword</documentation>
+      <wsdl:input message="tns:KeywordSearchHttpGetIn" />
+      <wsdl:output message="tns:KeywordSearchHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Revisions">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">returns cvs verions of classes in this service</documentation>
+      <wsdl:input message="tns:RevisionsHttpGetIn" />
+      <wsdl:output message="tns:RevisionsHttpGetOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="RegistryHttpPost">
+    <wsdl:operation name="DumpRegistry">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Retrieve All Records from Registry, returns SimpleResources</documentation>
+      <wsdl:input message="tns:DumpRegistryHttpPostIn" />
+      <wsdl:output message="tns:DumpRegistryHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DumpVOResources">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Retrieve All VOResources from Registry</documentation>
+      <wsdl:input message="tns:DumpVOResourcesHttpPostIn" />
+      <wsdl:output message="tns:DumpVOResourcesHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryVOResource">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns VOResources: Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryVOResourceHttpPostIn" />
-      <output message="s0:QueryVOResourceHttpPostOut" />
-    </operation>
-    <operation name="QueryOAIDC">
-      <documentation>Returns OAI_DC: Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryVOResourceHttpPostIn" />
+      <wsdl:output message="tns:QueryVOResourceHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryOAIDC">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns OAI_DC: Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryOAIDCHttpPostIn" />
-      <output message="s0:QueryOAIDCHttpPostOut" />
-    </operation>
-    <operation name="QueryResource">
-      <documentation>Returns custom simplified Resources: Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryOAIDCHttpPostIn" />
+      <wsdl:output message="tns:QueryOAIDCHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryResource">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns custom simplified Resources: Input WHERE predicate for SQL Query like e.g. 
  ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryResourceHttpPostIn" />
-      <output message="s0:QueryResourceHttpPostOut" />
-    </operation>
-    <operation name="QueryRegistry">
-      <documentation>Returns SimpleResource (backward compatibility for DATASCOPE): Input WHERE predicate for SQL Query like e.g. 
+      <wsdl:input message="tns:QueryResourceHttpPostIn" />
+      <wsdl:output message="tns:QueryResourceHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryRegistry">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns SimpleResource (backward compatibility for DATASCOPE): Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
-      <input message="s0:QueryRegistryHttpPostIn" />
-      <output message="s0:QueryRegistryHttpPostOut" />
-    </operation>
-    <operation name="KeywordSearch">
-      <documentation>searches registry for keyword</documentation>
-      <input message="s0:KeywordSearchHttpPostIn" />
-      <output message="s0:KeywordSearchHttpPostOut" />
-    </operation>
-    <operation name="Revisions">
-      <documentation>returns cvs verions of classes in this service</documentation>
-      <input message="s0:RevisionsHttpPostIn" />
-      <output message="s0:RevisionsHttpPostOut" />
-    </operation>
-  </portType>
-  <binding name="RegistrySoap" type="s0:RegistrySoap">
+      <wsdl:input message="tns:QueryRegistryHttpPostIn" />
+      <wsdl:output message="tns:QueryRegistryHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="KeywordSearch">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">searches registry for keyword</documentation>
+      <wsdl:input message="tns:KeywordSearchHttpPostIn" />
+      <wsdl:output message="tns:KeywordSearchHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Revisions">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">returns cvs verions of classes in this service</documentation>
+      <wsdl:input message="tns:RevisionsHttpPostIn" />
+      <wsdl:output message="tns:RevisionsHttpPostOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="RegistrySoap" type="tns:RegistrySoap">
     <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
-    <operation name="DumpRegistry">
+    <wsdl:operation name="DumpRegistry">
       <soap:operation soapAction="http://www.us-vo.org/DumpRegistry" style="document" />
-      <input>
+      <wsdl:input>
         <soap:body use="literal" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <soap:body use="literal" />
-      </output>
-    </operation>
-    <operation name="DumpVOResources">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DumpVOResources">
       <soap:operation soapAction="http://www.us-vo.org/DumpVOResources" style="document" />
-      <input>
+      <wsdl:input>
         <soap:body use="literal" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <soap:body use="literal" />
-      </output>
-    </operation>
-    <operation name="QueryVOResource">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryVOResource">
       <soap:operation soapAction="http://www.us-vo.org/QueryVOResource" style="document" />
-      <input>
+      <wsdl:input>
         <soap:body use="literal" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <soap:body use="literal" />
-      </output>
-    </operation>
-    <operation name="QueryOAIDC">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryOAIDC">
       <soap:operation soapAction="http://www.us-vo.org/QueryOAIDC" style="document" />
-      <input>
+      <wsdl:input>
         <soap:body use="literal" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <soap:body use="literal" />
-      </output>
-    </operation>
-    <operation name="QueryResource">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryResource">
       <soap:operation soapAction="http://www.us-vo.org/QueryResource" style="document" />
-      <input>
+      <wsdl:input>
         <soap:body use="literal" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <soap:body use="literal" />
-      </output>
-    </operation>
-    <operation name="QueryRegistry">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryRegistry">
       <soap:operation soapAction="http://www.us-vo.org/QueryRegistry" style="document" />
-      <input>
+      <wsdl:input>
         <soap:body use="literal" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <soap:body use="literal" />
-      </output>
-    </operation>
-    <operation name="KeywordSearch">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="KeywordSearch">
       <soap:operation soapAction="http://www.us-vo.org/KeywordSearch" style="document" />
-      <input>
+      <wsdl:input>
         <soap:body use="literal" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <soap:body use="literal" />
-      </output>
-    </operation>
-    <operation name="Revisions">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Revisions">
       <soap:operation soapAction="http://www.us-vo.org/Revisions" style="document" />
-      <input>
+      <wsdl:input>
         <soap:body use="literal" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <soap:body use="literal" />
-      </output>
-    </operation>
-  </binding>
-  <binding name="RegistryHttpGet" type="s0:RegistryHttpGet">
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="RegistryHttpGet" type="tns:RegistryHttpGet">
     <http:binding verb="GET" />
-    <operation name="DumpRegistry">
+    <wsdl:operation name="DumpRegistry">
       <http:operation location="/DumpRegistry" />
-      <input>
+      <wsdl:input>
         <http:urlEncoded />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="DumpVOResources">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DumpVOResources">
       <http:operation location="/DumpVOResources" />
-      <input>
+      <wsdl:input>
         <http:urlEncoded />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="QueryVOResource">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryVOResource">
       <http:operation location="/QueryVOResource" />
-      <input>
+      <wsdl:input>
         <http:urlEncoded />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="QueryOAIDC">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryOAIDC">
       <http:operation location="/QueryOAIDC" />
-      <input>
+      <wsdl:input>
         <http:urlEncoded />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="QueryResource">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryResource">
       <http:operation location="/QueryResource" />
-      <input>
+      <wsdl:input>
         <http:urlEncoded />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="QueryRegistry">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryRegistry">
       <http:operation location="/QueryRegistry" />
-      <input>
+      <wsdl:input>
         <http:urlEncoded />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="KeywordSearch">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="KeywordSearch">
       <http:operation location="/KeywordSearch" />
-      <input>
+      <wsdl:input>
         <http:urlEncoded />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="Revisions">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Revisions">
       <http:operation location="/Revisions" />
-      <input>
+      <wsdl:input>
         <http:urlEncoded />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-  </binding>
-  <binding name="RegistryHttpPost" type="s0:RegistryHttpPost">
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="RegistryHttpPost" type="tns:RegistryHttpPost">
     <http:binding verb="POST" />
-    <operation name="DumpRegistry">
+    <wsdl:operation name="DumpRegistry">
       <http:operation location="/DumpRegistry" />
-      <input>
+      <wsdl:input>
         <mime:content type="application/x-www-form-urlencoded" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="DumpVOResources">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DumpVOResources">
       <http:operation location="/DumpVOResources" />
-      <input>
+      <wsdl:input>
         <mime:content type="application/x-www-form-urlencoded" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="QueryVOResource">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryVOResource">
       <http:operation location="/QueryVOResource" />
-      <input>
+      <wsdl:input>
         <mime:content type="application/x-www-form-urlencoded" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="QueryOAIDC">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryOAIDC">
       <http:operation location="/QueryOAIDC" />
-      <input>
+      <wsdl:input>
         <mime:content type="application/x-www-form-urlencoded" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="QueryResource">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryResource">
       <http:operation location="/QueryResource" />
-      <input>
+      <wsdl:input>
         <mime:content type="application/x-www-form-urlencoded" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="QueryRegistry">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryRegistry">
       <http:operation location="/QueryRegistry" />
-      <input>
+      <wsdl:input>
         <mime:content type="application/x-www-form-urlencoded" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="KeywordSearch">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="KeywordSearch">
       <http:operation location="/KeywordSearch" />
-      <input>
+      <wsdl:input>
         <mime:content type="application/x-www-form-urlencoded" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-    <operation name="Revisions">
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Revisions">
       <http:operation location="/Revisions" />
-      <input>
+      <wsdl:input>
         <mime:content type="application/x-www-form-urlencoded" />
-      </input>
-      <output>
+      </wsdl:input>
+      <wsdl:output>
         <mime:mimeXml part="Body" />
-      </output>
-    </operation>
-  </binding>
-  <service name="Registry">
-    <port name="RegistrySoap" binding="s0:RegistrySoap">
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Registry">
+    <wsdl:port name="RegistrySoap" binding="tns:RegistrySoap">
       <soap:address location="http://nvo.stsci.edu/voregistry/registry.asmx" />
-    </port>
-    <port name="RegistryHttpGet" binding="s0:RegistryHttpGet">
+    </wsdl:port>
+    <wsdl:port name="RegistryHttpGet" binding="tns:RegistryHttpGet">
       <http:address location="http://nvo.stsci.edu/voregistry/registry.asmx" />
-    </port>
-    <port name="RegistryHttpPost" binding="s0:RegistryHttpPost">
+    </wsdl:port>
+    <wsdl:port name="RegistryHttpPost" binding="tns:RegistryHttpPost">
       <http:address location="http://nvo.stsci.edu/voregistry/registry.asmx" />
-    </port>
-  </service>
-</definitions>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
