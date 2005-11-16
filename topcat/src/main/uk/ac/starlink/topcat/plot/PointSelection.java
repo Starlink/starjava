@@ -29,7 +29,7 @@ public class PointSelection {
     private final long[] nrows_;
     private final int[][] icols_;
     private final RowSubset[] subsets_;
-    private final MarkStyle[] styles_;
+    private final Style[] styles_;
 
     private static final double MILLISECONDS_PER_YEAR =
         365.25 * 24 * 60 * 60 * 1000;
@@ -82,7 +82,7 @@ public class PointSelection {
             offset += nrows_[ itab ];
         }
 
-        /* Store a list of subsets and corresponding markers which represent
+        /* Store a list of subsets and corresponding styles which represent
          * which of the data points will be plotted and what they will 
          * look like.  This is done by flattening the (table,subsets)
          * array which is got from the point selector array.  The stored
@@ -107,7 +107,7 @@ public class PointSelection {
             styleList.add( selectors[ itab ].getStyle( itsub ) );
         }
         subsets_ = (RowSubset[]) subsetList.toArray( new RowSubset[ 0 ] );
-        styles_ = (MarkStyle[]) styleList.toArray( new MarkStyle[ 0 ] );
+        styles_ = (Style[]) styleList.toArray( new Style[ 0 ] );
     }
 
     /** 
@@ -162,13 +162,13 @@ public class PointSelection {
     }
 
     /**
-     * Returns a list of marker styles for subset plotting.
+     * Returns a list of styles for subset plotting.
      * This corresponds to the subset list returned by 
      * {@link #getSubsets}.
      *
-     * @return  marker style array
+     * @return  style array
      */
-    public MarkStyle[] getStyles() {
+    public Style[] getStyles() {
         return styles_;
     }
 

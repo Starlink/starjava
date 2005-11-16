@@ -65,36 +65,36 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private BitSet visibleRows_;
     private PointRegistry visiblePoints_;
 
-    private static final MarkStyleProfile MARKERS1;
-    private static final MarkStyleProfile MARKERS2;
-    private static final MarkStyleProfile MARKERS3;
-    private static final MarkStyleProfile MARKERS4;
-    private static final MarkStyleProfile MARKERS5;
-    static final MarkStyleProfile[] MARKER_PROFILES = new MarkStyleProfile[] {
+    private static final StyleSet MARKERS1;
+    private static final StyleSet MARKERS2;
+    private static final StyleSet MARKERS3;
+    private static final StyleSet MARKERS4;
+    private static final StyleSet MARKERS5;
+    static final StyleSet[] STYLE_SETS = new StyleSet[] {
         MARKERS1 =
-        MarkStyleProfiles.points( "Pixels" ),
+        MarkStyles.points( "Pixels" ),
         MARKERS2 =
-        MarkStyleProfiles.spots( "Dots", 1 ),
+        MarkStyles.spots( "Dots", 1 ),
         MARKERS3 =
-        MarkStyleProfiles.spots( "Spots", 2 ),
+        MarkStyles.spots( "Spots", 2 ),
         MARKERS4 =
-        MarkStyleProfiles.filledShapes( "Small Coloured Shapes", 3, null ),
+        MarkStyles.filledShapes( "Small Coloured Shapes", 3, null ),
         MARKERS5 =
-        MarkStyleProfiles.filledShapes( "Medium Coloured Shapes", 4, null ),
-        MarkStyleProfiles.filledShapes( "Large Coloured Shapes", 5, null ),
-        MarkStyleProfiles.filledShapes( "Small Black Shapes", 3, Color.black ),
-        MarkStyleProfiles.filledShapes( "Medium Black Shapes", 4, Color.black ),
-        MarkStyleProfiles.filledShapes( "Large Black Shapes", 5, Color.black ),
-        MarkStyleProfiles.openShapes( "Small Coloured Outlines", 3, null ),
-        MarkStyleProfiles.openShapes( "Medium Coloured Outlines", 4, null ),
-        MarkStyleProfiles.openShapes( "Large Coloured Outlines", 5, null ),
-        MarkStyleProfiles.openShapes( "Small Black Outlines", 3, Color.black ),
-        MarkStyleProfiles.openShapes( "Medium Black Outlines", 4, Color.black ),
-        MarkStyleProfiles.openShapes( "Large Black Outlines", 5, Color.black ),
-        MarkStyleProfiles.ghosts( "Faint Transparent Pixels", 0, 0.1f ),
-        MarkStyleProfiles.ghosts( "Medium Transparent Pixels", 0, 0.4f ),
-        MarkStyleProfiles.ghosts( "Faint Transparent Dots", 1, 0.1f ),
-        MarkStyleProfiles.ghosts( "Medium Transparent Dots", 1, 0.4f ),
+        MarkStyles.filledShapes( "Medium Coloured Shapes", 4, null ),
+        MarkStyles.filledShapes( "Large Coloured Shapes", 5, null ),
+        MarkStyles.filledShapes( "Small Black Shapes", 3, Color.black ),
+        MarkStyles.filledShapes( "Medium Black Shapes", 4, Color.black ),
+        MarkStyles.filledShapes( "Large Black Shapes", 5, Color.black ),
+        MarkStyles.openShapes( "Small Coloured Outlines", 3, null ),
+        MarkStyles.openShapes( "Medium Coloured Outlines", 4, null ),
+        MarkStyles.openShapes( "Large Coloured Outlines", 5, null ),
+        MarkStyles.openShapes( "Small Black Outlines", 3, Color.black ),
+        MarkStyles.openShapes( "Medium Black Outlines", 4, Color.black ),
+        MarkStyles.openShapes( "Large Black Outlines", 5, Color.black ),
+        MarkStyles.ghosts( "Faint Transparent Pixels", 0, 0.1f ),
+        MarkStyles.ghosts( "Medium Transparent Pixels", 0, 0.4f ),
+        MarkStyles.ghosts( "Faint Transparent Dots", 1, 0.1f ),
+        MarkStyles.ghosts( "Medium Transparent Dots", 1, 0.4f ),
     };
 
     /**
@@ -254,23 +254,23 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         subsetMenu.add( fromVisibleAction_ );
         getJMenuBar().add( subsetMenu );
 
-        /* Construct a new menu for marker profile selection. */
+        /* Construct a new menu for marker style set selection. */
         JMenu markerMenu = new JMenu( "Marker Types" );
         markerMenu.setMnemonic( KeyEvent.VK_M );
-        MarkStyleProfile[] profiles = MARKER_PROFILES;
-        for ( int i = 0; i < profiles.length; i++ ) {
-            final MarkStyleProfile profile = profiles[ i ];
-            String name = profile.getName();
-            Icon icon = MarkStyleProfiles.getIcon( profile );
-            Action profileAct = new BasicAction( name, icon,
-                                                 "Set default marker types to "
-                                                 + name ) {
+        StyleSet[] styleSets = STYLE_SETS;
+        for ( int i = 0; i < styleSets.length; i++ ) {
+            final StyleSet styleSet = styleSets[ i ];
+            String name = styleSet.getName();
+            Icon icon = Styles.getIcon( styleSet );
+            Action stylesAct = new BasicAction( name, icon,
+                                                "Set default marker types to "
+                                                + name ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    setStyles( profile );
+                    setStyles( styleSet );
                     replot();
                 }
             };
-            markerMenu.add( profileAct );
+            markerMenu.add( stylesAct );
         }
         getJMenuBar().add( markerMenu );
 
@@ -500,7 +500,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         }
     }
 
-    public MarkStyleProfile getDefaultStyles( int npoint ) {
+    public StyleSet getDefaultStyles( int npoint ) {
         if ( npoint > 20000 ) {
             return MARKERS1;
         }

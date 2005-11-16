@@ -36,7 +36,7 @@ public class PointSelectorSet extends JPanel {
 
     private final JTabbedPane tabber_;
     private final String[] axisNames_;
-    private final MarkStyleProfile markers_;
+    private final StyleSet styles_;
     private final BitSet usedMarkers_;
     private final ActionForwarder actionForwarder_;
     private final TopcatForwarder topcatForwarder_;
@@ -48,13 +48,13 @@ public class PointSelectorSet extends JPanel {
      *
      * @param  axisNames  axis names; length defines dimensionality of 
      *         point selectors
-     * @param  markers    marker style profile
+     * @param  styles    style set
      */
-    public PointSelectorSet( String[] axisNames, MarkStyleProfile markers ) {
+    public PointSelectorSet( String[] axisNames, StyleSet styles ) {
         super( new BorderLayout() );
         tabber_ = new JTabbedPane();
         axisNames_ = axisNames;
-        markers_ = markers;
+        styles_ = styles;
         usedMarkers_ = new BitSet();
         selectorsCreated_ = 0;
         actionForwarder_ = new ActionForwarder();
@@ -164,8 +164,7 @@ public class PointSelectorSet extends JPanel {
     public void addNewSelector() {
         PointSelector psel = 
             new PointSelector( axisNames_,
-                               new PoolMarkStyleProfile( markers_,
-                                                         usedMarkers_ ),
+                               new PoolStyleSet( styles_, usedMarkers_ ),
                                null );
         addSelector( psel );
         tabber_.setSelectedComponent( psel );
@@ -254,11 +253,11 @@ public class PointSelectorSet extends JPanel {
         tabber_.remove( psel );
         psel.removeActionListener( actionForwarder_ );
 
-        /* Return markers used by the selector which is no longer required
+        /* Return styles used by the selector which is no longer required
          * to the pool. */
-        MarkStyleProfile styles = psel.getStyles();
-        if ( styles instanceof PoolMarkStyleProfile ) {
-            ((PoolMarkStyleProfile) styles).reset();
+        StyleSet styles = psel.getStyles();
+        if ( styles instanceof PoolStyleSet ) {
+            ((PoolStyleSet) styles).reset();
         }
 
         /* Notify listeners that something has happened. */

@@ -91,7 +91,7 @@ public class HistogramWindow extends GraphicsWindow {
                                                     ResourceIcon.RANGE_SUBSET,
                                                     "Define a new row subset "
                                                   + "containing only currently "
-                                                  + "visible bars" ) {
+                                                  + "visible range" ) {
             public void actionPerformed( ActionEvent evt ) {
                 subsetFromVisible();
             }
@@ -144,8 +144,8 @@ public class HistogramWindow extends GraphicsWindow {
         plot_.repaint();
     }
 
-    public MarkStyleProfile getDefaultStyles( int npoint ) {
-        return MarkStyleProfiles.points( "Lines" );
+    public StyleSet getDefaultStyles( int npoint ) {
+        return MarkStyles.points( "Lines" );
     }
 
     public PlotState getPlotState() {

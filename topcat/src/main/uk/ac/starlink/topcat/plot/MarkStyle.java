@@ -11,14 +11,14 @@ import java.util.Arrays;
 import javax.swing.Icon;
 
 /**
- * Defines a style of marker for plotting.
+ * Defines a style of marker for plotting in a scatter plot.
  * A number of static factory methods generating useful MarkStyle 
  * instances are provided.
  *
  * @author   Mark Taylor (Starlink)
  * @since    16 Jun 2004
  */
-public abstract class MarkStyle {
+public abstract class MarkStyle implements Style {
 
     private Color color_;
 
@@ -85,7 +85,6 @@ public abstract class MarkStyle {
          drawShape( g );
          g.translate( -x, -y );
          g.setColor( col );
-        
     }
 
     /**
@@ -97,7 +96,7 @@ public abstract class MarkStyle {
      * @param  x  x position
      * @param  y  y position
      */
-    public void drawLegendMarker( Graphics g, int x, int y ) {
+    public void drawLegend( Graphics g, int x, int y ) {
         Color col = g.getColor();
         g.setColor( color_ );
         g.translate( x, y );
@@ -472,8 +471,8 @@ public abstract class MarkStyle {
             public void drawMarker( Graphics g, int x, int y ) {
                 normalStyle.drawMarker( g, x, y );
             }
-            public void drawLegendMarker( Graphics g, int x, int y ) {
-                legendStyle.drawLegendMarker( g, x, y );
+            public void drawLegend( Graphics g, int x, int y ) {
+                legendStyle.drawLegend( g, x, y );
             }
             protected void drawShape( Graphics g ) {
                 normalStyle.drawShape( g );

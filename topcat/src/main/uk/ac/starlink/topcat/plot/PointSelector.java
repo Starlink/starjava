@@ -57,7 +57,7 @@ public class PointSelector extends JPanel implements TopcatListener {
     private final SelectionForwarder selectionForwarder_;
     private final ListSelectionListener listActioner_;
     private final List topcatListeners_;
-    private MarkStyleProfile markStyles_;
+    private StyleSet styles_;
     private TopcatModel tcModel_;
     private ListSelectionModel subSelModel_;
 
@@ -67,15 +67,15 @@ public class PointSelector extends JPanel implements TopcatListener {
      * then table selection will not be permitted.
      *
      * @param   axisNames  labels for the columns to choose
-     * @param   markStyles  default marker style profile
+     * @param   styles  default marker style set
      * @param   fixedTable  optionally, the identity of a table which 
      *          is the one on which this selector will operate
      */
-    public PointSelector( String[] axisNames, MarkStyleProfile markStyles,
+    public PointSelector( String[] axisNames, StyleSet styles,
                           TopcatModel fixedTable ) {
         super( new BorderLayout() );
         ndim_ = axisNames.length;
-        markStyles_ = markStyles;
+        styles_ = styles;
         actionForwarder_ = new ActionForwarder();
         selectionForwarder_ = new SelectionForwarder();
         listActioner_ = new ListSelectionListener() {
@@ -188,10 +188,10 @@ public class PointSelector extends JPanel implements TopcatListener {
      * Constructs a selector in which the user can choose the table.
      *
      * @param   axisNames  labels for the columns to choose
-     * @param   markStyles  default marker style profile
+     * @param   styles  default marker style set
      */
-    public PointSelector( String[] axisNames, MarkStyleProfile markStyles ) {
-        this( axisNames, markStyles, null );
+    public PointSelector( String[] axisNames, StyleSet styles ) {
+        this( axisNames, styles, null );
     }
 
     /**
@@ -319,22 +319,22 @@ public class PointSelector extends JPanel implements TopcatListener {
     }
 
     /**
-     * Returns the marker style to use for a given subset index.
+     * Returns the style to use for a given subset index.
      *
      * @param  isub  subset index
-     * @return  marker style
+     * @return   subset style
      */
-    public MarkStyle getStyle( int isub ) {
-        return markStyles_.getStyle( isub );
+    public Style getStyle( int isub ) {
+        return styles_.getStyle( isub );
     }
 
     /**
-     * Returns the mark style profile used by this selector.
+     * Returns the style set used by this selector.
      *
-     * @return  style profile
+     * @return  style set
      */
-    public MarkStyleProfile getStyles() {
-        return markStyles_;
+    public StyleSet getStyles() {
+        return styles_;
     }
 
     /**

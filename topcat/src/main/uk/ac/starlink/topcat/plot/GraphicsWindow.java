@@ -65,7 +65,7 @@ public abstract class GraphicsWindow extends AuxWindow
     private final ToggleButtonModel[] flipModels_;
     private final ToggleButtonModel[] logModels_;
 
-    private MarkStyleProfile markers_;
+    private StyleSet styleSet_;
     private Points points_;
     private JFileChooser exportSaver_;
     private PlotState lastState_;
@@ -92,15 +92,15 @@ public abstract class GraphicsWindow extends AuxWindow
         ndim_ = axisNames.length;
 
         /* Set up point selector component. */
-        MarkStyleProfile profile = new MarkStyleProfile() {
+        StyleSet proxyStyleSet = new StyleSet() {
             public String getName() {
-                return markers_.getName();
+                return styleSet_.getName();
             }
-            public MarkStyle getStyle( int index ) {
-                return markers_.getStyle( index );
+            public Style getStyle( int index ) {
+                return styleSet_.getStyle( index );
             }
         };
-        pointSelectors_ = new PointSelectorSet( axisNames, profile );
+        pointSelectors_ = new PointSelectorSet( axisNames, proxyStyleSet );
         getControlPanel().setLayout( new BoxLayout( getControlPanel(),
                                                     BoxLayout.Y_AXIS ) );
         getControlPanel().add( new SizeWrapper( pointSelectors_ ) );
@@ -166,15 +166,15 @@ public abstract class GraphicsWindow extends AuxWindow
             lastState_.setValid( false );
         }
 
-        /* Set a suitable default marker profile. */
+        /* Set a suitable default style set. */
         long npoint = 0;
         ListModel tablesList = ControlWindow.getInstance().getTablesListModel();
         for ( int i = 0; i < tablesList.getSize(); i++ ) {
             TopcatModel tcModel = (TopcatModel) tablesList.getElementAt( i );
             npoint += tcModel.getDataModel().getRowCount();
         }
-        markers_ = getDefaultStyles( (int) Math.min( npoint,
-                                                     Integer.MAX_VALUE ) );
+        styleSet_ = getDefaultStyles( (int) Math.min( npoint,
+                                                      Integer.MAX_VALUE ) );
     }
 
     /**
@@ -257,22 +257,22 @@ public abstract class GraphicsWindow extends AuxWindow
     protected abstract void doReplot( PlotState state, Points points );
 
     /**
-     * Returns a MarkStyleProfile which can supply markers.
+     * Returns a StyleSet which can supply markers.
      * The <code>npoint</code> may be used as a hint for how many 
      * points are expected to be drawn with it.
      *
      * @param    npoint  approximate number of points - use -1 for unknown
-     * @return   marker style profile factory
+     * @return   style factory
      */
-    public abstract MarkStyleProfile getDefaultStyles( int npoint );
+    public abstract StyleSet getDefaultStyles( int npoint );
 
     /**
-     * Sets the marker style profile to use for this window.
+     * Sets the style set to use for this window.
      * 
-     * @param   markers  new mark style profile
+     * @param   styleSet  new style set
      */
-    public void setStyles( MarkStyleProfile markers ) {
-        markers_ = markers;
+    public void setStyles( StyleSet styleSet ) {
+        styleSet_ = styleSet;
     }
 
     /**

@@ -115,7 +115,7 @@ public class Histogram extends SurfacePlot {
         /* Get the plotting styles to use. */
         boolean xflip = state.getFlipFlags()[ 0 ];
         int nset = getPointSelection().getSubsets().length;
-        MarkStyle[] styles = getPointSelection().getStyles();
+        Style[] styles = getPointSelection().getStyles();
 
         /* Draw bars. */
         for ( Iterator it = getBinnedData().getBinIterator(); it.hasNext(); ) {
@@ -138,7 +138,7 @@ public class Histogram extends SurfacePlot {
                     surface.dataToGraphics( dxmid, (double) count, false ).y;
 
                 /* Plot in the correct style. */
-                g.setColor( styles[ iset ].getColor() );
+                g.setColor( ((MarkStyle) styles[ iset ]).getColor() );
                 g.drawRect( ixlo, iyhi, ixhi - ixlo - 1, iylo - iyhi );
             }
         }

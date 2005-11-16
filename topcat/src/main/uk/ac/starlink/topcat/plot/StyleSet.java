@@ -1,12 +1,12 @@
 package uk.ac.starlink.topcat.plot;
 
 /**
- * Defines a sequence of marker styles intended for use within a single plot.
+ * Defines a sequence of styles intended for use within a single plot.
  *
  * @author   Mark Taylor
  * @since    23 Jul 2005
  */
-public interface MarkStyleProfile {
+public interface StyleSet {
 
     /**
      * Returns a marker style corresponding to a particular index.
@@ -21,12 +21,12 @@ public interface MarkStyleProfile {
      * @param  index  code for the requested style
      * @return  style for code <tt>index</tt>
      */
-    MarkStyle getStyle( int index );
+    Style getStyle( int index );
 
     /**
-     * Returns the name of this profile.
+     * Returns the name of this set.
      *
-     * @return   profile name
+     * @return   set name
      */
     String getName();
 }

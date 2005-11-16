@@ -216,8 +216,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
      */
     protected void _drawPoint( Graphics g, int dataset,
                                long xpos, long ypos, boolean clip ) {
-        psel_.getStyles()[ dataset ]
-             .drawLegendMarker( g, (int) xpos, (int) ypos );
+        psel_.getStyles()[ dataset ].drawLegend( g, (int) xpos, (int) ypos );
     }
 
     /**
@@ -231,7 +230,6 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         /* Legend. */
         clearLegends();
         RowSubset[] rsets = psel.getSubsets();
-        MarkStyle[] styles = psel.getStyles();
         int nrset = rsets.length;
         for ( int iset = 0; iset < nrset; iset++ ) {
             addLegend( iset, rsets[ iset ].getName() );

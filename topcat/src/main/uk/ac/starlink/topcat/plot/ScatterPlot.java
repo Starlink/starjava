@@ -157,13 +157,13 @@ public class ScatterPlot extends SurfacePlot {
          * updating data structures. */
         int np = points.getCount();
         RowSubset[] sets = getPointSelection().getSubsets();
-        MarkStyle[] styles = getPointSelection().getStyles();
+        Style[] styles = getPointSelection().getStyles();
         int nset = sets.length;
   boolean[] regressions = new boolean[ nset ];
         statSets_ = new XYStats[ nset ];
         double[] coords = new double[ 2 ];
         for ( int is = 0; is < nset; is++ ) {
-            MarkStyle style = styles[ is ];
+            MarkStyle style = (MarkStyle) styles[ is ];
             boolean regress = regressions[ is ];
             XYStats stats = null;
             if ( regress ) {
@@ -207,7 +207,8 @@ public class ScatterPlot extends SurfacePlot {
                     Point p2 = surface.dataToGraphics( ends[ 2 ], ends[ 3 ],
                                                        false );
                     if ( p1 != null && p2 != null ) {
-                        Color styleColor = styles[ is ].getColor();
+                        Color styleColor =
+                            ((MarkStyle) styles[ is ]).getColor();
                         g.setColor( new Color( styleColor.getRed(),
                                                styleColor.getGreen(), 
                                                styleColor.getBlue(), 160 ) );
