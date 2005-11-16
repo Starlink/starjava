@@ -298,7 +298,7 @@ public class PointSelection {
     /**
      * Determines if the data required to plot this point selection 
      * is the same as the data required to plot another one.
-     * More exactly, it returns true only if {@link readPoints} will
+     * More exactly, it returns true only if {@link #readPoints} will
      * return the same result for this object and <code>other</code>.
      *
      * @param  other  comparison object
