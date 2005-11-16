@@ -4,6 +4,8 @@ import java.awt.event.ActionEvent;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
@@ -23,7 +25,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 public class HistogramWindow extends GraphicsWindow {
 
     private final Histogram plot_;
-    private final Action fromVisibleAction_;
+    private final Action[] validityActions_;
 
     /** Description of vertical plot axis. */
     private final static ValueInfo COUNT_INFO = 
@@ -85,16 +87,15 @@ public class HistogramWindow extends GraphicsWindow {
         /* Construct a new menu for subset operations. */
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
-        fromVisibleAction_ = new BasicAction( "New subset from visible",
-                                              ResourceIcon.VISIBLE_SUBSET,
-                                              "Define a new row subset " +
-                                              "containing only currently " +
-                                              "visible bars" ) {
+        Action fromVisibleAction = new BasicAction( "New subset from visible",
+                                                    ResourceIcon.VISIBLE_SUBSET,
+                                                    "Define a new row subset "
+                                                  + "containing only currently "
+                                                  + "visible bars" ) {
             public void actionPerformed( ActionEvent evt ) {
                 subsetFromVisible();
             }
         };
-        fromVisibleAction_.setEnabled( false );
         getJMenuBar().add( subsetMenu );
 
         /* Add actions to the toolbar. */
@@ -105,8 +106,18 @@ public class HistogramWindow extends GraphicsWindow {
         getToolBar().add( getFlipModels()[ 0 ].createToolbarButton() );
         getToolBar().add( getLogModels()[ 0 ].createToolbarButton() );
         getToolBar().add( getReplotAction() );
-        getToolBar().add( fromVisibleAction_ );
+        getToolBar().add( fromVisibleAction );
         getToolBar().addSeparator();
+
+        /* Prepare a list of actions which are enabled/disabled according
+         * to whether the plot state is valid. */
+        List actList = new ArrayList();
+        actList.add( rescaleActionXY );
+        actList.add( rescaleActionX );
+        actList.add( rescaleActionY );
+        actList.add( fromVisibleAction );
+        actList.add( getReplotAction() );
+        validityActions_ = (Action[]) actList.toArray( new Action[ 0 ] );
 
         /* Add standard help actions. */
         addHelp( "HistogramWindow" );
@@ -139,7 +150,8 @@ public class HistogramWindow extends GraphicsWindow {
 
     public PlotState getPlotState() {
         PlotState state = super.getPlotState();
-        if ( state != null && state.getValid() ) {
+        boolean valid = state != null && state.getValid();
+        if ( valid ) {
             state.setAxes( new ValueInfo[] { state.getAxes()[ 0 ],
                                              COUNT_INFO } );
             state.setLogFlags( new boolean[] { state.getLogFlags()[ 0 ],
@@ -147,11 +159,14 @@ public class HistogramWindow extends GraphicsWindow {
             state.setFlipFlags( new boolean[] { state.getFlipFlags()[ 0 ],
                                                 false } );
         }
+        for ( int i = 0; i < validityActions_.length; i++ ) {
+            validityActions_[ i ].setEnabled( valid );
+        }
         return state;
     }
 
     private void subsetFromVisible() {
-  System.out.println( "From visible" );
+        addNewSubsets( plot_.getVisiblePoints() );
     }
 
     /**
@@ -179,23 +194,7 @@ public class HistogramWindow extends GraphicsWindow {
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            if ( scaleX_ && scaleY_ ) {
-                plot_.rescale();
-            }
-            else if ( scaleX_ ) {
-                double[] xrange = plot_.getIncludedXRange();
-                plot_.getSurface().setDataRange( xrange[ 0 ], Double.NaN,
-                                                 xrange[ 1 ], Double.NaN );
-            }
-            else if ( scaleY_ ) {
-                double[] yrange = new double[] { Double.NaN, Double.NaN };
-  System.out.println( "rescale Y" );
-                plot_.getSurface().setDataRange( Double.NaN, yrange[ 0 ],
-                                                 Double.NaN, yrange[ 1 ] );
-            }
-            else {
-                assert false : "Not much of a rescale";
-            }
+            plot_.rescale( scaleX_, scaleY_ );
             forceReplot();
         }
     }
