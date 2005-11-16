@@ -148,7 +148,7 @@ public class HDSObject {
      *
      * The routine returns the current value of an HDS tuning parameter
      * (normally this will be its default value, or the value last specified
-     * using the {@link hdsTune} routine).
+     * using the {@link #hdsTune} routine).
      *
      * @param  param Name of the tuning parameter
      * @return the tuning parameter value
