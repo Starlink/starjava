@@ -3,6 +3,7 @@ package uk.ac.starlink.util.gui;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 /**
@@ -28,6 +29,7 @@ public class ShrinkWrapper extends JPanel {
         super( new FlowLayout( FlowLayout.CENTER, 0, 0 ) );
         component_ = component;
         add( component );
+        setBorder( BorderFactory.createEmptyBorder() );
     }
 
     public Dimension getMaximumSize() {
