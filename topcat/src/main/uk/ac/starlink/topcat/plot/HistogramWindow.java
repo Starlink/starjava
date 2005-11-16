@@ -88,7 +88,7 @@ public class HistogramWindow extends GraphicsWindow {
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
         Action fromVisibleAction = new BasicAction( "New subset from visible",
-                                                    ResourceIcon.VISIBLE_SUBSET,
+                                                    ResourceIcon.RANGE_SUBSET,
                                                     "Define a new row subset "
                                                   + "containing only currently "
                                                   + "visible bars" ) {

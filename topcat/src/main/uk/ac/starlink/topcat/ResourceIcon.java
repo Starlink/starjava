@@ -99,6 +99,7 @@ public class ResourceIcon implements Icon {
         UNSORT = makeIcon( "arrow_level.gif" ),
         DELETE_COLUMN = makeIcon( "ColumnDelete24.gif" ),
         VISIBLE_SUBSET = makeIcon( "spoints5.gif" ),
+        RANGE_SUBSET = makeIcon( "sbars0.gif" ),
         BLOB_SUBSET = makeIcon( "blob2.gif" ),
         BLOB_SUBSET_END = makeIcon( "ublob3b.gif" ),
         RESIZE = makeIcon( "4way3.gif" ),
