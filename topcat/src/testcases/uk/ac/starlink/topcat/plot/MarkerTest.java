@@ -14,15 +14,15 @@ import junit.framework.TestCase;
 
 public class MarkerTest extends TestCase {
 
-    final static MarkStyleProfile[] PROFILES = new MarkStyleProfile[] {
-        MarkStyleProfiles.spots( "Small spots", 3 ),
-        MarkStyleProfiles.spots( "Large spots", 5 ),
-        MarkStyleProfiles.openShapes( "Small open shapes", 3, Color.BLACK ),
-        MarkStyleProfiles.openShapes( "Large open shapes", 5, null ),
-        MarkStyleProfiles.filledShapes( "Small filled shapes", 3, Color.RED ),
-        MarkStyleProfiles.filledShapes( "Large filled shapes", 5, null ),
-        MarkStyleProfiles.ghosts( "Small ghosts", 2, 0.6f ),
-        MarkStyleProfiles.ghosts( "Large ghosts", 5, 0.3f ),
+    final static StyleSet[] PROFILES = new StyleSet[] {
+        MarkStyles.spots( "Small spots", 3 ),
+        MarkStyles.spots( "Large spots", 5 ),
+        MarkStyles.openShapes( "Small open shapes", 3, Color.BLACK ),
+        MarkStyles.openShapes( "Large open shapes", 5, null ),
+        MarkStyles.filledShapes( "Small filled shapes", 3, Color.RED ),
+        MarkStyles.filledShapes( "Large filled shapes", 5, null ),
+        MarkStyles.ghosts( "Small ghosts", 2, 0.6f ),
+        MarkStyles.ghosts( "Large ghosts", 5, 0.3f ),
     };
 
     public MarkerTest( String name ) {
@@ -31,14 +31,14 @@ public class MarkerTest extends TestCase {
 
     public void testProfiles() {
         checkProfiles( PROFILES );
-        checkProfiles( PlotWindow.MARKER_PROFILES );
+        checkProfiles( PlotWindow.STYLE_SETS );
     }
 
-    public void checkProfiles( MarkStyleProfile[] profiles ) {
+    public void checkProfiles( StyleSet[] profiles ) {
         for ( int i = 0; i < profiles.length; i++ ) {
             for ( int j = 0; j < 16; j++ ) {
-                MarkStyleProfile profile = profiles[ i ];
-                MarkStyle style = profile.getStyle( j );
+                StyleSet profile = profiles[ i ];
+                MarkStyle style = (MarkStyle) profile.getStyle( j );
                 assertEquals( style, profile.getStyle( j ) );
                 for ( int k = 0; k < 16; k++ ) {
                     if ( k == j ) {
@@ -122,7 +122,7 @@ class MarkSamples extends JPanel {
 class ProfileSamples extends JPanel {
     final static int STEP = 16;
     final static int ITEMS = 16;
-    final static MarkStyleProfile[] PROFILES = MarkerTest.PROFILES;
+    final static StyleSet[] PROFILES = MarkerTest.PROFILES;
 
     ProfileSamples() {
         setBackground( Color.WHITE );
@@ -143,8 +143,8 @@ class ProfileSamples extends JPanel {
 
         for ( int i = 0; i < ITEMS; i++ ) {
             for ( int j = 0; j < PROFILES.length; j++ ) {
-                PROFILES[ j ].getStyle( i ).drawMarker( g2, ( i + 1 ) * STEP,
-                                                            ( j + 1 ) * STEP );
+                ((MarkStyle) PROFILES[ j ].getStyle( i ))
+               .drawMarker( g2, ( i + 1 ) * STEP, ( j + 1 ) * STEP );
             }
         }
     }
