@@ -27,6 +27,7 @@ import javax.swing.Icon;
 import javax.swing.ListModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -405,6 +406,20 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     protected void addNewSubsets( BitSet pointsMask ) {
 
+        /* If the subset is empty, just warn the user and return. */
+        if ( pointsMask.cardinality() == 0 ) {
+            JOptionPane.showMessageDialog( this, "Empty subset",
+                                           "Blank Selection",
+                                           JOptionPane.ERROR_MESSAGE );
+            return;                                  
+        }
+  
+        /* Get the name for the new subset(s). */
+        String name = enquireSubsetName();
+        if ( name == null ) {
+            return;
+        }
+
         /* For the given mask, which corresponds to all the plotted points,
          * deconvolve it into individual masks for any of the tables
          * that our point selection is currently dealing with. */
@@ -417,8 +432,7 @@ public abstract class GraphicsWindow extends AuxWindow
             BitSet tmask = tableMasks[ i ].getMask();
 
             /* Try adding a new subset to the table. */
-            String name = tcModel.enquireSubsetName( this );
-            if ( name != null ) {
+            if ( tmask.cardinality() > 0 ) {
                 OptionsListModel subsets = tcModel.getSubsets();
                 int inew = subsets.size();
                 assert tmask.length() <= tcModel.getDataModel().getRowCount();

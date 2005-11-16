@@ -20,7 +20,6 @@ import javax.swing.ButtonModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -572,26 +571,6 @@ public class TopcatModel {
                 sortBy( order, ascending );
             }
         };
-    }
-
-    /**
-     * Pops up a modal dialog to ask the user the name for a new RowSubset.
-     *
-     * @param  parent component, used for positioning
-     * @return  a new subset name entered by the user, or <tt>null</tt> if
-     *          he bailed out
-     */
-    public String enquireSubsetName( Component parent ) {
-        String name = JOptionPane
-                     .showInputDialog( parent, "New subset name",
-                                      "Subset Name Input",
-                                      JOptionPane.QUESTION_MESSAGE );
-        if ( name == null || name.trim().length() == 0 ) {
-            return null;
-        }
-        else {
-            return name;
-        }
     }
 
     /**

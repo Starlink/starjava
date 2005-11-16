@@ -333,6 +333,25 @@ public class AuxWindow extends JFrame {
             == JOptionPane.OK_OPTION;
     }
 
+    /**
+     * Pops up a modeal dialogue to ask the user the name for a new RowSubset.
+     *
+     * @return  a new subset name entered by the user, or <code>null</code>
+     *          if s/he bailed out
+     */
+    public String enquireSubsetName() {
+        String name =
+            JOptionPane.showInputDialog( this, "New subset name",
+                                         "Subset Name Input",
+                                         JOptionPane.QUESTION_MESSAGE );
+        if ( name == null || name.trim().length() == 0 ) {
+            return null;
+        }
+        else {
+            return name;
+        }
+    }
+
     public Image getIconImage() {
         return ResourceIcon.TOPCAT.getImage();
     }

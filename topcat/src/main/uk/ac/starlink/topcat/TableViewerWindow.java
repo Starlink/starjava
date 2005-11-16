@@ -575,8 +575,7 @@ public class TableViewerWindow extends AuxWindow
         public void actionPerformed( ActionEvent evt ) {
             if ( this == includeAct || this == excludeAct ) {
                 boolean exclude = this == excludeAct;
-                String name = tcModel
-                             .enquireSubsetName( getEventWindow( evt ) );
+                String name = enquireSubsetName();
                 if ( name != null ) {
                     BitSet bits = exclude ? getUnselectedRowFlags()
                                           : getSelectedRowFlags();
