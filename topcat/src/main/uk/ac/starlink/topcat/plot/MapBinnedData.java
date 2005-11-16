@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * BinnedData implementation that uses a map.
@@ -12,16 +13,17 @@ import java.util.Map;
  */
 public class MapBinnedData implements BinnedData {
 
-    private final int nset_;
-    private final BinMapper mapper_;
-
     /**
      * Map containing the binned data.
-     * The keys are Longs which, when multiplied by binWidth_, give the bin
-     * central value.  The values are int[] arrays giving the bin occupancy
-     * counts indexed by subset index.
+     * The keys are objects managed by the mapper.  The values are int[] 
+     * arrays giving the bin occupancy counts indexed by subset index.
      */
     private final Map map_;
+
+    private final int nset_;
+    private final BinMapper mapper_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
     /**
      * Constructs a new BinnedData.
@@ -36,6 +38,18 @@ public class MapBinnedData implements BinnedData {
     }
 
     public void submitDatum( double value, boolean[] setFlags ) {
+
+        /* If it's a NaN, this implementation will end up binning it with
+         * zeros, so just ignore it.  You could do something sensible 
+         * with NaNs, but I've encountered terrible trouble with a 
+         * Java 1.4.1 JIT bug (?) which seems to have had something to 
+         * do with NaN processing, so be very careful if you try to
+         * implement that. */
+        if ( Double.isNaN( value ) ) {
+            return;
+        }
+
+        /* Normal value, go ahead. */
         Object key = mapper_.getKey( value );
         if ( key != null ) {
             int[] counts = (int[]) map_.get( key );
@@ -112,12 +126,12 @@ public class MapBinnedData implements BinnedData {
     public interface BinMapper {
 
         /**
-         * Returns the key to use for a given value.  
+         * Returns the key to use for a given value.
          * May return <code>null</code> to indicate that the given value
          * cannot be binned.
          *
          * @param  value  numerical value
-         * @return   object to be used as a key for the bin into which 
+         * @return   object to be used as a key for the bin into which
          *           <code>value</code> falls
          */
         Object getKey( double value );
@@ -139,13 +153,32 @@ public class MapBinnedData implements BinnedData {
     private static class LinearBinMapper implements BinMapper {
         final double width_;
         LinearBinMapper( double binWidth ) {
+            if ( binWidth <= 0 || Double.isNaN( binWidth ) ) {
+                throw new IllegalArgumentException( "Bad width " + binWidth );
+            }
             width_ = binWidth;
         }
         public Object getKey( double value ) {
             return new Long( Math.round( value / width_ ) );
         }
         public double[] getBounds( Object key ) {
-            double centre = ((Long) key).longValue() * width_;
+            final long keyval = ((Long) key).longValue();
+            final double centre = keyval * width_;
+
+            /* This nonsensical looking test is here as debugging code for
+             * a diabolical JVM bug which was plaguing this code at one
+             * stage; it did sometimes log the warning at java 1.4.1 
+             * using the default (client) hotspot compiler.  
+             * I've modified the code elsewhere to do more explicit NaN
+             * testing upstream of this method and it seems to have gone
+             * away now, but leave the test here in case it rears its
+             * ugly head again. */
+            if ( Double.isNaN( centre ) ) {
+                if ( ! Double.isNaN( centre ) ) {
+                    logger_.warning( "Monstrous Java 1.4.1 JVM bug" );
+                }
+            }
+
             return new double[] { centre - width_ * 0.5,
                                   centre + width_ * 0.5 };
         }
@@ -173,5 +206,4 @@ public class MapBinnedData implements BinnedData {
             return new double[] { centre / sqrtFactor_, centre * sqrtFactor_ };
         }
     }
-
 }
