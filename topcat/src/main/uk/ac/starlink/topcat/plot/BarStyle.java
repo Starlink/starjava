@@ -58,6 +58,14 @@ public abstract class BarStyle extends DefaultStyle {
      * Draws a bar for inclusion in a histogram.
      * Parameters are the same as for {@link #drawBarShape},
      * but this style's current colour is applied as well.
+     *
+     * @param   g  graphics context
+     * @param   xlo  lower bound in X direction
+     * @param   xhi  upper gound in X direction
+     * @param   ylo  lower bound in Y direction
+     * @param   yhi  upper bound in Y direction
+     * @param   index of the set being plotted
+     * @param   number of sets being plotted for this bar
      */
     public void drawBar( Graphics g, int xlo, int xhi, int ylo, int yhi,
                          int iseq, int nseq ) {
