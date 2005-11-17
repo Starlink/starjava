@@ -161,7 +161,7 @@ public class MapBinnedData implements BinnedData {
             width_ = binWidth;
         }
         public Comparable getKey( double value ) {
-            return new Long( Math.round( value / width_ ) );
+            return new Long( (long) Math.floor( value / width_ ) );
         }
         public double[] getBounds( Object key ) {
             final long keyval = ((Long) key).longValue();
@@ -181,8 +181,7 @@ public class MapBinnedData implements BinnedData {
                 }
             }
 
-            return new double[] { centre - width_ * 0.5,
-                                  centre + width_ * 0.5 };
+            return new double[] { centre, centre + width_ };
         }
     }
 
