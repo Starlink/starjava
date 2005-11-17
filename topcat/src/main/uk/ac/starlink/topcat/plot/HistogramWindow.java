@@ -172,10 +172,12 @@ public class HistogramWindow extends GraphicsWindow {
     public StyleSet[] getStyleSets() {
         return new StyleSet[] {
             BarStyles.sideFilled( "Filled Adjacent" ),
+            // BarStyles.sideFilled3d( "Bevelled Adjacent" ),
             BarStyles.sideOpen( "Open Adjacent" ),
-            BarStyles.filled( "Filled Overplot" ),
-            BarStyles.open( "Open Overplot" ),
             BarStyles.tops( "Outlines" ),
+            BarStyles.filled( "Filled Overplot" ),
+            BarStyles.filled3d( "Bevelled Overplot" ),
+            BarStyles.open( "Open Overplot" ),
             BarStyles.spikes( "Spikes" ),
         };
     }

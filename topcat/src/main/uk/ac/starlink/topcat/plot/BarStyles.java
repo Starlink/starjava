@@ -88,6 +88,22 @@ public class BarStyles {
     }
 
     /**
+     * Returns a new style set which draws filled 3d full rectangles.
+     *
+     * @param  name  style set name
+     * @return   style set
+     */
+    public static StyleSet filled3d( String name ) {
+        return new ColoredBarStyleSet( name ) {
+            protected void drawBarShape( Graphics g, int x, int y,
+                                         int width, int height,
+                                         int iseq, int nseq ) {
+                g.fill3DRect( x, y, width - 1, height, true );
+            }
+        };
+    }
+
+    /**
      * Returns a new style set which draws open full rectangles.
      *
      * @param  name  style set name
@@ -176,6 +192,24 @@ public class BarStyles {
                                          int iseq, int nseq ) {
                 int gap = ( width - 2 ) / nseq;
                 g.fillRect( x + iseq * gap, y, gap, height );
+            }
+        };
+    }
+
+    /**
+     * Returns a new style set which draws 3d filled rectangles side by
+     * side (one for each subset).
+     *
+     * @param  name  style set name
+     * @return   style set
+     */
+    public static StyleSet sideFilled3d( String name ) {
+        return new ColoredBarStyleSet( name ) {
+            protected void drawBarShape( Graphics g, int x, int y,
+                                         int width, int height,
+                                         int iseq, int nseq ) {
+                int gap = ( width - 2 ) / nseq;
+                g.fill3DRect( x + iseq * gap, y, gap, height, true );
             }
         };
     }
