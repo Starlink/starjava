@@ -4,8 +4,6 @@ import java.awt.Color;
 
 /**
  * Utility class relating to the {@link StyleSet} interface.
- * Provides several factory methods for constructing StyleSets
- * amongst other things.
  *
  * @author   Mark Taylor
  * @since    4 Nov 2005
