@@ -191,7 +191,7 @@ public class BarStyles {
                                          int width, int height,
                                          int iseq, int nseq ) {
                 int gap = ( width - 2 ) / nseq;
-                g.fillRect( x + iseq * gap, y, gap, height );
+                g.fillRect( 1 + x + iseq * gap, y, gap, height );
             }
         };
     }
@@ -209,7 +209,7 @@ public class BarStyles {
                                          int width, int height,
                                          int iseq, int nseq ) {
                 int gap = ( width - 2 ) / nseq;
-                g.fill3DRect( x + iseq * gap, y, gap, height, true );
+                g.fill3DRect( 1 + x + iseq * gap, y, gap, height, true );
             }
         };
     }
@@ -227,7 +227,7 @@ public class BarStyles {
                                          int width, int height,
                                          int iseq, int nseq ) {
                 int gap = ( width - 2 ) / nseq;
-                g.drawRect( x + iseq * gap, y, gap - 1, height );
+                g.drawRect( 1 + x + iseq * gap, y, gap - 1, height );
             }
         };
     }
