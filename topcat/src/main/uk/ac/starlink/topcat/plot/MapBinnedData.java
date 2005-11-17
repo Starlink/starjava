@@ -1,12 +1,14 @@
 package uk.ac.starlink.topcat.plot;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.logging.Logger;
 
 /**
  * BinnedData implementation that uses a map.
+ * Bins are dispensed from the iterator in order. 
  *
  * @author   Mark Taylor
  * @since    14 Nov 2005
@@ -18,7 +20,7 @@ public class MapBinnedData implements BinnedData {
      * The keys are objects managed by the mapper.  The values are int[] 
      * arrays giving the bin occupancy counts indexed by subset index.
      */
-    private final Map map_;
+    private final SortedMap map_;
 
     private final int nset_;
     private final BinMapper mapper_;
@@ -34,7 +36,7 @@ public class MapBinnedData implements BinnedData {
     public MapBinnedData( int nset, BinMapper mapper ) {
         nset_ = nset;
         mapper_ = mapper;
-        map_ = new HashMap();
+        map_ = new TreeMap();
     }
 
     public void submitDatum( double value, boolean[] setFlags ) {
@@ -134,7 +136,7 @@ public class MapBinnedData implements BinnedData {
          * @return   object to be used as a key for the bin into which
          *           <code>value</code> falls
          */
-        Object getKey( double value );
+        Comparable getKey( double value );
 
         /**
          * Returns the upper and lower bounds of the bin corresponding to
@@ -158,7 +160,7 @@ public class MapBinnedData implements BinnedData {
             }
             width_ = binWidth;
         }
-        public Object getKey( double value ) {
+        public Comparable getKey( double value ) {
             return new Long( Math.round( value / width_ ) );
         }
         public double[] getBounds( Object key ) {
@@ -196,7 +198,7 @@ public class MapBinnedData implements BinnedData {
             logFactor_ = Math.log( factor );
             sqrtFactor_ = Math.sqrt( factor );
         }
-        public Object getKey( double value ) {
+        public Comparable getKey( double value ) {
             return value > 0.0 
                  ? new Long( Math.round( Math.log( value ) / logFactor_ ) )
                  : null;
