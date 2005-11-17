@@ -11,22 +11,12 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class PlotState {
 
-    private final int ndim_;
     private boolean valid_;
     private ValueInfo[] axes_;
     private boolean[] logFlags_;
     private boolean[] flipFlags_;
     private boolean grid_;
     private PointSelection pointSelection_;
-
-    /**
-     * Constructor.
-     *
-     * @param  ndim  number of dimensions of the plot
-     */
-    public PlotState( int ndim ) {
-        ndim_ = ndim;
-    }
 
     /**
      * Sets whether this state should be used to attempt a successful plot.
@@ -173,8 +163,7 @@ public class PlotState {
             return false;
         }
         PlotState other = (PlotState) otherObject;
-        return ndim_ == other.ndim_
-            && valid_ == other.valid_
+        return valid_ == other.valid_
             && grid_ == other.grid_
             && Arrays.equals( axes_, other.axes_ )
             && Arrays.equals( logFlags_, other.logFlags_ )
@@ -186,12 +175,15 @@ public class PlotState {
 
     public int hashCode() {
         int code = 555;
-        code = 23 * code + ndim_;
         code = 23 * code + ( valid_ ? 99 : 999 );
         code = 23 * code + ( grid_ ? 11 : 17 );
-        for ( int i = 0; i < ndim_; i++ ) {
+        for ( int i = 0; i < axes_.length; i++ ) {
             code = 23 * code + axes_[ i ].hashCode();
+        }
+        for ( int i = 0; i < logFlags_.length; i++ ) {
             code = 23 * code + ( logFlags_[ i ] ? 1 : 2 );
+        }
+        for ( int i = 0; i < flipFlags_.length; i++ ) {
             code = 23 * code + ( flipFlags_[ i ] ? 1 : 2 );
         }
         code = 23 * code + ( pointSelection_ == null 
