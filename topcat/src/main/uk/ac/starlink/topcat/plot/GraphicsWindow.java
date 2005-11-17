@@ -276,6 +276,21 @@ public abstract class GraphicsWindow extends AuxWindow
     }
 
     /**
+     * Constructs a new PlotState.  This is called by {@link #getPlotState}
+     * prior to the PlotState configuration done there.  Thus if a 
+     * subclass wants to provide and configure a particular state
+     * (for instance one of a specialised subclass of PlotState) it can
+     * override this method to do so.
+     * The default implementation just invokes <code>new PlotState()</code>.
+     *
+     * @return   returns a new PlotState object ready for generic
+     *           configuration
+     */
+    protected PlotState createPlotState() {
+        return new PlotState();
+    }
+
+    /**
      * Returns an object which characterises the choices the user has
      * made in the GUI to indicate the plot that s/he wants to see.
      *
@@ -284,7 +299,7 @@ public abstract class GraphicsWindow extends AuxWindow
     public PlotState getPlotState() {
 
         /* Create a plot state as delegated to the current instance. */
-        PlotState state = new PlotState( ndim_ );
+        PlotState state = createPlotState();
 
         /* Can't plot, won't plot. */
         if ( ! pointSelectors_.getMainSelector().isValid() ) {
