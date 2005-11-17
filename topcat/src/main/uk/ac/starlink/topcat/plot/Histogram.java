@@ -114,11 +114,12 @@ public class Histogram extends SurfacePlot {
 
         /* Get the plotting styles to use. */
         boolean xflip = state.getFlipFlags()[ 0 ];
+        double dylo = state.getLogFlags()[ 1 ] ? 1.0 : 0.0;
         int nset = getPointSelection().getSubsets().length;
         Style[] styles = getPointSelection().getStyles();
 
         /* Work out the y position in graphics space of the plot base line. */
-        int iylo = surface.dataToGraphics( 1.0, 0.0, false ).y;
+        int iylo = surface.dataToGraphics( 1.0, dylo, false ).y;
 
         /* Draw bars.  The loops are this way round so that later subsets
          * get plotted in their entirety after earlier ones, which 
@@ -142,9 +143,9 @@ public class Histogram extends SurfacePlot {
                 double dxhi = bin.getHighBound();
                 double dxmid = dxlo + 0.5 * dxhi;
                 int ixlo = surface.dataToGraphics( xflip ? dxhi : dxlo,
-                                                   0.0, false ).x;
+                                                   dylo, false ).x;
                 int ixhi = surface.dataToGraphics( xflip ? dxlo : dxhi,
-                                                   0.0, false ).x;
+                                                   dylo, false ).x;
                 int iyhi = surface.dataToGraphics( dxmid, dcount, false ).y;
 
                 /* Draw the trailing edge of the last bar if necessary. */

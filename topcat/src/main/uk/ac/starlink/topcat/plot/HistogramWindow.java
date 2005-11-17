@@ -15,6 +15,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 
 /**
  * GraphicsWindow which presents one-dimensional data as a histogram.
@@ -26,6 +27,7 @@ public class HistogramWindow extends GraphicsWindow {
 
     private final Histogram plot_;
     private final Action[] validityActions_;
+    private final ToggleButtonModel yLogModel_;
 
     /** Description of vertical plot axis. */
     private final static ValueInfo COUNT_INFO = 
@@ -66,6 +68,12 @@ public class HistogramWindow extends GraphicsWindow {
                                "Rescale the Y axis to fit all data",
                                false, true );
 
+        /* Model for Y log axis selection.  Possibly questionable for a 
+         * histogram?  But someone might want it. */
+        yLogModel_ = new ToggleButtonModel( "Log Y Axis", ResourceIcon.YLOG,
+                                           "Logarithmic scale for the Y axis" );
+        yLogModel_.addActionListener( getReplotAction() );
+
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
@@ -82,6 +90,7 @@ public class HistogramWindow extends GraphicsWindow {
         axisMenu.add( getFlipModels()[ 0 ].createMenuItem() );
         axisMenu.addSeparator();
         axisMenu.add( getLogModels()[ 0 ].createMenuItem() );
+        axisMenu.add( yLogModel_.createMenuItem() );
         getJMenuBar().add( axisMenu );
 
         /* Construct a new menu for subset operations. */
@@ -185,17 +194,33 @@ public class HistogramWindow extends GraphicsWindow {
     public PlotState getPlotState() {
         PlotState state = super.getPlotState();
         boolean valid = state != null && state.getValid();
+
+        /* The state obtained from the superclass implementation has
+         * purely 1-d attributes, since the histogram data model 1-d plot.
+         * However the plot itself is on a 2-d plotting surface, 
+         * so modify some of the state to contain axis information here. */
         if ( valid ) {
-            state.setAxes( new ValueInfo[] { state.getAxes()[ 0 ],
-                                             COUNT_INFO } );
-            state.setLogFlags( new boolean[] { state.getLogFlags()[ 0 ],
-                                               false } );
-            state.setFlipFlags( new boolean[] { state.getFlipFlags()[ 0 ],
-                                                false } );
+            state.setAxes( new ValueInfo[] {
+                state.getAxes()[ 0 ],
+                COUNT_INFO
+            } );
+            state.setLogFlags( new boolean[] {
+                state.getLogFlags()[ 0 ],
+                yLogModel_.isSelected(),
+            } );
+            state.setFlipFlags( new boolean[] {
+                state.getFlipFlags()[ 0 ],
+                false
+            } );
         }
+
+        /* Configure some actions to be enabled/disabled according to 
+         * whether the plot state is valid. */
         for ( int i = 0; i < validityActions_.length; i++ ) {
             validityActions_[ i ].setEnabled( valid );
         }
+
+        /* Return the state. */
         return state;
     }
 
