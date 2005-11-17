@@ -175,8 +175,8 @@ public class HistogramWindow extends GraphicsWindow {
             BarStyles.sideOpen( "Open Adjacent" ),
             BarStyles.filled( "Filled Overplot" ),
             BarStyles.open( "Open Overplot" ),
+            BarStyles.tops( "Outlines" ),
             BarStyles.spikes( "Spikes" ),
-            BarStyles.tops( "Tops" ),
         };
     }
 
