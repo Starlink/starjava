@@ -120,6 +120,8 @@ public abstract class BarStyle extends DefaultStyle {
     }
 
     public void drawLegend( Graphics g, int x, int y ) {
+        drawEdge( g, x - 4, y - 6, y + 6, 0, 3 );
         drawBar( g, x - 4, x + 4, y - 6, y + 6, 0, 3 );
+        drawEdge( g, x + 4, y - 6, y + 6, 0, 3 );
     }
 }
