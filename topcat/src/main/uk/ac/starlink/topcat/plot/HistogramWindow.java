@@ -96,7 +96,28 @@ public class HistogramWindow extends GraphicsWindow {
                 subsetFromVisible();
             }
         };
+        subsetMenu.add( fromVisibleAction );
         getJMenuBar().add( subsetMenu );
+
+        /* Construct a new menu for plot style selection. */
+        JMenu styleMenu = new JMenu( "Bar Style" );
+        styleMenu.setMnemonic( KeyEvent.VK_B );
+        StyleSet[] styleSets = getStyleSets();
+        for ( int i = 0; i < styleSets.length; i++ ) {
+            final StyleSet styleSet = styleSets[ i ];
+            String name = styleSet.getName();
+            Icon icon = BarStyles.getIcon( styleSet );
+            Action stylesAct = new BasicAction( name, icon,
+                                                "Set bar plotting style to "
+                                              + name ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setStyles( styleSet );
+                    replot();
+                }
+            };
+            styleMenu.add( stylesAct );
+        }
+        getJMenuBar().add( styleMenu );
 
         /* Add actions to the toolbar. */
         getToolBar().add( rescaleActionXY );
@@ -145,7 +166,18 @@ public class HistogramWindow extends GraphicsWindow {
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
-        return BarStyles.filled( "Filled" );
+        return BarStyles.sideFilled( "Filled Adjacent" );
+    }
+
+    public StyleSet[] getStyleSets() {
+        return new StyleSet[] {
+            BarStyles.sideFilled( "Filled Adjacent" ),
+            BarStyles.sideOpen( "Open Adjacent" ),
+            BarStyles.filled( "Filled Overplot" ),
+            BarStyles.open( "Open Overplot" ),
+            BarStyles.spikes( "Spikes" ),
+            BarStyles.tops( "Tops" ),
+        };
     }
 
     public PlotState getPlotState() {
