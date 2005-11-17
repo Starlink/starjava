@@ -11,14 +11,13 @@ import java.awt.Color;
 public class Styles {
 
     private static final Color[] TC1_COLORS = new Color[] {
-        Color.red,
-        Color.blue.brighter(),
+        new Color( 0xf00000 ),
+        new Color( 0x0000f0 ),
         Color.green.darker(),
         Color.gray,
         Color.magenta,
         Color.cyan.darker(),
         Color.orange,
-        Color.blue.darker(),
         Color.pink,
         Color.yellow,
         Color.black,
