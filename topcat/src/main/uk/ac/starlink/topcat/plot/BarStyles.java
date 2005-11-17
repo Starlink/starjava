@@ -82,7 +82,7 @@ public class BarStyles {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
-                g.fillRect( x, y, width - 1, height );
+                g.fillRect( x, y, Math.max( width - 1, 1 ), height );
             }
         };
     }
@@ -98,7 +98,7 @@ public class BarStyles {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
-                g.fill3DRect( x, y, width - 1, height, true );
+                g.fill3DRect( x, y, Math.max( width - 1, 1 ), height, true );
             }
         };
     }
@@ -114,7 +114,7 @@ public class BarStyles {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
-                g.drawRect( x, y, width - 1, height );
+                g.drawRect( x, y, Math.max( width - 1, 1 ), height );
             }
         };
     }
@@ -191,7 +191,7 @@ public class BarStyles {
                                          int width, int height,
                                          int iseq, int nseq ) {
                 int gap = ( width - 2 ) / nseq;
-                g.fillRect( 1 + x + iseq * gap, y, gap, height );
+                g.fillRect( 1 + x + iseq * gap, y, Math.max( gap, 1 ), height );
             }
         };
     }
@@ -209,7 +209,8 @@ public class BarStyles {
                                          int width, int height,
                                          int iseq, int nseq ) {
                 int gap = ( width - 2 ) / nseq;
-                g.fill3DRect( 1 + x + iseq * gap, y, gap, height, true );
+                g.fill3DRect( 1 + x + iseq * gap, y,
+                              Math.max( gap, 1 ), height, true );
             }
         };
     }
@@ -227,7 +228,8 @@ public class BarStyles {
                                          int width, int height,
                                          int iseq, int nseq ) {
                 int gap = ( width - 2 ) / nseq;
-                g.drawRect( 1 + x + iseq * gap, y, gap - 1, height );
+                g.drawRect( 1 + x + iseq * gap, y,
+                            Math.max( gap - 1, 1 ), height );
             }
         };
     }
