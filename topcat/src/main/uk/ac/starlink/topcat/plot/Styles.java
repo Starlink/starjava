@@ -10,7 +10,7 @@ import java.awt.Color;
  */
 public class Styles {
 
-    private static final Color[] COLORS = new Color[] {
+    private static final Color[] TC1_COLORS = new Color[] {
         Color.red,
         Color.blue.brighter(),
         Color.green.darker(),
@@ -23,6 +23,8 @@ public class Styles {
         Color.yellow,
         Color.black,
     };
+
+    private static final Color[] COLORS = false ? PlotBox._colors : TC1_COLORS;
 
     /**
      * Returns a colour related to a given index.  The same index always
