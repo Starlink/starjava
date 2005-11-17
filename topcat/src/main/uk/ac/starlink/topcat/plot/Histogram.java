@@ -117,28 +117,53 @@ public class Histogram extends SurfacePlot {
         int nset = getPointSelection().getSubsets().length;
         Style[] styles = getPointSelection().getStyles();
 
-        /* Draw bars. */
-        for ( Iterator it = getBinnedData().getBinIterator(); it.hasNext(); ) {
+        /* Work out the y position in graphics space of the plot base line. */
+        int iylo = surface.dataToGraphics( 1.0, 0.0, false ).y;
 
-            /* Work out the X bounds of the rectangle. */
-            BinnedData.Bin bin = (BinnedData.Bin) it.next();
-            double dxlo = bin.getLowBound();
-            double dxhi = bin.getHighBound();
-            double dxmid = dxlo + 0.5 * dxhi;
-            int ixlo =
-                surface.dataToGraphics( xflip ? dxhi : dxlo, 0.0, false ).x;
-            int ixhi =
-                surface.dataToGraphics( xflip ? dxlo : dxhi, 0.0, false ).x;
-            int iylo = surface.dataToGraphics( dxmid, 0.0, false ).y;
+        /* Draw bars.  The loops are this way round so that later subsets
+         * get plotted in their entirety after earlier ones, which 
+         * (for some plotting styles) is necessary for the correct visual
+         * effect.  Although this way round is probably less efficient
+         * than the other way round, the actual plot is unlikely to be
+         * a computational bottleneck. */
+        for ( int iset = 0; iset < nset; iset++ ) {
+            BarStyle style = (BarStyle) styles[ iset ];
+            int lastIxhi = Integer.MIN_VALUE;
+            int lastIyhi = 0;
+            for ( Iterator it = getBinnedData().getBinIterator();
+                  it.hasNext(); ) {
 
-            /* For each subset work out the height of the bar. */
-            for ( int iset = 0; iset < nset; iset++ ) {
-                int count = bin.getCount( iset );
-                int iyhi =
-                    surface.dataToGraphics( dxmid, (double) count, false ).y;
-                ((BarStyle) styles[ iset ])
-               .drawBar( g, ixlo, ixhi, iyhi, iylo, iset, nset );
+                /* Get the bin and its value. */
+                BinnedData.Bin bin = (BinnedData.Bin) it.next();
+                double dcount = (double) bin.getCount( iset );
+
+                /* Work out the bar geometry. */
+                double dxlo = bin.getLowBound();
+                double dxhi = bin.getHighBound();
+                double dxmid = dxlo + 0.5 * dxhi;
+                int ixlo = surface.dataToGraphics( xflip ? dxhi : dxlo,
+                                                   0.0, false ).x;
+                int ixhi = surface.dataToGraphics( xflip ? dxlo : dxhi,
+                                                   0.0, false ).x;
+                int iyhi = surface.dataToGraphics( dxmid, dcount, false ).y;
+
+                /* Draw the trailing edge of the last bar if necessary. */
+                if ( lastIxhi != ixlo ) {
+                    style.drawEdge( g, lastIxhi, lastIyhi, iylo, iset, nset );
+                    lastIyhi = iylo;
+                }
+
+                /* Draw the leading edge of the current bar. */
+                style.drawEdge( g, ixlo, lastIyhi, iyhi, iset, nset );
+                lastIxhi = ixhi;
+                lastIyhi = iyhi;
+
+                /* Plot the bar. */
+                style.drawBar( g, ixlo, ixhi, iyhi, iylo, iset, nset );
             }
+
+            /* Draw trailing edge of the final bar. */
+            style.drawEdge( g, lastIxhi, lastIyhi, iylo, iset, nset );
         }
     }
 

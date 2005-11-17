@@ -39,6 +39,16 @@ public class BarStyles {
                                               int width, int height, 
                                               int iseq, int nseq );
 
+        /**
+         * Draws the shape of an edge.
+         *
+         * <p>Arguments are the same as {@link BarStyle#drawEdgeShape}
+         */
+        protected void drawEdgeShape( Graphics g, int x, int y1, int y2,
+                                      int iseq, int nseq ) {
+            // no action.
+        }
+
         public String getName() {
             return name_;
         }
@@ -51,6 +61,11 @@ public class BarStyles {
                     ColoredBarStyleSet.this.drawBarShape( g, x, y,
                                                           width, height,
                                                           iseq, nseq );
+                }
+                protected void drawEdgeShape( Graphics g, int x, int y1, int y2,
+                                              int iseq, int nseq ) {
+                    ColoredBarStyleSet.this.drawEdgeShape( g, x, y1, y2,
+                                                           iseq, nseq );
                 }
             };
         }
@@ -122,6 +137,10 @@ public class BarStyles {
                                          int iseq, int nseq ) {
                 g.drawLine( x, y, x + width, y );
             }
+            protected void drawEdgeShape( Graphics g, int x, int y1, int y2,
+                                          int iseq, int nseq ) {
+                g.drawLine( x, y1, x, y2 );
+            }
         };
     }
 
@@ -185,10 +204,10 @@ public class BarStyles {
      */
     public static Icon getIcon( final StyleSet styleSet ) {
         final int height = 16;
-        final double[][] data = { { 4, 7, 12, 15, 9 },
-                                  { 2, 6, 8, 9, 3 } };
+        final double[][] data = { { 0, 4, 7, 12, 15, 9, 0 },
+                                  { 0, 2, 6,  8,  9, 3, 0 } };
         final int nSet = data.length;
-        final int nBar = data[ 0 ].length;
+        final int nBar = data[ 0 ].length - 2;
         final int barWidth = nSet * 5;
         final int xPad = barWidth;
         return new Icon() {
@@ -200,18 +219,25 @@ public class BarStyles {
             }
             public void paintIcon( Component c, Graphics g,
                                    int xoff, int yoff ) {
-                for ( int ibar = 0; ibar < nBar; ibar++ ) {
-                    int x = barWidth * ibar;
-                    for ( int iset = 0; iset < nSet; iset++ ) {
-                        int datum = (int) data[ iset ][ ibar ];
+                for ( int iset = 0; iset < nSet; iset++ ) {
+                    for ( int ibar = 0; ibar < nBar; ibar++ ) {
+                        int x = barWidth * ibar;
+                        int lastDatum = (int) data[ iset ][ ibar ];
+                        int datum = (int) data[ iset ][ ibar + 1 ];
+                        int nextDatum = (int) data[ iset ][ ibar + 2 ];
                         int y = height - datum;
-                        int barHeight = datum;
                         BarStyle style = (BarStyle) styleSet.getStyle( iset );
                         int xlo = xPad + ibar * barWidth;
                         int xhi = xlo + barWidth;
                         int ylo = height - datum;
+                        int lastYlo = height - lastDatum;
+                        int nextYlo = height - nextDatum;
                         int yhi = height;
+                        if ( ibar == 0 ) {
+                            style.drawEdge( g, xlo, ylo, lastYlo, iset, nSet );
+                        }
                         style.drawBar( g, xlo, xhi, ylo, yhi, iset, nSet );
+                        style.drawEdge( g, xhi, ylo, nextYlo, iset, nSet );
                     }
                 }
             }
