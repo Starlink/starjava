@@ -1,6 +1,9 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
+import javax.swing.Icon;
 
 /**
  * Provides several factory methods for constructing StyleSets
@@ -81,6 +84,136 @@ public class BarStyles {
                                          int width, int height,
                                          int iseq, int nseq ) {
                 g.drawRect( x, y, width - 1, height );
+            }
+        };
+    }
+
+    /**
+     * Returns a new style set which draws the tops of bars using XOR logic.
+     * This is pretty ugly for more than one set.
+     *
+     * @param  name  style set name
+     * @return   style set
+     */
+    public static StyleSet xorTops( String name ) {
+        return new ColoredBarStyleSet( name ) {
+            protected void drawBarShape( Graphics g, int x, int y,
+                                         int width, int height,
+                                         int iseq, int nseq ) {
+                g.setXORMode( Color.white ) ;
+                g.drawLine( x + iseq, y + height, x + iseq, y );
+                g.drawLine( x + iseq + width, y + height, x + iseq + width, y );
+                g.setPaintMode();
+                g.drawLine( x + iseq + 1, y, x + iseq + width - 1, y );
+            }
+        };
+    }
+
+    /**
+     * Returns a new style set which draws only the tops of bars.
+     *
+     * @param  name  style set name
+     * @return   style set
+     */
+    public static StyleSet tops( String name ) {
+        return new ColoredBarStyleSet( name ) {
+            protected void drawBarShape( Graphics g, int x, int y,
+                                         int width, int height,
+                                         int iseq, int nseq ) {
+                g.drawLine( x, y, x + width, y );
+            }
+        };
+    }
+
+    /**
+     * Returns a new style set which draws a 1-d spike for each subset.
+     *
+     * @param  name  style set name
+     * @return   style set
+     */
+    public static StyleSet spikes( String name ) {
+        return new ColoredBarStyleSet( name ) {
+            protected void drawBarShape( Graphics g, int x, int y,
+                                         int width, int height,
+                                         int iseq, int nseq ) {
+                x += iseq * ( width / nseq ) + 
+                     ( ( nseq - 1 ) * width / nseq ) / 2;
+                g.drawLine( x, y, x, y + height );
+            }
+        };
+    }
+
+    /**
+     * Returns a new style set which draws filled rectangles side by
+     * side (one for each subset).
+     *
+     * @param  name  style set name
+     * @return   style set
+     */
+    public static StyleSet sideFilled( String name ) {
+        return new ColoredBarStyleSet( name ) {
+            protected void drawBarShape( Graphics g, int x, int y,
+                                         int width, int height,
+                                         int iseq, int nseq ) {
+                int gap = ( width - 2 ) / nseq;
+                g.fillRect( x + iseq * gap, y, gap, height );
+            }
+        };
+    }
+
+    /**
+     * Returns a new style set which draws open rectangles side by
+     * side (one for each subset).
+     *
+     * @param  name  style set name
+     * @return   style set
+     */
+    public static StyleSet sideOpen( String name ) {
+        return new ColoredBarStyleSet( name ) {
+            protected void drawBarShape( Graphics g, int x, int y,
+                                         int width, int height,
+                                         int iseq, int nseq ) {
+                int gap = ( width - 2 ) / nseq;
+                g.drawRect( x + iseq * gap, y, gap - 1, height );
+            }
+        };
+    }
+
+    /**
+     * Generates an icon based on a StyleSet which displensed BarStyles.
+     * This icon is suitable for putting in a menu.
+     */
+    public static Icon getIcon( final StyleSet styleSet ) {
+        final int height = 16;
+        final double[][] data = { { 4, 7, 12, 15, 9 },
+                                  { 2, 6, 8, 9, 3 } };
+        final int nSet = data.length;
+        final int nBar = data[ 0 ].length;
+        final int barWidth = nSet * 5;
+        final int xPad = barWidth;
+        return new Icon() {
+            public int getIconHeight() {
+                return height;
+            }
+            public int getIconWidth() {
+                return nBar * barWidth + xPad;
+            }
+            public void paintIcon( Component c, Graphics g,
+                                   int xoff, int yoff ) {
+                for ( int ibar = 0; ibar < nBar; ibar++ ) {
+                    int x = barWidth * ibar;
+                    for ( int iset = 0; iset < nSet; iset++ ) {
+                        int datum = (int) data[ iset ][ ibar ];
+                        int y = height - datum;
+                        int barHeight = datum;
+                        BarStyle style = (BarStyle) styleSet.getStyle( iset );
+                        int xlo = xPad + ibar * barWidth;
+                        int xhi = xlo + barWidth;
+                        int ylo = height - datum;
+                        int yhi = height;
+                        style.drawBar( g, xlo, xhi, ylo, yhi, iset, nSet );
+                    }
+                }
             }
         };
     }
