@@ -19,8 +19,6 @@ public class Histogram extends SurfacePlot {
     private Points lastPoints_;
     private PointSelection lastPointSelection_;
 
-    private static final double LOG10 = Math.log( 1e1 );
-
     /**
      * Constructs a new Histogram.
      *
@@ -168,45 +166,6 @@ public class Histogram extends SurfacePlot {
         }
     }
 
-    private double[] getIncludedXRange() {
-        boolean xlog = getState().getLogFlags()[ 0 ];
-        double xlo = Double.POSITIVE_INFINITY;
-        double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
-
-        int nok = 0;
-        Points points = getPoints();
-        int np = points.getCount();
-        RowSubset[] rsets = getPointSelection().getSubsets();
-        int nset = rsets.length;
-        double[] coords = new double[ 1 ];
-        for ( int ip = 0; ip < np; ip++ ) {
-            long lp = (long) ip;
-            boolean use = false;
-            for ( int is = 0; is < nset; is++ ) {
-                if ( rsets[ is ].isIncluded( lp ) ) {
-                    use = true;
-                    break;
-                }
-            }
-            if ( use ) {
-                points.getCoords( ip, coords );
-                double xp = coords[ 0 ];
-                if ( ! Double.isNaN( xp ) && ! Double.isInfinite( xp ) &&
-                     ( ! xlog || xp > 0.0 ) ) {
-                    nok++;
-                    if ( xp < xlo ) {
-                        xlo = xp;
-                    }
-                    if ( xp > xhi ) {
-                        xhi = xp;
-                    }
-                }
-            }
-        }
-        return nok > 0 ? new double[] { xlo, xhi }
-                       : new double[] { 0.0, 1.0 };
-    }
-
     /**
      * Returns the bounds of the plotting window in data space.
      * The first two elements of the results are the numerically lower bounds
@@ -318,7 +277,8 @@ public class Histogram extends SurfacePlot {
             rescale();
         }
         else if ( scaleX ) {
-            double[] xrange = getIncludedXRange();
+            double[] xrange =
+                HistogramWindow.getXRange( getState(), getPoints() );
             getSurface().setDataRange( xrange[ 0 ], Double.NaN,
                                        xrange[ 1 ], Double.NaN );
         }
@@ -329,6 +289,14 @@ public class Histogram extends SurfacePlot {
         }
         else {
             assert false : "Not much of a rescale";
+        }
+    }
+
+    public void scaleYFactor( double factor ) {
+        double[] bounds = getSurfaceBounds();
+        if ( ! getState().getLogFlags()[ 1 ] ) {
+            getSurface().setDataRange( Double.NaN, bounds[ 1 ] * factor,
+                                       Double.NaN, bounds[ 3 ] * factor );
         }
     }
 
@@ -371,48 +339,12 @@ public class Histogram extends SurfacePlot {
      * @return   empty binned data object
      */
     private BinnedData newBinnedData( int nset ) {
-        double[] xrange = getIncludedXRange();
-        boolean log = getState().getLogFlags()[ 0 ];
-        if ( log ) {
-            double factor =
-                Math.exp( Math.log( xrange[ 1 ] / xrange[ 0 ] ) / 20 );
-            return MapBinnedData.createLogBinnedData( nset, factor );
-        }
-        else {
-            double width = roundNumber( ( xrange[ 1 ] - xrange[ 0 ] ) / 20 );
-            return MapBinnedData.createLinearBinnedData( nset, width );
-        }
-    }
-
-    /**
-     * Returns a round number near to a given value.
-     *
-     * @param   num   input
-     * @return  output
-     */
-    private static double roundNumber( double num ) {
-        double exponent = Math.floor( Math.log( num ) / LOG10 );
-        double multiplier = Math.pow( 10, exponent );
-        double mantissa = num / multiplier;
-        assert mantissa >= 0.999 && mantissa <= 10.001
-             : mantissa + " * " + multiplier + " = " + num;
-        double roundedMantissa;
-        if ( mantissa < 1.5 ) {
-            roundedMantissa = 1;
-        }
-        else if ( mantissa < 2.2 ) {
-            roundedMantissa = 2;
-        }
-        else if ( mantissa < 3.5 ) {
-            roundedMantissa = 2.5;
-        }
-        else if ( mantissa < 7.5 ) {
-            roundedMantissa = 5;
-        }
-        else {
-            roundedMantissa = 10;
-        }
-        return roundedMantissa * multiplier;
+        HistogramPlotState state = (HistogramPlotState) getState();
+        boolean log = state.getLogFlags()[ 0 ];
+        double binWidth = state.getBinWidth();
+        return state.getLogFlags()[ 0 ]
+             ? MapBinnedData.createLogBinnedData( nset, binWidth )
+             : MapBinnedData.createLinearBinnedData( nset, binWidth );
     }
 
     /**
