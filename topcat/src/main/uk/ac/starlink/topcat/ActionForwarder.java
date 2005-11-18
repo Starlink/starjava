@@ -5,15 +5,19 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * ActionListener implementation which forwards all ActionEvents to a list
  * of clients.
+ * It also implements ChangeListener, and any ChangeEvents it receives
+ * will be turned into ActionEvents and forwarded as well.
  *
  * @author   Mark Taylor 
  * @since    28 Oct 2005
  */
-public class ActionForwarder implements ActionListener {
+public class ActionForwarder implements ActionListener, ChangeListener {
 
     private final List listeners_ = new ArrayList();
 
@@ -40,5 +44,9 @@ public class ActionForwarder implements ActionListener {
         for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
             ((ActionListener) it.next()).actionPerformed( evt );
         }
+    }
+
+    public void stateChanged( ChangeEvent evt ) {
+        actionPerformed( new ActionEvent( evt.getSource(), 0, "Change" ) );
     }
 }
