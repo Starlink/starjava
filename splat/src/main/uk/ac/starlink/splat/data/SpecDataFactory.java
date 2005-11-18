@@ -898,7 +898,7 @@ public class SpecDataFactory
     //  Types of reprocessing of 2D data files. The default is VECTORIZE
     //  which implementations should have already performed.
     public final static int COLLAPSE = 0;
-    public final static int EXPAND = 1;
+    public final static int EXTRACT = 1;
     public final static int VECTORIZE = 2;
 
     /**
@@ -918,7 +918,7 @@ public class SpecDataFactory
      * the natural format for all spectral data (this may change).
      *
      * @param specData the SpecData object to reprocess.
-     * @param method the method to use when reprocessing, COLLAPSE, EXPAND or
+     * @param method the method to use when reprocessing, COLLAPSE, EXTRACT or
      *               VECTORIZE.
      * @param dispax the index of the dispersion axis, set to null for
      *               automatic choice.
@@ -960,8 +960,8 @@ public class SpecDataFactory
             if ( method == COLLAPSE ) {
                 results = collapseSpecData( specData, specDims );
             }
-            else if ( method == EXPAND )  {
-                results = expandSpecData( specData, specDims );
+            else if ( method == EXTRACT )  {
+                results = extractSpecData( specData, specDims );
             }
         }
         return results;
@@ -1006,7 +1006,7 @@ public class SpecDataFactory
      * Create a set of new 1D SpecData instances by extracting each line of a
      * 2D or 3D implementation along the dispersion axis.
      */
-    private SpecData[] expandSpecData( SpecData specData, SpecDims specDims )
+    private SpecData[] extractSpecData( SpecData specData, SpecDims specDims )
         throws SplatException
     {
         SpecData[] results = null;

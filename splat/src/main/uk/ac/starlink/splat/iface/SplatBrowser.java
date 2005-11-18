@@ -297,10 +297,17 @@ public class SplatBrowser
     protected int saveTabletypeIndex = 0;
 
     /**
-     * The action to take with 2 and 3D data. Can be COLLAPSE, EXPAND or
+     * The action to take with 2 and 3D data. Can be COLLAPSE, EXTRACT or
      * VECTORIZE.
      */
     protected int ndAction = SpecDataFactory.COLLAPSE;
+
+    /**
+     * Full descriptions of COLLAPSE, EXTRACT and VECTORIZE methods.
+     */
+    private static String collapseDescription = "collapse";
+    private static String extractDescription = "extract all spectra";
+    private static String vectorizeDescription = "open whole as 1D";
 
     /**
      * The dispersion axis of any 2/3D data encountered. By default SPLAT will
@@ -310,7 +317,7 @@ public class SplatBrowser
 
     /**
      * The select axis of any 3D data encountered, this is the axis that is
-     * stepped along first, when either collapsing or expanding. By default
+     * stepped along first, when either collapsing or extracting. By default
      * SPLAT will choose this axis, but it can be specified.
      */
     protected Integer selectAxis = null;
@@ -367,12 +374,12 @@ public class SplatBrowser
      *  @param type the type of spectra to be opened, if null then the SPLAT
      *              defaults based on the file extensions is used.
      *  @param ndAction the action to take when 2 or 3D data are encountered.
-     *                  This can be one of the strings "collapse", "expand" or
-     *                  "vectorize".
-     *  @param dispAxis the dispersion axis to use during collapse/expand
+     *                  This can be one of the strings "collapse", "extract" or
+     *                  "vectorize" or a unique contraction.
+     *  @param dispAxis the dispersion axis to use during collapse/extract
      *                  if any of the spectra are 2/3D. If null then an
      *                  axis will be selected automatically.
-     *  @param selectAxis the axis to step along during collapse/expand,
+     *  @param selectAxis the axis to step along during collapse/extract,
      *                    if any of the spectra are 3D. If null then an axis
      *                    will be selected automatically.
      */
@@ -452,21 +459,26 @@ public class SplatBrowser
 
     /**
      * Set the ndAction value to match a string description. Strings are
-     * case-insensitive versions of "collapse", "expand" and "vectorize".
-     * These can be truncated, as long as they remain unique.
+     * case-insensitive versions of "collapse", "extract" and "vectorize"
+     * or the fuller descriptions given by the collapseDescription,
+     * extractDescription or vectorizeDescription members.
+     * These can all be truncated, as long as they remain unique.
      */
     private void setNDAction( String ndAction )
     {
         this.ndAction = SpecDataFactory.COLLAPSE;
         if ( ndAction != null ) {
             String caselessAction = ndAction.toLowerCase();
-            if ( "collapse".startsWith( caselessAction ) ) {
+            if ( "collapse".startsWith( caselessAction ) ||
+                 collapseDescription.startsWith( caselessAction ) ) {
                 this.ndAction = SpecDataFactory.COLLAPSE;
             }
-            else if ( "expand".startsWith( caselessAction ) ) {
-                this.ndAction = SpecDataFactory.EXPAND;
+            else if ( "extract".startsWith( caselessAction ) ||
+                      extractDescription.startsWith( caselessAction ) ) {
+                this.ndAction = SpecDataFactory.EXTRACT;
             }
-            else if ( "vectorize".startsWith( caselessAction ) ) {
+            else if ( "vectorize".startsWith( caselessAction ) || 
+                      vectorizeDescription.startsWith( caselessAction ) ) {
                 this.ndAction = SpecDataFactory.VECTORIZE;
             }
         }
@@ -1243,11 +1255,10 @@ public class SplatBrowser
 
         //  Method to handle 2/3D data.
         ndActionBox = new JComboBox();
-        ndActionBox.addItem( "collapse" );
-        ndActionBox.addItem( "expand" );
-        ndActionBox.addItem( "vectorize" );
-        ndActionBox.setToolTipText
-            ( "Choose a method for handling 2/3D data" );
+        ndActionBox.addItem( collapseDescription );
+        ndActionBox.addItem( extractDescription );
+        ndActionBox.addItem( vectorizeDescription );
+        ndActionBox.setToolTipText( "Choose a method for handling 2/3D data" );
 
         ndLayouter.add( "Action:", false );
         ndLayouter.add( ndActionBox, true );
@@ -1711,7 +1722,7 @@ public class SplatBrowser
         SpecList list = SpecList.getInstance();
         int top = list.specCount();
 
-        //  2D spectra may need reprocessing by collapsing or expanding into
+        //  2D spectra may need reprocessing by collapsing or extracting
         //  many spectra. This is performed here. If any of ndAction, dispAxis
         //  or selectAxis are null then defaults will be used.
         SpecData[] moreSpectra = null;

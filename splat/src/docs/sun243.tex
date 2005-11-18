@@ -763,7 +763,7 @@ in the following figure:
   spectra in a single plot. Use this when you want to compare spectra.
 
   \item[\inline{animate}] Open a window to control the animation of some
-  of the spectra. Using this window you can also create a JPEG or PNG 
+  of the spectra. Using this window you can also create a JPEG or PNG
   sequence of the animation.
 
   \item[\inline{table}] View and possibly modify the coordinates and
@@ -991,12 +991,12 @@ the display area.\\
 
   \item[\inline{jpegpng}] Make a JPEG or PNG image version of the display
   area. Again the file produced fits the output graphic using the current
-  aspect ratio of the display area. The default is to produce an image 
-  with a pixel-to-pixel correspondence to what you see on the screen 
-  (if it were possible to view the whole of the area). Alternatively you 
-  can scale the graphic to fit some dimensions that you enter, or just 
-  clip the graphic to these dimensions. (Hint: if you want anti-aliased 
-  lines drawn in the image select this plotting option first using the plot 
+  aspect ratio of the display area. The default is to produce an image
+  with a pixel-to-pixel correspondence to what you see on the screen
+  (if it were possible to view the whole of the area). Alternatively you
+  can scale the graphic to fit some dimensions that you enter, or just
+  clip the graphic to these dimensions. (Hint: if you want anti-aliased
+  lines drawn in the image select this plotting option first using the plot
   configuration window).
 
   \item[\inline{fitwidth}] Make spectra fit the display area width.  Use this
@@ -1434,13 +1434,13 @@ images that you could combine into a movie of some kind.
  on the \labelitem{Start capture:} check box. The output file names
  will start with what name you type into the \labelitem{Basename for
  graphics files:} entry and have an integer number appended, plus the file type
- \hitext{.jpg} or \hitext{.png}. So a default sequence would be 
- \hitext{SPLAT0.jpg}, \hitext{SPLAT1.jpg}, \hitext{SPLAT2.jpg},... 
- You'll then need to find some software to convert these into a movie. 
- The ImageMagick \hitext{convert} command (when suitably configured) 
- will convert these files into an MPEG or animated GIF.  
- \latexhtml{For reference the image in the on-line version of this 
- document was created with the command:}{The image below was created 
+ \hitext{.jpg} or \hitext{.png}. So a default sequence would be
+ \hitext{SPLAT0.jpg}, \hitext{SPLAT1.jpg}, \hitext{SPLAT2.jpg},...
+ You'll then need to find some software to convert these into a movie.
+ The ImageMagick \hitext{convert} command (when suitably configured)
+ will convert these files into an MPEG or animated GIF.
+ \latexhtml{For reference the image in the on-line version of this
+ document was created with the command:}{The image below was created
  with the command (note that the images were also scaled):}
  \begin{quote}
  \begin{verbatim}
@@ -1642,7 +1642,7 @@ documentation (\xref{SUN/211}{sun211}{ss:specframes}).
 \subsection{The data units window}
 
 This window allows you to inspect, set or convert the units of the data values
-of your spectra. 
+of your spectra.
 
 The most trivial use of these is simply to document what type of units your
 spectra are measured in. However, a more powerful use of data units can be
@@ -2415,8 +2415,8 @@ hash (\#) and are ignored.
          be $\pm 1$ standard deviations wide.
    \item \hitext{Equiv}, the equivalent width of the line. This will be
          $0$ if a zero background is given or assumed.
-   \item \hitext{Flux}, the background subtracted integrated intensity 
-         of the line over the selected region. Requires a linear 
+   \item \hitext{Flux}, the background subtracted integrated intensity
+         of the line over the selected region. Requires a linear
          coordinate step.
    \item \hitext{Asym}, an asymmetry value for the line. This is a
          measure of the relative displacement of the centre of the
@@ -2831,15 +2831,17 @@ in some fashion, then \SPLAT\ will attempt to do this for you. There are three
 fundamental modes for doing this:
 \begin{itemize}
 
-\item by collapsing images into a single \hitext{spectrum} by adding together
-all values that lie perpendicular to the dispersion axis (so the spectrum runs
-along this axis, what a good spectral displaying tool should do),
+\item Collapsing images into a \hitext{spectrum} or the planes of a cube into
+a set of \hitext{spectra} by adding together all values that lie perpendicular
+to the dispersion axis (so the spectra run along this axis, what a good
+spectral displaying tool should do).
 
-\item by expanding images and cubes into a spectrum for each line running
-along the dispersion axis,
+\item Extracting all spectra from each data line running along the
+dispersion axis of images and cubes.
 
-\item by vectorizing the whole data into a single line (created by joining
-everything line-by-line).
+\item Vectorizing the whole data set into a single data line without any
+reference to its dimensionality (in effect mapping the whole image/cube as a
+single contiguous data line).
 
 \end{itemize}
 
@@ -2863,6 +2865,9 @@ or in shorthand:
 \end{quote}
 If you don't choose a dispersion axis \SPLAT\ will make a good intelligent
 guess about this and step along the first axis that isn't the dispersion axis.
+The other possible values for \hitext{ndaction} are \hitext{extract} and
+\hitext{vectorize}. These are described as \hitext{extract all spectra} 
+and \hitext{open whole as 1D}, respectively, in the open file dialogue.
 
 %%%% Removed for the moment, may all be changing a lot soon.
 %
@@ -3148,11 +3153,10 @@ Other changes of note in this release:
       servers can be downloaded and displayed.
 
     \item The handling of 2D and 3D input data has been enhanced. Previously
-      such data was just "vectorized" (that is laid out line-by-line and
-      displayed as a single spectrum ), now such data is collapsed down onto
-      the dispersion axis (if one can be determined). For 3D data each image
-      plane is collapsed in a similar fashion. You can also choose to extract
-      each line as a spectrum.
+      such data was just \hitext{vectorized} (that is displayed as a single
+      spectrum), now such data is collapsed down onto the dispersion axis (if
+      one can be determined). For 3D data each image plane is collapsed in a
+      similar fashion. You can also choose to extract each line as a spectrum.
 \end{itemize}
 
 \subsection{Release 2.1}

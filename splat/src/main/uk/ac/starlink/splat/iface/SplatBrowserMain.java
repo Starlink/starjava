@@ -48,7 +48,7 @@ public class SplatBrowserMain
              "usage: " + 
              Utilities.getApplicationName() + 
              " [{-t,--type} type_string]" +
-             " [{-n,--ndaction} c{ollapse}||e{xpand}||v{ectorize}]" +
+             " [{-n,--ndaction} c{ollapse}||e{xtract}||v{ectorize}]" +
              " [{-d,--dispax} axis_index]" +
              " [{-s,--selectax} axis_index]" +
              " [{-c,--clear}]" +
