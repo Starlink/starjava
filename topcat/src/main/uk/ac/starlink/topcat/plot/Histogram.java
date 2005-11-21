@@ -127,7 +127,7 @@ public class Histogram extends SurfacePlot {
          * a computational bottleneck. */
         for ( int iset = 0; iset < nset; iset++ ) {
             BarStyle style = (BarStyle) styles[ iset ];
-            int lastIxhi = Integer.MIN_VALUE;
+            int lastIxhi = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
             int lastIyhi = 0;
             for ( Iterator it = getBinnedData().getBinIterator();
                   it.hasNext(); ) {
@@ -147,14 +147,14 @@ public class Histogram extends SurfacePlot {
                 int iyhi = surface.dataToGraphics( dxmid, dcount, false ).y;
 
                 /* Draw the trailing edge of the last bar if necessary. */
-                if ( lastIxhi != ixlo ) {
+                if ( lastIxhi != ( xflip ? ixhi : ixlo ) ) {
                     style.drawEdge( g, lastIxhi, lastIyhi, iylo, iset, nset );
                     lastIyhi = iylo;
                 }
 
                 /* Draw the leading edge of the current bar. */
-                style.drawEdge( g, ixlo, lastIyhi, iyhi, iset, nset );
-                lastIxhi = ixhi;
+                lastIxhi = xflip ? ixlo : ixhi;
+                style.drawEdge( g, lastIxhi, lastIyhi, iyhi, iset, nset );
                 lastIyhi = iyhi;
 
                 /* Plot the bar. */
@@ -297,6 +297,10 @@ public class Histogram extends SurfacePlot {
         if ( ! getState().getLogFlags()[ 1 ] ) {
             getSurface().setDataRange( Double.NaN, bounds[ 1 ] * factor,
                                        Double.NaN, bounds[ 3 ] * factor );
+        }
+        else {
+            getSurface().setDataRange( Double.NaN, bounds[ 1 ] + factor,
+                                       Double.NaN, bounds[ 3 ] + factor );
         }
     }
 
