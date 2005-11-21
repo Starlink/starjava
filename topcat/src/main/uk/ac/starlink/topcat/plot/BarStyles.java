@@ -16,18 +16,28 @@ public class BarStyles {
 
     /**
      * Abstract style set implementation which does the same shape
-     * but different colours for different members of the sequence.
+     * but different graphical attributes for different members 
+     * of the sequence.
      */
-    private static abstract class ColoredBarStyleSet implements StyleSet {
+    private static abstract class AutoBarStyleSet implements StyleSet {
         private final String name_;
+        private final boolean rotateColor_;
+        private final boolean rotateStroke_;
 
         /**
          * Constructor.
          *
          * @param  name  style set name
+         * @param  rotateColor  true iff {@link java.awt.Color}s 
+         *         are to be rotated between members of this set
+         * @param  rotateStroke  true iff {@link java.awt.Stroke}s
+         *         are to be rotated between members of this set
          */
-        protected ColoredBarStyleSet( String name ) {
+        protected AutoBarStyleSet( String name, boolean rotateColor,
+                                   boolean rotateStroke ) {
             name_ = name;
+            rotateColor_ = rotateColor;
+            rotateStroke_ = rotateStroke;
         }
 
         /**
@@ -46,7 +56,7 @@ public class BarStyles {
          */
         protected void drawEdgeShape( Graphics g, int x, int y1, int y2,
                                       int iseq, int nseq ) {
-            // no action.
+            // no action for default implementation.
         }
 
         public String getName() {
@@ -54,18 +64,20 @@ public class BarStyles {
         }
 
         public Style getStyle( int index ) {
-            return new BarStyle( Styles.getColor( index ) ) {
+            return new BarStyle( rotateColor_ ? Styles.getColor( index )
+                                              : Styles.PLAIN_COLOR,
+                                 rotateStroke_ ? Styles.getStroke( index )
+                                               : Styles.PLAIN_STROKE, null ) {
                 protected void drawBarShape( Graphics g, int x, int y,
                                              int width, int height,
                                              int iseq, int nseq ) {
-                    ColoredBarStyleSet.this.drawBarShape( g, x, y,
-                                                          width, height,
-                                                          iseq, nseq );
+                    AutoBarStyleSet.this.drawBarShape( g, x, y, width, height,
+                                                       iseq, nseq );
                 }
                 protected void drawEdgeShape( Graphics g, int x, int y1, int y2,
                                               int iseq, int nseq ) {
-                    ColoredBarStyleSet.this.drawEdgeShape( g, x, y1, y2,
-                                                           iseq, nseq );
+                    AutoBarStyleSet.this.drawEdgeShape( g, x, y1, y2,
+                                                        iseq, nseq );
                 }
             };
         }
@@ -78,7 +90,7 @@ public class BarStyles {
      * @return   style set
      */
     public static StyleSet filled( String name ) {
-        return new ColoredBarStyleSet( name ) {
+        return new AutoBarStyleSet( name, true, false ) {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
@@ -94,7 +106,7 @@ public class BarStyles {
      * @return   style set
      */
     public static StyleSet filled3d( String name ) {
-        return new ColoredBarStyleSet( name ) {
+        return new AutoBarStyleSet( name, true, false ) {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
@@ -107,10 +119,15 @@ public class BarStyles {
      * Returns a new style set which draws open full rectangles.
      *
      * @param  name  style set name
+     * @param  rotateColor  whether to have different colours for 
+     *                      different bars
+     * @param  rotateStroke  whether to have different stroke styles
+     *                       for different bars
      * @return   style set
      */
-    public static StyleSet open( String name ) {
-        return new ColoredBarStyleSet( name ) {
+    public static StyleSet open( String name, boolean rotateColor,
+                                 boolean rotateStroke ) {
+        return new AutoBarStyleSet( name, rotateColor, rotateStroke ) {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
@@ -124,10 +141,15 @@ public class BarStyles {
      * This is pretty ugly for more than one set.
      *
      * @param  name  style set name
+     * @param  rotateColor  whether to have different colours for 
+     *                      different bars
+     * @param  rotateStroke  whether to have different stroke styles
+     *                       for different bars
      * @return   style set
      */
-    public static StyleSet xorTops( String name ) {
-        return new ColoredBarStyleSet( name ) {
+    public static StyleSet xorTops( String name, boolean rotateColor,
+                                    boolean rotateStroke ) {
+        return new AutoBarStyleSet( name, rotateColor, rotateStroke ) {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
@@ -144,10 +166,15 @@ public class BarStyles {
      * Returns a new style set which draws only the tops of bars.
      *
      * @param  name  style set name
+     * @param  rotateColor  whether to have different colours for 
+     *                      different bars
+     * @param  rotateStroke  whether to have different stroke styles
+     *                       for different bars
      * @return   style set
      */
-    public static StyleSet tops( String name ) {
-        return new ColoredBarStyleSet( name ) {
+    public static StyleSet tops( String name, boolean rotateColor,
+                                 boolean rotateStroke ) {
+        return new AutoBarStyleSet( name, rotateColor, rotateStroke ) {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
@@ -164,10 +191,15 @@ public class BarStyles {
      * Returns a new style set which draws a 1-d spike for each subset.
      *
      * @param  name  style set name
+     * @param  rotateColor  whether to have different colours for 
+     *                      different bars
+     * @param  rotateStroke  whether to have different stroke styles
+     *                       for different bars
      * @return   style set
      */
-    public static StyleSet spikes( String name ) {
-        return new ColoredBarStyleSet( name ) {
+    public static StyleSet spikes( String name, boolean rotateColor,
+                                   boolean rotateStroke ) {
+        return new AutoBarStyleSet( name, rotateColor, rotateStroke ) {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
@@ -186,7 +218,7 @@ public class BarStyles {
      * @return   style set
      */
     public static StyleSet sideFilled( String name ) {
-        return new ColoredBarStyleSet( name ) {
+        return new AutoBarStyleSet( name, true, false ) {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
@@ -204,7 +236,7 @@ public class BarStyles {
      * @return   style set
      */
     public static StyleSet sideFilled3d( String name ) {
-        return new ColoredBarStyleSet( name ) {
+        return new AutoBarStyleSet( name, true, false ) {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {
@@ -220,10 +252,15 @@ public class BarStyles {
      * side (one for each subset).
      *
      * @param  name  style set name
+     * @param  rotateColor  whether to have different colours for 
+     *                      different bars
+     * @param  rotateStroke  whether to have different stroke styles
+     *                       for different bars
      * @return   style set
      */
-    public static StyleSet sideOpen( String name ) {
-        return new ColoredBarStyleSet( name ) {
+    public static StyleSet sideOpen( String name, boolean rotateColor,
+                                     boolean rotateStroke ) {
+        return new AutoBarStyleSet( name, rotateColor, rotateStroke ) {
             protected void drawBarShape( Graphics g, int x, int y,
                                          int width, int height,
                                          int iseq, int nseq ) {

@@ -1,12 +1,13 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
+import java.awt.Stroke;
 
 /**
  * Convenience partial implementation of Style which has a defined colour
- * and other attributes given by a single object.
+ * and stroke style, with other attributes given by a single object.
  * The <code>otherAtts</code> attribute
- * characterises everything apart from colour and class which 
+ * characterises everything apart from colour, stroke and class which 
  * distinguish one instance of this class from another, and 
  * is used by the {@link #equals} implementation to determine object equality.
  * <code>otherAtts</code> probably ought to be immutable.
@@ -17,18 +18,29 @@ import java.awt.Color;
 public abstract class DefaultStyle implements Style {
 
     private Color color_;
+    private Stroke stroke_;
     private final Object otherAtts_;
     private static final Object DUMMY_ATTS = new Object();
 
     /**
-     * Constructs a style given a colour and an <code>otherAtts</code> object.
+     * Constructs a style given a colour, style and <code>otherAtts</code>
+     * object.
      *
      * @param  color  initial colour
+     * @param  stroke  initial stroke
      * @param  otherAtts  object distinguishing this instance
      */
-    protected DefaultStyle( Color color, Object otherAtts ) {
+    protected DefaultStyle( Color color, Stroke stroke, Object otherAtts ) {
         otherAtts_ = otherAtts == null ? DUMMY_ATTS : otherAtts;
         setColor( color );
+        setStroke( stroke );
+    }
+
+    /**
+     * Constructs a style given a colour and an <code>otherAtts</code> object.
+     */
+    protected DefaultStyle( Color color, Object otherAtts ) {
+        this( color, Styles.PLAIN_STROKE, otherAtts );
     }
 
     /**
@@ -50,6 +62,24 @@ public abstract class DefaultStyle implements Style {
     }
 
     /**
+     * Sets the stroke of this style.
+     *
+     * @param  stroke  new stroke
+     */
+    public void setStroke( Stroke stroke ) {
+        stroke_ = stroke;
+    }
+
+    /**
+     * Returns the stroke of this style.
+     *
+     * @return  stroke
+     */
+    public Stroke getStroke() {
+        return stroke_;
+    }
+
+    /**
      * Returns the object which distinguishes this object from other ones
      * of the same colour and class.
      *
@@ -64,6 +94,7 @@ public abstract class DefaultStyle implements Style {
      * <ol>
      * <li>It has the same class as this one
      * <li>It has the same colour as this one
+     * <li>It has the same stroke as this one
      * <li>The <code>otherAtts</code> object specified at its creation
      *     matches (according to <code>equals()</code> this one's
      * </ol>
@@ -73,6 +104,7 @@ public abstract class DefaultStyle implements Style {
             DefaultStyle other = (DefaultStyle) o;
             return getClass().equals( other.getClass() )
                 && getColor().equals( other.getColor() )
+                && getStroke().equals( other.getStroke() )
                 && getOtherAtts().equals( other.getOtherAtts() );
         }
         else {
@@ -84,6 +116,7 @@ public abstract class DefaultStyle implements Style {
         int code = 5555;
         code = code * 23 + getClass().hashCode();
         code = code * 23 + getColor().hashCode();
+        code = code * 23 + getStroke().hashCode();
         code = code * 23 + getOtherAtts().hashCode();
         return code;
     }

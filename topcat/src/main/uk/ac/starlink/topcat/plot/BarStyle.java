@@ -2,6 +2,8 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Stroke;
 
 /**
  * Defines a style for plotting a bar in a histogram.
@@ -12,22 +14,14 @@ import java.awt.Graphics;
 public abstract class BarStyle extends DefaultStyle {
 
     /**
-     * Constructor giving colour and additional attributes.
+     * Constructor giving colour, stroke and additional attributes.
      *
      * @param   color  initial colour
+     * @param   stroke  initial stroke style
      * @param   otherAtts   other distinguishing features of this instance
      */
-    protected BarStyle( Color color, Object otherAtts ) {
-        super( color, otherAtts );
-    }
-
-    /**
-     * Constructor giving colour.
-     *
-     * @param  color  initial colour
-     */
-    protected BarStyle( Color color ) {
-        super( color, null );
+    protected BarStyle( Color color, Stroke stroke, Object otherAtts ) {
+        super( color, stroke, otherAtts );
     }
 
     /**
@@ -90,10 +84,14 @@ public abstract class BarStyle extends DefaultStyle {
      */
     public void drawBar( Graphics g, int xlo, int xhi, int ylo, int yhi,
                          int iseq, int nseq ) {
+        Graphics2D g2 = (Graphics2D) g;
         Color col = g.getColor();
+        Stroke str = g2.getStroke();
         g.setColor( getColor() );
+        g2.setStroke( getStroke() );
         drawBarShape( g, xlo, ylo, xhi - xlo, yhi - ylo, iseq, nseq );
         g.setColor( col );
+        g2.setStroke( str );
     }
 
     /**
@@ -113,10 +111,14 @@ public abstract class BarStyle extends DefaultStyle {
      */
     public void drawEdge( Graphics g, int x, int y1, int y2,
                           int iseq, int nseq ) {
+        Graphics2D g2 = (Graphics2D) g;
         Color col = g.getColor();
+        Stroke str = g2.getStroke();
         g.setColor( getColor() );
+        g2.setStroke( getStroke() );
         drawEdgeShape( g, x, y1, y2, iseq, nseq );
         g.setColor( col );
+        g2.setStroke( str );
     }
 
     public void drawLegend( Graphics g, int x, int y ) {
@@ -124,4 +126,5 @@ public abstract class BarStyle extends DefaultStyle {
         drawBar( g, x - 4, x + 4, y - 6, y + 6, 0, 3 );
         drawEdge( g, x + 4, y - 6, y + 6, 0, 3 );
     }
+
 }
