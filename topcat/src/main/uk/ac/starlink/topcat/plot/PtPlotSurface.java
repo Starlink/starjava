@@ -70,34 +70,34 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
      */
 
     public void setDataRange( double xlo, double ylo, double xhi, double yhi ) {
-        if ( _xlog ) {
-            xlo = xlo > 0.0 ? Math.log( xlo ) * _LOG10SCALE : 0.0;
-            xhi = xhi > 0.0 ? Math.log( xhi ) * _LOG10SCALE : 1.0;
-        }
-        if ( _ylog ) {
-            ylo = ylo > 0.0 ? Math.log( ylo ) * _LOG10SCALE : 0.0;
-            yhi = yhi > 0.0 ? Math.log( yhi ) * _LOG10SCALE : 1.0;
-        }
-        if ( _xflip ) {
-            double xl = -xhi;
-            double xh = -xlo;
-            xlo = xl;
-            xhi = xh;
-        }
-        if ( _yflip ) {
-            double yl = -yhi;
-            double yh = -ylo;
-            ylo = yl;
-            yhi = yh;
-        }
-        int width = _lrx - _ulx;
-        int height = _lry - _uly;
-        double xpad = ( xhi - xlo ) * PAD_PIXELS / width;
-        double ypad = ( yhi - ylo ) * PAD_PIXELS / height;
         if ( ! Double.isNaN( xlo ) && ! Double.isNaN( xhi ) ) {
+            if ( _xlog ) {
+                xlo = xlo > 0.0 ? Math.log( xlo ) * _LOG10SCALE : 0.0;
+                xhi = xhi > 0.0 ? Math.log( xhi ) * _LOG10SCALE : 1.0;
+            }
+            if ( _xflip ) {
+                double xl = -xhi;
+                double xh = -xlo;
+                xlo = xl;
+                xhi = xh;
+            }
+            int width = _lrx - _ulx;
+            double xpad = ( xhi - xlo ) * PAD_PIXELS / width;
             setXRange( xlo - xpad, xhi + xpad );
         }
         if ( ! Double.isNaN( ylo ) && ! Double.isNaN( yhi ) ) {
+            if ( _ylog ) {
+                ylo = ylo > 0.0 ? Math.log( ylo ) * _LOG10SCALE : 0.0;
+                yhi = yhi > 0.0 ? Math.log( yhi ) * _LOG10SCALE : 1.0;
+            }
+            if ( _yflip ) {
+                double yl = -yhi;
+                double yh = -ylo;
+                ylo = yl;
+                yhi = yh;
+            }
+            int height = _lry - _uly;
+            double ypad = ( yhi - ylo ) * PAD_PIXELS / height;
             setYRange( ylo - ypad, yhi + ypad );
         }
         checkInvariants();
