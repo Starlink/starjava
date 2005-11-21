@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.KeyEvent;
@@ -11,10 +12,13 @@ import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.Action;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 
 /**
@@ -28,6 +32,10 @@ public class HistogramWindow extends GraphicsWindow {
     private final Histogram plot_;
     private final Action[] validityActions_;
     private final ToggleButtonModel yLogModel_;
+    private final RoundingSpinner binSizer_;
+
+    private double binWidth_;
+    private static final int DEFAULT_BINS = 20;
 
     /** Description of vertical plot axis. */
     private final static ValueInfo COUNT_INFO = 
@@ -42,12 +50,12 @@ public class HistogramWindow extends GraphicsWindow {
     public HistogramWindow( Component parent ) {
         super( "Histogram", new String[] { "X" }, parent );
 
-        /* Create and the histogram plot itself.  Being a histogram, there's
+        /* Create the histogram plot itself.  Being a histogram, there's
          * no point zooming in such a way that the Y axis goes below zero,
          * so block that. */
         plot_ = new Histogram( new PtPlotSurface( this ) {
             void _setYRange( double min, double max ) {
-                super._setYRange( Math.max( 0.0, min ), max );
+                super._setYRange( Math.max( getMinYValue(), min ), max );
             }
         } );
 
@@ -73,6 +81,22 @@ public class HistogramWindow extends GraphicsWindow {
         yLogModel_ = new ToggleButtonModel( "Log Y Axis", ResourceIcon.YLOG,
                                            "Logarithmic scale for the Y axis" );
         yLogModel_.addActionListener( getReplotAction() );
+
+        /* Bin size selector widget. */
+        binSizer_ = new RoundingSpinner();
+        getLogModels()[ 0 ].addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                binSizer_.setLogarithmic( getLogModels()[ 0 ].isSelected() );
+            }
+        } );
+        binSizer_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                getReplotAction()
+               .actionPerformed( new ActionEvent( evt.getSource(), 0, null ) ); 
+            }
+        } );
+        binSizer_.setBorder( makeTitledBorder( "Bin Widths" ) );
+        getMainArea().add( binSizer_, java.awt.BorderLayout.SOUTH );
 
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
@@ -164,13 +188,37 @@ public class HistogramWindow extends GraphicsWindow {
         return plot_;
     }
 
-    protected void doReplot( PlotState state, Points points ) {
-        PlotState lastState = plot_.getState();
+    protected void doReplot( PlotState pstate, Points points ) {
+        HistogramPlotState state = (HistogramPlotState) pstate;
+        HistogramPlotState lastState = (HistogramPlotState) plot_.getState();
         plot_.setPoints( points );
         plot_.setState( state );
         if ( ! state.sameAxes( lastState ) || ! state.sameData( lastState ) ) {
+
+            /* Calculate bin width here if it needs to be done.  We can't
+             * do it when the plot state is initialised, since at that
+             * point we don't have the Points data, and that is needed
+             * to work out the range of the data and hence how wid the 
+             * bins are going to be. */
+            if ( state.getValid() ) {
+                double bw = autoBinWidth( state, points );
+                state.setBinWidth( bw );
+                setBinWidth( bw );
+            }
+
+            /* Rescale if axes have changed. */
             plot_.rescale();
         }
+
+        /* If the bin width has changed, modify the Y axis by a multiplier.
+         * This isn't essential, but it means that the Y axis range covers
+         * approximately the same data points rather than creeping up/down
+         * with a change in the bin width. */
+        else if ( state.getBinWidth() != lastState.getBinWidth() ) {
+            plot_.scaleYFactor( state.getBinWidth() / lastState.getBinWidth() );
+        }
+
+        /* Schedule a repaint. */
         plot_.repaint();
     }
 
@@ -182,13 +230,26 @@ public class HistogramWindow extends GraphicsWindow {
         return new StyleSet[] {
             BarStyles.sideFilled( "Filled Adjacent" ),
             // BarStyles.sideFilled3d( "Bevelled Adjacent" ),
-            BarStyles.sideOpen( "Open Adjacent" ),
-            BarStyles.tops( "Outlines" ),
+            BarStyles.sideOpen( "Open Adjacent", true, false ),
+            BarStyles.tops( "Outlines", true, false ),
             BarStyles.filled( "Filled Overplot" ),
             BarStyles.filled3d( "Bevelled Overplot" ),
-            BarStyles.open( "Open Overplot" ),
-            BarStyles.spikes( "Spikes" ),
+            BarStyles.open( "Open Overplot", true, false ),
+            BarStyles.spikes( "Spikes", true, false ),
+            BarStyles.sideOpen( "Black Open Adjacent", false, true ),
+            BarStyles.tops( "Black Outlines", false, true ),
+            BarStyles.open( "Black Open Overplot", false, true ),
+            BarStyles.spikes( "Black Spikes", false, true ),
         };
+    }
+
+    protected PlotState createPlotState() {
+        HistogramPlotState state = new HistogramPlotState();
+        double bw = getBinWidth();
+        if ( bw > 0 ) {
+            state.setBinWidth( bw );
+        }
+        return state;
     }
 
     public PlotState getPlotState() {
@@ -226,6 +287,108 @@ public class HistogramWindow extends GraphicsWindow {
 
     private void subsetFromVisible() {
         addNewSubsets( plot_.getVisiblePoints() );
+    }
+
+    /**
+     * Sets the bin width explicitly.
+     *
+     * @param  bw  new bin width value
+     */
+    private void setBinWidth( double bw ) {
+        binSizer_.setNumericValue( bw );
+    }
+
+    /**
+     * Returns the currently set bin width.
+     *
+     * @return  bin width
+     */
+    private double getBinWidth() {
+        return binSizer_.getNumericValue();
+    }
+
+    /**
+     * Returns the minimum sensible value for the Y axis.
+     * Being a histogram, there's no point in going below the value 
+     * which represents zero counts.
+     *
+     * @return   minimum Y value
+     */
+    private double getMinYValue() {
+
+        /* The value used for logarithmic axes here is a bit arbitrary,
+         * but something a bit below zero makes sense. */
+        return yLogModel_.isSelected() ? -1. : 0.;
+    }
+
+    /**
+     * Calculates a sensible bin width for a given plot state and point set.
+     * The returned value is additive for linear X axis and multiplicative
+     * for logarithmic.
+     *
+     * @param  state   plot state
+     * @param  points  point set
+     * @return   reasonable bin width
+     */
+    private static double autoBinWidth( PlotState state, Points points ) {
+        double[] range = getXRange( state, points );
+        if ( state.getLogFlags()[ 0 ] ) {
+            double factor = Math.exp( Math.log( range[ 1 ] / range[ 0 ] ) 
+                                      / DEFAULT_BINS );
+            return Rounder.LOG.round( factor );
+        }
+        else {
+            double gap = ( range[ 1 ] - range[ 0 ] ) / DEFAULT_BINS;
+            if ( gap < 1.0 ) {
+                Class clazz = state.getAxes()[ 0 ].getContentClass();
+                if ( clazz == Byte.class ||
+                     clazz == Short.class ||
+                     clazz == Integer.class ||
+                     clazz == Long.class ) {
+                    return 1.0;
+                }
+            }
+            return Rounder.LINEAR.round( gap );
+        }
+    }
+
+    public static double[] getXRange( PlotState state, Points points ) {
+        boolean xlog = state.getLogFlags()[ 0 ];
+        double xlo = Double.POSITIVE_INFINITY;
+        double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
+
+        int nok = 0;
+        int np = points.getCount();
+        RowSubset[] rsets = state.getPointSelection().getSubsets();
+        int nset = rsets.length;
+        double[] coords = new double[ 1 ];
+        for ( int ip = 0; ip < np; ip++ ) {
+            long lp = (long) ip;
+            boolean use = false;
+            for ( int is = 0; is < nset; is++ ) {
+                if ( rsets[ is ].isIncluded( lp ) ) {
+                    use = true;
+                    break;
+                }
+            }
+            if ( use ) {
+                points.getCoords( ip, coords );
+                double xp = coords[ 0 ];
+                if ( ! Double.isNaN( xp ) && ! Double.isInfinite( xp ) &&
+                     ( ! xlog || xp > 0.0 ) ) {
+                    nok++;
+                    if ( xp < xlo ) {
+                        xlo = xp;
+                    }
+                    if ( xp > xhi ) {
+                        xhi = xp;
+                    }
+                } 
+            }
+        }
+        return nok > 0 ? new double[] { xlo, xhi }
+                       : ( xlog ? new double[] { 0., 1. }
+                                : new double[] { 1., 2. } );
     }
 
     /**
