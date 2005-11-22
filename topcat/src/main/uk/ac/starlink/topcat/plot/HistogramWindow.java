@@ -80,7 +80,7 @@ public class HistogramWindow extends GraphicsWindow {
          * histogram?  But someone might want it. */
         yLogModel_ = new ToggleButtonModel( "Log Y Axis", ResourceIcon.YLOG,
                                            "Logarithmic scale for the Y axis" );
-        yLogModel_.addActionListener( getReplotAction() );
+        yLogModel_.addActionListener( getReplotListener() );
 
         /* Bin size selector widget. */
         binSizer_ = new RoundingSpinner();
@@ -89,12 +89,7 @@ public class HistogramWindow extends GraphicsWindow {
                 binSizer_.setLogarithmic( getLogModels()[ 0 ].isSelected() );
             }
         } );
-        binSizer_.addChangeListener( new ChangeListener() {
-            public void stateChanged( ChangeEvent evt ) {
-                getReplotAction()
-               .actionPerformed( new ActionEvent( evt.getSource(), 0, null ) ); 
-            }
-        } );
+        binSizer_.addChangeListener( getReplotListener() );
         binSizer_.setBorder( makeTitledBorder( "Bin Widths" ) );
         getMainArea().add( binSizer_, java.awt.BorderLayout.SOUTH );
 
@@ -352,6 +347,13 @@ public class HistogramWindow extends GraphicsWindow {
         }
     }
 
+    /**
+     * Calculates the full range of the data along the X axis.
+     *
+     * @param   state  plot state
+     * @param   points   data points
+     * @return  (lo,hi) bounds of data
+     */
     public static double[] getXRange( PlotState state, Points points ) {
         boolean xlog = state.getLogFlags()[ 0 ];
         double xlo = Double.POSITIVE_INFINITY;
