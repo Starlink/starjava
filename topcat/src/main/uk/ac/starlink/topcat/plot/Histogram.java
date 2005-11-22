@@ -112,7 +112,7 @@ public class Histogram extends SurfacePlot {
 
         /* Get the plotting styles to use. */
         boolean xflip = state.getFlipFlags()[ 0 ];
-        double dylo = state.getLogFlags()[ 1 ] ? 1.0 : 0.0;
+        double dylo = state.getLogFlags()[ 1 ] ? Double.MIN_VALUE : 0.0;
         int nset = getPointSelection().getSubsets().length;
         Style[] styles = getPointSelection().getStyles();
 
@@ -299,7 +299,7 @@ public class Histogram extends SurfacePlot {
                                        Double.NaN, bounds[ 3 ] * factor );
         }
         else {
-            getSurface().setDataRange( Double.NaN, bounds[ 1 ] + factor,
+            getSurface().setDataRange( Double.NaN, bounds[ 1 ],
                                        Double.NaN, bounds[ 3 ] + factor );
         }
     }
