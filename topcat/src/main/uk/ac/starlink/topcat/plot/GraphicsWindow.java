@@ -29,6 +29,9 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
@@ -146,8 +149,8 @@ public abstract class GraphicsWindow extends AuxWindow
                 null, "Reverse the sense of the " + axisNames[ i ] + " axis" );
             logModels_[ i ] = new ToggleButtonModel( "Log " + ax + " Axis",
                 null, "Logarithmic scale for the " + axisNames[ i ] + " axis" );
-            flipModels_[ i ].addActionListener( replotAction_ );
-            logModels_[ i ].addActionListener( replotAction_ );
+            flipModels_[ i ].addActionListener( replotListener_ );
+            logModels_[ i ].addActionListener( replotListener_ );
         }
         if ( ndim_ > 0 ) {
             flipModels_[ 0 ].setIcon( ResourceIcon.XFLIP );
@@ -206,22 +209,6 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     public ToggleButtonModel[] getLogModels() {
         return logModels_;
-    }
-
-    /**
-     * Redraws the plot if any of the characteristics indicated by the
-     * currently-requested plot state have changed since the last time
-     * it was done.
-     */
-    public void replot() {
-        doReplot( false, false );
-    }                              
-
-    /**
-     * Redraws the plot unconditionally.
-     */
-    public void forceReplot() {
-        doReplot( true, false );
     }
 
     /**
@@ -363,6 +350,45 @@ public abstract class GraphicsWindow extends AuxWindow
     }
 
     /**
+     * Redraws the plot if any of the characteristics indicated by the
+     * currently-requested plot state have changed since the last time
+     * it was done.  
+     * This method schedules a replot on the event dispatch thread,
+     * so it may be called from any thread.
+     */
+    public void replot() {
+        scheduleReplot( false, false );
+    }                              
+
+    /**
+     * Redraws the plot unconditionally.
+     * This method schedules a replot on the event dispatch thread,
+     * so it may be called from any thread.
+     */
+    public void forceReplot() {
+        scheduleReplot( true, false );
+    }
+
+    /**
+     * Schedules a conditional replot on the event dispatch thread,
+     * perhaps taking account of whether the plot state has changed since
+     * the last time it was done.
+     *
+     * @param  forcePlot  if true, do the replot in any case;
+     *                    if false, only do it if the PlotState has changed
+     * @param  forceData  if true, re-acquire data in any case;
+     *                    if false, only do it if the data selection has changed
+     */
+    private void scheduleReplot( final boolean forcePlot,
+                                 final boolean forceData ) {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                performReplot( forcePlot, forceData );
+            }
+        } );
+    }
+
+    /**
      * Redraws the plot, perhaps taking account of whether the plot state
      * has changed since last time it was done.
      *
@@ -371,7 +397,7 @@ public abstract class GraphicsWindow extends AuxWindow
      * @param  forceData  if true, re-acquire data in any case;
      *                    if false, only do it if the data selection has changed
      */
-    private void doReplot( boolean forcePlot, boolean forceData ) {
+    private void performReplot( boolean forcePlot, boolean forceData ) {
         PlotState state = getPlotState();
         PlotState lastState = lastState_;
         if ( forcePlot || ! state.equals( lastState ) ) {
@@ -703,7 +729,7 @@ public abstract class GraphicsWindow extends AuxWindow
         }
         public void actionPerformed( ActionEvent evt ) {
             if ( this == replotAction_ ) {
-                doReplot( true, true );
+                scheduleReplot( true, true );
             }
         }
     }
@@ -712,7 +738,8 @@ public abstract class GraphicsWindow extends AuxWindow
      * General purpose listener which replots given an event.
      */
     protected class ReplotListener implements ActionListener, ItemListener,
-                                              ListSelectionListener {
+                                              ListSelectionListener,
+                                              ChangeListener {
         public void actionPerformed( ActionEvent evt ) {
             replot();
         }
@@ -720,6 +747,9 @@ public abstract class GraphicsWindow extends AuxWindow
             replot();
         }
         public void valueChanged( ListSelectionEvent evt ) {
+            replot();
+        }
+        public void stateChanged( ChangeEvent evt ) {
             replot();
         }
     }
