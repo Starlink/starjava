@@ -73,6 +73,7 @@ import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.topcat.plot.GraphicsWindow;
 import uk.ac.starlink.topcat.plot.HistogramWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
+import uk.ac.starlink.topcat.plot.Plot3DWindow;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -241,6 +242,9 @@ public class ControlWindow extends AuxWindow
             new GraphicsWindowAction( "Histogram", ResourceIcon.HISTOGRAM,
                                       "Histogram",
                                       HistogramWindow.class ),
+            new GraphicsWindowAction( "3D", ResourceIcon.DO_WHAT,
+                                      "Three-dimensional scatter plot",
+                                      Plot3DWindow.class ),
         };
         writeAct_ = new ModelViewAction( "Save Table", ResourceIcon.SAVE,
                                          "Write out the current table" ) {
