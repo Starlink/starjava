@@ -64,8 +64,13 @@ public abstract class PlotVolume {
      * @param   style    marker style for point
      */
     public void plot( double[] coords, MarkStyle style ) {
-        plot( projectX( coords[ 0 ] ), projectY( coords[ 1 ] ),
-              coords[ 2 ], style );
+        int xp = projectX( coords[ 0 ] );
+        int yp = projectY( coords[ 1 ] );
+        int maxr = style.getMaximumRadius();
+        int maxr2 = maxr * 2;
+        if ( graphics_.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
+            plot( xp, yp, coords[ 2 ], style );
+        }
     }
 
     /**
