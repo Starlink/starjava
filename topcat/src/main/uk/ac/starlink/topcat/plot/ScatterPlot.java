@@ -172,6 +172,7 @@ public class ScatterPlot extends SurfacePlot {
                 statSets_[ is ] = stats;
             }
             int maxr = style.getMaximumRadius();
+            int maxr2 = maxr * 2;
             for ( int ip = 0; ip < np; ip++ ) {
                 if ( sets[ is ].isIncluded( (long) ip ) ) {
                     points.getCoords( ip, coords );
@@ -181,7 +182,7 @@ public class ScatterPlot extends SurfacePlot {
                     if ( point != null ) {
                         int xp = point.x;
                         int yp = point.y;
-                        if ( g.hitClip( xp, yp, maxr, maxr ) ) {
+                        if ( g.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
                             style.drawMarker( g, xp, yp );
                             if ( regress ) {
                                 stats.addPoint( x, y );
