@@ -37,16 +37,10 @@ public abstract class PlotVolume {
         graphics_ = g;
         int w = c.getWidth();
         int h = c.getHeight();
-        if ( w > h ) {
-            scale_ = h;
-            xoff_ = ( w - h ) / 2;
-            yoff_ = h;
-        }
-        else {
-            scale_ = w;
-            xoff_ = 0;
-            yoff_ = h - ( h - w ) / 2;
-        }
+        double padFactor = Math.sqrt( 0.5 );
+        scale_ = Math.min( h, w ) * padFactor;
+        xoff_ = 0 + (int) ( ( w - scale_ ) / 2. );
+        yoff_ = h - (int) ( ( h - scale_ ) / 2. );
     }
 
     /**
