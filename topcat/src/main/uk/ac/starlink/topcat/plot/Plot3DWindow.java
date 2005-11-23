@@ -6,6 +6,7 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import javax.swing.JComponent;
+import uk.ac.starlink.pal.Pal;
 
 /**
  * Graphics window for viewing 3D scatter plots.
@@ -136,26 +137,76 @@ public class Plot3DWindow extends GraphicsWindow {
      * about X and Y directions.
      *
      * @param   base  9-element array giving initial view rotation matrix
-     * @param   phi   angle to rotate around X axis
-     * @param   psi   angle to rotate around Y axis
+     * @param   phi   angle to rotate around Y axis
+     * @param   psi   angle to rotate around X axis
      * @return  9-element array giving combined rotation matrix
      */
     private static double[] rotateXY( double[] base, double phi, double psi ) {
-        double cosPhi = Math.cos( phi );
-        double sinPhi = Math.sin( phi );
-        double cosPsi = Math.cos( psi );
-        double sinPsi = Math.sin( psi );
+        double[] rotX = rotate( base, new double[] { 0., 1., 0. }, phi );
+        double[] rotY = rotate( base, new double[] { 1., 0., 0. }, psi );
+        return matrixMultiply( matrixMultiply( base, rotX ), rotY );
+    }
 
-        /* Construct the matrix that represents rotation of psi around
-         * the X axis followed by rotation of phi around the Y axis. */
-        double[] rot = new double[] {
-             cosPhi         ,        0,   -sinPhi         ,
-            -sinPhi * sinPsi,   cosPsi,   -cosPhi * sinPsi,
-             sinPhi * cosPsi,   sinPsi,    cosPhi * cosPsi,
+    /**
+     * Calculates a rotation matrix for rotating around a screen axis
+     * by a given angle.  Note this axis is in the view space, not the
+     * data space.
+     * 
+     * @param   base  rotation matrix defining the view orientation
+     *                (9-element array)
+     * @param   screenAxis  axis in view space about which rotation is required
+     *                      (3-element array)
+     * @param   angle   rotation angle in radians
+     */
+    private static double[] rotate( double[] base, double[] screenAxis,
+                                    double angle ) {
+        Pal pal = new Pal();
+        double[][] pBase = toPal( base );
+
+        /* Calculate the data space vectors corresponding to the screen axis. */
+        double[] axis = pal.Dimxv( pBase, screenAxis );
+
+        /* Give it a magnitude corresponding to the rotation angle. */
+        double factor = angle / Math.sqrt( axis[ 0 ] * axis[ 0 ] +
+                                           axis[ 1 ] * axis[ 1 ] +
+                                           axis[ 2 ] * axis[ 2 ] );
+        for ( int i = 0; i < 3; i++ ) {
+            axis[ i ] *= factor;
+        }
+
+        /* Calculate and return the rotation matrix. */
+        double[][] pRot = pal.Dav2m( axis );
+        return fromPal( pRot );
+    }
+
+    /**
+     * Converts a 3-d matrix from Pal-friendly form (3x3) to the form used
+     * elsewhere in this class (flat 9-element array).
+     *
+     * @param   m   flat matrix
+     * @return  pal-friendly matrix
+     */
+    private static double[] fromPal( double[][] m ) {
+        return new double[] {
+            m[0][0], m[0][1], m[0][2],
+            m[1][0], m[1][1], m[1][2],
+            m[2][0], m[2][1], m[2][2],
         };
+    }
 
-        /* Combine this with the current view rotation and return. */
-        return matrixMultiply( base, rot );
+    /**
+     * Converts a 3-d matrix from the form used in this class 
+     * (flat 9-element array) to Pal-friendly form (3x3).
+     *
+     * @param   m  flat matrix
+     * @return  pal-friendly matrix
+     */
+    private static double[][] toPal( double[] m ) {
+        return new double[][] {
+            { m[0], m[1], m[2], },
+            { m[3], m[4], m[5], },
+            { m[6], m[7], m[8], },
+        };
     }
 
     /**
@@ -181,7 +232,7 @@ public class Plot3DWindow extends GraphicsWindow {
                  * of the view). */
                 double scale = Math.min( plot_.getWidth(), plot_.getHeight() );
                 double xf = ( pos.x - posBase_.x ) / scale;
-                double yf = - ( pos.y - posBase_.y ) / scale;
+                double yf = ( pos.y - posBase_.y ) / scale;
 
                 /* Turn these into angles.  Phi and Psi are the rotation
                  * angles around the screen vertical and horizontal axes
