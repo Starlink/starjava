@@ -21,6 +21,7 @@ public class Plot3DState extends PlotState {
     };
 
     private double[] rotation_ = UNIT_MATRIX;
+    private double fogginess_ = 1.0;
 
     /**
      * Sets the rotation matrix.
@@ -40,11 +41,31 @@ public class Plot3DState extends PlotState {
         return rotation_;
     }
 
+    /**
+     * Sets the intensity of fog used for depth rendering 
+     * (1 is a reasonable amount; 0 is no fog).
+     *
+     * @param  fog  fog intensity
+     */
+    public void setFogginess( double fog ) {
+        fogginess_ = fog;
+    }
+
+    /**
+     * Returns the intensity of fog used for depth rendering.
+     *
+     * @return fog intensity
+     */
+    public double getFogginess() {
+        return fogginess_;
+    }
+
     public boolean equals( Object otherObject ) {
         if ( otherObject instanceof Plot3DState &&
              super.equals( otherObject ) ) {
             Plot3DState other = (Plot3DState) otherObject;
-            return Arrays.equals( rotation_, other.rotation_ );
+            return Arrays.equals( rotation_, other.rotation_ )
+                && fogginess_ == other.fogginess_;
         }
         return false;
     }
@@ -54,6 +75,7 @@ public class Plot3DState extends PlotState {
         for ( int i = 0; i < 9; i++ ) {
             code = 23 * code + Float.floatToIntBits( (float) rotation_[ i ] );
         }
+        code = 23 * code + Float.floatToIntBits( (float) fogginess_ );
         return code;
     }
 }

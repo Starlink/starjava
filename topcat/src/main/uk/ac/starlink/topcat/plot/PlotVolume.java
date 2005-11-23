@@ -26,6 +26,7 @@ public abstract class PlotVolume {
     private final double scale_;
     private final int xoff_;
     private final int yoff_;
+    private DepthTweaker tweaker_;
 
     /**
      * Constructor.
@@ -41,13 +42,14 @@ public abstract class PlotVolume {
         scale_ = Math.min( h, w ) * padFactor;
         xoff_ = 0 + (int) ( ( w - scale_ ) / 2. );
         yoff_ = h - (int) ( ( h - scale_ ) / 2. );
+        tweaker_ = new DepthTweaker( 1.0 );
     }
 
     /**
      * Submits a point for plotting.  The graphical effect is not guaranteed
      * to occur until a subsequent call to {@link #flush}.
      * The coordinate array gives the point's 3D position in normalised 
-     * coordinates, in which points inside the sphere with diameter 1 
+     * coordinates, in which points inside the unit cube 
      * centred at (.5,.5,.5) are intended to be visible under normal 
      * circumstances.
      * Note that the <code>coords</code> array is not guaranteed to retain
@@ -65,6 +67,15 @@ public abstract class PlotVolume {
         if ( graphics_.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
             plot( xp, yp, coords[ 2 ], style );
         }
+    }
+
+    /**
+     * Returns the graphics tweaker used for rendering depth effects.
+     *
+     * @return  depth tweaker
+     */
+    public DepthTweaker getDepthTweaker() {
+        return tweaker_;
     }
 
     /**
@@ -91,7 +102,10 @@ public abstract class PlotVolume {
 
     /**
      * Plots a marker at a given point in graphics coordinates with a 
-     * given additional Z coordinate.
+     * given additional Z coordinate.  As well as providing a z-buffer
+     * type ordering to determine which marks obscure which others,
+     * the Z value can be passed to this volume's
+     * <code>DepthTweaker</code> object to perform depth rendering.
      *
      * @param  px  graphics space X coordinate
      * @param  py  graphics space Y coordinate
