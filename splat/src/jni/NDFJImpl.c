@@ -14,6 +14,7 @@
 #include "uk_ac_starlink_splat_imagedata_NDFJ.h"
 #include "sae_par.h"
 #include "dat_par.h"
+#include "star/hds.h"
 #include "ndf.h"
 #include "merswrap.h"
 #include "f77.h"
@@ -27,10 +28,6 @@
 /* ================ */
 static int readFITSWCS( int indf, AstFrameSet **iwcs, int *status );
 static int joinWCS( AstFrameSet *wcsone, AstFrameSet *wcstwo );
-static void datMapv( const char *loc, const char *type,  const char *mode,
-		     void **pntr, int *el, int *status );
-static void datAnnul( const char *loc, int *status );
-static void hdsShow( const char *name, int *status );
 
 /** Routines for dealing with AstChannel input and output */
 /*  ====================================================== */
@@ -116,7 +113,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nOpen
     /*  Access the NDF */
     status = SAI__OK;
     errMark();
-    ndfOpen( DAT__ROOT, name, "READ", "OLD", &indf, &place, &status );
+    ndfOpen( NULL, name, "READ", "OLD", &indf, &place, &status );
     if ( status != SAI__OK ) {
         errAnnul( &status );
         indf = 0;
@@ -164,7 +161,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nOpenNew
     /*  Access the NDF */
     status = SAI__OK;
     errMark();
-    ndfOpen( DAT__ROOT, name, "WRITE", "NEW", &indf, &place, &status );
+    ndfOpen( NULL, name, "WRITE", "NEW", &indf, &place, &status );
     if ( status != SAI__OK ) {
         errAnnul( &status );
         place = 0;
@@ -225,7 +222,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetType
     int indf;                /*  NDF identifier */
     int status;              /*  NDF library status */
     jsize slen;              /*  String length */
-    jint result;             /*  NDF/Java data type */
+    jint result = 0;         /*  NDF/Java data type */
 
     /*  Import the data component string  */
     slen = (*env)->GetStringUTFLength( env, jcomp );
@@ -1143,7 +1140,7 @@ JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nHasExtensio
  */
 typedef struct FitsHeader {
     char *ptr;               /* Pointer to memory */
-    int ncard;               /* Number of cards */
+    size_t ncard;            /* Number of cards */
 } FitsHeader;
 
 /*
@@ -1169,7 +1166,7 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nAccessFitsHead
 {
     /*  Local variables */
     char *mapped;            /* Pointer to mapped FITS headers */
-    char loc[DAT__SZLOC];    /* HDS locator to FITS block */
+    HDSLoc *loc;             /* HDS locator to FITS block */
     int exists;              /* Whether FITS component exists */
     int indf;                /* NDF identifier */
     int status;              /* NDF library status */
@@ -1191,10 +1188,10 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nAccessFitsHead
         header = malloc( sizeof( FitsHeader ) );
 
         /*  Get a locator to the FITS block */
-        ndfXloc( indf, "FITS", "READ", loc, &status );
+        ndfXloc( indf, "FITS", "READ", &loc, &status );
 
         /*  Access the FITS headers */
-        datMapv( loc, "_CHAR*80", "READ", (void **) &mapped,
+        datMapV( loc, "_CHAR*80", "READ", (void **) &mapped,
                  &header->ncard, &status );
 
         /*  If failed, then return a null header */
@@ -1208,7 +1205,7 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nAccessFitsHead
             memcpy( header->ptr, mapped, 80 * header->ncard );
 
             /* Free the locator */
-            datAnnul( loc, &status );
+            datAnnul( &loc, &status );
         }
     }
     else {
@@ -1345,11 +1342,11 @@ JNIEXPORT
     /*  Local variables */
     char *card;              /* Current card */
     char *ptr;               /* Pointer to mapped data */
-    char loc[ DAT__SZLOC ];  /* Locator to extension */
+    HDSLoc *loc;             /* Locator to extension */
     int dim[1];              /* Dimensions of FITS block */
     int i;                   /* Loop variable */
     int indf;                /* NDF identifier */
-    int ncards;              /* Number of cards to write */
+    size_t ncards;           /* Number of cards to write */
     int status;              /* NDF library status */
     jstring jcard;           /* Current card */
 
@@ -1361,13 +1358,13 @@ JNIEXPORT
     errMark();
 
     /*  Find out the number of cards */
-    ncards = (int) (*env)->GetArrayLength( env, jcards );
+    ncards = (size_t) (*env)->GetArrayLength( env, jcards );
 
     /*  Create the new extension */
     ndfXdel( indf, "FITS", &status );
-    dim[0] = ncards;
-    ndfXnew( indf, "FITS", "_CHAR*80", 1, dim, loc, &status );
-    datMapv( loc, "_CHAR*80", "WRITE", (void **) &ptr, &ncards, &status );
+    dim[0] = (int) ncards;
+    ndfXnew( indf, "FITS", "_CHAR*80", 1, dim, &loc, &status );
+    datMapV( loc, "_CHAR*80", "WRITE", (void **) &ptr, &ncards, &status );
 
     /*  Access each String in turn adding it to the extension */
     for ( i = 0; i < ncards; i++, ptr += 80 ) {
@@ -1378,7 +1375,7 @@ JNIEXPORT
     }
 
     /*  Release the extension, writing it to NDF */
-    datAnnul( loc, &status );
+    datAnnul( &loc, &status );
 
     /*  Clear NDF status, if needed and release the error stack */
     if ( status != SAI__OK ) {
@@ -1465,20 +1462,20 @@ JNIEXPORT
 static int readFITSWCS( int indf, AstFrameSet **iwcs, int *status )
 {
    /*  Local variables */
-   char loc[DAT__SZLOC];
+   HDSLoc *loc;
    char *pntr;
    char card[81];
-   int ncard;
+   size_t ncard;
    int i;
    AstFitsChan *fitschan;
 
    /*  Get a locator to the FITS block */
-   ndfXloc( indf, "FITS", "READ", loc, status );
+   ndfXloc( indf, "FITS", "READ", &loc, status );
 
    /*  Access the FITS headers */
-   datMapv( loc, "_CHAR*80", "READ", (void **) &pntr, &ncard, status );
+   datMapV( loc, "_CHAR*80", "READ", (void **) &pntr, &ncard, status );
    if ( *status != SAI__OK ) {
-      datAnnul( loc, status );
+      datAnnul( &loc, status );
       *iwcs = NULL;
       return 0;
    } else {
@@ -1513,7 +1510,7 @@ static int readFITSWCS( int indf, AstFrameSet **iwcs, int *status )
       *iwcs = astRead( fitschan );
       fitschan = (AstFitsChan *) astAnnul( fitschan );
 
-      datAnnul( loc, status );
+      datAnnul( &loc, status );
       if ( *iwcs == AST__NULL ) {
          astClearStatus;
          return 0;
@@ -1579,123 +1576,4 @@ static int joinWCS( AstFrameSet *wcsone, AstFrameSet *wcstwo )
   } else {
     return 1;
   }
-}
-
-
-/*
- *  ================
- *  Fortran Wrappers
- *  ================
- */
-
-/*
- *  Name:
- *     datMapv
- *
- *  Purpose:
- *     Map an HDS component as a vectorised array.
- *
- *  Params:
- *    loc = HDS locator to component
- *    type = HDS data type
- *    mode = access mode
- *    pntr = pointer to mapped data
- *    el = number of elements mapped
- *    status = global status
- */
-extern void F77_EXTERNAL_NAME(dat_mapv)( CHARACTER(loc),
-                                         CHARACTER(type),
-                                         CHARACTER(mode),
-                                         POINTER(pntr),
-                                         INTEGER(el),
-                                         INTEGER(status)
-                                         TRAIL(loc)
-                                         TRAIL(type)
-                                         TRAIL(mode) );
-static void datMapv( const char *loc, const char *type,
-                     const char *mode, void **pntr,
-                     int *el, int *status )
-{
-    DECLARE_CHARACTER(floc,DAT__SZLOC);  /* Fortran locator */
-    DECLARE_CHARACTER(ftype,DAT__SZTYP); /* Fortran type  */
-    DECLARE_CHARACTER(fmode,DAT__SZMOD); /* Fortran access mode */
-    DECLARE_POINTER(fpntr);                /* Pointer to F77 character array */
-    DECLARE_INTEGER(fel);                  /* Number of elements mapped */
-
-    /* Convert the input strings into F77 character arrays */
-    F77_EXPORT_LOCATOR( loc, floc );
-    F77_EXPORT_CHARACTER( type, ftype, ftype_length );
-    F77_EXPORT_CHARACTER( mode, fmode, fmode_length );
-
-    F77_CALL( dat_mapv )( CHARACTER_ARG(floc),
-                          CHARACTER_ARG(ftype),
-                          CHARACTER_ARG(fmode),
-                          POINTER_ARG(&fpntr),
-                          INTEGER_ARG(&fel),
-                          INTEGER_ARG(status)
-                          TRAIL_ARG(floc)
-                          TRAIL_ARG(ftype)
-                          TRAIL_ARG(fmode) );
-
-    /* Import pointer and element count */
-    if ( *status == SAI__OK ) {
-        F77_IMPORT_POINTER( fpntr, *pntr );
-        F77_IMPORT_INTEGER( fel, *el );
-    } else {
-
-      /*  In error return 1 element for safety and a NULL pointer */
-      *el = 1;
-      *pntr = NULL;
-    }
-}
-
-/*
- *  Name:
- *     datAnnul
- *
- *  Purpose:
- *     Annul a HDS locator, releasing all associated resources.
- *
- *  Params:
- *    loc = HDS locator to component
- *    status = global status
- */
-extern void F77_EXTERNAL_NAME(dat_annul)( CHARACTER(loc),
-                                          INTEGER(status)
-                                          TRAIL(loc) );
-static void datAnnul( const char *loc, int *status )
-{
-  DECLARE_CHARACTER(floc,DAT__SZLOC);  /* Fortran locator */
-
-  /* Convert the input locator into an F77 character array */
-  F77_EXPORT_LOCATOR( loc, floc );
-  F77_CALL( dat_annul )( CHARACTER_ARG(floc),
-			 INTEGER_ARG(status)
-			 TRAIL_ARG(floc) );
-}
-
-/*
- *  Name:
- *    hdsShow, show open files and locators.
- */
-extern void F77_EXTERNAL_NAME( hds_show )(
-   CHARACTER( fname ),
-   INTEGER( fstatus )
-   TRAIL( fname ) );
-
-static void hdsShow( const char *name, int *status )
-{
-   DECLARE_CHARACTER_DYN(fname);
-   DECLARE_INTEGER(fstatus);
-
-   F77_CREATE_CHARACTER( fname, strlen( name ) );
-   F77_EXPORT_CHARACTER( name, fname, fname_length );
-   F77_EXPORT_INTEGER( *status, fstatus );
-
-   F77_CALL( hds_show )( CHARACTER_ARG( fname ),
-                         INTEGER_ARG( &fstatus )
-                         TRAIL_ARG( fname ) );
-
-   F77_FREE_CHARACTER( fname );
-   return;
 }
