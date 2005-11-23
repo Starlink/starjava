@@ -35,9 +35,11 @@ public class SortPlotVolume extends PlotVolume {
 
     public void flush() {
         Graphics g = getGraphics();
+        DepthTweaker tweaky = getDepthTweaker();
         for ( Iterator it = points_.iterator(); it.hasNext(); ) {
             Point3D point = (Point3D) it.next();
-            point.style_.drawMarker( g, point.px_, point.py_ );
+            tweaky.setZ( point.z_ );
+            point.style_.drawMarker( g, point.px_, point.py_, tweaky );
         }
         points_.clear();
     }
@@ -73,10 +75,10 @@ public class SortPlotVolume extends PlotVolume {
 
         public int compareTo( Object other ) {
             Point3D o = (Point3D) other;
-            if ( this.z_ < o.z_ ) {
+            if ( this.z_ > o.z_ ) {
                 return -1;
             }
-            else if ( this.z_ > o.z_ ) {
+            else if ( this.z_ < o.z_ ) {
                 return +1;
             }
             else {
