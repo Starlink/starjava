@@ -154,7 +154,7 @@ public class Plot3DWindow extends GraphicsWindow {
                  * of the view). */
                 double scale = Math.min( plot_.getWidth(), plot_.getHeight() );
                 double xf = ( pos.x - posBase_.x ) / scale;
-                double yf = ( pos.y - posBase_.y ) / scale;
+                double yf = - ( pos.y - posBase_.y ) / scale;
 
                 /* Turn these into angles.  Phi and Psi are the rotation
                  * angles around the screen vertical and horizontal axes
