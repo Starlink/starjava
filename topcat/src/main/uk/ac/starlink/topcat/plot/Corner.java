@@ -19,6 +19,9 @@ public class Corner implements Comparable {
         }
     }
 
+    /** The origin. */
+    public static final Corner ORIGIN = getCorner( 0 );
+
     /**
      * Private sole constructor.
      * Constructs a new corner with a given index.
