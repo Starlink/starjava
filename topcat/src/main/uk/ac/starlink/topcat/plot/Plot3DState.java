@@ -22,6 +22,7 @@ public class Plot3DState extends PlotState {
 
     private double[] rotation_ = UNIT_MATRIX;
     private double fogginess_ = 2.0;
+    private boolean antialias_;
 
     /**
      * Sets the rotation matrix.
@@ -60,12 +61,31 @@ public class Plot3DState extends PlotState {
         return fogginess_;
     }
 
+    /**
+     * Sets whether antialiasing hint is preferred for drawing axes.
+     *
+     * @param  antialias   true to antialias, false not
+     */
+    public void setAntialias( boolean antialias ) {
+        antialias_ = antialias;
+    }
+
+    /**
+     * Determines whether antialiasing is preferred for drawing axes.
+     *
+     * @return  true to antialias, false not
+     */
+    public boolean getAntialias() {
+        return antialias_;
+    }
+
     public boolean equals( Object otherObject ) {
         if ( otherObject instanceof Plot3DState &&
              super.equals( otherObject ) ) {
             Plot3DState other = (Plot3DState) otherObject;
             return Arrays.equals( rotation_, other.rotation_ )
-                && fogginess_ == other.fogginess_;
+                && fogginess_ == other.fogginess_
+                && antialias_ == other.antialias_;
         }
         return false;
     }
@@ -76,6 +96,7 @@ public class Plot3DState extends PlotState {
             code = 23 * code + Float.floatToIntBits( (float) rotation_[ i ] );
         }
         code = 23 * code + Float.floatToIntBits( (float) fogginess_ );
+        code = 23 * code + ( antialias_ ? 0 : 1 );
         return code;
     }
 }
