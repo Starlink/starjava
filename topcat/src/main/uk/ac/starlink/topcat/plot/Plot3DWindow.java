@@ -132,6 +132,33 @@ public class Plot3DWindow extends GraphicsWindow {
     }
 
     /**
+     * Takes a view rotation matrix and adds to it the effect of rotations
+     * about X and Y directions.
+     *
+     * @param   base  9-element array giving initial view rotation matrix
+     * @param   phi   angle to rotate around X axis
+     * @param   psi   angle to rotate around Y axis
+     * @return  9-element array giving combined rotation matrix
+     */
+    private static double[] rotateXY( double[] base, double phi, double psi ) {
+        double cosPhi = Math.cos( phi );
+        double sinPhi = Math.sin( phi );
+        double cosPsi = Math.cos( psi );
+        double sinPsi = Math.sin( psi );
+
+        /* Construct the matrix that represents rotation of psi around
+         * the X axis followed by rotation of phi around the Y axis. */
+        double[] rot = new double[] {
+             cosPhi         ,        0,   -sinPhi         ,
+            -sinPhi * sinPsi,   cosPsi,   -cosPhi * sinPsi,
+             sinPhi * cosPsi,   sinPsi,    cosPhi * cosPsi,
+        };
+
+        /* Combine this with the current view rotation and return. */
+        return matrixMultiply( base, rot );
+    }
+
+    /**
      * Listener which interprets drag gestures on the plotting surface 
      * as requests to rotate the viewing angles.
      */
@@ -161,22 +188,7 @@ public class Plot3DWindow extends GraphicsWindow {
                  * respectively. */
                 double phi = xf * Math.PI / 2.;
                 double psi = yf * Math.PI / 2.;
-                double cosPhi = Math.cos( phi );
-                double sinPhi = Math.sin( phi );
-                double cosPsi = Math.cos( psi );
-                double sinPsi = Math.sin( psi );
-
-                /* Construct the matrix that represents rotation of psi around
-                 * the X axis followed by rotation of phi around the Y axis. */
-                double[] rot = new double[] {
-                     cosPhi         ,        0,   -sinPhi         ,
-                    -sinPhi * sinPsi,   cosPsi,   -cosPhi * sinPsi,
-                     sinPhi * cosPsi,   sinPsi,    cosPhi * cosPsi,
-                };
-
-                /* Combine this with the window's current view rotation
-                 * state and set the windows current state to that. */
-                setRotation( matrixMultiply( rotBase_, rot ) );
+                setRotation( rotateXY( rotBase_, phi, psi ) );
                 replot();
             }
         }
