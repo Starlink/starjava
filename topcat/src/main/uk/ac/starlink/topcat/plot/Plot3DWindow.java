@@ -16,8 +16,7 @@ import javax.swing.JComponent;
 public class Plot3DWindow extends GraphicsWindow {
 
     private final Plot3D plot_;
-    private double theta_;
-    private double phi_;
+    private double[] rotation_;
 
     /**
      * Constructs a new window.
@@ -38,6 +37,7 @@ public class Plot3DWindow extends GraphicsWindow {
 
         /* Add standard toolbar items. */
         addHelp( "Plot3DWindow" );
+        setRotation( Plot3DState.UNIT_MATRIX );
         replot();
 
         /* Make visible. */
@@ -46,11 +46,12 @@ public class Plot3DWindow extends GraphicsWindow {
     }
 
     /**
-     * Resets the viewing angle to a standard position.
+     * Sets the viewing angle.
+     *
+     * @param   matrix  9-element array giving rotation of data space
      */
-    public void resetView() {
-        theta_ = 0.0;
-        phi_ = 0.0;
+    public void setRotation( double[] matrix ) {
+        rotation_ = (double[]) matrix.clone();
     }
 
     protected JComponent getPlot() {
@@ -67,12 +68,11 @@ public class Plot3DWindow extends GraphicsWindow {
         /* Reset the view angle if the axes have changed.  This is probably
          * what you want, but might not be? */
         if ( ! state.sameAxes( plot_.getState() ) ) {
-            resetView();
+            setRotation( Plot3DState.UNIT_MATRIX );
         }
 
         /* Configure the state with this window's current viewing angles. */
-        state.setTheta( theta_ );
-        state.setPhi( phi_ );
+        state.setRotation( rotation_ );
 
         /* Return. */
         return state;
@@ -112,28 +112,80 @@ public class Plot3DWindow extends GraphicsWindow {
     }
 
     /**
+     * Multiplies two 3x3 matrices together.  The inputs and outputs
+     * are 9-element double arrays.
+     *
+     * @param   a  input matrix 1
+     * @param   b  input matrix 2
+     * @return  a * b.
+     */
+    private static double[] matrixMultiply( double[] a, double[] b ) {
+        double[] r = new double[ 9 ];
+        for ( int i = 0; i < 3; i++ ) {
+            for ( int j = 0; j < 3; j++ ) {
+                for ( int k = 0; k < 3; k++ ) {
+                    r[ 3 * i + j ] += a[ 3 * i + k ] * b[ j + 3 * k ];
+                }
+            }
+        }
+        return r;
+    }
+
+    /**
      * Listener which interprets drag gestures on the plotting surface 
      * as requests to rotate the viewing angles.
      */
     private class DragListener implements MouseMotionListener {
 
-        private Point lastPos_;
+        private Point posBase_;
+        private double[] rotBase_;
 
         public void mouseDragged( MouseEvent evt ) {
             Point pos = evt.getPoint(); 
-            if ( lastPos_ != null ) {
-                double xf = ( lastPos_.x - pos.x ) / (double) plot_.getWidth();
-                double yf = ( lastPos_.y - pos.y ) / (double) plot_.getHeight();
-                theta_ += yf * Math.PI;
-                phi_ += xf * Math.PI;
+            if ( posBase_ == null ) {
+                posBase_ = pos;
+                rotBase_ = Plot3DWindow.this.rotation_;
             }
-            replot();
-            lastPos_ = pos;
+            else {
+
+                /* Work out the amounts by which the user wants to rotate
+                 * in the 'horizontal' and 'vertical' directions respectively
+                 * (these directions are relative to the current orientation
+                 * of the view). */
+                double scale = Math.min( plot_.getWidth(), plot_.getHeight() );
+                double xf = ( pos.x - posBase_.x ) / scale;
+                double yf = ( pos.y - posBase_.y ) / scale;
+
+                /* Turn these into angles.  Phi and Psi are the rotation
+                 * angles around the screen vertical and horizontal axes
+                 * respectively. */
+                double phi = xf * Math.PI / 2.;
+                double psi = yf * Math.PI / 2.;
+                double cosPhi = Math.cos( phi );
+                double sinPhi = Math.sin( phi );
+                double cosPsi = Math.cos( psi );
+                double sinPsi = Math.sin( psi );
+
+                /* Construct the matrix that represents rotation of psi around
+                 * the X axis followed by rotation of phi around the Y axis. */
+                double[] rot = new double[] {
+                     cosPhi         ,        0,   -sinPhi         ,
+                    -sinPhi * sinPsi,   cosPsi,   -cosPhi * sinPsi,
+                     sinPhi * cosPsi,   sinPsi,    cosPhi * cosPsi,
+                };
+
+                /* Combine this with the window's current view rotation
+                 * state and set the windows current state to that. */
+                setRotation( matrixMultiply( rotBase_, rot ) );
+                replot();
+            }
         }
 
         public void mouseMoved( MouseEvent evt ) {
-            lastPos_ = null;
+            posBase_ = null;
+            rotBase_ = null;
         }
+
     }
 
 }

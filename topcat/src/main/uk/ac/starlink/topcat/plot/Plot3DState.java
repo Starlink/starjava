@@ -1,69 +1,59 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.util.Arrays;
+
 /**
  * PlotState subclass which has specific features for specifying the
- * state of 3D scatter plots.  The most important extra features are
- * the viewing angles.
+ * state of 3D scatter plots.  The most important extra feature is
+ * the rotation matrix, which describes the viewing angle for the
+ * 3D data space.
  *
  * @author   Mark Taylor
  * @since    22 Nov 2005
  */
 public class Plot3DState extends PlotState {
 
-    private double theta_;
-    private double phi_;
+    /** Unit matrix. */
+    static final double[] UNIT_MATRIX = new double[] {
+        1.0, 0.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 0.0, 1.0,
+    };
+
+    private double[] rotation_ = UNIT_MATRIX;
 
     /**
-     * Sets the zenithal viewing angle.
+     * Sets the rotation matrix.
      *
-     * @param  theta  angle in radians
+     * @param  matrix  9-element 3d rotation matrix
      */
-    public void setTheta( double theta ) {
-        theta_ = theta;
+    public void setRotation( double[] matrix ) {
+        rotation_ = (double[]) matrix.clone();
     }
 
     /**
-     * Returns the zenithal viewing angle.
+     * Returns the rotation matrix.
      *
-     * @return   angle in radians
+     * @return  9-element 3d rotation matrix
      */
-    public double getTheta() {
-        return theta_;
-    }
-
-    /**
-     * Sets the azimuthal viewing angle.
-     *
-     * @param   angle in radians
-     */
-    public void setPhi( double phi ) {
-        phi_ = phi;
-    }
-
-    /**
-     * Returns the azimuthal viewing angle.
-     *
-     * @return  angle in radians
-     */
-    public double getPhi() {
-        return phi_;
+    public double[] getRotation() {
+        return rotation_;
     }
 
     public boolean equals( Object otherObject ) {
         if ( otherObject instanceof Plot3DState &&
              super.equals( otherObject ) ) {
             Plot3DState other = (Plot3DState) otherObject;
-            return other.theta_ == theta_
-                && other.phi_ == phi_;
+            return Arrays.equals( rotation_, other.rotation_ );
         }
         return false;
     }
 
     public int hashCode() {
         int code = super.hashCode();
-        code = 23 * code + Float.floatToIntBits( (float) theta_ );
-        code = 23 * code + Float.floatToIntBits( (float) phi_ );
+        for ( int i = 0; i < 9; i++ ) {
+            code = 23 * code + Float.floatToIntBits( (float) rotation_[ i ] );
+        }
         return code;
     }
-
 }

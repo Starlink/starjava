@@ -143,14 +143,13 @@ public class Plot3D extends JComponent {
         /* Set up a transformer to do the mapping from data space to
          * normalised 3-d view space. */
         Transformer3D trans = 
-            new Transformer3D( state.getTheta(), state.getPhi(),
-                               loBounds_, hiBounds_);
+            new Transformer3D( state.getRotation(), loBounds_, hiBounds_);
 
         /* Set up a plotting volume to render the 3-d points. */
         PlotVolume vol = new SortPlotVolume( this, g );
 
-        /* Plot bounding box. */
-        plotAxes( g, trans, vol );
+        /* Plot back part of bounding box. */
+        plotAxes( g, trans, vol, false );
 
         /* Submit each point for drawing in the display volume as
          * appropriate. */
@@ -187,12 +186,13 @@ public class Plot3D extends JComponent {
          * This will do the painting on the graphics context if it hasn't
          * been done already. */
         vol.flush();
+
+        /* Plot front part of bounding box. */
+        plotAxes( g, trans, vol, true );
     }
 
-    private static void plotAxes( Graphics g, Transformer3D trans,
-                                  PlotVolume vol ) {
-        double[][] points = new double[][] {
-        };
+    private void plotAxes( Graphics g, Transformer3D trans,
+                           PlotVolume vol, boolean front ) {
     }
 
     /**
@@ -202,10 +202,7 @@ public class Plot3D extends JComponent {
 
         final double[] loBounds_;
         final double[] factors_;
-        final double cosTheta_;
-        final double sinTheta_;
-        final double cosPhi_;
-        final double sinPhi_;
+        final double[] rot_;
 
         /**
          * Constructs a transformer.  A cuboid of interest in data space
@@ -215,17 +212,13 @@ public class Plot3D extends JComponent {
          * lie in a unit sphere centred on (0.5, 0.5, 0.5) and hence,
          * <i>a fortiori</i>, in the unit cube.
          *
-         * @param    theta   zenithal angle of rotation
-         * @param    phi     azimuthal angle of rotation
+         * @param    rotation  9-element rotation matrix
          * @param    loBounds  lower bounds of cuboid of interest (xlo,ylo,zlo)
          * @param    hiBounds  upper bounds of cuboid of interest (xhi,yhi,zhi)
          */
-        Transformer3D( double theta, double phi,
-                       double[] loBounds, double[] hiBounds ) {
-            cosTheta_ = Math.cos( theta );
-            sinTheta_ = Math.sin( theta );
-            cosPhi_ = Math.cos( phi );
-            sinPhi_ = Math.sin( phi );
+        Transformer3D( double[] rotation, double[] loBounds,
+                       double[] hiBounds ) {
+            rot_ = (double[]) rotation.clone();
             loBounds_ = new double[ 3 ];
             factors_ = new double[ 3 ];
             for ( int i = 0; i < 3; i++ ) {
@@ -250,17 +243,13 @@ public class Plot3D extends JComponent {
                             - 0.5;
             }
 
-            /* Rotate by theta around the x axis. */
-            double y0 = coords[ 1 ];
-            double z0 = coords[ 2 ];
-            coords[ 1 ] = cosTheta_ * y0 - sinTheta_ * z0;
-            coords[ 2 ] = sinTheta_ * y0 + cosTheta_ * z0;
-
-            /* Rotate by phi around the y axis. */
-            double x1 = coords[ 0 ];
-            double z1 = coords[ 2 ];
-            coords[ 0 ] = cosPhi_ * x1 - sinPhi_ * z1;
-            coords[ 2 ] = sinPhi_ * x1 + cosPhi_ * z1;
+            /* Perform rotations as determined by the rotation matrix. */
+            double x = coords[ 0 ];
+            double y = coords[ 1 ];
+            double z = coords[ 2 ];
+            coords[ 0 ] = rot_[ 0 ] * x + rot_[ 1 ] * y + rot_[ 2 ] * z;
+            coords[ 1 ] = rot_[ 3 ] * x + rot_[ 4 ] * y + rot_[ 5 ] * z;
+            coords[ 2 ] = rot_[ 6 ] * x + rot_[ 7 ] * y + rot_[ 8 ] * z;
 
             /* Shift the origin so the unit sphere is centred at (.5,.5,.5). */
             for ( int i = 0; i < 3; i++ ) {
