@@ -212,7 +212,6 @@ public class Plot3D extends JComponent {
                            PlotVolume vol, boolean front ) {
         Graphics2D g2 = (Graphics2D) g;
         Color col = g.getColor();
-        g.setColor( Color.BLACK );
         Object antialias = 
             g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
@@ -236,6 +235,10 @@ public class Plot3D extends JComponent {
                     }
                     trans.transform( mid );
                     if ( ( mid[ 2 ] > 0.5 ) != front ) {
+                        boolean fromOrigin = c0 == Corner.ORIGIN || 
+                                             c1 == Corner.ORIGIN;
+                        g.setColor( c0 == Corner.ORIGIN || c1 == Corner.ORIGIN
+                                    ? Color.BLACK : Color.LIGHT_GRAY );
                         double[] rot0 = new double[ 3 ];
                         double[] rot1 = new double[ 3 ];
                         for ( int j = 0; j < 3; j++ ) {
