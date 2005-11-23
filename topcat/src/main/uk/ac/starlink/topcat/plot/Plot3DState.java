@@ -21,7 +21,7 @@ public class Plot3DState extends PlotState {
     };
 
     private double[] rotation_ = UNIT_MATRIX;
-    private double fogginess_ = 1.0;
+    private double fogginess_ = 2.0;
 
     /**
      * Sets the rotation matrix.
