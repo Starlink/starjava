@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.util.Arrays;
 import javax.swing.JComponent;
 import uk.ac.starlink.topcat.RowSubset;
@@ -20,6 +21,8 @@ public class Plot3D extends JComponent {
     private Plot3DState state_;
     private double[] loBounds_;
     private double[] hiBounds_;
+
+    private static final double SQRT3 = Math.sqrt( 3.0 );
 
     /**
      * Constructor.
@@ -147,6 +150,7 @@ public class Plot3D extends JComponent {
 
         /* Set up a plotting volume to render the 3-d points. */
         PlotVolume vol = new SortPlotVolume( this, g );
+        vol.getDepthTweaker().setFogginess( state_.getFogginess() );
 
         /* Plot back part of bounding box. */
         plotAxes( g, trans, vol, false );
@@ -169,6 +173,7 @@ public class Plot3D extends JComponent {
                      ! Double.isNaN( coords[ 1 ] ) && 
                      ! Double.isNaN( coords[ 2 ] ) ) {
                     trans.transform( coords );
+                    // coords[ 2 ] = ( ( coords[ 2 ] - .5 ) / SQRT3 ) + .5;
                     for ( int is = 0; is < nset; is++ ) {
                         if ( sets[ is ].isIncluded( lp ) ) {
                             vol.plot( coords, (MarkStyle) styles[ is ] );
@@ -191,8 +196,70 @@ public class Plot3D extends JComponent {
         plotAxes( g, trans, vol, true );
     }
 
+    /**
+     * Draws a bounding box which contains all the known points.
+     * According to the value of the <code>front</code> parameter, 
+     * either the lines which are behind all the data points,
+     * or the lines which are in front of all the data points are drawn.
+     * Thus, the routine needs to be called twice to plot all the lines.
+     *
+     * @param   g      graphics context
+     * @param   trans  transformer which maps data space to 3d graphics space
+     * @param   vol    the plotting volume onto which the plot is done
+     * @param   front  true for lines in front of data, false for lines behind
+     */
     private void plotAxes( Graphics g, Transformer3D trans,
                            PlotVolume vol, boolean front ) {
+        Graphics2D g2 = (Graphics2D) g;
+        Color col = g.getColor();
+        g.setColor( Color.BLACK );
+        Object antialias = 
+            g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                             state_.getAntialias() 
+                                 ? RenderingHints.VALUE_ANTIALIAS_ON
+                                 : RenderingHints.VALUE_ANTIALIAS_OFF );
+        for ( int i0 = 0; i0 < 8; i0++ ) {
+            Corner c0 = Corner.getCorner( i0 );
+            boolean[] flags0 = c0.getFlags();
+            Corner[] friends = c0.getAdjacent();
+            for ( int i1 = 0; i1 < friends.length; i1++ ) {
+                Corner c1 = friends[ i1 ];
+                boolean[] flags1 = c1.getFlags();
+                if ( c1.compareTo( c0 ) > 0 ) {
+                    double[] mid = new double[ 3 ];
+                    for ( int j = 0; j < 3; j++ ) {
+                        mid[ j ] = 0.5 * ( ( flags0[ j ] ? hiBounds_[ j ]
+                                                         : loBounds_[ j ] ) 
+                                         + ( flags1[ j ] ? hiBounds_[ j ]
+                                                         : loBounds_[ j ] ) );
+                    }
+                    trans.transform( mid );
+                    if ( ( mid[ 2 ] > 0.5 ) != front ) {
+                        double[] rot0 = new double[ 3 ];
+                        double[] rot1 = new double[ 3 ];
+                        for ( int j = 0; j < 3; j++ ) {
+                            rot0[ j ] = flags0[ j ] ? hiBounds_[ j ]
+                                                    : loBounds_[ j ];
+                            rot1[ j ] = flags1[ j ] ? hiBounds_[ j ]
+                                                    : loBounds_[ j ];
+                        }
+                        trans.transform( rot0 );
+                        trans.transform( rot1 );
+                        int xp0 = vol.projectX( rot0[ 0 ] );
+                        int yp0 = vol.projectY( rot0[ 1 ] );
+                        int xp1 = vol.projectX( rot1[ 0 ] );
+                        int yp1 = vol.projectY( rot1[ 1 ] );
+                        g.drawLine( vol.projectX( rot0[ 0 ] ),
+                                    vol.projectY( rot0[ 1 ] ),
+                                    vol.projectX( rot1[ 0 ] ),
+                                    vol.projectY( rot1[ 1 ] ) );
+                    }
+                }
+            }
+        }
+        g.setColor( col );
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, antialias );
     }
 
     /**
