@@ -236,13 +236,13 @@ public class ControlWindow extends AuxWindow
                                        StatsWindow.class ),
         };
         graphicsActs_ = new Action[] {
-            new GraphicsWindowAction( "Plot", ResourceIcon.PLOT,
-                                      "Scatter Plot",
-                                      PlotWindow.class ),
             new GraphicsWindowAction( "Histogram", ResourceIcon.HISTOGRAM,
                                       "Histogram",
                                       HistogramWindow.class ),
-            new GraphicsWindowAction( "3D", ResourceIcon.DO_WHAT,
+            new GraphicsWindowAction( "Plot", ResourceIcon.PLOT,
+                                      "Scatter Plot",
+                                      PlotWindow.class ),
+            new GraphicsWindowAction( "3D", ResourceIcon.PLOT3D,
                                       "Three-dimensional scatter plot",
                                       Plot3DWindow.class ),
         };
