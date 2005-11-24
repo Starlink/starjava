@@ -23,7 +23,7 @@ import java.awt.Graphics;
 public abstract class PlotVolume {
 
     private final Graphics graphics_;
-    private final double scale_;
+    private final int scale_;
     private final int xoff_;
     private final int yoff_;
     private DepthTweaker tweaker_;
@@ -39,7 +39,7 @@ public abstract class PlotVolume {
         int w = c.getWidth();
         int h = c.getHeight();
         double padFactor = Math.sqrt( 0.5 );
-        scale_ = Math.min( h, w ) * padFactor;
+        scale_ = (int) Math.round( Math.min( h, w ) * padFactor );
         xoff_ = 0 + (int) ( ( w - scale_ ) / 2. );
         yoff_ = h - (int) ( ( h - scale_ ) / 2. );
         tweaker_ = new DepthTweaker( 1.0 );
@@ -53,7 +53,7 @@ public abstract class PlotVolume {
      *
      * @return  scale length
      */
-    public double getScale() {
+    public int getScale() {
         return scale_;
     }
 
