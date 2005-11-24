@@ -127,7 +127,7 @@ public class Histogram extends SurfacePlot {
          * a computational bottleneck. */
         for ( int iset = 0; iset < nset; iset++ ) {
             BarStyle style = (BarStyle) styles[ iset ];
-            int lastIxhi = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+            int lastIxLead = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
             int lastIyhi = 0;
             for ( Iterator it = getBinnedData().getBinIterator();
                   it.hasNext(); ) {
@@ -135,6 +135,9 @@ public class Histogram extends SurfacePlot {
                 /* Get the bin and its value. */
                 BinnedData.Bin bin = (BinnedData.Bin) it.next();
                 double dcount = (double) bin.getCount( iset );
+                if ( dcount <= 0 ) {
+                    break;
+                }
 
                 /* Work out the bar geometry. */
                 double dxlo = bin.getLowBound();
@@ -147,14 +150,15 @@ public class Histogram extends SurfacePlot {
                 int iyhi = surface.dataToGraphics( dxmid, dcount, false ).y;
 
                 /* Draw the trailing edge of the last bar if necessary. */
-                if ( lastIxhi != ( xflip ? ixhi : ixlo ) ) {
-                    style.drawEdge( g, lastIxhi, lastIyhi, iylo, iset, nset );
+                if ( lastIxLead != ( xflip ? ixhi : ixlo ) ) {
+                    style.drawEdge( g, lastIxLead, lastIyhi, iylo, iset, nset );
                     lastIyhi = iylo;
                 }
 
                 /* Draw the leading edge of the current bar. */
-                lastIxhi = xflip ? ixlo : ixhi;
-                style.drawEdge( g, lastIxhi, lastIyhi, iyhi, iset, nset );
+                style.drawEdge( g, xflip ? ixhi : ixlo, lastIyhi, iyhi,
+                                iset, nset );
+                lastIxLead = xflip ? ixlo : ixhi;
                 lastIyhi = iyhi;
 
                 /* Plot the bar. */
@@ -162,7 +166,7 @@ public class Histogram extends SurfacePlot {
             }
 
             /* Draw trailing edge of the final bar. */
-            style.drawEdge( g, lastIxhi, lastIyhi, iylo, iset, nset );
+            style.drawEdge( g, lastIxLead, lastIyhi, iylo, iset, nset );
         }
     }
 
