@@ -46,6 +46,18 @@ public abstract class PlotVolume {
     }
 
     /**
+     * Returns the scaling constant for this volume.
+     * This is the value by which the normalised coordinates are multiplied
+     * to give the length on the screen in pixels of a line if it is
+     * being plotted normal to the viewer.
+     *
+     * @return  scale length
+     */
+    public double getScale() {
+        return scale_;
+    }
+
+    /**
      * Submits a point for plotting.  The graphical effect is not guaranteed
      * to occur until a subsequent call to {@link #flush}.
      * The coordinate array gives the point's 3D position in normalised 
