@@ -5,8 +5,10 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.util.Arrays;
 import javax.swing.JComponent;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
 
 /**
@@ -122,7 +124,7 @@ public class Plot3D extends JComponent {
     }
 
     /**
-     * Performs the painting - this method does the acutal work.
+     * Performs the painting - this method does the actual work.
      */
     protected void paintComponent( Graphics g ) {
 
@@ -217,7 +219,7 @@ public class Plot3D extends JComponent {
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                              state_.getAntialias() 
                                  ? RenderingHints.VALUE_ANTIALIAS_ON
-                                 : RenderingHints.VALUE_ANTIALIAS_OFF );
+                                 : RenderingHints.VALUE_ANTIALIAS_DEFAULT );
         for ( int i0 = 0; i0 < 8; i0++ ) {
             Corner c0 = Corner.getCorner( i0 );
             boolean[] flags0 = c0.getFlags();
@@ -235,34 +237,160 @@ public class Plot3D extends JComponent {
                     }
                     trans.transform( mid );
                     if ( ( mid[ 2 ] > 0.5 ) != front ) {
-                        boolean fromOrigin = c0 == Corner.ORIGIN || 
-                                             c1 == Corner.ORIGIN;
-                        g.setColor( c0 == Corner.ORIGIN || c1 == Corner.ORIGIN
-                                    ? Color.BLACK : Color.LIGHT_GRAY );
-                        double[] rot0 = new double[ 3 ];
-                        double[] rot1 = new double[ 3 ];
+                        double[] p0 = new double[ 3 ];
+                        double[] p1 = new double[ 3 ];
                         for ( int j = 0; j < 3; j++ ) {
-                            rot0[ j ] = flags0[ j ] ? hiBounds_[ j ]
-                                                    : loBounds_[ j ];
-                            rot1[ j ] = flags1[ j ] ? hiBounds_[ j ]
-                                                    : loBounds_[ j ];
+                            p0[ j ] = flags0[ j ] ? hiBounds_[ j ]
+                                                  : loBounds_[ j ];
+                            p1[ j ] = flags1[ j ] ? hiBounds_[ j ] 
+                                                  : loBounds_[ j ];
                         }
-                        trans.transform( rot0 );
-                        trans.transform( rot1 );
-                        int xp0 = vol.projectX( rot0[ 0 ] );
-                        int yp0 = vol.projectY( rot0[ 1 ] );
-                        int xp1 = vol.projectX( rot1[ 0 ] );
-                        int yp1 = vol.projectY( rot1[ 1 ] );
-                        g.drawLine( vol.projectX( rot0[ 0 ] ),
-                                    vol.projectY( rot0[ 1 ] ),
-                                    vol.projectX( rot1[ 0 ] ),
-                                    vol.projectY( rot1[ 1 ] ) );
+                        assert c1 != Corner.ORIGIN;
+                        if ( c0 == Corner.ORIGIN ) {
+                            drawAxis( g, trans, vol, p0, p1 );
+                        }
+                        else {
+                            drawBoxLine( g, trans, vol, p0, p1 );
+                        }
                     }
                 }
             }
         }
         g.setColor( col );
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, antialias );
+    }
+
+    /**
+     * Draws a simple line between two points.
+     *
+     * @param  g      graphics context
+     * @param  trans  3d transformer
+     * @param  vol    plotting volume to receive the graphics
+     * @param  p0     start point in data coordinates (3-element array)
+     * @param  p1     end point in data coordinates (3-element array)
+     */
+    private void drawBoxLine( Graphics g, Transformer3D trans, PlotVolume vol,
+                              double[] p0, double[] p1 ) {
+        Color col = g.getColor();
+        trans.transform( p0 );
+        trans.transform( p1 );
+        g.setColor( Color.LIGHT_GRAY );
+        g.drawLine( vol.projectX( p0[ 0 ] ), vol.projectY( p0[ 1 ] ),
+                    vol.projectX( p1[ 0 ] ), vol.projectY( p1[ 1 ] ) );
+        g.setColor( col );
+    }
+
+    /**
+     * Draws one of the axes for the plot. 
+     *
+     * @param   g1      graphics context
+     * @param   trans   3d transformer
+     * @param   vol     plotting volume to receive the graphics
+     * @param   p0      origin end of the axis in data coordinates 
+     *                  (3-element array)
+     * @param   p1      other end of the axis in data coordinates
+     *                  (3-element array)
+     */
+    private void drawAxis( Graphics g1, Transformer3D trans, PlotVolume vol,
+                           double[] p0, double[] p1 ) {
+        Graphics2D g2 = (Graphics2D) g1.create();
+        g2.setColor( Color.BLACK );
+
+        /* First draw a line representing the axis.  In principle we could
+         * do this by drawing a straight line into the transformed 
+         * graphics context we're about to set up, but rounding errors
+         * or something mean that the rendering isn't so good if you try
+         * that, so do it the straightforward way. */
+        double[] d0 = (double[]) p0.clone();
+        double[] d1 = (double[]) p1.clone();
+        trans.transform( d0 );
+        trans.transform( d1 );
+        int xp0 = vol.projectX( d0[ 0 ] );
+        int yp0 = vol.projectY( d0[ 1 ] );
+        int xp1 = vol.projectX( d1[ 0 ] );
+        int yp1 = vol.projectY( d1[ 1 ] );
+        g2.drawLine( xp0, yp0, xp1, yp1 );
+
+        /* Which axis are we loooking at? */
+        int iaxis = -1;
+        for ( int i = 0; i < 3; i++ ) {
+            if ( p0[ i ] != p1[ i ] ) {
+                assert iaxis == -1;
+                iaxis = i;
+            }
+        }
+        assert iaxis != -1;
+
+        /* Which way is up?  We need to decide on unit vectors which define
+         * the plane in which text will be written. */
+        double[] up;
+        switch ( iaxis ) {
+            case 0:
+                up = new double[] { 0., 0., -1. };
+                break;
+            case 1:
+                up = new double[] { 0., 0., -1. };
+                break;
+            case 2:
+                up = new double[] { 0., -1., 0. };
+                break;
+            default:
+                up = null;
+                assert false;
+        }
+
+        /* Define a notional region on the graphics plane to which we 
+         * can plot text.  This is a rectangle based at the origin which
+         * has the height of the current font, and the width of 
+         * the relevant cube axis when it's viewed face on. */
+        int fontHeight = g2.getFontMetrics().getHeight();
+        int scale = vol.getScale();
+        int sx = scale;
+        int sy = fontHeight;
+        double[] s00 = { 0., 0. };
+        double[] s10 = { sx, 0. };
+        double[] s01 = { 0., sy };
+
+        /* Define the region in 3d normalised space where the annotation
+         * should actually appear. */
+        double[] p00 = (double[]) p0.clone();
+        double[] p10 = (double[]) p1.clone();
+        double[] p01 = (double[]) p0.clone();
+        for ( int i = 0; i < 3; i++ ) {
+            p01[ i ] += ( hiBounds_[ i ] - loBounds_[ i ] ) 
+                      * fontHeight / scale
+                      * up[ i ];
+        }
+
+        /* Work out what region on the graphics plane this 3d region 
+         * appears at. */
+        trans.transform( p00 );
+        trans.transform( p10 );
+        trans.transform( p01 );
+        int[] a00 = { vol.projectX( p00[ 0 ] ), vol.projectY( p00[ 1 ] ) };
+        int[] a10 = { vol.projectX( p10[ 0 ] ), vol.projectY( p10[ 1 ] ) };
+        int[] a01 = { vol.projectX( p01[ 0 ] ), vol.projectY( p01[ 1 ] ) };
+
+        /* Define an affine transform which transform will from the notional
+         * flat space at the origin to the target space near the rotated
+         * axis. */
+        double m02 = a00[ 0 ];
+        double m12 = a00[ 1 ];
+        double m00 = ( a10[ 0 ] - m02 ) / sx;
+        double m01 = ( a01[ 0 ] - m02 ) / sy;
+        double m10 = ( a10[ 1 ] - m12 ) / sx;
+        double m11 = ( a01[ 1 ] - m12 ) / sy;
+        AffineTransform atf =
+            new AffineTransform( m00, m10, m01, m11, m02, m12 );
+
+        /* Apply the transform to the graphics context.  Subsequent text
+         * written to the region (0,0)->(sx,sy) will appear alongside
+         * the relevant axis now. */
+        g2.transform( atf );
+
+        /* Write the name of the axis. */
+        ValueInfo axisInfo = state_.getAxes()[ iaxis ];
+        g2.drawString( axisInfo.getName(), sx / 2, sy );
     }
 
     /**
