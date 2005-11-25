@@ -6,7 +6,6 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import javax.swing.JComponent;
-import uk.ac.starlink.pal.Pal;
 
 /**
  * Graphics window for viewing 3D scatter plots.
@@ -113,26 +112,6 @@ public class Plot3DWindow extends GraphicsWindow {
     }
 
     /**
-     * Multiplies two 3x3 matrices together.  The inputs and outputs
-     * are 9-element double arrays.
-     *
-     * @param   a  input matrix 1
-     * @param   b  input matrix 2
-     * @return  a * b.
-     */
-    private static double[] matrixMultiply( double[] a, double[] b ) {
-        double[] r = new double[ 9 ];
-        for ( int i = 0; i < 3; i++ ) {
-            for ( int j = 0; j < 3; j++ ) {
-                for ( int k = 0; k < 3; k++ ) {
-                    r[ 3 * i + j ] += a[ 3 * i + k ] * b[ j + 3 * k ];
-                }
-            }
-        }
-        return r;
-    }
-
-    /**
      * Takes a view rotation matrix and adds to it the effect of rotations
      * about X and Y directions.
      *
@@ -144,7 +123,7 @@ public class Plot3DWindow extends GraphicsWindow {
     private static double[] rotateXY( double[] base, double phi, double psi ) {
         double[] rotX = rotate( base, new double[] { 0., 1., 0. }, phi );
         double[] rotY = rotate( base, new double[] { 1., 0., 0. }, psi );
-        return matrixMultiply( matrixMultiply( base, rotX ), rotY );
+        return Matrices.mmMult( Matrices.mmMult( base, rotX ), rotY );
     }
 
     /**
@@ -156,56 +135,34 @@ public class Plot3DWindow extends GraphicsWindow {
      *                (9-element array)
      * @param   screenAxis  axis in view space about which rotation is required
      *                      (3-element array)
-     * @param   angle   rotation angle in radians
+     * @param   theta   rotation angle in radians
      */
     private static double[] rotate( double[] base, double[] screenAxis,
-                                    double angle ) {
-        Pal pal = new Pal();
-        double[][] pBase = toPal( base );
+                                    double theta ) {
 
-        /* Calculate the data space vectors corresponding to the screen axis. */
-        double[] axis = pal.Dimxv( pBase, screenAxis );
+        /* Calculate the unit vector in data space corresponding to the 
+         * given screen axis. */
+        double[] axis = Matrices.mvMult( Matrices.invert( base ), screenAxis );
+        double[] a = Matrices.normalise( axis );
+        double x = a[ 0 ];
+        double y = a[ 1 ];
+        double z = a[ 2 ];
 
-        /* Give it a magnitude corresponding to the rotation angle. */
-        double factor = angle / Math.sqrt( axis[ 0 ] * axis[ 0 ] +
-                                           axis[ 1 ] * axis[ 1 ] +
-                                           axis[ 2 ] * axis[ 2 ] );
-        for ( int i = 0; i < 3; i++ ) {
-            axis[ i ] *= factor;
-        }
-
-        /* Calculate and return the rotation matrix. */
-        double[][] pRot = pal.Dav2m( axis );
-        return fromPal( pRot );
-    }
-
-    /**
-     * Converts a 3-d matrix from Pal-friendly form (3x3) to the form used
-     * elsewhere in this class (flat 9-element array).
-     *
-     * @param   m   flat matrix
-     * @return  pal-friendly matrix
-     */
-    private static double[] fromPal( double[][] m ) {
+        /* Calculate and return the rotation matrix (Euler angles).
+         * This algebra copied from SLALIB DAV2M (Pal version). */
+        double s = Math.sin( theta );
+        double c = Math.cos( theta );
+        double w = 1.0 - c;
         return new double[] {
-            m[0][0], m[0][1], m[0][2],
-            m[1][0], m[1][1], m[1][2],
-            m[2][0], m[2][1], m[2][2],
-        };
-    }
-
-    /**
-     * Converts a 3-d matrix from the form used in this class 
-     * (flat 9-element array) to Pal-friendly form (3x3).
-     *
-     * @param   m  flat matrix
-     * @return  pal-friendly matrix
-     */
-    private static double[][] toPal( double[] m ) {
-        return new double[][] {
-            { m[0], m[1], m[2], },
-            { m[3], m[4], m[5], },
-            { m[6], m[7], m[8], },
+            x * x * w + c,
+            x * y * w + z * s,
+            x * z * w - y * s,
+            x * y * w - z * s,
+            y * y * w + c,
+            y * z * w + x * s,
+            x * z * w + y * s,
+            y * z * w - x * s,
+            z * z * w + c,
         };
     }
 
