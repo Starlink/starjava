@@ -321,23 +321,15 @@ public class Plot3D extends JComponent {
         }
         assert iaxis != -1;
 
-        /* Which way is up?  We need to decide on unit vectors which define
-         * the plane in which text will be written. */
-        double[] up;
-        switch ( iaxis ) {
-            case 0:
-                up = new double[] { 0., 0., -1. };
-                break;
-            case 1:
-                up = new double[] { 0., 0., -1. };
-                break;
-            case 2:
-                up = new double[] { 0., -1., 0. };
-                break;
-            default:
-                up = null;
-                assert false;
-        }
+        /* Which way is up?  We need to decide on a unit vector which defines
+         * the plane in which text will be written.  The direction must
+         * be perpendicular to the axis but this leaves one degree of
+         * freedom.  We want to choose it so that the up vector has a
+         * zero component in the direction which will be perpendicular
+         * to the viewing plane. */
+        double[] up = 
+            Matrices.normalise( Matrices.cross( Matrices.unit( iaxis ),
+                                                trans.getDepthVector() ) );
 
         /* Define a notional region on the graphics plane to which we 
          * can plot text.  This is a rectangle based at the origin which
@@ -353,23 +345,40 @@ public class Plot3D extends JComponent {
 
         /* Define the region in 3d normalised space where the annotation
          * should actually appear. */
-        double[] p00 = (double[]) p0.clone();
-        double[] p10 = (double[]) p1.clone();
-        double[] p01 = (double[]) p0.clone();
-        for ( int i = 0; i < 3; i++ ) {
-            p01[ i ] += ( hiBounds_[ i ] - loBounds_[ i ] ) 
-                      * fontHeight / scale
-                      * up[ i ];
-        }
+        int[] a00 = null;
+        int[] a10 = null;
+        int[] a01 = null;
+        for ( boolean right = false; ! right; ) {
+            double[] p00 = (double[]) p0.clone();
+            double[] p10 = (double[]) p1.clone();
+            double[] p01 = (double[]) p0.clone();
+            for ( int i = 0; i < 3; i++ ) {
+                p01[ i ] += ( hiBounds_[ i ] - loBounds_[ i ] ) 
+                          * fontHeight / scale
+                          * up[ i ];
+            }
 
-        /* Work out what region on the graphics plane this 3d region 
-         * appears at. */
-        trans.transform( p00 );
-        trans.transform( p10 );
-        trans.transform( p01 );
-        int[] a00 = { vol.projectX( p00[ 0 ] ), vol.projectY( p00[ 1 ] ) };
-        int[] a10 = { vol.projectX( p10[ 0 ] ), vol.projectY( p10[ 1 ] ) };
-        int[] a01 = { vol.projectX( p01[ 0 ] ), vol.projectY( p01[ 1 ] ) };
+            /* Work out what region on the graphics plane this 3d region 
+             * appears at. */
+            trans.transform( p00 );
+            trans.transform( p10 );
+            trans.transform( p01 );
+            a00 = new int[] { vol.projectX( p00[ 0 ] ),
+                              vol.projectY( p00[ 1 ] ) };
+            a10 = new int[] { vol.projectX( p10[ 0 ] ),
+                              vol.projectY( p10[ 1 ] ) };
+            a01 = new int[] { vol.projectX( p01[ 0 ] ),
+                              vol.projectY( p01[ 1 ] ) };
+
+            /* See if the text is the right way up or upside down.
+             * If it's upside down, invert the up vector and try again. */
+            if ( a01[ 1 ] >= a00[ 1 ] ) {
+                right = true;
+            }
+            else {
+                up = Matrices.mult( up, -1. );
+            }
+        }
 
         /* Define an affine transform which transform will from the notional
          * flat space at the origin to the target space near the rotated
@@ -410,7 +419,7 @@ public class Plot3D extends JComponent {
          * lie in a unit sphere centred on (0.5, 0.5, 0.5) and hence,
          * <i>a fortiori</i>, in the unit cube.
          *
-         * @param    rotation  9-element rotation matrix
+         * @param    rotation  9-element unitary rotation matrix
          * @param    loBounds  lower bounds of cuboid of interest (xlo,ylo,zlo)
          * @param    hiBounds  upper bounds of cuboid of interest (xhi,yhi,zhi)
          */
@@ -453,6 +462,17 @@ public class Plot3D extends JComponent {
             for ( int i = 0; i < 3; i++ ) {
                 coords[ i ] += 0.5;
             }
+        }
+
+        /**
+         * Returns the vector in data space which points into the screen.
+         *
+         * @return   vector normal to view
+         */
+        double[] getDepthVector() {
+            return Matrices.normalise(
+                Matrices.mvMult( Matrices.invert( rot_ ),
+                                 new double[] { 0., 0., 1. } ) );
         }
     }
 }
