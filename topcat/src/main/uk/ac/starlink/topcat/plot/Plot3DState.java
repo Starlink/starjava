@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class Plot3DState extends PlotState {
 
     private double[] rotation_;
-    private double fogginess_ = 2.0;
+    private double fogginess_;
     private boolean antialias_;
 
     /**
