@@ -326,36 +326,51 @@ public class Plot3D extends JComponent {
          * be perpendicular to the axis but this leaves one degree of
          * freedom.  We want to choose it so that the up vector has a
          * zero component in the direction which will be perpendicular
-         * to the viewing plane. */
+         * to the viewing plane.  This is still undetermined to a factor
+         * of -1; we may revise this later if we find out our choice 
+         * has given us upside-down text. */
         double[] up = 
             Matrices.normalise( Matrices.cross( trans.getDepthVector(),
                                                 Matrices.unit( iaxis ) ) );
 
-        /* Define a notional region on the graphics plane to which we 
-         * can plot text.  This is a rectangle based at the origin which
-         * has the height of the current font, and the width of 
-         * the relevant cube axis when it's viewed face on. */
+        /* Which way is forward?  Initially choose to write along the
+         * axis with lower numbers at the left hand side, but we may
+         * decide to revise this if it leads to inside out text. */
+        boolean forward = true;
+
+        /* Get some relevant numbers about the dimensions of the graphics
+         * space. */
         int fontHeight = g2.getFontMetrics().getHeight();
         int scale = vol.getScale();
+
+        /* Construct a transform to apply to the graphics context which 
+         * allows you to write text in a normal font in the rectangle
+         * (0,0)->(sx,sy) in such a way that it will appear as a label
+         * on the current axis. */
         int sx = scale;
         int sy = fontHeight;
-        double[] s00 = { 0., 0. };
-        double[] s10 = { sx, 0. };
-        double[] s01 = { 0., sy };
+        AffineTransform atf = null;
+        while ( atf == null ) {
 
-        /* Define the region in 3d normalised space where the annotation
-         * should actually appear. */
-        int[] a00 = null;
-        int[] a10 = null;
-        int[] a01 = null;
-        for ( boolean right = false; ! right; ) {
-            double[] p00 = (double[]) p0.clone();
-            double[] p10 = (double[]) p1.clone();
-            double[] p01 = (double[]) p0.clone();
+            /* Define a notional region on the graphics plane to which we
+             * can plot text.  This is a rectangle based at the origin which
+             * has the height of the current font and the width of the
+             * relevant cube axis when it's viewed face on. */
+            double[] s00 = { 0., 0. };
+            double[] s10 = { sx, 0. };
+            double[] s01 = { 0., sy };
+
+            /* Define the region in 3d normalised space where the annotation
+             * should actually appear. */
+            double[] p00 = new double[ 3 ];
+            double[] p10 = new double[ 3 ];
+            double[] p01 = new double[ 3 ];
             for ( int i = 0; i < 3; i++ ) {
-                p01[ i ] += ( hiBounds_[ i ] - loBounds_[ i ] ) 
-                          * fontHeight / scale
-                          * up[ i ];
+                p00[ i ] = forward ? p0[ i ] : p1[ i ];
+                p10[ i ] = forward ? p1[ i ] : p0[ i ];
+                p01[ i ] = p00[ i ] + ( hiBounds_[ i ] - loBounds_[ i ] ) 
+                                    * fontHeight / scale
+                                    * up[ i ];
             }
 
             /* Work out what region on the graphics plane this 3d region 
@@ -363,34 +378,49 @@ public class Plot3D extends JComponent {
             trans.transform( p00 );
             trans.transform( p10 );
             trans.transform( p01 );
-            a00 = new int[] { vol.projectX( p00[ 0 ] ),
-                              vol.projectY( p00[ 1 ] ) };
-            a10 = new int[] { vol.projectX( p10[ 0 ] ),
-                              vol.projectY( p10[ 1 ] ) };
-            a01 = new int[] { vol.projectX( p01[ 0 ] ),
-                              vol.projectY( p01[ 1 ] ) };
+            int[] a00 = { vol.projectX( p00[ 0 ] ), vol.projectY( p00[ 1 ] ) };
+            int[] a10 = { vol.projectX( p10[ 0 ] ), vol.projectY( p10[ 1 ] ) };
+            int[] a01 = { vol.projectX( p01[ 0 ] ), vol.projectY( p01[ 1 ] ) };
 
-            /* See if the text is the right way up or upside down.
-             * If it's upside down, invert the up vector and try again. */
-            if ( a01[ 1 ] >= a00[ 1 ] ) {
-                right = true;
-            }
-            else {
+            /* See if the text is upside down.  If so, invert the up
+             * vector and try again. */
+            if ( a01[ 1 ] < a00[ 1 ] ) {
                 up = Matrices.mult( up, -1. );
             }
-        }
 
-        /* Define an affine transform which transform will from the notional
-         * flat space at the origin to the target space near the rotated
-         * axis. */
-        double m02 = a00[ 0 ];
-        double m12 = a00[ 1 ];
-        double m00 = ( a10[ 0 ] - m02 ) / sx;
-        double m01 = ( a01[ 0 ] - m02 ) / sy;
-        double m10 = ( a10[ 1 ] - m12 ) / sx;
-        double m11 = ( a01[ 1 ] - m12 ) / sy;
-        AffineTransform atf =
-            new AffineTransform( m00, m10, m01, m11, m02, m12 );
+            /* Set up coefficients for an affine transform. */
+            else {
+                double[] a = new double[] { a00[ 0 ], a10[ 0 ], a01[ 0 ],
+                                            a00[ 1 ], a10[ 1 ], a01[ 1 ],
+                                                   1,        1,        1 };
+                double[] s = new double[] { s00[ 0 ], s10[ 0 ], s01[ 0 ],
+                                            s00[ 1 ], s10[ 1 ], s01[ 1 ],
+                                                   1,        1,        1 };
+                double[] m = Matrices.mmMult( a, Matrices.invert( s ) );
+                double m00 = m[ 0 ];
+                double m01 = m[ 1 ];
+                double m02 = m[ 2 ];
+                double m10 = m[ 3 ];
+                double m11 = m[ 4 ];
+                double m12 = m[ 5 ];
+                assert m[ 6 ] == 0.0;
+                assert m[ 7 ] == 0.0;
+                assert m[ 8 ] == 1.0;
+
+                /* See if the text is inside out.  If so, flip the sense 
+                 * and try again. */
+                if ( m00 * m11 - m01 * m10 < 0 ) {
+                    forward = ! forward;
+                }
+
+                /* If we've got this far our coefficients are going to 
+                 * give us text in the correct orientation.  Construct
+                 * the transform. */
+                else {
+                    atf = new AffineTransform( m00, m10, m01, m11, m02, m12 );
+                }
+            }
+        }
 
         /* Apply the transform to the graphics context.  Subsequent text
          * written to the region (0,0)->(sx,sy) will appear alongside
