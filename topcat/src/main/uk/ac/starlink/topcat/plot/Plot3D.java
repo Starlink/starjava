@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -346,7 +347,11 @@ public class Plot3D extends JComponent {
         /* Construct a transform to apply to the graphics context which 
          * allows you to write text in a normal font in the rectangle
          * (0,0)->(sx,sy) in such a way that it will appear as a label
-         * on the current axis. */
+         * on the current axis.  It's tempting to try to map to 
+         * (one dimension of) the data space somehow, but this won't
+         * work because the Graphics2D object works in integers and 
+         * so it might well not have the right resolution for an arbitrary
+         * data axis. */
         int sx = scale;
         int sy = fontHeight;
         AffineTransform atf = null;
@@ -403,9 +408,9 @@ public class Plot3D extends JComponent {
                 double m10 = m[ 3 ];
                 double m11 = m[ 4 ];
                 double m12 = m[ 5 ];
-                assert m[ 6 ] == 0.0;
-                assert m[ 7 ] == 0.0;
-                assert m[ 8 ] == 1.0;
+                assert Math.abs( m[ 6 ] - 0.0 ) < 1e-6;
+                assert Math.abs( m[ 7 ] - 0.0 ) < 1e-6;
+                assert Math.abs( m[ 8 ] - 1.0 ) < 1e-6;
 
                 /* See if the text is inside out.  If so, flip the sense 
                  * and try again. */
@@ -428,8 +433,14 @@ public class Plot3D extends JComponent {
         g2.transform( atf );
 
         /* Write the name of the axis. */
+        FontMetrics fm = g2.getFontMetrics();
         ValueInfo axisInfo = state_.getAxes()[ iaxis ];
-        g2.drawString( axisInfo.getName(), sx / 2, sy );
+        String label = axisInfo.getName();
+        String units = axisInfo.getUnitString();
+        if ( units != null && units.trim().length() > 0 ) {
+            label += " / " + units.trim();
+        }
+        g2.drawString( label, ( sx - fm.stringWidth( label ) ) / 2, sy );
     }
 
     /**
