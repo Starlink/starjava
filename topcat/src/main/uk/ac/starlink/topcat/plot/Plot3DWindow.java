@@ -18,6 +18,11 @@ public class Plot3DWindow extends GraphicsWindow {
     private final Plot3D plot_;
     private double[] rotation_;
 
+    private static final double[] INITIAL_ROTATION = 
+        rotateXY( rotateXY( new double[] { 1, 0, 0, 0, 1, 0, 0, 0, -1 },
+                            0.5, 0.5 * Math.PI ),
+                  0, -0.1 * Math.PI );
+
     /**
      * Constructs a new window.
      *
@@ -37,7 +42,7 @@ public class Plot3DWindow extends GraphicsWindow {
 
         /* Add standard toolbar items. */
         addHelp( "Plot3DWindow" );
-        setRotation( Plot3DState.UNIT_MATRIX );
+        setRotation( INITIAL_ROTATION );
         replot();
 
         /* Make visible. */
@@ -68,7 +73,7 @@ public class Plot3DWindow extends GraphicsWindow {
         /* Reset the view angle if the axes have changed.  This is probably
          * what you want, but might not be? */
         if ( ! state.sameAxes( plot_.getState() ) ) {
-            setRotation( Plot3DState.UNIT_MATRIX );
+            setRotation( INITIAL_ROTATION );
         }
 
         /* Configure the state with this window's current viewing angles. */
@@ -188,8 +193,8 @@ public class Plot3DWindow extends GraphicsWindow {
                  * (these directions are relative to the current orientation
                  * of the view). */
                 double scale = Math.min( plot_.getWidth(), plot_.getHeight() );
-                double xf = ( pos.x - posBase_.x ) / scale;
-                double yf = ( pos.y - posBase_.y ) / scale;
+                double xf = - ( pos.x - posBase_.x ) / scale;
+                double yf = - ( pos.y - posBase_.y ) / scale;
 
                 /* Turn these into angles.  Phi and Psi are the rotation
                  * angles around the screen vertical and horizontal axes

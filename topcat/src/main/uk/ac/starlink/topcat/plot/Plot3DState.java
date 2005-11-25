@@ -13,14 +13,7 @@ import java.util.Arrays;
  */
 public class Plot3DState extends PlotState {
 
-    /** Unit matrix. */
-    static final double[] UNIT_MATRIX = new double[] {
-        1.0, 0.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 0.0, 1.0,
-    };
-
-    private double[] rotation_ = UNIT_MATRIX;
+    private double[] rotation_;
     private double fogginess_ = 2.0;
     private boolean antialias_;
 
