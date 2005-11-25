@@ -328,8 +328,8 @@ public class Plot3D extends JComponent {
          * zero component in the direction which will be perpendicular
          * to the viewing plane. */
         double[] up = 
-            Matrices.normalise( Matrices.cross( Matrices.unit( iaxis ),
-                                                trans.getDepthVector() ) );
+            Matrices.normalise( Matrices.cross( trans.getDepthVector(),
+                                                Matrices.unit( iaxis ) ) );
 
         /* Define a notional region on the graphics plane to which we 
          * can plot text.  This is a rectangle based at the origin which
