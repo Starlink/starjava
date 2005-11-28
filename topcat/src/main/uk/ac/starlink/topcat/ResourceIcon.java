@@ -126,7 +126,7 @@ public class ResourceIcon implements Icon {
         XFLIP = makeIcon( "xflip.gif" ),
         YFLIP = makeIcon( "yflip.gif" ),
         XYZ = makeIcon( "xyz.gif" ),
-        FOG = makeIcon( "fog2.gif" ),
+        FOG = makeIcon( "fog1.gif" ),
         ANTIALIAS = makeIcon( "aaA4.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
