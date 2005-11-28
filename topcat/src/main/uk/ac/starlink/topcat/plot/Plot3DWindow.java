@@ -3,17 +3,25 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
+import javax.swing.JPanel;
+import javax.swing.OverlayLayout;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.topcat.TopcatEvent;
+import uk.ac.starlink.topcat.TopcatListener;
+import uk.ac.starlink.topcat.TopcatModel;
 
 /**
  * Graphics window for viewing 3D scatter plots.
@@ -21,11 +29,13 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
  * @author   Mark Taylor
  * @since    22 Nov 2005
  */
-public class Plot3DWindow extends GraphicsWindow {
+public class Plot3DWindow extends GraphicsWindow implements TopcatListener {
 
     private final Plot3D plot_;
     private final ToggleButtonModel fogModel_;
     private final ToggleButtonModel antialiasModel_;
+    private final BlobPanel blobPanel_;
+    private final Action blobAction_;
     private double[] rotation_;
 
     private static final double[] INITIAL_ROTATION = 
@@ -41,14 +51,31 @@ public class Plot3DWindow extends GraphicsWindow {
     public Plot3DWindow( Component parent ) {
         super( "3D", new String[] { "X", "Y", "Z" }, parent );
 
-        /* Construct and place the component which actually displays
-         * the 3D data. */
+        /* Construct and populate the plot panel with the 3D plot itself
+         * and a transparent layer for doodling blobs on. */
         plot_ = new Plot3D();
-        getMainArea().add( plot_, BorderLayout.CENTER );
+        JPanel plotPanel = new JPanel();
+        blobPanel_ = new BlobPanel() {
+            protected void blobCompleted( Shape blob ) {
+                addNewSubsets( plot_.getPointRegistry()
+                                    .getContainedPoints( blob ) );
+            }
+        };
+        blobAction_ = blobPanel_.getBlobAction();
+        plotPanel.setLayout( new OverlayLayout( plotPanel ) );
+        plotPanel.add( blobPanel_ );
+        plotPanel.add( plot_ );
+        getMainArea().add( plotPanel, BorderLayout.CENTER );
+
+        /* Listen for topcat actions. */
+        getPointSelectors().addTopcatListener( this );
 
         /* Arrange that mouse dragging on the plot component will rotate
          * the view. */
         plot_.addMouseMotionListener( new DragListener() );
+
+        /* Arrange that clicking on a point will activate it. */
+        plot_.addMouseListener( new PointClickListener() );
 
         /* Action for reorienting the plot. */
         Action reorientAction = new BasicAction( "Reorient", ResourceIcon.XYZ,
@@ -113,6 +140,8 @@ public class Plot3DWindow extends GraphicsWindow {
         getToolBar().add( reorientAction );
         getToolBar().add( fogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
+        getToolBar().add( blobAction_ );
+        getToolBar().addSeparator();
 
         /* Add standard toolbar items. */
         addHelp( "Plot3DWindow" );
@@ -183,6 +212,7 @@ public class Plot3DWindow extends GraphicsWindow {
     }
 
     protected void doReplot( PlotState state, Points points ) {
+        blobPanel_.setActive( false );
         PlotState lastState = plot_.getState();
         plot_.setPoints( points );
         plot_.setState( (Plot3DState) state );
@@ -192,6 +222,29 @@ public class Plot3DWindow extends GraphicsWindow {
             }
         }
         plot_.repaint();
+    }
+
+    /*
+     * TopcatListener implementation.
+     */
+    public void modelChanged( TopcatEvent evt ) {
+        if ( evt.getCode() == TopcatEvent.ROW ) {
+            Object datum = evt.getDatum();
+            if ( datum instanceof Long ) {
+                TopcatModel tcModel = evt.getModel();
+                PointSelection psel = plot_.getState().getPointSelection();
+                long lrow = ((Long) datum).longValue();
+                long[] lps = psel.getPointsForRow( tcModel, lrow );
+                int[] ips = new int[ lps.length ];
+                for ( int i = 0; i < lps.length; i++ ) {
+                    ips[ i ] = Tables.checkedLongToInt( lps[ i ] );
+                }
+                plot_.setActivePoints( ips );
+            }
+            else {
+                assert false;
+            }
+        }
     }
 
     /**
@@ -288,7 +341,27 @@ public class Plot3DWindow extends GraphicsWindow {
             posBase_ = null;
             rotBase_ = null;
         }
-
     }
 
+    /**
+     * Watches for points clicked and activates the corresponding row(s) 
+     * if they are.
+     */
+    private class PointClickListener extends MouseAdapter {
+        public void mouseClicked( MouseEvent evt ) {
+            int butt = evt.getButton();
+            if ( butt == MouseEvent.BUTTON1 ) {
+                int ip = plot_.getPointRegistry()
+                              .getClosestPoint( evt.getPoint(), 4 );
+                if ( ip >= 0 ) {
+                    PointSelection psel = plot_.getState().getPointSelection();
+                    psel.getPointTable( ip )
+                        .highlightRow( psel.getPointRow( ip ) );
+                }
+                else {
+                    plot_.setActivePoints( new int[ 0 ] );
+                }
+            }
+        }
+    }
 }

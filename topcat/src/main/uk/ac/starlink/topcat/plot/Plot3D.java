@@ -5,9 +5,12 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
@@ -20,10 +23,14 @@ import uk.ac.starlink.topcat.RowSubset;
  */
 public class Plot3D extends JComponent {
 
+    private Annotations annotations_;
     private Points points_;
     private Plot3DState state_;
     private double[] loBounds_;
     private double[] hiBounds_;
+    private PlotVolume lastVol_;
+    private Transformer3D lastTrans_;
+    private PointRegistry pointReg_;
 
     private static final double SQRT3 = Math.sqrt( 3.0 );
 
@@ -35,6 +42,7 @@ public class Plot3D extends JComponent {
         setOpaque( true );
         setPreferredSize( new Dimension( 400, 400 ) );
         setBorder( javax.swing.BorderFactory.createLineBorder( Color.GRAY ) );
+        annotations_ = new Annotations();
     }
 
     /**
@@ -45,6 +53,8 @@ public class Plot3D extends JComponent {
      */
     public void setPoints( Points points ) {
         points_ = points;
+        lastVol_ = null;
+        lastTrans_ = null;
     }
 
     /**
@@ -64,6 +74,9 @@ public class Plot3D extends JComponent {
      */
     public void setState( Plot3DState state ) {
         state_ = state;
+        annotations_.validate();
+        lastVol_ = null;
+        lastTrans_ = null;
     }
 
     /**
@@ -83,6 +96,17 @@ public class Plot3D extends JComponent {
      */
     public PointSelection getPointSelection() {
         return state_.getPointSelection();
+    }
+
+    /**
+     * Sets the points at the indices given by the <tt>ips</tt> array
+     * of the Points object as "active".
+     * They will be marked out somehow or other when plotted.
+     *
+     * @param  ips  active point array
+     */
+    public void setActivePoints( int[] ips ) {
+        annotations_.setActivePoints( ips );
     }
 
     /**
@@ -122,6 +146,8 @@ public class Plot3D extends JComponent {
         }
         loBounds_ = loBounds;
         hiBounds_ = hiBounds;
+        lastVol_ = null;
+        lastTrans_ = null;
     }
 
     /**
@@ -197,6 +223,14 @@ public class Plot3D extends JComponent {
 
         /* Plot front part of bounding box. */
         plotAxes( g, trans, vol, true );
+
+        /* Draw any annotations. */
+        annotations_.draw( g, trans, vol );
+
+        /* Store information about the most recent plot. */
+        lastVol_ = vol;
+        lastTrans_ = trans;
+        pointReg_ = null;
     }
 
     /**
@@ -482,6 +516,70 @@ public class Plot3D extends JComponent {
     }
 
     /**
+     * Returns a PointRegistry which knows where all the points are
+     * plotted on the current view.  The registry is returned in a ready
+     * state.
+     *
+     * @return  point registry
+     */
+    public PointRegistry getPointRegistry() {
+        if ( pointReg_ == null ) {
+            PlotVolume vol = lastVol_;
+            Transformer3D trans = lastTrans_;
+            Points points = getPoints();
+            PointRegistry reg = new PointRegistry();
+            if ( vol != null && points != null && points != null ) {
+                int np = points.getCount();
+                RowSubset[] sets = getPointSelection().getSubsets();
+                int nset = sets.length;
+                double[] coords = new double[ 3 ];
+                for ( int ip = 0; ip < np; ip++ ) {
+                    long lp = (long) ip; 
+                    boolean use = false;
+                    for ( int is = 0; is < nset && ! use; is++ ) {
+                        use = use || sets[ is ].isIncluded( lp );
+                    }
+                    if ( use ) {
+                        points.getCoords( ip, coords );
+                        if ( ! Double.isNaN( coords[ 0 ] ) &&
+                             ! Double.isNaN( coords[ 1 ] ) &&
+                             ! Double.isNaN( coords[ 2 ] ) ) {
+                            trans.transform( coords );
+                            Point p = new Point( vol.projectX( coords[ 0 ] ),
+                                                 vol.projectY( coords[ 1 ] ) );
+                            reg.addPoint( ip, p );
+                        }
+                    }
+                }
+            }
+            reg.ready();
+            pointReg_ = reg;
+        }
+        return pointReg_;
+    }
+
+    /**     
+     * Determines whether a point with a given index is included in the
+     * current plot.  This doesn't necessarily mean it's visible, since
+     * it might fall outside the bounds of the current display area,
+     * but it means the point does conceptually form part of what is
+     * being plotted.
+     *
+     * @param  ip  index of point to check
+     * @return  true  iff point <tt>ip</tt> is included in this plot
+     */
+    private boolean isIncluded( int ip ) {
+        RowSubset[] sets = getPointSelection().getSubsets();
+        int nset = sets.length;
+        for ( int is = 0; is < nset; is++ ) {
+            if ( sets[ is ].isIncluded( (long) ip ) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Transforms points in 3d data space to points in 3d graphics space. 
      */
     private static class Transformer3D {
@@ -552,6 +650,80 @@ public class Plot3D extends JComponent {
             return Matrices.normalise(
                 Matrices.mvMult( Matrices.invert( rot_ ),
                                  new double[] { 0., 0., 1. } ) );
+        }
+    }
+
+    /**
+     * This class takes care of all the markings plotted over the top of
+     * the plot proper.  It's coded as an extra class just to make it tidy,
+     * these workings could equally be in the body of ScatterPlot.
+     */
+    private class Annotations {
+
+        int[] activePoints_ = new int[ 0 ];
+        final MarkStyle cursorStyle_ = MarkStyle.targetStyle();
+
+        /**
+         * Sets a number of points to be marked out.
+         * Any negative indices in the array, or ones which are not visible
+         * in the current plot, are ignored.
+         *
+         * @param  ips  indices of the points to be marked
+         */
+        void setActivePoints( int[] ips ) {
+            ips = dropInvisible( ips );
+            if ( ! Arrays.equals( ips, activePoints_ ) ) {
+                activePoints_ = ips;
+                repaint();
+            }
+        }
+
+        /**
+         * Paints all the current annotations onto a given graphics context.
+         *  
+         * @param  g  graphics context
+         */
+        void draw( Graphics g, Transformer3D trans, PlotVolume vol ) {
+            for ( int i = 0; i < activePoints_.length; i++ ) {
+                double[] coords = new double[ 3 ];
+                getPoints().getCoords( activePoints_[ i ], coords );
+                trans.transform( coords );
+                cursorStyle_.drawMarker( g, vol.projectX( coords[ 0 ] ),
+                                            vol.projectY( coords[ 1 ] ) );
+            }
+        }
+
+        /**
+         * Updates this annotations object as appropriate for the current
+         * state of the plot.
+         */
+        void validate() {
+            /* If there are active points which are no longer visible in
+             * this plot, drop them. */
+            activePoints_ = getState().getValid()
+                          ? dropInvisible( activePoints_ )
+                          : new int[ 0 ];
+        }
+
+        /**
+         * Removes any invisible points from an array of point indices.
+         *
+         * @param  ips   point index array
+         * @return  subset of ips
+         */
+        private int[] dropInvisible( int[] ips ) {
+            List ipList = new ArrayList();
+            for ( int i = 0; i < ips.length; i++ ) {
+                int ip = ips[ i ];
+                if ( ip >= 0 && isIncluded( ip ) ) {
+                    ipList.add( new Integer( ip ) );
+                }
+            }
+            ips = new int[ ipList.size() ];
+            for ( int i = 0; i < ips.length; i++ ) {
+                ips[ i ] = ((Integer) ipList.get( i )).intValue();
+            }
+            return ips;
         }
     }
 }
