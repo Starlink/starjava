@@ -317,6 +317,7 @@ public class ScatterPlot extends SurfacePlot {
     private class Annotations {
 
         int[] activePoints_ = new int[ 0 ];
+        final MarkStyle cursorStyle_ = MarkStyle.targetStyle();
 
         /**
          * Sets a number of points to be marked out.
@@ -348,16 +349,7 @@ public class ScatterPlot extends SurfacePlot {
                 Point p = getSurface().dataToGraphics( coords[ 0 ], coords[ 1 ],
                                                        true );
                 if ( p != null ) {
-                    Graphics2D g = (Graphics2D) g2.create();
-                    g.setColor( new Color( 0, 0, 0, 192 ) );
-                    g.setStroke( new BasicStroke( 2, BasicStroke.CAP_ROUND,
-                                                  BasicStroke.JOIN_ROUND ) );
-                    g.translate( p.x, p.y );
-                    g.drawOval( -6, -6, 13, 13 );
-                    g.drawLine( 0, +4, 0, +8 );
-                    g.drawLine( 0, -4, 0, -8 );
-                    g.drawLine( +4, 0, +8, 0 );
-                    g.drawLine( -4, 0, -8, 0 );
+                    cursorStyle_.drawMarker( graphics, p.x, p.y );
                 }
             }
         }

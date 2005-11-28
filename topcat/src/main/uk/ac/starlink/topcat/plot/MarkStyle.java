@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -7,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.util.Arrays;
 import javax.swing.Icon;
 
@@ -415,6 +417,22 @@ public abstract class MarkStyle extends DefaultStyle {
             public int getMaximumRadius() {
                 return Math.max( normalStyle.getMaximumRadius(),
                                  legendStyle.getMaximumRadius() );
+            }
+        };
+    }
+
+    public static MarkStyle targetStyle() {
+        return new MarkStyle( new Color( 0, 0, 0, 192 ), new Object(), 7 ) {
+            final Stroke stroke_ = new BasicStroke( 2, BasicStroke.CAP_ROUND,
+                                                    BasicStroke.JOIN_ROUND );
+            protected void drawShape( Graphics g ) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setStroke( stroke_ );
+                g2.drawOval( -6, -6, 13, 13 );
+                g2.drawLine( 0, +4, 0, +8 );
+                g2.drawLine( 0, -4, 0, -8 );
+                g2.drawLine( +4, 0, +8, 0 );
+                g2.drawLine( -4, 0, -8, 0 );
             }
         };
     }
