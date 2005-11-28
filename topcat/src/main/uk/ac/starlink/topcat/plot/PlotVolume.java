@@ -38,7 +38,7 @@ public abstract class PlotVolume {
         graphics_ = g;
         int w = c.getWidth();
         int h = c.getHeight();
-        double padFactor = Math.sqrt( 0.5 );
+        double padFactor = Math.sqrt( 1. / 3. );
         scale_ = (int) Math.round( Math.min( h, w ) * padFactor );
         xoff_ = 0 + (int) ( ( w - scale_ ) / 2. );
         yoff_ = h - (int) ( ( h - scale_ ) / 2. );
