@@ -461,9 +461,10 @@ public class Plot3D extends JComponent {
             for ( int i = 0; i < nTick; i++ ) {
                 double tick = axer.getTick( i );
                 tickLabels[ i ] = axer.getLabel( i );
-                tickPos[ i ] = 
-                    (int) Math.round( ( tick - lo ) / ( hi - lo ) * sx  );
-                if ( i > 0 && tickPos[ i ] - tickPos[ i - 1 ] 
+                double frac = ( tick - lo ) / ( hi - lo );
+                tickPos[ i ] =
+                    (int) Math.round( sx * ( forward ? frac : ( 1. - frac ) ) );
+                if ( i > 0 && Math.abs( tickPos[ i ] - tickPos[ i - 1 ] ) 
                               < fm.stringWidth( tickLabels[ i - 1 ] + "99" ) ) {
                     nTick = 0;
                     break;
