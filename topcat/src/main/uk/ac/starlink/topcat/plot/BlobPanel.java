@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Shape;
+import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
@@ -15,8 +16,11 @@ import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.event.MouseInputListener;
+import uk.ac.starlink.topcat.ResourceIcon;
 
 /**
  * Component which allows the user to draw a blob using the mouse.
@@ -36,8 +40,10 @@ public class BlobPanel extends JComponent
 
     private List blobs_;
     private GeneralPath dragPath_;
+    private Action blobAction_;
     private Color fillColor_ = new Color( 0, 0, 0, 64 );
     private Color pathColor_ = new Color( 0, 0, 0, 128 );
+    private boolean isActive_;
 
     /**
      * Creates a new BlobPanel.
@@ -52,6 +58,27 @@ public class BlobPanel extends JComponent
         } );
         setOpaque( false );
         clear();
+
+        /* Constructs an associated action which can be used to start
+         * and stop blob drawing. */
+        blobAction_ = new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( isActive() ) {
+                    if ( ! blobs_.isEmpty() ) {
+                        blobCompleted( getBlob() );
+                    }
+                    clear();
+                    setActive( false );
+                }
+                else {
+                    setActive( true );
+                }
+            }
+        };
+
+        /* Initialises the action and this component by calling setActive
+         * with an initial value. */
+        setActive( false );
     }
 
     /**
@@ -84,6 +111,61 @@ public class BlobPanel extends JComponent
     public void clear() {
         blobs_ = new ArrayList();
         repaint();
+    }
+
+    /**
+     * Returns the action which is used to start and stop blob drawing.
+     * Invoking the action toggles the activity status of this panel,
+     * and when invoked for deactivation (that is after a blob has been
+     * drawn) then {@link #blobCompleted} is called.
+     *
+     * @return   activation toggle action
+     */
+    public Action getBlobAction() {
+        return blobAction_;
+    }
+
+    /**
+     * Sets whether this panel is active (visible, accepting mouse gestures,
+     * drawing shapes) or inactive (invisible).
+     *
+     * @param   active  true to select activeness
+     */
+    public void setActive( boolean active ) {
+        isActive_ = active;
+        clear();
+        setVisible( active );
+        blobAction_.putValue( Action.NAME,
+                              active ? "Finish Drawing Region"
+                                     : "Draw Subset Region" );
+        blobAction_.putValue( Action.SMALL_ICON,
+                              active ? ResourceIcon.BLOB_SUBSET_END
+                                     : ResourceIcon.BLOB_SUBSET );
+        blobAction_.putValue( Action.SHORT_DESCRIPTION,
+                              active ? "Define susbset from currently-drawn " +
+                                       "region"
+                                     : "Draw a region on the plot to define " +
+                                       "a new row subset" );
+    }
+
+    /**
+     * Indicates whether this blob is currently active.
+     *
+     * @param   true iff this blob is active (visible and drawing)
+     */
+    public boolean isActive() {
+        return isActive_;
+    }
+
+    /**
+     * Invoked when this component's action is invoked to terminate a
+     * blob drawing session.  Subclasses may provide an implementation
+     * which does something with the shape.  The default implemenatation
+     * does nothing.
+     *
+     * @param  blob  completed shape
+     */
+    protected void blobCompleted( Shape blob ) {
     }
 
     protected void paintComponent( Graphics g ) {

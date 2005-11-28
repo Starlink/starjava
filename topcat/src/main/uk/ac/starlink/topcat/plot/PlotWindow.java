@@ -61,7 +61,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private final NumberFormat countFormat_;
 
     private boolean replotted_;
-    private boolean activeBlob_;
     private BitSet visibleRows_;
     private PointRegistry visiblePoints_;
 
@@ -136,8 +135,12 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         /* Construct and populate the plot panel with the plot itself
          * and a transparent layer for doodling blobs on. */
         JPanel plotPanel = new JPanel();
-        blobPanel_ = new BlobPanel();
-        blobPanel_.setVisible( false );
+        blobPanel_ = new BlobPanel() {
+            protected void blobCompleted( Shape blob ) {
+                addNewSubsets( visiblePoints_.getContainedPoints( blob ) );
+            }
+        };
+        blobAction_ = blobPanel_.getBlobAction();
         plotPanel.setLayout( new OverlayLayout( plotPanel ) );
         plotPanel.add( blobPanel_ );
         plotPanel.add( plot_ );
@@ -227,18 +230,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         /* Construct a new menu for subset operations. */
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
-        blobAction_ = new AbstractAction() {
-            public void actionPerformed( ActionEvent evt ) {
-                if ( activeBlob_ ) {
-                    useBlob();
-                    setActiveBlob( false );
-                }
-                else {
-                    setActiveBlob( true );
-                }
-            }
-        };
-        setActiveBlob( false );
         blobAction_.setEnabled( false );
         fromVisibleAction_ = new BasicAction( "New subset from visible",
                                               ResourceIcon.VISIBLE_SUBSET,
@@ -308,7 +299,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
          * As a secondary consideration, forcing a replot by resizing
          * the window etc is an intuitive way for the user to escape
          * a blob-drawing session). */
-        setActiveBlob( false );
+        blobPanel_.setActive( false );
 
         /* Send the plot component the most up to date plotting state. */
         PlotState lastState = plot_.getState();
@@ -444,37 +435,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                 updateStatus( potentialCount, includedCount, visibleCount );
             }
         } );
-    }
-
-    /**
-     * Configure for whether we are currently in blob-drawing mode or not.
-     *
-     * @param  activeBlob true iff blob is being drawn
-     */
-    private void setActiveBlob( boolean active ) {
-        activeBlob_ = active;
-        blobPanel_.clear();
-        blobPanel_.setVisible( active );
-        blobAction_.putValue( Action.NAME,
-                              active ? "Finish Drawing Region"
-                                     : "Draw Subset Region" );
-        blobAction_.putValue( Action.SMALL_ICON,
-                              active ? ResourceIcon.BLOB_SUBSET_END
-                                     : ResourceIcon.BLOB_SUBSET );
-        blobAction_.putValue( Action.SHORT_DESCRIPTION,
-                              active ? "Define subset from currently-drawn " +
-                                       "region"
-                                     : "Draw a region on the plot to define " +
-                                       "a new row subset" );
-    }
-
-    /**
-     * Called when the user has indicated that the blob he has drawn is
-     * finished and ready to be turned into a subset.
-     */
-    private void useBlob() {
-        Shape blob = blobPanel_.getBlob();
-        addNewSubsets( visiblePoints_.getContainedPoints( blob ) );
     }
 
     /*
