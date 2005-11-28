@@ -3,9 +3,17 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JMenu;
+import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 
 /**
  * Graphics window for viewing 3D scatter plots.
@@ -16,6 +24,8 @@ import javax.swing.JComponent;
 public class Plot3DWindow extends GraphicsWindow {
 
     private final Plot3D plot_;
+    private final ToggleButtonModel fogModel_;
+    private final ToggleButtonModel antialiasModel_;
     private double[] rotation_;
 
     private static final double[] INITIAL_ROTATION = 
@@ -39,6 +49,70 @@ public class Plot3DWindow extends GraphicsWindow {
         /* Arrange that mouse dragging on the plot component will rotate
          * the view. */
         plot_.addMouseMotionListener( new DragListener() );
+
+        /* Action for reorienting the plot. */
+        Action reorientAction = new BasicAction( "Reorient", ResourceIcon.XYZ,
+                                                 "Reorient the plot to initial"
+                                               + " position" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                setRotation( INITIAL_ROTATION );
+                forceReplot();
+            }
+        };
+
+        /* Model to toggle fogged rendering. */
+        fogModel_ = new ToggleButtonModel( "Fog", ResourceIcon.FOG,
+                                           "Select whether fog obscures " +
+                                           "distant points" );
+        fogModel_.setSelected( true );
+        fogModel_.addActionListener( getReplotListener() );
+
+        /* Model to toggle antialiasing. */
+        antialiasModel_ = new ToggleButtonModel( "Antialias",
+                                                 ResourceIcon.ANTIALIAS,
+                                                 "Select whether text is " +
+                                                 "antialiased" );
+        antialiasModel_.setSelected( false );
+        antialiasModel_.addActionListener( getReplotListener() );
+
+        /* Construct a new menu for general plot operations. */
+        JMenu plotMenu = new JMenu( "Plot" );
+        plotMenu.setMnemonic( KeyEvent.VK_P );
+        plotMenu.add( reorientAction );
+        plotMenu.add( getReplotAction() );
+        getJMenuBar().add( plotMenu );
+
+        /* Construct a new menu for rendering options. */
+        JMenu renderMenu = new JMenu( "Rendering" );
+        renderMenu.setMnemonic( KeyEvent.VK_R );
+        renderMenu.add( fogModel_.createMenuItem() );
+        renderMenu.add( antialiasModel_.createMenuItem() );
+        getJMenuBar().add( renderMenu );
+
+        /* Construct a new menu for marker style set selection. */
+        JMenu styleMenu = new JMenu( "Marker Style" );
+        styleMenu.setMnemonic( KeyEvent.VK_M );
+        StyleSet[] styleSets = PlotWindow.STYLE_SETS;
+        for ( int i = 0; i < styleSets.length; i++ ) {
+            final StyleSet styleSet = styleSets[ i ];
+            String name = styleSet.getName();
+            Icon icon = MarkStyles.getIcon( styleSet );
+            Action stylesAct = new BasicAction( name, icon,
+                                                "Set marker plotting style to "
+                                                + name ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setStyles( styleSet );
+                    replot();
+                }
+            };
+            styleMenu.add( stylesAct );
+        }
+        getJMenuBar().add( styleMenu );
+
+        /* Add actions to the toolbar. */
+        getToolBar().add( reorientAction );
+        getToolBar().add( fogModel_.createToolbarButton() );
+        getToolBar().add( getReplotAction() );
 
         /* Add standard toolbar items. */
         addHelp( "Plot3DWindow" );
@@ -73,11 +147,15 @@ public class Plot3DWindow extends GraphicsWindow {
         /* Reset the view angle if the axes have changed.  This is probably
          * what you want, but might not be? */
         if ( ! state.sameAxes( plot_.getState() ) ) {
-            setRotation( INITIAL_ROTATION );
+            // setRotation( INITIAL_ROTATION );
         }
 
         /* Configure the state with this window's current viewing angles. */
         state.setRotation( rotation_ );
+
+        /* Configure rendering options. */
+        state.setFogginess( fogModel_.isSelected() ? 2.0 : 0.0 );
+        state.setAntialias( antialiasModel_.isSelected() );
 
         /* Return. */
         return state;
