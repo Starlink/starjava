@@ -33,7 +33,7 @@ public class Plot3D extends JComponent {
     public Plot3D() {
         setBackground( Color.white );
         setOpaque( true );
-        setPreferredSize( new Dimension( 300, 300 ) );
+        setPreferredSize( new Dimension( 400, 400 ) );
         setBorder( javax.swing.BorderFactory.createLineBorder( Color.GRAY ) );
     }
 
@@ -440,7 +440,44 @@ public class Plot3D extends JComponent {
         if ( units != null && units.trim().length() > 0 ) {
             label += " / " + units.trim();
         }
-        g2.drawString( label, ( sx - fm.stringWidth( label ) ) / 2, sy );
+        g2.drawString( label, ( sx - fm.stringWidth( label ) ) / 2, 2 * sy );
+
+        /* Plot ticks and corresponding numeric labels. */
+
+        /* Work out where to put ticks on the axis.  Do this recursively;
+         * if we find that the labels are too crowded on the axis decrease
+         * the number of tick marks and try again. */
+        double lo = loBounds_[ iaxis ];
+        double hi = hiBounds_[ iaxis ];
+        int[] tickPos = null;
+        String[] tickLabels = null;
+        int nTick = 0;
+        int labelGap = fm.stringWidth( "99" );
+        for ( int mTick = 4; nTick == 0 && mTick > 0; mTick-- ) {
+            AxisLabeller axer = new AxisLabeller( lo, hi, mTick );
+            nTick = axer.getCount();
+            tickPos = new int[ nTick ];
+            tickLabels = new String[ nTick ];
+            for ( int i = 0; i < nTick; i++ ) {
+                double tick = axer.getTick( i );
+                tickLabels[ i ] = axer.getLabel( i );
+                tickPos[ i ] = 
+                    (int) Math.round( ( tick - lo ) / ( hi - lo ) * sx  );
+                if ( i > 0 && tickPos[ i ] - tickPos[ i - 1 ] 
+                              < fm.stringWidth( tickLabels[ i - 1 ] + "99" ) ) {
+                    nTick = 0;
+                    break;
+                }
+            }
+        }
+
+        /* Draw the actual tick marks and labels. */
+        for ( int i = 0; i < nTick; i++ ) {
+            int tpos = tickPos[ i ];
+            String tlabel = tickLabels[ i ];
+            g2.drawLine( tpos, -2, tpos, +2 );
+            g2.drawString( tlabel, tpos - fm.stringWidth( tlabel ), sy );
+        }
     }
 
     /**
