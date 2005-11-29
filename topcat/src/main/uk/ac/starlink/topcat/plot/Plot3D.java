@@ -11,7 +11,9 @@ import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
 
@@ -33,6 +35,8 @@ public class Plot3D extends JComponent {
     private PointRegistry pointReg_;
 
     private static final double SQRT3 = Math.sqrt( 3.0 );
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
     /**
      * Constructor.
@@ -154,6 +158,7 @@ public class Plot3D extends JComponent {
      * Performs the painting - this method does the actual work.
      */
     protected void paintComponent( Graphics g ) {
+        long tStart = System.currentTimeMillis();
 
         /* Prepare for painting. */
         super.paintComponent( g );
@@ -187,6 +192,8 @@ public class Plot3D extends JComponent {
         /* Submit each point for drawing in the display volume as
          * appropriate. */
         int np = points.getCount();
+        int nInclude = 0;
+        int nVisible = 0;
         double[] coords = new double[ 3 ];
         boolean[] useMask = new boolean[ nset ];
         for ( int ip = 0; ip < np; ip++ ) {
@@ -197,10 +204,10 @@ public class Plot3D extends JComponent {
                 use = use || useMask[ is ];
             }
             if ( use ) {
+                nInclude++;
                 points.getCoords( ip, coords );
-                if ( ! Double.isNaN( coords[ 0 ] ) &&
-                     ! Double.isNaN( coords[ 1 ] ) && 
-                     ! Double.isNaN( coords[ 2 ] ) ) {
+                if ( inRange( coords, loBounds_, hiBounds_ ) ) {
+                    nVisible++;
                     trans.transform( coords );
                     // coords[ 2 ] = ( ( coords[ 2 ] - .5 ) / SQRT3 ) + .5;
                     for ( int is = 0; is < nset; is++ ) {
@@ -231,6 +238,23 @@ public class Plot3D extends JComponent {
         lastVol_ = vol;
         lastTrans_ = trans;
         pointReg_ = null;
+
+        /* Notify information about the points that were plotted.
+         * I'm not sure that this has to be done outside of the paint
+         * call, but it seems like the sort of thing that might be true,
+         * so do it to be safe. */
+        final int np1 = np;
+        final int ni1 = nInclude;
+        final int nv1 = nVisible;
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                reportCounts( np1, ni1, nv1 );
+            }
+        } );
+
+        /* Log the time this painting took for tuning purposes. */
+        logger_.fine( "3D plot time (ms): " + 
+                     ( System.currentTimeMillis() - tStart ) );
     }
 
     /**
@@ -516,6 +540,21 @@ public class Plot3D extends JComponent {
     }
 
     /**
+     * This component calls this method following a repaint with the
+     * values of the number of points that were plotted.
+     * It is intended as a hook for clients which want to know that 
+     * information in a way which is kept up to date.
+     * The default implementation does nothing.
+     *
+     * @param   nPoint  total number of points available
+     * @param   nIncluded  number of points included in marked subsets
+     * @param   nVisible  number of points actually plotted (may be less
+     *          nIncluded if some are out of bounds)
+     */
+    protected void reportCounts( int nPoint, int nIncluded, int nVisible ) {
+    }
+
+    /**
      * Returns a PointRegistry which knows where all the points are
      * plotted on the current view.  The registry is returned in a ready
      * state.
@@ -541,9 +580,7 @@ public class Plot3D extends JComponent {
                     }
                     if ( use ) {
                         points.getCoords( ip, coords );
-                        if ( ! Double.isNaN( coords[ 0 ] ) &&
-                             ! Double.isNaN( coords[ 1 ] ) &&
-                             ! Double.isNaN( coords[ 2 ] ) ) {
+                        if ( inRange( coords, loBounds_, hiBounds_ ) ) {
                             trans.transform( coords );
                             Point p = new Point( vol.projectX( coords[ 0 ] ),
                                                  vol.projectY( coords[ 1 ] ) );
@@ -577,6 +614,25 @@ public class Plot3D extends JComponent {
             }
         }
         return false;
+    }
+
+    /**
+     * Determines whether a 3-d coordinate is within given 3-d bounds.
+     * Sitting on the boundary counts as in range. 
+     * If any of the elements of <code>coords</code> is NaN, false
+     * is returned.
+     *
+     * @param   coords 3-element array giving coordinates to test
+     * @param   lo     3-element array giving lower bounds of range
+     * @param   hi     3-element array giving upper bounds of range
+     * @return  true iff <code>coords</code> is between <code>lo</code>
+     *          and <code>hi</code>
+     */
+    private static boolean inRange( double[] coords, double[] lo,
+                                    double[] hi ) {
+        return coords[ 0 ] >= lo[ 0 ] && coords[ 0 ] <= hi[ 0 ]
+            && coords[ 1 ] >= lo[ 1 ] && coords[ 1 ] <= hi[ 1 ]
+            && coords[ 2 ] >= lo[ 2 ] && coords[ 2 ] <= hi[ 2 ];
     }
 
     /**

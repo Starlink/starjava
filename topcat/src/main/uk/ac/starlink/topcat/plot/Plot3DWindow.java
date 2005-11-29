@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
@@ -36,6 +37,7 @@ public class Plot3DWindow extends GraphicsWindow implements TopcatListener {
     private final ToggleButtonModel antialiasModel_;
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
+    private final CountsLabel plotStatus_;
     private double[] rotation_;
 
     private static final double[] INITIAL_ROTATION = 
@@ -53,7 +55,11 @@ public class Plot3DWindow extends GraphicsWindow implements TopcatListener {
 
         /* Construct and populate the plot panel with the 3D plot itself
          * and a transparent layer for doodling blobs on. */
-        plot_ = new Plot3D();
+        plot_ = new Plot3D() {
+            protected void reportCounts( int nPoint, int nInc, int nVis ) {
+                plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
+            }
+        };
         JPanel plotPanel = new JPanel();
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
@@ -76,6 +82,15 @@ public class Plot3DWindow extends GraphicsWindow implements TopcatListener {
 
         /* Arrange that clicking on a point will activate it. */
         plot_.addMouseListener( new PointClickListener() );
+
+        /* Add a status line. */
+        plotStatus_ = new CountsLabel( new String[] {
+            "Potential", "Included", "Visible",
+        } );
+        plotStatus_.setMaximumSize( new Dimension( Integer.MAX_VALUE,
+                                                   plotStatus_
+                                                  .getMaximumSize().height ) );
+        getStatusBox().add( plotStatus_ );
 
         /* Action for reorienting the plot. */
         Action reorientAction = new BasicAction( "Reorient", ResourceIcon.XYZ,
