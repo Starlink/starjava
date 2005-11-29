@@ -13,8 +13,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.BitSet;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -56,9 +54,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
-    private final JLabel plotStatus_;
-    private final JLabel posStatus_;
-    private final NumberFormat countFormat_;
+    private final CountsLabel plotStatus_;
 
     private boolean replotted_;
     private BitSet visibleRows_;
@@ -155,16 +151,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
          * about with glassPanes. */
         PlotSurface surface = plot_.getSurface();
         surface.getComponent().addMouseListener( new PointClickListener() );
-        surface.getComponent()
-               .addMouseMotionListener( new PositionReporter( surface ) {
-            protected void reportPosition( String[] coords ) {
-                String pos = " Position:";
-                if ( coords != null ) {
-                    pos += "(" + coords[ 0 ] + ", " + coords[ 1 ] + ")";
-                }
-                posStatus_.setText( pos );
-            }
-        } );;
 
         /* Listen for topcat actions. */
         getPointSelectors().addTopcatListener( this );
@@ -175,28 +161,12 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
         /* Add status lines for displaying the number of points plotted 
          * and the pointer position. */
-        countFormat_ = new DecimalFormat();
-        ((DecimalFormat) countFormat_).setGroupingSize( 3 );
-        ((DecimalFormat) countFormat_).setGroupingUsed( true );
-        plotStatus_ = new JLabel();
-        posStatus_ = new JLabel() {
-            public Dimension getMaximumSize() {
-                return new Dimension( Integer.MAX_VALUE,
-                                      super.getMaximumSize().height );
-            }
-        };
-        posStatus_.setText( " Position:" );
-        Font labelFont = plotStatus_.getFont();
-        Font monoFont =
-            new Font( "Monospaced", labelFont.getStyle(), labelFont.getSize() );
-        Border statusBorder = BorderFactory.createEtchedBorder();
-        plotStatus_.setFont( monoFont );
-        plotStatus_.setBorder( statusBorder );
-        posStatus_.setFont( monoFont );
-        posStatus_.setBorder( statusBorder );
+        plotStatus_ = new CountsLabel( new String[] {
+            "Potential", "Included", "Visible",
+        } );
         getStatusBox().add( plotStatus_ );
         getStatusBox().add( Box.createHorizontalStrut( 5 ) );
-        getStatusBox().add( posStatus_ );
+        getStatusBox().add( new PositionLabel( surface ) );
         getStatusBox().add( Box.createHorizontalGlue() );
 
         /* Action for resizing the plot. */
@@ -314,6 +284,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
          * away without doing this, so if you want to change that
          * make sure you check it still works properly afterwards. */
         if ( ! state.sameAxes( lastState ) || ! state.sameData( lastState ) ) {
+            plotStatus_.setValues( null );
             plot_.rescale();
         }
 
@@ -323,42 +294,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
          * system since the window geometry might not be correct here. */
         replotted_ = true;
         plot_.repaint();
-    }
-
-
-    /**
-     * Updates the plot status display line.
-     *
-     * @param   potential  number of points potentially plottable (all subsets)
-     * @param   included   number of points included (selected subsets)
-     * @param   visible    number of points visible (selected subsets and
-     *                     within surface bounds)
-     */
-    private void updateStatus( int potential, int included, int visible ) {
-        DecimalFormat format = new DecimalFormat();
-        format.setGroupingSize( 3 );
-        format.setGroupingUsed( true );
-        String[] tags = new String[] { "Potential", "Included", "Visible", };
-        int[] values = new int[] { potential, included, visible, };
-        StringBuffer status = new StringBuffer( " " );
-        int numLeng = countFormat_.format( potential ).length();
-        for ( int i = 0; i < tags.length; i++ ) {
-            if ( i > 0 ) {
-                status.append( "  " );
-            }
-            StringBuffer num = new StringBuffer()
-               .append( countFormat_.format( values[ i ] ) );
-            while ( num.length() < numLeng ) {
-                num.insert( 0, ' ' );
-            }
-            status.append( tags[ i ] )
-                  .append( ": " )
-                  .append( num );
-        }
-        status.append( ' ' );
-
-        /* Update the status line. */
-        plotStatus_.setText( status.toString() );
     }
 
     /**
@@ -432,7 +367,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
             public void run() {
                 fromVisibleAction_.setEnabled( someVisible );
                 blobAction_.setEnabled( someVisible );
-                updateStatus( potentialCount, includedCount, visibleCount );
+                plotStatus_.setValues( new int[] { potentialCount,
+                                                   includedCount,
+                                                   visibleCount } );
             }
         } );
     }
