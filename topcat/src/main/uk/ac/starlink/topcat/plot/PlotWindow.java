@@ -161,12 +161,16 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
         /* Add status lines for displaying the number of points plotted 
          * and the pointer position. */
+        PositionLabel posStatus = new PositionLabel( surface );
+        posStatus.setMaximumSize( new Dimension( Integer.MAX_VALUE,
+                                                 posStatus.getMaximumSize()
+                                                          .height ) );
         plotStatus_ = new CountsLabel( new String[] {
             "Potential", "Included", "Visible",
         } );
         getStatusBox().add( plotStatus_ );
         getStatusBox().add( Box.createHorizontalStrut( 5 ) );
-        getStatusBox().add( new PositionLabel( surface ) );
+        getStatusBox().add( posStatus );
         getStatusBox().add( Box.createHorizontalGlue() );
 
         /* Action for resizing the plot. */
