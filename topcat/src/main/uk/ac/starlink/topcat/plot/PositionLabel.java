@@ -1,6 +1,5 @@
 package uk.ac.starlink.topcat.plot;
 
-import java.awt.Dimension;
 import java.awt.Font;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -56,10 +55,5 @@ public class PositionLabel extends JLabel {
                 .append( ')' );
         }
         setText( sbuf.toString() );
-    }
-
-    public Dimension getMaximumSize() {
-        return new Dimension( Integer.MAX_VALUE,
-                              super.getMaximumSize().height );
     }
 }
