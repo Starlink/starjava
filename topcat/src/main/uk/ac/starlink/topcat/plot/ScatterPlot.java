@@ -83,7 +83,7 @@ public class ScatterPlot extends SurfacePlot {
 
         /* Go through all points getting max/min values. */
         int nok = 0;
-        Points points = getPoints();;
+        Points points = getPoints();
         if ( points != null ) {
             RowSubset[] rsets = getPointSelection().getSubsets();
             int nrset = rsets.length;
