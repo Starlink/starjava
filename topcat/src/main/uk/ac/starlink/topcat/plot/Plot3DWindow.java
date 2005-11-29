@@ -86,6 +86,14 @@ public class Plot3DWindow extends GraphicsWindow implements TopcatListener {
                 forceReplot();
             }
         };
+        Action rescaleAction = new BasicAction( "Rescale", ResourceIcon.RESIZE,
+                                                "Rescale the plot to show " +
+                                                "all points" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                plot_.rescale();
+                forceReplot();
+            }
+        };
 
         /* Model to toggle fogged rendering. */
         fogModel_ = new ToggleButtonModel( "Fog", ResourceIcon.FOG,
@@ -105,6 +113,7 @@ public class Plot3DWindow extends GraphicsWindow implements TopcatListener {
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
+        plotMenu.add( rescaleAction );
         plotMenu.add( reorientAction );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
@@ -137,6 +146,7 @@ public class Plot3DWindow extends GraphicsWindow implements TopcatListener {
         getJMenuBar().add( styleMenu );
 
         /* Add actions to the toolbar. */
+        getToolBar().add( rescaleAction );
         getToolBar().add( reorientAction );
         getToolBar().add( fogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
