@@ -121,7 +121,7 @@ public class HistogramWindow extends GraphicsWindow {
                                                   + "containing only currently "
                                                   + "visible range" ) {
             public void actionPerformed( ActionEvent evt ) {
-                subsetFromVisible();
+                addNewSubsets( plot_.getVisiblePoints() );
             }
         };
         subsetMenu.add( fromVisibleAction );
@@ -278,10 +278,6 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Return the state. */
         return state;
-    }
-
-    private void subsetFromVisible() {
-        addNewSubsets( plot_.getVisiblePoints() );
     }
 
     /**
