@@ -1829,8 +1829,10 @@ class PlotBox extends JPanel implements Printable {
         // Always use a white background because the dataset colors
         // were designed for a white background.
         if (graphics != null) {
-            graphics.setColor(Color.white);
-            graphics.fillRect(_ulx, _uly, width, height);
+            if ( isOpaque() ) {
+                graphics.setColor(Color.white);
+                graphics.fillRect(_ulx, _uly, width, height);
+            }
 
             graphics.setColor(_foreground);
             graphics.drawRect(_ulx, _uly, width, height);
