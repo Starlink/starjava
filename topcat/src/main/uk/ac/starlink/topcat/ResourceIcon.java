@@ -86,6 +86,7 @@ public class ResourceIcon implements Icon {
         STATS = makeIcon( "sigma0.gif" ),
         HISTOGRAM = makeIcon( "hist0.gif" ),
         PLOT = makeIcon( "plot0.gif" ),
+        DENSITY = makeIcon( "2hist2.gif" ),
         PLOT3D = makeIcon( "3dax6.gif" ),
         PARAMS = makeIcon( "tablemeta0.gif" ),
         VIEWER = makeIcon( "browser1.gif" ),
