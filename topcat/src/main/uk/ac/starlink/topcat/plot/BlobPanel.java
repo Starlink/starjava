@@ -168,6 +168,17 @@ public class BlobPanel extends JComponent
     protected void blobCompleted( Shape blob ) {
     }
 
+    /**
+     * Sets the colours which will be used for drawing the blob.
+     *
+     * @param  fillColor  colour which fills the blob area
+     * @param  pathColor  colour which delineates the blob region
+     */
+    public void setColors( Color fillColor, Color pathColor ) {
+        fillColor_ = fillColor;
+        pathColor_ = pathColor;
+    }
+
     protected void paintComponent( Graphics g ) {
         Color oldColor = g.getColor();
         Graphics2D g2 = (Graphics2D) g;
