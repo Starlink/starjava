@@ -19,8 +19,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
     private PlotState state_;
     private PointSelection psel_;
     private SurfaceListener surfListener_;
-
-    private static int PAD_PIXELS = 10;
+    private int padPixels_ = 10;
 
     /**
      * Constructs a new surface, registering a listener which will be
@@ -82,7 +81,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
                 xhi = xh;
             }
             int width = _lrx - _ulx;
-            double xpad = ( xhi - xlo ) * PAD_PIXELS / width;
+            double xpad = ( xhi - xlo ) * padPixels_ / width;
             setXRange( xlo - xpad, xhi + xpad );
         }
         if ( ! Double.isNaN( ylo ) && ! Double.isNaN( yhi ) ) {
@@ -97,7 +96,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
                 yhi = yh;
             }
             int height = _lry - _uly;
-            double ypad = ( yhi - ylo ) * PAD_PIXELS / height;
+            double ypad = ( yhi - ylo ) * padPixels_ / height;
             setYRange( ylo - ypad, yhi + ypad );
         }
         checkInvariants();
@@ -179,6 +178,26 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
 
     public void paintSurface( Graphics g ) {
         paintComponent( g );
+    }
+
+    /**
+     * Sets the number of pixels padding around the requested bounds on 
+     * each edge.
+     *
+     * @param  pad  padding
+     */
+    public void setPadPixels( int pad ) {
+        padPixels_ = pad;
+    }
+
+    /**
+     * Gets the number of pixels padding around the requested bounds on
+     * each edge.
+     *
+     * @return  padding
+     */
+    public int getPadPixels() {
+        return padPixels_;
     }
 
     protected void _zoom( int x, int y ) {
