@@ -41,7 +41,6 @@ public abstract class SurfacePlot extends JComponent implements Printable {
      */
     protected SurfacePlot() {
         setLayout( new OverlayLayout( this ) );
-        setOpaque( false );
     }
 
     /**
@@ -57,7 +56,6 @@ public abstract class SurfacePlot extends JComponent implements Printable {
         }
         surface_ = surface;
         surface_.setState( state_ );
-        surface_.getComponent().setOpaque( false );
         add( surface_.getComponent() );
     }
 
