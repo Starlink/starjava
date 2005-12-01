@@ -70,6 +70,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.topcat.join.MatchWindow;
+import uk.ac.starlink.topcat.plot.DensityWindow;
 import uk.ac.starlink.topcat.plot.GraphicsWindow;
 import uk.ac.starlink.topcat.plot.HistogramWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
@@ -242,6 +243,9 @@ public class ControlWindow extends AuxWindow
             new GraphicsWindowAction( "Plot", ResourceIcon.PLOT,
                                       "Scatter Plot",
                                       PlotWindow.class ),
+            new GraphicsWindowAction( "Density", ResourceIcon.DENSITY,
+                                      "Density plot (2D histogram)",
+                                      DensityWindow.class ),
             new GraphicsWindowAction( "3D", ResourceIcon.PLOT3D,
                                       "Three-dimensional scatter plot",
                                       Plot3DWindow.class ),
