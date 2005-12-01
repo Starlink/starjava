@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 
 /**
  * Graphics window which displays a density plot, that is a 2-dimensional
@@ -30,6 +31,7 @@ public class DensityWindow extends GraphicsWindow {
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
     private final CountsLabel plotStatus_;
+    private final ToggleButtonModel rgbModel_;
 
     /**
      * Constructs a new DensityWindow.
@@ -90,6 +92,12 @@ public class DensityWindow extends GraphicsWindow {
             }
         };
 
+        /* Action for rgb/greyscale toggle. */
+        rgbModel_ = new ToggleButtonModel( "Colour", ResourceIcon.COLOR,
+                                           "Select red/green/blue or " +
+                                           "greyscale rendering" );
+        rgbModel_.addActionListener( getReplotListener() );
+
         /* General plot operation menu. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
@@ -99,9 +107,15 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Axis operation menu. */
         JMenu axisMenu = new JMenu( "Axes" );
+        axisMenu.setMnemonic( KeyEvent.VK_A );
         axisMenu.add( getFlipModels()[ 0 ].createMenuItem() );
         axisMenu.add( getFlipModels()[ 1 ].createMenuItem() );
         getJMenuBar().add( axisMenu );
+
+        /* View menu. */
+        JMenu viewMenu = new JMenu( "View" );
+        viewMenu.setMnemonic( KeyEvent.VK_V );
+        axisMenu.add( rgbModel_.createMenuItem() );
 
         /* Subset operation menu. */
         JMenu subsetMenu = new JMenu( "Subsets" );
@@ -124,6 +138,7 @@ public class DensityWindow extends GraphicsWindow {
         getToolBar().add( getFlipModels()[ 0 ].createToolbarButton() );
         getToolBar().add( getFlipModels()[ 1 ].createToolbarButton() );
         getToolBar().add( getReplotAction() );
+        getToolBar().add( rgbModel_.createToolbarButton() );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction );
         getToolBar().addSeparator();
@@ -150,7 +165,11 @@ public class DensityWindow extends GraphicsWindow {
     public PlotState getPlotState() {
         DensityPlotState state = (DensityPlotState) super.getPlotState();
 
-        state.setRgb( true );
+        rgbModel_.setEnabled( state.getValid() &&
+                              state.getPointSelection()
+                                   .getStyles().length <= 3 );
+        state.setRgb( rgbModel_.isEnabled() && rgbModel_.isSelected() );
+
         state.setLoCut( 0.01 );
         state.setHiCut( 0.99 );
         state.setPixelSize( 2 );
