@@ -173,6 +173,8 @@ public class SkyColumnQueryWindow extends QueryWindow {
         LabelledComponentStack stack_;
         JComboBox sysChooser_;
         JComboBox unitChooser_;
+        JLabel c1label_;
+        JLabel c2label_;
 
         /**
          * Returns the component which is to be presented to the user for
@@ -214,6 +216,17 @@ public class SkyColumnQueryWindow extends QueryWindow {
         }
 
         /**
+         * Invoked when a new system is selected.
+         *
+         * @param  sys  new system
+         */
+        void systemSelected( SkySystem sys ) {
+            String[] cnames = sys.getCoordinateNames();
+            c1label_.setText( cnames[ 0 ] + ":  " );
+            c2label_.setText( cnames[ 1 ] + ":  " );
+        }
+
+        /**
          * Constructs the stack of components which form the body of
          * this selector.
          *
@@ -230,20 +243,17 @@ public class SkyColumnQueryWindow extends QueryWindow {
             stack.addLine( "Coord 2", coordChoosers[ 1 ] );
 
             JLabel[] labels = stack.getLabels();
-            final JLabel c1label = labels[ 2 ];
-            final JLabel c2label = labels[ 3 ];
-            assert c1label.getText().startsWith( "Coord 1" );
-            assert c2label.getText().startsWith( "Coord 2" );
+            c1label_ = labels[ 2 ];
+            c2label_ = labels[ 3 ];
+            assert c1label_.getText().startsWith( "Coord 1" );
+            assert c2label_.getText().startsWith( "Coord 2" );
 
             /* Fix for labels on the coordinate entry widgets to change
              * appropriately for the system. */
             sysChooser_.addItemListener( new ItemListener() {
                 public void itemStateChanged( ItemEvent evt ) {
                     if ( evt.getStateChange() == evt.SELECTED ) {
-                        SkySystem sys = (SkySystem) evt.getItem();
-                        String[] cnames = sys.getCoordinateNames();
-                        c1label.setText( cnames[ 0 ] + ":  " );
-                        c2label.setText( cnames[ 1 ] + ":  " );
+                        systemSelected( (SkySystem) evt.getItem() );
                     }
                 }
             } );
@@ -368,6 +378,17 @@ public class SkyColumnQueryWindow extends QueryWindow {
                 coordEntries_[ 0 ].getText(),
                 coordEntries_[ 1 ].getText(),
             };
+        }
+
+        void systemSelected( SkySystem sys ) {
+            super.systemSelected( sys );
+            String[] colnames = sys.getCoordinateColumnNames();
+            for ( int i = 0; i < 2; i++ ) {
+                String colname = TopcatUtils
+                                .getDistinctName( tcModel_.getColumnList(),
+                                                  colnames[ i ], "x" );
+                coordEntries_[ i ].setText( colname );
+            }
         }
     }
 

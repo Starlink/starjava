@@ -6919,6 +6919,7 @@ introduced since the last version:
 <li>Boolean columns now display null values distinctly from false ones.
     Additionally, null/false distinctions are handled more carefully in
     FITS and VOTable files.</li>
+<li>Sky Coordinates Window now suggests names for new columns.</li>
 </ul>
 </p></dd>
 
