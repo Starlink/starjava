@@ -35,23 +35,32 @@ public abstract class SkySystem {
 
     private final String name_;
     private final String description_;
-    private final String coord1_;
-    private final String coord2_;
+    private final String descrip1_;
+    private final String descrip2_;
+    private final String colname1_;
+    private final String colname2_;
 
     /**
      * Constructor.
      *
      * @param   name  short system name
      * @param   description   a few words of description
-     * @param   coord1  description of first coordinate
-     * @param   coord2  description of second coordinate
+     * @param   descrip1  short description of first coordinate
+     * @param   descrip2  short description of second coordinate
+     * @param   colname1   label for first coordinate suitable for 
+     *                     use as column name
+     * @param   colname2   label for second coordinate suitable for
+     *                     use as column name
      */
     protected SkySystem( String name, String description, 
-                         String coord1, String coord2 ) {
+                         String descrip1, String descrip2,
+                         String colname1, String colname2 ) {
         name_ = name;
         description_ = description;
-        coord1_ = coord1;
-        coord2_ = coord2;
+        descrip1_ = descrip1;
+        descrip2_ = descrip2;
+        colname1_ = colname1;
+        colname2_ = colname2;
     }
 
     /**
@@ -97,8 +106,8 @@ public abstract class SkySystem {
      */
     public String[] getCoordinateDescriptions() {
         return new String[] {
-            getDescription() + " " + coord1_,
-            getDescription() + " " + coord2_,
+            getDescription() + " " + descrip1_,
+            getDescription() + " " + descrip2_,
         };
     }
 
@@ -109,8 +118,20 @@ public abstract class SkySystem {
      */
     public String[] getCoordinateNames() {
         return new String[] {
-            coord1_,
-            coord2_,
+            descrip1_,
+            descrip2_,
+        };
+    }
+
+    /**
+     * Returns labels suitable for use as column names in this system.
+     *
+     * @param  array of column names
+     */
+    public String[] getCoordinateColumnNames() {
+        return new String[] {
+            colname1_,
+            colname2_,
         };
     }
 
@@ -142,9 +163,9 @@ public abstract class SkySystem {
                 .append( "</code>: " )
                 .append( sys.getDescription() )
                 .append( " (" )
-                .append( sys.coord1_ )
+                .append( sys.descrip1_ )
                 .append( ", " )
-                .append( sys.coord2_ )
+                .append( sys.descrip2_ )
                 .append( ")</li>" )
                 .append( '\n' );
         }
@@ -198,7 +219,8 @@ public abstract class SkySystem {
      */
     private static class FK5System extends SkySystem {
         public FK5System( String name ) {
-            super( name, "FK5 J2000.0", "Right Ascension", "Declination" );
+            super( name, "FK5 J2000.0", "Right Ascension", "Declination",
+                   "RA2000", "DEC2000" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
             AngleDR in = new AngleDR( c1, c2 );
@@ -217,7 +239,8 @@ public abstract class SkySystem {
      */
     private static class FK4System extends SkySystem {
         public FK4System( String name ) {
-            super( name, "FK4 B1950.0", "Right Ascension", "Declination" );
+            super( name, "FK4 B1950.0", "Right Ascension", "Declination",
+                   "RA1950", "DEC1950" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
             AngleDR in = new AngleDR( c1, c2 );
@@ -236,7 +259,8 @@ public abstract class SkySystem {
      */
     private static class GalSystem extends SkySystem {
         public GalSystem( String name ) {
-            super( name, "IAU 1958 Galactic", "Longitude", "Latitude" );
+            super( name, "IAU 1958 Galactic", "Longitude", "Latitude",
+                   "GAL_LONG", "GAL_LAT" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
             AngleDR in = new AngleDR( c1, c2 );
@@ -256,7 +280,7 @@ public abstract class SkySystem {
     private static class SuperGalSystem extends SkySystem {
         public SuperGalSystem( String name ) {
             super( name, "de Vaucouleurs Supergalactic", 
-                   "Longitude", "Latitude" );
+                   "Longitude", "Latitude", "SUPERGAL_LONG", "SUPERGAL_LAT" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
             AngleDR in = new AngleDR( c1, c2 );
@@ -275,7 +299,8 @@ public abstract class SkySystem {
      */
     private static class EclipticSystem extends SkySystem {
         public EclipticSystem( String name ) {
-            super( name, "Ecliptic", "Longitude", "Latitude" );
+            super( name, "Ecliptic", "Longitude", "Latitude",
+                   "LONG", "LAT" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
             double mjd = Times.julianToMjd( epoch );
