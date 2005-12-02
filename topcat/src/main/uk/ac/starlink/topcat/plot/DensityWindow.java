@@ -34,6 +34,8 @@ public class DensityWindow extends GraphicsWindow {
     private final CountsLabel plotStatus_;
     private final ToggleButtonModel rgbModel_;
     private final CutChooser cutter_;
+    private final PixelSizeAction pixIncAction_;
+    private final PixelSizeAction pixDecAction_;
     private int pixelSize_ = 1;
 
     /**
@@ -103,11 +105,11 @@ public class DensityWindow extends GraphicsWindow {
         rgbModel_.addActionListener( getReplotListener() );
 
         /* Actions for altering pixel size. */
-        Action pixIncAction =
+        pixIncAction_ =
             new PixelSizeAction( "Bigger Pixels", ResourceIcon.ROUGH,
                                  "Increase number of screen pixels per bin",
                                  +1 );
-        Action pixDecAction =
+        pixDecAction_ =
             new PixelSizeAction( "Smaller Pixels", ResourceIcon.FINE,
                                  "Decrease number of screen pixels per bin",
                                  -1 );
@@ -141,8 +143,8 @@ public class DensityWindow extends GraphicsWindow {
         JMenu viewMenu = new JMenu( "View" );
         viewMenu.setMnemonic( KeyEvent.VK_V );
         axisMenu.add( rgbModel_.createMenuItem() );
-        axisMenu.add( pixIncAction );
-        axisMenu.add( pixDecAction );
+        axisMenu.add( pixIncAction_ );
+        axisMenu.add( pixDecAction_ );
 
         /* Subset operation menu. */
         JMenu subsetMenu = new JMenu( "Subsets" );
@@ -168,8 +170,8 @@ public class DensityWindow extends GraphicsWindow {
         getToolBar().add( getLogModels()[ 1 ].createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( rgbModel_.createToolbarButton() );
-        getToolBar().add( pixIncAction );
-        getToolBar().add( pixDecAction );
+        getToolBar().add( pixIncAction_ );
+        getToolBar().add( pixDecAction_ );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction );
         getToolBar().addSeparator();
@@ -204,6 +206,8 @@ public class DensityWindow extends GraphicsWindow {
         state.setLoCut( cutter_.getLowValue() );
         state.setHiCut( cutter_.getHighValue() );
         state.setPixelSize( pixelSize_ );
+        pixIncAction_.configureEnabledness();
+        pixDecAction_.configureEnabledness();
 
         /* Manipulate the style choices directly.  The default handling done
          * in the superclass uses a pool of styles which is shared around
@@ -254,6 +258,8 @@ public class DensityWindow extends GraphicsWindow {
      * Action for incrementing the grid pixel size.
      */
     private class PixelSizeAction extends BasicAction {
+        final int MAX_SIZE = 20;
+        final int MIN_SIZE = 1;
         final int inc_;
 
         /**
@@ -271,8 +277,19 @@ public class DensityWindow extends GraphicsWindow {
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            pixelSize_ = Math.min( Math.max( 1, pixelSize_ + inc_ ), 20 );
+            pixelSize_ = Math.min( Math.max( pixelSize_ + inc_, MIN_SIZE ),
+                                             MAX_SIZE );
+            configureEnabledness();
             replot();
+        }
+
+        /**
+         * Configures this action according to whether it would have any
+         * effect or not.
+         */
+        void configureEnabledness() {
+            setEnabled( pixelSize_ + inc_ >= MIN_SIZE &&
+                        pixelSize_ + inc_ <= MAX_SIZE );
         }
     }
 }
