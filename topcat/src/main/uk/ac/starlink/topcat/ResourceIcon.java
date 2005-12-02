@@ -130,6 +130,8 @@ public class ResourceIcon implements Icon {
         FOG = makeIcon( "fog1.gif" ),
         ANTIALIAS = makeIcon( "aaA4.gif" ),
         COLOR = makeIcon( "rgb.gif" ),
+        FINE = makeIcon( "smallpix.gif" ),
+        ROUGH = makeIcon( "bigpix2.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),
