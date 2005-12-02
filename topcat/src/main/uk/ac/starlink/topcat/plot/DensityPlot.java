@@ -139,6 +139,7 @@ public class DensityPlot extends SurfacePlot {
     private void drawData( Graphics2D g2 ) {
         Rectangle plotZone = getSurface().getClip().getBounds();
         DensityPlotState state = (DensityPlotState) getState();
+        g2 = (Graphics2D) g2.create();
         if ( state.getValid() ) {
             int psize = state.getPixelSize();
             BufferedImage im = getImage( plotZone, state );
@@ -147,11 +148,11 @@ public class DensityPlot extends SurfacePlot {
                                       .getScaleInstance( psize, psize ),
                                        AffineTransformOp
                                       .TYPE_NEAREST_NEIGHBOR );
+            g2.setClip( plotZone );
             g2.drawImage( im, scaleOp, plotZone.x, plotZone.y );
         }
         else {
-            Graphics g = g2.create();
-            g.setColor( Color.BLACK );
+            g2.setColor( Color.BLACK );
             g2.fillRect( plotZone.x, plotZone.y, 
                          plotZone.width, plotZone.height );
         }
