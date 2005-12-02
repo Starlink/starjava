@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
@@ -32,6 +33,8 @@ public class DensityWindow extends GraphicsWindow {
     private final Action blobAction_;
     private final CountsLabel plotStatus_;
     private final ToggleButtonModel rgbModel_;
+    private final CutChooser cutter_;
+    private int pixelSize_ = 1;
 
     /**
      * Constructs a new DensityWindow.
@@ -98,6 +101,24 @@ public class DensityWindow extends GraphicsWindow {
                                            "greyscale rendering" );
         rgbModel_.addActionListener( getReplotListener() );
 
+        /* Actions for altering pixel size. */
+        Action pixIncAction =
+            new PixelSizeAction( "Bigger Pixels", ResourceIcon.ROUGH,
+                                 "Increase number of screen pixels per bin",
+                                 +1 );
+        Action pixDecAction =
+            new PixelSizeAction( "Smaller Pixels", ResourceIcon.FINE,
+                                 "Decrease number of screen pixels per bin",
+                                 -1 );
+
+        /* Cut level adjuster widgets. */
+        cutter_ = new CutChooser(); 
+        cutter_.setLowValue( 0.1 );
+        cutter_.setHighValue( 0.9 );
+        cutter_.setBorder( makeTitledBorder( "Cut Percentile Levels" ) );
+        cutter_.addChangeListener( getReplotListener() );
+        getMainArea().add( cutter_, BorderLayout.SOUTH );
+
         /* General plot operation menu. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
@@ -116,6 +137,8 @@ public class DensityWindow extends GraphicsWindow {
         JMenu viewMenu = new JMenu( "View" );
         viewMenu.setMnemonic( KeyEvent.VK_V );
         axisMenu.add( rgbModel_.createMenuItem() );
+        axisMenu.add( pixIncAction );
+        axisMenu.add( pixDecAction );
 
         /* Subset operation menu. */
         JMenu subsetMenu = new JMenu( "Subsets" );
@@ -139,6 +162,8 @@ public class DensityWindow extends GraphicsWindow {
         getToolBar().add( getFlipModels()[ 1 ].createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( rgbModel_.createToolbarButton() );
+        getToolBar().add( pixIncAction );
+        getToolBar().add( pixDecAction );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction );
         getToolBar().addSeparator();
@@ -170,9 +195,9 @@ public class DensityWindow extends GraphicsWindow {
                                    .getStyles().length <= 3 );
         state.setRgb( rgbModel_.isEnabled() && rgbModel_.isSelected() );
 
-        state.setLoCut( 0.01 );
-        state.setHiCut( 0.99 );
-        state.setPixelSize( 2 );
+        state.setLoCut( cutter_.getLowValue() );
+        state.setHiCut( cutter_.getHighValue() );
+        state.setPixelSize( pixelSize_ );
 
         /* Manipulate the style choices directly.  The default handling done
          * in the superclass uses a pool of styles which is shared around
@@ -217,5 +242,31 @@ public class DensityWindow extends GraphicsWindow {
     public StyleSet getDefaultStyles( int npoint ) {
         return ((DensityPlotState) getPlotState()).getRgb() ? DensityStyle.RGB
                                                             : DensityStyle.MONO;
+    }
+
+    /**
+     * Action for incrementing the grid pixel size.
+     */
+    private class PixelSizeAction extends BasicAction {
+        final int inc_;
+
+        /**
+         * Constructs a new PixelSizeAction.
+         *
+         * @param  name  action name
+         * @param  icon  action icon
+         * @param  desc  short description (tool tip)
+         * @param  inc   amount to increment the pixsize when the action is
+         *               invoked
+         */
+        PixelSizeAction( String name, Icon icon, String desc, int inc ) {
+            super( name, icon, desc );
+            inc_ = inc;
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            pixelSize_ = Math.min( Math.max( 1, pixelSize_ + inc_ ), 20 );
+            replot();
+        }
     }
 }
