@@ -22,8 +22,7 @@ import uk.ac.starlink.topcat.RowSubset;
 
 /**
  * Component which can display a density plot, which is to say, a
- * two-dimensional histogram.  Currently the histogram bins are 
- * exactly one screen pixel square.
+ * two-dimensional histogram.
  *
  * @author   Mark Taylor
  * @since    29 Nov 2005
@@ -289,6 +288,8 @@ public class DensityPlot extends SurfacePlot {
         DensityPlotState state = (DensityPlotState) getState();
         boolean xflip = state.getFlipFlags()[ 0 ];
         boolean yflip = state.getFlipFlags()[ 1 ];
+        boolean xlog = state.getLogFlags()[ 0 ];
+        boolean ylog = state.getLogFlags()[ 1 ];
         double[] loBounds =
             getSurface().graphicsToData( xflip ? zone.x + zone.width : zone.x,
                                          yflip ? zone.y : zone.y + zone.height,
@@ -314,8 +315,14 @@ public class DensityPlot extends SurfacePlot {
             double yBase = loBounds[ 1 ];
             double xMax = hiBounds[ 0 ];
             double yMax = hiBounds[ 1 ];
-            double xBin = xsize / ( hiBounds[ 0 ] - loBounds[ 0 ] ) / pixsize;
-            double yBin = ysize / ( hiBounds[ 1 ] - loBounds[ 1 ] ) / pixsize;
+            double xBin = xsize 
+                        / ( xlog ? Math.log( hiBounds[ 0 ] / loBounds[ 0 ] )
+                                 : ( hiBounds[ 0 ] - loBounds[ 0 ] ) )
+                        / pixsize;
+            double yBin = ysize
+                        / ( ylog ? Math.log( hiBounds[ 1 ] / loBounds[ 1 ] )
+                                 : ( hiBounds[ 1 ] - loBounds[ 1 ] ) )
+                        / pixsize;
 
             RowSubset[] rsets = getPointSelection().getSubsets();
             int nset = rsets.length;
@@ -353,8 +360,14 @@ public class DensityPlot extends SurfacePlot {
                 if ( use ) {
                     nInclude++;
                     points.getCoords( ip, coords );
-                    int ix = (int) ( ( coords[ 0 ] - loBounds[ 0 ] ) * xBin );
-                    int iy = (int) ( ( coords[ 1 ] - loBounds[ 1 ] ) * yBin );
+                    int ix =
+                        (int) ( xBin * ( xlog
+                                       ? Math.log( coords[ 0 ] / loBounds[ 0 ] )
+                                       : ( coords[ 0 ] - loBounds[ 0 ] ) ) );
+                    int iy =
+                        (int) ( yBin * ( ylog
+                                       ? Math.log( coords[ 1 ] / loBounds[ 1 ] )
+                                       : ( coords[ 1 ] - loBounds[ 1 ] ) ) );
                     if ( ix >= 0 && ix < xpix && iy >= 0 && iy < ypix ) {
                         visible.set( ip );
                         if ( xflip ) {

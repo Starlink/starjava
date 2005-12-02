@@ -99,6 +99,7 @@ public class DensityWindow extends GraphicsWindow {
         rgbModel_ = new ToggleButtonModel( "Colour", ResourceIcon.COLOR,
                                            "Select red/green/blue or " +
                                            "greyscale rendering" );
+        rgbModel_.setSelected( true );
         rgbModel_.addActionListener( getReplotListener() );
 
         /* Actions for altering pixel size. */
@@ -131,6 +132,9 @@ public class DensityWindow extends GraphicsWindow {
         axisMenu.setMnemonic( KeyEvent.VK_A );
         axisMenu.add( getFlipModels()[ 0 ].createMenuItem() );
         axisMenu.add( getFlipModels()[ 1 ].createMenuItem() );
+        axisMenu.addSeparator();
+        axisMenu.add( getLogModels()[ 0 ].createMenuItem() );
+        axisMenu.add( getLogModels()[ 1 ].createMenuItem() );
         getJMenuBar().add( axisMenu );
 
         /* View menu. */
@@ -160,6 +164,8 @@ public class DensityWindow extends GraphicsWindow {
         getToolBar().add( resizeAction );
         getToolBar().add( getFlipModels()[ 0 ].createToolbarButton() );
         getToolBar().add( getFlipModels()[ 1 ].createToolbarButton() );
+        getToolBar().add( getLogModels()[ 0 ].createToolbarButton() );
+        getToolBar().add( getLogModels()[ 1 ].createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( rgbModel_.createToolbarButton() );
         getToolBar().add( pixIncAction );
