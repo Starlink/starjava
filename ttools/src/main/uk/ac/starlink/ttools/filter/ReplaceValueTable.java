@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -25,6 +26,8 @@ public class ReplaceValueTable extends WrapperStarTable {
     };
     private final static double FLOAT_TOL = Float.MIN_VALUE * 2.0;
     private final static double DOUBLE_TOL = Double.MIN_VALUE * 2.0;
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.filter" );
 
     private final Replacer[] replacers_;
 
@@ -172,7 +175,17 @@ public class ReplaceValueTable extends WrapperStarTable {
                 };
             }
             else {
-                final Object oldVal = info.unformatString( oldStr );
+                final Object oldVal;
+                try {
+                    oldVal = info.unformatString( oldStr );
+                }
+                catch ( IllegalArgumentException e ) {
+                    logger_.warning( "No replacements in column " 
+                                   + info.getName() + " (" + oldStr + " not "
+                                   + info.formatClass( info.getContentClass() )
+                                   + ")" );
+                    return unitReplacer_;
+                }
                 return new Replacer() {
                     public Object replaceValue( Object obj ) {
                         return oldVal.equals( obj ) ? newValue
