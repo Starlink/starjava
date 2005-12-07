@@ -249,7 +249,7 @@ public class HistogramWindow extends GraphicsWindow {
     }
 
     public PlotState getPlotState() {
-        PlotState state = super.getPlotState();
+        HistogramPlotState state = (HistogramPlotState) super.getPlotState();
         boolean valid = state != null && state.getValid();
 
         /* The state obtained from the superclass implementation has
@@ -269,6 +269,8 @@ public class HistogramWindow extends GraphicsWindow {
                 state.getFlipFlags()[ 0 ],
                 false
             } );
+            Class clazz = state.getAxes()[ 0 ].getContentClass();
+            state.setZeroMid( clazz != Float.class && clazz != Double.class );
         }
 
         /* Configure some actions to be enabled/disabled according to 
@@ -331,6 +333,10 @@ public class HistogramWindow extends GraphicsWindow {
         }
         else {
             double gap = ( range[ 1 ] - range[ 0 ] ) / DEFAULT_BINS;
+            assert gap >= 0.0;
+            if ( gap == 0.0 ) {
+                return 1.0;
+            }
             if ( gap < 1.0 ) {
                 Class clazz = state.getAxes()[ 0 ].getContentClass();
                 if ( clazz == Byte.class ||

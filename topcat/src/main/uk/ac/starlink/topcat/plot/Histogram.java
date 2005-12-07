@@ -136,7 +136,7 @@ public class Histogram extends SurfacePlot {
                 BinnedData.Bin bin = (BinnedData.Bin) it.next();
                 double dcount = (double) bin.getCount( iset );
                 if ( dcount <= 0 ) {
-                    break;
+                    continue;
                 }
 
                 /* Work out the bar geometry. */
@@ -352,7 +352,8 @@ public class Histogram extends SurfacePlot {
         double binWidth = state.getBinWidth();
         return state.getLogFlags()[ 0 ]
              ? MapBinnedData.createLogBinnedData( nset, binWidth )
-             : MapBinnedData.createLinearBinnedData( nset, binWidth );
+             : MapBinnedData.createLinearBinnedData( nset, binWidth,
+                                                     state.getZeroMid() );
     }
 
     /**

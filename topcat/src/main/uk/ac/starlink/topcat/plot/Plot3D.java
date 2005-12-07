@@ -128,6 +128,7 @@ public class Plot3D extends JComponent {
         int nset = sets.length;
 
         double[] coords = new double[ 3 ];
+        int nok = 0;
         for ( int ip = 0; ip < np; ip++ ) {
             long lp = (long) ip;
             boolean use = false;
@@ -139,6 +140,7 @@ public class Plot3D extends JComponent {
                 if ( ! Double.isNaN( coords[ 0 ] ) &&
                      ! Double.isNaN( coords[ 1 ] ) &&
                      ! Double.isNaN( coords[ 2 ] ) ) {
+                    nok++;
                     for ( int id = 0; id < 3; id++ ) {
                         loBounds[ id ] = Math.min( loBounds[ id ],
                                                    coords[ id ] );
@@ -148,6 +150,16 @@ public class Plot3D extends JComponent {
                 }
             }
         }
+        for ( int i = 0; i < 3; i++ ) {
+            if ( nok == 0 ) {
+                loBounds[ i ] = 0.0;
+                hiBounds[ i ] = 1.0;
+            }
+            else if ( loBounds[ i ] == hiBounds[ i ] ) {
+                loBounds[ i ] = loBounds[ i ] - 1.;
+                hiBounds[ i ] = hiBounds[ i ] + 1.;
+            }
+        }        
         loBounds_ = loBounds;
         hiBounds_ = hiBounds;
         lastVol_ = null;
@@ -378,7 +390,7 @@ public class Plot3D extends JComponent {
                 iaxis = i;
             }
         }
-        assert iaxis != -1;
+        assert iaxis != -1 : p0[0]+" "+p0[1]+" "+p0[2]+"   "+p1[0]+" "+p1[1]+" "+p1[2];
 
         /* Which way is up?  We need to decide on a unit vector which defines
          * the plane in which text will be written.  The direction must

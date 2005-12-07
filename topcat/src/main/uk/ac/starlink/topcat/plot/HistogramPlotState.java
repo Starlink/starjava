@@ -9,6 +9,7 @@ package uk.ac.starlink.topcat.plot;
 public class HistogramPlotState extends PlotState {
 
     private double binWidth_;
+    private boolean zeroMid_;
 
     /**
      * Sets the bin width for the histogram.
@@ -35,10 +36,33 @@ public class HistogramPlotState extends PlotState {
         return binWidth_;
     }
 
+    /**
+     * Sets the flag which determines whether a zero value on the X axis
+     * should fall in the middle of a bin or on a bin boundary.
+     *
+     * @param   zeroMid  true for zero in the middle of a bin, false for
+     *          zero on a bin boundary
+     */
+    public void setZeroMid( boolean zeroMid ) {
+        zeroMid_ = zeroMid;
+    }
+
+    /**
+     * Returns the flag which determines whether a zero value on the X axis
+     * should fall in the middle of a bin or on a bin boundary.
+     *
+     * @return   true of zero in the middle of a bin, false for zero on a
+     *           bin boundary
+     */
+    public boolean getZeroMid() {
+        return zeroMid_;
+    }
+
     public boolean equals( Object o ) {
         if ( super.equals( o ) && o instanceof HistogramPlotState ) {
             HistogramPlotState other = (HistogramPlotState) o;
-            return binWidth_ == other.binWidth_;
+            return binWidth_ == other.binWidth_
+                && zeroMid_ == other.zeroMid_;
         }
         else {
             return false;
@@ -48,6 +72,7 @@ public class HistogramPlotState extends PlotState {
     public int hashCode() {
         int code = super.hashCode();
         code = 23 * code + Float.floatToIntBits( (float) binWidth_ );
+        code = 23 * code + ( zeroMid_ ? 1 : 0 );
         return code;
     }
 }

@@ -101,11 +101,15 @@ public class MapBinnedData implements BinnedData {
      *
      * @param  nset  number of subsets
      * @param  binWidth  bin spacing
+     * @param  zeroMid  true if zero is to be in the middle of a bin,
+     *         false if it falls on a bin boundary
      * @return   new BinnedData object
      */
     public static MapBinnedData createLinearBinnedData( int nset,
-                                                        double binWidth ) {
-        return new MapBinnedData( nset, new LinearBinMapper( binWidth ) );
+                                                        double binWidth,
+                                                        boolean zeroMid ) {
+        return new MapBinnedData( nset,
+                                  new LinearBinMapper( binWidth, zeroMid ) );
     }
 
     /**
@@ -154,18 +158,28 @@ public class MapBinnedData implements BinnedData {
      */
     private static class LinearBinMapper implements BinMapper {
         final double width_;
-        LinearBinMapper( double binWidth ) {
+        final double base_;
+
+        /**
+         * Constructs a new linear mapper.
+         *
+         * @param  binWidth  width of the bins
+         * @param  zeroMid  true if zero is to be in the middle of a bin,
+         *         false if it falls on a bin boundary
+         */
+        LinearBinMapper( double binWidth, boolean zeroMid ) {
             if ( binWidth <= 0 || Double.isNaN( binWidth ) ) {
                 throw new IllegalArgumentException( "Bad width " + binWidth );
             }
             width_ = binWidth;
+            base_ = zeroMid ? -0.5 : 0.0;
         }
         public Comparable getKey( double value ) {
-            return new Long( (long) Math.floor( value / width_ ) );
+            return new Long( (long) Math.floor( ( value - base_ ) / width_ ) );
         }
         public double[] getBounds( Object key ) {
             final long keyval = ((Long) key).longValue();
-            final double centre = keyval * width_;
+            final double bottom = keyval * width_ + base_;
 
             /* This nonsensical looking test is here as debugging code for
              * a diabolical JVM bug which was plaguing this code at one
@@ -175,13 +189,13 @@ public class MapBinnedData implements BinnedData {
              * testing upstream of this method and it seems to have gone
              * away now, but leave the test here in case it rears its
              * ugly head again. */
-            if ( Double.isNaN( centre ) ) {
-                if ( ! Double.isNaN( centre ) ) {
+            if ( Double.isNaN( bottom ) ) {
+                if ( ! Double.isNaN( bottom ) ) {
                     logger_.warning( "Monstrous Java 1.4.1 JVM bug" );
                 }
             }
 
-            return new double[] { centre, centre + width_ };
+            return new double[] { bottom, bottom + width_ };
         }
     }
 
