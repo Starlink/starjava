@@ -3227,6 +3227,8 @@ but my thanks are especially due to the following:
 <li>Introduced new <code>sorthead</code> filter, which forms a 
     (usually) more efficent way of doing what you could previously do
     by combining a <code>sort</code> and <code>head</code> operation.</li>
+<li>Distinctions between null and false values in boolean columns are
+    handled more carefully for FITS and VOTable files.</li>
 </ul>
 </p></dd>
 
