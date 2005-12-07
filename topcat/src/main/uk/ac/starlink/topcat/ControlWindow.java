@@ -355,7 +355,7 @@ public class ControlWindow extends AuxWindow
         fileMenu.insertSeparator( fileMenuPos++ );
 
         /* Add a menu for the table views. */
-        JMenu viewMenu = new JMenu( "TableViews" );
+        JMenu viewMenu = new JMenu( "Views" );
         viewMenu.setMnemonic( KeyEvent.VK_V );
         for ( int i = 0; i < viewActs_.length; i++ ) {
             viewMenu.add( viewActs_[ i ] );
@@ -364,20 +364,11 @@ public class ControlWindow extends AuxWindow
 
         /* Add a menu for visualisation windows. */
         JMenu graphicsMenu = new JMenu( "Graphics" );
-        viewMenu.setMnemonic( KeyEvent.VK_G );
+        graphicsMenu.setMnemonic( KeyEvent.VK_G );
         for ( int i = 0; i < graphicsActs_.length; i++ ) {
             graphicsMenu.add( graphicsActs_[ i ] );
         }
         getJMenuBar().add( graphicsMenu );
-
-        /* Add a menu for window management. */
-        JMenu winMenu = new JMenu( "Windows" );
-        winMenu.setMnemonic( KeyEvent.VK_W );
-        showActs_ = makeShowActions();
-        for ( int i = 0; i < showActs_.length; i++ ) {
-            winMenu.add( showActs_[ i ] );
-        }
-        getJMenuBar().add( winMenu );
 
         /* Add a menu for table joining. */
         JMenu joinMenu = new JMenu( "Joins" );
@@ -387,6 +378,15 @@ public class ControlWindow extends AuxWindow
             joinMenu.add( matchActs_[ i ] );
         }
         getJMenuBar().add( joinMenu );
+
+        /* Add a menu for window management. */
+        JMenu winMenu = new JMenu( "Windows" );
+        winMenu.setMnemonic( KeyEvent.VK_W );
+        showActs_ = makeShowActions();
+        for ( int i = 0; i < showActs_.length; i++ ) {
+            winMenu.add( showActs_[ i ] );
+        }
+        getJMenuBar().add( winMenu );
 
         /* Mark this window as top-level. */
         setCloseIsExit();
