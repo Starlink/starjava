@@ -10,11 +10,13 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 import uk.ac.starlink.connect.Leaf;
 import uk.ac.starlink.connect.Node;
 import uk.ac.starlink.connect.FilestoreChooser;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -27,6 +29,7 @@ public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
 
     private final FilestoreChooser chooser_;
     private final JComboBox formatSelector_;
+    private final JTextField posField_;
 
     public FilestoreTableLoadDialog() {
         super( "Filestore Browser", 
@@ -41,10 +44,20 @@ public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
         chooser_.addDefaultBranches();
         add( chooser_, BorderLayout.CENTER );
         formatSelector_ = new JComboBox();
+        JLabel posLabel = new JLabel( "Position in file: #" );
+        posField_ = new JTextField( 6 );
+        posField_.addActionListener( getOkAction() );
+        String posHelp = "HDU index for FITS files or TABLE index for VOTables"
+                       + " (optional)";
+        posField_.setToolTipText( posHelp );
+        posLabel.setToolTipText( posHelp );
         JComponent formatBox = Box.createHorizontalBox();
         formatBox.add( new JLabel( "Table Format: " ) );
         formatBox.add( new ShrinkWrapper( formatSelector_ ) );
+        formatBox.add( Box.createHorizontalStrut( 10 ) );
         formatBox.add( Box.createHorizontalGlue() );
+        formatBox.add( new JLabel( "Position in file: #" ) );
+        formatBox.add( new ShrinkWrapper( posField_ ) );
         formatBox.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         add( formatBox, BorderLayout.SOUTH );
     }
@@ -57,17 +70,25 @@ public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
         Node node = chooser_.getSelectedNode();
         if ( node instanceof Leaf ) {
             final Leaf leaf = (Leaf) node;
+            String posText = posField_.getText();
+            final String pos = posText != null && posText.trim().length() > 0
+                             ? posText.trim()
+                             : null;
             return new TableSupplier() {
 
                 public StarTable getTable( StarTableFactory factory,
                                            String format )
                         throws IOException {
-                    return factory.makeStarTable( leaf.getDataSource(),
-                                                  format );
+                    DataSource datsrc = leaf.getDataSource();
+                    if ( pos != null ) {
+                        datsrc.setPosition( pos );
+                    }
+                    return factory.makeStarTable( datsrc, format );
                 }
 
                 public String getTableID() {
-                    return leaf.toString();
+                    return leaf.toString()
+                         + ( pos != null ? ( "#" + pos ) : "" );
                 }
             };
         }
