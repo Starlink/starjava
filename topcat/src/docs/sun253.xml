@@ -4432,10 +4432,16 @@ If you pick a file which cannot be converted
 into a table an error window will pop up.
 </p>
 
-<p>Because this browser only works at the file level, there is a limit
-to what tables it can access.  For instance if you select a FITS file,
-the table opened will correspond to the first TABLE or BINTABLE
-HDU within it.
+<p>In most cases, selecting the file name and possibly the format
+is all you need to do.  However, the <label>Position in file</label>
+field allows you to add information about where in the file the
+table you want is situated.  The meaning of this varies according to
+the file format: for FITS files, it is the index of the HDU containing
+the table you're after (the first extension after the primary HDU is
+numbered 1), and for VOTables it is the index of the TABLE element
+(the first TABLE encountered is numbered 0).  If you leave this blank,
+you will get the first table in the file in question - many file formats
+only allow one table per file in any case.
 For a more table-aware view of the file system, use the
 <ref id="TreeTableLoadDialog" plaintextref="yes">Hierarchy Browser</ref> 
 instead.
@@ -6906,6 +6912,7 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
 <ul>
+<li>Loads of plotting stuff.</li>
 <li>Selection of a subset in the Control Window now triggers its selection
     in other windows (plot, statistics, subsets).  The same thing doesn't
     happen the other way around, since that might lead to confusing 
@@ -6913,13 +6920,14 @@ introduced since the last version:
 <li>Experimental implementation of Aladin interoperability interface.</li>
 <li>Fixed java 1.5 bug in which subset checkboxes didn't appear in Plot Window.
     </li>
-<li>Loads of plotting stuff.</li>
 <li>Plotting: axes now have a threshold of 1e4 for exponent factorisation
     on axis labels.</li>
 <li>Boolean columns now display null values distinctly from false ones.
     Additionally, null/false distinctions are handled more carefully in
     FITS and VOTable files.</li>
 <li>Sky Coordinates Window now suggests names for new columns.</li>
+<li>Filestore Browser now allows you to enter the position in a file of the
+    table to load (e.g. HDU index for FITS or TABLE index for VOTable).</li>
 </ul>
 </p></dd>
 
