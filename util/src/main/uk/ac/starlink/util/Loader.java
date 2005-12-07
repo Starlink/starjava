@@ -340,13 +340,27 @@ public class Loader {
      * Setting this property has no effect on non-Mac platforms.
      * Probably(?) this call must be made before starting up the GUI
      * (haven't got a Mac to hand, can't test it).
+     *
+     * <p>28 Nov 2005: There is at least one sighting of this code 
+     * causing trouble on Macs; a not-obviously-related 
+     * ArrayIndexOutOfBoundsException thrown in apple.laf.ScreenMenuBar code
+     * in Treeview at Mac OS X 10.4.3 on a PowerPC G5, running Java 1.4.2_09.
+     * If the property is set false on the command line it goes away
+     * (if it's set true on the command line it stays, so it's not a case
+     * of it not being set early enough).  So I think, given that I don't
+     * have a Mac to debug it on, I'm going to have to leave it unset by
+     * default.
      */
     public static void tweakGuiForMac() {
         String menuProp = "apple.laf.useScreenMenuBar";
         try {
             String prop = System.getProperty( menuProp );
             if ( prop == null || prop.trim().length() == 0 ) {
-                System.setProperty( menuProp, "true" );
+
+                /* Don't do this - see comments above. */
+                if ( false ) {
+                    System.setProperty( menuProp, "true" );
+                }
             }
         }
         catch ( SecurityException e ) {
