@@ -187,7 +187,6 @@
   <property name="src.perl" value="${src.dir}/perl"/>
   <property name="jdk" value="${java.home}/.."/>
   <property name="stardev" value="/stardev"/>
-  <property name="stardev.add" value="/stardev/local"/>
 
   <!-- Non-standard build file directories -->
   <property name="build.jni" value="${build.dir}/jni"/>
