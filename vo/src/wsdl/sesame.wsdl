@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <wsdl:definitions targetNamespace="urn:Sesame" xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:impl="urn:Sesame" xmlns:intf="urn:Sesame" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<!--WSDL created by Apache Axis version: 1.2.1
-Built on Jun 14, 2005 (09:15:57 EDT)-->
+<!--WSDL created by Apache Axis version: 1.3
+Built on Oct 05, 2005 (05:23:37 EDT)-->
 
    <wsdl:message name="SesameResponse">
 
