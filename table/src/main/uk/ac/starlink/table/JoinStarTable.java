@@ -95,7 +95,7 @@ public class JoinStarTable extends AbstractStarTable {
             for ( int ic = 0; ic < nCols[ itab ]; ic++ ) {
                 colInfos[ icol ] =
                     new ColumnInfo( tables[ itab ].getColumnInfo( ic ) ); 
-                String name = colInfos[ icol ].getName();
+                String name = colInfos[ icol ].getName().toLowerCase();
                 ( colNames.contains( name ) ? colDups : colNames ).add( name );
                 icol++;
             } 
@@ -107,7 +107,7 @@ public class JoinStarTable extends AbstractStarTable {
         for ( int itab = 0; itab < nTab; itab++ ) {
             for ( int ic = 0; ic < nCols[ itab ]; ic++ ) {
                 String name = colInfos[ icol ].getName();
-                boolean isDup = colDups.contains( name );
+                boolean isDup = colDups.contains( name.toLowerCase() );
                 colInfos[ icol ].setName( fixCols[ itab ]
                                          .getFixedName( name, isDup ) );
                 icol++;

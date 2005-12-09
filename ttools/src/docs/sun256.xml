@@ -3229,6 +3229,8 @@ but my thanks are especially due to the following:
     by combining a <code>sort</code> and <code>head</code> operation.</li>
 <li>Distinctions between null and false values in boolean columns are
     handled more carefully for FITS and VOTable files.</li>
+<li>When joining tables, column name comparison to determine whether
+    deduplication is required is now case-insensitive.</li>
 </ul>
 </p></dd>
 

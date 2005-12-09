@@ -6339,7 +6339,7 @@ comments (apologies for any missed out):
 <ul>
 <li>Malcolm Currie (Starlink, RAL)</li>
 <li>David Giaretta (Starlink, RAL)</li>
-<li>Clive Page (AstroGrid, Leicester)</li>
+<li>Clive Page (Leicester)</li>
 <li>Clive Davenhall (Royal Observatory Edinburgh)</li>
 <li>Tim Jenness (JACH)</li>
 <li>Mike Read (ROE)</li>
@@ -6350,7 +6350,7 @@ comments (apologies for any missed out):
 <li>Jonathan Irwin (Cambridge)</li>
 <li>Mark Allen (Strasbourg)</li>
 <li>Francois Ochsenbein (Strasbourg)</li>
-<li>Mike Watson (ROE)</li>
+<li>Mike Watson (Leicester)</li>
 <li>Bob Mann (Edinburgh/Strasbourg)</li>
 <li>David Mills (Bristol)</li>
 <li>Douglas Morgan (Bristol)</li>
@@ -6928,6 +6928,8 @@ introduced since the last version:
 <li>Sky Coordinates Window now suggests names for new columns.</li>
 <li>Filestore Browser now allows you to enter the position in a file of the
     table to load (e.g. HDU index for FITS or TABLE index for VOTable).</li>
+<li>When joining tables, column name comparison to determine whether
+    deduplication is required is now case-insensitive.</li>
 </ul>
 </p></dd>
 
