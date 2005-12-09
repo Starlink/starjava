@@ -497,6 +497,14 @@ public class Plot3D extends JComponent {
             }
         }
 
+        /* If the determinant of the transform is zero, bail out now.
+         * Although we could do some of the plotting, you won't miss 
+         * much from a singular transformation and it can cause some of
+         * the drawing methods to throw unpredictable errors. */
+        if ( atf.getDeterminant() == 0 ) {
+            return;
+        }
+
         /* Apply the transform to the graphics context.  Subsequent text
          * written to the region (0,0)->(sx,sy) will appear alongside
          * the relevant axis now. */
