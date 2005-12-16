@@ -390,7 +390,6 @@ public class Plot3D extends JComponent {
                 iaxis = i;
             }
         }
-        assert iaxis != -1 : p0[0]+" "+p0[1]+" "+p0[2]+"   "+p1[0]+" "+p1[1]+" "+p1[2];
 
         /* Which way is up?  We need to decide on a unit vector which defines
          * the plane in which text will be written.  The direction must
