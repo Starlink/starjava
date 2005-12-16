@@ -53,6 +53,8 @@ public class ColumnInfoWindow extends AuxWindow {
     private final Action replacecolAct;
     private final Action hidecolAct;
     private final Action revealcolAct;
+    private final Action hideallAct;
+    private final Action revealallAct;
     private final Action explodecolAct;
     private ColumnInfo indexColumnInfo;
     private JTable jtab;
@@ -355,6 +357,12 @@ public class ColumnInfoWindow extends AuxWindow {
         revealcolAct = new ColumnInfoAction( "Reveal Selected Column(s)",
                                              ResourceIcon.REVEAL,
                                              "Reveal All Selected columns" );
+        hideallAct = new ColumnInfoAction( "Hide All Columns",
+                                           ResourceIcon.HIDE_ALL,
+                                           "Make all table columns invisible" );
+        revealallAct = new ColumnInfoAction( "Reveal All Columns",
+                                             ResourceIcon.REVEAL_ALL,
+                                             "Make all table columns visible" );
         explodecolAct = new ColumnInfoAction( "Explode Array Column",
                                               ResourceIcon.EXPLODE,
                                               "Replace N-element array column "
@@ -372,6 +380,8 @@ public class ColumnInfoWindow extends AuxWindow {
         colMenu.add( replacecolAct );
         colMenu.add( hidecolAct );
         colMenu.add( revealcolAct );
+        colMenu.add( hideallAct );
+        colMenu.add( revealallAct );
         colMenu.add( explodecolAct );
         colMenu.add( sortupAct );
         colMenu.add( sortdownAct );
@@ -423,6 +433,8 @@ public class ColumnInfoWindow extends AuxWindow {
         getToolBar().add( replacecolAct );
         getToolBar().add( hidecolAct );
         getToolBar().add( revealcolAct );
+        getToolBar().add( hideallAct );
+        getToolBar().add( revealallAct );
         getToolBar().add( explodecolAct );
         getToolBar().addSeparator();
         getToolBar().add( sortupAct );
@@ -700,6 +712,17 @@ public class ColumnInfoWindow extends AuxWindow {
                     }
                 }
             }
+
+            /* Hide/Reveal all columns. */
+            else if ( this == hideallAct || this == revealallAct ) {
+                boolean active = this == revealallAct;
+                int ncol = columnList.size();
+                for ( int i = 0; i < ncol; i++ ) {
+                    columnList.setActive( i, active );
+                }
+            }
+
+            /* Unknown action?? */
             else {
                 throw new AssertionError();
             }

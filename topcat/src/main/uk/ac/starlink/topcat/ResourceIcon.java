@@ -74,6 +74,8 @@ public class ResourceIcon implements Icon {
         DEMO = makeIcon( "demo.gif" ),
         HIDE = makeIcon( "false.gif" ),
         REVEAL = makeIcon( "true.gif" ),
+        HIDE_ALL = makeIcon( "falseAll2.gif" ),
+        REVEAL_ALL = makeIcon( "trueAll2.gif" ),
         MODIFY = makeIcon( "redo3.gif" ),
         SEARCH = makeIcon( "search2.gif" ),
         LOG = makeIcon( "book3.gif" ),
