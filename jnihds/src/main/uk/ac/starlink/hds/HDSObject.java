@@ -72,10 +72,7 @@ import uk.ac.starlink.util.Loader;
  * @version  $Id$
  */
 public class HDSObject {
-    private byte[] locator;
-
-    /** Object representing the locator DAT__ROOT. */
-    public static final HDSObject DAT__ROOT;
+    private long locPtr_;
 
     /**
      * Maximum number of characters in the name of an HDS component.
@@ -98,7 +95,6 @@ public class HDSObject {
     static {
         Loader.loadLibrary( "jnihds" );
         nativeInitialize();
-        DAT__ROOT = getHDSConstantLoc( "DAT__ROOT" );
         DAT__SZNAM = getHDSConstantI( "DAT__SZNAM" );
         DAT__SZTYP = getHDSConstantI( "DAT__SZTYP" );
     }
@@ -141,7 +137,6 @@ public class HDSObject {
      * up public final static members for the class.
      */
     native static int getHDSConstantI( String constName );
-    native static HDSObject getHDSConstantLoc( String constname );
 
     /**
      * Get HDS tuning parameter value.
@@ -925,21 +920,4 @@ public class HDSObject {
      */
     public native boolean
         datValid() throws HDSException;
-
-    /**
-     * Find position of primitive in HDS file.
-     * @return                a two-element array of <code>long</code>s.
-     *                        The first element gives the number of the
-     *                        file block in whch the object's data start
-     *                        (HDS blocks are 512 bytes long and are
-     *                        numbered from the beginning of the file,
-     *                        starting at block 1), and the second element
-     *                        gives the zero-based byte-offset of the start
-     *                        of the data within the file block.
-     * @throws  HDSException  if an HDS error occurs (STATUS is not SAI__OK)
-     * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_WHERE">DAT_WHERE</a>
-     */
-    public native long[]
-        datWhere() throws HDSException;
-
 }
