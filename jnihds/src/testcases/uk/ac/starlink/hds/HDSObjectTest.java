@@ -80,9 +80,6 @@ public class HDSObjectTest extends TestCase {
     public void testConstants() throws HDSException {
         assertEquals( 15, HDSObject.getHDSConstantI( "DAT__SZNAM" ) );
         assertTrue( 15 <= HDSObject.getHDSConstantI( "DAT__SZLOC" ) );
-        HDSObject noloc = HDSObject.getHDSConstantLoc( "DAT__NOLOC" );
-        HDSObject rootloc = HDSObject.getHDSConstantLoc( "DAT__ROOT" );
-        assertTrue( ! noloc.datValid() );
     }
 
     public void testFileOperations() throws HDSException {
@@ -109,13 +106,6 @@ public class HDSObjectTest extends TestCase {
         assertArrayEquals( newD, newHDS.datShape() );
         assertEquals( "_DOUBLE", newHDS.datType() );
         newHDS.datAnnul();
-
-        // datWhere
-        long[] filepos = dataArray.datWhere();
-        assertTrue( filepos[ 0 ] >= 1 );
-        assertTrue( filepos[ 0 ] <= ( containerFile.length() / 512 ) + 1 );
-        assertTrue( filepos[ 1 ] >= 0 );
-        assertTrue( filepos[ 1 ] < 512 );
     }
 
     public void testObject() throws HDSException {

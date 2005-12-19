@@ -26,6 +26,8 @@
 *        Initial version.
 *     8-NOV-2005 (PWD):
 *        Add dat_copy.
+*     12-DEC-2005 (MBT):
+*        Rewrote to use HDS C interface rather than F77 interface + CNF.
 
 *-
 */
@@ -39,6 +41,12 @@
 #define CLASS_NAME uk_ac_starlink_hds_HDSObject
 #define NATIVE_METHOD(name) Java_uk_ac_starlink_hds_HDSObject_##name
 
+/* HDS Types. */
+#define HDS_BYTE_SIZE sizeof( char )
+#define HDS_WORD_SIZE sizeof( short )
+#define HDS_INTEGER_SIZE sizeof( int )
+#define HDS_REAL_SIZE sizeof( float )
+#define HDS_DOUBLE_SIZE sizeof( double )
 
 /* Header files. */
 #include <string.h>
@@ -49,14 +57,18 @@
 #include "jni.h"
 #include "sae_par.h"
 #include "mers.h"
+#include "star/hds.h"
 #include "dat_par.h"
-#include "cnf.h"
 #include "uk_ac_starlink_hds_HDSObject.h"
 
+/* Types. */
+typedef union {
+   jlong value;
+   HDSLoc *pointer;
+} locatorField;
 
 /* Macros. */
 
-#define INT_BIG F77_INTEGER_TYPE
 #define RETURN_IF_EXCEPTION \
    if ( (*env)->ExceptionCheck( env ) ) return NULL
 #ifdef DEBUG
@@ -78,8 +90,8 @@
 #define HDSCALL( code ) \
    if ( ! (*env)->ExceptionCheck( env ) ) { \
       jthrowable throwable = NULL; \
-      F77_INTEGER_TYPE status_val = SAI__OK; \
-      F77_INTEGER_TYPE *status = &status_val; \
+      int status_val = SAI__OK; \
+      int *status = &status_val; \
       if ( (*env)->MonitorEnter( env, HDSLock ) == 0 ) { \
          errMark(); \
          code \
@@ -121,19 +133,53 @@
    }
 
 
+/*
+ * Macro for calling a code block which may call JNI functions but must
+ * execute even with an exception pending.  Such calls will typically
+ * be calls to ReleaseStringUTFChars or Release<Primitive>ArrayElements
+ * functions.  It notes any pending exception, clears it if necessary,
+ * executes the code block, and re-throws the exception if there was one.
+ * The 'env' variable is assumed to be a pointer to the current
+ * JNIEnv environment.
+ */
+#define ALWAYS(code) { \
+   jthrowable _jnihds_except = (*env)->ExceptionOccurred( env ); \
+   if ( _jnihds_except != NULL ) { \
+      (*env)->ExceptionClear( env ); \
+   } \
+   code \
+   if ( _jnihds_except != NULL ) { \
+      (*env)->Throw( env, _jnihds_except ); \
+   } \
+}
+
+
+/* Macro to check that two types match.  This is currently used when
+ * the code would fall over if the types didn't coincide. 
+ * The right thing would be to copy the data from one format to another,
+ * but it doesn't currently do that.
+ */
+#define CHECK_TYPES_MATCH(t1,t2) \
+   if ( ! (*env)->ExceptionCheck( env ) ) { \
+      if ( sizeof( t1 ) != sizeof( t2 ) ) { \
+         throwNativeError( env, "Can't perform on this platform: types %s " \
+                                "and %s have different sizes (%d!=%d)\n", \
+                                #t1, #t2, \
+                                (int) sizeof( t1 ), (int) sizeof( t2 ) ); \
+      } \
+   }
+
 
 /* Static function prototypes. */
 static void throwNativeError( JNIEnv *env, char *fmt, ... );
-static jobject makeHDSObject( JNIEnv *env, char *locdata );
-static jlongArray makeCartesian( JNIEnv *env, INT_BIG *dims, INT_BIG ndim );
-static jstring makeString( JNIEnv *env, const char *bytes, int leng );
+static jobject makeHDSObject( JNIEnv *env, HDSLoc *locator );
+static jlongArray makeCartesian( JNIEnv *env, hdsdim *dims, int ndim );
 static jthrowable monitorEntryFailure( JNIEnv *env );
 static jthrowable monitorExitFailure( JNIEnv *env );
-static void setLocator( JNIEnv *env, jobject object, char *locator );
-static const char *getLocator( JNIEnv *env, jobject object, char *locator );
-static INT_BIG *getCoords( JNIEnv *env, jlongArray jCoordArray, INT_BIG *coords, INT_BIG *ndim );
-static INT_BIG getSize( JNIEnv *env, char *locator );
-static int getLength( JNIEnv *env, char *locator );
+static HDSLoc *getLocator( JNIEnv *env, jobject object );
+static void getCoords( JNIEnv *env, jlongArray jCoordArray, hdsdim *coords, int *ndim );
+static size_t getSize( JNIEnv *env, HDSLoc *locator );
+static size_t getLength( JNIEnv *env, HDSLoc *locator );
 static void *jMalloc( JNIEnv *env, size_t size );
 
 
@@ -150,7 +196,7 @@ static jthrowable ErrorClass = 0;
 static jthrowable OutOfMemoryErrorClass = 0;
 static jthrowable IllegalArgumentExceptionClass = 0;
 static jthrowable HDSExceptionClass = 0;
-static jfieldID HDSObjectLocatorID = 0;
+static jfieldID HDSObjectLocPtrID = 0;
 static jmethodID HDSObjectConstructorID = 0;
 static jmethodID HDSExceptionConstructorID = 0;
 static jmethodID BooleanConstructorID = 0;
@@ -203,9 +249,11 @@ static void throwNativeError(
 
 static jobject makeHDSObject(
    JNIEnv *env,          /* Interface pointer */
-   char *locator         /* Locator string */
+   HDSLoc *locator       /* Locator struct */
 ) {
    jobject newobj;
+   locatorField field;
+   field.value = 0;
 
    if ( (*env)->ExceptionOccurred( env ) == NULL ) {
 
@@ -214,7 +262,8 @@ static jobject makeHDSObject(
 
       /* Write the locator bytes into the locator field of the object. */
       if ( newobj != NULL ) {
-         setLocator( env, newobj, locator );
+         field.pointer = locator;
+         (*env)->SetLongField( env, newobj, HDSObjectLocPtrID, field.value );
       }
    }
    else {
@@ -228,8 +277,8 @@ static jobject makeHDSObject(
 
 static jlongArray makeCartesian(
    JNIEnv *env,          /* Interface pointer */
-   INT_BIG *coords,      /* Coordinates of the object */
-   INT_BIG ndim          /* Dimensionality of the object */
+   hdsdim *coords,       /* Coordinates of the object */
+   int ndim              /* Dimensionality of the object */
 ) {
    int i;
    jobject newobj;
@@ -261,40 +310,52 @@ static jlongArray makeCartesian(
 static jstring makeString(
 
 /* This routine generates a Java String object from a fixed length
- * buffer holding a fortran-like string - the buffer is not zero-terminated,
- * and trailing spaces are stripped. */
+ * buffer holding a fortran-like string - the buffer is not necessarily
+ * zero-terminated, and trailing spaces are stripped. */
 
    JNIEnv *env,          /* Interface pointer */
    const char *bytes,    /* Start of buffer holding the string */
    int leng              /* Length of buffer */
 ) {
-   char *cbuf;
+   jchar *unicodebuf;
    jstring result = NULL;
+   const jchar space = (jchar) 0x20;
+   jchar c;
+   int i;
 
-   if ( (*env)->ExceptionOccurred( env ) == NULL ) {
-
-      /* Convert the Fortran string to C. */
-      cbuf = jMalloc( env, leng + 1 );
-      if ( cbuf != NULL ) {
-         cnfImprt( bytes, leng, cbuf );
-
-         /* Convert the C string into a java String. */
-         result = (*env)->NewStringUTF( env, cbuf );
-
-         /* Free the memory. */
-         free( cbuf );
+   /* Copy the characters to a buffer of unicode characters.  This is 
+    * necessary because the only JNI string creation function which 
+    * allows you to specify length requires unicode. */
+   if ( (*env)->ExceptionOccurred( env ) == NULL &&
+        ( unicodebuf = jMalloc( env, sizeof( jchar ) * leng ) ) ) {
+      for ( i = 0; i < leng; i++ ) {
+         c = ((unsigned char *) bytes)[ i ];
+         unicodebuf[ i ] = c;
       }
+
+      /* Now work out what the length is if you exclude trailing blanks
+       * (this is fortran-like behaviour expected by HDS). */
+      while ( leng > 0 && unicodebuf[ leng - 1 ] == space ) {
+         leng--;
+      }
+
+      /* Construct the jstring. */
+      result = (*env)->NewString( env, unicodebuf, (jsize) leng );
+
+      /* Tidy up. */
+      free( unicodebuf );
    }
 
+   /* Return. */
    return result;
 }
 
 
-static INT_BIG *getCoords(
-   JNIEnv *env,          /* Interface pointer */
+static void getCoords(
+   JNIEnv *env,           /* Interface pointer */
    jlongArray jCoordArray,/* Array containing coords */
-   INT_BIG *coords,      /* Buffer to receive coords */
-   INT_BIG *ndim         /* Dimensionality of cartesian array */
+   hdsdim *coords  ,      /* Buffer to receive coords */
+   int *ndim              /* Dimensionality of cartesian array */
 ) {
    int i;
    jlong *jCoords;
@@ -307,54 +368,39 @@ static INT_BIG *getCoords(
       /* Copy the elements from the array into a local array. */
       jCoords = (*env)->GetLongArrayElements( env, jCoordArray, NULL );
       for ( i = 0; i < *ndim; i++ ) {
-         coords[ i ] = (INT_BIG) jCoords[ i ];
+         coords[ i ] = (hdsdim) jCoords[ i ];
       }
       (*env)->ReleaseLongArrayElements( env, jCoordArray, jCoords, JNI_ABORT );
    }
    else {
       *ndim = 0;
    }
-
-   /* Return a pointer to the coordinate array for convenience. */
-   return coords;
 }
 
-static INT_BIG getSize(
+static size_t getSize(
    JNIEnv *env,          /* Interface pointer */
-   char *locator         /* Locator string of HDS object */
+   HDSLoc *locator       /* Locator struct of HDS object */
 ) {
-   INT_BIG size;
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
+   size_t size;
 
-   /* Get this object's locator. */
-   cnfExpch( locator, fLocator, fLocator_length );
-
-   /* Call DAT_SIZE to get the size. */
+   /* Call datSize to get the size. */
    HDSCALL(
-      F77_CALL(dat_size)( CHARACTER_ARG(fLocator), INTEGER_ARG(&size),
-                          INTEGER_ARG(status)
-                          TRAIL_ARG(fLocator) );
+      datSize( locator, &size, status );
    )
 
    /* Return the size. */
    return size;
 }
 
-static int getLength(
+static size_t getLength(
    JNIEnv *env,          /* Interface pointer */
-   char *locator         /* Locator string of HDS object */
+   HDSLoc *locator       /* Locator struct of HDS object */
 ) {
-   int length;
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
+   size_t length;
 
-   /* Get this object's locator. */
-   cnfExpch( locator, fLocator, fLocator_length );
-
-   /* Call DAT_LEN to get the length. */
+   /* Call datLen to get the length. */
    HDSCALL(
-      F77_CALL(dat_len)( CHARACTER_ARG(fLocator), INTEGER_ARG(&length),
-                         INTEGER_ARG(status)
-                         TRAIL_ARG(fLocator) );
+      datLen( locator, &length, status );
    )
 
    /* Return the length. */
@@ -362,49 +408,16 @@ static int getLength(
 }
 
 
-static void setLocator(
+static HDSLoc *getLocator(
    JNIEnv *env,          /* Interface pointer */
-   jobject object,       /* Object in which to store the locator */
-   char *locator         /* Bytes which define the locator */
+   jobject object        /* Object whose locator we want */
 ) {
-   jbyteArray locatorField;
-
-   if ( (*env)->ExceptionOccurred( env ) == NULL ) {
-
-      /* Allocate the space for a locator field. */
-      locatorField = (*env)->NewByteArray( env, DAT__SZLOC );
-      if ( locatorField != NULL ) {
-
-         /* Fill the locator with the correct bytes. */
-
-         (*env)->SetByteArrayRegion( env, locatorField, 0, DAT__SZLOC,
-                                     (jbyte *) locator );
-
-         /* Assign the populated locator to the locator field of the object. */
-         (*env)->SetObjectField( env, object, HDSObjectLocatorID,
-                                 locatorField );
-       }
+   locatorField field;
+   field.pointer = NULL;
+   if ( ! (*env)->ExceptionOccurred( env ) ) {
+      field.value = (*env)->GetLongField( env, object, HDSObjectLocPtrID );
    }
-}
-
-
-static const char *getLocator(
-   JNIEnv *env,          /* Interface pointer */
-   jobject object,       /* Object whose locator we want */
-   char *locator         /* Buffer in which to return locator */
-) {
-   jbyteArray locatorField;
-
-   if ( (*env)->ExceptionOccurred( env ) == NULL ) {
-
-      /* Get the locator field as a byte array object. */
-      locatorField = (*env)->GetObjectField( env, object, HDSObjectLocatorID );
-
-      /* Copy the contents of the field to the return value. */
-      (*env)->GetByteArrayRegion( env, locatorField, 0, DAT__SZLOC,
-                                  (jbyte *) locator );
-   }
-   return locator;
+   return field.pointer;
 }
 
 
@@ -501,8 +514,8 @@ JNIEXPORT void JNICALL NATIVE_METHOD( nativeInitialize )(
       (*env)->FindClass( env, "java/lang/System" ) ) ) &&
 
    /* Get field IDs. */
-   ( HDSObjectLocatorID =
-      (*env)->GetFieldID( env, HDSObjectClass, "locator", "[B" ) ) &&
+   ( HDSObjectLocPtrID =
+      (*env)->GetFieldID( env, HDSObjectClass, "locPtr_", "J" ) ) &&
 
    /* Get method IDs. */
    ( HDSObjectConstructorID =
@@ -531,6 +544,15 @@ JNIEXPORT void JNICALL NATIVE_METHOD( nativeInitialize )(
                            "<init>", "()V" ) ) ) ) &&
 
    1;
+
+   /* Check that a java long (the type of the HDSObject's locPtr_ field) is
+    * big enough to store a pointer.  If not, nothing will work 
+    * (rewrite required). */
+   if ( sizeof( jlong ) < sizeof( HDSLoc * ) ) {
+      throwNativeError( env, 
+                        "JNIHDS unavailable: pointer length overflows long"
+                        "(%d > %d)", sizeof( HDSLoc * ), sizeof( jlong ) );
+   }
 }
 
 
@@ -572,45 +594,6 @@ JNIEXPORT jint JNICALL NATIVE_METHOD( getHDSConstantI )(
    return value;
 }
 
-JNIEXPORT jobject JNICALL NATIVE_METHOD( getHDSConstantLoc )(
-   JNIEnv *env,          /* Interface pointer */
-   jclass class,         /* Class object */
-   jstring jName         /* Name of the locator to retrieve */
-) {
-   int ok;
-   const char *name;
-   jobject newobj;
-
-   /* Decode java string. */
-   name = (*env)->GetStringUTFChars( env, jName, NULL );
-
-   /* Try to identify what the constant is. */
-   if ( ! strcmp( name, "DAT__NOLOC" ) ) {
-      ok = 1;
-      newobj = makeHDSObject( env, DAT__NOLOC );
-   }
-   else if ( ! strcmp( name, "DAT__ROOT" ) ) {
-      ok = 1;
-      newobj = makeHDSObject( env, DAT__ROOT );
-   }
-   else {
-      ok = 0;
-      newobj = NULL;
-   }
-
-   /* Release the name. */
-   (*env)->ReleaseStringUTFChars( env, jName, name );
-
-   if ( ! ok ) {
-      /* No known constant.  Raise an exception. */
-      throwNativeError( env, "Unknown HDS constant locator %s", name );
-      newobj = NULL;
-   }
-
-   /* Return the newly constructed HDSObject. */
-   return newobj;
-}
-
 
 JNIEXPORT jint JNICALL NATIVE_METHOD( hdsGtune )(
    JNIEnv  *env,         /* Interface pointer */
@@ -618,23 +601,19 @@ JNIEXPORT jint JNICALL NATIVE_METHOD( hdsGtune )(
    jstring jParam        /* Parameter to query */
 ) {
    const char *param;
-   DECLARE_INTEGER( value );
-   DECLARE_CHARACTER( fParam, DAT__SZNAM + 1 );
+   int value;
 
    /* Convert java param string to C. */
    param = (*env)->GetStringUTFChars( env, jParam, NULL );
 
-   /* Convert C string to Fortran. */
-   cnfExprt( param, fParam, fParam_length );
-    
-   /* Release string copy. */
-   (*env)->ReleaseStringUTFChars( env, jParam, param );
-
-   /* Call the fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(hds_gtune)( CHARACTER_ARG(fParam), INTEGER_ARG(&value),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fParam) );
+      hdsGtune( param, &value, status );
+   )
+
+   /* Release string copy. */
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jParam, param );
    )
 
    /* Return the result. */
@@ -652,46 +631,30 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( hdsNew )(
    const char *container;
    const char *name;
    const char *type;
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fContainer, MAXFILENAME );
-   DECLARE_CHARACTER( fName, DAT__SZNAM );
-   DECLARE_CHARACTER( fType, DAT__SZTYP );
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   INT_BIG dims[ DAT__MXDIM ];
-   INT_BIG ndim;
+   HDSLoc *locator = NULL;
+
+   hdsdim dims[ DAT__MXDIM ];
+   int ndim;
 
    /* Convert java strings to C. */
    container = (*env)->GetStringUTFChars( env, jContainer, NULL );
    name = (*env)->GetStringUTFChars( env, jName, NULL );
    type = (*env)->GetStringUTFChars( env, jType, NULL );
 
-   /* Convert C strings to fortran. */
-   cnfExprt( container, fContainer, fContainer_length );
-   cnfExprt( name, fName, fName_length );
-   cnfExprt( type, fType, fType_length );
-
-   /* Release string copies. */
-   (*env)->ReleaseStringUTFChars( env, jContainer, container );
-   (*env)->ReleaseStringUTFChars( env, jName, name );
-   (*env)->ReleaseStringUTFChars( env, jType, type );
-
-   /* Convert java array into fortran. */
+   /* Convert java array into C. */
    getCoords( env, jDims, dims, &ndim );
 
-   /* Call the fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(hds_new)( CHARACTER_ARG(fContainer), CHARACTER_ARG(fName),
-                         CHARACTER_ARG(fType), INTEGER_ARG(&ndim),
-                         INTEGER_ARRAY_ARG(dims), CHARACTER_ARG(fLocator),
-                         INTEGER_ARG(status)
-                         TRAIL_ARG(fContainer) TRAIL_ARG(fName)
-                         TRAIL_ARG(fType) TRAIL_ARG(fLocator) );
+      hdsNew( container, name, type, ndim, dims, &locator, status );
    )
 
-   if ( ! (*env)->ExceptionCheck( env ) ) {
-      /* Turn the locator into a C string. */
-      cnfImpch( fLocator, DAT__SZLOC, locator );
-   }
+   /* Release string copies. */
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jContainer, container );
+      (*env)->ReleaseStringUTFChars( env, jName, name );
+      (*env)->ReleaseStringUTFChars( env, jType, type );
+   )
 
    /* Construct and return an HDSObject using the locator. */
    return makeHDSObject( env, locator );
@@ -705,37 +668,24 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( hdsOpen )(
    jstring jContainer,   /* Name of container file */
    jstring jAccess       /* Access mode */
 ) {
-   const char *access;
    const char *container;
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fAccess, 6 );
-   DECLARE_CHARACTER( fContainer, MAXFILENAME );
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
+   const char *access;
+   HDSLoc *locator = NULL;
 
    /* Convert java strings to C. */
    access = (*env)->GetStringUTFChars( env, jAccess, NULL );
    container = (*env)->GetStringUTFChars( env, jContainer, NULL );
 
-   /* Convert C strings to Fortran. */
-   cnfExprt( access, fAccess, fAccess_length );
-   cnfExprt( container, fContainer, fContainer_length );
-
-   /* Release string copies. */
-   (*env)->ReleaseStringUTFChars( env, jAccess, access );
-   (*env)->ReleaseStringUTFChars( env, jContainer, container );
-
    /* Call HDS_OPEN to do the work. */
    HDSCALL(
-      F77_CALL(hds_open)( CHARACTER_ARG(fContainer), CHARACTER_ARG(fAccess),
-                          CHARACTER_ARG(fLocator), INTEGER_ARG(status)
-                          TRAIL_ARG(fContainer) TRAIL_ARG(fAccess)
-                          TRAIL_ARG(fLocator) );
+      hdsOpen( container, access, &locator, status );
    )
 
-   if ( ! (*env)->ExceptionCheck( env ) ) {
-      /* Turn the locator into a C string. */
-      cnfImpch( fLocator, DAT__SZLOC, locator );
-   }
+   /* Release string copies. */
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jAccess, access );
+      (*env)->ReleaseStringUTFChars( env, jContainer, container );
+   )
 
    /* Construct and return an HDSObject using the locator. */
    return makeHDSObject( env, locator );
@@ -748,21 +698,18 @@ JNIEXPORT void JNICALL NATIVE_METHOD( hdsShow )(
    jstring jTopic        /* Topic to show info on */
 ) {
    const char *topic;
-   DECLARE_CHARACTER( fTopic, 8 );
 
    /* Convert java string to C. */
    topic = (*env)->GetStringUTFChars( env, jTopic, NULL );
 
-   /* Convert C string to Fortran. */
-   cnfExprt( topic, fTopic, fTopic_length );
-
-   /* Release string copy. */
-   (*env)->ReleaseStringUTFChars( env, jTopic, topic );
-
    /* Call HDS_SHOW to do the work. */
    HDSCALL(
-      F77_CALL(hds_show)( CHARACTER_ARG(fTopic), INTEGER_ARG(status)
-                          TRAIL_ARG(fTopic) );
+      hdsShow( topic, status );
+   )
+
+   /* Release string copy. */
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jTopic, topic );
    )
 }
 
@@ -772,37 +719,34 @@ JNIEXPORT jint JNICALL NATIVE_METHOD( hdsTrace )(
    jobject this,         /* Instance object */
    jobject results       /* Array of strings for output */
 ) {
-   char locator[ DAT__SZLOC ];
-   jstring filestr;
-   jstring pathstr;
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fPath, MAXPATHLENG );
-   DECLARE_CHARACTER( fFile, MAXFILENAME );
-   DECLARE_INTEGER( nlev );
+   HDSLoc *locator;
+   int nlev;
+   char pathstr[ MAXPATHLENG + 1 ];
+   char filestr[ MAXFILENAME + 1 ];
+   jstring jFilestr = NULL;
+   jstring jPathstr = NULL;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(hds_trace)( CHARACTER_ARG(fLocator), INTEGER_ARG(&nlev),
-                           CHARACTER_ARG(fPath), CHARACTER_ARG(fFile),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(fPath)
-                           TRAIL_ARG(fFile) );
+      hdsTrace( locator, &nlev, pathstr, filestr, status,
+                MAXPATHLENG, MAXFILENAME );
    )
 
    /* Turn file and path strings into java String objects. */
-   filestr = makeString( env, fFile, fFile_length );
-   pathstr = makeString( env, fPath, fPath_length );
+   ( ! (*env)->ExceptionCheck( env ) ) &&
+   ( jFilestr = (*env)->NewStringUTF( env, filestr ) ) &&
+   ( jPathstr = (*env)->NewStringUTF( env, pathstr ) ) &&
+   1;
 
-   /* Write the strings into the supplied String[] array. */
-   if ( ! (*env)->ExceptionOccurred( env ) ) {
-      (*env)->SetObjectArrayElement( env, results, (jsize) 0, pathstr );
+   /* Copy them into the result array. */
+   if ( ! (*env)->ExceptionCheck( env ) ) {
+      (*env)->SetObjectArrayElement( env, results, (jsize) 0, jPathstr );
    }
-   if ( ! (*env)->ExceptionOccurred( env ) ) {
-      (*env)->SetObjectArrayElement( env, results, (jsize) 1, filestr );
+   if ( ! (*env)->ExceptionCheck( env ) ) {
+      (*env)->SetObjectArrayElement( env, results, (jsize) 1, jFilestr );
    }
 
    /* Return the result. */
@@ -816,26 +760,18 @@ JNIEXPORT void JNICALL NATIVE_METHOD( hdsTune )(
    jint    jValue        /* Parameter value */
 ) {
    const char *param;
-   INT_BIG fValue;
-   DECLARE_CHARACTER( fParam, DAT__SZNAM + 1 );
-
-   /* Convert arguments to Fortran types. */
-   fValue = (INT_BIG) jValue;
 
    /* Convert java param string to C. */
    param = (*env)->GetStringUTFChars( env, jParam, NULL );
 
-   /* Convert C string to Fortran. */
-   cnfExprt( param, fParam, fParam_length );
-    
-   /* Release string copy. */
-   (*env)->ReleaseStringUTFChars( env, jParam, param );
-
-   /* Call the fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(hds_tune)( CHARACTER_ARG(fParam), INTEGER_ARG(&fValue),
-                          INTEGER_ARG(status)
-                          TRAIL_ARG(fParam) );
+      hdsTune( param, (int) jValue, status );
+   )
+
+   /* Release string copy. */
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jParam, param );
    )
 }
 
@@ -844,23 +780,14 @@ JNIEXPORT void JNICALL NATIVE_METHOD( datAnnul )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-
-   /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
-
-   /* Call the Fortran routine to do the work. */
+   HDSLoc *locator = getLocator( env, this );
+   locatorField field;
+   field.value = 0;
    HDSCALL(
-      F77_CALL(dat_annul)( CHARACTER_ARG(fLocator), INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) );
+      datAnnul( &locator, status );
    )
-
-   /* Copy the locator (which should now contain the value DAT__NOLOC)
-      back to the object. */
-   cnfImpch( fLocator, DAT__SZLOC, locator );
-   setLocator( env, this, locator );
+   field.pointer = locator;
+   (*env)->SetLongField( env, this, HDSObjectLocPtrID, field.value );
 }
 
 
@@ -869,30 +796,21 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datCell )(
    jobject this,         /* Instance object */
    jlongArray position   /* Array indicating which cell to get */
 ) {
-   char locator[ DAT__SZLOC ];
-   char newLocator[ DAT__SZLOC ];
-   INT_BIG coords[ DAT__MXDIM ];
-   INT_BIG ndim = 0;
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fNewLocator, DAT__SZLOC );
+   HDSLoc *locator;
+   HDSLoc *newLocator = NULL;
+   hdsdim coords[ DAT__MXDIM ];
+   int ndim = 0;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
    /* Get an array representing the position of the cell to retrieve. */
    getCoords( env, position, coords, &ndim );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_cell)( CHARACTER_ARG(fLocator), INTEGER_ARG(&ndim),
-                          INTEGER_ARRAY_ARG(coords),
-                          CHARACTER_ARG(fNewLocator), INTEGER_ARG(status)
-                          TRAIL_ARG(fLocator) TRAIL_ARG(fNewLocator) );
+      datCell( locator, ndim, coords, &newLocator, status );
    )
-
-   /* Turn the returned locator into a C string. */
-   cnfImpch( fNewLocator, DAT__SZLOC, newLocator );
 
    /* Construct and return an HDSObject using the locator. */
    return makeHDSObject( env, newLocator );
@@ -903,25 +821,17 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datClone )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   char newLocator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fNewLocator, DAT__SZLOC );
+   HDSLoc *locator;
+   HDSLoc *newLocator = NULL;
    jobject newobj;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_clone)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fNewLocator),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(fNewLocator) );
+      datClone( locator, &newLocator, status );
    )
-
-   /* Turn the returned locator into a C string. */
-   cnfImpch( fNewLocator, DAT__SZLOC, newLocator );
 
    /* Construct and return an HDSObject using the locator. */
    return makeHDSObject( env, newLocator );
@@ -933,39 +843,27 @@ JNIEXPORT void JNICALL NATIVE_METHOD( datCopy )(
    jobject dest,         /* Destination locator */
    jstring jName         /* Name of destination component */
 ) {
-   char loc1[ DAT__SZLOC ];
-   char loc2[ DAT__SZLOC ];
+   HDSLoc *loc1;
+   HDSLoc *loc2;
    const char *name;
-   DECLARE_CHARACTER( fLoc1, DAT__SZLOC );
-   DECLARE_CHARACTER( fLoc2, DAT__SZLOC );
-   DECLARE_CHARACTER( fName, DAT__SZNAM );
 
    /* Get this object's locator. */
-   getLocator( env, this, loc1 );
-   cnfExpch( loc1, fLoc1, fLoc1_length );
+   loc1 = getLocator( env, this );
 
    /* Get destination locator */
-   getLocator( env, dest, loc2 );
-   cnfExpch( loc2, fLoc2, fLoc2_length );
+   loc2 = getLocator( env, dest );
 
    /* Convert name java string to C. */
    name = (*env)->GetStringUTFChars( env, jName, NULL );
 
-   /* Convert C string to Fortran. */
-   cnfExprt( name, fName, fName_length );
+   /* Call the HDS routine to do the work. */
+   HDSCALL(
+      datCopy( loc1, loc2, name, status );
+   )
 
    /* Release string copy. */
-   (*env)->ReleaseStringUTFChars( env, jName, name );
-
-
-   /* Call the Fortran routine to do the work. */
-   HDSCALL(
-      F77_CALL(dat_copy)( CHARACTER_ARG(fLoc1), CHARACTER_ARG(fLoc2),
-                          CHARACTER_ARG(fName),
-                          INTEGER_ARG(status)
-                          TRAIL_ARG(fLoc1)
-                          TRAIL_ARG(fLoc2)
-                          TRAIL_ARG(fName) );
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jName, name );
    )
 }
 
@@ -975,29 +873,23 @@ JNIEXPORT void JNICALL NATIVE_METHOD( datErase )(
    jobject this,         /* Instance object */
    jstring jName         /* Name of contained component */
 ) {
-   char locator[ DAT__SZLOC ];
+   HDSLoc *locator;
    const char *name;
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fName, DAT__SZNAM );
 
    /* Convert java string to C. */
    name = (*env)->GetStringUTFChars( env, jName, NULL );
 
-   /* Convert C string to Fortran. */
-   cnfExprt( name, fName, fName_length );
+   /* Get this object's locator. */
+   locator = getLocator( env, this );
+
+   /* Call the HDS routine to do the work. */
+   HDSCALL(
+      datErase( locator, name, status );
+   )
 
    /* Release string copy. */
-   (*env)->ReleaseStringUTFChars( env, jName, name );
-
-   /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
-
-   /* Call the fortran routine to do the work. */
-   HDSCALL(
-      F77_CALL(dat_erase)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fName),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(fName) );
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jName, name );
    )
 }
 
@@ -1008,35 +900,26 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datFind )(
    jstring jName         /* Name of contained component */
 ) {
    const char *name;
-   char locator[ DAT__SZLOC ];
-   char newLocator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fName, DAT__SZNAM );
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fNewLocator, DAT__SZLOC );
+   HDSLoc *locator;
+   HDSLoc *newLocator = NULL;
 
    /* Convert java string to C. */
    name = (*env)->GetStringUTFChars( env, jName, NULL );
 
-   /* Convert C string to Fortran. */
-   cnfExprt( name, fName, fName_length );
-
-   /* Release string copy. */
-   (*env)->ReleaseStringUTFChars( env, jName, name );
-
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_find)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fName),
-                          CHARACTER_ARG(fNewLocator), INTEGER_ARG(status)
-                          TRAIL_ARG(fLocator) TRAIL_ARG(fName)
-                          TRAIL_ARG(fNewLocator) );
+      datFind( locator, name, &newLocator, status );
    )
 
-   /* Turn the returned locator into a C string. */
-   cnfImpch( fNewLocator, DAT__SZLOC, newLocator );
+   /* Release string copy. */
+   ALWAYS(
+      if ( name ) {
+         (*env)->ReleaseStringUTFChars( env, jName, name );
+      }
+   )
 
    /* Construct and return an HDSObject using the locator. */
    return makeHDSObject( env, newLocator );
@@ -1047,57 +930,44 @@ JNIEXPORT jstring JNICALL NATIVE_METHOD( datGet0c )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
+   HDSLoc *locator;
    char value[ MAXCHARLENG + 1 ];
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fValue, MAXCHARLENG );
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_get0c)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fValue),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(fValue) );
+      datGet0C( locator, value, MAXCHARLENG, status );
    )
-
-   /* Convert the fortran string back to C */
-   cnfImprt( fValue, fValue_length, value );
 
    /* Construct and return a java string object. */
    return (*env)->NewStringUTF( env, value );
 }
 
-#define MAKE_DATGET0X(Xletter,Xjtype,Xcnftype) \
+#define MAKE_DATGET0X(Xletter,XLetter,Xjtype,Xctype) \
 JNIEXPORT Xjtype JNICALL NATIVE_METHOD( datGet0##Xletter )( \
    JNIEnv *env,          /* Interface pointer */ \
    jobject this          /* Instance object */ \
 ) { \
-   char locator[ DAT__SZLOC ]; \
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC ); \
-   DECLARE_##Xcnftype( value ); \
+   HDSLoc *locator; \
+   Xctype value; \
    \
    /* Get this object's locator. */ \
-   getLocator( env, this, locator ); \
-   cnfExpch( locator, fLocator, fLocator_length ); \
+   locator = getLocator( env, this ); \
    \
-   /* Call the Fortran routine to do the work. */ \
+   /* Call the HDS routine to do the work. */ \
    HDSCALL( \
-      F77_CALL(dat_get0##Xletter)( CHARACTER_ARG(fLocator),  \
-                                   Xcnftype##_ARG(&value),  \
-                                   INTEGER_ARG(status) \
-                                   TRAIL_ARG(fLocator) ); \
+      datGet0##XLetter( locator, &value, status ); \
    ) \
    \
    /* Cast and return the retrieved value. */ \
    return (Xjtype) value; \
 }
-MAKE_DATGET0X(l,jboolean,LOGICAL)
-MAKE_DATGET0X(i,jint,INTEGER)
-MAKE_DATGET0X(r,jfloat,REAL)
-MAKE_DATGET0X(d,jdouble,DOUBLE)
+MAKE_DATGET0X(l,L,jboolean,int)
+MAKE_DATGET0X(i,I,jint,int)
+MAKE_DATGET0X(r,R,jfloat,float)
+MAKE_DATGET0X(d,D,jdouble,double)
 #undef MAKE_DATGET0X
 
 
@@ -1111,15 +981,14 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datGetc )(
    jobject this,         /* Instance object */
    jlongArray shape      /* Array giving shape to retrieve */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER_ARRAY_DYN( buffer );
-   INT_BIG dims[ DAT__MXDIM ];
-   INT_BIG ndim;
-   INT_BIG pos[ DAT__MXDIM ];
+   HDSLoc *locator;
+   char *buffer;
+   hdsdim dims[ DAT__MXDIM ];
+   int ndim;
+   hdsdim pos[ DAT__MXDIM ];
    int done;
    int i;
-   int nel;
+   hdsdim nel;
    int sleng;
    jarray aptrs[ DAT__MXDIM ];
    jclass aclass[ DAT__MXDIM ];
@@ -1128,8 +997,7 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datGetc )(
    char *ptr;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
    /* Get the length of the strings. */
    sleng = getLength( env, locator );
@@ -1141,22 +1009,17 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datGetc )(
       nel *= dims[ i ];
    }
    buffer = jMalloc( env, sleng * nel );
-   buffer_length = sleng;
 
-   /* Call the fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_getc)( CHARACTER_ARG(fLocator), INTEGER_ARG(&ndim),
-                          INTEGER_ARRAY_ARG(dims),
-                          CHARACTER_ARRAY_ARG(buffer),
-                          INTEGER_ARG(status)
-                          TRAIL_ARG(fLocator) TRAIL_ARG(buffer) );
+      datGetC( locator, ndim, dims, buffer, sleng, status );
    )
    DATGETC_CHECK_EXCEPTION
 
    /* If we have a zero-dimensional primitive (scalar), just turn this
     * into a String for return. */
    if ( ndim == 0 ) {
-      result = makeString( env, buffer, sleng );
+      result = (*env)->NewStringUTF( env, buffer );
    }
    else {
 
@@ -1221,20 +1084,19 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datGetc )(
       free( buffer ); \
       return NULL; \
    }
-#define MAKE_DATGETX(Xletter,Xjtype,XJtype,Xjclass,Xcnftype) \
+#define MAKE_DATGETX(Xletter,XLetter,Xjtype,XJtype,Xjclass,Xctype) \
 JNIEXPORT jobject JNICALL NATIVE_METHOD( datGet##Xletter )( \
    JNIEnv *env,          /* Interface pointer */ \
    jobject this,         /* Instance object */ \
    jlongArray shape      /* Array giving shape to retrieve */ \
 ) { \
-   char locator[ DAT__SZLOC ]; \
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC ); \
-   INT_BIG dims[ DAT__MXDIM ]; \
-   INT_BIG ndim; \
-   INT_BIG pos[ DAT__MXDIM ]; \
+   HDSLoc *locator; \
+   hdsdim dims[ DAT__MXDIM ]; \
+   int ndim; \
+   hdsdim pos[ DAT__MXDIM ]; \
    int done; \
    int i; \
-   int nel; \
+   hdsdim nel; \
    jarray aptrs[ DAT__MXDIM ]; \
    jclass aclass[ DAT__MXDIM ]; \
    jobject result; \
@@ -1242,9 +1104,10 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datGet##Xletter )( \
    Xjtype *buffer; \
    Xjtype *ptr; \
    \
+   CHECK_TYPES_MATCH(Xjtype,Xctype) \
+   \
    /* Get this object's locator. */ \
-   getLocator( env, this, locator ); \
-   cnfExpch( locator, fLocator, fLocator_length ); \
+   locator = getLocator( env, this ); \
    \
    /* Get the shape of the object to retrieve and allocate memory. */ \
    getCoords( env, shape, dims, &ndim ); \
@@ -1252,15 +1115,11 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datGet##Xletter )( \
    for ( i = 0; i < ndim; i++ ) { \
       nel *= dims[ i ]; \
    } \
-   buffer = jMalloc( env, sizeof( Xjtype ) * nel ); \
+   buffer = jMalloc( env, sizeof( Xctype ) * nel ); \
    \
-   /* Call the Fortran routine to do the work. */ \
+   /* Call the HDS routine to do the work. */ \
    HDSCALL( \
-      F77_CALL(dat_get##Xletter)( CHARACTER_ARG(fLocator), INTEGER_ARG(&ndim), \
-                                  INTEGER_ARRAY_ARG(dims), \
-                                  Xcnftype##_ARG(buffer), \
-                                  INTEGER_ARG(status) \
-                                  TRAIL_ARG(fLocator) ); \
+      datGet##XLetter( locator, ndim, dims, (Xctype *) buffer, status ); \
    ) \
    DATGET_CHECK_EXCEPTION \
    /* If we have a zero-dimensional primitive (scalar), just wrap this in a \
@@ -1329,116 +1188,119 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datGet##Xletter )( \
    free( buffer ); \
    return result; \
 }
-MAKE_DATGETX(l,jboolean,Boolean,Boolean,LOGICAL)
-MAKE_DATGETX(i,jint,Int,Integer,INTEGER)
-MAKE_DATGETX(r,jfloat,Float,Float,REAL)
-MAKE_DATGETX(d,jdouble,Double,Double,DOUBLE)
+MAKE_DATGETX(l,L,jboolean,Boolean,Boolean,int)
+MAKE_DATGETX(i,I,jint,Int,Integer,int)
+MAKE_DATGETX(r,R,jfloat,Float,Float,float)
+MAKE_DATGETX(d,D,jdouble,Double,Double,double)
 #undef MAKE_DATGETX
 #undef DATGET_CHECK_EXCEPTION
+
 
 JNIEXPORT jobjectArray JNICALL NATIVE_METHOD( datGetvc )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER_ARRAY_DYN( buffer );
-   INT_BIG nel;
-   INT_BIG size;
-   int i;
-   int length;
-   jstring strobj;
+   HDSLoc *locator;
+   char *buffer = NULL;
+   char **ptrs = NULL;
+   size_t nel;
+   size_t size;
+   size_t length;
+   size_t bufleng;
    jobjectArray result;
+   int i;
+   jstring strobj;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
    /* Get the number and length of elements which will be read. */
    size = getSize( env, locator );
    length = getLength( env, locator );
+   bufleng = size * length;
 
-   /* Create a buffer to hold the data. */
-   buffer = jMalloc( env, length * size );
-   buffer_length = length;
+   /* Create buffers to hold the data. */
+   if ( ! (*env)->ExceptionOccurred( env ) &&
+        ( buffer = jMalloc( env, bufleng ) ) &&
+        ( ptrs = jMalloc( env, size * sizeof( char * ) ) ) ) {
 
-   /* Read all the characters into the buffer. */
-   HDSCALL(
-      F77_CALL(dat_getvc)( CHARACTER_ARG(fLocator), INTEGER_ARG(&size),
-                           CHARACTER_ARRAY_ARG(buffer), INTEGER_ARG(&nel),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(buffer) );
-   )
+      /* Call the HDS routine to do the work. */
+      HDSCALL(
+         datGetVC( locator, size, bufleng, buffer, ptrs, &nel, status );
+      )
 
-   /* Create a String array to hold the results. */
-   if ( ! (*env)->ExceptionOccurred( env ) ) {
-      result = (*env)->NewObjectArray( env, size, StringClass, NULL );
-   }
+      /* Create a String array to hold the results. */
+      if ( ! (*env)->ExceptionOccurred( env ) &&
+           ( result = (*env)->NewObjectArray( env, nel, StringClass,
+                                              NULL ) ) ) {
 
-   /* Copy the data into the String array. */
-   for ( i = 0; i < nel; i++ ) {
-      if ( ! (*env)->ExceptionOccurred( env ) ) {
-         strobj = makeString( env, buffer + i * length, length );
-         if ( strobj ) {
-            (*env)->SetObjectArrayElement( env, result, i, strobj );
+         /* Copy the data into the String array. */
+         for ( i = 0; i < nel; i++ ) {
+            if ( ! (*env)->ExceptionOccurred( env ) &&
+                 ( strobj = (*env)->NewStringUTF( env, ptrs[ i ] ) ) ) {
+               (*env)->SetObjectArrayElement( env, result, i, strobj );
+            }
          }
       }
    }
 
    /* Release resources. */
-   free( buffer );
+   if ( buffer ) {
+      free( buffer );
+   }
+   if ( ptrs ) {
+      free( ptrs );
+   }
 
    /* Return the constructed array. */
    return result;
 }
 
-#define MAKE_DATGETVX(Xletter,Xjtype,XJtype,Xcnftype) \
+
+#define MAKE_DATGETVX(Xletter,XLetter,Xjtype,XJtype,Xctype) \
 JNIEXPORT Xjtype##Array JNICALL NATIVE_METHOD( datGetv##Xletter )( \
    JNIEnv *env,          /* Interface pointer */ \
    jobject this          /* Instance object */ \
 ) { \
-   char locator[ DAT__SZLOC ]; \
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC ); \
-   INT_BIG nel; \
-   INT_BIG size; \
-   Xjtype *buffer; \
-   Xjtype##Array result; \
+   HDSLoc *locator; \
+   size_t size; \
+   size_t nel; \
+   Xjtype *buffer = NULL; \
+   Xjtype##Array result = NULL; \
+   \
+   CHECK_TYPES_MATCH(Xjtype,Xctype) \
    \
    /* Get this object's locator. */ \
-   getLocator( env, this, locator ); \
-   cnfExpch( locator, fLocator, fLocator_length ); \
+   locator = getLocator( env, this ); \
    \
    /* Get the number of elements which will be read. */ \
    size = getSize( env, locator ); \
    \
    /* Create and pin/copy a primitive array to hold the result. */ \
-   RETURN_IF_EXCEPTION; \
-   result = (*env)->New##XJtype##Array( env, (int) size ); \
-   RETURN_IF_EXCEPTION; \
-   buffer = (*env)->Get##XJtype##ArrayElements( env, result, NULL ); \
-   RETURN_IF_EXCEPTION; \
+   if ( ! (*env)->ExceptionOccurred( env ) && \
+        ( result = (*env)->New##XJtype##Array( env, (jsize) size ) ) && \
+        ( buffer = (*env)->Get##XJtype##ArrayElements( env, result, \
+                                                       NULL ) ) ) { \
+      \
+      /* Call the HDS routine. */ \
+      HDSCALL( \
+         datGetV##XLetter( locator, size, (Xctype *) buffer, &nel, status ); \
+      ) \
+      \
+      /* Release the array to ensure that the primitive java array is */ \
+      /* synched with the filled version. */ \
+      ALWAYS( \
+         (*env)->Release##XJtype##ArrayElements( env, result, buffer, 0 ); \
+      ) \
+   } \
    \
-   /* Call the Fortran routine to read the data into the primitive array. */ \
-   HDSCALL( \
-      F77_CALL(dat_getv##Xletter)( CHARACTER_ARG(fLocator), \
-                                   INTEGER_ARG(&size), \
-                                   Xcnftype##_ARG(buffer), INTEGER_ARG(&nel), \
-                                   INTEGER_ARG(status) \
-                                   TRAIL_ARG(fLocator) ); \
-   ) \
-   \
-   /* Release the array to ensure that the primitive java array is */ \
-   /* synched with the filled version. */ \
-   RETURN_IF_EXCEPTION; \
-   (*env)->Release##XJtype##ArrayElements( env, result, buffer, 0 ); \
-   \
-   /* Return the released array. */ \
+   /* Return the filled array. */ \
    return result; \
 }
-MAKE_DATGETVX(l,jboolean,Boolean,LOGICAL)
-MAKE_DATGETVX(i,jint,Int,INTEGER)
-MAKE_DATGETVX(r,jfloat,Float,REAL)
-MAKE_DATGETVX(d,jdouble,Double,DOUBLE)
+MAKE_DATGETVX(l,L,jboolean,Boolean,int)
+MAKE_DATGETVX(i,I,jint,Int,int)
+MAKE_DATGETVX(r,R,jfloat,Float,float)
+MAKE_DATGETVX(d,D,jdouble,Double,double)
 #undef MAKE_DATGETVX
 
 
@@ -1447,28 +1309,16 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datIndex )(
    jobject this,         /* Instance object */
    jint index            /* Index of component to retrieve */
 ) {
-   char locator[ DAT__SZLOC ];
-   char newLocator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fNewLocator, DAT__SZLOC );
-   INT_BIG fIndex;
+   HDSLoc *locator;
+   HDSLoc *newLocator = NULL;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Convert arguments to Fortran types. */
-   fIndex = (INT_BIG) index;
-
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_index)( CHARACTER_ARG(fLocator), INTEGER_ARG(&fIndex),
-                           CHARACTER_ARG(fNewLocator), INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(fNewLocator) );
+      datIndex( locator, index, &newLocator, status );
    )
-
-   /* Turn the returned locator into a C string. */
-   cnfImpch( fNewLocator, DAT__SZLOC, newLocator );
 
    /* Construct and return an HDSObject using the locator. */
    return makeHDSObject( env, newLocator );
@@ -1479,24 +1329,16 @@ JNIEXPORT jstring JNICALL NATIVE_METHOD( datName )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
+   HDSLoc *locator;
    char name[ DAT__SZNAM + 1 ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fName, DAT__SZNAM );
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_name)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fName),
-                          INTEGER_ARG(status)
-                          TRAIL_ARG(fLocator) TRAIL_ARG(fName) );
+      datName( locator, name, status );
    )
-
-   /* Convert the Fortran string back to C. */
-   cnfImprt( fName, fName_length, name );
 
    /* Construct and return a java string object. */
    return (*env)->NewStringUTF( env, name );
@@ -1507,19 +1349,15 @@ JNIEXPORT jint JNICALL NATIVE_METHOD( datNcomp )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   INT_BIG ncomp;
+   HDSLoc *locator;
+   int ncomp;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_ncomp)( CHARACTER_ARG(fLocator), INTEGER_ARG(&ncomp),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) );
+      datNcomp( locator, &ncomp, status );
    )
 
    /* Return the retrieved integer value. */
@@ -1534,41 +1372,31 @@ JNIEXPORT void JNICALL NATIVE_METHOD( datNew )(
    jstring jType,        /* Component type */
    jlongArray jDims      /* Component dimensions */
 ) {
-   char locator[ DAT__SZLOC ];
+   HDSLoc *locator;
    const char *name;
    const char *type;
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fName, DAT__SZNAM );
-   DECLARE_CHARACTER( fType, DAT__SZTYP );
-   INT_BIG dims[ DAT__MXDIM ];
-   INT_BIG ndim;
+   hdsdim dims[ DAT__MXDIM ];
+   int ndim;
 
    /* Convert java strings to C. */
    name = (*env)->GetStringUTFChars( env, jName, NULL );
    type = (*env)->GetStringUTFChars( env, jType, NULL );
 
-   /* Convert C strings to fortran. */
-   cnfExprt( name, fName, fName_length );
-   cnfExprt( type, fType, fType_length );
-
-   /* Release string copies. */
-   (*env)->ReleaseStringUTFChars( env, jName, name );
-   (*env)->ReleaseStringUTFChars( env, jType, type );
-
-   /* Convert java array into fortran. */
+   /* Convert java array into C. */
    getCoords( env, jDims, dims, &ndim );
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_new)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fName),
-                         CHARACTER_ARG(fType), INTEGER_ARG(&ndim),
-                         INTEGER_ARRAY_ARG(dims), INTEGER_ARG(status)
-                         TRAIL_ARG(fLocator) TRAIL_ARG(fName)
-                         TRAIL_ARG(fType) );
+      datNew( locator, name, type, ndim, dims, status );
+   )
+
+   /* Release string copies. */
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jName, name );
+      (*env)->ReleaseStringUTFChars( env, jType, type );
    )
 }
 
@@ -1577,25 +1405,17 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( datParen )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   char newLocator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fNewLocator, DAT__SZLOC );
+   HDSLoc *locator;
+   HDSLoc *newLocator = NULL;
    jobject newobj;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_paren)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fNewLocator),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(fNewLocator) );
+      datParen( locator, &newLocator, status );
    )
-
-   /* Turn the returned locator into a C string. */
-   cnfImpch( fNewLocator, DAT__SZLOC, newLocator );
 
    /* Construct and return an HDSObject using the locator. */
    return makeHDSObject( env, newLocator );
@@ -1606,49 +1426,37 @@ JNIEXPORT jboolean JNICALL NATIVE_METHOD( datPrmry__ )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   F77_LOGICAL_TYPE const fSet = F77_FALSE;
-   F77_LOGICAL_TYPE fPrimary;
+   HDSLoc *locator;
+   int set = 0;
+   int prmry;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_prmry)( LOGICAL_ARG(&fSet), CHARACTER_ARG(fLocator),
-                           LOGICAL_ARG(&fPrimary), INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) );
+      datPrmry( 0, &locator, &prmry, status );
    )
 
    /* Return the result. */
-   return (jboolean) ( F77_ISTRUE( fPrimary ) ? JNI_TRUE : JNI_FALSE );
+   return (jboolean) ( prmry ? JNI_TRUE : JNI_FALSE );
 }
 
 
 JNIEXPORT void JNICALL NATIVE_METHOD( datPrmry__Z )(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */
-   jboolean primary      /* Is the locator to be set primary? */
+   jboolean jPrimary      /* Is the locator to be set primary? */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   F77_LOGICAL_TYPE const fSet = F77_TRUE;
-   F77_LOGICAL_TYPE fPrimary;
+   HDSLoc *locator;
+   int primary = ( jPrimary == JNI_TRUE ) ? 1 : 0;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Set the value of the logical variable. */
-   fPrimary = ( ( primary == JNI_TRUE ) ? F77_TRUE : F77_FALSE );
-
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_prmry)( LOGICAL_ARG(&fSet), CHARACTER_ARG(fLocator),
-                           LOGICAL_ARG(&fPrimary), INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) );
+      datPrmry( 1, &locator, &primary, status );
    )
 }
 
@@ -1658,157 +1466,148 @@ JNIEXPORT void JNICALL NATIVE_METHOD( datPut0c )(
    jobject this,         /* Instance object */
    jstring jValue        /* String to write */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
+   HDSLoc *locator;
    const char *value;
-   DECLARE_CHARACTER_DYN( fValue );
 
    /* Convert java string to C. */
    value = (*env)->GetStringUTFChars( env, jValue, NULL );
 
-   /* Convert C string to fortran. */
-   fValue_length = (*env)->GetStringLength( env, jValue );
-   fValue = jMalloc( env, fValue_length );
-   cnfExprt( value, fValue, fValue_length );
-
-   /* Release string copy. */
-   (*env)->ReleaseStringUTFChars( env, jValue, value );
-
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_put0c)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fValue),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(fValue) );
+      datPut0C( locator, value, status );
    )
 
-   /* Free the buffer. */
-   free( fValue );
+   /* Release string copy. */
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jValue, value );
+   )
 }
 
 
-#define MAKE_DATPUT0X(Xletter,Xjtype,Xcnftype) \
+#define MAKE_DATPUT0X(Xletter,XLetter,Xjtype,Xctype) \
 JNIEXPORT void JNICALL NATIVE_METHOD( datPut0##Xletter )( \
    JNIEnv *env,          /* Interface pointer */ \
    jobject this,         /* Instance object */ \
    Xjtype jValue         /* Value to write */ \
 ) { \
-   char locator[ DAT__SZLOC ]; \
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC ); \
-   DECLARE_##Xcnftype( fValue ); \
- \
-   /* Convert the java value to Fortran. */ \
-   fValue = (F77_##Xcnftype##_TYPE) jValue; \
+   HDSLoc *locator; \
  \
    /* Get this object's locator. */ \
-   getLocator( env, this, locator ); \
-   cnfExpch( locator, fLocator, fLocator_length ); \
+   locator = getLocator( env, this ); \
  \
-   /* Call the Fortran routine to do the work. */ \
+   /* Call the HDS routine to do the work. */ \
    HDSCALL( \
-      F77_CALL(dat_put0##Xletter)( CHARACTER_ARG(fLocator), \
-                                   Xcnftype##_ARG(&fValue), \
-                                   INTEGER_ARG(status) \
-                                   TRAIL_ARG(fLocator) ); \
+      datPut0##XLetter( locator, (Xctype) jValue, status ); \
    ) \
 }
-MAKE_DATPUT0X(l,jboolean,LOGICAL)
-MAKE_DATPUT0X(i,jint,INTEGER)
-MAKE_DATPUT0X(r,jfloat,REAL)
-MAKE_DATPUT0X(d,jdouble,DOUBLE)
+MAKE_DATPUT0X(l,L,jboolean,int)
+MAKE_DATPUT0X(i,I,jint,int)
+MAKE_DATPUT0X(r,R,jfloat,float)
+MAKE_DATPUT0X(d,D,jdouble,double)
 #undef MAKE_DATPUT0X
 
 
 JNIEXPORT void JNICALL NATIVE_METHOD( datPutvc )(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */
-   jobjectArray value    /* Array of strings to write */
+   jobjectArray jValueArray  /* Array of strings to write */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER_DYN( buffer );
-   INT_BIG nel;
+   HDSLoc *locator;
+   size_t nel;
+   size_t length;
+   const char **ptrs = NULL;
    int i;
-   int length;
-   jstring strobj;
-   const char *cp;
+   jstring *jValues;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
    /* Get the number and length of elements which will be written. */
-   nel = (*env)->GetArrayLength( env, value );
+   nel = (*env)->GetArrayLength( env, jValueArray );
    length = getLength( env, locator );
 
-   /* Create a buffer to hold the data. */
-   buffer = jMalloc( env, length * nel );
-   buffer_length = length;
+   /* Allocate a pointer array for the data to be transferred. */
+   if ( ( ptrs = jMalloc( env, sizeof( char * ) * nel ) ) &&
+        ( jValues = jMalloc( env, sizeof( jstring * ) * nel ) ) ) {
 
-   /* Copy the contents of the String array into the buffer. */
-   for ( i = 0; i < nel; i++ ) {
-      if ( ! (*env)->ExceptionOccurred( env ) ) {
-         ( strobj = (jstring) (*env)->GetObjectArrayElement( env, value,
-                                                             i ) ) &&
-         ( cp = (*env)->GetStringUTFChars( env, strobj, NULL ) );
-         if ( cp != NULL ) {
-            cnfExprt( cp, buffer + i * length, length );
-         }
-         (*env)->ReleaseStringUTFChars( env, strobj, cp );
+      /* Get an array of the Strings from the java array. */
+      for ( i = 0; i < nel; i++ ) {
+         jValues[ i ] = (*env)->ExceptionOccurred( env )
+            ? NULL
+            : (jstring) (*env)->GetObjectArrayElement( env, jValueArray, i );
       }
+
+      /* Get an array of pointers to the string values. */
+      for ( i = 0; i < nel; i++ ) {
+         ptrs[ i ] = (*env)->ExceptionOccurred( env )
+                   ? NULL
+                   : (*env)->GetStringUTFChars( env, jValues[ i ], NULL );
+         if ( ! ptrs[ i ] ) {
+            ptrs[ i ] = "\0";
+         }
+      }
+
+      /* Call the HDS routine. */
+      HDSCALL(
+         datPutVC( locator, nel, ptrs, status );
+      )
+
+      /* Tidy up. */
+      ALWAYS(
+         for ( i = 0; i < nel; i++ ) {
+            if ( jValues[ i ] ) {
+               (*env)->ReleaseStringUTFChars( env, jValues[ i ], ptrs[ i ] );
+            }
+         }
+      )
+      free( ptrs );
+      free( jValues );
    }
-
-   /* Call the fortran routine to do the work. */
-   HDSCALL(
-      F77_CALL(dat_putvc)( CHARACTER_ARG(fLocator), INTEGER_ARG(&nel),
-                           CHARACTER_ARRAY_ARG(buffer), INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(buffer) );
-   )
-
-   /* Release resources. */
-   free( buffer );
-   return;
 }
 
-#define MAKE_DATPUTVX(Xletter,Xjtype,XJtype,Xcnftype) \
+
+#define MAKE_DATPUTVX(Xletter,XLetter,Xjtype,XJtype,Xctype) \
 JNIEXPORT void JNICALL NATIVE_METHOD( datPutv##Xletter )( \
    JNIEnv *env,          /* Interface pointer */ \
    jobject this,         /* Instance object */ \
    Xjtype##Array value   /* Array of primitives to write */ \
 ) { \
-   char locator[ DAT__SZLOC ]; \
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC ); \
-   Xjtype *buffer; \
-   INT_BIG nel; \
+   HDSLoc *locator; \
+   Xjtype *buffer = NULL; \
+   size_t nel; \
+ \
+   CHECK_TYPES_MATCH(Xjtype,Xctype) \
  \
    /* Get this object's locator. */ \
-   getLocator( env, this, locator ); \
-   cnfExpch( locator, fLocator, fLocator_length ); \
+   locator = getLocator( env, this ); \
  \
    /* Get the number of elements which will be written. */ \
    nel = (*env)->GetArrayLength( env, value ); \
  \
    /* Pin/copy the elements of the primitive array. */ \
-   buffer = (*env)->Get##XJtype##ArrayElements( env, value, NULL ); \
+   if ( ! (*env)->ExceptionOccurred( env ) && \
+        ( buffer = (*env)->Get##XJtype##ArrayElements( env, value, \
+                                                       NULL ) ) ) { \
  \
-   /* Call the fortran routine to write this vector out. */ \
-   HDSCALL( \
-      F77_CALL(dat_putv##Xletter)( CHARACTER_ARG(fLocator), \
-                                   INTEGER_ARG(&nel), \
-                                   Xcnftype##_ARG(buffer), INTEGER_ARG(status) \
-                                   TRAIL_ARG(fLocator) ); \
-   ) \
+      /* Call the HDS routine. */ \
+      HDSCALL( \
+         datPutV##XLetter( locator, nel, (Xctype *) buffer, status ); \
+      ) \
  \
-   /* Release the array elements. */ \
-   (*env)->Release##XJtype##ArrayElements( env, value, buffer, JNI_ABORT ); \
+      /* Release the array elements. */ \
+      ALWAYS( \
+         (*env)->Release##XJtype##ArrayElements( env, value, \
+                                                 buffer, JNI_ABORT ); \
+      ) \
+   } \
 }
-MAKE_DATPUTVX(l,jboolean,Boolean,LOGICAL)
-MAKE_DATPUTVX(i,jint,Int,INTEGER)
-MAKE_DATPUTVX(r,jfloat,Float,REAL)
-MAKE_DATPUTVX(d,jdouble,Double,DOUBLE)
+MAKE_DATPUTVX(l,L,jboolean,Boolean,int)
+MAKE_DATPUTVX(i,I,jint,Int,int)
+MAKE_DATPUTVX(r,R,jfloat,Float,float)
+MAKE_DATPUTVX(d,D,jdouble,Double,double)
 #undef MAKE_DATPUTVX
 
 
@@ -1816,36 +1615,17 @@ JNIEXPORT jstring JNICALL NATIVE_METHOD( datRef )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   jstring jRef = NULL;
    char ref[ MAXCHARLENG + 1 ];
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fRef, MAXCHARLENG );
-   DECLARE_INTEGER( lref );
+   HDSLoc *locator;
 
-   /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
-
-   /* Call the Fortran routine to do the work. */
+   locator = getLocator( env, this );
    HDSCALL(
-      F77_CALL(dat_ref)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fRef),
-                         INTEGER_ARG(&lref), INTEGER_ARG(status)
-                         TRAIL_ARG(fLocator) TRAIL_ARG(fRef) );
+      datRef( locator, ref, MAXCHARLENG, status );
    )
 
-   /* Construct a java String object. */
-   if ( ! (*env)->ExceptionOccurred( env ) ) {
-
-      /* Convert the fortran string back to C */
-      cnfImprt( fRef, fRef_length, ref );
-      ref[ lref ] = '\0';
-
-      jRef = (*env)->NewStringUTF( env, ref );
-   }
-
-   /* Return the result. */
-   return jRef;
+   return (*env)->ExceptionOccurred( env )
+        ? NULL
+        : (*env)->NewStringUTF( env, ref );
 }
 
 
@@ -1853,66 +1633,19 @@ JNIEXPORT jlong JNICALL NATIVE_METHOD( datSize )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   INT_BIG size;
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   jlong result;
+   HDSLoc *locator;
+   size_t size;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_size)( CHARACTER_ARG(fLocator), INTEGER_ARG(&size),
-                          INTEGER_ARG(status)
-                          TRAIL_ARG(fLocator) );
+      datSize( locator, &size, status );
    )
 
    /* Return the result. */
    return (jlong) size;
-}
-
-
-/*
- * datSlice() doesn't seem to work for some reason.
- * This native function no longer called from the HDSObject class.
- */
-JNIEXPORT jobject JNICALL NATIVE_METHOD( datSlice )(
-   JNIEnv *env,          /* Interface pointer */
-   jobject this,         /* Instance object */
-   jlongArray jLbnd,     /* Lower bounds of slice */
-   jlongArray jUbnd      /* Upper bounds of slice */
-) {
-   char locator[ DAT__SZLOC ];
-   char newLocator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fNewLocator, DAT__SZLOC );
-   INT_BIG lbnd[ DAT__MXDIM ];
-   INT_BIG ubnd[ DAT__MXDIM ];
-   INT_BIG ndim;
-
-   /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
-
-   /* Get arrays representing the lower and upper bounds of the slice. */
-   getCoords( env, jLbnd, lbnd, &ndim );
-   getCoords( env, jUbnd, ubnd, &ndim );
-
-   /* Call the Fortran routine to do the work. */
-   HDSCALL(
-      F77_CALL(dat_slice)( CHARACTER_ARG(fLocator), INTEGER_ARG(&ndim),
-                           INTEGER_ARRAY_ARG(lbnd), INTEGER_ARRAY_ARG(ubnd),
-                           CHARACTER_ARG(fNewLocator), INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(fNewLocator) );
-   )
-
-   /* Turn the returned locator into a C string. */
-   cnfImpch( fNewLocator, DAT__SZLOC, newLocator );
-
-   /* Construct and return an HDSObject using the locator. */
-   return makeHDSObject( env, newLocator );
 }
 
 
@@ -1921,22 +1654,16 @@ JNIEXPORT jlongArray JNICALL NATIVE_METHOD( datShape )(
    jobject this          /* Instance object */
 ) {
    int i;
-   char locator[ DAT__SZLOC ];
-   INT_BIG const ndimx = DAT__MXDIM;
-   INT_BIG ndim;
-   INT_BIG dims[ DAT__MXDIM ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
+   HDSLoc *locator;
+   int ndim;
+   hdsdim dims[ DAT__MXDIM ];
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_shape)( CHARACTER_ARG(fLocator), INTEGER_ARG(&ndimx),
-                           INTEGER_ARRAY_ARG(dims), INTEGER_ARG(&ndim),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) );
+      datShape( locator, DAT__MXDIM, dims, &ndim, status );
    )
 
    /* Construct and return an array representing the shape. */
@@ -1948,23 +1675,19 @@ JNIEXPORT jboolean JNICALL NATIVE_METHOD( datState )(
    JNIEnv *env,          /* Interfact pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   F77_LOGICAL_TYPE fState;
+   HDSLoc *locator;
+   int state;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-       F77_CALL(dat_state)( CHARACTER_ARG(fLocator), LOGICAL_ARG(&fState),
-                            INTEGER_ARG(status)
-                            TRAIL_ARG(fLocator) );
+      datState( locator, &state, status );
    )
 
    /* Return the result. */
-   return (jboolean) ( F77_ISTRUE( fState ) ? JNI_TRUE : JNI_FALSE );
+   return (jboolean) ( state ? JNI_TRUE : JNI_FALSE );
 }
 
 
@@ -1972,23 +1695,19 @@ JNIEXPORT jboolean JNICALL NATIVE_METHOD( datStruc )(
    JNIEnv *env,          /* Interfact pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   F77_LOGICAL_TYPE fStruc;
+   HDSLoc *locator;
+   int struc;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_struc)( CHARACTER_ARG(fLocator), LOGICAL_ARG(&fStruc),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) );
+      datStruc( locator, &struc, status );
    )
 
    /* Return the result. */
-   return (jboolean) ( F77_ISTRUE( fStruc ) ? JNI_TRUE : JNI_FALSE );
+   return (jboolean) ( struc ? JNI_TRUE : JNI_FALSE );
 }
 
 
@@ -1998,33 +1717,27 @@ JNIEXPORT jboolean JNICALL NATIVE_METHOD( datThere )(
    jstring jName         /* Name of queried component */
 ) {
    const char *name;
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fName, DAT__SZNAM );
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   F77_LOGICAL_TYPE there;
+   HDSLoc *locator;
+   int there;
 
    /* Convert java string to C. */
    name = (*env)->GetStringUTFChars( env, jName, NULL );
 
-   /* Convert C string to Fortran. */
-   cnfExprt( name, fName, fName_length );
+   /* Get this object's locator. */
+   locator = getLocator( env, this );
+
+   /* Call the HDS routine to do the work. */
+   HDSCALL(
+      datThere( locator, name, &there, status );
+   )
 
    /* Release string copy. */
-   (*env)->ReleaseStringUTFChars( env, jName, name );
-
-   /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
-
-   /* Call the Fortran routine to do the work. */
-   HDSCALL(
-      F77_CALL(dat_there)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fName),
-                           LOGICAL_ARG(&there), INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) TRAIL_ARG(fName) );
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jName, name );
    )
 
    /* Return the result. */
-   return (jboolean) ( F77_ISTRUE( there ) ? JNI_TRUE : JNI_FALSE );
+   return (jboolean) ( there ? JNI_TRUE : JNI_FALSE );
 }
 
 
@@ -2032,27 +1745,21 @@ JNIEXPORT jstring JNICALL NATIVE_METHOD( datType )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
+   HDSLoc *locator;
    char type[ DAT__SZTYP + 1 ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_CHARACTER( fType, DAT__SZTYP );
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_type)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fType),
-                          INTEGER_ARG(status)
-                          TRAIL_ARG(fLocator) TRAIL_ARG(fType) );
+      datType( locator, type, status );
    )
 
-   /* Convert the Fortran string back to C. */
-   cnfImprt( fType, fType_length, type );
-
    /* Construct and return a java string object. */
-   return (*env)->NewStringUTF( env, type );
+   return (*env)->ExceptionCheck( env )
+        ? NULL
+        : (*env)->NewStringUTF( env, type );
 }
 
 
@@ -2060,17 +1767,14 @@ JNIEXPORT void JNICALL NATIVE_METHOD( datUnmap )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
+   HDSLoc *locator;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the fortran routine to do the work. */
+   /* Call the HDS routine to do the work. */
    HDSCALL(
-      F77_CALL(dat_unmap)( CHARACTER_ARG(fLocator), INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) );
+      datUnmap( locator, status );
    )
 }
 
@@ -2079,58 +1783,26 @@ JNIEXPORT jboolean JNICALL NATIVE_METHOD( datValid )(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_LOGICAL( fValid );
+   HDSLoc *locator;
+   int valid;
 
    /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
+   locator = getLocator( env, this );
 
-   /* Call the Fortran routine to do the work. */
-   HDSCALL(
-      F77_CALL(dat_valid)( CHARACTER_ARG(fLocator), LOGICAL_ARG(&fValid),
-                           INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) );
-   )
-
-   /* Return the result. */
-   return (jboolean) ( F77_ISTRUE( fValid ) ? JNI_TRUE : JNI_FALSE );
-}
-
-
-JNIEXPORT jlongArray JNICALL NATIVE_METHOD( datWhere )(
-   JNIEnv *env,          /* Interface pointer */
-   jobject this          /* Instance object */
-) {
-   char locator[ DAT__SZLOC ];
-   jlong offArray[ 2 ];
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_INTEGER( fBlock );
-   DECLARE_INTEGER( fOffset );
-   jlongArray jOffArray = NULL;
-
-   /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
-
-   /* Call the Fortran routine to do the work. */
-   HDSCALL(
-      F77_CALL(dat_where)( CHARACTER_ARG(fLocator), INTEGER_ARG(&fBlock),
-                           INTEGER_ARG(&fOffset), INTEGER_ARG(status)
-                           TRAIL_ARG(fLocator) );
-   )
-
-   /* Package the result. */
-   if ( ! (*env)->ExceptionOccurred( env ) ) {
-      offArray[ 0 ] = (jlong) fBlock;
-      offArray[ 1 ] = (jlong) fOffset;
-      jOffArray = (*env)->NewLongArray( env, 2 );
-      (*env)->SetLongArrayRegion( env, jOffArray, 0, 2, offArray );
+   /* If it's null, then it's been annulled.  The answer is no. */
+   if ( locator == NULL ) {
+      return JNI_FALSE;
    }
 
-   /* Return the result. */
-   return jOffArray;
+   /* Otherwise call datValid. */
+   else {
+      HDSCALL(
+         datValid( locator, &valid, status );
+      )
+
+      /* Return the result. */
+      return (jboolean) ( valid ? JNI_TRUE : JNI_FALSE );
+   }
 }
 
 
@@ -2142,12 +1814,8 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( mapBuffer )(
 ) {
    const char *type;
    const char *mode;
-   char locator[ DAT__SZLOC ];
-   DECLARE_CHARACTER( fType, DAT__SZTYP );
-   DECLARE_CHARACTER( fMode, DAT__SZMOD );
-   DECLARE_CHARACTER( fLocator, DAT__SZLOC );
-   DECLARE_INTEGER( el );
-   DECLARE_POINTER( fPntr );
+   HDSLoc *locator;
+   size_t el;
    void *pntr;
    jobject bbuf;
    jlong bufleng;
@@ -2164,26 +1832,22 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( mapBuffer )(
       normtype[ i ] = toupper( type[ i ] );
    }
    normtype[ i ] = '\0';
-   if ( ! strncmp( normtype, "_BYTE", DAT__SZTYP ) ) {
-      siz = sizeof( F77_BYTE_TYPE );
+   if ( ! strncmp( normtype, "_BYTE", DAT__SZTYP ) ||
+        ! strncmp( normtype, "_UBYTE", DAT__SZTYP ) ) {
+      siz = HDS_BYTE_SIZE;
    }
-   else if ( ! strncmp( normtype, "_UBYTE", DAT__SZTYP ) ) {
-      siz = sizeof( F77_UBYTE_TYPE );
-   }
-   else if ( ! strncmp( normtype, "_WORD", DAT__SZTYP ) ) {
-      siz = sizeof( F77_WORD_TYPE );
-   }
-   else if ( ! strncmp( normtype, "_UWORD", DAT__SZTYP ) ) {
-      siz = sizeof( F77_UWORD_TYPE );
+   else if ( ! strncmp( normtype, "_WORD", DAT__SZTYP ) ||
+             ! strncmp( normtype, "_UWORD", DAT__SZTYP ) ) {
+      siz = HDS_WORD_SIZE;
    }
    else if ( ! strncmp( normtype, "_INTEGER", DAT__SZTYP ) ) {
-      siz = sizeof( F77_INTEGER_TYPE );
+      siz = HDS_INTEGER_SIZE;
    }
    else if ( ! strncmp( normtype, "_REAL", DAT__SZTYP ) ) {
-      siz = sizeof( F77_REAL_TYPE );
+      siz = HDS_REAL_SIZE;
    }
    else if ( ! strncmp( normtype, "_DOUBLE", DAT__SZTYP ) ) {
-      siz = sizeof( F77_DOUBLE_TYPE );
+      siz = HDS_DOUBLE_SIZE;
    }
    else {
       char errbuf[ 80 ];
@@ -2192,37 +1856,27 @@ JNIEXPORT jobject JNICALL NATIVE_METHOD( mapBuffer )(
       (*env)->ThrowNew( env, IllegalArgumentExceptionClass, errbuf );
    }
 
-   /* Convert C strings to Fortran. */
-   cnfExprt( type, fType, fType_length );
-   cnfExprt( mode, fMode, fMode_length );
+   /* Get this object's locator. */
+   locator = getLocator( env, this );
+
+   /* Call the HDS routine to do the work. */
+   HDSCALL(
+      datMapV( locator, type, mode, &pntr, &el, status );
+   )
 
    /* Release string copies. */
-   (*env)->ReleaseStringUTFChars( env, jType, type );
-   (*env)->ReleaseStringUTFChars( env, jMode, mode );
-
-   /* Get this object's locator. */
-   getLocator( env, this, locator );
-   cnfExpch( locator, fLocator, fLocator_length );
-
-   /* Call the Fortran routine to do the work. */
-   HDSCALL(
-      F77_CALL(dat_mapv)( CHARACTER_ARG(fLocator), CHARACTER_ARG(fType),
-                          CHARACTER_ARG(fMode), POINTER_ARG(&fPntr),
-                          INTEGER_ARG(&el), INTEGER_ARG(status)
-                          TRAIL_ARG(fLocator) TRAIL_ARG(fType)
-                          TRAIL_ARG(fMode) );
+   ALWAYS(
+      (*env)->ReleaseStringUTFChars( env, jType, type );
+      (*env)->ReleaseStringUTFChars( env, jMode, mode );
    )
 
    /* Make a ByteBuffer out of the returned memory. */
    bbuf = NULL;
    bufleng = el * siz;
-   pntr = cnfCptr(fPntr);
    if ( ! (*env)->ExceptionCheck( env ) && pntr != NULL && bufleng > 0L ) {
       bbuf = (*env)->NewDirectByteBuffer( env, pntr, bufleng );
    }
    return bbuf;
 }
-
-
 
 /* $Id$ */
