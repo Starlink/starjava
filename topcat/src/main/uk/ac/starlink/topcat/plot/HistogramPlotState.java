@@ -10,6 +10,7 @@ public class HistogramPlotState extends PlotState {
 
     private double binWidth_;
     private boolean zeroMid_;
+    private boolean cumulative_;
 
     /**
      * Sets the bin width for the histogram.
@@ -58,11 +59,40 @@ public class HistogramPlotState extends PlotState {
         return zeroMid_;
     }
 
+    /**
+     * Sets whether the histogram should be conventional or cumulative.
+     *
+     * @param  cumulative  true iff you want a cumulative plot
+     */
+    public void setCumulative( boolean cumulative ) {
+        cumulative_ = cumulative;
+    }
+
+    /**
+     * Determines whether the histogram is conventional or cumulative.
+     *
+     * @return  true  iff the plot will be cumulative
+     */
+    public boolean getCumulative() {
+        return cumulative_;
+    }
+
+    public boolean sameAxes( PlotState other ) {
+        if ( other instanceof HistogramPlotState ) {
+            return super.sameAxes( other ) 
+                && this.cumulative_ == ((HistogramPlotState) other).cumulative_;
+        } 
+        else {
+            return false;
+        }
+    }
+
     public boolean equals( Object o ) {
         if ( super.equals( o ) && o instanceof HistogramPlotState ) {
             HistogramPlotState other = (HistogramPlotState) o;
             return binWidth_ == other.binWidth_
-                && zeroMid_ == other.zeroMid_;
+                && zeroMid_ == other.zeroMid_
+                && cumulative_ == other.cumulative_;
         }
         else {
             return false;
@@ -72,7 +102,8 @@ public class HistogramPlotState extends PlotState {
     public int hashCode() {
         int code = super.hashCode();
         code = 23 * code + Float.floatToIntBits( (float) binWidth_ );
-        code = 23 * code + ( zeroMid_ ? 1 : 0 );
+        code = 23 * code + ( zeroMid_ ? 1 : 3 );
+        code = 23 * code + ( cumulative_ ? 1 : 3 );
         return code;
     }
 }

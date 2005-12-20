@@ -88,6 +88,7 @@ public class ResourceIcon implements Icon {
         COLUMNS = makeIcon( "colmeta0.gif" ),
         STATS = makeIcon( "sigma0.gif" ),
         HISTOGRAM = makeIcon( "hist0.gif" ),
+        CUMULATIVE = makeIcon( "cum0.gif" ),
         PLOT = makeIcon( "plot0.gif" ),
         DENSITY = makeIcon( "2hist2.gif" ),
         PLOT3D = makeIcon( "3dax6.gif" ),

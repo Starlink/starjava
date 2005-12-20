@@ -24,12 +24,18 @@ public interface BinnedData {
 
     /**
      * Returns an iterator over the bins managed by this object.
-     * It is inadvisable to call {@link #submitDatum} during the 
+     * The bins must be returned in order (lowest data range bin to 
+     * highest data range bin).
+     *
+     * <p>It is inadvisable to call {@link #submitDatum} during the 
      * lifetime of this iterator.
      *
+     * @param    includeEmpty  if true, then all bins between the lowest
+     *           and highest must be iterated over.  If false, then empty
+     *           bins may be omitted
      * @return   iterator which dispenses {@link BinnedData.Bin} instances
      */
-    Iterator getBinIterator();
+    Iterator getBinIterator( boolean includeEmpty );
 
     /**
      * Represents a single bin.

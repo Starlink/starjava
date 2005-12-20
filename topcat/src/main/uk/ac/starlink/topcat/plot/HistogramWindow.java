@@ -32,6 +32,7 @@ public class HistogramWindow extends GraphicsWindow {
     private final Histogram plot_;
     private final Action[] validityActions_;
     private final ToggleButtonModel yLogModel_;
+    private final ToggleButtonModel cumulativeModel_;
     private final RoundingSpinner binSizer_;
 
     private double binWidth_;
@@ -82,6 +83,13 @@ public class HistogramWindow extends GraphicsWindow {
                                            "Logarithmic scale for the Y axis" );
         yLogModel_.addActionListener( getReplotListener() );
 
+        /* Model for selecting a cumulative rather than conventional plot. */
+        cumulativeModel_ = new ToggleButtonModel( "Cumulative Plot",
+                                                  ResourceIcon.CUMULATIVE,
+                                                  "Plot cumulative bars " +
+                                                  "rather than counts" );
+        cumulativeModel_.addActionListener( getReplotListener() );
+
         /* Bin size selector widget. */
         binSizer_ = new RoundingSpinner();
         getLogModels()[ 0 ].addActionListener( new ActionListener() {
@@ -96,6 +104,7 @@ public class HistogramWindow extends GraphicsWindow {
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
+        plotMenu.add( cumulativeModel_.createMenuItem() );
         plotMenu.add( rescaleActionXY );
         plotMenu.add( rescaleActionX );
         plotMenu.add( rescaleActionY );
@@ -152,6 +161,7 @@ public class HistogramWindow extends GraphicsWindow {
         getToolBar().add( rescaleActionX );
         getToolBar().add( rescaleActionY );
         getToolBar().add( getGridModel().createToolbarButton() );
+        getToolBar().add( cumulativeModel_.createToolbarButton() );
         getToolBar().add( getFlipModels()[ 0 ].createToolbarButton() );
         getToolBar().add( getLogModels()[ 0 ].createToolbarButton() );
         getToolBar().add( yLogModel_.createToolbarButton() );
@@ -210,7 +220,8 @@ public class HistogramWindow extends GraphicsWindow {
          * This isn't essential, but it means that the Y axis range covers
          * approximately the same data points rather than creeping up/down
          * with a change in the bin width. */
-        else if ( state.getBinWidth() != lastState.getBinWidth() ) {
+        else if ( ! state.getCumulative() &&
+                  ( state.getBinWidth() != lastState.getBinWidth() ) ) {
             plot_.scaleYFactor( state.getBinWidth() / lastState.getBinWidth() );
         }
 
@@ -271,6 +282,7 @@ public class HistogramWindow extends GraphicsWindow {
             } );
             Class clazz = state.getAxes()[ 0 ].getContentClass();
             state.setZeroMid( clazz != Float.class && clazz != Double.class );
+            state.setCumulative( cumulativeModel_.isSelected() );
         }
 
         /* Configure some actions to be enabled/disabled according to 

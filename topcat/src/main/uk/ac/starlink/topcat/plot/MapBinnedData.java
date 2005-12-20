@@ -67,16 +67,21 @@ public class MapBinnedData implements BinnedData {
         }
     }
 
-    public Iterator getBinIterator() {
-        final Iterator entryIt = map_.entrySet().iterator();
+    public Iterator getBinIterator( boolean includeEmpty ) {
+        final Iterator keyIt = includeEmpty
+                             ? mapper_.keyIterator( map_.firstKey(),
+                                                    map_.lastKey() )
+                             : map_.keySet().iterator();
         return new Iterator() {
+            final int[] EMPTY_COUNTS = new int[ nset_ ];
             public boolean hasNext() {
-                return entryIt.hasNext();
+                return keyIt.hasNext();
             }
             public Object next() {
-                Map.Entry entry = (Map.Entry) entryIt.next();
-                Object key = entry.getKey();
-                final int[] counts = (int[]) entry.getValue();
+                Object key = keyIt.next();
+                final int[] counts = map_.containsKey( key )
+                                   ? (int[]) map_.get( key )
+                                   : EMPTY_COUNTS; 
                 final double[] bounds = mapper_.getBounds( key );
                 return new Bin() {
                     public double getLowBound() {
@@ -91,7 +96,7 @@ public class MapBinnedData implements BinnedData {
                 };
             }
             public void remove() {
-                entryIt.remove();
+                keyIt.remove();
             }
         };
     }
@@ -151,6 +156,18 @@ public class MapBinnedData implements BinnedData {
          *           bin <code>key</code>
          */
         double[] getBounds( Object key );
+
+        /**
+         * Returns an iterator which covers all keys between the given
+         * low and high keys inclusive.
+         * <code>loKey</code> and <code>hiKey</code> must be possible keys
+         * for this mapper and arranged in the right order.
+         *
+         * @param  loKey  lower bound (inclusive) for key iteration
+         * @param  hiKey  upper bound (inclusive) for key iteration
+         * @return  iterator
+         */
+        Iterator keyIterator( Object loKey, Object hiKey );
     }
 
     /**
@@ -197,6 +214,21 @@ public class MapBinnedData implements BinnedData {
 
             return new double[] { bottom, bottom + width_ };
         }
+        public Iterator keyIterator( final Object loKey, final Object hiKey ) {
+            return new Iterator() {
+                final long hiVal_ = ((Long) hiKey).longValue();
+                long val_ = ((Long) loKey).longValue();
+                public boolean hasNext() {
+                    return val_ <= hiVal_;
+                }
+                public Object next() {
+                    return new Long( val_++ );
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
     }
 
     /**
@@ -219,6 +251,21 @@ public class MapBinnedData implements BinnedData {
         public double[] getBounds( Object key ) {
             double centre = Math.pow( factor_, ((Long) key).doubleValue() );
             return new double[] { centre / sqrtFactor_, centre * sqrtFactor_ };
+        }
+        public Iterator keyIterator( final Object loKey, final Object hiKey ) {
+            return new Iterator() {
+                final long hiVal_ = ((Long) hiKey).longValue();
+                long val_ = ((Long) loKey).longValue();
+                public boolean hasNext() {
+                    return val_ <= hiVal_;
+                }
+                public Object next() {
+                    return new Long( val_++ );
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 }

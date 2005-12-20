@@ -47,22 +47,25 @@ public class Histogram extends SurfacePlot {
     }
 
     public double[] getFullDataRange() {
-        boolean xlog = getState().getLogFlags()[ 0 ];
+        HistogramPlotState state = (HistogramPlotState) getState();
+        boolean xlog = state.getLogFlags()[ 0 ];
+        boolean cumulative = state.getCumulative();
         double xlo = Double.POSITIVE_INFINITY;
         double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
-        int yhi = 0;
-
         int nset = getPointSelection().getSubsets().length;
-        
+        int[] yhis = new int[ nset ];
+
         boolean someData = false;
-        for ( Iterator it = getBinnedData().getBinIterator(); it.hasNext(); ) {
+        for ( Iterator it = getBinnedData().getBinIterator( false );
+              it.hasNext(); ) {
             BinnedData.Bin bin = (BinnedData.Bin) it.next();
             boolean included = false;
             for ( int iset = 0; iset < nset; iset++ ) {
                 int count = bin.getCount( iset );
                 if ( count > 0 ) {
                     included = true;
-                    yhi = Math.max( yhi, count );
+                    yhis[ iset ] = cumulative ? yhis[ iset ] + count
+                                              : Math.max( yhis[ iset ], count );
                 }
             }
             if ( included ) {
@@ -70,6 +73,11 @@ public class Histogram extends SurfacePlot {
                 xlo = Math.min( xlo, bin.getLowBound() );
                 xhi = Math.max( xhi, bin.getHighBound() );
             }
+        }
+
+        int yhi = 0;
+        for ( int iset = 0; iset < nset; iset++ ) {
+            yhi = Math.max( yhi, yhis[ iset ] );
         }
 
         return someData ? new double[] { xlo, 0.0, xhi, (double) yhi }
@@ -97,7 +105,7 @@ public class Histogram extends SurfacePlot {
 
         /* Get and check relevant state. */
         Points points = getPoints();
-        PlotState state = getState();
+        HistogramPlotState state = (HistogramPlotState) getState();
         PlotSurface surface = getSurface();
         if ( points == null || state == null || surface == null ||
              ! state.getValid() ) {
@@ -112,6 +120,7 @@ public class Histogram extends SurfacePlot {
 
         /* Get the plotting styles to use. */
         boolean xflip = state.getFlipFlags()[ 0 ];
+        boolean cumulative = state.getCumulative();
         double dylo = state.getLogFlags()[ 1 ] ? Double.MIN_VALUE : 0.0;
         int nset = getPointSelection().getSubsets().length;
         Style[] styles = getPointSelection().getStyles();
@@ -129,12 +138,16 @@ public class Histogram extends SurfacePlot {
             BarStyle style = (BarStyle) styles[ iset ];
             int lastIxLead = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
             int lastIyhi = 0;
-            for ( Iterator it = getBinnedData().getBinIterator();
+            long total = 0;
+            for ( Iterator it = getBinnedData().getBinIterator( cumulative );
                   it.hasNext(); ) {
 
                 /* Get the bin and its value. */
                 BinnedData.Bin bin = (BinnedData.Bin) it.next();
-                double dcount = (double) bin.getCount( iset );
+                int count = bin.getCount( iset );
+                double dcount = cumulative ? (double) ( total + count )
+                                           : (double) count;
+                total += count;
                 if ( dcount <= 0 ) {
                     continue;
                 }
@@ -208,7 +221,8 @@ public class Histogram extends SurfacePlot {
         double[] bounds = getSurfaceBounds();
         double xbot = bounds[ 0 ];
         double xtop = bounds[ 2 ];
-        for ( Iterator it = getBinnedData().getBinIterator(); it.hasNext(); ) {
+        for ( Iterator it = getBinnedData().getBinIterator( false );
+              it.hasNext(); ) {
             BinnedData.Bin bin = (BinnedData.Bin) it.next();
             if ( bin.getLowBound() < xbot ) {
                 xbot = Math.max( xbot, bin.getHighBound() );
@@ -243,31 +257,53 @@ public class Histogram extends SurfacePlot {
     }
 
     private double[] getVisibleYRange() {
+        HistogramPlotState state = (HistogramPlotState) getState();
+        boolean xflip = state.getFlipFlags()[ 0 ];
+        boolean cumulative = state.getCumulative();
         double[] bounds = getSurfaceBounds();
-        boolean xflip = getState().getFlipFlags()[ 0 ];
         double xbot = bounds[ 0 ];
         double xtop = bounds[ 2 ];
         int nset = getPointSelection().getSubsets().length;
         boolean someData = false;
-        double ybot = Double.MAX_VALUE;
-        double ytop = Double.MIN_VALUE;
-        for ( Iterator it = getBinnedData().getBinIterator(); it.hasNext(); ) {
+        double[] ybots = new double[ nset ];
+        double[] ytops = new double[ nset ];
+        long[] counts = new long[ nset ];
+        for ( int iset = 0; iset < nset; iset++ ) {
+            ybots[ iset ] = Double.MAX_VALUE;
+            ytops[ iset ] = 0.0;
+        }
+        for ( Iterator it = getBinnedData().getBinIterator( false );
+              it.hasNext(); ) {
             BinnedData.Bin bin = (BinnedData.Bin) it.next();
             double xlo = bin.getLowBound();
             double xhi = bin.getHighBound();
             if ( xlo >= xbot && xhi <= xtop ) {
                 for ( int iset = 0; iset < nset; iset++ ) {
                     int count = bin.getCount( iset );
-                    if ( count > 0 ) {
+                    counts[ iset ] = cumulative ? counts[ iset ] + count
+                                                : count;
+                    if ( counts[ iset ] > 0 ) {
                         someData = true;
-                        ytop = Math.max( ytop, count );
-                        ybot = Math.min( ybot, count );
+                        ytops[ iset ] = Math.max( ytops[ iset ],
+                                                  counts[ iset ] );
+                        ybots[ iset ] = Math.min( ybots[ iset ],
+                                                  counts[ iset ] );
                     }
                 }
             }
         }
-        return someData ? new double[] { ybot, ytop }
-                        : new double[] { Double.NaN, Double.NaN };
+        if ( someData ) {
+            double ybot = Double.MAX_VALUE;
+            double ytop = 0.0;
+            for ( int iset = 0; iset < nset; iset++ ) {
+                ybot = Math.min( ybot, ybots[ iset ] );
+                ytop = Math.max( ytop, ytops[ iset ] );
+            }
+            return new double[] { ybot, ytop };
+        }
+        else {
+            return new double[] { Double.NaN, Double.NaN };
+        }
     }
 
     /**
