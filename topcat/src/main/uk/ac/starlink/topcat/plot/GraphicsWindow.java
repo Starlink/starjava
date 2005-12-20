@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,6 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -27,6 +29,7 @@ import javax.swing.Icon;
 import javax.swing.ListModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
@@ -46,6 +49,7 @@ import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -67,17 +71,18 @@ public abstract class GraphicsWindow extends AuxWindow
     private final ToggleButtonModel gridModel_;
     private final ToggleButtonModel[] flipModels_;
     private final ToggleButtonModel[] logModels_;
+    private final JMenu exportMenu_;
 
     private StyleSet styleSet_;
     private Points points_;
-    private JFileChooser exportSaver_;
     private PlotState lastState_;
     private Box statusBox_;
 
-    private static FileFilter psFilter_;
-    private static FileFilter gifFilter_;
-    private static final Object EPS = "EPS";
-    private static final Object GIF = "GIF";
+    private static JFileChooser exportSaver_;
+    private static FileFilter psFilter_ =
+        new SuffixFileFilter( new String[] { ".ps", ".eps", } );
+    private static FileFilter gifFilter_ =
+        new SuffixFileFilter( new String[] { ".gif" } );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
@@ -114,19 +119,27 @@ public abstract class GraphicsWindow extends AuxWindow
         pointSelectors_.addNewSelector();
 
          /* Actions for exporting the plot. */
-        Action gifAction =
-            new ExportAction( GIF, "Export as GIF", ResourceIcon.IMAGE,
-                                   "Save plot as a GIF file" );
-        Action epsAction =
-            new ExportAction( EPS, "Export as EPS", ResourceIcon.PRINT,
-                                   "Export to Encapsulated Postscript file" );
-        int fileMenuPos = 0;
-        getFileMenu().insert( epsAction, fileMenuPos++ );
-        getFileMenu().insert( gifAction, fileMenuPos++ );
-        getFileMenu().insertSeparator( fileMenuPos++ );
+        Action gifAction = new ExportAction( "GIF", ResourceIcon.IMAGE,
+                                             "Save plot as a GIF file",
+                                             gifFilter_ ) {
+            public void exportTo( OutputStream out ) throws IOException {
+                exportGif( out );
+            }
+        };
+        Action epsAction = new ExportAction( "EPS", ResourceIcon.PRINT,
+                                             "Export to Encapsulated " +
+                                             "Postscript file", psFilter_ ) {
+            public void exportTo( OutputStream out ) throws IOException {
+                exportEPS( out );
+            }
+        };
         getToolBar().add( epsAction );
         getToolBar().add( gifAction );
-        getToolBar().addSeparator();
+        exportMenu_ = new JMenu( "Export" );
+        exportMenu_.setMnemonic( KeyEvent.VK_E );
+        exportMenu_.add( epsAction );
+        exportMenu_.add( gifAction );
+        getJMenuBar().add( exportMenu_ );
 
         /* Other actions. */
         replotAction_ =
@@ -178,6 +191,15 @@ public abstract class GraphicsWindow extends AuxWindow
         }
         styleSet_ = getDefaultStyles( (int) Math.min( npoint,
                                                       Integer.MAX_VALUE ) );
+    }
+
+    /**
+     * Returns the menu which contains export actions.
+     *
+     * @return  export menu
+     */
+    public JMenu getExportMenu() {
+        return exportMenu_;
     }
 
     /**
@@ -579,51 +601,14 @@ public abstract class GraphicsWindow extends AuxWindow
 
     /**
      * Returns a file chooser widget with which the user can select a
-     * file to output postscript of the currently plotted graph to.
+     * file to output the currently plotted graph to in some serialized form.
      *
      * @return   a file chooser
      */
     private JFileChooser getExportSaver() {
         if ( exportSaver_ == null ) {
             exportSaver_ = new JFileChooser( "." );
-            psFilter_ = new FileFilter() {
-                public String getDescription() {
-                    return ".ps, .eps";
-                }
-                public boolean accept( File file ) {
-                    if ( file.isDirectory() ) {
-                        return true;
-                    }
-                    String name = file.getName();
-                    int dotpos = name.indexOf( '.' );
-                    if ( dotpos > 0 ) {
-                        String ext = name.substring( dotpos + 1 ).toLowerCase();
-                        return ext.equals( "ps" )
-                            || ext.equals( "eps" );
-                    }
-                    return false;
-                }
-            };
-            gifFilter_ = new FileFilter() {
-                public String getDescription() {
-                    return ".gif";
-                }
-                public boolean accept( File file ) {
-                    if ( file.isDirectory() ) {
-                        return true;
-                    }
-                    String name = file.getName();
-                    int dotpos = name.indexOf( '.' );
-                    if ( dotpos > 0 ) {
-                        String ext = name.substring( dotpos + 1 ).toLowerCase();
-                        return ext.equals( "gif" );
-                    }
-                    return false;
-                }
-            };
             exportSaver_.setAcceptAllFileFilterUsed( true );
-            exportSaver_.addChoosableFileFilter( psFilter_ );
-            exportSaver_.addChoosableFileFilter( gifFilter_ );
         }
         return exportSaver_;
     }
@@ -649,40 +634,43 @@ public abstract class GraphicsWindow extends AuxWindow
     /**
      * Actions for exporting the plot to a file.
      */
-    private class ExportAction extends BasicAction {
-        final Object format_;
+    protected abstract class ExportAction extends BasicAction {
+        final String formatName_;
+        final FileFilter filter_;
 
-        ExportAction( Object format, String name, Icon icon, String desc ) {
-            super( name, icon, desc );
-            format_ = format;
+        /**
+         * Constructs an export action.
+         * 
+         * @param   formatName  short name for format
+         * @param   icon   icon for action
+         * @param   descrip  description for action
+         * @param   filter   file filter appropriate for export files
+         */
+        ExportAction( String formatName, Icon icon, String desc, 
+                      FileFilter filter ) {
+            super( "Export as " + formatName, icon, desc );
+            formatName_ = formatName;
+            filter_ = filter;
         }
+
+        /**
+         * Performs the export by writing bytes to a given stream.
+         * Implementations should not close the stream after writing.
+         *
+         * @param  out  destination stream
+         */
+        public abstract void exportTo( OutputStream out ) throws IOException;
 
         public void actionPerformed( ActionEvent evt ) {
             Component parent = GraphicsWindow.this;
 
             /* Acquire and configure the file chooser. */
             JFileChooser chooser = getExportSaver();
-            String approve;
-            String title;
-            FileFilter filter;
-            if ( format_ == EPS ) {
-                approve = "Write EPS";
-                title = "Export plot as EPS";
-                filter = psFilter_;
-            }
-            else if ( format_ == GIF ) {
-                approve = "Write GIF";
-                title = "Export plot as GIF";
-                filter = gifFilter_;
-            }
-            else {
-                throw new AssertionError();
-            }
-            chooser.setDialogTitle( title );
-            chooser.setFileFilter( filter );
+            chooser.setDialogTitle( "Export Plot As " + formatName_ );
+            chooser.setFileFilter( filter_ );
 
             /* Prompt the user to select a file for output. */
-            if ( chooser.showDialog( parent, approve ) ==
+            if ( chooser.showDialog( parent, "Write " + formatName_ ) ==
                  JFileChooser.APPROVE_OPTION ) {
                 OutputStream ostrm = null;
                 try {
@@ -693,15 +681,7 @@ public abstract class GraphicsWindow extends AuxWindow
                                     new FileOutputStream( file ) );
 
                     /* Write output to it. */
-                    if ( format_ == GIF ) {
-                        exportGif( ostrm );
-                    }
-                    else if ( format_ == EPS ) {
-                        exportEPS( ostrm );
-                    }
-                    else {
-                        assert false;
-                    }
+                    exportTo( ostrm );
                 }
                 catch ( IOException e ) {
                     ErrorDialog.showError( parent, "Write Error", e );
@@ -716,6 +696,41 @@ public abstract class GraphicsWindow extends AuxWindow
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * ExportAction which uses the java ImageIO framework to do the export.
+     */
+    protected class ImageIOExportAction extends ExportAction {
+
+        private final boolean ok_;
+        private final String formatName_;
+
+        public ImageIOExportAction( String formatName, FileFilter filter ) {
+            super( formatName, ResourceIcon.IMAGE,
+                   "Save plot as a " + formatName + " file", filter );
+            ok_ = ImageIO.getImageWritersByFormatName( formatName ).hasNext();
+            formatName_ = formatName;
+        }
+
+        public boolean isEnabled() {
+            return ok_ && super.isEnabled();
+        }
+
+        public void exportTo( OutputStream out ) throws IOException {
+            JComponent plot = getPlot();
+            int w = plot.getWidth();
+            int h = plot.getHeight();
+            BufferedImage image = 
+                new BufferedImage( w, h, BufferedImage.TYPE_INT_RGB );
+            plot.paint( image.getGraphics() );
+            boolean done = ImageIO.write( image, formatName_, out );
+            out.flush();
+            if ( ! done ) {
+                throw new IOException( "No handler for format " + formatName_ +
+                                       " (surprising - thought there was)" );
             }
         }
     }
