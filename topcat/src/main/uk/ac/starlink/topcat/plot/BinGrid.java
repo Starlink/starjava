@@ -164,6 +164,19 @@ public class BinGrid {
     }
 
     /**
+     * Returns the raw histogram data held by this grid.
+     * The result is an array where each element holds the number of 
+     * points which have fallen in the corresponding bin.
+     * Note the ordering is image-like, as for {@link #getBytes} - 
+     * X values change most rapidly and Y values decrease.
+     *
+     * @return  histogram count array
+     */
+    public int[] getCounts() {
+        return counts_;
+    }
+
+    /**
      * Maps the X and Y coordinates to a flat array index.
      *
      * @param   ix  X coordinate
