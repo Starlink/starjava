@@ -206,7 +206,8 @@ public class DensityPlot extends SurfacePlot {
                 DensityStyle style = (DensityStyle) styles[ is ];
                 BinGrid grid = grids[ is ];
                 byte[] data = grid.getBytes( grid.getCut( loCut ),
-                                             grid.getCut( hiCut ) );
+                                             grid.getCut( hiCut ),
+                                             state.getLogZ() );
                 for ( int ipix = 0; ipix < npix; ipix++ ) {
                     rgb[ ipix ] = rgb[ ipix ] | style.levelBits( data[ ipix ] );
                 }
@@ -361,12 +362,16 @@ public class DensityPlot extends SurfacePlot {
                 if ( use ) {
                     points.getCoords( ip, coords );
                     if ( ! Double.isNaN( coords[ 0 ] ) &&
-                         ! Double.isNaN( coords[ 1 ] ) ) {
+                         ! Double.isNaN( coords[ 1 ] ) &&
+                         ! Double.isInfinite( coords[ 0 ] ) &&
+                         ! Double.isInfinite( coords[ 1 ] ) &&
+                         ! ( xlog && coords[ 0 ] <= 0.0 ) &&
+                         ! ( ylog && coords[ 1 ] <= 0.0 ) ) {
                         nInclude++;
-                        int ix = (int) ( xBin *
+                        int ix = (int) Math.floor( xBin *
                             ( xlog ? Math.log( coords[ 0 ] / loBounds[ 0 ] )
                                    : ( coords[ 0 ] - loBounds[ 0 ] ) ) );
-                        int iy = (int) ( yBin *
+                        int iy = (int) Math.floor( yBin *
                             ( ylog ? Math.log( coords[ 1 ] / loBounds[ 1 ] )
                                    : ( coords[ 1 ] - loBounds[ 1 ] ) ) );
                         if ( ix >= 0 && ix < xpix && iy >= 0 && iy < ypix ) {
