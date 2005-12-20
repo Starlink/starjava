@@ -409,6 +409,16 @@ public class DensityPlot extends SurfacePlot {
     }
 
     /**
+     * Returns the binned grid(s) corresponding to the image currently
+     * displayed by this component.
+     *
+     * @return  binned data object(s)
+     */
+    public BinGrid[] getBinnedData() {
+        return grids_;
+    }
+
+    /**
      * This component calls this method following a repaint with the
      * values of the number of points that were plotted.
      * It is intended as a hook for clients which want to know that
