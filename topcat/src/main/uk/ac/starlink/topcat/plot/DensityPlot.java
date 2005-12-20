@@ -359,27 +359,29 @@ public class DensityPlot extends SurfacePlot {
                     use = use || inc;
                 }
                 if ( use ) {
-                    nInclude++;
                     points.getCoords( ip, coords );
-                    int ix =
-                        (int) ( xBin * ( xlog
-                                       ? Math.log( coords[ 0 ] / loBounds[ 0 ] )
-                                       : ( coords[ 0 ] - loBounds[ 0 ] ) ) );
-                    int iy =
-                        (int) ( yBin * ( ylog
-                                       ? Math.log( coords[ 1 ] / loBounds[ 1 ] )
-                                       : ( coords[ 1 ] - loBounds[ 1 ] ) ) );
-                    if ( ix >= 0 && ix < xpix && iy >= 0 && iy < ypix ) {
-                        visible.set( ip );
-                        if ( xflip ) {
-                            ix = xpix - 1 - ix;
-                        }
-                        if ( yflip ) {
-                            iy = ypix - 1 - iy;
-                        }
-                        for ( int is = 0; is < nset; is++ ) {
-                            if ( setFlags[ is ] ) {
-                                grids[ sumAll ? 0 : is ].submitDatum( ix, iy );
+                    if ( ! Double.isNaN( coords[ 0 ] ) &&
+                         ! Double.isNaN( coords[ 1 ] ) ) {
+                        nInclude++;
+                        int ix = (int) ( xBin *
+                            ( xlog ? Math.log( coords[ 0 ] / loBounds[ 0 ] )
+                                   : ( coords[ 0 ] - loBounds[ 0 ] ) ) );
+                        int iy = (int) ( yBin *
+                            ( ylog ? Math.log( coords[ 1 ] / loBounds[ 1 ] )
+                                   : ( coords[ 1 ] - loBounds[ 1 ] ) ) );
+                        if ( ix >= 0 && ix < xpix && iy >= 0 && iy < ypix ) {
+                            visible.set( ip );
+                            if ( xflip ) {
+                                ix = xpix - 1 - ix;
+                            }
+                            if ( yflip ) {
+                                iy = ypix - 1 - iy;
+                            }
+                            for ( int is = 0; is < nset; is++ ) {
+                                if ( setFlags[ is ] ) {
+                                    grids[ sumAll ? 0 : is ]
+                                        .submitDatum( ix, iy );
+                                }
                             }
                         }
                     }
