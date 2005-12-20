@@ -437,7 +437,7 @@ public class Times {
      * @param   unixMillis  milliseconds since the Unix epoch
      * @return  modified Julian date
      */
-    private static double unixMillisToMjd( long unixMillis ) {
+    public static double unixMillisToMjd( long unixMillis ) {
         return ((double) unixMillis) / MILLIS_PER_DAY + MJD_EPOCH;
     }
 
@@ -448,7 +448,7 @@ public class Times {
      * @param   mjd  modified Julian date
      * @return  milliseconds since the Unix epoch
      */
-    private static long mjdToUnixMillis( double mjd ) {
+    public static long mjdToUnixMillis( double mjd ) {
         return (long) Math.round( ( mjd - MJD_EPOCH ) * MILLIS_PER_DAY );
     }
 
