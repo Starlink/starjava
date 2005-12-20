@@ -28,6 +28,8 @@
 #        Adapted for JNIHDS.
 #     26-NOV-2002 (MBT):
 #        Now strips leading -L from ADDLIBS elements.
+#     20-DEC-2005 (MBT):
+#        Use EMS not MERS.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -61,7 +63,7 @@ fi
 #  to extract the ".o" files.
 
 list=""
-for f in `hds_link` `err_link` ""; do
+for f in `hds_link` `ems_link` ""; do
    case "$f" in
       -l*) 
          libname="`echo $f | sed 's:-l:lib:'`.a"

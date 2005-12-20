@@ -56,7 +56,8 @@
 #include <ctype.h>
 #include "jni.h"
 #include "sae_par.h"
-#include "mers.h"
+#include "ems.h"
+#include "ems_par.h"
 #include "star/hds.h"
 #include "dat_par.h"
 #include "uk_ac_starlink_hds_HDSObject.h"
@@ -73,7 +74,7 @@ typedef union {
    if ( (*env)->ExceptionCheck( env ) ) return NULL
 #ifdef DEBUG
 #define HDSCALL_REPORTLINE \
-   sprintf( errmsg, "HDS error at line %d in file %s:\n", __LINE__, __FILE__ )
+   sprintf( report, "HDS error at line %d in file %s:\n", __LINE__, __FILE__ )
 #else
 #define HDSCALL_REPORTLINE 0
 #endif
@@ -93,33 +94,38 @@ typedef union {
       int status_val = SAI__OK; \
       int *status = &status_val; \
       if ( (*env)->MonitorEnter( env, HDSLock ) == 0 ) { \
-         errMark(); \
+         emsMark(); \
          code \
          if ( *status != SAI__OK ) { \
-            char errmsg[ JNIHDS_BUFLENG + 1 ]; \
-            char errname[ ERR__SZPAR ]; \
-            int errmsg_leng; \
-            int errname_leng; \
-            char *msgpos = errmsg; \
-            msgpos += HDSCALL_REPORTLINE; \
+            char namebuf[ EMS__SZPAR + 1 ]; \
+            char msgbuf[ EMS__SZMSG + 1 ]; \
+            int name_leng; \
+            int msg_leng; \
+            char report[ JNIHDS_BUFLENG + 1 ]; \
+            char *reportpos = report; \
+            reportpos += HDSCALL_REPORTLINE; \
             while ( *status != SAI__OK ) { \
-               errLoad( errname, ERR__SZPAR, &errname_leng, msgpos, \
-                        errmsg + JNIHDS_BUFLENG - msgpos, &errmsg_leng, \
-                        status ); \
-               msgpos += errmsg_leng; \
-               if ( errmsg + JNIHDS_BUFLENG - msgpos <= 1 ) { \
-                  errFlush( status ); \
+               emsEload( namebuf, &name_leng, msgbuf, &msg_leng, status ); \
+               memcpy( reportpos, namebuf, name_leng ); \
+               reportpos += name_leng; \
+               reportpos += sprintf( reportpos, "%s", ": " ); \
+               memcpy( reportpos, msgbuf, msg_leng ); \
+               reportpos += msg_leng; \
+               if ( reportpos + EMS__SZPAR + EMS__SZMSG + 3 \
+                    > report + JNIHDS_BUFLENG ) { \
+                  emsAnnul( status ); \
+                  break; \
                } \
                if ( *status != SAI__OK ) { \
-                  *(msgpos++) = '\n'; \
+                  *(reportpos++) = '\n'; \
                } \
             } \
             throwable = \
                (*env)->NewObject( env, HDSExceptionClass, \
                                   HDSExceptionConstructorID, \
-                                  (*env)->NewStringUTF( env, errmsg ) ); \
+                                  (*env)->NewStringUTF( env, report ) ); \
          } \
-         errRlse(); \
+         emsRlse(); \
          if ( (*env)->MonitorExit( env, HDSLock ) != 0 ) { \
             throwable = monitorExitFailure( env ); \
          } \
