@@ -141,22 +141,27 @@ public class BinGrid {
      *
      * @param   loCut  lowest distinguished count value
      * @param   hiCut  highest distinguished count value
+     * @param   log    true iff you want logarithmic scalling of the colours
      * @return  scaled array of unsigned byte values representing grid data
      */
-    public byte[] getBytes( int loCut, int hiCut ) {
-        double scale = 255.0 / Math.max( hiCut - loCut + 2, 1 );
+    public byte[] getBytes( int loCut, int hiCut, boolean log ) {
+        double scale1 = log ? Math.log( (double) hiCut / (double) loCut )
+                            : hiCut - loCut;
+        double scale = 255.0 / scale1;
         byte[] buf = new byte[ npix_ ];
         for ( int ipix = 0; ipix < npix_; ipix++ ) {
             int count = counts_[ ipix ];
             int ival;
-            if ( count < loCut ) {
+            if ( count <= loCut ) {
                 ival = 0;
             }
-            else if ( count > hiCut ) {
+            else if ( count >= hiCut ) {
                 ival = 255;
             }
             else {
-                ival = (int) ( ( count - loCut + 1 ) * scale );
+                double val = log ? Math.log( (double) count / (double) loCut )
+                                 : count - loCut;
+                ival = (int) ( val * scale );
             }
             buf[ ipix ] = (byte) ival;
         }

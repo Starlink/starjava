@@ -9,6 +9,7 @@ package uk.ac.starlink.topcat.plot;
 public class DensityPlotState extends PlotState {
 
     private boolean rgb_;
+    private boolean zLog_;
     private double loCut_;
     private double hiCut_;
     private int pixSize_;
@@ -29,6 +30,26 @@ public class DensityPlotState extends PlotState {
      */
     public boolean getRgb() {
         return rgb_;
+    }
+
+    /**
+     * Sets whether the colour intensity is to be plotted on a log or
+     * linear scale.
+     *
+     * @param  zLog  true iff you want logarithmic scaling of intensity
+     */
+    public void setLogZ( boolean zLog ) {
+        zLog_ = zLog;
+    }
+
+    /**
+     * Determines whether the colour intensity is to be plotted on a log or
+     * linear scale.
+     *
+     * @return  true iff scaling will be logarithmic
+     */
+    public boolean getLogZ() {
+        return zLog_;
     }
 
     /**
