@@ -4,7 +4,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
-import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
 import uk.ac.starlink.topcat.RowSubset;
 
@@ -30,7 +30,7 @@ import uk.ac.starlink.topcat.RowSubset;
  * @author   Mark Taylor
  * @since    11 Nov 2005
  */
-public abstract class SurfacePlot extends JComponent implements Printable {
+public abstract class SurfacePlot extends JPanel implements Printable {
 
     private Points points_;
     private PlotState state_;
@@ -196,5 +196,10 @@ public abstract class SurfacePlot extends JComponent implements Printable {
         else {
             return NO_SUCH_PAGE;
         }
+    }
+
+    protected void paintComponent( Graphics g ) {
+        super.paintComponent( g );
+        g.clearRect( getX(), getY(), getWidth(), getHeight() );
     }
 }
