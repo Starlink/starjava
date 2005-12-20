@@ -86,10 +86,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         MarkStyles.openShapes( "Small Black Outlines", 3, Color.black ),
         MarkStyles.openShapes( "Medium Black Outlines", 4, Color.black ),
         MarkStyles.openShapes( "Large Black Outlines", 5, Color.black ),
-        MarkStyles.ghosts( "Faint Transparent Pixels", 0, 0.1f ),
-        MarkStyles.ghosts( "Medium Transparent Pixels", 0, 0.4f ),
-        MarkStyles.ghosts( "Faint Transparent Dots", 1, 0.1f ),
-        MarkStyles.ghosts( "Medium Transparent Dots", 1, 0.4f ),
     };
 
     /**
