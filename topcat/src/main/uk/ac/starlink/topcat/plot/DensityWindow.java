@@ -4,9 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -14,9 +18,18 @@ import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
+import javax.swing.filechooser.FileFilter;
+import nom.tam.fits.BasicHDU;
+import nom.tam.fits.FitsException;
+import nom.tam.fits.Header;
+import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.func.Times;
 
 /**
  * Graphics window which displays a density plot, that is a 2-dimensional
@@ -36,7 +49,13 @@ public class DensityWindow extends GraphicsWindow {
     private final CutChooser cutter_;
     private final PixelSizeAction pixIncAction_;
     private final PixelSizeAction pixDecAction_;
+    private final Action fitsAction_;
     private int pixelSize_ = 1;
+
+    private static FileFilter fitsFilter_ =
+        new SuffixFileFilter( new String[] { ".fits", ".fit", ".fts", } );
+    private static FileFilter jpegFilter_ =
+        new SuffixFileFilter( new String[] { ".jpeg", ".jpg", } );
 
     /**
      * Constructs a new DensityWindow.
@@ -113,6 +132,24 @@ public class DensityWindow extends GraphicsWindow {
             new PixelSizeAction( "Smaller Pixels", ResourceIcon.FINE,
                                  "Decrease number of screen pixels per bin",
                                  -1 );
+
+        /* Action for exporting image. */
+        fitsAction_ = new ExportAction( "FITS", ResourceIcon.FITS, 
+                                        "Save image as FITS array",
+                                        fitsFilter_ ) {
+            public void exportTo( OutputStream out ) throws IOException {
+                try {
+                    exportFits( out );
+                }
+                catch ( FitsException e ) {
+                    throw (IOException) new IOException( e.getMessage() )
+                                       .initCause( e );
+                }
+            }
+        };
+        Action jpegAction = new ImageIOExportAction( "JPEG", jpegFilter_ );
+        getExportMenu().add( fitsAction_ );
+        getExportMenu().add( jpegAction );
 
         /* Cut level adjuster widgets. */
         cutter_ = new CutChooser(); 
@@ -220,6 +257,7 @@ public class DensityWindow extends GraphicsWindow {
             assert styles == state.getPointSelection()
                             .getStyles();  // check we're not getting a clone
             boolean rgb = state.getRgb() && styles.length <= 3;
+            fitsAction_.setEnabled( ! rgb || styles.length == 1 );
             for ( int is = 0; is < styles.length; is++ ) {
                 styles[ is ] = rgb ? DensityStyle.RGB.getStyle( is )
                                    : DensityStyle.WHITE;
@@ -252,6 +290,106 @@ public class DensityWindow extends GraphicsWindow {
     public StyleSet getDefaultStyles( int npoint ) {
         return ((DensityPlotState) getPlotState()).getRgb() ? DensityStyle.RGB
                                                             : DensityStyle.MONO;
+    }
+
+    private void exportFits( OutputStream ostrm )
+            throws IOException, FitsException {
+        final DataOutputStream out = new DataOutputStream( ostrm );
+
+        BinGrid grid = plot_.getBinnedData()[ 0 ];
+        int max = grid.getMaxCount();
+        int bitpix;
+        abstract class IntWriter {
+            abstract void writeInt( int value ) throws IOException;
+            abstract int size();
+        };
+        IntWriter intWriter;
+        if ( max < Math.pow( 2, 7 ) ) {
+            bitpix = BasicHDU.BITPIX_BYTE;
+            intWriter = new IntWriter() {
+                void writeInt( int value ) throws IOException {
+                    out.writeByte( value );
+                }
+                int size() {
+                    return 1;
+                }
+            };
+        }
+        else if ( max < Math.pow( 2, 15 ) ) {
+            bitpix = BasicHDU.BITPIX_SHORT;
+            intWriter = new IntWriter() {
+                void writeInt( int value ) throws IOException {
+                    out.writeShort( value );
+                }
+                int size() {
+                    return 2;
+                }
+            };
+        }
+        else {
+            bitpix = BasicHDU.BITPIX_INT;
+            intWriter = new IntWriter() {
+                void writeInt( int value ) throws IOException {
+                    out.writeInt( value );
+                }
+                int size() {
+                    return 4;
+                }
+            };
+        }
+
+        int nx = grid.getSizeX();
+        int ny = grid.getSizeY();
+        DensityPlotState state = (DensityPlotState) plot_.getState();
+        int psize = state.getPixelSize();
+        ValueInfo[] axes = state.getAxes();
+        PlotSurface surface = plot_.getSurface();
+        Rectangle bbox = surface.getClip().getBounds();
+        int x0 = bbox.x;
+        int y0 = bbox.y;
+        double[] p0 = surface.graphicsToData( x0, y0, false );
+        double[] p1 = surface.graphicsToData( x0 + psize, y0 + psize, false );
+        Header hdr = new Header();
+        hdr.addValue( "SIMPLE", true, "" );
+        hdr.addValue( "BITPIX", bitpix, "Data type" );
+        hdr.addValue( "NAXIS", 2, "Number of axes" );
+        hdr.addValue( "NAXIS1", grid.getSizeX(), "X dimension" );
+        hdr.addValue( "NAXIS2", grid.getSizeY(), "Y dimension" );
+        hdr.addValue( "DATE", Times.mjdToIso( Times.unixMillisToMjd( 
+                                           System.currentTimeMillis() ) ),
+                      "HDU creation date" );
+        hdr.addValue( "CTYPE1", axes[ 0 ].getName(),
+                                axes[ 0 ].getDescription() );
+        hdr.addValue( "CTYPE2", axes[ 1 ].getName(),
+                                axes[ 1 ].getDescription() );
+        hdr.addValue( "BUNIT", "COUNTS", "Number of points per pixel (bin)" );
+        hdr.addValue( "DATAMIN", 0.0, "Minimum value" );
+        hdr.addValue( "DATAMAX", (double) grid.getMaxCount(), "Maximum value" );
+        hdr.addValue( "CRPIX1", 0.0, "Reference pixel X index" );
+        hdr.addValue( "CRPIX2", (double) ny, "Reference pixel Y index" );
+        hdr.addValue( "CRVAL1", p0[ 0 ], "Reference pixel X position" );
+        hdr.addValue( "CRVAL2", p0[ 1 ], "Reference pixel Y position" );
+        hdr.addValue( "CDELT1", p1[ 0 ] - p0[ 0 ],
+                                "X extent of reference pixel" );
+        hdr.addValue( "CDELT2", p0[ 1 ] - p1[ 1 ],
+                                "Y extent of reference pixel" );
+        hdr.addValue( "ORIGIN", "TOPCAT " + TopcatUtils.getVersion() + 
+                      " (" + getClass().getName() + ")", null );
+        FitsConstants.writeHeader( out, hdr );
+
+        int[] data = grid.getCounts();
+        for ( int iy = 0; iy < ny; iy++ ) {
+            int yoff = ( ny - 1 - iy ) * nx;
+            for ( int ix = 0; ix < nx; ix++ ) {
+                intWriter.writeInt( data[ yoff + ix ] );
+            }
+        }
+        int nbyte = nx * ny * intWriter.size();
+        int over = nbyte % FitsConstants.FITS_BLOCK;
+        if ( over > 0 ) {
+            out.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
+        }
+        out.flush();
     }
 
     /**
