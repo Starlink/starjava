@@ -29,6 +29,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Times;
 
 /**
@@ -343,6 +344,16 @@ public class DensityWindow extends GraphicsWindow {
         DensityPlotState state = (DensityPlotState) plot_.getState();
         int psize = state.getPixelSize();
         ValueInfo[] axes = state.getAxes();
+        String name1 = axes[ 0 ].getName();
+        String name2 = axes[ 1 ].getName();
+        boolean log1 = state.getLogFlags()[ 0 ];
+        boolean log2 = state.getLogFlags()[ 1 ];
+        if ( state.getLogFlags()[ 0 ] ) {
+            name1 = "log(" + name1 + ")";
+        }
+        if ( state.getLogFlags()[ 1 ] ) {
+            name2 = "log(" + name2 + ")";
+        }
         PlotSurface surface = plot_.getSurface();
         Rectangle bbox = surface.getClip().getBounds();
         int x0 = bbox.x;
@@ -358,20 +369,22 @@ public class DensityWindow extends GraphicsWindow {
         hdr.addValue( "DATE", Times.mjdToIso( Times.unixMillisToMjd( 
                                            System.currentTimeMillis() ) ),
                       "HDU creation date" );
-        hdr.addValue( "CTYPE1", axes[ 0 ].getName(),
-                                axes[ 0 ].getDescription() );
-        hdr.addValue( "CTYPE2", axes[ 1 ].getName(),
-                                axes[ 1 ].getDescription() );
+        hdr.addValue( "CTYPE1", name1, axes[ 0 ].getDescription() );
+        hdr.addValue( "CTYPE2", name2, axes[ 1 ].getDescription() );
         hdr.addValue( "BUNIT", "COUNTS", "Number of points per pixel (bin)" );
         hdr.addValue( "DATAMIN", 0.0, "Minimum value" );
         hdr.addValue( "DATAMAX", (double) grid.getMaxCount(), "Maximum value" );
         hdr.addValue( "CRPIX1", 0.0, "Reference pixel X index" );
         hdr.addValue( "CRPIX2", (double) ny, "Reference pixel Y index" );
-        hdr.addValue( "CRVAL1", p0[ 0 ], "Reference pixel X position" );
-        hdr.addValue( "CRVAL2", p0[ 1 ], "Reference pixel Y position" );
-        hdr.addValue( "CDELT1", p1[ 0 ] - p0[ 0 ],
+        hdr.addValue( "CRVAL1", log1 ? Maths.log10( p0[ 0 ] ) : p0[ 0 ],
+                                "Reference pixel X position" );
+        hdr.addValue( "CRVAL2", log2 ? Maths.log10( p0[ 1 ] ) : p0[ 1 ],
+                                "Reference pixel Y position" );
+        hdr.addValue( "CDELT1", log1 ? Maths.log10( p1[ 0 ] / p0[ 0 ] )
+                                     : ( p1[ 0 ] - p0[ 0 ] ),
                                 "X extent of reference pixel" );
-        hdr.addValue( "CDELT2", p0[ 1 ] - p1[ 1 ],
+        hdr.addValue( "CDELT2", log2 ? Maths.log10( p0[ 1 ] / p1[ 1 ] )
+                                     : ( p0[ 1 ] - p1[ 1 ] ),
                                 "Y extent of reference pixel" );
         hdr.addValue( "ORIGIN", "TOPCAT " + TopcatUtils.getVersion() + 
                       " (" + getClass().getName() + ")", null );
