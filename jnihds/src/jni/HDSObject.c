@@ -1228,7 +1228,7 @@ JNIEXPORT jobjectArray JNICALL NATIVE_METHOD( datGetvc )(
    /* Create buffers to hold the data. */
    if ( ! (*env)->ExceptionOccurred( env ) &&
         ( buffer = jMalloc( env, bufleng ) ) &&
-        ( ptrs = jMalloc( env, size * sizeof( char * ) ) ) ) {
+        ( ptrs = jMalloc( env, ( size + 1 ) * sizeof( char * ) ) ) ) {
 
       /* Call the HDS routine to do the work. */
       HDSCALL(
