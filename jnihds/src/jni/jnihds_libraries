@@ -30,6 +30,9 @@
 #        Now strips leading -L from ADDLIBS elements.
 #     20-DEC-2005 (MBT):
 #        Use EMS not MERS.
+#     21-DEC-2005 (MBT):
+#        Use Conly flags on hds_link and ems_link to remove fortran
+#        dependency altogether.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -54,8 +57,10 @@ fi
 #fi
 if test "$STARLINK" != ""; then
    library_path="${library_path}${STARLINK}/lib"
+   star_bin="${STARLINK}/bin"
 else
    library_path="${library_path}/star/lib"
+   star_bin="/star/bin"
 fi
 
 #  Ok, now create the actual list. The main problem is that libraries
@@ -63,7 +68,7 @@ fi
 #  to extract the ".o" files.
 
 list=""
-for f in `hds_link` `ems_link` ""; do
+for f in `${star_bin}/hds_link Conly` `${star_bin}/ems_link Conly` ""; do
    case "$f" in
       -l*) 
          libname="`echo $f | sed 's:-l:lib:'`.a"
