@@ -164,8 +164,8 @@ public class Plot3D extends JComponent {
         }
         for ( int i = 0; i < 3; i++ ) {
             if ( nok == 0 ) {
-                loBounds[ i ] = 0.0;
-                hiBounds[ i ] = 1.0;
+                loBounds[ i ] = logFlags[ i ] ? 1.0 : 0.0;
+                hiBounds[ i ] = logFlags[ i ] ? 10.0 : 1.0;
             }
             else if ( loBounds[ i ] == hiBounds[ i ] ) {
                 loBounds[ i ] = logFlags[ i ] ? loBounds[ i ] / 2.0
@@ -173,16 +173,21 @@ public class Plot3D extends JComponent {
                 hiBounds[ i ] = logFlags[ i ] ? hiBounds[ i ] * 2.0
                                               : hiBounds[ i ] + 1.0;
             }
-        }        
+        }
         loBounds_ = loBounds;
         hiBounds_ = hiBounds;
         loBoundsG_ = new double[ 3 ];
         hiBoundsG_ = new double[ 3 ];
         for ( int i = 0; i < 3; i++ ) {
-            loBoundsG_[ i ] = logFlags[ i ] ? Math.log( loBounds_[ i ] )
-                                            : loBounds_[ i ];
-            hiBoundsG_[ i ] = logFlags[ i ] ? Math.log( hiBounds_[ i ] )
-                                            : hiBounds_[ i ];
+            double lo = loBounds_[ i ];
+            double hi = hiBounds_[ i ];
+            if ( logFlags[ i ] ) {
+                lo = Math.log( lo );
+                hi = Math.log( hi );
+            }
+            boolean flip = getState().getFlipFlags()[ i ];
+            loBoundsG_[ i ] = flip ? hi : lo;
+            hiBoundsG_[ i ] = flip ? lo : hi;
         }
         lastVol_ = null;
         lastTrans_ = null;
@@ -315,6 +320,7 @@ public class Plot3D extends JComponent {
                              state_.getAntialias() 
                                  ? RenderingHints.VALUE_ANTIALIAS_ON
                                  : RenderingHints.VALUE_ANTIALIAS_DEFAULT );
+        boolean[] flipFlags = getState().getFlipFlags();
         for ( int i0 = 0; i0 < 8; i0++ ) {
             Corner c0 = Corner.getCorner( i0 );
             boolean[] flags0 = c0.getFlags();
@@ -335,10 +341,10 @@ public class Plot3D extends JComponent {
                         double[] p0 = new double[ 3 ];
                         double[] p1 = new double[ 3 ];
                         for ( int j = 0; j < 3; j++ ) {
-                            p0[ j ] = flags0[ j ] ? hiBounds_[ j ]
-                                                  : loBounds_[ j ];
-                            p1[ j ] = flags1[ j ] ? hiBounds_[ j ] 
-                                                  : loBounds_[ j ];
+                            p0[ j ] = ( flags0[ j ] ^ flipFlags[ j ] )
+                                    ? hiBounds_[ j ] : loBounds_[ j ];
+                            p1[ j ] = ( flags1[ j ] ^ flipFlags[ j ] )
+                                    ? hiBounds_[ j ] : loBounds_[ j ];
                         }
                         assert c1 != Corner.ORIGIN;
                         if ( c0 == Corner.ORIGIN ) {
@@ -527,9 +533,9 @@ public class Plot3D extends JComponent {
                 double m10 = m[ 3 ];
                 double m11 = m[ 4 ];
                 double m12 = m[ 5 ];
-                assert Math.abs( m[ 6 ] - 0.0 ) < 1e-6;
-                assert Math.abs( m[ 7 ] - 0.0 ) < 1e-6;
-                assert Math.abs( m[ 8 ] - 1.0 ) < 1e-6;
+                assert Math.abs( m[ 6 ] - 0.0 ) < 1e-6 : m[ 6 ];
+                assert Math.abs( m[ 7 ] - 0.0 ) < 1e-6 : m[ 7 ];
+                assert Math.abs( m[ 8 ] - 1.0 ) < 1e-6 : m[ 8 ];
 
                 /* See if the text is inside out.  If so, flip the sense 
                  * and try again. */
@@ -577,6 +583,7 @@ public class Plot3D extends JComponent {
          * make many concessions to selecting the right tick marks for
          * logarithmic axes, could do better. */
         boolean log = logFlags[ iaxis ];
+        boolean flip = getState().getFlipFlags()[ iaxis ];
         double lo = loBounds_[ iaxis ];
         double hi = hiBounds_[ iaxis ];
         int[] tickPos = null;
@@ -593,8 +600,9 @@ public class Plot3D extends JComponent {
                 tickLabels[ i ] = axer.getLabel( i );
                 double frac = log ? Math.log( tick / lo ) / Math.log( hi / lo )
                                   : ( tick - lo ) / ( hi - lo );
-                tickPos[ i ] =
-                    (int) Math.round( sx * ( forward ? frac : ( 1. - frac ) ) );
+                tickPos[ i ] = (int) Math.round( sx * ( ( forward ^ flip )
+                                                            ? frac
+                                                            : ( 1. - frac ) ) );
                 if ( i > 0 && Math.abs( tickPos[ i ] - tickPos[ i - 1 ] ) 
                               < fm.stringWidth( tickLabels[ i - 1 ] + "99" ) ) {
                     nTick = 0;
