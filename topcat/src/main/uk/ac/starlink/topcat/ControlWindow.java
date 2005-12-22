@@ -70,11 +70,11 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.topcat.join.MatchWindow;
+import uk.ac.starlink.topcat.plot.Cartesian3DWindow;
 import uk.ac.starlink.topcat.plot.DensityWindow;
 import uk.ac.starlink.topcat.plot.GraphicsWindow;
 import uk.ac.starlink.topcat.plot.HistogramWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
-import uk.ac.starlink.topcat.plot.Plot3DWindow;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -248,7 +248,7 @@ public class ControlWindow extends AuxWindow
                                       DensityWindow.class ),
             new GraphicsWindowAction( "3D", ResourceIcon.PLOT3D,
                                       "Three-dimensional scatter plot",
-                                      Plot3DWindow.class ),
+                                      Cartesian3DWindow.class ),
         };
         writeAct_ = new ModelViewAction( "Save Table", ResourceIcon.SAVE,
                                          "Write out the current table" ) {

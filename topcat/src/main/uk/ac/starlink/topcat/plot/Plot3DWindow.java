@@ -30,7 +30,8 @@ import uk.ac.starlink.topcat.TopcatModel;
  * @author   Mark Taylor
  * @since    22 Nov 2005
  */
-public class Plot3DWindow extends GraphicsWindow implements TopcatListener {
+public abstract class Plot3DWindow extends GraphicsWindow
+                                   implements TopcatListener {
 
     private final Plot3D plot_;
     private final ToggleButtonModel fogModel_;
@@ -46,12 +47,16 @@ public class Plot3DWindow extends GraphicsWindow implements TopcatListener {
                   0, -0.1 * Math.PI );
 
     /**
-     * Constructs a new window.
+     * Constructor.
      *
-     * @param   parent  parent component (may be used for postioning)
+     * @param   viewName  name of the view window
+     * @param   axisNames  array of labels by which each axis is known;
+     *          the length of this array defines the dimensionality of the plot
+     * @param   parent   parent window - may be used for positioning
      */
-    public Plot3DWindow( Component parent ) {
-        super( "3D", new String[] { "X", "Y", "Z" }, parent );
+    public Plot3DWindow( String viewName, String[] axisNames,
+                         Component parent ) {
+        super( viewName, axisNames, parent );
 
         /* Construct and populate the plot panel with the 3D plot itself
          * and a transparent layer for doodling blobs on. */
@@ -168,14 +173,9 @@ public class Plot3DWindow extends GraphicsWindow implements TopcatListener {
         getToolBar().add( blobAction_ );
         getToolBar().addSeparator();
 
-        /* Add standard toolbar items. */
-        addHelp( "Plot3DWindow" );
+        /* Set initial rotation. */
         setRotation( INITIAL_ROTATION );
         replot();
-
-        /* Make visible. */
-        pack();
-        setVisible( true );
     }
 
     /**
