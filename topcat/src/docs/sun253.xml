@@ -6930,6 +6930,7 @@ introduced since the last version:
     table to load (e.g. HDU index for FITS or TABLE index for VOTable).</li>
 <li>When joining tables, column name comparison to determine whether
     deduplication is required is now case-insensitive.</li>
+<li>Add hide all/reveal all actions to Columns window.</li>
 </ul>
 </p></dd>
 
