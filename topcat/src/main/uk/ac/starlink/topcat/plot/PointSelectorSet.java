@@ -21,6 +21,7 @@ import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatForwarder;
 import uk.ac.starlink.topcat.TopcatListener;
@@ -28,6 +29,12 @@ import uk.ac.starlink.topcat.TopcatListener;
 /**
  * Component which keeps track of a number of {@link PointSelector} objects.
  * It currently uses a JTabbedPane to present them.
+ * 
+ * <p>It also keeps track of whether the selected axes are reversed (flipped)
+ * and whether they use linear or logarithmic scales.  This is not 
+ * logically the job of this component, but the checkboxes really have 
+ * to go in the same bit of screen space, so for practical reasons
+ * they are here.
  * 
  * @author   Mark Taylor
  * @since    1 Nov 2005
@@ -41,6 +48,7 @@ public class PointSelectorSet extends JPanel {
     private final ActionForwarder actionForwarder_;
     private final TopcatForwarder topcatForwarder_;
     private final OrderRecorder orderRecorder_;
+    private final List toggleSetList_;
     private int selectorsCreated_;
 
     /**
@@ -59,6 +67,7 @@ public class PointSelectorSet extends JPanel {
         selectorsCreated_ = 0;
         actionForwarder_ = new ActionForwarder();
         topcatForwarder_ = new TopcatForwarder();
+        toggleSetList_ = new ArrayList();
         add( new SizeWrapper( tabber_ ), BorderLayout.CENTER );
 
         Action newSelectorAction =
@@ -91,6 +100,34 @@ public class PointSelectorSet extends JPanel {
         toolBox.add( newSelectorAction );
         toolBox.add( removeSelectorAction );
         add( toolBox, BorderLayout.WEST );
+    }
+
+    /**
+     * Add a named array of toggle buttons to be displayed with this 
+     * selector set.  These describe some boolean attribute which may 
+     * be applied under user control to each axis.
+     * Toggle button sets should be added using this method only 
+     * <em>before</em> {@link #addNewSelector} has been called for the
+     * first time.
+     *
+     * @param  name  short label for the control
+     * @param  models  array of button models, one for each axis
+     */
+    public void addAxisToggles( String name, ToggleButtonModel[] models ) {
+        if ( models.length != axisNames_.length ) {
+            throw new IllegalArgumentException();
+        }
+        toggleSetList_.add( new ToggleSet( name, models ) );
+    }
+
+    /**
+     * Returns an array of the ToggleSets which have been added by 
+     * {@link #addAxisToggles}.
+     *
+     * @return   array of per-axis toggle sets
+     */
+    public ToggleSet[] getAxisToggleSets() {
+        return (ToggleSet[]) toggleSetList_.toArray( new ToggleSet[ 0 ] );
     }
 
     /**
@@ -163,7 +200,7 @@ public class PointSelectorSet extends JPanel {
      */
     public void addNewSelector() {
         PointSelector psel = 
-            new PointSelector( axisNames_,
+            new PointSelector( axisNames_, getAxisToggleSets(),
                                new PoolStyleSet( styles_, usedMarkers_ ),
                                null );
         addSelector( psel );
@@ -307,11 +344,23 @@ public class PointSelectorSet extends JPanel {
      * @param  index  tab index
      * @return  tab name
      */
-    public String getNextTabName() {
+    private String getNextTabName() {
         return selectorsCreated_++ == 0
              ? "Main"
              : new String( new char[] { (char)
                                         ( 'A' + selectorsCreated_ - 2 ) } );
+    }
+
+    /**
+     * Encapsulates an array of toggle button models with an associated name.
+     */
+    static class ToggleSet {
+        final String name_;
+        final ToggleButtonModel[] models_;
+        ToggleSet( String name, ToggleButtonModel[] models ) {
+            name_ = name;
+            models_ = (ToggleButtonModel[]) models.clone();
+        }
     }
 
     /**

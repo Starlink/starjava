@@ -47,6 +47,7 @@ public class DensityWindow extends GraphicsWindow {
     private final Action blobAction_;
     private final CountsLabel plotStatus_;
     private final ToggleButtonModel rgbModel_;
+    private final ToggleButtonModel zLogModel_;
     private final CutChooser cutter_;
     private final PixelSizeAction pixIncAction_;
     private final PixelSizeAction pixDecAction_;
@@ -124,6 +125,14 @@ public class DensityWindow extends GraphicsWindow {
         rgbModel_.setSelected( true );
         rgbModel_.addActionListener( getReplotListener() );
 
+        /* Action for linear/log scale for colour map. */
+        zLogModel_ = new ToggleButtonModel( "Log Intensity",
+                                            ResourceIcon.COLOR_LOG,
+                                            "Pixel colours represent log of " +
+                                            "counts" );
+        zLogModel_.setSelected( false );
+        zLogModel_.addActionListener( getReplotListener() );
+
         /* Actions for altering pixel size. */
         pixIncAction_ =
             new PixelSizeAction( "Bigger Pixels", ResourceIcon.ROUGH,
@@ -175,6 +184,7 @@ public class DensityWindow extends GraphicsWindow {
         axisMenu.addSeparator();
         axisMenu.add( getLogModels()[ 0 ].createMenuItem() );
         axisMenu.add( getLogModels()[ 1 ].createMenuItem() );
+        axisMenu.add( zLogModel_.createMenuItem() );
         getJMenuBar().add( axisMenu );
 
         /* View menu. */
@@ -202,10 +212,7 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Add actions to the toolbar. */
         getToolBar().add( resizeAction );
-        getToolBar().add( getFlipModels()[ 0 ].createToolbarButton() );
-        getToolBar().add( getFlipModels()[ 1 ].createToolbarButton() );
-        getToolBar().add( getLogModels()[ 0 ].createToolbarButton() );
-        getToolBar().add( getLogModels()[ 1 ].createToolbarButton() );
+        getToolBar().add( zLogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( rgbModel_.createToolbarButton() );
         getToolBar().add( pixIncAction_ );
@@ -235,11 +242,14 @@ public class DensityWindow extends GraphicsWindow {
 
     public PlotState getPlotState() {
         DensityPlotState state = (DensityPlotState) super.getPlotState();
+        boolean valid = state != null && state.getValid();
 
         rgbModel_.setEnabled( state.getValid() &&
                               state.getPointSelection()
                                    .getStyles().length <= 3 );
         state.setRgb( rgbModel_.isEnabled() && rgbModel_.isSelected() );
+
+        state.setLogZ( zLogModel_.isSelected() );
 
         state.setLoCut( cutter_.getLowValue() );
         state.setHiCut( cutter_.getHighValue() );

@@ -71,8 +71,9 @@ public class PointSelector extends JPanel implements TopcatListener {
      * @param   fixedTable  optionally, the identity of a table which 
      *          is the one on which this selector will operate
      */
-    public PointSelector( String[] axisNames, StyleSet styles,
-                          TopcatModel fixedTable ) {
+    public PointSelector( String[] axisNames,
+                          PointSelectorSet.ToggleSet[] toggleSets,
+                          StyleSet styles, TopcatModel fixedTable ) {
         super( new BorderLayout() );
         ndim_ = axisNames.length;
         styles_ = styles;
@@ -131,8 +132,20 @@ public class PointSelector extends JPanel implements TopcatListener {
             cPanel.add( new ShrinkWrapper( colSelectors_[ i ] ) );
             cPanel.add( Box.createHorizontalStrut( 5 ) );
             cPanel.add( new ComboBoxBumper( colSelectors_[ i ] ) );
-            cPanel.add( Box.createHorizontalGlue() );
             colSelectors_[ i ].setEnabled( false );
+            cPanel.add( Box.createHorizontalStrut( 5 ) );
+
+            /* Add any per-axis toggles requested. */
+            for ( int j = 0; j < toggleSets.length; j++ ) {
+                PointSelectorSet.ToggleSet toggleSet = toggleSets[ j ];
+                JCheckBox checkBox = toggleSet.models_[ i ].createCheckBox();
+                checkBox.setLabel( toggleSet.name_ );
+                cPanel.add( Box.createHorizontalStrut( 5 ) );
+                cPanel.add( checkBox );
+            }
+
+            /* Pad. */
+            cPanel.add( Box.createHorizontalGlue() );
         }
         int pad = ndim_ == 1 ? colSelectors_[ 0 ].getPreferredSize().height
                              : 5;
@@ -182,16 +195,6 @@ public class PointSelector extends JPanel implements TopcatListener {
             revalidate();
             repaint();
         }
-    }
-
-    /**
-     * Constructs a selector in which the user can choose the table.
-     *
-     * @param   axisNames  labels for the columns to choose
-     * @param   styles  default marker style set
-     */
-    public PointSelector( String[] axisNames, StyleSet styles ) {
-        this( axisNames, styles, null );
     }
 
     /**

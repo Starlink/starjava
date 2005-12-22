@@ -238,10 +238,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         /* Add actions to the toolbar. */
         getToolBar().add( resizeAction );
         getToolBar().add( getGridModel().createToolbarButton() );
-        getToolBar().add( getFlipModels()[ 0 ].createToolbarButton() );
-        getToolBar().add( getFlipModels()[ 1 ].createToolbarButton() );
-        getToolBar().add( getLogModels()[ 0 ].createToolbarButton() );
-        getToolBar().add( getLogModels()[ 1 ].createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction_ );

@@ -162,8 +162,6 @@ public class HistogramWindow extends GraphicsWindow {
         getToolBar().add( rescaleActionY );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( cumulativeModel_.createToolbarButton() );
-        getToolBar().add( getFlipModels()[ 0 ].createToolbarButton() );
-        getToolBar().add( getLogModels()[ 0 ].createToolbarButton() );
         getToolBar().add( yLogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( fromVisibleAction );

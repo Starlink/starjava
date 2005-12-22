@@ -98,6 +98,28 @@ public abstract class GraphicsWindow extends AuxWindow
                            Component parent ) {
         super( viewName, parent );
         ndim_ = axisNames.length;
+        replotListener_ = new ReplotListener();
+
+        /* Axis flags. */
+        flipModels_ = new ToggleButtonModel[ ndim_ ];
+        logModels_ = new ToggleButtonModel[ ndim_ ];
+        for ( int i = 0; i < ndim_; i++ ) {
+            String ax = axisNames[ i ];
+            flipModels_[ i ] = new ToggleButtonModel( "Flip " + ax + " Axis",
+                null, "Reverse the sense of the " + axisNames[ i ] + " axis" );
+            logModels_[ i ] = new ToggleButtonModel( "Log " + ax + " Axis",
+                null, "Logarithmic scale for the " + axisNames[ i ] + " axis" );
+            flipModels_[ i ].addActionListener( replotListener_ );
+            logModels_[ i ].addActionListener( replotListener_ );
+        }
+        if ( ndim_ > 0 ) {
+            flipModels_[ 0 ].setIcon( ResourceIcon.XFLIP );
+            logModels_[ 0 ].setIcon( ResourceIcon.XLOG );
+            if ( ndim_ > 1 ) {
+                flipModels_[ 1 ].setIcon( ResourceIcon.YFLIP );
+                logModels_[ 1 ].setIcon( ResourceIcon.YLOG );
+            }
+        }
 
         /* Set up point selector component. */
         StyleSet proxyStyleSet = new StyleSet() {
@@ -109,12 +131,13 @@ public abstract class GraphicsWindow extends AuxWindow
             }
         };
         pointSelectors_ = new PointSelectorSet( axisNames, proxyStyleSet );
+        pointSelectors_.addAxisToggles( "Log", logModels_ );
+        pointSelectors_.addAxisToggles( "Flip", flipModels_ );
         getControlPanel().setLayout( new BoxLayout( getControlPanel(),
                                                     BoxLayout.Y_AXIS ) );
         getControlPanel().add( new SizeWrapper( pointSelectors_ ) );
 
         /* Ensure that changes to the point selection trigger a replot. */
-        replotListener_ = new ReplotListener();
         pointSelectors_.addActionListener( replotListener_ );
         pointSelectors_.addNewSelector();
 
@@ -152,27 +175,6 @@ public abstract class GraphicsWindow extends AuxWindow
                                             "drawn" );
         gridModel_.setSelected( true );
         gridModel_.addActionListener( replotListener_ );
-
-        /* Axis flags. */
-        flipModels_ = new ToggleButtonModel[ ndim_ ];
-        logModels_ = new ToggleButtonModel[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            String ax = axisNames[ i ];
-            flipModels_[ i ] = new ToggleButtonModel( "Flip " + ax + " Axis",
-                null, "Reverse the sense of the " + axisNames[ i ] + " axis" );
-            logModels_[ i ] = new ToggleButtonModel( "Log " + ax + " Axis",
-                null, "Logarithmic scale for the " + axisNames[ i ] + " axis" );
-            flipModels_[ i ].addActionListener( replotListener_ );
-            logModels_[ i ].addActionListener( replotListener_ );
-        }
-        if ( ndim_ > 0 ) {
-            flipModels_[ 0 ].setIcon( ResourceIcon.XFLIP );
-            logModels_[ 0 ].setIcon( ResourceIcon.XLOG );
-            if ( ndim_ > 1 ) {
-                flipModels_[ 1 ].setIcon( ResourceIcon.YFLIP );
-                logModels_[ 1 ].setIcon( ResourceIcon.YLOG );
-            }
-        }
     }
 
     public void setVisible( boolean visible ) {
