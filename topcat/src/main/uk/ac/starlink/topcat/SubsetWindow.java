@@ -171,10 +171,6 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
         /* Add standard help actions. */
         addHelp( "SubsetWindow" );
-
-        /* Make the component visible. */
-        pack();
-        setVisible( true );
     }
    
     /**
@@ -356,7 +352,8 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         public void actionPerformed( ActionEvent evt ) {
             Component parent = SubsetWindow.this;
             if ( this == addAct ) {
-                new SyntheticSubsetQueryWindow( tcModel, parent );
+                new SyntheticSubsetQueryWindow( tcModel, parent )
+               .setVisible( true );
             }
 
             else if ( this == tocolAct ) {
@@ -365,6 +362,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 int irow = jtab.getSelectedRow();
                 colwin.setExpression( getSubsetID( irow ) );
                 colwin.setName( getSubsetName( irow ) );
+                colwin.setVisible( true );
             }
 
             else if ( this == countAct ) {

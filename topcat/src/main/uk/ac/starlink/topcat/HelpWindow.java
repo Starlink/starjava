@@ -123,10 +123,6 @@ public class HelpWindow extends AuxWindow {
 
         /* Install it into this window. */
         getContentPane().add( helpComponent );
-
-        /* Make visible. */
-        pack();
-        setVisible( true );
     }
 
     /**

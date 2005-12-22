@@ -236,10 +236,6 @@ public class TableViewerWindow extends AuxWindow
 
         /* Add help information. */
         addHelp( "TableViewerWindow" );
-
-        /* Display. */
-        pack();
-        setVisible( true );
     }
 
     /**
@@ -331,7 +327,8 @@ public class TableViewerWindow extends AuxWindow
             new BasicAction( "New Synthetic Column", ResourceIcon.ADD,
                              "Add new synthetic column after " + colName ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    new SyntheticColumnQueryWindow( tcModel, jcol + 1, parent );
+                    new SyntheticColumnQueryWindow( tcModel, jcol + 1, parent )
+                   .setVisible( true );
                 }
             };
         addcolAct.setEnabled( TopcatUtils.canJel() );

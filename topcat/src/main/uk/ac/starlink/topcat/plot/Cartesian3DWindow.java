@@ -19,7 +19,5 @@ public class Cartesian3DWindow extends Plot3DWindow {
         super( "3D", new String[] { "X", "Y", "Z" }, parent );
 
         addHelp( "PlotXyzWindow" );
-        pack();
-        setVisible( true );
     }
 }

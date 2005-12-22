@@ -63,8 +63,6 @@ public class SkyColumnQueryWindow extends QueryWindow {
         box.add( outSelector_.getComponent() );
 
         addHelp( "SkyColumnQueryWindow" );
-        pack();
-        setVisible( true );
     }
 
     /**

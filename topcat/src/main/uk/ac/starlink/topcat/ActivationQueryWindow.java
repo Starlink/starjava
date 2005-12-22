@@ -124,10 +124,6 @@ public class ActivationQueryWindow extends QueryWindow {
 
         /* Add help information. */
         addHelp( "ActivationQueryWindow" );
-
-        /* Show the window. */
-        pack();
-        setVisible( true );
     }
 
     /**

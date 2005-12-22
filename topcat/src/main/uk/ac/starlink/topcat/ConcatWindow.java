@@ -105,10 +105,6 @@ public class ConcatWindow extends AuxWindow
 
         /* Initialise state. */
         updateDisplay();
-
-        /* Make the component visible. */
-        pack();
-        setVisible( true );
     }
 
     /**

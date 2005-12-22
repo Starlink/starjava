@@ -226,10 +226,6 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Perform an initial plot. */
         replot();
-
-        /* Render this component visible. */
-        pack();
-        setVisible( true );
     }
 
     protected JComponent getPlot() {

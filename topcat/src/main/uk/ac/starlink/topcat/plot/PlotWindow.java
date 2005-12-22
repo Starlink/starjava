@@ -248,10 +248,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
         /* Perform an initial plot. */
         replot();
-
-        /* Render this component visible. */
-        pack();
-        setVisible( true );
     }
 
     protected JComponent getPlot() {

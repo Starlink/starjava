@@ -312,7 +312,8 @@ public class ParameterWindow extends AuxWindow
                                   "Add a new parameter" ) {
             public void actionPerformed( ActionEvent evt ) {
                 ParameterWindow paramWindow = ParameterWindow.this;
-                new ParameterQueryWindow( paramWindow.tcModel, paramWindow );
+                new ParameterQueryWindow( paramWindow.tcModel, paramWindow )
+               .setVisible( true );
             }
         };
         getToolBar().add( addAct );
@@ -357,10 +358,6 @@ public class ParameterWindow extends AuxWindow
 
         /* Add standard help actions. */
         addHelp( "ParameterWindow" );
-
-        /* Make the component visible. */
-        pack();
-        setVisible( true );
     }
 
     private DescribedValue getParam( int irow ) {

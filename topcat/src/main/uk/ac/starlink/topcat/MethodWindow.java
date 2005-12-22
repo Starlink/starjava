@@ -215,10 +215,6 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
 
         /* Add standard help actions. */
         addHelp( "MethodWindow" );
-
-        /* Make the component visible. */
-        pack();
-        setVisible( true );
     }
 
     /**
@@ -327,6 +323,8 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
      *
      * @param  parent  a component which may be used as a parent
      *                 for positioning purposes
+     * @param  activation  true iff you want to see the activation actions
+     *                     as well as the normal functions
      */
     public static Action getWindowAction( final Component parent,
                                           final boolean activation ) {
@@ -338,10 +336,8 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
                 if ( window == null ) {
                     window = new MethodWindow( parent );
                 }
-                else {
-                    window.showActivation( activation );
-                    window.makeVisible();
-                }
+                window.showActivation( activation );
+                window.makeVisible();
             }
         };
     }

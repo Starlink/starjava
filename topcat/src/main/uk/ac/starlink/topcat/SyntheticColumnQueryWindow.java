@@ -104,10 +104,6 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
 
         /* Add help information. */
         addHelp( "SyntheticColumnQueryWindow" );
-
-        /* Show the window. */
-        pack();
-        setVisible( true );
     }
 
     /**
@@ -355,6 +351,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         if ( colId != null ) {
             qwin.setExpression( colId.getValue().toString() );
         }
+        qwin.setVisible( true );
         return qwin;
     }
 

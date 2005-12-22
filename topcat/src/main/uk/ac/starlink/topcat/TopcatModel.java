@@ -831,7 +831,8 @@ public class TopcatModel {
             Component parent = getEventWindow( evt );
             TopcatModel model = TopcatModel.this;
             if ( this == newsubsetAct_ ) {
-                new SyntheticSubsetQueryWindow( model, parent );
+                new SyntheticSubsetQueryWindow( model, parent )
+               .setVisible( true );
             }
             else if ( this == unsortAct_ ) {
                 sortBy( SortOrder.NONE, false );
@@ -869,6 +870,7 @@ public class TopcatModel {
                 if ( ! hasWindow() ) {
                     activationWindow_ = 
                         new ActivationQueryWindow( tcModel, parent );
+                    activationWindow_.setVisible( true );
                 }
                 return activationWindow_;
             }
@@ -879,6 +881,7 @@ public class TopcatModel {
                         controlWindow_.getLoadChooser();
                     saveWindow_ = new SaveQueryWindow( tcModel, sto,
                                                        loadChooser, parent );
+                    saveWindow_.setVisible( true );
                 }
                 return saveWindow_;
             }

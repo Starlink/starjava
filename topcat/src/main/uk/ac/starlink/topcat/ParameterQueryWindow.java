@@ -73,10 +73,6 @@ public class ParameterQueryWindow extends QueryWindow {
 
         /* Add help information. */
         addHelp( "ParameterQueryWindow" );
-
-        /* Show the window. */
-        pack();
-        setVisible( true );
     }
 
     /**

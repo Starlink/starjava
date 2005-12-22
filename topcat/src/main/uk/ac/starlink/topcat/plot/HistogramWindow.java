@@ -182,10 +182,6 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Perform an initial plot. */
         replot();
-
-        /* Render component visible. */
-        pack();
-        setVisible( true );
     }
 
     protected JComponent getPlot() {

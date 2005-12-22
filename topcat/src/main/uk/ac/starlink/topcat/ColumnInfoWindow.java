@@ -443,10 +443,6 @@ public class ColumnInfoWindow extends AuxWindow {
 
         /* Add standard help actions. */
         addHelp( "ColumnInfoWindow" );
-
-        /* Make the component visible. */
-        pack();
-        setVisible( true );
     }
 
     private int getModelIndexFromRow( int irow ) {
@@ -646,14 +642,15 @@ public class ColumnInfoWindow extends AuxWindow {
                 else {
                     insertPos = -1;
                 }
-                new SyntheticColumnQueryWindow( tcModel, insertPos, parent );
+                new SyntheticColumnQueryWindow( tcModel, insertPos, parent )
+               .setVisible( true );
             }
 
             /* Add new sky columns: pop up a dialogue window which will
              * result in new sky coordinate columns being added when the
              * user OKs it. */
             else if ( this == addskycolAct ) {
-                new SkyColumnQueryWindow( tcModel, parent );
+                new SkyColumnQueryWindow( tcModel, parent ).setVisible( true );
             }
 
             /* Replace a column by another one.  This creates and pops up 

@@ -104,7 +104,6 @@ public abstract class LoadQueryWindow extends QueryWindow {
 
         /* Help button. */
         addHelp( "LoadQueryWindow" );
-        pack();
     }
 
     /**

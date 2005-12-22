@@ -30,7 +30,7 @@ public abstract class QueryWindow extends AuxWindow {
     private LabelledComponentStack stack;
     private Action okAction;
     private Action cancelAction;
-    private boolean configured = false;
+    private boolean configured;
     protected Border blankBorder = 
         BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
 
@@ -199,14 +199,16 @@ public abstract class QueryWindow extends AuxWindow {
      */
     public void setVisible( boolean isVis ) {
 
-        /* Execute the superclass implementation. */
-        super.setVisible( isVis );
-
         /* Take some extra actions if we are revealing the window for 
          * the first time. */
         if ( isVis && ! configured ) {
             configureKeys();
             initFocus();
+            pack();
+            configured = true;
         }
+
+        /* Execute the superclass implementation. */
+        super.setVisible( isVis );
     }
 }

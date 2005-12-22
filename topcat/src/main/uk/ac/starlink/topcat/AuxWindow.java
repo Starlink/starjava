@@ -56,6 +56,7 @@ public class AuxWindow extends JFrame {
     private JMenuBar menuBar;
     private boolean closeIsExit;
     private boolean isStandalone;
+    private boolean packed;
 
     private Action aboutAct;
     private Action controlAct;
@@ -224,6 +225,14 @@ public class AuxWindow extends JFrame {
     public void makeVisible() {
         setState( Frame.NORMAL );
         setVisible( true );
+    }
+
+    public void setVisible( boolean isVis ) {
+        if ( ! packed && isVis ) {
+            pack();
+            packed = true;
+        }
+        super.setVisible( isVis );
     }
 
     /**

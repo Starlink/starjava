@@ -68,10 +68,6 @@ public class SaveQueryWindow extends QueryWindow {
         chooserLine.add( chooser_ );
         chooserLine.add( Box.createHorizontalGlue() );
         mainBox.add( chooserLine );
-
-        /* Help button. */
-        addHelp( "SaveQueryWindow" );
-        pack();
     }
 
     public boolean perform() {

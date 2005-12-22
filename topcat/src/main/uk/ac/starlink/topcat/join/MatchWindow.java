@@ -134,10 +134,6 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         /* Initialise to an active state. */
         engineSelector.setSelectedIndex( 0 );
         updateDisplay();
-
-        /* Make the component visible. */
-        pack();
-        setVisible( true );
     }
 
     /**

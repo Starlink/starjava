@@ -47,10 +47,6 @@ public class SyntheticSubsetQueryWindow extends QueryWindow {
 
         /* Add help information. */
         addHelp( "SyntheticSubsetQueryWindow" );
-
-        /* Show the window. */
-        pack();
-        setVisible( true );
     }
 
     protected boolean perform() {

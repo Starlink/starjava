@@ -159,10 +159,6 @@ public class StatsWindow extends AuxWindow {
                 }
             }
         } );
-
-        /* Make the component visible. */
-        pack();
-        setVisible( true );
     }
 
     /**

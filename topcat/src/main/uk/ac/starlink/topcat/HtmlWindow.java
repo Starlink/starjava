@@ -90,8 +90,6 @@ public class HtmlWindow extends AuxWindow {
 
         /* Final window setup. */
         addHelp( "documentViewers" );
-        pack();
-        setVisible( true );
     }
 
     /**

@@ -178,8 +178,6 @@ public class LogHandler extends MemoryHandler {
              getToolBar().addSeparator();
 
              addHelp( "LogWindow" );
-             pack();
-             setVisible( true );
          }
     }
 }
