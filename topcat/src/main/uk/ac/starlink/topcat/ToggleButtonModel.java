@@ -1,8 +1,8 @@
 package uk.ac.starlink.topcat;
 
 import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JToggleButton;
 import javax.swing.JToggleButton;
 
 /**
@@ -96,6 +96,18 @@ public class ToggleButtonModel extends JToggleButton.ToggleButtonModel {
         menuItem.setModel( this );
         menuItem.setToolTipText( shortdesc_ );
         return menuItem;
+    }
+
+    /**
+     * Creates and returns a check box using this model.
+     *
+     * @return  checkbox
+     */
+    public JCheckBox createCheckBox() {
+        JCheckBox checkBox = new JCheckBox( text_ );
+        checkBox.setModel( this );
+        checkBox.setToolTipText( shortdesc_ );
+        return checkBox;
     }
 
     /**
