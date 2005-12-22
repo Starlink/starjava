@@ -126,6 +126,7 @@ public class ResourceIcon implements Icon {
         PLOT_LINES = makeIcon( "lines.gif" ),
         EXPLODE = makeIcon( "explode.gif" ),
         ADDSKY = makeIcon( "addsky1.gif" ),
+        COLOR_LOG = makeIcon( "logred2.gif" ),
         XLOG = makeIcon( "xlog.gif" ),
         YLOG = makeIcon( "ylog.gif" ),
         XFLIP = makeIcon( "xflip.gif" ),
