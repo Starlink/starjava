@@ -30,6 +30,8 @@ public class Plot3D extends JComponent {
     private Plot3DState state_;
     private double[] loBounds_;
     private double[] hiBounds_;
+    private double[] loBoundsG_;
+    private double[] hiBoundsG_;
     private PlotVolume lastVol_;
     private Transformer3D lastTrans_;
     private PointRegistry pointReg_;
@@ -118,10 +120,14 @@ public class Plot3D extends JComponent {
      * will be visible at all rotations.
      */
     public void rescale() {
+        boolean[] logFlags = getState().getLogFlags();
         double[] loBounds = new double[ 3 ];
         double[] hiBounds = new double[ 3 ];
-        Arrays.fill( loBounds, Double.MAX_VALUE );
-        Arrays.fill( hiBounds, -Double.MAX_VALUE );
+        for ( int i = 0; i < 3; i++ ) {
+            loBounds[ i ] = Double.MAX_VALUE;
+            hiBounds[ i ] = logFlags[ i ] ? Double.MIN_VALUE
+                                          : - Double.MAX_VALUE;
+        }
         Points points = getPoints();
         int np = points.getCount();
         RowSubset[] sets = getPointSelection().getSubsets();
@@ -139,7 +145,13 @@ public class Plot3D extends JComponent {
                 points.getCoords( ip, coords );
                 if ( ! Double.isNaN( coords[ 0 ] ) &&
                      ! Double.isNaN( coords[ 1 ] ) &&
-                     ! Double.isNaN( coords[ 2 ] ) ) {
+                     ! Double.isNaN( coords[ 2 ] ) &&
+                     ! Double.isInfinite( coords[ 0 ] ) &&
+                     ! Double.isInfinite( coords[ 1 ] ) &&
+                     ! Double.isInfinite( coords[ 2 ] ) &&
+                     ! ( logFlags[ 0 ] && coords[ 0 ] <= 0.0 ) &&
+                     ! ( logFlags[ 1 ] && coords[ 1 ] <= 0.0 ) &&
+                     ! ( logFlags[ 2 ] && coords[ 2 ] <= 0.0 ) ) {
                     nok++;
                     for ( int id = 0; id < 3; id++ ) {
                         loBounds[ id ] = Math.min( loBounds[ id ],
@@ -156,12 +168,22 @@ public class Plot3D extends JComponent {
                 hiBounds[ i ] = 1.0;
             }
             else if ( loBounds[ i ] == hiBounds[ i ] ) {
-                loBounds[ i ] = loBounds[ i ] - 1.;
-                hiBounds[ i ] = hiBounds[ i ] + 1.;
+                loBounds[ i ] = logFlags[ i ] ? loBounds[ i ] / 2.0
+                                              : loBounds[ i ] - 1.0;
+                hiBounds[ i ] = logFlags[ i ] ? hiBounds[ i ] * 2.0
+                                              : hiBounds[ i ] + 1.0;
             }
         }        
         loBounds_ = loBounds;
         hiBounds_ = hiBounds;
+        loBoundsG_ = new double[ 3 ];
+        hiBoundsG_ = new double[ 3 ];
+        for ( int i = 0; i < 3; i++ ) {
+            loBoundsG_[ i ] = logFlags[ i ] ? Math.log( loBounds_[ i ] )
+                                            : loBounds_[ i ];
+            hiBoundsG_[ i ] = logFlags[ i ] ? Math.log( hiBounds_[ i ] )
+                                            : hiBounds_[ i ];
+        }
         lastVol_ = null;
         lastTrans_ = null;
     }
@@ -192,7 +214,7 @@ public class Plot3D extends JComponent {
         /* Set up a transformer to do the mapping from data space to
          * normalised 3-d view space. */
         Transformer3D trans = 
-            new Transformer3D( state.getRotation(), loBounds_, hiBounds_);
+            new Transformer3D( state.getRotation(), loBoundsG_, hiBoundsG_ );
 
         /* Set up a plotting volume to render the 3-d points. */
         PlotVolume vol = new SortPlotVolume( this, g );
@@ -206,6 +228,7 @@ public class Plot3D extends JComponent {
         int np = points.getCount();
         int nInclude = 0;
         int nVisible = 0;
+        boolean[] logFlags = getState().getLogFlags();
         double[] coords = new double[ 3 ];
         boolean[] useMask = new boolean[ nset ];
         for ( int ip = 0; ip < np; ip++ ) {
@@ -218,7 +241,8 @@ public class Plot3D extends JComponent {
             if ( use ) {
                 nInclude++;
                 points.getCoords( ip, coords );
-                if ( inRange( coords, loBounds_, hiBounds_ ) ) {
+                if ( inRange( coords, loBounds_, hiBounds_ ) &&
+                     logize( coords, logFlags ) ) {
                     nVisible++;
                     trans.transform( coords );
                     // coords[ 2 ] = ( ( coords[ 2 ] - .5 ) / SQRT3 ) + .5;
@@ -301,10 +325,10 @@ public class Plot3D extends JComponent {
                 if ( c1.compareTo( c0 ) > 0 ) {
                     double[] mid = new double[ 3 ];
                     for ( int j = 0; j < 3; j++ ) {
-                        mid[ j ] = 0.5 * ( ( flags0[ j ] ? hiBounds_[ j ]
-                                                         : loBounds_[ j ] ) 
-                                         + ( flags1[ j ] ? hiBounds_[ j ]
-                                                         : loBounds_[ j ] ) );
+                        mid[ j ] = 0.5 * ( ( flags0[ j ] ? hiBoundsG_[ j ]
+                                                         : loBoundsG_[ j ] ) 
+                                         + ( flags1[ j ] ? hiBoundsG_[ j ]
+                                                         : loBoundsG_[ j ] ) );
                     }
                     trans.transform( mid );
                     if ( ( mid[ 2 ] > 0.5 ) != front ) {
@@ -343,6 +367,13 @@ public class Plot3D extends JComponent {
     private void drawBoxLine( Graphics g, Transformer3D trans, PlotVolume vol,
                               double[] p0, double[] p1 ) {
         Color col = g.getColor();
+        boolean[] logFlags = getState().getLogFlags();
+        for ( int i = 0; i < 3; i++ ) {
+            if ( logFlags[ i ] ) {
+                p0[ i ] = Math.log( p0[ i ] );
+                p1[ i ] = Math.log( p1[ i ] );
+            }
+        }
         trans.transform( p0 );
         trans.transform( p1 );
         g.setColor( Color.LIGHT_GRAY );
@@ -366,6 +397,13 @@ public class Plot3D extends JComponent {
                            double[] p0, double[] p1 ) {
         Graphics2D g2 = (Graphics2D) g1.create();
         g2.setColor( Color.BLACK );
+        boolean[] logFlags = getState().getLogFlags();
+        for ( int i = 0; i < 3; i++ ) {
+            if ( logFlags[ i ] ) {
+                p0[ i ] = Math.log( p0[ i ] );
+                p1[ i ] = Math.log( p1[ i ] );
+            }
+        }
 
         /* First draw a line representing the axis.  In principle we could
          * do this by drawing a straight line into the transformed 
@@ -390,6 +428,7 @@ public class Plot3D extends JComponent {
                 iaxis = i;
             }
         }
+        assert iaxis >= 0 && iaxis < 3;
 
         /* Which way is up?  We need to decide on a unit vector which defines
          * the plane in which text will be written.  The direction must
@@ -424,7 +463,18 @@ public class Plot3D extends JComponent {
         int sx = scale;
         int sy = fontHeight;
         AffineTransform atf = null;
-        while ( atf == null ) {
+        for ( int itry = 0; atf == null; itry++ ) {
+
+            /* There are a couple of conditions in the following algorithm
+             * where a test is made, and if it fails an input is changed
+             * and the loop runs again to get a better result.  In principle
+             * this should always lead to the right result in a finite
+             * number of iterations.  However there may be pathological
+             * cases in which it leads to an infinite loop.  This flag
+             * spots if it looks like this is happening and makes sure that
+             * we just go with the possibly imperfect result we have rather
+             * than hang the UI for ever. */
+            boolean stopFiddling = itry > 5;
 
             /* Define a notional region on the graphics plane to which we
              * can plot text.  This is a rectangle based at the origin which
@@ -442,7 +492,7 @@ public class Plot3D extends JComponent {
             for ( int i = 0; i < 3; i++ ) {
                 p00[ i ] = forward ? p0[ i ] : p1[ i ];
                 p10[ i ] = forward ? p1[ i ] : p0[ i ];
-                p01[ i ] = p00[ i ] + ( hiBounds_[ i ] - loBounds_[ i ] ) 
+                p01[ i ] = p00[ i ] + ( hiBoundsG_[ i ] - loBoundsG_[ i ] )
                                     * fontHeight / scale
                                     * up[ i ];
             }
@@ -458,7 +508,7 @@ public class Plot3D extends JComponent {
 
             /* See if the text is upside down.  If so, invert the up
              * vector and try again. */
-            if ( a01[ 1 ] < a00[ 1 ] ) {
+            if ( a01[ 1 ] < a00[ 1 ] && ! stopFiddling ) {
                 up = Matrices.mult( up, -1. );
             }
 
@@ -483,7 +533,7 @@ public class Plot3D extends JComponent {
 
                 /* See if the text is inside out.  If so, flip the sense 
                  * and try again. */
-                if ( m00 * m11 - m01 * m10 < 0 ) {
+                if ( m00 * m11 - m01 * m10 < 0 && ! stopFiddling ) {
                     forward = ! forward;
                 }
 
@@ -523,14 +573,17 @@ public class Plot3D extends JComponent {
 
         /* Work out where to put ticks on the axis.  Do this recursively;
          * if we find that the labels are too crowded on the axis decrease
-         * the number of tick marks and try again. */
+         * the number of tick marks and try again.  Note we don't currently
+         * make many concessions to selecting the right tick marks for
+         * logarithmic axes, could do better. */
+        boolean log = logFlags[ iaxis ];
         double lo = loBounds_[ iaxis ];
         double hi = hiBounds_[ iaxis ];
         int[] tickPos = null;
         String[] tickLabels = null;
         int nTick = 0;
         int labelGap = fm.stringWidth( "99" );
-        for ( int mTick = 4; nTick == 0 && mTick > 0; mTick-- ) {
+        for ( int mTick = log ? 2 : 4; nTick == 0 && mTick > 0; mTick-- ) {
             AxisLabeller axer = new AxisLabeller( lo, hi, mTick );
             nTick = axer.getCount();
             tickPos = new int[ nTick ];
@@ -538,7 +591,8 @@ public class Plot3D extends JComponent {
             for ( int i = 0; i < nTick; i++ ) {
                 double tick = axer.getTick( i );
                 tickLabels[ i ] = axer.getLabel( i );
-                double frac = ( tick - lo ) / ( hi - lo );
+                double frac = log ? Math.log( tick / lo ) / Math.log( hi / lo )
+                                  : ( tick - lo ) / ( hi - lo );
                 tickPos[ i ] =
                     (int) Math.round( sx * ( forward ? frac : ( 1. - frac ) ) );
                 if ( i > 0 && Math.abs( tickPos[ i ] - tickPos[ i - 1 ] ) 
@@ -554,7 +608,7 @@ public class Plot3D extends JComponent {
             int tpos = tickPos[ i ];
             String tlabel = tickLabels[ i ];
             g2.drawLine( tpos, -2, tpos, +2 );
-            g2.drawString( tlabel, tpos - fm.stringWidth( tlabel ), sy );
+            g2.drawString( tlabel, tpos - fm.stringWidth( tlabel ) / 2, sy );
         }
     }
 
@@ -587,6 +641,7 @@ public class Plot3D extends JComponent {
             Points points = getPoints();
             PointRegistry reg = new PointRegistry();
             if ( vol != null && points != null && points != null ) {
+                boolean[] logFlags = getState().getLogFlags();
                 int np = points.getCount();
                 RowSubset[] sets = getPointSelection().getSubsets();
                 int nset = sets.length;
@@ -599,7 +654,8 @@ public class Plot3D extends JComponent {
                     }
                     if ( use ) {
                         points.getCoords( ip, coords );
-                        if ( inRange( coords, loBounds_, hiBounds_ ) ) {
+                        if ( inRange( coords, loBounds_, hiBounds_ ) &&
+                             logize( coords, logFlags ) ) {
                             trans.transform( coords );
                             Point p = new Point( vol.projectX( coords[ 0 ] ),
                                                  vol.projectY( coords[ 1 ] ) );
@@ -633,6 +689,32 @@ public class Plot3D extends JComponent {
             }
         }
         return false;
+    }
+
+    /**
+     * Converts coordinates to logarithmic values if necessary.
+     * The <code>coords</code> array holds the input values on entry,
+     * and each of these will be turned into logarithms of themselves
+     * on exit iff the corresponding element of the logFlags array is
+     * true.
+     * The return value will be true if the conversion went OK, and
+     * false if it couldn't be done for at least one coordinate, 
+     * because it was non-positive.
+     *
+     * @param  coords  3-element coordinate array
+     */
+    private static boolean logize( double[] coords, boolean[] logFlags ) {
+        for ( int iax = 0; iax < 3; iax++ ) {
+            if ( logFlags[ iax ] ) {
+                if ( coords[ iax ] > 0 ) {
+                    coords[ iax ] = Math.log( coords[ iax ] );
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -683,8 +765,12 @@ public class Plot3D extends JComponent {
             for ( int i = 0; i < 3; i++ ) {
                 double lo = loBounds[ i ];
                 double hi = hiBounds[ i ];
+                if ( lo == hi ) {
+                    lo = lo - 1.0;
+                    hi = hi + 1.0;
+                }
                 loBounds_[ i ] = lo;
-                factors_[ i ] = 1.0 / Math.abs( hi - lo );
+                factors_[ i ] = 1.0 / ( hi - lo );
             }
         }
 
@@ -759,12 +845,15 @@ public class Plot3D extends JComponent {
          * @param  g  graphics context
          */
         void draw( Graphics g, Transformer3D trans, PlotVolume vol ) {
+            boolean[] logFlags = getState().getLogFlags();
             for ( int i = 0; i < activePoints_.length; i++ ) {
                 double[] coords = new double[ 3 ];
                 getPoints().getCoords( activePoints_[ i ], coords );
-                trans.transform( coords );
-                cursorStyle_.drawMarker( g, vol.projectX( coords[ 0 ] ),
-                                            vol.projectY( coords[ 1 ] ) );
+                if ( logize( coords, logFlags ) ) {
+                    trans.transform( coords );
+                    cursorStyle_.drawMarker( g, vol.projectX( coords[ 0 ] ),
+                                                vol.projectY( coords[ 1 ] ) );
+                }
             }
         }
 
