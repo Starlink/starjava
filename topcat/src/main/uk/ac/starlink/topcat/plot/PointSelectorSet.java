@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,42 +38,30 @@ import uk.ac.starlink.topcat.TopcatListener;
  * @author   Mark Taylor
  * @since    1 Nov 2005
  */
-public class PointSelectorSet extends JPanel {
+public abstract class PointSelectorSet extends JPanel {
 
     private final JTabbedPane tabber_;
-    private final String[] axisNames_;
-    private final StyleSet styles_;
-    private final BitSet usedMarkers_;
     private final ActionForwarder actionForwarder_;
     private final TopcatForwarder topcatForwarder_;
     private final OrderRecorder orderRecorder_;
-    private final List toggleSetList_;
     private int selectorsCreated_;
 
     /**
-     * Constructs a new set, with given names for the axis labels.
-     *
-     * @param  axisNames  axis names; length defines dimensionality of 
-     *         point selectors
-     * @param  styles    style set
+     * Constructs a new set.
      */
-    public PointSelectorSet( String[] axisNames, StyleSet styles ) {
+    public PointSelectorSet() {
         super( new BorderLayout() );
         tabber_ = new JTabbedPane();
-        axisNames_ = axisNames;
-        styles_ = styles;
-        usedMarkers_ = new BitSet();
         selectorsCreated_ = 0;
         actionForwarder_ = new ActionForwarder();
         topcatForwarder_ = new TopcatForwarder();
-        toggleSetList_ = new ArrayList();
         add( new SizeWrapper( tabber_ ), BorderLayout.CENTER );
 
         Action newSelectorAction =
             new BasicAction( "Add Dataset", ResourceIcon.ADD,
                              "Add a new data set" ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    addNewSelector();
+                    addNewSelector( createSelector() );
                 } 
             };
         final Action removeSelectorAction =
@@ -103,43 +90,6 @@ public class PointSelectorSet extends JPanel {
     }
 
     /**
-     * Add a named array of toggle buttons to be displayed with this 
-     * selector set.  These describe some boolean attribute which may 
-     * be applied under user control to each axis.
-     * Toggle button sets should be added using this method only 
-     * <em>before</em> {@link #addNewSelector} has been called for the
-     * first time.
-     *
-     * @param  name  short label for the control
-     * @param  models  array of button models, one for each axis
-     */
-    public void addAxisToggles( String name, ToggleButtonModel[] models ) {
-        if ( models.length != axisNames_.length ) {
-            throw new IllegalArgumentException();
-        }
-        toggleSetList_.add( new ToggleSet( name, models ) );
-    }
-
-    /**
-     * Returns an array of the ToggleSets which have been added by 
-     * {@link #addAxisToggles}.
-     *
-     * @return   array of per-axis toggle sets
-     */
-    public ToggleSet[] getAxisToggleSets() {
-        return (ToggleSet[]) toggleSetList_.toArray( new ToggleSet[ 0 ] );
-    }
-
-    /**
-     * Returns the number of axes this component will deal with.
-     *
-     * @return  dimensionality
-     */
-    public int getNdim() {
-        return axisNames_.length;
-    }
-
-    /**
      * Returns the number of selectors in this set.
      *
      * @return  selector count
@@ -157,6 +107,14 @@ public class PointSelectorSet extends JPanel {
     public PointSelector getSelector( int index ) {
         return (PointSelector) tabber_.getComponentAt( index );
     }
+
+    /**
+     * Factory method to construct new PointSelector objects to go in
+     * this PointSelectorSet.
+     *
+     * @return   new point selector component
+     */
+    protected abstract PointSelector createSelector();
 
     /**
      * Returns the data specification reflecting the current state of this
@@ -182,8 +140,7 @@ public class PointSelectorSet extends JPanel {
         String[] names = (String[]) nameList.toArray( new String[ 0 ] );
         int[][] subsetPointers =
             orderRecorder_.getSubsetPointers( activeSelectors );
-        return new PointSelection( getNdim(), activeSelectors, names,
-                                   subsetPointers );
+        return new PointSelection( activeSelectors, names, subsetPointers );
     }
 
     /**
@@ -197,11 +154,10 @@ public class PointSelectorSet extends JPanel {
 
     /**
      * Adds a new selector to this set.
+     *
+     * @param  psel  new selector
      */
-    public void addNewSelector() {
-        PointSelector psel = 
-            new DefaultPointSelector( new PoolStyleSet( styles_, usedMarkers_ ),
-                                      axisNames_, getAxisToggleSets() );
+    public void addNewSelector( PointSelector psel ) {
         addSelector( psel );
         tabber_.setSelectedComponent( psel );
     }
@@ -348,18 +304,6 @@ public class PointSelectorSet extends JPanel {
              ? "Main"
              : new String( new char[] { (char)
                                         ( 'A' + selectorsCreated_ - 2 ) } );
-    }
-
-    /**
-     * Encapsulates an array of toggle button models with an associated name.
-     */
-    static class ToggleSet {
-        final String name_;
-        final ToggleButtonModel[] models_;
-        ToggleSet( String name, ToggleButtonModel[] models ) {
-            name_ = name;
-            models_ = (ToggleButtonModel[]) models.clone();
-        }
     }
 
     /**

@@ -14,6 +14,7 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.ColumnCellRenderer;
 import uk.ac.starlink.topcat.ColumnComboBoxModel;
 import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
@@ -39,7 +40,7 @@ public class DefaultPointSelector extends PointSelector {
      * @param   toggleSets toggle sets to associate with each axes (may be null)
      */
     public DefaultPointSelector( StyleSet styles, String[] axisNames,
-                                 PointSelectorSet.ToggleSet[] toggleSets ) {
+                                 ToggleSet[] toggleSets ) {
         super( styles );
         ndim_ = axisNames.length;
         
@@ -66,7 +67,7 @@ public class DefaultPointSelector extends PointSelector {
             /* Add any per-axis toggles requested. */
             if ( toggleSets != null ) {
                 for ( int j = 0; j < toggleSets.length; j++ ) {
-                    PointSelectorSet.ToggleSet toggleSet = toggleSets[ j ];
+                    ToggleSet toggleSet = toggleSets[ j ];
                     JCheckBox checkBox = toggleSet.models_[ i ]
                                                   .createCheckBox();
                     checkBox.setText( toggleSet.name_ );
@@ -175,6 +176,18 @@ public class DefaultPointSelector extends PointSelector {
         }
         return cols;
     }
+
+    /**     
+     * Encapsulates an array of toggle button models with an associated name.
+     */         
+    static class ToggleSet {
+        final String name_;
+        final ToggleButtonModel[] models_;
+        ToggleSet( String name, ToggleButtonModel[] models ) {
+            name_ = name;
+            models_ = (ToggleButtonModel[]) models.clone(); 
+        }       
+    }               
 
     /**
      * Like a ColumnPermutedStarTable, but implements equals() properly.

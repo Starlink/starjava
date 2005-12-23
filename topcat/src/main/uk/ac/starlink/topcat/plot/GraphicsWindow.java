@@ -69,10 +69,13 @@ public abstract class GraphicsWindow extends AuxWindow
 
     private final ReplotListener replotListener_;
     private final Action replotAction_;
+    private final StyleSet proxyStyleSet_;
+    private final String[] axisNames_;
     private final ToggleButtonModel gridModel_;
     private final ToggleButtonModel[] flipModels_;
     private final ToggleButtonModel[] logModels_;
     private final JMenu exportMenu_;
+    private final BitSet usedMarkers_;
 
     private StyleSet styleSet_;
     private Points points_;
@@ -98,6 +101,7 @@ public abstract class GraphicsWindow extends AuxWindow
     public GraphicsWindow( String viewName, String[] axisNames,
                            Component parent ) {
         super( viewName, parent );
+        axisNames_ = axisNames;
         ndim_ = axisNames.length;
         replotListener_ = new ReplotListener();
 
@@ -123,7 +127,8 @@ public abstract class GraphicsWindow extends AuxWindow
         }
 
         /* Set up point selector component. */
-        StyleSet proxyStyleSet = new StyleSet() {
+        usedMarkers_ = new BitSet();
+        proxyStyleSet_ = new StyleSet() {
             public String getName() {
                 return styleSet_.getName();
             }
@@ -131,16 +136,18 @@ public abstract class GraphicsWindow extends AuxWindow
                 return styleSet_.getStyle( index );
             }
         };
-        pointSelectors_ = new PointSelectorSet( axisNames, proxyStyleSet );
-        pointSelectors_.addAxisToggles( "Log", logModels_ );
-        pointSelectors_.addAxisToggles( "Flip", flipModels_ );
+        pointSelectors_ = new PointSelectorSet() {
+            protected PointSelector createSelector() {
+                return GraphicsWindow.this.createPointSelector();
+            }
+        };
         getControlPanel().setLayout( new BoxLayout( getControlPanel(),
                                                     BoxLayout.Y_AXIS ) );
         getControlPanel().add( new SizeWrapper( pointSelectors_ ) );
 
         /* Ensure that changes to the point selection trigger a replot. */
         pointSelectors_.addActionListener( replotListener_ );
-        pointSelectors_.addNewSelector();
+        pointSelectors_.addNewSelector( createPointSelector() );
 
          /* Actions for exporting the plot. */
         Action gifAction = new ExportAction( "GIF", ResourceIcon.IMAGE,
@@ -267,6 +274,23 @@ public abstract class GraphicsWindow extends AuxWindow
      * @param  points  data to plot
      */
     protected abstract void doReplot( PlotState state, Points points );
+
+    /**
+     * Returns a new PointSelector instance to be used for selecting
+     * points to be plotted.
+     *
+     * @return   new point selector component
+     */
+    protected PointSelector createPointSelector() {
+        DefaultPointSelector.ToggleSet[] toggleSets = 
+            new DefaultPointSelector.ToggleSet[] {
+                new DefaultPointSelector.ToggleSet( "Log", logModels_ ),
+                new DefaultPointSelector.ToggleSet( "Flip", flipModels_ ),
+            };
+        return new DefaultPointSelector( new PoolStyleSet( proxyStyleSet_,
+                                                           usedMarkers_ ),
+                                         axisNames_, toggleSets );
+    };
 
     /**
      * Returns a StyleSet which can supply markers.
