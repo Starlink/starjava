@@ -257,6 +257,10 @@ public abstract class GraphicsWindow extends AuxWindow
         return statusBox_;
     }
 
+    protected StyleSet createPooledStyleSet() {
+        return new PoolStyleSet( proxyStyleSet_, usedMarkers_ );
+    }
+
     /**
      * Returns the component containing the graphics output of this 
      * window.  This is the component which is exported or printed etc,
@@ -287,9 +291,8 @@ public abstract class GraphicsWindow extends AuxWindow
                 new DefaultPointSelector.ToggleSet( "Log", logModels_ ),
                 new DefaultPointSelector.ToggleSet( "Flip", flipModels_ ),
             };
-        return new DefaultPointSelector( new PoolStyleSet( proxyStyleSet_,
-                                                           usedMarkers_ ),
-                                         axisNames_, toggleSets );
+        return new DefaultPointSelector( createPooledStyleSet(), axisNames_,
+                                         toggleSets );
     };
 
     /**
