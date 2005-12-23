@@ -18,6 +18,6 @@ public class Cartesian3DWindow extends Plot3DWindow {
     public Cartesian3DWindow( Component parent ) {
         super( "3D", new String[] { "X", "Y", "Z" }, parent );
 
-        addHelp( "PlotXyzWindow" );
+        addHelp( "Cartesian3DWindow" );
     }
 }
