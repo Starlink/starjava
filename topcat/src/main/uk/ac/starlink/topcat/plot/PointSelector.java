@@ -176,6 +176,21 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      */
     protected abstract void initialiseSelectors();
 
+    /**
+     * Returns a StarTable which corresponds to the data in the columns
+     * selected by the current selections on this object.
+     *
+     * <p>Note: for performance reasons, it is <em>imperative</em> that
+     * two tables returned from this method must match according to the
+     * {@link java.lang.Object#equals} method if they are known to 
+     * contain the same cell data (i.e. if the state of this selector
+     * has not changed in the mean time).  Don't forget to do 
+     * <code>hashCode</code> too.
+     *
+     * @return   table containing the data from the current selection
+     */
+    public abstract StarTable getData();
+
     public void setVisible( boolean visible ) {
         if ( visible ) {
             revalidate();
@@ -284,21 +299,6 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     public StyleSet getStyles() {
         return styles_;
     }
-
-    /**
-     * Returns a StarTable which corresponds to the data in the columns
-     * selected by the current selections on this object.
-     *
-     * <p>Note: for performance reasons, it is <em>imperative</em> that
-     * two tables returned from this method must match according to the
-     * {@link java.lang.Object#equals} method if they are known to 
-     * contain the same cell data (i.e. if the state of this selector
-     * has not changed in the mean time).  Don't forget to do 
-     * <code>hashCode</code> too.
-     *
-     * @return   table containing the data from the current selection
-     */
-    public abstract StarTable getData();
 
     /**
      * Adds an action listener.  It will be notified every time something
