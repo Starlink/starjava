@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 
@@ -27,7 +27,7 @@ public class PointSelection {
     private final int nTable_;
     private final TopcatModel[] tcModels_;
     private final long[] nrows_;
-    private final int[][] icols_;
+    private final StarTable[] dataTables_;
     private final RowSubset[] subsets_;
     private final Style[] styles_;
 
@@ -65,19 +65,15 @@ public class PointSelection {
 
         /* Store the tables and column indices representing the data. */
         tcModels_ = new TopcatModel[ nTable_ ];
+        dataTables_ = new StarTable[ nTable_ ];
         nrows_ = new long[ nTable_ ];
         long[] offsets = new long[ nTable_ ];
-        icols_ = new int[ nTable_ ][];
         long offset = 0L;
         for ( int itab = 0; itab < nTable_; itab++ ) {
             PointSelector psel = selectors[ itab ];
             tcModels_[ itab ] = psel.getTable();
+            dataTables_[ itab ] = psel.getData();
             nrows_[ itab ] = tcModels_[ itab ].getDataModel().getRowCount();
-            StarTableColumn[] cols = psel.getColumns();
-            icols_[ itab ] = new int[ ndim_ ];
-            for ( int idim = 0; idim < ndim_; idim++ ) {
-                icols_[ itab ][ idim ] = cols[ idim ].getModelIndex();
-            }
             offsets[ itab ] = offset;
             offset += nrows_[ itab ];
         }
@@ -129,13 +125,11 @@ public class PointSelection {
         double[] coords = new double[ ndim_ ];
         try {
             for ( int itab = 0; itab < nTable_; itab++ ) {
-                int[] icols = icols_[ itab ];
-                RowSequence rseq =
-                    tcModels_[ itab ].getDataModel().getRowSequence();
+                RowSequence rseq = dataTables_[ itab ].getRowSequence();
                 while ( rseq.next() ) {
+                    Object[] row = rseq.getRow();
                     for ( int idim = 0; idim < ndim_; idim++ ) {
-                        coords[ idim ] = 
-                            doubleValue( rseq.getCell( icols[ idim ] ) );
+                        coords[ idim ] = doubleValue( row[ idim ] );
                     }
                     points.putCoords( ipoint++, coords );
                 }
@@ -305,18 +299,8 @@ public class PointSelection {
      * @return  true  iff the data is the same
      */
     public boolean sameData( PointSelection other ) {
-        if ( other == null ) {
-            return false;
-        }
-        if ( ! Arrays.equals( tcModels_, other.tcModels_ ) ) {
-            return false;
-        }
-        for ( int i = 0; i < nTable_; i++ ) {
-            if ( ! Arrays.equals( icols_[ i ], other.icols_[ i ] ) ) {
-                return false;
-            }
-        }
-        return true;
+        return other != null 
+            && Arrays.equals( this.dataTables_, other.dataTables_ );
     }
 
     public boolean equals( Object otherObject ) {
@@ -333,9 +317,7 @@ public class PointSelection {
         int code = 555;
         for ( int itab = 0; itab < nTable_; itab++ ) {
             code = 23 * code + tcModels_[ itab ].hashCode();
-            for ( int idim = 0; idim < ndim_; idim++ ) {
-                code = 23 * icols_[ itab ][ idim ];
-            }
+            code = 23 * code + dataTables_[ itab ].hashCode();
         }
         for ( int i = 0; i < subsets_.length; i++ ) {
             code = 23 * code + subsets_[ i ].hashCode();

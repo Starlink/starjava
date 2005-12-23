@@ -41,6 +41,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import org.jibble.epsgraphics.EpsGraphics2D;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
@@ -319,13 +320,12 @@ public abstract class GraphicsWindow extends AuxWindow
         }
 
         /* Set per-axis characteristics. */
-        StarTableColumn[] axcols =
-            pointSelectors_.getMainSelector().getColumns();
+        StarTable mainData = pointSelectors_.getMainSelector().getData();
         ColumnInfo[] axinfos = new ColumnInfo[ ndim_ ];
         boolean[] flipFlags = new boolean[ ndim_ ];
         boolean[] logFlags = new boolean[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
-            axinfos[ i ] = axcols[ i ].getColumnInfo();
+            axinfos[ i ] = mainData.getColumnInfo( i );
             flipFlags[ i ] = flipModels_[ i ].isSelected();
             logFlags[ i ] = logModels_[ i ].isSelected();
         }

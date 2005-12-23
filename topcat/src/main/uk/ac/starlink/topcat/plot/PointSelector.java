@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +24,9 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
@@ -139,7 +142,7 @@ public class PointSelector extends JPanel implements TopcatListener {
             for ( int j = 0; j < toggleSets.length; j++ ) {
                 PointSelectorSet.ToggleSet toggleSet = toggleSets[ j ];
                 JCheckBox checkBox = toggleSet.models_[ i ].createCheckBox();
-                checkBox.setLabel( toggleSet.name_ );
+                checkBox.setText( toggleSet.name_ );
                 cPanel.add( Box.createHorizontalStrut( 5 ) );
                 cPanel.add( checkBox );
             }
@@ -190,11 +193,11 @@ public class PointSelector extends JPanel implements TopcatListener {
     }
 
     public void setVisible( boolean visible ) {
-        super.setVisible( visible );
         if ( visible ) {
             revalidate();
             repaint();
         }
+        super.setVisible( visible );
     }
 
     /**
@@ -262,7 +265,7 @@ public class PointSelector extends JPanel implements TopcatListener {
      *
      * @return  columns array
      */
-    public StarTableColumn[] getColumns() {
+    private StarTableColumn[] getColumns() {
         StarTableColumn[] cols = new StarTableColumn[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
             cols[ i ] = (StarTableColumn) colSelectors_[ i ].getSelectedItem();
@@ -338,6 +341,29 @@ public class PointSelector extends JPanel implements TopcatListener {
      */
     public StyleSet getStyles() {
         return styles_;
+    }
+
+    /**
+     * Returns a StarTable which corresponds to the data in the columns
+     * selected by the current selections on this object.
+     *
+     * <p>Note: for performance reasons, it is <em>imperative</em> that
+     * two tables returned from this method must match according to the
+     * {@link java.lang.Object#equals} method if they are known to 
+     * contain the same cell data (i.e. if the state of this selector
+     * has not changed in the mean time).  Don't forget to do 
+     * <code>hashCode</code> too.
+     *
+     * @return   table containing the data from the current selection
+     */
+    public StarTable getData() {
+        int[] colMap = new int[ ndim_ ];
+        TopcatModel tcModel = getTable();
+        StarTableColumn[] cols = getColumns();
+        for ( int idim = 0; idim < ndim_; idim++ ) {
+            colMap[ idim ] = cols[ idim ].getModelIndex();
+        }
+        return new SelectedColumnTable( tcModel, colMap );
     }
 
     /**
@@ -509,6 +535,40 @@ public class PointSelector extends JPanel implements TopcatListener {
         /* Forward the event to other listeners. */
         for ( Iterator it = topcatListeners_.iterator(); it.hasNext(); ) {
             ((TopcatListener) it.next()).modelChanged( evt );
+        }
+    }
+
+    /**
+     * Like a ColumnPermutedStarTable, but implements equals() properly.
+     */
+    private static class SelectedColumnTable extends ColumnPermutedStarTable {
+
+        private final TopcatModel tcModel_;
+        private final int[] colMap_;
+
+        SelectedColumnTable( TopcatModel tcModel, int[] colMap ) {
+            super( tcModel.getDataModel(), colMap, false );
+            tcModel_ = tcModel;
+            colMap_ = colMap;
+        }
+
+        public boolean equals( Object other ) {
+            if ( other instanceof SelectedColumnTable ) {
+                SelectedColumnTable o = (SelectedColumnTable) other;
+                return this.tcModel_ == o.tcModel_ &&
+                       Arrays.equals( this.colMap_, o.colMap_ );
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            int code = tcModel_.hashCode();
+            for ( int i = 0; i < colMap_.length; i++ ) {
+                code = 23 * code + colMap_[ i ];
+            }
+            return code;
         }
     }
 
