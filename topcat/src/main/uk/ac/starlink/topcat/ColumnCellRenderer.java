@@ -66,10 +66,26 @@ public class ColumnCellRenderer implements ListCellRenderer {
         return comp;
     }
 
+    /**
+     * Provides the representation (to be displayed in the combo box) 
+     * for an object in the box's model.
+     *
+     * @param  value  input value
+     * @param  object to which <tt>value</tt> is mapped
+     */
     public Object mapValue( Object value ) {
         return value instanceof StarTableColumn 
              ? ((StarTableColumn) value).getColumnInfo().getName()
              : value;
+    }
+
+    /**
+     * Sets the representation for the null item.
+     *
+     * @param  nullRep  null representation object to appear in combo box
+     */
+    public void setNullRepresentation( Object nullRep ) {
+        nullRep_ = nullRep;
     }
 
 }
