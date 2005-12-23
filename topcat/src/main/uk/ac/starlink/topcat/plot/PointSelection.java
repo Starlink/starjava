@@ -46,17 +46,16 @@ public class PointSelection {
      * element is the index of the point selector, and the second element
      * the index of the subset within that selector.
      *
-     * @param  ndim  dimensionality of the points
      * @param  selectors  array of PointSelector objects whose current state
      *         determines the points to be plotted
      * @param  names   labels corresponding to the elements of the 
      *                 <code>selectors</code> array
      * @param  subsetPointers  pointers to subsets
      */
-    public PointSelection( int ndim, PointSelector[] selectors, String[] names,
+    public PointSelection( PointSelector[] selectors, String[] names,
                            int[][] subsetPointers ) {
-        ndim_ = ndim;
         nTable_ = selectors.length;
+        ndim_ = selectors[ 0 ].getNdim();
         for ( int i = 0; i < nTable_; i++ ) {
             if ( selectors[ i ].getNdim() != ndim_ ) {
                 throw new IllegalArgumentException();
