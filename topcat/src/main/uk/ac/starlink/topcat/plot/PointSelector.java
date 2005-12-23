@@ -7,8 +7,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.BorderFactory;
@@ -16,7 +14,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JPanel;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -25,16 +22,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.ColumnPermutedStarTable;
-import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.CheckBoxStack;
-import uk.ac.starlink.topcat.ColumnCellRenderer;
-import uk.ac.starlink.topcat.ColumnComboBoxModel;
 import uk.ac.starlink.topcat.OptionsListModel;
-import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBoxModel;
 import uk.ac.starlink.topcat.TopcatEvent;
@@ -43,42 +34,35 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
- * Component for choosing a table, a number of columns, and a selection
- * of row subsets.
+ * Abstract component for choosing a table, a number of columns, 
+ * and a selection of row subsets.  The details of the column selection
+ * are left to concrete subclasses.
  *
  * @author   Mark Taylor
  * @since    28 Oct 2005
  */
-public class PointSelector extends JPanel implements TopcatListener {
+public abstract class PointSelector extends JPanel implements TopcatListener {
 
-    private final int ndim_;
     private final JComboBox tableSelector_;
-    private final JComboBox[] colSelectors_;
     private final JScrollPane subsetScroller_;
     private final OrderedSelectionRecorder subSelRecorder_;
-    private final ActionForwarder actionForwarder_;
+    protected final ActionForwarder actionForwarder_;
     private final SelectionForwarder selectionForwarder_;
     private final ListSelectionListener listActioner_;
     private final List topcatListeners_;
+    private final JPanel colPanel_;
+    private boolean initialised_;
     private StyleSet styles_;
     private TopcatModel tcModel_;
     private ListSelectionModel subSelModel_;
 
     /**
-     * Constructs a selector optionally with a table which will be the
-     * only one it operates on.  If <code>fixedTable</code> is non-null
-     * then table selection will not be permitted.
+     * Constructor.
      *
-     * @param   axisNames  labels for the columns to choose
      * @param   styles  default marker style set
-     * @param   fixedTable  optionally, the identity of a table which 
-     *          is the one on which this selector will operate
      */
-    public PointSelector( String[] axisNames,
-                          PointSelectorSet.ToggleSet[] toggleSets,
-                          StyleSet styles, TopcatModel fixedTable ) {
+    public PointSelector( StyleSet styles ) {
         super( new BorderLayout() );
-        ndim_ = axisNames.length;
         styles_ = styles;
         actionForwarder_ = new ActionForwarder();
         selectionForwarder_ = new SelectionForwarder();
@@ -108,51 +92,18 @@ public class PointSelector extends JPanel implements TopcatListener {
         } );
         tableSelector_.addActionListener( actionForwarder_ );
 
-        /* Place the table selection box if we don't have a fixed table. */
-        if ( fixedTable == null ) {
-            JComponent tPanel = Box.createHorizontalBox();
-            tPanel.add( new JLabel( " Table: " ) );
-            tPanel.add( new ShrinkWrapper( tableSelector_ ) );
-            tPanel.add( Box.createHorizontalGlue() );
-            entryBox.add( tPanel );
-        }
+        /* Place the table selection box. */
+        JComponent tPanel = Box.createHorizontalBox();
+        tPanel.add( new JLabel( " Table: " ) );
+        tPanel.add( new ShrinkWrapper( tableSelector_ ) );
+        tPanel.add( Box.createHorizontalGlue() );
+        entryBox.add( tPanel );
  
-        /* Prepare and place panels for selection and configuration of each
-         * axis. */
-        colSelectors_ = new JComboBox[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            String aName = axisNames[ i ];
-            JComponent cPanel = Box.createHorizontalBox();
-            cPanel.add( new JLabel( " " + aName + " Axis: " ) );
-            entryBox.add( Box.createVerticalStrut( 5 ) );
-            entryBox.add( cPanel );
-
-            /* Add and configure the column selector. */
-            colSelectors_[ i ] = new JComboBox();
-            colSelectors_[ i ]
-                .setRenderer( new ColumnCellRenderer( colSelectors_[ i ] ) );
-            colSelectors_[ i ].addActionListener( actionForwarder_ );
-            cPanel.add( new ShrinkWrapper( colSelectors_[ i ] ) );
-            cPanel.add( Box.createHorizontalStrut( 5 ) );
-            cPanel.add( new ComboBoxBumper( colSelectors_[ i ] ) );
-            colSelectors_[ i ].setEnabled( false );
-            cPanel.add( Box.createHorizontalStrut( 5 ) );
-
-            /* Add any per-axis toggles requested. */
-            for ( int j = 0; j < toggleSets.length; j++ ) {
-                PointSelectorSet.ToggleSet toggleSet = toggleSets[ j ];
-                JCheckBox checkBox = toggleSet.models_[ i ].createCheckBox();
-                checkBox.setText( toggleSet.name_ );
-                cPanel.add( Box.createHorizontalStrut( 5 ) );
-                cPanel.add( checkBox );
-            }
-
-            /* Pad. */
-            cPanel.add( Box.createHorizontalGlue() );
-        }
-        int pad = ndim_ == 1 ? colSelectors_[ 0 ].getPreferredSize().height
-                             : 5;
-        entryBox.add( Box.createVerticalStrut( pad ) );
+        /* Place the panel which will hold the column selector boxes.
+         * This will be filled later by calling an abstract method. */
+        colPanel_ = new JPanel();
+        colPanel_.setLayout( new BoxLayout( colPanel_, BoxLayout.X_AXIS ) );
+        entryBox.add( colPanel_ );
         entryBox.add( Box.createVerticalGlue() );
 
         /* Make a container for the subset selector. */
@@ -176,38 +127,30 @@ public class PointSelector extends JPanel implements TopcatListener {
         selectionForwarder_.add( subSelRecorder_ );
         selectionForwarder_.add( listActioner_ );
 
-        /* Initialise the table; either set it to the fixed value if one
-         * has been specified, or set it to the intial value of the
-         * selector, which may be necessary to initialise the state
-         * properly via listeners. */
-        if ( fixedTable != null ) {
-            setTable( fixedTable, true );
+        /* Initialise the table, which may be necessary to initialise the
+         * state properly via listeners. */
+        TopcatModel tcModel =
+            (TopcatModel) tableSelector_.getSelectedItem();
+        if ( tcModel != null ) {
+            configureForTable( tcModel );
         }
-        else {
-            TopcatModel tcModel =
-                (TopcatModel) tableSelector_.getSelectedItem();
-            if ( tcModel != null ) {
-                configureForTable( tcModel );
-            }
-        }
-    }
-
-    public void setVisible( boolean visible ) {
-        if ( visible ) {
-            revalidate();
-            repaint();
-        }
-        super.setVisible( visible );
     }
 
     /**
-     * Returns the number of axes this component will deal with.
+     * Returns the panel which contains column selectors and any other
+     * UI compoenents that the concrete subclass wants to place.
+     *
+     * @return   column selector panel
+     */
+    protected abstract JComponent getColumnSelectorPanel();
+
+    /**
+     * Returns the number of columns in the table that {@link #getData} will 
+     * return;
      * 
      * @return  dimensionality
      */
-    public int getNdim() {
-        return ndim_;
-    }
+    public abstract int getNdim();
 
     /**
      * Indicates whether this selector has enough state filled in to be
@@ -215,20 +158,36 @@ public class PointSelector extends JPanel implements TopcatListener {
      *
      * @return   true iff properly filled in
      */
-    public boolean isValid() {
-        if ( getTable() == null ) {
-            return false;
-        }
-        StarTableColumn[] cols = getColumns();
-        for ( int i = 0; i < cols.length; i++ ) {
-            if ( cols[ i ] == null ||
-                 cols[ i ] == ColumnComboBoxModel.NO_COLUMN ) {
-                return false;
-            }
-        }
-        return true;
-    }
+    public abstract boolean isValid();
 
+    /**
+     * Set up column selectors correctly for the given model.
+     * This will involve setting the column selector models appropriately.
+     * If the submitted table is null, then the selector models should be
+     * unselected.
+     *
+     * @param  tcModel   table for which selectors must be configured
+     */
+    protected abstract void configureSelectors( TopcatModel tcModel );
+
+    /**
+     * Hint to set up the values of the column selectors to a 
+     * sensible value.  An implementation which does nothing is legal.
+     */
+    protected abstract void initialiseSelectors();
+
+    public void setVisible( boolean visible ) {
+        if ( visible ) {
+            revalidate();
+            repaint();
+        }
+        if ( ! initialised_ ) {
+            colPanel_.add( getColumnSelectorPanel() );
+            initialised_ = true;
+        }
+        super.setVisible( visible );
+    }
+   
     /**
      * Returns the currently selected table.
      *
@@ -252,25 +211,8 @@ public class PointSelector extends JPanel implements TopcatListener {
          * what the old plot window used to do so may confuse people less.
          * Possibly change this action in the future though. */
         if ( init ) {
-            for ( int i = 0; i < ndim_; i++ ) {
-                if ( i + 1 < colSelectors_[ i ].getItemCount() ) {
-                    colSelectors_[ i ].setSelectedIndex( i + 1 );
-                }
-            }
+            initialiseSelectors();
         }
-    }
-
-    /**
-     * Returns an array of the selected columns, one for each axis.
-     *
-     * @return  columns array
-     */
-    private StarTableColumn[] getColumns() {
-        StarTableColumn[] cols = new StarTableColumn[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            cols[ i ] = (StarTableColumn) colSelectors_[ i ].getSelectedItem();
-        }
-        return cols;
     }
 
     /**
@@ -356,15 +298,7 @@ public class PointSelector extends JPanel implements TopcatListener {
      *
      * @return   table containing the data from the current selection
      */
-    public StarTable getData() {
-        int[] colMap = new int[ ndim_ ];
-        TopcatModel tcModel = getTable();
-        StarTableColumn[] cols = getColumns();
-        for ( int idim = 0; idim < ndim_; idim++ ) {
-            colMap[ idim ] = cols[ idim ].getModelIndex();
-        }
-        return new SelectedColumnTable( tcModel, colMap );
-    }
+    public abstract StarTable getData();
 
     /**
      * Adds an action listener.  It will be notified every time something
@@ -429,19 +363,6 @@ public class PointSelector extends JPanel implements TopcatListener {
     }
 
     /**
-     * Defines what columns will appear as possibles in the column selectors.
-     *
-     * @param  cinfo  column metadata
-     * @return   true iff a column like <code>cinfo</code> should be 
-     *           choosable
-     */
-    protected boolean acceptColumn( ColumnInfo cinfo ) {
-        Class clazz = cinfo.getContentClass();
-        return Number.class.isAssignableFrom( clazz )
-            || Date.class.isAssignableFrom( clazz );
-    }
-
-    /**
      * Sets this selector to work from a table described by a given
      * TopcatModel.
      *
@@ -456,9 +377,7 @@ public class PointSelector extends JPanel implements TopcatListener {
 
             /* Reset column selector models to prevent unhelpful events being
              * triggered while we're reconfiguring. */
-            for ( int i = 0; i < ndim_; i++ ) {
-                colSelectors_[ i ].setSelectedItem( null );
-            }
+            configureSelectors( null );
         }
         tcModel_ = tcModel; 
         tcModel_.addTopcatListener( this );
@@ -487,17 +406,7 @@ public class PointSelector extends JPanel implements TopcatListener {
         setDefaultSubsetSelection();
 
         /* Configure the column selectors. */
-        for ( int i = 0; i < ndim_; i++ ) {
-            colSelectors_[ i ].setModel(
-                new RestrictedColumnComboBoxModel( tcModel.getColumnModel(),
-                                                   true ) {
-                    public boolean acceptColumn( ColumnInfo cinfo ) {
-                        return PointSelector.this.acceptColumn( cinfo );
-                    }
-                }
-            );
-            colSelectors_[ i ].setEnabled( true );
-        }
+        configureSelectors( tcModel );
 
         /* Repaint. */
         revalidate();
@@ -535,40 +444,6 @@ public class PointSelector extends JPanel implements TopcatListener {
         /* Forward the event to other listeners. */
         for ( Iterator it = topcatListeners_.iterator(); it.hasNext(); ) {
             ((TopcatListener) it.next()).modelChanged( evt );
-        }
-    }
-
-    /**
-     * Like a ColumnPermutedStarTable, but implements equals() properly.
-     */
-    private static class SelectedColumnTable extends ColumnPermutedStarTable {
-
-        private final TopcatModel tcModel_;
-        private final int[] colMap_;
-
-        SelectedColumnTable( TopcatModel tcModel, int[] colMap ) {
-            super( tcModel.getDataModel(), colMap, false );
-            tcModel_ = tcModel;
-            colMap_ = colMap;
-        }
-
-        public boolean equals( Object other ) {
-            if ( other instanceof SelectedColumnTable ) {
-                SelectedColumnTable o = (SelectedColumnTable) other;
-                return this.tcModel_ == o.tcModel_ &&
-                       Arrays.equals( this.colMap_, o.colMap_ );
-            }
-            else {
-                return false;
-            }
-        }
-
-        public int hashCode() {
-            int code = tcModel_.hashCode();
-            for ( int i = 0; i < colMap_.length; i++ ) {
-                code = 23 * code + colMap_[ i ];
-            }
-            return code;
         }
     }
 

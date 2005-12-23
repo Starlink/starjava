@@ -200,9 +200,8 @@ public class PointSelectorSet extends JPanel {
      */
     public void addNewSelector() {
         PointSelector psel = 
-            new PointSelector( axisNames_, getAxisToggleSets(),
-                               new PoolStyleSet( styles_, usedMarkers_ ),
-                               null );
+            new DefaultPointSelector( new PoolStyleSet( styles_, usedMarkers_ ),
+                                      axisNames_, getAxisToggleSets() );
         addSelector( psel );
         tabber_.setSelectedComponent( psel );
     }
