@@ -74,9 +74,11 @@ public class CutoutSelector extends JPanel implements ItemListener {
         serviceSelector_ = new JComboBox( SERVICES );
         serviceSelector_.addItemListener( this );
         raSelector_ = new ColumnSelector( 
-                          tcModel_.getColumnSelectorModel( Tables.RA_INFO ) );
+                          tcModel_.getColumnSelectorModel( Tables.RA_INFO ),
+                                                           true );
         decSelector_ = new ColumnSelector(
-                           tcModel_.getColumnSelectorModel( Tables.DEC_INFO ) );
+                           tcModel_.getColumnSelectorModel( Tables.DEC_INFO ),
+                                                            true );
         int[] sizes = new int[] { 25, 50, 75, 100, 150, 200, 300, 400, 500 };
         JLabel npixLabel = new JLabel( "Width/Height in Pixels: " );
         npixSelector_ = new IntSelector( sizes );

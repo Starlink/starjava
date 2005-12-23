@@ -65,7 +65,7 @@ public class TupleSelector extends JPanel {
         /* Set up selectors for the engine parameters. */
         colSelectors = new ColumnSelector[ nCols ];
         for ( int i = 0; i < nCols; i++ ) {
-            colSelectors[ i ] = new ColumnSelector( infos[ i ] );
+            colSelectors[ i ] = new ColumnSelector( infos[ i ], true );
             main.add( colSelectors[ i ] );
         }
         main.add( Box.createVerticalGlue() );
