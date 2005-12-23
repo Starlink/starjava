@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Box;
@@ -35,8 +36,10 @@ public class ColumnSelector extends JComponent {
      * a given ValueInfo.  It is initialised with no data model.
      *
      * @param  info  describes the columns to be selected by this component
+     * @param  showLabel  true iff you want the axis label to be displayed
+     *         with the selectors
      */
-    public ColumnSelector( ValueInfo info ) {
+    public ColumnSelector( ValueInfo info, boolean showLabel ) {
         info_ = info;
         String units = info_.getUnitString();
         List compList = new ArrayList();
@@ -63,9 +66,11 @@ public class ColumnSelector extends JComponent {
 
         /* Lay out components. */
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
-        add( label );
-        compList.add( label );
+        if ( showLabel ) {
+            add( label );
+            compList.add( label );
         add( Box.createHorizontalStrut( 5 ) );
+        }
         add( colComboBox_ );
         compList.add( colComboBox_ );
         if ( convComboBox_ != null ) {
@@ -89,9 +94,11 @@ public class ColumnSelector extends JComponent {
      * Constructs a new selector with a given data model.
      *
      * @param  model   data model
+     * @param  showLabel  true iff you want the axis label to be displayed
+     *         with the selectors
      */
-    public ColumnSelector( ColumnSelectorModel model ) {
-        this( model.getValueInfo() );
+    public ColumnSelector( ColumnSelectorModel model, boolean showLabel ) {
+        this( model.getValueInfo(), showLabel );
         setModel( model );
     }
 
@@ -132,7 +139,8 @@ public class ColumnSelector extends JComponent {
      * @param  tcModel  table model
      */
     public void setTable( TopcatModel tcModel ) {
-        setModel( tcModel.getColumnSelectorModel( info_ ) );
+        setModel( tcModel == null ? new ColumnSelectorModel( null, info_ )
+                                  : tcModel.getColumnSelectorModel( info_ ) );
     }
 
     /**
@@ -144,7 +152,8 @@ public class ColumnSelector extends JComponent {
      *          or null if none is selected
      */
     public ColumnData getColumnData() {
-        return model_.getColumnData();
+        return model_ == null ? null
+                              : model_.getColumnData();
     }
 
     /**
@@ -154,6 +163,26 @@ public class ColumnSelector extends JComponent {
      */
     public ColumnSelectorModel getModel() {
         return model_;
+    }
+
+    /**
+     * Adds a listener for changes on the state of this component.
+     *
+     * @param   listener  listener to add
+     */
+    public void addActionListener( ActionListener listener ) {
+        colComboBox_.addActionListener( listener );
+        convComboBox_.addActionListener( listener );
+    }
+
+    /**
+     * Removes a listener for changes on the state of this component.
+     *
+     * @param   listener  listener to remove
+     */
+    public void removeActionListener( ActionListener listener ) {
+        colComboBox_.removeActionListener( listener );
+        convComboBox_.removeActionListener( listener );
     }
 
     public void setEnabled( boolean enabled ) {
