@@ -25,12 +25,12 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  */
 public class ColumnSelectorModel implements ListDataListener {
 
-    private final TopcatModel tcModel_;
     private final ValueInfo info_;
-    private final ComboBoxModel colChooser_;
     private final ComboBoxModel convChooser_;
     private final ColumnConverter converter0_;
     private final Map convMap_ = new HashMap();
+    private TopcatModel tcModel_;
+    private ComboBoxModel colChooser_;
 
     /**
      * Constructs a new model for a given table and value type.
@@ -39,13 +39,7 @@ public class ColumnSelectorModel implements ListDataListener {
      * @param  info   description of the kind of column which is required
      */
     public ColumnSelectorModel( TopcatModel tcModel, ValueInfo info ) {
-        tcModel_ = tcModel;
         info_ = info;
-
-        /* Get a suitable model for selection of the base column from the 
-         * table. */
-        colChooser_ = makeColumnModel( tcModel_, info );
-        colChooser_.addListDataListener( this );
 
         /* Get a suitable model for selection of the unit converter, if
          * appropriate. */
@@ -60,6 +54,25 @@ public class ColumnSelectorModel implements ListDataListener {
             convChooser_ = null;
             converter0_ = converters[ 0 ];
         }
+
+        setTable( tcModel );
+    }
+
+    /**
+     * Sets the table that this selector model is configured for.
+     *
+     * @param  tcModel  new table
+     */
+    public void setTable( TopcatModel tcModel ) {
+        tcModel_ = tcModel;
+
+        /* Get a suitable model for selection of the base column from the 
+         * table. */
+        if ( colChooser_ != null ) {
+            colChooser_.removeListDataListener( this );
+        }
+        colChooser_ = makeColumnModel( tcModel_, info_ );
+        colChooser_.addListDataListener( this );
 
         /* Force an update to make sure that the correct converter for any
          * currently-selected column is selected. */
@@ -116,6 +129,11 @@ public class ColumnSelectorModel implements ListDataListener {
      * It takes into account the column and (if any) conversion selected
      * by the user.
      *
+     * <p>The returned ColumnData object has an intelligent implementation
+     * of <code>equals</code> (and <code>hashCode</code>), in that 
+     * two invocations of this method without any intervening change of
+     * of state of this model will evaluate equal.
+     *
      * @return  ColumnData representing the currently-selected column,
      *          or null if none is selected
      */
@@ -128,11 +146,7 @@ public class ColumnSelectorModel implements ListDataListener {
         final ColumnConverter colConverter = getConverter();
         final StarTable table = tcModel_.getDataModel();
         assert colConverter != null;
-        return new ColumnData( tcol.getColumnInfo() ) {
-            public Object readValue( long irow ) throws IOException {
-                return colConverter.convertValue( table.getCell( irow, icol ) );
-            }
-        };
+        return new ColumnSelectorData( tcol, getConverter(), tcModel_ );
     }
 
     /**
@@ -254,6 +268,11 @@ public class ColumnSelectorModel implements ListDataListener {
     private static ComboBoxModel makeColumnModel( TopcatModel tcModel,
                                                   ValueInfo argInfo ) {
 
+        /* With no table, the model is empty. */
+        if ( tcModel == null ) {
+            return new DefaultComboBoxModel( new Object[ 1 ] );
+        }
+
         /* Make the model. */
         TableColumnModel columnModel = tcModel.getColumnModel();
         RestrictedColumnComboBoxModel model =
@@ -324,4 +343,56 @@ public class ColumnSelectorModel implements ListDataListener {
         }
     }
 
+    /**
+     * ColumnData implementation which gives the result of the virtual
+     * column described by the current state of this component.
+     * It has non-trivial implementations of equals and hashCode.
+     */
+    private static class ColumnSelectorData extends ColumnData {
+
+        final int colIndex_;
+        final ColumnConverter converter_;
+        final TopcatModel tcModel_;
+        final StarTable table_;
+
+        /**
+         * Constructor.
+         *
+         * @param   tcol  column
+         * @param   converter   converter
+         * @param   tcModel   topcat model
+         */
+        ColumnSelectorData( StarTableColumn tcol, ColumnConverter converter,
+                            TopcatModel tcModel ) {
+            super( tcol.getColumnInfo() );
+            colIndex_ = tcol.getModelIndex();
+            converter_ = converter;
+            tcModel_ = tcModel;
+            table_ = tcModel_.getDataModel();
+        }
+
+        public Object readValue( long irow ) throws IOException {
+            return converter_.convertValue( table_.getCell( irow, colIndex_ ) );
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof ColumnSelectorData ) {
+                ColumnSelectorData other = (ColumnSelectorData) o;
+                return this.colIndex_ == other.colIndex_
+                    && this.converter_ == other.converter_
+                    && this.tcModel_ == other.tcModel_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            int code = 9997;
+            code = 23 * code + colIndex_;
+            code = 23 * code + converter_.hashCode();
+            code = 23 * code + tcModel_.hashCode();
+            return code;
+        }
+    }
 }
