@@ -22,6 +22,12 @@ public class SphericalPolar3DWindow extends Plot3DWindow {
         addHelp( "SphericalPolar3DWindow" );
     }
 
+    protected PlotState createPlotState() {
+        Plot3DState state = (Plot3DState) super.createPlotState();
+        state.setSpherical( true );
+        return state;
+    }
+
     protected PointSelector createPointSelector() {
         return new SphericalPolarPointSelector( createPooledStyleSet() );
     }
