@@ -234,22 +234,24 @@ public class SphericalPolarPointSelector extends PointSelector {
                         if ( oPhi instanceof Number &&
                              oTheta instanceof Number &&
                              oR instanceof Number ) {
-                            double phi = ((Number) oPhi).doubleValue();
-                            double theta = ((Number) oTheta).doubleValue();
                             double r = ((Number) oR).doubleValue(); 
+                            if ( r > 0 ) {
+                                double phi = ((Number) oPhi).doubleValue();
+                                double theta = ((Number) oTheta).doubleValue();
 
-                            double sinTheta = Math.sin( theta );
-                            double cosTheta = Math.cos( theta );
-                            double sinPhi = Math.sin( phi );
-                            double cosPhi = Math.cos( phi );
+                                double sinTheta = Math.sin( theta );
+                                double cosTheta = Math.cos( theta );
+                                double sinPhi = Math.sin( phi );
+                                double cosPhi = Math.cos( phi );
 
-                            double x = r * cosTheta * cosPhi;
-                            double y = r * cosTheta * sinPhi;
-                            double z = r * sinTheta;
+                                double x = r * cosTheta * cosPhi;
+                                double y = r * cosTheta * sinPhi;
+                                double z = r * sinTheta;
 
-                            row_[ 0 ] = new Double( x );
-                            row_[ 1 ] = new Double( y );
-                            row_[ 2 ] = new Double( z );
+                                row_[ 0 ] = new Double( x );
+                                row_[ 1 ] = new Double( y );
+                                row_[ 2 ] = new Double( z );
+                            }
                         }
                         lrow_++;
                         return true;
