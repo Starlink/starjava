@@ -158,7 +158,6 @@ public abstract class VOSerializer {
                     writer.write( formatAttribute( "value", valtext ) );
                     if ( content.length() > 0 ) {
                         writer.write( ">" );
-                        writer.newLine();
                         writer.write( content );
                         writer.newLine();
                         writer.write( "</PARAM>" );
@@ -357,7 +356,6 @@ public abstract class VOSerializer {
         writer.write( "<FIELD" + formatAttributes( attributes ) );
         if ( content != null && content.length() > 0 ) {
             writer.write( '>' );
-            writer.newLine();
             writer.write( content );
             writer.newLine();
             writer.write( "</FIELD>" );
