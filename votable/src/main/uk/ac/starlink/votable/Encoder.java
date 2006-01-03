@@ -148,6 +148,9 @@ abstract class Encoder {
                     String linkName = linkInfo.getName();
                     URL linkUrl = (URL) dval.getValue();
                     if ( linkName != null && linkUrl != null ) {
+                        if ( linksBuf.length() > 0 ) {
+                            linksBuf.append( '\n' );
+                        }
                         linksBuf.append( "<LINK" )
                                 .append( VOSerializer
                                         .formatAttribute( "title", linkName ) )
@@ -173,14 +176,17 @@ abstract class Encoder {
     public String getFieldContent() {
         if ( content == null ) {
             StringBuffer contBuf = new StringBuffer();
-            if ( description != null ) {
-                contBuf.append( description );
+            if ( description != null && description.trim().length() > 0 ) {
+                contBuf.append( '\n' )
+                       .append( description );
             }
-            if ( values != null ) {
-                contBuf.append( values );
+            if ( values != null && values.trim().length() > 0 ) {
+                contBuf.append( '\n' )
+                       .append( values );
             }
-            if ( links != null ) {
-                contBuf.append( links );
+            if ( links != null && links.trim().length() > 0 ) {
+                contBuf.append( '\n' )
+                       .append( links );
             }
             content = contBuf.toString();
         }
@@ -636,6 +642,8 @@ abstract class Encoder {
      */
     private static abstract class ScalarEncoder extends Encoder {
 
+        private final String nullText;
+
         /**
          * Constructs a new ScalarEncoder.
          *
@@ -649,16 +657,19 @@ abstract class Encoder {
 
             /* Set up bad value representation. */
             if ( nullString != null ) {
-                if ( values == null ) {
-                    values = "";
-                }
-                values = ( values == null ? "" : values )
-                       + "\n<VALUES null='" + nullString + "'/>";
+                String pref = ( values == null || values.trim().length() == 0 )
+                            ? ""
+                            : ( values + "\n" );
+                values = pref + "<VALUES null='" + nullString + "'/>";
+                nullText = nullString;
+            }
+            else {
+                nullText = "";
             }
         }
 
         public String encodeAsText( Object val ) {
-            return val == null ? "" : val.toString();
+            return val == null ? nullText : val.toString();
         }
     }
 
