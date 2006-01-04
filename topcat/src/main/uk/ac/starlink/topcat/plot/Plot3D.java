@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -12,7 +14,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
@@ -23,7 +27,7 @@ import uk.ac.starlink.topcat.RowSubset;
  * @author   Mark Taylor
  * @since    22 Nov 2005
  */
-public class Plot3D extends JComponent {
+public class Plot3D extends JPanel {
 
     private Annotations annotations_;
     private Points points_;
@@ -36,6 +40,8 @@ public class Plot3D extends JComponent {
     private Transformer3D lastTrans_;
     private PointRegistry pointReg_;
     private double[][][] sphereGrid_;
+    private final Plot3DDataPanel plotArea_;
+    private final Legend legend_;
 
     private static final double SQRT3 = Math.sqrt( 3.0 );
     private static final Logger logger_ =
@@ -51,10 +57,17 @@ public class Plot3D extends JComponent {
      * Constructor.
      */
     public Plot3D() {
-        setBackground( Color.white );
+        super( new BorderLayout() );
+        plotArea_ = new Plot3DDataPanel();
+        plotArea_.setBackground( Color.white );
+        plotArea_.setOpaque( true );
+        plotArea_.setPreferredSize( new Dimension( 400, 400 ) );
+        plotArea_.setBorder( BorderFactory
+                            .createLineBorder( Color.DARK_GRAY ) );
+        add( plotArea_, BorderLayout.CENTER );
+        legend_ = new Legend();
+        add( legend_, BorderLayout.EAST );
         setOpaque( true );
-        setPreferredSize( new Dimension( 400, 400 ) );
-        setBorder( javax.swing.BorderFactory.createLineBorder( Color.GRAY ) );
         annotations_ = new Annotations();
     }
 
@@ -90,6 +103,18 @@ public class Plot3D extends JComponent {
         annotations_.validate();
         lastVol_ = null;
         lastTrans_ = null;
+        PointSelection psel = state.getPointSelection();
+        if ( psel == null ) {
+            legend_.setStyles( new Style[ 0 ], new String[ 0 ] );
+        }
+        else {
+            RowSubset[] rsets = psel.getSubsets();
+            String[] labels = new String[ rsets.length ];
+            for ( int i = 0; i < rsets.length; i++ ) {
+                labels[ i ] = rsets[ i ].getName();
+            }
+            legend_.setStyles( psel.getStyles(), labels );
+        }
     }
 
     /**
@@ -259,15 +284,8 @@ public class Plot3D extends JComponent {
     /**
      * Performs the painting - this method does the actual work.
      */
-    protected void paintComponent( Graphics g ) {
+    private void drawData( Graphics g, Component c ) {
         long tStart = System.currentTimeMillis();
-
-        /* Prepare for painting. */
-        super.paintComponent( g );
-        if ( isOpaque() ) {
-            ((Graphics2D) g).setBackground( getBackground() );
-            g.clearRect( 0, 0, getWidth(), getHeight() );
-        }
 
         /* Prepare data. */
         Points points = getPoints();
@@ -286,7 +304,7 @@ public class Plot3D extends JComponent {
 
         /* Set up a plotting volume to render the 3-d points. */
         double padFactor = state.getSpherical() ? 1.05 : Math.sqrt( 3. );
-        PlotVolume vol = new SortPlotVolume( this, g, padFactor );
+        PlotVolume vol = new SortPlotVolume( c, g, padFactor );
         vol.getDepthTweaker().setFogginess( state_.getFogginess() );
 
         /* Plot back part of bounding box. */
@@ -1078,6 +1096,24 @@ public class Plot3D extends JComponent {
         return coords[ 0 ] >= lo[ 0 ] && coords[ 0 ] <= hi[ 0 ]
             && coords[ 1 ] >= lo[ 1 ] && coords[ 1 ] <= hi[ 1 ]
             && coords[ 2 ] >= lo[ 2 ] && coords[ 2 ] <= hi[ 2 ];
+    }
+
+    /**
+     * Component containing the plot.
+     */
+    private class Plot3DDataPanel extends JComponent {
+        Plot3DDataPanel() {
+            setBackground( Color.WHITE );
+            setOpaque( true );
+        }
+        protected void paintComponent( Graphics g ) {
+            super.paintComponent( g );
+            if ( isOpaque() ) {
+                ((Graphics2D) g).setBackground( getBackground() );
+                g.clearRect( 0, 0, getWidth(), getHeight() );
+            }
+            drawData( g, this );
+        }
     }
 
     /**
