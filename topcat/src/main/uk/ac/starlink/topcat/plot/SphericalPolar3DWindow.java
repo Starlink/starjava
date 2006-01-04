@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Component;
+import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 
 /**
  * Graphics window for viewing 3D scatter plots using spherical polar
@@ -11,6 +13,8 @@ import java.awt.Component;
  */
 public class SphericalPolar3DWindow extends Plot3DWindow {
 
+    private final ToggleButtonModel logToggler_;
+
     /**
      * Constructs a new window.
      *
@@ -19,6 +23,10 @@ public class SphericalPolar3DWindow extends Plot3DWindow {
     public SphericalPolar3DWindow( Component parent ) {
         super( "Spherical Polar",
                new String[] { "Longitude", "Latitude", "Radius" }, parent );
+        logToggler_ =
+            new ToggleButtonModel( "Log", ResourceIcon.XLOG,
+                                   "Scale radius value logarithmically" );
+        logToggler_.addActionListener( getReplotListener() );
         addHelp( "SphericalPolar3DWindow" );
     }
 
@@ -29,6 +37,7 @@ public class SphericalPolar3DWindow extends Plot3DWindow {
     }
 
     protected PointSelector createPointSelector() {
-        return new SphericalPolarPointSelector( createPooledStyleSet() );
+        return new SphericalPolarPointSelector( createPooledStyleSet(),
+                                                logToggler_ );
     }
 }

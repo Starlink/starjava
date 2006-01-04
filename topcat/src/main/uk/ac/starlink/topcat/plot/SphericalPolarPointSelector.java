@@ -17,6 +17,7 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.ColumnCellRenderer;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
@@ -33,14 +34,19 @@ public class SphericalPolarPointSelector extends PointSelector {
     private final ColumnSelector phiSelector_;
     private final ColumnSelector thetaSelector_;
     private final JComboBox rSelector_;
+    private final ToggleButtonModel logToggler_;
 
     /**
      * Constructor.
      *
      * @param  styles  plotting style set
+     * @param  logToggler model for determining whether the radial coordinate
+     *         is to be scaled logarithmically
      */
-    public SphericalPolarPointSelector( StyleSet styles ) {
+    public SphericalPolarPointSelector( StyleSet styles, 
+                                        ToggleButtonModel logToggler ) {
         super( styles );
+        logToggler_ = logToggler;
 
         /* Prepare column selection panel. */
         colBox_ = Box.createVerticalBox();
@@ -70,6 +76,8 @@ public class SphericalPolarPointSelector extends PointSelector {
         rBox.add( new ShrinkWrapper( rSelector_ ) );
         rBox.add( Box.createHorizontalStrut( 5 ) );
         rBox.add( new ComboBoxBumper( rSelector_ ) );
+        rBox.add( Box.createHorizontalStrut( 5 ) );
+        rBox.add( logToggler_.createCheckBox() );
         selectors[ 2 ] = rBox;
 
         /* Place selectors. */
@@ -113,10 +121,8 @@ public class SphericalPolarPointSelector extends PointSelector {
     }
 
     public StarTable getData() {
-        StarTableColumn rcol = getR();
-        return new SphericalPolarTable( getTable(), getPhi(), getTheta(),
-                                        rcol == null ? -1
-                                                     : rcol.getModelIndex() );
+        return new SphericalPolarTable( getTable(),
+                                        getPhi(), getTheta(), getR() );
     }
 
     protected void configureSelectors( TopcatModel tcModel ) {
@@ -170,8 +176,105 @@ public class SphericalPolarPointSelector extends PointSelector {
      *
      * @return   radius column
      */
-    private StarTableColumn getR() {
-        return (StarTableColumn) rSelector_.getSelectedItem();
+    private ColumnData getR() {
+        StarTableColumn tcol = (StarTableColumn) rSelector_.getSelectedItem();
+        int icol = tcol == null ? -1 : tcol.getModelIndex();
+        return icol >= 0
+             ? (ColumnData) new SelectedColumnData( getTable(),
+                                                    tcol.getModelIndex(),
+                                                    logToggler_.isSelected() )
+             : (ColumnData) UnitColumnData.INSTANCE;
+    }
+
+    /**
+     * ColumnData implementation which returns unity for every entry.
+     */
+    private static class UnitColumnData extends ColumnData {
+        final static UnitColumnData INSTANCE = new UnitColumnData();
+        private final Double ONE = new Double( 1.0 );
+        private UnitColumnData() {
+            super( new DefaultValueInfo( "Unit", Double.class, "Unit value" ) );
+        }
+        public Object readValue( long irow ) {
+            return ONE;
+        }
+    }
+
+    /**
+     * ColumnData implementation which picks data from a given column of
+     * a base table.  An intelligent implementation of equals() is provided.
+     */
+    private static class SelectedColumnData extends ColumnData {
+
+        private final TopcatModel tcModel_;
+        private final int icol_;
+        private final boolean logFlag_;
+        private final StarTable baseTable_;
+
+        /**
+         * Constructs a new SelectedColumnData.
+         *
+         * @param  tcModel  topcat model containing the table data
+         * @param  icol    column index (in tcModel's data model StarTable)
+         *                 of the column data to copy
+         * @param  logFlag  true iff you want the logarithms of the
+         *                  selected column
+         */
+        SelectedColumnData( TopcatModel tcModel, int icol, boolean logFlag ) {
+            tcModel_ = tcModel;
+            icol_ = icol;
+            logFlag_ = logFlag;
+            baseTable_ = tcModel.getDataModel();
+            ColumnInfo cinfo = 
+                new ColumnInfo( baseTable_.getColumnInfo( icol_ ) );
+            if ( logFlag_ ) {
+                String units = cinfo.getUnitString();
+                if ( units != null && units.trim().length() > 0 ) {
+                    cinfo.setUnitString( "log(" + units + ")" );
+                }
+                cinfo.setName( "log(" + cinfo.getName() + ")" );
+                cinfo.setContentClass( Double.class );
+            }
+            setColumnInfo( cinfo );
+        }
+
+        public Object readValue( long irow ) throws IOException {
+            Object val = baseTable_.getCell( irow, icol_ );
+            if ( logFlag_ ) {
+                if ( val instanceof Number ) {
+                    double dval = ((Number) val).doubleValue();
+                    return dval > 0 ? new Double( Math.log( dval ) )
+                                    : null;
+                }
+                else {
+                    return null;
+                }
+            }
+            else {
+                return val;
+            }
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof SelectedColumnData ) {
+                SelectedColumnData other = (SelectedColumnData) o;
+                return this.tcModel_ == other.tcModel_
+                    && this.icol_ == other.icol_
+                    && this.logFlag_ == other.logFlag_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            int code = 555;
+            code = 23 * code + tcModel_.hashCode();
+            code = 23 * code + icol_;
+            code = 23 * code + ( logFlag_ ? 1 : 0 );
+            return code;
+        }
+    
     }
 
     /**
@@ -190,7 +293,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         private final TopcatModel tcModel_;
         private final ColumnData phiData_;
         private final ColumnData thetaData_;
-        private final int rColIndex_;
+        private final ColumnData rData_;
 
         /**
          * Constructor.
@@ -198,16 +301,14 @@ public class SphericalPolarPointSelector extends PointSelector {
          * @param   tcModel   table
          * @param   phiData   column of longitude-like values
          * @param   thetaData column of latitude-like values
-         * @param   rColIndex  column index in table's data model of the
-         *          column representing radius values.  May be -1 to indicate
-         *          no radial data
+         * @param   rData     column of radius-like values
          */
         public SphericalPolarTable( TopcatModel tcModel, ColumnData phiData,
-                                    ColumnData thetaData, int rColIndex ) {
+                                    ColumnData thetaData, ColumnData rData ) {
             tcModel_ = tcModel;
             phiData_ = phiData;
             thetaData_ = thetaData;
-            rColIndex_ = rColIndex;
+            rData_ = rData;
         }
 
         public int getColumnCount() {
@@ -223,18 +324,13 @@ public class SphericalPolarPointSelector extends PointSelector {
                 new DefaultValueInfo( new String[] { "X", "Y", "Z" }[ icol ],
                                       Double.class,
                                       "Cartesian coordinate " + ( icol + 1 ) );
-            if ( rColIndex_ >= 0 ) {
-                info.setUnitString( tcModel_.getDataModel()
-                                            .getColumnInfo( rColIndex_ )
-                                            .getUnitString() );
-            }
+            info.setUnitString( rData_.getColumnInfo().getUnitString() );
             return new ColumnInfo( info );
         }
 
         public RowSequence getRowSequence() {
             final StarTable baseTable = tcModel_.getDataModel();
             final long nrow = getRowCount();
-            final Double ONE = new Double( 1.0 );
             return new RowSequence() {
                 long lrow_ = 0;
                 Object[] row_;
@@ -243,9 +339,7 @@ public class SphericalPolarPointSelector extends PointSelector {
                         row_ = new Object[ 3 ];
                         Object oPhi = phiData_.readValue( lrow_ );
                         Object oTheta = thetaData_.readValue( lrow_ );
-                        Object oR = rColIndex_ >= 0
-                                  ? baseTable.getCell( lrow_, rColIndex_ )
-                                  : ONE;
+                        Object oR = rData_.readValue( lrow_ );
                         if ( oPhi instanceof Number &&
                              oTheta instanceof Number &&
                              oR instanceof Number ) {
@@ -292,7 +386,7 @@ public class SphericalPolarPointSelector extends PointSelector {
                 return other.tcModel_.equals( this.tcModel_ )
                     && other.phiData_.equals( this.phiData_ )
                     && other.thetaData_.equals( this.thetaData_ )
-                    && rColIndex_ == other.rColIndex_;
+                    && other.rData_.equals( this.rData_ );
             }
             else {
                 return false;
@@ -300,10 +394,11 @@ public class SphericalPolarPointSelector extends PointSelector {
         }
 
         public int hashCode() {
-            int code = rColIndex_;
+            int code = 999;
             code = 23 * code + tcModel_.hashCode();
             code = 23 * code + phiData_.hashCode();
             code = 23 * code + thetaData_.hashCode();
+            code = 23 * code + rData_.hashCode();
             return code;
         }
     }
