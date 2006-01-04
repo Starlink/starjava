@@ -61,7 +61,7 @@ public class Plot3D extends JPanel {
         plotArea_ = new Plot3DDataPanel();
         plotArea_.setBackground( Color.white );
         plotArea_.setOpaque( true );
-        plotArea_.setPreferredSize( new Dimension( 400, 400 ) );
+        plotArea_.setPreferredSize( new Dimension( 450, 450 ) );
         plotArea_.setBorder( BorderFactory
                             .createLineBorder( Color.DARK_GRAY ) );
         add( plotArea_, BorderLayout.CENTER );
