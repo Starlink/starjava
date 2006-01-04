@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Dimension;
 import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.JComboBox;
@@ -72,14 +73,27 @@ public class SphericalPolarPointSelector extends PointSelector {
         selectors[ 2 ] = rBox;
 
         /* Place selectors. */
+        JLabel[] axLabels = new JLabel[ 3 ];
         for ( int i = 0; i < 3; i++ ) {
             String aName = axisNames[ i ];
             JComponent cPanel = Box.createHorizontalBox();
-            cPanel.add( new JLabel( " " + aName + " Axis: " ) );
+            axLabels[ i ] = new JLabel( " " + aName + " Axis: " );
+            cPanel.add( axLabels[ i ] );
             colBox_.add( Box.createVerticalStrut( 5 ) );
             colBox_.add( cPanel );
             cPanel.add( selectors[ i ] );
             cPanel.add( Box.createHorizontalGlue() );
+        }
+
+        /* Align axis labels. */
+        Dimension labelSize = new Dimension( 0, 0 );
+        for ( int i = 0; i < 3; i++ ) {
+            Dimension s = axLabels[ i ].getPreferredSize();
+            labelSize.width = Math.max( labelSize.width, s.width );
+            labelSize.height = Math.max( labelSize.height, s.height );
+        }
+        for ( int i = 0; i < 3; i++ ) {
+            axLabels[ i ].setPreferredSize( labelSize );
         }
     }
 
