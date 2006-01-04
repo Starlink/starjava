@@ -17,8 +17,8 @@ public class SphericalPolar3DWindow extends Plot3DWindow {
      * @param   parent  parent component (may be used for positioning)
      */
     public SphericalPolar3DWindow( Component parent ) {
-        super( "Sky", new String[] { "Longitude", "Latitude", "Radius" },
-               parent );
+        super( "Spherical Polar",
+               new String[] { "Longitude", "Latitude", "Radius" }, parent );
         addHelp( "SphericalPolar3DWindow" );
     }
 
