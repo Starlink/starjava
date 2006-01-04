@@ -82,6 +82,7 @@ public class SphericalPolarPointSelector extends PointSelector {
             colBox_.add( Box.createVerticalStrut( 5 ) );
             colBox_.add( cPanel );
             cPanel.add( selectors[ i ] );
+            cPanel.add( Box.createHorizontalStrut( 5 ) );
             cPanel.add( Box.createHorizontalGlue() );
         }
 
