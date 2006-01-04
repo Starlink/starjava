@@ -23,9 +23,11 @@ public class SortPlotVolume extends PlotVolume {
      *
      * @param   c  component
      * @param   g  graphics context
+     * @param   padFactor  minimum amount of space outside the unit cube 
+     *          in both dimensions - 1 means no extra space
      */
-    public SortPlotVolume( Component c, Graphics g ) {
-        super( c, g );
+    public SortPlotVolume( Component c, Graphics g, double padFactor ) {
+        super( c, g, padFactor );
         points_ = new TreeSet();
     }
 

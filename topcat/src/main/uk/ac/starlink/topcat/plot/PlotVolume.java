@@ -33,13 +33,14 @@ public abstract class PlotVolume {
      *
      * @param   c  component on which points will be plotted
      * @param   g  graphics context on which points will be plotted
+     * @param   padFactor  minimum amount of space outside the unit cube
+     *          in both dimensions - 1 means no extra space
      */
-    protected PlotVolume( Component c, Graphics g ) {
+    protected PlotVolume( Component c, Graphics g, double padFactor ) {
         graphics_ = g;
         int w = c.getWidth();
         int h = c.getHeight();
-        double padFactor = Math.sqrt( 1. / 3. );
-        scale_ = (int) Math.round( Math.min( h, w ) * padFactor );
+        scale_ = (int) Math.round( Math.min( h, w ) / padFactor );
         xoff_ = 0 + (int) ( ( w - scale_ ) / 2. );
         yoff_ = h - (int) ( ( h - scale_ ) / 2. );
         tweaker_ = new DepthTweaker( 1.0 );
@@ -49,7 +50,8 @@ public abstract class PlotVolume {
      * Returns the scaling constant for this volume.
      * This is the value by which the normalised coordinates are multiplied
      * to give the length on the screen in pixels of a line if it is
-     * being plotted normal to the viewer.
+     * being plotted normal to the viewer.  It is approximately the linear
+     * dimension of the component in pixels.
      *
      * @return  scale length
      */
