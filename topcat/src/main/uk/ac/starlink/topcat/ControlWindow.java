@@ -250,7 +250,7 @@ public class ControlWindow extends AuxWindow
             new GraphicsWindowAction( "3D", ResourceIcon.PLOT3D,
                                       "Three-dimensional scatter plot",
                                       Cartesian3DWindow.class ),
-            new GraphicsWindowAction( "Sky", ResourceIcon.DO_WHAT,
+            new GraphicsWindowAction( "Sky", ResourceIcon.SPHERE,
                                       "Spherical polar scatter plot",
                                       SphericalPolar3DWindow.class ),
         };

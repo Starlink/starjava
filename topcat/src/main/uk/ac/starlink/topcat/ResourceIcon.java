@@ -92,6 +92,7 @@ public class ResourceIcon implements Icon {
         PLOT = makeIcon( "plot0.gif" ),
         DENSITY = makeIcon( "2hist2.gif" ),
         PLOT3D = makeIcon( "3dax6.gif" ),
+        SPHERE = makeIcon( "sphere2.gif" ),
         PARAMS = makeIcon( "tablemeta0.gif" ),
         VIEWER = makeIcon( "browser1.gif" ),
         SUBSETS = makeIcon( "venn2.gif" ),
