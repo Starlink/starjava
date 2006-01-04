@@ -35,10 +35,17 @@ public class Plot3D extends JComponent {
     private PlotVolume lastVol_;
     private Transformer3D lastTrans_;
     private PointRegistry pointReg_;
+    private double[][][] sphereGrid_;
 
     private static final double SQRT3 = Math.sqrt( 3.0 );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
+
+    /** Number of grid lines above (and below) the equator for sphere grid. */
+    private static final int LATITUDE_GRID_LINES = 2;
+
+    /** Number of longitude lines for sphere grid. */
+    private static final int LONGITUDE_GRID_LINES = 12;
 
     /**
      * Constructor.
@@ -117,9 +124,24 @@ public class Plot3D extends JComponent {
 
     /**
      * Resets the scaling so that all the data points known by this plot
-     * will be visible at all rotations.
+     * will be visible at all rotations.  This method sets 
+     * loBounds_, hiBounds_, loBoundsG_ and hiBoundsG_.
      */
     public void rescale() {
+        if ( getState().getSpherical() ) {
+            rescaleSpherical();
+        }
+        else {
+            rescaleCartesian();
+        }
+        lastVol_ = null;
+        lastTrans_ = null;
+    }
+
+    /**
+     * Rescale the data ranges in a way suitable for a Cartesian plot.
+     */
+    private void rescaleCartesian() {
         boolean[] logFlags = getState().getLogFlags();
         double[] loBounds = new double[ 3 ];
         double[] hiBounds = new double[ 3 ];
@@ -189,8 +211,49 @@ public class Plot3D extends JComponent {
             loBoundsG_[ i ] = flip ? hi : lo;
             hiBoundsG_[ i ] = flip ? lo : hi;
         }
-        lastVol_ = null;
-        lastTrans_ = null;
+    }
+
+    /**
+     * Rescale the data ranges in a way suitable for a spherical polar plot.
+     * The result is a cube centred at the origin with each side equal
+     * to twice the maximum radius ((x^2 + y^2 + z^2)^0.5).
+     */
+    private void rescaleSpherical() {
+        double r2max = 0.0;
+        Points points = getPoints();
+        int np = points.getCount();
+        RowSubset[] sets = getPointSelection().getSubsets();
+        int nset = sets.length;
+
+        /* Calculate the maximum radius of points being plotted. */
+        double[] coords = new double[ 3 ];
+        for ( int ip = 0; ip < np; ip++ ) {
+            long lp = (long) ip;
+            boolean use = false;
+            for ( int is = 0; is < nset && ! use; is++ ) {
+                use = use || sets[ is ].isIncluded( lp );
+            }
+            if ( use ) {
+                points.getCoords( ip, coords );
+                double r2 = coords[ 0 ] * coords[ 0 ]
+                          + coords[ 1 ] * coords[ 1 ]
+                          + coords[ 2 ] * coords[ 2 ];
+                if ( r2 > r2max && ! Double.isInfinite( r2 ) ) {
+                    r2max = r2;
+                }
+            }
+        }
+
+        /* Set the bounds arrays accordingly. */
+        double rmax = r2max > 0.0 ? Math.sqrt( r2max ) : 1.0;
+        double[] loBounds = new double[ 3 ];
+        double[] hiBounds = new double[ 3 ];
+        Arrays.fill( loBounds, -rmax );
+        Arrays.fill( hiBounds, +rmax );
+        loBounds_ = loBounds;
+        hiBounds_ = hiBounds;
+        loBoundsG_ = (double[]) loBounds.clone();
+        hiBoundsG_ = (double[]) hiBounds.clone();
     }
 
     /**
@@ -222,11 +285,15 @@ public class Plot3D extends JComponent {
             new Transformer3D( state.getRotation(), loBoundsG_, hiBoundsG_ );
 
         /* Set up a plotting volume to render the 3-d points. */
-        PlotVolume vol = new SortPlotVolume( this, g );
+        double padFactor = state.getSpherical() ? 1.05 : Math.sqrt( 3. );
+        PlotVolume vol = new SortPlotVolume( this, g, padFactor );
         vol.getDepthTweaker().setFogginess( state_.getFogginess() );
 
         /* Plot back part of bounding box. */
-        plotAxes( g, trans, vol, false );
+        boolean grid = state.getGrid();
+        if ( grid ) {
+            plotAxes( g, trans, vol, false );
+        }
 
         /* Submit each point for drawing in the display volume as
          * appropriate. */
@@ -270,7 +337,9 @@ public class Plot3D extends JComponent {
         vol.flush();
 
         /* Plot front part of bounding box. */
-        plotAxes( g, trans, vol, true );
+        if ( grid ) {
+            plotAxes( g, trans, vol, true );
+        }
 
         /* Draw any annotations. */
         annotations_.draw( g, trans, vol );
@@ -299,7 +368,7 @@ public class Plot3D extends JComponent {
     }
 
     /**
-     * Draws a bounding box which contains all the known points.
+     * Draws grid lines which contain all the known points.
      * According to the value of the <code>front</code> parameter, 
      * either the lines which are behind all the data points,
      * or the lines which are in front of all the data points are drawn.
@@ -313,13 +382,36 @@ public class Plot3D extends JComponent {
     private void plotAxes( Graphics g, Transformer3D trans,
                            PlotVolume vol, boolean front ) {
         Graphics2D g2 = (Graphics2D) g;
-        Color col = g.getColor();
         Object antialias = 
             g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                              state_.getAntialias() 
                                  ? RenderingHints.VALUE_ANTIALIAS_ON
                                  : RenderingHints.VALUE_ANTIALIAS_DEFAULT );
+        if ( ((Plot3DState) getState()).getSpherical() ) {
+            plotSphericalAxes( g, trans, vol, front );
+        }
+        else {
+            plotCartesianAxes( g, trans, vol, front );
+        }
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, antialias );
+    }
+
+    /**
+     * Draws a bounding box which contains all the points in a Cartesian plot.
+     * According to the value of the <code>front</code> parameter, 
+     * either the lines which are behind all the data points,
+     * or the lines which are in front of all the data points are drawn.
+     * Thus, the routine needs to be called twice to plot all the lines.
+     *
+     * @param   g      graphics context
+     * @param   trans  transformer which maps data space to 3d graphics space
+     * @param   vol    the plotting volume onto which the plot is done
+     * @param   front  true for lines in front of data, false for lines behind
+     */
+    private void plotCartesianAxes( Graphics g, Transformer3D trans,
+                                    PlotVolume vol, boolean front ) {
+        Color col = g.getColor();
         boolean[] flipFlags = getState().getFlipFlags();
         for ( int i0 = 0; i0 < 8; i0++ ) {
             Corner c0 = Corner.getCorner( i0 );
@@ -348,7 +440,7 @@ public class Plot3D extends JComponent {
                         }
                         assert c1 != Corner.ORIGIN;
                         if ( c0 == Corner.ORIGIN ) {
-                            drawAxis( g, trans, vol, p0, p1 );
+                            drawBoxAxis( g, trans, vol, p0, p1 );
                         }
                         else {
                             drawBoxLine( g, trans, vol, p0, p1 );
@@ -358,7 +450,6 @@ public class Plot3D extends JComponent {
             }
         }
         g.setColor( col );
-        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, antialias );
     }
 
     /**
@@ -399,8 +490,8 @@ public class Plot3D extends JComponent {
      * @param   p1      other end of the axis in data coordinates
      *                  (3-element array)
      */
-    private void drawAxis( Graphics g1, Transformer3D trans, PlotVolume vol,
-                           double[] p0, double[] p1 ) {
+    private void drawBoxAxis( Graphics g1, Transformer3D trans, PlotVolume vol,
+                              double[] p0, double[] p1 ) {
         Graphics2D g2 = (Graphics2D) g1.create();
         g2.setColor( Color.BLACK );
         boolean[] logFlags = getState().getLogFlags();
@@ -618,6 +709,251 @@ public class Plot3D extends JComponent {
             g2.drawLine( tpos, -2, tpos, +2 );
             g2.drawString( tlabel, tpos - fm.stringWidth( tlabel ) / 2, sy );
         }
+    }
+
+    /**
+     * Draws a spherical grid containing all the points in a spherical
+     * polar plot.
+     * According to the value of the <code>front</code> parameter, 
+     * either the lines which are behind all the data points,
+     * or the lines which are in front of all the data points are drawn.
+     * Thus, the routine needs to be called twice to plot all the lines.
+     *
+     * @param   g      graphics context
+     * @param   trans  transformer which maps data space to 3d graphics space
+     * @param   vol    the plotting volume onto which the plot is done
+     * @param   front  true for lines in front of data, false for lines behind
+     */
+    private void plotSphericalAxes( Graphics g, Transformer3D trans,
+                                    PlotVolume vol, boolean front ) {
+        Color col = g.getColor();
+
+        /* Get the arrays of points which define all the grid lines. 
+         * These points are in 3D data space.  We can then use the same
+         * machinery that we use for the data points (Transformer3D object etc)
+         * to transform these points into graphics coordinates and plot
+         * them easily to the screen.
+         * Getting a double[][][] array to represent the full grid lines is
+         * slightly lazy, one could use an iterator over the points which
+         * used a smaller array without recalculation of the trig by
+         * exploiting symmetry, but the amount of memory used is unlikely
+         * to be large, so it's not a big deal.
+         *
+         * An alternative approach to plotting the spherical net
+         * would be to use the Graphics object's drawArc() method.
+         * To do that you'd have to identify where
+         * the oval representing each grid circle was in 2D and define
+         * an AffineTransform to place the arc since drawArc only lets
+         * you draw to an ellipse with x/y aligned major/minor axes.
+         * This would possibly be faster, and it should give
+         * much better rendering to non-pixel-based Graphics contexts
+         * (PostScript) - the grid lines are currently, and unavoidably,
+         * rather wobbly.  However, it's not trivial to do. */
+        double[][][] grid = getSphericalGrid( vol );
+        int nline = grid.length;
+
+        /* Iterate over all grid lines. */
+        for ( int iline = 0; iline < nline; iline++ ) {
+            g.setColor( front ? Color.DARK_GRAY : Color.LIGHT_GRAY );
+            double[][] line = grid[ iline ];
+            int np = line.length;
+            int[] xp = new int[ np ];
+            int[] yp = new int[ np ];
+            int ipoint = 0;
+            double[] point = new double[ 3 ];
+
+            /* Iterate over all points in the current grid line. */
+            for ( int ip = 0; ip < np; ip++ ) {
+
+                /* Acquire and transform the next point defining the current
+                 * grid line. */
+                System.arraycopy( line[ ip ], 0, point, 0, 3 );
+                trans.transform( point );
+
+                /* If the point is plottable (it's in front/behind as required)
+                 * then add its graphics coordinates to the list of points
+                 * which will form the line to be drawn. */
+                if ( ( point[ 2 ] < 0.5 == front ) || point[ 2 ] == 0.5 ) {
+                    xp[ ipoint ] = vol.projectX( point[ 0 ] );
+                    yp[ ipoint ] = vol.projectY( point[ 1 ] );
+                    ipoint++;
+                }
+                else {
+
+                    /* Otherwise, see if we have a list of points ready 
+                     * to draw (this will happen if this is the first point
+                     * which goes out of range). */
+                    if ( ipoint > 0 ) {
+
+                        /* If so add one extra point, so we don't get gaps
+                         * at the boundaries. */
+                        if ( ipoint < np ) {
+                            xp[ ipoint ] = vol.projectX( point[ 0 ] );
+                            yp[ ipoint ] = vol.projectY( point[ 1 ] );
+                            ipoint++;
+                        }
+
+                        /* Then draw the line from the points thus far
+                         * assembled. */
+                        g.drawPolyline( xp, yp, ipoint );
+                        ipoint = 0;
+                    }
+                }
+            }
+
+            /* End of the current grid line.  If we have any points ready
+             * to draw, do it now. */
+            if ( ipoint > 0 ) {
+                if ( ipoint < np ) {
+                    xp[ ipoint ] = vol.projectX( point[ 0 ] );
+                    yp[ ipoint ] = vol.projectY( point[ 1 ] );
+                    ipoint++;
+                }
+                g.drawPolyline( xp, yp, ipoint );
+                ipoint = 0;
+            }
+        }
+        g.setColor( col );
+    }
+
+    /**
+     * Returns an array of points defining the grid lines which outline
+     * a sphere in data space for this plot.  The returned array is an
+     * array of double[][]s, each of which represents a line and is
+     * an array of double[3]s each of which represents a point in 3-d
+     * data space.  For each line, the first point in the array is
+     * the same as the last, which simplifies plotting a bit.
+     *
+     * @param    vol   plotting volume
+     * @return   double[][][3] array of points giving grid lines for a
+     *           spherical net 
+     */
+    private double[][][] getSphericalGrid( PlotVolume vol ) {
+
+        /* Only populate the grid if we don't have a suitable one already
+         * prepared. */
+        if ( sphereGrid_ == null || vol != lastVol_ ) {
+            final int nLat = LATITUDE_GRID_LINES;
+            final int nLong = LONGITUDE_GRID_LINES;
+            int scale = vol.getScale();
+            double radius = hiBoundsG_[ 0 ];
+
+            /* Set the tolerance for how far we are prepared to deviate
+             * from an ideal ellipse, which determines how many line 
+             * segments we need.  This is in graphics coordinates;
+             * on the screen that means pixels, so 0.5 should be 
+             * indistinguishable from any smaller number.  Some fairly 
+             * straightforward trig will show that the number of 
+             * straight line segments required to approximate a circle 
+             * of radius r in which no point should deviate more than
+             * e from its ideal position is:
+             *    2 * PI * sqrt( r / e )
+             */
+            final double tolerance = 0.5;
+
+            /* Allocate an array with one entry for each grid line. */
+            double[][][] grid = new double[ nLong + nLat * 2 + 1 ][][];
+
+            /* In each case, the circle is split into 4 quadrants for
+             * the calculations, since they are equivalent to each other
+             * by simple cartesian symmetry operations.  This reduces the
+             * number of expensive trig calculations which are required. */
+
+            /* Longitude lines and equator. */
+            {
+                int np = (int) Math.ceil( 2.0 * Math.PI / 4.0 
+                                          * Math.sqrt( scale / tolerance ) );
+                for ( int il = 0; il < nLong + 1; il++ ) {
+                    grid[ il ] = new double[ np * 4 + 1 ][];
+                }
+                double dTheta = 2.0 * Math.PI / 4.0 / np;
+                double dPhi = 2.0 * Math.PI / nLong;
+                double[] cosPhis = new double[ nLong ];
+                double[] sinPhis = new double[ nLong ];
+                for ( int iLong = 0; iLong < nLong; iLong++ ) {
+                    double phi = iLong * dPhi;
+                    cosPhis[ iLong ] = Math.cos( phi );
+                    sinPhis[ iLong ] = Math.sin( phi );
+                }
+                for ( int ip = 0; ip <= np; ip++ ) {
+                    double theta = ip * dTheta;
+                    double cosTheta = Math.cos( theta );
+                    double sinTheta = Math.sin( theta );
+                    for ( int iLong = 0; iLong < nLong; iLong++ ) {
+                        int il = iLong;
+                        double x = radius * ( cosTheta * cosPhis[ il ] );
+                        double y = radius * ( cosTheta * sinPhis[ il ] );
+                        double z = radius * ( sinTheta );
+                        int ip0 = 0 * np + ip;
+                        int ip1 = 2 * np - ip - 1;
+                        int ip2 = 2 * np + ip;
+                        int ip3 = 4 * np - ip - 1;
+                        grid[ il ][ ip0 ] = new double[] { +x, +y, +z };
+                        grid[ il ][ ip1 ] = new double[] { -x, -y, +z };
+                        grid[ il ][ ip2 ] = new double[] { -x, -y, -z };
+                        grid[ il ][ ip3 ] = new double[] { +x, +y, -z };
+                    }
+                    double x = radius * cosTheta;
+                    double y = radius * sinTheta;
+                    int ip0 = 0 * np + ip;
+                    int ip1 = 2 * np - ip - 1;
+                    int ip2 = 2 * np + ip;
+                    int ip3 = 4 * np - ip - 1;
+                    int il = nLong;
+                    grid[ il ][ ip0 ] = new double[] { +x, +y, 0 };
+                    grid[ il ][ ip1 ] = new double[] { -x, +y, 0 };
+                    grid[ il ][ ip2 ] = new double[] { -x, -y, 0 };
+                    grid[ il ][ ip3 ] = new double[] { +x, -y, 0 };
+                }
+            }
+
+            /* Latitude lines. */
+            {
+                double dTheta = Math.PI / 2.0 / ( nLat + 1 );
+                for ( int iLat = 0; iLat < nLat; iLat++ ) {
+                    double theta = ( iLat + 1 ) * dTheta;
+                    double cosTheta = Math.cos( theta );
+                    double sinTheta = Math.sin( theta );
+                    double r = radius * sinTheta;
+                    int np = (int)
+                        Math.ceil( 2.0 * Math.PI / 4.0 
+                                   * Math.sqrt( scale *
+                                                cosTheta / tolerance ) );
+                    double dPhi = 2.0 * Math.PI / 4.0 / np;
+                    for ( int iup = 0; iup < 2; iup++ ) {
+                        int il = nLong + 1 + iLat * 2 + iup;
+                        grid[ il ] = new double[ np * 4 + 1 ][];
+                    }
+                    for ( int ip = 0; ip < np; ip++ ) {
+                        double phi = ip * dPhi;
+                        double x = r * Math.cos( phi );
+                        double y = r * Math.sin( phi );
+                        int ip0 = 0 * np + ip;
+                        int ip1 = 2 * np - ip - 1;
+                        int ip2 = 2 * np + ip;
+                        int ip3 = 4 * np - ip - 1;
+                        for ( int iup = 0; iup < 2; iup++ ) {
+                            int il = nLong + 1 + iLat * 2 + iup;
+                            double z = iup == 0 ? + radius * cosTheta
+                                                : - radius * cosTheta;
+                            grid[ il ][ ip0 ] = new double[] { +x, +y, +z };
+                            grid[ il ][ ip1 ] = new double[] { -x, +y, +z };
+                            grid[ il ][ ip2 ] = new double[] { -x, -y, +z };
+                            grid[ il ][ ip3 ] = new double[] { +x, -y, +z };
+                        }
+                    }
+                }
+            }
+
+            /* For each line, set the last point equal to the first. */
+            for ( int il = 0; il < grid.length; il++ ) {
+                double[][] line = grid[ il ];
+                assert line[ line.length - 1 ] == null;
+                line[ line.length - 1 ] = line[ 0 ];
+            }
+            sphereGrid_ = grid;
+        }
+        return sphereGrid_;
     }
 
     /**
