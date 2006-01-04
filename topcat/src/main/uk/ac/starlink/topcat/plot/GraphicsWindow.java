@@ -81,6 +81,7 @@ public abstract class GraphicsWindow extends AuxWindow
     private Points points_;
     private PlotState lastState_;
     private Box statusBox_;
+    private boolean initialised_;
 
     private static JFileChooser exportSaver_;
     private static FileFilter psFilter_ =
@@ -147,7 +148,6 @@ public abstract class GraphicsWindow extends AuxWindow
 
         /* Ensure that changes to the point selection trigger a replot. */
         pointSelectors_.addActionListener( replotListener_ );
-        pointSelectors_.addNewSelector( createPointSelector() );
 
          /* Actions for exporting the plot. */
         Action gifAction = new ExportAction( "GIF", ResourceIcon.IMAGE,
@@ -186,11 +186,36 @@ public abstract class GraphicsWindow extends AuxWindow
     }
 
     public void setVisible( boolean visible ) {
-        super.setVisible( visible );
-        if ( lastState_ == null ) {
-            lastState_ = getPlotState();
-            lastState_.setValid( false );
+        if ( visible ) {
+            ensureInitialised();
+            if ( lastState_ == null ) {
+                lastState_ = getPlotState();
+                lastState_.setValid( false );
+            }
         }
+        super.setVisible( visible );
+    }
+
+
+    /**
+     * Check that initialisations have been performed.
+     */
+    private void ensureInitialised() {
+        if ( ! initialised_ ) {
+            init();
+            initialised_ = true;
+        }
+    }
+    
+    /**
+     * Perform initialisation which can't be done in the constructor
+     * (typically because it calls potentially overridden methods).
+     */
+    private void init() {
+
+        /* Add a starter point selector. */
+        pointSelectors_.addNewSelector( createPointSelector() );
+        pointSelectors_.revalidate();
 
         /* Set a suitable default style set. */
         long npoint = 0;
@@ -449,6 +474,9 @@ public abstract class GraphicsWindow extends AuxWindow
      *                    if false, only do it if the data selection has changed
      */
     private void performReplot( boolean forcePlot, boolean forceData ) {
+        if ( ! initialised_ ) {
+            return;
+        }
         PlotState state = getPlotState();
         PlotState lastState = lastState_;
         if ( forcePlot || ! state.equals( lastState ) ) {
