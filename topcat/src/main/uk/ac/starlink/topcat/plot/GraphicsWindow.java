@@ -478,6 +478,16 @@ public abstract class GraphicsWindow extends AuxWindow
             return;
         }
         PlotState state = getPlotState();
+
+        /* Check that two plot state objects obtained at the same time
+         * satisfy the equals() relationship.  This is not required for 
+         * correctness, but it is important for performance.  If you're
+         * getting an assertion error here, find out why the two 
+         * PlotStates are unequal and fix it (probably by providing 
+         * suitable equals() implementations for plotstate constituent
+         * objects). */
+        assert state.equals( getPlotState() ) : state.compare( getPlotState() );
+
         PlotState lastState = lastState_;
         if ( forcePlot || ! state.equals( lastState ) ) {
 

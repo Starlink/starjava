@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.util.Arrays;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -12,7 +13,7 @@ import uk.ac.starlink.table.ValueInfo;
 public class PlotState {
 
     private boolean valid_;
-    private ValueInfo[] axes_;
+    private SimpleInfo[] axes_;
     private boolean[] logFlags_;
     private boolean[] flipFlags_;
     private boolean grid_;
@@ -39,12 +40,18 @@ public class PlotState {
     }
 
     /**
-     * Sets the metadata for axes to be plotted.
+     * Sets the metadata for axes to be plotted.  Note the submitted
+     * <code>axes</code> array is not used directly, the relevant information
+     * is abstracted from it and stored (subsequent calls of {@link #getAxes}
+     * will not return the same array or component objects).
      *
      * @param  axes  axis metadata array
      */
     public void setAxes( ValueInfo[] axes ) {
-        axes_ = axes;
+        axes_ = new SimpleInfo[ axes.length ];
+        for ( int i = 0; i < axes.length; i++ ) {
+            axes_[ i ] = new SimpleInfo( axes[ i ] );
+        }
     }
 
     /**
@@ -173,6 +180,20 @@ public class PlotState {
                     : pointSelection_.equals( other.pointSelection_ ) );
     }
 
+    String compare( PlotState o ) {
+        StringBuffer sbuf = new StringBuffer( "Mismatches:" );
+        sbuf.append( valid_ == o.valid_ ? "" : " valid" );
+        sbuf.append( grid_ == o.grid_ ? "" : " grid" );
+        sbuf.append( Arrays.equals( axes_, o.axes_ ) ? "" : " axes" );
+        sbuf.append( Arrays.equals( logFlags_, o.logFlags_ ) ? "" : " log" );
+        sbuf.append( Arrays.equals( flipFlags_, o.flipFlags_  ) ? "" :" flip ");
+        sbuf.append( ( pointSelection_ == null 
+                           ? o.pointSelection_ == null
+                           : pointSelection_.equals( o.pointSelection_ ) )
+                        ? "" : " pointSelection" );
+        return sbuf.toString();
+    }
+
     public int hashCode() {
         int code = 555;
         code = 23 * code + ( valid_ ? 99 : 999 );
@@ -190,5 +211,43 @@ public class PlotState {
                                 ? 0
                                 : pointSelection_.hashCode() );
         return code;
+    }
+
+    /**
+     * ValueInfo implementation which ignores information that's not
+     * relevant to plotting.  The point of using this is so that we can
+     * implement its equals method suitably.
+     */
+    private static class SimpleInfo extends DefaultValueInfo {
+
+        public SimpleInfo( ValueInfo baseInfo ) {
+            super( baseInfo.getName(), baseInfo.getContentClass() );
+            String units = baseInfo.getUnitString();
+            String desc = baseInfo.getDescription();
+            setUnitString( units == null ? "" : units );
+            setDescription( desc == null ? "" : desc );
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof SimpleInfo ) {
+                SimpleInfo other = (SimpleInfo) o;
+                return getName().equals( other.getName() )
+                    && getContentClass().equals( other.getContentClass() )
+                    && getUnitString().equals( other.getUnitString() )
+                    && getDescription().equals( other.getDescription() );
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            int code = 5555;
+            code = 23 * code + getName().hashCode();
+            code = 23 * code + getContentClass().hashCode();
+            code = 23 * code + getUnitString().hashCode();
+            code = 23 * code + getDescription().hashCode();
+            return code;
+        }
     }
 }

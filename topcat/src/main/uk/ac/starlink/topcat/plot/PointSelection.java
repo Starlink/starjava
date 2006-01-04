@@ -422,6 +422,26 @@ public class PointSelection {
                 && lrow <= hilim_
                 && base_.isIncluded( lrow - lolim_ );
         }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof OffsetRowSubset ) {
+                OffsetRowSubset other = (OffsetRowSubset) o;
+                return this.base_.equals( other.base_ )
+                    && this.lolim_ == other.lolim_
+                    && this.hilim_ == other.hilim_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            int code = 555;
+            code = 23 * code + base_.hashCode();
+            code = 23 * code + (int) lolim_;
+            code = 23 * code + (int) hilim_;
+            return code;
+        }
     }
 
     /**
