@@ -18,6 +18,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
 
@@ -44,6 +45,7 @@ public class Plot3D extends JPanel {
     private final Legend legend_;
 
     private static final double SQRT3 = Math.sqrt( 3.0 );
+    private static final int SPHERE_PAD = 8;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
@@ -153,7 +155,7 @@ public class Plot3D extends JPanel {
      * loBounds_, hiBounds_, loBoundsG_ and hiBoundsG_.
      */
     public void rescale() {
-        if ( getState().getSpherical() ) {
+        if ( getState() instanceof SphericalPlotState ) {
             rescaleSpherical();
         }
         else {
@@ -303,8 +305,28 @@ public class Plot3D extends JPanel {
             new Transformer3D( state.getRotation(), loBoundsG_, hiBoundsG_ );
 
         /* Set up a plotting volume to render the 3-d points. */
-        double padFactor = state.getSpherical() ? 1.05 : Math.sqrt( 3. );
-        PlotVolume vol = new SortPlotVolume( c, g, padFactor );
+        double padFactor;
+        int[] padBorders;
+        if ( state instanceof SphericalPlotState ) {
+            padFactor = 1.0;
+            padBorders = new int[ 4 ];
+            Arrays.fill( padBorders, SPHERE_PAD );
+
+            /* Make room for an axis if we need one. */
+            if ( ((SphericalPlotState) state).getRadialInfo() != null ) {
+                padBorders[ 2 ] += g.getFontMetrics().getHeight() * 2
+                                 + SPHERE_PAD;
+            }
+        }
+        else {
+            padBorders = new int[] { 2, 2, 2, 2 };
+
+            /* Since the cube may get rotated, we need to make sure that
+             * its longest diagonal can be accommodated normal to the 
+             * line of view. */
+            padFactor = Math.sqrt( 3. );
+        }
+        PlotVolume vol = new SortPlotVolume( c, g, padFactor, padBorders );
         vol.getDepthTweaker().setFogginess( state_.getFogginess() );
 
         /* Plot back part of bounding box. */
@@ -406,7 +428,7 @@ public class Plot3D extends JPanel {
                              state_.getAntialias() 
                                  ? RenderingHints.VALUE_ANTIALIAS_ON
                                  : RenderingHints.VALUE_ANTIALIAS_DEFAULT );
-        if ( ((Plot3DState) getState()).getSpherical() ) {
+        if ( getState() instanceof SphericalPlotState ) {
             plotSphericalAxes( g, trans, vol, front );
         }
         else {
@@ -674,27 +696,48 @@ public class Plot3D extends JPanel {
          * the relevant axis now. */
         g2.transform( atf );
 
+        /* Draw the annotated axis. */
+        annotateAxis( g2, state_.getAxes()[ iaxis ], sx, sy,
+                      loBounds_[ iaxis ], hiBounds_[ iaxis ],
+                      logFlags[ iaxis ],
+                      ( ! forward ) ^ state_.getFlipFlags()[ iaxis ] );
+    }
+
+    /**
+     * Draws axis annotations including axis name,
+     * tick marks and numeric labels onto a given region 
+     * of a graphics context.  The drawing is done onto the region
+     * (0,0)->(sx,sy) of the graphics context.
+     *
+     * @param  g         graphics context
+     * @param  axisInfo  axis metadata giving name, units etc
+     * @param  sx        horizontal extent of the drawing region
+     *                   (length of the axis in pixels)
+     * @param  sy        vertical extent of the drawing region 
+     *                   (should be of the order of font height)
+     * @param  lo        lower bound of axis range
+     * @param  hi        upper bound of axis range
+     * @param  log       true iff axis is logarithmic
+     * @param  flip      true iff axis values increase right to left
+     */
+    private static void annotateAxis( Graphics g, ValueInfo axisInfo,
+                                      int sx, int sy, double lo, double hi,
+                                      boolean log, boolean flip ) {
+
         /* Write the name of the axis. */
-        FontMetrics fm = g2.getFontMetrics();
-        ValueInfo axisInfo = state_.getAxes()[ iaxis ];
+        FontMetrics fm = g.getFontMetrics();
         String label = axisInfo.getName();
         String units = axisInfo.getUnitString();
         if ( units != null && units.trim().length() > 0 ) {
             label += " / " + units.trim();
         }
-        g2.drawString( label, ( sx - fm.stringWidth( label ) ) / 2, 2 * sy );
-
-        /* Plot ticks and corresponding numeric labels. */
+        g.drawString( label, ( sx - fm.stringWidth( label ) ) / 2, 2 * sy );
 
         /* Work out where to put ticks on the axis.  Do this recursively;
          * if we find that the labels are too crowded on the axis decrease
          * the number of tick marks and try again.  Note we don't currently
          * make many concessions to selecting the right tick marks for
          * logarithmic axes, could do better. */
-        boolean log = logFlags[ iaxis ];
-        boolean flip = getState().getFlipFlags()[ iaxis ];
-        double lo = loBounds_[ iaxis ];
-        double hi = hiBounds_[ iaxis ];
         int[] tickPos = null;
         String[] tickLabels = null;
         int nTick = 0;
@@ -709,9 +752,8 @@ public class Plot3D extends JPanel {
                 tickLabels[ i ] = axer.getLabel( i );
                 double frac = log ? Math.log( tick / lo ) / Math.log( hi / lo )
                                   : ( tick - lo ) / ( hi - lo );
-                tickPos[ i ] = (int) Math.round( sx * ( ( forward ^ flip )
-                                                            ? frac
-                                                            : ( 1. - frac ) ) );
+                tickPos[ i ] = 
+                    (int) Math.round( sx * ( flip ? ( 1. - frac ) : frac ) );
                 if ( i > 0 && Math.abs( tickPos[ i ] - tickPos[ i - 1 ] ) 
                               < fm.stringWidth( tickLabels[ i - 1 ] + "99" ) ) {
                     nTick = 0;
@@ -724,8 +766,8 @@ public class Plot3D extends JPanel {
         for ( int i = 0; i < nTick; i++ ) {
             int tpos = tickPos[ i ];
             String tlabel = tickLabels[ i ];
-            g2.drawLine( tpos, -2, tpos, +2 );
-            g2.drawString( tlabel, tpos - fm.stringWidth( tlabel ) / 2, sy );
+            g.drawLine( tpos, -2, tpos, +2 );
+            g.drawString( tlabel, tpos - fm.stringWidth( tlabel ) / 2, sy );
         }
     }
 
@@ -832,6 +874,30 @@ public class Plot3D extends JPanel {
             }
         }
         g.setColor( col );
+
+
+        /* Now draw a single horizontal axis to indicate the range of
+         * the radial coordinate. */
+        SphericalPlotState sstate = ((SphericalPlotState) getState());
+        ValueInfo axInfo = sstate.getRadialInfo();
+        if ( axInfo != null ) {
+            int scale = vol.getScale();
+            boolean log = sstate.getRadialLog();
+            double[] d0 = new double[] { 0.0, 0.0, 0.0 };
+            trans.transform( d0 );
+            int xp0 = vol.projectX( d0[ 0 ] );
+            int xp1 = xp0 + scale / 2;
+            int yp = vol.projectY( d0[ 1 ] ) + scale / 2 + SPHERE_PAD;
+            Graphics g1 = g.create();
+            g1.setColor( Color.BLACK );
+            g1.drawLine( xp0, yp, xp1, yp );
+            g1.translate( xp0, yp );
+            double radius = hiBounds_[ 0 ];
+            annotateAxis( g1, axInfo, xp1 - xp0,
+                          g1.getFontMetrics().getHeight(),
+                          log ? Math.exp( 0.0 ) : 0.0,
+                          log ? Math.exp( radius ) : radius, log, false );
+        }
     }
 
     /**
