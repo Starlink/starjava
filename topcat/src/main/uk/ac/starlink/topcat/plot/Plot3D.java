@@ -735,15 +735,14 @@ public class Plot3D extends JPanel {
 
         /* Work out where to put ticks on the axis.  Do this recursively;
          * if we find that the labels are too crowded on the axis decrease
-         * the number of tick marks and try again.  Note we don't currently
-         * make many concessions to selecting the right tick marks for
-         * logarithmic axes, could do better. */
+         * the number of tick marks and try again. */
         int[] tickPos = null;
         String[] tickLabels = null;
         int nTick = 0;
         int labelGap = fm.stringWidth( "99" );
-        for ( int mTick = log ? 2 : 4; nTick == 0 && mTick > 0; mTick-- ) {
-            AxisLabeller axer = new AxisLabeller( lo, hi, mTick );
+        for ( int mTick = 4; nTick == 0 && mTick > 0; mTick-- ) {
+            AxisLabels axer = log ? AxisLabels.labelLogAxis( lo, hi, mTick )
+                                  : AxisLabels.labelLinearAxis( lo, hi, mTick );
             nTick = axer.getCount();
             tickPos = new int[ nTick ];
             tickLabels = new String[ nTick ];
