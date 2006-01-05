@@ -13,7 +13,7 @@ import uk.ac.starlink.table.ValueInfo;
 public class PlotState {
 
     private boolean valid_;
-    private SimpleInfo[] axes_;
+    private SimpleValueInfo[] axes_;
     private boolean[] logFlags_;
     private boolean[] flipFlags_;
     private boolean grid_;
@@ -48,9 +48,9 @@ public class PlotState {
      * @param  axes  axis metadata array
      */
     public void setAxes( ValueInfo[] axes ) {
-        axes_ = new SimpleInfo[ axes.length ];
+        axes_ = new SimpleValueInfo[ axes.length ];
         for ( int i = 0; i < axes.length; i++ ) {
-            axes_[ i ] = new SimpleInfo( axes[ i ] );
+            axes_[ i ] = new SimpleValueInfo( axes[ i ] );
         }
     }
 
@@ -218,9 +218,9 @@ public class PlotState {
      * relevant to plotting.  The point of using this is so that we can
      * implement its equals method suitably.
      */
-    private static class SimpleInfo extends DefaultValueInfo {
+    protected static class SimpleValueInfo extends DefaultValueInfo {
 
-        public SimpleInfo( ValueInfo baseInfo ) {
+        public SimpleValueInfo( ValueInfo baseInfo ) {
             super( baseInfo.getName(), baseInfo.getContentClass() );
             String units = baseInfo.getUnitString();
             String desc = baseInfo.getDescription();
@@ -229,8 +229,8 @@ public class PlotState {
         }
 
         public boolean equals( Object o ) {
-            if ( o instanceof SimpleInfo ) {
-                SimpleInfo other = (SimpleInfo) o;
+            if ( o instanceof SimpleValueInfo ) {
+                SimpleValueInfo other = (SimpleValueInfo) o;
                 return getName().equals( other.getName() )
                     && getContentClass().equals( other.getContentClass() )
                     && getUnitString().equals( other.getUnitString() )
