@@ -13,8 +13,10 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.ColumnCellRenderer;
+import uk.ac.starlink.topcat.ColumnComboBoxModel;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
 import uk.ac.starlink.topcat.ToggleButtonModel;
@@ -184,6 +186,20 @@ public class SphericalPolarPointSelector extends PointSelector {
                                                     tcol.getModelIndex(),
                                                     logToggler_.isSelected() )
              : (ColumnData) UnitColumnData.INSTANCE;
+    }
+
+    /**
+     * Returns metadata describing the currently selected radial coordinate.
+     * If no radial coordinate is selected (all points on the surface of
+     * the sphere), <code>null</code> is returned.
+     *
+     * @return   radial column info
+     */
+    public ValueInfo getRadialInfo() {
+        StarTableColumn tcol = (StarTableColumn) rSelector_.getSelectedItem();
+        return ( tcol == null || tcol == ColumnComboBoxModel.NO_COLUMN )
+             ? null
+             : tcol.getColumnInfo();
     }
 
     /**
