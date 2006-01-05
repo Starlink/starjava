@@ -314,8 +314,8 @@ public class Plot3D extends JPanel {
 
             /* Make room for an axis if we need one. */
             if ( ((SphericalPlotState) state).getRadialInfo() != null ) {
-                padBorders[ 2 ] += g.getFontMetrics().getHeight() * 2
-                                 + SPHERE_PAD;
+                padBorders[ annotateAtSide() ? 0 : 2 ] 
+                   += g.getFontMetrics().getHeight() * 2 + SPHERE_PAD;
             }
         }
         else {
@@ -886,15 +886,19 @@ public class Plot3D extends JPanel {
             double[] d0 = new double[] { 0.0, 0.0, 0.0 };
             trans.transform( d0 );
             int xp0 = vol.projectX( d0[ 0 ] );
+            int yp0 = vol.projectY( d0[ 1 ] );
             int xp1 = xp0 + scale / 2;
-            int yp = vol.projectY( d0[ 1 ] ) + scale / 2 + SPHERE_PAD;
-            Graphics g1 = g.create();
-            g1.setColor( Color.BLACK );
-            g1.drawLine( xp0, yp, xp1, yp );
-            g1.translate( xp0, yp );
+            int yp1 = yp0 + scale / 2 + SPHERE_PAD;
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setColor( Color.BLACK );
+            if ( annotateAtSide() ) {
+                g2.rotate( Math.PI / 2, xp0, yp0 );
+            }
+            g2.translate( xp0, yp1 );
+            g2.drawLine( 0, 0, xp1 - xp0, 0 );
             double radius = hiBounds_[ 0 ];
-            annotateAxis( g1, axInfo, xp1 - xp0,
-                          g1.getFontMetrics().getHeight(),
+            annotateAxis( g2, axInfo, xp1 - xp0,
+                          g2.getFontMetrics().getHeight(),
                           log ? Math.exp( 0.0 ) : 0.0,
                           log ? Math.exp( radius ) : radius, log, false );
         }
@@ -1117,6 +1121,23 @@ public class Plot3D extends JPanel {
             }
         }
         return false;
+    }
+
+    /**
+     * Determines whether the plotting area is wider than it is high.
+     *
+     * @return  true if we're short and fat; false if we're tall and thin
+     */
+    /**
+     * Decides whether, other thiings being equal, it's better to put
+     * annotation information at the bottom of the plotting area or at
+     * the side.
+     *
+     * @return   true if annotations should be at the side,
+     *           false if they should be at the top/bottom
+     */
+    private boolean annotateAtSide() {
+        return plotArea_.getWidth() - plotArea_.getHeight() > SPHERE_PAD * 2;
     }
 
     /**
