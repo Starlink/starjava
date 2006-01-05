@@ -12,7 +12,7 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
  * @author   Mark Taylor
  * @since    23 Dec 2005
  */
-public class SphericalPolar3DWindow extends Plot3DWindow {
+public class SphereWindow extends Plot3DWindow {
 
     private final ToggleButtonModel logToggler_;
 
@@ -21,14 +21,14 @@ public class SphericalPolar3DWindow extends Plot3DWindow {
      *
      * @param   parent  parent component (may be used for positioning)
      */
-    public SphericalPolar3DWindow( Component parent ) {
-        super( "Spherical Polar",
+    public SphereWindow( Component parent ) {
+        super( "Spherical Plot",
                new String[] { "Longitude", "Latitude", "Radius" }, parent );
         logToggler_ =
             new ToggleButtonModel( "Log", ResourceIcon.XLOG,
                                    "Scale radius value logarithmically" );
         logToggler_.addActionListener( getReplotListener() );
-        addHelp( "SphericalPolar3DWindow" );
+        addHelp( "SphereWindow" );
     }
 
     protected PlotState createPlotState() {

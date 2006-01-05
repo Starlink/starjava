@@ -75,7 +75,7 @@ import uk.ac.starlink.topcat.plot.DensityWindow;
 import uk.ac.starlink.topcat.plot.GraphicsWindow;
 import uk.ac.starlink.topcat.plot.HistogramWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
-import uk.ac.starlink.topcat.plot.SphericalPolar3DWindow;
+import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -252,7 +252,7 @@ public class ControlWindow extends AuxWindow
                                       Cartesian3DWindow.class ),
             new GraphicsWindowAction( "Sky", ResourceIcon.SPHERE,
                                       "Spherical polar scatter plot",
-                                      SphericalPolar3DWindow.class ),
+                                      SphereWindow.class ),
         };
         writeAct_ = new ModelViewAction( "Save Table", ResourceIcon.SAVE,
                                          "Write out the current table" ) {
