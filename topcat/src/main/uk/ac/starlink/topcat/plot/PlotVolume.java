@@ -35,14 +35,21 @@ public abstract class PlotVolume {
      * @param   g  graphics context on which points will be plotted
      * @param   padFactor  minimum amount of space outside the unit cube
      *          in both dimensions - 1 means no extra space
+     * @param   padBorders  space, additional to padFactor, to be left around
+     *          the edges of the plot; order is (left,right,bottom,top)
      */
-    protected PlotVolume( Component c, Graphics g, double padFactor ) {
+    protected PlotVolume( Component c, Graphics g, double padFactor,
+                          int[] padBorders ) {
         graphics_ = g;
-        int w = c.getWidth();
-        int h = c.getHeight();
+        int padLeft = padBorders[ 0 ];
+        int padRight = padBorders[ 1 ];
+        int padBottom = padBorders[ 2 ];
+        int padTop = padBorders[ 3 ];
+        int w = c.getWidth() - padLeft - padRight;
+        int h = c.getHeight() - padBottom - padTop;
         scale_ = (int) Math.round( Math.min( h, w ) / padFactor );
-        xoff_ = 0 + (int) ( ( w - scale_ ) / 2. );
-        yoff_ = h - (int) ( ( h - scale_ ) / 2. );
+        xoff_ = 0 + (int) ( ( w - scale_ ) / 2. ) + padLeft;
+        yoff_ = h - (int) ( ( h - scale_ ) / 2. ) + padTop;
         tweaker_ = new DepthTweaker( 1.0 );
     }
 
