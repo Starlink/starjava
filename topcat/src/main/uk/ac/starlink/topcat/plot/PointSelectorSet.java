@@ -267,33 +267,6 @@ public abstract class PointSelectorSet extends JPanel {
     }
 
     /**
-     * Ensures that the tabbed pane never has any blank PointSelectors
-     * except maybe one at the end.  This method may be called
-     * from an event handler, so ensure that it doesn't change the model
-     * directly.
-     */
-    private void tidyModel() {
-        if ( getSelectorCount() > 1 ) {
-            for ( int i = 0; i < getSelectorCount(); i++ ) {
-                final PointSelector psel = getSelector( i );
-                if ( psel.getTable() == null ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            removeSelector( psel );
-                        }
-                    } );
-
-                    /* Don't attempt more than one at a time.  The change
-                     * will trigger events that cause this method to be
-                     * called again.  When the model is tidy, this method
-                     * won't cause itself to be recalled. */
-                    return;
-                }
-            }
-        }
-    }
-
-    /**
      * Returns the name to use for the index'th tab.
      * 
      * @param  index  tab index
