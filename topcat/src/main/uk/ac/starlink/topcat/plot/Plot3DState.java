@@ -16,7 +16,6 @@ public class Plot3DState extends PlotState {
     private double[] rotation_;
     private double fogginess_;
     private boolean antialias_;
-    private boolean spherical_;
 
     /**
      * Sets the rotation matrix.
@@ -34,26 +33,6 @@ public class Plot3DState extends PlotState {
      */
     public double[] getRotation() {
         return rotation_;
-    }
-
-    /**
-     * Sets whether the plot is to be spherical polar or cartesian.
-     * This affects axis drawing and data ranges (for a spherical plot
-     * the centre and rotation pivot is always at the origin).
-     *
-     * @param  spherical  true iff the plot is spherical polar
-     */
-    public void setSpherical( boolean spherical ) {
-        spherical_ = spherical;
-    }
-
-    /**
-     * Indicates whether the plot is to be spherical polar or cartesian.
-     *
-     * @return  true iff the plot is spherical polar
-     */
-    public boolean getSpherical() {
-        return spherical_;
     }
 
     /**
