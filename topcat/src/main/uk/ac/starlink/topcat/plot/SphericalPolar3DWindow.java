@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Component;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 
@@ -31,8 +32,14 @@ public class SphericalPolar3DWindow extends Plot3DWindow {
     }
 
     protected PlotState createPlotState() {
-        Plot3DState state = (Plot3DState) super.createPlotState();
-        state.setSpherical( true );
+        SphericalPlotState state = new SphericalPlotState();
+        ValueInfo rInfo =
+            ((SphericalPolarPointSelector) getPointSelectors()
+                                          .getMainSelector()).getRadialInfo();
+        state.setRadialInfo( rInfo );
+        if ( rInfo != null ) {
+            state.setRadialLog( logToggler_.isSelected() );
+        }
         return state;
     }
 
