@@ -63,7 +63,7 @@ well as a model independent intensity analysis measure.
  <IMG
  WIDTH="322" HEIGHT="434" ALIGN="BOTTOM" BORDER="0"
  SRC="linefitwindow.gif"
- ALT="2458">
+ ALT="2460">
  
 </DIV>
 
@@ -109,7 +109,7 @@ line. You should now see a yellow rectangle over the line:
  <IMG
  WIDTH="493" HEIGHT="356" ALIGN="BOTTOM" BORDER="0"
  SRC="linefitplotwindow.gif"
- ALT="2473">
+ ALT="2475">
  
 </DIV>
 
@@ -153,7 +153,7 @@ All types except <B>Quick</B> use a non-linear least squares
 
 <P>
 <B>Quick</B>: The default line measurement type. This is based on
- the ABLINE technique described in the <A HREF="/star/docs/sun86.htx/sun86.html#xref_">FIGARO</A>
+ the ABLINE technique described in the <A HREF="http://star-www.rl.ac.uk/cgi-bin/htxserver/sun86.htx/sun86.html?xref_">FIGARO</A>
  documentation. This just uses an analysis of the intensities in the
  selected region and the chosen background. The results you get are:
 
@@ -176,6 +176,10 @@ standard deviations wide.
 
 <LI><TT>Equiv</TT>, the equivalent width of the line. This will be
          0 if a zero background is given or assumed.
+
+<LI><TT>Flux</TT>, the background subtracted integrated intensity
+         of the line over the selected region. Requires a linear
+         coordinate step.
 
 <LI><TT>Asym</TT>, an asymmetry value for the line. This is a
          measure of the relative displacement of the centre of the
@@ -452,11 +456,11 @@ The values measured for this line shape are:
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>04 October 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>06 January 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils \& \
 
-2005 Particle Physics and Astronomy Research Council<BR></I>
+2006 Particle Physics and Astronomy Research Council<BR></I>
 </ADDRESS>
 </BODY>
 </HTML>

@@ -23,12 +23,12 @@
 \newcommand{\stardoccopyright}
 {Copyright \copyright\ 2001-2005 Council for the Central Laboratory of the
 Research Councils \& \\
-2005 Particle Physics and Astronomy Research Council}
+2006 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.10}
+\newcommand{\stardocnumber}    {243.11}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {04 November 2005}
+\newcommand{\stardocdate}      {06 January 2006}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
 \newcommand{\stardocversion}   {3.4-2}
 \newcommand{\stardocmanual}    {User's Manual}
@@ -2310,16 +2310,17 @@ plotted in a new window before fitting the lines.
 \mainfigure{generateline}
 
 This window is for generating a spectrum that is equivalent to an interpolated
-line that you have drawn on the plot. Such lines can then be subtracted to or
-from, or divided into the current spectrum, thus providing a way to background
-correct a spectrum using a hand-drawn line.
+line that you have drawn (or are about to draw) on the plot. Such lines can 
+then be subtracted to or from, or divided into the current spectrum, 
+thus providing a way to background correct a spectrum using a hand-drawn line.
 
-To create an interpolated line select the
-\submenuitem{Drawing mode}{\inline{curve}} option in the \labelitem{Graphics}
-menu and draw out the line. Different types of interpolated lines can be
-selected first in the \submenuitem{Graphics}{Curve type} menu. The default is
+To create an interpolated line just press the \labelitem{Draw curve} button, 
+or select the \submenuitem{Drawing mode}{\inline{curve}} option in the 
+\labelitem{Graphics} menu and draw out the line. 
+Different types of interpolated lines can be
+selected first in the \labelitem{Curve type} menu. The default is
 \labelitem{hermite} a type of spline that attempts to connect points in a
-similar way to a human.
+similar way to a hand-drawn curve.
 
 \newpage
 \subsection{The spectral line fitting window}

@@ -53,19 +53,21 @@ If you have images or cubes that contain data that you want to view as spectra
 in some fashion, then <I>SPLAT-VO</I> will attempt to do this for you. There are three
 fundamental modes for doing this:
 
-<UL><LI>by collapsing images into a single <TT>spectrum</TT> by adding together
-all values that lie perpendicular to the dispersion axis (so the spectrum runs
-along this axis, what a good spectral displaying tool should do),
+<UL><LI>Collapsing images into a <TT>spectrum</TT> or the planes of a cube into
+a set of <TT>spectra</TT> by adding together all values that lie perpendicular
+to the dispersion axis (so the spectra run along this axis, what a good
+spectral displaying tool should do).
 
 <P>
 
-<LI>by expanding images and cubes into a spectrum for each line running
-along the dispersion axis,
+<LI>Extracting all spectra from each data line running along the
+dispersion axis of images and cubes.
 
 <P>
 
-<LI>by vectorizing the whole data into a single line (created by joining
-everything line-by-line).
+<LI>Vectorizing the whole data set into a single data line without any
+reference to its dimensionality (in effect mapping the whole image/cube as a
+single contiguous data line).
 
 <P>
 
@@ -92,6 +94,9 @@ or in shorthand:
 </BLOCKQUOTE>
 If you don't choose a dispersion axis <I>SPLAT-VO</I> will make a good intelligent
 guess about this and step along the first axis that isn't the dispersion axis.
+The other possible values for <TT>ndaction</TT> are <TT>extract</TT> and
+<TT>vectorize</TT>. These are described as <TT>extract all spectra</TT> 
+and <TT>open whole as 1D</TT>, respectively, in the open file dialogue.
 
 <P>
 <BR> <HR>
@@ -120,11 +125,11 @@ guess about this and step along the first axis that isn't the dispersion axis.
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>04 October 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>06 January 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils \& \
 
-2005 Particle Physics and Astronomy Research Council<BR></I>
+2006 Particle Physics and Astronomy Research Council<BR></I>
 </ADDRESS>
 </BODY>
 </HTML>

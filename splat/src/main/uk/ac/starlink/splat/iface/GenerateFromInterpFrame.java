@@ -11,6 +11,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -22,15 +23,18 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
 
+import uk.ac.starlink.diva.DrawActions;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -45,11 +49,10 @@ import uk.ac.starlink.diva.interp.Interpolator;
 
 
 /**
- * InterpolateFrame display a series of controls for generating 
- * a spectrum from an {@link InterpolatedCurveFigure}. This spectrum
- * can then be subtracted or divided into a current spectrum. The
- * current spectrum is the one that is current in a specified 
- * {@link PlotControlFrame}. 
+ * Toolbox for generating a spectrum from an {@link InterpolatedCurveFigure}.
+ * This spectrum can then be subtracted or divided into a current spectrum.
+ * The current spectrum is the one that is current in a specified
+ * {@link PlotControlFrame}.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -147,8 +150,6 @@ public class GenerateFromInterpFrame
      */
     protected void initUI()
     {
-        //  This all goes in a JPanel in the center that has a
-        //  GridBagLayout.
         JPanel centre = new JPanel();
         GridBagLayouter layouter =
             new GridBagLayouter( centre, GridBagLayouter.SCHEME4 );
@@ -230,19 +231,29 @@ public class GenerateFromInterpFrame
             ImageHolder.class.getResource( "delete.gif" ) );
         ImageIcon helpImage = new ImageIcon(
             ImageHolder.class.getResource( "help.gif" ) );
+        ImageIcon curveImage = new ImageIcon(
+            ImageHolder.class.getResource( "curve.gif" ) );
 
         //  Create the File menu.
         fileMenu.setText( "File" );
         menuBar.add( fileMenu );
 
+        //  Action to start a drawing interaction.
+        DrawAction drawAction = new DrawAction( "Draw curve", curveImage );
+        JButton drawButton = new JButton( drawAction );
+        topActionBar.add( Box.createGlue() );
+        topActionBar.add( drawButton );
+        drawButton.setToolTipText
+            ("Start (optional) interaction so that a new curve can be drawn");
+
         //  Add action to do the generation of a spectrum from a line.
-        GenerateAction generateAction = new GenerateAction( "Generate", 
+        GenerateAction generateAction = new GenerateAction( "Generate",
                                                             interpolateImage );
         fileMenu.add( generateAction );
         JButton generateButton = new JButton( generateAction );
         topActionBar.add( Box.createGlue() );
         topActionBar.add( generateButton );
-        generateButton.setToolTipText 
+        generateButton.setToolTipText
             ( "Generate a spectrum from a graphics interpolated line" );
 
         //  Add action to reset all values.
@@ -276,6 +287,68 @@ public class GenerateFromInterpFrame
         actionBarContainer.setLayout( new BorderLayout() );
         actionBarContainer.add( topActionBar, BorderLayout.NORTH );
         actionBarContainer.add( botActionBar, BorderLayout.SOUTH );
+
+        //  Add menu to choose the type of curve to draw. Need to keep this
+        //  synchronized with the "Graphics->Curve type" menu in the plot
+        //  window, so a lot of work to do.
+        JMenuBar plotMenuBar = plot.getJMenuBar();
+
+        //  Find "Graphics" menu.
+        JMenu plotGraphicsMenu = null;
+        int n = plotMenuBar.getMenuCount();
+        for ( int i = 0; i < n; i++ ) {
+            plotGraphicsMenu = plotMenuBar.getMenu( i );
+            if ( plotGraphicsMenu.getText().equals( "Graphics" ) ) {
+                break;
+            }
+            plotGraphicsMenu = null;
+        }
+        if ( plotGraphicsMenu == null ) {
+            System.err.println
+                ("Need to update GenerateFromInterpFrame (no Graphics menu?)");
+        }
+        else {
+            //  Find "Curve type" menu in "Graphics".
+            JMenu plotCurveMenu = null;
+            n = plotGraphicsMenu.getItemCount();
+            for ( int i = 0; i < n; i++ ) {
+                plotCurveMenu = (JMenu) plotGraphicsMenu.getItem( i );
+                if ( plotCurveMenu.getText().equals( "Curve type" ) ) {
+                    break;
+                }
+                plotCurveMenu = null;
+            }
+            if ( plotCurveMenu == null ) {
+                System.err.println( "Need to update GenerateFromInterpFrame " +
+                                    "(no Curve type menu?)");
+            }
+            else {
+
+                //  Create a menu that looks like the graphics menu
+                //  version. Note that the radio button pairs share a
+                //  single ButtonModel so that they also share state.
+                JMenu curveMenu = new JMenu( "Curve type" );
+                ButtonGroup group = new ButtonGroup();
+
+                n = plotCurveMenu.getItemCount();
+                JRadioButtonMenuItem plotMenuItem = null;
+                JRadioButtonMenuItem menuItem = null;
+
+                for ( int i = 0; i < n; i++ ) {
+                    plotMenuItem = (JRadioButtonMenuItem) 
+                        plotCurveMenu.getItem( i );
+                    menuItem = 
+                        new JRadioButtonMenuItem( plotMenuItem.getText() );
+
+                    //  Share underlying model, hence state.
+                    menuItem.setModel( plotMenuItem.getModel() );
+
+                    curveMenu.add( menuItem );
+                    group.add( menuItem );
+                }
+                menuBar.add( curveMenu );
+            }
+        }
 
         //  Create the Help menu.
         HelpFrame.createHelpMenu( "interpolation-window", "Help on window",
@@ -347,7 +420,7 @@ public class GenerateFromInterpFrame
 
         //  Evaluate these positions in the InterpolatedCurveFigures
         //  Interpolator (which only works in graphics coordinates).
-        Interpolator interp = 
+        Interpolator interp =
             ((InterpolatedCurve2D)(figure.getShape())).getInterpolator();
         double[] yg = interp.evalYDataArray( xp );
 
@@ -418,12 +491,12 @@ public class GenerateFromInterpFrame
             EditableSpecData newSpec =
                 SpecDataFactory.getInstance().createEditable( name );
             if ( errors == null ) {
-                newSpec.setFullData( spectrum.getFrameSet(), 
+                newSpec.setFullData( spectrum.getFrameSet(),
                                      spectrum.getCurrentDataUnits(),
                                      data );
             }
             else {
-                newSpec.setFullData( spectrum.getFrameSet(), 
+                newSpec.setFullData( spectrum.getFrameSet(),
                                      spectrum.getCurrentDataUnits(),
                                      data, errors );
             }
@@ -583,6 +656,15 @@ public class GenerateFromInterpFrame
     }
 
     /**
+     * Start an interaction so that a curve can be drawn.
+     */
+    protected void drawCurve()
+    {
+        DrawActions drawActions = plot.getPlot().getPlot().getDrawActions();
+        drawActions.setDrawingMode( DrawActions.CURVE );
+    }
+
+    /**
      *  Close the window.
      */
     protected void closeWindowEvent()
@@ -656,6 +738,19 @@ public class GenerateFromInterpFrame
         }
         public void actionPerformed( ActionEvent ae ) {
             deleteSpectra();
+        }
+    }
+
+    /**
+     * Inner class defining action for drawing a new curve
+     */
+    protected class DrawAction extends AbstractAction
+    {
+        public DrawAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            drawCurve();
         }
     }
 }
