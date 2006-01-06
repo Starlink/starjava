@@ -318,7 +318,7 @@ public class DrawGraphicsMenu
         int n = drawActions.getInterpolatorFactory().getInterpolatorCount();
         for ( int i = 0; i < n; i++ ) {
             JRadioButtonMenuItem menuItem =
-                new JRadioButtonMenuItem( drawActions.getCurveAction(i) );
+                new JRadioButtonMenuItem( drawActions.getCurveAction( i ) );
             menu.add( menuItem );
             group.add( menuItem );
         }
