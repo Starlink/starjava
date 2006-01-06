@@ -307,10 +307,9 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      * @param  isub  subset index 
      * @param  style new style
      */
-    private void setStyle( int isub, Style style ) {
+    private void resetStyle( int isub, Style style ) {
         styles_.setStyle( isub, style );
-        Icon icon = Styles.getLegendIcon( style, ICON_SIZE, ICON_SIZE );
-        annotator_.getAction( isub ).putValue( Action.SMALL_ICON, icon );
+        annotator_.setStyleIcon( isub, style );
         actionForwarder_
             .actionPerformed( new ActionEvent( this, 0, "Style change" ) );
     }
@@ -329,8 +328,8 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      *
      * @param  styles   new style set
      */
-    public void setStyles( StyleSet styles ) {
-        styles_ = new MutableStyleSet( styles );
+    public void setStyles( MutableStyleSet styles ) {
+        styles_ = styles;
         if ( annotator_ != null ) {
             annotator_.resetStyles( styles_ );
         }
@@ -496,7 +495,6 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         private final List list_;
         private final ListSelectionModel selModel_;
         private final Map actions_;
-        private final BitSet beenSelected_;
         private final Icon BLANK_ICON =
             Styles.getLegendIcon( null, ICON_SIZE, ICON_SIZE );
         private int next_ = 9;
@@ -512,7 +510,6 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
             list_ = list;
             selModel_ = selModel;
             actions_ = new HashMap();
-            beenSelected_ = new BitSet();
             selModel_.addListSelectionListener( this );
         }
 
@@ -538,10 +535,9 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         void resetStyles( StyleSet styles ) {
             for ( Iterator it = actions_.keySet().iterator(); it.hasNext(); ) {
                 int index = ((Integer) it.next()).intValue();
-                if ( beenSelected_.get( index ) ) {
-                    setStyle( index, styles.getStyle( index ) );
-                }
+                clearStyle( index );
             }
+            valueChanged( null );
         }
 
         /**
@@ -560,7 +556,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
                                               "Edit style for subset " +
                                               list_.get( index ) ) {
                     public void actionPerformed( ActionEvent evt ) {
-                        setStyle( index, getStyle( next_++ ) );
+                        resetStyle( index, getStyle( next_++ ) );
                     }
                 };
                 actions_.put( key, act );
@@ -578,11 +574,47 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         public void valueChanged( ListSelectionEvent evt ) {
             for ( int i = selModel_.getMinSelectionIndex();
                   i <= selModel_.getMaxSelectionIndex(); i++ ) {
-                if ( selModel_.isSelectedIndex( i ) &&
-                     ! beenSelected_.get( i ) ) {
-                    beenSelected_.set( i );
-                    setStyle( i, getStyle( i ) );
+                if ( selModel_.isSelectedIndex( i ) && ! hasStyle( i ) ) {
+                    setStyleIcon( i, getStyle( i ) );
                 }
+            }
+        }
+
+        /**
+         * Sets the icon on the action button for a given index.
+         *
+         * @param   index  index of item to change
+         * @param   style  style which has icon
+         */
+        void setStyleIcon( int index, Style style ) {
+            Icon icon = Styles.getLegendIcon( style, ICON_SIZE, ICON_SIZE );
+            getAction( index ).putValue( Action.SMALL_ICON, icon );
+        }
+
+        /**
+         * Determines whether a list item has had a style assigned to it
+         * before or not.
+         *
+         * @param  index  item index
+         * @return  true iff the item has ever had a style 
+         */
+        private boolean hasStyle( int index ) {
+            Integer key = new Integer( index );
+            return actions_.containsKey( key ) 
+                && ((Action) actions_.get( key )).getValue( Action.SMALL_ICON )
+                   != BLANK_ICON;
+        }
+
+        /**
+         * Resets the style to null for a given index.
+         *
+         * @param  index  index to clear
+         */
+        private void clearStyle( int index ) {
+            Integer key = new Integer( index );
+            if ( actions_.containsKey( key ) ) {
+                ((Action) actions_.get( key )).putValue( Action.SMALL_ICON,
+                                                         BLANK_ICON );
             }
         }
     }
