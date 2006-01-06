@@ -2,6 +2,8 @@ package uk.ac.starlink.topcat;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Rectangle;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -54,8 +56,8 @@ public class CheckBoxStack extends JPanel
      * @param  annotator  object to generate annotations for each check box
      */
     public CheckBoxStack( ListModel listModel, Annotator annotator ) {
+        super( new GridBagLayout() );
         annotator_ = annotator;
-        setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
         setListModel( listModel );
         setSelectionModel( new DefaultListSelectionModel() );
     }
@@ -113,19 +115,35 @@ public class CheckBoxStack extends JPanel
         entries.add( cbox );
 
         /* Add it to the panel. */
-        Box holder = Box.createHorizontalBox();
-        holder.add( cbox );
+        addLine( cbox, annotator_ == null
+                           ? null
+                           : annotator_.createAnnotation( item ) );
+    }
 
-        /* If we're doing annotations, acquire and place the annotation too. */
-        if ( annotator_ != null ) {
-            Component annotation = annotator_.createAnnotation( item );
-            if ( annotation != null ) {
-                holder.add( Box.createHorizontalStrut( 5 ) );
-                holder.add( annotation );
-            }
+    /**
+     * Adds a line consisting of one or two components to this panel.
+     *
+     * @param   c1  first component
+     * @param   c2  second component (may be null)
+     */
+    private void addLine( Component c1, Component c2 ) {
+        GridBagLayout layer = (GridBagLayout) getLayout();
+        GridBagConstraints cons = new GridBagConstraints();
+        cons.gridy = entries.size();
+        cons.gridx = 0;
+        cons.anchor = GridBagConstraints.WEST;
+        layer.setConstraints( c1, cons );
+        add( c1 );
+        cons.gridx++;
+        if ( c2 != null ) {
+            layer.setConstraints( c2, cons );
+            add( c2 );
         }
-        holder.add( Box.createHorizontalGlue() );
-        add( holder );
+        cons.gridx++;
+        cons.weightx = 1.0;
+        Component dummy = new JPanel();
+        layer.setConstraints( dummy, cons );
+        add( dummy );
     }
 
     /**
