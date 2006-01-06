@@ -1,22 +1,31 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
-import javax.swing.JPanel;
+import javax.swing.DefaultListSelectionModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
@@ -24,6 +33,7 @@ import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.CheckBoxStack;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.RowSubset;
@@ -52,18 +62,18 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     private final List topcatListeners_;
     private final JPanel colPanel_;
     private boolean initialised_;
-    private StyleSet styles_;
+    private MutableStyleSet styles_;
     private TopcatModel tcModel_;
     private ListSelectionModel subSelModel_;
+    private StyleAnnotator annotator_;
+
+    private static final int ICON_SIZE = 11;
 
     /**
      * Constructor.
-     *
-     * @param   styles  default marker style set
      */
-    public PointSelector( StyleSet styles ) {
+    public PointSelector() {
         super( new BorderLayout() );
-        styles_ = styles;
         actionForwarder_ = new ActionForwarder();
         selectionForwarder_ = new SelectionForwarder();
         listActioner_ = new ListSelectionListener() {
@@ -292,12 +302,38 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     }
 
     /**
+     * Resets a single style.
+     *
+     * @param  isub  subset index 
+     * @param  style new style
+     */
+    private void setStyle( int isub, Style style ) {
+        styles_.setStyle( isub, style );
+        Icon icon = Styles.getLegendIcon( style, ICON_SIZE, ICON_SIZE );
+        annotator_.getAction( isub ).putValue( Action.SMALL_ICON, icon );
+        actionForwarder_
+            .actionPerformed( new ActionEvent( this, 0, "Style change" ) );
+    }
+
+    /**
      * Returns the style set used by this selector.
      *
      * @return  style set
      */
     public StyleSet getStyles() {
         return styles_;
+    }
+
+    /**
+     * Resets the style set to be used by this selector.
+     *
+     * @param  styles   new style set
+     */
+    public void setStyles( StyleSet styles ) {
+        styles_ = new MutableStyleSet( styles );
+        if ( annotator_ != null ) {
+            annotator_.resetStyles( styles_ );
+        }
     }
 
     /**
@@ -383,7 +419,11 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         tcModel_.addTopcatListener( this );
 
         /* Install a new subset selector component. */
-        CheckBoxStack subStack = new CheckBoxStack( tcModel.getSubsets() );
+        OptionsListModel subsets = tcModel.getSubsets();
+        ListSelectionModel selModel = new DefaultListSelectionModel();
+        annotator_ = new StyleAnnotator( subsets, selModel );
+        CheckBoxStack subStack = new CheckBoxStack( subsets, annotator_ );
+        subStack.setSelectionModel( selModel );
         subsetScroller_.setViewportView( subStack );
 
         /* Reset our record of the subset selection model, keeping listeners
@@ -444,6 +484,75 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         /* Forward the event to other listeners. */
         for ( Iterator it = topcatListeners_.iterator(); it.hasNext(); ) {
             ((TopcatListener) it.next()).modelChanged( evt );
+        }
+    }
+
+    /**
+     * Defines how to draw the annotating buttons which accompany each
+     * subset in the subset checkbox stack.
+     */
+    private class StyleAnnotator implements CheckBoxStack.Annotator,
+                                            ListSelectionListener {
+        private final List list_;
+        private final ListSelectionModel selModel_;
+        private final Map actions_;
+        private final Icon BLANK_ICON =
+            Styles.getLegendIcon( null, ICON_SIZE, ICON_SIZE );
+        private int next_ = 9;
+
+        StyleAnnotator( List list, ListSelectionModel selModel ) {
+            list_ = list;
+            selModel_ = selModel;
+            actions_ = new HashMap();
+            selModel_.addListSelectionListener( this );
+        }
+
+        public Component createAnnotation( Object item ) {
+            int ix = list_.indexOf( item );
+            if ( ix >= 0 ) {
+                JButton butt = new JButton( getAction( ix ) );
+                butt.setMargin( new Insets( 0, 0, 0, 0 ) );
+                return butt;
+            }
+            else {
+                return null;
+            }
+        }
+
+        void resetStyles( StyleSet styles ) {
+            for ( Iterator it = actions_.keySet().iterator(); it.hasNext(); ) {
+                int index = ((Integer) it.next()).intValue();
+                setStyle( index, styles.getStyle( index ) );
+            }
+        }
+
+        private Action getAction( final int index ) {
+            Integer key = new Integer( index );
+            if ( ! actions_.containsKey( key ) ) {
+                Action act = new BasicAction( null, BLANK_ICON, "Edit style" ) {
+                    public void actionPerformed( ActionEvent evt ) {
+                        setStyle( index, getStyle( next_++ ) );
+                    }
+                };
+                actions_.put( key, act );
+            }
+            return (Action) actions_.get( key );
+        }
+
+        /**
+         * ListSelectionListener implementation.  This keeps track of which
+         * items in the list have ever been selected.  The ones that have
+         * get an annotation and the others don't.  The reason for this is
+         * that we don't want to use up all the styles on subsets which 
+         * never get plotted.
+         */
+        public void valueChanged( ListSelectionEvent evt ) {
+            for ( int i = selModel_.getMinSelectionIndex();
+                  i <= selModel_.getMaxSelectionIndex(); i++ ) {
+                if ( selModel_.isSelectedIndex( i ) ) {
+                    setStyle( i, getStyle( i ) );
+                }
+            }
         }
     }
 
