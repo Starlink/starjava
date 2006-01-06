@@ -656,17 +656,23 @@ public class DrawActions
 
                     //  Modify the type of interpolator to the new
                     //  one, if needed.
-                    InterpolatedCurveFigure ifig =
-                        (InterpolatedCurveFigure) fig;
-                    InterpolatedCurve2D icurve =
-                        (InterpolatedCurve2D) ifig.getShape();
-                    Interpolator cinterp = icurve.getInterpolator();
-                    Interpolator ninterp = makeInterpolator();
-                    if ( cinterp.getClass() != ninterp.getClass() ) {
-                        ninterp.setCoords( cinterp.getXCoords(),
-                                           cinterp.getYCoords(), true );
-                        icurve.setInterpolator( ninterp );
-                        fig.setShape( icurve );
+                    try {
+                        InterpolatedCurveFigure ifig =
+                            (InterpolatedCurveFigure) fig;
+                        InterpolatedCurve2D icurve =
+                            (InterpolatedCurve2D) ifig.getShape();
+                        Interpolator cinterp = icurve.getInterpolator();
+                        Interpolator ninterp = makeInterpolator();
+                        if ( cinterp.getClass() != ninterp.getClass() ) {
+                            ninterp.setCoords( cinterp.getXCoords(),
+                                               cinterp.getYCoords(), true );
+                            icurve.setInterpolator( ninterp );
+                            fig.setShape( icurve );
+                        }
+                    }
+                    catch (Exception e) {
+                        //  Conversion failed. Hopefully leave figure as it
+                        //  was. Should be true until call to setShape above.
                     }
                 }
             }
