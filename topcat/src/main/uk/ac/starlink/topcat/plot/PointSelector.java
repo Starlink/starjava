@@ -496,14 +496,23 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         private final List list_;
         private final ListSelectionModel selModel_;
         private final Map actions_;
+        private final BitSet beenSelected_;
         private final Icon BLANK_ICON =
             Styles.getLegendIcon( null, ICON_SIZE, ICON_SIZE );
         private int next_ = 9;
 
+        /**
+         * Constructor.
+         *
+         * @param  list  list of subsets to be annotated
+         * @param  selModel  selection model describing which subsets
+         *                   are currently selected
+         */
         StyleAnnotator( List list, ListSelectionModel selModel ) {
             list_ = list;
             selModel_ = selModel;
             actions_ = new HashMap();
+            beenSelected_ = new BitSet();
             selModel_.addListSelectionListener( this );
         }
 
@@ -519,17 +528,37 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
             }
         }
 
+        /**
+         * For any style annotated by this object which has been 
+         * assigned a non-blank style, it's reset in accordance 
+         * with a new StyleSet.
+         *
+         * @param  styles   new styleset 
+         */
         void resetStyles( StyleSet styles ) {
             for ( Iterator it = actions_.keySet().iterator(); it.hasNext(); ) {
                 int index = ((Integer) it.next()).intValue();
-                setStyle( index, styles.getStyle( index ) );
+                if ( beenSelected_.get( index ) ) {
+                    setStyle( index, styles.getStyle( index ) );
+                }
             }
         }
 
+        /**
+         * Returns the action associated with the annotation button.
+         * This has an icon which displays the current style (if any 
+         * has been assigned) and an action which allows the user to
+         * change it.
+         * 
+         * @param  index  index into the list of the subset
+         * @return  action relating to entry <code>index</code>
+         */
         private Action getAction( final int index ) {
             Integer key = new Integer( index );
             if ( ! actions_.containsKey( key ) ) {
-                Action act = new BasicAction( null, BLANK_ICON, "Edit style" ) {
+                Action act = new BasicAction( null, BLANK_ICON,
+                                              "Edit style for subset " +
+                                              list_.get( index ) ) {
                     public void actionPerformed( ActionEvent evt ) {
                         setStyle( index, getStyle( next_++ ) );
                     }
@@ -549,7 +578,9 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         public void valueChanged( ListSelectionEvent evt ) {
             for ( int i = selModel_.getMinSelectionIndex();
                   i <= selModel_.getMaxSelectionIndex(); i++ ) {
-                if ( selModel_.isSelectedIndex( i ) ) {
+                if ( selModel_.isSelectedIndex( i ) &&
+                     ! beenSelected_.get( i ) ) {
+                    beenSelected_.set( i );
                     setStyle( i, getStyle( i ) );
                 }
             }
