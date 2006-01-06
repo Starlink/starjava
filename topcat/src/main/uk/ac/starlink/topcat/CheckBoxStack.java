@@ -7,6 +7,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListModel;
@@ -43,16 +44,29 @@ public class CheckBoxStack extends JPanel
     private ListSelectionModel selModel;
     private ListModel listModel;
     private List entries;
+    private final Annotator annotator_;
 
     /**
-     * Constructs a new CheckBoxStack from a ListModel.
+     * Constructs a new CheckBoxStack from a ListModel with an optional
+     * annotator for labelling the boxes.
+     *
+     * @param  listModel the model
+     * @param  annotator  object to generate annotations for each check box
+     */
+    public CheckBoxStack( ListModel listModel, Annotator annotator ) {
+        annotator_ = annotator;
+        setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+        setListModel( listModel );
+        setSelectionModel( new DefaultListSelectionModel() );
+    }
+
+    /**
+     * Constructs a new CheckBoxStack with no annotations from a ListModel.
      *
      * @param  listModel the model
      */
     public CheckBoxStack( ListModel listModel ) {
-        setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
-        setListModel( listModel );
-        setSelectionModel( new DefaultListSelectionModel() );
+        this( listModel, null );
     }
 
     /**
@@ -99,7 +113,19 @@ public class CheckBoxStack extends JPanel
         entries.add( cbox );
 
         /* Add it to the panel. */
-        add( cbox );
+        Box holder = Box.createHorizontalBox();
+        holder.add( cbox );
+
+        /* If we're doing annotations, acquire and place the annotation too. */
+        if ( annotator_ != null ) {
+            Component annotation = annotator_.createAnnotation( item );
+            if ( annotation != null ) {
+                holder.add( Box.createHorizontalStrut( 5 ) );
+                holder.add( annotation );
+            }
+        }
+        holder.add( Box.createHorizontalGlue() );
+        add( holder );
     }
 
     /**
@@ -204,4 +230,17 @@ public class CheckBoxStack extends JPanel
                                   : 0;
     }
 
+    /**
+     * Defines how to get annotations for check box items.
+     */
+    public interface Annotator {
+
+        /**
+         * Returns a new annotation for the given item.
+         *
+         * @param   item   item to be annotated
+         * @return  new annotation component
+         */
+        Component createAnnotation( Object item );
+    }
 }
