@@ -35,13 +35,11 @@ public class DefaultPointSelector extends PointSelector {
     /**
      * Constructor.
      *
-     * @param   styles  default marker style set
      * @param   axisNames  labels for the columns to choose
      * @param   toggleSets toggle sets to associate with each axes (may be null)
      */
-    public DefaultPointSelector( StyleSet styles, String[] axisNames,
-                                 ToggleSet[] toggleSets ) {
-        super( styles );
+    public DefaultPointSelector( String[] axisNames, ToggleSet[] toggleSets ) {
+        super();
         ndim_ = axisNames.length;
         
         entryBox_ = Box.createVerticalBox();

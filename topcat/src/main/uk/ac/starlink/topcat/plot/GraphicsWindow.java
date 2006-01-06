@@ -69,13 +69,11 @@ public abstract class GraphicsWindow extends AuxWindow
 
     private final ReplotListener replotListener_;
     private final Action replotAction_;
-    private final StyleSet proxyStyleSet_;
     private final String[] axisNames_;
     private final ToggleButtonModel gridModel_;
     private final ToggleButtonModel[] flipModels_;
     private final ToggleButtonModel[] logModels_;
     private final JMenu exportMenu_;
-    private final BitSet usedMarkers_;
 
     private StyleSet styleSet_;
     private Points points_;
@@ -128,16 +126,7 @@ public abstract class GraphicsWindow extends AuxWindow
         }
 
         /* Set up point selector component. */
-        usedMarkers_ = new BitSet();
-        proxyStyleSet_ = new StyleSet() {
-            public String getName() {
-                return styleSet_.getName();
-            }
-            public Style getStyle( int index ) {
-                return styleSet_.getStyle( index );
-            }
-        };
-        pointSelectors_ = new PointSelectorSet() {
+        pointSelectors_ = new PointSelectorSet( styleSet_ ) {
             protected PointSelector createSelector() {
                 return GraphicsWindow.this.createPointSelector();
             }
@@ -224,8 +213,8 @@ public abstract class GraphicsWindow extends AuxWindow
             TopcatModel tcModel = (TopcatModel) tablesList.getElementAt( i );
             npoint += tcModel.getDataModel().getRowCount();
         }
-        styleSet_ = getDefaultStyles( (int) Math.min( npoint,
-                                                      Integer.MAX_VALUE ) );
+        setStyles( getDefaultStyles( (int) Math.min( npoint,
+                                                     Integer.MAX_VALUE ) ) );
     }
 
     /**
@@ -282,10 +271,6 @@ public abstract class GraphicsWindow extends AuxWindow
         return statusBox_;
     }
 
-    protected StyleSet createPooledStyleSet() {
-        return new PoolStyleSet( proxyStyleSet_, usedMarkers_ );
-    }
-
     /**
      * Returns the component containing the graphics output of this 
      * window.  This is the component which is exported or printed etc,
@@ -316,8 +301,7 @@ public abstract class GraphicsWindow extends AuxWindow
                 new DefaultPointSelector.ToggleSet( "Log", logModels_ ),
                 new DefaultPointSelector.ToggleSet( "Flip", flipModels_ ),
             };
-        return new DefaultPointSelector( createPooledStyleSet(), axisNames_,
-                                         toggleSets );
+        return new DefaultPointSelector( axisNames_, toggleSets );
     };
 
     /**
@@ -336,7 +320,7 @@ public abstract class GraphicsWindow extends AuxWindow
      * @param   styleSet  new style set
      */
     public void setStyles( StyleSet styleSet ) {
-        styleSet_ = styleSet;
+        pointSelectors_.setStyles( styleSet );
     }
 
     /**

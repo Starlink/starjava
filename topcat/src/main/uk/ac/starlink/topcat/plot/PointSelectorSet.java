@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -44,13 +45,16 @@ public abstract class PointSelectorSet extends JPanel {
     private final ActionForwarder actionForwarder_;
     private final TopcatForwarder topcatForwarder_;
     private final OrderRecorder orderRecorder_;
+    private StyleSet styles_;
+    private BitSet usedMarkers_;
     private int selectorsCreated_;
 
     /**
      * Constructs a new set.
      */
-    public PointSelectorSet() {
+    public PointSelectorSet( StyleSet styles ) {
         super( new BorderLayout() );
+        setStyles( styles );
         tabber_ = new JTabbedPane();
         selectorsCreated_ = 0;
         actionForwarder_ = new ActionForwarder();
@@ -61,7 +65,9 @@ public abstract class PointSelectorSet extends JPanel {
             new BasicAction( "Add Dataset", ResourceIcon.ADD,
                              "Add a new data set" ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    addNewSelector( createSelector() );
+                    PointSelector psel = createSelector();
+                    resetStyles( psel );
+                    addNewSelector( psel );
                 } 
             };
         final Action removeSelectorAction =
@@ -172,6 +178,31 @@ public abstract class PointSelectorSet extends JPanel {
     }
 
     /**
+     * Sets the default style profile for this point selector set.
+     *
+     * @param  styles  new style set
+     */
+    public void setStyles( StyleSet styles ) {
+        styles_ = styles;
+        usedMarkers_ = new BitSet();
+        if ( tabber_ != null ) {
+            for ( int i = 0; i < tabber_.getTabCount(); i++ ) {
+                resetStyles( (PointSelector) tabber_.getComponentAt( i ) );
+            }
+        }
+    }
+
+    /**
+     * Configures a given PointSelector to use this set's current
+     * plotting style set.
+     *
+     * @param   psel  point selector to reconfigure
+     */
+    private void resetStyles( PointSelector psel ) {
+        psel.setStyles( new PoolStyleSet( styles_, usedMarkers_ ) );
+    }
+
+    /**
      * Adds an action listener.
      * Such listeners will be notified any time PointSelectors are
      * added to or removed from this set, and any time the state of
@@ -220,6 +251,9 @@ public abstract class PointSelectorSet extends JPanel {
      */
     private void addSelector( final PointSelector psel ) {
 
+        /* Configure the selector to use this set's house style set. */
+        resetStyles( psel );
+
         /* Add the selector to the tabbed frame. */
         tabber_.add( getNextTabName(), psel );
 
@@ -244,13 +278,6 @@ public abstract class PointSelectorSet extends JPanel {
         /* Remove the selector. */
         tabber_.remove( psel );
         psel.removeActionListener( actionForwarder_ );
-
-        /* Return styles used by the selector which is no longer required
-         * to the pool. */
-        StyleSet styles = psel.getStyles();
-        if ( styles instanceof PoolStyleSet ) {
-            ((PoolStyleSet) styles).reset();
-        }
 
         /* Notify listeners that something has happened. */
         action();

@@ -41,13 +41,11 @@ public class SphericalPolarPointSelector extends PointSelector {
     /**
      * Constructor.
      *
-     * @param  styles  plotting style set
      * @param  logToggler model for determining whether the radial coordinate
      *         is to be scaled logarithmically
      */
-    public SphericalPolarPointSelector( StyleSet styles, 
-                                        ToggleButtonModel logToggler ) {
-        super( styles );
+    public SphericalPolarPointSelector( ToggleButtonModel logToggler ) {
+        super();
         logToggler_ = logToggler;
 
         /* Prepare column selection panel. */
