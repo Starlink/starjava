@@ -6,15 +6,17 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * StyleSet which obtains symbols from a base StyleSet, but 
+ * StyleSet which obtains styles from a base StyleSet, but 
  * only dispenses ones which are not already used.  A global list
  * of used indices, which is shared with other instances of this class,
  * ensures that markers are not shared between them.
+ * Since this also implements MutableStyleSet, individual styles can
+ * be overwritten.
  *
  * @author   Mark Taylor
  * @since    4 Nov 2005
  */
-public class PoolStyleSet implements StyleSet {
+public class PoolStyleSet implements MutableStyleSet {
 
     private final StyleSet base_;
     private final BitSet used_;
