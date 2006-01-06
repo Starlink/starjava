@@ -2,7 +2,10 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.Stroke;
+import javax.swing.Icon;
 
 /**
  * Utility class relating to the {@link StyleSet} interface.
@@ -70,5 +73,35 @@ public class Styles {
      */
     public static Stroke getStroke( int index ) {
         return STROKES[ Math.abs( index ) % STROKES.length ];
+    }
+
+    /**
+     * Returns an icon which displays the legend for a given style.
+     * If <code>style</code> is null, an empty icon of the right size is
+     * returned.
+     *
+     * @param   style  style
+     * @param   width  icon width
+     * @param   height icon height
+     * @return  icon for style legend
+     */
+    public static Icon getLegendIcon( final Style style, final int width,
+                                      final int height ) {
+        return new Icon() {
+            public int getIconHeight() {
+                return height;
+            }
+            public int getIconWidth() {
+                return width;
+            }
+            public void paintIcon( Component c, Graphics g,
+                                   int xoff, int yoff ) {
+                int x = xoff + width / 2;
+                int y = yoff + height / 2;
+                if ( style != null ) {
+                    style.drawLegend( g, x, y );
+                }
+            }
+        };
     }
 }
