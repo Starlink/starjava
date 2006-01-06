@@ -20,6 +20,7 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -949,9 +950,20 @@ public class ControlWindow extends AuxWindow
         protected Window createWindow( TopcatModel tcModel ) {
             try {
                 Object[] args = new Object[] { tcModel, ControlWindow.this };
-                return (AuxWindow) constructor_.newInstance( args );
+                try {
+                    return (AuxWindow) constructor_.newInstance( args );
+                }
+                catch ( InvocationTargetException e ) {
+                    throw e.getCause();
+                }
             }
-            catch ( Exception e ) {
+            catch ( RuntimeException e ) {
+                throw e;
+            }
+            catch ( Error e ) {
+                throw e;
+            }
+            catch ( Throwable e ) {
                 throw new RuntimeException( "Window creation failed???", e );
             }
         }
@@ -992,15 +1004,26 @@ public class ControlWindow extends AuxWindow
         public void actionPerformed( ActionEvent evt ) {
             try {
                 Object[] args = new Object[] { ControlWindow.this };
-                GraphicsWindow window = 
-                    (GraphicsWindow) constructor_.newInstance( args );
-                window.setVisible( true );
-                TopcatModel tcModel = getCurrentModel();
-                if ( tcModel != null ) {
-                    window.setMainTable( tcModel );
+                try {
+                    GraphicsWindow window = 
+                        (GraphicsWindow) constructor_.newInstance( args );
+                    window.setVisible( true );
+                    TopcatModel tcModel = getCurrentModel();
+                    if ( tcModel != null ) {
+                        window.setMainTable( tcModel );
+                    }
+                }
+                catch ( InvocationTargetException e ) {
+                    throw e.getCause();
                 }
             }
-            catch ( Exception e ) {
+            catch ( RuntimeException e ) {
+                throw e;
+            }
+            catch ( Error e ) {
+                throw e;
+            }
+            catch ( Throwable e ) {
                 throw new RuntimeException( "Window creation failed???", e );
             }
         }
