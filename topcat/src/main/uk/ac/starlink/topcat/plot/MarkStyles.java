@@ -112,7 +112,7 @@ public class MarkStyles {
             public Style getStyle( int index ) {
                 Color col = color == null ? Styles.getColor( index ) : color;
                 MarkShape shape = shapes[ Math.abs( index ) % shapes.length ];
-                return shape.getStyle( color, size );
+                return shape.getStyle( col, size );
             }
         };
     }
@@ -141,7 +141,7 @@ public class MarkStyles {
             public Style getStyle( int index ) {
                 Color col = color == null ? Styles.getColor( index ) : color;
                 MarkShape shape = shapes[ Math.abs( index ) % shapes.length ];
-                return shape.getStyle( color, size );
+                return shape.getStyle( col, size );
             }
         };
     }
