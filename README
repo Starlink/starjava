@@ -10,10 +10,10 @@ from:
 
    http://java.sun.com/
 
-Currently all development is performed using version 1.4.x. The system is
-known to build using 1.5, but it has not been extensively tested. The current
-plans are to look at moving to 1.5 officially sometime during 2005. Note we
-cannot distribute the SDK for licensing reasons.
+At present all development is performed with version 1.4.x as the target
+platform, but the system is known to build and work using 1.5. It is unlikely
+that any attempt to use 1.5 as the target platform will be made.
+Note we cannot distribute the SDK for licensing reasons.
 
 You will also need to have JAI installed as part of the SDK. JAI is the "Java
 Advanced Imaging API" which is currently part of SUNs "Desktop Java". The
@@ -37,8 +37,8 @@ and these are maintained by the appropriate developers.  If you are
 not on one of these platforms, you will have to be more creative
 (perhaps talk to the stardev mailing list).  SPLAT also uses its own
 JNI code, for efficiency, but if there is no classic system available,
-it should simply fail quietly, and proceed with a pure-Java
-implementation.
+it should simply fail quietly, and proceed to access NDFs using the native
+code of the JNIHDS library.
 
 
    Build ANT
@@ -112,4 +112,4 @@ STARJAVA already installed check the environment variables and aliases and
 re-define these as appropriate).
 
 
-Peter W. Draper 08-APR-2005 (p.w.draper@durham.ac.uk)
+Peter W. Draper 09-JAN-2006 (p.w.draper@durham.ac.uk)
