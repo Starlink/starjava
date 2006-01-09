@@ -35,7 +35,7 @@ public class Styles {
         { 12f, 3f, 3f, 3f },
     };
 
-    private static final Color[] COLORS = false ? PlotBox._colors : TC1_COLORS;
+    public static final Color[] COLORS = false ? PlotBox._colors : TC1_COLORS;
 
     private static final Stroke[] STROKES;
     static {
