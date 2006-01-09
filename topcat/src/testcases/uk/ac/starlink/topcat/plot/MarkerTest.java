@@ -36,8 +36,8 @@ public class MarkerTest extends TestCase {
 
     public void checkProfiles( StyleSet[] profiles ) {
         for ( int i = 0; i < profiles.length; i++ ) {
+            StyleSet profile = profiles[ i ];
             for ( int j = 0; j < 16; j++ ) {
-                StyleSet profile = profiles[ i ];
                 MarkStyle style = (MarkStyle) profile.getStyle( j );
                 assertEquals( style, profile.getStyle( j ) );
                 for ( int k = 0; k < 16; k++ ) {
@@ -74,12 +74,26 @@ public class MarkerTest extends TestCase {
 class MarkSamples extends JPanel {
     final static int STEP = 16;
     final static int SIZES = 8;
-    final static int TYPES = 12;
+
+    final static MarkShape[] SHAPES = new MarkShape[] {
+        MarkShape.OPEN_CIRCLE,
+        MarkShape.FILLED_CIRCLE,
+        MarkShape.OPEN_SQUARE,
+        MarkShape.FILLED_SQUARE,
+        MarkShape.OPEN_DIAMOND,
+        MarkShape.FILLED_DIAMOND,
+        MarkShape.OPEN_TRIANGLE_UP,
+        MarkShape.FILLED_TRIANGLE_UP,
+        MarkShape.OPEN_TRIANGLE_DOWN,
+        MarkShape.FILLED_TRIANGLE_DOWN,
+        MarkShape.CROSS,
+        MarkShape.CROXX,
+    };
 
     MarkSamples() {
         setBackground( Color.WHITE );
         setPreferredSize( new Dimension( STEP * ( SIZES + 2 ) + 1,
-                                         STEP * ( TYPES + 2 ) + 1 ) );
+                                         STEP * ( SHAPES.length + 2 ) + 1 ) );
     }
 
     protected void paintComponent( Graphics g ) {
@@ -94,26 +108,15 @@ class MarkSamples extends JPanel {
             g2.drawLine( i, 0, i, 1000 );
         }
 
-        Color c = Color.BLACK;
+        Color color = Color.BLACK;
         for ( int i = 0; i < SIZES; i++ ) {
-            MarkStyle[] styles = new MarkStyle[] {
-                MarkStyle.openCircleStyle( c, i ),
-                MarkStyle.filledCircleStyle( c, i ),
-                MarkStyle.openSquareStyle( c, i ),
-                MarkStyle.filledSquareStyle( c, i ),
-                MarkStyle.openDiamondStyle( c, i ),
-                MarkStyle.filledDiamondStyle( c, i ),
-                MarkStyle.openTriangleStyle( c, i, true ),
-                MarkStyle.filledTriangleStyle( c, i, true ),
-                MarkStyle.openTriangleStyle( c, i, false ),
-                MarkStyle.filledTriangleStyle( c, i, false ),
-                MarkStyle.crossStyle( c, i ),
-                MarkStyle.xStyle( c, i ),
-            };
-            TestCase.assertTrue( styles.length == TYPES );
-            for ( int j = 0; j < styles.length; j++ ) {
-                styles[ j ].drawMarker( g2, ( i + 1 ) * STEP, 
-                                            ( j + 1 ) * STEP );
+            int size = i + 1;
+            for ( int j = 0; j < SHAPES.length; j++ ) {
+                MarkStyle style = SHAPES[ j ].getStyle( color, size );
+                TestCase.assertEquals( style,
+                                       SHAPES[ j ].getStyle( color, size ) );
+                style.drawMarker( g2, ( i + 1 ) * STEP,
+                                      ( j + 1 ) * STEP );
             }
         }
     }
