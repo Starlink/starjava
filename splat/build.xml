@@ -137,7 +137,7 @@
 
   <!-- File types that should not be passed through a filterchain when
    !   copying -->
-  <property name="unfiltered.files" value="**/*.gif,**/*.jpg,**/*.ico"/>
+  <property name="unfiltered.files" value="**/*.gif,**/*.jpg,**/*.ico,**/JavaHelpSearch/*"/>
 
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
@@ -996,7 +996,7 @@
     <echo file="${install.log}" append="true">${star.lib.pkg}
 </echo>
 
-    <loggedcopy todir="${star.docs}"
+    <loggedcopy todir="${star.docs}" filtering="true"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
                 logfileAppend="true">
