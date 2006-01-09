@@ -40,6 +40,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
     private final Action blobAction_;
     private final CountsLabel plotStatus_;
     private double[] rotation_;
+    private boolean isRotating_;
 
     private static final double[] INITIAL_ROTATION = 
         rotateXY( rotateXY( new double[] { 1, 0, 0, 0, 1, 0, 0, 0, -1 },
@@ -83,7 +84,9 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
         /* Arrange that mouse dragging on the plot component will rotate
          * the view. */
-        plot_.addMouseMotionListener( new DragListener() );
+        DragListener rotListener = new DragListener();
+        plot_.addMouseMotionListener( rotListener );
+        plot_.addMouseListener( rotListener );
 
         /* Arrange that clicking on a point will activate it. */
         plot_.addMouseListener( new PointClickListener() );
@@ -208,6 +211,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
         /* Configure the state with this window's current viewing angles. */
         state.setRotation( rotation_ );
+        state.setRotating( isRotating_ );
 
         /* Configure rendering options. */
         state.setFogginess( fogModel_.isSelected() ? 2.0 : 0.0 );
@@ -333,12 +337,14 @@ public abstract class Plot3DWindow extends GraphicsWindow
      * Listener which interprets drag gestures on the plotting surface 
      * as requests to rotate the viewing angles.
      */
-    private class DragListener implements MouseMotionListener {
+    private class DragListener extends MouseAdapter
+                               implements MouseMotionListener {
 
         private Point posBase_;
         private double[] rotBase_;
 
         public void mouseDragged( MouseEvent evt ) {
+            isRotating_ = true;
             Point pos = evt.getPoint(); 
             if ( posBase_ == null ) {
                 posBase_ = pos;
@@ -367,6 +373,13 @@ public abstract class Plot3DWindow extends GraphicsWindow
         public void mouseMoved( MouseEvent evt ) {
             posBase_ = null;
             rotBase_ = null;
+        }
+
+        public void mouseReleased( MouseEvent evt ) {
+            if ( isRotating_ ) {
+                isRotating_ = false;
+                replot();
+            }
         }
     }
 

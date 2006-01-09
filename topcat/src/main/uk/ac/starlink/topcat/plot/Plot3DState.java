@@ -16,6 +16,7 @@ public class Plot3DState extends PlotState {
     private double[] rotation_;
     private double fogginess_;
     private boolean antialias_;
+    private boolean isRotating_;
 
     /**
      * Sets the rotation matrix.
@@ -55,6 +56,30 @@ public class Plot3DState extends PlotState {
     }
 
     /**
+     * Sets whether the plot is currently rotating.  A true value for this
+     * indicates that the whole set of data points does not need to be
+     * drawn; a sequence of plot requests with <code>isRotating</code> true
+     * must be followed quickly by one with <code>isRotating</code> false.
+     *
+     * @param  true if this is one of a sequence of plots forming a rotation
+     */
+    public void setRotating( boolean isRotating ) {
+        isRotating_ = isRotating;
+    }
+
+    /**
+     * Indicates whether the plot is currently rotating.  A true value for
+     * indicates that the whole set of data points does not need to be
+     * drawn; a sequence of plot requests with <code>isRotating</code> true
+     * must be followed quickly by one with <code>isRotating</code> false.
+     *
+     * @return  true if not all the points need to be drawn this time
+     */
+    public boolean getRotating() {
+        return isRotating_;
+    }
+
+    /**
      * Sets whether antialiasing hint is preferred for drawing axes.
      *
      * @param  antialias   true to antialias, false not
@@ -78,7 +103,8 @@ public class Plot3DState extends PlotState {
             Plot3DState other = (Plot3DState) otherObject;
             return Arrays.equals( rotation_, other.rotation_ )
                 && fogginess_ == other.fogginess_
-                && antialias_ == other.antialias_;
+                && antialias_ == other.antialias_
+                && isRotating_ == other.isRotating_;
         }
         return false;
     }
@@ -90,6 +116,7 @@ public class Plot3DState extends PlotState {
         }
         code = 23 * code + Float.floatToIntBits( (float) fogginess_ );
         code = 23 * code + ( antialias_ ? 0 : 1 );
+        code = 23 * code + ( isRotating_ ? 0 : 1 );
         return code;
     }
 }

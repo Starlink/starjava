@@ -41,6 +41,7 @@ public class Plot3D extends JPanel {
     private Transformer3D lastTrans_;
     private PointRegistry pointReg_;
     private double[][][] sphereGrid_;
+    private int plotTime_;
     private final Plot3DDataPanel plotArea_;
     private final Legend legend_;
 
@@ -287,7 +288,6 @@ public class Plot3D extends JPanel {
      * Performs the painting - this method does the actual work.
      */
     private void drawData( Graphics g, Component c ) {
-        long tStart = System.currentTimeMillis();
 
         /* Prepare data. */
         Points points = getPoints();
@@ -335,6 +335,18 @@ public class Plot3D extends JPanel {
             plotAxes( g, trans, vol, false );
         }
 
+        /* Start the stopwatch to time how long it takes to plot all points. */
+        long tStart = System.currentTimeMillis();
+
+        /* If this is an intermediate plot (during a rotation, with a 
+         * guaranteed non-intermediate one to follow shortly), then prepare
+         * to plot only a fraction of the points.  In this way we can 
+         * ensure reasonable responsiveness - dragging the plot to rotate
+         * it will not take ages between frames. */
+        boolean isRotating = state.getRotating();
+        int step = isRotating ? Math.max( plotTime_ / 100, 1 )
+                              : 1;
+
         /* Submit each point for drawing in the display volume as
          * appropriate. */
         int np = points.getCount();
@@ -343,7 +355,7 @@ public class Plot3D extends JPanel {
         boolean[] logFlags = getState().getLogFlags();
         double[] coords = new double[ 3 ];
         boolean[] useMask = new boolean[ nset ];
-        for ( int ip = 0; ip < np; ip++ ) {
+        for ( int ip = 0; ip < np; ip += step ) {
             long lp = (long) ip;
             boolean use = false;
             for ( int is = 0; is < nset; is++ ) {
@@ -375,6 +387,11 @@ public class Plot3D extends JPanel {
          * This will do the painting on the graphics context if it hasn't
          * been done already. */
         vol.flush();
+
+        /* Calculate time to plot all points. */
+        if ( ! isRotating ) {
+            plotTime_ = (int) ( System.currentTimeMillis() - tStart );
+        }
 
         /* Plot front part of bounding box. */
         if ( grid ) {
