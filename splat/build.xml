@@ -474,7 +474,8 @@
     <!-- Build any shareable libraries needed to support this package.
      !   This goes straight into the distribution directory to save on
      !   space, and to make it immediately available to locally built
-     !   packages  -->
+     !   packages.
+     !-->
     <antcall target="execute_mk_script">
       <param name="mk.action" value="build"/>
     </antcall>
@@ -541,6 +542,21 @@
    !-->
   <target name="execute_mk_script">
 
+    <!-- Before proceeding use a simple test to estimate if this
+     !   may succeed. A failure isn't critical as SPLAT can use
+     !   NDX support (available via JNIHDS) to access NDFs.
+     !-->
+     <available file="${stardev}/bin/ndf_link" type="file" 
+                property="stardev.exists"/>
+
+     <!-- Only one of these executes, depending on whether "stardev.exists" is
+      !   defined --> 
+     <antcall target="execute_mk_script_start"/>
+     <antcall target="execute_mk_script_complete"/>
+  </target>
+
+  <target name="execute_mk_script_start" if="stardev.exists">
+
     <!-- Execute the given action for all known operating system types.
      !   This uses modified mk and makefiles from an old-style system
      !   which should be stored in ${src.jni.dir} along with the source
@@ -568,6 +584,8 @@
 
     <echo message="java.home=${java.home}"/>
 
+    <!-- Note: these are selected by the "os" argument, which matches
+     !   the current JVM value, so only one is actually executed. -->
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="Linux">
       <env key="SYSTEM" value="ix86_Linux"/>
       <env key="STARLINK" value="${stardev}"/>
@@ -598,6 +616,14 @@
       <arg line="${mk.action}"/>
     </exec>
 
+  </target>
+
+  <!-- Inverse of above, use to report that execute_mk_script_real has not
+       been invoked, as stardev.exists is not set-->
+  <target name="execute_mk_script_complete" unless="stardev.exists">
+     <echo> 
+JNI libraries not built (NDF library not installed in ${stardev})"
+     </echo>
   </target>
 
   <!--
