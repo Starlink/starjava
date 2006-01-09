@@ -26,7 +26,7 @@ public class MarkStyles {
                 return name;
             }
             public Style getStyle( int index ) {
-                return MarkStyle.pointStyle( Styles.getColor( index ) );
+                return MarkShape.POINT.getStyle( Styles.getColor( index ), 1 );
             }
         };
     }
@@ -45,8 +45,8 @@ public class MarkStyles {
                 return name;
             }
             public Style getStyle( int index ) {
-                return MarkStyle
-                      .filledCircleStyle( Styles.getColor( index ), size );
+                return MarkShape.FILLED_CIRCLE
+                      .getStyle( Styles.getColor( index ), size );
             }
         };
     }
@@ -80,8 +80,8 @@ public class MarkStyles {
                                           baseColor.getBlue(),
                                           lAlpha );
                 return MarkStyle.compositeMarkStyle(
-                    MarkStyle.filledSquareStyle( color, size ),
-                    MarkStyle.filledSquareStyle( lcolor, lsize ) );
+                    MarkShape.FILLED_SQUARE.getStyle( color, size ),
+                    MarkShape.FILLED_SQUARE.getStyle( color, lsize ) );
             }
         };
     }
@@ -96,24 +96,23 @@ public class MarkStyles {
      */
     public static StyleSet openShapes( final String name, final int size,
                                        final Color color ) {
+        final MarkShape[] shapes = new MarkShape[] {
+            MarkShape.CROSS,
+            MarkShape.CROXX,
+            MarkShape.OPEN_CIRCLE,
+            MarkShape.OPEN_SQUARE,
+            MarkShape.OPEN_DIAMOND,
+            MarkShape.OPEN_TRIANGLE_UP,
+            MarkShape.OPEN_TRIANGLE_DOWN,
+        };
         return new StyleSet() {
             public String getName() {
                 return name;
             }
             public Style getStyle( int index ) {
                 Color col = color == null ? Styles.getColor( index ) : color;
-                switch ( Math.abs( index ) % 7 ) {
-                    case 0: return MarkStyle.crossStyle( col, size );
-                    case 1: return MarkStyle.xStyle( col, size );
-                    case 2: return MarkStyle.openCircleStyle( col, size );
-                    case 3: return MarkStyle.openSquareStyle( col, size );
-                    case 4: return MarkStyle.openDiamondStyle( col, size );
-                    case 5: return MarkStyle.openTriangleStyle( col, size,
-                                                                true );
-                    case 6: return MarkStyle.openTriangleStyle( col, size,
-                                                                false );
-                    default: throw new AssertionError();
-                }
+                MarkShape shape = shapes[ Math.abs( index ) % shapes.length ];
+                return shape.getStyle( color, size );
             }
         };
     }
@@ -128,22 +127,21 @@ public class MarkStyles {
      */
     public static StyleSet filledShapes( final String name, final int size,
                                          final Color color ) {
+        final MarkShape[] shapes = new MarkShape[] {
+            MarkShape.FILLED_CIRCLE,
+            MarkShape.FILLED_SQUARE,
+            MarkShape.FILLED_DIAMOND,
+            MarkShape.FILLED_TRIANGLE_UP,
+            MarkShape.FILLED_TRIANGLE_DOWN,
+        };
         return new StyleSet() {
             public String getName() {
                 return name;
             }
             public Style getStyle( int index ) {
                 Color col = color == null ? Styles.getColor( index ) : color;
-                switch ( Math.abs( index ) % 5 ) {
-                    case 0: return MarkStyle.filledCircleStyle( col, size );
-                    case 1: return MarkStyle.filledSquareStyle( col, size );
-                    case 2: return MarkStyle.filledDiamondStyle( col, size );
-                    case 3: return MarkStyle.filledTriangleStyle( col, size,
-                                                                  true );
-                    case 4: return MarkStyle.filledTriangleStyle( col, size,
-                                                                  false );
-                    default: throw new AssertionError();
-                }
+                MarkShape shape = shapes[ Math.abs( index ) % shapes.length ];
+                return shape.getStyle( color, size );
             }
         };
     }

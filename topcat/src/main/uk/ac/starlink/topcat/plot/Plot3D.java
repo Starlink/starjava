@@ -47,6 +47,8 @@ public class Plot3D extends JPanel {
 
     private static final double SQRT3 = Math.sqrt( 3.0 );
     private static final int SPHERE_PAD = 8;
+    private static final MarkStyle DOT_STYLE =
+        MarkShape.POINT.getStyle( Color.BLACK, 1 );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
@@ -380,8 +382,7 @@ public class Plot3D extends JPanel {
         }
 
         /* Plot a teeny static dot in the middle of the data. */
-        vol.plot( new double[] { .5, .5, .5 },
-                  MarkStyle.pointStyle( Color.black ) );
+        vol.plot( new double[] { .5, .5, .5 }, DOT_STYLE );
 
         /* Tell the volume that all the points are in for plotting.
          * This will do the painting on the graphics context if it hasn't
