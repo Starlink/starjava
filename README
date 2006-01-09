@@ -28,9 +28,18 @@ Alternatively install the SDK into /star/java and create a file "jdkhome" in
 this directory that contains the full name of the host directory (this is the
 method used in JRE releases made by Starlink).
 
-In addition to this you will need a Starlink classic installation. This is
-required for building parts of SPLAT (and JNIAST/JNIHDS, although these
-packages come with re-built native libraries for common platforms).
+You do not need to have a Starlink classic system installed, before
+you can build the Java tools.  Several of the Java applications use
+JNIHDS and JNIAST, which rely on native libraries to do their work.
+However the repository contains precompiled binaries of these
+libraries, for several platforms (see, for example, jniast/src/lib),
+and these are maintained by the appropriate developers.  If you are
+not on one of these platforms, you will have to be more creative
+(perhaps talk to the stardev mailing list).  SPLAT also uses its own
+JNI code, for efficiency, but if there is no classic system available,
+it should simply fail quietly, and proceed with a pure-Java
+implementation.
+
 
    Build ANT
    ---------
@@ -79,7 +88,10 @@ $HOME/.stardev.properties, in which you should put the single line:
 
    stardev=/star-local
 
-Other ANT properties can be added on additional lines.
+Other ANT properties can be added on additional lines.  In particular,
+you might want to set star.dir, which is the location where the Java
+applications will be installed; it defaults to the parent of this
+directory, but you may wish to redefine it to something like /star-local/java
 
    Install everything
    ------------------
