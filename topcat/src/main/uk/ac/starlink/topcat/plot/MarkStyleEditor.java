@@ -110,11 +110,17 @@ public class MarkStyleEditor extends StyleEditor {
         markBox.add( new JLabel( "Shape: " ) );
         markBox.add( shapeSelector_ );
         markBox.add( Box.createHorizontalStrut( 5 ) );
+        markBox.add( new ComboBoxBumper( shapeSelector_ ) );
+        markBox.add( Box.createHorizontalStrut( 10 ) );
         markBox.add( new JLabel( "Size: " ) );
         markBox.add( sizeSelector_ );
         markBox.add( Box.createHorizontalStrut( 5 ) );
+        markBox.add( new ComboBoxBumper( sizeSelector_ ) );
+        markBox.add( Box.createHorizontalStrut( 10 ) );
         markBox.add( new JLabel( "Colour: " ) );
         markBox.add( colorSelector_ );
+        markBox.add( Box.createHorizontalStrut( 5 ) );
+        markBox.add( new ComboBoxBumper( colorSelector_ ) );
         markBox.setBorder( AuxWindow.makeTitledBorder( "Marker" ) );
         add( markBox );
     }
