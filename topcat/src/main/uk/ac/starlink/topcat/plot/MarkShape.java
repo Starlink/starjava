@@ -35,7 +35,8 @@ public abstract class MarkShape {
      * of this object with specified colour and nominal size.
      *
      * @param  color   colour of style
-     * @param  size    nominal size of style - 1 is usually the smallest
+     * @param  size    nominal size of style - any integer, or at least any
+     *                 integer >0 should give a reasonable image
      */
     public abstract MarkStyle getStyle( Color color, int size );
 
@@ -47,7 +48,7 @@ public abstract class MarkShape {
     public static final MarkShape POINT = new MarkShape( "point" ) {
         final Object id = new Object();
         public MarkStyle getStyle( Color color, int size ) {
-            return new MarkStyle( color, id, this, 1, 1 ) {
+            return new MarkStyle( color, id, this, 0, 1 ) {
                 protected void drawShape( Graphics g ) {
                     g.drawLine( 0, 0, 0, 0 );
                 }

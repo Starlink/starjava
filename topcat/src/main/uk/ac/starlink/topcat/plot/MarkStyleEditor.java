@@ -157,13 +157,13 @@ public class MarkStyleEditor extends StyleEditor {
      * Returns a MarkStyle described by a shape, size and colour.
      *
      * @param  shape  marker shape
-     * @param  size   marker size (>=1)
+     * @param  size   marker size
      * @param  color  marker colour
      * @return  marker
      */
     private static MarkStyle getStyle( MarkShape shape, int size,
                                        Color color ) {
-        return size == 0 ? MarkShape.POINT.getStyle( color, 1 )
+        return size == 0 ? MarkShape.POINT.getStyle( color, 0 )
                          : shape.getStyle( color, size );
     }
 
