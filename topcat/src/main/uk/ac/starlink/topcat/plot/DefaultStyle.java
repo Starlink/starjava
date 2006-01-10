@@ -120,4 +120,14 @@ public abstract class DefaultStyle implements Style {
         code = code * 23 + getOtherAtts().hashCode();
         return code;
     }
+
+    public String toString() {
+        StringBuffer sbuf = new StringBuffer();
+        return new StringBuffer()
+            .append( getClass().getName() )
+            .append( getColor() )
+            .append( getStroke() )
+            .append( getOtherAtts() )
+            .toString();
+    }
 }
