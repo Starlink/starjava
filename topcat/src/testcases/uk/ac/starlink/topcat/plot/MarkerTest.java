@@ -21,8 +21,6 @@ public class MarkerTest extends TestCase {
         MarkStyles.openShapes( "Large open shapes", 5, null ),
         MarkStyles.filledShapes( "Small filled shapes", 3, Color.RED ),
         MarkStyles.filledShapes( "Large filled shapes", 5, null ),
-        MarkStyles.ghosts( "Small ghosts", 2, 0.6f ),
-        MarkStyles.ghosts( "Large ghosts", 5, 0.3f ),
     };
 
     public MarkerTest( String name ) {
@@ -39,6 +37,7 @@ public class MarkerTest extends TestCase {
             StyleSet profile = profiles[ i ];
             for ( int j = 0; j < 16; j++ ) {
                 MarkStyle style = (MarkStyle) profile.getStyle( j );
+
                 assertEquals( style, profile.getStyle( j ) );
                 for ( int k = 0; k < 16; k++ ) {
                     if ( k == j ) {
@@ -48,6 +47,10 @@ public class MarkerTest extends TestCase {
                         assertTrue( style != profile.getStyle( k ) );
                     }
                 }
+
+                MarkStyle copy = style.getShapeId()
+                                .getStyle( style.getColor(), style.getSize() );
+                assertEquals( style, copy );
             }
         }
     }

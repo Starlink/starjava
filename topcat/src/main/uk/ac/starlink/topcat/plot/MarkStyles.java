@@ -52,41 +52,6 @@ public class MarkStyles {
     }
 
     /**
-     * Returns a style set which gives filled semi-transparent circles of
-     * a given size in a variety of colours.
-     *
-     * @param  name  set name
-     * @param  size  approximate radius of markers
-     * @param  alpha  transparency of spots (0 is invisible, 1 is opaque)
-     * @return style set providing ghostly spots
-     */
-    public static StyleSet ghosts( final String name, final int size,
-                                   float alpha ) {
-        final int iAlpha = (int) ( alpha * 255.99 );
-        final int lAlpha = Math.max( iAlpha, 96 );
-        final int lsize = Math.max( size, 1 );
-        return new StyleSet() {
-            public String getName() {
-                return name;
-            }
-            public Style getStyle( int index ) {
-                Color baseColor = Styles.getColor( index );
-                Color color = new Color( baseColor.getRed(),
-                                         baseColor.getGreen(),
-                                         baseColor.getBlue(),
-                                         iAlpha );
-                Color lcolor = new Color( baseColor.getRed(),
-                                          baseColor.getGreen(),
-                                          baseColor.getBlue(),
-                                          lAlpha );
-                return MarkStyle.compositeMarkStyle(
-                    MarkShape.FILLED_SQUARE.getStyle( color, size ),
-                    MarkShape.FILLED_SQUARE.getStyle( color, lsize ) );
-            }
-        };
-    }
-
-    /**
      * Returns a style set which gives line-drawn shapes of various kinds.
      *
      * @param  name  set name
