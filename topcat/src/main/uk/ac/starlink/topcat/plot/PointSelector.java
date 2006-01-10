@@ -56,16 +56,19 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     private final JComboBox tableSelector_;
     private final JScrollPane subsetScroller_;
     private final OrderedSelectionRecorder subSelRecorder_;
-    protected final ActionForwarder actionForwarder_;
     private final SelectionForwarder selectionForwarder_;
     private final ListSelectionListener listActioner_;
     private final List topcatListeners_;
     private final JPanel colPanel_;
+    private final Map subsetLabels_;
+    protected final ActionForwarder actionForwarder_;
     private boolean initialised_;
     private MutableStyleSet styles_;
     private TopcatModel tcModel_;
     private ListSelectionModel subSelModel_;
     private StyleAnnotator annotator_;
+    private StyleWindow styleWindow_;
+    private String selectorLabel_;
 
     private static final int ICON_SIZE = 11;
 
@@ -74,6 +77,14 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      */
     public PointSelector() {
         super( new BorderLayout() );
+
+        /* Set up a map of labels for the subsets controlled by this selector.
+         * Its keys are Integers (giving the subset index) and its values
+         * are label strings.  A default label is used for subsets with
+         * no entry. */
+        subsetLabels_ = new HashMap();
+
+        /* Set up some listeners. */
         actionForwarder_ = new ActionForwarder();
         selectionForwarder_ = new SelectionForwarder();
         listActioner_ = new ListSelectionListener() {
@@ -86,6 +97,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         final JComponent controlBox = Box.createHorizontalBox();
         add( controlBox, BorderLayout.SOUTH );
 
+        /* Construct and place the main box for input. */
         final Box entryBox = new Box( BoxLayout.Y_AXIS );
         entryBox.setBorder( AuxWindow.makeTitledBorder( "Data" ) );
         controlBox.add( entryBox );
@@ -212,6 +224,37 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         }
         super.setVisible( visible );
     }
+
+    /**
+     * Sets the style window associated with this selector.
+     * This should be called soon after construction (before this selector
+     * is displayed), and should not be called subsequently.
+     *
+     * @param  styler   style window
+     */
+    public void setStyleWindow( StyleWindow styler ) {
+        styleWindow_ = styler;
+    }
+
+    /**
+     * Returns this selector's style window.
+     *
+     * @return  style window
+     */
+    public StyleWindow getStyleWindow() {
+        return styleWindow_;
+    }
+
+    /**
+     * Sets a label for this selector.  This should be a short string;
+     * it's used to disambiguate subsets from those controlled by other
+     * selectors.
+     *
+     * @param   label   label string
+     */
+    public void setLabel( String label ) {
+        selectorLabel_ = label;
+    }
    
     /**
      * Returns the currently selected table.
@@ -306,9 +349,11 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      *
      * @param  isub  subset index 
      * @param  style new style
+     * @param  label new subset name
      */
-    private void resetStyle( int isub, Style style ) {
+    private void resetStyle( int isub, Style style, String label ) {
         styles_.setStyle( isub, style );
+        subsetLabels_.put( new Integer( isub ), label );
         annotator_.setStyleIcon( isub, style );
         actionForwarder_
             .actionPerformed( new ActionEvent( this, 0, "Style change" ) );
@@ -453,6 +498,47 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     }
 
     /**
+     * Invoked when the user wants to edit the style of one of the subsets
+     * controlled by this selector.
+     *
+     * @param  index  index of the subset to edit
+     */
+    private void editStyle( final int index ) {
+        final StyleWindow styler = getStyleWindow();
+        TopcatModel tcModel = getTable();
+        RowSubset rset = (RowSubset) tcModel.getSubsets().get( index );
+        final StyleAnnotator annotator = annotator_;
+        final StyleEditor editor = styler.getEditor();
+        styler.setTarget( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( annotator_ == annotator ) {
+                    resetStyle( index, editor.getStyle(), editor.getLabel() );
+                }
+            }
+        } );
+        editor.setState( getStyle( index ), getSubsetLabel( index ) );
+        styler.show();
+    }
+
+    /**
+     * Returns the label which is to be used in a plot for annotating one
+     * of the subsets controlled by this selector.
+     *
+     * @param   isub  subset index
+     * @return  subset label
+     */
+    public String getSubsetLabel( int isub ) {
+        String label = (String) subsetLabels_.get( new Integer( isub ) );
+        if ( label == null ) {
+            label = ((RowSubset) getTable().getSubsets().get( isub )).getName();
+            if ( selectorLabel_ != null ) {
+                label = selectorLabel_ + "." + label;
+            }
+        }
+        return label;
+    }
+
+    /**
      * Sets the default selection for the subset selection component
      * based on the state of the current TopcatModel.
      */
@@ -497,7 +583,6 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         private final Map actions_;
         private final Icon BLANK_ICON =
             Styles.getLegendIcon( null, ICON_SIZE, ICON_SIZE );
-        private int next_ = 9;
 
         /**
          * Constructor.
@@ -556,7 +641,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
                                               "Edit style for subset " +
                                               list_.get( index ) ) {
                     public void actionPerformed( ActionEvent evt ) {
-                        resetStyle( index, getStyle( next_++ ) );
+                        editStyle( index );
                     }
                 };
                 actions_.put( key, act );

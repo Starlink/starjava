@@ -288,6 +288,10 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         plot_.repaint();
     }
 
+    protected StyleEditor createStyleEditor() {
+        return new MarkStyleEditor();
+    }
+
     /**
      * Works out which points are currently visible and stores this
      * information for possible later use.  Although this information

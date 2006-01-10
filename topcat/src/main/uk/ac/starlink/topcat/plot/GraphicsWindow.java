@@ -130,6 +130,9 @@ public abstract class GraphicsWindow extends AuxWindow
             protected PointSelector createSelector() {
                 return GraphicsWindow.this.createPointSelector();
             }
+            protected StyleEditor createStyleEditor() {
+                return GraphicsWindow.this.createStyleEditor();
+            }
         };
         getControlPanel().setLayout( new BoxLayout( getControlPanel(),
                                                     BoxLayout.Y_AXIS ) );
@@ -303,6 +306,16 @@ public abstract class GraphicsWindow extends AuxWindow
             };
         return new DefaultPointSelector( axisNames_, toggleSets );
     };
+
+    protected StyleEditor createStyleEditor() {
+// temporary measure - haven't implementted StyleEditor for all
+// Style subclasses yet.
+        return new StyleEditor() {
+            Style style_;
+            public void setStyle( Style style ) { style_ = style; }
+            public Style getStyle() { return style_; }
+        };
+    }
 
     /**
      * Returns a StyleSet which can supply markers.

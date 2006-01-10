@@ -48,12 +48,12 @@ public class PointSelection {
      *
      * @param  selectors  array of PointSelector objects whose current state
      *         determines the points to be plotted
-     * @param  names   labels corresponding to the elements of the 
-     *                 <code>selectors</code> array
      * @param  subsetPointers  pointers to subsets
+     * @param  subsetNames     labels to be used for the subsets in 
+     *                         <code>subsetPointers</code>
      */
-    public PointSelection( PointSelector[] selectors, String[] names,
-                           int[][] subsetPointers ) {
+    public PointSelection( PointSelector[] selectors, int[][] subsetPointers,
+                           String[] subsetNames ) {
         nTable_ = selectors.length;
         ndim_ = selectors[ 0 ].getNdim();
         for ( int i = 0; i < nTable_; i++ ) {
@@ -93,11 +93,8 @@ public class PointSelection {
             int itsub = subsetPointer[ 1 ];
             RowSubset rset = (RowSubset)
                              tcModels_[ itab ].getSubsets().get( itsub );
-            rset = new OffsetRowSubset( rset, offsets[ itab ], nrows_[ itab ] );
-            if ( names[ itab ] != null ) {
-                ((OffsetRowSubset) rset).setName( names[ itab ] + "." 
-                                                + rset.getName() );
-            }
+            rset = new OffsetRowSubset( rset, offsets[ itab ], nrows_[ itab ],
+                                        subsetNames[ isub ] );
             subsetList.add( rset );
             styleList.add( selectors[ itab ].getStyle( itsub ) );
         }
@@ -396,20 +393,12 @@ public class PointSelection {
          * @param  base  base row subset
          * @param  offset  offset value for the first row
          * @param  nrow   number of rows in the base subset
+         * @param  name  subset name
          */
-        OffsetRowSubset( RowSubset base, long offset, long nrow ) {
+        OffsetRowSubset( RowSubset base, long offset, long nrow, String name ) {
             base_ = base;
             lolim_ = offset;
             hilim_ = offset + nrow - 1;
-            setName( base_.getName() );
-        }
-
-        /**
-         * Resets this subset's name.
-         *
-         * @param  name  new name
-         */
-        public void setName( String name ) {
             name_ = name;
         }
 
@@ -427,6 +416,7 @@ public class PointSelection {
             if ( o instanceof OffsetRowSubset ) {
                 OffsetRowSubset other = (OffsetRowSubset) o;
                 return this.base_.equals( other.base_ )
+                    && this.name_.equals( other.name_ )
                     && this.lolim_ == other.lolim_
                     && this.hilim_ == other.hilim_;
             }
@@ -438,6 +428,7 @@ public class PointSelection {
         public int hashCode() {
             int code = 555;
             code = 23 * code + base_.hashCode();
+            code = 23 * code + name_.hashCode();
             code = 23 * code + (int) lolim_;
             code = 23 * code + (int) hilim_;
             return code;

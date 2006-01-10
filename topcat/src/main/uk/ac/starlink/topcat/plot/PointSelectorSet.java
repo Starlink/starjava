@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.BorderLayout;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatForwarder;
@@ -48,6 +50,7 @@ public abstract class PointSelectorSet extends JPanel {
     private StyleSet styles_;
     private BitSet usedMarkers_;
     private int selectorsCreated_;
+    private StyleWindow styleWindow_;
 
     /**
      * Constructs a new set.
@@ -66,8 +69,8 @@ public abstract class PointSelectorSet extends JPanel {
                              "Add a new data set" ) {
                 public void actionPerformed( ActionEvent evt ) {
                     PointSelector psel = createSelector();
-                    resetStyles( psel );
                     addNewSelector( psel );
+                    resetStyles( psel );
                 } 
             };
         final Action removeSelectorAction =
@@ -123,6 +126,23 @@ public abstract class PointSelectorSet extends JPanel {
     protected abstract PointSelector createSelector();
 
     /**
+     * Factory method to construct a StyleEditor component for configuring
+     * how different styles appear in the plot.
+     *
+     * @return  new style editor component
+     */
+    protected abstract StyleEditor createStyleEditor();
+
+    public StyleWindow getStyleWindow() {
+        if ( styleWindow_ == null ) {
+            Frame parent =
+                (Frame) SwingUtilities.getAncestorOfClass( Frame.class, this );
+            styleWindow_ = new StyleWindow( parent, createStyleEditor() );
+        }
+        return styleWindow_;
+    }
+
+    /**
      * Returns the data specification reflecting the current state of this
      * component.  This contains all the information about what points
      * are to be plotted.
@@ -130,23 +150,35 @@ public abstract class PointSelectorSet extends JPanel {
      * @return  point selection object
      */
     public PointSelection getPointSelection() {
+
+        /* Assemble a list of the point selectors with plottable data. */
         List activeList = new ArrayList();
-        List nameList = new ArrayList();
         for ( int i = 0; i < getSelectorCount(); i++ ) {
             PointSelector psel = getSelector( i );
             if ( psel.isValid() ) {
                 activeList.add( psel );
-                nameList.add( psel == getMainSelector() 
-                            ? null 
-                            : tabber_.getTitleAt( i ) );
             }
         }
         PointSelector[] activeSelectors = 
             (PointSelector[]) activeList.toArray( new PointSelector[ 0 ] );
-        String[] names = (String[]) nameList.toArray( new String[ 0 ] );
+
+        /* Assemble a flattened list of the subsets to be plotted. */
         int[][] subsetPointers =
             orderRecorder_.getSubsetPointers( activeSelectors );
-        return new PointSelection( activeSelectors, names, subsetPointers );
+
+        /* Assemble a list of the labels to use for these subsets. */
+        int nset = subsetPointers.length;
+        String[] setLabels = new String[ nset ];
+        for ( int iset = 0; iset < nset; iset++ ) {
+            int isel = subsetPointers[ iset ][ 0 ];
+            int itset = subsetPointers[ iset ][ 1 ];
+            PointSelector psel = activeSelectors[ isel ];
+            setLabels[ iset ] = psel.getSubsetLabel( itset );
+        }
+
+        /* Construct and return a PointSelection object encapsulating
+         * this information. */
+        return new PointSelection( activeSelectors, subsetPointers, setLabels );
     }
 
     /**
@@ -254,8 +286,15 @@ public abstract class PointSelectorSet extends JPanel {
         /* Configure the selector to use this set's house style set. */
         resetStyles( psel );
 
+        /* Configure it to use this set's style editing window. */
+        psel.setStyleWindow( getStyleWindow() );
+
         /* Add the selector to the tabbed frame. */
-        tabber_.add( getNextTabName(), psel );
+        String label = getNextTabName();
+        if ( ! label.equals( "Main" ) ) {
+            psel.setLabel( label );
+        }
+        tabber_.add( label, psel );
 
         /* Make sure actions on the selector will be propagated to this
          * component's listeners. */
