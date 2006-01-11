@@ -377,6 +377,11 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         styles_ = styles;
         if ( annotator_ != null ) {
             annotator_.resetStyles( styles_ );
+
+            /* Hide the style editor if it's visible so it doesn't display 
+             * the wrong thing.  This is a bit lazy - probably ought to ensure
+             * that it's displaying the right thing instead. */
+            getStyleWindow().dispose();
         }
     }
 
