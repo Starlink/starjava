@@ -289,7 +289,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected StyleEditor createStyleEditor() {
-        return new MarkStyleEditor();
+        return new MarkStyleEditor( true );
     }
 
     /**
