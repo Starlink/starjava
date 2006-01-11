@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -69,8 +67,7 @@ public class MarkStyleEditor extends StyleEditor {
         statMap_ = new HashMap();
 
         /* Shape selector. */
-        shapeSelector_ =
-            new JComboBox( new DefaultComboBoxModel( SHAPES ) );
+        shapeSelector_ = new JComboBox( SHAPES );
         shapeSelector_.setRenderer( new MarkRenderer() {
             public MarkShape getMarkShape( int index ) {
                 return (MarkShape) shapeSelector_.getItemAt( index );
@@ -100,7 +97,7 @@ public class MarkStyleEditor extends StyleEditor {
         sizeSelector_.addActionListener( this );
 
         /* Colour selector. */
-        colorSelector_ = new JComboBox( new DefaultComboBoxModel( COLORS ) );
+        colorSelector_ = new JComboBox( COLORS );
         colorSelector_.setRenderer( new MarkRenderer() {
             public Color getMarkColor( int index ) {
                 return (Color) colorSelector_.getItemAt( index );
@@ -215,6 +212,30 @@ public class MarkStyleEditor extends StyleEditor {
     }
 
     /**
+     * Returns a MarkStyle described by its attributes.
+     *
+     * @param  shape  marker shape
+     * @param  size   marker size
+     * @param  color  marker colour
+     * @param  hidePoints  whether markers are invisible
+     * @param  line   line type
+     * @param  thick  line thickness
+     * @return  marker
+     */
+    private static MarkStyle getStyle( MarkShape shape, int size, Color color,
+                                       boolean hidePoints, MarkStyle.Line line,
+                                       int thick ) {
+        MarkStyle style = size == 0 ? MarkShape.POINT.getStyle( color, 0 )
+                                    : shape.getStyle( color, size );
+        style.setLine( line );
+        style.setHidePoints( ! hidePoints );
+        style.setStroke( new BasicStroke( (float) thick, BasicStroke.CAP_ROUND,
+                                          BasicStroke.JOIN_ROUND, 10f, null,
+                                          0f ) );
+        return style;
+    }
+
+    /**
      * Sets the known statistical information about a list of plottable sets.
      * This represents information about calculated linear regression
      * coefficients.
@@ -259,45 +280,6 @@ public class MarkStyleEditor extends StyleEditor {
         /* Make sure that marker presence control is only enabled if 
          * a line is being plotted. */
         markFlagger_.setEnabled( lineSelector_.getValue() != null );
-    }
-
-    /**
-     * Constructs a new ComboBoxModel which contains Integers numbered from
-     * 0 to <code>count-1</code>.
-     *
-     * @param   count  number of entries in the model
-     * @return  new ComboBoxModel filled with Integers
-     */
-    private static ComboBoxModel createNumberedModel( int count ) {
-        Object[] items = new Object[ count ];
-        for ( int i = 0; i < count; i++ ) {
-            items[ i ] = new Integer( i );
-        }
-        return new DefaultComboBoxModel( items );
-    }
-
-    /**
-     * Returns a MarkStyle described by its attributes.
-     *
-     * @param  shape  marker shape
-     * @param  size   marker size
-     * @param  color  marker colour
-     * @param  hidePoints  whether markers are invisible
-     * @param  line   line type
-     * @param  thick  line thickness
-     * @return  marker
-     */
-    private static MarkStyle getStyle( MarkShape shape, int size, Color color,
-                                       boolean hidePoints, MarkStyle.Line line,
-                                       int thick ) {
-        MarkStyle style = size == 0 ? MarkShape.POINT.getStyle( color, 0 )
-                                    : shape.getStyle( color, size );
-        style.setLine( line );
-        style.setHidePoints( ! hidePoints );
-        style.setStroke( new BasicStroke( (float) thick, BasicStroke.CAP_ROUND,
-                                          BasicStroke.JOIN_ROUND, 10f, null,
-                                          0f ) );
-        return style;
     }
 
     /**
