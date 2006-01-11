@@ -258,6 +258,7 @@ public class MarkStyleEditor extends StyleEditor {
         XYStats stats = (XYStats) statMap_.get( getSetId() );
         if ( stats != null ) {
             statText = new StringBuffer()
+                .append( " - " )
                 .append( "m=" )
                 .append( (float) stats.getLinearCoefficients()[ 1 ] )
                 .append( "; c=" )
