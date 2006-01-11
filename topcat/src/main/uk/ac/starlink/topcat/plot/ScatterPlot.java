@@ -150,35 +150,46 @@ public class ScatterPlot extends SurfacePlot {
         g = (Graphics2D) graphics.create();
         g.setClip( getSurface().getClip() );
 
-        /* Draw the points, optionally accumulating statistics for 
-         * X-Y correlations if we're going to need to draw regression lines. */
-        /* Currently, this method updates the statSets_ member variable - 
-         * it's not very good practice to have a paintComponent method
-         * updating data structures. */
+        /* Get ready to plot. */
         int np = points.getCount();
         RowSubset[] sets = getPointSelection().getSubsets();
         Style[] styles = getPointSelection().getStyles();
         int nset = sets.length;
-  boolean[] regressions = new boolean[ nset ];
+
+        /* Draw the points, optionally accumulating statistics for 
+         * X-Y correlations if we're going to need to draw regression lines. */
         statSets_ = new XYStats[ nset ];
         double[] coords = new double[ 2 ];
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = (MarkStyle) styles[ is ];
-            boolean regress = regressions[ is ];
-            XYStats stats = null;
-            if ( regress ) {
-                stats = new XYStats( state.getLogFlags()[ 0 ],
-                                     state.getLogFlags()[ 1 ] );
-                statSets_[ is ] = stats;
+
+            /* Prepare to calculate linear regression if required. */
+            boolean regress = style.getLine() == MarkStyle.LINEAR;
+            XYStats stats = regress ? new XYStats( state.getLogFlags()[ 0 ],
+                                                   state.getLogFlags()[ 1 ] )
+                                    : null;
+            statSets_[ is ] = stats;
+
+            /* Prepare to draw connecting lines if required. */
+            boolean joindots = style.getLine() == MarkStyle.DOT_TO_DOT;
+            Graphics2D lineGraphics = null;
+            if ( joindots ) {
+                lineGraphics = (Graphics2D) g.create();
+                style.configureForLine( lineGraphics );
             }
+            boolean notFirst = false;
+
+            /* Iterate over points for this set. */
             int maxr = style.getMaximumRadius();
             int maxr2 = maxr * 2;
+            int lastxp = 0;
+            int lastyp = 0;
             for ( int ip = 0; ip < np; ip++ ) {
                 if ( sets[ is ].isIncluded( (long) ip ) ) {
                     points.getCoords( ip, coords );
                     double x = coords[ 0 ];
                     double y = coords[ 1 ];
-                    Point point = surface.dataToGraphics( x, y, true );
+                    Point point = surface.dataToGraphics( x, y, ! joindots );
                     if ( point != null ) {
                         int xp = point.x;
                         int yp = point.y;
@@ -188,6 +199,16 @@ public class ScatterPlot extends SurfacePlot {
                                 stats.addPoint( x, y );
                             }
                         }
+                        if ( joindots ) {
+                            if ( notFirst ) {
+                                lineGraphics.drawLine( lastxp, lastyp, xp, yp );
+                            }
+                            else {
+                                notFirst = true;
+                            }
+                            lastxp = xp;
+                            lastyp = yp;
+                        }
                     }
                 }
             }
@@ -196,8 +217,6 @@ public class ScatterPlot extends SurfacePlot {
         /* Draw regression lines as required. */
         g.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                             RenderingHints.VALUE_ANTIALIAS_ON );
-        g.setStroke( new BasicStroke( 2, BasicStroke.CAP_ROUND,
-                                      BasicStroke.JOIN_ROUND ) );
         for ( int is = 0; is < nset; is++ ) {
             XYStats stats = statSets_[ is ];
             if ( stats != null ) {
@@ -208,16 +227,23 @@ public class ScatterPlot extends SurfacePlot {
                     Point p2 = surface.dataToGraphics( ends[ 2 ], ends[ 3 ],
                                                        false );
                     if ( p1 != null && p2 != null ) {
-                        Color styleColor =
-                            ((MarkStyle) styles[ is ]).getColor();
-                        g.setColor( new Color( styleColor.getRed(),
-                                               styleColor.getGreen(), 
-                                               styleColor.getBlue(), 160 ) );
-                        g.drawLine( p1.x, p1.y, p2.x, p2.y );
+                        Graphics g1 = g.create();
+                        ((MarkStyle) styles[ is ]).configureForLine( g1 );
+                        g1.drawLine( p1.x, p1.y, p2.x, p2.y );
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Returns the X-Y statistics calculated the last time this component
+     * was painted.
+     *
+     * @return  X-Y correlation statistics objects
+     */
+    public XYStats[] getCorrelations() {
+        return statSets_;
     }
 
     /**
