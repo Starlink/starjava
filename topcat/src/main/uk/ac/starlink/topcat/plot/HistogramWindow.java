@@ -244,6 +244,10 @@ public class HistogramWindow extends GraphicsWindow {
         };
     }
 
+    protected StyleEditor createStyleEditor() {
+        return new BarStyleEditor();
+    }
+
     protected PlotState createPlotState() {
         HistogramPlotState state = new HistogramPlotState();
         double bw = getBinWidth();
