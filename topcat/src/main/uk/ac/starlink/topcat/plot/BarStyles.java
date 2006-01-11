@@ -19,10 +19,12 @@ public class BarStyles {
      * but different graphical attributes for different members 
      * of the sequence.
      */
-    private static abstract class AutoBarStyleSet implements StyleSet {
+    private static class AutoBarStyleSet implements StyleSet {
         private final String name_;
         private final boolean rotateColor_;
         private final boolean rotateStroke_;
+        private final BarStyle.Form form_;
+        private final BarStyle.Placement placement_;
 
         /**
          * Constructor.
@@ -34,29 +36,13 @@ public class BarStyles {
          *         are to be rotated between members of this set
          */
         protected AutoBarStyleSet( String name, boolean rotateColor,
-                                   boolean rotateStroke ) {
+                                   boolean rotateStroke, BarStyle.Form form,
+                                   BarStyle.Placement placement ) {
             name_ = name;
             rotateColor_ = rotateColor;
             rotateStroke_ = rotateStroke;
-        }
-
-        /**
-         * Draws the shape of a bar.
-         *
-         * <p>Arguments are the same as {@link BarStyle#drawBarShape}
-         */
-        protected abstract void drawBarShape( Graphics g, int x, int y,
-                                              int width, int height, 
-                                              int iseq, int nseq );
-
-        /**
-         * Draws the shape of an edge.
-         *
-         * <p>Arguments are the same as {@link BarStyle#drawEdgeShape}
-         */
-        protected void drawEdgeShape( Graphics g, int x, int y1, int y2,
-                                      int iseq, int nseq ) {
-            // no action for default implementation.
+            form_ = form;
+            placement_ = placement;
         }
 
         public String getName() {
@@ -67,19 +53,8 @@ public class BarStyles {
             return new BarStyle( rotateColor_ ? Styles.getColor( index )
                                               : Styles.PLAIN_COLOR,
                                  rotateStroke_ ? Styles.getStroke( index )
-                                               : Styles.PLAIN_STROKE, null ) {
-                protected void drawBarShape( Graphics g, int x, int y,
-                                             int width, int height,
-                                             int iseq, int nseq ) {
-                    AutoBarStyleSet.this.drawBarShape( g, x, y, width, height,
-                                                       iseq, nseq );
-                }
-                protected void drawEdgeShape( Graphics g, int x, int y1, int y2,
-                                              int iseq, int nseq ) {
-                    AutoBarStyleSet.this.drawEdgeShape( g, x, y1, y2,
-                                                        iseq, nseq );
-                }
-            };
+                                               : Styles.PLAIN_STROKE, 
+                                 form_, placement_ );
         }
     }
 
@@ -90,13 +65,9 @@ public class BarStyles {
      * @return   style set
      */
     public static StyleSet filled( String name ) {
-        return new AutoBarStyleSet( name, true, false ) {
-            protected void drawBarShape( Graphics g, int x, int y,
-                                         int width, int height,
-                                         int iseq, int nseq ) {
-                g.fillRect( x, y, Math.max( width - 1, 1 ), height );
-            }
-        };
+        return new AutoBarStyleSet( name, true, false,
+                                    BarStyle.FORM_FILLED,
+                                    BarStyle.PLACE_OVER );
     }
 
     /**
@@ -106,13 +77,9 @@ public class BarStyles {
      * @return   style set
      */
     public static StyleSet filled3d( String name ) {
-        return new AutoBarStyleSet( name, true, false ) {
-            protected void drawBarShape( Graphics g, int x, int y,
-                                         int width, int height,
-                                         int iseq, int nseq ) {
-                g.fill3DRect( x, y, Math.max( width - 1, 1 ), height, true );
-            }
-        };
+        return new AutoBarStyleSet( name, true, false,
+                                    BarStyle.FORM_FILLED3D,
+                                    BarStyle.PLACE_OVER );
     }
 
     /**
@@ -127,39 +94,9 @@ public class BarStyles {
      */
     public static StyleSet open( String name, boolean rotateColor,
                                  boolean rotateStroke ) {
-        return new AutoBarStyleSet( name, rotateColor, rotateStroke ) {
-            protected void drawBarShape( Graphics g, int x, int y,
-                                         int width, int height,
-                                         int iseq, int nseq ) {
-                g.drawRect( x, y, Math.max( width - 1, 1 ), height );
-            }
-        };
-    }
-
-    /**
-     * Returns a new style set which draws the tops of bars using XOR logic.
-     * This is pretty ugly for more than one set.
-     *
-     * @param  name  style set name
-     * @param  rotateColor  whether to have different colours for 
-     *                      different bars
-     * @param  rotateStroke  whether to have different stroke styles
-     *                       for different bars
-     * @return   style set
-     */
-    public static StyleSet xorTops( String name, boolean rotateColor,
-                                    boolean rotateStroke ) {
-        return new AutoBarStyleSet( name, rotateColor, rotateStroke ) {
-            protected void drawBarShape( Graphics g, int x, int y,
-                                         int width, int height,
-                                         int iseq, int nseq ) {
-                g.setXORMode( Color.white ) ;
-                g.drawLine( x + iseq, y + height, x + iseq, y );
-                g.drawLine( x + iseq + width, y + height, x + iseq + width, y );
-                g.setPaintMode();
-                g.drawLine( x + iseq + 1, y, x + iseq + width - 1, y );
-            }
-        };
+        return new AutoBarStyleSet( name, rotateColor, rotateStroke,
+                                    BarStyle.FORM_OPEN,
+                                    BarStyle.PLACE_OVER );
     }
 
     /**
@@ -174,17 +111,9 @@ public class BarStyles {
      */
     public static StyleSet tops( String name, boolean rotateColor,
                                  boolean rotateStroke ) {
-        return new AutoBarStyleSet( name, rotateColor, rotateStroke ) {
-            protected void drawBarShape( Graphics g, int x, int y,
-                                         int width, int height,
-                                         int iseq, int nseq ) {
-                g.drawLine( x, y, x + width, y );
-            }
-            protected void drawEdgeShape( Graphics g, int x, int y1, int y2,
-                                          int iseq, int nseq ) {
-                g.drawLine( x, y1, x, y2 );
-            }
-        };
+        return new AutoBarStyleSet( name, rotateColor, rotateStroke,
+                                    BarStyle.FORM_TOP,
+                                    BarStyle.PLACE_OVER );
     }
 
     /**
@@ -199,15 +128,9 @@ public class BarStyles {
      */
     public static StyleSet spikes( String name, boolean rotateColor,
                                    boolean rotateStroke ) {
-        return new AutoBarStyleSet( name, rotateColor, rotateStroke ) {
-            protected void drawBarShape( Graphics g, int x, int y,
-                                         int width, int height,
-                                         int iseq, int nseq ) {
-                x += iseq * ( width / nseq ) + 
-                     ( ( nseq - 1 ) * width / nseq ) / 2;
-                g.drawLine( x, y, x, y + height );
-            }
-        };
+        return new AutoBarStyleSet( name, rotateColor, rotateStroke,
+                                    BarStyle.FORM_SPIKE,
+                                    BarStyle.PLACE_ADJACENT );
     }
 
     /**
@@ -218,14 +141,9 @@ public class BarStyles {
      * @return   style set
      */
     public static StyleSet sideFilled( String name ) {
-        return new AutoBarStyleSet( name, true, false ) {
-            protected void drawBarShape( Graphics g, int x, int y,
-                                         int width, int height,
-                                         int iseq, int nseq ) {
-                int gap = ( width - 2 ) / nseq;
-                g.fillRect( 1 + x + iseq * gap, y, Math.max( gap, 1 ), height );
-            }
-        };
+        return new AutoBarStyleSet( name, true, false,
+                                    BarStyle.FORM_FILLED,
+                                    BarStyle.PLACE_ADJACENT );
     }
 
     /**
@@ -236,15 +154,9 @@ public class BarStyles {
      * @return   style set
      */
     public static StyleSet sideFilled3d( String name ) {
-        return new AutoBarStyleSet( name, true, false ) {
-            protected void drawBarShape( Graphics g, int x, int y,
-                                         int width, int height,
-                                         int iseq, int nseq ) {
-                int gap = ( width - 2 ) / nseq;
-                g.fill3DRect( 1 + x + iseq * gap, y,
-                              Math.max( gap, 1 ), height, true );
-            }
-        };
+        return new AutoBarStyleSet( name, true, false,
+                                    BarStyle.FORM_FILLED3D,
+                                    BarStyle.PLACE_ADJACENT );
     }
 
     /**
@@ -260,15 +172,9 @@ public class BarStyles {
      */
     public static StyleSet sideOpen( String name, boolean rotateColor,
                                      boolean rotateStroke ) {
-        return new AutoBarStyleSet( name, rotateColor, rotateStroke ) {
-            protected void drawBarShape( Graphics g, int x, int y,
-                                         int width, int height,
-                                         int iseq, int nseq ) {
-                int gap = ( width - 2 ) / nseq;
-                g.drawRect( 1 + x + iseq * gap, y,
-                            Math.max( gap - 1, 1 ), height );
-            }
-        };
+        return new AutoBarStyleSet( name, rotateColor, rotateStroke,
+                                    BarStyle.FORM_OPEN,
+                                    BarStyle.PLACE_ADJACENT );
     }
 
     /**
