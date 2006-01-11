@@ -8,6 +8,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
 
@@ -24,7 +26,8 @@ import uk.ac.starlink.topcat.AuxWindow;
  * @author   Mark Taylor
  * @since    10 Jan 2005
  */
-public abstract class StyleEditor extends JPanel implements ActionListener {
+public abstract class StyleEditor extends JPanel
+                                  implements ActionListener, ChangeListener {
 
     private final JLabel legendLabel_;
     private final JTextField labelField_;
@@ -147,6 +150,16 @@ public abstract class StyleEditor extends JPanel implements ActionListener {
         previewLegend( getStyle() );
         repaint();
         actionForwarder_.actionPerformed( evt );
+    }
+
+    /**
+     * Invoked every time the style described by the current state of this
+     * component changes.
+     */
+    public void stateChanged( ChangeEvent evt ) {
+        previewLegend( getStyle() );
+        repaint();
+        actionForwarder_.stateChanged( evt );
     }
 
     /**
