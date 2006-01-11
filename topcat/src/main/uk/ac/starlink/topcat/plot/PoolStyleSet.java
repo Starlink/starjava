@@ -69,17 +69,19 @@ public class PoolStyleSet implements MutableStyleSet {
 
     /**
      * Explicitly sets the style at a given index to be a specified one.
-     * If that index was previously using one from the base set,
-     * it is returned to the unused pool.
      *
      * @param   index  style index
      * @param   style  style to use
      */
     public void setStyle( int index, Style style ) {
         Object value = map_.get( new Integer( index ) );
-        if ( value instanceof Integer ) {
-            used_.clear( ((Integer) value).intValue() );
-        }
+
+        /* If the style previously at the reset index was previously 
+         * using one from the base set, it is returned to the unused pool. */
+        // if ( value instanceof Integer ) {
+        //     used_.clear( ((Integer) value).intValue() );
+        // }
+
         map_.put( new Integer( index ), style );
     }
 
