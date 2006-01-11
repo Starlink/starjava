@@ -21,8 +21,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import uk.ac.starlink.topcat.AuxWindow;
-import uk.ac.starlink.topcat.RadioButtonGroup;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
+import uk.ac.starlink.util.gui.ValueButtonGroup;
 
 /**
  * StyleEditor implementation for editing {@link MarkStyle} objects.
@@ -37,7 +37,7 @@ public class MarkStyleEditor extends StyleEditor {
     private final JComboBox sizeSelector_;
     private final JComboBox colorSelector_;
     private final JComboBox thickSelector_;
-    private final RadioButtonGroup lineSelector_;
+    private final ValueButtonGroup lineSelector_;
     private final JLabel corrLabel_;
 
     private static final int MAX_SIZE = 5;
@@ -155,21 +155,25 @@ public class MarkStyleEditor extends StyleEditor {
             lineStyleBox.add( Box.createHorizontalGlue() );
 
             /* Set up radio buttons for selecting line type. */
-            lineSelector_ = new RadioButtonGroup();
+            lineSelector_ = new ValueButtonGroup();
             Box noneLineBox = Box.createHorizontalBox();
-            noneLineBox.add( lineSelector_.addButton( "None", null ) );
+            JRadioButton noneButton = new JRadioButton( "None", true );
+            lineSelector_.add( noneButton, null );
+            noneLineBox.add( noneButton );
             noneLineBox.add( Box.createHorizontalGlue() );
             Box dotsLineBox = Box.createHorizontalBox();
-            dotsLineBox.add( lineSelector_.addButton( "Dot to Dot",
-                                                      MarkStyle.DOT_TO_DOT ) );
+            JRadioButton dotsButton = new JRadioButton( "Dot to Dot" );
+            lineSelector_.add( dotsButton, MarkStyle.DOT_TO_DOT );
+            dotsLineBox.add( dotsButton );
             dotsLineBox.add( Box.createHorizontalGlue() );
             Box corrLineBox = Box.createHorizontalBox();
-            corrLineBox.add( lineSelector_.addButton( "Linear Correlation",
-                                                      MarkStyle.LINEAR ) );
+            JRadioButton corrButton = new JRadioButton( "Linear Correlation" );
+            lineSelector_.add( corrButton, MarkStyle.LINEAR );
+            corrLineBox.add( corrButton );
             corrLabel_ = new JLabel();
             corrLineBox.add( corrLabel_ );
             corrLineBox.add( Box.createHorizontalGlue() );
-            lineSelector_.addActionListener( this );
+            lineSelector_.addChangeListener( this );
 
             Box lineBox = Box.createVerticalBox();
             lineBox.add( lineStyleBox );
