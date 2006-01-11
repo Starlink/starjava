@@ -350,6 +350,9 @@ public class Loader {
      * of it not being set early enough).  So I think, given that I don't
      * have a Mac to debug it on, I'm going to have to leave it unset by
      * default.
+     *
+     * <p>11 Jan 2006: Apparently this is fixed at OS X's Java 1.5 JRE.
+     * So for JRE versions >= 1.5, the screen top menus are reinstated.
      */
     public static void tweakGuiForMac() {
         String menuProp = "apple.laf.useScreenMenuBar";
@@ -357,9 +360,19 @@ public class Loader {
             String prop = System.getProperty( menuProp );
             if ( prop == null || prop.trim().length() == 0 ) {
 
-                /* Don't do this - see comments above. */
-                if ( false ) {
-                    System.setProperty( menuProp, "true" );
+                /* Only attempt this if the JRE is 1.5 or greater.  There
+                 * appears to be a bug in lower versions of the OS X JRE
+                 * which can cause trouble. */
+                String version =
+                    System.getProperty( "java.specification.version" );
+                try {
+                    if ( Double.parseDouble( version ) >= 1.5 ) {
+                        System.setProperty( menuProp, "true" );
+                    }
+                }
+                catch ( RuntimeException e ) {
+                    warn( "Non-numeric java.specification.version=\"" + version
+                          + "\"??" );
                 }
             }
         }
