@@ -68,11 +68,6 @@ public class MarkStyleEditor extends StyleEditor {
         super();
         statMap_ = new HashMap();
 
-        /* Marker box. */
-        markFlagger_ = new JCheckBox( "Plot Marker" );
-        markFlagger_.setSelected( true );
-        markFlagger_.addActionListener( this );
-
         /* Shape selector. */
         shapeSelector_ =
             new JComboBox( new DefaultComboBoxModel( SHAPES ) );
@@ -119,12 +114,33 @@ public class MarkStyleEditor extends StyleEditor {
         } );
         colorSelector_.addActionListener( this );
 
-        /* Place components. */
+        /* Marker hiding selector. */
+        markFlagger_ = new JCheckBox( "Hide Markers" );
+        markFlagger_.setSelected( false );
+        markFlagger_.addActionListener( this );
+
+        /* Line thickness selector. */
+        thickSelector_ = new JComboBox( createNumberedModel( MAX_THICK ) );
+        thickSelector_.setRenderer( new LineRenderer() {
+            public int getLineThickness( int index ) {
+                return index + 1;
+            }
+        } );
+        thickSelector_.addActionListener( this );
+
+        /* Line type selector. */
+        JRadioButton noneButton = new JRadioButton( "None", true );
+        JRadioButton dotsButton = new JRadioButton( "Dot to Dot" );
+        JRadioButton corrButton = new JRadioButton( "Linear Correlation" );
+        lineSelector_ = new ValueButtonGroup();
+        lineSelector_.add( noneButton, null );
+        lineSelector_.add( dotsButton, MarkStyle.DOT_TO_DOT );
+        lineSelector_.add( corrButton, MarkStyle.LINEAR );
+        lineSelector_.addChangeListener( this );
+        corrLabel_ = new JLabel();
+
+        /* Place marker selection components. */
         JComponent markBox = Box.createHorizontalBox();
-        if ( withLines ) {
-            markBox.add( markFlagger_ );
-            markBox.add( Box.createHorizontalStrut( 10 ) );
-        }
         markBox.add( new JLabel( "Shape: " ) );
         markBox.add( shapeSelector_ );
         markBox.add( Box.createHorizontalStrut( 5 ) );
@@ -143,42 +159,27 @@ public class MarkStyleEditor extends StyleEditor {
         markBox.setBorder( AuxWindow.makeTitledBorder( "Marker" ) );
         add( markBox );
 
+        /* Place line selection components if required. */
         if ( withLines ) {
-            thickSelector_ = new JComboBox( createNumberedModel( MAX_THICK ) );
-            thickSelector_.setRenderer( new LineRenderer() {
-                public int getLineThickness( int index ) {
-                    return index + 1;
-                }
-            } );
-            thickSelector_.addActionListener( this );
-
             Box lineStyleBox = Box.createHorizontalBox();
             lineStyleBox.add( new JLabel( "Thickness: " ) );
             lineStyleBox.add( new ShrinkWrapper( thickSelector_ ) );
             lineStyleBox.add( Box.createHorizontalStrut( 5 ) );
             lineStyleBox.add( new ComboBoxBumper( thickSelector_ ) );
+            lineStyleBox.add( Box.createHorizontalStrut( 10 ) );
+            lineStyleBox.add( markFlagger_ );
             lineStyleBox.add( Box.createHorizontalGlue() );
 
-            /* Set up radio buttons for selecting line type. */
-            lineSelector_ = new ValueButtonGroup();
             Box noneLineBox = Box.createHorizontalBox();
-            JRadioButton noneButton = new JRadioButton( "None", true );
-            lineSelector_.add( noneButton, null );
             noneLineBox.add( noneButton );
             noneLineBox.add( Box.createHorizontalGlue() );
             Box dotsLineBox = Box.createHorizontalBox();
-            JRadioButton dotsButton = new JRadioButton( "Dot to Dot" );
-            lineSelector_.add( dotsButton, MarkStyle.DOT_TO_DOT );
             dotsLineBox.add( dotsButton );
             dotsLineBox.add( Box.createHorizontalGlue() );
             Box corrLineBox = Box.createHorizontalBox();
-            JRadioButton corrButton = new JRadioButton( "Linear Correlation" );
-            lineSelector_.add( corrButton, MarkStyle.LINEAR );
             corrLineBox.add( corrButton );
-            corrLabel_ = new JLabel();
             corrLineBox.add( corrLabel_ );
             corrLineBox.add( Box.createHorizontalGlue() );
-            lineSelector_.addChangeListener( this );
 
             Box lineBox = Box.createVerticalBox();
             lineBox.add( lineStyleBox );
@@ -188,11 +189,6 @@ public class MarkStyleEditor extends StyleEditor {
             lineBox.setBorder( AuxWindow.makeTitledBorder( "Line" ) );
             add( lineBox );
         }
-        else {
-            thickSelector_ = null;
-            lineSelector_ = null;
-            corrLabel_ = null;
-        }
     }
 
     public void setStyle( Style style ) {
@@ -200,28 +196,22 @@ public class MarkStyleEditor extends StyleEditor {
         shapeSelector_.setSelectedItem( mstyle.getShapeId() );
         sizeSelector_.setSelectedIndex( mstyle.getSize() );
         colorSelector_.setSelectedItem( mstyle.getColor() );
-        if ( thickSelector_ != null ) {
-            Stroke stroke = mstyle.getStroke();
-            int thick = stroke instanceof BasicStroke 
-                      ? (int) ((BasicStroke) stroke).getLineWidth()
-                      : 1;
-            thickSelector_.setSelectedIndex( thick - 1 );
-        }
-        if ( lineSelector_ != null ) {
-            lineSelector_.setValue( mstyle.getLine() );
-        }
+        Stroke stroke = mstyle.getStroke();
+        int thick = stroke instanceof BasicStroke 
+                  ? (int) ((BasicStroke) stroke).getLineWidth()
+                  : 1;
+        thickSelector_.setSelectedIndex( thick - 1 );
+        lineSelector_.setValue( mstyle.getLine() );
+        markFlagger_.setSelected( mstyle.getHidePoints() );
     }
 
     public Style getStyle() {
         return getStyle( (MarkShape) shapeSelector_.getSelectedItem(),
                          sizeSelector_.getSelectedIndex(),
                          (Color) colorSelector_.getSelectedItem(),
-                         lineSelector_ == null
-                             ? null
-                             : (MarkStyle.Line) lineSelector_.getValue(),
-                         thickSelector_ == null 
-                             ? 1
-                             : thickSelector_.getSelectedIndex() + 1 );
+                         ! markFlagger_.isSelected(),
+                         (MarkStyle.Line) lineSelector_.getValue(),
+                         thickSelector_.getSelectedIndex() + 1 );
     }
 
     /**
@@ -241,19 +231,13 @@ public class MarkStyleEditor extends StyleEditor {
         for ( int i = 0; i < setIds.length; i++ ) {
             statMap_.put( setIds[ i ], stats[ i ] );
         }
-        refreshStats();
+        refreshState();
     }
 
-    public void setSetId( SetId id ) {
-        super.setSetId( id );
-        refreshStats();
-    }
+    protected void refreshState() {
+        super.refreshState();
 
-    /**
-     * Ensures that the text describing linear correlation coefficients
-     * is up to date for the currently edited set.
-     */
-    private void refreshStats() {
+        /* Ensure that information about linear correlations is up to date. */
         String statText;
         XYStats stats = (XYStats) statMap_.get( getSetId() );
         if ( stats != null ) {
@@ -271,6 +255,10 @@ public class MarkStyleEditor extends StyleEditor {
             statText = "";
         }
         corrLabel_.setText( statText );
+
+        /* Make sure that marker presence control is only enabled if 
+         * a line is being plotted. */
+        markFlagger_.setEnabled( lineSelector_.getValue() != null );
     }
 
     /**
@@ -294,15 +282,18 @@ public class MarkStyleEditor extends StyleEditor {
      * @param  shape  marker shape
      * @param  size   marker size
      * @param  color  marker colour
+     * @param  hidePoints  whether markers are invisible
      * @param  line   line type
      * @param  thick  line thickness
      * @return  marker
      */
     private static MarkStyle getStyle( MarkShape shape, int size, Color color,
-                                       MarkStyle.Line line, int thick ) {
+                                       boolean hidePoints, MarkStyle.Line line,
+                                       int thick ) {
         MarkStyle style = size == 0 ? MarkShape.POINT.getStyle( color, 0 )
                                     : shape.getStyle( color, size );
         style.setLine( line );
+        style.setHidePoints( ! hidePoints );
         style.setStroke( new BasicStroke( (float) thick, BasicStroke.CAP_ROUND,
                                           BasicStroke.JOIN_ROUND, 10f, null,
                                           0f ) );
@@ -353,11 +344,11 @@ public class MarkStyleEditor extends StyleEditor {
                 MarkStyle style = index >= 0 ? getStyle( getMarkShape( index ),
                                                          getMarkSize( index ),
                                                          getMarkColor( index ),
-                                                         null, 1 )
+                                                         false, null, 1 )
                                              : getStyle( getMarkShape(),
                                                          getMarkSize(),
                                                          getMarkColor(),
-                                                         null, 1 );
+                                                         false, null, 1 );
                 label.setIcon( Styles.getLegendIcon( style, 15, 15 ) );
             }
             return c;

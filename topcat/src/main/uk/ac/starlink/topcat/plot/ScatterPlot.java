@@ -162,6 +162,7 @@ public class ScatterPlot extends SurfacePlot {
         double[] coords = new double[ 2 ];
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = (MarkStyle) styles[ is ];
+            boolean hide = style.getHidePoints();
 
             /* Prepare to calculate linear regression if required. */
             boolean regress = style.getLine() == MarkStyle.LINEAR;
@@ -194,7 +195,9 @@ public class ScatterPlot extends SurfacePlot {
                         int xp = point.x;
                         int yp = point.y;
                         if ( g.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
-                            style.drawMarker( g, xp, yp );
+                            if ( ! hide ) {
+                                style.drawMarker( g, xp, yp );
+                            }
                             if ( regress ) {
                                 stats.addPoint( x, y );
                             }

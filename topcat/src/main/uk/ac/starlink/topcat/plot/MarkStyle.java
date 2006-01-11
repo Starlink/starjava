@@ -19,6 +19,7 @@ import javax.swing.Icon;
  *                   .getStyle( style0.getColor(), style0.getSize() );
  *    style1.setStroke( style0.getStroke() );
  *    style1.setLine( style0.getLine() );
+ *    styel1.setHidePoints( style0.getHidePoints() );
  * </pre>
  * style0 and style1 should then match according to the <code>equals()</code>
  * method.  A style may however have a null <code>shapeId</code>, in
@@ -33,6 +34,7 @@ public abstract class MarkStyle extends DefaultStyle {
     private final int maxr_;
     private final MarkShape shapeId_;
     private Line line_;
+    private boolean hidePoints_;
 
     /** Symbolic constant meaning join points by straight line segments. */
     public static final Line DOT_TO_DOT = new Line( "DotToDot" );
@@ -132,6 +134,26 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
+     * Sets whether points should be hidden or visible.
+     * This will usually only be honoured if the line style is non-null.
+     *
+     * @param  visible  true if you want points to be invisible
+     */
+    public void setHidePoints( boolean visible ) {
+        hidePoints_ = visible;
+    }
+
+    /**
+     * Indicates whether points are hidden or visible.
+     * This should usually only be honoured if the line style is non-null.
+     *
+     * @return  true if points are to be invisible
+     */
+    public boolean getHidePoints() {
+        return hidePoints_;
+    }
+
+    /**
      * Draws this marker centered at a given position.  
      * This method sets the colour of the graphics context and 
      * then calls {@link #drawShape}.
@@ -192,15 +214,22 @@ public abstract class MarkStyle extends DefaultStyle {
      * @param  y  y position
      */
     public void drawLegend( Graphics g, int x, int y ) {
+        boolean hide;
         if ( getLine() != null ) {
             Graphics g1 = g.create();
             configureForLine( g1 );
             g1.drawLine( x - 8, y, x + 8, y );
+            hide = getHidePoints();
         }
-        Graphics g1 = g.create();
-        g1.setColor( getColor() );
-        g1.translate( x, y );
-        drawLegendShape( g1 );
+        else {
+            hide = false;
+        }
+        if ( ! hide ) {
+            Graphics g1 = g.create();
+            g1.setColor( getColor() );
+            g1.translate( x, y );
+            drawLegendShape( g1 );
+        }
     }
 
     /**
@@ -230,7 +259,8 @@ public abstract class MarkStyle extends DefaultStyle {
     public boolean equals( Object o ) {
         if ( super.equals( o ) ) {
             MarkStyle other = (MarkStyle) o;
-            return this.line_ == other.line_;
+            return this.line_ == other.line_
+                && this.hidePoints_ == other.hidePoints_;
         }
         else {
             return false;
@@ -240,6 +270,7 @@ public abstract class MarkStyle extends DefaultStyle {
     public int hashCode() {
         int code = super.hashCode();
         code = code * 23 + ( line_ == null ? 1 : line_.hashCode() );
+        code = code * 23 + ( hidePoints_ ? 0 : 1 );
         return code;
     }
 

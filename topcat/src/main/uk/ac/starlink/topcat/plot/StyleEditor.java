@@ -87,8 +87,8 @@ public abstract class StyleEditor extends JPanel
         initialStyle_ = style;
         initialLabel_ = label;
         labelField_.setText( label );
-        previewLegend( style );
         setStyle( style );
+        refreshState();
     }
 
     /**
@@ -124,6 +124,7 @@ public abstract class StyleEditor extends JPanel
      */ 
     public void setSetId( SetId id ) {
         setId_ = id;
+        refreshState();
     }
 
     /**
@@ -168,8 +169,7 @@ public abstract class StyleEditor extends JPanel
      * component changes.
      */
     public void actionPerformed( ActionEvent evt ) {
-        previewLegend( getStyle() );
-        repaint();
+        refreshState();
         actionForwarder_.actionPerformed( evt );
     }
 
@@ -178,18 +178,16 @@ public abstract class StyleEditor extends JPanel
      * component changes.
      */
     public void stateChanged( ChangeEvent evt ) {
-        previewLegend( getStyle() );
-        repaint();
+        refreshState();
         actionForwarder_.stateChanged( evt );
     }
 
     /**
-     * Displays the legend for a given style in a visible place.
-     *
-     * @param  style   style to display
+     * Ensures that all the visual components of this editor match its
+     * internal state.
      */
-    private void previewLegend( Style style ) {
-        legendLabel_.setIcon( Styles.getLegendIcon( style, 20, 20 ) );
+    protected void refreshState() {
+        legendLabel_.setIcon( Styles.getLegendIcon( getStyle(), 20, 20 ) );
+        repaint();
     }
-
 }
