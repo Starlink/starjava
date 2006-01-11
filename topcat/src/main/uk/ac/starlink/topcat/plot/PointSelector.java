@@ -521,6 +521,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
             }
         } );
         editor.setState( getStyle( index ), getSubsetLabel( index ) );
+        editor.setSetId( new SetId( this, index ) );
         styler.show();
     }
 

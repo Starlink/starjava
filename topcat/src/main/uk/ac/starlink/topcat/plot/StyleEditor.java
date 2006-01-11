@@ -33,6 +33,7 @@ public abstract class StyleEditor extends JPanel
     private final JTextField labelField_;
     private final ActionForwarder actionForwarder_;
     private boolean initialised_;
+    private SetId setId_;
     private Style initialStyle_;
     private String initialLabel_;
 
@@ -113,6 +114,26 @@ public abstract class StyleEditor extends JPanel
      */
     public String getLabel() {
         return labelField_.getText();
+    }
+
+    /**
+     * Sets the set identifier for the style which this editor is currently
+     * editing.
+     *
+     * @param   id   set identifier
+     */ 
+    public void setSetId( SetId id ) {
+        setId_ = id;
+    }
+
+    /**
+     * Returns the set identifier for the style which this editor is currently
+     * editing.
+     *
+     * @return  set identifier
+     */
+    public SetId getSetId() {
+        return setId_;
     }
 
     /**

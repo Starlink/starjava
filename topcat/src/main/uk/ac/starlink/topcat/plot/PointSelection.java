@@ -30,6 +30,7 @@ public class PointSelection {
     private final StarTable[] dataTables_;
     private final RowSubset[] subsets_;
     private final Style[] styles_;
+    private final SetId[] setIds_;
 
     private static final double MILLISECONDS_PER_YEAR =
         365.25 * 24 * 60 * 60 * 1000;
@@ -87,6 +88,7 @@ public class PointSelection {
          * method. */
         List subsetList = new ArrayList();
         List styleList = new ArrayList();
+        List idList = new ArrayList();
         for ( int isub = 0; isub < subsetPointers.length; isub++ ) {
             int[] subsetPointer = subsetPointers[ isub ];
             int itab = subsetPointer[ 0 ];
@@ -97,9 +99,11 @@ public class PointSelection {
                                         subsetNames[ isub ] );
             subsetList.add( rset );
             styleList.add( selectors[ itab ].getStyle( itsub ) );
+            idList.add( new SetId( selectors[ itab ], itsub ) );
         }
         subsets_ = (RowSubset[]) subsetList.toArray( new RowSubset[ 0 ] );
         styles_ = (Style[]) styleList.toArray( new Style[ 0 ] );
+        setIds_ = (SetId[]) idList.toArray( new SetId[ 0 ] );
     }
 
     /** 
@@ -160,6 +164,17 @@ public class PointSelection {
      */
     public Style[] getStyles() {
         return styles_;
+    }
+
+    /**
+     * Returns the list of set ID labels which identify where each set 
+     * comes from.  This corresponds to the subset list returned by
+     * {@link #getSubsets}.
+     *
+     * @return   set ID array
+     */
+    public SetId[] getSetIds() {
+        return setIds_;
     }
 
     /**
