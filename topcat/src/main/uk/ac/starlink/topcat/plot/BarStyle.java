@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -51,6 +52,27 @@ public class BarStyle extends DefaultStyle {
     /** Bar form using 1-d spikes. */
     public static final Form FORM_SPIKE = new Form( "spike" ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
+
+            /* Careful.  If we have a stroke with CAP_SQUARE capping, it will
+             * look like it goes half a line width higher than it does. 
+             * Change it to CAP_BUTT in this case. */
+            if ( g instanceof Graphics2D ) {
+                Stroke stroke = ((Graphics2D) g).getStroke();
+                if ( stroke instanceof BasicStroke ) {
+                    BasicStroke s = (BasicStroke) stroke;
+                    if ( s.getEndCap() == BasicStroke.CAP_SQUARE ) {
+                        Stroke s1 = new BasicStroke( s.getLineWidth(),
+                                                     BasicStroke.CAP_BUTT,
+                                                     s.getLineJoin(),
+                                                     s.getMiterLimit(),
+                                                     s.getDashArray(),
+                                                     s.getDashPhase() );
+                        g = g.create();
+                        ((Graphics2D) g).setStroke( s1 );
+                    }
+                }
+            } 
+
             int xpos = x + width / 2;
             g.drawLine( xpos, y, xpos, y + height );
         }
