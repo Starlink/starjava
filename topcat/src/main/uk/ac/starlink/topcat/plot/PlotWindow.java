@@ -117,6 +117,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                                 || width != lastWidth_ ) {
                     recordVisiblePoints( getState(), getPoints(),
                                          getSurface() );
+                    recordCorrelations( getPointSelection().getSetIds(),
+                                        getCorrelations() );
                     lastHeight_ = height;
                     lastWidth_ = width;
                     replotted_ = false;
@@ -368,6 +370,11 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                                                    visibleCount } );
             }
         } );
+    }
+
+    private void recordCorrelations( SetId[] setIds, XYStats[] stats ) {
+        ((MarkStyleEditor) getPointSelectors().getStyleWindow().getEditor())
+                          .setStats( setIds, stats );
     }
 
     /*

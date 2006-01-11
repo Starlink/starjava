@@ -6,6 +6,8 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.ComboBoxModel;
@@ -39,6 +41,7 @@ public class MarkStyleEditor extends StyleEditor {
     private final JComboBox thickSelector_;
     private final ValueButtonGroup lineSelector_;
     private final JLabel corrLabel_;
+    private final Map statMap_;
 
     private static final int MAX_SIZE = 5;
     private static final int MAX_THICK = 10;
@@ -63,6 +66,7 @@ public class MarkStyleEditor extends StyleEditor {
      */
     public MarkStyleEditor( boolean withLines ) {
         super();
+        statMap_ = new HashMap();
 
         /* Marker box. */
         markFlagger_ = new JCheckBox( "Plot Marker" );
@@ -135,6 +139,7 @@ public class MarkStyleEditor extends StyleEditor {
         markBox.add( colorSelector_ );
         markBox.add( Box.createHorizontalStrut( 5 ) );
         markBox.add( new ComboBoxBumper( colorSelector_ ) );
+        markBox.add( Box.createHorizontalStrut( 5 ) );
         markBox.setBorder( AuxWindow.makeTitledBorder( "Marker" ) );
         add( markBox );
 
@@ -217,6 +222,54 @@ public class MarkStyleEditor extends StyleEditor {
                          thickSelector_ == null 
                              ? 1
                              : thickSelector_.getSelectedIndex() + 1 );
+    }
+
+    /**
+     * Sets the known statistical information about a list of plottable sets.
+     * This represents information about calculated linear regression
+     * coefficients.
+     * 
+     * @param  setIds  set identifiers for the statistics objects provided
+     * @param  stats   statistics objects themselves, one per element of 
+     *                 <code>setIds</code>
+     */
+    public void setStats( SetId[] setIds, XYStats[] stats ) {
+        statMap_.clear();
+        if ( setIds.length != stats.length ) {
+            throw new IllegalArgumentException();
+        }
+        for ( int i = 0; i < setIds.length; i++ ) {
+            statMap_.put( setIds[ i ], stats[ i ] );
+        }
+        refreshStats();
+    }
+
+    public void setSetId( SetId id ) {
+        super.setSetId( id );
+        refreshStats();
+    }
+
+    /**
+     * Ensures that the text describing linear correlation coefficients
+     * is up to date for the currently edited set.
+     */
+    private void refreshStats() {
+        String statText;
+        XYStats stats = (XYStats) statMap_.get( getSetId() );
+        if ( stats != null ) {
+            statText = new StringBuffer()
+                .append( "m=" )
+                .append( (float) stats.getLinearCoefficients()[ 1 ] )
+                .append( "; c=" )
+                .append( (float) stats.getLinearCoefficients()[ 0 ] )
+                .append( "; r=" )
+                .append( (float) stats.getCorrelation() )
+                .toString();
+        }
+        else {
+            statText = "";
+        }
+        corrLabel_.setText( statText );
     }
 
     /**
