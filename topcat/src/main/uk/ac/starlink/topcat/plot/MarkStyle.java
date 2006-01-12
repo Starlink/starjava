@@ -43,6 +43,9 @@ public abstract class MarkStyle extends DefaultStyle {
     /** Symbolic constant meaning draw a linear regression line. */
     public static final Line LINEAR = new Line( "LinearRegression" );
 
+    private static final int LEGEND_ICON_WIDTH = 20;
+    private static final int LEGEND_ICON_HEIGHT = 12;
+
     /**
      * Constructor.
      *
@@ -207,32 +210,42 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
-     * Draws a legend for this marker centered at a given position.
+     * Draws a legend icon for this style.
      * This method sets the colour of the graphics context and then 
      * calls {@link #drawLegendShape}.
      *
-     * @param  g  graphics context
-     * @param  x  x position
-     * @param  y  y position
+     * @return  legend icon
      */
-    public void drawLegend( Graphics g, int x, int y ) {
-        boolean hide;
-        if ( getLine() != null ) {
-            Graphics g1 = g.create();
-            configureForLine( g1, BasicStroke.CAP_BUTT,
-                                  BasicStroke.JOIN_MITER );
-            g1.drawLine( x - 8, y, x + 8, y );
-            hide = getHidePoints();
-        }
-        else {
-            hide = false;
-        }
-        if ( ! hide ) {
-            Graphics g1 = g.create();
-            g1.setColor( getColor() );
-            g1.translate( x, y );
-            drawLegendShape( g1 );
-        }
+    public Icon getLegendIcon() {
+        return new Icon() {
+            public int getIconHeight() {
+                return LEGEND_ICON_HEIGHT;
+            }
+            public int getIconWidth() {
+                return LEGEND_ICON_WIDTH;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                boolean hide;
+                if ( getLine() != null ) {
+                    Graphics g1 = g.create();
+                    configureForLine( g1, BasicStroke.CAP_BUTT,
+                                          BasicStroke.JOIN_MITER );
+                    int ypos = y + LEGEND_ICON_HEIGHT / 2;
+                    g1.drawLine( x, ypos, x + LEGEND_ICON_WIDTH, ypos );
+                    hide = getHidePoints();
+                }
+                else {
+                    hide = false;
+                }
+                if ( ! hide ) {
+                    Graphics g1 = g.create();
+                    g1.setColor( getColor() );
+                    g1.translate( x + LEGEND_ICON_WIDTH / 2,
+                                  y + LEGEND_ICON_HEIGHT / 2 );
+                    drawLegendShape( g1 );
+                }
+            }
+        };
     }
 
     /**

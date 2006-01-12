@@ -64,34 +64,4 @@ public class Styles {
     public static float[] getDash( int index ) {
         return DASHES[ Math.abs( index ) % DASHES.length ];
     }
-
-    /**
-     * Returns an icon which displays the legend for a given style.
-     * If <code>style</code> is null, an empty icon of the right size is
-     * returned.
-     *
-     * @param   style  style
-     * @param   width  icon width
-     * @param   height icon height
-     * @return  icon for style legend
-     */
-    public static Icon getLegendIcon( final Style style, final int width,
-                                      final int height ) {
-        return new Icon() {
-            public int getIconHeight() {
-                return height;
-            }
-            public int getIconWidth() {
-                return width;
-            }
-            public void paintIcon( Component c, Graphics g,
-                                   int xoff, int yoff ) {
-                int x = xoff + width / 2;
-                int y = yoff + height / 2;
-                if ( style != null ) {
-                    style.drawLegend( g, x, y );
-                }
-            }
-        };
-    }
 }

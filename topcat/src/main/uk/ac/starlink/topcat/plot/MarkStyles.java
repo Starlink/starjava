@@ -119,25 +119,29 @@ public class MarkStyles {
      * @return  icon for <code>styles</code>
      */
     public static Icon getIcon( final StyleSet styleSet ) {
+        final int nmark = 5;
+        final int separation = 0;
+        int w = separation * ( nmark - 1 ); 
+        int h = 0;
+        for ( int i = 0; i < nmark; i++ ) {
+            Icon icon = styleSet.getStyle( i ).getLegendIcon();
+            w += icon.getIconWidth();
+            h = Math.max( h, icon.getIconHeight() );
+        }
+        final int width = w;
+        final int height = h;
         return new Icon() {
-            final int NMARK = 5;
-            final int SEPARATION = 16;
-            final int HEIGHT = SEPARATION;
-
             public int getIconHeight() {
-                return HEIGHT;
+                return height;
             }
-
             public int getIconWidth() {
-                return NMARK * SEPARATION + SEPARATION / 2;
+                return width;
             }
-
-            public void paintIcon( Component c, Graphics g,
-                                   int xoff, int yoff ) {
-                int y = yoff + HEIGHT / 2;
-                for ( int i = 0; i < NMARK; i++ ) {
-                    int x = xoff + i * SEPARATION + SEPARATION / 2;
-                    styleSet.getStyle( i ).drawLegend( g, x, y );
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                for ( int i = 0; i < nmark; i++ ) {
+                    Icon icon = styleSet.getStyle( i ).getLegendIcon();
+                    icon.paintIcon( c, g, x, y );
+                    x += separation + icon.getIconWidth();
                 }
             }
         };

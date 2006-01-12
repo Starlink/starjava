@@ -125,20 +125,22 @@ public class MarkStyleEditor extends StyleEditor {
         /* Place marker selection components. */
         JComponent markBox = Box.createHorizontalBox();
         markBox.add( new JLabel( "Shape: " ) );
-        markBox.add( shapeSelector_ );
+        markBox.add( new ShrinkWrapper( shapeSelector_ ) );
         markBox.add( Box.createHorizontalStrut( 5 ) );
         markBox.add( new ComboBoxBumper( shapeSelector_ ) );
         markBox.add( Box.createHorizontalStrut( 10 ) );
         markBox.add( new JLabel( "Size: " ) );
         markBox.add( sizeSelector_ );
         markBox.add( Box.createHorizontalStrut( 5 ) );
-        markBox.add( new ComboBoxBumper( sizeSelector_ ) );
+        markBox.add( new ShrinkWrapper( new ComboBoxBumper( sizeSelector_ ) ) );
         markBox.add( Box.createHorizontalStrut( 10 ) );
         markBox.add( new JLabel( "Colour: " ) );
         markBox.add( colorSelector_ );
         markBox.add( Box.createHorizontalStrut( 5 ) );
-        markBox.add( new ComboBoxBumper( colorSelector_ ) );
+        markBox.add( new ShrinkWrapper( new ComboBoxBumper(
+                                                colorSelector_ ) ) );
         markBox.add( Box.createHorizontalStrut( 5 ) );
+        markBox.add( Box.createHorizontalGlue() );
         markBox.setBorder( AuxWindow.makeTitledBorder( "Marker" ) );
         add( markBox );
 
@@ -319,7 +321,7 @@ public class MarkStyleEditor extends StyleEditor {
                                                          getMarkSize(),
                                                          getMarkColor(),
                                                          false, null, 1, null );
-                label.setIcon( Styles.getLegendIcon( style, 15, 15 ) );
+                label.setIcon( style.getLegendIcon() );
             }
             return c;
         }

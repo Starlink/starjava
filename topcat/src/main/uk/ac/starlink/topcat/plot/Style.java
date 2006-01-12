@@ -1,6 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
-import java.awt.Graphics;
+import javax.swing.Icon;
 
 /**
  * Defines a style for marking a set of data.
@@ -21,11 +21,7 @@ import java.awt.Graphics;
 public interface Style {
 
     /**
-     * Draws a legend for this marker centered at a given position.
-     *
-     * @param  g  graphics context
-     * @param  x  x position
-     * @param  y  y position
+     * Returns an icon suitable for displaying in a legend for this style.
      */
-    public void drawLegend( Graphics g, int x, int y );
+    Icon getLegendIcon();
 }

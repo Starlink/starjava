@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -69,8 +70,6 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     private StyleAnnotator annotator_;
     private StyleWindow styleWindow_;
     private String selectorLabel_;
-
-    private static final int ICON_SIZE = 11;
 
     /**
      * Constructor.
@@ -591,8 +590,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         private final List list_;
         private final ListSelectionModel selModel_;
         private final Map actions_;
-        private final Icon BLANK_ICON =
-            Styles.getLegendIcon( null, ICON_SIZE, ICON_SIZE );
+        private final Icon blankIcon_;
 
         /**
          * Constructor.
@@ -606,6 +604,19 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
             selModel_ = selModel;
             actions_ = new HashMap();
             selModel_.addListSelectionListener( this );
+            Icon sampleIcon = getStyle( 0 ).getLegendIcon();
+            final int iw = sampleIcon.getIconWidth();
+            final int ih = sampleIcon.getIconHeight();
+            blankIcon_ = new Icon() {
+                public int getIconWidth() {
+                    return iw;
+                }
+                public int getIconHeight() {
+                    return ih;
+                }
+                public void paintIcon( Component c, Graphics g, int x, int y ) {
+                }
+            };
         }
 
         public Component createAnnotation( Object item ) {
@@ -647,7 +658,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         private Action getAction( final int index ) {
             Integer key = new Integer( index );
             if ( ! actions_.containsKey( key ) ) {
-                Action act = new BasicAction( null, BLANK_ICON,
+                Action act = new BasicAction( null, blankIcon_,
                                               "Edit style for subset " +
                                               list_.get( index ) ) {
                     public void actionPerformed( ActionEvent evt ) {
@@ -682,8 +693,8 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
          * @param   style  style which has icon
          */
         void setStyleIcon( int index, Style style ) {
-            Icon icon = Styles.getLegendIcon( style, ICON_SIZE, ICON_SIZE );
-            getAction( index ).putValue( Action.SMALL_ICON, icon );
+            getAction( index ).putValue( Action.SMALL_ICON,
+                                         style.getLegendIcon() );
         }
 
         /**
@@ -697,7 +708,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
             Integer key = new Integer( index );
             return actions_.containsKey( key ) 
                 && ((Action) actions_.get( key )).getValue( Action.SMALL_ICON )
-                   != BLANK_ICON;
+                   != blankIcon_;
         }
 
         /**
@@ -709,7 +720,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
             Integer key = new Integer( index );
             if ( actions_.containsKey( key ) ) {
                 ((Action) actions_.get( key )).putValue( Action.SMALL_ICON,
-                                                         BLANK_ICON );
+                                                         blankIcon_ );
             }
         }
     }

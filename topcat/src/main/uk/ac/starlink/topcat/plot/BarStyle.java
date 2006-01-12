@@ -2,10 +2,12 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.util.Arrays;
+import javax.swing.Icon;
 
 /**
  * Defines a style for plotting a bar in a histogram.
@@ -13,10 +15,13 @@ import java.util.Arrays;
  * @author   Mark Taylor
  * @since    16 Nov 2005
  */
-public class BarStyle extends DefaultStyle {
+public class BarStyle extends DefaultStyle implements Icon {
 
     private final Form form_;
     private final Placement placement_;
+
+    private static final int ICON_HEIGHT = 12;
+    private static final int ICON_WIDTH = 8;
 
     /** Bar form using open rectangles. */
     public static final Form FORM_OPEN = new Form( "open" ) {
@@ -98,6 +103,7 @@ public class BarStyle extends DefaultStyle {
      */
     public BarStyle( Color color, Form form, Placement placement ) {
         super( color, Arrays.asList( new Object[] { form, placement } ) );
+        setLineWidth( 2 );
         form_ = form;
         placement_ = placement;
     }
@@ -176,10 +182,28 @@ public class BarStyle extends DefaultStyle {
         return placement_;
     }
 
-    public void drawLegend( Graphics g, int x, int y ) {
-        drawEdge( g, x - 4, y - 6, y + 6, 0, 3 );
-        drawBar( g, x - 4, x + 4, y - 6, y + 6, 0, 3 );
-        drawEdge( g, x + 4, y - 6, y + 6, 0, 3 );
+    public Icon getLegendIcon() {
+        return this;
+    }
+
+    public int getIconHeight() {
+        return ICON_HEIGHT;
+    }
+
+    public int getIconWidth() {
+        return ICON_WIDTH;
+    }
+
+    public void paintIcon( Component c, Graphics g, int x, int y ) {
+        int x0 = x;
+        int x1 = x + ICON_WIDTH;
+        int y0 = y;
+        int y1 = y + ICON_HEIGHT;
+        int iseq = 1;
+        int nseq = 3;
+        drawEdge( g, x0, y0, y1, iseq, nseq );
+        drawBar( g, x0, x1, y0, y1, iseq, nseq );
+        drawEdge( g, x1, y0, y1, iseq, nseq );
     }
 
     /**

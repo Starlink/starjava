@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import javax.swing.Icon;
 import javax.swing.JPanel;
 
 /**
@@ -74,16 +75,23 @@ public class Legend extends JPanel {
         FontMetrics fm = g.getFontMetrics();
         int lineHeight = fm.getHeight();
         int lineAscent = fm.getAscent();
-        int gx = 10;
-        int tx = 20;
+        int lineDescent = fm.getDescent();
+        int preGap = 0;
+        int inGap = 5;
         int y = 0;
         int maxWidth = size_.width;
         for ( int i = 0; i < styles_.length; i++ ) {
             String label = labels_[ i ];
-            y += lineHeight;
-            styles_[ i ].drawLegend( g, gx, y - lineAscent / 2 );
-            g.drawString( label, tx, y );
-            maxWidth = Math.max( maxWidth, tx + fm.stringWidth( label ) + 1 );
+            Icon icon = styles_[ i ].getLegendIcon();
+            int ih = icon.getIconHeight();
+            int lh = Math.max( lineHeight, ih + 4 );
+            y += lh;
+            int gypos = y - lineDescent - lineAscent + lineAscent / 2 - ih / 2;
+            icon.paintIcon( this, g, preGap, gypos );
+            int txpos = preGap + icon.getIconWidth() + inGap;
+            g.drawString( label, txpos, y );
+            maxWidth = Math.max( maxWidth,
+                                 txpos + fm.stringWidth( label ) + 1 );
         }
         return new Dimension( maxWidth, y + lineHeight );
     }

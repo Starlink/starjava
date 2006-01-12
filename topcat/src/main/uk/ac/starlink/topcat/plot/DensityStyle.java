@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
+import javax.swing.Icon;
 
 /**
  * Style for the way that a density map (2d histogram) is plotted.
@@ -9,10 +11,10 @@ import java.awt.Graphics;
  * @author   Mark Taylor
  * @since    1 Dec 2005
  */
-public abstract class DensityStyle implements Style {
+public abstract class DensityStyle implements Style, Icon {
 
-    private static final int LEGEND_WIDTH = 16;
-    private static final int LEGEND_HEIGHT = 8;
+    private static final int ICON_WIDTH = 24;
+    private static final int ICON_HEIGHT = 8;
 
     /** Style which gives levels of redness. */
     public static final DensityStyle RED = new DensityStyle() {
@@ -93,15 +95,26 @@ public abstract class DensityStyle implements Style {
      */
     public abstract int levelBits( byte level );
 
-    public void drawLegend( Graphics g, int x, int y ) {
+    public Icon getLegendIcon() {
+        return this;
+    }
+
+    public int getIconHeight() {
+        return ICON_HEIGHT;
+    }
+
+    public int getIconWidth() {
+        return ICON_WIDTH;
+    }
+
+    public void paintIcon( Component c, Graphics g, int x, int y ) {
         g = g.create();
-        int ylo = y - LEGEND_HEIGHT * 3 / 4;
-        int yhi = ylo + LEGEND_HEIGHT;
-        int ix = x - 6;
-        for ( int i = 0; i < LEGEND_WIDTH; i++ ) {
-            byte level = (byte) ( 255 * i / LEGEND_WIDTH );
+        int ylo = y;
+        int yhi = y + ICON_HEIGHT;
+        for ( int i = 0; i < ICON_WIDTH; i++ ) {
+            byte level = (byte) ( 255 * i / ICON_WIDTH );
             g.setColor( new Color( 0xff000000 | levelBits( level ), true ) );
-            g.drawLine( ix, ylo, ix++, yhi );
+            g.drawLine( x + i, ylo, x + i, yhi );
         }
     }
 }

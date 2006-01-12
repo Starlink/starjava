@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
@@ -235,7 +236,10 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
      */
     protected void _drawPoint( Graphics g, int dataset,
                                long xpos, long ypos, boolean clip ) {
-        psel_.getStyles()[ dataset ].drawLegend( g, (int) xpos, (int) ypos );
+        Icon icon = psel_.getStyles()[ dataset ].getLegendIcon();
+        icon.paintIcon( getComponent(), g,
+                        (int) xpos - icon.getIconWidth() / 2,
+                        (int) ypos - icon.getIconHeight() / 2 );
     }
 
     /**

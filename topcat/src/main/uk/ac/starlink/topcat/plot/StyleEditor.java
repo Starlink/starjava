@@ -189,7 +189,7 @@ public abstract class StyleEditor extends JPanel
      * internal state.
      */
     protected void refreshState() {
-        legendLabel_.setIcon( Styles.getLegendIcon( getStyle(), 20, 20 ) );
+        legendLabel_.setIcon( getStyle().getLegendIcon() );
         repaint();
     }
 
