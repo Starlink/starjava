@@ -278,6 +278,14 @@ public class FlipFrame
         gbl0.eatLine();
         gbl0.add( transPanel, true );
 
+        //  LineVisitor for stepping through a list.
+        visitor = new LineVisitor( this );
+        visitor.setBorder(BorderFactory.createTitledBorder("Visitor:"));
+        visitor.setEnabled( false );
+        visitor.setToolTipText
+            ( "Step through a sequence of lines loaded from a file list" );
+        gbl0.add( visitor, true );
+
         //  Add the menuBar.
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar( menuBar );
@@ -726,9 +734,6 @@ public class FlipFrame
         }
     }
 
-
-
-
     /**
      * Make SPEFO-like changes to interface ala Petr Skoda.
      */
@@ -762,12 +767,6 @@ public class FlipFrame
                                  "Save to SPEFO.log file" );
             JButton spefoSave = new JButton( spefoSaveAction );
             gbl.add( spefoSave, false );
-            gbl.eatLine();
-
-            //  LineVisitor for stepping through a list.
-            visitor = new LineVisitor( this );
-            visitor.setEnabled( false );
-            gbl.add( visitor, false );
             gbl.eatLine();
 
             contentPane.add( spefoPanel, BorderLayout.CENTER );

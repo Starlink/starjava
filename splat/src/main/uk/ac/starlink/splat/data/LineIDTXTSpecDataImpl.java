@@ -274,6 +274,7 @@ public class LineIDTXTSpecDataImpl
                     r.readLine();
                 }
             }
+            String token;
             while ( ( raw = r.readLine() ) != null ) {
 
                 //  Skip blank and comment lines.
@@ -284,9 +285,11 @@ public class LineIDTXTSpecDataImpl
                 else {
                     // Should be nwords per line.
                     st = new StringTokenizer( raw );
-                    coords[nlines] = Float.parseFloat( st.nextToken() );
+                    token = st.nextToken();
+                    coords[nlines] = Float.parseFloat( token );
                     if ( needLabels ) {
-                        labels[nlines] = "Unknown-line";
+                        //  No labels so use coordinate.
+                        labels[nlines] = token;
                     }
                     else if ( haveDataPositions ) {
                         data[nlines] = Float.parseFloat( st.nextToken() );

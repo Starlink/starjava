@@ -7,39 +7,48 @@
  */
 package uk.ac.starlink.splat.iface;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractListModel;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
+import javax.swing.event.ListDataListener;
 
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.LineIDTXTSpecDataImpl;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * A simple class for controlling a {@link LineProvider}, so that
  * a list of spectral lines can be viewed and analysed, one-by-one.
  * <p>
- * This class provides controls for stepping through a list of lines that are
- * stored in a simple text file as coordinates (the text files are line
- * identifier files, with the additional capability of containing just one
- * column). When a line is "visited" it can have a state object associated
- * with it. This allows any known information associated with the line to be
- * restored.
+ * This class provides controls for selecting a line and for stepping through
+ * a list of lines. The line coordinate are stored in a simple text file (the
+ * text files are line identifier files, with the additional capability of
+ * containing just one column). When a line is "visited" it can have a state
+ * object associated with it. This allows any known information associated
+ * with the line to be restored.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
 public class LineVisitor
     extends JPanel
+    implements ActionListener
 {
     /** The LineProvider instance */
     private LineProvider provider = null;
@@ -54,11 +63,19 @@ public class LineVisitor
       * facilities */
     private LineIDSpecData specData = null;
 
+    /** Storage for labels. These need to be unique so include coordinate */
+    private ArrayList labels = new ArrayList();
+
     /** Local constants for various actions. */
-    private static final int FIRST = -2;
-    private static final int PREV = -1;
-    private static final int NEXT = 1;
-    private static final int LAST = 2;
+    public static final int FIRST = -2;
+    public static final int PREV = -1;
+    public static final int NEXT = 1;
+    public static final int LAST = 2;
+
+    /** JComboBox for selecting a coordinate directly and displaying the
+     *  current value */
+    private JComboBox lineBox = null;
+    private LineListModel lineBoxModel = null;
 
     /**
      * Create an instance.
@@ -69,6 +86,53 @@ public class LineVisitor
     {
         setLineProvider( provider );
         initUI();
+    }
+
+    /**
+     * Initialise the various user interface components.
+     */
+    protected void initUI()
+    {
+        GridBagLayouter layouter =
+            new GridBagLayouter( this, GridBagLayouter.SCHEME5 );
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+
+        //  Current line, is displayed and selectable by this control.
+        lineBoxModel = new LineListModel();
+        lineBox = new JComboBox();
+        lineBox.addActionListener( this );
+        layouter.add( lineBox, gbc );
+
+        //  Back to start.
+        FirstAction firstAction = new FirstAction();
+        JButton firstButton = new JButton( firstAction );
+        layouter.add( Box.createGlue(), false );
+        layouter.add( firstButton, false );
+
+        //  Back one line.
+        PrevAction prevAction = new PrevAction();
+        JButton prevButton = new JButton( prevAction );
+        layouter.add( Box.createGlue(), false );
+        layouter.add( prevButton, false );
+
+        //  Next line.
+        NextAction nextAction = new NextAction();
+        JButton nextButton = new JButton( nextAction );
+        layouter.add( Box.createGlue(), false );
+        layouter.add( nextButton, false );
+
+        //  Forward to last.
+        LastAction lastAction = new LastAction();
+        JButton lastButton = new JButton( lastAction );
+        layouter.add( Box.createGlue(), false );
+        layouter.add( lastButton, false );
+        layouter.add( Box.createGlue(), false );
     }
 
     /** Set the LineProvider */
@@ -88,7 +152,7 @@ public class LineVisitor
      *
      * @param action one of the local constants FIRST, PREV, NEXT and LAST.
      */
-    protected void step( int action )
+    public void step( int action )
     {
         //  Check for nothing read yet.
         if ( specData == null ) return;
@@ -97,69 +161,55 @@ public class LineVisitor
 
         //  Determine position within bounds of list, following the given
         //  action.
-        int oldPosition = position;
+        int newPosition = position;
         switch (action) {
            case FIRST: {
-               position = 0;
+               newPosition = 0;
            }
            break;
            case PREV: {
-               position--;
+               newPosition--;
            }
            break;
            case NEXT: {
-               position++;
+               newPosition++;
            }
            break;
            case LAST: {
-               position = coords.length - 1;
+               newPosition = coords.length - 1;
            }
            break;
         }
-        position = Math.max( 0, Math.min( position, coords.length - 1 ) );
-        if ( position != oldPosition ) {
-
-            //  Get current state and store.
-            if ( oldPosition != -1 ) {
-                states[oldPosition]= provider.getLineState();
-            }
-
-            //  Move to new line restoring state.
-            provider.viewLine( coords[position], states[position] );
-        }
+        newPosition = Math.max( 0, Math.min( newPosition, coords.length-1 ) );
+        moveto( newPosition, true );
     }
 
     /**
-     * Initialise the various user interface components.
+     * Move to a position in the list.
      */
-    protected void initUI()
+    protected void moveto( int newPosition, boolean updateLineBox )
     {
-        setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
+        //  Don't do anything unless needed (stops lineBox from looping).
+        if ( newPosition != position ) {
+            double[] coords = specData.getXData();
+            if ( coords != null && coords.length > 0 ) {
 
-        //  Back to start.
-        FirstAction firstAction = new FirstAction();
-        JButton firstButton = new JButton( firstAction );
-        add( Box.createGlue() );
-        add( firstButton );
+                //  Get current state and store for next time.
+                if ( position != -1 ) {
+                    states[position] = provider.getLineState();
+                }
 
-        //  Back one line.
-        PrevAction prevAction = new PrevAction();
-        JButton prevButton = new JButton( prevAction );
-        add( Box.createGlue() );
-        add( prevButton );
+                //  Move to new line. Pass stored state so it can be restored.
+                position = newPosition;
+                provider.viewLine( coords[position], states[position] );
 
-        //  Next line.
-        NextAction nextAction = new NextAction();
-        JButton nextButton = new JButton( nextAction );
-        add( Box.createGlue() );
-        add( nextButton );
+                //  Set the lineBox to show this value.
+                if ( updateLineBox ) {
+                    lineBox.setSelectedIndex( position );
+                }
 
-        //  Forward to last.
-        LastAction lastAction = new LastAction();
-        JButton lastButton = new JButton( lastAction );
-        add( Box.createGlue() );
-        add( lastButton );
-        add( Box.createGlue() );
+            }
+        }
     }
 
     /**
@@ -179,21 +229,28 @@ public class LineVisitor
         double[] coords = specData.getXData();
         states = new Object[coords.length];
 
-        //  Move to first line.
+        //  Generate labels for JComboBox. Must be unique, so add index.
+        labels.clear();
+        String[] specLabels = specData.getLabels();
+        for ( int i = 0; i < specLabels.length; i++ ) {
+            labels.add( i + ": " + specLabels[i] );
+        }
+
+        //  Move to first line. Reset model to force update of lineBox.
         position = -1;
+        lineBox.setModel( lineBoxModel );
         step( FIRST );
     }
 
     //  Provide enabled so that children are affected.
     public void setEnabled( boolean enabled )
     {
+        super.setEnabled( enabled );
         Component[] children = getComponents();
         for ( int i = 0; i < children.length; i++ ) {
             children[i].setEnabled( enabled );
         }
     }
-
-
 
     /**
      * Inner class defining Action for stepping to start of list.
@@ -272,4 +329,56 @@ public class LineVisitor
     private final static ImageIcon lastImage =
         new ImageIcon( ImageHolder.class.getResource( "last.gif" ) );
 
+    //
+    // Implement ActionListener interface.
+    //
+    public void actionPerformed( ActionEvent e )
+    {
+        //  Move to the selected line.
+        moveto( lineBox.getSelectedIndex(), false );
+    }
+
+    //
+    // Implement a simple ComboBoxModel that uses the labels of the enclosing
+    // class instance.
+    //
+    protected class LineListModel
+        extends AbstractListModel
+        implements ComboBoxModel
+    {
+        public LineListModel()
+        {
+            // Do nothing.
+        }
+        public Object getSelectedItem()
+        {
+            if ( specData != null && position != -1 ) {
+                return labels.get( position );
+            }
+            return null;
+        }
+        public void setSelectedItem( Object anItem )
+        {
+            if ( specData == null ) return;
+            int index = labels.indexOf( anItem );
+            if ( index > -1 ) {
+                moveto( index, false );
+                fireContentsChanged( this, -1, -1 );
+            }
+        }
+        public Object getElementAt( int index )
+        {
+            if ( specData != null ) {
+                return labels.get( index );
+            }
+            return null;
+        }
+        public int getSize()
+        {
+            if ( specData != null ) {
+                return labels.size();
+            }
+            return 0;
+        }
+    }
 }
