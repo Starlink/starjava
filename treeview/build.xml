@@ -84,6 +84,12 @@
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.treeview"/>
 
+  <!-- Human-readable copyright string -->
+  <property name="copyright.string"
+            value="Copyright &#169; ${year} \\
+    CLRC: Central Laboratory of the Research Councils.
+    All Rights Reserved."/>
+
   <!-- Compilation options -->
   <property name="debug" value="true"/>
   <property name="deprecation" value="true"/>
@@ -120,6 +126,7 @@
 
   <!-- Directories for JUnit test cases and related files -->
   <property name="src.etc" value="${src.dir}/etc"/>
+  <property name="src.lib" value="${src.dir}/lib"/>
   <property name="tests.dir" value="${src.dir}/testcases"/>
   <property name="tests.etc.dir" value="${src.etc}/testcases"/>
 
@@ -218,6 +225,26 @@
     <pathelement location="${star.jar.dir}/sog/sog.jar"/>
 
   </extclasspath>
+
+  <!-- As above
+   !
+   !   Exactly the same as above, but as a plain path.  Used when
+   !   outputting the list of dependencies.  When and if the extclasspath
+   !   above can be replaced by a plain path, or when one can be generated
+   !   from the other, this should be removed.
+   !-->
+<!--
+XXX delete
+  <path id="installed.jarpath">
+    <pathelement location="${star.jar.dir}/datanode/datanode.jar"/>
+    <pathelement location="${star.jar.dir}/axis/axis.jar"/>
+    <pathelement location="${star.jar.dir}/jsky/jsky.jar"/>
+    <pathelement location="${star.jar.dir}/jaiutil/jaiutil.jar"/>
+    <pathelement location="${star.jar.dir}/topcat/topcat.jar"/>
+    <pathelement location="${star.jar.dir}/splat/splat.jar"/>
+    <pathelement location="${star.jar.dir}/sog/sog.jar"/>
+  </path>
+-->
 
   <!-- Local build system jar files.
    !
@@ -527,6 +554,45 @@
 
   </target>
 
+  <!-- Create an MacOS X Java application bundle, using the osxjarbundler ant
+   !   task built in to Starlink ant (but derived from the task available
+   !   from http://www.loomcom.com/jarbundler/
+   !
+   !   See http://developer.apple.com/documentation/Java/Conceptual/Java14Development/index.html if you're really interested in the gory details.
+   !
+   !   The osxjarbundler task will work only on OS X (it checks)
+   !-->
+  <target name="build_osxapp"
+          depends="build_demo,build-standalone">
+    <mkdir dir="release"/>
+    <osxjarbundler dir="release"
+                mainclass="${package.name}.Driver"
+                name="${Name}"
+                aboutmenuname="${Name}"
+                bundleid="${package.name}"
+                icon="${src.lib}/MacOS/Treeview.icns"
+                infostring="${Name} ${version} ${copyright.string}"
+                jvmversion="1.5*"
+                screenmenu="true"
+                version="${version}"
+                jars="${dist.lib.pkg}/treeview-full.jar">
+
+      <resourcefileset dir="${star.dir}/lib"
+                       includes="ppc/*.jnilib"/>
+      <javaproperty key="java.library.path"
+                    value="$APP_PACKAGE/Contents/Resources/ppc"/>
+
+      <!-- demo data lives in ${build.etc}/demo (see target build_demo) -->
+      <resourcefileset dir="${build.etc}"
+                       includes="demo/**"/>
+      <javaproperty key="uk.ac.starlink.treeview.demodir"
+                    value="$APP_PACKAGE/Contents/Resources/demo"/>
+
+      <javaproperty key="uk.ac.starlink.treeview.cmdname"
+                    value="treeview"/>
+    </osxjarbundler>
+  </target>
+
   <!--
    !   ============================
    !   Create the package jar files
@@ -578,6 +644,38 @@
       </fileset>
     </signjar>
 
+  </target>
+
+  <!--
+   !   ==========================
+   !   Build standalone jar files
+   !   ==========================
+   !
+   !  Builds a jar file which can be used on its own, without needing any
+   !  other jars to be present. (patterned after the similar target in TopCat)
+   !-->
+  <target name="build-standalone"
+          depends="install"
+          description="-> builds a standalone jar file">
+    <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
+      <classpath refid="classpath"/>
+      <arg value="-o"/><arg value="${dist.lib.pkg}/treeview-full.jar"/>
+      <arg value="-x"/><arg value="junit.jar"/>
+      <arg value="-x"/><arg value="log4j.jar"/>
+      <arg value="-x"/><arg value="log4j-core.jar"/>
+      <arg value="-x"/><arg value="jsky/jel.jar"/>
+      <arg value="-x"/><arg value="diva/acme.jar"/>
+      <arg value="-x"/><arg value="splat.jar"/>
+      <arg value="-x"/><arg value="gsi-classes.jar"/>
+      <arg value="${star.lib.pkg}/treeview.jar"/>
+    </java>
+    <signjar alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib.pkg}"
+               includes="treeview-full.jar"/>
+    </signjar>
   </target>
 
   <!--
@@ -1033,9 +1131,7 @@
 
       <group title="${Name} API" packages="${package.name}*"/>
 
-      <bottom>Copyright &#169; ${year} \\
-              CLRC: Central Laboratory of the Research Councils.
-              All Rights Reserved.</bottom>
+      <bottom>${copyright.string}</bottom>
     </javadoc>
 
   </target>
